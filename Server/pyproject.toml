@@ -78,8 +78,8 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 # --- Pyright: import resolution (catches missing modules); type checking off to avoid 600+ existing issues ---
+# pythonVersion: omit so each venv's lib/pythonX.Y/site-packages is used (pin only if you must match CI stubs).
 [tool.pyright]
-pythonVersion = "3.11"
 typeCheckingMode = "off"
 venvPath = "."
 venv = ".venv"

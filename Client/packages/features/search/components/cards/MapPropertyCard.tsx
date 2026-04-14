@@ -1,7 +1,10 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
+
+import { Icon } from "@ui/icons";
 
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import IconButton from "packages/ui/components/button/IconButton";
 import { Box } from "packages/ui/components/primitives";
 
 import { PERFECT_CRITERIA_MATCH_CARD_CLASSNAME } from "@/components/cards/perfectMatchCardGlowClasses";
@@ -11,6 +14,7 @@ import {
   isListingFullCriteriaMatch,
   type SearchResult,
 } from "@/features/search/types";
+import { SEARCH_TRANSLATIONS } from "@/features/search/types/translations";
 
 export type MapPropertyCardProps = MapPropertyCardRenderProps & {
   onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void;
@@ -52,6 +56,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   isHomeSaved,
   saveHome,
   removeSavedHome,
+  onDismissMapPreview,
 }) => {
   useEffect(() => {
     if (onCardRendered) {
@@ -99,12 +104,43 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
 
   const fullCriteriaMatch = isListingFullCriteriaMatch(searchResult);
 
+  const handleDismissPreview = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onDismissMapPreview?.(property.id);
+    },
+    [onDismissMapPreview, property.id],
+  );
+
+  const stopPointerBubble = useCallback((e: React.PointerEvent) => {
+    e.stopPropagation();
+  }, []);
+
   return (
     <Box
       className={`relative scale-90 transform ${
         fullCriteriaMatch ? PERFECT_CRITERIA_MATCH_CARD_CLASSNAME : ""
       }`}
     >
+      {isDev && onDismissMapPreview ? (
+        <Box className="absolute left-0 top-0 z-20 -translate-x-1 -translate-y-1">
+          <IconButton
+            type="button"
+            variant="toolbar"
+            size="sm"
+            rounded="full"
+            label={
+              SEARCH_TRANSLATIONS["search.dismiss_map_listing_preview"] ??
+              "Hide this listing preview on the map"
+            }
+            icon={<Icon name="x" className="h-4 w-4" />}
+            onClick={handleDismissPreview}
+            onPointerDown={stopPointerBubble}
+            className="bg-background-surface/95 shadow-sm ring-1 ring-border"
+          />
+        </Box>
+      ) : null}
       <SearchResultListingCard
         property={searchResult}
         activeTab={activeTab}

@@ -16,6 +16,12 @@ export type LatLng = {
   lng: number;
 };
 
+/** Optional hooks for dev map listing preview lifecycle (clear dismissals on new search, enable previews when results land). */
+export type MapPreviewSearchLifecycleHooks = {
+  onSearchStartClearDismissals?: () => void;
+  onResultsCommittedEnablePreviews?: () => void;
+};
+
 export type SearchResult = {
   id: string;
   address: string;
@@ -110,6 +116,7 @@ async function handlePolygonSearchResponse(
   setHasSearched: (searched: boolean) => void,
   setCurrentPage: (page: number) => void,
   setShowPropertyModals: (show: boolean) => void,
+  mapPreview?: MapPreviewSearchLifecycleHooks,
 ): Promise<void> {
   if (!searchResult.success) {
     throw new Error(searchResult.error ?? "Search failed");
@@ -207,6 +214,7 @@ async function handlePolygonSearchResponse(
   setIsSearching(false);
   setCurrentPage(0);
   setShowPropertyModals(true);
+  mapPreview?.onResultsCommittedEnablePreviews?.();
 
   log.info(
     LOG_CATEGORIES.SEARCH,
@@ -237,10 +245,12 @@ export const searchPropertiesInIsochrone = async (
   preferencesStrictFilter: boolean,
   preferencesUserId?: string | null,
   signal?: AbortSignal,
+  mapPreview?: MapPreviewSearchLifecycleHooks,
 ): Promise<void> => {
   setIsSearching(true);
   setSearchStage("Locating homes in your area...");
   setSearchResults([]);
+  mapPreview?.onSearchStartClearDismissals?.();
 
   if (!isochroneData?.isochrone?.geometry) {
     log.warn(
@@ -304,6 +314,7 @@ export const searchPropertiesInIsochrone = async (
       setHasSearched,
       setCurrentPage,
       setShowPropertyModals,
+      mapPreview,
     );
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -342,10 +353,12 @@ export const searchPropertiesInViewport = async (
   preferencesStrictFilter: boolean,
   preferencesUserId?: string | null,
   signal?: AbortSignal,
+  mapPreview?: MapPreviewSearchLifecycleHooks,
 ): Promise<void> => {
   setIsSearching(true);
   setSearchStage("Searching this area...");
   setSearchResults([]);
+  mapPreview?.onSearchStartClearDismissals?.();
 
   if (!viewportPolygon || viewportPolygon.length < 4) {
     log.warn(LOG_CATEGORIES.SEARCH, "Viewport polygon missing or too small");
@@ -387,6 +400,7 @@ export const searchPropertiesInViewport = async (
       setHasSearched,
       setCurrentPage,
       setShowPropertyModals,
+      mapPreview,
     );
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {

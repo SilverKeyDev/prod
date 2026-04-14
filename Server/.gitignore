@@ -26,7 +26,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-tests/
 .venv/
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -138,8 +137,7 @@ cython_debug/
 /static/reports/*
 
 
-# Test files and directories
-pytest.ini
+# Test cache
 .pytest_cache/
 
 # Backend environment variables

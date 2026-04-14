@@ -191,7 +191,7 @@ export function CreateEventModalForm({
               endTime={endTime}
               onStartTimeChange={onStartTimeChange}
               onEndTimeChange={onEndTimeChange}
-              menuPlacement="above"
+              menuPlacement="overlap"
               menuInPortal
               menuPortalStack="modal"
               trailingSlot={

@@ -16,6 +16,7 @@ import { normalizeIsochroneApiData } from "packages/features/search/utils/normal
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import {
+  type MapPreviewSearchLifecycleHooks,
   searchPropertiesInIsochrone,
   searchPropertiesInViewport,
 } from "@/features/search/api/propertySearch";
@@ -54,6 +55,7 @@ export type UseSearchPageMapGeoSearchParams = {
   preferencesSubjectUserId?: string | null;
   getSearchAbortSignal: () => AbortSignal | undefined;
   saveLastSearchContext?: (ctx: LastSearchContext) => void;
+  mapPreviewSearchLifecycle: MapPreviewSearchLifecycleHooks;
 };
 
 export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
@@ -86,6 +88,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     preferencesSubjectUserId,
     getSearchAbortSignal,
     saveLastSearchContext,
+    mapPreviewSearchLifecycle,
   } = p;
 
   const runPreferencesSearch = useCallback(async () => {
@@ -145,6 +148,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
         preferencesStrictFilter,
         preferencesSubjectUserId,
         getSearchAbortSignal(),
+        mapPreviewSearchLifecycle,
       );
 
       if (saveLastSearchContext) {
@@ -190,6 +194,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     clearLocationPlaceSearchArea,
     showCommuteOverlayRef,
     saveLastSearchContext,
+    mapPreviewSearchLifecycle,
   ]);
 
   const runViewportSearch = useCallback(async () => {
@@ -241,6 +246,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
         preferencesStrictFilter,
         preferencesSubjectUserId,
         getSearchAbortSignal(),
+        mapPreviewSearchLifecycle,
       );
 
       if (saveLastSearchContext) {
@@ -284,6 +290,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     preferencesSubjectUserId,
     getSearchAbortSignal,
     saveLastSearchContext,
+    mapPreviewSearchLifecycle,
   ]);
 
   return { runPreferencesSearch, runViewportSearch };

@@ -110,6 +110,8 @@ Client/playwright/.cache/
 *_test.py
 tests/
 test/
+Server/tests/
+Server/pytest.ini
 
 # ============================================
 # Server-specific (dev, cache, tooling)

@@ -5,6 +5,7 @@ import { formatPropertyType } from "packages/features/search/types/search/proper
 import { displayListingPriceForCard } from "packages/features/search/utils/formatPropertySearchListingPrice";
 import CardNotInterested from "packages/ui/components/button/NotInterested";
 import { Box } from "packages/ui/components/primitives";
+import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
 
 import {
   CardHeartSaveWithProps,
@@ -46,6 +47,10 @@ export function SearchResultListingCard({
   bottomContent,
 }: SearchResultListingCardProps): JSX.Element {
   const showScoreRow = activeTab === "results" && showMatchScore;
+  const addressTitle =
+    typeof property.address === "string" || typeof property.address === "number"
+      ? addressStreetLineForCard(property.address)
+      : "[Invalid address]";
 
   const imageAndBody = (
     <>
@@ -152,10 +157,7 @@ export function SearchResultListingCard({
             size="sm"
             className="mb-1 line-clamp-2 font-medium text-neutral-800"
           >
-            {typeof property.address === "string" ||
-            typeof property.address === "number"
-              ? property.address
-              : "[Invalid address]"}
+            {addressTitle}
           </Title>
 
           {activeTab === "results" ? (

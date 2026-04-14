@@ -1,6 +1,7 @@
 import { useLocalization } from "packages/contexts";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
 import { Box } from "packages/ui/components/primitives";
+import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
 
 import { PropertyCard } from "@/components/cards";
 import {
@@ -69,7 +70,7 @@ export function PropertyCarousel(props: {
             address={
               typeof property.address === "string" ||
               typeof property.address === "number"
-                ? property.address.toString()
+                ? addressStreetLineForCard(property.address)
                 : "[Invalid address]"
             }
             price={

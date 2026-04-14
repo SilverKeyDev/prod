@@ -19,12 +19,15 @@ function panelPortalTransform(
   if (side === "top") {
     return `${base} translate(0, -100%)`;
   }
+  if (side === "overlap") {
+    return `${base} translate(0, -50%)`;
+  }
   return base;
 }
 
 /**
  * Minimal popover: trigger + panel that closes on outside click and Escape.
- * Panel position uses getBoundingClientRect when usePortal is true (`side`: bottom, top, or left).
+ * Panel position uses getBoundingClientRect when usePortal is true (`side`: bottom, top, left, or overlap).
  */
 const PANEL_Z_BY_STACK = {
   page: "z-dropdown",
@@ -183,9 +186,11 @@ export default function Popover({
         open && (
           <Box
             className={
-              side === "top"
-                ? `${panelZ} absolute bottom-full left-0 mb-1`
-                : `${panelZ} absolute left-0 top-full mt-1`
+              side === "overlap"
+                ? `${panelZ} absolute left-0 top-1/2 -translate-y-1/2`
+                : side === "top"
+                  ? `${panelZ} absolute bottom-full left-0 mb-1`
+                  : `${panelZ} absolute left-0 top-full mt-1`
             }
           >
             {panelContent}
@@ -210,6 +215,12 @@ function updatePanelPosition(
       break;
     case "top":
       setPosition({ left: rect.left, top: rect.top - triggerPanelGap });
+      break;
+    case "overlap":
+      setPosition({
+        left: rect.left,
+        top: rect.top + rect.height / 2,
+      });
       break;
     case "bottom":
     default:

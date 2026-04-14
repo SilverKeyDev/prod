@@ -64,6 +64,12 @@ export function useSearchPageData() {
   const resultsOrderBy = useFiltersStore((s) => s.resultsOrderBy);
   const userGeolocation = useFiltersStore((s) => s.userGeolocation);
   const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);
+  const setShowMapListingPreviews = useFiltersStore(
+    (s) => s.setShowMapListingPreviews,
+  );
+  const clearDismissedMapPreviews = useFiltersStore(
+    (s) => s.clearDismissedMapPreviews,
+  );
   const { userPreferences } = useUserPreferences({
     preferencesSubjectUserId: agentViewClientId,
   });
@@ -192,12 +198,16 @@ export function useSearchPageData() {
     if (searchResults.length > 0 && !hasSearched) {
       setHasSearched(true);
       setShowPropertyModals(true);
+      clearDismissedMapPreviews();
+      setShowMapListingPreviews(true);
     }
   }, [
     searchResults.length,
     hasSearched,
     setHasSearched,
     setShowPropertyModals,
+    clearDismissedMapPreviews,
+    setShowMapListingPreviews,
   ]);
 
   useEffect(() => {

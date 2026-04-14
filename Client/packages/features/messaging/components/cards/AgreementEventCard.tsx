@@ -5,7 +5,10 @@
 
 import { Icon } from "@ui/icons";
 
-import type { AgreementEventPayload } from "packages/features/messaging/utils/agreementEventPayload";
+import {
+  AGREEMENT_EVENT_HEADLINES,
+  type AgreementEventPayload,
+} from "packages/features/messaging/utils/agreementEventPayload";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button } from "@/components/ui";
@@ -25,28 +28,28 @@ const EVENT_CONFIG: Record<
     iconColor: "text-blue-600",
     borderColor: "border-blue-200",
     bgColor: "bg-blue-50",
-    headline: "Document sent for signature",
+    headline: AGREEMENT_EVENT_HEADLINES.sent,
   },
   client_signed: {
     iconName: "file-signature",
     iconColor: "text-amber-600",
     borderColor: "border-amber-200",
     bgColor: "bg-amber-50",
-    headline: "Client signed the document",
+    headline: AGREEMENT_EVENT_HEADLINES.client_signed,
   },
   agent_signed: {
     iconName: "file-signature",
     iconColor: "text-indigo-600",
     borderColor: "border-indigo-200",
     bgColor: "bg-indigo-50",
-    headline: "Agent countersigned the document",
+    headline: AGREEMENT_EVENT_HEADLINES.agent_signed,
   },
   completed: {
     iconName: "check",
     iconColor: "text-green-600",
     borderColor: "border-green-200",
     bgColor: "bg-green-50",
-    headline: "All parties have signed",
+    headline: AGREEMENT_EVENT_HEADLINES.completed,
   },
 };
 

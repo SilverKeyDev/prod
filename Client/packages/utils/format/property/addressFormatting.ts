@@ -146,6 +146,37 @@ function titleCase(s: string): string {
  * Strips zip code, state, and country from an address for use in map marker titles.
  * Keeps street address and city only.
  */
+/**
+ * Street line only for compact property/home cards. Drops city, state, and ZIP
+ * when the string uses the usual comma-separated US form ("Street, City, ST, ZIP").
+ * For a single segment, strips a trailing "ST ZIP" suffix when present.
+ */
+export function addressStreetLineForCard(
+  address: string | number | undefined | null,
+): string {
+  if (address == null) return "";
+  const raw = typeof address === "number" ? String(address) : address;
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+
+  const segments = trimmed
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (segments.length >= 2) {
+    return segments[0] ?? trimmed;
+  }
+
+  const withoutStateZip = trimmed
+    .replace(/,?\s+[A-Z]{2}\s*,?\s*\d{5}(?:-\d{4})?\s*$/i, "")
+    .trim();
+  if (withoutStateZip.length > 0 && withoutStateZip.length < trimmed.length) {
+    return withoutStateZip;
+  }
+
+  return trimmed;
+}
+
 export function addressForMarkerTitle(address: string | undefined): string {
   if (!address || typeof address !== "string") return "";
   const parts = address

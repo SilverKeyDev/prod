@@ -1,5 +1,5 @@
 import { addressForMarkerTitle } from "packages/features/search/types/search/address";
-import { getMapFocusedProperties } from "packages/features/search/types/search/mapCardFocus";
+import { getMapFocusedPropertiesExcludingDismissed } from "packages/features/search/types/search/mapCardFocus";
 import { searchMapHomeCardZIndex } from "packages/features/search/types/search/mapOverlayLayerOrder";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
@@ -38,6 +38,8 @@ type FocusedCardMarkerOptions = {
   onMarkerClick?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void | Promise<void>;
   contextKey?: string;
+  dismissedPreviewIds?: ReadonlySet<string>;
+  onDismissMapPreview?: (propertyId: string) => void;
   onComplete: () => void;
 };
 
@@ -111,6 +113,7 @@ function placeFocusedCardAtCoords(
       isHomeSaved,
       saveHome,
       removeSavedHome,
+      onDismissMapPreview: options.onDismissMapPreview,
     });
   } catch (error) {
     log.error(
@@ -209,7 +212,13 @@ export function addFocusedCardMarkers(
   cardCount: number,
   options: FocusedCardMarkerOptions,
 ): void {
-  const slice = getMapFocusedProperties(results, startPage, cardCount);
+  const dismissed = options.dismissedPreviewIds ?? new Set<string>();
+  const slice = getMapFocusedPropertiesExcludingDismissed(
+    results,
+    startPage,
+    cardCount,
+    dismissed,
+  );
   if (slice.length === 0) {
     options.onComplete();
     return;

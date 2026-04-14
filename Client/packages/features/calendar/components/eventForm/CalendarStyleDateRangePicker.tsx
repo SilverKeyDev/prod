@@ -159,7 +159,7 @@ export function CalendarStyleDateRangePicker({
         open={popoverOpen}
         onOpenChange={setPopoverOpen}
         panelStack="modal"
-        side="top"
+        side="overlap"
         panelMinWidth="320px"
         panelClassName="p-3"
         triggerWrapperClassName="w-full min-w-0"

@@ -54,3 +54,26 @@ export function getMapFocusedProperties(
   }
   return out;
 }
+
+/**
+ * Same as walking the results window, but skips listings whose preview was dismissed (dev map cards).
+ * May return fewer than `count` entries.
+ */
+export function getMapFocusedPropertiesExcludingDismissed(
+  results: SearchResult[],
+  startPage: number,
+  count: number,
+  dismissedIds: ReadonlySet<string>,
+): SearchResult[] {
+  if (!results.length || count < 1 || startPage < 0) return [];
+  const out: SearchResult[] = [];
+  let idx = startPage;
+  while (out.length < count && idx < results.length) {
+    const p = results[idx];
+    if (p && !dismissedIds.has(p.id)) {
+      out.push(p);
+    }
+    idx += 1;
+  }
+  return out;
+}

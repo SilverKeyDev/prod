@@ -28,6 +28,8 @@ export type MapPropertyCardRenderProps = {
     propertyId: string,
     propertyAddress?: string,
   ) => Promise<void>;
+  /** Dev-only: hide this listing’s floating map card */
+  onDismissMapPreview?: (propertyId: string) => void;
 };
 
 export type UseMapMarkersProps = {
@@ -58,6 +60,10 @@ export type UseMapMarkersProps = {
     onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void,
   ) => void;
   cleanupMapPropertyCard: (container: HTMLElement) => void;
+  /** When false, map pins still render but floating preview cards are skipped (dev only). */
+  mapListingPreviewsEnabled?: boolean;
+  dismissedMapPreviewIds?: readonly string[];
+  onDismissMapPreview?: (propertyId: string) => void;
 };
 
 export interface GoogleMap {

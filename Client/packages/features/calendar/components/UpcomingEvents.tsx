@@ -38,7 +38,6 @@ import {
 
 import { AllAgendaEventsModal } from "./view/AllAgendaEventsModal";
 import { CalendarConnectionPrompt } from "./view/CalendarConnectionPrompt";
-import { CompletedAgendaTodosModal } from "./view/CompletedAgendaTodosModal";
 import { EventList } from "./view/EventList";
 import { UpcomingAgendaList } from "./view/UpcomingAgendaList";
 
@@ -99,7 +98,6 @@ export function UpcomingEvents({
   const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(
     () => new Set(),
   );
-  const [completedTodosModalOpen, setCompletedTodosModalOpen] = useState(false);
   const [allAgendaEventsModalOpen, setAllAgendaEventsModalOpen] =
     useState(false);
 
@@ -303,18 +301,11 @@ export function UpcomingEvents({
     setAllAgendaEventsModalOpen(true);
   }, []);
 
-  const openCompletedTodosModal = useCallback(() => {
-    setCompletedTodosModalOpen(true);
-  }, []);
-
   const { agendaHeaderActions, eventListHeaderActions } =
     useUpcomingAgendaHeaderActions({
       showDisplayAll,
-      useAgendaList,
-      completedTodoCount: completedAgendaTodosSorted.length,
       headerActions,
       openAllAgendaModal,
-      openCompletedTodosModal,
     });
 
   const agendaListProps = {
@@ -332,17 +323,6 @@ export function UpcomingEvents({
     canEditAgendaTodos,
     onSigningAgendaPress,
   };
-
-  const completedTodosModalEl =
-    useAgendaList && completedAgendaTodosSorted.length > 0 ? (
-      <CompletedAgendaTodosModal
-        isOpen={completedTodosModalOpen}
-        onClose={() => setCompletedTodosModalOpen(false)}
-        completedTodos={completedAgendaTodosSorted}
-        onToggleAgendaTodo={onToggleAgendaTodo}
-        canEditAgendaTodos={canEditAgendaTodos}
-      />
-    ) : null;
 
   const allAgendaEventsModalEl = showDisplayAll ? (
     <AllAgendaEventsModal
@@ -393,7 +373,6 @@ export function UpcomingEvents({
             items={mergeUpcomingAgendaItems([], agendaTodosIncompleteInRange)}
             {...agendaListProps}
           />
-          {completedTodosModalEl}
           {allAgendaEventsModalEl}
         </Box>
       );
@@ -429,7 +408,6 @@ export function UpcomingEvents({
           items={mergeUpcomingAgendaItems([], agendaTodosIncompleteInRange)}
           {...agendaListProps}
         />
-        {completedTodosModalEl}
         {allAgendaEventsModalEl}
       </Box>
     );
@@ -457,7 +435,6 @@ export function UpcomingEvents({
           calendars={scopedCalendars}
         />
       )}
-      {completedTodosModalEl}
       {allAgendaEventsModalEl}
     </Box>
   );

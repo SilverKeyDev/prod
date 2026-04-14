@@ -53,7 +53,7 @@ export function filterTodosInRange(
 }
 
 /**
- * Completed to-dos in "View all" — due date descending; undated last; then title.
+ * Completed to-dos in full agenda / completed-only lists — due date descending; undated last; then title.
  */
 export function sortCompletedAgendaTodosForDisplay(
   todos: AgendaTodoDTO[],

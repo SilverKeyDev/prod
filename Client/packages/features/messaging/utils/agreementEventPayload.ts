@@ -5,7 +5,36 @@ export type AgreementEventPayload = {
   event: "sent" | "client_signed" | "agent_signed" | "completed";
 };
 
+/** In-thread card headline (full sentence). */
+export const AGREEMENT_EVENT_HEADLINES: Record<
+  AgreementEventPayload["event"],
+  string
+> = {
+  sent: "Document sent for signature",
+  client_signed: "Client signed the document",
+  agent_signed: "Agent countersigned the document",
+  completed: "All parties have signed",
+};
+
+/** Short sidebar / list preview by lifecycle event (matches server `event` field). */
+export const AGREEMENT_EVENT_PREVIEW_LABELS: Record<
+  AgreementEventPayload["event"],
+  string
+> = {
+  sent: "Request for signature",
+  client_signed: "Client signed",
+  agent_signed: "Agent signed",
+  completed: "Document completed",
+};
+
 export const AGREEMENT_EVENT_PREFIX = "__AGREEMENT_EVENT__";
+
+export function getAgreementEventPreviewLabel(event: string): string {
+  if (event in AGREEMENT_EVENT_PREVIEW_LABELS) {
+    return AGREEMENT_EVENT_PREVIEW_LABELS[event as AgreementEventPayload["event"]];
+  }
+  return "Agreement update";
+}
 
 export function parseAgreementEventPayload(
   content: string | null | undefined,

@@ -38,6 +38,9 @@ export const useMapMarkers = ({
   contextKey,
   renderMapPropertyCard,
   cleanupMapPropertyCard,
+  mapListingPreviewsEnabled = true,
+  dismissedMapPreviewIds = [],
+  onDismissMapPreview,
 }: UseMapMarkersProps): UseMapMarkersReturn => {
   const markersRef = useRef<GoogleAdvancedMarkerElement[]>([]);
   const importantMarkersRef = useRef<GoogleAdvancedMarkerElement[]>([]);
@@ -99,6 +102,11 @@ export const useMapMarkers = ({
         calculatePropertyScore,
         onMarkerClick,
         onBatchComplete: () => {
+          if (!mapListingPreviewsEnabled) {
+            setIsUpdatingMarkers(false);
+            return;
+          }
+          const dismissedPreviewIds = new Set(dismissedMapPreviewIds);
           addFocusedCardMarkers(results, currentPage, propertiesPerPage, {
             activeTab,
             map: googleMapRef.current! as google.maps.Map,
@@ -113,6 +121,8 @@ export const useMapMarkers = ({
             onMarkerClick,
             onUnlockClick,
             contextKey,
+            dismissedPreviewIds,
+            onDismissMapPreview,
             onComplete: () => setIsUpdatingMarkers(false),
           });
         },
@@ -138,6 +148,9 @@ export const useMapMarkers = ({
       renderMapPropertyCard,
       cleanupMapPropertyCard,
       contextKey,
+      mapListingPreviewsEnabled,
+      dismissedMapPreviewIds,
+      onDismissMapPreview,
     ],
   );
 

@@ -54,6 +54,13 @@ export type FiltersState = {
   userGeolocation: { lat: number; lng: number } | null;
   /** Server: always run preference post-filters; when false, lenient until pool has more than 100 homes */
   preferencesStrictFilter: boolean;
+  /**
+   * Dev-only: floating map listing preview cards. Not persisted.
+   * Default false until first successful search; then enabled automatically (dev builds only).
+   */
+  showMapListingPreviews: boolean;
+  /** Dev-only: listing ids whose map preview cards are hidden; pins remain. Not persisted. */
+  dismissedMapPreviewIds: string[];
 
   // Actions
   setActiveTab: (tab: ActiveTab) => void;
@@ -72,6 +79,9 @@ export type FiltersState = {
   ) => void;
   setUserGeolocation: (coords: { lat: number; lng: number } | null) => void;
   applySearchDisplayFromApi: (payload: SearchDisplayPayload) => void;
+  setShowMapListingPreviews: (show: boolean) => void;
+  dismissMapListingPreview: (propertyId: string) => void;
+  clearDismissedMapPreviews: () => void;
 
   // Utils
   isHomeSaved: (propertyId: string) => boolean;
@@ -96,6 +106,9 @@ const initialState = (): Omit<
   | "setUserGeolocation"
   | "setPreferencesStrictFilter"
   | "applySearchDisplayFromApi"
+  | "setShowMapListingPreviews"
+  | "dismissMapListingPreview"
+  | "clearDismissedMapPreviews"
   | "isHomeSaved"
   | "reset"
 > => ({
@@ -113,6 +126,8 @@ const initialState = (): Omit<
   resultsOrderBy: DEFAULT_RESULTS_ORDER_BY,
   userGeolocation: null,
   preferencesStrictFilter: false,
+  showMapListingPreviews: false,
+  dismissedMapPreviewIds: [],
 });
 
 const baseCreator: import("zustand").StateCreator<FiltersState> = (
@@ -173,6 +188,16 @@ const baseCreator: import("zustand").StateCreator<FiltersState> = (
       }
       return updates;
     }),
+  setShowMapListingPreviews: (show) => set({ showMapListingPreviews: show }),
+  dismissMapListingPreview: (propertyId) =>
+    set((state) =>
+      state.dismissedMapPreviewIds.includes(propertyId)
+        ? state
+        : {
+            dismissedMapPreviewIds: [...state.dismissedMapPreviewIds, propertyId],
+          },
+    ),
+  clearDismissedMapPreviews: () => set({ dismissedMapPreviewIds: [] }),
   isHomeSaved: (propertyId: string) => {
     const state = get();
     return state.favoriteAddresses.includes(propertyId);
@@ -240,6 +265,19 @@ const withReset = withResettable<FiltersState>(
         }
         return updates;
       }),
+    setShowMapListingPreviews: (show) => set({ showMapListingPreviews: show }),
+    dismissMapListingPreview: (propertyId) =>
+      set((state) =>
+        state.dismissedMapPreviewIds.includes(propertyId)
+          ? state
+          : {
+              dismissedMapPreviewIds: [
+                ...state.dismissedMapPreviewIds,
+                propertyId,
+              ],
+            },
+      ),
+    clearDismissedMapPreviews: () => set({ dismissedMapPreviewIds: [] }),
     isHomeSaved: () => false,
     reset: () => {},
   }),

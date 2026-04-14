@@ -1,5 +1,5 @@
 /// <reference types="google.maps" />
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import {
   searchPropertiesInIsochrone,
@@ -51,6 +51,22 @@ export function SearchScreen() {
   const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);
   const preferencesStrictFilter = useFiltersStore(
     (s) => s.preferencesStrictFilter,
+  );
+  const clearDismissedMapPreviews = useFiltersStore(
+    (s) => s.clearDismissedMapPreviews,
+  );
+  const setShowMapListingPreviewsAction = useFiltersStore(
+    (s) => s.setShowMapListingPreviews,
+  );
+  const mapPreviewSearchLifecycle = useMemo(
+    () => ({
+      onSearchStartClearDismissals: clearDismissedMapPreviews,
+      onResultsCommittedEnablePreviews: () => {
+        clearDismissedMapPreviews();
+        setShowMapListingPreviewsAction(true);
+      },
+    }),
+    [clearDismissedMapPreviews, setShowMapListingPreviewsAction],
   );
   const authReady = useAuthStore((s) => s.authReady);
   useSearchDisplaySettings(authReady);
@@ -157,6 +173,7 @@ export function SearchScreen() {
         preferencesStrictFilter,
         selectedClientId,
         controller.signal,
+        mapPreviewSearchLifecycle,
       );
       log.info(
         LOG_CATEGORIES.SEARCH,
@@ -190,6 +207,7 @@ export function SearchScreen() {
     setSearchSource,
     clearLocationPlaceSearchArea,
     selectedClientId,
+    mapPreviewSearchLifecycle,
   ]);
 
   const runMapAreaSearch = useCallback(async () => {
@@ -233,6 +251,7 @@ export function SearchScreen() {
         preferencesStrictFilter,
         selectedClientId,
         controller.signal,
+        mapPreviewSearchLifecycle,
       );
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
@@ -261,6 +280,7 @@ export function SearchScreen() {
     lastMapRegion,
     setLocationSearchOverlayData,
     selectedClientId,
+    mapPreviewSearchLifecycle,
   ]);
 
   const criteriaSummary = useSearchScreenCriteriaSummary(

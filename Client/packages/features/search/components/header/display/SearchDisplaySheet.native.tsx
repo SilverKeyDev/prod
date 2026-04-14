@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 
 import { Modal, Pressable, StyleSheet, Switch } from "react-native";
 
+import { getEnv } from "packages/config/env";
 import { color } from "packages/design-tokens";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useFiltersStore } from "packages/features/search/store/filters.slice";
@@ -49,6 +50,14 @@ export function SearchDisplaySheetNative({
   const setPreferencesStrictFilter = useFiltersStore(
     (s) => s.setPreferencesStrictFilter,
   );
+  const hasSearched = useFiltersStore((s) => s.hasSearched);
+  const showMapListingPreviews = useFiltersStore(
+    (s) => s.showMapListingPreviews,
+  );
+  const setShowMapListingPreviews = useFiltersStore(
+    (s) => s.setShowMapListingPreviews,
+  );
+  const isDev = getEnv().isDevelopment;
 
   const onCommute = useCallback(
     (v: boolean) => {
@@ -102,6 +111,27 @@ export function SearchDisplaySheetNative({
               {SEARCH_TRANSLATIONS["search.strict_preferences_hint"] ??
                 "When off, we only apply every preference filter when there are more than 100 homes in the search area."}
             </Text>
+            {isDev ? (
+              <>
+                <Box style={styles.row}>
+                  <Text className="text-text-primary flex-1 pr-2 text-sm">
+                    {SEARCH_TRANSLATIONS["search.show_map_listing_previews"] ??
+                      "Show listing previews on map (dev)"}
+                  </Text>
+                  <Switch
+                    value={showMapListingPreviews}
+                    disabled={!hasSearched}
+                    onValueChange={(v) => {
+                      if (hasSearched) setShowMapListingPreviews(v);
+                    }}
+                  />
+                </Box>
+                <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
+                  {SEARCH_TRANSLATIONS["search.show_map_listing_previews_hint"] ??
+                    "Floating home cards on the map. Run a search first."}
+                </Text>
+              </>
+            ) : null}
             <Text className="text-text-secondary mt-4 text-xs font-medium uppercase">
               {SEARCH_TRANSLATIONS["search.display_map_cards"] ??
                 "Homes on map"}

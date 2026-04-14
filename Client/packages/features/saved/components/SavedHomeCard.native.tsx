@@ -8,6 +8,7 @@ import { color } from "packages/design-tokens";
 import { ConnectedCardHeartSave } from "packages/ui/components/primitives";
 import { Image } from "packages/ui/components/primitives";
 import { Box, Text } from "packages/ui/components/primitives";
+import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
 
 import type { SavedHomeCardProps } from "./SavedHomeCard";
 
@@ -33,10 +34,11 @@ export function SavedHomeCard({
   onToggleCompare,
   onUnlock,
 }: SavedHomeCardProps) {
-  const address =
+  const addressRaw =
     typeof home.address === "string" || typeof home.address === "number"
       ? home.address.toString()
       : home.description ?? "[Invalid address]";
+  const address = addressStreetLineForCard(addressRaw);
   const priceStr = formatPrice(
     home.price as string | number | null | undefined,
   );

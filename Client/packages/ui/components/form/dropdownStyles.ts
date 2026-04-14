@@ -110,13 +110,15 @@ export function buildDropdownMenuClasses(
 }
 
 export function buildInlineDropdownClasses(
-  menuPlacement: "below" | "above",
+  menuPlacement: "below" | "above" | "overlap",
   menuSurfaceClasses: string,
 ) {
   const inlineDropdownPlacementClasses =
-    menuPlacement === "above"
-      ? "absolute bottom-full left-0 right-0 mb-1 z-dropdown"
-      : "absolute top-full left-0 right-0 mt-1 z-dropdown";
+    menuPlacement === "overlap"
+      ? "absolute left-0 right-0 top-1/2 z-dropdown -translate-y-1/2"
+      : menuPlacement === "above"
+        ? "absolute bottom-full left-0 right-0 mb-1 z-dropdown"
+        : "absolute top-full left-0 right-0 mt-1 z-dropdown";
 
   return [inlineDropdownPlacementClasses, menuSurfaceClasses]
     .filter(Boolean)

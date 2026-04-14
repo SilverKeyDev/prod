@@ -8,6 +8,7 @@ type PortalPlacement = {
   left: number;
   width: number;
   maxHeight: number;
+  transform?: string;
 };
 
 export function useDropdownPortalPlacement({
@@ -24,7 +25,7 @@ export function useDropdownPortalPlacement({
   canPortalMenu: boolean;
   dropdownRef: React.RefObject<HTMLDivElement | null>;
   menuPortalRef: React.RefObject<HTMLDivElement | null>;
-  menuPlacement: "below" | "above";
+  menuPlacement: "below" | "above" | "overlap";
   desiredMenuHeightPx: number;
   filteredOptionsLength: number;
   registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
@@ -48,7 +49,24 @@ export function useDropdownPortalPlacement({
       const rect = root.getBoundingClientRect();
       const margin = 12;
       const gap = 4;
-      if (menuPlacement === "above") {
+      if (menuPlacement === "overlap") {
+        const centerY = rect.top + rect.height / 2;
+        const maxByViewport = Math.min(
+          2 * Math.max(0, centerY - margin),
+          2 * Math.max(0, win.innerHeight - margin - centerY),
+        );
+        const maxHeight = Math.min(
+          desiredMenuHeightPx,
+          Math.max(48, maxByViewport),
+        );
+        setPortalPlacement({
+          top: centerY,
+          left: rect.left,
+          width: Math.max(rect.width, 200),
+          maxHeight,
+          transform: "translateY(-50%)",
+        });
+      } else if (menuPlacement === "above") {
         const availAbove = Math.max(0, rect.top - margin - gap);
         const viewportBudget = Math.min(320, Math.max(48, availAbove));
         const maxHeight = Math.min(viewportBudget, desiredMenuHeightPx);

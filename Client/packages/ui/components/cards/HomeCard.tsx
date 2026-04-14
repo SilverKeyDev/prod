@@ -2,12 +2,13 @@ import type { CardHeartSavePropertyLike } from "@ui/button/HeartSave";
 import type { KeyboardEvent } from "react";
 
 import type { Property } from "packages/features/search/hooks/data/property/propertyDetailsTypes";
+import { Box } from "packages/ui/components/primitives";
 import {
+  addressStreetLineForCard,
   formatFilenameToAddress,
   formatLotSize,
   truncateText,
-} from "packages/features/search/types/search/address";
-import { Box } from "packages/ui/components/primitives";
+} from "packages/utils/format/property/addressFormatting";
 import { displayListingPriceForCard } from "packages/utils/search/formatPropertySearchListingPrice";
 
 import { CardHeartSaveWithProps, TrianglePointer } from "./base/index";
@@ -152,7 +153,9 @@ export default function HomeCard({
 }: HomeCardProps) {
   const formattedAddress = formatFilenameToAddress(home.home_id);
   const displayName = truncateText(
-    home.address ?? formattedAddress ?? `Home ${home.home_id}`,
+    addressStreetLineForCard(
+      home.address ?? formattedAddress ?? `Home ${home.home_id}`,
+    ),
     35,
   );
   const property = convertHomeToProperty(home, formattedAddress);

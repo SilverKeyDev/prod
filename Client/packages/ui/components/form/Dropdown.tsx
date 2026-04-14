@@ -58,7 +58,7 @@ export type DropdownProps<T = unknown> = {
    * Where the menu opens relative to the trigger. `"above"` is useful near the bottom of modals/viewports.
    * @default "below"
    */
-  menuPlacement?: "below" | "above";
+  menuPlacement?: "below" | "above" | "overlap";
   /**
    * When true, the visible label above the trigger is omitted (parent supplies layout). `label` is still
    * used for an accessible name on the trigger when set.
@@ -259,6 +259,9 @@ function Dropdown<T = unknown>({
               left: portalPlacement.left,
               width: portalPlacement.width,
               maxHeight: portalPlacement.maxHeight,
+              ...(portalPlacement.transform
+                ? { transform: portalPlacement.transform }
+                : {}),
             }}
           >
             <DropdownMenuBody

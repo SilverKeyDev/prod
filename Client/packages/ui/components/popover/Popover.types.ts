@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type PopoverSide = "left" | "bottom" | "top";
+export type PopoverSide = "left" | "bottom" | "top" | "overlap";
 
 /**
  * Shared props for Popover across web and native.
@@ -30,7 +30,7 @@ export type PopoverProps = {
   onOpenChange?: (open: boolean) => void;
   /** Render panel in a portal (default true on web; ignored on native - always uses Modal) */
   usePortal?: boolean;
-  /** Where the panel opens relative to the trigger: "left" = to the left, "top" = above, "bottom" = below (default). Ignored on native. */
+  /** Where the panel opens relative to the trigger: "left" = to the left, "top" = above, "bottom" = below (default), "overlap" = vertically centered on the trigger (e.g. inside a modal). Ignored on native. */
   side?: PopoverSide;
   /** Optional class for the panel container (web: className; native: mapped to style) */
   panelClassName?: string;

@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
-import { env } from "packages/config";
+import { env, getEnv } from "packages/config";
 import { calculatePropertyScore } from "packages/features/search/types/search/calculatePropertyScore";
 import {
   clearImportantLocationMarkers,
@@ -112,6 +112,34 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
   const preferencesStrictFilter = useFiltersStore(
     (s) => s.preferencesStrictFilter,
   );
+  const showMapListingPreviews = useFiltersStore(
+    (s) => s.showMapListingPreviews,
+  );
+  const dismissedMapPreviewIds = useFiltersStore(
+    (s) => s.dismissedMapPreviewIds,
+  );
+  const clearDismissedMapPreviews = useFiltersStore(
+    (s) => s.clearDismissedMapPreviews,
+  );
+  const setShowMapListingPreviewsAction = useFiltersStore(
+    (s) => s.setShowMapListingPreviews,
+  );
+  const dismissMapListingPreviewAction = useFiltersStore(
+    (s) => s.dismissMapListingPreview,
+  );
+  const isDev = getEnv().isDevelopment;
+  const mapListingPreviewsEnabled = !isDev || showMapListingPreviews;
+
+  const mapPreviewSearchLifecycle = useMemo(
+    () => ({
+      onSearchStartClearDismissals: clearDismissedMapPreviews,
+      onResultsCommittedEnablePreviews: () => {
+        clearDismissedMapPreviews();
+        setShowMapListingPreviewsAction(true);
+      },
+    }),
+    [clearDismissedMapPreviews, setShowMapListingPreviewsAction],
+  );
   const searchFilterOverrides = useSearchContextStore(
     (s) => s.searchFilterOverrides,
   );
@@ -159,6 +187,14 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     currentPage,
   });
 
+  const onDismissMapPreview = useCallback(
+    (propertyId: string) => {
+      if (!isDev) return;
+      dismissMapListingPreviewAction(propertyId);
+    },
+    [isDev, dismissMapListingPreviewAction],
+  );
+
   const { updateMapMarkers, importantMarkersRef } = useMapMarkers({
     activeTab,
     googleMapRef,
@@ -179,6 +215,9 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     onUnlockClick,
     renderMapPropertyCard,
     cleanupMapPropertyCard,
+    mapListingPreviewsEnabled,
+    dismissedMapPreviewIds,
+    onDismissMapPreview: isDev ? onDismissMapPreview : undefined,
   });
 
   const renderIsochronePolygonWrapper = useCallback(
@@ -283,6 +322,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
       preferencesSubjectUserId,
       getSearchAbortSignal,
       saveLastSearchContext,
+      mapPreviewSearchLifecycle,
     },
   );
 
@@ -310,6 +350,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
         preferencesStrictFilter,
         preferencesSubjectUserId,
         getSearchAbortSignal(),
+        mapPreviewSearchLifecycle,
       );
     },
     setSearchStage: (stage?: string) => setSearchStage(stage ?? ""),
@@ -379,7 +420,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
         mapHomeCardsCount,
       };
     }
-  }, [
+   }, [
     filteredSearchResults.length,
     savedHomes.length,
     filteredSearchResults,
@@ -387,6 +428,8 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     activeTab,
     currentPage,
     mapHomeCardsCount,
+    mapListingPreviewsEnabled,
+    dismissedMapPreviewIds,
     googleMapRef,
     updateMapMarkers,
   ]);

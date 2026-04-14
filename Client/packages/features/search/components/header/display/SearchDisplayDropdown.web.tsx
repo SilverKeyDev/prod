@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 
+import { getEnv } from "packages/config/env";
 import { useLocalization } from "packages/contexts";
 import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,
@@ -67,6 +68,14 @@ export default function SearchDisplayDropdown({
   const setPreferencesStrictFilter = useFiltersStore(
     (s) => s.setPreferencesStrictFilter,
   );
+  const hasSearched = useFiltersStore((s) => s.hasSearched);
+  const showMapListingPreviews = useFiltersStore(
+    (s) => s.showMapListingPreviews,
+  );
+  const setShowMapListingPreviews = useFiltersStore(
+    (s) => s.setShowMapListingPreviews,
+  );
+  const isDev = getEnv().isDevelopment;
 
   const handleCommute = useCallback(
     (checked: boolean) => {
@@ -101,6 +110,13 @@ export default function SearchDisplayDropdown({
       patchSearchDisplay({ preferences_strict_filter: checked });
     },
     [setPreferencesStrictFilter, patchSearchDisplay],
+  );
+
+  const handleMapListingPreviews = useCallback(
+    (checked: boolean) => {
+      setShowMapListingPreviews(checked);
+    },
+    [setShowMapListingPreviews],
   );
 
   const cardOptions = Array.from(
@@ -146,6 +162,28 @@ export default function SearchDisplayDropdown({
             "When off, we only apply every preference filter when there are more than 100 homes in the search area."}
         </Subtitle>
       </Box>
+      {isDev ? (
+        <Box className="flex flex-col gap-1.5">
+          <Box className="flex flex-row items-center justify-between gap-3">
+            <BodyText as="span" size="sm" className="text-text-primary shrink-0">
+              {SEARCH_TRANSLATIONS["search.show_map_listing_previews"] ??
+                "Show listing previews on map (dev)"}
+            </BodyText>
+            <OliveCheckbox
+              checked={showMapListingPreviews}
+              onToggle={
+                hasSearched
+                  ? () => handleMapListingPreviews(!showMapListingPreviews)
+                  : undefined
+              }
+            />
+          </Box>
+          <Subtitle size="xs" muted className="pl-0 pr-10">
+            {SEARCH_TRANSLATIONS["search.show_map_listing_previews_hint"] ??
+              "Floating home cards on the map. Run a search first."}
+          </Subtitle>
+        </Box>
+      ) : null}
       <Dropdown
         label={
           SEARCH_TRANSLATIONS["search.display_map_cards"] ??

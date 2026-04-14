@@ -5,6 +5,7 @@ import CardCompareCheckbox from "packages/features/compare/components/CardCompar
 import type { SavedHome } from "packages/types";
 import { ConnectedCardHeartSave } from "packages/ui/components/button/ConnectedCardHeartSave";
 import { Box } from "packages/ui/components/primitives";
+import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
 
 import { PropertyCard } from "@/components/cards";
 import { Title } from "@/components/ui";
@@ -55,10 +56,11 @@ export function RemainingLikedHomes({
       </Title>
       <Box className="gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {remainingHomes.map((home) => {
-          const address =
+          const address = addressStreetLineForCard(
             typeof home.address === "string" || typeof home.address === "number"
               ? home.address.toString()
-              : home.description ?? t("house.invalid_address");
+              : (home.description ?? t("house.invalid_address")),
+          );
           const price =
             typeof home.price === "string" || typeof home.price === "number"
               ? home.price.toString()

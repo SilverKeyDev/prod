@@ -69,6 +69,10 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.display": "Display",
   "search.display_order_by": "Order by",
   "search.display_map_cards": "Homes on map",
+  "search.show_map_listing_previews": "Show listing previews on map (dev)",
+  "search.show_map_listing_previews_hint":
+    "Floating home cards on the map. Run a search first; tap X on a card to hide just that preview.",
+  "search.dismiss_map_listing_preview": "Hide this listing preview on the map",
   "search.strict_preferences": "Match all preferences strictly",
   "search.strict_preferences_hint":
     "When off, we only apply every preference filter when there are more than 100 homes in the search area, so small result sets stay broader.",

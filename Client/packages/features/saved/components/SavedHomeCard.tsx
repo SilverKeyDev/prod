@@ -4,6 +4,7 @@ import { CardCompareCheckbox } from "packages/features/compare";
 import type { SavedHome } from "packages/types";
 import { ConnectedCardHeartSave } from "packages/ui/components/button/ConnectedCardHeartSave";
 import { Box } from "packages/ui/components/primitives";
+import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
 
 import { PropertyCard } from "@/components/cards";
 
@@ -41,10 +42,11 @@ export function SavedHomeCard({
   onToggleCompare,
   onUnlock,
 }: SavedHomeCardProps) {
-  const address =
+  const address = addressStreetLineForCard(
     typeof home.address === "string" || typeof home.address === "number"
       ? home.address.toString()
-      : home.description ?? "[Invalid address]";
+      : (home.description ?? "[Invalid address]"),
+  );
   const price =
     typeof home.price === "string" || typeof home.price === "number"
       ? home.price.toString()

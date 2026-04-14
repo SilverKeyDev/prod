@@ -46,8 +46,8 @@ export type EventFormTimeRangeProps = {
   onStartTimeChange: (hhmm: string) => void;
   onEndTimeChange: (hhmm: string) => void;
   stepMinutes?: number;
-  /** Opens option lists toward the top of the viewport (e.g. time row inside a modal). @default "below" */
-  menuPlacement?: "below" | "above";
+  /** Opens option lists: below, above, or vertically centered on the trigger (e.g. modal). @default "below" */
+  menuPlacement?: "below" | "above" | "overlap";
   /** Portals menus to document body so lists are not clipped by overflow containers. */
   menuInPortal?: boolean;
   /** Use `"modal"` when used inside a dialog so portaled menus stack above the modal. @default "page" */

@@ -15,7 +15,7 @@ import SearchPreferencesContent from "@/features/search/components/filters/Searc
 
 import SearchFiltersSheet from "./SearchFiltersSheet.web";
 
-const buttonBase = `inline-flex items-center gap-1.5 rounded-lg border px-4 text-sm font-medium transition-colors whitespace-nowrap shrink-0 justify-between ${HEADER_ROW_HEIGHT}`;
+const buttonBase = `inline-flex items-center gap-1.5 rounded-lg px-4 text-sm font-medium transition-colors whitespace-nowrap shrink-0 justify-between ${HEADER_ROW_HEIGHT}`;
 const panelClass = `${SEARCH_HEADER_PANEL_CLASS_DEFAULT} overflow-x-hidden w-[min(90vw,520px)]`;
 
 export type SearchFilterBarProps = {

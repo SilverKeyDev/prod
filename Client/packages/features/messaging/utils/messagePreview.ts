@@ -5,6 +5,10 @@
 
 import type { MessagePreviewInput } from "packages/features/messaging/types/messagePreview";
 
+import {
+  getAgreementEventPreviewLabel,
+  parseAgreementEventPayload,
+} from "./agreementEventPayload";
 import { parseSharedAttachmentSnapshot } from "./sharedAttachmentSnapshot";
 
 export type { MessagePreviewInput } from "packages/features/messaging/types/messagePreview";
@@ -16,6 +20,7 @@ const PREVIEW_MAX_LENGTH = 60;
  * Returns a short preview string for a message so sidebars don't show raw payloads.
  * - Shared home → "Shared a home"
  * - Shared document → "Shared a document"
+ * - Agreement event (__AGREEMENT_EVENT__{...}) → short status label, optional ": {title}"
  * - Event request (__EVENT_REQUEST__{...}) → "Event: {title}"
  * - Plain text → trimmed content, truncated to PREVIEW_MAX_LENGTH
  */
@@ -32,6 +37,16 @@ export function getMessagePreview(msg: MessagePreviewInput): string {
     if (!line) return "Shared document";
     if (line.length <= PREVIEW_MAX_LENGTH) return `Shared document: ${line}`;
     return `Shared document: ${line.slice(0, PREVIEW_MAX_LENGTH - 3)}...`;
+  }
+
+  const agreementPayload = parseAgreementEventPayload(msg.content);
+  if (agreementPayload) {
+    const label = getAgreementEventPreviewLabel(agreementPayload.event);
+    const line = agreementPayload.title.trim();
+    if (!line) return label;
+    const withTitle = `${label}: ${line}`;
+    if (withTitle.length <= PREVIEW_MAX_LENGTH) return withTitle;
+    return `${withTitle.slice(0, PREVIEW_MAX_LENGTH - 3)}...`;
   }
 
   if (msg.shared_home_id) {
