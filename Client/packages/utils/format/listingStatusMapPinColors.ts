@@ -3,7 +3,7 @@
  * with status-specific colors for pending, sold, rent, and off-market.
  */
 import type { ScoreColors } from "./scoreColors";
-import { getScoreBasedColor } from "./scoreColors";
+import { getScoreBasedColorForMap } from "./scoreColors";
 
 export type MapPinListingCategory =
   | "active"
@@ -110,7 +110,7 @@ export function getMapPinColorsForScoreAndStatus(
   const category = categorizeListingStatusForMap(raw);
 
   if (category === "active" || category === "unknown") {
-    return getScoreBasedColor(score);
+    return getScoreBasedColorForMap(score);
   }
 
   switch (category) {
@@ -123,7 +123,7 @@ export function getMapPinColorsForScoreAndStatus(
     case "off_market":
       return hexToScoreColors(MAP_PIN_STATUS_HEX.off_market, "#57534E");
     default:
-      return getScoreBasedColor(score);
+      return getScoreBasedColorForMap(score);
   }
 }
 

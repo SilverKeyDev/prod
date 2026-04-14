@@ -2,9 +2,6 @@
 Tests for home matching MCDA scoring
 """
 
-import pytest
-from flask import Flask
-
 
 class TestMCDAScoring:
     """Test MCDA scoring algorithm"""
@@ -250,9 +247,7 @@ class TestHardConstraints:
             "multiplier_floor": 0.15,
         }
 
-        multiplier = hard_constraint_multiplier(
-            preferences, property_dict, "ForSale", multipliers
-        )
+        multiplier = hard_constraint_multiplier(preferences, property_dict, "ForSale", multipliers)
 
         # Should have penalties applied
         assert 0.15 <= multiplier <= 1.0

@@ -18,7 +18,6 @@ from datetime import datetime, timezone
 from io import BytesIO
 from unittest.mock import Mock, patch
 
-import pytest
 from flask import Flask
 
 
@@ -98,10 +97,14 @@ class TestUserProfile:
                 with patch("app.services.documents.s3_service") as mock_s3:
                     mock_s3.s3_client = Mock()
                     mock_s3.upload_file = Mock(return_value="profile_pictures/test-123/avatar.jpg")
-                    mock_s3.generate_view_url = Mock(return_value="https://example.com/presigned-url")
+                    mock_s3.generate_view_url = Mock(
+                        return_value="https://example.com/presigned-url"
+                    )
 
                     # Mock file validation to bypass MIME type check
-                    with patch("app.utils.security.file_security.validate_file_upload") as mock_validate:
+                    with patch(
+                        "app.utils.security.file_security.validate_file_upload"
+                    ) as mock_validate:
                         mock_validate.return_value = ("test.jpg", "image/jpeg")
 
                         # Create a mock image file
@@ -230,7 +233,7 @@ class TestFavoriteHomes:
             for i in range(25):
                 home = HomeUniversal(
                     user_id=str(user.id),
-                    address=f"{i+1} Test St",
+                    address=f"{i + 1} Test St",
                     is_liked=True,
                     current=True,
                     price=300000 + (i * 10000),
@@ -621,7 +624,9 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.routes.auth.handlers.preferences_preferences.get_current_user") as mock_get:
+            with patch(
+                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+            ) as mock_get:
                 mock_get.return_value = user
 
                 response = client.post(
@@ -650,7 +655,9 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.routes.auth.handlers.preferences_preferences.get_current_user") as mock_get:
+            with patch(
+                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+            ) as mock_get:
                 mock_get.return_value = user
 
                 partial_prefs = {
@@ -683,7 +690,9 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.routes.auth.handlers.preferences_preferences.get_current_user") as mock_get:
+            with patch(
+                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+            ) as mock_get:
                 mock_get.return_value = user
 
                 # First create preferences
@@ -719,7 +728,9 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.routes.auth.handlers.preferences_preferences.get_current_user") as mock_get:
+            with patch(
+                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+            ) as mock_get:
                 mock_get.return_value = user
 
                 response = client.get(
@@ -750,7 +761,9 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.routes.auth.handlers.preferences_preferences.get_current_user") as mock_get:
+            with patch(
+                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+            ) as mock_get:
                 mock_get.return_value = user
 
                 # Create initial preferences
@@ -791,7 +804,9 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.routes.auth.handlers.preferences_preferences.get_current_user") as mock_get:
+            with patch(
+                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+            ) as mock_get:
                 mock_get.return_value = user
 
                 response = client.post(

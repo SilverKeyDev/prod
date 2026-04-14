@@ -2,7 +2,7 @@
 Tests for Google Calendar event operations
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from flask import Flask
@@ -182,9 +182,7 @@ class TestCalendarEvents:
 
                     assert isinstance(events, list)
                     # Verify time range was passed to API
-                    call_args = (
-                        mock_google_calendar.return_value.events.return_value.list.call_args
-                    )
+                    call_args = mock_google_calendar.return_value.events.return_value.list.call_args
                     assert call_args[1]["timeMin"] == "2024-02-01T00:00:00Z"
                     assert call_args[1]["timeMax"] == "2024-02-28T23:59:59Z"
 
@@ -217,11 +215,14 @@ class TestCalendarEvents:
                     mock_resolve.return_value = "primary"
 
                     # Mock API error
-                    mock_google_calendar.return_value.events.return_value.list.return_value.execute.side_effect = Exception(
+                    class _SimulatedCalendarApiError(Exception):
+                        """Raised by test mock for Google Calendar list failure."""
+
+                    mock_google_calendar.return_value.events.return_value.list.return_value.execute.side_effect = _SimulatedCalendarApiError(
                         "API Error"
                     )
 
-                    with pytest.raises(Exception):
+                    with pytest.raises(_SimulatedCalendarApiError):
                         list_events(
                             user_id="user-123",
                             calendar_id="primary",

@@ -10,10 +10,7 @@ to isolate just the data-fetching logic we're auditing in the migration.
 from __future__ import annotations
 
 import sys
-from types import ModuleType
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 
 def _mock_detail_success():
@@ -73,6 +70,7 @@ _cache_mod = importlib.import_module("app.services.research.property.property_re
 
 # ---- fetch_basic_property_data ----
 
+
 class TestFetchBasicPropertyData:
     def test_by_zpid(self):
         with patch.object(_stream_mod, "get_property_detail") as mock_detail:
@@ -86,7 +84,9 @@ class TestFetchBasicPropertyData:
     def test_by_address(self):
         with patch.object(_stream_mod, "get_property_detail") as mock_detail:
             mock_detail.return_value = (_mock_detail_success(), None)
-            data, err = _stream_mod.fetch_basic_property_data({"address": "300 Pine St, Atlanta, GA"})
+            data, err = _stream_mod.fetch_basic_property_data(
+                {"address": "300 Pine St, Atlanta, GA"}
+            )
             assert err is None
             assert data is not None
             mock_detail.assert_called_once_with(listing_id=None, address="300 Pine St, Atlanta, GA")
@@ -107,6 +107,7 @@ class TestFetchBasicPropertyData:
 
 
 # ---- fetch_zillow_images (now Slipstream) ----
+
 
 class TestFetchZillowImages:
     def test_images_from_data(self):
@@ -136,6 +137,7 @@ class TestFetchZillowImages:
 
 # ---- get_property_address ----
 
+
 class TestGetPropertyAddress:
     def test_from_provided_address(self):
         assert _stream_mod.get_property_address({}, "100 Main St") == "100 Main St"
@@ -162,6 +164,7 @@ class TestGetPropertyAddress:
 
 # ---- fetch_property_from_rapidapi (backward compat shim) ----
 
+
 class TestFetchPropertyFromRapidapi:
     def test_delegates_to_slipstream(self):
         with patch.object(_cache_mod, "get_property_detail") as mock_detail:
@@ -173,7 +176,10 @@ class TestFetchPropertyFromRapidapi:
 
     def test_error_returns_tuple(self):
         with patch.object(_cache_mod, "get_property_detail") as mock_detail:
-            mock_detail.return_value = (None, {"success": False, "error": "NOT_FOUND", "status_code": 404})
+            mock_detail.return_value = (
+                None,
+                {"success": False, "error": "NOT_FOUND", "status_code": 404},
+            )
             data, err_tuple = _cache_mod.fetch_property_from_rapidapi({"zpid": "BAD"})
             assert data is None
             err, status = err_tuple
@@ -188,6 +194,7 @@ class TestFetchPropertyFromRapidapi:
 
 
 # ---- research/property/property_images.py ----
+
 
 class TestResearchPropertyImages:
     @patch("app.services.research.property.property_images._slipstream_get_images")

@@ -8,12 +8,12 @@ Covers:
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-
 # ---- Client: headers & URL construction ----
+
 
 class TestSlipstreamClient:
     @patch("app.services.search.data.client.SLIPSTREAM_PRIVATE", "s9-test-token")
@@ -46,6 +46,7 @@ class TestSlipstreamClient:
 
 # ---- Config ----
 
+
 class TestSlipstreamConfig:
     def test_constants(self):
         from app.services.search.data.config import SLIPSTREAM_BASE, SLIPSTREAM_MARKET
@@ -55,6 +56,7 @@ class TestSlipstreamConfig:
 
 
 # ---- GeoJSON polygon conversion ----
+
 
 class TestGeoJsonPolygon:
     def test_basic_conversion(self):
@@ -107,7 +109,11 @@ class TestGeoJsonPolygon:
     def test_lon_lat_order(self):
         from app.services.search.helpers.geometry_helpers import to_geojson_polygon
 
-        ring = [{"lat": 40.0, "lon": -75.0}, {"lat": 41.0, "lon": -75.0}, {"lat": 41.0, "lon": -74.0}]
+        ring = [
+            {"lat": 40.0, "lon": -75.0},
+            {"lat": 41.0, "lon": -75.0},
+            {"lat": 41.0, "lon": -74.0},
+        ]
         coords = to_geojson_polygon(ring)["coordinates"][0]
         for c in coords:
             assert c[0] < 0
@@ -115,6 +121,7 @@ class TestGeoJsonPolygon:
 
 
 # ---- Persistence field mapping ----
+
 
 class TestPersistenceFieldMapping:
     """Verify that normalized Slipstream data maps correctly to PropertyCache columns."""
@@ -124,7 +131,12 @@ class TestPersistenceFieldMapping:
 
         raw = {
             "id": "MLS-789",
-            "address": {"deliveryLine": "500 Elm St", "city": "Decatur", "state": "GA", "zip": "30030"},
+            "address": {
+                "deliveryLine": "500 Elm St",
+                "city": "Decatur",
+                "state": "GA",
+                "zip": "30030",
+            },
             "beds": 3,
             "baths": {"total": 2.5},
             "size": 1850,
@@ -180,16 +192,15 @@ class TestPersistenceFieldMapping:
 
 # ---- Data module barrel exports ----
 
+
 class TestDataModuleBarrel:
     def test_all_exports(self):
         from app.services.search.data import (
             SLIPSTREAM_BASE,
             SLIPSTREAM_MARKET,
-            SLIPSTREAM_PRIVATE,
             get_property_comps,
             get_property_detail,
             get_property_images,
-            get_slipstream_headers,
             normalize_listing,
             normalize_listings,
             search_active_listings,

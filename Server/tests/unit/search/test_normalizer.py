@@ -7,8 +7,6 @@ persistence, post-filters, and client transforms.
 
 from __future__ import annotations
 
-import pytest
-
 from app.services.search.data.normalizer import normalize_listing, normalize_listings
 
 
@@ -56,6 +54,7 @@ def _make_raw(**overrides) -> dict:
 
 # ---- Identity / ID fields ----
 
+
 class TestNormalizerIdentifiers:
     def test_zpid_from_id(self):
         out = normalize_listing(_make_raw(id="MLS-99999"))
@@ -71,6 +70,7 @@ class TestNormalizerIdentifiers:
 
 
 # ---- Address fields ----
+
 
 class TestNormalizerAddress:
     def test_full_address_composed(self):
@@ -89,11 +89,16 @@ class TestNormalizerAddress:
         assert out["address"] == ""
 
     def test_fallback_to_street(self):
-        out = normalize_listing(_make_raw(address={"street": "Elm St", "city": "Savannah", "state": "GA", "zip": "31401"}))
+        out = normalize_listing(
+            _make_raw(
+                address={"street": "Elm St", "city": "Savannah", "state": "GA", "zip": "31401"}
+            )
+        )
         assert out["streetAddress"] == "Elm St"
 
 
 # ---- Numeric property fields ----
+
 
 class TestNormalizerNumericFields:
     def test_bedrooms(self):
@@ -105,7 +110,9 @@ class TestNormalizerNumericFields:
         assert normalize_listing(raw)["bedrooms"] is None
 
     def test_bathrooms_from_nested(self):
-        assert normalize_listing(_make_raw(baths={"total": 3, "full": 2, "half": 1}))["bathrooms"] == 3
+        assert (
+            normalize_listing(_make_raw(baths={"total": 3, "full": 2, "half": 1}))["bathrooms"] == 3
+        )
 
     def test_bathrooms_as_number(self):
         assert normalize_listing(_make_raw(baths=2))["bathrooms"] == 2
@@ -158,6 +165,7 @@ class TestNormalizerNumericFields:
 
 # ---- Coordinates ----
 
+
 class TestNormalizerCoordinates:
     def test_lat_lon(self):
         out = normalize_listing(_make_raw())
@@ -171,6 +179,7 @@ class TestNormalizerCoordinates:
 
 
 # ---- Lot size ----
+
 
 class TestNormalizerLotSize:
     def test_lot_sqft_from_nested(self):
@@ -203,6 +212,7 @@ class TestNormalizerLotSize:
 
 # ---- Images ----
 
+
 class TestNormalizerImages:
     def test_img_src_first_image(self):
         out = normalize_listing(_make_raw(images=["a.jpg", "b.jpg"]))
@@ -223,6 +233,7 @@ class TestNormalizerImages:
 
 # ---- Type / status / flags ----
 
+
 class TestNormalizerTypeStatus:
     def test_property_type(self):
         out = normalize_listing(_make_raw(propertyType="Townhouse"))
@@ -241,6 +252,7 @@ class TestNormalizerTypeStatus:
 
 
 # ---- Rich detail fields ----
+
 
 class TestNormalizerRichFields:
     def test_description(self):
@@ -262,6 +274,7 @@ class TestNormalizerRichFields:
 
 
 # ---- Batch normalization ----
+
 
 class TestNormalizeListings:
     def test_batch(self):

@@ -20,8 +20,10 @@ from app.schemas.generated import (
     LoginData,
     SavedHome,
     SearchAgentsResponse,
-    User as UserOpenApi,
     UserResponse,
+)
+from app.schemas.generated import (
+    User as UserOpenApi,
 )
 
 
@@ -30,9 +32,7 @@ from app.schemas.generated import (
 class TestOpenAPIContracts:
     """Verify selected high-traffic API responses match generated schemas."""
 
-    def test_user_profile_response_matches_schema(
-        self, authenticated_client: FlaskClient
-    ) -> None:
+    def test_user_profile_response_matches_schema(self, authenticated_client: FlaskClient) -> None:
         response = authenticated_client.get("/api/v1/user/profile")
         assert response.status_code == 200
         data = response.get_json()
@@ -49,9 +49,7 @@ class TestOpenAPIContracts:
         assert response.status_code == 200
         FavoriteHomesResponse.model_validate(response.get_json())
 
-    def test_search_agents_empty_matches_schema(
-        self, authenticated_client: FlaskClient
-    ) -> None:
+    def test_search_agents_empty_matches_schema(self, authenticated_client: FlaskClient) -> None:
         response = authenticated_client.get("/api/v1/agent/search-agents?q=ab")
         assert response.status_code == 200
         SearchAgentsResponse.model_validate(response.get_json())
@@ -74,9 +72,7 @@ class TestOpenAPIContracts:
             db.session.commit()
             aid = agent.id
         try:
-            response = authenticated_client.get(
-                "/api/v1/agent/search-agents?q=Agent%20Con"
-            )
+            response = authenticated_client.get("/api/v1/agent/search-agents?q=Agent%20Con")
             assert response.status_code == 200
             body = response.get_json()
             SearchAgentsResponse.model_validate(body)
@@ -98,9 +94,7 @@ class TestOpenAPIContracts:
             password="Password123!",
         ).model_dump(mode="json")
 
-        with patch(
-            "app.services.auth.user.lookup.find_or_create_user_by_cognito"
-        ) as mock_find:
+        with patch("app.services.auth.user.lookup.find_or_create_user_by_cognito") as mock_find:
             mock_user = Mock()
             mock_user.id = "login-contract-user"
             mock_user.name = "Login Contract"
@@ -134,23 +128,17 @@ class TestOpenAPIContracts:
         assert response.status_code == 401
         ErrorResponse.model_validate(response.get_json())
 
-    def test_profile_unauthorized_matches_error_schema(
-        self, client: FlaskClient
-    ) -> None:
+    def test_profile_unauthorized_matches_error_schema(self, client: FlaskClient) -> None:
         response = client.get("/api/v1/user/profile")
         assert response.status_code == 401
         ErrorResponse.model_validate(response.get_json())
 
-    def test_search_agents_unauthorized_matches_error_schema(
-        self, client: FlaskClient
-    ) -> None:
+    def test_search_agents_unauthorized_matches_error_schema(self, client: FlaskClient) -> None:
         response = client.get("/api/v1/agent/search-agents?q=ab")
         assert response.status_code == 401
         ErrorResponse.model_validate(response.get_json())
 
-    def test_required_user_fields_on_profile(
-        self, authenticated_client: FlaskClient
-    ) -> None:
+    def test_required_user_fields_on_profile(self, authenticated_client: FlaskClient) -> None:
         response = authenticated_client.get("/api/v1/user/profile")
         assert response.status_code == 200
         data = response.get_json()
@@ -178,9 +166,7 @@ class TestOpenAPIContracts:
 
 @pytest.mark.api
 @pytest.mark.contract
-def test_user_dto_to_response_matches_openapi_user(
-    app, contract_user
-) -> None:
+def test_user_dto_to_response_matches_openapi_user(app, contract_user) -> None:
     from app import db
     from app.dtos.user import UserDTO
     from app.models import User
@@ -188,9 +174,7 @@ def test_user_dto_to_response_matches_openapi_user(
     with app.app_context():
         fresh = db.session.get(User, contract_user.id)
         assert fresh is not None
-        payload = UserDTO.to_response(
-            fresh, include_roles=True, presign_profile_pic=False
-        )
+        payload = UserDTO.to_response(fresh, include_roles=True, presign_profile_pic=False)
     UserOpenApi.model_validate(payload)
 
 

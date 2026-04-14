@@ -146,9 +146,7 @@ class SigningService:
             )
             raise AgreementStateError("Agreement not sent to DocuSign")
 
-        return_url = (
-            f"{_docusign_return_url_base()}{DOCUSIGN_SENDER_VIEW_PATH.format(agreement_id=agreement.id)}"
-        )
+        return_url = f"{_docusign_return_url_base()}{DOCUSIGN_SENDER_VIEW_PATH.format(agreement_id=agreement.id)}"
 
         logger.debug(
             LOG_CATEGORIES["DOCUSIGN"],

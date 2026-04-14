@@ -2,9 +2,6 @@
 Tests for home matching blend scores
 """
 
-import pytest
-from flask import Flask
-
 
 class TestBlendScores:
     """Test blending MCDA and embedding scores"""
@@ -20,9 +17,7 @@ class TestBlendScores:
         blended = blend_scores(mcda_score, embedding_score, blend_weight)
 
         # Should be weighted average
-        expected = (mcda_score * (1 - blend_weight)) + (
-            embedding_score * 100 * blend_weight
-        )
+        expected = (mcda_score * (1 - blend_weight)) + (embedding_score * 100 * blend_weight)
         assert abs(blended - expected) < 0.01
 
     def test_blend_scores_zero_weight(self):
@@ -53,7 +48,9 @@ class TestBlendScores:
 
     def test_blend_multiple_properties(self):
         """Test blending scores for multiple properties"""
-        from app.services.search.home_matching.postprocessing.blend_scores import blend_property_scores
+        from app.services.search.home_matching.postprocessing.blend_scores import (
+            blend_property_scores,
+        )
 
         properties = [
             {"id": "prop-1", "mcda_score": 80.0, "embedding_score": 0.9},
@@ -173,9 +170,7 @@ class TestBatchScoring:
 
         blend_weight = 0.2
 
-        results = batch_score_with_embeddings(
-            properties, sample_preferences, blend_weight
-        )
+        results = batch_score_with_embeddings(properties, sample_preferences, blend_weight)
 
         assert len(results) == 2
         assert all("mcda_score" in prop for prop in results)

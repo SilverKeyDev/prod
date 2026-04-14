@@ -11,8 +11,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 
 def _mock_response(json_data: dict, status_code: int = 200, ok: bool = True):
     resp = MagicMock()
@@ -27,7 +25,12 @@ def _mock_response(json_data: dict, status_code: int = 200, ok: bool = True):
 def _raw_listing(**overrides):
     base = {
         "id": "MLS-100",
-        "address": {"deliveryLine": "100 Oak Ave", "city": "Atlanta", "state": "GA", "zip": "30301"},
+        "address": {
+            "deliveryLine": "100 Oak Ave",
+            "city": "Atlanta",
+            "state": "GA",
+            "zip": "30301",
+        },
         "beds": 4,
         "baths": {"total": 3, "full": 2, "half": 1},
         "coordinates": {"latitude": 33.75, "longitude": -84.39},
@@ -48,20 +51,26 @@ def _raw_listing(**overrides):
 
 # ---- search_active_listings ----
 
+
 class TestSearchActiveListings:
     @patch("app.services.search.data.listings_active.slipstream_get")
     def test_success(self, mock_get):
-        mock_get.return_value = _mock_response({
-            "success": True,
-            "result": {
-                "listings": [_raw_listing(id="A1"), _raw_listing(id="A2")],
-                "paging": {"number": 1, "count": 1, "size": 25},
-            },
-        })
+        mock_get.return_value = _mock_response(
+            {
+                "success": True,
+                "result": {
+                    "listings": [_raw_listing(id="A1"), _raw_listing(id="A2")],
+                    "paging": {"number": 1, "count": 1, "size": 25},
+                },
+            }
+        )
         from app.services.search.data.listings_active import search_active_listings
 
         listings, paging, errors = search_active_listings(
-            polygon_geojson={"type": "Polygon", "coordinates": [[[-84, 33], [-84, 34], [-83, 34], [-83, 33], [-84, 33]]]},
+            polygon_geojson={
+                "type": "Polygon",
+                "coordinates": [[[-84, 33], [-84, 34], [-83, 34], [-83, 33], [-84, 33]]],
+            },
             filters={"beds": ">=3"},
         )
         assert len(listings) == 2
@@ -101,10 +110,12 @@ class TestSearchActiveListings:
 
     @patch("app.services.search.data.listings_active.slipstream_get")
     def test_empty_listings(self, mock_get):
-        mock_get.return_value = _mock_response({
-            "success": True,
-            "result": {"listings": [], "paging": {"number": 1, "count": 0, "size": 25}},
-        })
+        mock_get.return_value = _mock_response(
+            {
+                "success": True,
+                "result": {"listings": [], "paging": {"number": 1, "count": 0, "size": 25}},
+            }
+        )
         from app.services.search.data.listings_active import search_active_listings
 
         listings, paging, errors = search_active_listings()
@@ -124,16 +135,19 @@ class TestSearchActiveListings:
 
 # ---- search_inactive_listings ----
 
+
 class TestSearchInactiveListings:
     @patch("app.services.search.data.listings_inactive.slipstream_get")
     def test_success(self, mock_get):
-        mock_get.return_value = _mock_response({
-            "success": True,
-            "result": {
-                "listings": [_raw_listing(id="S1", status="Sold", salePrice=480000)],
-                "paging": {"number": 1, "count": 1, "size": 25},
-            },
-        })
+        mock_get.return_value = _mock_response(
+            {
+                "success": True,
+                "result": {
+                    "listings": [_raw_listing(id="S1", status="Sold", salePrice=480000)],
+                    "paging": {"number": 1, "count": 1, "size": 25},
+                },
+            }
+        )
         from app.services.search.data.listings_inactive import search_inactive_listings
 
         listings, paging, errors = search_inactive_listings()
@@ -146,13 +160,16 @@ class TestSearchInactiveListings:
 
 # ---- get_property_detail ----
 
+
 class TestGetPropertyDetail:
     @patch("app.services.search.data.property_detail.slipstream_get")
     def test_by_id(self, mock_get):
-        mock_get.return_value = _mock_response({
-            "success": True,
-            "result": {"listings": [_raw_listing(id="D1")]},
-        })
+        mock_get.return_value = _mock_response(
+            {
+                "success": True,
+                "result": {"listings": [_raw_listing(id="D1")]},
+            }
+        )
         from app.services.search.data.property_detail import get_property_detail
 
         data, err = get_property_detail(listing_id="D1")
@@ -165,10 +182,12 @@ class TestGetPropertyDetail:
 
     @patch("app.services.search.data.property_detail.slipstream_get")
     def test_by_address(self, mock_get):
-        mock_get.return_value = _mock_response({
-            "success": True,
-            "result": {"listings": [_raw_listing()]},
-        })
+        mock_get.return_value = _mock_response(
+            {
+                "success": True,
+                "result": {"listings": [_raw_listing()]},
+            }
+        )
         from app.services.search.data.property_detail import get_property_detail
 
         data, err = get_property_detail(address="100 Oak Ave, Atlanta, GA")
@@ -186,10 +205,12 @@ class TestGetPropertyDetail:
 
     @patch("app.services.search.data.property_detail.slipstream_get")
     def test_not_found(self, mock_get):
-        mock_get.return_value = _mock_response({
-            "success": True,
-            "result": {"listings": []},
-        })
+        mock_get.return_value = _mock_response(
+            {
+                "success": True,
+                "result": {"listings": []},
+            }
+        )
         from app.services.search.data.property_detail import get_property_detail
 
         data, err = get_property_detail(listing_id="NONEXISTENT")
@@ -199,15 +220,18 @@ class TestGetPropertyDetail:
 
 # ---- get_property_images ----
 
+
 class TestGetPropertyImages:
     @patch("app.services.search.data.property_images.slipstream_get")
     def test_returns_images(self, mock_get):
-        mock_get.return_value = _mock_response({
-            "success": True,
-            "result": {
-                "listings": [{"images": ["a.jpg", "b.jpg", "c.jpg"]}],
-            },
-        })
+        mock_get.return_value = _mock_response(
+            {
+                "success": True,
+                "result": {
+                    "listings": [{"images": ["a.jpg", "b.jpg", "c.jpg"]}],
+                },
+            }
+        )
         from app.services.search.data.property_images import get_property_images
 
         imgs = get_property_images("MLS-001")
@@ -215,10 +239,12 @@ class TestGetPropertyImages:
 
     @patch("app.services.search.data.property_images.slipstream_get")
     def test_no_images(self, mock_get):
-        mock_get.return_value = _mock_response({
-            "success": True,
-            "result": {"listings": [{"images": []}]},
-        })
+        mock_get.return_value = _mock_response(
+            {
+                "success": True,
+                "result": {"listings": [{"images": []}]},
+            }
+        )
         from app.services.search.data.property_images import get_property_images
 
         imgs = get_property_images("MLS-001")
@@ -239,6 +265,7 @@ class TestGetPropertyImages:
 
 # ---- get_property_comps ----
 
+
 class TestGetPropertyComps:
     @patch("app.services.search.data.property_comps.slipstream_get")
     @patch("app.services.search.data.property_comps.get_property_detail")
@@ -251,15 +278,17 @@ class TestGetPropertyComps:
             "propertyType": "Single Family Residence",
         }
         mock_detail.return_value = (subject, None)
-        mock_get.return_value = _mock_response({
-            "success": True,
-            "result": {
-                "listings": [
-                    _raw_listing(id="C1", status="Sold"),
-                    _raw_listing(id="C2", status="Sold"),
-                ],
-            },
-        })
+        mock_get.return_value = _mock_response(
+            {
+                "success": True,
+                "result": {
+                    "listings": [
+                        _raw_listing(id="C1", status="Sold"),
+                        _raw_listing(id="C2", status="Sold"),
+                    ],
+                },
+            }
+        )
         from app.services.search.data.property_comps import get_property_comps
 
         comps, err = get_property_comps(listing_id="SUB-1")
@@ -293,18 +322,26 @@ class TestGetPropertyComps:
     @patch("app.services.search.data.property_comps.get_property_detail")
     def test_excludes_subject(self, mock_detail, mock_get):
         mock_detail.return_value = (
-            {"zpid": "SUB-1", "latitude": 33.75, "longitude": -84.39, "bedrooms": 3, "propertyType": "SFR"},
+            {
+                "zpid": "SUB-1",
+                "latitude": 33.75,
+                "longitude": -84.39,
+                "bedrooms": 3,
+                "propertyType": "SFR",
+            },
             None,
         )
-        mock_get.return_value = _mock_response({
-            "success": True,
-            "result": {
-                "listings": [
-                    _raw_listing(id="SUB-1"),
-                    _raw_listing(id="C1"),
-                ],
-            },
-        })
+        mock_get.return_value = _mock_response(
+            {
+                "success": True,
+                "result": {
+                    "listings": [
+                        _raw_listing(id="SUB-1"),
+                        _raw_listing(id="C1"),
+                    ],
+                },
+            }
+        )
         from app.services.search.data.property_comps import get_property_comps
 
         comps, err = get_property_comps(listing_id="SUB-1")

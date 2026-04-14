@@ -2,8 +2,9 @@
 Tests for authentication API routes
 """
 
-import jwt
 from unittest.mock import Mock, patch
+
+import jwt
 
 from app.models import User
 
@@ -152,9 +153,7 @@ class TestAuthRoutes:
             }
         )
 
-        response = client.post(
-            "/api/v1/auth/forgot-password", json={"email": "test@example.com"}
-        )
+        response = client.post("/api/v1/auth/forgot-password", json={"email": "test@example.com"})
 
         assert response.status_code == 200
         data = response.get_json()
@@ -233,9 +232,7 @@ class TestAuthRoutes:
     def test_missing_required_fields(self, client):
         """Test endpoints reject missing required fields"""
         # Missing password
-        response = client.post(
-            "/api/v1/auth/login", json={"email": "test@example.com"}
-        )
+        response = client.post("/api/v1/auth/login", json={"email": "test@example.com"})
         assert response.status_code == 400
 
         # Missing email

@@ -127,9 +127,7 @@ class TestSigningService:
                     "recipients": {"signers": []},
                 }
 
-                envelope_result = SigningService.create_envelope(
-                    agreement, "embedded", "agent-123"
-                )
+                envelope_result = SigningService.create_envelope(agreement, "embedded", "agent-123")
 
                 assert envelope_result is not None
                 mock_docusign_client.return_value.create_envelope.assert_called_once()
@@ -165,9 +163,7 @@ class TestSigningService:
                     "https://demo.docusign.net/Signing/StartInSession.aspx?..."
                 )
 
-                url = SigningService.get_signing_url(
-                    agreement, participant, return_url=return_url
-                )
+                url = SigningService.get_signing_url(agreement, participant, return_url=return_url)
 
                 assert url is not None
                 # Verify return_url was passed to client

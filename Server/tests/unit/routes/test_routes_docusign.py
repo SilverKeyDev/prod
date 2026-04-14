@@ -204,9 +204,7 @@ class TestDocuSignRoutes:
         _seed_agent_buyer(db_session)
 
         with _patch_docusign_get_current_user(_mock_user("agent-456", is_agent=True)):
-            with patch(
-                "app.services.documents.document_library_items.sync_agreement_library_item"
-            ):
+            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
                 agreement = Agreement(**sample_agreement)
                 agreement.status = "draft"
                 db_session.session.add(agreement)

@@ -9,9 +9,6 @@ description, newConstruction, etc.).
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from unittest.mock import MagicMock
-
-import pytest
 
 from app.services.search.data.normalizer import normalize_listing
 from app.services.search.helpers.home_age_preference_filter import (
@@ -65,6 +62,7 @@ def _make_normalized(**overrides) -> dict:
 
 # ---- Beds / Baths post-filter ----
 
+
 class TestBedsBathsPostFilter:
     def test_keeps_matching(self):
         props = [_make_normalized(beds=3)]
@@ -93,7 +91,10 @@ class TestBedsBathsPostFilter:
 
     def test_keeps_when_missing(self):
         raw = {
-            "id": "X", "address": {}, "listPrice": 100000, "status": "Active",
+            "id": "X",
+            "address": {},
+            "listPrice": 100000,
+            "status": "Active",
         }
         props = [normalize_listing(raw)]
         result = apply_beds_baths_filter(props, 3, None, 2, None, "r1", _noop_log)
@@ -101,6 +102,7 @@ class TestBedsBathsPostFilter:
 
 
 # ---- Sqft post-filter ----
+
 
 class TestSqftPostFilter:
     def test_keeps_in_range(self):
@@ -127,6 +129,7 @@ class TestSqftPostFilter:
 
 # ---- Days on market post-filter ----
 
+
 class TestDomPostFilter:
     def test_keeps_in_range(self):
         props = [_make_normalized(daysOnMarket=14)]
@@ -145,6 +148,7 @@ class TestDomPostFilter:
 
 
 # ---- Lot size post-filter ----
+
 
 class TestLotSizePostFilter:
     def test_keeps_in_range_acres(self):
@@ -171,6 +175,7 @@ class TestLotSizePostFilter:
 
 # ---- Home age post-filter ----
 
+
 class TestHomeAgePostFilter:
     def test_age_calculation(self):
         prop = _make_normalized(yearBuilt=2010)
@@ -184,23 +189,35 @@ class TestHomeAgePostFilter:
 
     def test_keeps_in_range(self):
         prop = _make_normalized(yearBuilt=2010)
-        assert property_kept_for_home_age_range(prop, age_min=10, age_max=20, current_year=2026) is True
+        assert (
+            property_kept_for_home_age_range(prop, age_min=10, age_max=20, current_year=2026)
+            is True
+        )
 
     def test_too_new(self):
         prop = _make_normalized(yearBuilt=2024)
-        assert property_kept_for_home_age_range(prop, age_min=5, age_max=None, current_year=2026) is False
+        assert (
+            property_kept_for_home_age_range(prop, age_min=5, age_max=None, current_year=2026)
+            is False
+        )
 
     def test_too_old(self):
         prop = _make_normalized(yearBuilt=1950)
-        assert property_kept_for_home_age_range(prop, age_min=None, age_max=30, current_year=2026) is False
+        assert (
+            property_kept_for_home_age_range(prop, age_min=None, age_max=30, current_year=2026)
+            is False
+        )
 
     def test_missing_kept(self):
         raw = {"id": "X", "address": {}, "listPrice": 100000, "status": "Active"}
         prop = normalize_listing(raw)
-        assert property_kept_for_home_age_range(prop, age_min=5, age_max=20, current_year=2026) is True
+        assert (
+            property_kept_for_home_age_range(prop, age_min=5, age_max=20, current_year=2026) is True
+        )
 
 
 # ---- Listing status post-filter ----
+
 
 class TestListingStatusPostFilter:
     def test_active_matches_active(self):
@@ -223,6 +240,7 @@ class TestListingStatusPostFilter:
 
 # ---- Listing type post-filter ----
 
+
 class TestListingTypePostFilter:
     def test_agent_listed_active(self):
         prop = _make_normalized(status="Active")
@@ -235,6 +253,7 @@ class TestListingTypePostFilter:
 
 
 # ---- Must-have features (garage, ac, pool, basement, etc.) ----
+
 
 class TestMustHaveFeatures:
     def test_garage_in_description(self):

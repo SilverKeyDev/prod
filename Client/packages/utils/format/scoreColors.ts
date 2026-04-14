@@ -1,12 +1,29 @@
 /**
  * Shared score-based color gradient for match scores (0-100).
- * Used by CardMatchScore and map score-pin markers for consistent styling.
+ * Uses HSL interpolation (hue 0° red → 60° yellow → 120° green) for perceptually smooth
+ * transitions; UI vs map presets tune saturation/lightness for each surface.
  */
 export type ScoreColors = {
   fillColor: string;
   strokeColor: string;
   /** Muted text color for contrast on fillColor (WCAG-aware, luminance-based). */
   textColor: string;
+};
+
+/** Optional HSL scale tuning (saturation/lightness percentages 0–100). */
+export type ScoreColorScaleOptions = {
+  saturation?: number;
+  lightness?: number;
+};
+
+const UI_SCALE: Required<Pick<ScoreColorScaleOptions, "saturation" | "lightness">> = {
+  saturation: 70,
+  lightness: 46,
+};
+
+const MAP_SCALE: Required<Pick<ScoreColorScaleOptions, "saturation" | "lightness">> = {
+  saturation: 88,
+  lightness: 38,
 };
 
 /** sRGB relative luminance (0–1). Used to pick light vs dark text. */
@@ -23,31 +40,77 @@ const MUTED_DARK_TEXT = "rgb(58, 58, 56)";
 const MUTED_LIGHT_TEXT = "rgba(255, 255, 255, 0.92)";
 const LUMINANCE_THRESHOLD = 0.45;
 
-export function getScoreBasedColor(score: number): ScoreColors {
-  const normalizedScore = Math.max(0, Math.min(100, score)) / 100;
-  const highColor = { r: 123, g: 158, b: 124 }; // #7B9E7C
-  const midColor = { r: 240, g: 233, b: 210 }; // #F0E9D2
-  const lowColor = { r: 216, g: 140, b: 140 }; // #D88C8C
+const STROKE_RGB_FACTOR = 0.75;
 
-  let r: number, g: number, b: number;
-
-  if (normalizedScore >= 0.5) {
-    const t = (normalizedScore - 0.5) * 2;
-    r = Math.round(midColor.r + (highColor.r - midColor.r) * t);
-    g = Math.round(midColor.g + (highColor.g - midColor.g) * t);
-    b = Math.round(midColor.b + (highColor.b - midColor.b) * t);
+/**
+ * HSL (0–120° = red → yellow → green) to sRGB. h in [0, 120], s and l in [0, 100].
+ */
+function hslRedYellowGreenToRgb(
+  h: number,
+  sPercent: number,
+  lPercent: number,
+): { r: number; g: number; b: number } {
+  const s = Math.max(0, Math.min(100, sPercent)) / 100;
+  const l = Math.max(0, Math.min(100, lPercent)) / 100;
+  const hue = Math.max(0, Math.min(120, h));
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(hue / 60 - 1));
+  const m = l - c / 2;
+  let rp = 0;
+  let gp = 0;
+  let bp = 0;
+  if (hue < 60) {
+    rp = c;
+    gp = x;
+    bp = 0;
   } else {
-    const t = normalizedScore * 2;
-    r = Math.round(lowColor.r + (midColor.r - lowColor.r) * t);
-    g = Math.round(lowColor.g + (midColor.g - lowColor.g) * t);
-    b = Math.round(lowColor.b + (midColor.b - lowColor.b) * t);
+    rp = x;
+    gp = c;
+    bp = 0;
   }
+  return {
+    r: Math.round((rp + m) * 255),
+    g: Math.round((gp + m) * 255),
+    b: Math.round((bp + m) * 255),
+  };
+}
 
+function scoreToHue(score0to100: number): number {
+  const t = Math.max(0, Math.min(100, score0to100)) / 100;
+  return t * 120;
+}
+
+function buildScoreColorsFromHsl(
+  score: number,
+  saturation: number,
+  lightness: number,
+): ScoreColors {
+  const hue = scoreToHue(score);
+  const { r, g, b } = hslRedYellowGreenToRgb(hue, saturation, lightness);
   const fillColor = `rgb(${r}, ${g}, ${b})`;
-  const strokeColor = `rgb(${Math.round(r * 0.75)}, ${Math.round(
-    g * 0.75
-  )}, ${Math.round(b * 0.75)})`;
+  const strokeColor = `rgb(${Math.round(r * STROKE_RGB_FACTOR)}, ${Math.round(
+    g * STROKE_RGB_FACTOR,
+  )}, ${Math.round(b * STROKE_RGB_FACTOR)})`;
   const luminance = relativeLuminance(r, g, b);
   const textColor = luminance < LUMINANCE_THRESHOLD ? MUTED_LIGHT_TEXT : MUTED_DARK_TEXT;
   return { fillColor, strokeColor, textColor };
+}
+
+/**
+ * Score gradient for cards, badges, and other UI on light backgrounds.
+ */
+export function getScoreBasedColor(
+  score: number,
+  options?: ScoreColorScaleOptions,
+): ScoreColors {
+  const saturation = options?.saturation ?? UI_SCALE.saturation;
+  const lightness = options?.lightness ?? UI_SCALE.lightness;
+  return buildScoreColorsFromHsl(score, saturation, lightness);
+}
+
+/**
+ * Stronger saturation and lower lightness so match pins read on beige / muted map tiles.
+ */
+export function getScoreBasedColorForMap(score: number): ScoreColors {
+  return buildScoreColorsFromHsl(score, MAP_SCALE.saturation, MAP_SCALE.lightness);
 }

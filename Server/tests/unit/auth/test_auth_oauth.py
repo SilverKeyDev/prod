@@ -4,16 +4,13 @@ Tests for OAuth callback flow
 
 from unittest.mock import Mock, patch
 
-import pytest
 from flask import Flask
 
 
 class TestOAuthCallback:
     """Test OAuth callback flow"""
 
-    def test_successful_google_oauth_callback(
-        self, app: Flask, mock_cognito_service, db_session
-    ):
+    def test_successful_google_oauth_callback(self, app: Flask, mock_cognito_service, db_session):
         """Test successful Google OAuth callback"""
         from app.services.auth.flows.oauth_callback import handle_oauth_callback
 
@@ -95,7 +92,6 @@ class TestOAuthCallback:
 
     def test_oauth_callback_creates_new_user(self, app: Flask, db_session):
         """Test OAuth callback creates new user in database"""
-        from app.models import User
         from app.services.auth.flows.oauth_callback import handle_oauth_callback
 
         with app.app_context():

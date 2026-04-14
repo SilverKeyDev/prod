@@ -4,7 +4,6 @@ Tests for Google Calendar management and sharing
 
 from unittest.mock import Mock, patch
 
-import pytest
 from flask import Flask
 
 
@@ -145,9 +144,7 @@ class TestCalendarSharing:
             db_session.add(client)
             db_session.commit()
 
-            with patch(
-                "app.services.calendar.calendars.sharing.share_calendar"
-            ) as mock_share:
+            with patch("app.services.calendar.calendars.sharing.share_calendar") as mock_share:
                 mock_share.return_value = {"success": True}
 
                 result = share_agent_calendar_with_client(
@@ -181,9 +178,7 @@ class TestCalendarSharing:
 
         with app.app_context():
             with patch("app.services.calendar.core.credentials.load_credentials"):
-                with patch(
-                    "googleapiclient.discovery.build"
-                ) as mock_build:
+                with patch("googleapiclient.discovery.build") as mock_build:
                     service_mock = Mock()
                     acl_mock = Mock()
                     acl_mock.list.return_value.execute.return_value = {
@@ -223,9 +218,7 @@ class TestCalendarAvailability:
 
         with app.app_context():
             with patch("app.services.calendar.core.credentials.load_credentials"):
-                with patch(
-                    "googleapiclient.discovery.build"
-                ) as mock_build:
+                with patch("googleapiclient.discovery.build") as mock_build:
                     service_mock = Mock()
                     freebusy_mock = Mock()
                     freebusy_mock.query.return_value.execute.return_value = {

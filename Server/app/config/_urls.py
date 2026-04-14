@@ -29,7 +29,7 @@ def get_frontend_url():
     ``https://….ngrok-free.app`` for embedded DocuSign in Chrome (PNA blocks redirects
     to ``http://localhost`` from the DocuSign iframe).
     """
-    explicit = (os.getenv("FRONTEND_URL", "").strip() or os.getenv("FRONTEND_BASE_URL", "").strip())
+    explicit = os.getenv("FRONTEND_URL", "").strip() or os.getenv("FRONTEND_BASE_URL", "").strip()
     if explicit:
         return explicit.rstrip("/")
     flask_env = os.getenv("FLASK_ENV", "development")

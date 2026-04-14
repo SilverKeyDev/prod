@@ -2,17 +2,15 @@
 Tests for agent API routes
 """
 
-from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
+from unittest.mock import patch
+
 import jwt as pyjwt
 
 from app.models import User
 
 # Create a properly formatted mock JWT token for testing
 MOCK_JWT_TOKEN = pyjwt.encode(
-    {"sub": "test-user", "email": "test@example.com"},
-    "test-secret",
-    algorithm="HS256"
+    {"sub": "test-user", "email": "test@example.com"}, "test-secret", algorithm="HS256"
 )
 
 
@@ -30,7 +28,7 @@ class TestAgentClientsRoutes:
             is_agent=True,
         )
         db_session.session.add(agent)
-        
+
         # Create client users
         client1 = User(
             id="client-1",
@@ -51,7 +49,7 @@ class TestAgentClientsRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.clients.get_agent_clients") as mock_get_clients:
                 mock_get_clients.return_value = [
                     {
@@ -131,7 +129,7 @@ class TestAgentTodosRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.todos.get_agent_todos") as mock_get_todos:
                 mock_get_todos.return_value = [
                     {
@@ -175,7 +173,7 @@ class TestAgentTodosRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = user
-            
+
             with patch("app.routes.agent.handlers.todos.get_client_todos") as mock_get_todos:
                 mock_get_todos.return_value = [
                     {
@@ -216,7 +214,7 @@ class TestAgentTodosRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.todos.get_agent_todos") as mock_get_todos:
                 mock_get_todos.return_value = [
                     {
@@ -260,7 +258,7 @@ class TestAgentTodosRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.todos.create_todo") as mock_create:
                 mock_create.return_value = {
                     "id": "todo-new",
@@ -362,7 +360,7 @@ class TestAgentTodosRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.todos.update_todo") as mock_update:
                 mock_update.return_value = {
                     "id": "todo-1",
@@ -401,7 +399,7 @@ class TestAgentTodosRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.todos.update_todo") as mock_update:
                 mock_update.side_effect = ValueError("Todo not found")
 
@@ -427,7 +425,7 @@ class TestAgentTodosRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.todos.delete_todo") as mock_delete:
                 mock_delete.return_value = None
 
@@ -454,7 +452,7 @@ class TestAgentTodosRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.todos.delete_todo") as mock_delete:
                 mock_delete.side_effect = ValueError("Todo not found")
 
@@ -483,7 +481,7 @@ class TestAgentChatsRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.get_conversations") as mock_get_convs:
                 mock_get_convs.return_value = [
                     {
@@ -526,7 +524,7 @@ class TestAgentChatsRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.get_conversations") as mock_get_convs:
                 mock_get_convs.return_value = [
                     {
@@ -568,7 +566,7 @@ class TestAgentChatsRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.create_conversation") as mock_create:
                 mock_create.return_value = {
                     "id": "conv-new",
@@ -628,15 +626,17 @@ class TestAgentChatsRoutes:
 
         with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
                 mock_get_conv.return_value = {
                     "id": "conv-1",
                     "agent_id": "agent-123",
                     "client_id": "client-1",
                 }
-                
-                with patch("app.routes.agent.handlers.chats.get_conversation_history") as mock_get_history:
+
+                with patch(
+                    "app.routes.agent.handlers.chats.get_conversation_history"
+                ) as mock_get_history:
                     mock_get_history.return_value = {
                         "messages": [
                             {
@@ -676,7 +676,7 @@ class TestAgentChatsRoutes:
 
         with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
                 mock_get_conv.return_value = None
 
@@ -701,7 +701,7 @@ class TestAgentChatsRoutes:
 
         with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
                 # Conversation belongs to different agent/client
                 mock_get_conv.return_value = {
@@ -731,15 +731,17 @@ class TestAgentChatsRoutes:
 
         with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
                 mock_get_conv.return_value = {
                     "id": "conv-1",
                     "agent_id": "agent-123",
                     "client_id": "client-1",
                 }
-                
-                with patch("app.routes.agent.handlers.chats.send_conversation_message") as mock_send:
+
+                with patch(
+                    "app.routes.agent.handlers.chats.send_conversation_message"
+                ) as mock_send:
                     mock_send.return_value = {"message_id": "msg-new"}
 
                     response = client.post(
@@ -821,15 +823,17 @@ class TestAgentChatsRoutes:
 
         with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
                 mock_get_conv.return_value = {
                     "id": "conv-1",
                     "agent_id": "agent-123",
                     "client_id": "client-1",
                 }
-                
-                with patch("app.routes.agent.handlers.chats.send_conversation_message") as mock_send:
+
+                with patch(
+                    "app.routes.agent.handlers.chats.send_conversation_message"
+                ) as mock_send:
                     mock_send.return_value = {"message_id": "msg-new"}
 
                     response = client.post(
@@ -860,14 +864,14 @@ class TestAgentChatsRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
                 mock_get_conv.return_value = {
                     "id": "conv-1",
                     "agent_id": "agent-123",
                     "client_id": "client-1",
                 }
-                
+
                 with patch("app.routes.agent.handlers.chats.mark_messages_as_read") as mock_mark:
                     mock_mark.return_value = {"messages_marked": 5}
 
@@ -895,7 +899,7 @@ class TestAgentChatsRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
                 mock_get_conv.return_value = None
 
@@ -920,7 +924,7 @@ class TestAgentChatsRoutes:
 
         with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
-            
+
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
                 mock_get_conv.return_value = {
                     "id": "conv-1",
@@ -954,7 +958,7 @@ class TestAgentChatsAuthAndValidation:
                 response = client.get(endpoint)
             elif method == "POST":
                 response = client.post(endpoint, json={})
-            
+
             assert response.status_code == 401, f"Expected 401 for {method} {endpoint}"
 
     def test_todos_endpoints_require_auth(self, client):
@@ -975,5 +979,5 @@ class TestAgentChatsAuthAndValidation:
                 response = client.put(endpoint, json={})
             elif method == "DELETE":
                 response = client.delete(endpoint)
-            
+
             assert response.status_code == 401, f"Expected 401 for {method} {endpoint}"

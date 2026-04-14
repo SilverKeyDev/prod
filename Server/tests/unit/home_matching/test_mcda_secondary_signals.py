@@ -1,11 +1,19 @@
 """MCDA secondary soft signals and hard max-sqft."""
 
-from app.services.search.home_matching.mcda.criteria.days_on_market import soft_days_on_market_normalized
-from app.services.search.home_matching.mcda.criteria.hard_constraints import hard_constraint_multiplier
+from app.services.search.home_matching.mcda.criteria.days_on_market import (
+    soft_days_on_market_normalized,
+)
+from app.services.search.home_matching.mcda.criteria.hard_constraints import (
+    hard_constraint_multiplier,
+)
 from app.services.search.home_matching.mcda.criteria.home_age_band import soft_home_age_normalized
-from app.services.search.home_matching.mcda.criteria.listing_type_fit import soft_listing_type_normalized
+from app.services.search.home_matching.mcda.criteria.listing_type_fit import (
+    soft_listing_type_normalized,
+)
 from app.services.search.home_matching.mcda.criteria.lot_acres import soft_lot_acres_normalized
-from app.services.search.home_matching.mcda.criteria.walkability_fit import soft_walkability_normalized
+from app.services.search.home_matching.mcda.criteria.walkability_fit import (
+    soft_walkability_normalized,
+)
 from app.services.search.home_matching.mcda.score import score_listing_mcda
 
 

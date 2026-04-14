@@ -4,11 +4,11 @@ Tests the create_in_agent_calendars function.
 """
 
 import json
-import pytest
 from datetime import datetime, timezone
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
 
-from app.models import User, CalendarEvent
+import pytest
+
 from app.services.calendar.events.creation import create_in_agent_calendars
 
 
@@ -345,7 +345,6 @@ class TestCreateInAgentCalendars:
     ):
         """One agent calendar creation failure should not prevent others"""
         user_id = "client-789"
-        agent_id_1 = "agent-123"
         agent_id_2 = "agent-456"
         calendar_id = "primary"
         event_type = "meeting"
@@ -400,7 +399,9 @@ class TestCreateInAgentCalendars:
         assert agent_id_2 in mock_calendar_event.shared_with_user_ids
 
     @patch("app.services.calendar.events.creation.User.query")
-    def test_agent_id_json_string_parsing(self, mock_user_query, mock_event_data, mock_calendar_event):
+    def test_agent_id_json_string_parsing(
+        self, mock_user_query, mock_event_data, mock_calendar_event
+    ):
         """Should parse JSON string format for agent_id"""
         user_id = "client-456"
         calendar_id = "primary"

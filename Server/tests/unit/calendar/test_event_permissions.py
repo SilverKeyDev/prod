@@ -3,8 +3,9 @@ Unit tests for calendar event permission checks.
 Tests permission validation for event creation and listing.
 """
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import Mock, patch
 
 from app.services.calendar.events.creation import get_client_events_permission_error
 

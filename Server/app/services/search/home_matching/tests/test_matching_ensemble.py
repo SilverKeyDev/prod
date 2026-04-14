@@ -2,10 +2,10 @@
 Unit tests for ensemble scoring, matching system, and error handling (home matching).
 """
 
+import unittest
 from unittest.mock import Mock, patch
 
 import numpy as np
-import unittest
 
 from app.services.search.home_matching.config.match import (
     find_best_matches,
@@ -160,9 +160,7 @@ class TestErrorHandling(unittest.TestCase):
     def test_ensemble_error_handling(self, mock_llm, mock_tabular, mock_embedding):
         """Test that ensemble handles scorer failures gracefully."""
         mock_embedding_instance = Mock()
-        mock_embedding_instance.get_user_home_similarity.side_effect = Exception(
-            "Embedding failed"
-        )
+        mock_embedding_instance.get_user_home_similarity.side_effect = Exception("Embedding failed")
         mock_embedding.return_value = mock_embedding_instance
 
         mock_tabular_instance = Mock()

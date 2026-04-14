@@ -3,10 +3,10 @@ Unit tests for calendar event creation logic and target resolution.
 Tests the resolve_create_event_target function and related validation.
 """
 
-import pytest
 from unittest.mock import Mock, patch
 
-from app.models import User
+import pytest
+
 from app.services.calendar.events.creation import resolve_create_event_target
 
 

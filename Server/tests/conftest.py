@@ -3,9 +3,9 @@ Pytest configuration and shared fixtures for Server tests
 """
 
 import os
+from collections.abc import Generator
 from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone
-from typing import Any, Generator
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -171,9 +171,7 @@ def mock_google_calendar():
             )
         )
     )
-    events_mock.update = Mock(
-        return_value=Mock(execute=Mock(return_value={"id": "event-123"}))
-    )
+    events_mock.update = Mock(return_value=Mock(execute=Mock(return_value={"id": "event-123"})))
     events_mock.delete = Mock(return_value=Mock(execute=Mock(return_value={})))
 
     # Calendars operations (calendars().insert, calendarList().list, etc.)
@@ -207,9 +205,7 @@ def mock_google_calendar():
     calendar_list_ops.list = calendars_mock.list
     acl_mock = Mock()
     acl_mock.insert = Mock(
-        return_value=Mock(
-            execute=Mock(return_value={"id": "acl-rule-123", "role": "reader"})
-        )
+        return_value=Mock(execute=Mock(return_value={"id": "acl-rule-123", "role": "reader"}))
     )
 
     service_mock.events = Mock(return_value=events_mock)

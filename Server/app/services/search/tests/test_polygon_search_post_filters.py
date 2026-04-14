@@ -316,7 +316,9 @@ def test_must_have_applied_when_strict() -> None:
 
 
 def test_lenient_mode_skips_filters_when_count_at_threshold() -> None:
-    props = [{"zpid": str(i), "bedrooms": 5} for i in range(PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT)]
+    props = [
+        {"zpid": str(i), "bedrooms": 5} for i in range(PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT)
+    ]
     user_preferences = {"preferred_bedrooms_min": 1, "preferred_bedrooms_max": 3}
     out = apply_polygon_search_post_filters(
         props,

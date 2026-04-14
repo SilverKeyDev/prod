@@ -230,8 +230,10 @@ def create_app(config=None):
         import time
 
         header_rid = request.headers.get("X-Request-ID") or request.headers.get("X-Request-Id")
-        if header_rid and isinstance(header_rid, str) and re.fullmatch(
-            r"[A-Za-z0-9._-]{8,128}", header_rid
+        if (
+            header_rid
+            and isinstance(header_rid, str)
+            and re.fullmatch(r"[A-Za-z0-9._-]{8,128}", header_rid)
         ):
             request_id = header_rid
         else:

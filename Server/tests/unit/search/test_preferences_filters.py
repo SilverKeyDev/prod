@@ -23,6 +23,7 @@ def _call(prefs: dict) -> dict:
 
 # ---- Price / Budget ----
 
+
 class TestPriceFilter:
     def test_budget_range(self):
         f = _call({"home_budget_min": 200000, "home_budget_max": 500000})
@@ -42,6 +43,7 @@ class TestPriceFilter:
 
 
 # ---- Bedrooms ----
+
 
 class TestBedsFilter:
     def test_beds_min(self):
@@ -67,6 +69,7 @@ class TestBedsFilter:
 
 # ---- Bathrooms ----
 
+
 class TestBathsFilter:
     def test_baths_min(self):
         f = _call({"preferred_bathrooms_min": 2})
@@ -82,6 +85,7 @@ class TestBathsFilter:
 
 
 # ---- Square footage ----
+
 
 class TestSqftFilter:
     def test_sqft_range(self):
@@ -103,6 +107,7 @@ class TestSqftFilter:
 
 # ---- Days on market ----
 
+
 class TestDomFilter:
     def test_dom_range(self):
         f = _call({"days_on_market_min": 5, "days_on_market_max": 30})
@@ -122,6 +127,7 @@ class TestDomFilter:
 
 
 # ---- Property / housing type ----
+
 
 class TestPropertyTypeFilter:
     @pytest.mark.parametrize(
@@ -168,6 +174,7 @@ class TestPropertyTypeFilter:
 
 # ---- Lot size ----
 
+
 class TestLotSizeFilter:
     def test_lot_range(self):
         f = _call({"preferred_lot_size_min": 0.25, "preferred_lot_size_max": 1.0})
@@ -187,6 +194,7 @@ class TestLotSizeFilter:
 
 
 # ---- Year built / home age ----
+
 
 class TestYearBuiltFilter:
     @pytest.fixture(autouse=True)
@@ -222,6 +230,7 @@ class TestYearBuiltFilter:
 
 # ---- New construction ----
 
+
 class TestNewConstructionFilter:
     def test_new_construction_in_listing_type(self):
         f = _call({"listing_type": ["new_construction"]})
@@ -241,6 +250,7 @@ class TestNewConstructionFilter:
 
 
 # ---- Listing status ----
+
 
 class TestListingStatusFilter:
     def test_active_status(self):
@@ -270,6 +280,7 @@ class TestListingStatusFilter:
 
 # ---- Sort defaults ----
 
+
 class TestSortDefaults:
     def test_sort_always_present(self):
         f = _call({})
@@ -279,21 +290,24 @@ class TestSortDefaults:
 
 # ---- Combined preferences ----
 
+
 class TestCombinedFilters:
     def test_full_preferences(self):
-        f = _call({
-            "home_budget_min": 300000,
-            "home_budget_max": 600000,
-            "preferred_bedrooms_min": 3,
-            "preferred_bathrooms_min": 2,
-            "preferred_sqft_min": 1500,
-            "preferred_sqft_max": 3000,
-            "preferred_housing_type": "house",
-            "preferred_lot_size_min": 0.25,
-            "days_on_market_max": 30,
-            "listing_type": ["new_construction"],
-            "listing_status": "active",
-        })
+        f = _call(
+            {
+                "home_budget_min": 300000,
+                "home_budget_max": 600000,
+                "preferred_bedrooms_min": 3,
+                "preferred_bathrooms_min": 2,
+                "preferred_sqft_min": 1500,
+                "preferred_sqft_max": 3000,
+                "preferred_housing_type": "house",
+                "preferred_lot_size_min": 0.25,
+                "days_on_market_max": 30,
+                "listing_type": ["new_construction"],
+                "listing_status": "active",
+            }
+        )
         assert f["listPrice"] == "300000:600000"
         assert f["beds"] == ">=3"
         assert f["baths"] == ">=2"

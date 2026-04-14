@@ -4,7 +4,6 @@ Tests for authentication token refresh flow
 
 from unittest.mock import Mock, patch
 
-import pytest
 from flask import Flask
 
 
@@ -24,9 +23,7 @@ class TestRefreshFlow:
                     "new_id_token",
                 )
 
-                response, status_code = handle_refresh_token(
-                    "mock_refresh_token", "req-123"
-                )
+                response, status_code = handle_refresh_token("mock_refresh_token", "req-123")
 
                 assert status_code == 200
                 response_json = response.get_json()
@@ -79,18 +76,14 @@ class TestRefreshFlow:
             with patch(
                 "app.services.auth.utils.token_creation.create_minimal_tokens"
             ) as mock_create_tokens:
-                with patch(
-                    "app.services.auth.utils.cookies.set_auth_cookies"
-                ) as mock_set_cookies:
+                with patch("app.services.auth.utils.cookies.set_auth_cookies") as mock_set_cookies:
                     mock_create_tokens.return_value = (
                         "new_access_token",
                         "new_id_token",
                     )
                     mock_set_cookies.return_value = Mock()
 
-                    response, status_code = handle_refresh_token(
-                        "mock_refresh_token", "req-123"
-                    )
+                    response, status_code = handle_refresh_token("mock_refresh_token", "req-123")
 
                     assert status_code == 200
                     # Verify cookies were set
@@ -106,9 +99,7 @@ class TestRefreshHandlers:
             extract_refresh_token_from_cookie,
         )
 
-        with app.test_request_context(
-            "/", headers={"Cookie": "refresh_token=test_token_123"}
-        ):
+        with app.test_request_context("/", headers={"Cookie": "refresh_token=test_token_123"}):
             token = extract_refresh_token_from_cookie()
             assert token == "test_token_123"
 

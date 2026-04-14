@@ -81,9 +81,7 @@ def add_calendar_acl(calendar_id, data: AddCalendarACLRequest | None = None):
         return make_response(("Unauthorized", 401))
 
     try:
-        ok, perm_err = require_permission(
-            user_id, "calendar", "add sharing rules to your calendar"
-        )
+        ok, perm_err = require_permission(user_id, "calendar", "add sharing rules to your calendar")
         if not ok and perm_err:
             return jsonify(perm_err), 403
 

@@ -1,6 +1,8 @@
 """Multi-value home type matching for MCDA."""
 
-from app.services.search.home_matching.mcda.criteria.property_type import listing_matches_preferred_housing_type
+from app.services.search.home_matching.mcda.criteria.property_type import (
+    listing_matches_preferred_housing_type,
+)
 
 
 def test_comma_separated_matches_second_type() -> None:

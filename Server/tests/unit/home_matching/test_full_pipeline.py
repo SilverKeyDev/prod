@@ -15,39 +15,39 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 
 def _slipstream_raw_response(count: int = 5) -> dict:
     """Simulate a realistic Slipstream /ws/listings/search response."""
     listings = []
     for i in range(count):
-        listings.append({
-            "id": f"GAMLS-{1000 + i}",
-            "address": {
-                "deliveryLine": f"{100 + i} Test St",
-                "city": "Atlanta",
-                "state": "GA",
-                "zip": f"3030{i}",
-            },
-            "beds": 3 + (i % 3),
-            "baths": {"total": 2 + (i % 2), "full": 2, "half": i % 2},
-            "coordinates": {"latitude": 33.75 + i * 0.01, "longitude": -84.39 + i * 0.01},
-            "listPrice": 300000 + i * 50000,
-            "size": 1500 + i * 200,
-            "lotSize": {"sqft": 5000 + i * 1000, "acres": 0.12 + i * 0.02},
-            "propertyType": "Single Family Residence" if i < 3 else "Condo",
-            "listingType": "Residential",
-            "status": "Active",
-            "images": [f"img{i}_1.jpg", f"img{i}_2.jpg"] if i < 4 else [],
-            "yearBuilt": 2000 + i * 5,
-            "daysOnMarket": 5 + i * 3,
-            "description": f"Beautiful home #{i} with modern kitchen and large yard.",
-            "newConstruction": i == 0,
-            "county": "Fulton",
-            "subdivision": f"Subdivision {i}",
-            "associationFee": 150 if i >= 3 else None,
-        })
+        listings.append(
+            {
+                "id": f"GAMLS-{1000 + i}",
+                "address": {
+                    "deliveryLine": f"{100 + i} Test St",
+                    "city": "Atlanta",
+                    "state": "GA",
+                    "zip": f"3030{i}",
+                },
+                "beds": 3 + (i % 3),
+                "baths": {"total": 2 + (i % 2), "full": 2, "half": i % 2},
+                "coordinates": {"latitude": 33.75 + i * 0.01, "longitude": -84.39 + i * 0.01},
+                "listPrice": 300000 + i * 50000,
+                "size": 1500 + i * 200,
+                "lotSize": {"sqft": 5000 + i * 1000, "acres": 0.12 + i * 0.02},
+                "propertyType": "Single Family Residence" if i < 3 else "Condo",
+                "listingType": "Residential",
+                "status": "Active",
+                "images": [f"img{i}_1.jpg", f"img{i}_2.jpg"] if i < 4 else [],
+                "yearBuilt": 2000 + i * 5,
+                "daysOnMarket": 5 + i * 3,
+                "description": f"Beautiful home #{i} with modern kitchen and large yard.",
+                "newConstruction": i == 0,
+                "county": "Fulton",
+                "subdivision": f"Subdivision {i}",
+                "associationFee": 150 if i >= 3 else None,
+            }
+        )
     return {
         "success": True,
         "result": {
@@ -99,13 +99,18 @@ class TestEndToEndPipeline:
     def test_search_and_normalize(self, mock_get):
         """Steps 3-4: API call -> raw -> normalized."""
         mock_get.return_value = MagicMock(
-            ok=True, status_code=200, content=True,
+            ok=True,
+            status_code=200,
+            content=True,
             json=MagicMock(return_value=_slipstream_raw_response(5)),
         )
         from app.services.search.data.listings_active import search_active_listings
 
         listings, paging, errors = search_active_listings(
-            polygon_geojson={"type": "Polygon", "coordinates": [[[-84, 33], [-84, 34], [-83, 34], [-83, 33], [-84, 33]]]},
+            polygon_geojson={
+                "type": "Polygon",
+                "coordinates": [[[-84, 33], [-84, 34], [-83, 34], [-83, 33], [-84, 33]]],
+            },
         )
         assert len(listings) == 5
         assert errors == []
@@ -130,9 +135,18 @@ class TestEndToEndPipeline:
         n = normalize_listing(raw)
 
         client_required = [
-            "zpid", "address", "bedrooms", "bathrooms", "livingArea",
-            "latitude", "longitude", "lotAreaValue", "lotAreaUnit",
-            "propertyType", "listingStatus", "imgSrc",
+            "zpid",
+            "address",
+            "bedrooms",
+            "bathrooms",
+            "livingArea",
+            "latitude",
+            "longitude",
+            "lotAreaValue",
+            "lotAreaUnit",
+            "propertyType",
+            "listingStatus",
+            "imgSrc",
         ]
         for field in client_required:
             assert field in n, f"Missing field: {field}"
@@ -146,10 +160,23 @@ class TestEndToEndPipeline:
         n = normalize_listing(raw)
 
         cache_fields = [
-            "streetAddress", "city", "state", "zipcode",
-            "bedrooms", "bathrooms", "livingArea", "lotAreaValue",
-            "zpid", "mls_home_id", "listingStatus", "propertyType",
-            "homeType", "yearBuilt", "latitude", "longitude", "lotAreaUnit",
+            "streetAddress",
+            "city",
+            "state",
+            "zipcode",
+            "bedrooms",
+            "bathrooms",
+            "livingArea",
+            "lotAreaValue",
+            "zpid",
+            "mls_home_id",
+            "listingStatus",
+            "propertyType",
+            "homeType",
+            "yearBuilt",
+            "latitude",
+            "longitude",
+            "lotAreaUnit",
         ]
         for field in cache_fields:
             assert field in n, f"Missing cache field: {field}"
@@ -161,7 +188,15 @@ class TestEndToEndPipeline:
         raw = _slipstream_raw_response(1)["result"]["listings"][0]
         n = normalize_listing(raw)
 
-        scoring_fields = ["bedrooms", "bathrooms", "livingArea", "price", "yearBuilt", "daysOnMarket", "description"]
+        scoring_fields = [
+            "bedrooms",
+            "bathrooms",
+            "livingArea",
+            "price",
+            "yearBuilt",
+            "daysOnMarket",
+            "description",
+        ]
         for field in scoring_fields:
             assert field in n, f"Missing scoring field: {field}"
 
@@ -183,24 +218,43 @@ class TestEndToEndPipeline:
             spec.loader.exec_module(mod)
             return mod
 
-        _bb = _load("bb_pipe", os.path.join(base, "services", "search", "polygon", "polygon_post_filters", "beds_baths.py"))
-        _sq = _load("sq_pipe", os.path.join(base, "services", "search", "polygon", "polygon_post_filters", "sqft_dom_lot.py"))
+        _bb = _load(
+            "bb_pipe",
+            os.path.join(
+                base, "services", "search", "polygon", "polygon_post_filters", "beds_baths.py"
+            ),
+        )
+        _sq = _load(
+            "sq_pipe",
+            os.path.join(
+                base, "services", "search", "polygon", "polygon_post_filters", "sqft_dom_lot.py"
+            ),
+        )
 
         raw_response = _slipstream_raw_response(5)
         listings = [normalize_listing(r) for r in raw_response["result"]["listings"]]
 
-        _noop = lambda *a, **k: None
+        def _noop(*_a: object, **_k: object) -> None:
+            return None
 
         filtered = _bb.apply_beds_baths_filter(
-            listings, beds_min=4, beds_max=None, baths_min=None, baths_max=None,
-            request_id="test", log_fn=_noop,
+            listings,
+            beds_min=4,
+            beds_max=None,
+            baths_min=None,
+            baths_max=None,
+            request_id="test",
+            log_fn=_noop,
         )
         for p in filtered:
             assert p["bedrooms"] >= 4
 
         filtered_sqft = _sq.apply_sqft_filter(
-            listings, sqft_min=1800, sqft_max=None,
-            request_id="test", log_fn=_noop,
+            listings,
+            sqft_min=1800,
+            sqft_max=None,
+            request_id="test",
+            log_fn=_noop,
         )
         for p in filtered_sqft:
             assert p["livingArea"] >= 1800

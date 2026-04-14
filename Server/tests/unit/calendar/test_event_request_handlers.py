@@ -3,13 +3,13 @@ Unit tests for event request status updates and validation.
 Tests the update_event_request_status function.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
-from app.models import ChatHistory, AgentConnections
+import pytest
+
 from app.services.agent.event_request_handlers import (
-    update_event_request_status,
     EVENT_REQUEST_PREFIX,
+    update_event_request_status,
 )
 
 
@@ -370,10 +370,12 @@ class TestUpdateEventRequestStatus:
         mock_connection_query.filter_by.return_value = mock_conn_filter
         mock_conn_filter.first.return_value = mock_agent_conversation
 
-        # Mock commit to raise an exception
-        mock_db_session.commit.side_effect = Exception("Database error")
+        class _SimulatedCommitError(Exception):
+            """Raised by test mock when db.session.commit fails."""
 
-        with pytest.raises(Exception):
+        mock_db_session.commit.side_effect = _SimulatedCommitError("Database error")
+
+        with pytest.raises(_SimulatedCommitError):
             update_event_request_status(message_id, user_id, status)
 
         mock_db_session.rollback.assert_called_once()

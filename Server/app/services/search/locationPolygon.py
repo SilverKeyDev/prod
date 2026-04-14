@@ -1,11 +1,14 @@
 # pip install shapely requests
 from __future__ import annotations
-import os
+
 import json
+import os
 import urllib.parse
+from collections.abc import Iterable
+from typing import Any, Literal
+
 import requests
-from typing import Iterable, Optional, Dict, Any, List, Tuple, Literal
-from shapely.geometry import shape, mapping, Polygon, MultiPolygon
+from shapely.geometry import MultiPolygon, Polygon, mapping, shape
 from shapely.ops import unary_union
 
 MAPBOX_ISOCHRONE_URL = "https://api.mapbox.com/isochrone/v1"
@@ -13,6 +16,7 @@ MAPBOX_GEOCODE_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places"
 
 # Allowed Mapbox excludes (docs)
 _ALLOWED_EXCLUDES = {"motorway", "toll", "ferry", "unpaved", "cash_only_tolls"}
+
 
 def _mode_to_profile(mode: str, traffic: bool) -> str:
     m = mode.lower()
@@ -24,12 +28,15 @@ def _mode_to_profile(mode: str, traffic: bool) -> str:
         return "mapbox/cycling"
     raise ValueError("mode must be one of: 'walk', 'bike', 'drive'")
 
-def _pick_token(explicit: Optional[str]) -> str:
+
+def _pick_token(explicit: str | None) -> str:
     # Looks in param first, then common env var names
-    for t in (explicit,
-              os.getenv("MAPBOX_API_KEY"),
-              os.getenv("MAPBOX_ACCESS_TOKEN"),
-              os.getenv("MAPBOX_TOKEN")):
+    for t in (
+        explicit,
+        os.getenv("MAPBOX_API_KEY"),
+        os.getenv("MAPBOX_ACCESS_TOKEN"),
+        os.getenv("MAPBOX_TOKEN"),
+    ):
         if t:
             return t
     raise RuntimeError(
@@ -37,7 +44,8 @@ def _pick_token(explicit: Optional[str]) -> str:
         "or pass access_token=..."
     )
 
-def geocode_address(address: str, *, access_token: Optional[str] = None) -> Tuple[float, float]:
+
+def geocode_address(address: str, *, access_token: str | None = None) -> tuple[float, float]:
     """
     Geocode a single address using Mapbox Geocoding API.
     Returns (lat, lon). Raises on failure/zero results.
@@ -52,7 +60,9 @@ def geocode_address(address: str, *, access_token: Optional[str] = None) -> Tupl
             data = r.json()
         except Exception:
             data = {}
-        raise RuntimeError(f"Mapbox Geocoding error {r.status_code}: {data.get('message') or r.text}")
+        raise RuntimeError(
+            f"Mapbox Geocoding error {r.status_code}: {data.get('message') or r.text}"
+        )
     data = r.json()
     feats = data.get("features") or []
     if not feats:
@@ -60,6 +70,7 @@ def geocode_address(address: str, *, access_token: Optional[str] = None) -> Tupl
     # Mapbox center is [lon, lat]
     lon, lat = feats[0]["center"]
     return float(lat), float(lon)
+
 
 def isochrone_polygon(
     lat: float,
@@ -69,14 +80,14 @@ def isochrone_polygon(
     *,
     # Mapbox-specific options (optional)
     traffic: bool = False,
-    depart_at: Optional[str] = None,            # ISO-8601 time string
-    exclude: Optional[Iterable[str]] = None,    # e.g. ["toll","ferry"]
-    denoise: float = 1.0,                       # 0.0 .. 1.0
-    generalize_m: Optional[float] = None,       # meters
-    access_token: Optional[str] = None,
+    depart_at: str | None = None,  # ISO-8601 time string
+    exclude: Iterable[str] | None = None,  # e.g. ["toll","ferry"]
+    denoise: float = 1.0,  # 0.0 .. 1.0
+    generalize_m: float | None = None,  # meters
+    access_token: str | None = None,
     # Output shaping
-    merge: bool = True,                         # union multiple features to one polygon
-) -> Dict[str, Any]:
+    merge: bool = True,  # union multiple features to one polygon
+) -> dict[str, Any]:
     """
     Build an isochrone polygon using Mapbox Isochrone API.
 
@@ -130,7 +141,7 @@ def isochrone_polygon(
         raise RuntimeError(f"Mapbox Isochrone API error {resp.status_code} {code or ''}: {msg}")
 
     data = resp.json()
-    feats: List[Dict[str, Any]] = data.get("features") or []
+    feats: list[dict[str, Any]] = data.get("features") or []
     if not feats:
         raise RuntimeError("Mapbox Isochrone API returned no features.")
 
@@ -144,14 +155,14 @@ def isochrone_polygon(
         if not geom:
             continue
         shp = shape(geom)
-        if isinstance(shp, (Polygon, MultiPolygon)):
+        if isinstance(shp, Polygon | MultiPolygon):
             polys.append(shp)
 
     if not polys:
         raise RuntimeError("No polygonal geometries returned from Mapbox (unexpected).")
 
     merged = unary_union(polys)
-    feature: Dict[str, Any] = {
+    feature: dict[str, Any] = {
         "type": "Feature",
         "properties": {
             "origin": {"lat": lat, "lon": lon},
@@ -164,7 +175,8 @@ def isochrone_polygon(
     }
     return feature
 
-def _intersection_all(geoms: List[Polygon | MultiPolygon]):
+
+def _intersection_all(geoms: list[Polygon | MultiPolygon]):
     """
     Intersect a list of polygonal geometries.
     Returns the common overlap (may be empty).
@@ -178,19 +190,20 @@ def _intersection_all(geoms: List[Polygon | MultiPolygon]):
             break
     return g
 
+
 def isochrone_union_for_addresses(  # now supports AND/OR; defaults to AND
-    addresses_and_minutes: Iterable[Tuple[str, float]],
+    addresses_and_minutes: Iterable[tuple[str, float]],
     *,
     mode: str = "drive",
     traffic: bool = False,
-    depart_at: Optional[str] = None,
-    exclude: Optional[Iterable[str]] = None,
+    depart_at: str | None = None,
+    exclude: Iterable[str] | None = None,
     denoise: float = 1.0,
-    generalize_m: Optional[float] = None,
-    access_token: Optional[str] = None,
+    generalize_m: float | None = None,
+    access_token: str | None = None,
     include_individual: bool = False,
     combine: Literal["intersection", "union"] = "intersection",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Given many (address, minutes) pairs, build an isochrone for each and return a single Feature
     that combines them using:
@@ -202,9 +215,9 @@ def isochrone_union_for_addresses(  # now supports AND/OR; defaults to AND
     Parameters apply to every request (minutes vary per address).
     """
     token = _pick_token(access_token)
-    geo_cache: Dict[str, Tuple[float, float]] = {}
-    geoms: List[Polygon | MultiPolygon] = []
-    indiv_features: List[Dict[str, Any]] = []
+    geo_cache: dict[str, tuple[float, float]] = {}
+    geoms: list[Polygon | MultiPolygon] = []
+    indiv_features: list[dict[str, Any]] = []
 
     for address, minutes in addresses_and_minutes:
         # Geocode (cached per identical address)
@@ -228,7 +241,7 @@ def isochrone_union_for_addresses(  # now supports AND/OR; defaults to AND
             merge=True,
         )
         shp = shape(feat["geometry"])
-        if isinstance(shp, (Polygon, MultiPolygon)):
+        if isinstance(shp, Polygon | MultiPolygon):
             geoms.append(shp)
             if include_individual:
                 # add a bit of context to properties
@@ -247,9 +260,13 @@ def isochrone_union_for_addresses(  # now supports AND/OR; defaults to AND
         notes = "Union of all requested address/time isochrones (OR)"
 
     # Geometry may be empty if there is no common area
-    geom = mapping(combined) if not combined.is_empty else {"type": "GeometryCollection", "geometries": []}
+    geom = (
+        mapping(combined)
+        if not combined.is_empty
+        else {"type": "GeometryCollection", "geometries": []}
+    )
 
-    out: Dict[str, Any] = {
+    out: dict[str, Any] = {
         "type": "Feature",
         "properties": {
             "source": "mapbox-isochrone",
@@ -269,6 +286,7 @@ def isochrone_union_for_addresses(  # now supports AND/OR; defaults to AND
     if include_individual:
         out.setdefault("extras", {})["individual_features"] = indiv_features
     return out
+
 
 # -------- Example usage --------
 # addresses = [

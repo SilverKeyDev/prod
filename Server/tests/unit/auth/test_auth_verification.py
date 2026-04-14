@@ -2,9 +2,8 @@
 Tests for authentication verification flow
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
-import pytest
 from flask import Flask
 
 
@@ -86,9 +85,7 @@ class TestVerificationFlow:
             assert status_code == 200
             assert response_data["success"] is True
 
-    def test_successful_resend_verification_code(
-        self, app: Flask, mock_cognito_service
-    ):
+    def test_successful_resend_verification_code(self, app: Flask, mock_cognito_service):
         """Test successful resend verification code"""
         from app.services.auth.flows.verification import handle_resend_code
 

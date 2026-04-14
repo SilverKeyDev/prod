@@ -4,8 +4,6 @@ Tests for search and research API routes
 
 from unittest.mock import Mock, patch
 
-import pytest
-
 from app.models import User
 
 # Patch path for get_authenticated_user where it's used in the route
@@ -14,12 +12,13 @@ MOCK_GET_CURRENT_USER = "app.routes.search.search.get_authenticated_user"
 # Patch paths for service functions where they're imported in handlers
 MOCK_RUN_POLYGON_SEARCH = "app.routes.search.search.run_polygon_search"
 MOCK_GET_USER_PREFS = "app.services.search.helpers.preferences_helpers.get_user_preferences_parsed"
-MOCK_PARSE_IMPORTANT_LOCATIONS = "app.services.search.helpers.preferences_helpers.parse_important_locations"
+MOCK_PARSE_IMPORTANT_LOCATIONS = (
+    "app.services.search.helpers.preferences_helpers.parse_important_locations"
+)
 MOCK_ISOCHRONE_UNION = "app.routes.search.search.isochrone_union_for_addresses"
 MOCK_GEOCODE_ADDRESS = "app.routes.search.search.geocode_address_google"
 MOCK_RESOLVE_PREFS_USER_ID = "app.routes.search.search.resolve_preferences_user_id_for_research"
 MOCK_PARSE_RESEARCH_BODY = "app.routes.search.search.parse_research_request_body"
-
 
 
 class TestPolygonSearchRoutes:
@@ -258,9 +257,7 @@ class TestPropertyCompsRoutes:
         with patch("app.routes.search.search._SESSION.get") as mock_get:
             mock_get.return_value = mock_response
 
-            response = client.get(
-                "/api/v1/search/propertyComps?address=123 Main St, City, State"
-            )
+            response = client.get("/api/v1/search/propertyComps?address=123 Main St, City, State")
 
             assert response.status_code == 200
             data = response.get_json()
@@ -808,9 +805,7 @@ class TestMonthlyEstimatesRoutes:
 
     def test_monthly_estimates_valid_zipcode(self, client):
         """Test GET /api/v1/search/monthly-cost-estimates with valid zipcode"""
-        with patch(
-            "app.routes.search.search.monthly_cost_addon_estimates"
-        ) as mock_estimates:
+        with patch("app.routes.search.search.monthly_cost_addon_estimates") as mock_estimates:
             mock_estimates.return_value = {
                 "hoa_estimate": 0,
                 "utilities_estimate": 0,
@@ -835,9 +830,7 @@ class TestMonthlyEstimatesRoutes:
 
     def test_monthly_estimates_invalid_zipcode(self, client):
         """Test GET /api/v1/search/monthly-cost-estimates with invalid zipcode"""
-        with patch(
-            "app.routes.search.search.monthly_cost_addon_estimates"
-        ) as mock_estimates:
+        with patch("app.routes.search.search.monthly_cost_addon_estimates") as mock_estimates:
             mock_estimates.side_effect = ValueError("Invalid zipcode format")
 
             response = client.get("/api/v1/search/monthly-cost-estimates?zipcode=invalid")

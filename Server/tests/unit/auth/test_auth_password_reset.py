@@ -2,18 +2,13 @@
 Tests for authentication password reset flow
 """
 
-from unittest.mock import Mock, patch
-
-import pytest
 from flask import Flask
 
 
 class TestPasswordResetFlow:
     """Test password reset flow"""
 
-    def test_successful_forgot_password_request(
-        self, app: Flask, mock_cognito_service
-    ):
+    def test_successful_forgot_password_request(self, app: Flask, mock_cognito_service):
         """Test successful forgot password request"""
         from app.services.auth.flows.password_reset import handle_forgot_password
 
@@ -44,9 +39,7 @@ class TestPasswordResetFlow:
             assert status_code == 200
             assert response_data["success"] is True
 
-    def test_successful_password_reset_confirmation(
-        self, app: Flask, mock_cognito_service
-    ):
+    def test_successful_password_reset_confirmation(self, app: Flask, mock_cognito_service):
         """Test successful password reset with code"""
         from app.services.auth.flows.password_reset import (
             handle_confirm_forgot_password,
@@ -58,9 +51,7 @@ class TestPasswordResetFlow:
                 "confirmation_code": "123456",
                 "new_password": "NewPassword123!",
             }
-            response_data, status_code = handle_confirm_forgot_password(
-                data, "req-123"
-            )
+            response_data, status_code = handle_confirm_forgot_password(data, "req-123")
 
             assert status_code == 200
             assert response_data["success"] is True
@@ -85,9 +76,7 @@ class TestPasswordResetFlow:
                 "confirmation_code": "999999",
                 "new_password": "NewPassword123!",
             }
-            response_data, status_code = handle_confirm_forgot_password(
-                data, "req-123"
-            )
+            response_data, status_code = handle_confirm_forgot_password(data, "req-123")
 
             assert status_code == 400
             assert response_data["success"] is False
@@ -111,9 +100,7 @@ class TestPasswordResetFlow:
                 "confirmation_code": "123456",
                 "new_password": "NewPassword123!",
             }
-            response_data, status_code = handle_confirm_forgot_password(
-                data, "req-123"
-            )
+            response_data, status_code = handle_confirm_forgot_password(data, "req-123")
 
             assert status_code == 400
             assert response_data["success"] is False
@@ -137,9 +124,7 @@ class TestPasswordResetFlow:
                 "confirmation_code": "123456",
                 "new_password": "weak",
             }
-            response_data, status_code = handle_confirm_forgot_password(
-                data, "req-123"
-            )
+            response_data, status_code = handle_confirm_forgot_password(data, "req-123")
 
             assert status_code == 400
             assert response_data["success"] is False

@@ -61,6 +61,10 @@ def _optional_stripped_env(var_name: str) -> str | None:
     return stripped if stripped else None
 
 
+def _is_testing_env() -> bool:
+    return os.getenv("TESTING", "").lower() in ("true", "1", "yes")
+
+
 class Config:
     # Celery Configuration
     # Use environment variable or detect based on FLASK_ENV
@@ -78,9 +82,19 @@ class Config:
     HTTP_TIMEOUT = HTTP_TIMEOUT
     AWS_COGNITO_TIMEOUT = AWS_COGNITO_TIMEOUT
 
-    SECRET_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-    if not SECRET_KEY:
-        raise RuntimeError("AWS_SECRET_ACCESS_KEY environment variable must be set")
+    # Flask session signing: production uses AWS secret from env; tests set TESTING=true
+    # (see tests/conftest.py) and may run in CI without a .env file.
+    _secret_key = _optional_stripped_env("AWS_SECRET_ACCESS_KEY") or _optional_stripped_env(
+        "SECRET_KEY"
+    )
+    if not _secret_key:
+        if _is_testing_env():
+            _secret_key = "test-secret-key-not-for-production"
+        else:
+            raise RuntimeError(
+                "SECRET_KEY or AWS_SECRET_ACCESS_KEY environment variable must be set"
+            )
+    SECRET_KEY = _secret_key
 
     # Database Configuration with SSL support
     # Preferred: set `DATABASE_URL` directly.

@@ -6,6 +6,7 @@ This does not fail on low percentages; it documents drift risk and should be tig
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pytest
@@ -58,7 +59,7 @@ def test_openapi_contract_path_coverage_report(capsys: pytest.CaptureFixture[str
     ]
     report = "\n".join(lines) + "\n"
     with capsys.disabled():
-        print(report)
+        sys.stdout.write(report)
 
     assert len(covered) >= len(_CONTRACT_TESTED_PATHS), (
         "Expected at least as many covered path keys as declared contract prefixes; "

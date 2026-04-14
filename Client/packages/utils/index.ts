@@ -11,7 +11,11 @@ export {
   formatNumber,
   formatUSD,
 } from "./format";
-export { getScoreBasedColor } from "./format/scoreColors";
+export type { ScoreColors,ScoreColorScaleOptions } from "./format/scoreColors";
+export {
+  getScoreBasedColor,
+  getScoreBasedColorForMap,
+} from "./format/scoreColors";
 export {
   createBlob,
   getDocument,

@@ -2,9 +2,8 @@
 Tests for authentication signup flow
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-import pytest
 from flask import Flask
 
 
@@ -47,9 +46,7 @@ class TestSignupFlow:
             # Verify phone attribute not included
             call_args = mock_cognito_service.sign_up.call_args
             user_attributes = call_args[1]["user_attributes"]
-            phone_attrs = [
-                attr for attr in user_attributes if attr["Name"] == "phone_number"
-            ]
+            phone_attrs = [attr for attr in user_attributes if attr["Name"] == "phone_number"]
             assert len(phone_attrs) == 0
 
     def test_signup_with_existing_email(self, app: Flask, mock_cognito_service):
@@ -96,9 +93,7 @@ class TestSignupFlow:
             assert response_data["success"] is False
             assert "password" in response_data["message"].lower()
 
-    def test_signup_creates_database_user(
-        self, app: Flask, mock_cognito_service, db_session
-    ):
+    def test_signup_creates_database_user(self, app: Flask, mock_cognito_service, db_session):
         """Test signup creates user in database"""
         from app.models import User
         from app.services.auth.flows.signup import handle_signup

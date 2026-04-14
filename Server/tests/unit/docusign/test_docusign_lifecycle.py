@@ -2,8 +2,7 @@
 Tests for DocuSign agreement lifecycle
 """
 
-from datetime import datetime
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from flask import Flask
@@ -100,9 +99,7 @@ class TestAgreementLifecycle:
             assert participant.routing_order == 1
             assert participant.email == "signer@example.com"
 
-    def test_add_participant_invalid_status(
-        self, app: Flask, db_session, sample_agreement
-    ):
+    def test_add_participant_invalid_status(self, app: Flask, db_session, sample_agreement):
         """Test cannot add participant to non-draft agreement"""
         from app.models import Agreement
         from app.services.docusign.agreements.lifecycle import (
@@ -123,9 +120,7 @@ class TestAgreementLifecycle:
                     role="signer",
                 )
 
-    def test_add_participant_agent_as_signer_error(
-        self, app: Flask, db_session, sample_agreement
-    ):
+    def test_add_participant_agent_as_signer_error(self, app: Flask, db_session, sample_agreement):
         """Test agent cannot be signer on their own agreement"""
         from app.models import Agreement, User
         from app.services.docusign.agreements.lifecycle import (
@@ -191,9 +186,7 @@ class TestAgreementLifecycle:
             removed = AgreementParticipant.query.get(participant_id)
             assert removed is None
 
-    def test_update_participant_routing_order(
-        self, app: Flask, db_session, sample_agreement
-    ):
+    def test_update_participant_routing_order(self, app: Flask, db_session, sample_agreement):
         """Test updating participant routing order"""
         from app.models import Agreement, AgreementParticipant
         from app.services.docusign.agreements.lifecycle import (
@@ -221,9 +214,7 @@ class TestAgreementLifecycle:
 
             assert updated.routing_order == 2
 
-    def test_void_agreement_without_envelope(
-        self, app: Flask, db_session, sample_agreement
-    ):
+    def test_void_agreement_without_envelope(self, app: Flask, db_session, sample_agreement):
         """Test voiding agreement that hasn't been sent"""
         from app.models import Agreement
         from app.services.docusign.agreements.lifecycle import (
@@ -231,17 +222,13 @@ class TestAgreementLifecycle:
         )
 
         with app.app_context():
-            with patch(
-                "app.services.documents.document_library_items.sync_agreement_library_item"
-            ):
+            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
                 agreement = Agreement(**sample_agreement)
                 agreement.docusign_envelope_id = None
                 db_session.add(agreement)
                 db_session.commit()
 
-                AgreementLifecycleService.void_agreement(
-                    agreement.id, "Testing void", "agent-123"
-                )
+                AgreementLifecycleService.void_agreement(agreement.id, "Testing void", "agent-123")
 
                 voided = Agreement.query.get(agreement.id)
                 assert voided.status == "voided"
@@ -257,18 +244,14 @@ class TestAgreementLifecycle:
         )
 
         with app.app_context():
-            with patch(
-                "app.services.documents.document_library_items.sync_agreement_library_item"
-            ):
+            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
                 agreement = Agreement(**sample_agreement)
                 agreement.docusign_envelope_id = "envelope-123"
                 agreement.status = "sent"
                 db_session.add(agreement)
                 db_session.commit()
 
-                AgreementLifecycleService.void_agreement(
-                    agreement.id, "Testing void", "agent-123"
-                )
+                AgreementLifecycleService.void_agreement(agreement.id, "Testing void", "agent-123")
 
                 voided = Agreement.query.get(agreement.id)
                 assert voided.status == "voided"
@@ -304,9 +287,7 @@ class TestAgreementLifecycle:
                 db_session.add(participant)
                 db_session.commit()
 
-                url = AgreementLifecycleService.get_signing_url(
-                    agreement.id, participant.id
-                )
+                url = AgreementLifecycleService.get_signing_url(agreement.id, participant.id)
 
                 assert url.startswith("https://")
                 assert "docusign.net" in url

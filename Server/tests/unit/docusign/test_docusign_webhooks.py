@@ -2,27 +2,21 @@
 Tests for DocuSign webhook processing
 """
 
-from datetime import datetime
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-import pytest
 from flask import Flask
 
 
 class TestWebhookProcessor:
     """Test DocuSign webhook processing"""
 
-    def test_process_envelope_completed_webhook(
-        self, app: Flask, db_session, sample_agreement
-    ):
+    def test_process_envelope_completed_webhook(self, app: Flask, db_session, sample_agreement):
         """Test processing envelope completed webhook"""
         from app.models import Agreement
         from app.services.docusign.webhooks.processor import WebhookProcessor
 
         with app.app_context():
-            with patch(
-                "app.services.documents.document_library_items.sync_agreement_library_item"
-            ):
+            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
                 agreement = Agreement(**sample_agreement)
                 agreement.docusign_envelope_id = "envelope-123"
                 agreement.status = "sent"
@@ -45,17 +39,13 @@ class TestWebhookProcessor:
                 assert updated.status == "completed"
                 assert updated.signed_at is not None
 
-    def test_process_envelope_voided_webhook(
-        self, app: Flask, db_session, sample_agreement
-    ):
+    def test_process_envelope_voided_webhook(self, app: Flask, db_session, sample_agreement):
         """Test processing envelope voided webhook"""
         from app.models import Agreement
         from app.services.docusign.webhooks.processor import WebhookProcessor
 
         with app.app_context():
-            with patch(
-                "app.services.documents.document_library_items.sync_agreement_library_item"
-            ):
+            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
                 agreement = Agreement(**sample_agreement)
                 agreement.docusign_envelope_id = "envelope-123"
                 agreement.status = "sent"
@@ -79,9 +69,7 @@ class TestWebhookProcessor:
                 assert updated.status == "voided"
                 assert updated.voided_at is not None
 
-    def test_process_recipient_completed_webhook(
-        self, app: Flask, db_session, sample_agreement
-    ):
+    def test_process_recipient_completed_webhook(self, app: Flask, db_session, sample_agreement):
         """Test processing recipient completed webhook"""
         from app.models import Agreement, AgreementParticipant
         from app.services.docusign.webhooks.processor import WebhookProcessor
@@ -119,17 +107,13 @@ class TestWebhookProcessor:
             assert updated_participant.status == "completed"
             assert updated_participant.signed_at is not None
 
-    def test_process_recipient_declined_webhook(
-        self, app: Flask, db_session, sample_agreement
-    ):
+    def test_process_recipient_declined_webhook(self, app: Flask, db_session, sample_agreement):
         """Test processing recipient declined webhook"""
         from app.models import Agreement, AgreementParticipant
         from app.services.docusign.webhooks.processor import WebhookProcessor
 
         with app.app_context():
-            with patch(
-                "app.services.documents.document_library_items.sync_agreement_library_item"
-            ):
+            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
                 agreement = Agreement(**sample_agreement)
                 agreement.docusign_envelope_id = "envelope-123"
                 agreement.status = "sent"
@@ -171,9 +155,7 @@ class TestWebhookProcessor:
             webhook_body = '{"event":"envelope-completed"}'
             hmac_signature = "valid_signature_123"
 
-            with patch(
-                "app.services.docusign.webhooks.verification.compute_hmac"
-            ) as mock_compute:
+            with patch("app.services.docusign.webhooks.verification.compute_hmac") as mock_compute:
                 mock_compute.return_value = hmac_signature
 
                 result = verify_webhook_hmac(webhook_body, hmac_signature)
@@ -187,25 +169,19 @@ class TestWebhookProcessor:
             webhook_body = '{"event":"envelope-completed"}'
             hmac_signature = "invalid_signature"
 
-            with patch(
-                "app.services.docusign.webhooks.verification.compute_hmac"
-            ) as mock_compute:
+            with patch("app.services.docusign.webhooks.verification.compute_hmac") as mock_compute:
                 mock_compute.return_value = "different_signature"
 
                 result = verify_webhook_hmac(webhook_body, hmac_signature)
                 assert result is False
 
-    def test_process_webhook_idempotency(
-        self, app: Flask, db_session, sample_agreement
-    ):
+    def test_process_webhook_idempotency(self, app: Flask, db_session, sample_agreement):
         """Test webhook processing is idempotent"""
         from app.models import Agreement
         from app.services.docusign.webhooks.processor import WebhookProcessor
 
         with app.app_context():
-            with patch(
-                "app.services.documents.document_library_items.sync_agreement_library_item"
-            ):
+            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
                 agreement = Agreement(**sample_agreement)
                 agreement.docusign_envelope_id = "envelope-123"
                 agreement.status = "sent"

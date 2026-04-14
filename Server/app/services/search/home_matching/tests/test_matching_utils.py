@@ -3,15 +3,15 @@ Unit tests for preprocessing, feature engineering, and similarity (home matching
 """
 
 import sys
+import unittest
 from pathlib import Path
 
 import numpy as np
-import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from home_matching.utils.preprocessing import DataPreprocessor
 from home_matching.utils.feature_engineering import FeatureEngineer
+from home_matching.utils.preprocessing import DataPreprocessor
 from home_matching.utils.similarity import SimilarityCalculator
 
 

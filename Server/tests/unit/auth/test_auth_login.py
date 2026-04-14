@@ -4,16 +4,13 @@ Tests for authentication login flow
 
 from unittest.mock import Mock, patch
 
-import pytest
 from flask import Flask
 
 
 class TestLoginFlow:
     """Test login flow handler"""
 
-    def test_successful_login(
-        self, app: Flask, mock_cognito_service, mock_jwt_decode, sample_user
-    ):
+    def test_successful_login(self, app: Flask, mock_cognito_service, mock_jwt_decode, sample_user):
         """Test successful login flow"""
         from app.services.auth.flows.login import handle_login
 
@@ -55,9 +52,7 @@ class TestLoginFlow:
             assert response_json["success"] is False
             assert "error" in response_json
 
-    def test_login_unverified_user(
-        self, app: Flask, mock_cognito_service, sample_user
-    ):
+    def test_login_unverified_user(self, app: Flask, mock_cognito_service, sample_user):
         """Test login for unverified user triggers verification code resend"""
         from app.services.auth.flows.login import handle_login
 
@@ -82,18 +77,14 @@ class TestLoginFlow:
             assert "verification" in response_json["message"].lower()
             mock_cognito_service.client.resend_confirmation_code.assert_called_once()
 
-    def test_login_token_decode_error(
-        self, app: Flask, mock_cognito_service, mock_jwt_decode
-    ):
+    def test_login_token_decode_error(self, app: Flask, mock_cognito_service, mock_jwt_decode):
         """Test login handles token decode errors"""
         from app.services.auth.flows.login import handle_login
 
         mock_jwt_decode.side_effect = Exception("Token decode failed")
 
         with app.app_context():
-            with patch(
-                "app.services.auth.user.lookup.find_or_create_user_by_cognito"
-            ):
+            with patch("app.services.auth.user.lookup.find_or_create_user_by_cognito"):
                 data = {"email": "test@example.com", "password": "Password123!"}
                 response, status_code = handle_login(data, "req-123")
 
