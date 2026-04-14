@@ -1,7 +1,7 @@
 /**
- * Shared score-based color gradient for match scores (0-100).
- * Uses HSL interpolation (hue 0° red → 60° yellow → 120° green) for perceptually smooth
- * transitions; UI vs map presets tune saturation/lightness for each surface.
+ * Shared score-based color scale for match scores (0–100).
+ * Five discrete steps along HSL hue 0° red → 120° green (0°, 30°, 60°, 90°, 120°);
+ * UI vs map presets tune saturation/lightness for each surface.
  */
 export type ScoreColors = {
   fillColor: string;
@@ -42,6 +42,9 @@ const LUMINANCE_THRESHOLD = 0.45;
 
 const STROKE_RGB_FACTOR = 0.75;
 
+/** Bins 0–100 into five bands; each band gets one hue on the red→green arc. */
+const SCORE_COLOR_STEP_COUNT = 5;
+
 /**
  * HSL (0–120° = red → yellow → green) to sRGB. h in [0, 120], s and l in [0, 100].
  */
@@ -75,9 +78,13 @@ function hslRedYellowGreenToRgb(
   };
 }
 
-function scoreToHue(score0to100: number): number {
-  const t = Math.max(0, Math.min(100, score0to100)) / 100;
-  return t * 120;
+function scoreToDiscreteHue(score0to100: number): number {
+  const clamped = Math.max(0, Math.min(100, score0to100));
+  const stepIndex = Math.min(
+    SCORE_COLOR_STEP_COUNT - 1,
+    Math.floor((clamped / 100) * SCORE_COLOR_STEP_COUNT),
+  );
+  return (stepIndex / (SCORE_COLOR_STEP_COUNT - 1)) * 120;
 }
 
 function buildScoreColorsFromHsl(
@@ -85,7 +92,7 @@ function buildScoreColorsFromHsl(
   saturation: number,
   lightness: number,
 ): ScoreColors {
-  const hue = scoreToHue(score);
+  const hue = scoreToDiscreteHue(score);
   const { r, g, b } = hslRedYellowGreenToRgb(hue, saturation, lightness);
   const fillColor = `rgb(${r}, ${g}, ${b})`;
   const strokeColor = `rgb(${Math.round(r * STROKE_RGB_FACTOR)}, ${Math.round(

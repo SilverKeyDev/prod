@@ -73,6 +73,33 @@ jobs:
             fi
           }
 
+          # db_url secret: plaintext, JSON string, or JSON object (often key "db_url" not DATABASE_URL).
+          export_database_url_from_db_secret () {
+            local json="$1"
+            [ -z "$json" ] || [ "$json" = "{}" ] && return 0
+            local val=""
+            if jq -e . >/dev/null 2>&1 <<<"$json"; then
+              val="$(jq -r '
+                if type == "string" then .
+                elif type == "object" then
+                  [
+                    .DATABASE_URL, .database_url, .db_url, .url,
+                    .connection_string, .connectionString, .uri, .URI
+                  ] | map(select(. != null and (. | type == "string") and (. != ""))) | first // empty
+                else empty end
+              ' <<<"$json" 2>/dev/null || true)"
+            else
+              # AWS "plaintext" secret: raw connection string, not JSON.
+              val="$(printf '%s' "$json" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+            fi
+            [ -z "$val" ] || [ "$val" = "null" ] && return 0
+            {
+              echo "DATABASE_URL<<DB_URL_EOF"
+              printf '%s\n' "$val"
+              echo "DB_URL_EOF"
+            } >> "$GITHUB_ENV"
+          }
+
           # Mirror env loading used in ci_web.yml
           db_url_json="$(fetch_json db_url)"
           aws_access_json="$(fetch_json AWS_Access)"
@@ -87,7 +114,7 @@ jobs:
           serp_json="$(fetch_json serp)"
           slipstream_json="$(fetch_json slipstream)"
 
-          export_if_present "$db_url_json" "DATABASE_URL" "DATABASE_URL"
+          export_database_url_from_db_secret "$db_url_json"
 
           export_if_present "$aws_access_json" "AWS_ACCESS_KEY_ID" "AWS_ACCESS_KEY_ID"
           export_if_present "$aws_access_json" "AWS_SECRET_ACCESS_KEY" "AWS_SECRET_ACCESS_KEY"
