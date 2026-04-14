@@ -1,10 +1,9 @@
 import { useCallback, useState } from "react";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { docusignApi } from "packages/features/documents/api/docusign";
-import { reportApi } from "packages/features/documents/api/report";
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
 import {
   type DocumentData,
@@ -15,11 +14,14 @@ import {
   getDefaultAgreementTitle,
   sendForSignatureDisabledReason,
 } from "packages/features/documents/hooks/store/documentSignature";
+import { useDocumentsLibraryMutations } from "packages/features/documents/hooks/store/useDocumentsLibraryMutations";
+import type { DocusignRevisionUploadBody } from "packages/features/documents/types/docusign";
 import { prepareAgreementSigningSession } from "packages/features/documents/utils/signAgreementNowFlow";
 import { showErrorToast, showInfoToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { apiDownloadBlob } from "packages/services/http/compatibility";
 import { useAuthStore } from "packages/store";
+import { createBlob } from "packages/utils/platform";
 
 type DocumentHandlers = {
   handleViewDocument: (documentId: string, documentName: string) => void;
@@ -55,6 +57,7 @@ export function useDocumentsDataIntegration(
 ) {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
+  const { handleDelete } = useDocumentsLibraryMutations(clientId);
   const {
     documents,
     isLoading: documentsLoading,
@@ -131,7 +134,9 @@ export function useDocumentsDataIntegration(
   );
 
   const getSigningFileFromDocument = useCallback(
-    async (document: DocumentData): Promise<File> => {
+    async (
+      document: DocumentData,
+    ): Promise<{ body: DocusignRevisionUploadBody; fileName: string }> => {
       // Pull file bytes through backend endpoint to avoid browser CORS issues with direct S3 fetch.
       const blob = await apiDownloadBlob(`/api/v1/report/${document.id}/view`, {
         includeAuth: true,
@@ -141,9 +146,13 @@ export function useDocumentsDataIntegration(
         document.filename && document.filename.trim().length > 0
           ? document.filename
           : "document.pdf";
-      return new File([blob], inferredFileName, {
-        type: blob.type && blob.type.length > 0 ? blob.type : "application/pdf",
-      });
+      return {
+        body: createBlob([blob], {
+          type:
+            blob.type && blob.type.length > 0 ? blob.type : "application/pdf",
+        }),
+        fileName: inferredFileName,
+      };
     },
     [],
   );
@@ -229,11 +238,12 @@ export function useDocumentsDataIntegration(
           buyerId: resolvedBuyerId,
         });
 
-        const file = await getSigningFileFromDocument(document);
+        const { body, fileName } = await getSigningFileFromDocument(document);
         const revisionResponse = await docusignApi.createRevision(
           agreementId,
-          file,
+          body,
           "Initial revision",
+          fileName,
         );
         if (!revisionResponse.success || !revisionResponse.revision) {
           throw new Error(
@@ -334,159 +344,6 @@ export function useDocumentsDataIntegration(
       return handleShareDocument(documentId, documentName);
     },
     [documents, handleShareDocument],
-  );
-
-  // Delete document mutation with optimistic updates
-  const deleteDocumentMutation = useMutation({
-    mutationFn: async ({ docId, s3Key }: { docId: string; s3Key?: string }) => {
-      const response = await reportApi.delete(docId, s3Key);
-      if (!response.success) {
-        const errorMessage = response.error ?? "Failed to delete document";
-        log.error(LOG_CATEGORIES.API, "Failed to delete document", {
-          docId,
-          error: errorMessage,
-        });
-        throw new Error(errorMessage);
-      }
-      return { docId, response };
-    },
-    onMutate: async ({ docId }) => {
-      // Optimistic update - remove the document from cache
-      const previousDocuments = queryClient.getQueryData<DocumentData[]>(
-        queryKeys.documents.list(undefined, clientId),
-      );
-      queryClient.setQueryData(
-        queryKeys.documents.list(undefined, clientId),
-        (old: DocumentData[] | undefined) => {
-          if (!old) return old;
-          return old.filter((doc) => doc.id !== docId);
-        },
-      );
-      return { previousDocuments };
-    },
-    onError: (error, _variables, context) => {
-      // Rollback on error
-      log.error(LOG_CATEGORIES.ERRORS, "Error deleting document", error);
-      if (context?.previousDocuments) {
-        queryClient.setQueryData(
-          queryKeys.documents.list(undefined, clientId),
-          context.previousDocuments,
-        );
-      }
-    },
-    onSuccess: () => {
-      log.info(LOG_CATEGORIES.API, "Document deleted successfully");
-    },
-    onSettled: () => {
-      // Always refetch after mutation settles to ensure consistency
-      void queryClient.invalidateQueries({ queryKey: queryKeys.documents.all });
-    },
-  });
-
-  // Remove from library mutation (for documents from other users)
-  const removeFromLibraryMutation = useMutation({
-    mutationFn: async (libraryItemId: string) => {
-      const response = await reportApi.removeFromLibrary(libraryItemId);
-      if (!response.success) {
-        const errorMessage =
-          response.error ?? "Failed to remove document from library";
-        log.error(LOG_CATEGORIES.API, "Failed to remove from library", {
-          libraryItemId,
-          error: errorMessage,
-        });
-        throw new Error(errorMessage);
-      }
-      return { libraryItemId, response };
-    },
-    onMutate: async (libraryItemId) => {
-      // Optimistic update - remove the document from cache
-      const previousDocuments = queryClient.getQueryData<DocumentData[]>(
-        queryKeys.documents.list(undefined, clientId),
-      );
-      queryClient.setQueryData(
-        queryKeys.documents.list(undefined, clientId),
-        (old: DocumentData[] | undefined) => {
-          if (!old) return old;
-          return old.filter((doc) => doc.library_item_id !== libraryItemId);
-        },
-      );
-      return { previousDocuments };
-    },
-    onError: (error, _variables, context) => {
-      // Rollback on error
-      log.error(LOG_CATEGORIES.ERRORS, "Error removing from library", error);
-      if (context?.previousDocuments) {
-        queryClient.setQueryData(
-          queryKeys.documents.list(undefined, clientId),
-          context.previousDocuments,
-        );
-      }
-    },
-    onSuccess: () => {
-      log.info(
-        LOG_CATEGORIES.API,
-        "Document removed from library successfully",
-      );
-    },
-    onSettled: () => {
-      // Always refetch after mutation settles to ensure consistency
-      void queryClient.invalidateQueries({ queryKey: queryKeys.documents.all });
-    },
-  });
-
-  const handleDelete = useCallback(
-    async (doc: DocumentData) => {
-      // Check if document is from another user
-      const currentUser = user;
-      const currentUserId = currentUser?.id;
-      const isFromOtherUser =
-        currentUserId && doc.user_id && currentUserId !== doc.user_id;
-
-      // Agreements sent by this agent: void in DocuSign and remove library row (server).
-      if (doc.library_kind === "agreement") {
-        if (
-          currentUserId &&
-          doc.agent_id === currentUserId &&
-          !["completed", "voided", "declined"].includes(
-            (doc.status ?? "").toLowerCase(),
-          )
-        ) {
-          const voidResponse = await docusignApi.voidAgreement(doc.id, {
-            reason: "Cancelled by agent from Saved",
-          });
-          if (!voidResponse.success) {
-            throw new Error(
-              voidResponse.error ?? "Failed to cancel agreement",
-            );
-          }
-          void queryClient.invalidateQueries({
-            queryKey: queryKeys.documents.all,
-          });
-          return;
-        }
-        if (doc.library_item_id) {
-          await removeFromLibraryMutation.mutateAsync(doc.library_item_id);
-        }
-        return;
-      }
-
-      if (isFromOtherUser && doc.library_item_id) {
-        // Remove from library only (doesn't delete the actual document)
-        await removeFromLibraryMutation.mutateAsync(doc.library_item_id);
-      } else {
-        // Full delete (deletes the actual document)
-        await deleteDocumentMutation.mutateAsync({
-          docId: doc.id,
-          s3Key: doc.file_path,
-        });
-      }
-    },
-    [
-      deleteDocumentMutation,
-      removeFromLibraryMutation,
-      queryClient,
-      user,
-    ],
   );
 
   return {

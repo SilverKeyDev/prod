@@ -8,6 +8,11 @@ on:
 permissions:
   contents: read
 
+# Opt into Node 24 for JS actions (checkout, setup-node, pnpm, upload-artifact) before the
+# runner default cutover; silences Node 20 deprecation warnings on those actions.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   frontend-test:
     name: Frontend Tests & Coverage
@@ -54,18 +59,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Hosted runners have limited disk; full requirements.txt pulls torch/tf/cuda (~10GB+).
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker system prune -af || true
+          df -h
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
+          cache-dependency-path: |
+            Server/requirements-ci.txt
+            Server/requirements-test.txt
 
       - name: Install dependencies
         working-directory: Server
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir -r requirements-ci.txt
+          pip install --no-cache-dir torch==2.3.0 --index-url https://download.pytorch.org/whl/cpu
+          pip install --no-cache-dir -r requirements-test.txt
+          pip install --no-cache-dir pytest pytest-cov
 
       - name: Create coverage directory
         working-directory: Server

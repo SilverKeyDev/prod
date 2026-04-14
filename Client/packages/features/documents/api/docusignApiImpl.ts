@@ -5,6 +5,7 @@ import type {
   CreateAgreementRequest,
   CreateAgreementResponse,
   CreateRevisionResponse,
+  DocusignRevisionUploadBody,
   GetAgreementResponse,
   GetSenderViewUrlResponse,
   GetSigningUrlRequest,
@@ -25,12 +26,10 @@ import {
   apiUpload,
 } from "packages/services/http/compatibility";
 
-function resolveRevisionUploadFileName(file: File | Blob): string {
-  if (file instanceof File) {
-    const name = file.name?.trim();
-    if (name && name.toLowerCase() !== "blob") {
-      return name;
-    }
+function resolveRevisionUploadFileName(fileName?: string): string {
+  const name = fileName?.trim();
+  if (name && name.toLowerCase() !== "blob") {
+    return name;
   }
   return "agreement.pdf";
 }
@@ -67,10 +66,11 @@ export const docusignApi = {
 
   createRevision: (
     agreementId: string,
-    file: File | Blob,
+    file: DocusignRevisionUploadBody,
     notes?: string,
+    uploadFileName?: string,
   ): Promise<CreateRevisionResponse> => {
-    const uploadName = resolveRevisionUploadFileName(file);
+    const uploadName = resolveRevisionUploadFileName(uploadFileName);
     log.debug(LOG_CATEGORIES.DOCUSIGN, "Creating DocuSign revision", {
       agreementId,
       fileName: uploadName,

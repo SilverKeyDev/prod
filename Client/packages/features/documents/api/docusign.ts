@@ -23,6 +23,7 @@ export type {
   CreateAgreementRequest,
   CreateAgreementResponse,
   CreateRevisionResponse,
+  DocusignRevisionUploadBody,
   DocusignTemplate,
   GetAgreementResponse,
   GetSenderViewUrlResponse,

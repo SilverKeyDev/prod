@@ -5,6 +5,7 @@ import {
   normalizeHeaders,
   normalizeUrl,
 } from "./httpRequestHeaders";
+import { createHttpRequestId } from "./requestId";
 
 export type HttpClientConfig = {
   baseUrl: string;
@@ -53,10 +54,14 @@ export function buildRequestOptions(
 
   const token = authToken ?? (includeAuth ? config.authTokenProvider() : null);
   const authHeaders = includeAuth ? createAuthHeaders(token) : {};
+  const normalized = normalizeHeaders(fetchOptions.headers);
   const mergedHeaders = {
     ...authHeaders,
-    ...normalizeHeaders(fetchOptions.headers),
+    ...normalized,
   };
+  if (!mergedHeaders["X-Request-ID"] && !mergedHeaders["x-request-id"]) {
+    mergedHeaders["X-Request-ID"] = createHttpRequestId();
+  }
 
   if (fetchOptions.body instanceof FormData) {
     delete mergedHeaders["Content-Type"];

@@ -108,8 +108,8 @@ def create_app(config=None):
             r"/healthz": {"origins": ALLOWED},
         },
         supports_credentials=True,
-        expose_headers=["Content-Type", "X-CSRFToken"],
-        allow_headers=["Content-Type", "X-CSRFToken", "Authorization"],
+        expose_headers=["Content-Type", "X-CSRFToken", "X-Request-ID"],
+        allow_headers=["Content-Type", "X-CSRFToken", "Authorization", "X-Request-ID"],
         methods=["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         vary_header=True,
     )
@@ -226,9 +226,16 @@ def create_app(config=None):
     # Request/Response logging middleware
     @app.before_request
     def log_request_info():
+        import re
         import time
 
-        request_id = f"req_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
+        header_rid = request.headers.get("X-Request-ID") or request.headers.get("X-Request-Id")
+        if header_rid and isinstance(header_rid, str) and re.fullmatch(
+            r"[A-Za-z0-9._-]{8,128}", header_rid
+        ):
+            request_id = header_rid
+        else:
+            request_id = f"req_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
         g.start_time = time.time()
         g.request_id = request_id
         if request.endpoint and "auth" in request.endpoint:

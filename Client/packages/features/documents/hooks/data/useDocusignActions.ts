@@ -6,6 +6,7 @@ import type {
   Agreement,
   AgreementRevision,
   CreateAgreementRequest,
+  DocusignRevisionUploadBody,
   SendAgreementResponse,
   SyncTemplatesResponse,
   VoidAgreementResponse,
@@ -24,8 +25,9 @@ export type UseDocusignActionsReturn = {
   ) => Promise<Agreement | undefined>;
   createRevision: (params: {
     agreementId: string;
-    file: File;
+    file: DocusignRevisionUploadBody;
     notes?: string;
+    uploadFileName?: string;
   }) => Promise<AgreementRevision | undefined>;
   sendAgreement: (params: {
     agreementId: string;
@@ -142,24 +144,32 @@ export function useDocusignActions(): UseDocusignActionsReturn {
   const createRevisionMutation = useMutation<
     AgreementRevision | undefined,
     Error,
-    { agreementId: string; file: File | Blob; notes?: string }
+    {
+      agreementId: string;
+      file: DocusignRevisionUploadBody;
+      notes?: string;
+      uploadFileName?: string;
+    }
   >({
     mutationFn: ({
       agreementId,
       file,
       notes,
+      uploadFileName,
     }: {
       agreementId: string;
-      file: File | Blob;
+      file: DocusignRevisionUploadBody;
       notes?: string;
+      uploadFileName?: string;
     }) =>
       runDocusignApi(
         {
           agreementId,
-          fileName: file instanceof File ? file.name : "upload",
+          fileName: uploadFileName ?? "upload",
         },
         "Failed to create revision",
-        () => docusignApi.createRevision(agreementId, file, notes),
+        () =>
+          docusignApi.createRevision(agreementId, file, notes, uploadFileName),
         (r) => r.revision,
       ),
     ...getDocusignMutationHandlersWithVars<{ agreementId: string }>(

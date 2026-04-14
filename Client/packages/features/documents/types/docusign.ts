@@ -14,3 +14,4 @@
 
 // Re-export from agreements.ts (which also becomes a shim)
 export * from "./agreements";
+export type { DocusignRevisionUploadBody } from "./docusignRevisionUpload";

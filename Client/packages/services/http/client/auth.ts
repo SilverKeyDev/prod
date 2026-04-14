@@ -3,6 +3,7 @@ import { getFetch, getWindow } from "packages/utils/platform";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 import type { AuthenticationError } from "./errors";
+import { createHttpRequestId } from "./requestId";
 
 let verifyingPromise: Promise<{ success?: boolean } | null> | null = null;
 let lastAuthEventAt = 0;
@@ -33,8 +34,17 @@ export function handle401Unauthorized(_url: string): void {
   if (verifyingPromise || now - lastAuthEventAt <= AUTH_COOLDOWN_MS) return;
   lastAuthEventAt = now;
 
-  const opts: RequestInit = { credentials: "include", method: "POST" };
-  const getOpts: RequestInit = { credentials: "include", method: "GET" };
+  const correlationId = createHttpRequestId();
+  const opts: RequestInit = {
+    credentials: "include",
+    method: "POST",
+    headers: { "X-Request-ID": correlationId },
+  };
+  const getOpts: RequestInit = {
+    credentials: "include",
+    method: "GET",
+    headers: { "X-Request-ID": correlationId },
+  };
 
   const doFetch = getFetch();
   verifyingPromise = doFetch("/api/v1/auth/refresh-token", opts)
@@ -54,6 +64,9 @@ export function handle401Unauthorized(_url: string): void {
 
   void void verifyingPromise.then((v) => {
     if (!v?.success) {
+      log.warn(LOG_CATEGORIES.AUTH, "401 recovery refresh chain failed; broadcasting logout", {
+        correlationId,
+      });
       try {
         getAuthBC()?.postMessage({ type: "logout" });
       } catch {

@@ -53,6 +53,7 @@ def register_after_request_headers(app):
             response.headers["X-XSS-Protection"] = "1; mode=block"
             response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            response.headers["X-Request-ID"] = str(g.request_id)
         return response
 
 

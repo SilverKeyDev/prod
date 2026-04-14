@@ -181,6 +181,7 @@ describe("useDocusignActions (void, signing URL, revision, sync, cache)", () => 
         agreementId: "agreement-123",
         file: mockFile,
         notes: "Updated document",
+        uploadFileName: "document.pdf",
       });
 
       expect(revision).toEqual(mockRevision);
@@ -188,6 +189,7 @@ describe("useDocusignActions (void, signing URL, revision, sync, cache)", () => 
         "agreement-123",
         mockFile,
         "Updated document",
+        "document.pdf",
       );
     });
 
@@ -220,6 +222,7 @@ describe("useDocusignActions (void, signing URL, revision, sync, cache)", () => 
       const revisionPromise = result.current.createRevision({
         agreementId: "agreement-123",
         file: mockFile,
+        uploadFileName: "document.pdf",
       });
 
       await waitFor(() => {

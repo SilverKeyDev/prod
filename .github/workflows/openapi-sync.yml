@@ -17,6 +17,10 @@ on:
       - '.github/workflows/openapi-sync.yml'
   workflow_call:
 
+concurrency:
+  group: openapi-sync-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -34,9 +38,7 @@ jobs:
           node-version: '22'
 
       - name: Install OpenAPI tools
-        run: |
-          npm install -g @apidevtools/swagger-cli
-          npm install -g @redocly/cli
+        run: npm install -g @apidevtools/swagger-cli@4.0.4 @redocly/cli@2.26.0
 
       - name: Bundle modular OpenAPI spec
         run: redocly bundle openapi/openapi.yaml -o openapi.yaml
@@ -57,7 +59,7 @@ jobs:
           node-version: '22'
 
       - name: Install Redocly CLI
-        run: npm install -g @redocly/cli
+        run: npm install -g @redocly/cli@2.26.0
 
       - name: Bundle modular OpenAPI spec
         run: redocly bundle openapi/openapi.yaml -o openapi.yaml
@@ -100,7 +102,7 @@ jobs:
           node-version: '22'
 
       - name: Install Redocly CLI
-        run: npm install -g @redocly/cli
+        run: npm install -g @redocly/cli@2.26.0
 
       - name: Bundle modular OpenAPI spec
         run: redocly bundle openapi/openapi.yaml -o openapi.yaml
@@ -146,10 +148,15 @@ jobs:
     steps:
       - name: Check status
         run: |
+          echo "Job results:"
+          echo "  validate-openapi-spec: ${{ needs.validate-openapi-spec.result }}"
+          echo "  verify-server-schemas: ${{ needs.verify-server-schemas.result }}"
+          echo "  verify-client-types: ${{ needs.verify-client-types.result }}"
+          echo ""
           if [ "${{ needs.validate-openapi-spec.result }}" != "success" ] || \
              [ "${{ needs.verify-server-schemas.result }}" != "success" ] || \
              [ "${{ needs.verify-client-types.result }}" != "success" ]; then
-            echo "❌ OpenAPI validation failed"
+            echo "❌ OpenAPI validation failed (inspect the non-success job above for logs)."
             exit 1
           fi
           echo "✅ All OpenAPI checks passed"

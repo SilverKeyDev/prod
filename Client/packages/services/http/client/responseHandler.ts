@@ -67,10 +67,15 @@ export function handleHttpResponse<T>(
             /^(127\.0\.0\.1|localhost)$/.test(apiHost);
 
           const isExpectedUnauthenticated = isAuthEndpoint(url) && allCookies.length === 0;
+          const clientRequestId =
+            mergedHeaders["X-Request-ID"] ?? mergedHeaders["x-request-id"] ?? undefined;
+          const serverRequestId = response.headers.get("X-Request-ID");
           const logPayload = {
             url,
             errorCode: errorBody.error,
             message: errorBody.message,
+            clientRequestId,
+            serverRequestId,
             hasCookies: allCookies.length > 0,
             cookies: allCookies,
             requestCredentials: requestOptions.credentials,

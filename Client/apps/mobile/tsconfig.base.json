@@ -4,7 +4,7 @@
     "esModuleInterop": true,
     "jsx": "react-native",
     "lib": ["DOM", "ESNext"],
-    "module": "preserve",
+    "module": "ESNext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
     "noEmit": true,

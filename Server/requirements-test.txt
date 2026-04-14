@@ -1,0 +1,17 @@
+# Dependencies for pytest + coverage in CI (beyond requirements-ci.txt).
+# Full requirements.txt also pins tensorflow, jax, CUDA PyTorch, osmnx, xgboost,
+# lightgbm, numba, etc., which are not imported anywhere under Server/ but exceed
+# GitHub-hosted runner disk. This file keeps imports used by tests and create_app().
+#
+# CPU-only PyTorch is installed separately in .github/workflows/test-callable.yml
+# before this file (see pip install --index-url .../whl/cpu).
+
+numpy>=1.26.0,<3
+pandas>=2.0.0,<3
+matplotlib>=3.8.0,<4
+scikit-learn==1.4.2
+shapely==2.0.4
+sentence-transformers==2.6.1
+transformers==4.41.2
+openai==1.76.2
+httpx>=0.24.1,<1
