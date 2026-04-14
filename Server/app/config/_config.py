@@ -135,8 +135,11 @@ class Config:
     # EC2 Host Configuration
     EC2_HOST = EC2_HOST
 
-    # Google Calendar Settings
-    GOOGLE_CALENDAR_SECRET = os.getenv("GOOGLE_CALENDAR_SECRET")
+    # Google Calendar Settings (OAuth client secret shared with Google sign-in)
+    _google_calendar_secret = _optional_stripped_env("GOOGLE_CALENDAR_SECRET")
+    if not _google_calendar_secret and _is_testing_env():
+        _google_calendar_secret = "test-google-calendar-secret-not-for-production"
+    GOOGLE_CALENDAR_SECRET = _google_calendar_secret
     GOOGLE_CLIENT_ID = GOOGLE_CLIENT_ID
     # Full Calendar scope (see permissions.constants); required for ACL and sharing flows.
     GOOGLE_SCOPES = GOOGLE_SCOPES
