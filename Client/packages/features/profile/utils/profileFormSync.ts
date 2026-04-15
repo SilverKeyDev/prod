@@ -120,8 +120,12 @@ export function mergeOnboardingServerAndDraft(
     server.important_locations?.filter(
       (l) => (l.address ?? "").trim() !== "",
     ) ?? [];
-  const important_locations =
-    draftLocs.length > 0 ? draftLocs : serverLocs.length > 0 ? serverLocs : [];
+  const draftHasLocationsField = draft.important_locations !== undefined;
+  const important_locations = draftHasLocationsField
+    ? draftLocs
+    : serverLocs.length > 0
+      ? serverLocs
+      : [];
   return {
     ...server,
     ...draft,
@@ -143,7 +147,7 @@ function isAgentFormData(formData: OnboardingData): boolean {
 export function formDataToPreferencesPayload(
   formData: OnboardingData,
 ): Record<string, unknown> {
-  const { name, ...rest } = formData;
+  const { name, important_locations, ...rest } = formData;
   const payload = {
     ...rest,
     ...(name !== undefined && name !== "" ? { name } : {}),
@@ -155,17 +159,18 @@ export function formDataToPreferencesPayload(
   }
   // preferred_bedrooms_min/max and preferred_bathrooms_min/max pass through via ...rest
   // Backend expects important_locations with max_commute_minutes (form: commute_tolerance)
-  if (
-    Array.isArray(formData.important_locations) &&
-    formData.important_locations.length > 0
-  ) {
-    payload.important_locations = formData.important_locations.map((loc) => ({
-      address: loc.address,
-      max_commute_minutes:
-        loc.commute_tolerance !== undefined && loc.commute_tolerance !== null
-          ? loc.commute_tolerance
-          : undefined,
-    }));
+  if (Array.isArray(important_locations)) {
+    if (important_locations.length > 0) {
+      payload.important_locations = important_locations.map((loc) => ({
+        address: loc.address,
+        max_commute_minutes:
+          loc.commute_tolerance !== undefined && loc.commute_tolerance !== null
+            ? loc.commute_tolerance
+            : undefined,
+      }));
+    } else {
+      payload.important_locations = [];
+    }
   }
 
   // Backend expects extended_buyer_preferences (form: buyerPreferenceExtensions)

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { getEnv } from "packages/config";
 import { useSavedHomesData } from "packages/hooks/data/useSavedHomesData";
 import { useUserPreferences } from "packages/hooks/data/useUserData";
+import { useIsAgent } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import {
   useAgentDashboardStore,
@@ -10,6 +11,7 @@ import {
   useSearchContextStore,
   useUIStore,
 } from "packages/store";
+import type { IsochroneData } from "packages/types/api";
 import { simpleHash } from "packages/utils";
 import { formatPropertySearchListingPrice } from "packages/utils/search/formatPropertySearchListingPrice";
 import { sortSearchResults } from "packages/utils/search/sortSearchResults";
@@ -23,11 +25,13 @@ import type { SearchResult } from "@/features/search/types";
 import type { SavedHome } from "@/features/search/types/property";
 
 export function useSearchPageData() {
+  const isAgent = useIsAgent();
   const {
     searchResults,
     setSearchResults,
     isLoading: isLoadingSearchResults,
-  } = useSearchResultsData();
+    clearSearchResults,
+  } = useSearchResultsData({ skipInitialFetch: isAgent });
   const isSearching = useFiltersStore((s) => s.isSearching);
   const setIsSearching = useFiltersStore((s) => s.setIsSearching);
   const searchStage = useFiltersStore((s) => s.searchStage);
@@ -45,12 +49,40 @@ export function useSearchPageData() {
     isochroneData,
     isLoading: isLoadingIsochrone,
     fetchIsochrone,
+    clearIsochroneData,
   } = useIsochroneData({
     preferencesSubjectUserId: agentViewClientId,
+    skipInitialFetch: isAgent,
   });
-  const { displayIsochroneData } = useSearchMapOverlayData(
-    isochroneData ?? null,
+  const { displayIsochroneData: rawDisplayIsochroneData } =
+    useSearchMapOverlayData(isochroneData ?? null);
+  const clearLocationPlaceSearchArea = useSearchContextStore(
+    (s) => s.clearLocationPlaceSearchArea,
   );
+
+  useEffect(() => {
+    if (!isAgent) {
+      return;
+    }
+    setHasSearched(false);
+    clearSearchResults();
+    clearIsochroneData();
+    clearLocationPlaceSearchArea();
+  }, [
+    isAgent,
+    agentViewClientId,
+    setHasSearched,
+    clearSearchResults,
+    clearIsochroneData,
+    clearLocationPlaceSearchArea,
+  ]);
+
+  const displayIsochroneData = useMemo((): IsochroneData | null => {
+    if (isAgent && !hasSearched) {
+      return null;
+    }
+    return rawDisplayIsochroneData;
+  }, [hasSearched, isAgent, rawDisplayIsochroneData]);
   const currentPage = useFiltersStore((s) => s.currentPage);
   const setCurrentPage = useFiltersStore((s) => s.setCurrentPage);
   const showPropertyModals = useUIStore((s) => s.showPropertyModals);

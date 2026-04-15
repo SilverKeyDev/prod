@@ -19,7 +19,10 @@ import {
 } from "packages/features/search/utils/mapViewport";
 import { useUserPreferences } from "packages/hooks/data/useUserData";
 import { usePreActionSnapshot } from "packages/hooks/ui";
-import { showErrorToast } from "packages/hooks/ui/toast/useToast";
+import {
+  showErrorToast,
+  showWarningToast,
+} from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import {
@@ -344,9 +347,9 @@ export function SearchScreen() {
       return;
     }
     if (!hasLocations) {
-      showErrorToast(
-        SEARCH_TRANSLATIONS["search.add_location_to_search"] ??
-          "Add at least one location to search",
+      showWarningToast(
+        SEARCH_TRANSLATIONS["search.need_locations_or_place"] ??
+          "Add important locations in Filters, or type a city, neighborhood, or ZIP in the search bar and search.",
       );
       return;
     }

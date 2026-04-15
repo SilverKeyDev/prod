@@ -24,19 +24,19 @@ describe("isListingFullCriteriaMatch", () => {
     expect(isListingFullCriteriaMatch({ _score: NaN })).toBe(false);
   });
 
-  it("is true at MCDA display ceiling (~90)", () => {
-    expect(isListingFullCriteriaMatch({ _score: 90 })).toBe(true);
-    expect(isListingFullCriteriaMatch({ _score: 89.96 })).toBe(true);
+  it("is true at MCDA display ceiling (~99)", () => {
+    expect(isListingFullCriteriaMatch({ _score: 99 })).toBe(true);
+    expect(isListingFullCriteriaMatch({ _score: 98.96 })).toBe(true);
   });
 
   it("is false below MCDA ceiling", () => {
-    expect(isListingFullCriteriaMatch({ _score: 89 })).toBe(false);
+    expect(isListingFullCriteriaMatch({ _score: 98 })).toBe(false);
     expect(isListingFullCriteriaMatch({ _score: 50 })).toBe(false);
   });
 
   it("accepts legacy 0–100 scale at top", () => {
     expect(isListingFullCriteriaMatch({ _score: 100 })).toBe(true);
     expect(isListingFullCriteriaMatch({ _score: 99.6 })).toBe(true);
-    expect(isListingFullCriteriaMatch({ _score: 99 })).toBe(false);
+    expect(isListingFullCriteriaMatch({ _score: 99.4 })).toBe(false);
   });
 });

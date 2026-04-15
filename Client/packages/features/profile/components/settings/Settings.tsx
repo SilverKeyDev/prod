@@ -45,7 +45,6 @@ import {
   AgentLicensingSection,
   AgentProfileServiceSection,
   DemographicsSection,
-  getPreservedImportantLocations,
   LocationSection,
   SettingsFinancialSection,
 } from "@/features/profile/components/sections/index.web";
@@ -267,21 +266,8 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
   const handleSaveChanges = useCallback(async () => {
     const newVersion = nextPreferencesVersion(formData.preferences_version);
 
-    const currentLocations = Array.isArray(formData.important_locations)
-      ? formData.important_locations
-      : [];
-    const originalLocations = Array.isArray(originalData.important_locations)
-      ? originalData.important_locations
-      : [];
-
-    const preservedLocations = getPreservedImportantLocations(
-      originalLocations,
-      currentLocations,
-    );
-
     const dataToSave = {
       ...formData,
-      important_locations: preservedLocations ?? currentLocations,
       preferences_version: newVersion,
     };
 
@@ -307,7 +293,7 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
         showErrorToast("Failed to update preferences. Please try again.");
       },
     });
-  }, [formData, originalData, submitPreferences]);
+  }, [formData, submitPreferences]);
 
   const handleCancel = useCallback(() => {
     setFormData(originalData);

@@ -104,18 +104,26 @@ export const reportApi = {
     try {
       const viewResponse = await reportApi.getViewUrl(documentId);
       if (!viewResponse.success || !viewResponse.viewUrl) {
-        log.info(LOG_CATEGORIES.DOCUMENTS, "Document share: view URL not available", {
-          documentId,
-          documentName,
-          viewUrlSuccess: viewResponse.success,
-        });
+        log.info(
+          LOG_CATEGORIES.DOCUMENTS,
+          "Document share: view URL not available",
+          {
+            documentId,
+            documentName,
+            viewUrlSuccess: viewResponse.success,
+          },
+        );
         return { success: false, message: "Unable to generate shareable link" };
       }
 
-      log.info(LOG_CATEGORIES.DOCUMENTS, "Document share: presigned view URL obtained", {
-        documentId,
-        documentName,
-      });
+      log.info(
+        LOG_CATEGORIES.DOCUMENTS,
+        "Document share: presigned view URL obtained",
+        {
+          documentId,
+          documentName,
+        },
+      );
 
       const shareTitle = `Property Report - ${documentName
         .replace(/_/g, " ")
@@ -141,18 +149,26 @@ export const reportApi = {
         } catch (shareError: unknown) {
           const error = asError(shareError);
           if (error instanceof Error && error.name === "AbortError") {
-            log.info(LOG_CATEGORIES.DOCUMENTS, "Document share cancelled by user", {
-              documentId,
-              documentName,
-              channel: "web_share",
-            });
+            log.info(
+              LOG_CATEGORIES.DOCUMENTS,
+              "Document share cancelled by user",
+              {
+                documentId,
+                documentName,
+                channel: "web_share",
+              },
+            );
             return { success: false, message: "Share cancelled" };
           }
-          log.info(LOG_CATEGORIES.DOCUMENTS, "Document share: Web Share failed, trying clipboard", {
-            documentId,
-            documentName,
-            errorName: error instanceof Error ? error.name : "unknown",
-          });
+          log.info(
+            LOG_CATEGORIES.DOCUMENTS,
+            "Document share: Web Share failed, trying clipboard",
+            {
+              documentId,
+              documentName,
+              errorName: error instanceof Error ? error.name : "unknown",
+            },
+          );
         }
       }
 
@@ -166,11 +182,15 @@ export const reportApi = {
         });
         return { success: true, message: "Report link copied to clipboard" };
       }
-      log.info(LOG_CATEGORIES.DOCUMENTS, "Document share failed: clipboard copy unsuccessful", {
-        documentId,
-        documentName,
-        channel: "clipboard",
-      });
+      log.info(
+        LOG_CATEGORIES.DOCUMENTS,
+        "Document share failed: clipboard copy unsuccessful",
+        {
+          documentId,
+          documentName,
+          channel: "clipboard",
+        },
+      );
       return { success: false, message: "Failed to copy link to clipboard" };
     } catch (error: unknown) {
       log.error(LOG_CATEGORIES.ERRORS, "Document share failed", error);

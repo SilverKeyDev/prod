@@ -54,8 +54,8 @@ repos:
           (?x)^(
             .*\.pem\.example$|
             documentation/client/docusign-integration\.md$|
-            Server/app/services/docusign/README\.md$|
-            Server/app/services/docusign/TESTING\.md$
+            Server/app/services/docusign/docs/README\.md$|
+            Server/app/services/docusign/docs/TESTING\.md$
           )
 
   # No focused tests

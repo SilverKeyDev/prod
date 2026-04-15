@@ -2,6 +2,7 @@
 Tests for DocuSign agreement lifecycle
 """
 
+import uuid
 from unittest.mock import patch
 
 import pytest
@@ -292,3 +293,96 @@ class TestAgreementLifecycle:
                 assert url.startswith("https://")
                 assert "docusign.net" in url
                 mock_get_url.assert_called_once()
+
+    def test_discard_completed_strips_library_only(self, app: Flask, db_session, sample_agreement):
+        """Completed agreements: discard removes shared library row only (no void)."""
+        from app.models import Agreement, DocumentLibraryItem, User
+        from app.services.docusign.agreements.lifecycle import (
+            AgreementLifecycleService,
+        )
+
+        with app.app_context():
+            db_session.session.add(
+                User(
+                    id=sample_agreement["agent_id"],
+                    cognito_id="c-agent-discard",
+                    email="agent-discard@example.com",
+                    name="Agent",
+                    is_agent=True,
+                )
+            )
+            db_session.session.add(
+                User(
+                    id=sample_agreement["buyer_id"],
+                    cognito_id="c-buyer-discard",
+                    email="buyer-discard@example.com",
+                    name="Buyer",
+                    is_agent=False,
+                )
+            )
+            lib_id = str(uuid.uuid4())
+            db_session.session.add(
+                DocumentLibraryItem(
+                    id=lib_id,
+                    user_id=sample_agreement["buyer_id"],
+                    kind="agreement",
+                    title="Agreement",
+                    display_status="completed",
+                )
+            )
+            agreement = Agreement(**sample_agreement)
+            agreement.status = "completed"
+            agreement.library_item_id = lib_id
+            db_session.session.add(agreement)
+            db_session.session.commit()
+
+            AgreementLifecycleService.discard_agreement_as_agent(
+                agreement.id, "cleanup", sample_agreement["agent_id"]
+            )
+
+            assert DocumentLibraryItem.query.get(lib_id) is None
+            refreshed = Agreement.query.get(agreement.id)
+            assert refreshed is not None
+            assert refreshed.library_item_id is None
+            assert refreshed.status == "completed"
+
+    def test_discard_draft_calls_void_agreement(self, app: Flask, db_session, sample_agreement):
+        """Non-terminal agreements delegate to void_agreement (DocuSign + library)."""
+        from app.models import Agreement, User
+        from app.services.docusign.agreements.lifecycle import (
+            AgreementLifecycleService,
+        )
+
+        with app.app_context():
+            db_session.session.add(
+                User(
+                    id=sample_agreement["agent_id"],
+                    cognito_id="c-agent-draft",
+                    email="agent-draft@example.com",
+                    name="Agent",
+                    is_agent=True,
+                )
+            )
+            db_session.session.add(
+                User(
+                    id=sample_agreement["buyer_id"],
+                    cognito_id="c-buyer-draft",
+                    email="buyer-draft@example.com",
+                    name="Buyer",
+                    is_agent=False,
+                )
+            )
+            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
+                agreement = Agreement(**sample_agreement)
+                db_session.session.add(agreement)
+                db_session.session.commit()
+
+            with patch(
+                "app.services.docusign.agreements.signature_flow.void_agreement"
+            ) as mock_void:
+                AgreementLifecycleService.discard_agreement_as_agent(
+                    agreement.id, "discard-reason", sample_agreement["agent_id"]
+                )
+                mock_void.assert_called_once_with(
+                    agreement.id, "discard-reason", sample_agreement["agent_id"]
+                )

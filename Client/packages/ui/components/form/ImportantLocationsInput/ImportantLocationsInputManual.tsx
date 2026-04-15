@@ -42,14 +42,19 @@ export function ImportantLocationsInputManual({
       next.push(updated);
     }
 
-    const filtered = next.filter((loc) => (loc.address ?? "").toString().trim().length > 0);
+    const filtered = next.filter(
+      (loc) => (loc.address ?? "").toString().trim().length > 0,
+    );
     onChange(filtered);
   };
 
   const handleCommuteChange = (index: number, minutesText: string) => {
     const text = minutesText.trim();
     const parsed = text === "" ? undefined : Number.parseInt(text, 10);
-    const value = parsed === undefined || Number.isNaN(parsed) || parsed < 0 ? undefined : parsed;
+    const value =
+      parsed === undefined || Number.isNaN(parsed) || parsed < 0
+        ? undefined
+        : parsed;
 
     const next = [...safeLocations];
     const existing = next[index] ?? { address: "" };
@@ -64,7 +69,9 @@ export function ImportantLocationsInputManual({
       next.push(updated);
     }
 
-    const filtered = next.filter((loc) => (loc.address ?? "").toString().trim().length > 0);
+    const filtered = next.filter(
+      (loc) => (loc.address ?? "").toString().trim().length > 0,
+    );
     onChange(filtered);
   };
 
@@ -116,7 +123,8 @@ export function ImportantLocationsInputManual({
   return (
     <Box className="gap-4">
       {displayList.map((loc, index) => {
-        const commuteText = loc.commute_tolerance != null ? String(loc.commute_tolerance) : "";
+        const commuteText =
+          loc.commute_tolerance != null ? String(loc.commute_tolerance) : "";
         return (
           <Box key={index} className="gap-2">
             <Text className="text-sm font-medium text-gray-700">
@@ -137,14 +145,12 @@ export function ImportantLocationsInputManual({
                 className={`bg-background-surface text-text-primary rounded-lg px-4 py-3 text-base ${DOTTED_BORDER_LIGHT_GRAY}`}
               />
             </Box>
-            {displayList.length > 1 && (
-              <Pressable
-                onPress={() => handleRemoveLocation(index)}
-                className="border-border bg-background-surface self-start rounded-lg border px-3 py-2"
-              >
-                <Text className="text-sm font-medium text-red-600">Remove</Text>
-              </Pressable>
-            )}
+            <Pressable
+              onPress={() => handleRemoveLocation(index)}
+              className="border-border bg-background-surface self-start rounded-lg border px-3 py-2"
+            >
+              <Text className="text-sm font-medium text-red-600">Remove</Text>
+            </Pressable>
           </Box>
         );
       })}

@@ -8,6 +8,7 @@ import React, {
 
 import Loading from "@ui/asset/loading/Loading";
 import Input from "@ui/form/Input";
+import PdfModal from "@ui/modals/PdfModal";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -15,15 +16,25 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import WebView from "react-native-webview";
 
 import { useLocalization } from "packages/contexts";
-import { color } from "packages/design-tokens";
+import { color, spacing } from "packages/design-tokens";
 import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
+import {
+  DocuSignLegalNotice,
+  EmbeddedSigning,
+  useDocumentActions,
+  useDocumentsDataIntegration,
+  ViewSignedDocument,
+} from "packages/features/documents";
 import { useIsAgent } from "packages/features/homeauth";
 import { useAgentChats, useMessaging } from "packages/features/messaging";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
-import { useMessagingHandlers } from "packages/hooks/ui";
+import { showErrorToast, useMessagingHandlers } from "packages/hooks/ui";
 import { useAuthStore } from "packages/store";
+import { BaseModal } from "packages/ui/components/modals";
+import { Portal } from "packages/ui/components/portal";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
 import { MessagingAgentListSubview } from "@/features/agent/components/messaging/MessagingAgentListSubview.native";
@@ -90,6 +101,64 @@ export function MessagingScreenNative() {
   });
 
   const messaging = isAgent ? agentMessaging : clientMessaging;
+
+  const {
+    currentPdf,
+    currentDocumentId,
+    currentDocumentName,
+    closePdfModal,
+    handleViewDocument,
+    handleDownloadDocument,
+    handleShareDocument,
+  } = useDocumentActions();
+
+  const documentHandlers = useMemo(
+    () => ({
+      handleViewDocument,
+      handleDownloadDocument,
+      handleShareDocument,
+    }),
+    [handleViewDocument, handleDownloadDocument, handleShareDocument],
+  );
+
+  const {
+    documents,
+    agreementSigningSession,
+    dismissAgreementSigning,
+    viewSignedAgreement,
+    dismissViewSignedAgreement,
+    onAgreementSigningComplete,
+    openAgreementPdfViewer,
+    signAgreementNow,
+  } = useDocumentsDataIntegration(undefined, documentHandlers);
+
+  const handleMessagingAgreementView = useCallback(
+    (agreementId: string, documentName: string) => {
+      openAgreementPdfViewer(agreementId, documentName);
+    },
+    [openAgreementPdfViewer],
+  );
+
+  const handleMessagingAgreementSignNow = useCallback(
+    (agreementId: string) => {
+      const row = documents.find(
+        (d) => d.id === agreementId && d.library_kind === "agreement",
+      );
+      if (!row) {
+        showErrorToast(
+          "This agreement is not in your documents yet. Open Saved and try again.",
+        );
+        return;
+      }
+      void signAgreementNow(row).catch((err: unknown) => {
+        showErrorToast(
+          err instanceof Error ? err.message : "Failed to open signing",
+        );
+      });
+    },
+    [documents, signAgreementNow],
+  );
+
   const {
     conversations,
     localMessages,
@@ -303,6 +372,8 @@ export function MessagingScreenNative() {
               onCancelEventRequest={handlers.handleCancelEventRequest}
               acceptedEventRequestIds={acceptedEventRequestIds}
               acceptingEventRequestId={acceptingEventRequestId}
+              onAgreementViewDocument={handleMessagingAgreementView}
+              onAgreementSignNow={handleMessagingAgreementSignNow}
             />
           )}
         />
@@ -360,6 +431,68 @@ export function MessagingScreenNative() {
         onSuccess={handlers.handleCalendarEventSuccess}
         sendCalendarEventMessage={sendMessage}
       />
+
+      {currentPdf ? (
+        <Portal>
+          <PdfModal
+            currentPdf={currentPdf}
+            currentReportAddress={currentDocumentName}
+            reportId={currentDocumentId}
+            onClose={closePdfModal}
+          />
+        </Portal>
+      ) : null}
+      {agreementSigningSession?.kind === "embedded" ? (
+        <BaseModal
+          isOpen
+          onClose={dismissAgreementSigning}
+          title="Sign document"
+          size="full"
+          showCloseButton
+          closeOnBackdropClick={false}
+        >
+          <EmbeddedSigning
+            agreementId={agreementSigningSession.agreementId}
+            participantId={agreementSigningSession.participantId}
+            onComplete={onAgreementSigningComplete}
+            pdfViewerTitle={agreementSigningSession.pdfViewerTitle}
+          />
+        </BaseModal>
+      ) : agreementSigningSession?.kind === "sender_url" ? (
+        <BaseModal
+          isOpen
+          onClose={dismissAgreementSigning}
+          title="Sign or correct document"
+          size="full"
+          showCloseButton
+          closeOnBackdropClick={false}
+        >
+          <DocuSignLegalNotice variant="sender_url_iframe" />
+          <View style={{ minHeight: spacing(100), flex: 1 }}>
+            <WebView
+              source={{ uri: agreementSigningSession.url }}
+              style={{ flex: 1, minHeight: spacing(100) }}
+              javaScriptEnabled
+              domStorageEnabled
+            />
+          </View>
+        </BaseModal>
+      ) : null}
+      {viewSignedAgreement ? (
+        <BaseModal
+          isOpen
+          onClose={dismissViewSignedAgreement}
+          title={viewSignedAgreement.title}
+          size="full"
+          showCloseButton
+        >
+          <ViewSignedDocument
+            agreementId={viewSignedAgreement.agreementId}
+            title={viewSignedAgreement.title}
+            onClose={dismissViewSignedAgreement}
+          />
+        </BaseModal>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }

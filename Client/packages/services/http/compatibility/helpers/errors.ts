@@ -4,31 +4,33 @@
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { AuthenticationError, HttpError } from "packages/services/http/client";
+import { log as secureLog } from "packages/services/security/secureLogger";
 import { getWindow } from "packages/utils/platform";
-import { getLocalStorage, getSessionStorage } from "packages/utils/storage/platformStorage";
+import {
+  getLocalStorage,
+  getSessionStorage,
+} from "packages/utils/storage/platformStorage";
 
 export function logHttp(scope: string, e: unknown) {
-  import("../../../security/secureLogger")
-    .then(({ log }) => {
-      if (e instanceof AuthenticationError) {
-        log.security(scope, `Authentication error: ${e.errorCode}`, {
-          message: e.message,
-        });
-      } else if (e instanceof HttpError) {
-        log.warn(scope, `HTTP ${e.status} error`, {
-          status: e.status,
-          url: e.url,
-          body: e.bodyPreview,
-        });
-      } else if (e instanceof Error && e.name === "AbortError") {
-        log.debug(scope, "Request aborted");
-      } else {
-        log.error(scope, "Unexpected HTTP error", e);
-      }
-    })
-    .catch((err: unknown) =>
-      log.error(LOG_CATEGORIES.HTTP, "Secure logger import or log failed", err)
-    );
+  try {
+    if (e instanceof AuthenticationError) {
+      secureLog.security(scope, `Authentication error: ${e.errorCode}`, {
+        message: e.message,
+      });
+    } else if (e instanceof HttpError) {
+      secureLog.warn(scope, `HTTP ${e.status} error`, {
+        status: e.status,
+        url: e.url,
+        body: e.bodyPreview,
+      });
+    } else if (e instanceof Error && e.name === "AbortError") {
+      secureLog.debug(scope, "Request aborted");
+    } else {
+      secureLog.error(scope, "Unexpected HTTP error", e);
+    }
+  } catch (err: unknown) {
+    log.error(LOG_CATEGORIES.HTTP, "Secure logger call failed", err);
+  }
 }
 
 export function isAuthenticationError(error: unknown): boolean {
@@ -40,16 +42,14 @@ type _WindowWithEnv = {
 } & Window;
 
 export function handleAuthenticationError(error: AuthenticationError) {
-  import("../../../security/secureLogger")
-    .then(({ log }) => {
-      log.security("AUTH", "Authentication error detected", {
-        errorCode: error.errorCode,
-        message: error.message,
-      });
-    })
-    .catch((err: unknown) =>
-      log.error(LOG_CATEGORIES.HTTP, "Secure logger import or log failed", err)
-    );
+  try {
+    secureLog.security("AUTH", "Authentication error detected", {
+      errorCode: error.errorCode,
+      message: error.message,
+    });
+  } catch (err: unknown) {
+    log.error(LOG_CATEGORIES.HTTP, "Secure logger call failed", err);
+  }
 
   const win = getWindow() as Window & { clearSecureTokens?: () => void };
 
@@ -80,7 +80,7 @@ export function handleAuthenticationError(error: AuthenticationError) {
         log.warn(
           LOG_CATEGORIES.ERRORS,
           "Authentication error event dispatch failed",
-          dispatchError
+          dispatchError,
         );
       }
     }, 0);

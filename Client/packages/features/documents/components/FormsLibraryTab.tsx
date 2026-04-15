@@ -5,26 +5,20 @@
 
 import { useLocalization } from "packages/contexts";
 import type { ChecklistForm } from "packages/features/documents/types/forms";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives";
+
+import { Subtitle, Title } from "@/components/ui";
 
 import FormsBrowser from "./FormsBrowser";
 
 type FormsLibraryTabProps = {
-  onSelectForm?: (form: ChecklistForm) => void;
   onSendForSignature?: (form: ChecklistForm) => void;
 };
 
 export default function FormsLibraryTab({
-  onSelectForm,
   onSendForSignature,
 }: FormsLibraryTabProps) {
   const { t } = useLocalization();
-
-  const handleSelectForm = (form: ChecklistForm) => {
-    if (onSelectForm) {
-      onSelectForm(form);
-    }
-  };
 
   const handleSendForSignature = (form: ChecklistForm) => {
     if (onSendForSignature) {
@@ -35,19 +29,18 @@ export default function FormsLibraryTab({
   return (
     <Box className="w-full">
       <Box className="mb-4">
-        <Text className="text-text-primary mb-2 text-lg font-semibold">
+        <Title as="h2" size="md" className="mb-2">
           {t("forms.library_title", { defaultValue: "Forms Library" })}
-        </Text>
-        <Text className="text-text-secondary text-sm">
+        </Title>
+        <Subtitle size="sm" className="text-text-secondary">
           {t("forms.library_description", {
             defaultValue:
               "Browse and download pre-filled forms. Select a category to view available forms, or download directly.",
           })}
-        </Text>
+        </Subtitle>
       </Box>
 
       <FormsBrowser
-        onSelectForm={handleSelectForm}
         onSendForSignature={
           onSendForSignature ? handleSendForSignature : undefined
         }

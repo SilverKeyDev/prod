@@ -6,6 +6,7 @@ import {
   type ChecklistType,
   useChecklistData,
 } from "packages/features/checklists/hooks/data/useChecklistData";
+import { checklistCheckboxRowClassNames } from "packages/features/checklists/utils/checklistCheckboxPresentation";
 import Card from "packages/ui/components/cards/Card";
 import ChecklistCheckbox from "packages/ui/components/form/ChecklistCheckbox";
 import { Box, Text } from "packages/ui/components/primitives";
@@ -18,9 +19,8 @@ import ChecklistIntegrationSlot from "./ChecklistIntegrationSlot";
 // Shared CSS classes - now using Card component instead with mobile-first responsive design
 const sectionTitle =
   "text-responsive-sm font-semibold text-text-primary flex flex-row items-center gap-responsive-xs";
-const checkboxContainer = "flex flex-row w-full items-start gap-responsive-xs";
-const itemLabel = "text-left font-medium text-text-primary text-responsive-sm";
-const itemExplanation = "text-left text-text-secondary text-responsive-xs mt-1";
+const { checkboxContainer, itemLabel, itemExplanation } =
+  checklistCheckboxRowClassNames;
 // Shared interfaces
 type ResourceLink = {
   label: string;

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 
 import IconButton from "@ui/button/IconButton";
 
-import { useSearchRefresh } from "packages/contexts";
+import { useLocalization, useSearchRefresh } from "packages/contexts";
 import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
 import {
   cleanupMapPropertyCard,
@@ -26,6 +26,7 @@ import type { SearchResult } from "packages/features/search/types";
 import { useSearchRefreshIntegration } from "packages/hooks/data/useSearchRefreshIntegration";
 import { useUserPreferences } from "packages/hooks/data/useUserData";
 import { usePreActionSnapshot } from "packages/hooks/ui";
+import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import {
   useAgentDashboardStore,
   useAuthStore,
@@ -51,12 +52,17 @@ export function SearchFeature({
   onSearchProperties,
   searchRef,
 }: SearchFeatureProps) {
+  const { t } = useLocalization();
   const { mode: searchViewMode } = useSearchViewIntegration();
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
   const searchRefresh = useSearchRefresh();
   const { invalidateSearchAndFeed } = useSearchRefreshIntegration();
   const feedScrollRef = useRef<unknown>(null);
   const setAnchor = useSearchContextStore((s) => s.setAnchor);
+  const locationBarDraft = useSearchContextStore((s) => s.locationBarDraft);
+  const locationBarExternalSubmit = useSearchContextStore(
+    (s) => s.locationBarExternalSubmit,
+  );
   const searchAbortControllerRef = useRef<AbortController | null>(null);
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
   const setSelectedClientId = useAgentDashboardStore(
@@ -157,6 +163,7 @@ export function SearchFeature({
   }, [searchViewMode, toggleMode, handleBeforeSwitchToReels]);
 
   const map = useSearchPageMap({
+    searchViewMode,
     isochroneData,
     displayIsochroneData,
     fetchIsochrone,
@@ -183,7 +190,8 @@ export function SearchFeature({
     removeSavedHome: async (id, addr) => {
       await removeSavedHome(id, addr);
     },
-    onMarkerClick: handlers.handleNavigateToProperty,
+    onMarkerClick: handlers.handleFocusPropertyOnMap,
+    onMapPreviewNavigate: handlers.handleNavigateToProperty,
     onUnlockClick: handleViewPropertyDetails,
     onOpenDetails: handlers.handleOpenPropertyDetails,
     getSearchAbortSignal: () => searchAbortControllerRef.current?.signal,
@@ -205,32 +213,58 @@ export function SearchFeature({
       setActiveTab(tab);
       setCurrentPage(0);
       const nextData = tab === "results" ? filteredSearchResults : savedHomes;
-      requestAnimationFrame(() => {
-        void map.updateMapMarkers(nextData);
-      });
+      if (searchViewMode === "map") {
+        requestAnimationFrame(() => {
+          void map.updateMapMarkers(nextData);
+        });
+      }
     },
-    [setActiveTab, setCurrentPage, filteredSearchResults, savedHomes, map],
+    [
+      setActiveTab,
+      setCurrentPage,
+      filteredSearchResults,
+      savedHomes,
+      map,
+      searchViewMode,
+    ],
   );
 
   const handleSearchUpdated = useCallback(async () => {
-    if (!isSearching) {
-      setSearchSource("preferences");
-      snapshotPreSearch({
-        results: searchResults,
-        currentPage,
-        showPropertyModals,
-      });
-      searchAbortControllerRef.current = new AbortController();
-      if (onSearchProperties) {
-        setIsSearching(true);
-        setSearchStage("Preparing search...");
-        await onSearchProperties();
-      } else {
-        await map.runPreferencesSearch();
+    if (isSearching) return;
+
+    if (!hasLocations) {
+      if (!locationBarDraft.trim()) {
+        showWarningToast(t("search.need_locations_or_place"));
+        return;
       }
+      if (!locationBarExternalSubmit) {
+        showWarningToast(t("search.need_locations_or_place"));
+        return;
+      }
+      await locationBarExternalSubmit();
+      return;
+    }
+
+    setSearchSource("preferences");
+    snapshotPreSearch({
+      results: searchResults,
+      currentPage,
+      showPropertyModals,
+    });
+    searchAbortControllerRef.current = new AbortController();
+    if (onSearchProperties) {
+      setIsSearching(true);
+      setSearchStage("Preparing search...");
+      await onSearchProperties();
+    } else {
+      await map.runPreferencesSearch();
     }
   }, [
     isSearching,
+    hasLocations,
+    locationBarDraft,
+    locationBarExternalSubmit,
+    t,
     onSearchProperties,
     map,
     searchResults,

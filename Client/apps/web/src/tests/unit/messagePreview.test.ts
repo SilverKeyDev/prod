@@ -99,4 +99,19 @@ describe("messagePreview", () => {
       }),
     ).toBe("Document completed: Offer");
   });
+
+  it("parses agreement event when __AGREEMENT_EVENT__ is not at the start", () => {
+    const inner = JSON.stringify({
+      agreement_id: "02285221-253c-4feb-80e1-5d4df4bd591f",
+      title: "Disclosure — NON-Representation",
+      status: "completed",
+      event: "completed",
+      dedupe_key:
+        "__AGREEMENT_EVENT__02285221-253c-4feb-80e1-5d4df4bd591f__completed",
+    });
+    const content = `are document __AGREEMENT_EVENT__${inner}`;
+    expect(getMessagePreview({ content })).toBe(
+      "Document completed: Disclosure — NON-Representation",
+    );
+  });
 });

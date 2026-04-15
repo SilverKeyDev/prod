@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { env } from "packages/config";
 import { calculatePropertyScore } from "packages/features/search/types/search/calculatePropertyScore";
 import { useGoogleMaps } from "packages/hooks/data";
+import { useIsAgent } from "packages/hooks/store";
 import { useFiltersStore, useSearchContextStore } from "packages/store";
 import type { IsochroneData, UserPreferencesData } from "packages/types/api";
 import { getWindow } from "packages/utils/platform";
@@ -24,11 +25,13 @@ import { useSearchPageMapMarkerDataEffect } from "@/features/search/hooks/data/p
 import { useSearchPageMapOverlayRenderers } from "@/features/search/hooks/data/page/useSearchPageMapOverlayRenderers";
 import { useMapMarkers } from "@/features/search/hooks/data/useMapMarkers";
 import type { SearchResult } from "@/features/search/types";
+import { getMapFocusedProperty } from "@/features/search/types/search/mapCardFocus";
 
 export type { UseSearchPageMapParams } from "@/features/search/hooks/data/page/useSearchPageMap.types";
 
 export function useSearchPageMap(params: UseSearchPageMapParams) {
   const {
+    searchViewMode,
     isochroneData,
     displayIsochroneData,
     fetchIsochrone,
@@ -52,6 +55,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     saveHome,
     removeSavedHome,
     onMarkerClick,
+    onMapPreviewNavigate,
     onUnlockClick,
     onOpenDetails,
     getSearchAbortSignal,
@@ -61,14 +65,37 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     saveLastSearchContext,
   } = params;
 
+  const isAgent = useIsAgent();
+  const shouldPrimeIsochrone = !isAgent || hasSearched;
+
   const queryClient = useQueryClient();
   const {
-    isDev,
     mapListingPreviewsEnabled,
     dismissedMapPreviewIds,
     mapPreviewSearchLifecycle,
-    onDismissMapPreview,
+    onDismissMapPreview: dismissMapListingPreviewBase,
   } = useSearchPageMapListingPreview();
+
+  const onDismissMapPreview = useCallback(
+    (propertyId: string) => {
+      const currentData =
+        activeTab === "results" ? filteredSearchResults : savedHomes;
+      const primary = getMapFocusedProperty(currentData, currentPage);
+      dismissMapListingPreviewBase(propertyId);
+      if (primary?.id === propertyId && mapHomeCardsCount <= 1) {
+        setCurrentPage(-1);
+      }
+    },
+    [
+      activeTab,
+      filteredSearchResults,
+      savedHomes,
+      currentPage,
+      mapHomeCardsCount,
+      dismissMapListingPreviewBase,
+      setCurrentPage,
+    ],
+  );
 
   const preferencesStrictFilter = useFiltersStore(
     (s) => s.preferencesStrictFilter,
@@ -135,12 +162,13 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     removeSavedHome,
     contextKey: activeTab,
     onMarkerClick,
+    onMapPreviewNavigate,
     onUnlockClick,
     renderMapPropertyCard,
     cleanupMapPropertyCard,
     mapListingPreviewsEnabled,
     dismissedMapPreviewIds,
-    onDismissMapPreview: isDev ? onDismissMapPreview : undefined,
+    onDismissMapPreview,
   });
 
   const {
@@ -267,6 +295,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     mapHomeCardsCount,
     mapListingPreviewsEnabled,
     dismissedMapPreviewIds,
+    searchViewMode,
     updateMapMarkers,
   });
 
@@ -294,6 +323,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     primeIsochroneOverlay,
     renderIsochronePolygonWrapper,
     renderImportantLocationMarkersWrapper,
+    shouldPrimeIsochrone,
   });
 
   const triggerMapResize = useCallback(() => {

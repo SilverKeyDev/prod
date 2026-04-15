@@ -16,6 +16,7 @@ export type ConnectedCardHeartSaveProps = {
   size?: "xs" | "sm" | "md" | "lg" | "small" | "medium" | "large";
   className?: string;
   ariaLabel?: string;
+  nonFocusableMapMarkerSurface?: boolean;
 };
 
 /**
@@ -30,13 +31,17 @@ export function ConnectedCardHeartSave({
   size = "md",
   className = "",
   ariaLabel,
+  nonFocusableMapMarkerSurface = false,
 }: ConnectedCardHeartSaveProps) {
   const data = useSavedHomesData();
   const propertyLike: CardHeartSavePropertyLike = {
     id: property.id,
-    address: typeof property.address === "string" ? property.address : undefined,
+    address:
+      typeof property.address === "string" ? property.address : undefined,
   };
-  const isSaved = data?.isHomeSaved ? data.isHomeSaved(property.id, propertyLike.address) : false;
+  const isSaved = data?.isHomeSaved
+    ? data.isHomeSaved(property.id, propertyLike.address)
+    : false;
   const saveHome = data?.saveHome ?? (async () => {});
   const removeSavedHome = data?.removeSavedHome ?? (async () => {});
 
@@ -51,6 +56,7 @@ export function ConnectedCardHeartSave({
       size={size}
       className={className}
       ariaLabel={ariaLabel}
+      nonFocusableMapMarkerSurface={nonFocusableMapMarkerSurface}
     />
   );
 }

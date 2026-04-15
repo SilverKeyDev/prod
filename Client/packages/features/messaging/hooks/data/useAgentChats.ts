@@ -175,9 +175,6 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       sharedHomeId?: string;
       sharedDocumentId?: string;
     }) => {
-      // Import log here to avoid circular dependencies
-      const { log, LOG_CATEGORIES } = await import("packages/logger");
-
       log.debug(LOG_CATEGORIES.MESSAGES, "sendMessageMutation called", {
         conversationId,
         messageLength: message.length,

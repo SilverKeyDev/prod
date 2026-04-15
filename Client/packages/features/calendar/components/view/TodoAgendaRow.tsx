@@ -57,18 +57,18 @@ export function TodoAgendaRow({
 
   if (isSigning && agreementId && todo.completed) {
     return (
-      <Box className="border-border bg-background-surface mb-2 ml-2 w-full overflow-hidden rounded-xl border">
+      <Box className="border-border bg-background-surface mb-2 ml-2 w-full overflow-hidden rounded-xl border shadow-sm">
         <Box className="flex flex-row items-stretch">
-          <Box className="w-1 bg-emerald-600" />
-          <Box className="flex flex-1 flex-row items-start gap-2 p-3">
-            <Box className="border-border mt-0.5 h-6 w-6 flex-shrink-0 items-center justify-center rounded border-2 border-emerald-600 bg-emerald-50">
-              <Icon name="check" size={14} className="text-emerald-800" />
+          <Box className="bg-primary w-1.5" />
+          <Box className="flex flex-1 flex-row items-center gap-3 p-3 sm:p-4">
+            <Box className="border-border-card-subtle bg-primary-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+              <Icon name="check" size={18} className="text-primary" />
             </Box>
-            <Box className="min-w-0 flex-1 space-y-1">
-              <Text className="text-left text-sm font-semibold text-text-primary">
+            <Box className="min-w-0 flex-1 flex flex-col gap-1">
+              <Text className="text-text-primary text-left text-sm font-semibold leading-snug">
                 {todo.title}
               </Text>
-              <Text className="text-text-secondary text-left text-xs">
+              <Text className="text-text-secondary text-left text-xs leading-relaxed">
                 Signed{signedLine ? ` · ${signedLine}` : ""} · DocuSign
               </Text>
             </Box>
@@ -80,20 +80,27 @@ export function TodoAgendaRow({
 
   if (isSigning && agreementId) {
     const body = (
-      <Box className="border-border bg-background-surface mb-2 ml-2 w-full overflow-hidden rounded-xl border">
+      <Box className="border-border bg-background-surface hover:border-border-card-strong mb-2 ml-2 w-full overflow-hidden rounded-xl border shadow-sm transition-shadow duration-200 hover:shadow-md">
         <Box className="flex flex-row items-stretch">
-          <Box className="w-1 bg-amber-500" />
-          <Box className="flex flex-1 flex-row items-start gap-2 p-3">
-            <Box className="border-border mt-0.5 h-6 w-6 flex-shrink-0 items-center justify-center rounded border-2 border-dashed bg-amber-50">
-              <Icon name="file-signature" size={14} className="text-amber-800" />
+          <Box className="bg-accent w-1.5" />
+          <Box className="flex flex-1 flex-row items-center gap-3 p-3 sm:p-4">
+            <Box className="border-border-card-subtle bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+              <Icon name="file-signature" size={18} className="text-primary" />
             </Box>
-            <Box className="min-w-0 flex-1 space-y-1">
-              <Text className="text-left text-sm font-semibold text-text-primary">
+            <Box className="min-w-0 flex-1 flex flex-col gap-1.5">
+              <Text className="text-text-primary text-left text-sm font-semibold leading-snug">
                 {todo.title}
               </Text>
-              <Text className="text-text-secondary text-left text-xs">
-                Awaiting your signature · DocuSign
-              </Text>
+              <Box className="flex flex-row flex-wrap items-center gap-x-2 gap-y-1">
+                <Text className="text-text-secondary text-left text-xs leading-relaxed">
+                  Awaiting your signature
+                </Text>
+                <Box className="bg-background-base border-border-card-subtle rounded-full border px-2 py-0.5">
+                  <Text className="text-text-secondary text-xs font-medium leading-none">
+                    DocuSign
+                  </Text>
+                </Box>
+              </Box>
             </Box>
           </Box>
         </Box>
@@ -105,6 +112,8 @@ export function TodoAgendaRow({
         <Pressable
           onPress={() => onSigningPress(agreementId)}
           accessibilityRole="button"
+          label={`Sign agreement: ${todo.title}`}
+          className="min-h-touch focus-visible:ring-primary w-full rounded-xl border-0 bg-transparent p-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
           {body}
         </Pressable>

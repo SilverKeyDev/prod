@@ -4,7 +4,9 @@ import Button from "@ui/button/Button";
 
 import { useLocalization } from "packages/contexts";
 import type { DocumentData } from "packages/features/documents";
+import { useAuthStore } from "packages/store";
 import { Box, Text } from "packages/ui/components/primitives";
+import { getContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";
 import { dateParseISO } from "packages/utils/date";
 
 interface SavedDocumentsListProps {
@@ -44,6 +46,7 @@ export function SavedDocumentsList({
   onDocumentDelete,
 }: SavedDocumentsListProps) {
   const { t } = useLocalization();
+  const viewerUserId = useAuthStore((s) => s.user?.id);
 
   const renderDocument = useCallback(
     (doc: DocumentData) => (
@@ -114,16 +117,21 @@ export function SavedDocumentsList({
                 <Text className="text-sm font-medium">Send for signature</Text>
               </Button>
             )}
-          {onSignNow && doc.library_kind === "agreement" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onPress={() => onSignNow(doc)}
-              className="min-w-[30%] flex-1"
-            >
-              <Text className="text-sm font-medium">Sign now</Text>
-            </Button>
-          )}
+          {onSignNow &&
+            doc.library_kind === "agreement" &&
+            viewerUserId &&
+            doc.participants?.length &&
+            getContextualAgreementStatus(doc, viewerUserId, isAgent) ===
+              "sign_now" && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => onSignNow(doc)}
+                className="min-w-[30%] flex-1"
+              >
+                <Text className="text-sm font-medium">Sign now</Text>
+              </Button>
+            )}
           <Button
             variant="secondary"
             size="sm"
@@ -146,6 +154,7 @@ export function SavedDocumentsList({
       onSignNow,
       onViewDocument,
       t,
+      viewerUserId,
     ],
   );
 

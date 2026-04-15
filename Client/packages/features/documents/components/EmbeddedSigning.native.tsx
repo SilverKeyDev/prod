@@ -1,17 +1,14 @@
-import { useEffect, useRef } from "react";
-
-import { AlertCircle } from "lucide-react-native";
 import { StyleSheet } from "react-native";
 import WebView from "react-native-webview";
 
-import { color } from "packages/design-tokens";
 import { useEmbeddedSigningUrlQuery } from "packages/features/documents/hooks/data/useEmbeddedSigningUrlQuery";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
 import { Box } from "packages/ui/components/primitives";
 
-import { BodyText } from "@/components/ui";
+import { DocuSignLegalNotice } from "./DocuSignLegalNotice";
+import ViewSignedDocument from "./ViewSignedDocument";
 
 /**
  * Props for the EmbeddedSigning component (React Native).
@@ -33,6 +30,11 @@ type EmbeddedSigningProps = {
    * Triggered by DocuSign's postMessage event after the signer finishes.
    */
   onComplete?: () => void;
+
+  /**
+   * Title for the PDF viewer when embedded signing is unavailable (same viewer as signed documents).
+   */
+  pdfViewerTitle?: string;
 };
 
 /**
@@ -68,31 +70,16 @@ export default function EmbeddedSigning({
   agreementId,
   participantId,
   onComplete,
+  pdfViewerTitle,
 }: EmbeddedSigningProps) {
-  const { data: signingUrl, isPending, isError, error } =
-    useEmbeddedSigningUrlQuery(agreementId, participantId);
+  const {
+    data: signingUrl,
+    isPending,
+    isError,
+  } = useEmbeddedSigningUrlQuery(agreementId, participantId);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const errorToastSentRef = useRef(false);
 
-  useEffect(() => {
-    errorToastSentRef.current = false;
-  }, [agreementId, participantId]);
-
-  const errorMessage =
-    isError && error instanceof Error
-      ? error.message
-      : isError
-        ? "Failed to load signing interface"
-        : null;
-
-  useEffect(() => {
-    if (!isError || !errorMessage || errorToastSentRef.current) return;
-    errorToastSentRef.current = true;
-    enqueueToast({
-      type: "error",
-      message: errorMessage,
-    });
-  }, [isError, errorMessage, enqueueToast]);
+  const showPdfFallback = !isPending && (isError || !signingUrl);
 
   // Handle messages from DocuSign WebView
   const handleMessage = (event: { nativeEvent: { data: string } }) => {
@@ -144,37 +131,13 @@ export default function EmbeddedSigning({
     );
   }
 
-  // Error state if URL fetch failed
-  if (errorMessage) {
+  if (showPdfFallback) {
     return (
-      <Box style={styles.centerContainer}>
-        <AlertCircle
-          size={48}
-          color={color("rose.DEFAULT")}
-          style={styles.errorIcon}
+      <Box style={styles.pdfFallback}>
+        <ViewSignedDocument
+          agreementId={agreementId}
+          title={pdfViewerTitle ?? "Agreement document"}
         />
-        <BodyText size="md" style={styles.errorTitle}>
-          Unable to Load Signing Interface
-        </BodyText>
-        <BodyText size="sm" muted style={styles.errorMessage}>
-          {errorMessage}
-        </BodyText>
-      </Box>
-    );
-  }
-
-  // Empty state if no URL available (shouldn't normally happen)
-  if (!signingUrl) {
-    return (
-      <Box style={styles.centerContainer}>
-        <AlertCircle
-          size={48}
-          color={color("neutral.400")}
-          style={styles.errorIcon}
-        />
-        <BodyText size="sm" muted>
-          No signing URL available
-        </BodyText>
       </Box>
     );
   }
@@ -182,12 +145,7 @@ export default function EmbeddedSigning({
   // Render signing WebView with legal notice
   return (
     <Box style={styles.container}>
-      <Box style={styles.noticeContainer}>
-        <BodyText size="sm" style={styles.noticeText}>
-          Please review and sign the document below. Your signature will be
-          legally binding.
-        </BodyText>
-      </Box>
+      <DocuSignLegalNotice variant="embedded_signing" />
       <WebView
         source={{ uri: signingUrl }}
         onMessage={handleMessage}
@@ -210,33 +168,16 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
   },
+  pdfFallback: {
+    flex: 1,
+    minHeight: 400,
+    width: "100%",
+  },
   centerContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     padding: 48,
-  },
-  noticeContainer: {
-    marginBottom: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: color("blue.100"),
-    backgroundColor: color("blue.50"),
-    padding: 12,
-  },
-  noticeText: {
-    color: color("blue.800"),
-  },
-  errorIcon: {
-    marginBottom: 12,
-  },
-  errorTitle: {
-    marginBottom: 8,
-    color: color("neutral.900"),
-    textAlign: "center",
-  },
-  errorMessage: {
-    textAlign: "center",
   },
   webview: {
     flex: 1,

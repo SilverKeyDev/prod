@@ -1,7 +1,6 @@
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
@@ -15,7 +14,7 @@ type SearchActionsProps = {
   onSearchProperties?: () => void;
   onCancelSearch?: () => void;
   isSearching?: boolean;
-  /** When false, Search is disabled and click shows toast to add a location (default true for backward compat) */
+  /** Retained for API compatibility; search availability is handled in SearchFeature (important locations vs location bar). */
   hasLocations?: boolean;
   variant?: "desktop" | "mobile";
   /** When provided with onToggleMode, shows Reels button (only in map mode) */
@@ -35,7 +34,7 @@ export default function SearchActions({
   onSearchProperties,
   onCancelSearch,
   isSearching = false,
-  hasLocations = true,
+  hasLocations: _hasLocations = true,
   variant = "desktop",
   onToggleMode,
   onBeforeSwitchToReels,
@@ -49,11 +48,7 @@ export default function SearchActions({
   const showReels = showReelsButton && onToggleMode != null;
   const showMap = showMapButton && onToggleMode != null;
   const handleSearchClick = () => {
-    if (!hasLocations) {
-      showErrorToast(t("search.add_location_to_search"));
-      return;
-    }
-    onSearchProperties?.();
+    void onSearchProperties?.();
   };
   const btnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
   if (variant === "mobile") {
@@ -73,10 +68,7 @@ export default function SearchActions({
             size="sm"
             loading={isSearching}
             onClick={handleSearchClick}
-            disabled={isSearching || !hasLocations}
-            title={
-              !hasLocations ? t("search.add_location_to_search") : undefined
-            }
+            disabled={isSearching}
             iconName={!isSearching ? "search" : undefined}
             className={`touch-friendly min-w-min flex-1 px-4 ${HEADER_ROW_HEIGHT}`}
           >
@@ -136,10 +128,7 @@ export default function SearchActions({
             size="sm"
             loading={isSearching}
             onClick={handleSearchClick}
-            disabled={isSearching || !hasLocations}
-            title={
-              !hasLocations ? t("search.add_location_to_search") : undefined
-            }
+            disabled={isSearching}
             iconName={!isSearching ? "search" : undefined}
             className={btnClass}
           >

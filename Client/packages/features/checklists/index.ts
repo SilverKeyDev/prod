@@ -42,4 +42,8 @@ export {
   type ChecklistTab,
 } from "./types/checklists";
 export { CHECKLISTS_TRANSLATIONS } from "./types/translations";
+export {
+  checklistCheckboxRowClassNames,
+  toChecklistCheckboxItem,
+} from "./utils/checklistCheckboxPresentation";
 export { SECTION_CONFIG, SECTION_ORDER } from "./utils/sectionConfig";

@@ -12,8 +12,9 @@ export function getPropertyMatchScore(property: {
   return v;
 }
 
-/** MCDA display ceiling (Server `home_matching.mcda.score`, `output_display_max`). */
-const MCDA_DISPLAY_MAX = 90;
+/** MCDA display band (Server `MCDA_CONFIG` `output_display_*`). */
+const MCDA_DISPLAY_MIN = 1;
+const MCDA_DISPLAY_MAX = 99;
 
 /**
  * True when the listing is at the top of the backend MCDA match scale (all hard constraints
@@ -26,8 +27,8 @@ export function isListingFullCriteriaMatch(property: {
   if (typeof v !== "number" || !Number.isFinite(v)) {
     return false;
   }
-  // Primary: MCDA output is mapped to [15, 90] (see Server/app/home_matching/mcda/score.py).
-  if (v >= 15 && v <= MCDA_DISPLAY_MAX) {
+  // Primary: MCDA maps internal0–100 to [1, 99] (see Server/.../mcda/score.py).
+  if (v >= MCDA_DISPLAY_MIN && v <= MCDA_DISPLAY_MAX) {
     return v >= MCDA_DISPLAY_MAX - 0.05;
   }
   // Fallback if API ever sends a 0–100 style score

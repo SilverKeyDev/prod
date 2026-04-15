@@ -18,13 +18,16 @@ def register_download_routes(bp):
     @rate_limit(max_requests=100, window_seconds=60)
     def get_download_url(agreement_id):
         """
-        Get a pre-signed S3 URL for downloading the signed agreement document.
+        Get a pre-signed S3 URL for viewing or downloading the agreement PDF.
+
+        Prefers the merged signed document when present; otherwise falls back to the
+        latest revision file (e.g. sent but not yet completed, or signing UI unavailable).
 
         Returns:
             200: { success: true, download_url: str, expires_at: str }
             401: Authentication required
             403: Access denied
-            404: Agreement not found or no signed document available
+            404: Agreement not found or no document file available
             500: Server error
         """
         try:
@@ -62,11 +65,16 @@ def register_download_routes(bp):
                 )
                 return jsonify({"success": False, "error": "Access denied"}), 403
 
-            # Check if signed document exists
-            if not agreement.signed_document_path:
+            document_path = agreement.signed_document_path
+            if not document_path:
+                current_revision = agreement.current_revision
+                if current_revision and current_revision.file_path:
+                    document_path = current_revision.file_path
+
+            if not document_path:
                 log.warn(
                     LOG_CATEGORIES["DOCUSIGN"],
-                    "No signed document available for download",
+                    "No agreement document available for download",
                     {
                         "agreement_id": agreement_id,
                         "user_id": user.id,
@@ -77,7 +85,7 @@ def register_download_routes(bp):
                     jsonify(
                         {
                             "success": False,
-                            "error": "Signed document not yet available",
+                            "error": "Document not yet available",
                         }
                     ),
                     404,
@@ -86,7 +94,7 @@ def register_download_routes(bp):
             # Generate pre-signed URL (valid for 1 hour)
             s3_service = S3Service()
             download_url = s3_service.generate_presigned_url(
-                agreement.signed_document_path,
+                document_path,
                 expiration=3600,  # 1 hour
             )
 
@@ -96,7 +104,8 @@ def register_download_routes(bp):
                 {
                     "agreement_id": agreement_id,
                     "user_id": user.id,
-                    "document_path": agreement.signed_document_path,
+                    "document_path": document_path,
+                    "used_signed_document": bool(agreement.signed_document_path),
                 },
             )
 

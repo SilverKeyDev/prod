@@ -8,6 +8,8 @@ from app.models import UserImportantLocation
 
 def write_important_locations_from_payload(user_id: str, data: dict[str, Any]) -> None:
     """Write UserImportantLocation rows from preferences payload."""
+    if "important_locations" not in data:
+        return
     locs = data.get("important_locations")
     if not isinstance(locs, list):
         locs = []
@@ -20,18 +22,17 @@ def write_important_locations_from_payload(user_id: str, data: dict[str, Any]) -
             for loc in locs
             if isinstance(loc, dict) and (loc.get("address") or "").strip() != ideal_zip
         ]
-    if isinstance(locs, list) and len(locs) > 0:
-        UserImportantLocation.query.filter_by(user_id=user_id).delete()
-        for loc in locs:
-            if isinstance(loc, dict):
-                row = UserImportantLocation(
-                    user_id=user_id,
-                    label=loc.get("label"),
-                    address=loc.get("address"),
-                    max_commute_minutes=loc.get("max_commute_minutes"),
-                    commute_mode=loc.get("commute_mode"),
-                )
-                db.session.add(row)
-            elif isinstance(loc, str):
-                row = UserImportantLocation(user_id=user_id, address=loc)
-                db.session.add(row)
+    UserImportantLocation.query.filter_by(user_id=user_id).delete()
+    for loc in locs:
+        if isinstance(loc, dict):
+            row = UserImportantLocation(
+                user_id=user_id,
+                label=loc.get("label"),
+                address=loc.get("address"),
+                max_commute_minutes=loc.get("max_commute_minutes"),
+                commute_mode=loc.get("commute_mode"),
+            )
+            db.session.add(row)
+        elif isinstance(loc, str):
+            row = UserImportantLocation(user_id=user_id, address=loc)
+            db.session.add(row)

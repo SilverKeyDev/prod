@@ -69,9 +69,30 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "forms.forms": "forms",
   "forms.form_available": "form available",
   "forms.forms_available": "forms available",
-  "forms.use_form": "Use This Form",
+  "forms.download": "Download",
+  "forms.downloading": "Downloading…",
   "forms.send_for_signature": "Send for Signature",
 
   "documents.revision_download_unavailable":
     "Download is not available for this revision.",
+
+  "docusign.notice_embedded_legal":
+    "Please review and sign the document below. Your signature will be legally binding.",
+  "docusign.notice_sender_url":
+    "Complete signing in the window below. Close this dialog when you are done.",
+  "docusign.notice_signed_complete":
+    "This document has been completed and signed. All signatures are legally binding.",
+
+  "docusign.widget_title": "DocuSign Agreements",
+  "docusign.widget_loading": "Loading agreements...",
+  "docusign.widget_error_load": "Failed to load agreements",
+  "docusign.widget_create": "Create",
+  "docusign.widget_stat_pending": "Pending",
+  "docusign.widget_stat_this_week": "This Week",
+  "docusign.widget_stat_voided": "Voided",
+  "docusign.widget_section_pending": "Pending Signatures",
+  "docusign.widget_section_recent": "Recent Agreements",
+  "docusign.widget_empty_pending": "No pending signatures",
+  "docusign.widget_empty_recent": "No agreements yet",
+  "docusign.widget_view_all": "View All Agreements",
 };

@@ -65,6 +65,7 @@ export type { UseSavedHomesDocuSignCoreOptions } from "./hooks/ui/useSavedHomesD
 export { useSavedHomesDocuSignCore } from "./hooks/ui/useSavedHomesDocuSignCore";
 
 // DocuSign components
+export { DocuSignLegalNotice } from "./components/DocuSignLegalNotice";
 export { default as DocuSignWidget } from "./components/DocuSignWidget";
 export { default as EmbeddedSigning } from "./components/EmbeddedSigning";
 export { default as ViewSignedDocument } from "./components/ViewSignedDocument";

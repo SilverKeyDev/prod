@@ -5,7 +5,13 @@ Agreement signature flow operations: send for signature and void.
 from datetime import datetime, timezone
 
 from app import db
-from app.models import AgreementEvent, AgreementParticipant, DocumentLibraryItem, User
+from app.models import (
+    Agreement,
+    AgreementEvent,
+    AgreementParticipant,
+    DocumentLibraryItem,
+    User,
+)
 from app.utils.database import transactional
 from logger import LOG_CATEGORIES, get_logger
 
@@ -15,6 +21,16 @@ from .agreement_crud import get_agreement
 from .participant_operations import sync_signer_participant
 
 logger = get_logger()
+
+
+def _delete_agreement_library_item(agreement: Agreement) -> None:
+    """Remove the buyer-linked library row so the agreement leaves Saved for agent and client."""
+    lib_item_id = agreement.library_item_id
+    agreement.library_item_id = None
+    if lib_item_id:
+        item = DocumentLibraryItem.query.get(lib_item_id)
+        if item is not None:
+            db.session.delete(item)
 
 
 @transactional
@@ -293,13 +309,7 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
     )
     db.session.add(event)
 
-    # Drop the shared library row so the agreement disappears from the buyer’s and agent’s Saved lists.
-    lib_item_id = agreement.library_item_id
-    agreement.library_item_id = None
-    if lib_item_id:
-        item = DocumentLibraryItem.query.get(lib_item_id)
-        if item is not None:
-            db.session.delete(item)
+    _delete_agreement_library_item(agreement)
 
     logger.info(
         LOG_CATEGORIES["DOCUSIGN"],
@@ -308,3 +318,63 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
     )
 
     # Transaction commits automatically on success, rolls back on exception
+
+
+@transactional
+def strip_agreement_from_saved_library(agreement_id: str, actor_id: str, description: str) -> None:
+    """
+    Remove the agreement from Saved (library row only). Listing agent only.
+    Does not call DocuSign void — used for completed/voided envelopes or when void is impossible.
+    """
+    agreement = get_agreement(agreement_id)
+    if str(agreement.agent_id) != str(actor_id):
+        logger.warn(
+            LOG_CATEGORIES["DOCUSIGN"],
+            "strip_agreement_from_saved_library denied",
+            {"agreement_id": agreement_id, "actor_id": actor_id},
+        )
+        raise AgreementStateError("Only the listing agent can remove this agreement from Saved")
+
+    _delete_agreement_library_item(agreement)
+    db.session.add(
+        AgreementEvent(
+            agreement_id=agreement_id,
+            event_type="removed_from_saved",
+            description=description,
+            actor_id=actor_id,
+        )
+    )
+    logger.info(
+        LOG_CATEGORIES["DOCUSIGN"],
+        "Agreement stripped from Saved library",
+        {"agreement_id": agreement_id, "actor_id": actor_id},
+    )
+
+
+def discard_agreement_as_agent(agreement_id: str, reason: str, actor_id: str) -> None:
+    """
+    Agent discards from Saved: voids in DocuSign when allowed, otherwise only removes the
+    shared library row (buyer + agent lists).
+    """
+    agreement = get_agreement(agreement_id)
+    if str(agreement.agent_id) != str(actor_id):
+        logger.warn(
+            LOG_CATEGORIES["DOCUSIGN"],
+            "discard_agreement_as_agent denied",
+            {"agreement_id": agreement_id, "actor_id": actor_id},
+        )
+        raise AgreementStateError("Only the listing agent can discard this agreement")
+
+    st = (agreement.status or "").lower()
+    if st in ("completed", "voided"):
+        strip_agreement_from_saved_library(agreement_id, actor_id, f"Removed from Saved: {reason}")
+        return
+
+    try:
+        void_agreement(agreement_id, reason, actor_id)
+    except AgreementStateError:
+        strip_agreement_from_saved_library(
+            agreement_id,
+            actor_id,
+            f"Removed from Saved (envelope could not be voided in DocuSign): {reason}",
+        )

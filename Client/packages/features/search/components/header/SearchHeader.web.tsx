@@ -1,7 +1,6 @@
 import { useLocalization } from "packages/contexts";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { useGoogleMaps } from "packages/hooks/data";
-import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
@@ -56,11 +55,7 @@ export default function SearchHeader({
   const { t } = useLocalization();
   const btnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
   const handleSearchClick = () => {
-    if (!hasLocations) {
-      showErrorToast(t("search.add_location_to_search"));
-      return;
-    }
-    onSearchProperties();
+    void onSearchProperties();
   };
 
   return (
@@ -85,8 +80,7 @@ export default function SearchHeader({
           size="sm"
           loading={isSearching}
           onClick={handleSearchClick}
-          disabled={isSearching || !hasLocations}
-          title={!hasLocations ? t("search.add_location_to_search") : undefined}
+          disabled={isSearching}
           iconName={!isSearching ? "search" : undefined}
           className={btnClass}
         >

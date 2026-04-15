@@ -45,7 +45,7 @@ export function SavedHomeCard({
   const address = addressStreetLineForCard(
     typeof home.address === "string" || typeof home.address === "number"
       ? home.address.toString()
-      : (home.description ?? "[Invalid address]"),
+      : home.description ?? "[Invalid address]",
   );
   const price =
     typeof home.price === "string" || typeof home.price === "number"

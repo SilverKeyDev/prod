@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
@@ -33,7 +33,10 @@ const GAP_CLASSES: Record<NonNullable<AlignedRowProps["gap"]>, string> = {
   xl: "gap-6 sm:gap-8",
 };
 
-const JUSTIFY_CLASSES: Record<NonNullable<AlignedRowProps["justify"]>, string> = {
+const JUSTIFY_CLASSES: Record<
+  NonNullable<AlignedRowProps["justify"]>,
+  string
+> = {
   start: "justify-start",
   center: "justify-center",
   end: "justify-end",
@@ -43,6 +46,19 @@ const JUSTIFY_CLASSES: Record<NonNullable<AlignedRowProps["justify"]>, string> =
 };
 
 type BreakIntoRows = NonNullable<AlignedRowProps["breakIntoRows"]>;
+
+/** Tailwind default breakpoints — used when comparing container width (not viewport). */
+function getViewportBreakpointPx(
+  breakIntoRows: Exclude<BreakIntoRows, "never">,
+): number {
+  const map: Record<Exclude<BreakIntoRows, "never">, number> = {
+    sm: 640,
+    md: 768,
+    lg: 1024,
+    xl: 1280,
+  };
+  return map[breakIntoRows];
+}
 
 function getResponsiveLayoutClasses(breakIntoRows: BreakIntoRows): string {
   if (breakIntoRows === "never") return "flex-row";
@@ -55,21 +71,52 @@ function getResponsiveLayoutClasses(breakIntoRows: BreakIntoRows): string {
   return map[breakIntoRows];
 }
 
-function calculateElementWidths(itemCount: number, widths?: number[]): number[] {
+/** Row vs column using measured container width (e.g. popover), not viewport. */
+function getContainerAwareLayoutClass(
+  breakIntoRows: BreakIntoRows,
+  containerWidthPx: number | undefined,
+): string {
+  if (breakIntoRows === "never") return "flex-row";
+  if (containerWidthPx === undefined)
+    return getResponsiveLayoutClasses(breakIntoRows);
+  const bp = getViewportBreakpointPx(breakIntoRows);
+  return containerWidthPx < bp ? "flex-col" : "flex-row";
+}
+
+function getContainerAwareItemWidthClasses(
+  width: number,
+  breakIntoRows: BreakIntoRows,
+  containerWidthPx: number | undefined,
+): string {
+  if (breakIntoRows === "never") return "";
+  if (containerWidthPx === undefined)
+    return getResponsiveWidthClasses(width, breakIntoRows);
+  const bp = getViewportBreakpointPx(breakIntoRows);
+  if (containerWidthPx < bp) return "w-full";
+  return `w-[${width}%]`;
+}
+
+function calculateElementWidths(
+  itemCount: number,
+  widths?: number[],
+): number[] {
   if (widths && widths.length > 0) {
     const totalProvided = widths.reduce((sum, w) => sum + w, 0);
     const remaining = 100 - totalProvided;
     const remainingItems = itemCount - widths.length;
     const equalWidth = remainingItems > 0 ? remaining / remainingItems : 0;
     return Array.from({ length: itemCount }, (_, i) =>
-      i < widths.length ? widths[i] : equalWidth
+      i < widths.length ? widths[i] : equalWidth,
     );
   }
   const equalWidth = 100 / itemCount;
   return Array.from({ length: itemCount }, () => equalWidth);
 }
 
-function getResponsiveWidthClasses(width: number, breakIntoRows: BreakIntoRows): string {
+function getResponsiveWidthClasses(
+  width: number,
+  breakIntoRows: BreakIntoRows,
+): string {
   if (breakIntoRows === "never") return "";
   const map: Record<Exclude<BreakIntoRows, "never">, string> = {
     sm: `w-full sm:w-[${width}%]`,
@@ -80,82 +127,119 @@ function getResponsiveWidthClasses(width: number, breakIntoRows: BreakIntoRows):
   return map[breakIntoRows];
 }
 
-function useAlignedRowHeights(
-  containerRef: React.RefObject<HTMLDivElement | null>,
+function runAlignedRowHeightSync(
+  root: HTMLElement,
   items: AlignedRowItem[] | undefined,
-  children: React.ReactNode,
-  minHeight?: string | number
+  minHeight?: string | number,
 ) {
-  useEffect(() => {
+  if (items && items.length > 0) {
+    const titleEls = root.querySelectorAll<HTMLElement>(".aligned-row-title");
+    const contentEls = root.querySelectorAll<HTMLElement>(
+      ".aligned-row-content",
+    );
+    titleEls.forEach((e) => (e.style.height = "auto"));
+    contentEls.forEach((e) => (e.style.height = "auto"));
+    const titleHeights = Array.from(titleEls).map((e) => e.offsetHeight);
+    const maxTitle = titleHeights.length ? Math.max(...titleHeights) : 0;
+    titleEls.forEach((e) => {
+      if (maxTitle > 0) {
+        e.style.height = `${maxTitle}px`;
+        e.style.display = "flex";
+        e.style.alignItems = "flex-start";
+      }
+    });
+    contentEls.forEach((e) => {
+      e.style.height = "auto";
+      e.style.minHeight = "";
+      e.style.display = "flex";
+      e.style.flexDirection = "column";
+    });
+    return;
+  }
+
+  const childEls = Array.from(root.children) as HTMLElement[];
+  if (childEls.length === 0) return;
+  childEls.forEach((c) => (c.style.height = "auto"));
+  const heights = childEls.map((c) => c.offsetHeight);
+  const maxH = Math.max(...heights);
+  const finalH = minHeight
+    ? Math.max(
+        maxH,
+        typeof minHeight === "string" ? parseInt(minHeight, 10) : minHeight,
+      )
+    : maxH;
+  childEls.forEach((c) => {
+    c.style.height = `${finalH}px`;
+    c.style.display = "flex";
+    c.style.flexDirection = "column";
+  });
+}
+
+/**
+ * Tracks this row's own width (popover panel, profile column, etc.) via ResizeObserver so
+ * row vs column and column % widths follow the container — not the viewport `sm/md` breakpoints.
+ */
+function useAlignedRowContainerWidth(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+): number | undefined {
+  const [containerWidthPx, setContainerWidthPx] = useState<number | undefined>(
+    undefined,
+  );
+
+  useLayoutEffect(() => {
     const win = getWindow();
     if (!win) return;
     const el = containerRef.current;
     if (!el) return;
 
-    const run = () => {
-      if (!containerRef.current) return;
-
-      if (items && items.length > 0) {
-        const titleEls = containerRef.current.querySelectorAll<HTMLElement>(".aligned-row-title");
-        const contentEls =
-          containerRef.current.querySelectorAll<HTMLElement>(".aligned-row-content");
-        titleEls.forEach((e) => (e.style.height = "auto"));
-        contentEls.forEach((e) => (e.style.height = "auto"));
-        const titleHeights = Array.from(titleEls).map((e) => e.offsetHeight);
-        const contentHeights = Array.from(contentEls).map((e) => e.offsetHeight);
-        const maxTitle = titleHeights.length ? Math.max(...titleHeights) : 0;
-        const maxContent = contentHeights.length ? Math.max(...contentHeights) : 0;
-        titleEls.forEach((e) => {
-          if (maxTitle > 0) {
-            e.style.height = `${maxTitle}px`;
-            e.style.display = "flex";
-            e.style.alignItems = "center";
-          }
-        });
-        contentEls.forEach((e) => {
-          if (maxContent > 0) {
-            e.style.height = `${maxContent}px`;
-            e.style.display = "flex";
-            e.style.flexDirection = "column";
-          }
-        });
-        return;
+    const updateWidth = () => {
+      const w = Math.round(el.getBoundingClientRect().width);
+      if (w > 0) {
+        setContainerWidthPx((prev) => (prev === w ? prev : w));
       }
-
-      const childEls = Array.from(containerRef.current.children) as HTMLElement[];
-      if (childEls.length === 0) return;
-      childEls.forEach((c) => (c.style.height = "auto"));
-      const heights = childEls.map((c) => c.offsetHeight);
-      const maxH = Math.max(...heights);
-      const finalH = minHeight
-        ? Math.max(maxH, typeof minHeight === "string" ? parseInt(minHeight, 10) : minHeight)
-        : maxH;
-      childEls.forEach((c) => {
-        c.style.height = `${finalH}px`;
-        c.style.display = "flex";
-        c.style.flexDirection = "column";
-      });
     };
 
-    run();
-    const onResize = () => setTimeout(run, 100);
-    win.addEventListener("resize", onResize);
+    updateWidth();
+
+    const onWinResize = () => {
+      win.setTimeout(updateWidth, 100);
+    };
+    win.addEventListener("resize", onWinResize);
+
     let ro: ResizeObserver | null = null;
     if (win.ResizeObserver) {
-      ro = new win.ResizeObserver(() => setTimeout(run, 50));
+      ro = new win.ResizeObserver(updateWidth);
       ro.observe(el);
     }
+
     return () => {
-      win.removeEventListener("resize", onResize);
+      win.removeEventListener("resize", onWinResize);
       ro?.disconnect();
     };
-  }, [children, items, minHeight, containerRef]);
+  }, [containerRef]);
+
+  return containerWidthPx;
+}
+
+function useAlignedRowHeightSyncAfterLayout(
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  items: AlignedRowItem[] | undefined,
+  children: React.ReactNode,
+  minHeight: string | number | undefined,
+  containerWidthPx: number | undefined,
+) {
+  useLayoutEffect(() => {
+    const root = containerRef.current;
+    if (!root) return;
+    runAlignedRowHeightSync(root, items, minHeight);
+  }, [containerRef, containerWidthPx, items, children, minHeight]);
 }
 
 type AlignedRowItemsContentProps = {
   items: AlignedRowItem[];
   elementWidths: number[];
   breakIntoRows: BreakIntoRows;
+  containerWidthPx: number | undefined;
   titleClassName: string;
   contentClassName: string;
 };
@@ -164,6 +248,7 @@ function AlignedRowItemsContent({
   items,
   elementWidths,
   breakIntoRows,
+  containerWidthPx,
   titleClassName,
   contentClassName,
 }: AlignedRowItemsContentProps) {
@@ -171,21 +256,30 @@ function AlignedRowItemsContent({
     <>
       {items.map((item, index) => {
         const width = elementWidths[index] ?? 0;
-        const respClass = getResponsiveWidthClasses(width, breakIntoRows);
-        const widthStyle = breakIntoRows === "never" ? { width: `${width}%` } : {};
+        const respClass = getContainerAwareItemWidthClasses(
+          width,
+          breakIntoRows,
+          containerWidthPx,
+        );
+        const widthStyle =
+          breakIntoRows === "never" ? { width: `${width}%` } : {};
         return (
           <Box
             key={index}
-            className={`aligned-row-item flex h-full min-h-0 flex-col ${respClass} ${item.className ?? ""}`}
+            className={`aligned-row-item flex h-full min-h-0 flex-col ${respClass} ${
+              item.className ?? ""
+            }`}
             style={widthStyle}
           >
             {item.title && (
-              <Box className={`aligned-row-title flex-shrink-0 ${titleClassName}`}>
+              <Box
+                className={`aligned-row-title w-full min-w-0 flex-shrink-0 ${titleClassName}`}
+              >
                 {item.title}
               </Box>
             )}
             <Box
-              className={`aligned-row-content flex min-h-0 flex-1 flex-col justify-start ${contentClassName}`}
+              className={`aligned-row-content flex w-full min-w-0 flex-1 flex-col justify-start ${contentClassName}`}
             >
               {item.content}
             </Box>
@@ -200,19 +294,26 @@ type AlignedRowChildrenContentProps = {
   children: React.ReactNode;
   elementWidths: number[];
   breakIntoRows: BreakIntoRows;
+  containerWidthPx: number | undefined;
 };
 
 function AlignedRowChildrenContent({
   children,
   elementWidths,
   breakIntoRows,
+  containerWidthPx,
 }: AlignedRowChildrenContentProps) {
   return (
     <>
       {React.Children.map(children, (child, index) => {
         const width = elementWidths[index] ?? 0;
-        const respClass = getResponsiveWidthClasses(width, breakIntoRows);
-        const widthStyle = breakIntoRows === "never" ? { width: `${width}%` } : {};
+        const respClass = getContainerAwareItemWidthClasses(
+          width,
+          breakIntoRows,
+          containerWidthPx,
+        );
+        const widthStyle =
+          breakIntoRows === "never" ? { width: `${width}%` } : {};
         const node = React.isValidElement(child) ? child : <Box>{child}</Box>;
         return (
           <Box
@@ -220,10 +321,15 @@ function AlignedRowChildrenContent({
             className={`aligned-row-item flex h-full min-h-0 flex-col ${respClass}`}
             style={widthStyle}
           >
-            {React.cloneElement(node as React.ReactElement<{ className?: string }>, {
-              className:
-                `${(node as React.ReactElement<{ className?: string }>).props?.className ?? ""} h-full w-full flex-1`.trim(),
-            })}
+            {React.cloneElement(
+              node as React.ReactElement<{ className?: string }>,
+              {
+                className: `${
+                  (node as React.ReactElement<{ className?: string }>).props
+                    ?.className ?? ""
+                } h-full w-full flex-1`.trim(),
+              },
+            )}
           </Box>
         );
       })}
@@ -246,14 +352,21 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
   breakIntoRows = "never",
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  useAlignedRowHeights(containerRef, items, children, minHeight);
+  const containerWidthPx = useAlignedRowContainerWidth(containerRef);
+  useAlignedRowHeightSyncAfterLayout(
+    containerRef,
+    items,
+    children,
+    minHeight,
+    containerWidthPx,
+  );
 
   const itemCount = items ? items.length : React.Children.count(children);
   const elementWidths = calculateElementWidths(itemCount, widths);
 
   const combinedClasses = [
     "flex",
-    getResponsiveLayoutClasses(breakIntoRows),
+    getContainerAwareLayoutClass(breakIntoRows, containerWidthPx),
     wrap ? "flex-wrap" : "flex-nowrap",
     GAP_CLASSES[gap],
     "items-stretch",
@@ -271,6 +384,7 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
         items={items}
         elementWidths={elementWidths}
         breakIntoRows={breakIntoRows}
+        containerWidthPx={containerWidthPx}
         titleClassName={titleClassName}
         contentClassName={contentClassName}
       />
@@ -279,6 +393,7 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
         children={children}
         elementWidths={elementWidths}
         breakIntoRows={breakIntoRows}
+        containerWidthPx={containerWidthPx}
       />
     ) : null;
 

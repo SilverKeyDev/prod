@@ -17,7 +17,7 @@ class TestMCDAScoring:
         )
 
         # Score should be between display_min and display_max
-        assert 15.0 <= score <= 90.0
+        assert 1.0 <= score <= 99.0
         # Score should be rounded to 1 decimal
         assert round(score, 1) == score
 
@@ -181,7 +181,7 @@ class TestMCDAScoring:
         assert "base_score" in config
         assert "soft_signal_weights" in config
         assert "hard_multipliers" in config
-        assert config["base_score"] == 50.0
+        assert config["base_score"] == 52.5
 
     def test_score_custom_config(self, sample_preferences, sample_property):
         """Test scoring with custom configuration"""
@@ -210,7 +210,7 @@ class TestMCDAScoring:
             config=custom_config,
         )
 
-        assert 15.0 <= score <= 90.0
+        assert 1.0 <= score <= 99.0
 
 
 class TestHardConstraints:

@@ -3,10 +3,12 @@ import { useCallback } from "react";
 import { getEnv } from "packages/config";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import { useFiltersStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
 import { buildPropertyUrl } from "packages/utils/property";
 
 import type { SearchResult } from "@/features/search/types";
+import { getPageIndexForProperty } from "@/features/search/types/search/mapCardFocus";
 
 export type UseSearchPageHandlersParams = {
   activeTab: "results" | "saved";
@@ -30,6 +32,9 @@ export function useSearchPageHandlers({
   currentPage,
 }: UseSearchPageHandlersParams) {
   const { navigateToPath } = useNavigation();
+  const restoreMapListingPreview = useFiltersStore(
+    (s) => s.restoreMapListingPreview,
+  );
   const handleViewPropertyDetails = useCallback(
     async (property: SearchResult) => {
       const isDev = getEnv().isDevelopment;
@@ -77,6 +82,23 @@ export function useSearchPageHandlers({
       }
     },
     [fetchPropertyDetails],
+  );
+
+  const handleFocusPropertyOnMap = useCallback(
+    (property: SearchResult) => {
+      restoreMapListingPreview(property.id);
+      const currentData =
+        activeTab === "results" ? filteredSearchResults : savedHomes;
+      const index = getPageIndexForProperty(currentData, property.id);
+      _setCurrentPage(index);
+    },
+    [
+      activeTab,
+      filteredSearchResults,
+      savedHomes,
+      _setCurrentPage,
+      restoreMapListingPreview,
+    ],
   );
 
   const handleNavigateToProperty = useCallback(
@@ -175,6 +197,7 @@ export function useSearchPageHandlers({
 
   return {
     handleViewPropertyDetails,
+    handleFocusPropertyOnMap,
     handleNavigateToProperty,
     handleOpenPropertyDetails,
     handleBeforeSwitchToReels,

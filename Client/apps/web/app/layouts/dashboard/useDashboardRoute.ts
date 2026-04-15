@@ -61,7 +61,9 @@ export function useDashboardRoute(
 
   // When override is set (browser URL diverged from router), derive activeKey from pathname.
   // Otherwise use useMatch so the router drives the result.
-  const agreementSigningCompleteMatch = useMatch(ROUTES.AGREEMENT_SIGNING_COMPLETE);
+  const agreementSigningCompleteMatch = useMatch(
+    ROUTES.AGREEMENT_SIGNING_COMPLETE,
+  );
   const searchMatch = useMatch(ROUTES.SEARCH);
   const messagingMatch = useMatch(ROUTES.MESSAGING);
   const dashboardMatch = useMatch(ROUTES.DASHBOARD);

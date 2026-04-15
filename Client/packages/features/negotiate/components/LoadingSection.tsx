@@ -1,9 +1,10 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
+import { Loading } from "packages/ui/components/asset/loading/Loading";
 import { Box } from "packages/ui/components/primitives";
 
-import { BodyText, Loading, Subtitle } from "@/components/ui";
+import { BodyText, Subtitle } from "@/components/ui";
 
 import SectionBox from "./SectionBox";
 

@@ -3,7 +3,6 @@
  * Do not make direct changes to the file.
  */
 
-
 export interface paths {
   "/api/v1/agent/clients": {
     /**
@@ -559,6 +558,13 @@ export interface paths {
     /** Void agreement */
     post: operations["docusignVoidAgreement"];
   };
+  "/api/v1/docusign/agreements/{agreement_id}/discard": {
+    /**
+     * Discard agreement from Saved (agent)
+     * @description Listing agent removes the agreement from Saved for themselves and their client. Voids the DocuSign envelope when DocuSign allows; otherwise removes the shared library row only (e.g. completed envelopes).
+     */
+    post: operations["docusignDiscardAgreement"];
+  };
   "/api/v1/webhooks/docusign/connect": {
     /** DocuSign Connect webhook */
     post: operations["docusignConnectWebhook"];
@@ -892,24 +898,30 @@ export interface external {
   };
   "components/schemas/agent/clients/ClientsResponse.yaml": {
     success?: boolean;
-    clients?: external["components/schemas/agent/clients/ClientInfo.yaml"][] | null;
+    clients?:
+      | external["components/schemas/agent/clients/ClientInfo.yaml"][]
+      | null;
   };
-  "components/schemas/agent/clients/SearchClientsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    clients?: external["components/schemas/agent/clients/ClientSearchResult.yaml"][] | null;
-  });
-  "components/schemas/agent/connections/ConnectionRequestsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    requests?: external["components/schemas/agent/core/AgentConnectionRequest.yaml"][] | null;
-  });
+  "components/schemas/agent/clients/SearchClientsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    clients?:
+      | external["components/schemas/agent/clients/ClientSearchResult.yaml"][]
+      | null;
+  };
+  "components/schemas/agent/connections/ConnectionRequestsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    requests?:
+      | external["components/schemas/agent/core/AgentConnectionRequest.yaml"][]
+      | null;
+  };
   "components/schemas/agent/connections/CreateConnectionRequestRequest.yaml": {
     agent_id: string;
     client_id: string;
     message?: string | null;
   };
-  "components/schemas/agent/connections/CreateConnectionRequestResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/agent/connections/CreateConnectionRequestResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     request?: external["components/schemas/agent/core/AgentConnectionRequest.yaml"];
     /** @description True when pending request already existed */
     already_pending?: boolean | null;
-  });
+  };
   "components/schemas/agent/connections/RespondToConnectionRequestRequest.yaml": {
     accept: boolean;
   };
@@ -922,10 +934,12 @@ export interface external {
   "components/schemas/agent/conversations/CreateConversationResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     conversation?: external["components/schemas/agent/core/AgentConversation.yaml"];
   };
-  "components/schemas/agent/core/AgentChatHistoryResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    messages?: external["components/schemas/agent/core/AgentChatMessage.yaml"][] | null;
+  "components/schemas/agent/core/AgentChatHistoryResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    messages?:
+      | external["components/schemas/agent/core/AgentChatMessage.yaml"][]
+      | null;
     conversation?: external["components/schemas/agent/core/AgentConversation.yaml"];
-  });
+  };
   "components/schemas/agent/core/AgentChatMessage.yaml": {
     id: string;
     conversation_id: string;
@@ -957,9 +971,11 @@ export interface external {
     /** @description ISO 8601 timestamp when the client relationship or row was created. */
     created_at?: string | null;
   };
-  "components/schemas/agent/core/AgentClientsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    clients?: external["components/schemas/agent/core/AgentClient.yaml"][] | null;
-  });
+  "components/schemas/agent/core/AgentClientsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    clients?:
+      | external["components/schemas/agent/core/AgentClient.yaml"][]
+      | null;
+  };
   "components/schemas/agent/core/AgentConnectionRequest.yaml": {
     id: string;
     agent_id: string;
@@ -989,9 +1005,11 @@ export interface external {
     unread_count?: number | null;
     last_read_at?: string | null;
   };
-  "components/schemas/agent/core/AgentConversationsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    conversations?: external["components/schemas/agent/core/AgentConversation.yaml"][] | null;
-  });
+  "components/schemas/agent/core/AgentConversationsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    conversations?:
+      | external["components/schemas/agent/core/AgentConversation.yaml"][]
+      | null;
+  };
   "components/schemas/agent/core/AgentSearchResult.yaml": {
     /** @description Agent application user id. */
     id: string;
@@ -1010,12 +1028,14 @@ export interface external {
      */
     created_at?: string | null;
   };
-  "components/schemas/agent/core/SearchAgentsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    agents?: external["components/schemas/agent/core/AgentSearchResult.yaml"][] | null;
-  });
-  "components/schemas/agent/messages/MarkMessagesAsReadResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/agent/core/SearchAgentsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    agents?:
+      | external["components/schemas/agent/core/AgentSearchResult.yaml"][]
+      | null;
+  };
+  "components/schemas/agent/messages/MarkMessagesAsReadResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     marked_count?: number | null;
-  });
+  };
   "components/schemas/agent/messages/SendMessageRequest.yaml": {
     /** @description Use 'new' to create conversation, requires client_id */
     conversation_id: string;
@@ -1025,9 +1045,9 @@ export interface external {
     shared_home_id?: string | null;
     shared_document_id?: string | null;
   };
-  "components/schemas/agent/messages/SendMessageResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/agent/messages/SendMessageResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     message_id?: string | null;
-  });
+  };
   "components/schemas/agreements/agreements/Agreement.yaml": {
     id: string;
     agent_id: string;
@@ -1060,9 +1080,15 @@ export interface external {
     signed_document_path?: string | null;
     /** @description Optional path to the completion certificate artifact. */
     certificate_path?: string | null;
-    participants?: external["components/schemas/agreements/agreements/AgreementParticipant.yaml"][] | null;
-    revisions?: external["components/schemas/agreements/agreements/AgreementRevision.yaml"][] | null;
-    events?: external["components/schemas/agreements/agreements/AgreementEvent.yaml"][] | null;
+    participants?:
+      | external["components/schemas/agreements/agreements/AgreementParticipant.yaml"][]
+      | null;
+    revisions?:
+      | external["components/schemas/agreements/agreements/AgreementRevision.yaml"][]
+      | null;
+    events?:
+      | external["components/schemas/agreements/agreements/AgreementEvent.yaml"][]
+      | null;
     current_revision?: external["components/schemas/agreements/agreements/AgreementRevision.yaml"];
     agent_name?: string | null;
     buyer_name?: string | null;
@@ -1125,8 +1151,22 @@ export interface external {
     mime_type?: string | null;
     template_id?: string | null;
   };
-  "components/schemas/agreements/agreements/AgreementStatus.yaml": "draft" | "sent" | "delivered" | "signed" | "completed" | "voided" | "declined";
-  "components/schemas/agreements/agreements/AgreementType.yaml": "buyer_representation" | "offer" | "inspection_addendum" | "financing_contingency" | "closing_disclosure" | "other" | "uploaded_document";
+  "components/schemas/agreements/agreements/AgreementStatus.yaml":
+    | "draft"
+    | "sent"
+    | "delivered"
+    | "signed"
+    | "completed"
+    | "voided"
+    | "declined";
+  "components/schemas/agreements/agreements/AgreementType.yaml":
+    | "buyer_representation"
+    | "offer"
+    | "inspection_addendum"
+    | "financing_contingency"
+    | "closing_disclosure"
+    | "other"
+    | "uploaded_document";
   "components/schemas/agreements/agreements/CreateAgreementRequest.yaml": {
     title: string;
     agreement_type: external["components/schemas/agreements/agreements/AgreementType.yaml"];
@@ -1143,36 +1183,52 @@ export interface external {
   "components/schemas/agreements/agreements/GetAgreementResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     agreement?: external["components/schemas/agreements/agreements/Agreement.yaml"];
   };
-  "components/schemas/agreements/agreements/GetSenderViewUrlResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/agreements/agreements/GetSenderViewUrlResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** Format: uri */
     sender_url?: string | null;
-  });
+  };
   "components/schemas/agreements/agreements/GetSigningUrlRequest.yaml": {
     participant_id: string;
   };
-  "components/schemas/agreements/agreements/GetSigningUrlResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/agreements/agreements/GetSigningUrlResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** Format: uri */
     signing_url?: string | null;
-  });
-  "components/schemas/agreements/agreements/ListAgreementsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    agreements?: external["components/schemas/agreements/agreements/Agreement.yaml"][] | null;
-  });
-  "components/schemas/agreements/agreements/ParticipantRole.yaml": "agent" | "buyer" | "seller" | "other" | "signer" | "carbon_copy";
-  "components/schemas/agreements/agreements/ParticipantStatus.yaml": "pending" | "sent" | "delivered" | "signed" | "completed" | "declined";
+  };
+  "components/schemas/agreements/agreements/ListAgreementsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    agreements?:
+      | external["components/schemas/agreements/agreements/Agreement.yaml"][]
+      | null;
+  };
+  "components/schemas/agreements/agreements/ParticipantRole.yaml":
+    | "agent"
+    | "buyer"
+    | "seller"
+    | "other"
+    | "signer"
+    | "carbon_copy";
+  "components/schemas/agreements/agreements/ParticipantStatus.yaml":
+    | "pending"
+    | "sent"
+    | "delivered"
+    | "signed"
+    | "completed"
+    | "declined";
   "components/schemas/agreements/agreements/SendAgreementRequest.yaml": {
     signing_method?: external["components/schemas/agreements/agreements/SigningMethod.yaml"];
     /** @description Optional selected signer user id */
     participant_user_id?: string | null;
   };
-  "components/schemas/agreements/agreements/SendAgreementResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/agreements/agreements/SendAgreementResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     task_id?: string | null;
-  });
-  "components/schemas/agreements/agreements/SigningMethod.yaml": "embedded" | "email";
-  "components/schemas/agreements/agreements/ViewUrlResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  };
+  "components/schemas/agreements/agreements/SigningMethod.yaml":
+    | "embedded"
+    | "email";
+  "components/schemas/agreements/agreements/ViewUrlResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** Format: uri */
     viewUrl?: string | null;
     expires_at?: string | null;
-  });
+  };
   "components/schemas/agreements/agreements/VoidAgreementRequest.yaml": {
     reason?: string | null;
   };
@@ -1220,37 +1276,45 @@ export interface external {
      */
     event_type?: "listed" | "price_change" | "sold" | "withdrawn" | null;
   };
-  "components/schemas/agreements/documents/DocumentLibraryResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    items?: external["components/schemas/agreements/documents/DocumentLibraryListItem.yaml"][] | null;
+  "components/schemas/agreements/documents/DocumentLibraryResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    items?:
+      | external["components/schemas/agreements/documents/DocumentLibraryListItem.yaml"][]
+      | null;
     /** @description Number of items in this response page; `pagination.total` is the full library size */
     count?: number | null;
     pagination?: external["components/schemas/shared/core/Pagination.yaml"];
-  });
-  "components/schemas/agreements/documents/DocumentsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    documents?: external["components/schemas/agreements/documents/UploadedDocumentRecord.yaml"][] | null;
+  };
+  "components/schemas/agreements/documents/DocumentsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    documents?:
+      | external["components/schemas/agreements/documents/UploadedDocumentRecord.yaml"][]
+      | null;
     count?: number | null;
     total?: number | null;
     limit?: number | null;
     offset?: number | null;
     hasMore?: boolean | null;
-  });
-  "components/schemas/agreements/documents/DownloadUrlResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  };
+  "components/schemas/agreements/documents/DownloadUrlResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** Format: uri */
     downloadUrl?: string | null;
     expires_at?: string | null;
-  });
-  "components/schemas/agreements/documents/ReportDocumentsListResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  };
+  "components/schemas/agreements/documents/ReportDocumentsListResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description Rows from GET /api/v1/report/documents */
-    documents?: external["components/schemas/agreements/documents/UploadedDocumentRecord.yaml"][] | null;
+    documents?:
+      | external["components/schemas/agreements/documents/UploadedDocumentRecord.yaml"][]
+      | null;
     /** @description Legacy alias for documents (backward compatibility) */
-    reports?: external["components/schemas/agreements/documents/UploadedDocumentRecord.yaml"][] | null;
+    reports?:
+      | external["components/schemas/agreements/documents/UploadedDocumentRecord.yaml"][]
+      | null;
     count?: number | null;
     /** @description Total matching rows when paginated */
     total?: number | null;
     limit?: number | null;
     offset?: number | null;
     hasMore?: boolean | null;
-  });
+  };
   "components/schemas/agreements/documents/SecureUploadDocumentPayload.yaml": {
     id: string;
     filename: string;
@@ -1280,7 +1344,7 @@ export interface external {
     document_type?: string | null;
     address?: string | null;
   };
-  "components/schemas/agreements/documents/UploadResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/agreements/documents/UploadResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     file_id?: string | null;
     /** Format: uri */
     file_url?: string | null;
@@ -1288,7 +1352,7 @@ export interface external {
     file_size?: number | null;
     content_type?: string | null;
     document?: external["components/schemas/agreements/documents/SecureUploadDocumentPayload.yaml"];
-  });
+  };
   "components/schemas/agreements/documents/WorkflowDocumentRecord.yaml": {
     /**
      * @description Discriminator for OpenAPI tooling; always `workflow` for this shape.
@@ -1343,16 +1407,18 @@ export interface external {
   "components/schemas/agreements/docusign/CreateParticipantResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     participant?: external["components/schemas/agreements/agreements/AgreementParticipant.yaml"];
   };
-  "components/schemas/agreements/docusign/DocusignListTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    templates?: external["components/schemas/agreements/docusign/DocusignTemplateListItem.yaml"][] | null;
-  });
-  "components/schemas/agreements/docusign/DocusignOAuthStartResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/agreements/docusign/DocusignListTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    templates?:
+      | external["components/schemas/agreements/docusign/DocusignTemplateListItem.yaml"][]
+      | null;
+  };
+  "components/schemas/agreements/docusign/DocusignOAuthStartResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** Format: uri */
     auth_url?: string | null;
-  });
-  "components/schemas/agreements/docusign/DocusignSyncTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  };
+  "components/schemas/agreements/docusign/DocusignSyncTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     task_id?: string | null;
-  });
+  };
   "components/schemas/agreements/docusign/DocusignTemplate.yaml": {
     id: string;
     template_id: string;
@@ -1385,12 +1451,14 @@ export interface external {
   "components/schemas/agreements/docusign/UpdateRoutingOrderResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     participant?: external["components/schemas/agreements/agreements/AgreementParticipant.yaml"];
   };
-  "components/schemas/agreements/templates/ListTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    templates?: external["components/schemas/agreements/docusign/DocusignTemplate.yaml"][] | null;
-  });
-  "components/schemas/agreements/templates/SyncTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/agreements/templates/ListTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    templates?:
+      | external["components/schemas/agreements/docusign/DocusignTemplate.yaml"][]
+      | null;
+  };
+  "components/schemas/agreements/templates/SyncTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     task_id?: string | null;
-  });
+  };
   "components/schemas/auth/BulkUpdateFavoritesRequest.yaml": {
     /** @description Replaces the user's favorites; each element is a home object passed to add_or_update_home_basic (same flexible shape as add-favorite). */
     favorites: external["components/schemas/user/favorites/FavoriteHomePayload.yaml"][];
@@ -1402,9 +1470,11 @@ export interface external {
      */
     email: string;
   };
-  "components/schemas/auth/ForgotPasswordResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    code_delivery?: external["components/schemas/shared/core/CognitoCodeDeliveryDetails.yaml"] | null;
-  });
+  "components/schemas/auth/ForgotPasswordResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    code_delivery?:
+      | external["components/schemas/shared/core/CognitoCodeDeliveryDetails.yaml"]
+      | null;
+  };
   "components/schemas/auth/ProfilePictureResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /**
      * Format: uri
@@ -1419,9 +1489,11 @@ export interface external {
      */
     email: string;
   };
-  "components/schemas/auth/ResendCodeResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    code_delivery?: external["components/schemas/shared/core/CognitoCodeDeliveryDetails.yaml"] | null;
-  });
+  "components/schemas/auth/ResendCodeResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    code_delivery?:
+      | external["components/schemas/shared/core/CognitoCodeDeliveryDetails.yaml"]
+      | null;
+  };
   "components/schemas/auth/ResetPasswordData.yaml": {
     /**
      * Format: email
@@ -1471,12 +1543,12 @@ export interface external {
       value?: string | null;
     };
   };
-  "components/schemas/calendar/AddCalendarACLResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/calendar/AddCalendarACLResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description Created ACL rule */
     rule?: {
       [key: string]: unknown;
     } | null;
-  });
+  };
   "components/schemas/calendar/ClientAvailabilityRequest.yaml": {
     /**
      * Format: date-time
@@ -1491,17 +1563,17 @@ export interface external {
     /** @description Timezone for results */
     timezone?: string | null;
   };
-  "components/schemas/calendar/ClientAvailabilityResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    availability?: ({
-        /** Format: date-time */
-        start?: string;
-        /** Format: date-time */
-        end?: string;
-        /** @enum {string} */
-        status?: "free" | "busy";
-      })[];
-  });
-  "components/schemas/calendar/ConnectionStatusResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/calendar/ClientAvailabilityResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    availability?: {
+      /** Format: date-time */
+      start?: string;
+      /** Format: date-time */
+      end?: string;
+      /** @enum {string} */
+      status?: "free" | "busy";
+    }[];
+  };
+  "components/schemas/calendar/ConnectionStatusResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description Whether Google Calendar is connected */
     connected?: boolean;
     /**
@@ -1511,7 +1583,7 @@ export interface external {
     email?: string | null;
     /** @description Granted OAuth scopes */
     scopes?: string[] | null;
-  });
+  };
   "components/schemas/calendar/CreateCalendarRequest.yaml": {
     /** @description Calendar name/title */
     summary: string;
@@ -1540,9 +1612,9 @@ export interface external {
      */
     timeMax: string;
     items: {
-        /** @description Calendar ID */
-        id: string;
-      }[];
+      /** @description Calendar ID */
+      id: string;
+    }[];
     /** @description Timezone for response (defaults to UTC) */
     timeZone?: string | null;
   };
@@ -1550,15 +1622,15 @@ export interface external {
     calendars: {
       [key: string]: {
         busy?: {
-            /** Format: date-time */
-            start?: string;
-            /** Format: date-time */
-            end?: string;
-          }[];
+          /** Format: date-time */
+          start?: string;
+          /** Format: date-time */
+          end?: string;
+        }[];
         errors?: {
-            domain?: string;
-            reason?: string;
-          }[];
+          domain?: string;
+          reason?: string;
+        }[];
       };
     };
   };
@@ -1598,7 +1670,9 @@ export interface external {
   };
   "components/schemas/calendar/GoogleCalendarPermissionsResponse.yaml": {
     permissions: {
-      [key: string]: external["components/schemas/calendar/GoogleCalendarPermission.yaml"];
+      [
+        key: string
+      ]: external["components/schemas/calendar/GoogleCalendarPermission.yaml"];
     };
     scopes: string;
     last_updated?: string | null;
@@ -1619,7 +1693,9 @@ export interface external {
     description?: string | null;
     start: external["components/schemas/calendar/GoogleEventDateTime.yaml"];
     end: external["components/schemas/calendar/GoogleEventDateTime.yaml"];
-    attendees?: external["components/schemas/calendar/GoogleEventAttendee.yaml"][] | null;
+    attendees?:
+      | external["components/schemas/calendar/GoogleEventAttendee.yaml"][]
+      | null;
     reminders?: external["components/schemas/calendar/GoogleEventReminders.yaml"];
     location?: string | null;
     conferenceData?: external["components/schemas/calendar/GoogleConferenceData.yaml"];
@@ -1630,7 +1706,7 @@ export interface external {
     displayName?: string | null;
     responseStatus?: string | null;
   };
-  "components/schemas/calendar/GoogleEventCreateResponse.yaml": external["components/schemas/calendar/GoogleEvent.yaml"] & ({
+  "components/schemas/calendar/GoogleEventCreateResponse.yaml": external["components/schemas/calendar/GoogleEvent.yaml"] & {
     kind: string;
     etag: string;
     /** Format: uri */
@@ -1650,7 +1726,7 @@ export interface external {
     sequence: number;
     iCalUID: string;
     status: string;
-  });
+  };
   "components/schemas/calendar/GoogleEventDateTime.yaml": {
     /** Format: date-time */
     dateTime: string;
@@ -1670,7 +1746,9 @@ export interface external {
   };
   "components/schemas/calendar/GoogleEventReminders.yaml": {
     useDefault?: boolean | null;
-    overrides?: external["components/schemas/calendar/GoogleReminderOverride.yaml"][] | null;
+    overrides?:
+      | external["components/schemas/calendar/GoogleReminderOverride.yaml"][]
+      | null;
   };
   "components/schemas/calendar/GoogleReminderOverride.yaml": {
     method: string;
@@ -1683,7 +1761,13 @@ export interface external {
   "components/schemas/checklists/ChecklistResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     checklist?: external["components/schemas/checklists/TaskChecklistResponse.yaml"];
   };
-  "components/schemas/checklists/ChecklistType.yaml": "search" | "offer" | "escrow" | "financing" | "closing" | "insurance";
+  "components/schemas/checklists/ChecklistType.yaml":
+    | "search"
+    | "offer"
+    | "escrow"
+    | "financing"
+    | "closing"
+    | "insurance";
   "components/schemas/checklists/TaskChecklistApiResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     data?: external["components/schemas/checklists/TaskChecklistResponse.yaml"];
   };
@@ -1693,21 +1777,21 @@ export interface external {
     explanation: string;
     bullets?: string[] | null;
     tip?: string | null;
-    resource?: ({
+    resource?: {
       label?: string;
       href?: string | null;
-    }) | null;
+    } | null;
     order?: number | null;
     integration_key?: string | null;
     component_key?: string | null;
     allow_unordered_check?: boolean | null;
     suggestedFormIds?: string[] | null;
     optional?: boolean | null;
-    calendar?: ({
+    calendar?: {
       hasDates?: boolean;
       days?: number;
       eventSchedule?: number[] | null;
-    }) | null;
+    } | null;
   };
   "components/schemas/checklists/TaskChecklistResponse.yaml": {
     items: external["components/schemas/checklists/TaskChecklistItem.yaml"][];
@@ -1789,7 +1873,7 @@ export interface external {
     /** @description For agent client selection */
     user_id?: string | null;
   };
-  "components/schemas/offers/NegotiationStrategyResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/offers/NegotiationStrategyResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description Generated negotiation strategy with price and market analysis */
     strategy?: {
       price_section: {
@@ -1829,34 +1913,36 @@ export interface external {
       [key: string]: unknown;
     } | null;
     traceback?: string | null;
-  });
-  "components/schemas/offers/OfferDocumentGenerationResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  };
+  "components/schemas/offers/OfferDocumentGenerationResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** Format: uri */
     document_url?: string | null;
     document_id?: string | null;
     filename?: string | null;
-  });
+  };
   "components/schemas/offers/PreApprovalLetterRequest.yaml": {
     buyer_name: string;
     loan_amount: number;
     property_address: string;
     loan_type: string;
   };
-  "components/schemas/preferences/ActionPlanResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/preferences/ActionPlanResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description Generated action plan structure */
     plan?: {
       [key: string]: unknown;
     } | null;
-  });
+  };
   "components/schemas/preferences/AddAgentResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     agent?: external["components/schemas/user/profile/User.yaml"];
   };
-  "components/schemas/preferences/ClientsPreferencesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    preferences?: {
-        client?: external["components/schemas/agent/clients/ClientInfo.yaml"];
-        preferences?: external["components/schemas/preferences/PreferencesResponse.yaml"];
-      }[] | null;
-  });
+  "components/schemas/preferences/ClientsPreferencesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    preferences?:
+      | {
+          client?: external["components/schemas/agent/clients/ClientInfo.yaml"];
+          preferences?: external["components/schemas/preferences/PreferencesResponse.yaml"];
+        }[]
+      | null;
+  };
   "components/schemas/preferences/CreatePreferencesRequest.yaml": {
     [key: string]: unknown;
   };
@@ -1866,16 +1952,16 @@ export interface external {
   "components/schemas/preferences/RemoveAgentResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     removed?: boolean;
   };
-  "components/schemas/preferences/SearchAgentsPreferencesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/preferences/SearchAgentsPreferencesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     agents?: external["components/schemas/user/profile/User.yaml"][] | null;
-  });
-  "components/schemas/preferences/UserAgentsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  };
+  "components/schemas/preferences/UserAgentsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     agents?: external["components/schemas/user/profile/User.yaml"][] | null;
-  });
+  };
   "components/schemas/search/areas/AreaBoundaryResponse.yaml": {
     success: boolean;
     /** @description Area metadata */
-    area?: ({
+    area?: {
       id?: string;
       name?: string;
       label?: string;
@@ -1885,16 +1971,18 @@ export interface external {
         lat?: number;
         lng?: number;
       } | null;
-    }) | null;
+    } | null;
     /** @description GeoJSON Polygon or MultiPolygon boundary geometry */
-    geometry?: ({
+    geometry?: {
       /** @enum {string} */
       type?: "Polygon" | "MultiPolygon";
       /** @description GeoJSON coordinate arrays */
       coordinates?: unknown[];
-    }) | null;
+    } | null;
     /** @description Boundary as viewport-compatible ring of {lat, lng} points. Can be sent directly as viewport_polygon in polygon search. */
-    viewport_ring?: external["components/schemas/search/properties/ViewportPolygonPoint.yaml"][] | null;
+    viewport_ring?:
+      | external["components/schemas/search/properties/ViewportPolygonPoint.yaml"][]
+      | null;
     error?: string | null;
     message?: string | null;
   };
@@ -1926,8 +2014,8 @@ export interface external {
     };
     /** @description Array of home data objects */
     homes_data: {
-        [key: string]: unknown;
-      }[];
+      [key: string]: unknown;
+    }[];
     /** @description Number of top matches to return (default 10) */
     top_k?: number | null;
     /** @description Include match explanations (default false) */
@@ -1940,7 +2028,9 @@ export interface external {
      * @description Closed polygon covering the visible map region (typically 4+ corners).
      * Optional when `onlyCached` is true (no new search); recommended when driving `forceSearch` from the map.
      */
-    viewport_polygon?: external["components/schemas/search/properties/ViewportPolygonPoint.yaml"][] | null;
+    viewport_polygon?:
+      | external["components/schemas/search/properties/ViewportPolygonPoint.yaml"][]
+      | null;
     /** @description Buyer preference slice applied as soft or hard filters depending on `preferences_strict_filter`. */
     user_preferences?: external["components/schemas/user/profile/UserPreferencesData.yaml"];
     /** @description When true, exclude properties that fail preference constraints instead of only down-ranking them. */
@@ -1956,7 +2046,9 @@ export interface external {
     /** @description False when the search could not complete; inspect `error` and HTTP status. */
     success: boolean;
     /** @description Matching listings normalized for map and list UIs. */
-    properties?: external["components/schemas/search/results/PropertySearchResult.yaml"][] | null;
+    properties?:
+      | external["components/schemas/search/results/PropertySearchResult.yaml"][]
+      | null;
     /** @description Number of items in `properties` for this response page. */
     count?: number | null;
     /** @description True when results were served from an in-memory or DB cache without full re-query. */
@@ -1968,11 +2060,11 @@ export interface external {
   };
   "components/schemas/search/properties/CommuteData.yaml": {
     travel_times: {
-        name?: string;
-        address?: string;
-        travel_time?: string;
-        commute_tolerance?: number;
-      }[];
+      name?: string;
+      address?: string;
+      travel_time?: string;
+      commute_tolerance?: number;
+    }[];
     property_address: string;
   };
   "components/schemas/search/properties/IsochroneData.yaml": {
@@ -1983,37 +2075,37 @@ export interface external {
         coordinates?: number[][][];
       };
     };
-    individual_isochrones: ({
-        address?: string;
-        commute_tolerance?: number | null;
-        name?: string | null;
-        /** @description GeoJSON Feature for this location's isochrone */
-        isochrone?: {
+    individual_isochrones: {
+      address?: string;
+      commute_tolerance?: number | null;
+      name?: string | null;
+      /** @description GeoJSON Feature for this location's isochrone */
+      isochrone?: {
+        /** @enum {string} */
+        type?: "Feature";
+        geometry?: {
           /** @enum {string} */
-          type?: "Feature";
-          geometry?: {
-            /** @enum {string} */
-            type?: "Polygon" | "MultiPolygon";
-            coordinates?: number[][][];
-          };
-          properties?: {
-            [key: string]: unknown;
-          } | null;
+          type?: "Polygon" | "MultiPolygon";
+          coordinates?: number[][][];
         };
-      })[];
+        properties?: {
+          [key: string]: unknown;
+        } | null;
+      };
+    }[];
     center: {
       lat?: number;
       lon?: number;
       address?: string;
       name?: string | null;
     };
-    locations: ({
-        address?: string;
-        commute_tolerance?: number | null;
-        lat?: number | null;
-        lng?: number | null;
-        name?: string | null;
-      })[];
+    locations: {
+      address?: string;
+      commute_tolerance?: number | null;
+      lat?: number | null;
+      lng?: number | null;
+      name?: string | null;
+    }[];
     commute_tolerance: number;
     mode: string;
   };
@@ -2022,7 +2114,7 @@ export interface external {
     type: "Polygon";
     coordinates: number[][][];
   };
-  "components/schemas/search/properties/IsochroneResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/search/properties/IsochroneResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     data?: external["components/schemas/search/properties/IsochroneData.yaml"];
     /** @description Legacy field */
     isochrone_data?: {
@@ -2030,12 +2122,14 @@ export interface external {
       coordinates?: number[][][];
     } | null;
     /** @description Legacy field */
-    locations?: (({
-        address?: string;
-        commute_tolerance?: number | null;
-        name?: string | null;
-      })[]) | null;
-  });
+    locations?:
+      | {
+          address?: string;
+          commute_tolerance?: number | null;
+          name?: string | null;
+        }[]
+      | null;
+  };
   "components/schemas/search/properties/PropertyAgent.yaml": {
     /** @description MLS or internal agent ID */
     listingAgentId?: string | null;
@@ -2078,7 +2172,7 @@ export interface external {
     radius?: number | null;
     count?: number | null;
   };
-  "components/schemas/search/properties/PropertyCompsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/search/properties/PropertyCompsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description Request parameters used for the API call */
     query?: {
       [key: string]: unknown;
@@ -2089,7 +2183,7 @@ export interface external {
     } | null;
     /** @enum {string} */
     source?: "slipstream_gamls";
-  });
+  };
   "components/schemas/search/properties/PropertyData.yaml": {
     streetAddress?: string | null;
     city?: string | null;
@@ -2137,16 +2231,33 @@ export interface external {
      * @description Type of residential property
      * @enum {string|null}
      */
-    homeType?: "SINGLE_FAMILY" | "CONDO" | "TOWNHOUSE" | "MULTI_FAMILY" | "LAND" | "MANUFACTURED" | "CO_OP" | "OTHER" | null;
-    parking?: ({
+    homeType?:
+      | "SINGLE_FAMILY"
+      | "CONDO"
+      | "TOWNHOUSE"
+      | "MULTI_FAMILY"
+      | "LAND"
+      | "MANUFACTURED"
+      | "CO_OP"
+      | "OTHER"
+      | null;
+    parking?: {
       /** @description Number of parking spaces */
       spaces?: number;
       /**
        * @description Type of parking
        * @enum {string}
        */
-      type?: "garage" | "attached_garage" | "detached_garage" | "carport" | "driveway" | "street" | "covered" | "none";
-    }) | null;
+      type?:
+        | "garage"
+        | "attached_garage"
+        | "detached_garage"
+        | "carport"
+        | "driveway"
+        | "street"
+        | "covered"
+        | "none";
+    } | null;
     /** @description List of property amenities (pool, fireplace, deck, etc.) */
     amenities?: string[] | null;
     /** @description Included appliances */
@@ -2169,20 +2280,22 @@ export interface external {
     listPrice?: number | null;
     /** @description Price per square foot */
     pricePerSqft?: number | null;
-    priceHistory?: (({
-        /**
-         * Format: date
-         * @description Date of price event
-         */
-        eventDate: string;
-        /** @description Price at this event */
-        price: number;
-        /**
-         * @description Type of price event
-         * @enum {string}
-         */
-        event: "listed" | "sold" | "price_change" | "delisted" | "pending";
-      })[]) | null;
+    priceHistory?:
+      | {
+          /**
+           * Format: date
+           * @description Date of price event
+           */
+          eventDate: string;
+          /** @description Price at this event */
+          price: number;
+          /**
+           * @description Type of price event
+           * @enum {string}
+           */
+          event: "listed" | "sold" | "price_change" | "delisted" | "pending";
+        }[]
+      | null;
     /** @description Tax assessed value */
     taxAssessedValue?: number | null;
     /** @description Annual property taxes */
@@ -2227,19 +2340,21 @@ export interface external {
      * @description Primary/hero image URL
      */
     primaryImageUrl?: string | null;
-    images?: (({
-        /**
-         * Format: uri
-         * @description Image URL
-         */
-        url: string;
-        /** @description Image caption or description */
-        caption?: string | null;
-        /** @description Display order (0-based) */
-        order?: number;
-        width?: number | null;
-        height?: number | null;
-      })[]) | null;
+    images?:
+      | {
+          /**
+           * Format: uri
+           * @description Image URL
+           */
+          url: string;
+          /** @description Image caption or description */
+          caption?: string | null;
+          /** @description Display order (0-based) */
+          order?: number;
+          width?: number | null;
+          height?: number | null;
+        }[]
+      | null;
     /**
      * Format: uri
      * @description 3D virtual tour or Matterport URL
@@ -2265,7 +2380,15 @@ export interface external {
      * @description Current listing status
      * @enum {string|null}
      */
-    listingStatus?: "FOR_SALE" | "PENDING" | "SOLD" | "OFF_MARKET" | "COMING_SOON" | "CONTINGENT" | "ACTIVE" | null;
+    listingStatus?:
+      | "FOR_SALE"
+      | "PENDING"
+      | "SOLD"
+      | "OFF_MARKET"
+      | "COMING_SOON"
+      | "CONTINGENT"
+      | "ACTIVE"
+      | null;
     /** @description Number of days property has been listed */
     daysOnMarket?: number | null;
     /**
@@ -2289,12 +2412,12 @@ export interface external {
      */
     updatedAt?: string | null;
   };
-  "components/schemas/search/properties/PropertyRequest.yaml": external["components/schemas/search/properties/PropertyResearchOptions.yaml"] & ({
+  "components/schemas/search/properties/PropertyRequest.yaml": external["components/schemas/search/properties/PropertyResearchOptions.yaml"] & {
     address: string;
     zpid?: string | null;
     /** Format: uri */
     property_url?: string | null;
-  });
+  };
   "components/schemas/search/properties/PropertyResearchOptions.yaml": {
     /** @description When set by agent, load this client's preferences */
     preferences_user_id?: string | null;
@@ -2303,14 +2426,14 @@ export interface external {
     /** @enum {string|null} */
     detail_level?: "compact" | "standard" | "detailed" | null;
   };
-  "components/schemas/search/properties/PropertyResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/search/properties/PropertyResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description Request parameters (zpid, property_url, or address) */
-    query?: ({
+    query?: {
       zpid?: string | null;
       /** Format: uri */
       property_url?: string | null;
       address?: string | null;
-    }) | null;
+    } | null;
     /** @description Normalized property data from Slipstream API */
     data?: {
       [key: string]: unknown;
@@ -2320,33 +2443,33 @@ export interface external {
       [key: string]: string[];
     } | null;
     /** @description Commute analysis with travel times to important locations */
-    commute_data?: ({
-      travel_times?: ({
-          name: string;
-          address: string;
-          travel_time?: string | null;
-          commute_tolerance?: number;
-        })[];
+    commute_data?: {
+      travel_times?: {
+        name: string;
+        address: string;
+        travel_time?: string | null;
+        commute_tolerance?: number;
+      }[];
       /** Format: uri */
       map_url?: string | null;
       property_address?: string | null;
-    }) | null;
+    } | null;
     /** @description AI-generated property analysis with pros, cons, and detailed sections */
-    property_analysis?: ({
+    property_analysis?: {
       pros?: string[] | null;
       cons?: string[] | null;
       highlights_context?: {
         [key: string]: unknown;
       } | null;
       [key: string]: unknown;
-    }) | null;
+    } | null;
     /** @description Features extracted from property images using AI vision */
     image_features?: {
       raw: string[];
       clean: string[];
     } | null;
     images?: string[] | null;
-  });
+  };
   "components/schemas/search/properties/TransactionAddressData.yaml": {
     address: string;
     street?: string | null;
@@ -2410,22 +2533,30 @@ export interface external {
       longitude?: number | null;
     };
     /** @description Pricing information */
-    financials?: ({
+    financials?: {
       price?: number | null;
       pricePerSqft?: number | null;
-    }) | null;
+    } | null;
     /** @description Property images */
-    media?: ({
+    media?: {
       /** Format: uri */
       primaryImageUrl?: string | null;
-    }) | null;
+    } | null;
     /** @description Listing metadata */
-    metadata?: ({
+    metadata?: {
       /** @enum {string|null} */
-      listingStatus?: "FOR_SALE" | "PENDING" | "SOLD" | "OFF_MARKET" | "COMING_SOON" | "CONTINGENT" | "ACTIVE" | null;
+      listingStatus?:
+        | "FOR_SALE"
+        | "PENDING"
+        | "SOLD"
+        | "OFF_MARKET"
+        | "COMING_SOON"
+        | "CONTINGENT"
+        | "ACTIVE"
+        | null;
       homeType?: string | null;
       daysOnMarket?: number | null;
-    }) | null;
+    } | null;
     /** @description Match score based on preferences */
     score?: number | null;
     /** @description Position in search results */
@@ -2441,14 +2572,16 @@ export interface external {
     /** @description When true, preference post-filters always apply server-side. */
     preferences_strict_filter?: boolean;
     /** @description Snapshot of the user's last executed search for restoring polygon and map state on page load. */
-    last_search_context?: ({
+    last_search_context?: {
       /**
        * @description Whether the search was driven by user preferences/commute or a location bar entry.
        * @enum {string}
        */
       search_source?: "preferences" | "location";
       /** @description Closed polygon ring from the last search viewport or place bounds. */
-      viewport_ring?: external["components/schemas/search/properties/ViewportPolygonPoint.yaml"][] | null;
+      viewport_ring?:
+        | external["components/schemas/search/properties/ViewportPolygonPoint.yaml"][]
+        | null;
       /** @description Formatted label for the searched place (e.g. "Atlanta, GA"). */
       place_label?: string | null;
       /** @description Map center at the time of the last search. */
@@ -2465,7 +2598,7 @@ export interface external {
        * @description ISO 8601 timestamp of when the search was executed.
        */
       searched_at?: string | null;
-    }) | null;
+    } | null;
     [key: string]: unknown;
   };
   "components/schemas/search/results/SearchDisplayResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
@@ -2493,8 +2626,10 @@ export interface external {
   "components/schemas/shared/chatbot/ChatbotSendRequest.yaml": {
     message: string;
   };
-  "components/schemas/shared/core/AuthResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    user?: external["components/schemas/shared/core/AuthSessionUser.yaml"] | null;
+  "components/schemas/shared/core/AuthResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    user?:
+      | external["components/schemas/shared/core/AuthSessionUser.yaml"]
+      | null;
     /**
      * @deprecated
      * @description Tokens are stored in HTTP-only cookies. Do not store client-side.
@@ -2512,10 +2647,12 @@ export interface external {
     login_failed?: boolean | null;
     /** @description True when silent refresh or cookie-based auto-login could not establish a session. */
     auto_login_failed?: boolean | null;
-    code_delivery?: external["components/schemas/shared/core/CognitoCodeDeliveryDetails.yaml"] | null;
+    code_delivery?:
+      | external["components/schemas/shared/core/CognitoCodeDeliveryDetails.yaml"]
+      | null;
     /** @description True when the user must complete a verification step before full access. */
     needs_verification?: boolean | null;
-  });
+  };
   "components/schemas/shared/core/AuthSessionUser.yaml": {
     /**
      * @description Discriminator for auth success payloads; always `session` for create_auth_response users.
@@ -2561,17 +2698,20 @@ export interface external {
     /** @description True when the client may retry (e.g. transient Google token refresh / network failures, 503-style cases). */
     retryable?: boolean | null;
     /** @description Per-field validation messages from SecureErrorHandler (sanitized string per field); some validators may emit multiple messages per field as an array. */
-    field_errors?: ({
+    field_errors?: {
       [key: string]: string | string[];
-    }) | null;
+    } | null;
     /** @description Optional alternate validation map when included via secure error additional_info. Values are usually strings or lists of strings (same shape as field_errors); additionalProperties stays open for legacy or nested payloads from some validators. */
     validation_errors?: {
       [key: string]: unknown;
     } | null;
     /** @description Additional context as plain text or structured map (e.g. legacy Marshmallow validate_request). */
-    details?: string | {
-      [key: string]: unknown;
-    } | null;
+    details?:
+      | string
+      | {
+          [key: string]: unknown;
+        }
+      | null;
     /** @description Optional HTTP status echoed in the JSON body; the authoritative status is the response status line. */
     status_code?: number | null;
     /** @description Suggested delay in seconds before retrying (e.g. rate limit responses). */
@@ -2587,27 +2727,27 @@ export interface external {
     /** @description Present when status is error; connection or query failure detail. */
     error?: string;
   };
-  "components/schemas/shared/core/MapsScriptResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/shared/core/MapsScriptResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** Format: uri */
     script_url?: string | null;
-  });
-  "components/schemas/shared/core/MonthlyCostEstimatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  };
+  "components/schemas/shared/core/MonthlyCostEstimatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     hoa_monthly?: number | null;
     utilities_monthly?: number | null;
-  });
+  };
   "components/schemas/shared/core/NotificationCounterResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description Total unread/pending notifications; typically present when success is true. */
     total_count?: number;
   };
-  "components/schemas/shared/core/OAuthStartResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/shared/core/OAuthStartResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** Format: uri */
     auth_url?: string | null;
-  });
-  "components/schemas/shared/core/PaginatedResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  };
+  "components/schemas/shared/core/PaginatedResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     count?: number;
     next_page_token?: string | null;
     next_sync_token?: string | null;
-  });
+  };
   "components/schemas/shared/core/Pagination.yaml": {
     /**
      * @description Current page number (1-indexed)
@@ -2655,7 +2795,7 @@ export interface external {
     /** @description Reserved for symmetry with errors; keep null on success. */
     error?: string | null;
   };
-  "components/schemas/shared/core/TaskStatusResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/shared/core/TaskStatusResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     task_id: string;
     /** @enum {string} */
     status: "SUCCESS" | "PENDING" | "PROGRESS" | "FAILURE";
@@ -2664,13 +2804,13 @@ export interface external {
       [key: string]: unknown;
     } | null;
     /** @description Progress metadata when status is PROGRESS; may include arbitrary progress fields per task. */
-    meta?: ({
+    meta?: {
       status?: string | null;
       [key: string]: unknown;
-    }) | null;
+    } | null;
     status_code?: number | null;
     elapsed_time?: number | null;
-  });
+  };
   "components/schemas/shared/core/Timestamp.yaml": string;
   "components/schemas/shared/dashboard/DashboardResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     document?: external["components/schemas/agreements/documents/WorkflowDocumentRecord.yaml"];
@@ -2678,7 +2818,10 @@ export interface external {
   "components/schemas/shared/dashboard/GetDashboardResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     user: external["components/schemas/user/profile/UserProfile.yaml"];
   };
-  "components/schemas/shared/event-requests/EventRequestStatus.yaml": "pending" | "accepted" | "cancelled";
+  "components/schemas/shared/event-requests/EventRequestStatus.yaml":
+    | "pending"
+    | "accepted"
+    | "cancelled";
   "components/schemas/shared/event-requests/UpdateEventRequestStatusRequest.yaml": {
     /**
      * @description New status for the event request (pending cannot be set manually)
@@ -2720,17 +2863,23 @@ export interface external {
     favorites: external["components/schemas/shared/core/Pagination.yaml"];
     listings: external["components/schemas/shared/core/Pagination.yaml"];
   };
-  "components/schemas/user/favorites/FavoriteHomesReplaceResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    favorites?: external["components/schemas/user/favorites/SavedHome.yaml"][] | null;
-  });
-  "components/schemas/user/favorites/FavoriteHomesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/user/favorites/FavoriteHomesReplaceResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    favorites?:
+      | external["components/schemas/user/favorites/SavedHome.yaml"][]
+      | null;
+  };
+  "components/schemas/user/favorites/FavoriteHomesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description Explicitly saved (liked) properties for the authenticated user. */
-    favorites?: external["components/schemas/user/favorites/SavedHome.yaml"][] | null;
+    favorites?:
+      | external["components/schemas/user/favorites/SavedHome.yaml"][]
+      | null;
     /** @description Additional tracked listings (e.g. pipeline) when the endpoint returns both buckets. */
-    listings?: external["components/schemas/user/favorites/SavedHome.yaml"][] | null;
+    listings?:
+      | external["components/schemas/user/favorites/SavedHome.yaml"][]
+      | null;
     /** @description Limits, offsets, and totals for favorites and listings lists. */
     pagination?: external["components/schemas/user/favorites/FavoriteHomesPagination.yaml"];
-  });
+  };
   "components/schemas/user/favorites/RemoveFavoriteRequest.yaml": {
     address: string;
     client_id?: string | null;
@@ -2817,9 +2966,11 @@ export interface external {
     mls_home_id?: string | null;
     [key: string]: unknown;
   };
-  "components/schemas/user/not-interested/NotInterestedHomesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    notInterested?: external["components/schemas/user/not-interested/NotInterestedHomeItem.yaml"][] | null;
-  });
+  "components/schemas/user/not-interested/NotInterestedHomesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    notInterested?:
+      | external["components/schemas/user/not-interested/NotInterestedHomeItem.yaml"][]
+      | null;
+  };
   "components/schemas/user/not-interested/RemoveNotInterestedRequest.yaml": {
     address: string;
   };
@@ -2831,7 +2982,7 @@ export interface external {
     report_ids: string[];
     s3Keys?: string[] | null;
   };
-  "components/schemas/user/profile/CompareReportsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/user/profile/CompareReportsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description LLM-generated comparison structure (shape varies by comparison type) */
     comparison_data?: {
       [key: string]: unknown;
@@ -2840,20 +2991,20 @@ export interface external {
     table?: {
       [key: string]: unknown;
     } | null;
-  });
+  };
   "components/schemas/user/profile/DeleteReportResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"];
-  "components/schemas/user/profile/DeleteUserResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/user/profile/DeleteUserResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     deleted_user_id?: string | null;
-  });
+  };
   "components/schemas/user/profile/GenerateReportRequest.yaml": {
     address: string;
     /** @description For agent client selection */
     user_id?: string | null;
     marketing_model?: boolean | null;
   };
-  "components/schemas/user/profile/GenerateReportResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/user/profile/GenerateReportResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     document_id?: string | null;
-  });
+  };
   "components/schemas/user/profile/LoginData.yaml": {
     /**
      * Format: email
@@ -2882,14 +3033,20 @@ export interface external {
     pdfUrl?: string | null;
     s3Key?: string | null;
   };
-  "components/schemas/user/profile/ReportsListResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    reports?: external["components/schemas/user/profile/ReportListItem.yaml"][] | null;
-  });
-  "components/schemas/user/profile/ReportsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
-    documents?: external["components/schemas/agreements/documents/UploadedDocumentRecord.yaml"][] | null;
+  "components/schemas/user/profile/ReportsListResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    reports?:
+      | external["components/schemas/user/profile/ReportListItem.yaml"][]
+      | null;
+  };
+  "components/schemas/user/profile/ReportsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    documents?:
+      | external["components/schemas/agreements/documents/UploadedDocumentRecord.yaml"][]
+      | null;
     /** @description Property report list entries (GET /api/v1/report/list shape); legacy clients may have conflated this with upload rows. */
-    reports?: external["components/schemas/user/profile/ReportListItem.yaml"][] | null;
-  });
+    reports?:
+      | external["components/schemas/user/profile/ReportListItem.yaml"][]
+      | null;
+  };
   "components/schemas/user/profile/SignupData.yaml": {
     /**
      * @description Display name stored on the user profile and shown in messaging and agreements.
@@ -2949,14 +3106,14 @@ export interface external {
     brokerage?: string | null;
     has_subscription?: boolean | null;
     /** @description Optional payment-provider subscription metadata. Listed properties are common; providers may add extra keys (additionalProperties allowed). */
-    subscription?: ({
+    subscription?: {
       status?: string | null;
       plan_id?: string | null;
       customer_id?: string | null;
       /** Format: date-time */
       current_period_end?: string | null;
       [key: string]: unknown;
-    }) | null;
+    } | null;
     has_preferences?: boolean | null;
     /** @description Legacy preferences version marker on users row. */
     preferences_version?: string | null;
@@ -2996,7 +3153,14 @@ export interface external {
      *
      * @enum {string|null}
      */
-    type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual" | null;
+    type?:
+      | "deadline"
+      | "follow_up"
+      | "inspection"
+      | "offer_expiration"
+      | "closing"
+      | "manual"
+      | null;
     /** @description Associate the task with a specific client when set. */
     client_id?: string | null;
     /** @description Longer notes or checklist context for the assignee. */
@@ -3005,9 +3169,9 @@ export interface external {
   "components/schemas/user/todos/CreateTodoResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     todo?: external["components/schemas/user/todos/TodoItem.yaml"];
   };
-  "components/schemas/user/todos/GetTodosResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & ({
+  "components/schemas/user/todos/GetTodosResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     todos?: external["components/schemas/user/todos/TodoItem.yaml"][] | null;
-  });
+  };
   "components/schemas/user/todos/TodoItem.yaml": {
     id: string;
     agent_id: string;
@@ -3025,7 +3189,13 @@ export interface external {
      *
      * @enum {string}
      */
-    type: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
+    type:
+      | "deadline"
+      | "follow_up"
+      | "inspection"
+      | "offer_expiration"
+      | "closing"
+      | "manual";
     /** @description Optional ISO 8601 due date or datetime; null for undated backlog items. */
     due_date: string | null;
     /** @description Whether the task is closed in the agent dashboard. */
@@ -3044,7 +3214,14 @@ export interface external {
     title?: string | null;
     description?: string | null;
     /** @enum {string|null} */
-    type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual" | null;
+    type?:
+      | "deadline"
+      | "follow_up"
+      | "inspection"
+      | "offer_expiration"
+      | "closing"
+      | "manual"
+      | null;
     due_date?: string | null;
     completed?: boolean | null;
     client_id?: string | null;
@@ -3055,7 +3232,6 @@ export interface external {
 }
 
 export interface operations {
-
   /**
    * List agent clients
    * @description Returns clients assigned to the authenticated agent.
@@ -6741,6 +6917,42 @@ export interface operations {
   };
   /** Void agreement */
   docusignVoidAgreement: {
+    parameters: {
+      path: {
+        agreement_id: string;
+      };
+    };
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["VoidAgreementRequest"];
+      };
+    };
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        content: {
+          "application/json": components["schemas"]["VoidAgreementResponse"];
+        };
+      };
+      /** @description HTTP 403 */
+      403: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 500 */
+      500: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * Discard agreement from Saved (agent)
+   * @description Listing agent removes the agreement from Saved for themselves and their client. Voids the DocuSign envelope when DocuSign allows; otherwise removes the shared library row only (e.g. completed envelopes).
+   */
+  docusignDiscardAgreement: {
     parameters: {
       path: {
         agreement_id: string;

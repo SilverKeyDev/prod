@@ -230,15 +230,19 @@ export function SidebarList(props: {
                 />
               </Box>
             ) : (
-              <SearchResultListingCard
-                property={property}
-                activeTab={activeTab}
-                isHomeSaved={isHomeSaved}
-                saveHome={saveHome}
-                removeSavedHome={removeSavedHome}
-                showNotInterested={activeTab === "results"}
-                onMarkNotInterested={() => setReasonCardPropertyId(property.id)}
-              />
+              <>
+                {/* TEMP: Sidebar not-interested (X) — restore when ready:
+                    showNotInterested={activeTab === "results"}
+                    onMarkNotInterested={() => setReasonCardPropertyId(property.id)}
+                */}
+                <SearchResultListingCard
+                  property={property}
+                  activeTab={activeTab}
+                  isHomeSaved={isHomeSaved}
+                  saveHome={saveHome}
+                  removeSavedHome={removeSavedHome}
+                />
+              </>
             )}
           </Box>
         );

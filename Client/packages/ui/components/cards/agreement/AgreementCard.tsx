@@ -3,6 +3,7 @@ import {
   formatFilenameToAddress,
 } from "packages/features/search/types/search/address";
 import { useAuthStore } from "packages/store";
+import { getContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";
 
 import BaseCard from "@/components/cards/BaseCard";
 import { extractReportTitleFromPath } from "@/features/documents/utils/nameScrub";
@@ -19,73 +20,18 @@ export type { AgreementCardProps, AgreementData } from "./types";
 function getAccentBorder(status: ContextualAgreementStatus): string {
   switch (status) {
     case "sign_now":
-      return "border-l-4 border-l-amber-500";
+      return "border-l-4 border-l-yellow-500";
     case "waiting_for_signature":
-      return "border-l-4 border-l-blue-500";
     case "waiting_for_review":
-      return "border-l-4 border-l-indigo-500";
+      return "border-l-4 border-l-brown";
     case "completed":
-      return "border-l-4 border-l-green-500";
+      return "border-l-4 border-l-green-600";
     case "voided":
     case "declined":
-      return "border-l-4 border-l-red-400";
+      return "border-l-4 border-l-red-500";
     default:
       return "border-l-4 border-l-gray-300";
   }
-}
-
-/**
- * Derive the viewer-aware contextual status from agreement + participant data.
- */
-function getContextualStatus(
-  doc: AgreementCardProps["doc"],
-  viewerUserId: string | undefined,
-  isAgent: boolean,
-): ContextualAgreementStatus {
-  const status = (doc.status ?? "").toLowerCase();
-
-  // Terminal states pass through unchanged
-  if (
-    status === "completed" ||
-    status === "voided" ||
-    status === "declined" ||
-    status === "draft"
-  ) {
-    return status as ContextualAgreementStatus;
-  }
-
-  if (!viewerUserId || !doc.participants?.length) {
-    return (status as ContextualAgreementStatus) || "draft";
-  }
-
-  const viewerParticipant = doc.participants.find(
-    (p) => p.user_id === viewerUserId,
-  );
-  const viewerHasSigned =
-    viewerParticipant?.recipient_status === "signed" ||
-    viewerParticipant?.recipient_status === "completed";
-
-  // Envelope is active (sent / delivered / signed)
-  if (status === "sent" || status === "delivered" || status === "signed") {
-    if (isAgent) {
-      // Agent: check if client has signed
-      const clientParticipant = doc.participants.find(
-        (p) => p.user_id === doc.buyer_id && p.user_id !== viewerUserId,
-      );
-      const clientHasSigned =
-        clientParticipant?.recipient_status === "signed" ||
-        clientParticipant?.recipient_status === "completed";
-
-      if (clientHasSigned && !viewerHasSigned) return "sign_now";
-      if (!clientHasSigned) return "waiting_for_signature";
-    } else {
-      // Client: check if they need to sign
-      if (!viewerHasSigned) return "sign_now";
-      return "waiting_for_review";
-    }
-  }
-
-  return (status as ContextualAgreementStatus) || "draft";
 }
 
 function getSentToLabel(
@@ -99,7 +45,8 @@ function getSentToLabel(
   return "Client";
 }
 
-function canVoidAgreementAsSender(
+/** Listing-agent discard will call DocuSign void when the envelope is not completed/voided locally. */
+function agentDiscardWillVoidDocusign(
   doc: AgreementCardProps["doc"],
   viewerUserId: string | undefined,
 ): boolean {
@@ -107,8 +54,22 @@ function canVoidAgreementAsSender(
     return false;
   }
   if (viewerUserId !== doc.agent_id) return false;
-  const terminal = ["completed", "voided", "declined"];
-  return !terminal.includes((doc.status ?? "").toLowerCase());
+  const noVoidCopy = ["completed", "voided"];
+  return !noVoidCopy.includes((doc.status ?? "").toLowerCase());
+}
+
+/** Buyer: library row only. Agent: always (server voids or strips shared library for client + agent). */
+function canDiscardAgreement(
+  doc: AgreementCardProps["doc"],
+  viewerUserId: string | undefined,
+): boolean {
+  if (doc.library_kind !== "agreement" || !viewerUserId) {
+    return false;
+  }
+  if (doc.agent_id === viewerUserId) {
+    return true;
+  }
+  return Boolean(doc.library_item_id);
 }
 
 /**
@@ -128,12 +89,22 @@ export default function AgreementCard({
   const viewerUserId = viewerUserIdProp ?? currentUser?.id;
   const isAgent = isAgentProp ?? viewerUserId === doc.agent_id;
 
-  const contextualStatus = getContextualStatus(doc, viewerUserId, isAgent);
+  const rawStatus = (
+    doc.status ?? ""
+  ).toLowerCase() as ContextualAgreementStatus;
+  const contextualStatus =
+    viewerUserId && doc.participants?.length
+      ? getContextualAgreementStatus(doc, viewerUserId, isAgent)
+      : rawStatus || "draft";
   const accentBorder = getAccentBorder(contextualStatus);
   const sentToLabel = getSentToLabel(doc, isAgent);
-  const deleteVoidsEnvelope = canVoidAgreementAsSender(doc, viewerUserId);
+  const deleteVoidsEnvelope = agentDiscardWillVoidDocusign(doc, viewerUserId);
+  const isListingAgent = Boolean(
+    viewerUserId && doc.agent_id && viewerUserId === doc.agent_id,
+  );
   const showDelete =
-    showDeleteProp || (Boolean(onDelete) && deleteVoidsEnvelope);
+    showDeleteProp ||
+    (Boolean(onDelete) && canDiscardAgreement(doc, viewerUserId));
 
   const baseName = doc.file_path
     ? extractReportTitleFromPath(doc.file_path)
@@ -176,6 +147,7 @@ export default function AgreementCard({
         onDelete={onDelete}
         showDelete={showDelete}
         deleteVoidsEnvelope={deleteVoidsEnvelope}
+        isListingAgent={isListingAgent}
         externalActionHandlers={externalActionHandlers}
       />
     </BaseCard>

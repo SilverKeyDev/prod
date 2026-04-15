@@ -224,6 +224,31 @@ class TestDocuSignRoutes:
                     assert data.get("success") is True
                     mock_void.assert_called_once()
 
+    def test_discard_agreement_endpoint(self, client, db_session, sample_agreement):
+        """Test POST /api/v1/docusign/agreements/:id/discard"""
+        _seed_agent_buyer(db_session)
+
+        with _patch_docusign_get_current_user(_mock_user("agent-456", is_agent=True)):
+            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
+                agreement = Agreement(**sample_agreement)
+                agreement.status = "draft"
+                db_session.session.add(agreement)
+                db_session.session.commit()
+
+                with patch(
+                    "app.routes.documents.docusign.handlers.agreement_actions.AgreementLifecycleService.discard_agreement_as_agent",
+                ) as mock_discard:
+                    response = client.post(
+                        f"/api/v1/docusign/agreements/{agreement.id}/discard",
+                        headers={"Authorization": "Bearer mock_access_token"},
+                        json={"reason": "Testing discard"},
+                    )
+
+                    assert response.status_code == 200
+                    data = response.get_json()
+                    assert data.get("success") is True
+                    mock_discard.assert_called_once()
+
     def test_get_signing_url_endpoint(self, client, db_session, sample_agreement):
         """Test POST /api/v1/docusign/agreements/:id/signing-url"""
         _seed_agent_buyer(db_session)

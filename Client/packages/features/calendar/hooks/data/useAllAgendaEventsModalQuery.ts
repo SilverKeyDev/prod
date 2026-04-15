@@ -40,10 +40,7 @@ export function useAllAgendaEventsModalQuery({
   }, []);
 
   const queryEnabled =
-    modalOpen &&
-    isConnected &&
-    calendarsConfigured &&
-    calendarIds.length > 0;
+    modalOpen && isConnected && calendarsConfigured && calendarIds.length > 0;
 
   const { events, refreshEvents, eventsLoading } = useGoogleEvents({
     calendarIds,

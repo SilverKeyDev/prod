@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import {
-  getPreservedImportantLocations,
   HousingSection,
   LocationSection,
 } from "packages/features/profile/components/sections/index.web";
@@ -24,7 +23,6 @@ import PreferencesSaveStatusRow from "./PreferencesSaveStatusRow";
 
 export type PreferencesFormContentRef = {
   formData: Partial<OnboardingData>;
-  preventedDeleteWarning: boolean;
 };
 type PreferencesFormContentProps = {
   /** Optional ref for parent to read current form state (e.g. on close for dirty check) */
@@ -68,7 +66,6 @@ export default function PreferencesFormContent({
   const { isMdUp } = useResponsive();
   const isDesktop = isMdUp;
   const [formData, setFormData] = useState<Partial<OnboardingData>>({});
-  const [preventedDeleteWarning, setPreventedDeleteWarning] = useState(false);
   const scriptsReady = (() => {
     const win = getWindow();
     return (
@@ -109,10 +106,9 @@ export default function PreferencesFormContent({
     if (formContentRef) {
       formContentRef.current = {
         formData,
-        preventedDeleteWarning,
       };
     }
-  }, [formContentRef, formData, preventedDeleteWarning]);
+  }, [formContentRef, formData]);
   useEffect(() => {
     if (
       onInitialSnapshot &&
@@ -126,31 +122,10 @@ export default function PreferencesFormContent({
   const updateFormData = useCallback(
     (field: keyof OnboardingData, value: unknown) => {
       if (field === "important_locations") {
-        const prevLocations = Array.isArray(formData.important_locations)
-          ? formData.important_locations
-          : [];
         const nextLocations = Array.isArray(value)
-          ? (value as typeof prevLocations)
+          ? (value as NonNullable<OnboardingData["important_locations"]>)
           : [];
-        const preserved = getPreservedImportantLocations(
-          prevLocations,
-          nextLocations,
-        );
-        if (
-          prevLocations.length > 0 &&
-          nextLocations.length === 0 &&
-          (preserved?.length ?? 0) > 0
-        ) {
-          setPreventedDeleteWarning(true);
-        } else if ((preserved?.length ?? nextLocations.length) > 0) {
-          setPreventedDeleteWarning(false);
-        }
-        updateFormDataWithAutoSave(
-          formData,
-          setFormData,
-          field,
-          preserved ?? [],
-        );
+        updateFormDataWithAutoSave(formData, setFormData, field, nextLocations);
         return;
       }
       updateFormDataWithAutoSave(formData, setFormData, field, value);

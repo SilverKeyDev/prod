@@ -288,7 +288,7 @@ Consider adding `AgreementParticipant.tab_config` (JSON field) for custom per-pa
 
 For tab configuration issues:
 1. Check this guide
-2. Review `Server/app/services/docusign/README.md`
+2. Review `Server/app/services/docusign/docs/README.md`
 3. Test with DocuSign Demo account
 4. Check DocuSign envelope logs
 5. Contact DocuSign support for API-specific issues

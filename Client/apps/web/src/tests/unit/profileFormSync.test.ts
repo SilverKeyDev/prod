@@ -25,20 +25,34 @@ describe("profileFormSync", () => {
   });
 
   describe("mergeOnboardingServerAndDraft", () => {
-    it("uses server locations when draft has none", () => {
+    it("keeps empty locations when draft explicitly clears them", () => {
       const merged = mergeOnboardingServerAndDraft(
-        { gross_income: 100000, important_locations: [{ address: "1 Main St" }] },
-        { preferred_bedrooms_min: 3, important_locations: [] }
+        {
+          gross_income: 100000,
+          important_locations: [{ address: "1 Main St" }],
+        },
+        { preferred_bedrooms_min: 3, important_locations: [] },
       );
       expect(merged.gross_income).toBe(100000);
       expect(merged.preferred_bedrooms_min).toBe(3);
+      expect(merged.important_locations).toEqual([]);
+    });
+
+    it("uses server locations when draft omits important_locations", () => {
+      const merged = mergeOnboardingServerAndDraft(
+        {
+          gross_income: 100000,
+          important_locations: [{ address: "1 Main St" }],
+        },
+        { preferred_bedrooms_min: 3 },
+      );
       expect(merged.important_locations).toEqual([{ address: "1 Main St" }]);
     });
 
     it("prefers draft locations when non-empty", () => {
       const merged = mergeOnboardingServerAndDraft(
         { important_locations: [{ address: "Server St" }] },
-        { important_locations: [{ address: "Draft Ave" }] }
+        { important_locations: [{ address: "Draft Ave" }] },
       );
       expect(merged.important_locations).toEqual([{ address: "Draft Ave" }]);
     });
@@ -98,9 +112,14 @@ describe("profileFormSync", () => {
     });
 
     it("maps other_requirements from API when present", () => {
-      const fixture = { other_requirements: ["street parking", "no gated communities"] };
+      const fixture = {
+        other_requirements: ["street parking", "no gated communities"],
+      };
       const result = userPreferencesToOnboardingData(fixture);
-      expect(result.other_requirements).toEqual(["street parking", "no gated communities"]);
+      expect(result.other_requirements).toEqual([
+        "street parking",
+        "no gated communities",
+      ]);
     });
 
     it("merges preferred_home_features and deal_breakers into other_requirements when other_requirements not in API", () => {
@@ -159,7 +178,10 @@ describe("profileFormSync", () => {
     });
 
     it("sends preferred_bathrooms_min and preferred_bathrooms_max in payload", () => {
-      const formData = { preferred_bathrooms_min: 1, preferred_bathrooms_max: 3 };
+      const formData = {
+        preferred_bathrooms_min: 1,
+        preferred_bathrooms_max: 3,
+      };
       const payload = formDataToPreferencesPayload(formData);
       expect(payload[API_POST_KEYS.preferred_bathrooms_min]).toBe(1);
       expect(payload[API_POST_KEYS.preferred_bathrooms_max]).toBe(3);
@@ -167,19 +189,36 @@ describe("profileFormSync", () => {
 
     it("sends important_locations with max_commute_minutes from commute_tolerance", () => {
       const formData = {
-        important_locations: [{ address: "456 Oak Ave", commute_tolerance: 20 }],
+        important_locations: [
+          { address: "456 Oak Ave", commute_tolerance: 20 },
+        ],
       };
       const payload = formDataToPreferencesPayload(formData);
-      expect(Array.isArray(payload[API_POST_KEYS.important_locations])).toBe(true);
-      const locs = payload[API_POST_KEYS.important_locations] as Array<Record<string, unknown>>;
+      expect(Array.isArray(payload[API_POST_KEYS.important_locations])).toBe(
+        true,
+      );
+      const locs = payload[API_POST_KEYS.important_locations] as Array<
+        Record<string, unknown>
+      >;
       expect(locs[0].address).toBe("456 Oak Ave");
       expect(locs[0].max_commute_minutes).toBe(20);
     });
 
-    it("sends other_requirements in payload when present", () => {
-      const formData = { other_requirements: ["street parking", "no gated communities"] };
+    it("sends empty important_locations array to clear saved locations", () => {
+      const formData = { important_locations: [] };
       const payload = formDataToPreferencesPayload(formData);
-      expect(payload.other_requirements).toEqual(["street parking", "no gated communities"]);
+      expect(payload[API_POST_KEYS.important_locations]).toEqual([]);
+    });
+
+    it("sends other_requirements in payload when present", () => {
+      const formData = {
+        other_requirements: ["street parking", "no gated communities"],
+      };
+      const payload = formDataToPreferencesPayload(formData);
+      expect(payload.other_requirements).toEqual([
+        "street parking",
+        "no gated communities",
+      ]);
     });
 
     it("sends preferred_architectural_style, renovation_preference, intended_property_use in payload", () => {

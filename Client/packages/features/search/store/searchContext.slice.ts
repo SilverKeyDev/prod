@@ -40,6 +40,13 @@ export type SearchContextState = {
   locationPlaceLabel: string | null;
   /** Synthetic IsochroneData for map/native overlay (place bounds or last viewport search). */
   locationSearchOverlayData: IsochroneData | null;
+  /** Live text in the location search bar (web). Used to allow Search when important locations are empty. */
+  locationBarDraft: string;
+  /**
+   * Registered by SearchLocationBarWeb: run the same submit path as Enter (suggestion pick + viewport search).
+   * Cleared on bar unmount.
+   */
+  locationBarExternalSubmit: (() => Promise<void>) | null;
 
   setAnchor: (anchor: Partial<SearchContextAnchor>) => void;
   setFiltersHash: (hash: string) => void;
@@ -47,7 +54,7 @@ export type SearchContextState = {
   setSearchFilterOverrides: (
     overrides:
       | Partial<SearchFilterOverrides>
-      | ((prev: SearchFilterOverrides) => Partial<SearchFilterOverrides>)
+      | ((prev: SearchFilterOverrides) => Partial<SearchFilterOverrides>),
   ) => void;
   clearAnchor: () => void;
   setLocationPlaceViewportFromBar: (payload: {
@@ -57,11 +64,15 @@ export type SearchContextState = {
   }) => void;
   setLocationSearchOverlayData: (overlay: IsochroneData | null) => void;
   clearLocationPlaceSearchArea: () => void;
+  setLocationBarDraft: (draft: string) => void;
+  setLocationBarExternalSubmit: (fn: (() => Promise<void>) | null) => void;
 };
 
 const initialAnchor: SearchContextAnchor = {};
 
-const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) => ({
+const baseCreator: import("zustand").StateCreator<SearchContextState> = (
+  set,
+) => ({
   anchor: initialAnchor,
   filtersHash: "",
   feedCursor: undefined,
@@ -69,6 +80,8 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
   locationPlaceViewportRing: null,
   locationPlaceLabel: null,
   locationSearchOverlayData: null,
+  locationBarDraft: "",
+  locationBarExternalSubmit: null,
 
   setAnchor: (anchor) =>
     set((s) => ({
@@ -99,7 +112,8 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
       locationSearchOverlayData: overlay,
     }),
 
-  setLocationSearchOverlayData: (overlay) => set({ locationSearchOverlayData: overlay }),
+  setLocationSearchOverlayData: (overlay) =>
+    set({ locationSearchOverlayData: overlay }),
 
   clearLocationPlaceSearchArea: () =>
     set({
@@ -107,8 +121,13 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
       locationPlaceLabel: null,
       locationSearchOverlayData: null,
     }),
+
+  setLocationBarDraft: (locationBarDraft) => set({ locationBarDraft }),
+
+  setLocationBarExternalSubmit: (locationBarExternalSubmit) =>
+    set({ locationBarExternalSubmit }),
 });
 
 export const useSearchContextStore = create<SearchContextState>()(
-  withDevtools<SearchContextState>("searchContext")(baseCreator)
+  withDevtools<SearchContextState>("searchContext")(baseCreator),
 );

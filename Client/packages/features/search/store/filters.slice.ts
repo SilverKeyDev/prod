@@ -59,7 +59,7 @@ export type FiltersState = {
    * Default false until first successful search; then enabled automatically (dev builds only).
    */
   showMapListingPreviews: boolean;
-  /** Dev-only: listing ids whose map preview cards are hidden; pins remain. Not persisted. */
+  /** Listing ids whose floating map preview cards are hidden; pins remain. Not persisted. */
   dismissedMapPreviewIds: string[];
 
   // Actions
@@ -81,6 +81,8 @@ export type FiltersState = {
   applySearchDisplayFromApi: (payload: SearchDisplayPayload) => void;
   setShowMapListingPreviews: (show: boolean) => void;
   dismissMapListingPreview: (propertyId: string) => void;
+  /** Show the map preview again for this listing (e.g. user re-selected its pin). */
+  restoreMapListingPreview: (propertyId: string) => void;
   clearDismissedMapPreviews: () => void;
 
   // Utils
@@ -108,6 +110,7 @@ const initialState = (): Omit<
   | "applySearchDisplayFromApi"
   | "setShowMapListingPreviews"
   | "dismissMapListingPreview"
+  | "restoreMapListingPreview"
   | "clearDismissedMapPreviews"
   | "isHomeSaved"
   | "reset"
@@ -194,8 +197,21 @@ const baseCreator: import("zustand").StateCreator<FiltersState> = (
       state.dismissedMapPreviewIds.includes(propertyId)
         ? state
         : {
-            dismissedMapPreviewIds: [...state.dismissedMapPreviewIds, propertyId],
+            dismissedMapPreviewIds: [
+              ...state.dismissedMapPreviewIds,
+              propertyId,
+            ],
           },
+    ),
+  restoreMapListingPreview: (propertyId) =>
+    set((state) =>
+      state.dismissedMapPreviewIds.includes(propertyId)
+        ? {
+            dismissedMapPreviewIds: state.dismissedMapPreviewIds.filter(
+              (id) => id !== propertyId,
+            ),
+          }
+        : state,
     ),
   clearDismissedMapPreviews: () => set({ dismissedMapPreviewIds: [] }),
   isHomeSaved: (propertyId: string) => {
@@ -276,6 +292,16 @@ const withReset = withResettable<FiltersState>(
                 propertyId,
               ],
             },
+      ),
+    restoreMapListingPreview: (propertyId) =>
+      set((state) =>
+        state.dismissedMapPreviewIds.includes(propertyId)
+          ? {
+              dismissedMapPreviewIds: state.dismissedMapPreviewIds.filter(
+                (id) => id !== propertyId,
+              ),
+            }
+          : state,
       ),
     clearDismissedMapPreviews: () => set({ dismissedMapPreviewIds: [] }),
     isHomeSaved: () => false,

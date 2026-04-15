@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 
 import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
@@ -113,8 +113,6 @@ function Dropdown<T = unknown>({
     optionsListMaxHeightPx +
     DROPDOWN_MENU_CHROME_PX;
   const [isOpen, setIsOpen] = useState(false);
-  const triggerLabelRef = useRef<HTMLSpanElement>(null);
-
   const doc = getDocument();
   const canPortalMenu = Boolean(menuInPortal && doc?.body);
 
@@ -221,7 +219,6 @@ function Dropdown<T = unknown>({
           displayLabel={displayLabel}
           selectedOption={selectedOption}
           measureRef={measureRef}
-          triggerLabelRef={triggerLabelRef}
           clearable={clearable}
           handleClear={handleClear}
           isOpen={isOpen}

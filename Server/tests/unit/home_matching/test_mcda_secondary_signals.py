@@ -104,4 +104,4 @@ def test_score_listing_mcda_runs_with_secondary_weights() -> None:
         "listingStatus": "for_sale",
     }
     s = score_listing_mcda(prefs, prop, status_type="ForSale")
-    assert 15.0 <= s <= 90.0
+    assert 1.0 <= s <= 99.0

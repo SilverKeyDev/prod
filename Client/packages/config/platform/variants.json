@@ -733,5 +733,12 @@
     "webPath": "packages/features/documents/components/ViewSignedDocument.tsx",
     "nativePath": "packages/features/documents/components/ViewSignedDocument.native.tsx",
     "reason": "Web uses window.open or iframe for PDF viewing. Native uses react-native-pdf and Linking for external viewer."
+  },
+  {
+    "id": "docusign-legal-notice",
+    "description": "DocuSign legal/notice banner: Tailwind on web, StyleSheet + design-tokens color() on native.",
+    "webPath": "packages/features/documents/components/DocuSignLegalNotice.tsx",
+    "nativePath": "packages/features/documents/components/DocuSignLegalNotice.native.tsx",
+    "reason": "Web uses semantic Tailwind classes (border-border, bg-accent-muted). Native uses React Native StyleSheet and packages/design-tokens color() helpers; no Tailwind on RN."
   }
 ]

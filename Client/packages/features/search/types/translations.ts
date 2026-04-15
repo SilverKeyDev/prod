@@ -9,6 +9,8 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.filters": "Filters",
   "search.list": "List",
   "search.add_location_to_search": "Add at least one location to search",
+  "search.need_locations_or_place":
+    "Add important locations in Filters, or type a city, neighborhood, or ZIP in the search bar and search.",
   "search.reels": "Reels",
   "search.reels_empty_title": "Search to get results",
   "search.reels_empty_subtitle": "Run a search to browse homes here in reels.",

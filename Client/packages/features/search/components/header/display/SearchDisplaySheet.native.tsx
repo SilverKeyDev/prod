@@ -127,8 +127,9 @@ export function SearchDisplaySheetNative({
                   />
                 </Box>
                 <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
-                  {SEARCH_TRANSLATIONS["search.show_map_listing_previews_hint"] ??
-                    "Floating home cards on the map. Run a search first."}
+                  {SEARCH_TRANSLATIONS[
+                    "search.show_map_listing_previews_hint"
+                  ] ?? "Floating home cards on the map. Run a search first."}
                 </Text>
               </>
             ) : null}

@@ -17,7 +17,7 @@ export function useUpcomingAgendaHeaderActions({
   const agendaHeaderActions = useMemo(() => {
     const displayAllBtn = showDisplayAll ? (
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         aria-haspopup="dialog"
         onPress={openAllAgendaModal}
@@ -32,8 +32,8 @@ export function useUpcomingAgendaHeaderActions({
 
     return (
       <Box className="flex flex-wrap items-center justify-end gap-2">
-        {displayAllBtn}
         {headerActions ?? null}
+        {displayAllBtn}
       </Box>
     );
   }, [showDisplayAll, headerActions, openAllAgendaModal]);
@@ -41,7 +41,7 @@ export function useUpcomingAgendaHeaderActions({
   const eventListHeaderActions = useMemo(() => {
     const displayAllBtn = showDisplayAll ? (
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         aria-haspopup="dialog"
         onPress={openAllAgendaModal}
@@ -55,8 +55,8 @@ export function useUpcomingAgendaHeaderActions({
     }
     return (
       <Box className="flex flex-wrap items-center justify-end gap-2">
-        {displayAllBtn}
         {headerActions ?? null}
+        {displayAllBtn}
       </Box>
     );
   }, [showDisplayAll, openAllAgendaModal, headerActions]);

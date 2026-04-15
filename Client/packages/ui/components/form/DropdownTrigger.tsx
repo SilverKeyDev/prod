@@ -15,7 +15,6 @@ export type DropdownTriggerProps<T> = {
   displayLabel: string;
   selectedOption: DropdownOption<T> | undefined;
   measureRef: RefObject<HTMLSpanElement | null>;
-  triggerLabelRef: RefObject<HTMLSpanElement | null>;
   clearable: boolean;
   handleClear: (e: MouseEvent<HTMLButtonElement>) => void;
   isOpen: boolean;
@@ -30,7 +29,6 @@ export function DropdownTrigger<T>({
   displayLabel,
   selectedOption,
   measureRef,
-  triggerLabelRef,
   clearable,
   handleClear,
   isOpen,
@@ -51,21 +49,12 @@ export function DropdownTrigger<T>({
       <Box className="flex w-full min-w-0 flex-row items-center justify-between gap-2">
         <BodyText
           as="span"
-          ref={triggerLabelRef}
-          className={`relative min-w-0 flex-1 truncate text-left text-xs sm:text-sm md:text-base ${
+          ref={measureRef}
+          className={`min-w-0 flex-1 whitespace-normal break-words text-left text-xs leading-snug sm:text-sm md:text-base ${
             selectedOption ? "text-gray-600" : "!text-gray-400"
           }`}
         >
           {displayLabel}
-          <BodyText
-            as="span"
-            ref={measureRef}
-            aria-hidden
-            className="absolute inset-0 w-full text-xs leading-tight text-transparent sm:text-sm md:text-base"
-            style={{ visibility: "hidden", pointerEvents: "none" }}
-          >
-            {displayLabel}
-          </BodyText>
         </BodyText>
 
         <Box className="flex shrink-0 items-center justify-end gap-1">

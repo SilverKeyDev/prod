@@ -11,7 +11,9 @@ describe("addressStreetLineForCard", () => {
       addressStreetLineForCard("123 Main St, Springfield, IL, 62701"),
     ).toBe("123 Main St");
     expect(
-      addressStreetLineForCard("777 W Middlefield Rd, Mountain View, CA, 94043"),
+      addressStreetLineForCard(
+        "777 W Middlefield Rd, Mountain View, CA, 94043",
+      ),
     ).toBe("777 W Middlefield Rd");
   });
 
@@ -22,9 +24,9 @@ describe("addressStreetLineForCard", () => {
   });
 
   it("handles CA94043 in one trailing segment after city", () => {
-    expect(
-      addressStreetLineForCard("99 Pine Rd, Boulder, CO 80301"),
-    ).toBe("99 Pine Rd");
+    expect(addressStreetLineForCard("99 Pine Rd, Boulder, CO 80301")).toBe(
+      "99 Pine Rd",
+    );
   });
 
   it("returns plain street when no city part", () => {

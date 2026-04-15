@@ -38,9 +38,9 @@ export function getDropdownVariantStyles(
 
 export function getDropdownSizeStyles(size: "sm" | "md" | "lg") {
   const sizeStyles = {
-    sm: "h-9 px-3",
-    md: "h-12 px-4",
-    lg: "h-14 px-5",
+    sm: "h-auto min-h-9 px-3",
+    md: "h-auto min-h-12 px-4",
+    lg: "h-auto min-h-14 px-5",
   };
   return sizeStyles[size];
 }

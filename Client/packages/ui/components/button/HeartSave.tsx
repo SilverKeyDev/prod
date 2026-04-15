@@ -28,17 +28,28 @@ export type CardHeartSaveWithPropsProps = {
   property: CardHeartSavePropertyLike;
   isSaved: boolean;
   saveHome: (property: CardHeartSavePropertyLike) => Promise<void>;
-  removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
+  removeSavedHome: (
+    propertyId: string,
+    propertyAddress?: string,
+  ) => Promise<void>;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   /** When true, heart stays in layout flow (e.g. modal/toolbar). Ignores overlay `position`. Web only. */
   inline?: boolean;
   size?: "xs" | "sm" | "md" | "lg" | "small" | "medium" | "large";
   className?: string;
   ariaLabel?: string;
+  /**
+   * Google Maps AdvancedMarkerElement disallows focusable descendants.
+   * Use on floating map preview cards only; hit target is a div with click handlers.
+   */
+  nonFocusableMapMarkerSurface?: boolean;
 };
 
 /** Maps small/medium/large to legacy sizes for card overlay */
-const TOOLBAR_TO_LEGACY: Record<"small" | "medium" | "large", "xs" | "sm" | "md" | "lg"> = {
+const TOOLBAR_TO_LEGACY: Record<
+  "small" | "medium" | "large",
+  "xs" | "sm" | "md" | "lg"
+> = {
   small: "sm",
   medium: "md",
   large: "lg",
@@ -51,7 +62,10 @@ const ICON_SIZE_FALLBACK: Record<"xs" | "sm" | "md" | "lg", string> = {
   lg: "w-6 h-6",
 };
 
-const POSITION_MAP: Record<NonNullable<CardHeartSaveWithPropsProps["position"]>, string> = {
+const POSITION_MAP: Record<
+  NonNullable<CardHeartSaveWithPropsProps["position"]>,
+  string
+> = {
   "top-left": "top-2 left-2",
   "top-right": "top-2 right-2",
   "bottom-left": "bottom-2 left-2",
@@ -75,9 +89,11 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
   size = "md",
   className = "",
   ariaLabel,
+  nonFocusableMapMarkerSurface = false,
 }) => {
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const propertyAddress = typeof property.address === "string" ? property.address : undefined;
+  const propertyAddress =
+    typeof property.address === "string" ? property.address : undefined;
 
   const handlePress = async () => {
     try {
@@ -87,7 +103,8 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         await saveHome(property);
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       log.error(LOG_CATEGORIES.SEARCH, "Error updating favorites", {
         propertyId: property.id,
         address: propertyAddress,
@@ -107,7 +124,8 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
     void handlePress();
   };
 
-  const label = ariaLabel ?? (isSaved ? "Remove from saved homes" : "Save to favorites");
+  const label =
+    ariaLabel ?? (isSaved ? "Remove from saved homes" : "Save to favorites");
 
   // Native: simplified overlay only (Pressable with shadow style)
   if (!isWeb) {
@@ -143,9 +161,13 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
     s === "small" || s === "medium" || s === "large";
   const effectiveSize = isToolbarSize(size) ? TOOLBAR_TO_LEGACY[size] : size;
   const sizeConfig = getCardBubbleSizeClasses(effectiveSize);
-  const iconSizeClass = sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[effectiveSize];
+  const iconSizeClass =
+    sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[effectiveSize];
   const isInlineButton =
-    inline || !position || className.includes("border") || className.includes("rounded-md");
+    inline ||
+    !position ||
+    className.includes("border") ||
+    className.includes("rounded-md");
 
   if (isInlineButton && isToolbarSize(size)) {
     return (
@@ -153,10 +175,19 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         variant="toolbar"
         size={size}
         rounded="md"
-        icon={<Icon name="heart" className={`h-full w-full ${isSaved ? "fill-current" : ""}`} />}
+        icon={
+          <Icon
+            name="heart"
+            className={`h-full w-full ${isSaved ? "fill-current" : ""}`}
+          />
+        }
         onClick={handleClick}
         label={label}
-        className={`bg-gray-50 ${isSaved ? "text-red-500 hover:bg-gray-50 hover:text-red-600 active:bg-gray-100 active:text-red-700 active:opacity-90" : "text-gray-600 hover:bg-gray-100 active:bg-gray-200 active:opacity-90"} ${className}`}
+        className={`bg-gray-50 ${
+          isSaved
+            ? "text-red-500 hover:bg-gray-50 hover:text-red-600 active:bg-gray-100 active:text-red-700 active:opacity-90"
+            : "text-gray-600 hover:bg-gray-100 active:bg-gray-200 active:opacity-90"
+        } ${className}`}
       />
     );
   }
@@ -168,37 +199,66 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         icon={
           <Icon
             name="heart"
-            className={`${iconSizeClass} ${isSaved ? "fill-current" : ""} ${ICON_TRANSFORM_CLASSES}`}
+            className={`${iconSizeClass} ${
+              isSaved ? "fill-current" : ""
+            } ${ICON_TRANSFORM_CLASSES}`}
           />
         }
         label={label}
         onClick={handleClick}
-        className={`group relative inline-flex flex-row items-center justify-center bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 active:bg-gray-100 active:opacity-90 ${isSaved ? "text-red-500 hover:text-red-600 active:text-red-600 active:text-red-700" : "text-gray-400 hover:text-red-500 active:text-red-500 active:text-red-600"} ${className}`}
+        className={`group relative inline-flex flex-row items-center justify-center bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 active:bg-gray-100 active:opacity-90 ${
+          isSaved
+            ? "text-red-500 hover:text-red-600 active:text-red-600 active:text-red-700"
+            : "text-gray-400 hover:text-red-500 active:text-red-500 active:text-red-600"
+        } ${className}`}
       />
     );
   }
 
+  const overlayIcon = (
+    <>
+      <Icon
+        name="heart"
+        className={`${OVERLAY_MARKER_ICON_CLASSES} ${
+          isSaved ? "fill-current" : ""
+        } group-hover:opacity-90 group-active:opacity-80`}
+      />
+      <Icon
+        name="sparkles"
+        className="absolute left-1 top-1 h-2 w-2 scale-50 text-white opacity-0 group-hover:scale-75 group-hover:opacity-30 group-active:opacity-50"
+      />
+    </>
+  );
+
+  const overlaySurfaceClassName = `group relative inline-flex flex-row items-center justify-center rounded-full bg-white shadow-md ring-1 ring-neutral-200 hover:bg-white hover:shadow-lg hover:ring-neutral-200 active:bg-white active:opacity-90 active:shadow-lg active:ring-neutral-200 ${
+    isSaved
+      ? "text-red-500 hover:text-red-600 active:text-red-600 active:text-red-700"
+      : "text-gray-400 hover:text-red-500 active:text-red-500 active:text-red-600"
+  } ${OVERLAY_MARKER_CIRCLE_CLASSES} ${className}`;
+
   return (
     <Box className={`absolute ${POSITION_MAP[position]} z-10`}>
-      <IconButton
-        variant="ghost"
-        size="sm"
-        icon={
-          <>
-            <Icon
-              name="heart"
-              className={`${OVERLAY_MARKER_ICON_CLASSES} ${isSaved ? "fill-current" : ""} group-hover:opacity-90 group-active:opacity-80`}
-            />
-            <Icon
-              name="sparkles"
-              className="absolute left-1 top-1 h-2 w-2 scale-50 text-white opacity-0 group-hover:scale-75 group-hover:opacity-30 group-active:opacity-50"
-            />
-          </>
-        }
-        label={label}
-        onClick={handleClick}
-        className={`group relative inline-flex flex-row items-center justify-center rounded-full bg-white shadow-md ring-1 ring-neutral-200 hover:bg-white hover:shadow-lg hover:ring-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 active:bg-white active:opacity-90 active:shadow-lg active:ring-neutral-200 ${isSaved ? "text-red-500 hover:text-red-600 active:text-red-600 active:text-red-700" : "text-gray-400 hover:text-red-500 active:text-red-500 active:text-red-600"} ${OVERLAY_MARKER_CIRCLE_CLASSES} ${className}`}
-      />
+      {nonFocusableMapMarkerSurface ? (
+        <Box
+          className={`${overlaySurfaceClassName} cursor-pointer`}
+          aria-hidden
+          onClick={handleClick}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          {overlayIcon}
+        </Box>
+      ) : (
+        <IconButton
+          variant="ghost"
+          size="sm"
+          icon={overlayIcon}
+          label={label}
+          onClick={handleClick}
+          className={`${overlaySurfaceClassName} focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2`}
+        />
+      )}
     </Box>
   );
 };

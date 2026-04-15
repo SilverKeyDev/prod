@@ -59,7 +59,7 @@ export function RemainingLikedHomes({
           const address = addressStreetLineForCard(
             typeof home.address === "string" || typeof home.address === "number"
               ? home.address.toString()
-              : (home.description ?? t("house.invalid_address")),
+              : home.description ?? t("house.invalid_address"),
           );
           const price =
             typeof home.price === "string" || typeof home.price === "number"

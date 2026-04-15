@@ -22,19 +22,27 @@ export type UseSearchResultsDataReturn = {
   refetchCachedResults: () => void;
 };
 
+export type UseSearchResultsDataOptions = {
+  /** When true, do not auto-load onlyCached results (e.g. agents until explicit search). */
+  skipInitialFetch?: boolean;
+};
+
 /**
  * Hook for managing search results with React Query.
  * Server returns stored results for onlyCached requests without running a new search;
  * fresh results come from setSearchResults after the user runs a search (forceSearch).
  */
-export function useSearchResultsData(): UseSearchResultsDataReturn {
+export function useSearchResultsData(
+  options?: UseSearchResultsDataOptions,
+): UseSearchResultsDataReturn {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
+  const skipInitialFetch = options?.skipInitialFetch ?? false;
 
   const shouldLoadData = useMemo(
-    () => authReady && isAuthenticated,
-    [authReady, isAuthenticated],
+    () => authReady && isAuthenticated && !skipInitialFetch,
+    [authReady, isAuthenticated, skipInitialFetch],
   );
 
   const {

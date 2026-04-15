@@ -35,14 +35,12 @@ export function useSearchPageMapListingPreview() {
 
   const onDismissMapPreview = useCallback(
     (propertyId: string) => {
-      if (!isDev) return;
       dismissMapListingPreviewAction(propertyId);
     },
-    [isDev, dismissMapListingPreviewAction],
+    [dismissMapListingPreviewAction],
   );
 
   return {
-    isDev,
     mapListingPreviewsEnabled,
     dismissedMapPreviewIds,
     mapPreviewSearchLifecycle,

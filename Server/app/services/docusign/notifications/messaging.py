@@ -17,6 +17,24 @@ logger = get_logger()
 AGREEMENT_EVENT_PREFIX = "__AGREEMENT_EVENT__"
 
 
+def _next_signer_user_id(agreement: Agreement) -> str | None:
+    """First signer by routing order who has not yet completed signing."""
+
+    def _is_signed(recipient_status: str | None) -> bool:
+        st = (recipient_status or "").lower()
+        return st in ("signed", "completed")
+
+    participants_list = list(agreement.participants or [])  # pyright: ignore[reportArgumentType]
+    signers = sorted(
+        (p for p in participants_list if p.role == "signer" and p.user_id),
+        key=lambda p: (p.routing_order or 999, p.user_id or ""),
+    )
+    for p in signers:
+        if not _is_signed(p.recipient_status):
+            return p.user_id
+    return None
+
+
 def _build_dedupe_key(agreement_id: str, event_type: str) -> str:
     """Deterministic key for idempotent message insertion."""
     return f"__AGREEMENT_EVENT__{agreement_id}__{event_type}"
@@ -88,6 +106,10 @@ def send_agreement_message(
             "event": event_type,
             "dedupe_key": dedupe_key,
         }
+        if event_type == "sent":
+            next_uid = _next_signer_user_id(agreement)
+            if next_uid:
+                payload["next_signer_user_id"] = next_uid
         message_body = AGREEMENT_EVENT_PREFIX + json.dumps(payload)
 
         now_utc = datetime.now(timezone.utc)

@@ -73,7 +73,7 @@ class TestBlendScores:
 
         scores = [45.0, 60.0, 75.0, 90.0]
 
-        normalized = normalize_scores(scores, min_val=15.0, max_val=90.0)
+        normalized = normalize_scores(scores, min_val=1.0, max_val=99.0)
 
         assert len(normalized) == len(scores)
         assert all(0.0 <= score <= 1.0 for score in normalized)
@@ -139,7 +139,7 @@ class TestBatchScoring:
 
         assert len(results) == 3
         assert all("score" in prop for prop in results)
-        assert all(15.0 <= prop["score"] <= 90.0 for prop in results)
+        assert all(1.0 <= prop["score"] <= 99.0 for prop in results)
 
     def test_batch_score_with_embeddings(self, sample_preferences):
         """Test batch scoring with embedding scores"""

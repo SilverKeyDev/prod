@@ -4980,6 +4980,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/discard:
+    post:
+      tags: [ DocuSign ]
+      summary: Discard agreement from Saved (agent)
+      description: >
+        Listing agent removes the agreement from Saved for themselves and their client.
+        Voids the DocuSign envelope when DocuSign allows; otherwise removes the shared
+        library row only (e.g. completed envelopes).
+      operationId: docusignDiscardAgreement
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoidAgreementRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidAgreementResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/webhooks/docusign/connect:
     post:
       tags: [ DocuSign ]

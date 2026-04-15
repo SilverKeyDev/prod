@@ -5,17 +5,7 @@
 
 import type { DocumentData } from "packages/ui/components/cards/document/types";
 
-export type ContextualAgreementStatus =
-  | "sign_now"
-  | "waiting_for_signature"
-  | "waiting_for_review"
-  | "draft"
-  | "sent"
-  | "delivered"
-  | "signed"
-  | "completed"
-  | "voided"
-  | "declined";
+export type { ContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";
 
 export interface AgreementData extends DocumentData {
   /** Participants array from the agreement (needed for contextual status). */
@@ -44,7 +34,7 @@ export interface AgreementCardExternalActionHandlers {
     documentId: string,
     documentName: string,
   ) => Promise<{ success: boolean; message: string }>;
-   handleSignNow?: (document: AgreementData) => void;
+  handleSignNow?: (document: AgreementData) => void;
   handleViewSignedAgreement?: (document: AgreementData) => void;
 }
 

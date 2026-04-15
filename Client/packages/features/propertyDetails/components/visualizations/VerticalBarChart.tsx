@@ -35,7 +35,7 @@ export function VerticalBarChart({
               className="flex min-w-0 flex-1 flex-col justify-end"
             >
               <Box
-                className="bg-accent-muted relative w-full min-h-0.5 overflow-hidden rounded-t-md"
+                className="bg-accent-muted relative min-h-0.5 w-full overflow-hidden rounded-t-md"
                 style={{ height: `${barPercent}%` }}
               >
                 <Box

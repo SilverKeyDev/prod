@@ -1,9 +1,18 @@
-import type { ReactNode } from "react";
+import {
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
+  useCallback,
+} from "react";
+
+import { Icon } from "@ui/icons";
 
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
 import { formatPropertyType } from "packages/features/search/types/search/propertyFormatters";
 import { displayListingPriceForCard } from "packages/features/search/utils/formatPropertySearchListingPrice";
 import CardNotInterested from "packages/ui/components/button/NotInterested";
+import { OVERLAY_MARKER_CIRCLE_CLASSES } from "packages/ui/components/button/overlayMarkerButtonTypes";
+import { getCardBubbleSizeClasses } from "packages/ui/components/cards/base/styles";
 import { Box } from "packages/ui/components/primitives";
 import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
 
@@ -16,6 +25,12 @@ import {
 } from "@/components/cards/base/index.web";
 import { BodyText, Title } from "@/components/ui";
 import { getMatchScore, type SearchResult } from "@/features/search/types";
+import { SEARCH_TRANSLATIONS } from "@/features/search/types/translations";
+
+/** Matches `CardNotInterested` sidebar overlay (size sm) — icon only; map markers cannot use `<button>`. */
+const MAP_PREVIEW_DISMISS_ICON_CLASSNAME = `${
+  getCardBubbleSizeClasses("sm").iconClass
+} transition-transform duration-200 group-hover:scale-110`;
 
 export type SearchResultListingCardProps = {
   property: SearchResult;
@@ -28,6 +43,10 @@ export type SearchResultListingCardProps = {
   onMarkNotInterested?: () => void;
   /** Map pin card: triangle below card. */
   isOnMap?: boolean;
+  /** Map preview: clicking the card opens full property details (not the pin). */
+  onMapNavigate?: () => void;
+  /** Map preview: hide floating card (same overlay chrome as heart). */
+  onDismissMapPreview?: () => void;
   /** Results tab: show match score chip (map may hide when no valid score). */
   showMatchScore?: boolean;
   /** Optional footer (e.g. map View button). */
@@ -43,9 +62,42 @@ export function SearchResultListingCard({
   showNotInterested = false,
   onMarkNotInterested,
   isOnMap = false,
+  onMapNavigate,
+  onDismissMapPreview,
   showMatchScore = true,
   bottomContent,
 }: SearchResultListingCardProps): JSX.Element {
+  const handleDismissMapPreviewPointerDown = useCallback((e: PointerEvent) => {
+    e.stopPropagation();
+  }, []);
+
+  const handleDismissMapPreviewClick = useCallback(
+    (e: MouseEvent) => {
+      e.stopPropagation();
+      onDismissMapPreview?.();
+    },
+    [onDismissMapPreview],
+  );
+
+  /** AdvancedMarkerElement content must not contain focusable nodes (button, tabindex≥0). */
+  const mapDismissOverlay =
+    isOnMap && onDismissMapPreview ? (
+      <Box className="absolute left-2 top-2 z-10">
+        <Box
+          className={`group relative inline-flex cursor-pointer flex-row items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/30 active:scale-95 ${OVERLAY_MARKER_CIRCLE_CLASSES} text-white hover:text-white`}
+          aria-hidden
+          title={
+            SEARCH_TRANSLATIONS["search.dismiss_map_listing_preview"] ??
+            "Hide this listing preview on the map"
+          }
+          onPointerDown={handleDismissMapPreviewPointerDown}
+          onClick={handleDismissMapPreviewClick}
+        >
+          <Icon name="x" className={MAP_PREVIEW_DISMISS_ICON_CLASSNAME} />
+        </Box>
+      </Box>
+    ) : null;
+
   const showScoreRow = activeTab === "results" && showMatchScore;
   const addressTitle =
     typeof property.address === "string" || typeof property.address === "number"
@@ -66,74 +118,134 @@ export function SearchResultListingCard({
         {activeTab === "results" && (
           <Box className="pointer-events-none absolute inset-0">
             <Box className="pointer-events-auto relative h-full w-full">
+              {mapDismissOverlay}
               {showNotInterested && onMarkNotInterested ? (
-                <CardNotInterested
-                  property={property}
-                  size="sm"
-                  position="top-left"
-                  onMarkNotInterested={onMarkNotInterested}
-                />
+                <Box
+                  className="contents"
+                  onClick={
+                    isOnMap && onMapNavigate
+                      ? (e) => {
+                          e.stopPropagation();
+                        }
+                      : undefined
+                  }
+                  onPointerDown={
+                    isOnMap && onMapNavigate
+                      ? (e) => {
+                          e.stopPropagation();
+                        }
+                      : undefined
+                  }
+                >
+                  <CardNotInterested
+                    property={property}
+                    size="sm"
+                    position="top-left"
+                    onMarkNotInterested={onMarkNotInterested}
+                  />
+                </Box>
               ) : null}
-              {isHomeSaved && saveHome && removeSavedHome ? (
-                <CardHeartSaveWithProps
-                  property={{
-                    id: property.id,
-                    address:
+              <Box
+                className="contents"
+                onClick={
+                  isOnMap && onMapNavigate
+                    ? (e) => {
+                        e.stopPropagation();
+                      }
+                    : undefined
+                }
+                onPointerDown={
+                  isOnMap && onMapNavigate
+                    ? (e) => {
+                        e.stopPropagation();
+                      }
+                    : undefined
+                }
+              >
+                {isHomeSaved && saveHome && removeSavedHome ? (
+                  <CardHeartSaveWithProps
+                    property={{
+                      id: property.id,
+                      address:
+                        typeof property.address === "string"
+                          ? property.address
+                          : undefined,
+                    }}
+                    isSaved={isHomeSaved(
+                      property.id,
                       typeof property.address === "string"
                         ? property.address
                         : undefined,
-                  }}
-                  isSaved={isHomeSaved(
-                    property.id,
-                    typeof property.address === "string"
-                      ? property.address
-                      : undefined,
-                  )}
-                  saveHome={async () => saveHome(property)}
-                  removeSavedHome={removeSavedHome}
-                  size="sm"
-                  position="top-right"
-                />
-              ) : (
-                <ConnectedCardHeartSave
-                  property={property}
-                  size="sm"
-                  position="top-right"
-                />
-              )}
+                    )}
+                    saveHome={async () => saveHome(property)}
+                    removeSavedHome={removeSavedHome}
+                    size="sm"
+                    position="top-right"
+                    nonFocusableMapMarkerSurface={isOnMap}
+                  />
+                ) : (
+                  <ConnectedCardHeartSave
+                    property={property}
+                    size="sm"
+                    position="top-right"
+                    nonFocusableMapMarkerSurface={isOnMap}
+                  />
+                )}
+              </Box>
             </Box>
           </Box>
         )}
         {activeTab === "saved" && (
           <Box className="pointer-events-none absolute inset-0">
             <Box className="pointer-events-auto relative h-full w-full">
-              {isHomeSaved && saveHome && removeSavedHome ? (
-                <CardHeartSaveWithProps
-                  property={{
-                    id: property.id,
-                    address:
+              {mapDismissOverlay}
+              <Box
+                className="contents"
+                onClick={
+                  isOnMap && onMapNavigate
+                    ? (e) => {
+                        e.stopPropagation();
+                      }
+                    : undefined
+                }
+                onPointerDown={
+                  isOnMap && onMapNavigate
+                    ? (e) => {
+                        e.stopPropagation();
+                      }
+                    : undefined
+                }
+              >
+                {isHomeSaved && saveHome && removeSavedHome ? (
+                  <CardHeartSaveWithProps
+                    property={{
+                      id: property.id,
+                      address:
+                        typeof property.address === "string"
+                          ? property.address
+                          : undefined,
+                    }}
+                    isSaved={isHomeSaved(
+                      property.id,
                       typeof property.address === "string"
                         ? property.address
                         : undefined,
-                  }}
-                  isSaved={isHomeSaved(
-                    property.id,
-                    typeof property.address === "string"
-                      ? property.address
-                      : undefined,
-                  )}
-                  saveHome={async () => saveHome(property)}
-                  removeSavedHome={removeSavedHome}
-                  size="sm"
-                  position="top-right"
-                />
-              ) : (
-                <ConnectedCardHeartSave
-                  property={property}
-                  size="sm"
-                  position="top-right"
-                />
-              )}
+                    )}
+                    saveHome={async () => saveHome(property)}
+                    removeSavedHome={removeSavedHome}
+                    size="sm"
+                    position="top-right"
+                    nonFocusableMapMarkerSurface={isOnMap}
+                  />
+                ) : (
+                  <ConnectedCardHeartSave
+                    property={property}
+                    size="sm"
+                    position="top-right"
+                    nonFocusableMapMarkerSurface={isOnMap}
+                  />
+                )}
+              </Box>
             </Box>
           </Box>
         )}
@@ -202,12 +314,23 @@ export function SearchResultListingCard({
     </>
   );
 
+  /** No role/tabIndex: AdvancedMarkerElement forbids focusable marker content. */
+  const mapNavigateHandlers =
+    isOnMap && onMapNavigate
+      ? {
+          className:
+            "cursor-pointer overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm",
+          onClick: () => onMapNavigate(),
+        }
+      : {
+          className:
+            "overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm",
+        };
+
   return (
     <>
       {isOnMap ? <TrianglePointer show size={3} /> : null}
-      <Box className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
-        {imageAndBody}
-      </Box>
+      <Box {...mapNavigateHandlers}>{imageAndBody}</Box>
     </>
   );
 }

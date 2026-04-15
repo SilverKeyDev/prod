@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  DocuSignLegalNotice,
   EmbeddedSigning,
   useDocumentActions,
   useDocumentsDataIntegration,
@@ -28,11 +29,8 @@ import {
 } from "packages/store";
 import type { SavedHome } from "packages/types";
 import { BaseModal } from "packages/ui/components/modals";
-import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 import { buildPropertyUrl } from "packages/utils/property/slug";
-
-import { BodyText } from "@/components/ui";
 
 import SavedHomesHeader from "./header/SavedHomesHeader";
 import { SavedPageLayout } from "./layout/SavedPageLayout";
@@ -186,11 +184,13 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   }, [documents, eventTypeFilter]);
 
   const documentsTabCount = useMemo(
-    () => filteredDocuments.filter((d) => d.library_kind !== "agreement").length,
+    () =>
+      filteredDocuments.filter((d) => d.library_kind !== "agreement").length,
     [filteredDocuments],
   );
   const agreementsTabCount = useMemo(
-    () => filteredDocuments.filter((d) => d.library_kind === "agreement").length,
+    () =>
+      filteredDocuments.filter((d) => d.library_kind === "agreement").length,
     [filteredDocuments],
   );
 
@@ -268,139 +268,135 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
 
   return (
     <>
-    <SavedPageLayout
-      isMobile={isMobile}
-      viewType={viewType}
-      searchTerm={searchTerm}
-      setSearchTerm={setSearchTerm}
-      selectedClientId={selectedClientId}
-      setSelectedClientId={setSelectedClientId}
-      eventTypeFilter={eventTypeFilter}
-      setEventTypeFilter={setEventTypeFilter}
-      setViewType={setViewType}
-      filteredHomes={filteredHomes}
-      filteredDocuments={filteredDocuments}
-      loading={loading}
-      documentsLoadingState={documentsLoadingState}
-      selectedHomesForComparison={selectedHomesForComparison}
-      selectedHomesData={selectedHomesData}
-      selectedProperty={selectedProperty}
-      isLoadingPropertyDetails={isLoadingPropertyDetails}
-      isCompareModalOpen={isCompareModalOpen}
-      setIsCompareModalOpen={setIsCompareModalOpen}
-      isNegotiationModalOpen={isNegotiationModalOpen}
-      selectedHomeForNegotiation={selectedHomeForNegotiation}
-      isDocumentUploadModalOpen={isDocumentUploadModalOpen}
-      setIsDocumentUploadModalOpen={setIsDocumentUploadModalOpen}
-      isAgent={isAgent}
-      homes={homes}
-      currentPdf={currentPdf}
-      currentDocumentId={currentDocumentId}
-      currentDocumentName={currentDocumentName}
-      closePdfModal={closePdfModal}
-      onViewDocument={documentListView}
-      onDownloadDocument={documentListDownload}
-      onShareDocument={documentListShare}
-      onSendForSignature={
-        isAgent
-          ? isMobile
-            ? sendForSignatureDirect
-            : openSendForSignatureModal
-          : undefined
-      }
-      onFormSendForSignature={
-        isAgent ? openSendForSignatureModalForForm : undefined
-      }
-      onSignNow={signNowDirect}
-      onViewSignedAgreement={openViewSignedAgreement}
-      sendForSignatureModal={
-        isAgent && !isMobile
-          ? {
-              isOpen: isSendForSignatureModalOpen,
-              title: sendForSignatureTitle,
-              recipientClientId: sendForSignatureRecipientClientId,
-              isSubmitting: isSendingForSignature,
-              disabledReason:
-                sendForSignatureDocument != null
-                  ? sendForSignatureDisabledReason(sendForSignatureDocument)
-                  : null,
-              onTitleChange: setSendForSignatureTitle,
-              onRecipientClientChange: setSendForSignatureRecipientClientId,
-              onClose: closeSendForSignatureModal,
-              onConfirm: () => {
-                void submitSendForSignature();
-              },
-            }
-          : undefined
-      }
-      onToggleHomeSelection={handleToggleHomeSelection}
-      onUnlockHome={handleUnlockHome}
-      onDocumentDelete={(doc) => {
-        void handleDocumentDelete(doc);
-      }}
-      onRemoveFromComparison={handleRemoveFromComparison}
-      onCloseNegotiation={handleCloseNegotiation}
-      onCompare={handleCompare}
-      onClearComparison={handleClearComparison}
-      clearSelectedProperty={clearSelectedProperty}
-      refetchDocuments={refetchDocuments}
-      refresh={refresh}
-      refreshing={refreshing}
-    />
- {agreementSigningSession?.kind === "embedded" ? (
-      <BaseModal
-        isOpen
-        onClose={dismissAgreementSigning}
-        title="Sign document"
-        size="full"
-        showCloseButton
-        closeOnBackdropClick={false}
-      >
-        <EmbeddedSigning
-          agreementId={agreementSigningSession.agreementId}
-          participantId={agreementSigningSession.participantId}
-          onComplete={onAgreementSigningComplete}
-          height="min(72vh, 820px)"
-        />
-      </BaseModal>
-    ) : agreementSigningSession?.kind === "sender_url" ? (
-      <BaseModal
-        isOpen
-        onClose={dismissAgreementSigning}
-        title="Sign or correct document"
-        size="full"
-        showCloseButton
-        closeOnBackdropClick={false}
-      >
-        <Box className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
-          <BodyText size="sm" className="text-blue-900">
-            Complete signing in the window below. Close this dialog when you are
-            done.
-          </BodyText>
-        </Box>
-        <iframe
-          src={agreementSigningSession.url}
-          title="DocuSign signing"
-          className="min-h-[72vh] w-full rounded-lg border border-gray-300"
-        />
-      </BaseModal>
-    ) : null}
-    {viewSignedAgreement ? (
-      <BaseModal
-        isOpen
-        onClose={dismissViewSignedAgreement}
-        title={viewSignedAgreement.title}
-        size="full"
-        showCloseButton
-      >
-        <ViewSignedDocument
-          agreementId={viewSignedAgreement.agreementId}
-          title={viewSignedAgreement.title}
-          height="min(80vh, 900px)"
+      <SavedPageLayout
+        isMobile={isMobile}
+        viewType={viewType}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        selectedClientId={selectedClientId}
+        setSelectedClientId={setSelectedClientId}
+        eventTypeFilter={eventTypeFilter}
+        setEventTypeFilter={setEventTypeFilter}
+        setViewType={setViewType}
+        filteredHomes={filteredHomes}
+        filteredDocuments={filteredDocuments}
+        loading={loading}
+        documentsLoadingState={documentsLoadingState}
+        selectedHomesForComparison={selectedHomesForComparison}
+        selectedHomesData={selectedHomesData}
+        selectedProperty={selectedProperty}
+        isLoadingPropertyDetails={isLoadingPropertyDetails}
+        isCompareModalOpen={isCompareModalOpen}
+        setIsCompareModalOpen={setIsCompareModalOpen}
+        isNegotiationModalOpen={isNegotiationModalOpen}
+        selectedHomeForNegotiation={selectedHomeForNegotiation}
+        isDocumentUploadModalOpen={isDocumentUploadModalOpen}
+        setIsDocumentUploadModalOpen={setIsDocumentUploadModalOpen}
+        isAgent={isAgent}
+        homes={homes}
+        currentPdf={currentPdf}
+        currentDocumentId={currentDocumentId}
+        currentDocumentName={currentDocumentName}
+        closePdfModal={closePdfModal}
+        onViewDocument={documentListView}
+        onDownloadDocument={documentListDownload}
+        onShareDocument={documentListShare}
+        onSendForSignature={
+          isAgent
+            ? isMobile
+              ? sendForSignatureDirect
+              : openSendForSignatureModal
+            : undefined
+        }
+        onFormSendForSignature={
+          isAgent ? openSendForSignatureModalForForm : undefined
+        }
+        onSignNow={signNowDirect}
+        onViewSignedAgreement={openViewSignedAgreement}
+        sendForSignatureModal={
+          isAgent && !isMobile
+            ? {
+                isOpen: isSendForSignatureModalOpen,
+                title: sendForSignatureTitle,
+                recipientClientId: sendForSignatureRecipientClientId,
+                isSubmitting: isSendingForSignature,
+                disabledReason:
+                  sendForSignatureDocument != null
+                    ? sendForSignatureDisabledReason(sendForSignatureDocument)
+                    : null,
+                onTitleChange: setSendForSignatureTitle,
+                onRecipientClientChange: setSendForSignatureRecipientClientId,
+                onClose: closeSendForSignatureModal,
+                onConfirm: () => {
+                  void submitSendForSignature();
+                },
+              }
+            : undefined
+        }
+        onToggleHomeSelection={handleToggleHomeSelection}
+        onUnlockHome={handleUnlockHome}
+        onDocumentDelete={(doc) => {
+          void handleDocumentDelete(doc);
+        }}
+        onRemoveFromComparison={handleRemoveFromComparison}
+        onCloseNegotiation={handleCloseNegotiation}
+        onCompare={handleCompare}
+        onClearComparison={handleClearComparison}
+        clearSelectedProperty={clearSelectedProperty}
+        refetchDocuments={refetchDocuments}
+        refresh={refresh}
+        refreshing={refreshing}
+      />
+      {agreementSigningSession?.kind === "embedded" ? (
+        <BaseModal
+          isOpen
+          onClose={dismissAgreementSigning}
+          title="Sign document"
+          size="full"
+          showCloseButton
+          closeOnBackdropClick={false}
+        >
+          <EmbeddedSigning
+            agreementId={agreementSigningSession.agreementId}
+            participantId={agreementSigningSession.participantId}
+            onComplete={onAgreementSigningComplete}
+            height="min(72vh, 820px)"
+            pdfViewerTitle={agreementSigningSession.pdfViewerTitle}
+          />
+        </BaseModal>
+      ) : agreementSigningSession?.kind === "sender_url" ? (
+        <BaseModal
+          isOpen
+          onClose={dismissAgreementSigning}
+          title="Sign or correct document"
+          size="full"
+          showCloseButton
+          closeOnBackdropClick={false}
+        >
+          <DocuSignLegalNotice variant="sender_url_iframe" />
+          <iframe
+            src={agreementSigningSession.url}
+            title="DocuSign signing"
+            className="border-border min-h-[72vh] w-full rounded-lg border"
+          />
+        </BaseModal>
+      ) : null}
+      {viewSignedAgreement ? (
+        <BaseModal
+          isOpen
           onClose={dismissViewSignedAgreement}
-        />
-      </BaseModal>
-    ) : null}
+          title={viewSignedAgreement.title}
+          size="full"
+          showCloseButton
+        >
+          <ViewSignedDocument
+            agreementId={viewSignedAgreement.agreementId}
+            title={viewSignedAgreement.title}
+            height="min(80vh, 900px)"
+            onClose={dismissViewSignedAgreement}
+          />
+        </BaseModal>
+      ) : null}
     </>
   );
 }

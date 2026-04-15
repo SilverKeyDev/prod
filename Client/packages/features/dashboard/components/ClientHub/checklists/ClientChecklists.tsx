@@ -5,10 +5,12 @@ import { Icon } from "@ui/icons";
 import {
   CHECKLIST_SUBTITLES,
   CHECKLIST_TITLES,
+  checklistCheckboxRowClassNames,
   ChecklistIntegrationSlot,
   ChecklistStepForms,
   type ChecklistTab,
   type ChecklistType,
+  toChecklistCheckboxItem,
   useChecklistData,
   useChecklistProgress,
 } from "packages/features/checklists";
@@ -16,6 +18,7 @@ import { useIsAgent } from "packages/features/homeauth";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
 import IconButton from "packages/ui/components/button/IconButton";
 import Card from "packages/ui/components/cards/Card";
+import ChecklistCheckbox from "packages/ui/components/form/ChecklistCheckbox";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
 const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
@@ -227,26 +230,12 @@ export default function ClientChecklists({
                 Boolean(item.component_key) &&
                 !isSectionLocked &&
                 !hideIntegrationComponents;
-              const showDetailsWhenLocked = checkable || isExpanded;
+              const checkboxItem = toChecklistCheckboxItem(item);
 
               return (
                 <Box key={item.id} className="m-3 w-full">
                   <Box
-                    role="button"
-                    tabIndex={0}
-                    aria-expanded={isExpanded}
-                    onClick={() => {
-                      if (checkable) void handleToggleItem(item.id);
-                      else toggleExpand(item.id);
-                    }}
-                    onKeyDown={(e: React.KeyboardEvent) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        if (checkable) void handleToggleItem(item.id);
-                        else toggleExpand(item.id);
-                      }
-                    }}
-                    className={`border-border flex w-full cursor-pointer flex-row items-stretch rounded-lg border ${
+                    className={`border-border flex w-full flex-row items-stretch rounded-lg border ${
                       activeItemId != null && item.id === activeItemId
                         ? "ring-accent-underline shadow-md ring-2"
                         : ""
@@ -257,67 +246,25 @@ export default function ClientChecklists({
                     }`}
                   >
                     <Box className="flex min-w-0 flex-1 flex-row items-start gap-3 px-3 py-2">
-                      <Box
-                        className={`mt-1 h-5 w-5 items-center justify-center rounded border ${
-                          checked
-                            ? "border-primary bg-primary"
-                            : checkable
-                              ? "border-border bg-background-surface"
-                              : "border-border bg-primary-muted"
-                        }`}
-                      >
-                        {checked ? (
-                          <Text className="text-xs font-semibold text-white">
-                            ✓
-                          </Text>
-                        ) : !checkable ? (
-                          <Icon
-                            name="lock"
-                            className="text-text-disabled h-3 w-3"
-                          />
-                        ) : null}
-                      </Box>
-                      <Box className="min-w-0 flex-1 text-left">
-                        <Text className="text-text-primary text-sm font-medium">
-                          {item.label}
-                          {item.optional ? (
-                            <Text className="text-warm-stone font-normal">
-                              {" "}
-                              (optional)
-                            </Text>
-                          ) : null}
-                        </Text>
-                        {!checked && showDetailsWhenLocked && (
-                          <>
-                            {item.explanation ? (
-                              <Text className="text-warm-stone mt-1.5 text-xs">
-                                {item.explanation}
-                              </Text>
-                            ) : null}
-                            {item.bullets && item.bullets.length > 0 ? (
-                              <Box className="mt-1.5 flex flex-row flex-col gap-1.5">
-                                {item.bullets.map((bullet) => (
-                                  <Box
-                                    key={bullet}
-                                    className="flex-row items-start gap-2"
-                                  >
-                                    <Text className="text-warm-stone mt-px text-xs">
-                                      •
-                                    </Text>
-                                    <Text className="text-warm-stone flex-1 text-xs">
-                                      {bullet}
-                                    </Text>
-                                  </Box>
-                                ))}
-                              </Box>
-                            ) : null}
-                            {item.tip ? (
-                              <Text className="text-primary-700 mt-1.5 text-xs">
-                                {item.tip}
-                              </Text>
-                            ) : null}
-                          </>
-                        )}
+                      <Box className="min-w-0 flex-1">
+                        <ChecklistCheckbox
+                          item={checkboxItem}
+                          checked={checked}
+                          onToggle={() => {
+                            void handleToggleItem(item.id);
+                          }}
+                          disabled={!checkable}
+                          showDetails={!checked && (checkable || isExpanded)}
+                          itemLabelClass={
+                            checklistCheckboxRowClassNames.itemLabel
+                          }
+                          itemExplanationClass={
+                            checklistCheckboxRowClassNames.itemExplanation
+                          }
+                          checkboxContainerClass={
+                            checklistCheckboxRowClassNames.checkboxContainer
+                          }
+                        />
                       </Box>
                       <Box
                         onClick={(e: React.MouseEvent) => e.stopPropagation()}

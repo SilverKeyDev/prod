@@ -22,15 +22,15 @@ const STATUS_BADGE: Record<
 > = {
   sign_now: {
     label: "Sign Now",
-    className: "bg-amber-100 text-amber-700 border-amber-300",
+    className: "border-yellow-400 bg-yellow-100 text-yellow-900",
   },
   waiting_for_signature: {
     label: "Waiting for Signature",
-    className: "bg-blue-100 text-blue-700 border-blue-300",
+    className: "border-brown/40 bg-brown/10 text-brown",
   },
   waiting_for_review: {
     label: "Waiting for Review",
-    className: "bg-indigo-100 text-indigo-700 border-indigo-300",
+    className: "border-brown/35 bg-brown/5 text-brown",
   },
   draft: {
     label: "Draft",
@@ -50,15 +50,15 @@ const STATUS_BADGE: Record<
   },
   completed: {
     label: "Completed",
-    className: "bg-green-100 text-green-700 border-green-300",
+    className: "border-green-300 bg-green-100 text-green-800",
   },
   voided: {
     label: "Voided",
-    className: "bg-red-100 text-red-700 border-red-300",
+    className: "border-red-300 bg-red-100 text-red-800",
   },
   declined: {
     label: "Declined",
-    className: "bg-orange-100 text-orange-700 border-orange-300",
+    className: "border-red-300 bg-red-100 text-red-800",
   },
 };
 

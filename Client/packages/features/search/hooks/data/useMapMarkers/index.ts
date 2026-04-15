@@ -2,12 +2,19 @@ import { useCallback, useRef, useState } from "react";
 
 import { renderImportantLocationMarkers } from "packages/features/search/types/search/importantLocationRenderer";
 import { resetMapToListingFocusZoom } from "packages/features/search/utils/googleMaps/mapCamera";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
 import type { IsochroneData } from "packages/types/api";
+import { getWindow } from "packages/utils/platform";
 
-import { clearMapMarkers } from "./clearMarkers";
+import {
+  clearMapMarkers,
+  removeCardMarkersOnly,
+  teardownAdvancedMarker,
+} from "./clearMarkers";
 import { addFocusedCardMarkers } from "./focusedCardMarker";
 import { createPinMarkersBatch } from "./pinMarkers";
+import { removeOrphanPinsAndListMissingForPins } from "./pinMarkerSync";
 import type {
   GoogleAdvancedMarkerElement,
   UseMapMarkersProps,
@@ -34,6 +41,7 @@ export const useMapMarkers = ({
   saveHome,
   removeSavedHome,
   onMarkerClick,
+  onMapPreviewNavigate,
   onUnlockClick,
   contextKey,
   renderMapPropertyCard,
@@ -72,6 +80,61 @@ export const useMapMarkers = ({
     clearMapMarkers(markersRef, importantMarkersRef, cleanupMapPropertyCard);
   }, [cleanupMapPropertyCard]);
 
+  const finishWithFocusedCards = useCallback(
+    (
+      results: SearchResult[],
+      AdvancedMarkerElement: new (opts: {
+        map: google.maps.Map;
+        position: { lat: number; lng: number };
+        title: string;
+        content: HTMLElement;
+        zIndex?: number | null;
+      }) => GoogleAdvancedMarkerElement,
+    ) => {
+      if (!mapListingPreviewsEnabled) {
+        setIsUpdatingMarkers(false);
+        return;
+      }
+      const dismissedPreviewIds = new Set(dismissedMapPreviewIds);
+      addFocusedCardMarkers(results, currentPage, propertiesPerPage, {
+        activeTab,
+        map: googleMapRef.current! as google.maps.Map,
+        markersRef,
+        AdvancedMarkerElement,
+        renderMapPropertyCard,
+        cleanupMapPropertyCard,
+        calculatePropertyScore,
+        isHomeSaved,
+        saveHome,
+        removeSavedHome,
+        onMapPreviewNavigate,
+        onUnlockClick,
+        contextKey,
+        dismissedPreviewIds,
+        onDismissMapPreview,
+        onComplete: () => setIsUpdatingMarkers(false),
+      });
+    },
+    [
+      activeTab,
+      googleMapRef,
+      currentPage,
+      propertiesPerPage,
+      renderMapPropertyCard,
+      cleanupMapPropertyCard,
+      calculatePropertyScore,
+      isHomeSaved,
+      saveHome,
+      removeSavedHome,
+      onMapPreviewNavigate,
+      onUnlockClick,
+      contextKey,
+      dismissedMapPreviewIds,
+      onDismissMapPreview,
+      mapListingPreviewsEnabled,
+    ],
+  );
+
   const updateMapMarkers = useCallback(
     async (results: SearchResult[]) => {
       if (!googleMapRef.current || isUpdatingMarkers) return;
@@ -82,75 +145,88 @@ export const useMapMarkers = ({
         return;
       }
       setIsUpdatingMarkers(true);
-      clearMapMarkersCallback();
-      await ensureIsochroneAndRender({
-        isochroneData,
-        setIsochroneData,
-        fetchIsochroneForMapOnly,
-        onRenderImportant: handleRenderImportantLocationMarkers,
-      });
-      centerMapOnFocusedProperty(results, currentPage, googleMapRef);
-      const AdvancedMarkerElement = getAdvancedMarkerElement();
-      if (!AdvancedMarkerElement) {
-        setIsUpdatingMarkers(false);
-        return;
-      }
-      void createPinMarkersBatch(results, {
-        map: googleMapRef.current as google.maps.Map,
-        markersRef,
-        AdvancedMarkerElement,
-        calculatePropertyScore,
-        onMarkerClick,
-        onBatchComplete: () => {
-          if (!mapListingPreviewsEnabled) {
+
+      const run = async () => {
+        try {
+          if (!googleMapRef.current) {
             setIsUpdatingMarkers(false);
             return;
           }
-          const dismissedPreviewIds = new Set(dismissedMapPreviewIds);
-          addFocusedCardMarkers(results, currentPage, propertiesPerPage, {
-            activeTab,
-            map: googleMapRef.current! as google.maps.Map,
+          await ensureIsochroneAndRender({
+            isochroneData,
+            setIsochroneData,
+            fetchIsochroneForMapOnly,
+            onRenderImportant: handleRenderImportantLocationMarkers,
+          });
+          centerMapOnFocusedProperty(results, currentPage, googleMapRef);
+          const AdvancedMarkerElement = getAdvancedMarkerElement();
+          if (!AdvancedMarkerElement || !googleMapRef.current) {
+            setIsUpdatingMarkers(false);
+            return;
+          }
+
+          removeCardMarkersOnly(markersRef, cleanupMapPropertyCard);
+          const teardownPin = (m: GoogleAdvancedMarkerElement) => {
+            teardownAdvancedMarker(m);
+          };
+          const missingPins = removeOrphanPinsAndListMissingForPins(
+            markersRef,
+            results,
+            teardownPin,
+          );
+
+          const pinBatchComplete = () => {
+            finishWithFocusedCards(results, AdvancedMarkerElement);
+          };
+
+          if (missingPins.length === 0) {
+            pinBatchComplete();
+            return;
+          }
+
+          void createPinMarkersBatch(missingPins, {
+            map: googleMapRef.current as google.maps.Map,
             markersRef,
             AdvancedMarkerElement,
-            renderMapPropertyCard,
-            cleanupMapPropertyCard,
             calculatePropertyScore,
-            isHomeSaved,
-            saveHome,
-            removeSavedHome,
             onMarkerClick,
-            onUnlockClick,
-            contextKey,
-            dismissedPreviewIds,
-            onDismissMapPreview,
-            onComplete: () => setIsUpdatingMarkers(false),
+            onBatchComplete: pinBatchComplete,
           });
-        },
-      });
+        } catch (error: unknown) {
+          log.error(
+            LOG_CATEGORIES.MAP_RENDERING,
+            "updateMapMarkers failed",
+            error,
+          );
+          setIsUpdatingMarkers(false);
+        }
+      };
+
+      const win = getWindow();
+      if (win && typeof win.requestIdleCallback === "function") {
+        win.requestIdleCallback(
+          () => {
+            void run();
+          },
+          { timeout: 500 },
+        );
+      } else {
+        void run();
+      }
     },
     [
-      activeTab,
       googleMapRef,
       currentPage,
-      propertiesPerPage,
       isochroneData,
       setIsochroneData,
       fetchIsochroneForMapOnly,
       calculatePropertyScore,
-      isHomeSaved,
-      saveHome,
-      removeSavedHome,
       onMarkerClick,
-      onUnlockClick,
       isUpdatingMarkers,
       clearMapMarkersCallback,
       handleRenderImportantLocationMarkers,
-      renderMapPropertyCard,
       cleanupMapPropertyCard,
-      contextKey,
-      mapListingPreviewsEnabled,
-      dismissedMapPreviewIds,
-      onDismissMapPreview,
+      finishWithFocusedCards,
     ],
   );
 

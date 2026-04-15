@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import { Clock, ExternalLink, FileSignature, Plus } from "lucide-react";
 
+import { useLocalization } from "packages/contexts";
 import { useDocusignAgreements } from "packages/features/documents/hooks/data/useDocusignAgreements";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/Button";
@@ -54,6 +55,7 @@ import { CreateAgreementModal } from "./CreateAgreementModal";
  * ```
  */
 export default function DocuSignWidget() {
+  const { t } = useLocalization();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(
     null,
@@ -116,9 +118,13 @@ export default function DocuSignWidget() {
   // Loading state
   if (isLoading) {
     return (
-      <Box className="rounded-lg border border-gray-200 bg-white p-6">
+      <Box className="border-border bg-background-surface rounded-lg border p-6">
         <Box className="flex items-center justify-center py-8">
-          <KeyTurnLoader message="Loading agreements..." />
+          <KeyTurnLoader
+            message={t("docusign.widget_loading", {
+              defaultValue: "Loading agreements...",
+            })}
+          />
         </Box>
       </Box>
     );
@@ -127,10 +133,12 @@ export default function DocuSignWidget() {
   // Error state
   if (error) {
     return (
-      <Box className="rounded-lg border border-gray-200 bg-white p-6">
+      <Box className="border-border bg-background-surface rounded-lg border p-6">
         <Box className="py-8 text-center">
           <BodyText size="sm" className="text-destructive">
-            Failed to load agreements
+            {t("docusign.widget_error_load", {
+              defaultValue: "Failed to load agreements",
+            })}
           </BodyText>
         </Box>
       </Box>
@@ -139,12 +147,16 @@ export default function DocuSignWidget() {
 
   return (
     <>
-      <Box className="rounded-lg border border-gray-200 bg-white p-6">
+      <Box className="border-border bg-background-surface rounded-lg border p-6">
         {/* Header with icon and create button */}
         <Box className="mb-4 flex items-center justify-between">
           <Box className="flex items-center gap-2">
-            <FileSignature className="h-5 w-5 text-blue-600" />
-            <Title size="md">DocuSign Agreements</Title>
+            <FileSignature className="text-primary h-5 w-5" />
+            <Title size="md">
+              {t("docusign.widget_title", {
+                defaultValue: "DocuSign Agreements",
+              })}
+            </Title>
           </Box>
           <Button
             variant="primary"
@@ -152,39 +164,41 @@ export default function DocuSignWidget() {
             onClick={() => setIsCreateModalOpen(true)}
           >
             <Plus className="mr-1 h-4 w-4" />
-            Create
+            {t("docusign.widget_create", { defaultValue: "Create" })}
           </Button>
         </Box>
 
         {/* Summary Statistics - Three-card overview */}
         <Box className="mb-6 grid grid-cols-3 gap-3">
           {/* Pending signatures - requires action */}
-          <Box className="rounded-lg bg-orange-50 p-3 text-center">
-            <Box className="text-2xl font-bold text-orange-600">
+          <Box className="border-border-card-subtle rounded-lg border bg-yellow-50 p-3 text-center">
+            <Box className="text-2xl font-bold text-yellow-800">
               {stats.totalPending}
             </Box>
             <BodyText size="xs" muted>
-              Pending
+              {t("docusign.widget_stat_pending", { defaultValue: "Pending" })}
             </BodyText>
           </Box>
 
           {/* Completed this week - success metric */}
-          <Box className="rounded-lg bg-green-50 p-3 text-center">
-            <Box className="text-2xl font-bold text-green-600">
+          <Box className="border-border-card-subtle bg-primary-muted rounded-lg border p-3 text-center">
+            <Box className="text-primary text-2xl font-bold">
               {stats.completedThisWeek}
             </Box>
             <BodyText size="xs" muted>
-              This Week
+              {t("docusign.widget_stat_this_week", {
+                defaultValue: "This Week",
+              })}
             </BodyText>
           </Box>
 
           {/* Voided this month - tracking cancelled agreements */}
-          <Box className="rounded-lg bg-gray-50 p-3 text-center">
-            <Box className="text-2xl font-bold text-gray-600">
+          <Box className="border-border-card-subtle rounded-lg border bg-rose-50 p-3 text-center">
+            <Box className="text-2xl font-bold text-rose-800">
               {stats.voidedThisMonth}
             </Box>
             <BodyText size="xs" muted>
-              Voided
+              {t("docusign.widget_stat_voided", { defaultValue: "Voided" })}
             </BodyText>
           </Box>
         </Box>
@@ -194,14 +208,22 @@ export default function DocuSignWidget() {
           {/* Column 1: Pending Signatures */}
           <Box>
             <Box className="mb-3 flex items-center justify-between">
-              <Title as="h3" size="sm" className="font-medium text-gray-900">
-                Pending Signatures
+              <Title
+                as="h3"
+                size="sm"
+                className="text-text-primary font-medium"
+              >
+                {t("docusign.widget_section_pending", {
+                  defaultValue: "Pending Signatures",
+                })}
               </Title>
             </Box>
             {pendingSignatures.length === 0 ? (
-              <Box className="rounded-lg border border-dashed border-gray-300 py-6 text-center">
+              <Box className="border-border rounded-lg border border-dashed py-6 text-center">
                 <BodyText size="sm" muted>
-                  No pending signatures
+                  {t("docusign.widget_empty_pending", {
+                    defaultValue: "No pending signatures",
+                  })}
                 </BodyText>
               </Box>
             ) : (
@@ -216,7 +238,7 @@ export default function DocuSignWidget() {
                       key={agreement.id}
                       role="button"
                       tabIndex={0}
-                      className="cursor-pointer rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50"
+                      className="border-border hover:bg-accent-muted cursor-pointer rounded-lg border p-3 transition-colors"
                       onClick={() => setSelectedAgreementId(agreement.id)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
@@ -229,7 +251,7 @@ export default function DocuSignWidget() {
                         <BodyText
                           as="p"
                           size="sm"
-                          className="flex-1 truncate font-medium text-gray-900"
+                          className="text-text-primary flex-1 truncate font-medium"
                         >
                           {agreement.title}
                         </BodyText>
@@ -240,11 +262,7 @@ export default function DocuSignWidget() {
                         />
                       </Box>
                       {agreement.buyer_name && (
-                        <BodyText
-                          as="p"
-                          size="xs"
-                          className="mb-1 text-gray-600"
-                        >
+                        <BodyText as="p" size="xs" muted className="mb-1">
                           {agreement.buyer_name}
                         </BodyText>
                       )}
@@ -266,14 +284,22 @@ export default function DocuSignWidget() {
           {/* Column 2: Recent Agreements */}
           <Box>
             <Box className="mb-3 flex items-center justify-between">
-              <Title as="h3" size="sm" className="font-medium text-gray-900">
-                Recent Agreements
+              <Title
+                as="h3"
+                size="sm"
+                className="text-text-primary font-medium"
+              >
+                {t("docusign.widget_section_recent", {
+                  defaultValue: "Recent Agreements",
+                })}
               </Title>
             </Box>
             {recentAgreements.length === 0 ? (
-              <Box className="rounded-lg border border-dashed border-gray-300 py-6 text-center">
+              <Box className="border-border rounded-lg border border-dashed py-6 text-center">
                 <BodyText size="sm" muted>
-                  No agreements yet
+                  {t("docusign.widget_empty_recent", {
+                    defaultValue: "No agreements yet",
+                  })}
                 </BodyText>
               </Box>
             ) : (
@@ -283,7 +309,7 @@ export default function DocuSignWidget() {
                     key={agreement.id}
                     role="button"
                     tabIndex={0}
-                    className="cursor-pointer rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50"
+                    className="border-border hover:bg-accent-muted cursor-pointer rounded-lg border p-3 transition-colors"
                     onClick={() => setSelectedAgreementId(agreement.id)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
@@ -296,7 +322,7 @@ export default function DocuSignWidget() {
                       <BodyText
                         as="p"
                         size="sm"
-                        className="flex-1 truncate font-medium text-gray-900"
+                        className="text-text-primary flex-1 truncate font-medium"
                       >
                         {agreement.title}
                       </BodyText>
@@ -307,11 +333,11 @@ export default function DocuSignWidget() {
                       />
                     </Box>
                     {agreement.buyer_name && (
-                      <BodyText as="p" size="xs" className="mb-1 text-gray-600">
+                      <BodyText as="p" size="xs" muted className="mb-1">
                         {agreement.buyer_name}
                       </BodyText>
                     )}
-                    <BodyText as="p" size="xs" className="text-gray-500">
+                    <BodyText as="p" size="xs" muted>
                       {formatAgreementDate(
                         agreement.updated_at || agreement.created_at,
                       )}
@@ -325,19 +351,22 @@ export default function DocuSignWidget() {
 
         {/* View All Link - navigates to SavedPage documents view */}
         {agreements.length > 0 && (
-          <Box className="mt-4 border-t border-gray-200 pt-4">
+          <Box className="border-border mt-4 border-t pt-4">
             <Button
               variant="ghost"
               size="sm"
+              contentAlign="start"
+              icon={<ExternalLink className="h-3.5 w-3.5" />}
+              iconPosition="right"
               onClick={() => {
-                // Navigate to SavedPage documents view
                 const win = getWindow();
                 if (win) win.location.href = "/saved?view=documents";
               }}
-              className="flex h-auto items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+              className="h-auto"
             >
-              View All Agreements
-              <ExternalLink className="h-3.5 w-3.5" />
+              {t("docusign.widget_view_all", {
+                defaultValue: "View All Agreements",
+              })}
             </Button>
           </Box>
         )}

@@ -13,6 +13,8 @@ import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 
+import { DocuSignLegalNotice } from "./DocuSignLegalNotice";
+
 /**
  * Props for the ViewSignedDocument component (React Native).
  */
@@ -207,12 +209,8 @@ export default function ViewSignedDocument({
         </Box>
       </Box>
 
-      {/* Document notice */}
-      <Box style={styles.noticeContainer}>
-        <BodyText size="sm" style={styles.noticeText}>
-          This document has been completed and signed. All signatures are
-          legally binding.
-        </BodyText>
+      <Box style={styles.noticeOuter}>
+        <DocuSignLegalNotice variant="signed_document_complete" />
       </Box>
 
       {/* PDF viewer or error */}
@@ -277,17 +275,8 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: "center",
   },
-  noticeContainer: {
-    marginBottom: 12,
-    marginHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: color("green.200"),
-    backgroundColor: color("green.50"),
-    padding: 12,
-  },
-  noticeText: {
-    color: color("green.800"),
+  noticeOuter: {
+    paddingHorizontal: 16,
   },
   pdf: {
     flex: 1,

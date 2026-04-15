@@ -23,6 +23,8 @@ interface AgreementCardActionsProps {
   showDelete?: boolean;
   /** When true, copy explains DocuSign void + removal for all parties. */
   deleteVoidsEnvelope?: boolean;
+  /** Viewer is the listing agent (copy may mention removing from client Saved too). */
+  isListingAgent?: boolean;
   deleteModalTitle?: string;
   deleteModalMessage?: string;
   externalActionHandlers?: AgreementCardExternalActionHandlers;
@@ -34,6 +36,7 @@ export default function AgreementCardActions({
   onDelete,
   showDelete = false,
   deleteVoidsEnvelope = false,
+  isListingAgent = false,
   deleteModalTitle,
   deleteModalMessage,
   externalActionHandlers,
@@ -62,12 +65,11 @@ export default function AgreementCardActions({
   };
 
   const showViewSigned = contextualStatus === "completed";
-  const showPrimarySign =
-    Boolean(handleSignNow) && !showViewSigned && doc.library_kind === "agreement";
-  const isMyTurnToSign = contextualStatus === "sign_now";
-  const isAwaitingOtherSigner =
-    contextualStatus === "waiting_for_signature" ||
-    contextualStatus === "waiting_for_review";
+  const showSignCta =
+    Boolean(handleSignNow) &&
+    !showViewSigned &&
+    doc.library_kind === "agreement" &&
+    contextualStatus === "sign_now";
 
   const resolvedDeleteTitle =
     deleteModalTitle ??
@@ -76,37 +78,15 @@ export default function AgreementCardActions({
     deleteModalMessage ??
     (deleteVoidsEnvelope
       ? "This voids the DocuSign envelope for every signer and removes it from everyone's saved documents. You can't undo this."
-      : "Are you sure you want to remove this agreement from your library? This will not delete the agreement from DocuSign.");
+      : isListingAgent
+        ? "This removes the agreement from Saved for you and your client. If the envelope is still in progress, we cancel it in DocuSign when DocuSign allows; completed agreements are removed from Saved only."
+        : "Are you sure you want to remove this agreement from your library? This will not delete the agreement from DocuSign.");
 
   return (
     <>
       <Box className="flex flex-col gap-2">
-        {/* Primary CTA: sign in-app when it's your turn; otherwise view + disabled sign while others sign */}
-        {showPrimarySign && handleSignNow && isAwaitingOtherSigner ? (
-          <>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => handleViewDocument(doc.id, doc.filename)}
-              icon={<Icon name="eye" size={16} />}
-              fullWidth
-              className="justify-center"
-            >
-              View document
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled
-              icon={<Icon name="pen-tool" size={16} />}
-              fullWidth
-              className="justify-center"
-              label="Not your turn to sign yet"
-            >
-              Sign
-            </Button>
-          </>
-        ) : showPrimarySign && handleSignNow ? (
+        {/* Primary CTA: embedded signing only when contextual status is sign_now; otherwise view PDF only */}
+        {showSignCta && handleSignNow ? (
           <Button
             variant="primary"
             size="sm"
@@ -115,7 +95,7 @@ export default function AgreementCardActions({
             fullWidth
             className="justify-center"
           >
-            {isMyTurnToSign ? "Sign now" : "Sign"}
+            Sign now
           </Button>
         ) : showViewSigned ? (
           <Button

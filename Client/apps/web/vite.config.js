@@ -336,6 +336,8 @@ export default defineConfig(function (_a) {
       // Enable minification for production (standard practice)
       minify: "esbuild",
       outDir: path.join(root, "dist"),
+      // Single vendor chunk is ~1.3MB minified; threshold avoids noisy Rollup reporter only
+      chunkSizeWarningLimit: 1600,
       // Configure code splitting for consistent behavior
       rollupOptions: {
         output: {
@@ -343,26 +345,12 @@ export default defineConfig(function (_a) {
           manualChunks: function (id) {
             // Vendor chunks for better caching
             if (id.includes("node_modules")) {
-              // Keep React and all React-dependent libs in one chunk so React is initialized
-              // before they run (avoids prod-only "Cannot set properties of undefined (setting
-              // 'Children')" and "Cannot read properties of undefined (reading 'createContext')"
-              // when vendor runs before react-vendor).
-              if (
-                id.includes("react") ||
-                id.includes("react-dom") ||
-                id.includes("use-sync-external-store") ||
-                id.includes("zustand") ||
-                id.includes("framer-motion") ||
-                id.includes("@tanstack")
-              ) {
-                return "react-vendor";
-              }
+              // Single vendor chunk avoids Rollup "Circular chunk" between react-vendor and vendor.
               // Don't split react-router into separate chunk - keep it with main bundle
               // to prevent timing issues where router context isn't available when hooks run
               if (id.includes("react-router")) {
                 return undefined; // Include in main bundle to ensure router context is always available
               }
-              // Other vendor code
               return "vendor";
             }
             // Critical Router-dependent code should not be split

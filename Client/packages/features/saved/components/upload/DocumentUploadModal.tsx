@@ -11,9 +11,8 @@ import {
 import { useAuthStore, useUIStore } from "packages/store";
 import { BaseModal } from "packages/ui/components/modals";
 import { Box, Text } from "packages/ui/components/primitives";
+import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
 import { Platform } from "packages/utils/platform";
-
-import { UnderlineTabs } from "@/components/ui";
 
 type DocumentUploadModalProps = {
   isOpen: boolean;

@@ -111,19 +111,13 @@ export function useDocumentsLibraryMutations(clientId?: string) {
         currentUserId && doc.user_id && currentUserId !== doc.user_id;
 
       if (doc.library_kind === "agreement") {
-        if (
-          currentUserId &&
-          doc.agent_id === currentUserId &&
-          !["completed", "voided", "declined"].includes(
-            (doc.status ?? "").toLowerCase(),
-          )
-        ) {
-          const voidResponse = await docusignApi.voidAgreement(doc.id, {
-            reason: "Cancelled by agent from Saved",
+        if (currentUserId && doc.agent_id === currentUserId) {
+          const discardResponse = await docusignApi.discardAgreement(doc.id, {
+            reason: "Removed by agent from Saved",
           });
-          if (!voidResponse.success) {
+          if (!discardResponse.success) {
             throw new Error(
-              voidResponse.error ?? "Failed to cancel agreement",
+              discardResponse.error ?? "Failed to discard agreement",
             );
           }
           void queryClient.invalidateQueries({

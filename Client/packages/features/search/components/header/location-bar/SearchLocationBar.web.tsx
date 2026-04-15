@@ -48,6 +48,12 @@ export function SearchLocationBarWeb({
   const clearLocationPlaceSearchArea = useSearchContextStore(
     (s) => s.clearLocationPlaceSearchArea,
   );
+  const setLocationBarDraft = useSearchContextStore(
+    (s) => s.setLocationBarDraft,
+  );
+  const setLocationBarExternalSubmit = useSearchContextStore(
+    (s) => s.setLocationBarExternalSubmit,
+  );
   const [localValue, setLocalValue] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
@@ -178,16 +184,33 @@ export function SearchLocationBarWeb({
     return handleSelectGoogle(suggestion);
   };
 
-  const runSearch = () => {
-    void submitAfterTopSuggestionIfNeeded({
+  const runSearch = async () => {
+    await submitAfterTopSuggestionIfNeeded({
       suggestions,
       hasSelectedSuggestion: hasSelected,
       selectSuggestion: (s) => handleSelect(s),
-      submit: () => {
-        void onSearch();
+      submit: async () => {
+        await Promise.resolve(onSearch());
       },
     });
   };
+
+  const runSearchRef = useRef(runSearch);
+  runSearchRef.current = runSearch;
+
+  useEffect(() => {
+    setLocationBarDraft(localValue);
+  }, [localValue, setLocationBarDraft]);
+
+  useEffect(() => {
+    setLocationBarExternalSubmit(async () => {
+      await runSearchRef.current();
+    });
+    return () => {
+      setLocationBarExternalSubmit(null);
+      setLocationBarDraft("");
+    };
+  }, [setLocationBarExternalSubmit, setLocationBarDraft]);
 
   const handleLocationKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== "Enter") return;

@@ -38,8 +38,9 @@ export function MapControlsNative({
   const bottom = insets.bottom + CONTROLS_BOTTOM_OFFSET;
 
   const showNavigation = total > perPage;
-  const currentItem = Math.min(page + perPage, total);
-  const isPrevDisabled = page === 0;
+  const unfocused = page < 0;
+  const currentItem = unfocused ? "—" : Math.min(page + perPage, total);
+  const isPrevDisabled = page <= 0;
   const isNextDisabled = page + perPage >= total;
   const pageOf =
     SEARCH_TRANSLATIONS["search.page_of"] ?? "{{current}} of {{total}}";

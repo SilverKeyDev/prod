@@ -34,7 +34,7 @@ export type SearchPageMapViewProps = {
   setHasSearched: (searched: boolean) => void;
   selectedPropertyId: string | undefined;
   onSearchProperties: () => void | Promise<void>;
-  /** When false, header preferences Search is disabled until user adds an important location */
+  /** When false, main Search uses the location bar (or warns if the bar is empty). */
   hasLocations?: boolean;
   /** Location bar / map viewport polygon search (not preferences isochrone). */
   onLocationSearchSubmit: () => void | Promise<void>;

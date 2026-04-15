@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getScoreBasedColor } from "./scoreColors";
+import { getScoreBasedColor, getScoreBasedColorForMap } from "./scoreColors";
 
 describe("getScoreBasedColor", () => {
   it("uses five discrete steps (same color within a 20-point band)", () => {
@@ -25,5 +25,25 @@ describe("getScoreBasedColor", () => {
     const bottom = getScoreBasedColor(0);
     const under = getScoreBasedColor(-10);
     expect(bottom.fillColor).toBe(under.fillColor);
+  });
+});
+
+describe("getScoreBasedColorForMap", () => {
+  it("ramps continuously (adjacent scores can differ within a former 20-point band)", () => {
+    const a = getScoreBasedColorForMap(10);
+    const b = getScoreBasedColorForMap(11);
+    expect(a.fillColor).not.toBe(b.fillColor);
+  });
+
+  it("low scores are much more muted than high scores", () => {
+    const low = getScoreBasedColorForMap(0).fillColor;
+    const high = getScoreBasedColorForMap(100).fillColor;
+    expect(low).not.toBe(high);
+  });
+
+  it("clamps like the UI scale", () => {
+    const top = getScoreBasedColorForMap(100);
+    const over = getScoreBasedColorForMap(200);
+    expect(top.fillColor).toBe(over.fillColor);
   });
 });

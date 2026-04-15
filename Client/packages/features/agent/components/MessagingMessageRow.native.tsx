@@ -4,10 +4,13 @@ import { StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { useDocumentsData } from "packages/features/documents";
+/* eslint-disable-next-line silverkey/no-cross-feature-internals -- Agreement system messages use shared card from messaging. */
+import AgreementEventCard from "packages/features/messaging/components/cards/AgreementEventCard";
 import type {
   ChatMessage,
   EventRequestStatus,
 } from "packages/features/messaging/hooks/data/messaging/types"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Shared message row; types live in messaging. */
+import { parseAgreementEventPayload } from "packages/features/messaging/utils/agreementEventPayload"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Agreement system messages. */
 import { parseEventRequestPayload } from "packages/features/messaging/utils/eventRequestPayload"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Shared message row; utils live in messaging. */
 import { getDateDividerText } from "packages/features/messaging/utils/messageDateUtils"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Shared message row; utils live in messaging. */
 import {
@@ -16,6 +19,8 @@ import {
   parseSharedAttachmentSnapshot,
 } from "packages/features/messaging/utils/sharedAttachmentSnapshot"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Shared attachment snapshots. */
 import { useSavedHomesData } from "packages/features/search";
+import { useNavigation } from "packages/navigation";
+import { useAuthStore } from "packages/store";
 import { Box, Image, Pressable, Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
@@ -39,6 +44,9 @@ type MessagingMessageRowNativeProps = {
   onCancelEventRequest?: (messageId: string) => Promise<void>;
   acceptedEventRequestIds?: Set<string>;
   acceptingEventRequestId?: string | null;
+  /** Same as document cards: opens agreement PDF viewer (web parity). */
+  onAgreementViewDocument?: (agreementId: string, documentName: string) => void;
+  onAgreementSignNow?: (agreementId: string) => void;
 };
 
 function formatHomePrice(price: string | number | undefined): string {
@@ -80,15 +88,21 @@ export function MessagingMessageRowNative({
   onCancelEventRequest,
   acceptedEventRequestIds = new Set(),
   acceptingEventRequestId = null,
+  onAgreementViewDocument,
+  onAgreementSignNow,
 }: MessagingMessageRowNativeProps) {
+  const { navigateToPath } = useNavigation();
   const { getSavedHome } = useSavedHomesData();
   const { documents } = useDocumentsData();
+  const viewerUserId = useAuthStore((s) => s.user?.id ?? null);
   const currentUserRole = mode === "client" ? "user" : "agent";
   const isCurrentUserMessage = message.role === currentUserRole;
   const shouldShowDelivered =
     isCurrentUserMessage &&
     message.status === "delivered" &&
     isMostRecentMessage;
+  const agreementEventPayload = parseAgreementEventPayload(message.content);
+  const showAgreementEventCard = !!agreementEventPayload;
   const eventRequestPayload = parseEventRequestPayload(message.content);
   const showEventRequestCard =
     !!eventRequestPayload && !!(onAcceptEventRequest || onCancelEventRequest);
@@ -122,9 +136,32 @@ export function MessagingMessageRowNative({
         <View
           style={[
             styles.bubble,
-            isCurrentUserMessage ? styles.bubbleUser : styles.bubbleAgent,
+            showAgreementEventCard
+              ? styles.bubbleAgreementEmbed
+              : isCurrentUserMessage
+                ? styles.bubbleUser
+                : styles.bubbleAgent,
           ]}
         >
+          {showAgreementEventCard && agreementEventPayload ? (
+            <Box className="mb-2 w-full min-w-0 max-w-full">
+              <AgreementEventCard
+                payload={agreementEventPayload}
+                isAgent={mode === "agent"}
+                viewerUserId={viewerUserId}
+                onSignNow={
+                  onAgreementSignNow ??
+                  ((_agreementId) =>
+                    void navigateToPath("/saved?view=agreements"))
+                }
+                onViewDocument={
+                  onAgreementViewDocument ??
+                  ((_agreementId, _documentName) =>
+                    void navigateToPath("/saved?view=agreements"))
+                }
+              />
+            </Box>
+          ) : null}
           {showEventRequestCard && eventRequestPayload && (
             <Box className="mb-2">
               <Box className="border-border bg-background-surface rounded-lg border p-3">
@@ -254,6 +291,7 @@ export function MessagingMessageRowNative({
               );
             })()}
           {message.shared_document_id &&
+            !showAgreementEventCard &&
             (() => {
               const document = mergeSharedDocumentForDisplay(
                 message.content,
@@ -321,6 +359,7 @@ export function MessagingMessageRowNative({
           {!message.shared_home_id &&
           !message.shared_document_id &&
           !showEventRequestCard &&
+          !showAgreementEventCard &&
           message.content.trim() ? (
             <Text
               className={
@@ -407,6 +446,10 @@ const styles = StyleSheet.create({
   },
   bubbleAgent: {
     backgroundColor: color("neutral.100"),
+  },
+  bubbleAgreementEmbed: {
+    backgroundColor: "transparent",
+    padding: 0,
   },
   statusRow: {
     flexDirection: "row",

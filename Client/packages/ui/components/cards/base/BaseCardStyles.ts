@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import { CARD_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 
 import { getCardHoverClasses, getInteractiveCardClasses } from "./styles";
@@ -58,8 +60,9 @@ function getHeightStyles(height: string): string {
 }
 
 function getScaleStyles(scale: string | number): string {
-  // Use concatenation so Tailwind doesn't scan literal "scale-[${scale}]" and emit invalid CSS
-  if (typeof scale === "number") return "scale-[" + String(scale) + "]";
+  // Numeric scale uses inline `transform` on BaseCard so Tailwind never emits dynamic
+  // `scale-[…]` utilities (Vite CSS minify logged invalid `--tw-scale-x: ${scale}` output).
+  if (typeof scale === "number") return "";
   const scaleStyles: Record<string, string> = {
     xs: "scale-75",
     sm: "scale-90",
@@ -68,6 +71,17 @@ function getScaleStyles(scale: string | number): string {
     xl: "scale-125",
   };
   return scaleStyles[scale as string] ?? scaleStyles.md;
+}
+
+/** Inline scale when `scale` is a number (see getScaleStyles). */
+export function getCardScaleInlineStyle(
+  scaleProp: BaseCardStyleProps["scale"] | undefined,
+  cardType: BaseCardStyleProps["cardType"],
+): CSSProperties | undefined {
+  const cardDefaults = getCardTypeDefaults(cardType);
+  const scale = scaleProp ?? cardDefaults.scale;
+  if (typeof scale !== "number") return undefined;
+  return { transform: `scale(${scale})` };
 }
 
 export function getBaseCardClasses(props: BaseCardStyleProps): string {

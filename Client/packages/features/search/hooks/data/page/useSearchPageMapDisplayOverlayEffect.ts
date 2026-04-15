@@ -25,7 +25,11 @@ type Params = {
     data: unknown,
     options?: { skipCommuteToggle?: boolean },
   ) => void;
-  renderImportantLocationMarkersWrapper: (data: unknown) => void | Promise<void>;
+  renderImportantLocationMarkersWrapper: (
+    data: unknown,
+  ) => void | Promise<void>;
+  /** When false, skip map-only isochrone fetch/render until explicit search (agents). */
+  shouldPrimeIsochrone?: boolean;
 };
 
 export function useSearchPageMapDisplayOverlayEffect({
@@ -42,6 +46,7 @@ export function useSearchPageMapDisplayOverlayEffect({
   primeIsochroneOverlay,
   renderIsochronePolygonWrapper,
   renderImportantLocationMarkersWrapper,
+  shouldPrimeIsochrone = true,
 }: Params) {
   const hasPrimedWithoutIsochroneData = useRef(false);
 
@@ -76,7 +81,11 @@ export function useSearchPageMapDisplayOverlayEffect({
       clearImportantLocationMarkers(importantMarkersRef);
     }
 
-    if (!isochroneData && !hasPrimedWithoutIsochroneData.current) {
+    if (
+      shouldPrimeIsochrone &&
+      !isochroneData &&
+      !hasPrimedWithoutIsochroneData.current
+    ) {
       hasPrimedWithoutIsochroneData.current = true;
       setTimeout(() => {
         void primeIsochroneOverlay();
@@ -88,6 +97,7 @@ export function useSearchPageMapDisplayOverlayEffect({
     locationSearchOverlayData,
     isochroneData,
     showCommuteOverlay,
+    shouldPrimeIsochrone,
     googleMapRef,
     primeIsochroneOverlay,
     renderIsochronePolygonWrapper,

@@ -1,6 +1,4 @@
-import { useEffect, useRef } from "react";
-
-import { AlertCircle } from "lucide-react";
+import { useEffect } from "react";
 
 import { useEmbeddedSigningUrlQuery } from "packages/features/documents/hooks/data/useEmbeddedSigningUrlQuery";
 import { useUIStore } from "packages/store";
@@ -8,7 +6,8 @@ import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
-import { BodyText } from "@/components/ui";
+import { DocuSignLegalNotice } from "./DocuSignLegalNotice";
+import ViewSignedDocument from "./ViewSignedDocument";
 
 /**
  * Props for the EmbeddedSigning component.
@@ -36,6 +35,11 @@ type EmbeddedSigningProps = {
    * Adjust based on document length and available viewport space.
    */
   height?: string;
+
+  /**
+   * Title for the PDF viewer when embedded signing is unavailable (same viewer as signed documents).
+   */
+  pdfViewerTitle?: string;
 };
 
 /**
@@ -73,31 +77,16 @@ export default function EmbeddedSigning({
   participantId,
   onComplete,
   height = "600px",
+  pdfViewerTitle,
 }: EmbeddedSigningProps) {
-  const { data: signingUrl, isPending, isError, error } =
-    useEmbeddedSigningUrlQuery(agreementId, participantId);
+  const {
+    data: signingUrl,
+    isPending,
+    isError,
+  } = useEmbeddedSigningUrlQuery(agreementId, participantId);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const errorToastSentRef = useRef(false);
 
-  useEffect(() => {
-    errorToastSentRef.current = false;
-  }, [agreementId, participantId]);
-
-  const errorMessage =
-    isError && error instanceof Error
-      ? error.message
-      : isError
-        ? "Failed to load signing interface"
-        : null;
-
-  useEffect(() => {
-    if (!isError || !errorMessage || errorToastSentRef.current) return;
-    errorToastSentRef.current = true;
-    enqueueToast({
-      type: "error",
-      message: errorMessage,
-    });
-  }, [isError, errorMessage, enqueueToast]);
+  const showPdfFallback = !isPending && (isError || !signingUrl);
 
   // Listen for DocuSign completion event via postMessage
   // DocuSign iframe sends this event when signing is complete
@@ -137,47 +126,25 @@ export default function EmbeddedSigning({
     );
   }
 
-  // Error state if URL fetch failed
-  if (errorMessage) {
+  if (showPdfFallback) {
     return (
-      <Box className="flex flex-col items-center justify-center py-12 text-center">
-        <AlertCircle className="mb-3 h-12 w-12 text-red-500" />
-        <BodyText size="md" className="mb-2 text-gray-900">
-          Unable to Load Signing Interface
-        </BodyText>
-        <BodyText size="sm" muted>
-          {errorMessage}
-        </BodyText>
-      </Box>
-    );
-  }
-
-  // Empty state if no URL available (shouldn't normally happen)
-  if (!signingUrl) {
-    return (
-      <Box className="flex flex-col items-center justify-center py-12 text-center">
-        <AlertCircle className="mb-3 h-12 w-12 text-gray-400" />
-        <BodyText size="sm" muted>
-          No signing URL available
-        </BodyText>
-      </Box>
+      <ViewSignedDocument
+        agreementId={agreementId}
+        title={pdfViewerTitle ?? "Agreement document"}
+        height={height}
+      />
     );
   }
 
   // Render signing iframe with legal notice
   return (
     <Box className="w-full">
-      <Box className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
-        <BodyText size="sm" className="text-blue-900">
-          Please review and sign the document below. Your signature will be
-          legally binding.
-        </BodyText>
-      </Box>
+      <DocuSignLegalNotice variant="embedded_signing" />
       <iframe
         src={signingUrl}
         style={{ width: "100%", height, border: "none" }}
         title="DocuSign Signing Interface"
-        className="rounded-lg border border-gray-300"
+        className="border-border rounded-lg border"
       />
     </Box>
   );

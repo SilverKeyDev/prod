@@ -28,8 +28,9 @@ export function MapControls(props: {
   const { t } = useLocalization();
   /** `page` = start index of visible window; `perPage` = number of items in that window. */
   const showNavigation = total > perPage;
-  const currentItem = Math.min(page + perPage, total);
-  const isPrevDisabled = page === 0;
+  const unfocused = page < 0;
+  const currentItem = unfocused ? "—" : Math.min(page + perPage, total);
+  const isPrevDisabled = page <= 0;
   const isNextDisabled = page + perPage >= total;
   // Unified controls (single layout, equal button sizing)
   return (

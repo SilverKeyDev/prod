@@ -165,7 +165,11 @@ export default function SearchDisplayDropdown({
       {isDev ? (
         <Box className="flex flex-col gap-1.5">
           <Box className="flex flex-row items-center justify-between gap-3">
-            <BodyText as="span" size="sm" className="text-text-primary shrink-0">
+            <BodyText
+              as="span"
+              size="sm"
+              className="text-text-primary shrink-0"
+            >
               {SEARCH_TRANSLATIONS["search.show_map_listing_previews"] ??
                 "Show listing previews on map (dev)"}
             </BodyText>

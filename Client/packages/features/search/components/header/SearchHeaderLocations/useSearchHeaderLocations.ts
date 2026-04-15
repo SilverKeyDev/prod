@@ -6,7 +6,6 @@ import {
   showErrorToast,
   showSuccessToast,
 } from "packages/hooks/ui/toast/useToast";
-import { getPreservedImportantLocations } from "packages/utils/domain/profile/importantLocations";
 
 import { LOCATION_SAVE_DEBOUNCE_MS } from "./constants";
 import type { SearchImportantLocation } from "./types";
@@ -49,10 +48,7 @@ export function useSearchHeaderLocations(
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(() => {
         saveTimeoutRef.current = null;
-        const previous = locationsListRef.current;
-        const toPersist =
-          getPreservedImportantLocations(previous, next) ?? next;
-        void updatePreferences({ important_locations: toPersist })
+        void updatePreferences({ important_locations: next })
           .then(() => {
             void onPreferencesChanged?.();
             showSuccessToast(t("common.saved"));
@@ -77,9 +73,7 @@ export function useSearchHeaderLocations(
       clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = null;
     }
-    const toSaveRaw = localLocations ?? [];
-    const toSave =
-      getPreservedImportantLocations(locationsList, toSaveRaw) ?? toSaveRaw;
+    const toSave = localLocations ?? [];
     const hasChanged = JSON.stringify(toSave) !== JSON.stringify(locationsList);
     void updatePreferences({ important_locations: toSave })
       .then(() => {
@@ -104,10 +98,7 @@ export function useSearchHeaderLocations(
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = null;
-        const toSaveRaw = localLocationsRef.current ?? [];
-        const toSave =
-          getPreservedImportantLocations(locationsListRef.current, toSaveRaw) ??
-          toSaveRaw;
+        const toSave = localLocationsRef.current ?? [];
         void updatePreferencesRef
           .current({ important_locations: toSave })
           .then(() => void onPreferencesChangedRef.current?.())

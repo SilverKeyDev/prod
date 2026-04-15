@@ -7,6 +7,7 @@ from app.services.auth import get_current_user
 from app.services.docusign import AgreementLifecycleService, RevisionService
 from app.services.docusign.errors import DocusignError
 from app.services.docusign.utils.permissions import (
+    can_discard_agreement_as_agent,
     can_modify_agreement,
     can_send_agreement,
     can_void_agreement,
@@ -218,3 +219,61 @@ def void_agreement_action(agreement_id, data: VoidAgreementRequest | None = None
             {"agreement_id": agreement_id, "error": str(e)},
         )
         return SecureErrorHandler.handle_error(e, "Failed to void agreement")
+
+
+def discard_agreement_action(agreement_id, data: VoidAgreementRequest | None = None):
+    """Handle POST /agreements/<id>/discard — agent removes from Saved (void when possible)."""
+    try:
+        user = get_current_user()
+        if not user:
+            log.warn(
+                LOG_CATEGORIES["DOCUSIGN"],
+                "Unauthenticated discard agreement attempt",
+                {"agreement_id": agreement_id},
+            )
+            return jsonify({"error": "Authentication required"}), 401
+        agreement = AgreementLifecycleService.get_agreement(agreement_id)
+        if not can_discard_agreement_as_agent(user, agreement):
+            log.warn(
+                LOG_CATEGORIES["DOCUSIGN"],
+                "User denied access to discard agreement",
+                {
+                    "agreement_id": agreement_id,
+                    "user_id": user.id,
+                    "agreement_status": agreement.status,
+                },
+            )
+            return jsonify({"error": "Access denied"}), 403
+        if data is None:
+            request_data = request.get_json(silent=True) or {}
+        else:
+            request_data = data.model_dump(mode="json")
+        reason = request_data.get("reason", "Discarded by agent")
+        log.debug(
+            LOG_CATEGORIES["DOCUSIGN"],
+            "Discarding agreement as agent",
+            {
+                "agreement_id": agreement_id,
+                "user_id": user.id,
+                "reason": reason,
+                "current_status": agreement.status,
+            },
+        )
+        AgreementLifecycleService.discard_agreement_as_agent(
+            agreement_id=agreement_id, reason=reason, actor_id=user.id
+        )
+        log.info(
+            LOG_CATEGORIES["DOCUSIGN"],
+            "Agreement discarded successfully",
+            {"agreement_id": agreement_id, "user_id": user.id, "reason": reason},
+        )
+        return jsonify({"success": True}), 200
+    except DocusignError:
+        raise
+    except Exception as e:
+        log.error(
+            LOG_CATEGORIES["ERRORS"],
+            "Failed to discard agreement",
+            {"agreement_id": agreement_id, "error": str(e)},
+        )
+        return SecureErrorHandler.handle_error(e, "Failed to discard agreement")

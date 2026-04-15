@@ -1,7 +1,8 @@
 /**
  * Shared score-based color scale for match scores (0–100).
- * Five discrete steps along HSL hue 0° red → 120° green (0°, 30°, 60°, 90°, 120°);
- * UI vs map presets tune saturation/lightness for each surface.
+ * UI (`getScoreBasedColor`): five discrete bands on the red→yellow→green arc.
+ * Map pins (`getScoreBasedColorForMap`): interpolated stops — very low chroma at low scores,
+ * soft gold mid, muted emerald high (overall less saturated than legacy map palette).
  */
 export type ScoreColors = {
   fillColor: string;
@@ -10,22 +11,10 @@ export type ScoreColors = {
   textColor: string;
 };
 
-/** Optional HSL scale tuning (saturation/lightness percentages 0–100). */
+/** Optional HSL overrides (saturation/lightness percentages 0–100) for the active step. */
 export type ScoreColorScaleOptions = {
   saturation?: number;
   lightness?: number;
-};
-
-/** Muted chroma so scores feel at home next to neutrals; still clearly red→green in five steps. */
-const UI_SCALE: Required<Pick<ScoreColorScaleOptions, "saturation" | "lightness">> = {
-  saturation: 48,
-  lightness: 50,
-};
-
-/** A bit more saturation + slightly lower lightness than UI so pins read on map tiles without neon UI. */
-const MAP_SCALE: Required<Pick<ScoreColorScaleOptions, "saturation" | "lightness">> = {
-  saturation: 62,
-  lightness: 42,
 };
 
 /** sRGB relative luminance (0–1). Used to pick light vs dark text. */
@@ -44,13 +33,36 @@ const LUMINANCE_THRESHOLD = 0.45;
 
 const STROKE_RGB_FACTOR = 0.75;
 
-/** Bins 0–100 into five bands; each band gets one hue on the red→green arc. */
 const SCORE_COLOR_STEP_COUNT = 5;
 
 /**
- * HSL (0–120° = red → yellow → green) to sRGB. h in [0, 120], s and l in [0, 100].
+ * Hue uses the project’s 0–120° red → yellow → green arc (see hslScoreArcToRgb).
+ * UI steps: saturation rises in the center so the middle band reads clearly as yellow.
  */
-function hslRedYellowGreenToRgb(
+const SCORE_STEP_HSL_UI: readonly [number, number, number][] = [
+  [5, 48, 35], // deep wine / crimson
+  [24, 44, 38], // burnt amber (muted but defined)
+  [56, 70, 48], // clear golden yellow — high chroma, no khaki
+  [86, 46, 41], // crisp yellow-green
+  [115, 44, 37], // rich emerald
+];
+
+/**
+ * Map pins: interpolate along these stops so low scores are much less saturated
+ * and highs stay vivid but not neon. Saturation peaks in the mid band (soft gold).
+ */
+const MAP_SCORE_HSL_STOPS: readonly [number, number, number][] = [
+  [6, 16, 40], // dusty rose — very low chroma
+  [24, 26, 44], // warm clay
+  [52, 46, 49], // muted gold (readable on aerial tiles)
+  [90, 36, 45], // yellow-green
+  [118, 34, 42], // deep sage / emerald
+];
+
+/**
+ * HSL on the red → yellow → green arc: h in [0, 120], s and l in [0, 100].
+ */
+function hslScoreArcToRgb(
   h: number,
   sPercent: number,
   lPercent: number,
@@ -80,28 +92,46 @@ function hslRedYellowGreenToRgb(
   };
 }
 
-function scoreToDiscreteHue(score0to100: number): number {
+function stepIndexFromScore(score0to100: number): number {
   const clamped = Math.max(0, Math.min(100, score0to100));
-  const stepIndex = Math.min(
+  return Math.min(
     SCORE_COLOR_STEP_COUNT - 1,
     Math.floor((clamped / 100) * SCORE_COLOR_STEP_COUNT),
   );
-  return (stepIndex / (SCORE_COLOR_STEP_COUNT - 1)) * 120;
 }
 
-function buildScoreColorsFromHsl(
-  score: number,
-  saturation: number,
-  lightness: number,
+function lerp(a: number, b: number, u: number): number {
+  return a + (b - a) * u;
+}
+
+/** t in [0, 1] from match score; lerps H/S/L between MAP_SCORE_HSL_STOPS. */
+function mapScoreToInterpolatedHsl(
+  score0to100: number,
+): [number, number, number] {
+  const t = Math.max(0, Math.min(1, score0to100 / 100));
+  const stops = MAP_SCORE_HSL_STOPS;
+  const n = stops.length - 1;
+  const pos = t * n;
+  const i = Math.min(n - 1, Math.floor(pos));
+  const u = pos - i;
+  const a = stops[i]!;
+  const b = stops[i + 1]!;
+  return [lerp(a[0], b[0], u), lerp(a[1], b[1], u), lerp(a[2], b[2], u)];
+}
+
+function buildScoreColorsFromStepHsl(
+  h: number,
+  s: number,
+  l: number,
 ): ScoreColors {
-  const hue = scoreToDiscreteHue(score);
-  const { r, g, b } = hslRedYellowGreenToRgb(hue, saturation, lightness);
+  const { r, g, b } = hslScoreArcToRgb(h, s, l);
   const fillColor = `rgb(${r}, ${g}, ${b})`;
   const strokeColor = `rgb(${Math.round(r * STROKE_RGB_FACTOR)}, ${Math.round(
     g * STROKE_RGB_FACTOR,
   )}, ${Math.round(b * STROKE_RGB_FACTOR)})`;
   const luminance = relativeLuminance(r, g, b);
-  const textColor = luminance < LUMINANCE_THRESHOLD ? MUTED_LIGHT_TEXT : MUTED_DARK_TEXT;
+  const textColor =
+    luminance < LUMINANCE_THRESHOLD ? MUTED_LIGHT_TEXT : MUTED_DARK_TEXT;
   return { fillColor, strokeColor, textColor };
 }
 
@@ -112,14 +142,25 @@ export function getScoreBasedColor(
   score: number,
   options?: ScoreColorScaleOptions,
 ): ScoreColors {
-  const saturation = options?.saturation ?? UI_SCALE.saturation;
-  const lightness = options?.lightness ?? UI_SCALE.lightness;
-  return buildScoreColorsFromHsl(score, saturation, lightness);
+  const step = stepIndexFromScore(score);
+  const row = SCORE_STEP_HSL_UI[step] ?? SCORE_STEP_HSL_UI[0]!;
+  const h = row[0];
+  let s = row[1];
+  let l = row[2];
+  if (options?.saturation != null) {
+    s = Math.max(0, Math.min(100, options.saturation));
+  }
+  if (options?.lightness != null) {
+    l = Math.max(0, Math.min(100, options.lightness));
+  }
+  return buildScoreColorsFromStepHsl(h, s, l);
 }
 
 /**
- * Stronger saturation and lower lightness so match pins read on beige / muted map tiles.
+ * Match pins on the map: continuous red→yellow→green arc with saturation that
+ * ramps up strongly with score (very desaturated at the bottom).
  */
 export function getScoreBasedColorForMap(score: number): ScoreColors {
-  return buildScoreColorsFromHsl(score, MAP_SCALE.saturation, MAP_SCALE.lightness);
+  const [h, s, l] = mapScoreToInterpolatedHsl(score);
+  return buildScoreColorsFromStepHsl(h, s, l);
 }

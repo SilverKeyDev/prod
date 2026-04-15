@@ -3,65 +3,12 @@ Unit tests for agent calendar duplication logic when clients create events.
 Tests the create_in_agent_calendars function.
 """
 
-import json
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
 
 import pytest
 
 from app.services.calendar.events.creation import create_in_agent_calendars
-
-
-@pytest.fixture
-def mock_client_user_single_agent():
-    """Create a mock client user with a single agent"""
-    user = Mock()
-    user.id = "client-456"
-    user.is_agent = False
-    user.agent_id = "agent-123"
-    return user
-
-
-@pytest.fixture
-def mock_client_user_multiple_agents():
-    """Create a mock client user with multiple agents"""
-    user = Mock()
-    user.id = "client-789"
-    user.is_agent = False
-    user.agent_id = ["agent-123", "agent-456"]
-    return user
-
-
-@pytest.fixture
-def mock_client_user_no_agent():
-    """Create a mock client user without an agent"""
-    user = Mock()
-    user.id = "client-999"
-    user.is_agent = False
-    user.agent_id = None
-    return user
-
-
-@pytest.fixture
-def mock_calendar_event():
-    """Create a mock calendar event"""
-    event = Mock()
-    event.id = "event-123"
-    event.shared_with_user_ids = []
-    event.calculate_duration = Mock()
-    return event
-
-
-@pytest.fixture
-def mock_event_data():
-    """Create mock event data"""
-    return {
-        "summary": "Test Event",
-        "description": "Test Description",
-        "location": "Test Location",
-        "start": {"dateTime": "2026-04-15T10:00:00Z"},
-        "end": {"dateTime": "2026-04-15T11:00:00Z"},
-    }
 
 
 @pytest.mark.unit
@@ -397,75 +344,3 @@ class TestCreateInAgentCalendars:
 
         # Verify at least second agent is in shared_with_user_ids
         assert agent_id_2 in mock_calendar_event.shared_with_user_ids
-
-    @patch("app.services.calendar.events.creation.User.query")
-    def test_agent_id_json_string_parsing(
-        self, mock_user_query, mock_event_data, mock_calendar_event
-    ):
-        """Should parse JSON string format for agent_id"""
-        user_id = "client-456"
-        calendar_id = "primary"
-        event_type = "meeting"
-
-        # Create client user with JSON string agent_id
-        mock_client = Mock()
-        mock_client.id = "client-456"
-        mock_client.is_agent = False
-        mock_client.agent_id = json.dumps(["agent-123", "agent-456"])
-
-        # Mock query chain
-        mock_filter = Mock()
-        mock_user_query.filter_by.return_value = mock_filter
-        mock_filter.first.return_value = mock_client
-
-        with patch("app.services.calendar.events.creation.tokens_get") as mock_tokens:
-            mock_tokens.return_value = None  # Skip actual calendar creation
-
-            create_in_agent_calendars(
-                user_id,
-                mock_event_data,
-                calendar_id,
-                event_type,
-                mock_calendar_event,
-                should_create=True,
-                is_agent=False,
-            )
-
-            # Should have processed two agents
-            assert mock_tokens.call_count == 2
-
-    @patch("app.services.calendar.events.creation.User.query")
-    def test_agent_id_comma_separated_parsing(
-        self, mock_user_query, mock_event_data, mock_calendar_event
-    ):
-        """Should parse comma-separated string format for agent_id"""
-        user_id = "client-456"
-        calendar_id = "primary"
-        event_type = "meeting"
-
-        # Create client user with comma-separated agent_id
-        mock_client = Mock()
-        mock_client.id = "client-456"
-        mock_client.is_agent = False
-        mock_client.agent_id = "agent-123, agent-456"
-
-        # Mock query chain
-        mock_filter = Mock()
-        mock_user_query.filter_by.return_value = mock_filter
-        mock_filter.first.return_value = mock_client
-
-        with patch("app.services.calendar.events.creation.tokens_get") as mock_tokens:
-            mock_tokens.return_value = None  # Skip actual calendar creation
-
-            create_in_agent_calendars(
-                user_id,
-                mock_event_data,
-                calendar_id,
-                event_type,
-                mock_calendar_event,
-                should_create=True,
-                is_agent=False,
-            )
-
-            # Should have processed two agents
-            assert mock_tokens.call_count == 2

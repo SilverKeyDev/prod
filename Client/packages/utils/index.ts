@@ -11,7 +11,7 @@ export {
   formatNumber,
   formatUSD,
 } from "./format";
-export type { ScoreColors,ScoreColorScaleOptions } from "./format/scoreColors";
+export type { ScoreColors, ScoreColorScaleOptions } from "./format/scoreColors";
 export {
   getScoreBasedColor,
   getScoreBasedColorForMap,

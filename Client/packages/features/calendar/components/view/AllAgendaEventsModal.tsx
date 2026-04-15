@@ -133,7 +133,7 @@ export function AllAgendaEventsModal({
           </Text>
         </Box>
       ) : (
-               <Box className="pb-2">
+        <Box className="pb-2">
           {displayedItems.length === 0 ? (
             <Box className="py-2">
               <Text className="text-text-secondary text-sm">

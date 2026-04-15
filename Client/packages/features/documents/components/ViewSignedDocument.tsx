@@ -10,6 +10,8 @@ import { getWindow } from "packages/utils/platform";
 
 import { BodyText, Button, Title } from "@/components/ui";
 
+import { DocuSignLegalNotice } from "./DocuSignLegalNotice";
+
 /**
  * Props for the ViewSignedDocument component.
  */
@@ -192,20 +194,14 @@ export default function ViewSignedDocument({
         </Box>
       </Box>
 
-      {/* Document notice */}
-      <Box className="mb-3 rounded-lg border border-green-200 bg-green-50 p-3">
-        <BodyText size="sm" className="text-green-900">
-          This document has been completed and signed. All signatures are
-          legally binding.
-        </BodyText>
-      </Box>
+      <DocuSignLegalNotice variant="signed_document_complete" />
 
       {/* PDF viewer iframe */}
       <iframe
         src={documentUrl}
         style={{ width: "100%", height, border: "none" }}
         title="Signed Document Viewer"
-        className="rounded-lg border border-gray-300"
+        className="border-border rounded-lg border"
       />
     </Box>
   );

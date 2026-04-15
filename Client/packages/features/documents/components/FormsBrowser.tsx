@@ -11,13 +11,17 @@ import type { ChecklistForm } from "packages/features/documents/types/forms";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import Button from "packages/ui/components/button/Button";
 import { Icon } from "packages/ui/components/icons";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives";
+import { formatFormsLibraryCategoryLabel } from "packages/utils/documents";
+
+import { BodyText, Subtitle, Title } from "@/components/ui";
 
 type FormsBrowserProps = {
-  onSelectForm: (form: ChecklistForm) => void;
+  /** When provided with `showActions={false}` (e.g. upload modal), tapping a form card selects it. */
+  onSelectForm?: (form: ChecklistForm) => void;
   onClose?: () => void;
-  showActions?: boolean; // Show download/attach buttons (default: true)
-  onSendForSignature?: (form: ChecklistForm) => void; // Send form for signature
+  showActions?: boolean; // Show download / send-for-signature controls (default: true)
+  onSendForSignature?: (form: ChecklistForm) => void;
 };
 
 export default function FormsBrowser({
@@ -58,20 +62,12 @@ export default function FormsBrowser({
     }
   };
 
-  const handleSelectForm = (form: ChecklistForm) => {
-    log.info(LOG_CATEGORIES.API, "Form selected from library", {
-      formId: form.id,
-      formKey: form.form_key,
-    });
-    onSelectForm(form);
-  };
-
   if (isLoading) {
     return (
       <Box className="p-4">
-        <Text className="text-text-secondary text-sm">
+        <BodyText size="sm" muted>
           {t("forms.loading_library", { defaultValue: "Loading forms..." })}
-        </Text>
+        </BodyText>
       </Box>
     );
   }
@@ -79,11 +75,11 @@ export default function FormsBrowser({
   if (error) {
     return (
       <Box className="p-4">
-        <Text className="text-text-error text-sm">
+        <BodyText size="sm" className="text-destructive">
           {t("forms.error_loading_library", {
             defaultValue: "Error loading forms. Please try again.",
           })}
-        </Text>
+        </BodyText>
       </Box>
     );
   }
@@ -91,12 +87,12 @@ export default function FormsBrowser({
   if (categories.length === 0) {
     return (
       <Box className="p-4">
-        <Text className="text-text-secondary text-sm">
+        <BodyText size="sm" muted>
           {t("forms.no_forms_available", {
             defaultValue:
               "No forms available. Forms will be added by your administrator.",
           })}
-        </Text>
+        </BodyText>
       </Box>
     );
   }
@@ -106,14 +102,14 @@ export default function FormsBrowser({
     return (
       <Box className="p-4">
         <Box className="mb-3">
-          <Text className="text-text-primary mb-1 text-sm font-semibold">
+          <Title as="h3" size="sm" className="mb-1">
             {t("forms.select_category", { defaultValue: "Select a category" })}
-          </Text>
-          <Text className="text-text-secondary text-xs">
+          </Title>
+          <Subtitle size="xs" className="text-text-secondary">
             {t("forms.category_description", {
               defaultValue: "Choose a folder to browse available forms.",
             })}
-          </Text>
+          </Subtitle>
         </Box>
 
         <Box className="flex flex-col gap-2">
@@ -125,17 +121,23 @@ export default function FormsBrowser({
             >
               <Box className="flex flex-row items-center justify-between">
                 <Box>
-                  <Text className="text-text-primary text-sm font-medium capitalize">
-                    {category.name}
-                  </Text>
-                  <Text className="text-text-secondary text-xs">
+                  <BodyText
+                    as="p"
+                    size="sm"
+                    className="text-text-primary font-medium"
+                  >
+                    {formatFormsLibraryCategoryLabel(category.name)}
+                  </BodyText>
+                  <BodyText as="p" size="xs" muted>
                     {category.forms.length}{" "}
                     {category.forms.length === 1
                       ? t("forms.form", { defaultValue: "form" })
                       : t("forms.forms", { defaultValue: "forms" })}
-                  </Text>
+                  </BodyText>
                 </Box>
-                <Text className="text-text-tertiary text-xs">→</Text>
+                <BodyText as="span" size="xs" muted>
+                  →
+                </BodyText>
               </Box>
             </Box>
           ))}
@@ -177,82 +179,124 @@ export default function FormsBrowser({
       </Box>
 
       <Box className="mb-3">
-        <Text className="text-text-primary mb-1 text-sm font-semibold capitalize">
-          {category.name}
-        </Text>
-        <Text className="text-text-secondary text-xs">
+        <Title as="h3" size="sm" className="mb-1">
+          {formatFormsLibraryCategoryLabel(category.name)}
+        </Title>
+        <Subtitle size="xs" className="text-text-secondary">
           {category.forms.length}{" "}
           {category.forms.length === 1
             ? t("forms.form_available", { defaultValue: "form available" })
             : t("forms.forms_available", { defaultValue: "forms available" })}
-        </Text>
+        </Subtitle>
       </Box>
 
       <Box className="flex flex-col gap-2">
-        {category.forms.map((form) => (
-          <Box
-            key={form.id}
-            className="border-border bg-background-surface rounded-md border p-3"
-          >
-            <Box className="mb-2">
-              <Text className="text-text-primary mb-1 text-sm font-semibold">
-                {form.title}
-              </Text>
-              {form.description && (
-                <Text className="text-text-secondary text-xs">
-                  {form.description}
-                </Text>
-              )}
-            </Box>
+        {category.forms.map((form) => {
+          const cardSelectable = Boolean(onSelectForm) && !showActions;
+          return (
+            <Box
+              key={form.id}
+              role={cardSelectable ? "button" : undefined}
+              tabIndex={cardSelectable ? 0 : undefined}
+              className={`border-border bg-background-surface flex flex-col gap-3 rounded-md border p-3 ${
+                cardSelectable
+                  ? "cursor-pointer transition-colors hover:bg-neutral-50"
+                  : ""
+              }`}
+              onClick={
+                cardSelectable
+                  ? () => {
+                      log.info(
+                        LOG_CATEGORIES.API,
+                        "Form selected from library",
+                        {
+                          formId: form.id,
+                          formKey: form.form_key,
+                        },
+                      );
+                      onSelectForm?.(form);
+                    }
+                  : undefined
+              }
+              onKeyDown={
+                cardSelectable
+                  ? (e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        log.info(
+                          LOG_CATEGORIES.API,
+                          "Form selected from library",
+                          {
+                            formId: form.id,
+                            formKey: form.form_key,
+                          },
+                        );
+                        onSelectForm?.(form);
+                      }
+                    }
+                  : undefined
+              }
+            >
+              <Box className="min-w-0">
+                <Title as="h4" size="sm" className="mb-1">
+                  {form.title}
+                </Title>
+                {form.description ? (
+                  <BodyText as="p" size="xs" muted>
+                    {form.description}
+                  </BodyText>
+                ) : null}
+              </Box>
 
-            {showActions && (
-              <Box className="flex flex-col gap-2">
-                <Box className="flex flex-row gap-2">
+              {showActions && (
+                <Box
+                  className="flex w-full flex-col gap-2 sm:flex-row sm:items-stretch"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Button
                     variant="outline"
                     size="sm"
+                    loading={downloadingFormId === form.id}
                     onPress={() => handleDownload(form)}
-                    disabled={downloadingFormId === form.id}
+                    disabled={
+                      !form.download_url || downloadingFormId === form.id
+                    }
+                    icon={<Icon name="download" size={16} />}
+                    className="w-full sm:min-w-0 sm:flex-1"
                     label={
                       downloadingFormId === form.id
-                        ? "Downloading..."
-                        : "Download"
+                        ? t("forms.downloading", {
+                            defaultValue: "Downloading…",
+                          })
+                        : t("forms.download", { defaultValue: "Download" })
                     }
                   >
                     {downloadingFormId === form.id
-                      ? "Downloading..."
-                      : "Download"}
+                      ? t("forms.downloading", {
+                          defaultValue: "Downloading…",
+                        })
+                      : t("forms.download", { defaultValue: "Download" })}
                   </Button>
 
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onPress={() => handleSelectForm(form)}
-                    label="Use This Form"
-                  >
-                    {t("forms.use_form", { defaultValue: "Use This Form" })}
-                  </Button>
+                  {onSendForSignature ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onPress={() => onSendForSignature(form)}
+                      icon={<Icon name="file-signature" size={16} />}
+                      className="w-full sm:min-w-0 sm:flex-1"
+                      label="Send for Signature"
+                    >
+                      {t("forms.send_for_signature", {
+                        defaultValue: "Send for Signature",
+                      })}
+                    </Button>
+                  ) : null}
                 </Box>
-
-                {onSendForSignature && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onPress={() => onSendForSignature(form)}
-                    icon={<Icon name="file-signature" size={16} />}
-                    fullWidth
-                    className="justify-center"
-                    label="Send for Signature"
-                  >
-                    {t("forms.send_for_signature", {
-                      defaultValue: "Send for Signature",
-                    })}
-                  </Button>
-                )}
-              </Box>
-            )}
-          </Box>
-        ))}
+              )}
+            </Box>
+          );
+        })}
       </Box>
     </Box>
   );

@@ -74,6 +74,9 @@ export async function createPinMarkersBatch(
       homeStatus: result.homeStatus,
     });
     pinElement.dataset.markerType = "pin";
+    pinElement.dataset.listingId = result.id;
+    pinElement.dataset.pinLat = String(lat);
+    pinElement.dataset.pinLng = String(lng);
 
     try {
       const marker = new AdvancedMarkerElement({

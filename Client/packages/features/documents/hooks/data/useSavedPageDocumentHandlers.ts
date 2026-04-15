@@ -6,10 +6,13 @@ import type { DocumentData } from "./useDocumentsData";
 
 type UseSavedPageDocumentHandlersProps = {
   handleViewDocument: (documentId: string, documentName: string) => void;
-  handleDownloadDocument: (documentId: string, documentName: string) => Promise<void>;
+  handleDownloadDocument: (
+    documentId: string,
+    documentName: string,
+  ) => Promise<void>;
   handleShareDocument: (
     documentId: string,
-    documentName: string
+    documentName: string,
   ) => Promise<{ success: boolean; message: string }>;
   handleDelete: (doc: DocumentData) => Promise<void>;
   documents: DocumentData[];
@@ -38,21 +41,21 @@ export function useSavedPageDocumentHandlers({
     (document: DocumentData) => {
       handleViewDocument(document.id, document.filename);
     },
-    [handleViewDocument]
+    [handleViewDocument],
   );
 
   const handleDocumentDownload = useCallback(
     (document: DocumentData) => {
       void handleDownloadDocument(document.id, document.filename);
     },
-    [handleDownloadDocument]
+    [handleDownloadDocument],
   );
 
   const handleDocumentShare = useCallback(
     (document: DocumentData) => {
       void handleShareDocument(document.id, document.filename);
     },
-    [handleShareDocument]
+    [handleShareDocument],
   );
 
   const handleDocumentDelete = useCallback(
@@ -74,11 +77,14 @@ export function useSavedPageDocumentHandlers({
       } catch (error) {
         enqueueToast({
           type: "error",
-          message: error instanceof Error ? error.message : "Failed to delete document",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to delete document",
         });
       }
     },
-    [handleDelete, enqueueToast, user?.id]
+    [handleDelete, enqueueToast, user?.id],
   );
 
   return {

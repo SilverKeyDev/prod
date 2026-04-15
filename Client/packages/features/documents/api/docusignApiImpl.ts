@@ -130,6 +130,24 @@ export const docusignApi = {
     );
   },
 
+  discardAgreement: (
+    agreementId: string,
+    data?: VoidAgreementRequest,
+  ): Promise<VoidAgreementResponse> => {
+    log.info(
+      LOG_CATEGORIES.DOCUSIGN,
+      "Discarding DocuSign agreement from Saved",
+      {
+        agreementId,
+        reason: data?.reason ?? "No reason provided",
+      },
+    );
+    return apiPost<VoidAgreementResponse>(
+      `/api/v1/docusign/agreements/${agreementId}/discard`,
+      data ?? {},
+    );
+  },
+
   getSigningUrl: (
     agreementId: string,
     data: GetSigningUrlRequest,

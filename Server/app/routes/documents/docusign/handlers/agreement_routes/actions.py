@@ -11,6 +11,7 @@ from app.utils.validation import validate_request, validate_response
 
 from ..agreement_actions import (
     create_revision_action,
+    discard_agreement_action,
     send_agreement_action,
     void_agreement_action,
 )
@@ -35,3 +36,10 @@ def register_action_routes(bp):
     @validate_response(VoidAgreementResponse)
     def void_agreement(agreement_id, data: VoidAgreementRequest | None = None):
         return void_agreement_action(agreement_id, data=data)
+
+    @bp.route("/agreements/<agreement_id>/discard", methods=["POST"])
+    @rate_limit(max_requests=20, window_seconds=60)
+    @validate_request(VoidAgreementRequest)
+    @validate_response(VoidAgreementResponse)
+    def discard_agreement(agreement_id, data: VoidAgreementRequest | None = None):
+        return discard_agreement_action(agreement_id, data=data)

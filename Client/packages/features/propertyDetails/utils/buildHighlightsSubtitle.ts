@@ -1,8 +1,8 @@
 import type { PropertyHighlightsContext } from "packages/types/propertyHighlightsContext";
 
 /** MCDA display scale defaults (must match Server MCDA_CONFIG output_display_*). */
-const DEFAULT_SCORE_MIN = 15;
-const DEFAULT_SCORE_MAX = 90;
+const DEFAULT_SCORE_MIN = 1;
+const DEFAULT_SCORE_MAX = 99;
 
 export type HighlightsSubtitleTranslate = (
   key: string,

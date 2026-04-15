@@ -40,8 +40,8 @@ export function createScorePinElement(
   const size = Math.round(BASE_PIN_SIZE_PX * scale);
 
   const t = Math.max(0, Math.min(100, score)) / 100;
-  const saturation = 0.25 + t * 1.05;
-  const brightness = 0.85 + t * 0.3;
+  // HSL already encodes score→saturation; keep a light brightness lift for highs only.
+  const brightness = 0.9 + t * 0.12;
 
   const wrapper = doc.createElement("div");
   wrapper.className = "property-score-pin";
@@ -52,9 +52,7 @@ export function createScorePinElement(
     height: ${size}px;
     cursor: pointer;
     pointer-events: auto;
-    filter: saturate(${saturation.toFixed(2)}) brightness(${brightness.toFixed(
-      2,
-    )});
+    filter: brightness(${brightness.toFixed(2)});
     transition: filter 0.2s ease;
   `;
   wrapper.innerHTML = `

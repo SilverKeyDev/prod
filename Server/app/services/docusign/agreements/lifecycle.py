@@ -15,6 +15,7 @@ from .participant_operations import sync_signer_participant as _sync_signer_part
 from .participant_operations import (
     update_participant_routing_order as _update_participant_routing_order,
 )
+from .signature_flow import discard_agreement_as_agent as _discard_agreement_as_agent
 from .signature_flow import send_for_signature as _send_for_signature
 from .signature_flow import void_agreement as _void_agreement
 from .signing_urls import get_sender_view_url as _get_sender_view_url
@@ -161,6 +162,14 @@ class AgreementLifecycleService:
             actor_id: User voiding
         """
         _void_agreement(agreement_id, reason, actor_id)
+
+    @staticmethod
+    def discard_agreement_as_agent(agreement_id: str, reason: str, actor_id: str):
+        """
+        Agent removes agreement from Saved for themselves and their client: voids when
+        DocuSign allows, otherwise drops the shared library row only.
+        """
+        _discard_agreement_as_agent(agreement_id, reason, actor_id)
 
     @staticmethod
     def get_signing_url(agreement_id: str, participant_id: str) -> str:

@@ -9,6 +9,7 @@ import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
+import { getContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";
 
 import { BodyText } from "@/components/ui";
 
@@ -63,13 +64,16 @@ export function AgreementDetailModal({
     user && agreement && user.id === agreement.agent_id,
   );
   const canSend = isOwnerAgent && agreement?.status === "draft";
-  const canSign =
-    agreement?.status === "sent" ||
-    agreement?.status === "delivered" ||
-    agreement?.status === "signed";
   const myParticipant = agreement?.participants?.find(
-    (p) => p.email === user?.email,
+    (p) =>
+      p.user_id === user?.id || Boolean(user?.email && p.email === user.email),
   );
+  const contextualStatus =
+    user?.id && agreement
+      ? getContextualAgreementStatus(agreement, user.id, isOwnerAgent)
+      : null;
+  const showSignNowButton =
+    contextualStatus === "sign_now" && Boolean(myParticipant);
   const awaitingSend = !isOwnerAgent && agreement?.status === "draft";
 
   return (
@@ -92,6 +96,7 @@ export function AgreementDetailModal({
                 participantId={myParticipant.id}
                 onComplete={handleSigningComplete}
                 height="600px"
+                pdfViewerTitle={agreement.title}
               />
             ) : (
               // Show agreement details
@@ -104,7 +109,7 @@ export function AgreementDetailModal({
                     <BodyText
                       as="span"
                       size="sm"
-                      className="font-medium text-gray-700"
+                      className="text-text-primary font-medium"
                     >
                       Buyer:
                     </BodyText>
@@ -157,7 +162,7 @@ export function AgreementDetailModal({
                   {isSendingAgreement ? "Sending..." : "Send Agreement"}
                 </Button>
               )}
-              {canSign && myParticipant && (
+              {showSignNowButton && myParticipant && (
                 <Button variant="primary" size="md" onClick={handleSignNow}>
                   Sign Now
                 </Button>

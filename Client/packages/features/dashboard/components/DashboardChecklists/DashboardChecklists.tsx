@@ -9,21 +9,22 @@ import React, {
 import { Icon } from "@ui/icons";
 
 import {
-  ChecklistIntegrationSlot,
-  type ChecklistType,
-  useChecklistData,
-  useChecklistProgress,
-} from "packages/features/checklists";
-import {
   CHECKLIST_SUBTITLES,
   CHECKLIST_TITLES,
+  checklistCheckboxRowClassNames,
+  ChecklistIntegrationSlot,
   type ChecklistTab,
+  type ChecklistType,
+  toChecklistCheckboxItem,
+  useChecklistData,
+  useChecklistProgress,
 } from "packages/features/checklists";
 import { useViewStore, type ViewState } from "packages/store";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
 import ClientSelector from "packages/ui/components/button/ClientSelector";
 import IconButton from "packages/ui/components/button/IconButton";
 import Card from "packages/ui/components/cards/Card";
+import ChecklistCheckbox from "packages/ui/components/form/ChecklistCheckbox";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
 import DashboardChecklistsHeader from "./DashboardChecklistsHeader";
@@ -220,6 +221,7 @@ export default function DashboardChecklists() {
                 : checked
                   ? "dotted"
                   : "light";
+              const checkboxItem = toChecklistCheckboxItem(item);
               return (
                 <Card
                   border={itemBorder}
@@ -233,81 +235,32 @@ export default function DashboardChecklists() {
                   }`}
                 >
                   <Box
-                    role="button"
-                    tabIndex={0}
-                    aria-expanded={isExpanded}
-                    onClick={() => {
-                      if (checkable) void handleToggleItem(item.id);
-                      else toggleExpand(item.id);
-                    }}
-                    onKeyDown={(e: React.KeyboardEvent) => {
-                      if (e.key !== "Enter" && e.key !== " ") return;
-                      e.preventDefault();
-                      if (checkable) void handleToggleItem(item.id);
-                      else toggleExpand(item.id);
-                    }}
-                    className={`flex w-full cursor-pointer flex-row items-stretch ${
+                    className={`flex w-full flex-row items-stretch ${
                       checkable
-                        ? "bg-background-surface active:opacity-90"
+                        ? "bg-background-surface"
                         : "bg-background-base opacity-75"
                     }`}
                   >
                     <Box className="flex min-w-0 flex-1 flex-row items-start gap-4 px-4 py-3">
-                      <Box
-                        className={`mt-0.5 flex h-6 w-6 flex-row items-center justify-center rounded-md border ${
-                          checked
-                            ? "border-primary bg-primary"
-                            : checkable
-                              ? "border-border bg-background-surface hover:border-border active:border-border active:opacity-90"
-                              : "border-border bg-primary-muted"
-                        }`}
-                      >
-                        {checked ? (
-                          <Text className="text-sm font-bold text-white">
-                            ✓
-                          </Text>
-                        ) : !checkable ? (
-                          <Icon
-                            name="lock"
-                            className="text-text-disabled h-3 w-3"
-                          />
-                        ) : null}
-                      </Box>
-                      <Box className="min-w-0 flex-1 text-left">
-                        <Text className="text-text-primary text-base font-semibold leading-relaxed">
-                          {item.label}
-                        </Text>
-                        {isExpanded && (
-                          <>
-                            {item.explanation ? (
-                              <Text className="text-warm-stone mt-1.5 text-sm leading-relaxed">
-                                {item.explanation}
-                              </Text>
-                            ) : null}
-                            {item.bullets && item.bullets.length > 0 ? (
-                              <Box className="mt-1.5 flex flex-row flex-col gap-1.5">
-                                {item.bullets.map((bullet) => (
-                                  <Box
-                                    key={bullet}
-                                    className="flex flex-row items-start gap-2"
-                                  >
-                                    <Text className="text-warm-stone mt-0.5 text-sm leading-none">
-                                      •
-                                    </Text>
-                                    <Text className="text-warm-stone flex-1 text-sm leading-relaxed">
-                                      {bullet}
-                                    </Text>
-                                  </Box>
-                                ))}
-                              </Box>
-                            ) : null}
-                            {item.tip ? (
-                              <Text className="text-primary-700 mt-1.5 text-sm font-medium leading-relaxed">
-                                {item.tip}
-                              </Text>
-                            ) : null}
-                          </>
-                        )}
+                      <Box className="min-w-0 flex-1">
+                        <ChecklistCheckbox
+                          item={checkboxItem}
+                          checked={checked}
+                          onToggle={() => {
+                            void handleToggleItem(item.id);
+                          }}
+                          disabled={!checkable}
+                          showDetails={isExpanded}
+                          itemLabelClass={
+                            checklistCheckboxRowClassNames.itemLabel
+                          }
+                          itemExplanationClass={
+                            checklistCheckboxRowClassNames.itemExplanation
+                          }
+                          checkboxContainerClass={
+                            checklistCheckboxRowClassNames.checkboxContainer
+                          }
+                        />
                       </Box>
                       <Box
                         onClick={(e: React.MouseEvent) => e.stopPropagation()}

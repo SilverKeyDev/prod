@@ -5,10 +5,10 @@ import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
 import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "packages/features/saved/utils/constants";
 import { Box } from "packages/ui/components/primitives";
+import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
 
 import Card from "@/components/layout/Card.web";
 import { IconButton, Input } from "@/components/ui";
-import { UnderlineTabs } from "@/components/ui";
 
 type SavedPageTabsAndSearchProps = {
   /** Renders at the start of the toolbar row (e.g. agent client picker). */

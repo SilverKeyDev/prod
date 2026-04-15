@@ -1,10 +1,10 @@
 import type { UseMutationOptions } from "@tanstack/react-query";
 
+import { log, LOG_CATEGORIES } from "packages/logger";
 import type { UIState } from "packages/store";
 
 /**
- * Shared helpers for DocuSign mutations: logging (with dynamic import to avoid circular deps)
- * and standard onSuccess/onError handlers.
+ * Shared helpers for DocuSign mutations: logging and standard onSuccess/onError handlers.
  */
 
 export type DocusignApiResponse<T> = {
@@ -62,7 +62,6 @@ export async function runDocusignApi<T, R>(
   apiCall: () => Promise<DocusignApiResponse<R>>,
   getData: (response: DocusignApiResponse<R>) => T,
 ): Promise<T> {
-  const { log, LOG_CATEGORIES } = await import("packages/logger");
   log.debug(
     LOG_CATEGORIES.DOCUSIGN,
     errorLabel.replace(" failed", ""),
@@ -91,7 +90,6 @@ export async function runDocusignApi<T, R>(
 
 /**
  * Returns onSuccess and onError handlers for DocuSign mutations.
- * Uses dynamic logger import to avoid circular dependencies.
  * Shows success and error toasts to the user.
  */
 export function getDocusignMutationHandlers(
@@ -102,7 +100,6 @@ export function getDocusignMutationHandlers(
 ): Pick<UseMutationOptions<unknown, Error, unknown>, "onSuccess" | "onError"> {
   return {
     onSuccess: async () => {
-      const { log, LOG_CATEGORIES } = await import("packages/logger");
       onSuccessInvalidate();
       log.info(LOG_CATEGORIES.DOCUSIGN, successLabel);
       enqueueToast({
@@ -111,7 +108,6 @@ export function getDocusignMutationHandlers(
       });
     },
     onError: async (error: Error) => {
-      const { log, LOG_CATEGORIES } = await import("packages/logger");
       log.error(LOG_CATEGORIES.DOCUSIGN, errorLabel, {
         error: error.message,
         errorName: error.name,
@@ -139,7 +135,6 @@ export function getDocusignMutationHandlersWithVars<TVariables>(
 > {
   return {
     onSuccess: async (_: unknown, variables: TVariables) => {
-      const { log, LOG_CATEGORIES } = await import("packages/logger");
       onSuccessInvalidate(variables);
       log.info(
         LOG_CATEGORIES.DOCUSIGN,
@@ -152,7 +147,6 @@ export function getDocusignMutationHandlersWithVars<TVariables>(
       });
     },
     onError: async (error: Error, variables: TVariables) => {
-      const { log, LOG_CATEGORIES } = await import("packages/logger");
       log.error(LOG_CATEGORIES.DOCUSIGN, errorLabel, {
         error: error.message,
         errorName: error.name,

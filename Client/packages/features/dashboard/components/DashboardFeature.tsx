@@ -11,6 +11,7 @@ import {
   UpcomingEvents,
 } from "packages/features/calendar";
 import {
+  DocuSignLegalNotice,
   EmbeddedSigning,
   useDocumentsDataIntegration,
 } from "packages/features/documents";
@@ -27,7 +28,6 @@ import type { UIState } from "packages/store/ui.slice";
 import Button from "packages/ui/components/button/Button";
 import { BaseModal } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
 import type { TodoItem } from "@/features/agent/types/agent";
@@ -124,13 +124,15 @@ export function DashboardFeature({
       try {
         await signAgreementNow(doc);
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Agenda DocuSign signing failed", error);
+        log.error(
+          LOG_CATEGORIES.ERRORS,
+          "Agenda DocuSign signing failed",
+          error,
+        );
         enqueueToast({
           type: "error",
           message:
-            error instanceof Error
-              ? error.message
-              : "Signing could not start.",
+            error instanceof Error ? error.message : "Signing could not start.",
         });
       }
     },
@@ -146,7 +148,7 @@ export function DashboardFeature({
   const headerActions = showAddButton ? (
     <Box className="flex flex-wrap items-center justify-end gap-2">
       <Button
-        variant="outline"
+        variant="primary"
         size="sm"
         iconName="plus"
         aria-haspopup="dialog"
@@ -250,6 +252,7 @@ export function DashboardFeature({
             participantId={agreementSigningSession.participantId}
             onComplete={onAgreementSigningComplete}
             height="min(72vh, 820px)"
+            pdfViewerTitle={agreementSigningSession.pdfViewerTitle}
           />
         </BaseModal>
       ) : agreementSigningSession?.kind === "sender_url" ? (
@@ -261,16 +264,11 @@ export function DashboardFeature({
           showCloseButton
           closeOnBackdropClick={false}
         >
-          <Box className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
-            <BodyText size="sm" className="text-blue-900">
-              Complete signing in the window below. Close this dialog when you
-              are done.
-            </BodyText>
-          </Box>
+          <DocuSignLegalNotice variant="sender_url_iframe" />
           <iframe
             src={agreementSigningSession.url}
             title="DocuSign signing"
-            className="min-h-[72vh] w-full rounded-lg border border-gray-300"
+            className="border-border min-h-[72vh] w-full rounded-lg border"
           />
         </BaseModal>
       ) : null}

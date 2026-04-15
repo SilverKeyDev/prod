@@ -36,7 +36,10 @@ export function HomeScreenNative() {
   const navigation = useNavigation<AuthHomeNavigation>();
 
   return (
-    <SafeAreaView style={styles.root} edges={["top", "left", "right", "bottom"]}>
+    <SafeAreaView
+      style={styles.root}
+      edges={["top", "left", "right", "bottom"]}
+    >
       <RippleBackground />
       <ScrollView
         style={styles.scroll}
@@ -45,33 +48,53 @@ export function HomeScreenNative() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.centerBlock}>
-          <AppImage source={LOGO_SOURCE} style={styles.logo} resizeMode="contain" alt="SilverKey" />
+          <AppImage
+            source={LOGO_SOURCE}
+            style={styles.logo}
+            resizeMode="contain"
+            alt="SilverKey"
+          />
 
           <View style={styles.actions}>
             <GoogleSignInButton text="Sign up with Google" />
-            <Pressable onPress={() => navigation.navigate("Signup")} style={styles.primaryButton}>
+            <Pressable
+              onPress={() => navigation.navigate("Signup")}
+              style={styles.primaryButton}
+            >
               <Text style={styles.primaryButtonText}>Sign up</Text>
             </Pressable>
           </View>
 
           <View style={styles.loginRow}>
             <Text style={styles.loginPrompt}>Have an account? </Text>
-            <Pressable onPress={() => navigation.navigate("Login")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Pressable
+              onPress={() => navigation.navigate("Login")}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
               <Text style={styles.loginLink}>Log in</Text>
             </Pressable>
           </View>
         </View>
 
         <View style={styles.footer}>
-          <Pressable onPress={() => navigation.navigate("Privacy")} style={styles.footerLink}>
+          <Pressable
+            onPress={() => navigation.navigate("Privacy")}
+            style={styles.footerLink}
+          >
             <Text style={styles.footerLinkText}>Privacy</Text>
           </Pressable>
           <Text style={styles.footerDot}> · </Text>
-          <Pressable onPress={() => navigation.navigate("Terms")} style={styles.footerLink}>
+          <Pressable
+            onPress={() => navigation.navigate("Terms")}
+            style={styles.footerLink}
+          >
             <Text style={styles.footerLinkText}>Terms</Text>
           </Pressable>
           <Text style={styles.footerDot}> · </Text>
-          <Pressable onPress={() => navigation.navigate("Contact")} style={styles.footerLink}>
+          <Pressable
+            onPress={() => navigation.navigate("Contact")}
+            style={styles.footerLink}
+          >
             <Text style={styles.footerLinkText}>Contact</Text>
           </Pressable>
         </View>

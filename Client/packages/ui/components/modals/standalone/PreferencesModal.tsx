@@ -1,7 +1,5 @@
 import React, { useCallback, useRef } from "react";
 
-import { showErrorToast } from "packages/hooks/ui/toast/useToast";
-
 import BaseModal from "@/components/modals/BaseModal";
 import PreferencesFormContent, {
   type PreferencesFormContentRef,
@@ -22,17 +20,15 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({
   const formContentRef = useRef<PreferencesFormContentRef | null>(null);
   const initialFormDataRef = useRef<string>("");
 
-  const handleInitialSnapshot = useCallback((formData: Partial<OnboardingData>) => {
-    initialFormDataRef.current = JSON.stringify(formData);
-  }, []);
+  const handleInitialSnapshot = useCallback(
+    (formData: Partial<OnboardingData>) => {
+      initialFormDataRef.current = JSON.stringify(formData);
+    },
+    [],
+  );
 
   const handleClose = useCallback(async () => {
     const current = formContentRef.current;
-    if (current?.preventedDeleteWarning) {
-      showErrorToast(
-        "You must have at least one important location. Your last location was kept and not deleted."
-      );
-    }
     const currentStr = current ? JSON.stringify(current.formData) : "";
     const hasChanged = currentStr !== initialFormDataRef.current;
     onClose();

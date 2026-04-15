@@ -3,7 +3,8 @@ Logger Public API
 """
 
 from .categories import LOG_CATEGORIES, LogCategory
-from .logger import LoggerConfig, get_logger, log, logger
+from .config_model import LoggerConfig
+from .logger import get_logger, log, logger
 
 __all__ = [
     "log",

@@ -19,6 +19,7 @@ export type ChecklistItem = {
   bullets?: string[];
   tip?: string;
   resource?: ResourceLink;
+  optional?: boolean;
 };
 type ChecklistCheckboxProps = {
   item: ChecklistItem;
@@ -52,6 +53,12 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
   const handleToggle = () => {
     if (!disabled) onToggle();
   };
+  const hasExplanation = Boolean(item.explanation?.trim());
+  const hasBullets = Boolean(item.bullets && item.bullets.length > 0);
+  const hasTip = Boolean(item.tip?.trim());
+  const showDetailsBlock =
+    showDetails &&
+    (hasExplanation || hasBullets || Boolean(item.resource) || hasTip);
   return (
     <Box className={checkboxContainerClass}>
       <AccessibleCheckboxInput
@@ -98,15 +105,27 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
         <Label htmlFor={`item-${item.id}`} className={itemLabelClass}>
           {number != null ? `${number}. ` : ""}
           {item.label}
-        </Label>
-        {showDetails && (
-          <Box className="flex flex-col gap-1.5">
-            <BodyText size="xs" className={itemExplanationClass}>
-              {item.explanation}
+          {item.optional ? (
+            <BodyText
+              as="span"
+              size="xs"
+              className="text-warm-stone font-normal"
+            >
+              {" "}
+              (optional)
             </BodyText>
-            {item.bullets && item.bullets.length > 0 && (
+          ) : null}
+        </Label>
+        {showDetailsBlock ? (
+          <Box className="flex flex-col gap-1.5">
+            {hasExplanation ? (
+              <BodyText size="xs" className={itemExplanationClass}>
+                {item.explanation}
+              </BodyText>
+            ) : null}
+            {hasBullets ? (
               <Box className="mt-1 flex flex-col gap-1.5">
-                {item.bullets.map((bullet, idx) => (
+                {item.bullets!.map((bullet, idx) => (
                   <Box key={idx} className="flex flex-row items-start gap-2">
                     <BodyText size="xs" className="text-text-secondary">
                       •
@@ -117,8 +136,8 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
                   </Box>
                 ))}
               </Box>
-            )}
-            {item.resource && (
+            ) : null}
+            {item.resource ? (
               <BodyText size="xs" className="text-responsive-xs text-primary">
                 {item.resource.href ? (
                   /* eslint-disable-next-line silverkey/no-primitive-components -- external link; href from resource */
@@ -134,9 +153,14 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
                   item.resource.label
                 )}
               </BodyText>
-            )}
+            ) : null}
+            {hasTip ? (
+              <BodyText size="xs" className="text-primary-700 mt-1 font-medium">
+                {item.tip}
+              </BodyText>
+            ) : null}
           </Box>
-        )}
+        ) : null}
       </Box>
     </Box>
   );

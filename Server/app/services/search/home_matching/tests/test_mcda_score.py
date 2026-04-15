@@ -40,8 +40,8 @@ class McdaScoreTests(unittest.TestCase):
 
     def test_score_listing_in_display_range(self) -> None:
         s = score_listing_mcda(self.base_prefs, self.base_listing, status_type="ForSale")
-        self.assertGreaterEqual(s, 15.0)
-        self.assertLessEqual(s, 90.0)
+        self.assertGreaterEqual(s, 1.0)
+        self.assertLessEqual(s, 99.0)
 
     def test_price_near_peak_higher_than_at_ceiling(self) -> None:
         at_peak = dict(self.base_listing)
@@ -103,8 +103,8 @@ class McdaScoreTests(unittest.TestCase):
         prefs = {"home_budget_max": 36_000}
         listing = {"price": 1800, "bedrooms": 2, "homeType": "APARTMENT"}
         s = score_listing_mcda(prefs, listing, status_type="ForRent")
-        self.assertGreaterEqual(s, 15.0)
-        self.assertLessEqual(s, 90.0)
+        self.assertGreaterEqual(s, 1.0)
+        self.assertLessEqual(s, 99.0)
 
 
 if __name__ == "__main__":

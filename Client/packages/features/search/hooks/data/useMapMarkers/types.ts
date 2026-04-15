@@ -30,6 +30,8 @@ export type MapPropertyCardRenderProps = {
   ) => Promise<void>;
   /** Dev-only: hide this listing’s floating map card */
   onDismissMapPreview?: (propertyId: string) => void;
+  /** Full details (e.g. property URL); used for floating map preview card click. */
+  onOpenFullDetails?: () => void;
 };
 
 export type UseMapMarkersProps = {
@@ -52,6 +54,8 @@ export type UseMapMarkersProps = {
     propertyAddress?: string,
   ) => Promise<void>;
   onMarkerClick?: (property: SearchResult) => void;
+  /** Floating preview card: open full property details (not pin markers). */
+  onMapPreviewNavigate?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void | Promise<void>;
   contextKey?: string;
   renderMapPropertyCard: (

@@ -5,7 +5,11 @@ import type {
   AgreementType,
   ParticipantRole,
 } from "packages/features/documents/types/docusign";
-import type { ContextualAgreementStatus } from "packages/ui/components/cards/agreement/types";
+import type { ContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";
+import {
+  getContextualAgreementStatus,
+  getNextSignerUserId,
+} from "packages/utils/agreement/contextualAgreementStatus";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 /**
@@ -14,54 +18,8 @@ import { dateNow, dateParseISO } from "packages/utils/date";
  */
 
 export type { ContextualAgreementStatus };
-
-/**
- * Derive the viewer-aware contextual status from an Agreement object.
- * This is the shared logic consumed by AgreementCard and other surfaces.
- */
-export function getContextualAgreementStatus(
-  agreement: Agreement,
-  viewerUserId: string,
-  isAgent: boolean,
-): ContextualAgreementStatus {
-  const status = agreement.status;
-
-  if (
-    status === "completed" ||
-    status === "voided" ||
-    status === "declined" ||
-    status === "draft"
-  ) {
-    return status;
-  }
-
-  if (!agreement.participants?.length) return status;
-
-  const viewerParticipant = agreement.participants.find(
-    (p) => p.user_id === viewerUserId,
-  );
-  const viewerSigned =
-    viewerParticipant?.recipient_status === "signed" ||
-    viewerParticipant?.recipient_status === "completed";
-
-  if (status === "sent" || status === "delivered" || status === "signed") {
-    if (isAgent) {
-      const clientParticipant = agreement.participants.find(
-        (p) => p.user_id === agreement.buyer_id && p.user_id !== viewerUserId,
-      );
-      const clientSigned =
-        clientParticipant?.recipient_status === "signed" ||
-        clientParticipant?.recipient_status === "completed";
-      if (clientSigned && !viewerSigned) return "sign_now";
-      if (!clientSigned) return "waiting_for_signature";
-    } else {
-      if (!viewerSigned) return "sign_now";
-      return "waiting_for_review";
-    }
-  }
-
-  return status;
-}
+export type { AgreementLikeForContext } from "packages/utils/agreement/contextualAgreementStatus";
+export { getContextualAgreementStatus, getNextSignerUserId };
 
 /**
  * Get human-readable label for agreement type
@@ -90,12 +48,12 @@ export function getStatusColor(
     sent: "bg-blue-100 text-blue-700 border-blue-300",
     delivered: "bg-cyan-100 text-cyan-700 border-cyan-300",
     signed: "bg-purple-100 text-purple-700 border-purple-300",
-    completed: "bg-green-100 text-green-700 border-neutral-300",
-    voided: "bg-red-100 text-red-700 border-neutral-300",
-    declined: "bg-orange-100 text-orange-700 border-orange-300",
-    sign_now: "bg-amber-100 text-amber-700 border-amber-300",
-    waiting_for_signature: "bg-blue-100 text-blue-700 border-blue-300",
-    waiting_for_review: "bg-indigo-100 text-indigo-700 border-indigo-300",
+    completed: "border-green-300 bg-green-100 text-green-800",
+    voided: "border-red-300 bg-red-100 text-red-800",
+    declined: "border-red-300 bg-red-100 text-red-800",
+    sign_now: "border-yellow-400 bg-yellow-100 text-yellow-900",
+    waiting_for_signature: "border-brown/40 bg-brown/10 text-brown",
+    waiting_for_review: "border-brown/35 bg-brown/5 text-brown",
   };
   return colors[status] ?? colors.draft;
 }
@@ -334,9 +292,9 @@ export function getUrgencyLevel(
  */
 export function getUrgencyColor(urgency: "low" | "medium" | "high"): string {
   const colors = {
-    low: "text-gray-600",
-    medium: "text-orange-600",
-    high: "text-red-600",
+    low: "text-text-secondary",
+    medium: "text-yellow-700",
+    high: "text-destructive",
   };
   return colors[urgency];
 }

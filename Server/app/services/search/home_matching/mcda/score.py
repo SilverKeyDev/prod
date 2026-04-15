@@ -1,5 +1,5 @@
 """
-MCDA orchestration: base score + weighted soft signals (0–1 each) * hard multiplier → 15–90 display.
+MCDA orchestration: base score + weighted soft signals (0–1 each) * hard multiplier → 1–99 display.
 """
 
 from __future__ import annotations
@@ -55,8 +55,8 @@ MCDA_CONFIG: dict[str, Any] = {
         "above_max_sqft": 0.58,
         "multiplier_floor": 0.15,
     },
-    "output_display_min": 15.0,
-    "output_display_max": 90.0,
+    "output_display_min": 1.0,
+    "output_display_max": 99.0,
     # Share of *display* score from embedding when enabled; capped so ≥99% stays MCDA (see cap below).
     "embedding_blend_weight": 0.0,
     "embedding_blend_weight_cap": 0.01,

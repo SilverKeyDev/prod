@@ -11,9 +11,9 @@ import { FormsLibraryTab } from "packages/features/documents";
 import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
 import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
 import { Box } from "packages/ui/components/primitives";
+import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
-import { UnderlineTabs } from "@/components/ui";
 
 type DocumentsViewSubtab = "my-documents" | "forms-library";
 

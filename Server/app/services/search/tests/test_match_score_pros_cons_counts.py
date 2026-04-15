@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from app.services.search.scoring import adjust_pros_cons_counts
 
-LO = 15.0
-HI = 90.0
+LO = 1.0
+HI = 99.0
 
 
 def test_adjust_mid_score_near_parity_for_even_total() -> None:

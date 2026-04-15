@@ -38,6 +38,8 @@ def score_and_sort_properties(
         embed_cap = float(MCDA_CONFIG.get("embedding_blend_weight_cap", 0.01))
         # At least 99% of the blended score from MCDA (heuristic); cap embedding share.
         embed_weight = max(0.0, min(embed_requested, embed_cap))
+        out_lo = float(MCDA_CONFIG["output_display_min"])
+        out_hi = float(MCDA_CONFIG["output_display_max"])
 
         embedding_by_zpid: dict[str, float] = {}
         if embed_weight > 0.0:
@@ -72,7 +74,7 @@ def score_and_sort_properties(
             if embed_weight > 0.0:
                 emb = embedding_by_zpid.get(zkey)
                 if emb is not None:
-                    emb_display = 15.0 + (emb / 100.0) * (90.0 - 15.0)
+                    emb_display = out_lo + (emb / 100.0) * (out_hi - out_lo)
                     mcda = (1.0 - embed_weight) * mcda + embed_weight * emb_display
                     mcda = round(mcda, 1)
             score_map[zkey] = mcda
@@ -99,9 +101,15 @@ def _sort_with_redis(
     """Sort properties using Redis sorted set."""
     redis_client = None
     try:
-        redis_host = os.getenv("REDIS_HOST", "localhost")
-        redis_port = int(os.getenv("REDIS_PORT", 6379))
-        redis_client = redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=False)
+        redis_url = os.getenv("REDIS_URL", "").strip()
+        if redis_url:
+            redis_client = redis.Redis.from_url(redis_url, decode_responses=False)
+        else:
+            redis_host = os.getenv("REDIS_HOST", "localhost")
+            redis_port = int(os.getenv("REDIS_PORT", 6379))
+            redis_client = redis.Redis(
+                host=redis_host, port=redis_port, db=0, decode_responses=False
+            )
 
         sort_key = f"property_scores:{request_id}:{int(time.time())}"
 

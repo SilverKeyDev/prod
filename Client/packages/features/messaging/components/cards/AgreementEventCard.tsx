@@ -3,6 +3,7 @@
  * within the messaging thread (parsed from __AGREEMENT_EVENT__ messages).
  */
 
+import Button from "@ui/button/Button";
 import { Icon } from "@ui/icons";
 
 import {
@@ -11,44 +12,34 @@ import {
 } from "packages/features/messaging/utils/agreementEventPayload";
 import { Box } from "packages/ui/components/primitives";
 
-import { BodyText, Button } from "@/components/ui";
+import { BodyText } from "@/components/ui";
 
 const EVENT_CONFIG: Record<
   AgreementEventPayload["event"],
   {
     iconName: string;
     iconColor: string;
-    borderColor: string;
-    bgColor: string;
     headline: string;
   }
 > = {
   sent: {
     iconName: "send",
-    iconColor: "text-blue-600",
-    borderColor: "border-blue-200",
-    bgColor: "bg-blue-50",
+    iconColor: "text-primary",
     headline: AGREEMENT_EVENT_HEADLINES.sent,
   },
   client_signed: {
     iconName: "file-signature",
-    iconColor: "text-amber-600",
-    borderColor: "border-amber-200",
-    bgColor: "bg-amber-50",
+    iconColor: "text-yellow-800",
     headline: AGREEMENT_EVENT_HEADLINES.client_signed,
   },
   agent_signed: {
     iconName: "file-signature",
-    iconColor: "text-indigo-600",
-    borderColor: "border-indigo-200",
-    bgColor: "bg-indigo-50",
+    iconColor: "text-primary",
     headline: AGREEMENT_EVENT_HEADLINES.agent_signed,
   },
   completed: {
     iconName: "check",
-    iconColor: "text-green-600",
-    borderColor: "border-green-200",
-    bgColor: "bg-green-50",
+    iconColor: "text-green-700",
     headline: AGREEMENT_EVENT_HEADLINES.completed,
   },
 };
@@ -56,8 +47,13 @@ const EVENT_CONFIG: Record<
 type AgreementEventCardProps = {
   payload: AgreementEventPayload;
   onSignNow?: (agreementId: string) => void;
-  onViewDocument?: (agreementId: string) => void;
+  /**
+   * Same contract as document cards: opens the standard PDF / agreement viewer.
+   */
+  onViewDocument?: (agreementId: string, documentName: string) => void;
   isAgent?: boolean;
+  /** Current user id (for sequential signing: hide Sign when it is not their turn). */
+  viewerUserId?: string | null;
 };
 
 export default function AgreementEventCard({
@@ -65,59 +61,82 @@ export default function AgreementEventCard({
   onSignNow,
   onViewDocument,
   isAgent = false,
+  viewerUserId = null,
 }: AgreementEventCardProps) {
   const config = EVENT_CONFIG[payload.event] ?? EVENT_CONFIG.sent;
 
+  const sentForClient = payload.event === "sent" && !isAgent;
+  const signTurnMatchesViewer =
+    !payload.next_signer_user_id ||
+    !viewerUserId ||
+    payload.next_signer_user_id === viewerUserId;
+
   const showSignNow =
     (payload.event === "client_signed" && isAgent) ||
-    (payload.event === "sent" && !isAgent);
+    (sentForClient && signTurnMatchesViewer);
+
+  const showViewWhileEnvelopeOut =
+    sentForClient && !signTurnMatchesViewer && Boolean(onViewDocument);
 
   const showViewSigned = payload.event === "completed";
 
   return (
-    <Box
-      className={`rounded-lg border ${config.borderColor} ${config.bgColor} p-3`}
-    >
+    <Box className="border-border bg-accent-muted rounded-lg border p-3">
       <Box className="flex items-start gap-2.5">
-        <Box
-          className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white ${config.borderColor} border`}
-        >
+        <Box className="border-border bg-background-surface mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border">
           <Icon name={config.iconName} size={14} className={config.iconColor} />
         </Box>
         <Box className="min-w-0 flex-1">
-          <BodyText size="sm" className="font-semibold text-gray-900">
+          <BodyText size="sm" className="text-text-primary font-semibold">
             {config.headline}
           </BodyText>
-          <BodyText size="xs" className="mt-0.5 text-gray-600">
+          <BodyText size="xs" muted className="mt-0.5">
             {payload.title}
           </BodyText>
 
-          {showSignNow && onSignNow && (
+          {showViewWhileEnvelopeOut && onViewDocument ? (
             <Button
               variant="primary"
               size="sm"
-              onClick={() => onSignNow(payload.agreement_id)}
-              className="mt-2 bg-amber-600 hover:bg-amber-700"
-            >
-              Sign Now
-            </Button>
-          )}
+              onClick={() =>
+                onViewDocument(payload.agreement_id, payload.title)
+              }
+              icon={<Icon name="eye" size={16} />}
+              fullWidth
+              className="mt-2 justify-center"
+            />
+          ) : null}
 
-          {showViewSigned && onViewDocument && (
+          {showViewSigned && onViewDocument ? (
             <Button
               variant="success"
               size="sm"
-              onClick={() => onViewDocument(payload.agreement_id)}
-              className="mt-2"
+              onClick={() =>
+                onViewDocument(payload.agreement_id, payload.title)
+              }
+              icon={<Icon name="check-circle" size={16} />}
+              fullWidth
+              className="mt-2 justify-center"
+            />
+          ) : null}
+
+          {showSignNow && onSignNow ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onSignNow(payload.agreement_id)}
+              icon={<Icon name="file-signature" size={16} />}
+              fullWidth
+              className="mt-2 justify-center"
             >
-              View Signed Document
+              Sign now
             </Button>
-          )}
+          ) : null}
 
           {payload.event === "client_signed" && !isAgent && (
             <Box className="mt-1.5 flex items-center gap-1">
-              <Icon name="clock" size={12} className="text-gray-400" />
-              <BodyText size="xs" className="text-gray-500">
+              <Icon name="clock" size={12} className="text-text-secondary" />
+              <BodyText size="xs" muted>
                 Waiting for agent review
               </BodyText>
             </Box>
@@ -125,8 +144,8 @@ export default function AgreementEventCard({
 
           {payload.event === "sent" && isAgent && (
             <Box className="mt-1.5 flex items-center gap-1">
-              <Icon name="clock" size={12} className="text-gray-400" />
-              <BodyText size="xs" className="text-gray-500">
+              <Icon name="clock" size={12} className="text-text-secondary" />
+              <BodyText size="xs" muted>
                 Waiting for client signature
               </BodyText>
             </Box>

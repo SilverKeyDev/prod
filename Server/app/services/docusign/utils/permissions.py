@@ -81,6 +81,13 @@ def can_void_agreement(user: User, agreement: Agreement) -> bool:
     return user.id == agreement.agent_id and agreement.status not in ["completed", "voided"]
 
 
+def can_discard_agreement_as_agent(user: User, agreement: Agreement) -> bool:
+    """Listing agent may discard from Saved (void or library strip) regardless of envelope stage."""
+    if not user or not agreement:
+        return False
+    return user.id == agreement.agent_id
+
+
 def can_get_signing_url(
     user: User, agreement: Agreement, participant: AgreementParticipant
 ) -> bool:

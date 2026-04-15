@@ -10,6 +10,8 @@ import { searchApi } from "@/features/search/api/search";
 
 export type UseIsochroneDataOptions = {
   preferencesSubjectUserId?: string | null;
+  /** When true, do not auto-fetch isochrone (e.g. agents until explicit search). */
+  skipInitialFetch?: boolean;
 };
 
 export type UseIsochroneDataReturn = {
@@ -31,26 +33,21 @@ export function useIsochroneData(
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
   const subjectId = options?.preferencesSubjectUserId ?? null;
+  const skipInitialFetch = options?.skipInitialFetch ?? false;
 
-  // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(
+  const authAllowsFetch = useMemo(
     () => authReady && isAuthenticated,
     [authReady, isAuthenticated],
   );
 
-  const {
-    data: isochroneData,
-    isLoading,
-    error,
-    refetch: refetchIsochrone,
-  } = useQuery({
-    queryKey: queryKeys.search.isochrone(subjectId),
-    queryFn: async () => {
+  const shouldAutoFetch = authAllowsFetch && !skipInitialFetch;
+
+  const fetchIsochroneFromApi =
+    useCallback(async (): Promise<IsochroneData> => {
       const response = await searchApi.getIsochrone({
         preferencesUserId: subjectId ?? undefined,
       });
       if (response.success && response.data) {
-        // Transform API response to match IsochroneData schema (lon -> lng)
         return {
           ...response.data,
           center: {
@@ -60,8 +57,17 @@ export function useIsochroneData(
         } as IsochroneData;
       }
       throw new Error(response.error ?? "Failed to fetch isochrone data");
-    },
-    enabled: shouldLoadData, // Auto-fetch when authenticated (matches other initial load hooks)
+    }, [subjectId]);
+
+  const {
+    data: isochroneData,
+    isLoading,
+    error,
+    refetch: refetchIsochrone,
+  } = useQuery({
+    queryKey: queryKeys.search.isochrone(subjectId),
+    queryFn: fetchIsochroneFromApi,
+    enabled: shouldAutoFetch, // Auto-fetch when authenticated (unless agent blank-slate)
     // Use placeholderData to provide cached data immediately when query becomes enabled
     placeholderData: (previousValue) => {
       const cached = queryClient.getQueryData<IsochroneData>(
@@ -80,22 +86,38 @@ export function useIsochroneData(
   // Fetch isochrone data (checks cache first, then fetches if needed)
   const fetchIsochrone =
     useCallback(async (): Promise<IsochroneData | null> => {
-      // Check cache first
-      const cached = queryClient.getQueryData<IsochroneData>(
-        queryKeys.search.isochrone(subjectId),
-      );
+      const key = queryKeys.search.isochrone(subjectId);
+      const cached = queryClient.getQueryData<IsochroneData>(key);
       if (cached) {
         return cached;
       }
 
-      // If not in cache, fetch it
-      if (shouldLoadData) {
+      if (!authAllowsFetch) {
+        return null;
+      }
+
+      if (shouldAutoFetch) {
         const result = await refetchIsochrone();
         return result.data ?? null;
       }
 
-      return null;
-    }, [queryClient, shouldLoadData, refetchIsochrone, subjectId]);
+      try {
+        return await queryClient.fetchQuery({
+          queryKey: key,
+          queryFn: fetchIsochroneFromApi,
+          staleTime: 5 * 60 * 1000,
+        });
+      } catch {
+        return null;
+      }
+    }, [
+      authAllowsFetch,
+      fetchIsochroneFromApi,
+      queryClient,
+      refetchIsochrone,
+      shouldAutoFetch,
+      subjectId,
+    ]);
 
   const clearIsochroneData = useCallback(() => {
     queryClient.setQueryData(queryKeys.search.isochrone(subjectId), null);

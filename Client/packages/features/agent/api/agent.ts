@@ -12,6 +12,7 @@
  * This shim maintains backward compatibility for existing imports.
  */
 
+import { log, LOG_CATEGORIES } from "packages/logger";
 import {
   apiGet,
   apiPatch,
@@ -102,9 +103,6 @@ export const agentApi = {
     sharedHomeId?: string,
     sharedDocumentId?: string,
   ): Promise<SendMessageResponse> => {
-    // Import log here to avoid circular dependencies
-    const { log, LOG_CATEGORIES } = await import("../../../logger");
-
     const requestBody = {
       conversation_id: conversationId,
       message,

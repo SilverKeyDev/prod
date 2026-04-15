@@ -40,7 +40,7 @@ def register_after_request_headers(app):
                 )
             else:
                 permissions_policy = (
-                    "camera=(), microphone=(), geolocation=(), "
+                    "camera=(), microphone=(), geolocation=(self), "
                     'fullscreen=(self "https://*.amazonaws.com"), '
                     "payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()"
                 )

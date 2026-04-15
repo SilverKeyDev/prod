@@ -5,7 +5,6 @@ Implements JWT-based authentication for service account operations.
 """
 
 import json
-import re
 import time
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
@@ -21,100 +20,10 @@ from logger import LOG_CATEGORIES, get_logger
 
 from ..errors import DocusignAuthError
 from .api_client_rest import configure_rest_api_root
+from .auth_jwt_pem import normalize_private_key_pem
 from .types import parse_jwt_token_response, parse_user_info
 
 logger = get_logger()
-
-_PRIVATE_PEM_MARKERS = (
-    "-----BEGIN RSA PRIVATE KEY-----",
-    "-----BEGIN PRIVATE KEY-----",
-    "-----BEGIN ENCRYPTED PRIVATE KEY-----",
-)
-
-_PEM_HEADER_FOOTER_REPAIRS = (
-    ("-----BEGIN\nRSA\nPRIVATE\nKEY-----", "-----BEGIN RSA PRIVATE KEY-----"),
-    ("-----END\nRSA\nPRIVATE\nKEY-----", "-----END RSA PRIVATE KEY-----"),
-    ("-----BEGIN\nPRIVATE\nKEY-----", "-----BEGIN PRIVATE KEY-----"),
-    ("-----END\nPRIVATE\nKEY-----", "-----END PRIVATE KEY-----"),
-    (
-        "-----BEGIN\nENCRYPTED\nPRIVATE\nKEY-----",
-        "-----BEGIN ENCRYPTED PRIVATE KEY-----",
-    ),
-    (
-        "-----END\nENCRYPTED\nPRIVATE\nKEY-----",
-        "-----END ENCRYPTED PRIVATE KEY-----",
-    ),
-)
-
-
-def _repair_pem_headers_broken_by_whitespace(text: str) -> str:
-    """Undo ``str.replace(' ', '\\n')`` on PEM wrappers (BEGIN/END split across lines)."""
-    for broken, fixed in _PEM_HEADER_FOOTER_REPAIRS:
-        text = text.replace(broken, fixed)
-    return text
-
-
-def _canonicalize_pem_block(text: str) -> str:
-    """
-    Normalize one PEM block: strip all whitespace from the base64 body and re-wrap at 64 cols.
-
-    Handles .env / secrets that store the whole key on one line with spaces instead of newlines.
-    """
-    m = re.search(
-        r"-----BEGIN (?P<label>[^-]+)-----\s*(?P<body>.*?)\s*-----END (?P=label)-----",
-        text,
-        re.DOTALL,
-    )
-    if not m:
-        return text
-    label = m.group("label").strip()
-    body = m.group("body")
-    body_clean = re.sub(r"\s+", "", body)
-    if not body_clean:
-        return text
-    wrapped = "\n".join(body_clean[i : i + 64] for i in range(0, len(body_clean), 64))
-    return f"-----BEGIN {label}-----\n{wrapped}\n-----END {label}-----"
-
-
-def _normalize_private_key_pem(raw: str | bytes) -> bytes:
-    """
-    Turn env-sourced PEM into bytes OpenSSL can load.
-
-    - Literal \\n sequences (common in .env / JSON secrets) become real newlines.
-    - Headers broken by replacing every space with newline are repaired.
-    - Single-line keys with spaces (instead of newlines) are canonicalized to standard PEM.
-    - Collapsed header like ``-----BEGIN ...----- MIIE...`` gets a newline after the header.
-    - Rejects obvious public-key PEM mistakes with a clear error.
-    """
-    if isinstance(raw, bytes):
-        text = raw.decode("utf-8")
-    else:
-        text = raw
-    text = text.replace("\\n", "\n").strip()
-    if not text:
-        raise DocusignAuthError("Private key value is empty")
-
-    text = _repair_pem_headers_broken_by_whitespace(text)
-    canonical = _canonicalize_pem_block(text)
-    if canonical != text:
-        text = canonical
-    else:
-        text = re.sub(r"(-----BEGIN [^-]+-----)\s+", r"\1\n", text, count=1)
-
-    has_private = any(marker in text for marker in _PRIVATE_PEM_MARKERS)
-    if not has_private:
-        if "-----BEGIN PUBLIC KEY-----" in text or "-----BEGIN RSA PUBLIC KEY-----" in text:
-            raise DocusignAuthError(
-                "DocuSign JWT requires the RSA private key PEM "
-                "(-----BEGIN RSA PRIVATE KEY----- or -----BEGIN PRIVATE KEY-----). "
-                "The value looks like a public key; use the private key from DocuSign Apps and Keys."
-            )
-        raise DocusignAuthError(
-            "Private key PEM is missing a recognized private-key header "
-            "(-----BEGIN RSA PRIVATE KEY----- or -----BEGIN PRIVATE KEY-----)."
-        )
-
-    return text.encode("utf-8")
 
 
 class DocusignJWTAuth:
@@ -198,7 +107,7 @@ class DocusignJWTAuth:
                 LOG_CATEGORIES["DOCUSIGN"],
                 "Using DocuSign private key from environment",
             )
-            return _normalize_private_key_pem(self.private_key)
+            return normalize_private_key_pem(self.private_key)
         except DocusignAuthError:
             raise
         except Exception as e:

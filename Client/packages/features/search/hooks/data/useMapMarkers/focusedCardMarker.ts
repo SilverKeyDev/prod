@@ -1,5 +1,5 @@
 import { addressForMarkerTitle } from "packages/features/search/types/search/address";
-import { getMapFocusedPropertiesExcludingDismissed } from "packages/features/search/types/search/mapCardFocus";
+import { getMapFocusedSlotAssignmentsExcludingDismissed } from "packages/features/search/types/search/mapCardFocus";
 import { searchMapHomeCardZIndex } from "packages/features/search/types/search/mapOverlayLayerOrder";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
@@ -35,7 +35,7 @@ type FocusedCardMarkerOptions = {
     propertyId: string,
     propertyAddress?: string,
   ) => Promise<void>;
-  onMarkerClick?: (property: SearchResult) => void;
+  onMapPreviewNavigate?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void | Promise<void>;
   contextKey?: string;
   dismissedPreviewIds?: ReadonlySet<string>;
@@ -61,7 +61,7 @@ function placeFocusedCardAtCoords(
     isHomeSaved,
     saveHome,
     removeSavedHome,
-    onMarkerClick,
+    onMapPreviewNavigate,
     onUnlockClick,
     contextKey,
   } = options;
@@ -114,6 +114,11 @@ function placeFocusedCardAtCoords(
       saveHome,
       removeSavedHome,
       onDismissMapPreview: options.onDismissMapPreview,
+      onOpenFullDetails: onMapPreviewNavigate
+        ? () => {
+            onMapPreviewNavigate(focused);
+          }
+        : undefined,
     });
   } catch (error) {
     log.error(
@@ -142,7 +147,7 @@ function placeFocusedCardAtCoords(
       zIndex: searchMapHomeCardZIndex(stackIndex),
     }) as unknown as GoogleAdvancedMarkerElement;
     marker.addListener("gmp-click", () => {
-      if (onMarkerClick) onMarkerClick(focused);
+      // Satisfies AdvancedMarkerElement a11y contract; card / X / heart use inner divs.
     });
     markersRef.current.push(marker);
   } catch (error) {
@@ -212,19 +217,23 @@ export function addFocusedCardMarkers(
   cardCount: number,
   options: FocusedCardMarkerOptions,
 ): void {
+  if (startPage < 0) {
+    options.onComplete();
+    return;
+  }
   const dismissed = options.dismissedPreviewIds ?? new Set<string>();
-  const slice = getMapFocusedPropertiesExcludingDismissed(
+  const assignments = getMapFocusedSlotAssignmentsExcludingDismissed(
     results,
     startPage,
     cardCount,
     dismissed,
   );
-  if (slice.length === 0) {
+  if (assignments.length === 0) {
     options.onComplete();
     return;
   }
 
-  let remaining = slice.length;
+  let remaining = assignments.length;
   const check = () => {
     remaining -= 1;
     if (remaining <= 0) {
@@ -232,7 +241,7 @@ export function addFocusedCardMarkers(
     }
   };
 
-  slice.forEach((focused, stackIndex) => {
-    placeOneFocusedCard(focused, stackIndex, options, check);
+  assignments.forEach(({ property: focused, slotIndex }) => {
+    placeOneFocusedCard(focused, slotIndex, options, check);
   });
 }

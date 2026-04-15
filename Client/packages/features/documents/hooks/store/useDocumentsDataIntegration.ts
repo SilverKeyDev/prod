@@ -75,7 +75,12 @@ export function useDocumentsDataIntegration(
     handlers?.handleShareDocument ?? defaultHandlers.handleShareDocument;
   const [isSendingForSignature, setIsSendingForSignature] = useState(false);
   const [agreementSigningSession, setAgreementSigningSession] = useState<
-    | { kind: "embedded"; agreementId: string; participantId: string }
+    | {
+        kind: "embedded";
+        agreementId: string;
+        participantId: string;
+        pdfViewerTitle?: string;
+      }
     | { kind: "sender_url"; url: string }
     | null
   >(null);
@@ -99,6 +104,18 @@ export function useDocumentsDataIntegration(
       title: doc.filename ?? "Signed document",
     });
   }, []);
+
+  /** Opens the same PDF viewer as document cards / View signed (presigned agreement PDF). */
+  const openAgreementPdfViewer = useCallback(
+    (agreementId: string, documentName: string) => {
+      const name = documentName.trim();
+      setViewSignedAgreement({
+        agreementId,
+        title: name.length > 0 ? name : "Agreement document",
+      });
+    },
+    [],
+  );
 
   const onAgreementSigningComplete = useCallback(() => {
     setAgreementSigningSession(null);
@@ -127,6 +144,10 @@ export function useDocumentsDataIntegration(
           kind: "embedded",
           agreementId: session.agreementId,
           participantId: session.participantId,
+          pdfViewerTitle:
+            document.filename?.trim() && document.filename.trim().length > 0
+              ? document.filename.trim()
+              : undefined,
         });
       }
     },
@@ -187,11 +208,15 @@ export function useDocumentsDataIntegration(
           if (!agreementId) {
             throw new Error("Unable to resolve agreement id");
           }
-          log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature: existing agreement path", {
-            agreementId,
-            signingMethod,
-            participantUserId: recipientUserId ?? buyerId ?? null,
-          });
+          log.info(
+            LOG_CATEGORIES.DOCUSIGN,
+            "Send for signature: existing agreement path",
+            {
+              agreementId,
+              signingMethod,
+              participantUserId: recipientUserId ?? buyerId ?? null,
+            },
+          );
           const sendResponse = await docusignApi.sendAgreement(agreementId, {
             signing_method: signingMethod,
             participant_user_id: recipientUserId ?? buyerId,
@@ -202,9 +227,13 @@ export function useDocumentsDataIntegration(
           void queryClient.invalidateQueries({
             queryKey: queryKeys.documents.all,
           });
-          log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature completed (existing agreement)", {
-            agreementId,
-          });
+          log.info(
+            LOG_CATEGORIES.DOCUSIGN,
+            "Send for signature completed (existing agreement)",
+            {
+              agreementId,
+            },
+          );
           return agreementId;
         }
 
@@ -233,10 +262,14 @@ export function useDocumentsDataIntegration(
         }
 
         const agreementId = createAgreementResponse.agreement.id;
-        log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature: agreement created from upload", {
-          agreementId,
-          buyerId: resolvedBuyerId,
-        });
+        log.info(
+          LOG_CATEGORIES.DOCUSIGN,
+          "Send for signature: agreement created from upload",
+          {
+            agreementId,
+            buyerId: resolvedBuyerId,
+          },
+        );
 
         const { body, fileName } = await getSigningFileFromDocument(document);
         const revisionResponse = await docusignApi.createRevision(
@@ -250,10 +283,14 @@ export function useDocumentsDataIntegration(
             revisionResponse.error ?? "Failed to attach revision",
           );
         }
-        log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature: revision attached", {
-          agreementId,
-          revisionId: revisionResponse.revision.id,
-        });
+        log.info(
+          LOG_CATEGORIES.DOCUSIGN,
+          "Send for signature: revision attached",
+          {
+            agreementId,
+            revisionId: revisionResponse.revision.id,
+          },
+        );
 
         const sendResponse = await docusignApi.sendAgreement(agreementId, {
           signing_method: signingMethod,
@@ -266,9 +303,13 @@ export function useDocumentsDataIntegration(
         void queryClient.invalidateQueries({
           queryKey: queryKeys.documents.all,
         });
-        log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature completed (upload → agreement)", {
-          agreementId,
-        });
+        log.info(
+          LOG_CATEGORIES.DOCUSIGN,
+          "Send for signature completed (upload → agreement)",
+          {
+            agreementId,
+          },
+        );
         return agreementId;
       } catch (error: unknown) {
         log.error(LOG_CATEGORIES.ERRORS, "Send for signature failed", {
@@ -367,6 +408,7 @@ export function useDocumentsDataIntegration(
     viewSignedAgreement,
     dismissViewSignedAgreement,
     openViewSignedAgreement,
+    openAgreementPdfViewer,
     onAgreementSigningComplete,
   };
 }
