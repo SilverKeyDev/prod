@@ -19,7 +19,7 @@ export const DEFAULT_ZOOM = SEARCH_MAP_LISTING_FOCUS_ZOOM;
 
 export function applyListingFocusCamera(
   map: google.maps.Map,
-  center: google.maps.LatLngLiteral,
+  center: google.maps.LatLngLiteral
 ): void {
   map.setCenter(center);
   map.setZoom(SEARCH_MAP_LISTING_FOCUS_ZOOM);
@@ -28,7 +28,7 @@ export function applyListingFocusCamera(
 /** Apply persisted web camera (skip zoom when invalid / zero) */
 export function applyStoredMapCamera(
   map: google.maps.Map,
-  camera: { lat: number; lng: number; zoom: number },
+  camera: { lat: number; lng: number; zoom: number }
 ): void {
   map.setCenter({ lat: camera.lat, lng: camera.lng });
   if (camera.zoom > 0) {
@@ -49,10 +49,7 @@ export function snapshotMapCamera(map: google.maps.Map): {
   return { lat: c.lat(), lng: c.lng(), zoom: z };
 }
 
-export function adjustMapZoomByDelta(
-  map: google.maps.Map,
-  delta: number,
-): void {
+export function adjustMapZoomByDelta(map: google.maps.Map, delta: number): void {
   const current = map.getZoom() ?? SEARCH_MAP_LISTING_FOCUS_ZOOM;
   map.setZoom(current + delta);
 }

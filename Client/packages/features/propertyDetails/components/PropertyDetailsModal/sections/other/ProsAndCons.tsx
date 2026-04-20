@@ -10,15 +10,8 @@ import Title from "packages/ui/components/text/Title";
 import { ProsConsStarRow } from "packages/ui/components/ui/ProsConsStarRow";
 
 export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
-  const {
-    contextLine,
-    prosList,
-    consList,
-    highlightsSubtitle,
-    propertyAnalysis,
-    isAgent,
-    t,
-  } = useProsAndConsData(property);
+  const { contextLine, prosList, consList, highlightsSubtitle, propertyAnalysis, isAgent, t } =
+    useProsAndConsData(property);
 
   if (!propertyAnalysis) {
     return null;
@@ -38,10 +31,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
           })}
         </Title>
         {prosList.map((pro, i) => (
-          <Box
-            key={i}
-            className="text-text-secondary flex flex-row items-start gap-3 text-left"
-          >
+          <Box key={i} className="text-text-secondary flex flex-row items-start gap-3 text-left">
             <Icon
               name="check-circle"
               className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-700"
@@ -51,11 +41,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
               <BodyText as="span" size={itemTextSize} className="text-left">
                 {pro.text}
               </BodyText>
-              <ProsConsStarRow
-                score={pro.score}
-                variant="pro"
-                ariaLabelKind="strength"
-              />
+              <ProsConsStarRow score={pro.score} variant="pro" ariaLabelKind="strength" />
             </Box>
           </Box>
         ))}
@@ -73,10 +59,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
         {consList.map((con, i) => {
           const isRedFlag = con.severity === "red_flag";
           return (
-            <Box
-              key={i}
-              className="text-text-secondary flex flex-row items-start gap-3 text-left"
-            >
+            <Box key={i} className="text-text-secondary flex flex-row items-start gap-3 text-left">
               {isRedFlag ? (
                 <Icon
                   name="flag"

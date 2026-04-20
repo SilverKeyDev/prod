@@ -5,7 +5,7 @@ import {
   getEventFirstLocalDayKey,
   getEventLocalDayKeys,
 } from "packages/features/calendar";
-import type { GoogleEvent } from "packages/types/googleCalendar";
+import type { GoogleEvent } from "packages/types/integrations/googleCalendar";
 import { Box } from "packages/ui/components/primitives";
 import { dateNow, dateParseISO, dayjs } from "packages/utils/date";
 
@@ -18,11 +18,7 @@ type CalendarViewProps = {
   onDateClick?: (date: Date) => void;
 };
 
-export function CalendarView({
-  currentDate,
-  events,
-  onDateClick,
-}: CalendarViewProps) {
+export function CalendarView({ currentDate, events, onDateClick }: CalendarViewProps) {
   const eventsByDate = useMemo(() => {
     const grouped: Record<string, GoogleEvent[]> = {};
 
@@ -104,11 +100,7 @@ export function CalendarView({
       <Box className="mb-2 grid grid-cols-7 gap-1">
         {weekDays.map((day) => (
           <Box key={day} className="py-2 text-center">
-            <BodyText
-              as="span"
-              size="xs"
-              className="font-semibold text-gray-600 sm:text-sm"
-            >
+            <BodyText as="span" size="xs" className="font-semibold text-gray-600 sm:text-sm">
               {day}
             </BodyText>
           </Box>
@@ -128,9 +120,7 @@ export function CalendarView({
               variant="ghost"
               onClick={() => onDateClick?.(day.date)}
               className={`relative h-auto min-h-16 w-full rounded border p-1 text-left transition-colors sm:min-h-20 ${
-                day.isCurrentMonth
-                  ? "border-beige/30 bg-white"
-                  : "border-gray-100 bg-gray-50/50"
+                day.isCurrentMonth ? "border-beige/30 bg-white" : "border-gray-100 bg-gray-50/50"
               } ${
                 day.isToday ? "border-brown bg-brown/5" : ""
               } hover:border-brown/50 hover:bg-brown/5 ${
@@ -152,7 +142,7 @@ export function CalendarView({
                   const isMultiDay = eventSpansMultipleLocalDays(event);
                   const firstKey = getEventFirstLocalDayKey(event);
                   const isContinuation = Boolean(
-                    isMultiDay && firstKey !== null && dateKey !== firstKey,
+                    isMultiDay && firstKey !== null && dateKey !== firstKey
                   );
                   const rangeClasses = isContinuation
                     ? "border-dashed border-neutral-400 bg-neutral-200/40"
@@ -171,9 +161,7 @@ export function CalendarView({
                         minute: "2-digit",
                         hour12: true,
                       });
-                    label = [startTime, event.summary || "Untitled"].join(
-                      " · ",
-                    );
+                    label = [startTime, event.summary || "Untitled"].join(" · ");
                   } else if (isMultiDay) {
                     label = `All day · ${event.summary || "Untitled"}`;
                   } else {

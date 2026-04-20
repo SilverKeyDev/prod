@@ -1,5 +1,8 @@
 import React, { forwardRef } from "react";
 
+import type { WebStyleInput } from "packages/ui/utils/flattenWebStyle";
+import { flattenWebStyle } from "packages/ui/utils/flattenWebStyle";
+
 import type { ButtonPropsBase } from "./Button.types";
 
 /** RN-specific props to strip on web; map to aria-* / role instead. */
@@ -12,7 +15,7 @@ const RN_ACCESSIBILITY_KEYS = [
 ] as const;
 
 function omitRnAccessibilityProps<T extends Record<string, unknown>>(
-  props: T,
+  props: T
 ): Omit<T, (typeof RN_ACCESSIBILITY_KEYS)[number]> {
   const { ...rest } = props;
   for (const key of RN_ACCESSIBILITY_KEYS) {
@@ -21,10 +24,12 @@ function omitRnAccessibilityProps<T extends Record<string, unknown>>(
   return rest as Omit<T, (typeof RN_ACCESSIBILITY_KEYS)[number]>;
 }
 
-export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+export type ButtonProps = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "style"> &
   ButtonPropsBase & {
     /** RN-style; web maps to onClick. */
     onPress?: () => void;
+    /** RN-style arrays are flattened before applying to the DOM. */
+    style?: WebStyleInput;
   };
 
 /**
@@ -47,7 +52,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
     accessibilityRole,
     ...props
   },
-  ref,
+  ref
 ) {
   const handleClick = onClick ?? onPress;
   const domProps = omitRnAccessibilityProps(props);
@@ -59,15 +64,15 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       ref={ref}
       type={type}
       className={className}
-      onClick={handleClick}
       role={resolvedRole}
       aria-label={resolvedAriaLabel}
       style={{
         /* Do not set border: none — it overrides Tailwind border utilities (e.g. dropdown triggers). */
         cursor: "pointer",
-        ...(style as React.CSSProperties),
+        ...flattenWebStyle(style),
       }}
       {...domProps}
+      onClick={handleClick}
     >
       {children}
     </button>

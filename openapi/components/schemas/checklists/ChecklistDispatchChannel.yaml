@@ -1,0 +1,6 @@
+type: string
+description: How checklist forms are delivered when automation runs or manual send uses this channel.
+enum:
+  - messaging
+  - docusign
+  - both

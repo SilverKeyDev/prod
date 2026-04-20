@@ -23,14 +23,11 @@ function isFeatures(x: unknown): x is Features {
   if (typeof x !== "object" || x === null) return false;
   // Optional: be strict about value shapes
   return Object.values(x as Record<string, unknown>).every(
-    (v) =>
-      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string"),
+    (v) => Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string")
   );
 }
 
-export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
   const { features, image_features: _imageFeatures } = property as unknown as {
     features: unknown;
@@ -56,9 +53,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
             {Object.entries(feats)
               .filter(([category]) => {
                 // Filter out architectural_style category
-                const normalizedCategory = category
-                  .toLowerCase()
-                  .replace(/[_\s-]/g, "");
+                const normalizedCategory = category.toLowerCase().replace(/[_\s-]/g, "");
                 return normalizedCategory !== "architecturalstyle";
               })
               .map(([category, list]) => (

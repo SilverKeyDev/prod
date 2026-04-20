@@ -3,6 +3,7 @@ import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations
 import { useGoogleMaps } from "packages/hooks/data";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { TOUR_TARGETS_DESKTOP } from "packages/utils/tour/tourTargets";
 
 import { Button, CancelButton } from "@/components/ui";
 
@@ -32,9 +33,7 @@ type SearchHeaderProps = {
   /** When false, preferences Search is disabled until user adds an important location */
   hasLocations?: boolean;
   fitMapToBounds: (bounds: google.maps.LatLngBounds) => void;
-  onPreciseStreetAddressSelected?: (
-    payload: PreciseStreetAddressPayload,
-  ) => void;
+  onPreciseStreetAddressSelected?: (payload: PreciseStreetAddressPayload) => void;
 };
 
 export default function SearchHeader({
@@ -63,29 +62,30 @@ export default function SearchHeader({
       className={`mb-responsive-md mb-6 mt-6 flex w-full min-w-0 flex-shrink-0 flex-row flex-nowrap items-center gap-3 pr-8 ${HEADER_ROW_HEIGHT}`}
     >
       <Box className="flex min-w-0 flex-1 flex-row flex-nowrap items-center gap-2">
-        <Box className="min-w-0 flex-1">
+        <Box className="min-w-0 flex-1" id={TOUR_TARGETS_DESKTOP.searchLocation}>
           <SearchLocationBarWeb
             scriptsReady={scriptsReady}
             fitMapToBounds={fitMapToBounds}
             onSearch={onLocationSearchSubmit}
             onPreciseStreetAddressSelected={onPreciseStreetAddressSelected}
             locationPlaceholder={
-              SEARCH_TRANSLATIONS["search.location_bar_placeholder"] ??
-              "City, neighborhood, or ZIP"
+              SEARCH_TRANSLATIONS["search.location_bar_placeholder"] ?? "City, neighborhood, or ZIP"
             }
           />
         </Box>
-        <Button
-          variant="tertiary"
-          size="sm"
-          loading={isSearching}
-          onClick={handleSearchClick}
-          disabled={isSearching}
-          iconName={!isSearching ? "search" : undefined}
-          className={btnClass}
-        >
-          {isSearching ? t("search.searching") : t("search.search")}
-        </Button>
+        <Box className="shrink-0" id={TOUR_TARGETS_DESKTOP.searchRun}>
+          <Button
+            variant="tertiary"
+            size="sm"
+            loading={isSearching}
+            onClick={handleSearchClick}
+            disabled={isSearching}
+            iconName={!isSearching ? "search" : undefined}
+            className={btnClass}
+          >
+            {isSearching ? t("search.searching") : t("search.search")}
+          </Button>
+        </Box>
         {isSearching && onCancelSearch ? (
           <CancelButton onClick={onCancelSearch} size="sm" className={btnClass}>
             {t("common.cancel")}

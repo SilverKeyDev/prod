@@ -21,23 +21,13 @@ function ContactInfoContainer({ children }: { children: React.ReactNode }) {
   return <View style={contactStyles.container}>{children}</View>;
 }
 
-function ContactInfoBlock({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
+function ContactInfoBlock({ label, value }: { label: string; value: React.ReactNode }) {
   const isEmail = label === "Email";
   return (
     <View style={contactStyles.block}>
       <View style={contactStyles.blockRow}>
         <View style={contactStyles.blockIcon}>
-          <Icon
-            name={isEmail ? "mail" : "phone"}
-            size={18}
-            color={color("brown.DEFAULT")}
-          />
+          <Icon name={isEmail ? "mail" : "phone"} size={18} color={color("brown.DEFAULT")} />
         </View>
         <View style={contactStyles.blockContent}>
           <Text style={contactStyles.blockLabel}>{label}</Text>
@@ -54,13 +44,7 @@ function ContactInfoBlock({
   );
 }
 
-function FAQItem({
-  question,
-  children,
-}: {
-  question: string;
-  children: React.ReactNode;
-}) {
+function FAQItem({ question, children }: { question: string; children: React.ReactNode }) {
   return (
     <View style={contactStyles.faqItem}>
       <Text style={contactStyles.faqQuestion}>{question}</Text>

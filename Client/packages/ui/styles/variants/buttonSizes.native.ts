@@ -17,7 +17,4 @@ export const buttonNativeSizes = Platform.select({
     string,
     { paddingHorizontal: number; paddingVertical: number; minHeight: number }
   >,
-}) as Record<
-  string,
-  { paddingHorizontal: number; paddingVertical: number; minHeight: number }
->;
+}) as Record<string, { paddingHorizontal: number; paddingVertical: number; minHeight: number }>;

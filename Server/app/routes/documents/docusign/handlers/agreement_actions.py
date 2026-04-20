@@ -2,12 +2,24 @@
 
 from flask import jsonify, request
 
-from app.schemas import SendAgreementRequest, VoidAgreementRequest
+from app.schemas import (
+    DocusignResendRecipientRequest,
+    DocusignResendRecipientResponse,
+    DocusignUpdateEnvelopeNotificationRequest,
+    DocusignUpdateEnvelopeNotificationResponse,
+    SendAgreementRequest,
+    VoidAgreementRequest,
+)
 from app.services.auth import get_current_user
 from app.services.docusign import AgreementLifecycleService, RevisionService
+from app.services.docusign.envelopes.recipient_delivery import (
+    resend_agreement_recipient,
+    update_agreement_envelope_notification,
+)
 from app.services.docusign.errors import DocusignError
 from app.services.docusign.utils.permissions import (
     can_discard_agreement_as_agent,
+    can_manage_in_flight_docusign_envelope,
     can_modify_agreement,
     can_send_agreement,
     can_void_agreement,
@@ -16,6 +28,12 @@ from app.utils.security.secure_errors import SecureErrorHandler
 from logger import LOG_CATEGORIES, get_logger
 
 log = get_logger()
+
+
+def _envelope_options_from_send_payload(payload: dict) -> dict | None:
+    keys = ("envelope_notification", "tab_prefill", "envelope_prefill_tabs")
+    out = {k: payload[k] for k in keys if k in payload and payload[k] is not None}
+    return out or None
 
 
 def create_revision_action(agreement_id):
@@ -117,9 +135,10 @@ def send_agreement_action(agreement_id, data: SendAgreementRequest | None = None
         if data is None:
             request_data = request.get_json(silent=True) or {}
         else:
-            request_data = data.model_dump(mode="json")
+            request_data = data.model_dump(mode="json", exclude_none=True)
         signing_method = request_data.get("signing_method", "embedded")
         participant_user_id = request_data.get("participant_user_id")
+        envelope_options = _envelope_options_from_send_payload(request_data)
         log.debug(
             LOG_CATEGORIES["DOCUSIGN"],
             "Sending agreement for signature",
@@ -136,6 +155,7 @@ def send_agreement_action(agreement_id, data: SendAgreementRequest | None = None
             signing_method=signing_method,
             actor_id=user.id,
             participant_user_id=participant_user_id,
+            envelope_options=envelope_options,
         )
         log.info(
             LOG_CATEGORIES["DOCUSIGN"],
@@ -277,3 +297,59 @@ def discard_agreement_action(agreement_id, data: VoidAgreementRequest | None = N
             {"agreement_id": agreement_id, "error": str(e)},
         )
         return SecureErrorHandler.handle_error(e, "Failed to discard agreement")
+
+
+def resend_agreement_recipient_action(
+    agreement_id: str, data: DocusignResendRecipientRequest | None = None
+):
+    """POST /agreements/<id>/resend — DocuSign resend to a pending signer."""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({"error": "Authentication required"}), 401
+        agreement = AgreementLifecycleService.get_agreement(agreement_id)
+        if not can_manage_in_flight_docusign_envelope(user, agreement):
+            return jsonify({"error": "Access denied or invalid state"}), 403
+        if data is None:
+            return jsonify({"error": "Invalid request body"}), 400
+        detail = resend_agreement_recipient(agreement_id, data.participant_id, data.note)
+        payload = DocusignResendRecipientResponse(success=True, detail=detail)
+        return jsonify(payload.model_dump(mode="json")), 200
+    except DocusignError:
+        raise
+    except Exception as e:
+        log.error(
+            LOG_CATEGORIES["ERRORS"],
+            "Failed to resend DocuSign recipient",
+            {"agreement_id": agreement_id, "error": str(e)},
+        )
+        return SecureErrorHandler.handle_error(e, "Failed to resend recipient")
+
+
+def update_agreement_envelope_notification_action(
+    agreement_id: str, data: DocusignUpdateEnvelopeNotificationRequest | None = None
+):
+    """PUT /agreements/<id>/notification — update DocuSign reminder/expiration settings."""
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({"error": "Authentication required"}), 401
+        agreement = AgreementLifecycleService.get_agreement(agreement_id)
+        if not can_manage_in_flight_docusign_envelope(user, agreement):
+            return jsonify({"error": "Access denied or invalid state"}), 403
+        if data is None:
+            return jsonify({"error": "Invalid request body"}), 400
+        notification = update_agreement_envelope_notification(agreement_id, data)
+        payload = DocusignUpdateEnvelopeNotificationResponse(
+            success=True, notification=notification
+        )
+        return jsonify(payload.model_dump(mode="json")), 200
+    except DocusignError:
+        raise
+    except Exception as e:
+        log.error(
+            LOG_CATEGORIES["ERRORS"],
+            "Failed to update DocuSign notification settings",
+            {"agreement_id": agreement_id, "error": str(e)},
+        )
+        return SecureErrorHandler.handle_error(e, "Failed to update notification settings")

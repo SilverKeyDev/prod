@@ -79,6 +79,18 @@ components:
       $ref: './components/schemas/checklists/ChecklistResponse.yaml'
     ChecklistType:
       $ref: './components/schemas/checklists/ChecklistType.yaml'
+    ChecklistCondition:
+      $ref: './components/schemas/checklists/ChecklistCondition.yaml'
+    ChecklistDispatchAutomationApiResponse:
+      $ref: './components/schemas/checklists/ChecklistDispatchAutomationApiResponse.yaml'
+    ChecklistDispatchAutomationSetting:
+      $ref: './components/schemas/checklists/ChecklistDispatchAutomationSetting.yaml'
+    ChecklistDispatchChannel:
+      $ref: './components/schemas/checklists/ChecklistDispatchChannel.yaml'
+    ChecklistDispatchNoteMode:
+      $ref: './components/schemas/checklists/ChecklistDispatchNoteMode.yaml'
+    ChecklistDispatchRecipientScope:
+      $ref: './components/schemas/checklists/ChecklistDispatchRecipientScope.yaml'
     ClientAvailabilityRequest:
       $ref: './components/schemas/calendar/ClientAvailabilityRequest.yaml'
     ClientAvailabilityResponse:
@@ -153,16 +165,38 @@ components:
       $ref: './components/schemas/agreements/documents/WorkflowDocumentRecord.yaml'
     DocumentsResponse:
       $ref: './components/schemas/agreements/documents/DocumentsResponse.yaml'
+    DocuSignEnvelopeNotificationInput:
+      $ref: './components/schemas/agreements/docusign/DocuSignEnvelopeNotificationInput.yaml'
+    DocuSignEnvelopePrefillTabsInput:
+      $ref: './components/schemas/agreements/docusign/DocuSignEnvelopePrefillTabsInput.yaml'
+    DocuSignExpirationsInput:
+      $ref: './components/schemas/agreements/docusign/DocuSignExpirationsInput.yaml'
+    DocuSignParticipantTabPrefillInput:
+      $ref: './components/schemas/agreements/docusign/DocuSignParticipantTabPrefillInput.yaml'
+    DocuSignPrefillCheckboxTabInput:
+      $ref: './components/schemas/agreements/docusign/DocuSignPrefillCheckboxTabInput.yaml'
+    DocuSignPrefillTextTabInput:
+      $ref: './components/schemas/agreements/docusign/DocuSignPrefillTextTabInput.yaml'
+    DocuSignRemindersInput:
+      $ref: './components/schemas/agreements/docusign/DocuSignRemindersInput.yaml'
     DocusignListTemplatesResponse:
       $ref: './components/schemas/agreements/docusign/DocusignListTemplatesResponse.yaml'
     DocusignOAuthStartResponse:
       $ref: './components/schemas/agreements/docusign/DocusignOAuthStartResponse.yaml'
+    DocusignResendRecipientRequest:
+      $ref: './components/schemas/agreements/docusign/DocusignResendRecipientRequest.yaml'
+    DocusignResendRecipientResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignResendRecipientResponse.yaml'
     DocusignSyncTemplatesResponse:
       $ref: './components/schemas/agreements/docusign/DocusignSyncTemplatesResponse.yaml'
     DocusignTemplate:
       $ref: './components/schemas/agreements/docusign/DocusignTemplate.yaml'
     DocusignTemplateListItem:
       $ref: './components/schemas/agreements/docusign/DocusignTemplateListItem.yaml'
+    DocusignUpdateEnvelopeNotificationRequest:
+      $ref: './components/schemas/agreements/docusign/DocusignUpdateEnvelopeNotificationRequest.yaml'
+    DocusignUpdateEnvelopeNotificationResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignUpdateEnvelopeNotificationResponse.yaml'
     DocusignWebhookPayload:
       $ref: './components/schemas/agreements/docusign/DocusignWebhookPayload.yaml'
     DownloadUrlResponse:
@@ -397,6 +431,8 @@ components:
       $ref: './components/schemas/admin/UpdateAgentStatusRequest.yaml'
     UpdateAgentStatusResponse:
       $ref: './components/schemas/admin/UpdateAgentStatusResponse.yaml'
+    UpdateChecklistDispatchAutomationRequest:
+      $ref: './components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml'
     UpdateChecklistRequest:
       $ref: './components/schemas/checklists/UpdateChecklistRequest.yaml'
     UpdateClosingModeRequest:

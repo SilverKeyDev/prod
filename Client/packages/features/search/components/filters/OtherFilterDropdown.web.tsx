@@ -15,9 +15,7 @@ export type OtherFilterDropdownProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
   defaultOpen?: boolean;
-  onSearchFilterOverridesPatch?: (
-    patch: LotSizeHomeAgeSearchOverridesPatch,
-  ) => void;
+  onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
 };
 export default function OtherFilterDropdown({
   formData,
@@ -39,24 +37,14 @@ export default function OtherFilterDropdown({
         aria-expanded={open}
         icon={
           open ? (
-            <Icon
-              name="chevron-down"
-              className="text-text-secondary h-4 w-4 shrink-0"
-            />
+            <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
           ) : (
-            <Icon
-              name="chevron-right"
-              className="text-text-secondary h-4 w-4 shrink-0"
-            />
+            <Icon name="chevron-right" className="text-text-secondary h-4 w-4 shrink-0" />
           )
         }
         iconPosition="right"
       >
-        <BodyText
-          as="span"
-          size="sm"
-          className="text-text-secondary font-medium"
-        >
+        <BodyText as="span" size="sm" className="text-text-secondary font-medium">
           {t("search.other")}
         </BodyText>
       </Button>

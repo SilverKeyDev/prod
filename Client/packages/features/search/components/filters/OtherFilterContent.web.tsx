@@ -14,8 +14,8 @@ import { Box } from "packages/ui/components/primitives";
 
 import { Dropdown } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";
-import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";
-import OnPerTagInput from "@/features/profile/components/settings/inputs/TagInput.web";
+import OptionTagInput from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
+import OnPerTagInput from "@/features/profile/components/settings/inputs/tags/TagInput.web";
 import {
   FIELD_LABELS,
   HOUSING_TYPE_OPTIONS,
@@ -29,9 +29,7 @@ export type OtherFilterContentProps = {
   updateFormData: (field: string | number | symbol, value: unknown) => void;
   /** When true, omit the housing type field (e.g. when shown in a separate "Home Type" filter) */
   hideHousingType?: boolean;
-  onSearchFilterOverridesPatch?: (
-    patch: LotSizeHomeAgeSearchOverridesPatch,
-  ) => void;
+  onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
   /** Borderless dropdown triggers (e.g. search header popover). */
   noBorder?: boolean;
   /** Render dropdown menus in a portal so they are not clipped inside scrollable panels. */
@@ -59,10 +57,7 @@ export default function OtherFilterContent({
               options={HOUSING_TYPE_OPTIONS}
               value={parseHousingTypes(formData.preferred_housing_type)}
               onChange={(arr) =>
-                updateFormData(
-                  "preferred_housing_type",
-                  serializeHousingTypes(arr),
-                )
+                updateFormData("preferred_housing_type", serializeHousingTypes(arr))
               }
               isEditMode={true}
             />
@@ -79,7 +74,7 @@ export default function OtherFilterContent({
             value={formData.preferred_architectural_style ?? ""}
             onChange={(v) => updateFormData("preferred_architectural_style", v)}
             options={ARCHITECTURAL_STYLE_OPTIONS}
-            placeholder="Select..."
+            placeholder="Select architectural style"
             size="sm"
             noBorder={noBorder}
             menuInPortal={menuInPortal}
@@ -92,7 +87,7 @@ export default function OtherFilterContent({
             value={formData.renovation_preference ?? ""}
             onChange={(v) => updateFormData("renovation_preference", v)}
             options={RENOVATION_OPTIONS}
-            placeholder="Select..."
+            placeholder="Select renovation preference"
             size="sm"
             noBorder={noBorder}
             menuInPortal={menuInPortal}
@@ -105,7 +100,7 @@ export default function OtherFilterContent({
             value={formData.intended_property_use ?? ""}
             onChange={(v) => updateFormData("intended_property_use", v)}
             options={PROPERTY_USE_OPTIONS}
-            placeholder="Select..."
+            placeholder="Select intended use"
             size="sm"
             noBorder={noBorder}
             menuInPortal={menuInPortal}
@@ -118,7 +113,7 @@ export default function OtherFilterContent({
             value={formData.walkability_importance ?? ""}
             onChange={(v) => updateFormData("walkability_importance", v)}
             options={WALKABILITY_OPTIONS}
-            placeholder="Select..."
+            placeholder="Select walkability importance"
             size="sm"
             noBorder={noBorder}
             menuInPortal={menuInPortal}

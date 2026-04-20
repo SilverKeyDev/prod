@@ -3,6 +3,7 @@ import React, { useCallback } from "react";
 import {
   ProfileSectionBody,
   ProfileSectionCallout,
+  useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
@@ -13,7 +14,7 @@ import { SearchPrefsLocation } from "@/features/profile/components/profileScreen
 import { SearchPrefsNeighborhood } from "@/features/profile/components/profileScreen/searchPreferences/SearchPrefsNeighborhood";
 import type { PatchBuyerPreferenceExtensions } from "@/features/profile/components/profileScreen/searchPreferences/types";
 import { withBuyerExtV1 } from "@/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
-import ImportantLocationsInput from "@/features/profile/components/settings/inputs/ImportantLocationsInput.web";
+import ImportantLocationsInput from "@/features/profile/components/settings/inputs/locations/ImportantLocationsInput.web";
 import {
   AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT,
   effectiveIsAgentForOptionalBuyerUi,
@@ -45,6 +46,7 @@ export default function LocationSection({
   addButtonLabel,
   titleId,
 }: LocationSectionProps) {
+  const showSectionTitle = useShowPersonalizationSectionBodyTitle();
   const authIsAgent = useIsAgent();
   const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
@@ -52,23 +54,21 @@ export default function LocationSection({
   });
 
   const patch = useCallback(
-    (
-      fn: (
-        prev: BuyerPreferenceExtensions | undefined,
-      ) => BuyerPreferenceExtensions,
-    ) => {
+    (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {
       patchBuyerPreferenceExtensions(fn);
     },
-    [patchBuyerPreferenceExtensions],
+    [patchBuyerPreferenceExtensions]
   );
 
   const ext = withBuyerExtV1(formData.buyerPreferenceExtensions);
 
   return (
     <>
-      <Title size="md" as="h2" id={titleId}>
-        {SECTION_TITLES.LOCATION_PREFERENCES}
-      </Title>
+      {showSectionTitle && (
+        <Title size="md" as="h2" id={titleId}>
+          {SECTION_TITLES.LOCATION_PREFERENCES}
+        </Title>
+      )}
       {showAgentOptionalBuyerCallout && (
         <ProfileSectionCallout>
           {AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT}
@@ -82,13 +82,9 @@ export default function LocationSection({
           </Subtitle>
           <ImportantLocationsInput
             locations={
-              Array.isArray(formData.important_locations)
-                ? formData.important_locations
-                : []
+              Array.isArray(formData.important_locations) ? formData.important_locations : []
             }
-            onChange={(locations) =>
-              updateFormData("important_locations", locations)
-            }
+            onChange={(locations) => updateFormData("important_locations", locations)}
             scriptsReady={scriptsReady}
             isEditMode={isEditMode}
             addButtonLabel={addButtonLabel}

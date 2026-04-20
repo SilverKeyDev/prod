@@ -9,10 +9,7 @@ export type BoxProps = ViewProps & { className?: string };
  * Web uses div (Box.web.tsx). Use this so layout is platform-agnostic.
  * NativeWind applies Tailwind classes via className.
  */
-const Box = forwardRef<View, BoxProps>(function Box(
-  { className, style, children, ...props },
-  ref,
-) {
+const Box = forwardRef<View, BoxProps>(function Box({ className, style, children, ...props }, ref) {
   return (
     <View ref={ref} className={className} style={style} {...props}>
       {children}

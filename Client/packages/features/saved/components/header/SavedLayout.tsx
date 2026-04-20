@@ -32,7 +32,7 @@ type SavedLayoutProps = {
   onViewTypeChange?: (type: "homes" | "documents" | "agreements") => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
   onEventTypeFilterChange?: (
-    eventType: "listed" | "price_change" | "sold" | "withdrawn" | "",
+    eventType: "listed" | "price_change" | "sold" | "withdrawn" | ""
   ) => void;
 };
 const SavedLayout: React.FC<SavedLayoutProps> = ({
@@ -137,9 +137,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
       <Card border="light" padding="none" className="w-full p-3">
         <Box className="flex flex-wrap items-center justify-between gap-3">
           {toolbarLeading ? (
-            <Box className="flex w-full shrink-0 items-center sm:w-auto">
-              {toolbarLeading}
-            </Box>
+            <Box className="flex w-full shrink-0 items-center sm:w-auto">{toolbarLeading}</Box>
           ) : null}
           {/* Separate div for left content */}
           {leftContent && !showSearch && (
@@ -155,17 +153,13 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
           {/* Separate div for everything else (search, dropdown, refresh, view toggle, etc.) */}
           <Box
             className={`flex flex-1 flex-wrap items-center justify-between ${
-              isMobile && viewType !== "homes" && viewType !== "documents"
-                ? "hidden"
-                : ""
+              isMobile && viewType !== "homes" && viewType !== "documents" ? "hidden" : ""
             }`}
           >
             {/* Left side: Search input or empty space */}
             <Box
               className={`flex min-w-0 items-center gap-3 ${
-                showSearch
-                  ? "w-full flex-1 justify-center sm:w-auto sm:justify-start"
-                  : "shrink-0"
+                showSearch ? "w-full flex-1 justify-center sm:w-auto sm:justify-start" : "shrink-0"
               }`}
             >
               {showSearch ? (

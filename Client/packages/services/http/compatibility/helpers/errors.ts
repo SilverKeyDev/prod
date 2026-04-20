@@ -6,10 +6,7 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { AuthenticationError, HttpError } from "packages/services/http/client";
 import { log as secureLog } from "packages/services/security/secureLogger";
 import { getWindow } from "packages/utils/platform";
-import {
-  getLocalStorage,
-  getSessionStorage,
-} from "packages/utils/storage/platformStorage";
+import { getLocalStorage, getSessionStorage } from "packages/utils/storage/platformStorage";
 
 export function logHttp(scope: string, e: unknown) {
   try {
@@ -80,7 +77,7 @@ export function handleAuthenticationError(error: AuthenticationError) {
         log.warn(
           LOG_CATEGORIES.ERRORS,
           "Authentication error event dispatch failed",
-          dispatchError,
+          dispatchError
         );
       }
     }, 0);

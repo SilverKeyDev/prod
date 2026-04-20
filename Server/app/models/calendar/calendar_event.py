@@ -28,6 +28,9 @@ class CalendarEvent(db.Model):
     description: Mapped[str | None] = mapped_column(db.Text)
     location: Mapped[str | None] = mapped_column(db.String(500))
 
+    # Multi-stop viewing itinerary (app-only; not synced from Google)
+    itinerary: Mapped[dict[str, Any] | None] = mapped_column(db.JSON)
+
     # Event type/category
     event_type: Mapped[str | None] = mapped_column(
         db.String(100)
@@ -119,6 +122,7 @@ class CalendarEvent(db.Model):
             "summary": self.summary,
             "description": self.description,
             "location": self.location,
+            "itinerary": self.itinerary,
             "event_type": self.event_type,
             "creator_id": self.creator_id,
             "target_user_id": self.target_user_id,

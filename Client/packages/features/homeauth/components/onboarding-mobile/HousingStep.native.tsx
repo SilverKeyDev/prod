@@ -1,8 +1,8 @@
 import React from "react";
 
-import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/ProfileSearchPropertySection"; // eslint-disable-line silverkey/no-cross-feature-internals -- Define Criteria parity: merged features block matches web ProfileSearchPropertySection
-import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types"; // eslint-disable-line silverkey/no-cross-feature-internals
-import { type OnboardingData } from "packages/features/profile/utils"; // eslint-disable-line silverkey/no-cross-feature-internals
+import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
+import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
+import { type OnboardingData } from "packages/features/profile/utils";
 import { Box } from "packages/ui/components/primitives";
 
 import { HousingStepEssentials } from "./housing/HousingStepEssentials.native";
@@ -22,10 +22,7 @@ export function HousingStep({
 }) {
   return (
     <Box className="gap-10">
-      <HousingStepEssentials
-        formData={formData}
-        updateFormData={updateFormData}
-      />
+      <HousingStepEssentials formData={formData} updateFormData={updateFormData} />
       <HousingStepRanges formData={formData} updateFormData={updateFormData} />
       <ProfileSearchPropertySection
         formData={formData}

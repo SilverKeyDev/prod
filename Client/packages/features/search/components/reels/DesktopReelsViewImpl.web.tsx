@@ -2,10 +2,7 @@ import { useRef } from "react";
 
 import type { VirtuosoHandle } from "react-virtuoso";
 
-import {
-  DEFAULT_PLACEHOLDER_IMAGE,
-  type FeedScrollController,
-} from "packages/features/feed";
+import { DEFAULT_PLACEHOLDER_IMAGE, type FeedScrollController } from "packages/features/feed";
 import type { SearchResult } from "packages/features/search/types";
 import { useIsMobile } from "packages/hooks/ui";
 import { useReelsShortcuts } from "packages/hooks/ui";

@@ -57,25 +57,10 @@ def save_map_as_image(url, filename="map.png"):
         return False
 
 
-def fetch_route_polyline(origin, destination, api_key):
-    """Fetch encoded polyline for driving route from origin to destination."""
-    url = "https://maps.googleapis.com/maps/api/directions/json"
-    params = {
-        "origin": origin,
-        "destination": destination,
-        "mode": "driving",
-        "key": api_key,
-    }
-    response = requests.get(url, params=params, timeout=30)
-    if response.status_code == 200:
-        data = response.json()
-        if data.get("routes"):
-            return data["routes"][0]["overview_polyline"]["points"]
-    return None
-
-
-def fetch_travel_time(origin, destination, api_key):
-    """Fetch travel time from origin to destination using Google Directions API."""
+def fetch_directions_leg(origin, destination, api_key):
+    """One driving Directions request: human-readable duration and overview polyline."""
+    if not api_key:
+        return None
     try:
         url = "https://maps.googleapis.com/maps/api/directions/json"
         params = {
@@ -85,20 +70,39 @@ def fetch_travel_time(origin, destination, api_key):
             "key": api_key,
         }
         response = requests.get(url, params=params, timeout=30)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("routes") and data["routes"][0].get("legs"):
-                duration = data["routes"][0]["legs"][0]["duration"]["text"]
-                return duration
-            else:
-                logger.warning(f"🕐 No route found from {origin[:30]}... to {destination[:30]}...")
-                return None
-        else:
-            logger.error(f"🕐 Directions API error: {response.status_code}, {response.text}")
+        if response.status_code != 200:
+            logger.error(
+                "Directions API error: %s, %s",
+                response.status_code,
+                response.text,
+            )
             return None
+        data = response.json()
+        routes = data.get("routes") or []
+        if not routes or not routes[0].get("legs"):
+            o_prev = origin[:30] if isinstance(origin, str) else ""
+            d_prev = destination[:30] if isinstance(destination, str) else ""
+            logger.warning("No route found from %s... to %s...", o_prev, d_prev)
+            return None
+        leg = routes[0]["legs"][0]
+        duration = (leg.get("duration") or {}).get("text")
+        enc = (routes[0].get("overview_polyline") or {}).get("points")
+        return {"duration_text": duration, "encoded_polyline": enc}
     except Exception as e:
-        logger.error(f"🕐 Error fetching travel time: {e}")
+        logger.error("Error fetching directions leg: %s", e)
         return None
+
+
+def fetch_route_polyline(origin, destination, api_key):
+    """Fetch encoded polyline for driving route from origin to destination."""
+    leg = fetch_directions_leg(origin, destination, api_key)
+    return leg.get("encoded_polyline") if leg else None
+
+
+def fetch_travel_time(origin, destination, api_key):
+    """Fetch travel time from origin to destination using Google Directions API."""
+    leg = fetch_directions_leg(origin, destination, api_key)
+    return leg.get("duration_text") if leg else None
 
 
 def generate_static_map_url(primary_address, secondary_locations, api_key, map_id=None):
@@ -216,7 +220,12 @@ def generate_commute_map(primary_address, user_preferences, api_key):
         if isinstance(locations_data, list):
             for i, loc in enumerate(locations_data):
                 if isinstance(loc, dict) and "address" in loc:
-                    loc_name = loc.get("name") or loc.get("address", "")[:20] or f"Location {i + 1}"
+                    loc_name = (
+                        loc.get("name")
+                        or loc.get("label")
+                        or loc.get("address", "")[:20]
+                        or f"Location {i + 1}"
+                    )
                     important_locations.append({"name": loc_name, "address": loc["address"]})
                 else:
                     logger.warning(
@@ -233,12 +242,15 @@ def generate_commute_map(primary_address, user_preferences, api_key):
 
         locations_with_times = []
         for loc in important_locations:
-            travel_time = fetch_travel_time(primary_address, loc["address"], api_key)
+            leg = fetch_directions_leg(primary_address, loc["address"], api_key)
+            travel_time = leg.get("duration_text") if leg else None
+            encoded_polyline = leg.get("encoded_polyline") if leg else None
             locations_with_times.append(
                 {
                     "name": loc["name"],
                     "address": loc["address"],
                     "travel_time": travel_time or "Unknown",
+                    "encoded_polyline": encoded_polyline,
                 }
             )
 

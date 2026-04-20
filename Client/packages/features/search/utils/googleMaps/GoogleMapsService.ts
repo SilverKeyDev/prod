@@ -35,20 +35,13 @@ export class GoogleMapsService {
 
   public createMap(
     container: HTMLElement,
-    overrides?: Partial<google.maps.MapOptions>,
+    overrides?: Partial<google.maps.MapOptions>
   ): google.maps.Map | null {
     if (!this.isGoogleMapsReady()) {
-      log.error(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Google Maps not ready yet - missing required APIs",
-      );
+      log.error(LOG_CATEGORIES.MAP_RENDERING, "Google Maps not ready yet - missing required APIs");
       return null;
     }
-    return this.mapManager.createMap(
-      container,
-      this.scriptLoader.getMapId(),
-      overrides,
-    );
+    return this.mapManager.createMap(container, this.scriptLoader.getMapId(), overrides);
   }
 
   public triggerMapResize(map: google.maps.Map): void {

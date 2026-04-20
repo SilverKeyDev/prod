@@ -23,11 +23,12 @@ SEARCH_ITEMS = [
         ],
         "resource": None,
         "component_key": "set_budget",
+        "completion_requires_submit": True,
     },
     {
         "id": 4,
         "order": 2,
-        "label": "Choose area(s)",
+        "label": "Choose search area",
         "explanation": "Add work, family, or other important locations and set your commute range. The map shows your search area (isochrones) based on these locations.",
         "bullets": [
             "Add addresses for work, school, or family.",
@@ -35,6 +36,7 @@ SEARCH_ITEMS = [
         ],
         "resource": None,
         "component_key": "choose_areas",
+        "completion_requires_submit": True,
     },
     {
         "id": 2,
@@ -47,6 +49,7 @@ SEARCH_ITEMS = [
         ],
         "resource": None,
         "component_key": "define_criteria",
+        "completion_requires_submit": True,
     },
     {
         "id": 3,
@@ -60,6 +63,7 @@ SEARCH_ITEMS = [
         ],
         "resource": None,
         "component_key": "partner_agent",
+        "completion_requires_submit": True,
     },
     {
         "id": 6,
@@ -71,6 +75,7 @@ SEARCH_ITEMS = [
             "buyer_broker_non_exclusive",
             "buyer_broker_single_property",
         ],
+        "forms_card_variant": "document",
         "completion_type": "signature_based",
         "bullets": [
             "Review the agreement type: exclusive, non-exclusive, or single-property representation.",

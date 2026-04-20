@@ -2,7 +2,7 @@
  * HTTP method helpers: apiGet, apiPost, apiPut, apiPatch, apiDelete
  */
 
-import type { ApiRequestOptions } from "packages/types/api";
+import type { ApiRequestOptions } from "packages/types/domain/api";
 
 import { apiRequest } from "./core";
 

@@ -17,10 +17,7 @@ import type { SecureFileUploadProps } from "./SecureFileUpload";
  * Documents added by the team appear here; upgrade path is a native
  * file/image picker when implemented.
  */
-export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
-  label,
-  disabled,
-}) => {
+export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({ label, disabled }) => {
   const { t } = useLocalization();
 
   return (

@@ -12,11 +12,7 @@ import type { UserProfile } from "@/features/homeauth/types";
 import { useUserData } from "@/features/profile/hooks/data/useUserData";
 
 import { getNavigation, type SidebarNavItem } from "./sidebarNav.web";
-import {
-  SidebarFooter,
-  SidebarHeader,
-  SidebarNav,
-} from "./SidebarNavSections.web";
+import { SidebarFooter, SidebarHeader, SidebarNav } from "./SidebarNavSections.web";
 
 export type SidebarProps = {
   user?: UserProfile;
@@ -49,21 +45,15 @@ export default function Sidebar({
   isMobile = false,
   onLinkClick,
 }: SidebarProps) {
-  const {
-    showLogoutConfirm,
-    handleLogoutClick,
-    handleConfirmLogout,
-    handleCancelLogout,
-  } = useSidebarLogoutConfirm(onLogout);
+  const { showLogoutConfirm, handleLogoutClick, handleConfirmLogout, handleCancelLogout } =
+    useSidebarLogoutConfirm(onLogout);
   const { user: authUser, authReady, authStatus } = useAuthStoreIntegration();
   const isLoading = authStatus === "checking" || !authReady;
   const { userProfile } = useUserData();
   const _isAgent = useIsAgent();
   const hasAgent = userProfile?.agent_id ? true : false;
   const openCategories = useViewStore((s: ViewState) => s.openCategories);
-  const toggleCategoryInStore = useViewStore(
-    (s: ViewState) => s.toggleCategory,
-  );
+  const toggleCategoryInStore = useViewStore((s: ViewState) => s.toggleCategory);
   const location = useLocation();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const isLoaded = useNotificationStore((s) => s.isLoaded);
@@ -71,14 +61,10 @@ export default function Sidebar({
     const part = href.split("?")[0];
     const hrefPathname = part?.split("#")[0];
     if (hrefPathname === undefined) return false;
-    return (
-      location.pathname === hrefPathname ||
-      location.pathname.endsWith(hrefPathname)
-    );
+    return location.pathname === hrefPathname || location.pathname.endsWith(hrefPathname);
   };
   const toggleCategory = (category: string) => toggleCategoryInStore(category);
-  const isCategoryActive = (items: SidebarNavItem[]) =>
-    items.some((item) => isActive(item.href));
+  const isCategoryActive = (items: SidebarNavItem[]) => items.some((item) => isActive(item.href));
   const navigation = getNavigation(_isAgent, hasAgent, isMobile);
   return (
     <Box
@@ -90,11 +76,7 @@ export default function Sidebar({
         className="line-clamp-1 flex h-full flex-col overflow-hidden"
         style={{ height: "100%", maxHeight: "100%" }}
       >
-        <SidebarHeader
-          expanded={expanded}
-          isLoading={isLoading}
-          displayUser={authUser}
-        />
+        <SidebarHeader expanded={expanded} isLoading={isLoading} displayUser={authUser} />
         <Box className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
           <SidebarNav
             navigation={navigation}

@@ -35,18 +35,10 @@ export default function Title({
 }: TitleProps) {
   const baseClasses = "font-serif text-black";
   const sizeClass = sizeClasses[size];
-  const combinedClasses = [baseClasses, sizeClass, className]
-    .filter(Boolean)
-    .join(" ");
+  const combinedClasses = [baseClasses, sizeClass, className].filter(Boolean).join(" ");
 
   return (
-    <Text
-      as={as ?? "h2"}
-      className={combinedClasses}
-      style={style}
-      title={title}
-      id={id}
-    >
+    <Text as={as ?? "h2"} className={combinedClasses} style={style} title={title} id={id}>
       {children}
     </Text>
   );

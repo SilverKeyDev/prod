@@ -35,17 +35,13 @@ export function HousingStepEssentials({ formData, updateFormData }: Props) {
 
   const toggleHousingType = (value: string) => {
     const exists = housingTypes.includes(value);
-    const next = exists
-      ? housingTypes.filter((v) => v !== value)
-      : [...housingTypes, value];
+    const next = exists ? housingTypes.filter((v) => v !== value) : [...housingTypes, value];
     updateFormData("preferred_housing_type", serializeHousingTypes(next));
   };
 
   const toggleMustHave = (value: string) => {
     const exists = mustHave.includes(value);
-    const next = exists
-      ? mustHave.filter((v) => v !== value)
-      : [...mustHave, value];
+    const next = exists ? mustHave.filter((v) => v !== value) : [...mustHave, value];
     updateFormData("must_have", next);
   };
 
@@ -62,10 +58,7 @@ export function HousingStepEssentials({ formData, updateFormData }: Props) {
         </Box>
       )}
 
-      <HousingNumberFields
-        formData={formData}
-        updateFormData={updateFormData}
-      />
+      <HousingNumberFields formData={formData} updateFormData={updateFormData} />
 
       <Box>
         <Text className="text-text-secondary mb-2 text-sm font-medium">
@@ -82,9 +75,7 @@ export function HousingStepEssentials({ formData, updateFormData }: Props) {
                 key={option.value}
                 onPress={() => toggleHousingType(option.value)}
                 className={`rounded-full border px-4 py-2 ${
-                  selected
-                    ? "border-primary bg-primary"
-                    : "border-border bg-background-surface"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
@@ -115,9 +106,7 @@ export function HousingStepEssentials({ formData, updateFormData }: Props) {
                 key={option.value}
                 onPress={() => toggleMustHave(option.value)}
                 className={`rounded-full border px-4 py-2 ${
-                  selected
-                    ? "border-primary bg-primary"
-                    : "border-border bg-background-surface"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text

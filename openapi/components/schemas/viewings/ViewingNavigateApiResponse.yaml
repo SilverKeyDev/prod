@@ -1,0 +1,12 @@
+type: object
+required:
+  - success
+properties:
+  success:
+    type: boolean
+  data:
+    $ref: ./ViewingNavigateResponse.yaml
+    nullable: true
+  error:
+    type: string
+    nullable: true

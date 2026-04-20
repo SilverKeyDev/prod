@@ -22,7 +22,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     keyboardType: _keyboardType,
     ...props
   },
-  ref,
+  ref
 ) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange?.(e);

@@ -3,18 +3,17 @@ import type { ChangeEvent } from "react";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import ClientSelector from "packages/ui/components/button/ClientSelector";
-import { AddressInput } from "packages/ui/components/form/AddressInput";
-import Dropdown from "packages/ui/components/form/Dropdown";
-import { Textarea } from "packages/ui/components/form/FormField";
-import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
 import { Box } from "packages/ui/components/primitives";
 
 import BaseModal from "@/components/modals/BaseModal";
-import { BodyText, CloseButton, Input, Title } from "@/components/ui";
+import { CloseButton, Title } from "@/components/ui";
 import Label from "@/components/ui/text/Label.web";
-import { CalendarStyleDateRangePicker } from "@/features/calendar/components/eventForm/CalendarStyleDateRangePicker";
-import { EventFormTimeRange } from "@/features/calendar/components/eventForm/EventFormTimeRange";
+import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { Calendar } from "@/features/calendar/types/calendar";
+import type { CalendarEventKindOptionSlice } from "@/features/calendar/utils/createEventModal/calendarEventKindOptions";
+import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
+
+import { CreateEventModalFormFields } from "./CreateEventModalFormFields";
 
 export type CreateEventModalFormProps = {
   isOpen: boolean;
@@ -25,9 +24,17 @@ export type CreateEventModalFormProps = {
   onCalendarChange: (id: string) => void;
   /** Hide calendar dropdown (create uses default SilverKey calendar only). */
   hideCalendarPicker?: boolean;
+  eventKindId: CalendarEventKindId;
+  onEventKindIdChange: (id: CalendarEventKindId) => void;
+  kindOptionSlice: CalendarEventKindOptionSlice;
+  checklistProgressLoading?: boolean;
   eventTitle: string;
   onEventTitleChange: (e: ChangeEvent<HTMLInputElement>) => void;
   showAgentClientPicker?: boolean;
+  /** When true, show a control to add multiple property stops (itinerary). */
+  showAgentMultiStopViewingToggle?: boolean;
+  agentMultiStopViewing?: boolean;
+  onAgentMultiStopViewingChange?: (next: boolean) => void;
   selectedClientId: string | null;
   onSelectedClientIdChange: (id: string | null) => void;
   isAllDay: boolean;
@@ -39,6 +46,9 @@ export type CreateEventModalFormProps = {
   endTime: string;
   onStartTimeChange: (hhmm: string) => void;
   onEndTimeChange: (hhmm: string) => void;
+  isPropertyViewing?: boolean;
+  viewingStops?: ViewingStop[];
+  onViewingStopsChange?: (next: ViewingStop[]) => void;
   eventLocation: string;
   onEventLocationChange: (value: string) => void;
   locationScriptsReady: boolean;
@@ -59,9 +69,16 @@ export function CreateEventModalForm({
   selectedCalendarId,
   onCalendarChange,
   hideCalendarPicker = false,
+  eventKindId,
+  onEventKindIdChange,
+  kindOptionSlice,
+  checklistProgressLoading = false,
   eventTitle,
   onEventTitleChange,
   showAgentClientPicker = false,
+  showAgentMultiStopViewingToggle = false,
+  agentMultiStopViewing = false,
+  onAgentMultiStopViewingChange,
   selectedClientId,
   onSelectedClientIdChange,
   isAllDay,
@@ -73,6 +90,9 @@ export function CreateEventModalForm({
   endTime,
   onStartTimeChange,
   onEndTimeChange,
+  isPropertyViewing = false,
+  viewingStops = [],
+  onViewingStopsChange,
   eventLocation,
   onEventLocationChange,
   locationScriptsReady,
@@ -84,11 +104,6 @@ export function CreateEventModalForm({
   primaryActionLabel,
   onSubmit,
 }: CreateEventModalFormProps) {
-  const hasAnyScheduleDate = Boolean(
-    (startDate?.trim() ?? "").length > 0 || (endDate?.trim() ?? "").length > 0,
-  );
-  const scheduleDetailsVisible = mode === "edit" || hasAnyScheduleDate;
-
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} size="md">
       <Box className="space-y-4">
@@ -110,133 +125,43 @@ export function CreateEventModalForm({
           </Box>
         ) : null}
 
-        <Box>
-          <Label htmlFor="event-title">Event Title</Label>
-          <Input
-            id="event-title"
-            value={eventTitle}
-            onChange={onEventTitleChange}
-            placeholder="e.g., Property Viewing, Home Inspection"
-            className="mt-1"
-            // eslint-disable-next-line jsx-a11y/no-autofocus -- Focus title when modal opens
-            autoFocus
-          />
-        </Box>
-
-        <Box>
-          <Label htmlFor="event-description">Description (optional)</Label>
-          <Textarea
-            id="event-description"
-            value={eventDescription}
-            onChange={onEventDescriptionChange}
-            placeholder="Add any additional details about the event..."
-            rows={3}
-            className="mt-1"
-          />
-        </Box>
-
-        {!hideCalendarPicker && calendars.length > 1 ? (
-          <Dropdown
-            label="Calendar"
-            options={calendars.map((cal) => ({
-              value: cal.id,
-              label: cal.summary,
-            }))}
-            value={selectedCalendarId}
-            onChange={(id) => onCalendarChange(id)}
-          />
-        ) : null}
-
-        <Box>
-          <CalendarStyleDateRangePicker
-            id="event-date-range"
-            label={mode === "edit" ? "Dates" : "Add to calendar"}
-            required={mode === "edit"}
-            helperText={
-              mode === "create"
-                ? "Optional. Leave empty for a to-do without a scheduled time."
-                : undefined
-            }
-            startDate={startDate}
-            endDate={endDate}
-            onRangeChange={onDateRangeChange}
-            onClear={
-              mode === "create" ? () => onDateRangeChange("", "") : undefined
-            }
-          />
-        </Box>
-
-        {scheduleDetailsVisible ? (
-          isAllDay ? (
-            <Box className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-text-primary h-auto min-h-0 px-0 py-0 font-medium"
-                onClick={() => onIsAllDayChange(!isAllDay)}
-              >
-                All day
-              </Button>
-              <OliveCheckbox
-                checked={isAllDay}
-                onToggle={() => onIsAllDayChange(!isAllDay)}
-              />
-            </Box>
-          ) : (
-            <EventFormTimeRange
-              startDate={startDate}
-              endDate={endDate}
-              startTime={startTime}
-              endTime={endTime}
-              onStartTimeChange={onStartTimeChange}
-              onEndTimeChange={onEndTimeChange}
-              menuPlacement="overlap"
-              menuInPortal
-              menuPortalStack="modal"
-              trailingSlot={
-                <Box className="flex shrink-0 items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-text-primary h-auto min-h-0 px-0 py-0 font-medium"
-                    onClick={() => onIsAllDayChange(!isAllDay)}
-                  >
-                    All day
-                  </Button>
-                  <OliveCheckbox
-                    checked={isAllDay}
-                    onToggle={() => onIsAllDayChange(!isAllDay)}
-                  />
-                </Box>
-              }
-            />
-          )
-        ) : null}
-
-        <Box>
-          <AddressInput
-            label="Location (optional)"
-            value={eventLocation}
-            onChange={onEventLocationChange}
-            onSelect={(data) => onEventLocationChange(data.address)}
-            scriptsReady={locationScriptsReady}
-            placeholder="Search for an address or type a place or link"
-          />
-          {loadError ? (
-            <BodyText as="p" size="xs" className="text-destructive mt-1">
-              {loadError} You can still type an address or link manually.
-            </BodyText>
-          ) : null}
-        </Box>
+        <CreateEventModalFormFields
+          mode={mode}
+          calendars={calendars}
+          selectedCalendarId={selectedCalendarId}
+          onCalendarChange={onCalendarChange}
+          hideCalendarPicker={hideCalendarPicker}
+          eventKindId={eventKindId}
+          onEventKindIdChange={onEventKindIdChange}
+          kindOptionSlice={kindOptionSlice}
+          checklistProgressLoading={checklistProgressLoading}
+          showAgentMultiStopViewingToggle={showAgentMultiStopViewingToggle}
+          agentMultiStopViewing={agentMultiStopViewing}
+          onAgentMultiStopViewingChange={onAgentMultiStopViewingChange}
+          eventTitle={eventTitle}
+          onEventTitleChange={onEventTitleChange}
+          isAllDay={isAllDay}
+          onIsAllDayChange={onIsAllDayChange}
+          startDate={startDate}
+          endDate={endDate}
+          onDateRangeChange={onDateRangeChange}
+          startTime={startTime}
+          endTime={endTime}
+          onStartTimeChange={onStartTimeChange}
+          onEndTimeChange={onEndTimeChange}
+          isPropertyViewing={isPropertyViewing}
+          viewingStops={viewingStops}
+          onViewingStopsChange={onViewingStopsChange}
+          eventLocation={eventLocation}
+          onEventLocationChange={onEventLocationChange}
+          locationScriptsReady={locationScriptsReady}
+          loadError={loadError}
+          eventDescription={eventDescription}
+          onEventDescriptionChange={onEventDescriptionChange}
+        />
 
         <Box className="flex gap-3 pt-2">
-          <CancelButton
-            onClick={onClose}
-            className="flex-1"
-            disabled={isSubmitting}
-          >
+          <CancelButton onClick={onClose} className="flex-1" disabled={isSubmitting}>
             Cancel
           </CancelButton>
           <Button

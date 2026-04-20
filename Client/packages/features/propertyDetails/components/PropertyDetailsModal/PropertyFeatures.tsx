@@ -49,7 +49,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
         {img && img.clean.length > 0 && (
           <Box className="mb-4">
             <Title as="h4" size="sm" className="text-gold mb-2 text-sm font-semibold">
-              AI-Detected Features
+              Detected features
             </Title>
             <Box className="text-brown/70 text-xs leading-relaxed">
               {img.clean.map((feature, i) => (

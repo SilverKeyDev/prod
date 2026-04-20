@@ -66,7 +66,7 @@ export function SavedHeader({
         label: t("saved.filter_withdrawn", { defaultValue: "Withdrawn" }),
       },
     ],
-    [t],
+    [t]
   );
 
   return (
@@ -88,11 +88,7 @@ export function SavedHeader({
               id: "homes" as const,
               label: t("saved.tab_homes", { defaultValue: "Homes" }),
               icon: (props: { size?: number; color?: string }) => (
-                <Icon
-                  name="home"
-                  size={props.size ?? 16}
-                  color={props.color ?? color("navy")}
-                />
+                <Icon name="home" size={props.size ?? 16} color={props.color ?? color("navy")} />
               ),
             },
             {
@@ -122,10 +118,7 @@ export function SavedHeader({
             const isLast = index === arr.length - 1;
             const isActive = tab.id === viewType;
             return (
-              <Box
-                key={tab.id}
-                className="min-w-0 flex-1 flex-row items-center"
-              >
+              <Box key={tab.id} className="min-w-0 flex-1 flex-row items-center">
                 <Button
                   variant="ghost"
                   onPress={() => setViewType(tab.id)}
@@ -135,12 +128,7 @@ export function SavedHeader({
                 >
                   <Box className="flex-row items-center justify-center gap-1.5">
                     <tab.icon size={16} color={color("navy")} />
-                    <BodyText
-                      as="span"
-                      size="md"
-                      className="text-text-primary"
-                      numberOfLines={1}
-                    >
+                    <BodyText as="span" size="md" className="text-text-primary" numberOfLines={1}>
                       {tab.label}
                     </BodyText>
                   </Box>
@@ -156,9 +144,7 @@ export function SavedHeader({
                     />
                   )}
                 </Button>
-                {index < 1 ? (
-                  <Box className="bg-border h-4 w-px flex-shrink-0" />
-                ) : null}
+                {index < 1 ? <Box className="bg-border h-4 w-px flex-shrink-0" /> : null}
               </Box>
             );
           })}
@@ -172,6 +158,7 @@ export function SavedHeader({
               size="sm"
               onPress={onOpenClientSelector}
               className="shrink-0 px-2 py-1"
+              iconName="save"
             >
               <Text className="text-xs font-medium">
                 {selectedClientName ??
@@ -186,9 +173,7 @@ export function SavedHeader({
               {eventTypeFilterOptions.map((option) => (
                 <Button
                   key={option.value || "all"}
-                  variant={
-                    eventTypeFilter === option.value ? "primary" : "secondary"
-                  }
+                  variant={eventTypeFilter === option.value ? "primary" : "secondary"}
                   size="sm"
                   onPress={() => onEventTypeFilterChange(option.value)}
                   className="px-2 py-1"
@@ -209,6 +194,7 @@ export function SavedHeader({
             size="sm"
             onPress={onUploadDocument}
             className="flex-1"
+            iconName="save"
           >
             <Text className="text-sm font-medium">
               {t("saved.upload_document", {

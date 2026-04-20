@@ -15,7 +15,7 @@ export interface Calendar {
   primary?: boolean;
 }
 
-export type CalendarViewType = "day" | "week" | "month";
+export type CalendarViewType = "week" | "month";
 
 export interface CalendarGridDay {
   date: Date;
@@ -29,8 +29,19 @@ export interface CalendarGridDay {
  * Extended GoogleEvent with optional client event marker
  * Used when merging client events with Google Calendar events
  */
+export type ProfileAvailabilityEventMeta =
+  | { kind: "weekly"; ruleId: string; date: string }
+  | { kind: "oneOff"; oneOffId: string };
+
 export interface ExtendedGoogleEvent extends GoogleEvent {
   isClientEvent?: boolean;
+  /** Injected when listing events from a calendar (see useGoogleEventsHelpers). */
+  calendarId?: string;
+  /** True for in-grid optimistic draft before API create completes. */
+  isOptimisticCalendarDraft?: boolean;
+  /** Synthetic profile availability block (not from Google Calendar). */
+  isProfileAvailabilityEvent?: boolean;
+  availabilityMeta?: ProfileAvailabilityEventMeta;
 }
 
 /**

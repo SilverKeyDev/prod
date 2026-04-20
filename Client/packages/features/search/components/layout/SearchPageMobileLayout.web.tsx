@@ -6,6 +6,7 @@ import type { SearchResult } from "packages/features/search/types";
 import type { SavedHome } from "packages/features/search/types/property";
 import IconButton from "packages/ui/components/button/IconButton";
 import { Box } from "packages/ui/components/primitives";
+import { TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
 
 import { SearchPageMapContainer } from "./SearchPageMapContainer.web";
 
@@ -87,8 +88,7 @@ export function SearchPageMobileLayout({
     await saveHome(savedHome);
   };
 
-  const total =
-    activeTab === "results" ? filteredSearchResults.length : savedHomes.length;
+  const total = activeTab === "results" ? filteredSearchResults.length : savedHomes.length;
   const perPage = mapHomeCardsCount;
   const maxCardStart = Math.max(0, total - perPage);
   const isLoading = isSearching && !hasSearched && searchResults.length === 0;
@@ -96,7 +96,10 @@ export function SearchPageMobileLayout({
   return (
     <Box className="flex h-full flex-col md:hidden">
       <Box className="border-border bg-background-surface flex-shrink-0 border-b">
-        <Box className="border-border flex items-center justify-center border-b">
+        <Box
+          className="border-border flex items-center justify-center border-b"
+          id={TOUR_TARGETS_MOBILE.resultsTabs}
+        >
           <Tabs
             active={activeTab}
             onChange={handleTabChangeWithSideEffects}
@@ -113,9 +116,7 @@ export function SearchPageMobileLayout({
               variant="ghost"
               size="sm"
               rounded="full"
-              label={
-                isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"
-              }
+              label={isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"}
               icon={
                 isCarouselCollapsed ? (
                   <Icon name="chevron-down" className="h-4 w-4" />
@@ -131,12 +132,11 @@ export function SearchPageMobileLayout({
           className={`overflow-hidden transition-all duration-300 ease-in-out ${
             isCarouselCollapsed ? "max-h-0" : "max-h-[45vh]"
           }`}
+          id={TOUR_TARGETS_MOBILE.resultsList}
         >
           <Box className="py-3">
             <PropertyCarousel
-              items={
-                activeTab === "results" ? filteredSearchResults : savedHomes
-              }
+              items={activeTab === "results" ? filteredSearchResults : savedHomes}
               currentPage={currentPage}
               onViewDetails={onViewPropertyDetails}
               onNavigateToProperty={onNavigateToProperty}
@@ -151,7 +151,7 @@ export function SearchPageMobileLayout({
         </Box>
       </Box>
 
-      <Box className="relative flex-1">
+      <Box className="relative flex-1" id={TOUR_TARGETS_MOBILE.mapArea}>
         <SearchPageMapContainer
           mapRef={mobileMapRef}
           isLoading={isLoading}

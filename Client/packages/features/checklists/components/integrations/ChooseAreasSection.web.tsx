@@ -1,12 +1,17 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
-import { useSearchHeaderLocations } from "packages/features/search/components/header/SearchHeaderLocations/useSearchHeaderLocations"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds search location UI; shared composition. */
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds search location UI; shared composition. */
+import { useLocalization } from "packages/contexts";
+import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/ChecklistStepSubmitFooter";
+import { isChooseSearchAreaStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
+import type { SearchImportantLocation } from "packages/features/search/components/header/SearchHeaderLocations/types";
+import { useSearchHeaderLocations } from "packages/features/search/components/header/SearchHeaderLocations/useSearchHeaderLocations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { useGoogleMaps } from "packages/hooks/data";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
@@ -19,11 +24,10 @@ type ChooseAreasSectionProps = {
   onComplete?: () => void;
 };
 
-export default function ChooseAreasSection({
-  onComplete: _onComplete,
-}: ChooseAreasSectionProps) {
+export default function ChooseAreasSection({ onComplete }: ChooseAreasSectionProps) {
+  const { t } = useLocalization();
   const queryClient = useQueryClient();
-  const { refreshUserPreferences } = useUserPreferences();
+  const { refreshUserPreferences, userPreferences } = useUserPreferences();
 
   const onPreferencesChanged = useCallback(() => {
     void queryClient.invalidateQueries({
@@ -32,12 +36,8 @@ export default function ChooseAreasSection({
     void refreshUserPreferences();
   }, [queryClient, refreshUserPreferences]);
 
-  const {
-    locations,
-    localLocations,
-    updateFormData,
-    syncLocalFromPreferences,
-  } = useSearchHeaderLocations(onPreferencesChanged);
+  const { localLocations, updateFormData, syncLocalFromPreferences } =
+    useSearchHeaderLocations(onPreferencesChanged);
 
   const { isLoaded: googleMapsLoaded } = useGoogleMaps();
   const win = getWindow();
@@ -50,13 +50,46 @@ export default function ChooseAreasSection({
       }
     ).google?.maps?.places;
 
-  useEffect(() => {
-    syncLocalFromPreferences(Array.isArray(locations) ? locations : []);
-  }, [locations, syncLocalFromPreferences]);
+  const lastRemoteImportantLocationsSyncRef = useRef<{
+    version: string;
+    locationsSig: string;
+  } | null>(null);
 
-  const formData: Partial<OnboardingData> = {
-    important_locations: localLocations,
-  };
+  useEffect(() => {
+    if (!userPreferences) return;
+    const version = String(userPreferences.preferences_version ?? "");
+    const locs = Array.isArray(userPreferences.important_locations)
+      ? userPreferences.important_locations
+      : [];
+    const locationsSig = JSON.stringify(locs);
+    const prev = lastRemoteImportantLocationsSyncRef.current;
+    if (prev !== null && prev.version === version && prev.locationsSig === locationsSig) {
+      return;
+    }
+    lastRemoteImportantLocationsSyncRef.current = { version, locationsSig };
+    syncLocalFromPreferences(locs as SearchImportantLocation[]);
+  }, [userPreferences, syncLocalFromPreferences]);
+
+  const formData = useMemo<Partial<OnboardingData>>(
+    () => ({
+      important_locations: localLocations,
+    }),
+    [localLocations]
+  );
+
+  const stepComplete = useMemo(() => isChooseSearchAreaStepComplete(formData), [formData]);
+
+  const handleSubmitStep = useCallback(() => {
+    if (!isChooseSearchAreaStepComplete(formData)) {
+      showWarningToast(
+        t("checklists.step.incomplete_warning", {
+          defaultValue: "Complete all required fields in this step before submitting.",
+        })
+      );
+      return;
+    }
+    onComplete?.();
+  }, [formData, onComplete, t]);
 
   if (!googleMapsLoaded) {
     return (
@@ -72,9 +105,8 @@ export default function ChooseAreasSection({
     <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
         <BodyText size="sm" className="text-text-secondary">
-          Add work, family, or other important places. Set how far you&apos;re
-          willing to commute from each. The map will show your search area
-          (isochrones) based on these locations.
+          Add work, family, or other important places. Set how far you&apos;re willing to commute
+          from each. The map will show your search area (isochrones) based on these locations.
         </BodyText>
 
         <LocationSection
@@ -88,6 +120,7 @@ export default function ChooseAreasSection({
             "Add work, school, or other location"
           }
         />
+        <ChecklistStepSubmitFooter disabled={!stepComplete} onSubmit={handleSubmitStep} />
       </Box>
     </Card>
   );

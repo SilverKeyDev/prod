@@ -20,6 +20,7 @@ ESCROW_ITEMS = [
         "label": "Deposit earnest money into escrow",
         "explanation": "Shows good faith and is credited toward your closing. Follow the contract timeline.",
         "suggested_form_ids": ["earnest_money", "wiring_fraud_advisory", "notice_of_contract_fmls"],
+        "dispatch_automation_available": True,
         "calendar": {"hasDates": False, "days": 3, "eventSchedule": [3]},
         "bullets": [
             "Commonly 1–3% of purchase price (varies by market).",

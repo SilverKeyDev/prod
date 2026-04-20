@@ -79,12 +79,12 @@ export function SearchPrefsPriceFinancing({
               };
             });
           }}
-          placeholder="e.g. 350"
+          placeholder="e.g. 350 / month"
         />
       ) : (
         <Box
           className={`mobile-input bg-background-base ${profileFieldValueClassName(
-            pf.hoa_fee_max_monthly,
+            pf.hoa_fee_max_monthly
           )}`}
         >
           {pf.hoa_fee_max_monthly ?? PROFILE_NOT_SPECIFIED_LABEL}

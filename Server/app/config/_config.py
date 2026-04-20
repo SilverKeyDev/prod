@@ -202,6 +202,27 @@ class Config:
 
     DOCUSIGN_WEBHOOK_CONNECT_URL = get_docusign_webhook_connect_url()
 
+    # Envelope notification defaults (API create); override per-send via SendAgreementRequest.
+    DOCUSIGN_ENVELOPE_USE_ACCOUNT_NOTIFICATION_DEFAULTS = (
+        os.getenv("DOCUSIGN_ENVELOPE_USE_ACCOUNT_NOTIFICATION_DEFAULTS", "false").lower() == "true"
+    )
+    DOCUSIGN_ENVELOPE_REMINDER_ENABLED = (
+        os.getenv("DOCUSIGN_ENVELOPE_REMINDER_ENABLED", "true").lower() == "true"
+    )
+    DOCUSIGN_ENVELOPE_REMINDER_DELAY_DAYS = int(
+        os.getenv("DOCUSIGN_ENVELOPE_REMINDER_DELAY_DAYS", "3")
+    )
+    DOCUSIGN_ENVELOPE_REMINDER_FREQUENCY_DAYS = int(
+        os.getenv("DOCUSIGN_ENVELOPE_REMINDER_FREQUENCY_DAYS", "2")
+    )
+    DOCUSIGN_ENVELOPE_EXPIRE_ENABLED = (
+        os.getenv("DOCUSIGN_ENVELOPE_EXPIRE_ENABLED", "true").lower() == "true"
+    )
+    DOCUSIGN_ENVELOPE_EXPIRE_AFTER_DAYS = int(
+        os.getenv("DOCUSIGN_ENVELOPE_EXPIRE_AFTER_DAYS", "30")
+    )
+    DOCUSIGN_ENVELOPE_EXPIRE_WARN_DAYS = int(os.getenv("DOCUSIGN_ENVELOPE_EXPIRE_WARN_DAYS", "2"))
+
     # Shared Connect HMAC secret fallback:
     # allows a single env var to back both user/account and org webhook verification.
     DOCUSIGN_CONNECT_HMAC_SECRET = os.getenv("DOCUSIGN_CONNECT_HMAC_SECRET")

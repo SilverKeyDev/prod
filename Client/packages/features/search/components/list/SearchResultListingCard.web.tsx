@@ -1,15 +1,10 @@
-import {
-  type MouseEvent,
-  type PointerEvent,
-  type ReactNode,
-  useCallback,
-} from "react";
+import { type MouseEvent, type PointerEvent, type ReactNode, useCallback } from "react";
 
 import { Icon } from "@ui/icons";
 
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
-import { formatPropertyType } from "packages/features/search/types/search/propertyFormatters";
-import { displayListingPriceForCard } from "packages/features/search/utils/formatPropertySearchListingPrice";
+import { formatPropertyType } from "packages/features/search/types/search/formatters/propertyFormatters";
+import { displayListingPriceForCard } from "packages/features/search/utils/transform/formatPropertySearchListingPrice";
 import CardNotInterested from "packages/ui/components/button/NotInterested";
 import { OVERLAY_MARKER_CIRCLE_CLASSES } from "packages/ui/components/button/overlayMarkerButtonTypes";
 import { getCardBubbleSizeClasses } from "packages/ui/components/cards/base/styles";
@@ -51,6 +46,11 @@ export type SearchResultListingCardProps = {
   showMatchScore?: boolean;
   /** Optional footer (e.g. map View button). */
   bottomContent?: ReactNode;
+  /**
+   * Results tab: top-left overlay (e.g. agent share multi-select). When set, takes
+   * precedence over `showNotInterested` / `CardNotInterested` in that corner.
+   */
+  topLeftOverlay?: ReactNode;
 };
 
 export function SearchResultListingCard({
@@ -66,6 +66,7 @@ export function SearchResultListingCard({
   onDismissMapPreview,
   showMatchScore = true,
   bottomContent,
+  topLeftOverlay,
 }: SearchResultListingCardProps): JSX.Element {
   const handleDismissMapPreviewPointerDown = useCallback((e: PointerEvent) => {
     e.stopPropagation();
@@ -76,7 +77,7 @@ export function SearchResultListingCard({
       e.stopPropagation();
       onDismissMapPreview?.();
     },
-    [onDismissMapPreview],
+    [onDismissMapPreview]
   );
 
   /** AdvancedMarkerElement content must not contain focusable nodes (button, tabindex≥0). */
@@ -119,7 +120,27 @@ export function SearchResultListingCard({
           <Box className="pointer-events-none absolute inset-0">
             <Box className="pointer-events-auto relative h-full w-full">
               {mapDismissOverlay}
-              {showNotInterested && onMarkNotInterested ? (
+              {topLeftOverlay ? (
+                <Box
+                  className="contents"
+                  onClick={
+                    isOnMap && onMapNavigate
+                      ? (e) => {
+                          e.stopPropagation();
+                        }
+                      : undefined
+                  }
+                  onPointerDown={
+                    isOnMap && onMapNavigate
+                      ? (e) => {
+                          e.stopPropagation();
+                        }
+                      : undefined
+                  }
+                >
+                  {topLeftOverlay}
+                </Box>
+              ) : showNotInterested && onMarkNotInterested ? (
                 <Box
                   className="contents"
                   onClick={
@@ -166,16 +187,11 @@ export function SearchResultListingCard({
                   <CardHeartSaveWithProps
                     property={{
                       id: property.id,
-                      address:
-                        typeof property.address === "string"
-                          ? property.address
-                          : undefined,
+                      address: typeof property.address === "string" ? property.address : undefined,
                     }}
                     isSaved={isHomeSaved(
                       property.id,
-                      typeof property.address === "string"
-                        ? property.address
-                        : undefined,
+                      typeof property.address === "string" ? property.address : undefined
                     )}
                     saveHome={async () => saveHome(property)}
                     removeSavedHome={removeSavedHome}
@@ -220,16 +236,11 @@ export function SearchResultListingCard({
                   <CardHeartSaveWithProps
                     property={{
                       id: property.id,
-                      address:
-                        typeof property.address === "string"
-                          ? property.address
-                          : undefined,
+                      address: typeof property.address === "string" ? property.address : undefined,
                     }}
                     isSaved={isHomeSaved(
                       property.id,
-                      typeof property.address === "string"
-                        ? property.address
-                        : undefined,
+                      typeof property.address === "string" ? property.address : undefined
                     )}
                     saveHome={async () => saveHome(property)}
                     removeSavedHome={removeSavedHome}
@@ -264,11 +275,7 @@ export function SearchResultListingCard({
             </Box>
           )}
 
-          <Title
-            as="h3"
-            size="sm"
-            className="mb-1 line-clamp-2 font-medium text-neutral-800"
-          >
+          <Title as="h3" size="sm" className="mb-1 line-clamp-2 font-medium text-neutral-800">
             {addressTitle}
           </Title>
 
@@ -286,6 +293,8 @@ export function SearchResultListingCard({
                   score={getMatchScore(property)}
                   size="xs"
                   useColorStyling={true}
+                  listingStatus={property.listingStatus}
+                  homeStatus={property.homeStatus}
                   className="shrink-0"
                 />
               ) : null}
@@ -323,8 +332,7 @@ export function SearchResultListingCard({
           onClick: () => onMapNavigate(),
         }
       : {
-          className:
-            "overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm",
+          className: "overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm",
         };
 
   return (

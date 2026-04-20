@@ -21,9 +21,7 @@ export type UseSearchMobileHeaderActionsParams = {
  * Returns stable header props and compact-header flag for SearchMobileHeader.
  * Caller (SearchPage) builds the header node and sets it via setMobileHeaderActions.
  */
-export function useSearchMobileHeaderActions(
-  params: UseSearchMobileHeaderActionsParams,
-): {
+export function useSearchMobileHeaderActions(params: UseSearchMobileHeaderActionsParams): {
   isCompactHeader: boolean;
   headerProps: SearchMobileHeaderProps;
 } {
@@ -79,7 +77,7 @@ export function useSearchMobileHeaderActions(
       stableOnClientChange,
       stableOnToggleMode,
       stableOnBeforeSwitchToReels,
-    ],
+    ]
   );
 
   return { isCompactHeader, headerProps };

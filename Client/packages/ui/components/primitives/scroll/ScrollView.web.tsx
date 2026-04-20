@@ -127,6 +127,10 @@ const ScrollView = forwardRef<HTMLDivElement, ScrollViewProps>(function ScrollVi
       }
     : {
         boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "stretch",
+        width: "100%",
         minHeight: "min-content",
         ...normalizedContent,
       };

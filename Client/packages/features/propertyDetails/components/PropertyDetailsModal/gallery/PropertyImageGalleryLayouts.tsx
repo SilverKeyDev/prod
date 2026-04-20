@@ -52,8 +52,7 @@ export function PropertyImageGalleryFirstPage({
       </Box>
       <Box className={`grid min-h-0 grid-cols-2 grid-rows-2 ${GRID_GAP_CLASS}`}>
         {firstPageContactSlots.map((imageIndex, slotIndex) => {
-          const isBottomRightSlot =
-            slotIndex === firstPageContactSlots.length - 1;
+          const isBottomRightSlot = slotIndex === firstPageContactSlots.length - 1;
           const hasImage = imageIndex !== null;
           return (
             <Box
@@ -95,9 +94,7 @@ export function PropertyImageGalleryFirstPage({
                 >
                   <Box className="flex flex-col items-center gap-1">
                     <Icon name="grid-3x3" className="h-8 w-8" />
-                    <Box className="text-sm font-medium">
-                      +{moreAfterFirstPage} more
-                    </Box>
+                    <Box className="text-sm font-medium">+{moreAfterFirstPage} more</Box>
                   </Box>
                 </Box>
               ) : null}
@@ -125,19 +122,12 @@ export function PropertyImageGalleryEightGridPage({
   t,
 }: EightGridPageProps) {
   const pageStart = getPageStartForPage(page);
-  const rangeEnd = Math.min(
-    pageStart + OTHER_PAGE_IMAGE_COUNT,
-    propertyImages.length,
-  );
+  const rangeEnd = Math.min(pageStart + OTHER_PAGE_IMAGE_COUNT, propertyImages.length);
 
   return (
     <Box className="relative w-full min-w-full shrink-0 snap-start">
-      <Box
-        className={`grid aspect-[16/7] max-h-[65vh] w-full grid-cols-2 ${GRID_GAP_CLASS}`}
-      >
-        <Box
-          className={`grid min-h-0 grid-cols-2 grid-rows-2 ${GRID_GAP_CLASS}`}
-        >
+      <Box className={`grid aspect-[16/7] max-h-[65vh] w-full grid-cols-2 ${GRID_GAP_CLASS}`}>
+        <Box className={`grid min-h-0 grid-cols-2 grid-rows-2 ${GRID_GAP_CLASS}`}>
           {Array.from({ length: 4 }, (_, i) => {
             const imageIndex = pageStart + i;
             const hasImage = imageIndex < propertyImages.length;
@@ -170,9 +160,7 @@ export function PropertyImageGalleryEightGridPage({
             );
           })}
         </Box>
-        <Box
-          className={`grid min-h-0 grid-cols-2 grid-rows-2 ${GRID_GAP_CLASS}`}
-        >
+        <Box className={`grid min-h-0 grid-cols-2 grid-rows-2 ${GRID_GAP_CLASS}`}>
           {Array.from({ length: 4 }, (_, i) => {
             const imageIndex = pageStart + 4 + i;
             const hasImage = imageIndex < propertyImages.length;
@@ -206,9 +194,7 @@ export function PropertyImageGalleryEightGridPage({
                   <Box
                     role="button"
                     tabIndex={0}
-                    onClick={() =>
-                      onOpenGallery(pageStart + OTHER_PAGE_IMAGE_COUNT)
-                    }
+                    onClick={() => onOpenGallery(pageStart + OTHER_PAGE_IMAGE_COUNT)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -219,9 +205,7 @@ export function PropertyImageGalleryEightGridPage({
                   >
                     <Box className="flex flex-col items-center gap-1">
                       <Icon name="grid-3x3" className="h-8 w-8" />
-                      <Box className="text-sm font-medium">
-                        +{moreAfterPage} more
-                      </Box>
+                      <Box className="text-sm font-medium">+{moreAfterPage} more</Box>
                     </Box>
                   </Box>
                 ) : null}

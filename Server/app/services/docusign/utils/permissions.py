@@ -62,6 +62,21 @@ def can_send_agreement(user: User, agreement: Agreement) -> bool:
     return user.id == agreement.agent_id and agreement.status == "draft"
 
 
+def can_manage_in_flight_docusign_envelope(user: User, agreement: Agreement) -> bool:
+    """
+    Agent may resend recipients or update reminder settings while the envelope is active.
+
+    Allowed when an envelope exists and the agreement is not terminal.
+    """
+    if not user or not agreement:
+        return False
+    if user.id != agreement.agent_id:
+        return False
+    if not agreement.docusign_envelope_id:
+        return False
+    return agreement.status in ("sent", "delivered", "signed")
+
+
 def can_void_agreement(user: User, agreement: Agreement) -> bool:
     """
     Check if user can void an agreement.

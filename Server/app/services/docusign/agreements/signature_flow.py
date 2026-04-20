@@ -5,32 +5,19 @@ Agreement signature flow operations: send for signature and void.
 from datetime import datetime, timezone
 
 from app import db
-from app.models import (
-    Agreement,
-    AgreementEvent,
-    AgreementParticipant,
-    DocumentLibraryItem,
-    User,
-)
+from app.models import AgreementEvent
 from app.utils.database import transactional
 from logger import LOG_CATEGORIES, get_logger
 
 from ..core.client import DocusignClient
 from ..errors import AgreementStateError, DocusignAuthError
+from .agent_counter_signer import ensure_agent_counter_signer
 from .agreement_crud import get_agreement
+from .agreement_library_cleanup import delete_agreement_library_item
 from .participant_operations import sync_signer_participant
+from .send_envelope_validation import validate_send_envelope_options
 
 logger = get_logger()
-
-
-def _delete_agreement_library_item(agreement: Agreement) -> None:
-    """Remove the buyer-linked library row so the agreement leaves Saved for agent and client."""
-    lib_item_id = agreement.library_item_id
-    agreement.library_item_id = None
-    if lib_item_id:
-        item = DocumentLibraryItem.query.get(lib_item_id)
-        if item is not None:
-            db.session.delete(item)
 
 
 @transactional
@@ -39,6 +26,7 @@ def send_for_signature(
     signing_method: str,
     actor_id: str,
     participant_user_id: str | None = None,
+    envelope_options: dict | None = None,
 ):
     """
     Enqueue task to send agreement for signature.
@@ -51,7 +39,9 @@ def send_for_signature(
         signing_method: 'embedded' or 'email'
         actor_id: User initiating send
         participant_user_id: Optional selected signer user ID
+        envelope_options: Optional DocuSign send extras (notification, tab_prefill, envelope_prefill_tabs)
     """
+    opts = envelope_options or {}
     logger.debug(
         LOG_CATEGORIES["DOCUSIGN"],
         "Preparing to send agreement for signature",
@@ -60,6 +50,7 @@ def send_for_signature(
             "signing_method": signing_method,
             "actor_id": actor_id,
             "participant_user_id": participant_user_id,
+            "has_envelope_options": bool(opts),
         },
     )
 
@@ -106,7 +97,7 @@ def send_for_signature(
         db.session.expire(agreement, ["participants"])
 
     # Add agent as counter-signer (routing_order=2) for sequential signing
-    _ensure_agent_counter_signer(agreement, actor_id)
+    ensure_agent_counter_signer(agreement, actor_id)
     db.session.flush()
     db.session.expire(agreement, ["participants"])
 
@@ -141,6 +132,8 @@ def send_for_signature(
             "Provide a participant_user_id or ensure a buyer is assigned."
         )
 
+    validate_send_envelope_options(agreement, opts)
+
     # RelationshipProperty resolves to collection at runtime; Pyright does not treat it as Iterable
     participants_list = list(agreement.participants)  # pyright: ignore[reportArgumentType]
     logger.debug(
@@ -169,7 +162,7 @@ def send_for_signature(
     # Import here to avoid circular dependency
     from app.celery.tasks.docusign import send_envelope_task
 
-    task = send_envelope_task.delay(agreement_id, signing_method, actor_id)  # type: ignore[union-attr]
+    task = send_envelope_task.delay(agreement_id, signing_method, actor_id, opts)  # type: ignore[union-attr]
 
     logger.info(
         LOG_CATEGORIES["DOCUSIGN"],
@@ -179,52 +172,6 @@ def send_for_signature(
 
     # Transaction commits automatically on success, rolls back on exception
     return task.id
-
-
-def _ensure_agent_counter_signer(agreement, actor_id: str):
-    """
-    Add the sending agent as a second signer (routing_order=2) so DocuSign
-    delivers the envelope to the client first, then the agent for counter-signature.
-    Skips if the agent is already a signer participant.
-    """
-    if not agreement.agent_id:
-        return
-
-    participants_list = list(agreement.participants)  # pyright: ignore[reportArgumentType]
-    agent_already_signer = any(
-        p.user_id == agreement.agent_id and p.role == "signer" for p in participants_list
-    )
-    if agent_already_signer:
-        return
-
-    agent_user = User.query.get(agreement.agent_id)
-    if not agent_user:
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"],
-            "Agent user not found for counter-signer",
-            {"agreement_id": agreement.id, "agent_id": agreement.agent_id},
-        )
-        return
-
-    counter_signer = AgreementParticipant(
-        agreement_id=agreement.id,
-        user_id=agent_user.id,
-        email=agent_user.email,
-        name=agent_user.name,
-        role="signer",
-        routing_order=2,
-    )
-    db.session.add(counter_signer)
-
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
-        "Added agent as counter-signer",
-        {
-            "agreement_id": agreement.id,
-            "agent_id": agreement.agent_id,
-            "routing_order": 2,
-        },
-    )
 
 
 @transactional
@@ -309,7 +256,7 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
     )
     db.session.add(event)
 
-    _delete_agreement_library_item(agreement)
+    delete_agreement_library_item(agreement)
 
     logger.info(
         LOG_CATEGORIES["DOCUSIGN"],
@@ -335,7 +282,7 @@ def strip_agreement_from_saved_library(agreement_id: str, actor_id: str, descrip
         )
         raise AgreementStateError("Only the listing agent can remove this agreement from Saved")
 
-    _delete_agreement_library_item(agreement)
+    delete_agreement_library_item(agreement)
     db.session.add(
         AgreementEvent(
             agreement_id=agreement_id,

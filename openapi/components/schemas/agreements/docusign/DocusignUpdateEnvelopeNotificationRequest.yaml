@@ -1,0 +1,12 @@
+type: object
+description: Update in-flight envelope reminder/expiration settings.
+properties:
+  use_account_defaults:
+    type: boolean
+    nullable: true
+  reminders:
+    $ref: ./DocuSignRemindersInput.yaml
+    nullable: true
+  expirations:
+    $ref: ./DocuSignExpirationsInput.yaml
+    nullable: true

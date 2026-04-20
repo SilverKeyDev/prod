@@ -8,24 +8,28 @@ DocuSign tabs define where recipients interact with documents (signatures, dates
 
 ### Primary Tabs (Currently Implemented)
 
-#### 1. SignHere Tabs
-- Purpose: Where signers place their signature
-- Anchor text: `SIGN HERE`
-- Configuration: See `build_tabs_for_recipient()` in `utils/recipients.py`
+#### 1. PDF form fields (primary)
+- Purpose: Signatures, dates, text boxes, checkboxes, and other fields defined as **AcroForm fields** in the PDF.
+- Configuration: `EnvelopeBuilder._build_document()` sets **`transformPdfFields`: `true`** on the document so DocuSign converts PDF fields into tabs.
+- **Assignment:** `assignTabsToRecipientId` is set to the **first signer** (lowest `routing_order`). Multi-signer PDFs should use DocuSign field naming / composite templates if fields must route to different recipients.
 
-#### 2. DateSigned Tabs
-- Purpose: Automatically filled with signing date
-- Anchor text: `DATE SIGNED`
-- Optional: Won't fail if anchor not found (`anchorIgnoreIfNotPresent: true`)
+#### 2. SignHere / DateSigned / printed name (removed)
+- SilverKey **no longer** adds fallback coordinate-based Sign Here, date signed, or printed-name tabs at the bottom of page 1. Rely on the PDF’s fields (or sender prefill below).
+
+#### 3. Text / checkbox tabs (optional API prefill)
+- Purpose: Extra tabs from the send-agreement API (`tab_prefill` per participant).
+- Configuration: `build_tabs_for_recipient()` in `utils/recipients.py` only merges these extras; carbon-copy recipients get **no** tabs from this helper.
 
 ### Additional Tab Types (Future)
 
 - **InitialHere**: For initials (anchor: `INITIAL HERE`)
-- **Text**: For free-form text input
-- **Checkbox**: For yes/no selections
 - **Radio**: For multiple choice
 - **Dropdown**: For dropdown selections
 - **Title**: For job title/role
+
+## Envelope text custom fields (metadata)
+
+SilverKey sets **envelope-level** `textCustomFields` on create (not visible as PDF fields). See `_build_custom_fields()` in `envelopes/builder.py`. Fields include `agreement_id`, `buyer_id`, and `agent_id` for DocuSign search and reporting (`show: true` in the DocuSign UI by default).
 
 ## Positioning Methods
 
@@ -116,25 +120,13 @@ Date: _________________________    DATE SIGNED
 
 ### Adding Tabs to Recipients
 
-Tabs are automatically added by `build_recipient_from_participant()`:
+Recipients are built with `build_recipient_from_participant()`. The `tabs` key is **omitted** when there is no `tab_prefill` for that signer (PDF transform supplies the main fields).
 
 ```python
 from app.services.docusign.utils.recipients import build_recipient_from_participant
 
-# Build recipient with tabs
 recipient = build_recipient_from_participant(participant)
-
-# Result includes tabs:
-# {
-#     "email": "buyer@example.com",
-#     "name": "John Buyer",
-#     "recipientId": "participant-123",
-#     "routingOrder": "1",
-#     "tabs": {
-#         "signHereTabs": [...],
-#         "dateSignedTabs": [...]
-#     }
-# }
+# May omit "tabs" entirely when relying on transformPdfFields + PDF-only fields.
 ```
 
 ### Custom Tab Configuration

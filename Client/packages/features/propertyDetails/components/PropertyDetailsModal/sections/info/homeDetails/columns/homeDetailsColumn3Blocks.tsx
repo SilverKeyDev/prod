@@ -13,14 +13,11 @@ import {
   joinUnique,
   normalizeExteriorFeatures,
 } from "./homeDetailsColumnHelpers";
-import type {
-  HomeDetailsBlock,
-  HomeDetailsTranslate,
-} from "./homeDetailsColumnTypes";
+import type { HomeDetailsBlock, HomeDetailsTranslate } from "./homeDetailsColumnTypes";
 
 export function buildHomeDetailsColumn3Blocks(
   property: Record<string, unknown>,
-  t: HomeDetailsTranslate,
+  t: HomeDetailsTranslate
 ): HomeDetailsBlock[] {
   const col3: HomeDetailsBlock[] = [];
 
@@ -33,7 +30,7 @@ export function buildHomeDetailsColumn3Blocks(
         id: "ai-detected-features",
         icon: "sparkles",
         title: t("property_details.ai_detected_features", {
-          defaultValue: "AI-Detected Features",
+          defaultValue: "Detected features",
         }),
         lines: deduplicated,
       });
@@ -78,7 +75,7 @@ export function buildHomeDetailsColumn3Blocks(
       t("property_details.hd_heating_line", {
         items: heating.join(", "),
         defaultValue: "Heating: {{items}}",
-      }),
+      })
     );
   }
   if (cooling.length > 0) {
@@ -86,7 +83,7 @@ export function buildHomeDetailsColumn3Blocks(
       t("property_details.hd_cooling_line", {
         items: cooling.join(", "),
         defaultValue: "Cooling: {{items}}",
-      }),
+      })
     );
   }
   if (heatCool.length > 0) {
@@ -147,7 +144,7 @@ export function buildHomeDetailsColumn3Blocks(
       ...asStringList(property.communityFeatures, 8),
       ...asStringList(property.inclusions, 8),
     ],
-    12,
+    12
   );
   if (extra.length > 0) {
     col3.push({

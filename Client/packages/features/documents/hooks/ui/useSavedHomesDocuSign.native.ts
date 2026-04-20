@@ -4,17 +4,11 @@ import { Alert } from "react-native";
 
 import { useSavedHomesDocuSignCore } from "./useSavedHomesDocuSignCore";
 
-type EnqueueToast = (params: {
-  type: "success" | "error";
-  message: string;
-}) => void;
+type EnqueueToast = (params: { type: "success" | "error"; message: string }) => void;
 
 type SendAgreementFn = (params: { agreementId: string }) => Promise<unknown>;
 
-type VoidAgreementFn = (params: {
-  agreementId: string;
-  reason?: string;
-}) => Promise<unknown>;
+type VoidAgreementFn = (params: { agreementId: string; reason?: string }) => Promise<unknown>;
 
 /**
  * React Native implementation of useSavedHomesDocuSign.
@@ -24,7 +18,7 @@ export function useSavedHomesDocuSign(
   sendAgreement: SendAgreementFn,
   voidAgreement: VoidAgreementFn,
   refetchAgreements: () => Promise<unknown>,
-  enqueueToast: EnqueueToast,
+  enqueueToast: EnqueueToast
 ) {
   const confirmVoid = useCallback((message: string) => {
     return new Promise<boolean>((resolve) => {

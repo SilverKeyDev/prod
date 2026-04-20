@@ -30,6 +30,10 @@ def signup(data: SignupData | None = None):
             "password": data.password.get_secret_value(),
             "name": data.name,
         }
+        if data.phone is not None and str(data.phone).strip():
+            request_data["phone"] = str(data.phone).strip()
+        if data.brokerage is not None and str(data.brokerage).strip():
+            request_data["brokerage"] = str(data.brokerage).strip()
     response_data, status_code = handle_signup(request_data)
     return jsonify(response_data), status_code
 

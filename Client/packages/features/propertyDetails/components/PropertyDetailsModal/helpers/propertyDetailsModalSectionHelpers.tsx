@@ -38,7 +38,7 @@ type BuildSectionsParams = {
 };
 
 export function buildPropertyDetailsOrderedSections(
-  params: BuildSectionsParams,
+  params: BuildSectionsParams
 ): SectionComponent[] {
   const {
     property,
@@ -56,11 +56,7 @@ export function buildPropertyDetailsOrderedSections(
     sections.push({
       key: "commute",
       component: (
-        <PropertyCommute
-          key="commute"
-          property={property}
-          analysisContent={commuteAnalysis}
-        />
+        <PropertyCommute key="commute" property={property} analysisContent={commuteAnalysis} />
       ),
       priority: SECTION_ORDER.commute ?? 1000,
     });
@@ -121,19 +117,14 @@ export function buildPropertyDetailsOrderedSections(
       excludeSections.push("education_distribution");
       excludeSections.push("demographics");
     }
-    const pa = (property as { property_analysis?: Record<string, unknown> })
-      .property_analysis;
+    const pa = (property as { property_analysis?: Record<string, unknown> }).property_analysis;
     if (hasEnvironmentalFactorsContent(getClimateEnvironmentalSection(pa))) {
       excludeSections.push("climate_environmental_safety");
     }
     sections.push({
       key: "analysis",
       component: (
-        <PropertyAnalysis
-          key="analysis"
-          property={property}
-          excludeSections={excludeSections}
-        />
+        <PropertyAnalysis key="analysis" property={property} excludeSections={excludeSections} />
       ),
       priority: SECTION_ORDER.analysis ?? 2000,
     });

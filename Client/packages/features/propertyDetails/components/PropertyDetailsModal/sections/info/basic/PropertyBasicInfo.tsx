@@ -32,7 +32,7 @@ function formatPropertyAddress(property: unknown): string {
         city: string;
         state: string;
         zipcode: string;
-      },
+      }
     );
   }
   try {
@@ -42,12 +42,8 @@ function formatPropertyAddress(property: unknown): string {
   }
 }
 
-export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
-  const fields = getPropertyBasicFields(
-    property as unknown as Record<string, unknown>,
-  );
+export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }) => {
+  const fields = getPropertyBasicFields(property as unknown as Record<string, unknown>);
   const agent = getAgentFromProperty(property);
   const mlsListingId = getMlsListingId(property);
   const addressDisplay = formatPropertyAddress(property);
@@ -69,7 +65,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               <Box className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {fields.bedrooms}
               </Box>
-              <Box className="text-text-secondary text-xs sm:text-sm">beds</Box>
+              <Box className="text-text-secondary text-xs sm:text-sm">Beds</Box>
             </Box>
           )}
           {fields.bathrooms != null && Number(fields.bathrooms) > 0 && (
@@ -78,7 +74,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
                 {fields.bathrooms}
               </Box>
               <Box className="border-border text-text-secondary border-b border-dashed text-xs sm:text-sm">
-                baths
+                Baths
               </Box>
             </Box>
           )}
@@ -87,7 +83,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               <Box className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {Math.round(Number(fields.sqft)).toLocaleString()}
               </Box>
-              <Box className="text-text-secondary text-xs sm:text-sm">sqft</Box>
+              <Box className="text-text-secondary text-xs sm:text-sm">Sq ft</Box>
             </Box>
           )}
         </Box>
@@ -100,9 +96,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               propertyLotSize={fields.lotSize ?? undefined}
               propertyHomeType={fields.homeType ?? undefined}
               propertyPropertyType={fields.propertyType ?? undefined}
-              propertyPricePerSquareFoot={
-                fields.pricePerSquareFoot ?? undefined
-              }
+              propertyPricePerSquareFoot={fields.pricePerSquareFoot ?? undefined}
               propertyGarageSpaces={fields.garageSpaces ?? undefined}
               propertyParking={fields.parking ?? undefined}
               propertyZestimate={fields.zestimate ?? undefined}

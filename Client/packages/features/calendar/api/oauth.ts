@@ -13,12 +13,9 @@ import type { components } from "packages/types/api.generated";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 export type RevokeResponse = components["schemas"]["RevokeResponse"];
-export type ConnectionStatusResponse =
-  components["schemas"]["ConnectionStatusResponse"];
+export type ConnectionStatusResponse = components["schemas"]["ConnectionStatusResponse"];
 
-export async function startOAuth(
-  useSchedulingScopes: boolean = false,
-): Promise<void> {
+export async function startOAuth(useSchedulingScopes: boolean = false): Promise<void> {
   const win = getWindow();
   if (!win) return;
   const url = useSchedulingScopes
@@ -45,9 +42,7 @@ export async function startOAuthWithFullScope(): Promise<void> {
 
 export async function isConnected(): Promise<boolean> {
   try {
-    const response = await apiGet<ConnectionStatusResponse>(
-      "/api/v1/google/connection-status",
-    );
+    const response = await apiGet<ConnectionStatusResponse>("/api/v1/google/connection-status");
     return response.success === true && response.connected === true;
   } catch {
     const doc = getDocument();
@@ -58,7 +53,6 @@ export async function isConnected(): Promise<boolean> {
 export function clearConnectionStatus(): void {
   const doc = getDocument();
   if (doc) {
-    doc.cookie =
-      "google_calendar_connected=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+    doc.cookie = "google_calendar_connected=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
   }
 }

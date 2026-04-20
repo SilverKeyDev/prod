@@ -42,11 +42,7 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
       <Box className="flex-shrink-0">
         <MiniLogo className="mobile-icon-lg" />
       </Box>
-      <Title
-        size="lg"
-        as="h2"
-        className="text-text-primary min-w-0 truncate font-semibold"
-      >
+      <Title size="lg" as="h2" className="text-text-primary min-w-0 truncate font-semibold">
         {title}
       </Title>
     </Box>

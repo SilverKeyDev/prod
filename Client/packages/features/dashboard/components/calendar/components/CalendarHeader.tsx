@@ -1,6 +1,6 @@
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 
-import type { GoogleCalendar } from "packages/types/googleCalendar";
+import type { GoogleCalendar } from "packages/types/integrations/googleCalendar";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
@@ -40,6 +40,7 @@ export function CalendarHeader({
             onClick={onPreviousMonth}
             className="h-8 w-8 p-0"
             label="Previous month"
+            iconName="arrow-left"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -49,10 +50,17 @@ export function CalendarHeader({
             onClick={onNextMonth}
             className="h-8 w-8 p-0"
             label="Next month"
+            iconName="chevron-right"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={onToday} className="ml-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToday}
+            className="ml-2"
+            iconName="calendar"
+          >
             Today
           </Button>
         </Box>

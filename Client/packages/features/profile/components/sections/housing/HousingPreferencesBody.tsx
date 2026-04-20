@@ -5,7 +5,6 @@ import {
   ProfileSectionGroup,
 } from "packages/features/profile/components/layout";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
-import { useResponsive } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import { SearchPrefsPhysical } from "@/features/profile/components/profileScreen/searchPreferences/SearchPrefsPhysical";
@@ -22,9 +21,7 @@ type HousingPreferencesBodyProps = {
   isEditMode: boolean;
   updateFormData: (field: keyof OnboardingData, value: unknown) => void;
   patchBuyerPreferenceExtensions?: (
-    fn: (
-      prev: BuyerPreferenceExtensions | undefined,
-    ) => BuyerPreferenceExtensions,
+    fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions
   ) => void;
 };
 
@@ -34,7 +31,6 @@ export function HousingPreferencesBody({
   updateFormData,
   patchBuyerPreferenceExtensions,
 }: HousingPreferencesBodyProps) {
-  const { isDesktop } = useResponsive();
   const ext = withBuyerExtV1(formData.buyerPreferenceExtensions);
 
   return (
@@ -65,10 +61,7 @@ export function HousingPreferencesBody({
         </ProfileSectionGroup>
       )}
 
-      <ProfileSectionGroup
-        title={SECTION_TITLES.HOUSING_OTHER_REQUIREMENTS}
-        withDivider
-      >
+      <ProfileSectionGroup title={SECTION_TITLES.HOUSING_OTHER_REQUIREMENTS} withDivider>
         <HousingTagRows
           formData={formData}
           isEditMode={isEditMode}
@@ -76,16 +69,12 @@ export function HousingPreferencesBody({
         />
       </ProfileSectionGroup>
 
-      <ProfileSectionGroup
-        title={SECTION_TITLES.HOUSING_STYLE_AND_USE}
-        withDivider
-      >
+      <ProfileSectionGroup title={SECTION_TITLES.HOUSING_STYLE_AND_USE} withDivider>
         <Box className="gap-4">
           <HousingDropdownRows
             formData={formData}
             isEditMode={isEditMode}
             updateFormData={updateFormData}
-            isDesktop={isDesktop}
           />
         </Box>
       </ProfileSectionGroup>

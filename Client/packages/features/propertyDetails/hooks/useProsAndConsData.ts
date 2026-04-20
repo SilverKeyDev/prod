@@ -4,12 +4,12 @@ import { useLocalization } from "packages/contexts";
 import { buildHighlightsSubtitle } from "packages/features/propertyDetails/utils/buildHighlightsSubtitle";
 import { useIsAgent } from "packages/hooks/store";
 import { useAgentDashboardStore } from "packages/store";
-import type { PropertyWithAnalysis } from "packages/types/property-analysis";
+import type { PropertyWithAnalysis } from "packages/types/domain/property-analysis";
 import {
   normalizeConEntry,
   normalizeProEntry,
-} from "packages/utils/search/normalizeProsConsItems";
-import { getPropertyMatchScore } from "packages/utils/search/propertyMatchScore";
+} from "packages/utils/search/normalize/normalizeProsConsItems";
+import { getPropertyMatchScore } from "packages/utils/search/scoring/propertyMatchScore";
 
 export const useProsAndConsData = (property: unknown) => {
   const { t } = useLocalization();
@@ -20,8 +20,7 @@ export const useProsAndConsData = (property: unknown) => {
     if (!isAgent) return null;
     if (selectedClientId) {
       return t("property_details.pros_cons_context_client", {
-        defaultValue:
-          "Based on your selected client's saved search preferences.",
+        defaultValue: "Based on your selected client's saved search preferences.",
       });
     }
     return t("property_details.pros_cons_context_agent_self", {
@@ -50,17 +49,14 @@ export const useProsAndConsData = (property: unknown) => {
     }
     if (isAgent && !selectedClientId) {
       return t("property_details.highlights_subtitle_agent_dd", {
-        defaultValue:
-          "Strengths and tradeoffs highlight risks and opportunities for this listing.",
+        defaultValue: "Strengths and tradeoffs highlight risks and opportunities for this listing.",
       });
     }
     return buildHighlightsSubtitle(t, {
       prosCount: prosList.length,
       consCount: consList.length,
       highlightsContext,
-      propertyMatchScore: getPropertyMatchScore(
-        property as { _score?: number | null },
-      ),
+      propertyMatchScore: getPropertyMatchScore(property as { _score?: number | null }),
     });
   }, [
     highlightsContext,

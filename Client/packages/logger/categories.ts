@@ -24,13 +24,10 @@ export type LogCategory =
   | "FEED"
   | "ROUTING"
   | "DOCUSIGN"
-  | "DOCUMENTS";
+  | "DOCUMENTS"
+  | "PROFILE_PREFERENCES";
 
-export type ApiSubcategory =
-  | "INITIAL_LOAD"
-  | "POLLING"
-  | "PAGE_MOUNT"
-  | "OTHER";
+export type ApiSubcategory = "INITIAL_LOAD" | "POLLING" | "PAGE_MOUNT" | "OTHER";
 
 export const LOG_CATEGORIES = {
   POLLING: "POLLING",
@@ -54,6 +51,7 @@ export const LOG_CATEGORIES = {
   ROUTING: "ROUTING",
   DOCUSIGN: "DOCUSIGN",
   DOCUMENTS: "DOCUMENTS",
+  PROFILE_PREFERENCES: "PROFILE_PREFERENCES",
 } as const;
 
 export const API_SUBCATEGORIES = {
@@ -102,6 +100,7 @@ export function categoryToConfigKey(category: LogCategory): string {
     ROUTING: "routing",
     DOCUSIGN: "docusign",
     DOCUMENTS: "documents",
+    PROFILE_PREFERENCES: "profilePreferences",
   };
   return mapping[category];
 }

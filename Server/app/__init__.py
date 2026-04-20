@@ -161,12 +161,16 @@ def create_app(config=None):
     from .routes.forms import forms_bp
     from .routes.maps import maps_bp
     from .routes.offer import offer_bp
+    from .routes.public import public_bp
     from .routes.search.home_matching import home_matching_bp
     from .routes.search.research import research_bp
     from .routes.search.search import search_bp
     from .routes.tasks import tasks_bp
+    from .routes.transactions import transactions_bp
+    from .routes.viewings import viewings_bp
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(public_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(preferences_bp)
     app.register_blueprint(search_display_bp)
@@ -177,11 +181,13 @@ def create_app(config=None):
     app.register_blueprint(secure_upload_bp)
     app.register_blueprint(offer_bp)
     app.register_blueprint(google_calendar_bp)
+    app.register_blueprint(viewings_bp)
     app.register_blueprint(agent_bp)
     app.register_blueprint(report_bp)
     app.register_blueprint(client_errors_bp)
     app.register_blueprint(feed_bp)
     app.register_blueprint(tasks_bp)
+    app.register_blueprint(transactions_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(forms_bp)
 

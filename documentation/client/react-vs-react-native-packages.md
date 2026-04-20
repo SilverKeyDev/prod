@@ -25,8 +25,8 @@ This document is the **exhaustive** reference for what is **React (web)** specif
 
 - **apps/web:** Full React (web) app; build with Vite; uses DOM, `react-router-dom`, and web-only libraries where needed.
 - **apps/mobile:** React Native app (present as a folder; may be minimal or placeholder). Build with Metro; uses React Native primitives (`View`, `Text`, `Pressable`, etc.).
-- **packages/*:** Shared logic (hooks, store, config, services, schemas, utils, contexts, navigation, design-tokens). Today these are **RN-safe**: no DOM, no `react-router-dom`, no web-only APIs in shared packages. The only exception is **packages/styles**, which is CSS and therefore **web-only**.
-- **UI today:** All React UI components live in **apps/web** (e.g. `apps/web/components/ui/`). There is **no shared packages/ui** yet; see [shared-ui-package.md](./shared-ui-package.md) for the optional future state.
+- **packages/*:** Shared logic (hooks, store, config, services, schemas, utils, contexts, navigation, design-tokens) **and** shared UI in **`packages/ui/`**, plus feature modules in **`packages/features/`**. Shared code is **RN-safe** unless a file uses platform extensions (`.web.tsx` / `.native.tsx`) or web-only adapters; CSS under `packages/ui/styles/` is **web-oriented**. See `Client/ARCHITECTURE.md` (“Where UI components live”).
+- **UI today:** Design-system components and primitives live in **`Client/packages/ui/`** (import via `packages/ui`, `@/components/ui`, or `@ui`). **apps/web** holds thin pages and app shell layouts, not a parallel `components/ui` tree. Historical note: [shared-ui-package.md](./shared-ui-package.md) described adopting `packages/ui`; that package is now canonical.
 
 ### Goals
 

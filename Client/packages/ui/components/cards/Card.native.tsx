@@ -12,7 +12,7 @@ import type { CardBorderVariant } from "./Card";
  */
 type CardProps = {
   children: React.ReactNode;
-  /** Border style: charcoal, light, dotted, or none. Default charcoal. */
+  /** Border style: charcoal, medium, light, dotted, or none. Default charcoal. */
   border?: CardBorderVariant;
   className?: string;
   hover?: boolean;
@@ -37,6 +37,7 @@ const shadowClasses: Record<string, string> = {
 
 const BORDER_CLASSES: Record<CardBorderVariant, string> = {
   charcoal: "border border-neutral-700",
+  medium: "border border-neutral-400",
   light: "border border-neutral-200",
   dotted: "border border-neutral-200 border-dashed",
   none: "",

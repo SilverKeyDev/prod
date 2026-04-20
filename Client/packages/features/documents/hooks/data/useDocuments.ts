@@ -52,10 +52,7 @@ export const useDocuments = () => {
   });
 
   // Extract documents data from response
-  const documentsData = useMemo(
-    () => documentsResponse ?? [],
-    [documentsResponse],
-  );
+  const documentsData = useMemo(() => documentsResponse ?? [], [documentsResponse]);
 
   // Categories query
   const {
@@ -71,10 +68,7 @@ export const useDocuments = () => {
         return categoriesData;
       } catch {
         // If categories endpoint doesn't exist, return empty array
-        log.warn(
-          LOG_CATEGORIES.API,
-          "Categories endpoint not available, returning empty array",
-        );
+        log.warn(LOG_CATEGORIES.API, "Categories endpoint not available, returning empty array");
         return [];
       }
     },
@@ -108,7 +102,7 @@ export const useDocuments = () => {
         category,
         propertyId,
         offerId,
-        address,
+        address
       );
       return newDocument;
     },
@@ -127,10 +121,7 @@ export const useDocuments = () => {
       docId: string;
       status: WorkflowDocument["status"];
     }) => {
-      const updatedDocument = await documentService.updateDocumentStatus(
-        docId,
-        status,
-      );
+      const updatedDocument = await documentService.updateDocumentStatus(docId, status);
       return updatedDocument;
     },
     onSuccess: (updatedDocument) => {
@@ -139,10 +130,8 @@ export const useDocuments = () => {
         queryKeys.documents.list(),
         (old: WorkflowDocument[] | undefined) => {
           if (!old) return old;
-          return old.map((doc) =>
-            doc.id === updatedDocument.id ? updatedDocument : doc,
-          );
-        },
+          return old.map((doc) => (doc.id === updatedDocument.id ? updatedDocument : doc));
+        }
       );
     },
   });
@@ -159,10 +148,8 @@ export const useDocuments = () => {
         queryKeys.documents.list(),
         (old: WorkflowDocument[] | undefined) => {
           if (!old) return old;
-          return old.map((doc) =>
-            doc.id === signedDocument.id ? signedDocument : doc,
-          );
-        },
+          return old.map((doc) => (doc.id === signedDocument.id ? signedDocument : doc));
+        }
       );
     },
   });
@@ -175,25 +162,20 @@ export const useDocuments = () => {
     },
     onMutate: (docId) => {
       // Optimistic update - remove the document from cache
-      const previousDocuments = queryClient.getQueryData(
-        queryKeys.documents.list(),
-      );
+      const previousDocuments = queryClient.getQueryData(queryKeys.documents.list());
       queryClient.setQueryData(
         queryKeys.documents.list(),
         (old: WorkflowDocument[] | undefined) => {
           if (!old) return old;
           return old.filter((doc) => doc.id !== docId);
-        },
+        }
       );
       return { previousDocuments };
     },
     onError: (_, __, context) => {
       // Rollback on error
       if (context?.previousDocuments) {
-        queryClient.setQueryData(
-          queryKeys.documents.list(),
-          context.previousDocuments,
-        );
+        queryClient.setQueryData(queryKeys.documents.list(), context.previousDocuments);
       }
     },
     onSettled: () => {
@@ -219,7 +201,7 @@ export const useDocuments = () => {
       category?: string,
       propertyId?: string,
       offerId?: string,
-      address?: string,
+      address?: string
     ): Promise<WorkflowDocument> => {
       // Create upload tracking entry
       const uploadId = `${Date.now()}-${file.name}`;
@@ -248,10 +230,8 @@ export const useDocuments = () => {
         // Update upload status to completed
         setUploadedFiles((prev) =>
           prev.map((upload) =>
-            upload.id === uploadId
-              ? { ...upload, status: "completed", progress: 100 }
-              : upload,
-          ),
+            upload.id === uploadId ? { ...upload, status: "completed", progress: 100 } : upload
+          )
         );
 
         return newDocument;
@@ -259,46 +239,41 @@ export const useDocuments = () => {
         // Update upload status to failed
         setUploadedFiles((prev) =>
           prev.map((upload) =>
-            upload.id === uploadId
-              ? { ...upload, status: "failed", progress: 0 }
-              : upload,
-          ),
+            upload.id === uploadId ? { ...upload, status: "failed", progress: 0 } : upload
+          )
         );
         throw error;
       }
     },
-    [uploadDocumentMutation],
+    [uploadDocumentMutation]
   );
 
   const updateDocumentStatus = useCallback(
-    async (
-      docId: string,
-      status: WorkflowDocument["status"],
-    ): Promise<void> => {
+    async (docId: string, status: WorkflowDocument["status"]): Promise<void> => {
       await updateDocumentStatusMutation.mutateAsync({ docId, status });
     },
-    [updateDocumentStatusMutation],
+    [updateDocumentStatusMutation]
   );
 
   const signDocument = useCallback(
     async (docId: string): Promise<void> => {
       await signDocumentMutation.mutateAsync(docId);
     },
-    [signDocumentMutation],
+    [signDocumentMutation]
   );
 
   const downloadDocument = useCallback(
     async (docId: string): Promise<void> => {
       return downloadDocumentMutation.mutateAsync(docId);
     },
-    [downloadDocumentMutation],
+    [downloadDocumentMutation]
   );
 
   const deleteDocument = useCallback(
     async (docId: string): Promise<void> => {
       await deleteDocumentMutation.mutateAsync(docId);
     },
-    [deleteDocumentMutation],
+    [deleteDocumentMutation]
   );
 
   /* =========================
@@ -307,21 +282,18 @@ export const useDocuments = () => {
 
   // Helper functions
   const getDocumentsByCategory = useCallback(
-    (category: string) =>
-      documentService.getDocumentsByCategory(documentsData ?? [], category),
-    [documentsData],
+    (category: string) => documentService.getDocumentsByCategory(documentsData ?? [], category),
+    [documentsData]
   );
 
   const getDocumentsByProperty = useCallback(
-    (propertyId: string) =>
-      documentService.getDocumentsByProperty(documentsData ?? [], propertyId),
-    [documentsData],
+    (propertyId: string) => documentService.getDocumentsByProperty(documentsData ?? [], propertyId),
+    [documentsData]
   );
 
   const getDocumentsByOffer = useCallback(
-    (offerId: string) =>
-      documentService.getDocumentsByOffer(documentsData ?? [], offerId),
-    [documentsData],
+    (offerId: string) => documentService.getDocumentsByOffer(documentsData ?? [], offerId),
+    [documentsData]
   );
 
   // Note: Cross-tab auth changes are no longer tracked via sessionStorage tokens
@@ -335,8 +307,8 @@ export const useDocuments = () => {
         prev.filter(
           (upload) =>
             upload.status === "uploading" ||
-            Date.now() - parseInt(upload.id.split("-")[0]) < 5 * 60 * 1000,
-        ),
+            Date.now() - parseInt(upload.id.split("-")[0]) < 5 * 60 * 1000
+        )
       );
     }, 60000); // Check every minute
 

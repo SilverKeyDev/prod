@@ -17,15 +17,8 @@ function spacingToNumber(token: string): number {
 }
 
 export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
-  const {
-    contextLine,
-    prosList,
-    consList,
-    highlightsSubtitle,
-    propertyAnalysis,
-    isAgent,
-    t,
-  } = useProsAndConsData(property);
+  const { contextLine, prosList, consList, highlightsSubtitle, propertyAnalysis, isAgent, t } =
+    useProsAndConsData(property);
 
   if (!propertyAnalysis) return null;
   if (!prosList.length && !consList.length) return null;
@@ -45,19 +38,10 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
         </Text>
         {prosList.map((pro, i) => (
           <Box key={i} className="flex-row items-start gap-3">
-            <Icon
-              name="check-circle"
-              size={16}
-              color={color("green.700")}
-              style={iconTop}
-            />
+            <Icon name="check-circle" size={16} color={color("green.700")} style={iconTop} />
             <Box className="min-w-0 flex-1 gap-1">
               <Text className={itemTextClass}>{pro.text}</Text>
-              <ProsConsStarRow
-                score={pro.score}
-                variant="pro"
-                ariaLabelKind="strength"
-              />
+              <ProsConsStarRow score={pro.score} variant="pro" ariaLabelKind="strength" />
             </Box>
           </Box>
         ))}

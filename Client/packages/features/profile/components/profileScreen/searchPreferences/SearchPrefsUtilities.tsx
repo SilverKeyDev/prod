@@ -7,7 +7,7 @@ import {
   PROFILE_NOT_SPECIFIED_LABEL,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
-import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/constants";
+import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/public/constants";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";
 
@@ -25,11 +25,7 @@ type SearchPrefsUtilitiesProps = {
   util: BuyerUtilitiesPrefs;
 };
 
-export function SearchPrefsUtilities({
-  isEditMode,
-  patch,
-  util,
-}: SearchPrefsUtilitiesProps) {
+export function SearchPrefsUtilities({ isEditMode, patch, util }: SearchPrefsUtilitiesProps) {
   const rowProps = {
     breakIntoRows: "sm" as const,
     gap: "lg" as const,
@@ -63,17 +59,16 @@ export function SearchPrefsUtilities({
                     })
                   }
                   options={HVAC_PREFERENCE_OPTIONS}
-                  placeholder="Select..."
+                  placeholder="Select HVAC preference"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                    util.hvac_preference,
+                    util.hvac_preference
                   )}`}
                 >
-                  {HVAC_PREFERENCE_OPTIONS.find(
-                    (o) => o.value === util.hvac_preference,
-                  )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                  {HVAC_PREFERENCE_OPTIONS.find((o) => o.value === util.hvac_preference)?.label ??
+                    PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },
@@ -95,17 +90,16 @@ export function SearchPrefsUtilities({
                     })
                   }
                   options={WALKABILITY_OPTIONS}
-                  placeholder="Select..."
+                  placeholder="Select utilities-included importance"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                    util.utilities_included_importance,
+                    util.utilities_included_importance
                   )}`}
                 >
-                  {WALKABILITY_OPTIONS.find(
-                    (o) => o.value === util.utilities_included_importance,
-                  )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                  {WALKABILITY_OPTIONS.find((o) => o.value === util.utilities_included_importance)
+                    ?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },
@@ -127,17 +121,16 @@ export function SearchPrefsUtilities({
                     })
                   }
                   options={WALKABILITY_OPTIONS}
-                  placeholder="Select..."
+                  placeholder="Select solar interest"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                    util.solar_interest,
+                    util.solar_interest
                   )}`}
                 >
-                  {WALKABILITY_OPTIONS.find(
-                    (o) => o.value === util.solar_interest,
-                  )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                  {WALKABILITY_OPTIONS.find((o) => o.value === util.solar_interest)?.label ??
+                    PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },
@@ -159,17 +152,16 @@ export function SearchPrefsUtilities({
                     })
                   }
                   options={WALKABILITY_OPTIONS}
-                  placeholder="Select..."
+                  placeholder="Select EV charger interest"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                    util.ev_charger_interest,
+                    util.ev_charger_interest
                   )}`}
                 >
-                  {WALKABILITY_OPTIONS.find(
-                    (o) => o.value === util.ev_charger_interest,
-                  )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                  {WALKABILITY_OPTIONS.find((o) => o.value === util.ev_charger_interest)?.label ??
+                    PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },

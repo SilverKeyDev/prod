@@ -1,10 +1,10 @@
 /// <reference types="google.maps" />
 import { searchApi } from "packages/features/search/api/search";
-import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/locationBoundsOverlay";
+import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/map/locationBoundsOverlay";
 import {
   boundsToViewportPolygon,
   centroidOfViewportRing,
-} from "packages/features/search/utils/mapViewport";
+} from "packages/features/search/utils/map/mapViewport";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { getWindow } from "packages/utils/platform";
 
@@ -14,7 +14,7 @@ import { boundsFromViewportRing } from "./searchLocationBarTypes";
 export async function reverseGeocodeAndSearchForLocationBar(
   lat: number,
   lng: number,
-  deps: SearchLocationBarMapDeps,
+  deps: SearchLocationBarMapDeps
 ): Promise<void> {
   const {
     fitMapToBounds,
@@ -28,9 +28,7 @@ export async function reverseGeocodeAndSearchForLocationBar(
   } = deps;
 
   const win = getWindow() as Window & { google?: typeof google };
-  const geocoder = win?.google?.maps?.Geocoder
-    ? new win.google.maps.Geocoder()
-    : null;
+  const geocoder = win?.google?.maps?.Geocoder ? new win.google.maps.Geocoder() : null;
 
   let label = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   let resolvedViaSlipstream = false;
@@ -40,24 +38,15 @@ export async function reverseGeocodeAndSearchForLocationBar(
       const result = await geocoder.geocode({ location: { lat, lng } });
       const results = result?.results;
       if (results && results.length > 0) {
-        const localityResult = results.find((r) =>
-          r.types.includes("locality"),
-        );
-        const neighborhoodResult = results.find((r) =>
-          r.types.includes("neighborhood"),
-        );
-        const postalResult = results.find((r) =>
-          r.types.includes("postal_code"),
-        );
-        const best =
-          neighborhoodResult ?? localityResult ?? postalResult ?? results[0];
+        const localityResult = results.find((r) => r.types.includes("locality"));
+        const neighborhoodResult = results.find((r) => r.types.includes("neighborhood"));
+        const postalResult = results.find((r) => r.types.includes("postal_code"));
+        const best = neighborhoodResult ?? localityResult ?? postalResult ?? results[0];
         label = best.formatted_address;
 
-        const cityComponent = best.address_components.find((c) =>
-          c.types.includes("locality"),
-        );
+        const cityComponent = best.address_components.find((c) => c.types.includes("locality"));
         const stateComponent = best.address_components.find((c) =>
-          c.types.includes("administrative_area_level_1"),
+          c.types.includes("administrative_area_level_1")
         );
         const searchName = cityComponent?.long_name ?? label.split(",")[0];
 
@@ -83,9 +72,7 @@ export async function reverseGeocodeAndSearchForLocationBar(
               }>;
               const apiCenter = boundaryResp.area?.center;
               const center: { lat: number; lng: number } =
-                apiCenter &&
-                typeof apiCenter.lat === "number" &&
-                typeof apiCenter.lng === "number"
+                apiCenter && typeof apiCenter.lat === "number" && typeof apiCenter.lng === "number"
                   ? { lat: apiCenter.lat, lng: apiCenter.lng }
                   : centroidOfViewportRing(ring);
               const areaLabel = boundaryResp.area?.label ?? searchName;
@@ -97,39 +84,23 @@ export async function reverseGeocodeAndSearchForLocationBar(
               setLocationPlaceViewportFromBar({
                 ring,
                 label: areaLabel,
-                overlay: buildIsochroneOverlayFromViewportRing(
-                  ring,
-                  center,
-                  areaLabel,
-                ),
+                overlay: buildIsochroneOverlayFromViewportRing(ring, center, areaLabel),
               });
               resolvedViaSlipstream = true;
 
-              log.info(
-                LOG_CATEGORIES.SEARCH,
-                "Current location resolved via Slipstream",
-                {
-                  searchName,
-                  areaId: topArea.id,
-                  areaLabel,
-                },
-              );
+              log.info(LOG_CATEGORIES.SEARCH, "Current location resolved via Slipstream", {
+                searchName,
+                areaId: topArea.id,
+                areaLabel,
+              });
             }
           }
         } catch (err: unknown) {
-          log.warn(
-            LOG_CATEGORIES.ERRORS,
-            "Slipstream fallback for current location failed",
-            err,
-          );
+          log.warn(LOG_CATEGORIES.ERRORS, "Slipstream fallback for current location failed", err);
         }
       }
     } catch (err: unknown) {
-      log.warn(
-        LOG_CATEGORIES.ERRORS,
-        "Reverse geocode failed for current location",
-        err,
-      );
+      log.warn(LOG_CATEGORIES.ERRORS, "Reverse geocode failed for current location", err);
     }
   }
 
@@ -142,18 +113,14 @@ export async function reverseGeocodeAndSearchForLocationBar(
       const delta = 0.06;
       const bounds = new g.maps.LatLngBounds(
         { lat: lat - delta, lng: lng - delta },
-        { lat: lat + delta, lng: lng + delta },
+        { lat: lat + delta, lng: lng + delta }
       );
       fitMapToBounds(bounds);
       const ring = boundsToViewportPolygon(bounds);
       setLocationPlaceViewportFromBar({
         ring,
         label,
-        overlay: buildIsochroneOverlayFromViewportRing(
-          ring,
-          { lat, lng },
-          label,
-        ),
+        overlay: buildIsochroneOverlayFromViewportRing(ring, { lat, lng }, label),
       });
     }
   }

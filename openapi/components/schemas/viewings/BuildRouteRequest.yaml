@@ -1,0 +1,11 @@
+type: object
+description: Request to optimize stop order and compute driving legs.
+required:
+  - stops
+properties:
+  stops:
+    type: array
+    items:
+      $ref: ./ViewingStop.yaml
+    minItems: 2
+    description: Unordered stops; each must include lat and lng for routing. Server may reject very large lists (provider waypoint limits).

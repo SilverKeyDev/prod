@@ -7,7 +7,7 @@ import { PropertySectionRatingBadge } from "packages/features/propertyDetails/co
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations/PropertySectionHeader";
-import type { PropertyWithAnalysis } from "packages/types/property-analysis";
+import type { PropertyWithAnalysis } from "packages/types/domain/property-analysis";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import {
@@ -44,9 +44,7 @@ const FACTOR_ICONS: Record<
   humidity_score: Droplets,
 };
 
-export const PropertyEnvironmentalFactors: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyEnvironmentalFactors: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
   const raw = useMemo(() => {
     const pa = (property as PropertyWithAnalysis).property_analysis as
@@ -87,11 +85,7 @@ export const PropertyEnvironmentalFactors: React.FC<PropertyComponentProps> = ({
                 >
                   <Box className="flex items-center gap-2">
                     <IconComponent className="h-4 w-4 shrink-0 text-gray-600" />
-                    <BodyText
-                      as="span"
-                      size="sm"
-                      className="text-text-primary font-medium"
-                    >
+                    <BodyText as="span" size="sm" className="text-text-primary font-medium">
                       {t(FACTOR_LABEL_KEYS[key], {
                         defaultValue: FACTOR_DEFAULT_LABELS[key],
                       })}
@@ -100,11 +94,7 @@ export const PropertyEnvironmentalFactors: React.FC<PropertyComponentProps> = ({
                   {rating !== null ? (
                     <PropertySectionRatingBadge rating={rating} />
                   ) : (
-                    <BodyText
-                      as="span"
-                      size="sm"
-                      className="text-text-secondary shrink-0"
-                    >
+                    <BodyText as="span" size="sm" className="text-text-secondary shrink-0">
                       {t("property_details.environmental_factor_no_score", {
                         defaultValue: "—",
                       })}

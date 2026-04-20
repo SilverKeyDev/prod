@@ -23,10 +23,7 @@ export function useUserData(): UseUserDataReturn {
   const authReady = useAuthStore((s) => s.authReady);
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(
-    () => authReady && isAuthenticated,
-    [authReady, isAuthenticated],
-  );
+  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
   const {
     data: userProfile,
@@ -48,8 +45,7 @@ export function useUserData(): UseUserDataReturn {
 
       // Convert User to UserProfile by adding missing properties
       const raw = userData as Record<string, unknown>;
-      const closing =
-        typeof raw.is_closing_mode === "boolean" ? raw.is_closing_mode : false;
+      const closing = typeof raw.is_closing_mode === "boolean" ? raw.is_closing_mode : false;
 
       const profile: UserProfile = {
         ...userData,
@@ -101,19 +97,14 @@ export type UseUserPreferencesOptions = {
   preferencesSubjectUserId?: string | null;
 };
 
-export function useUserPreferences(
-  options?: UseUserPreferencesOptions,
-): UseUserPreferencesReturn {
+export function useUserPreferences(options?: UseUserPreferencesOptions): UseUserPreferencesReturn {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
   const subjectId = options?.preferencesSubjectUserId ?? null;
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(
-    () => authReady && isAuthenticated,
-    [authReady, isAuthenticated],
-  );
+  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
   const {
     data: userPreferences,
@@ -136,7 +127,7 @@ export function useUserPreferences(
     // Use placeholderData function to check cache reactively when enabled changes
     placeholderData: () => {
       return queryClient.getQueryData<UserPreferences | null>(
-        queryKeys.user.preferences(subjectId),
+        queryKeys.user.preferences(subjectId)
       );
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -152,11 +143,8 @@ export function useUserPreferences(
       return response.preferences;
     },
     onSuccess: (updatedPreferences) => {
-      // Update cache optimistically
-      queryClient.setQueryData(
-        queryKeys.user.preferences(null),
-        updatedPreferences,
-      );
+      if (updatedPreferences == null) return;
+      queryClient.setQueryData(queryKeys.user.preferences(subjectId), updatedPreferences);
     },
   });
 
@@ -168,7 +156,7 @@ export function useUserPreferences(
     async (preferences: Partial<UserPreferences>) => {
       await updatePreferencesMutation.mutateAsync(preferences);
     },
-    [updatePreferencesMutation],
+    [updatePreferencesMutation]
   );
 
   return {

@@ -10,10 +10,10 @@ import { useSearchDisplaySettings } from "packages/features/search/hooks/data/us
 import { useFiltersStore } from "packages/features/search/store/filters.slice";
 import {
   isResultsOrderBy,
-  MAP_HOME_CARDS_MAX,
-  MAP_HOME_CARDS_MIN,
+  isResultsSortDirection,
   RESULTS_ORDER_BY_OPTIONS,
   type ResultsOrderBy,
+  type ResultsSortDirection,
 } from "packages/features/search/types/searchDisplay";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { useAuthStore } from "packages/store";
@@ -58,23 +58,15 @@ export default function SearchDisplayDropdown({
 
   const showCommuteOverlay = useFiltersStore((s) => s.showCommuteOverlay);
   const setShowCommuteOverlay = useFiltersStore((s) => s.setShowCommuteOverlay);
-  const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);
-  const setMapHomeCardsCount = useFiltersStore((s) => s.setMapHomeCardsCount);
   const resultsOrderBy = useFiltersStore((s) => s.resultsOrderBy);
   const setResultsOrderBy = useFiltersStore((s) => s.setResultsOrderBy);
-  const preferencesStrictFilter = useFiltersStore(
-    (s) => s.preferencesStrictFilter,
-  );
-  const setPreferencesStrictFilter = useFiltersStore(
-    (s) => s.setPreferencesStrictFilter,
-  );
+  const resultsSortDirection = useFiltersStore((s) => s.resultsSortDirection);
+  const setResultsSortDirection = useFiltersStore((s) => s.setResultsSortDirection);
+  const preferencesStrictFilter = useFiltersStore((s) => s.preferencesStrictFilter);
+  const setPreferencesStrictFilter = useFiltersStore((s) => s.setPreferencesStrictFilter);
   const hasSearched = useFiltersStore((s) => s.hasSearched);
-  const showMapListingPreviews = useFiltersStore(
-    (s) => s.showMapListingPreviews,
-  );
-  const setShowMapListingPreviews = useFiltersStore(
-    (s) => s.setShowMapListingPreviews,
-  );
+  const showMapListingPreviews = useFiltersStore((s) => s.showMapListingPreviews);
+  const setShowMapListingPreviews = useFiltersStore((s) => s.setShowMapListingPreviews);
   const isDev = getEnv().isDevelopment;
 
   const handleCommute = useCallback(
@@ -82,17 +74,7 @@ export default function SearchDisplayDropdown({
       setShowCommuteOverlay(checked);
       patchSearchDisplay({ show_commute_overlay: checked });
     },
-    [setShowCommuteOverlay, patchSearchDisplay],
-  );
-
-  const handleCards = useCallback(
-    (v: string) => {
-      const n = Number.parseInt(v, 10);
-      if (!Number.isFinite(n)) return;
-      setMapHomeCardsCount(n);
-      patchSearchDisplay({ map_home_cards_count: n });
-    },
-    [setMapHomeCardsCount, patchSearchDisplay],
+    [setShowCommuteOverlay, patchSearchDisplay]
   );
 
   const handleOrder = useCallback(
@@ -101,7 +83,15 @@ export default function SearchDisplayDropdown({
       setResultsOrderBy(v);
       patchSearchDisplay({ results_order_by: v });
     },
-    [setResultsOrderBy, patchSearchDisplay],
+    [setResultsOrderBy, patchSearchDisplay]
+  );
+
+  const handleSortDirection = useCallback(
+    (v: ResultsSortDirection) => {
+      if (!isResultsSortDirection(v)) return;
+      setResultsSortDirection(v);
+    },
+    [setResultsSortDirection]
   );
 
   const handleStrictPreferences = useCallback(
@@ -109,48 +99,61 @@ export default function SearchDisplayDropdown({
       setPreferencesStrictFilter(checked);
       patchSearchDisplay({ preferences_strict_filter: checked });
     },
-    [setPreferencesStrictFilter, patchSearchDisplay],
+    [setPreferencesStrictFilter, patchSearchDisplay]
   );
 
   const handleMapListingPreviews = useCallback(
     (checked: boolean) => {
       setShowMapListingPreviews(checked);
     },
-    [setShowMapListingPreviews],
+    [setShowMapListingPreviews]
   );
-
-  const cardOptions = Array.from(
-    { length: MAP_HOME_CARDS_MAX - MAP_HOME_CARDS_MIN + 1 },
-    (_, i) => MAP_HOME_CARDS_MIN + i,
-  ).map((n) => ({ value: String(n), label: String(n) }));
 
   const orderOptions = RESULTS_ORDER_BY_OPTIONS.map((value) => ({
     value,
     label: ORDER_LABELS[value],
   }));
 
-  const displayLabel =
-    t("search.display") ?? SEARCH_TRANSLATIONS["search.display"] ?? "Display";
+  const directionOptions: { value: ResultsSortDirection; label: string }[] = [
+    {
+      value: "asc",
+      label:
+        SEARCH_TRANSLATIONS["search.sort_low_to_high"] ??
+        t("search.sort_low_to_high") ??
+        "Low to high",
+    },
+    {
+      value: "desc",
+      label:
+        SEARCH_TRANSLATIONS["search.sort_high_to_low"] ??
+        t("search.sort_high_to_low") ??
+        "High to low",
+    },
+  ];
 
-  const renderPanel = (
-    registerOutsideClickSafeTarget: (element: HTMLElement) => () => void,
-  ) => (
+  const displayLabel = t("search.display") ?? SEARCH_TRANSLATIONS["search.display"] ?? "Display";
+
+  const renderPanel = (registerOutsideClickSafeTarget: (element: HTMLElement) => () => void) => (
     <Box className="flex flex-col gap-4">
-      <Box className="flex flex-row items-center justify-between gap-3">
-        <BodyText as="span" size="sm" className="text-text-primary shrink-0">
-          {SEARCH_TRANSLATIONS["search.show_commute_area"] ??
-            "Show commute area"}
-        </BodyText>
-        <OliveCheckbox
-          checked={showCommuteOverlay}
-          onToggle={() => handleCommute(!showCommuteOverlay)}
-        />
+      <Box className="flex flex-col gap-1.5">
+        <Box className="flex flex-row items-center justify-between gap-3">
+          <BodyText as="span" size="sm" className="text-text-primary shrink-0">
+            {SEARCH_TRANSLATIONS["search.show_commute_area"] ?? "Show commute area"}
+          </BodyText>
+          <OliveCheckbox
+            checked={showCommuteOverlay}
+            onToggle={() => handleCommute(!showCommuteOverlay)}
+          />
+        </Box>
+        <Subtitle size="xs" muted className="pl-0 pr-10">
+          {SEARCH_TRANSLATIONS["search.show_commute_area_hint"] ??
+            "For searches from your profile (important locations). Shows drive-time areas when on, or a simple bounds around those places when off. Map-only searches use the place or area you picked instead."}
+        </Subtitle>
       </Box>
       <Box className="flex flex-col gap-1.5">
         <Box className="flex flex-row items-center justify-between gap-3">
           <BodyText as="span" size="sm" className="text-text-primary shrink-0">
-            {SEARCH_TRANSLATIONS["search.strict_preferences"] ??
-              "Match all preferences strictly"}
+            {SEARCH_TRANSLATIONS["search.strict_preferences"] ?? "Match all preferences strictly"}
           </BodyText>
           <OliveCheckbox
             checked={preferencesStrictFilter}
@@ -165,20 +168,14 @@ export default function SearchDisplayDropdown({
       {isDev ? (
         <Box className="flex flex-col gap-1.5">
           <Box className="flex flex-row items-center justify-between gap-3">
-            <BodyText
-              as="span"
-              size="sm"
-              className="text-text-primary shrink-0"
-            >
+            <BodyText as="span" size="sm" className="text-text-primary shrink-0">
               {SEARCH_TRANSLATIONS["search.show_map_listing_previews"] ??
                 "Show listing previews on map (dev)"}
             </BodyText>
             <OliveCheckbox
               checked={showMapListingPreviews}
               onToggle={
-                hasSearched
-                  ? () => handleMapListingPreviews(!showMapListingPreviews)
-                  : undefined
+                hasSearched ? () => handleMapListingPreviews(!showMapListingPreviews) : undefined
               }
             />
           </Box>
@@ -188,34 +185,40 @@ export default function SearchDisplayDropdown({
           </Subtitle>
         </Box>
       ) : null}
-      <Dropdown
-        label={
-          SEARCH_TRANSLATIONS["search.display_map_cards"] ??
-          t("search.display_map_cards") ??
-          "Homes on map"
-        }
-        size="sm"
-        noBorder
-        menuInPortal
-        registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
-        value={String(mapHomeCardsCount)}
-        options={cardOptions}
-        onChange={handleCards}
-      />
-      <Dropdown<ResultsOrderBy>
-        label={
-          SEARCH_TRANSLATIONS["search.display_order_by"] ??
-          t("search.display_order_by") ??
-          "Order by"
-        }
-        size="sm"
-        noBorder
-        menuInPortal
-        registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
-        value={resultsOrderBy}
-        options={orderOptions}
-        onChange={handleOrder}
-      />
+      <Box className="flex min-w-0 flex-row items-stretch gap-2">
+        <Box className="min-w-0 flex-1">
+          <Dropdown<ResultsOrderBy>
+            label={
+              SEARCH_TRANSLATIONS["search.display_order_by"] ??
+              t("search.display_order_by") ??
+              "Order by"
+            }
+            size="sm"
+            noBorder
+            menuInPortal
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
+            value={resultsOrderBy}
+            options={orderOptions}
+            onChange={handleOrder}
+          />
+        </Box>
+        <Box className="min-w-0 flex-1">
+          <Dropdown<ResultsSortDirection>
+            label={
+              SEARCH_TRANSLATIONS["search.display_sort_direction"] ??
+              t("search.display_sort_direction") ??
+              "Sort direction"
+            }
+            size="sm"
+            noBorder
+            menuInPortal
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
+            value={resultsSortDirection}
+            options={directionOptions}
+            onChange={handleSortDirection}
+          />
+        </Box>
+      </Box>
     </Box>
   );
 
@@ -249,9 +252,7 @@ export default function SearchDisplayDropdown({
           </Button>
         )}
       >
-        {({ registerOutsideClickSafeTarget }) =>
-          renderPanel(registerOutsideClickSafeTarget)
-        }
+        {({ registerOutsideClickSafeTarget }) => renderPanel(registerOutsideClickSafeTarget)}
       </Popover>
     );
   }
@@ -285,9 +286,7 @@ export default function SearchDisplayDropdown({
         </Button>
       )}
     >
-      {({ registerOutsideClickSafeTarget }) =>
-        renderPanel(registerOutsideClickSafeTarget)
-      }
+      {({ registerOutsideClickSafeTarget }) => renderPanel(registerOutsideClickSafeTarget)}
     </Popover>
   );
 }

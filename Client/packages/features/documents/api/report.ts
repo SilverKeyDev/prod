@@ -13,39 +13,28 @@
  */
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import {
-  apiDelete,
-  apiGet,
-  apiHead,
-  apiPost,
-} from "packages/services/http/compatibility";
+import { apiDelete, apiGet, apiHead, apiPost } from "packages/services/http/compatibility";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
 import { captureError } from "packages/services/security/errorReporting";
 import type { components } from "packages/types/api.generated";
-import type { ShareDocumentResult } from "packages/types/ui";
-import { asError, getNavigator } from "packages/utils";
+import type { ShareDocumentResult } from "packages/types/domain/ui";
+import { asError } from "packages/utils";
+import { tryWebShareUrl } from "packages/utils/share";
 
 // Re-export types from generated schema
-export type GenerateReportRequest =
-  components["schemas"]["GenerateReportRequest"];
+export type GenerateReportRequest = components["schemas"]["GenerateReportRequest"];
 /** Report /documents rows — same shape as `UploadedDocumentRecord` in OpenAPI */
 export type ReportDocument = components["schemas"]["UploadedDocumentRecord"];
-export type ReportDocumentsListResponse =
-  components["schemas"]["ReportDocumentsListResponse"];
-export type DocumentLibraryResponse =
-  components["schemas"]["DocumentLibraryResponse"];
-export type GenerateReportResponse =
-  components["schemas"]["GenerateReportResponse"];
+export type ReportDocumentsListResponse = components["schemas"]["ReportDocumentsListResponse"];
+export type DocumentLibraryResponse = components["schemas"]["DocumentLibraryResponse"];
+export type GenerateReportResponse = components["schemas"]["GenerateReportResponse"];
 export type ReportsListResponse = components["schemas"]["ReportsListResponse"];
 export type PollReportResponse = components["schemas"]["PollReportResponse"];
 export type DownloadUrlResponse = components["schemas"]["DownloadUrlResponse"];
 export type ViewUrlResponse = components["schemas"]["ViewUrlResponse"];
-export type CompareReportsRequest =
-  components["schemas"]["CompareReportsRequest"];
-export type CompareReportsResponse =
-  components["schemas"]["CompareReportsResponse"];
-export type DeleteReportResponse =
-  components["schemas"]["DeleteReportResponse"];
+export type CompareReportsRequest = components["schemas"]["CompareReportsRequest"];
+export type CompareReportsResponse = components["schemas"]["CompareReportsResponse"];
+export type DeleteReportResponse = components["schemas"]["DeleteReportResponse"];
 export type SuccessResponse = components["schemas"]["SuccessResponse"];
 
 export type { ShareDocumentResult };
@@ -57,8 +46,7 @@ export const reportApi = {
   /**
    * List all reports
    */
-  list: (): Promise<ReportsListResponse> =>
-    apiGet<ReportsListResponse>("/api/v1/report/list"),
+  list: (): Promise<ReportsListResponse> => apiGet<ReportsListResponse>("/api/v1/report/list"),
 
   /**
    * Poll for a specific report's status by document ID
@@ -87,16 +75,12 @@ export const reportApi = {
   /**
    * HEAD request to check view endpoint (for diagnostics: headers, status)
    */
-  checkViewUrl: (reportId: string) =>
-    apiHead(`/api/v1/report/${reportId}/view`),
+  checkViewUrl: (reportId: string) => apiHead(`/api/v1/report/${reportId}/view`),
 
   /**
    * Share document using Web Share API or fallback to URL sharing
    */
-  shareDocument: async (
-    documentId: string,
-    documentName: string,
-  ): Promise<ShareDocumentResult> => {
+  shareDocument: async (documentId: string, documentName: string): Promise<ShareDocumentResult> => {
     log.info(LOG_CATEGORIES.DOCUMENTS, "Document share started", {
       documentId,
       documentName,
@@ -104,26 +88,18 @@ export const reportApi = {
     try {
       const viewResponse = await reportApi.getViewUrl(documentId);
       if (!viewResponse.success || !viewResponse.viewUrl) {
-        log.info(
-          LOG_CATEGORIES.DOCUMENTS,
-          "Document share: view URL not available",
-          {
-            documentId,
-            documentName,
-            viewUrlSuccess: viewResponse.success,
-          },
-        );
+        log.info(LOG_CATEGORIES.DOCUMENTS, "Document share: view URL not available", {
+          documentId,
+          documentName,
+          viewUrlSuccess: viewResponse.success,
+        });
         return { success: false, message: "Unable to generate shareable link" };
       }
 
-      log.info(
-        LOG_CATEGORIES.DOCUMENTS,
-        "Document share: presigned view URL obtained",
-        {
-          documentId,
-          documentName,
-        },
-      );
+      log.info(LOG_CATEGORIES.DOCUMENTS, "Document share: presigned view URL obtained", {
+        documentId,
+        documentName,
+      });
 
       const shareTitle = `Property Report - ${documentName
         .replace(/_/g, " ")
@@ -131,46 +107,39 @@ export const reportApi = {
         .trim()}`;
       const shareUrl = viewResponse.viewUrl;
 
-      const nav = getNavigator();
-      if (nav?.share) {
-        try {
-          await nav.share({
-            title: shareTitle,
-            text: "Check out this property report",
-            url: shareUrl,
-          });
-          log.info(LOG_CATEGORIES.DOCUMENTS, "Document share completed", {
-            documentId,
-            documentName,
-            channel: "web_share",
-            success: true,
-          });
-          return { success: true, message: "Report shared successfully" };
-        } catch (shareError: unknown) {
-          const error = asError(shareError);
-          if (error instanceof Error && error.name === "AbortError") {
-            log.info(
-              LOG_CATEGORIES.DOCUMENTS,
-              "Document share cancelled by user",
-              {
-                documentId,
-                documentName,
-                channel: "web_share",
-              },
-            );
-            return { success: false, message: "Share cancelled" };
-          }
-          log.info(
-            LOG_CATEGORIES.DOCUMENTS,
-            "Document share: Web Share failed, trying clipboard",
-            {
-              documentId,
-              documentName,
-              errorName: error instanceof Error ? error.name : "unknown",
-            },
-          );
-        }
+      const shareResult = await tryWebShareUrl({
+        title: shareTitle,
+        text: "Check out this property report",
+        url: shareUrl,
+      });
+
+      if (shareResult === "shared") {
+        log.info(LOG_CATEGORIES.DOCUMENTS, "Document share completed", {
+          documentId,
+          documentName,
+          channel: "web_share",
+          success: true,
+        });
+        return { success: true, message: "Report shared successfully" };
       }
+
+      if (shareResult === "aborted") {
+        log.info(LOG_CATEGORIES.DOCUMENTS, "Document share cancelled by user", {
+          documentId,
+          documentName,
+          channel: "web_share",
+        });
+        return { success: false, message: "Share cancelled" };
+      }
+
+      log.info(
+        LOG_CATEGORIES.DOCUMENTS,
+        "Document share: Web Share unavailable or failed, trying clipboard",
+        {
+          documentId,
+          documentName,
+        }
+      );
 
       const success = await secureClipboardCopy(shareUrl);
       if (success) {
@@ -182,23 +151,18 @@ export const reportApi = {
         });
         return { success: true, message: "Report link copied to clipboard" };
       }
-      log.info(
-        LOG_CATEGORIES.DOCUMENTS,
-        "Document share failed: clipboard copy unsuccessful",
-        {
-          documentId,
-          documentName,
-          channel: "clipboard",
-        },
-      );
+      log.info(LOG_CATEGORIES.DOCUMENTS, "Document share failed: clipboard copy unsuccessful", {
+        documentId,
+        documentName,
+        channel: "clipboard",
+      });
       return { success: false, message: "Failed to copy link to clipboard" };
     } catch (error: unknown) {
       log.error(LOG_CATEGORIES.ERRORS, "Document share failed", error);
       captureError(asError(error), { context: "shareDocument", documentName });
       return {
         success: false,
-        message:
-          error instanceof Error ? error.message : "Failed to share report",
+        message: error instanceof Error ? error.message : "Failed to share report",
       };
     }
   },
@@ -218,9 +182,7 @@ export const reportApi = {
    */
   getDocuments: (clientId?: string): Promise<ReportDocumentsListResponse> => {
     const params = clientId ? `?client_id=${encodeURIComponent(clientId)}` : "";
-    return apiGet<ReportDocumentsListResponse>(
-      `/api/v1/report/documents${params}`,
-    );
+    return apiGet<ReportDocumentsListResponse>(`/api/v1/report/documents${params}`);
   },
 
   /**
@@ -228,18 +190,14 @@ export const reportApi = {
    */
   getDocumentLibrary: (clientId?: string): Promise<DocumentLibraryResponse> => {
     const params = clientId ? `?client_id=${encodeURIComponent(clientId)}` : "";
-    return apiGet<DocumentLibraryResponse>(
-      `/api/v1/report/document-library${params}`,
-    );
+    return apiGet<DocumentLibraryResponse>(`/api/v1/report/document-library${params}`);
   },
 
   /**
    * Remove a document from the user's library (does not delete the actual document)
    */
   removeFromLibrary: (libraryItemId: string): Promise<SuccessResponse> =>
-    apiDelete<SuccessResponse>(
-      `/api/v1/report/document-library/${libraryItemId}`,
-    ),
+    apiDelete<SuccessResponse>(`/api/v1/report/document-library/${libraryItemId}`),
 
   /**
    * Serve static report file (fallback for local files)

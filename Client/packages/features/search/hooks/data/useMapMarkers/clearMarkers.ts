@@ -5,20 +5,15 @@ type MarkersRef = { current: GoogleAdvancedMarkerElement[] };
 /** Detach one advanced marker and optionally unmount React map card content. */
 export function teardownAdvancedMarker(
   marker: GoogleAdvancedMarkerElement,
-  cleanupMapPropertyCard?: (container: HTMLElement) => void,
+  cleanupMapPropertyCard?: (container: HTMLElement) => void
 ): void {
   if (!marker || typeof marker !== "object") return;
 
   const markerWithContent = marker as unknown as {
     content?: HTMLElement;
   };
-  if (
-    markerWithContent.content &&
-    markerWithContent.content instanceof HTMLElement
-  ) {
-    if (
-      (markerWithContent.content as HTMLElement).dataset?.markerType !== "pin"
-    ) {
+  if (markerWithContent.content && markerWithContent.content instanceof HTMLElement) {
+    if ((markerWithContent.content as HTMLElement).dataset?.markerType !== "pin") {
       if (cleanupMapPropertyCard) {
         setTimeout(() => {
           cleanupMapPropertyCard(markerWithContent.content!);
@@ -38,10 +33,7 @@ export function teardownAdvancedMarker(
       onRemove?: () => void;
     };
   };
-  if (
-    markerWithOverlay?.overlay &&
-    typeof markerWithOverlay.overlay === "object"
-  ) {
+  if (markerWithOverlay?.overlay && typeof markerWithOverlay.overlay === "object") {
     if (typeof markerWithOverlay.overlay.onRemove === "function") {
       markerWithOverlay.overlay.onRemove();
     }
@@ -54,7 +46,7 @@ export function teardownAdvancedMarker(
 /** Remove only floating preview card markers; keep pin markers for incremental sync. */
 export function removeCardMarkersOnly(
   markersRef: MarkersRef,
-  cleanupMapPropertyCard: (container: HTMLElement) => void,
+  cleanupMapPropertyCard: (container: HTMLElement) => void
 ): void {
   const keep: GoogleAdvancedMarkerElement[] = [];
   for (const marker of markersRef.current) {
@@ -71,7 +63,7 @@ export function removeCardMarkersOnly(
 export function clearMapMarkers(
   markersRef: MarkersRef,
   importantMarkersRef: MarkersRef,
-  cleanupMapPropertyCard: (container: HTMLElement) => void,
+  cleanupMapPropertyCard: (container: HTMLElement) => void
 ): void {
   markersRef.current.forEach((marker) => {
     teardownAdvancedMarker(marker, cleanupMapPropertyCard);

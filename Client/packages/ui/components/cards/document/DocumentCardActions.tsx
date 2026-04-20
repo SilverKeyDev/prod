@@ -133,8 +133,7 @@ export default function DocumentCardActions({
 
   // Determine modal text based on whether document is from another user and if it's an agreement
   const isAgreement = doc.library_kind === "agreement";
-  const deleteTitle =
-    isFromOtherUser || isAgreement ? "Remove Document" : "Delete Document";
+  const deleteTitle = isFromOtherUser || isAgreement ? "Remove Document" : "Delete Document";
   const deleteMessage = isAgreement
     ? "Are you sure you want to remove this agreement from your library? This will not delete the agreement from DocuSign."
     : isFromOtherUser

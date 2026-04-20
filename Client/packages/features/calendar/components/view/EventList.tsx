@@ -22,11 +22,7 @@ type EventListProps = {
   embedInListHeader?: boolean;
   silverKeyCalendarId?: string | null;
   refreshEvents?: () => Promise<void>;
-  updateEvent?: (
-    eventId: string,
-    event: GoogleEvent,
-    calendarId?: string,
-  ) => Promise<unknown>;
+  updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
   deleteEvent?: (eventId: string, calendarId?: string) => Promise<void>;
   calendars?: Calendar[];
   /** Card border variant. Default charcoal; use "light" for upcoming-events style. */
@@ -131,12 +127,7 @@ export function EventList({
     );
 
   return (
-    <Card
-      border={border}
-      className="w-full text-left"
-      padding="md"
-      hover={false}
-    >
+    <Card border={border} className="w-full text-left" padding="md" hover={false}>
       {title || headerActions ? (
         <Box className="mb-3 flex flex-row flex-wrap items-center gap-2">
           {title ? (
@@ -144,9 +135,7 @@ export function EventList({
           ) : (
             <Box className="flex-1" />
           )}
-          {headerActions ? (
-            <Box className="flex-shrink-0">{headerActions}</Box>
-          ) : null}
+          {headerActions ? <Box className="flex-shrink-0">{headerActions}</Box> : null}
         </Box>
       ) : null}
       {listContent}

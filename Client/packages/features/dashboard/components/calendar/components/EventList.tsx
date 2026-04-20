@@ -1,4 +1,4 @@
-import type { GoogleEvent } from "packages/types/googleCalendar";
+import type { GoogleEvent } from "packages/types/integrations/googleCalendar";
 import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 

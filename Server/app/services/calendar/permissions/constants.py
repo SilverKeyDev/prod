@@ -46,6 +46,8 @@ permissions = {
         "field_name": "has_calendar_calendarlist_readonly",
         "scope_url": "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
         "description": "See the list of Google calendars you're subscribed to",
+        # Legacy tokens only; client no longer lists calendars on new connects.
+        "include_in_oauth_request": False,
         "implied_by": [
             "https://www.googleapis.com/auth/calendar",
             "https://www.googleapis.com/auth/calendar.readonly",

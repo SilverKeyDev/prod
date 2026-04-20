@@ -6,14 +6,10 @@
 import type { components } from "packages/types/api.generated";
 
 /** Dashboard workflow document from OpenAPI `WorkflowDocumentRecord` (string dates). */
-export type WorkflowDocumentRecord =
-  components["schemas"]["WorkflowDocumentRecord"];
+export type WorkflowDocumentRecord = components["schemas"]["WorkflowDocumentRecord"];
 
 /** In-memory workflow document with parsed dates (store / document service). */
-export type WorkflowDocument = Omit<
-  WorkflowDocumentRecord,
-  "uploaded_at" | "expiry_date"
-> & {
+export type WorkflowDocument = Omit<WorkflowDocumentRecord, "uploaded_at" | "expiry_date"> & {
   uploaded_at: Date;
   expiry_date?: Date;
 };

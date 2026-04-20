@@ -1,10 +1,11 @@
 /**
  * Canonical step ids for profile onboarding / personalization flows.
- * Keep in sync with {@link ../utils/steps.ts} and UI step builders.
+ * Keep in sync with {@link ../utils/onboarding/steps.ts} and UI step builders.
  */
 
 export const PROFILE_STEP_IDS = [
   "demographics",
+  "availability",
   "housing_essentials",
   "housing_ranges",
   "location",
@@ -27,8 +28,7 @@ export const AGENT_ONLY_SECTION_IDS = [
 export type AgentOnlySectionId = (typeof AGENT_ONLY_SECTION_IDS)[number];
 
 /**
- * Buyer-centric preference sections that agents still see in personalization / profile,
- * with an “optional for personal search” callout in the section body.
+ * Buyer-centric home-search sections (hidden for agents in profile / onboarding flow).
  */
 export const BUYER_PERSONALIZATION_SECTION_IDS = [
   "housing_essentials",
@@ -36,7 +36,7 @@ export const BUYER_PERSONALIZATION_SECTION_IDS = [
   "location",
   "search_property",
   "financial",
+  "availability",
 ] as const satisfies ReadonlyArray<ProfileStepId>;
 
-export type BuyerPersonalizationSectionId =
-  (typeof BUYER_PERSONALIZATION_SECTION_IDS)[number];
+export type BuyerPersonalizationSectionId = (typeof BUYER_PERSONALIZATION_SECTION_IDS)[number];

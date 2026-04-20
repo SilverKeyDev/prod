@@ -8,7 +8,7 @@ import { Box, ScrollView, Text } from "packages/ui/components/primitives";
 import type { Calendar } from "@/features/calendar/types/calendar";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
-import type { UpcomingAgendaItem } from "@/features/calendar/utils/mergeUpcomingAgenda";
+import type { UpcomingAgendaItem } from "@/features/calendar/utils/agenda/mergeUpcomingAgenda";
 
 import { EventCard } from "./EventCard";
 import { TodoAgendaRow } from "./TodoAgendaRow";
@@ -21,11 +21,7 @@ type UpcomingAgendaListProps = {
   embedInListHeader?: boolean;
   silverKeyCalendarId?: string | null;
   refreshEvents?: () => Promise<void>;
-  updateEvent?: (
-    eventId: string,
-    event: GoogleEvent,
-    calendarId?: string,
-  ) => Promise<unknown>;
+  updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
   deleteEvent?: (eventId: string, calendarId?: string) => Promise<void>;
   calendars?: Calendar[];
   onEventClick?: (event: ExtendedGoogleEvent) => void;
@@ -75,7 +71,7 @@ function renderRow(
   props: Omit<
     UpcomingAgendaListProps,
     "items" | "title" | "emptyMessage" | "headerActions" | "border"
-  >,
+  >
 ) {
   if (item.kind === "event") {
     return (
@@ -95,9 +91,7 @@ function renderRow(
     <TodoAgendaRow
       todo={item.todo}
       onToggleComplete={(id) => props.onToggleAgendaTodo?.(id)}
-      canEditComplete={Boolean(
-        props.canEditAgendaTodos && props.onToggleAgendaTodo,
-      )}
+      canEditComplete={Boolean(props.canEditAgendaTodos && props.onToggleAgendaTodo)}
       onSigningPress={props.onSigningAgendaPress}
     />
   );
@@ -158,12 +152,7 @@ export function UpcomingAgendaList({
     );
 
   return (
-    <Card
-      border={border}
-      className="w-full text-left"
-      padding="md"
-      hover={false}
-    >
+    <Card border={border} className="w-full text-left" padding="md" hover={false}>
       {title || headerActions ? (
         <Box className="mb-3 flex flex-row flex-wrap items-center gap-2">
           {title ? (
@@ -171,9 +160,7 @@ export function UpcomingAgendaList({
           ) : (
             <Box className="flex-1" />
           )}
-          {headerActions ? (
-            <Box className="flex-shrink-0">{headerActions}</Box>
-          ) : null}
+          {headerActions ? <Box className="flex-shrink-0">{headerActions}</Box> : null}
         </Box>
       ) : null}
       {listContent}

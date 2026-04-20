@@ -7,12 +7,7 @@ export type LabelProps = {
   required?: boolean;
   className?: string;
 };
-const Label: React.FC<LabelProps> = ({
-  children,
-  htmlFor,
-  required = false,
-  className = "",
-}) => {
+const Label: React.FC<LabelProps> = ({ children, htmlFor, required = false, className = "" }) => {
   return (
     <BaseLabel
       htmlFor={htmlFor}
@@ -26,11 +21,7 @@ const Label: React.FC<LabelProps> = ({
     </BaseLabel>
   );
 };
-export const RequiredLabel: React.FC<LabelProps> = ({
-  children,
-  className = "",
-  htmlFor,
-}) => (
+export const RequiredLabel: React.FC<LabelProps> = ({ children, className = "", htmlFor }) => (
   <Label
     htmlFor={htmlFor}
     className={`text-text-primary block text-xs font-medium sm:text-sm md:text-base ${className}`}
@@ -38,11 +29,7 @@ export const RequiredLabel: React.FC<LabelProps> = ({
     {children}
   </Label>
 );
-export const OptionalLabel: React.FC<LabelProps> = ({
-  children,
-  className = "",
-  htmlFor,
-}) => (
+export const OptionalLabel: React.FC<LabelProps> = ({ children, className = "", htmlFor }) => (
   <Label
     htmlFor={htmlFor}
     className={`text-text-primary block text-xs font-medium sm:text-sm md:text-base ${className}`}

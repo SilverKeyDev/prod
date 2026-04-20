@@ -11,12 +11,9 @@ import { useCallback } from "react";
 import { secureLogger } from "packages/services/security/secureLogger";
 
 export function useSecureLogger() {
-  const debug = useCallback(
-    (scope: string, message: string, data?: unknown) => {
-      secureLogger.debug(scope, message, data);
-    },
-    [],
-  );
+  const debug = useCallback((scope: string, message: string, data?: unknown) => {
+    secureLogger.debug(scope, message, data);
+  }, []);
 
   const info = useCallback((scope: string, message: string, data?: unknown) => {
     secureLogger.info(scope, message, data);
@@ -26,19 +23,13 @@ export function useSecureLogger() {
     secureLogger.warn(scope, message, data);
   }, []);
 
-  const error = useCallback(
-    (scope: string, message: string, errorData?: unknown) => {
-      secureLogger.error(scope, message, errorData);
-    },
-    [],
-  );
+  const error = useCallback((scope: string, message: string, errorData?: unknown) => {
+    secureLogger.error(scope, message, errorData);
+  }, []);
 
-  const security = useCallback(
-    (scope: string, event: string, data?: unknown) => {
-      secureLogger.security(scope, event, data);
-    },
-    [],
-  );
+  const security = useCallback((scope: string, event: string, data?: unknown) => {
+    secureLogger.security(scope, event, data);
+  }, []);
 
   return {
     debug,

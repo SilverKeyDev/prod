@@ -1,28 +1,15 @@
 /// <reference types="google.maps" />
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 
-import {
-  searchPropertiesInIsochrone,
-  searchPropertiesInViewport,
-} from "packages/features/search/api/propertySearch";
-import { searchApi } from "packages/features/search/api/search";
 import { useSearchPageData } from "packages/features/search/hooks/data/page/useSearchPageData";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useSearchScreenCriteriaSummary } from "packages/features/search/hooks/ui/useSearchScreenCriteriaSummary";
+import { useSearchScreenSearchExecution } from "packages/features/search/hooks/ui/useSearchScreenSearchExecution";
 import type { SearchResult } from "packages/features/search/types";
-import { formatAddress } from "packages/features/search/types/search/propertyDetailsFormatters";
+import { formatAddress } from "packages/features/search/types/search/formatters/propertyDetailsFormatters";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
-import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/locationBoundsOverlay";
-import {
-  centroidOfViewportRing,
-  mapViewportFromLatLngDeltas,
-} from "packages/features/search/utils/mapViewport";
-import { useUserPreferences } from "packages/hooks/data/useUserData";
-import { usePreActionSnapshot } from "packages/hooks/ui";
-import {
-  showErrorToast,
-  showWarningToast,
-} from "packages/hooks/ui/toast/useToast";
+import { useUserPreferences } from "packages/hooks/data/user/useUserData";
+import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import {
@@ -32,7 +19,6 @@ import {
   useSearchContextStore,
   useSearchViewStore,
 } from "packages/store";
-import type { IsochroneData } from "packages/types/api";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { SearchScreenBody } from "./SearchScreenBody";
@@ -45,32 +31,14 @@ export function SearchScreen() {
   const mode = useSearchViewStore((s) => s.mode);
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
-  const setSelectedClientId = useAgentDashboardStore(
-    (s) => s.setSelectedClientId,
-  );
+  const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
   const setSearchSource = useFiltersStore((s) => s.setSearchSource);
   const lastMapRegion = useFiltersStore((s) => s.lastMapRegion);
   const showCommuteOverlay = useFiltersStore((s) => s.showCommuteOverlay);
   const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);
-  const preferencesStrictFilter = useFiltersStore(
-    (s) => s.preferencesStrictFilter,
-  );
-  const clearDismissedMapPreviews = useFiltersStore(
-    (s) => s.clearDismissedMapPreviews,
-  );
-  const setShowMapListingPreviewsAction = useFiltersStore(
-    (s) => s.setShowMapListingPreviews,
-  );
-  const mapPreviewSearchLifecycle = useMemo(
-    () => ({
-      onSearchStartClearDismissals: clearDismissedMapPreviews,
-      onResultsCommittedEnablePreviews: () => {
-        clearDismissedMapPreviews();
-        setShowMapListingPreviewsAction(true);
-      },
-    }),
-    [clearDismissedMapPreviews, setShowMapListingPreviewsAction],
-  );
+  const preferencesStrictFilter = useFiltersStore((s) => s.preferencesStrictFilter);
+  const clearDismissedMapPreviews = useFiltersStore((s) => s.clearDismissedMapPreviews);
+  const setShowMapListingPreviewsAction = useFiltersStore((s) => s.setShowMapListingPreviews);
   const authReady = useAuthStore((s) => s.authReady);
   useSearchDisplaySettings(authReady);
 
@@ -106,188 +74,51 @@ export function SearchScreen() {
 
   const navigation = useNavigation();
 
-  const searchFilterOverrides = useSearchContextStore(
-    (s) => s.searchFilterOverrides,
-  );
-  const clearLocationPlaceSearchArea = useSearchContextStore(
-    (s) => s.clearLocationPlaceSearchArea,
-  );
-  const setLocationSearchOverlayData = useSearchContextStore(
-    (s) => s.setLocationSearchOverlayData,
-  );
+  const searchFilterOverrides = useSearchContextStore((s) => s.searchFilterOverrides);
+  const clearLocationPlaceSearchArea = useSearchContextStore((s) => s.clearLocationPlaceSearchArea);
+  const setLocationSearchOverlayData = useSearchContextStore((s) => s.setLocationSearchOverlayData);
 
   const [filtersSheetOpen, setFiltersSheetOpen] = useState(false);
   const [displaySheetOpen, setDisplaySheetOpen] = useState(false);
 
-  const searchAbortControllerRef = useRef<AbortController | null>(null);
-
-  const { snapshot: snapshotPreSearch, restore: restorePreSearch } =
-    usePreActionSnapshot<{
-      results: SearchResult[];
-      currentPage: number;
-      searchStage: string | null;
-    }>("search_pre_cancel_snapshot");
-
-  const runSearch = useCallback(async () => {
-    if (isSearching) return;
-    setSearchSource("preferences");
-    clearLocationPlaceSearchArea();
-    log.info(
-      LOG_CATEGORIES.SEARCH,
-      "Mobile search runSearch start (isochrone flow)",
-      {},
-    );
-
-    snapshotPreSearch({
-      results: searchResults,
-      currentPage,
-      searchStage,
-    });
-
-    const controller = new AbortController();
-    searchAbortControllerRef.current = controller;
-
-    setIsSearching(true);
-    setSearchStage("Preparing search...");
-    setSearchResults([]);
-    try {
-      const response = await searchApi.getIsochrone({
-        preferencesUserId: selectedClientId ?? undefined,
-      });
-      if (!response.success || !response.data) {
-        log.warn(LOG_CATEGORIES.SEARCH, "Isochrone API returned no data", {
-          success: response.success,
-        });
-        setSearchStage("No search area. Add important locations in Filters.");
-        setIsSearching(false);
-        return;
-      }
-      await searchPropertiesInIsochrone(
-        response.data as IsochroneData,
-        {},
-        (stage: string) => setSearchStage(stage),
-        setSearchResults,
-        setIsSearching,
-        setHasSearched,
-        setCurrentPage,
-        setShowPropertyModals,
-        async () => {},
-        searchFilterOverrides,
-        preferencesStrictFilter,
-        selectedClientId,
-        controller.signal,
-        mapPreviewSearchLifecycle,
-      );
-      log.info(
-        LOG_CATEGORIES.SEARCH,
-        "Mobile search runSearch success (isochrone flow)",
-        {},
-      );
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        return;
-      }
-      setSearchStage("Search failed");
-      log.error(LOG_CATEGORIES.SEARCH, "Mobile search runSearch failed", error);
-    } finally {
-      searchAbortControllerRef.current = null;
-      setIsSearching(false);
-    }
-  }, [
-    currentPage,
+  const {
+    runSearch,
+    runMapAreaSearch: runMapAreaSearchCore,
+    handleCancelSearch,
+  } = useSearchScreenSearchExecution({
     isSearching,
     searchResults,
+    currentPage,
     searchStage,
     searchFilterOverrides,
     preferencesStrictFilter,
-    setCurrentPage,
-    setHasSearched,
-    setIsSearching,
-    setSearchResults,
-    setSearchStage,
-    setShowPropertyModals,
-    snapshotPreSearch,
+    selectedClientId,
+    lastMapRegion,
     setSearchSource,
     clearLocationPlaceSearchArea,
-    selectedClientId,
-    mapPreviewSearchLifecycle,
-  ]);
+    setLocationSearchOverlayData,
+    setSearchResults,
+    setIsSearching,
+    setSearchStage,
+    setHasSearched,
+    setCurrentPage,
+    setShowPropertyModals,
+    clearDismissedMapPreviews,
+    setShowMapListingPreviewsAction,
+  });
 
   const runMapAreaSearch = useCallback(async () => {
-    if (isSearching) return;
     if (!lastMapRegion) {
-      showErrorToast(
-        SEARCH_TRANSLATIONS["search.map_area_unavailable"] ??
-          "Move the map, then search this area.",
+      showWarningToast(
+        SEARCH_TRANSLATIONS["search.map_area_unavailable"] ?? "Move the map, then search this area."
       );
       return;
     }
-    setSearchSource("location");
-    log.info(LOG_CATEGORIES.SEARCH, "Mobile viewport search start", {});
-
-    snapshotPreSearch({
-      results: searchResults,
-      currentPage,
-      searchStage,
-    });
-
-    const controller = new AbortController();
-    searchAbortControllerRef.current = controller;
-
-    const ring = mapViewportFromLatLngDeltas(lastMapRegion);
-    const center = centroidOfViewportRing(ring);
-    setLocationSearchOverlayData(
-      buildIsochroneOverlayFromViewportRing(ring, center),
-    );
-
-    try {
-      await searchPropertiesInViewport(
-        ring,
-        center,
-        (stage: string) => setSearchStage(stage),
-        setSearchResults,
-        setIsSearching,
-        setHasSearched,
-        setCurrentPage,
-        setShowPropertyModals,
-        searchFilterOverrides,
-        preferencesStrictFilter,
-        selectedClientId,
-        controller.signal,
-        mapPreviewSearchLifecycle,
-      );
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        return;
-      }
-      setSearchStage("Search failed");
-      log.error(LOG_CATEGORIES.SEARCH, "Mobile viewport search failed", error);
-    } finally {
-      searchAbortControllerRef.current = null;
-    }
-  }, [
-    currentPage,
-    isSearching,
-    searchResults,
-    searchStage,
-    searchFilterOverrides,
-    preferencesStrictFilter,
-    setCurrentPage,
-    setHasSearched,
-    setIsSearching,
-    setSearchResults,
-    setSearchStage,
-    setShowPropertyModals,
-    snapshotPreSearch,
-    setSearchSource,
-    lastMapRegion,
-    setLocationSearchOverlayData,
-    selectedClientId,
-    mapPreviewSearchLifecycle,
-  ]);
+    await runMapAreaSearchCore();
+  }, [lastMapRegion, runMapAreaSearchCore]);
 
   const criteriaSummary = useSearchScreenCriteriaSummary(
-    userPreferences as Record<string, unknown> | null | undefined,
+    userPreferences as Record<string, unknown> | null | undefined
   );
 
   const handleTabChange = useCallback(
@@ -299,40 +130,19 @@ export function SearchScreen() {
       setActiveTab(tab);
       setCurrentPage(0);
     },
-    [activeTab, setActiveTab, setCurrentPage],
+    [activeTab, setActiveTab, setCurrentPage]
   );
-
-  const handleCancelSearch = useCallback(() => {
-    if (!isSearching) return;
-    searchAbortControllerRef.current?.abort();
-    const restored = restorePreSearch();
-    if (restored) {
-      setSearchResults(restored.results);
-      setCurrentPage(restored.currentPage);
-      setSearchStage(restored.searchStage);
-    }
-    setIsSearching(false);
-  }, [
-    isSearching,
-    restorePreSearch,
-    setCurrentPage,
-    setIsSearching,
-    setSearchResults,
-    setSearchStage,
-  ]);
 
   const handleViewPropertyDetails = useCallback(
     (property: SearchResult) => {
       const address =
-        typeof property.address === "string"
-          ? property.address
-          : formatAddress(property.address);
+        typeof property.address === "string" ? property.address : formatAddress(property.address);
       navigation.navigate("PROPERTY_DETAILS", {
         address: address || property.id,
         propertyId: property.id,
       });
     },
-    [navigation],
+    [navigation]
   );
 
   const hasLocations =
@@ -349,7 +159,7 @@ export function SearchScreen() {
     if (!hasLocations) {
       showWarningToast(
         SEARCH_TRANSLATIONS["search.need_locations_or_place"] ??
-          "Add important locations in Filters, or type a city, neighborhood, or ZIP in the search bar and search.",
+          "Add important locations in Filters, or type a city, neighborhood, or ZIP in the search bar and search."
       );
       return;
     }

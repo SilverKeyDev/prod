@@ -18,12 +18,8 @@ type PropertyDemographicsProps = PropertyComponentProps & {
   analysisContent?: unknown;
 };
 
-export const PropertyDemographics: React.FC<PropertyDemographicsProps> = ({
-  analysisContent,
-}) => {
-  const neighborhoodOverview = analysisContent as
-    | Record<string, unknown>
-    | undefined;
+export const PropertyDemographics: React.FC<PropertyDemographicsProps> = ({ analysisContent }) => {
+  const neighborhoodOverview = analysisContent as Record<string, unknown> | undefined;
 
   const ageDistribution = neighborhoodOverview?.age_distribution as
     | Record<string, string>
@@ -38,19 +34,14 @@ export const PropertyDemographics: React.FC<PropertyDemographicsProps> = ({
     | Record<string, string>
     | undefined;
 
-  const hasAgeDistribution =
-    ageDistribution && Object.keys(ageDistribution).length > 0;
-  const hasRaceDistribution =
-    raceDistribution && Object.keys(raceDistribution).length > 0;
-  const hasIncomeDistribution =
-    incomeDistribution && Object.keys(incomeDistribution).length > 0;
+  const hasAgeDistribution = ageDistribution && Object.keys(ageDistribution).length > 0;
+  const hasRaceDistribution = raceDistribution && Object.keys(raceDistribution).length > 0;
+  const hasIncomeDistribution = incomeDistribution && Object.keys(incomeDistribution).length > 0;
   const hasEducationDistribution =
     educationDistribution && Object.keys(educationDistribution).length > 0;
 
   // Extract section rating if present
-  const demographicsContent = neighborhoodOverview
-    ? { ...neighborhoodOverview }
-    : undefined;
+  const demographicsContent = neighborhoodOverview ? { ...neighborhoodOverview } : undefined;
   if (demographicsContent) {
     delete demographicsContent.age_distribution;
     delete demographicsContent.race_distribution;
@@ -58,7 +49,7 @@ export const PropertyDemographics: React.FC<PropertyDemographicsProps> = ({
     delete demographicsContent.education_distribution;
   }
   const { rating: demographicsSectionRating } = stripSectionRatingField(
-    demographicsContent ?? null,
+    demographicsContent ?? null
   );
 
   if (
@@ -72,9 +63,8 @@ export const PropertyDemographics: React.FC<PropertyDemographicsProps> = ({
   }
 
   const sectionLabel =
-    DEFAULT_REPORT_SECTIONS.find(
-      (s: { key: string; label: string }) => s.key === "demographics",
-    )?.label ?? "Demographics";
+    DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "demographics")
+      ?.label ?? "Demographics";
 
   return (
     <Box className="p-6">
@@ -82,9 +72,7 @@ export const PropertyDemographics: React.FC<PropertyDemographicsProps> = ({
         iconName="users"
         title={sectionLabel}
         className="!mb-4"
-        action={
-          <PropertySectionRatingBadge rating={demographicsSectionRating} />
-        }
+        action={<PropertySectionRatingBadge rating={demographicsSectionRating} />}
       />
       <SectionTintWrapper className="mt-2">
         <Box className="gap-6">

@@ -13,8 +13,8 @@
  */
 
 import type { components } from "packages/types/api.generated";
-import type { PropertyHighlightsContext } from "packages/types/propertyHighlightsContext";
-import type { SavedHome } from "packages/types/savedHome";
+import type { PropertyHighlightsContext } from "packages/types/domain/propertyHighlightsContext";
+import type { SavedHome } from "packages/types/domain/savedHome";
 
 import type { SearchResult } from "./result";
 
@@ -34,16 +34,15 @@ export type HomeUniversal = {
 };
 
 // Re-export from generated schema
-export type PropertySearchResult =
-  components["schemas"]["PropertySearchResult"];
+export type PropertySearchResult = components["schemas"]["PropertySearchResult"];
 
 /** Re-export for consumers that import SavedHome from search types/property */
-export type { SavedHome } from "packages/types/savedHome";
+export type { SavedHome } from "packages/types/domain/savedHome";
 
 /** Alias for map/card code that accepts SearchResult | SavedHome */
 export type Property = SavedHome;
 
-export type { PropertyHighlightsContext } from "packages/types/propertyHighlightsContext";
+export type { PropertyHighlightsContext } from "packages/types/domain/propertyHighlightsContext";
 
 /** Single strength line from property analysis (legacy payloads may be plain strings). */
 export type PropertyProItem = { text: string; score?: number };

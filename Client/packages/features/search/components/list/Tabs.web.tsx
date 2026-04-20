@@ -20,11 +20,7 @@ export function Tabs(props: {
       label: (
         <Box className="flex items-center gap-2">
           {t("search.saved_tab")}
-          <BodyText
-            as="span"
-            size="xs"
-            className="bg-olive ml-1 rounded-full px-2 py-1 text-white"
-          >
+          <BodyText as="span" size="xs" className="bg-olive ml-1 rounded-full px-2 py-1 text-white">
             {counts.saved}
           </BodyText>
         </Box>

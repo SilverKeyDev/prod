@@ -1,0 +1,16 @@
+type: object
+description: >
+  Optional per-send override for DocuSign envelope notification (reminders + expirations).
+  When omitted, server defaults from environment apply.
+properties:
+  use_account_defaults:
+    type: boolean
+    nullable: true
+    description: >
+      When true, DocuSign account defaults apply and reminders/expirations below are ignored.
+  reminders:
+    $ref: ./DocuSignRemindersInput.yaml
+    nullable: true
+  expirations:
+    $ref: ./DocuSignExpirationsInput.yaml
+    nullable: true

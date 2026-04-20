@@ -39,7 +39,7 @@
  * - Client remains backward-compatible (missing fields = defaults)
  *
  * Sync:
- * - Form state <-> API via `packages/features/profile/utils/profileFormSync.ts`
+ * - Form state <-> API via `packages/features/profile/utils/onboarding/profileFormSync.ts`
  * - `syncApiToFormState`: API → structured form sections
  * - `syncFormStateToApi`: Form → flattened API payload
  */

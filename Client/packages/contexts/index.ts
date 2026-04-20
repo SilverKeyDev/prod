@@ -37,7 +37,7 @@ export { useReportsStoreIntegration as useReports } from "@/features/documents/h
 export { useUserStoreIntegration as useUser } from "@/features/homeauth/hooks/store/useUserStoreIntegration";
 export { useUserStoreIntegration as usePreferences } from "@/features/homeauth/hooks/store/useUserStoreIntegration";
 export { useNegotiationStoreIntegration as useNegotiation } from "@/features/negotiate/hooks/store/useNegotiationStoreIntegration";
-export { useSavedHomesStoreIntegration as useSavedHomes } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
+export { useSavedHomesStoreIntegration as useSavedHomes } from "packages/hooks/store";
 export { useFeature } from "packages/hooks/store/featureFlags/useFeature";
 export { useFeatureFlagsStoreIntegration as useFeatureFlags } from "packages/hooks/store/featureFlags/useFeatureFlagsStoreIntegration";
 export { useGoogleMapsStoreIntegration as useGoogleMaps } from "packages/hooks/store/map/useGoogleMapsStoreIntegration";

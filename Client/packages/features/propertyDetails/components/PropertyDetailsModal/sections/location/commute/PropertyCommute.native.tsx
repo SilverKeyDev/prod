@@ -1,33 +1,16 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 
-import { Linking, StyleSheet, View } from "react-native";
-import MapView, {
-  Marker,
-  PROVIDER_GOOGLE,
-  type Region,
-} from "react-native-maps";
+import type { Region } from "react-native-maps";
 
-import { useFeature, useLocalization } from "packages/contexts";
-import { color } from "packages/design-tokens";
+import { useLocalization } from "packages/contexts";
 import { PropertySectionRatingBadge } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/PropertySectionRatingBadge";
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper.native";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
+import { usePropertyCommuteNativeOverlays } from "packages/hooks/data/property/usePropertyCommuteNativeOverlays";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import Button from "packages/ui/components/button/Button";
 import { Box, Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
-import { buildGoogleStreetViewUrl } from "packages/utils/maps/googleMapsLinks";
-import {
-  getGoogleMapIdForNative,
-  getUseGoogleMapsProvider,
-} from "packages/utils/maps/nativeGoogleMapsCloudConfig";
 import { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/maps/propertyDetailsMapRegion";
 import {
   stripSectionRatingField,
@@ -36,19 +19,21 @@ import {
 import {
   getListingCoords,
   getListingCoordsUnavailableDiagnostics,
-} from "packages/utils/propertyDetails/listingCoords";
+} from "packages/utils/propertyDetails/location/listingCoords";
 
+import { PropertyCommuteMapLegendNative } from "./PropertyCommuteMapLegend.native";
+import { PropertyCommuteNativeMap } from "./PropertyCommuteNativeMap";
 import { CommuteAnalysisContent } from "./propertyCommuteRender";
-
-const SEARCH_NATIVE_GOOGLE_MAPS_FLAG = "search_native_google_maps";
 
 type TravelTimeItem = {
   location_name?: string;
   name?: string;
+  label?: string;
   location_address?: string;
   address?: string;
   travel_time?: string | number;
   commute_tolerance?: number;
+  encoded_polyline?: string | null;
 };
 
 type PropertyCommuteProps = PropertyComponentProps & {
@@ -58,39 +43,10 @@ type PropertyCommuteProps = PropertyComponentProps & {
 export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
   property,
   analysisContent,
+  commuteSearchOverlay = null,
 }) => {
   const { t } = useLocalization();
-  const [layoutSize, setLayoutSize] = useState({ width: 0, height: 0 });
-  const onMapContainerLayout = useCallback(
-    (e: { nativeEvent: { layout: { width: number; height: number } } }) => {
-      const { width, height } = e.nativeEvent.layout;
-      setLayoutSize((prev) =>
-        prev.width === width && prev.height === height
-          ? prev
-          : { width, height },
-      );
-    },
-    [],
-  );
-  const hasValidSize = layoutSize.width > 0 && layoutSize.height > 0;
-  const googleMapId = useMemo(() => getGoogleMapIdForNative(), []);
-  const isNativeGoogleMapsEnabled = useFeature(SEARCH_NATIVE_GOOGLE_MAPS_FLAG);
-  const useGoogleMapsProvider =
-    isNativeGoogleMapsEnabled || getUseGoogleMapsProvider();
-  const mapIdApplied = useGoogleMapsProvider && !!googleMapId;
-  useEffect(() => {
-    if (mapIdApplied) {
-      log.info(
-        LOG_CATEGORIES.PROPERTY_DETAILS,
-        "Property commute native map using Cloud Map ID",
-        {
-          googleMapId,
-        },
-      );
-    }
-  }, [googleMapId, mapIdApplied]);
-  const commute = (property as unknown as { commute_data?: unknown })
-    .commute_data as
+  const commute = (property as unknown as { commute_data?: unknown }).commute_data as
     | {
         map_url?: string;
         travel_times?: TravelTimeItem[];
@@ -100,30 +56,25 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
     | undefined;
 
   const hasTravelTimes =
-    commute != null &&
-    Array.isArray(commute.travel_times) &&
-    commute.travel_times.length > 0;
+    commute != null && Array.isArray(commute.travel_times) && commute.travel_times.length > 0;
 
-  const commuteAnalysisFlat = unwrapPropertyAnalysisSection(
-    "commute",
-    analysisContent,
-  );
+  const { nativeRouteOverlays, destinationMarkers, isochronePolygons } =
+    usePropertyCommuteNativeOverlays({
+      travelTimes: commute?.travel_times,
+      commuteSearchOverlay,
+    });
+
+  const commuteAnalysisFlat = unwrapPropertyAnalysisSection("commute", analysisContent);
   const hasAnalysisInput = useMemo(() => {
     if (commuteAnalysisFlat == null || commuteAnalysisFlat === "") return false;
-    if (
-      typeof commuteAnalysisFlat !== "object" ||
-      Array.isArray(commuteAnalysisFlat)
-    ) {
+    if (typeof commuteAnalysisFlat !== "object" || Array.isArray(commuteAnalysisFlat)) {
       return true;
     }
-    return (
-      Object.keys(commuteAnalysisFlat as Record<string, unknown>).length > 0
-    );
+    return Object.keys(commuteAnalysisFlat as Record<string, unknown>).length > 0;
   }, [commuteAnalysisFlat]);
 
   const hasSimple =
-    commute != null &&
-    (commute.commute_time != null || commute.commute_distance != null);
+    commute != null && (commute.commute_time != null || commute.commute_distance != null);
 
   const listingCoords = useMemo(() => getListingCoords(property), [property]);
   const loggedCommuteMapUnavailableKeyRef = useRef<string | null>(null);
@@ -150,9 +101,10 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
       {
         listingId,
         ...diagnostics,
-      },
+      }
     );
   }, [commute, hasTravelTimes, listingCoords, property]);
+
   const initialRegion: Region | null = useMemo(() => {
     if (!listingCoords) return null;
     return {
@@ -163,18 +115,12 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
     };
   }, [listingCoords]);
 
-  const openStreetView = useCallback(() => {
-    if (!listingCoords) return;
-    const url = buildGoogleStreetViewUrl(listingCoords.lat, listingCoords.lng);
-    void Linking.openURL(url);
-  }, [listingCoords]);
-
   if (!commute && !hasAnalysisInput) return null;
-  if (commute && !hasTravelTimes && !hasSimple && !hasAnalysisInput)
-    return null;
+  if (commute && !hasTravelTimes && !hasSimple && !hasAnalysisInput) return null;
 
-  const { rest: commuteAnalysisBody, rating: commuteSectionRating } =
-    stripSectionRatingField(commuteAnalysisFlat ?? null);
+  const { rest: commuteAnalysisBody, rating: commuteSectionRating } = stripSectionRatingField(
+    commuteAnalysisFlat ?? null
+  );
   const hasCommuteAnalysisBody =
     commuteAnalysisBody != null &&
     typeof commuteAnalysisBody === "object" &&
@@ -184,6 +130,8 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
   const sectionLabel = t("property_details.location_map_heading", {
     defaultValue: "Map",
   });
+
+  const listingTitle = typeof property.address === "string" ? property.address : undefined;
 
   return (
     <Box className="p-6">
@@ -196,55 +144,21 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
       <SectionTintWrapper className="mt-2">
         {commute && hasTravelTimes ? (
           <Box className="gap-4">
+            <PropertyCommuteMapLegendNative
+              commuteSearchOverlay={commuteSearchOverlay}
+              travelTimes={commute.travel_times}
+            />
             {listingCoords && initialRegion ? (
-              <Box className="border-border bg-background-surface overflow-hidden rounded-lg border">
-                <Box className="gap-3">
-                  <View onLayout={onMapContainerLayout} style={styles.mapShell}>
-                    {hasValidSize ? (
-                      <MapView
-                        style={StyleSheet.absoluteFill}
-                        initialRegion={initialRegion}
-                        provider={
-                          useGoogleMapsProvider ? PROVIDER_GOOGLE : undefined
-                        }
-                        {...(useGoogleMapsProvider && googleMapId
-                          ? { googleMapId }
-                          : {})}
-                        showsUserLocation={false}
-                        showsMyLocationButton={false}
-                        showsCompass={false}
-                        zoomControlEnabled={false}
-                        toolbarEnabled={false}
-                        rotateEnabled
-                        scrollEnabled
-                        pitchEnabled
-                      >
-                        <Marker
-                          coordinate={{
-                            latitude: listingCoords.lat,
-                            longitude: listingCoords.lng,
-                          }}
-                          title={
-                            typeof property.address === "string"
-                              ? property.address
-                              : undefined
-                          }
-                          pinColor={color("olive.DEFAULT")}
-                        />
-                      </MapView>
-                    ) : null}
-                  </View>
-                  <Box className="px-3 pb-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onPress={openStreetView}
-                    >
-                      {t("property_details.open_street_view")}
-                    </Button>
-                  </Box>
-                </Box>
-              </Box>
+              <PropertyCommuteNativeMap
+                initialRegion={initialRegion}
+                listingLat={listingCoords.lat}
+                listingLng={listingCoords.lng}
+                listingTitle={listingTitle}
+                nativeRouteOverlays={nativeRouteOverlays}
+                destinationMarkers={destinationMarkers}
+                isochronePolygons={isochronePolygons}
+                openStreetViewLabel={t("property_details.open_street_view")}
+              />
             ) : (
               <Box className="border-border bg-background-surface rounded-lg border p-4">
                 <BodyText as="p" size="sm" className="text-text-secondary">
@@ -288,16 +202,3 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
     </Box>
   );
 };
-
-const styles = StyleSheet.create({
-  mapShell: {
-    width: "100%",
-    height: 240,
-    maxHeight: "50%",
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: 8,
-    borderBottomWidth: 0,
-    backgroundColor: color("neutral.50"),
-  },
-});

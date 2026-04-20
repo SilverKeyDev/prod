@@ -8,10 +8,16 @@ import Popover from "packages/ui/components/popover/Popover";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Label from "packages/ui/components/text/Label.web";
-import { dayjs } from "packages/utils/date";
+import { dateNow, dayjs } from "packages/utils/date";
 
 import { WeekDayHeaders } from "@/features/calendar/components/view/calendarView/WeekDayHeaders";
-import { buildMonthPickerGrid } from "@/features/calendar/utils/eventFormMonthGrid";
+import { formatDateRange, getVisibleDateRange } from "@/features/calendar/utils/core/date";
+
+import {
+  formatRangeButtonLabel,
+  isInInclusiveRange,
+  orderedRange,
+} from "./calendarStyleDateRangePickerHelpers";
 
 export type CalendarStyleDateRangePickerProps = {
   id?: string;
@@ -28,43 +34,6 @@ export type CalendarStyleDateRangePickerProps = {
   error?: string;
 };
 
-function orderedRange(a: string, b: string): { lo: string; hi: string } {
-  const da = dayjs(a, "YYYY-MM-DD", true);
-  const db = dayjs(b, "YYYY-MM-DD", true);
-  if (!da.isValid() || !db.isValid()) {
-    return { lo: a, hi: b };
-  }
-  return da.isAfter(db) ? { lo: b, hi: a } : { lo: a, hi: b };
-}
-
-function isInInclusiveRange(key: string, lo: string, hi: string): boolean {
-  return key >= lo && key <= hi;
-}
-
-function formatRangeButtonLabel(start: string, end: string): string {
-  if (!start) {
-    return "Select date or range";
-  }
-  const s = dayjs(start, "YYYY-MM-DD", true);
-  if (!s.isValid()) {
-    return "Select date or range";
-  }
-  if (!end || end === start) {
-    return s.format("ddd, MMM D, YYYY");
-  }
-  const e = dayjs(end, "YYYY-MM-DD", true);
-  if (!e.isValid()) {
-    return s.format("ddd, MMM D, YYYY");
-  }
-  const { lo, hi } = orderedRange(start, end);
-  const loD = dayjs(lo, "YYYY-MM-DD", true);
-  const hiD = dayjs(hi, "YYYY-MM-DD", true);
-  if (loD.year() === hiD.year()) {
-    return `${loD.format("MMM D")} – ${hiD.format("MMM D, YYYY")}`;
-  }
-  return `${loD.format("MMM D, YYYY")} – ${hiD.format("MMM D, YYYY")}`;
-}
-
 export function CalendarStyleDateRangePicker({
   id,
   label,
@@ -78,44 +47,45 @@ export function CalendarStyleDateRangePicker({
   error,
 }: CalendarStyleDateRangePickerProps) {
   const { lo: rangeLo, hi: rangeHi } = useMemo(
-    () =>
-      startDate && endDate
-        ? orderedRange(startDate, endDate)
-        : { lo: "", hi: "" },
-    [startDate, endDate],
+    () => (startDate && endDate ? orderedRange(startDate, endDate) : { lo: "", hi: "" }),
+    [startDate, endDate]
   );
 
-  const initialMonth = useMemo(() => {
+  /** First Sunday of the visible 4-week grid (same anchor model as `Calendar.tsx`). */
+  const initialGridAnchor = useMemo(() => {
+    const thisWeekSunday = dateNow().subtract(dateNow().day(), "day").startOf("day");
     const trimmed = startDate?.trim() ?? "";
     if (trimmed && dayjs(trimmed, "YYYY-MM-DD", true).isValid()) {
-      return dayjs(trimmed, "YYYY-MM-DD", true).startOf("month");
+      const d = dayjs(trimmed, "YYYY-MM-DD", true).startOf("day");
+      return d.subtract(d.day(), "day").startOf("day");
     }
-    return dayjs().startOf("month");
+    return thisWeekSunday;
   }, [startDate]);
 
-  const [visibleMonth, setVisibleMonth] = useState(initialMonth);
+  const [gridAnchor, setGridAnchor] = useState(initialGridAnchor);
   const [pendingStart, setPendingStart] = useState<string | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const wasPopoverOpenRef = useRef(false);
 
-  // Sync month and clear range-in-progress only when the popover opens — not when
+  // Sync grid window and clear range-in-progress only when the popover opens — not when
   // startDate updates after the first tap (that would clear pendingStart and block two-tap ranges).
   useEffect(() => {
     if (popoverOpen && !wasPopoverOpenRef.current) {
-      setVisibleMonth(initialMonth);
+      setGridAnchor(initialGridAnchor);
       setPendingStart(null);
     }
     wasPopoverOpenRef.current = popoverOpen;
-  }, [popoverOpen, initialMonth]);
+  }, [popoverOpen, initialGridAnchor]);
 
-  const grid = useMemo(
-    () => buildMonthPickerGrid(visibleMonth.year(), visibleMonth.month()),
-    [visibleMonth],
-  );
+  const {
+    start: rangeStart,
+    end: rangeEnd,
+    gridDays,
+  } = useMemo(() => getVisibleDateRange(gridAnchor.toDate(), "month"), [gridAnchor]);
 
-  const monthTitle = visibleMonth.isValid()
-    ? visibleMonth.format("MMMM YYYY")
-    : dayjs().format("MMMM YYYY");
+  const rangeTitle = formatDateRange(rangeStart, rangeEnd);
+
+  const grid = gridDays ?? [];
 
   const handleDayClick = useCallback(
     (key: string) => {
@@ -134,15 +104,15 @@ export function CalendarStyleDateRangePicker({
       setPendingStart(null);
       setPopoverOpen(false);
     },
-    [pendingStart, onRangeChange],
+    [pendingStart, onRangeChange]
   );
 
-  const goPrevMonth = useCallback(() => {
-    setVisibleMonth((m) => m.subtract(1, "month"));
+  const goPrevWindow = useCallback(() => {
+    setGridAnchor((prev) => prev.subtract(5, "week"));
   }, []);
 
-  const goNextMonth = useCallback(() => {
-    setVisibleMonth((m) => m.add(1, "month"));
+  const goNextWindow = useCallback(() => {
+    setGridAnchor((prev) => prev.add(5, "week"));
   }, []);
 
   const hasSelection = Boolean(startDate?.trim() || endDate?.trim());
@@ -177,15 +147,8 @@ export function CalendarStyleDateRangePicker({
             className="border-border bg-background-surface hover:bg-accent-muted focus:border-input-variant-focus-border h-12 w-full min-w-0 rounded-lg border px-3 text-left font-normal focus:ring-neutral-400"
           >
             <Box className="flex min-h-0 min-w-0 flex-1 items-center gap-2">
-              <Icon
-                name="calendar"
-                className="text-text-secondary h-4 w-4 shrink-0"
-              />
-              <BodyText
-                as="span"
-                size="sm"
-                className="text-text-primary min-w-0 flex-1 truncate"
-              >
+              <Icon name="calendar" className="text-text-secondary h-4 w-4 shrink-0" />
+              <BodyText as="span" size="sm" className="text-text-primary min-w-0 flex-1 truncate">
                 {formatRangeButtonLabel(startDate, endDate)}
               </BodyText>
             </Box>
@@ -218,8 +181,8 @@ export function CalendarStyleDateRangePicker({
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 shrink-0 p-0"
-                onClick={goPrevMonth}
-                label="Previous month"
+                onClick={goPrevWindow}
+                label="Previous dates"
               >
                 <Icon name="chevron-left" className="h-4 w-4" />
               </Button>
@@ -227,15 +190,15 @@ export function CalendarStyleDateRangePicker({
                 id={panelId ? `${panelId}-title` : undefined}
                 className="text-text-primary flex-1 truncate text-center text-sm font-semibold"
               >
-                {monthTitle}
+                {rangeTitle}
               </Box>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 shrink-0 p-0"
-                onClick={goNextMonth}
-                label="Next month"
+                onClick={goNextWindow}
+                label="Next dates"
               >
                 <Icon name="chevron-right" className="h-4 w-4" />
               </Button>
@@ -243,43 +206,39 @@ export function CalendarStyleDateRangePicker({
             <WeekDayHeaders />
             <Box className="grid grid-cols-7 gap-1">
               {grid.map((cell) => {
-                const inRange =
-                  rangeLo &&
-                  rangeHi &&
-                  isInInclusiveRange(cell.key, rangeLo, rangeHi);
-                const isPending = pendingStart === cell.key;
+                const key = dayjs(cell.date).format("YYYY-MM-DD");
+                const inRange = rangeLo && rangeHi && isInInclusiveRange(key, rangeLo, rangeHi);
+                const isPending = pendingStart === key;
 
-                const muted = !cell.inMonth ? "opacity-40" : "";
+                const muted = !cell.isCurrentMonth || cell.isPast ? "opacity-40" : "";
                 const selected =
                   inRange || isPending
                     ? "border-border bg-accent-muted text-text-primary font-semibold"
                     : "border-border bg-background-surface text-text-primary";
                 return (
                   <Button
-                    key={cell.key}
+                    key={key}
                     type="button"
                     variant="ghost"
-                    onClick={() => handleDayClick(cell.key)}
+                    onClick={() => handleDayClick(key)}
                     className={`hover:bg-accent-muted relative flex h-10 min-h-10 w-full min-w-0 items-center justify-center rounded border p-0 text-sm transition-colors hover:border-neutral-400 ${selected} ${muted}`}
                   >
-                    {cell.dayOfMonth}
+                    {cell.date.getDate()}
                   </Button>
                 );
               })}
             </Box>
             {pendingStart ? (
               <BodyText as="p" size="xs" className="text-text-secondary mt-2">
-                Tap another day to set a range, or tap the same day again or
-                Close to finish.
+                Tap another day to set a range, or tap the same day again or Close to finish.
               </BodyText>
             ) : (
               <BodyText as="p" size="xs" className="text-text-secondary mt-2">
-                Tap a day — it saves immediately. Tap a second day for a date
-                range.
+                Tap a day — it saves immediately. Tap a second day for a date range.
               </BodyText>
             )}
             <Box className="mt-3 flex flex-wrap items-center justify-end gap-2">
-              <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+              <Button type="button" variant="ghost" size="sm" onClick={onClose} iconName="x">
                 Close
               </Button>
             </Box>

@@ -1,17 +1,7 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Linking, StyleSheet, View } from "react-native";
-import MapView, {
-  Marker,
-  PROVIDER_GOOGLE,
-  type Region,
-} from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, type Region } from "react-native-maps";
 
 import { useFeature, useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
@@ -31,7 +21,7 @@ import { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/maps/propertyD
 import {
   getListingCoords,
   getListingCoordsUnavailableDiagnostics,
-} from "packages/utils/propertyDetails/listingCoords";
+} from "packages/utils/propertyDetails/location/listingCoords";
 
 import { PropertyDetailsMapOverlayControls } from "./PropertyDetailsMapOverlayControls.native";
 
@@ -77,28 +67,20 @@ export function PropertyLocationMapSection({
     }:${diagnostics.fields.lng}:${diagnostics.fields.longitude}`;
     if (loggedLocationUnavailableKeyRef.current === dedupeKey) return;
     loggedLocationUnavailableKeyRef.current = dedupeKey;
-    log.info(
-      LOG_CATEGORIES.PROPERTY_DETAILS,
-      "Property location map unavailable",
-      {
-        listingId,
-        ...diagnostics,
-      },
-    );
+    log.info(LOG_CATEGORIES.PROPERTY_DETAILS, "Property location map unavailable", {
+      listingId,
+      ...diagnostics,
+    });
   }, [enabled, isLoading, listingId, property]);
 
   const googleMapId = useMemo(() => getGoogleMapIdForNative(), []);
   const isNativeGoogleMapsEnabled = useFeature(SEARCH_NATIVE_GOOGLE_MAPS_FLAG);
-  const useGoogleMapsProvider =
-    isNativeGoogleMapsEnabled || getUseGoogleMapsProvider();
+  const useGoogleMapsProvider = isNativeGoogleMapsEnabled || getUseGoogleMapsProvider();
   const [layoutWidth, setLayoutWidth] = useState(0);
-  const onMapContainerLayout = useCallback(
-    (e: { nativeEvent: { layout: { width: number } } }) => {
-      const { width } = e.nativeEvent.layout;
-      setLayoutWidth((prev) => (prev === width ? prev : width));
-    },
-    [],
-  );
+  const onMapContainerLayout = useCallback((e: { nativeEvent: { layout: { width: number } } }) => {
+    const { width } = e.nativeEvent.layout;
+    setLayoutWidth((prev) => (prev === width ? prev : width));
+  }, []);
   const hasValidSize = layoutWidth > 0;
 
   const initialRegion: Region | null = useMemo(() => {
@@ -114,13 +96,9 @@ export function PropertyLocationMapSection({
   const mapIdApplied = useGoogleMapsProvider && !!googleMapId;
   useEffect(() => {
     if (mapIdApplied) {
-      log.info(
-        LOG_CATEGORIES.PROPERTY_DETAILS,
-        "Property details native map using Cloud Map ID",
-        {
-          googleMapId,
-        },
-      );
+      log.info(LOG_CATEGORIES.PROPERTY_DETAILS, "Property details native map using Cloud Map ID", {
+        googleMapId,
+      });
     }
   }, [googleMapId, mapIdApplied]);
 
@@ -150,19 +128,15 @@ export function PropertyLocationMapSection({
     if (!enabled || !initialRegion) {
       return;
     }
-    log.debug(
-      LOG_CATEGORIES.PROPERTY_DETAILS,
-      "PropertyDetailsMapSection native map shell",
-      {
-        listingId,
-        layoutWidth,
-        hasValidSize,
-        useGoogleMapsProvider,
-        googleMapIdPresent: Boolean(googleMapId),
-        coords: coords ? { lat: coords.lat, lng: coords.lng } : null,
-        satelliteMode,
-      },
-    );
+    log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "PropertyDetailsMapSection native map shell", {
+      listingId,
+      layoutWidth,
+      hasValidSize,
+      useGoogleMapsProvider,
+      googleMapIdPresent: Boolean(googleMapId),
+      coords: coords ? { lat: coords.lat, lng: coords.lng } : null,
+      satelliteMode,
+    });
   }, [
     coords,
     enabled,
@@ -194,22 +168,15 @@ export function PropertyLocationMapSection({
           </BodyText>
         ) : (
           <Box className="gap-3">
-            <View
-              onLayout={onMapContainerLayout}
-              style={createMapShellStyle(layoutWidth).mapShell}
-            >
+            <View onLayout={onMapContainerLayout} style={createMapShellStyle(layoutWidth).mapShell}>
               {hasValidSize ? (
                 <>
                   <MapView
                     style={StyleSheet.absoluteFill}
                     mapType={satelliteMode ? "hybrid" : "standard"}
                     initialRegion={initialRegion}
-                    provider={
-                      useGoogleMapsProvider ? PROVIDER_GOOGLE : undefined
-                    }
-                    {...(useGoogleMapsProvider && googleMapId
-                      ? { googleMapId }
-                      : {})}
+                    provider={useGoogleMapsProvider ? PROVIDER_GOOGLE : undefined}
+                    {...(useGoogleMapsProvider && googleMapId ? { googleMapId } : {})}
                     showsUserLocation={false}
                     showsMyLocationButton={false}
                     showsCompass={false}
@@ -224,11 +191,7 @@ export function PropertyLocationMapSection({
                         latitude: coords.lat,
                         longitude: coords.lng,
                       }}
-                      title={
-                        typeof property.address === "string"
-                          ? property.address
-                          : undefined
-                      }
+                      title={typeof property.address === "string" ? property.address : undefined}
                       pinColor={color("olive.DEFAULT")}
                     />
                   </MapView>

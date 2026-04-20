@@ -45,6 +45,13 @@ export interface paths {
      */
     post: operations["upsertPreferences"];
   };
+  "/api/v1/public/agent-profile/{userId}": {
+    /**
+     * Get public agent profile by user id
+     * @description Unauthenticated read-only agent directory row for shareable profile URLs. Returns 404 if the user does not exist, is not an agent, or is inactive.
+     */
+    get: operations["getPublicAgentProfile"];
+  };
   "/api/v1/search/properties-by-polygon": {
     /**
      * Search homes by viewport polygon
@@ -117,6 +124,20 @@ export interface paths {
      * @description Update the reason for a not-interested home
      */
     patch: operations["updateNotInterestedHome"];
+  };
+  "/api/v1/viewings/route": {
+    /**
+     * Optimize viewing stop order and compute driving legs
+     * @description Uses Google Distance Matrix (durations) for a TSP-style ordering heuristic, then Google Directions for per-leg distance, duration, and encoded polylines. Requires a server-side Google Maps API key.
+     */
+    post: operations["buildViewingRoute"];
+  };
+  "/api/v1/viewings/navigate": {
+    /**
+     * Build Google Maps multi-stop navigation URL
+     * @description Returns a maps/dir deep link with origin, destination, and waypoints.
+     */
+    post: operations["buildViewingNavigateLink"];
   };
   "/api/v1/google/me/events": {
     /**
@@ -366,6 +387,29 @@ export interface paths {
     /** Save transaction address */
     post: operations["saveTransactionAddress"];
   };
+  "/api/v1/transactions/{transaction_id}/tasks": {
+    /**
+     * Task checklist for a transaction subject (buyer self or agent client)
+     * @description Returns the same payload as GET /api/v1/tasks for the given transaction_id (buyer user id). Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
+     */
+    get: operations["getTransactionTaskChecklist"];
+  };
+  "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/dispatch-automation": {
+    /** Get checklist dispatch automation settings for a step */
+    get: operations["getChecklistDispatchAutomation"];
+    /** Replace checklist dispatch automation settings for a step */
+    put: operations["putChecklistDispatchAutomation"];
+    parameters: {
+      path: {
+        /** @description Hub client user id (same as checklist forms routes). */
+        transaction_id: string;
+        /** @description Checklist category (e.g. escrow, financing). */
+        section: string;
+        /** @description Checklist step id within the section. */
+        item_id: string;
+      };
+    };
+  };
   "/api/v1/tasks": {
     /** Unified task checklist definitions and progress */
     get: operations["getUnifiedTaskChecklist"];
@@ -554,6 +598,14 @@ export interface paths {
     /** Send agreement for signature */
     post: operations["docusignSendAgreement"];
   };
+  "/api/v1/docusign/agreements/{agreement_id}/resend": {
+    /** Resend DocuSign notification to a pending signer */
+    post: operations["docusignResendAgreementRecipient"];
+  };
+  "/api/v1/docusign/agreements/{agreement_id}/notification": {
+    /** Update DocuSign envelope reminder and expiration settings */
+    put: operations["docusignUpdateAgreementEnvelopeNotification"];
+  };
   "/api/v1/docusign/agreements/{agreement_id}/void": {
     /** Void agreement */
     post: operations["docusignVoidAgreement"];
@@ -628,6 +680,7 @@ export interface components {
     AgreementType: external["components/schemas/agreements/agreements/AgreementType.yaml"];
     AuthResponse: external["components/schemas/shared/core/AuthResponse.yaml"];
     AuthSessionUser: external["components/schemas/shared/core/AuthSessionUser.yaml"];
+    BuildRouteRequest: external["components/schemas/viewings/BuildRouteRequest.yaml"];
     BulkUpdateFavoritesRequest: external["components/schemas/auth/BulkUpdateFavoritesRequest.yaml"];
     ChatbotHistoryMessage: external["components/schemas/shared/chatbot/ChatbotHistoryMessage.yaml"];
     ChatbotHistoryResponse: external["components/schemas/shared/chatbot/ChatbotHistoryResponse.yaml"];
@@ -635,6 +688,12 @@ export interface components {
     ChatbotSendRequest: external["components/schemas/shared/chatbot/ChatbotSendRequest.yaml"];
     ChecklistResponse: external["components/schemas/checklists/ChecklistResponse.yaml"];
     ChecklistType: external["components/schemas/checklists/ChecklistType.yaml"];
+    ChecklistCondition: external["components/schemas/checklists/ChecklistCondition.yaml"];
+    ChecklistDispatchAutomationApiResponse: external["components/schemas/checklists/ChecklistDispatchAutomationApiResponse.yaml"];
+    ChecklistDispatchAutomationSetting: external["components/schemas/checklists/ChecklistDispatchAutomationSetting.yaml"];
+    ChecklistDispatchChannel: external["components/schemas/checklists/ChecklistDispatchChannel.yaml"];
+    ChecklistDispatchNoteMode: external["components/schemas/checklists/ChecklistDispatchNoteMode.yaml"];
+    ChecklistDispatchRecipientScope: external["components/schemas/checklists/ChecklistDispatchRecipientScope.yaml"];
     ClientAvailabilityRequest: external["components/schemas/calendar/ClientAvailabilityRequest.yaml"];
     ClientAvailabilityResponse: external["components/schemas/calendar/ClientAvailabilityResponse.yaml"];
     ClientErrorReport: external["components/schemas/admin/ClientErrorReport.yaml"];
@@ -674,11 +733,22 @@ export interface components {
     DocumentLibraryResponse: external["components/schemas/agreements/documents/DocumentLibraryResponse.yaml"];
     WorkflowDocumentRecord: external["components/schemas/agreements/documents/WorkflowDocumentRecord.yaml"];
     DocumentsResponse: external["components/schemas/agreements/documents/DocumentsResponse.yaml"];
+    DocuSignEnvelopeNotificationInput: external["components/schemas/agreements/docusign/DocuSignEnvelopeNotificationInput.yaml"];
+    DocuSignEnvelopePrefillTabsInput: external["components/schemas/agreements/docusign/DocuSignEnvelopePrefillTabsInput.yaml"];
+    DocuSignExpirationsInput: external["components/schemas/agreements/docusign/DocuSignExpirationsInput.yaml"];
+    DocuSignParticipantTabPrefillInput: external["components/schemas/agreements/docusign/DocuSignParticipantTabPrefillInput.yaml"];
+    DocuSignPrefillCheckboxTabInput: external["components/schemas/agreements/docusign/DocuSignPrefillCheckboxTabInput.yaml"];
+    DocuSignPrefillTextTabInput: external["components/schemas/agreements/docusign/DocuSignPrefillTextTabInput.yaml"];
+    DocuSignRemindersInput: external["components/schemas/agreements/docusign/DocuSignRemindersInput.yaml"];
     DocusignListTemplatesResponse: external["components/schemas/agreements/docusign/DocusignListTemplatesResponse.yaml"];
     DocusignOAuthStartResponse: external["components/schemas/agreements/docusign/DocusignOAuthStartResponse.yaml"];
+    DocusignResendRecipientRequest: external["components/schemas/agreements/docusign/DocusignResendRecipientRequest.yaml"];
+    DocusignResendRecipientResponse: external["components/schemas/agreements/docusign/DocusignResendRecipientResponse.yaml"];
     DocusignSyncTemplatesResponse: external["components/schemas/agreements/docusign/DocusignSyncTemplatesResponse.yaml"];
     DocusignTemplate: external["components/schemas/agreements/docusign/DocusignTemplate.yaml"];
     DocusignTemplateListItem: external["components/schemas/agreements/docusign/DocusignTemplateListItem.yaml"];
+    DocusignUpdateEnvelopeNotificationRequest: external["components/schemas/agreements/docusign/DocusignUpdateEnvelopeNotificationRequest.yaml"];
+    DocusignUpdateEnvelopeNotificationResponse: external["components/schemas/agreements/docusign/DocusignUpdateEnvelopeNotificationResponse.yaml"];
     DocusignWebhookPayload: external["components/schemas/agreements/docusign/DocusignWebhookPayload.yaml"];
     DownloadUrlResponse: external["components/schemas/agreements/documents/DownloadUrlResponse.yaml"];
     EarnestMoneyRequest: external["components/schemas/offers/EarnestMoneyRequest.yaml"];
@@ -748,6 +818,8 @@ export interface components {
     OfferDocumentGenerationResponse: external["components/schemas/offers/OfferDocumentGenerationResponse.yaml"];
     PreferencesResponse: external["components/schemas/preferences/PreferencesResponse.yaml"];
     ProfilePictureResponse: external["components/schemas/auth/ProfilePictureResponse.yaml"];
+    PublicAgentProfile: external["components/schemas/user/profile/PublicAgentProfile.yaml"];
+    PublicAgentProfileResponse: external["components/schemas/user/profile/PublicAgentProfileResponse.yaml"];
     PropertyCompsRequest: external["components/schemas/search/properties/PropertyCompsRequest.yaml"];
     PropertyCompsResponse: external["components/schemas/search/properties/PropertyCompsResponse.yaml"];
     PropertyData: external["components/schemas/search/properties/PropertyData.yaml"];
@@ -804,6 +876,7 @@ export interface components {
     TransactionAddressResponse: external["components/schemas/search/properties/TransactionAddressResponse.yaml"];
     UpdateAgentStatusRequest: external["components/schemas/admin/UpdateAgentStatusRequest.yaml"];
     UpdateAgentStatusResponse: external["components/schemas/admin/UpdateAgentStatusResponse.yaml"];
+    UpdateChecklistDispatchAutomationRequest: external["components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml"];
     UpdateChecklistRequest: external["components/schemas/checklists/UpdateChecklistRequest.yaml"];
     UpdateClosingModeRequest: external["components/schemas/auth/UpdateClosingModeRequest.yaml"];
     UpdateClosingModeResponse: external["components/schemas/auth/UpdateClosingModeResponse.yaml"];
@@ -823,6 +896,12 @@ export interface components {
     UserPreferencesData: external["components/schemas/user/profile/UserPreferencesData.yaml"];
     UserProfile: external["components/schemas/user/profile/UserProfile.yaml"];
     UserResponse: external["components/schemas/user/profile/UserResponse.yaml"];
+    ViewingBuildRouteApiResponse: external["components/schemas/viewings/ViewingBuildRouteApiResponse.yaml"];
+    ViewingItinerary: external["components/schemas/viewings/ViewingItinerary.yaml"];
+    ViewingNavigateApiResponse: external["components/schemas/viewings/ViewingNavigateApiResponse.yaml"];
+    ViewingNavigateResponse: external["components/schemas/viewings/ViewingNavigateResponse.yaml"];
+    ViewingRouteLeg: external["components/schemas/viewings/ViewingRouteLeg.yaml"];
+    ViewingStop: external["components/schemas/viewings/ViewingStop.yaml"];
     VerifyData: external["components/schemas/auth/VerifyData.yaml"];
     ViewUrlResponse: external["components/schemas/agreements/agreements/ViewUrlResponse.yaml"];
     ViewportPolygonPoint: external["components/schemas/search/properties/ViewportPolygonPoint.yaml"];
@@ -898,19 +977,13 @@ export interface external {
   };
   "components/schemas/agent/clients/ClientsResponse.yaml": {
     success?: boolean;
-    clients?:
-      | external["components/schemas/agent/clients/ClientInfo.yaml"][]
-      | null;
+    clients?: external["components/schemas/agent/clients/ClientInfo.yaml"][] | null;
   };
   "components/schemas/agent/clients/SearchClientsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    clients?:
-      | external["components/schemas/agent/clients/ClientSearchResult.yaml"][]
-      | null;
+    clients?: external["components/schemas/agent/clients/ClientSearchResult.yaml"][] | null;
   };
   "components/schemas/agent/connections/ConnectionRequestsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    requests?:
-      | external["components/schemas/agent/core/AgentConnectionRequest.yaml"][]
-      | null;
+    requests?: external["components/schemas/agent/core/AgentConnectionRequest.yaml"][] | null;
   };
   "components/schemas/agent/connections/CreateConnectionRequestRequest.yaml": {
     agent_id: string;
@@ -935,9 +1008,7 @@ export interface external {
     conversation?: external["components/schemas/agent/core/AgentConversation.yaml"];
   };
   "components/schemas/agent/core/AgentChatHistoryResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    messages?:
-      | external["components/schemas/agent/core/AgentChatMessage.yaml"][]
-      | null;
+    messages?: external["components/schemas/agent/core/AgentChatMessage.yaml"][] | null;
     conversation?: external["components/schemas/agent/core/AgentConversation.yaml"];
   };
   "components/schemas/agent/core/AgentChatMessage.yaml": {
@@ -972,9 +1043,7 @@ export interface external {
     created_at?: string | null;
   };
   "components/schemas/agent/core/AgentClientsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    clients?:
-      | external["components/schemas/agent/core/AgentClient.yaml"][]
-      | null;
+    clients?: external["components/schemas/agent/core/AgentClient.yaml"][] | null;
   };
   "components/schemas/agent/core/AgentConnectionRequest.yaml": {
     id: string;
@@ -1006,9 +1075,7 @@ export interface external {
     last_read_at?: string | null;
   };
   "components/schemas/agent/core/AgentConversationsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    conversations?:
-      | external["components/schemas/agent/core/AgentConversation.yaml"][]
-      | null;
+    conversations?: external["components/schemas/agent/core/AgentConversation.yaml"][] | null;
   };
   "components/schemas/agent/core/AgentSearchResult.yaml": {
     /** @description Agent application user id. */
@@ -1029,9 +1096,7 @@ export interface external {
     created_at?: string | null;
   };
   "components/schemas/agent/core/SearchAgentsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    agents?:
-      | external["components/schemas/agent/core/AgentSearchResult.yaml"][]
-      | null;
+    agents?: external["components/schemas/agent/core/AgentSearchResult.yaml"][] | null;
   };
   "components/schemas/agent/messages/MarkMessagesAsReadResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     marked_count?: number | null;
@@ -1086,9 +1151,7 @@ export interface external {
     revisions?:
       | external["components/schemas/agreements/agreements/AgreementRevision.yaml"][]
       | null;
-    events?:
-      | external["components/schemas/agreements/agreements/AgreementEvent.yaml"][]
-      | null;
+    events?: external["components/schemas/agreements/agreements/AgreementEvent.yaml"][] | null;
     current_revision?: external["components/schemas/agreements/agreements/AgreementRevision.yaml"];
     agent_name?: string | null;
     buyer_name?: string | null;
@@ -1166,7 +1229,8 @@ export interface external {
     | "financing_contingency"
     | "closing_disclosure"
     | "other"
-    | "uploaded_document";
+    | "uploaded_document"
+    | "checklist_form";
   "components/schemas/agreements/agreements/CreateAgreementRequest.yaml": {
     title: string;
     agreement_type: external["components/schemas/agreements/agreements/AgreementType.yaml"];
@@ -1195,9 +1259,7 @@ export interface external {
     signing_url?: string | null;
   };
   "components/schemas/agreements/agreements/ListAgreementsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    agreements?:
-      | external["components/schemas/agreements/agreements/Agreement.yaml"][]
-      | null;
+    agreements?: external["components/schemas/agreements/agreements/Agreement.yaml"][] | null;
   };
   "components/schemas/agreements/agreements/ParticipantRole.yaml":
     | "agent"
@@ -1217,13 +1279,19 @@ export interface external {
     signing_method?: external["components/schemas/agreements/agreements/SigningMethod.yaml"];
     /** @description Optional selected signer user id */
     participant_user_id?: string | null;
+    /** @description Optional per-send DocuSign reminder/expiration overrides. */
+    envelope_notification?: external["components/schemas/agreements/docusign/DocuSignEnvelopeNotificationInput.yaml"];
+    /** @description Per-signer text/checkbox tabs to pre-populate at send time. */
+    tab_prefill?:
+      | external["components/schemas/agreements/docusign/DocuSignParticipantTabPrefillInput.yaml"][]
+      | null;
+    /** @description Sender-level prefill tabs (not tied to a recipient). */
+    envelope_prefill_tabs?: external["components/schemas/agreements/docusign/DocuSignEnvelopePrefillTabsInput.yaml"];
   };
   "components/schemas/agreements/agreements/SendAgreementResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     task_id?: string | null;
   };
-  "components/schemas/agreements/agreements/SigningMethod.yaml":
-    | "embedded"
-    | "email";
+  "components/schemas/agreements/agreements/SigningMethod.yaml": "embedded" | "email";
   "components/schemas/agreements/agreements/ViewUrlResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** Format: uri */
     viewUrl?: string | null;
@@ -1407,6 +1475,27 @@ export interface external {
   "components/schemas/agreements/docusign/CreateParticipantResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     participant?: external["components/schemas/agreements/agreements/AgreementParticipant.yaml"];
   };
+  "components/schemas/agreements/docusign/DocuSignEnvelopeNotificationInput.yaml": {
+    /** @description When true, DocuSign account defaults apply and reminders/expirations below are ignored. */
+    use_account_defaults?: boolean | null;
+    reminders?: external["components/schemas/agreements/docusign/DocuSignRemindersInput.yaml"];
+    expirations?: external["components/schemas/agreements/docusign/DocuSignExpirationsInput.yaml"];
+  };
+  "components/schemas/agreements/docusign/DocuSignEnvelopePrefillTabsInput.yaml": {
+    text_fields?:
+      | external["components/schemas/agreements/docusign/DocuSignPrefillTextTabInput.yaml"][]
+      | null;
+    checkboxes?:
+      | external["components/schemas/agreements/docusign/DocuSignPrefillCheckboxTabInput.yaml"][]
+      | null;
+  };
+  "components/schemas/agreements/docusign/DocuSignExpirationsInput.yaml": {
+    expire_enabled?: boolean | null;
+    /** @description Days until the envelope expires after send. */
+    expire_after?: number | null;
+    /** @description Days before expiry to send a warning. */
+    expire_warn?: number | null;
+  };
   "components/schemas/agreements/docusign/DocusignListTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     templates?:
       | external["components/schemas/agreements/docusign/DocusignTemplateListItem.yaml"][]
@@ -1415,6 +1504,66 @@ export interface external {
   "components/schemas/agreements/docusign/DocusignOAuthStartResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** Format: uri */
     auth_url?: string | null;
+  };
+  "components/schemas/agreements/docusign/DocuSignParticipantTabPrefillInput.yaml": {
+    /** @description SilverKey agreement participant UUID (DocuSign recipientId). */
+    participant_id: string;
+    text_fields?:
+      | external["components/schemas/agreements/docusign/DocuSignPrefillTextTabInput.yaml"][]
+      | null;
+    checkboxes?:
+      | external["components/schemas/agreements/docusign/DocuSignPrefillCheckboxTabInput.yaml"][]
+      | null;
+  };
+  "components/schemas/agreements/docusign/DocuSignPrefillCheckboxTabInput.yaml": {
+    tab_label: string;
+    selected?: boolean | null;
+    locked?: boolean | null;
+    /** @default 1 */
+    document_id?: string | null;
+    page_number?: number | null;
+    x_position?: number | null;
+    y_position?: number | null;
+    anchor_string?: string | null;
+    anchor_x_offset?: string | null;
+    anchor_y_offset?: string | null;
+  };
+  "components/schemas/agreements/docusign/DocuSignPrefillTextTabInput.yaml": {
+    /** @description DocuSign tabLabel; must match template/PDF placement or anchor. */
+    tab_label: string;
+    value?: string | null;
+    /** @description When true, signer cannot edit (read-only tab). */
+    locked?: boolean | null;
+    /** @default 1 */
+    document_id?: string | null;
+    page_number?: number | null;
+    x_position?: number | null;
+    y_position?: number | null;
+    anchor_string?: string | null;
+    anchor_x_offset?: string | null;
+    anchor_y_offset?: string | null;
+    /** @description e.g. size10 */
+    font_size?: string | null;
+  };
+  "components/schemas/agreements/docusign/DocuSignRemindersInput.yaml": {
+    /** @description When false, disables reminder emails for this envelope. */
+    reminder_enabled?: boolean | null;
+    /** @description Days after send before the first reminder. */
+    reminder_delay?: number | null;
+    /** @description Days between subsequent reminders. */
+    reminder_frequency?: number | null;
+  };
+  "components/schemas/agreements/docusign/DocusignResendRecipientRequest.yaml": {
+    /** @description Agreement participant id (signer); email uses server-stored value. */
+    participant_id: string;
+    /** @description Private note included with the resend (DocuSign signer note). */
+    note?: string | null;
+  };
+  "components/schemas/agreements/docusign/DocusignResendRecipientResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    /** @description DocuSign RecipientsUpdateSummary or error detail. */
+    detail?: {
+      [key: string]: unknown;
+    } | null;
   };
   "components/schemas/agreements/docusign/DocusignSyncTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     task_id?: string | null;
@@ -1435,6 +1584,16 @@ export interface external {
     name: string;
     is_active?: boolean | null;
   };
+  "components/schemas/agreements/docusign/DocusignUpdateEnvelopeNotificationRequest.yaml": {
+    use_account_defaults?: boolean | null;
+    reminders?: external["components/schemas/agreements/docusign/DocuSignRemindersInput.yaml"];
+    expirations?: external["components/schemas/agreements/docusign/DocuSignExpirationsInput.yaml"];
+  };
+  "components/schemas/agreements/docusign/DocusignUpdateEnvelopeNotificationResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    notification?: {
+      [key: string]: unknown;
+    } | null;
+  };
   "components/schemas/agreements/docusign/DocusignWebhookPayload.yaml": {
     /** @description Webhook event type */
     event?: string;
@@ -1452,9 +1611,7 @@ export interface external {
     participant?: external["components/schemas/agreements/agreements/AgreementParticipant.yaml"];
   };
   "components/schemas/agreements/templates/ListTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    templates?:
-      | external["components/schemas/agreements/docusign/DocusignTemplate.yaml"][]
-      | null;
+    templates?: external["components/schemas/agreements/docusign/DocusignTemplate.yaml"][] | null;
   };
   "components/schemas/agreements/templates/SyncTemplatesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     task_id?: string | null;
@@ -1670,9 +1827,7 @@ export interface external {
   };
   "components/schemas/calendar/GoogleCalendarPermissionsResponse.yaml": {
     permissions: {
-      [
-        key: string
-      ]: external["components/schemas/calendar/GoogleCalendarPermission.yaml"];
+      [key: string]: external["components/schemas/calendar/GoogleCalendarPermission.yaml"];
     };
     scopes: string;
     last_updated?: string | null;
@@ -1693,12 +1848,12 @@ export interface external {
     description?: string | null;
     start: external["components/schemas/calendar/GoogleEventDateTime.yaml"];
     end: external["components/schemas/calendar/GoogleEventDateTime.yaml"];
-    attendees?:
-      | external["components/schemas/calendar/GoogleEventAttendee.yaml"][]
-      | null;
+    attendees?: external["components/schemas/calendar/GoogleEventAttendee.yaml"][] | null;
     reminders?: external["components/schemas/calendar/GoogleEventReminders.yaml"];
     location?: string | null;
     conferenceData?: external["components/schemas/calendar/GoogleConferenceData.yaml"];
+    /** @description App-only multi-stop viewing data; stripped before sending to Google Calendar. Persisted in SilverKey DB; used to build calendar description and first-stop location. */
+    itinerary?: external["components/schemas/viewings/ViewingItinerary.yaml"];
   };
   "components/schemas/calendar/GoogleEventAttendee.yaml": {
     /** Format: email */
@@ -1746,9 +1901,7 @@ export interface external {
   };
   "components/schemas/calendar/GoogleEventReminders.yaml": {
     useDefault?: boolean | null;
-    overrides?:
-      | external["components/schemas/calendar/GoogleReminderOverride.yaml"][]
-      | null;
+    overrides?: external["components/schemas/calendar/GoogleReminderOverride.yaml"][] | null;
   };
   "components/schemas/calendar/GoogleReminderOverride.yaml": {
     method: string;
@@ -1758,6 +1911,49 @@ export interface external {
     /** @description Whether OAuth token was successfully revoked */
     revoked?: boolean;
   };
+  "components/schemas/checklists/ChecklistCondition.yaml": {
+    /**
+     * @description all_items_checked: true when every id in item_ids is in the checked set. any_item_checked: true when at least one id in item_ids is in the checked set.
+     * @enum {string}
+     */
+    kind: "all_items_checked" | "any_item_checked";
+    /** @description Checklist item ids within the same category that participate in the condition. Empty item_ids: all_items_checked is vacuously true; any_item_checked is false. */
+    item_ids: number[];
+  };
+  "components/schemas/checklists/ChecklistDispatchAutomationApiResponse.yaml": {
+    success: boolean;
+    error?: string | null;
+    setting?: external["components/schemas/checklists/ChecklistDispatchAutomationSetting.yaml"];
+  };
+  "components/schemas/checklists/ChecklistDispatchAutomationSetting.yaml": {
+    /** @description When true, run configured dispatch when the step is newly checked. */
+    enabled: boolean;
+    channel: external["components/schemas/checklists/ChecklistDispatchChannel.yaml"];
+    recipientScope: external["components/schemas/checklists/ChecklistDispatchRecipientScope.yaml"];
+    /** @description Required when recipientScope is selected_clients; subset of agent clients. */
+    selectedClientIds?: string[] | null;
+    noteMode: external["components/schemas/checklists/ChecklistDispatchNoteMode.yaml"];
+    /** @description Used when noteMode is broadcast. */
+    noteBroadcast?: string | null;
+    /** @description Map of client user id to note when noteMode is per_client. */
+    notesPerClient?: {
+      [key: string]: string;
+    } | null;
+    /**
+     * Format: date-time
+     * @description Last update time when a row exists in the database.
+     */
+    updatedAt?: string | null;
+  };
+  "components/schemas/checklists/ChecklistDispatchChannel.yaml": "messaging" | "docusign" | "both";
+  "components/schemas/checklists/ChecklistDispatchNoteMode.yaml":
+    | "none"
+    | "broadcast"
+    | "per_client";
+  "components/schemas/checklists/ChecklistDispatchRecipientScope.yaml":
+    | "context_client"
+    | "all_agent_clients"
+    | "selected_clients";
   "components/schemas/checklists/ChecklistResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     checklist?: external["components/schemas/checklists/TaskChecklistResponse.yaml"];
   };
@@ -1784,6 +1980,11 @@ export interface external {
     order?: number | null;
     integration_key?: string | null;
     component_key?: string | null;
+    /**
+     * @description Optional checklist-step UI for suggested forms. When omitted, use default compact form cards; document uses DocumentCard-style layout.
+     * @enum {string|null}
+     */
+    forms_card_variant?: "default" | "document" | null;
     allow_unordered_check?: boolean | null;
     suggestedFormIds?: string[] | null;
     optional?: boolean | null;
@@ -1792,6 +1993,26 @@ export interface external {
       days?: number;
       eventSchedule?: number[] | null;
     } | null;
+    /** @description When set, the user may manually check this step only if this condition holds (in addition to section unlock and sequential ordering). Omitted means no extra gate for manual selection. */
+    selectable_when?: external["components/schemas/checklists/ChecklistCondition.yaml"] | null;
+    /** @description When this condition holds on the effective checked set, this item id is included in checklist progress (server merge on GET/PUT). */
+    auto_complete_when?: external["components/schemas/checklists/ChecklistCondition.yaml"] | null;
+    /** @description When this condition holds, an id that was already checked (stored before the request) cannot be removed from checkedIds; server re-adds it on PUT. */
+    lock_uncheck_when?: external["components/schemas/checklists/ChecklistCondition.yaml"] | null;
+    /** @description When true, agents may configure automatic dispatch (messaging / DocuSign) when this step is checked off, for this client context. */
+    dispatchAutomationAvailable?: boolean | null;
+    /** @description When true, the checklist checkbox must not be used to mark this step complete; the client completes it only via the integration submit action after validating required fields. */
+    completionRequiresSubmit?: boolean | null;
+    /**
+     * @description How the step becomes complete. Omitted or manual allows normal checkbox behavior (subject to completionRequiresSubmit). signature_based steps complete only when linked agreements are fully executed.
+     * @enum {string|null}
+     */
+    completionType?:
+      | "manual"
+      | "signature_based"
+      | "signature_plus_review"
+      | "integration_based"
+      | null;
   };
   "components/schemas/checklists/TaskChecklistResponse.yaml": {
     items: external["components/schemas/checklists/TaskChecklistItem.yaml"][];
@@ -1800,6 +2021,17 @@ export interface external {
     subtitle?: string | null;
     deadline?: string | null;
     date_finished?: string | null;
+  };
+  "components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml": {
+    enabled: boolean;
+    channel: external["components/schemas/checklists/ChecklistDispatchChannel.yaml"];
+    recipientScope: external["components/schemas/checklists/ChecklistDispatchRecipientScope.yaml"];
+    selectedClientIds?: string[] | null;
+    noteMode: external["components/schemas/checklists/ChecklistDispatchNoteMode.yaml"];
+    noteBroadcast?: string | null;
+    notesPerClient?: {
+      [key: string]: string;
+    } | null;
   };
   "components/schemas/checklists/UpdateChecklistRequest.yaml": {
     /** @description Checklist data with items and checkedIds */
@@ -2046,9 +2278,7 @@ export interface external {
     /** @description False when the search could not complete; inspect `error` and HTTP status. */
     success: boolean;
     /** @description Matching listings normalized for map and list UIs. */
-    properties?:
-      | external["components/schemas/search/results/PropertySearchResult.yaml"][]
-      | null;
+    properties?: external["components/schemas/search/results/PropertySearchResult.yaml"][] | null;
     /** @description Number of items in `properties` for this response page. */
     count?: number | null;
     /** @description True when results were served from an in-memory or DB cache without full re-query. */
@@ -2064,6 +2294,8 @@ export interface external {
       address?: string;
       travel_time?: string;
       commute_tolerance?: number;
+      /** @description Google-encoded overview polyline for the driving route from the listing to this location (Directions API). */
+      encoded_polyline?: string | null;
     }[];
     property_address: string;
   };
@@ -2627,9 +2859,7 @@ export interface external {
     message: string;
   };
   "components/schemas/shared/core/AuthResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    user?:
-      | external["components/schemas/shared/core/AuthSessionUser.yaml"]
-      | null;
+    user?: external["components/schemas/shared/core/AuthSessionUser.yaml"] | null;
     /**
      * @deprecated
      * @description Tokens are stored in HTTP-only cookies. Do not store client-side.
@@ -2864,19 +3094,13 @@ export interface external {
     listings: external["components/schemas/shared/core/Pagination.yaml"];
   };
   "components/schemas/user/favorites/FavoriteHomesReplaceResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    favorites?:
-      | external["components/schemas/user/favorites/SavedHome.yaml"][]
-      | null;
+    favorites?: external["components/schemas/user/favorites/SavedHome.yaml"][] | null;
   };
   "components/schemas/user/favorites/FavoriteHomesResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     /** @description Explicitly saved (liked) properties for the authenticated user. */
-    favorites?:
-      | external["components/schemas/user/favorites/SavedHome.yaml"][]
-      | null;
+    favorites?: external["components/schemas/user/favorites/SavedHome.yaml"][] | null;
     /** @description Additional tracked listings (e.g. pipeline) when the endpoint returns both buckets. */
-    listings?:
-      | external["components/schemas/user/favorites/SavedHome.yaml"][]
-      | null;
+    listings?: external["components/schemas/user/favorites/SavedHome.yaml"][] | null;
     /** @description Limits, offsets, and totals for favorites and listings lists. */
     pagination?: external["components/schemas/user/favorites/FavoriteHomesPagination.yaml"];
   };
@@ -3022,6 +3246,49 @@ export interface external {
   "components/schemas/user/profile/PollReportResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     report?: external["components/schemas/user/profile/ReportListItem.yaml"];
   };
+  "components/schemas/user/profile/PublicAgentProfile.yaml": {
+    id: external["components/schemas/user/profile/UserId.yaml"];
+    name: string;
+    /** Format: email */
+    email: string;
+    phone?: string | null;
+    mls_id?: string | null;
+    /** @description Legacy brokerage name on the users row. */
+    brokerage?: string | null;
+    /**
+     * Format: uri
+     * @description Presigned URL for the user's profile picture when stored in S3.
+     */
+    profile_picture_url?: string | null;
+    agent_bio?: string | null;
+    brokerage_name?: string | null;
+    brokerage_bic_name?: string | null;
+    brokerage_address?: string | null;
+    /** Format: email */
+    brokerage_email?: string | null;
+    brokerage_phone?: string | null;
+    /** @description URL or stored headshot reference as persisted on user_agent_profiles. */
+    professional_headshot_url?: string | null;
+    primary_service_zips?: string[] | null;
+    specialties?: string[] | null;
+    licensed_states?: string[] | null;
+    license_types?: string[] | null;
+    license_numbers?: string[] | null;
+    license_expiration_dates?: string[] | null;
+    /** @description Parsed JSON array from user_agent_profiles.mls_affiliations (list of objects). */
+    mls_affiliations?:
+      | {
+          [key: string]: unknown;
+        }[]
+      | null;
+    social_links?: {
+      [key: string]: string;
+    } | null;
+  };
+  "components/schemas/user/profile/PublicAgentProfileResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
+    /** @description Public agent profile; only returned when the user exists and is an active agent. */
+    agent: external["components/schemas/user/profile/PublicAgentProfile.yaml"];
+  };
   "components/schemas/user/profile/ReportListItem.yaml": {
     id: string;
     /** @enum {string} */
@@ -3034,18 +3301,14 @@ export interface external {
     s3Key?: string | null;
   };
   "components/schemas/user/profile/ReportsListResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
-    reports?:
-      | external["components/schemas/user/profile/ReportListItem.yaml"][]
-      | null;
+    reports?: external["components/schemas/user/profile/ReportListItem.yaml"][] | null;
   };
   "components/schemas/user/profile/ReportsResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     documents?:
       | external["components/schemas/agreements/documents/UploadedDocumentRecord.yaml"][]
       | null;
     /** @description Property report list entries (GET /api/v1/report/list shape); legacy clients may have conflated this with upload rows. */
-    reports?:
-      | external["components/schemas/user/profile/ReportListItem.yaml"][]
-      | null;
+    reports?: external["components/schemas/user/profile/ReportListItem.yaml"][] | null;
   };
   "components/schemas/user/profile/SignupData.yaml": {
     /**
@@ -3189,13 +3452,7 @@ export interface external {
      *
      * @enum {string}
      */
-    type:
-      | "deadline"
-      | "follow_up"
-      | "inspection"
-      | "offer_expiration"
-      | "closing"
-      | "manual";
+    type: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
     /** @description Optional ISO 8601 due date or datetime; null for undated backlog items. */
     due_date: string | null;
     /** @description Whether the task is closed in the agent dashboard. */
@@ -3228,6 +3485,59 @@ export interface external {
   };
   "components/schemas/user/todos/UpdateTodoResponse.yaml": external["components/schemas/shared/core/SuccessResponse.yaml"] & {
     todo?: external["components/schemas/user/todos/TodoItem.yaml"];
+  };
+  "components/schemas/viewings/BuildRouteRequest.yaml": {
+    /** @description Unordered stops; each must include lat and lng for routing. Server may reject very large lists (provider waypoint limits). */
+    stops: external["components/schemas/viewings/ViewingStop.yaml"][];
+  };
+  "components/schemas/viewings/ViewingBuildRouteApiResponse.yaml": {
+    success: boolean;
+    data?: external["components/schemas/viewings/ViewingItinerary.yaml"];
+    error?: string | null;
+  };
+  "components/schemas/viewings/ViewingItinerary.yaml": {
+    /** @description Ordered list of stops (reordered after Build Route when ordered is true). */
+    stops: external["components/schemas/viewings/ViewingStop.yaml"][];
+    /**
+     * @description True when stops were optimized via the route service.
+     * @default false
+     */
+    ordered?: boolean;
+    /** @description Per-leg metrics and polylines; length should be len(stops)-1 when complete. */
+    legs?: external["components/schemas/viewings/ViewingRouteLeg.yaml"][] | null;
+  };
+  "components/schemas/viewings/ViewingNavigateApiResponse.yaml": {
+    success: boolean;
+    data?: external["components/schemas/viewings/ViewingNavigateResponse.yaml"];
+    error?: string | null;
+  };
+  "components/schemas/viewings/ViewingNavigateResponse.yaml": {
+    /**
+     * Format: uri
+     * @description https://www.google.com/maps/dir/... deep link for driving directions.
+     */
+    url: string;
+  };
+  "components/schemas/viewings/ViewingRouteLeg.yaml": {
+    /** @description Travel duration in seconds for this leg. */
+    duration_seconds?: number | null;
+    /** @description Distance in meters for this leg. */
+    distance_meters?: number | null;
+    /** @description Google-encoded polyline for this leg (path for map rendering). */
+    encoded_polyline?: string | null;
+  };
+  "components/schemas/viewings/ViewingStop.yaml": {
+    /** @description Short label shown in lists (e.g. street or listing title). */
+    label?: string | null;
+    /** @description Full address string for display and calendar location fallback. */
+    address: string;
+    /** @description Latitude when geocoded or from listing; required for routing. */
+    lat?: number | null;
+    /** @description Longitude when geocoded or from listing; required for routing. */
+    lng?: number | null;
+    notes?: string | null;
+    /** @description Optional listing / property identifier when linked to search results. */
+    listing_id?: string | null;
   };
 }
 
@@ -3434,6 +3744,38 @@ export interface operations {
       };
       /** @description Not authenticated */
       401: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Server error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * Get public agent profile by user id
+   * @description Unauthenticated read-only agent directory row for shareable profile URLs. Returns 404 if the user does not exist, is not an agent, or is inactive.
+   */
+  getPublicAgentProfile: {
+    parameters: {
+      path: {
+        /** @description Agent application user id (users.id). */
+        userId: components["schemas"]["UserId"];
+      };
+    };
+    responses: {
+      /** @description Public agent profile */
+      200: {
+        content: {
+          "application/json": components["schemas"]["PublicAgentProfileResponse"];
+        };
+      };
+      /** @description Not found or not a public agent profile */
+      404: {
         content: {
           "application/json": components["schemas"]["ErrorResponse"];
         };
@@ -3848,6 +4190,80 @@ export interface operations {
       };
       /** @description HTTP 401 */
       401: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * Optimize viewing stop order and compute driving legs
+   * @description Uses Google Distance Matrix (durations) for a TSP-style ordering heuristic, then Google Directions for per-leg distance, duration, and encoded polylines. Requires a server-side Google Maps API key.
+   */
+  buildViewingRoute: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["BuildRouteRequest"];
+      };
+    };
+    responses: {
+      /** @description Ordered itinerary with legs when routing succeeds */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ViewingBuildRouteApiResponse"];
+        };
+      };
+      /** @description Invalid stops or missing coordinates */
+      400: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Routing service error */
+      500: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * Build Google Maps multi-stop navigation URL
+   * @description Returns a maps/dir deep link with origin, destination, and waypoints.
+   */
+  buildViewingNavigateLink: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ViewingItinerary"];
+      };
+    };
+    responses: {
+      /** @description Navigation URL */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ViewingNavigateApiResponse"];
+        };
+      };
+      /** @description Invalid itinerary or missing coordinates */
+      400: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Not authenticated */
+      401: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Server error */
+      500: {
         content: {
           "application/json": components["schemas"]["ErrorResponse"];
         };
@@ -5553,6 +5969,131 @@ export interface operations {
       };
     };
   };
+  /**
+   * Task checklist for a transaction subject (buyer self or agent client)
+   * @description Returns the same payload as GET /api/v1/tasks for the given transaction_id (buyer user id). Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
+   */
+  getTransactionTaskChecklist: {
+    parameters: {
+      query?: {
+        /** @description Checklist category (search, offer, escrow, financing, closing, insurance). */
+        type?: string;
+      };
+      path: {
+        /** @description Buyer / hub client user id whose checklist progress is returned. */
+        transaction_id: string;
+      };
+    };
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        content: {
+          "application/json": components["schemas"]["TaskChecklistApiResponse"];
+        };
+      };
+      /** @description HTTP 400 */
+      400: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 401 */
+      401: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 403 */
+      403: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Get checklist dispatch automation settings for a step */
+  getChecklistDispatchAutomation: {
+    parameters: {
+      path: {
+        /** @description Hub client user id (same as checklist forms routes). */
+        transaction_id: string;
+        /** @description Checklist category (e.g. escrow, financing). */
+        section: string;
+        /** @description Checklist step id within the section. */
+        item_id: string;
+      };
+    };
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ChecklistDispatchAutomationApiResponse"];
+        };
+      };
+      /** @description HTTP 400 */
+      400: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 401 */
+      401: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 403 */
+      403: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Replace checklist dispatch automation settings for a step */
+  putChecklistDispatchAutomation: {
+    parameters: {
+      path: {
+        /** @description Hub client user id (same as checklist forms routes). */
+        transaction_id: string;
+        /** @description Checklist category (e.g. escrow, financing). */
+        section: string;
+        /** @description Checklist step id within the section. */
+        item_id: string;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateChecklistDispatchAutomationRequest"];
+      };
+    };
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ChecklistDispatchAutomationApiResponse"];
+        };
+      };
+      /** @description HTTP 400 */
+      400: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 401 */
+      401: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 403 */
+      403: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
   /** Unified task checklist definitions and progress */
   getUnifiedTaskChecklist: {
     parameters: {
@@ -6899,6 +7440,72 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["SendAgreementResponse"];
+        };
+      };
+      /** @description HTTP 403 */
+      403: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 500 */
+      500: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Resend DocuSign notification to a pending signer */
+  docusignResendAgreementRecipient: {
+    parameters: {
+      path: {
+        agreement_id: string;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DocusignResendRecipientRequest"];
+      };
+    };
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DocusignResendRecipientResponse"];
+        };
+      };
+      /** @description HTTP 403 */
+      403: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 500 */
+      500: {
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  /** Update DocuSign envelope reminder and expiration settings */
+  docusignUpdateAgreementEnvelopeNotification: {
+    parameters: {
+      path: {
+        agreement_id: string;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DocusignUpdateEnvelopeNotificationRequest"];
+      };
+    };
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DocusignUpdateEnvelopeNotificationResponse"];
         };
       };
       /** @description HTTP 403 */

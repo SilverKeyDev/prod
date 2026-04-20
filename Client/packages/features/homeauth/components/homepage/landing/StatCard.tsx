@@ -16,12 +16,7 @@ const valueTitleSize: Record<StatCardSize, "lg" | "xl"> = {
   lg: "xl",
 };
 
-export function StatCard({
-  value,
-  label,
-  size = "md",
-  className = "",
-}: StatCardProps) {
+export function StatCard({ value, label, size = "md", className = "" }: StatCardProps) {
   return (
     <Box
       className={`bg-background-surface border-border rounded-lg border px-5 py-4 sm:px-6 sm:py-5 ${className}`}

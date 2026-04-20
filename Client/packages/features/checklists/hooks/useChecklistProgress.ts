@@ -3,7 +3,15 @@ import { useCallback, useMemo } from "react";
 import type { TaskChecklistItem } from "packages/features/checklists/api/checklists";
 import { useChecklistData } from "packages/features/checklists/hooks/data/useChecklistData";
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
-import { SECTION_CONFIG, SECTION_ORDER } from "packages/features/checklists/utils/sectionConfig";
+import { computeOverallChecklistProgress } from "packages/features/checklists/utils/progress/computeOverallChecklistProgress";
+import {
+  type ChecklistItemToggleEligibility,
+  getChecklistItemToggleEligibility,
+} from "packages/features/checklists/utils/rules/checklistRules";
+import {
+  SECTION_CONFIG,
+  SECTION_ORDER,
+} from "packages/features/checklists/utils/rules/sectionConfig";
 
 function sortItemsByOrder(items: TaskChecklistItem[]): TaskChecklistItem[] {
   return [...items].sort((a, b) => {
@@ -17,8 +25,17 @@ export type UseChecklistProgressReturn = {
   currentSection: ChecklistTab;
   currentItem: (section: ChecklistTab) => number | null;
   isSectionUnlocked: (section: ChecklistTab) => boolean;
+  /**
+   * Next incomplete step may be completed (checkbox or submit). Prefer getItemToggleEligibility;
+   * this mirrors `canMarkChecked` for unchecked items.
+   */
   isItemCheckable: (section: ChecklistTab, itemId: number) => boolean;
+  getItemToggleEligibility: (
+    section: ChecklistTab,
+    itemId: number
+  ) => ChecklistItemToggleEligibility;
   sectionProgress: Record<ChecklistTab, { completed: number; total: number; isComplete: boolean }>;
+  overallProgress: { completed: number; total: number; percent: number };
   isLoading: boolean;
 };
 
@@ -60,6 +77,11 @@ export function useChecklistProgress(): UseChecklistProgressReturn {
     return progress;
   }, [sectionData]);
 
+  const overallProgress = useMemo(
+    () => computeOverallChecklistProgress(sectionProgress),
+    [sectionProgress]
+  );
+
   const isSectionUnlocked = useCallback(
     (section: ChecklistTab): boolean => {
       const config = SECTION_CONFIG[section];
@@ -73,22 +95,24 @@ export function useChecklistProgress(): UseChecklistProgressReturn {
     [sectionProgress]
   );
 
-  const isItemCheckable = useCallback(
-    (section: ChecklistTab, itemId: number): boolean => {
-      if (!isSectionUnlocked(section)) return false;
+  const getItemToggleEligibility = useCallback(
+    (section: ChecklistTab, itemId: number): ChecklistItemToggleEligibility => {
       const data = sectionData[section];
       const items = sortItemsByOrder(data.items);
-      const item = items.find((i) => i.id === itemId);
-      if (!item) return false;
-      if (item.allow_unordered_check) return true;
-      const itemIndex = items.findIndex((i) => i.id === itemId);
-      for (let i = 0; i < itemIndex; i++) {
-        const prevId = items[i].id;
-        if (!data.checkedIds.includes(prevId)) return false;
-      }
-      return true;
+      return getChecklistItemToggleEligibility(
+        items,
+        data.checkedIds,
+        itemId,
+        isSectionUnlocked(section)
+      );
     },
     [sectionData, isSectionUnlocked]
+  );
+
+  const isItemCheckable = useCallback(
+    (section: ChecklistTab, itemId: number): boolean =>
+      getItemToggleEligibility(section, itemId).canMarkChecked,
+    [getItemToggleEligibility]
   );
 
   const currentSection = useMemo((): ChecklistTab => {
@@ -126,7 +150,9 @@ export function useChecklistProgress(): UseChecklistProgressReturn {
     currentItem,
     isSectionUnlocked,
     isItemCheckable,
+    getItemToggleEligibility,
     sectionProgress,
+    overallProgress,
     isLoading,
   };
 }

@@ -5,8 +5,6 @@ Handles building API parameters from request body.
 
 from typing import Any
 
-from flask import current_app
-
 
 def build_property_params(
     zpid: str | None = None, property_url: str | None = None, address: str | None = None
@@ -26,10 +24,13 @@ def build_property_params(
 
     # Priority: zpid > property_url > address
     if zpid is not None:
-        try:
-            params = {"zpid": str(int(str(zpid).strip()))}
-        except Exception:
-            current_app.logger.warning(f"[PROPERTY] Invalid zpid: {zpid}")
+        s = str(zpid).strip()
+        if s:
+            try:
+                params = {"zpid": str(int(s))}
+            except Exception:
+                # MLS / non-numeric listing ids (still sent as Slipstream `id` downstream)
+                params = {"zpid": s}
 
     if params is None and isinstance(property_url, str) and property_url.strip():
         params = {"property_url": property_url.strip()}

@@ -16,7 +16,12 @@ from .google_event_datetime import extract_event_datetimes
 logger = get_logger()
 
 
-def sync_event_to_db(event_id: str, google_event: dict, user_id: str) -> CalendarEvent | None:
+def sync_event_to_db(
+    event_id: str,
+    google_event: dict,
+    user_id: str,
+    itinerary: dict | None = None,
+) -> CalendarEvent | None:
     """
     Update CalendarEvent in database from Google Calendar event data.
 
@@ -70,6 +75,9 @@ def sync_event_to_db(event_id: str, google_event: dict, user_id: str) -> Calenda
         calendar_event.is_synced = True
         calendar_event.last_synced_at = datetime.now(timezone.utc)
         calendar_event.updated_at = datetime.now(timezone.utc)
+
+        if itinerary is not None:
+            calendar_event.itinerary = itinerary
 
         db.session.commit()
 

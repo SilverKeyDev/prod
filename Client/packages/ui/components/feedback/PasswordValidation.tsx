@@ -40,9 +40,7 @@ export function PasswordValidation({
             </Box>
             <Text
               className={`text-sm ${
-                isValid
-                  ? "text-primary font-semibold"
-                  : "text-text-secondary font-medium"
+                isValid ? "text-primary font-semibold" : "text-text-secondary font-medium"
               }`}
             >
               {rule.label}

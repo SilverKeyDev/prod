@@ -1,0 +1,40 @@
+type: object
+required:
+  - tab_label
+properties:
+  tab_label:
+    type: string
+    maxLength: 500
+  selected:
+    type: boolean
+    nullable: true
+  locked:
+    type: boolean
+    nullable: true
+  document_id:
+    type: string
+    nullable: true
+    default: "1"
+  page_number:
+    type: integer
+    minimum: 1
+    maximum: 999
+    nullable: true
+  x_position:
+    type: integer
+    nullable: true
+  y_position:
+    type: integer
+    nullable: true
+  anchor_string:
+    type: string
+    maxLength: 500
+    nullable: true
+  anchor_x_offset:
+    type: string
+    maxLength: 20
+    nullable: true
+  anchor_y_offset:
+    type: string
+    maxLength: 20
+    nullable: true

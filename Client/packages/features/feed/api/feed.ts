@@ -43,11 +43,7 @@ const PLACEHOLDER_IMAGES = [
   "/placeholders/placeholder-bathroom.svg",
   "/placeholders/placeholder-garden.svg",
 ];
-const PLACEHOLDER_VIDEOS = [
-  "/dummy-video.mp4",
-  "/dummy-video.mp4",
-  "/dummy-video.mp4",
-];
+const PLACEHOLDER_VIDEOS = ["/dummy-video.mp4", "/dummy-video.mp4", "/dummy-video.mp4"];
 
 function getPlaceholderImage(index: number): string {
   return PLACEHOLDER_IMAGES[index % PLACEHOLDER_IMAGES.length];
@@ -56,11 +52,7 @@ function getPlaceholderVideo(index: number): string {
   return PLACEHOLDER_VIDEOS[index % PLACEHOLDER_VIDEOS.length];
 }
 
-type ContentVariant =
-  | "video_images"
-  | "images_only"
-  | "images_audio"
-  | "images_only_silent";
+type ContentVariant = "video_images" | "images_only" | "images_audio" | "images_only_silent";
 
 function createDummyListing(index: number): FeedListing {
   const variants: ContentVariant[] = [
@@ -126,8 +118,7 @@ function buildFeedQueryString(params: FeedParams): string {
   searchParams.set("page", String(params.page));
   searchParams.set("limit", String(params.limit));
   if (params.filtersHash) searchParams.set("filtersHash", params.filtersHash);
-  if (params.anchor?.listingId)
-    searchParams.set("anchor", params.anchor.listingId);
+  if (params.anchor?.listingId) searchParams.set("anchor", params.anchor.listingId);
   if (params.cursor) searchParams.set("cursor", params.cursor);
   return searchParams.toString();
 }
@@ -141,9 +132,7 @@ export const feedApi = {
     const { page, limit } = params;
     try {
       const queryString = buildFeedQueryString(params);
-      const response = await apiGet<FeedResponse>(
-        `/api/v1/feed?${queryString}`,
-      );
+      const response = await apiGet<FeedResponse>(`/api/v1/feed?${queryString}`);
       if (response && response.items.length > 0) {
         return response;
       }
@@ -151,7 +140,7 @@ export const feedApi = {
       /* fall through to dummy data */
     }
     const items: FeedListing[] = Array.from({ length: limit }, (_, i) =>
-      createDummyListing(page * limit + i),
+      createDummyListing(page * limit + i)
     );
     return { items, hasMore: page < 2 };
   },

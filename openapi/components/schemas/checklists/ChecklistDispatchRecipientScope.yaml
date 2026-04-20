@@ -1,0 +1,10 @@
+type: string
+description: >-
+  Who receives automated dispatches when the hub client checks this step off.
+  `context_client` = only the client whose checklist was updated (the checker).
+  `all_agent_clients` = every client linked to the configuring agent.
+  `selected_clients` = subset listed in selectedClientIds.
+enum:
+  - context_client
+  - all_agent_clients
+  - selected_clients

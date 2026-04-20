@@ -55,11 +55,7 @@ function isLiteralExempt(node, translationCalleeNames, exemptCalleeNames) {
   const parent = node.parent;
   if (!parent) return false;
 
-  if (
-    parent.type === "MemberExpression" &&
-    parent.computed &&
-    parent.property === node
-  ) {
+  if (parent.type === "MemberExpression" && parent.computed && parent.property === node) {
     return true;
   }
 
@@ -80,15 +76,11 @@ function isTranslationDefinitionFile(filename, skipTranslationDefinitionFiles) {
 }
 
 function isTestFile(filename) {
-  return (
-    /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filename) ||
-    filename.includes("/__tests__/")
-  );
+  return /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filename) || filename.includes("/__tests__/");
 }
 
 function isTargetClientUiFile(filename) {
-  if (!filename.includes("Client/") && !filename.includes("/Client/"))
-    return false;
+  if (!filename.includes("Client/") && !filename.includes("/Client/")) return false;
   return (
     filename.includes("packages/features/") ||
     filename.includes("packages/ui/") ||
@@ -152,30 +144,21 @@ module.exports = {
     const filename = context.getFilename();
     const opt = context.options[0] || {};
 
-    const translationCalleeNames =
-      opt.translationCalleeNames ?? DEFAULT_TRANSLATION_CALLEES;
+    const translationCalleeNames = opt.translationCalleeNames ?? DEFAULT_TRANSLATION_CALLEES;
     const exemptCalleeNames = opt.exemptCalleeNames ?? DEFAULT_EXEMPT_CALLEES;
-    const ignoredFirstSegments =
-      opt.ignoredFirstSegments ?? DEFAULT_IGNORED_FIRST_SEGMENTS;
-    const jsxTextPropNames = new Set(
-      opt.jsxTextPropNames ?? DEFAULT_JSX_TEXT_PROPS,
-    );
-    const skipTranslationDefinitionFiles =
-      opt.skipTranslationDefinitionFiles !== false;
+    const ignoredFirstSegments = opt.ignoredFirstSegments ?? DEFAULT_IGNORED_FIRST_SEGMENTS;
+    const jsxTextPropNames = new Set(opt.jsxTextPropNames ?? DEFAULT_JSX_TEXT_PROPS);
+    const skipTranslationDefinitionFiles = opt.skipTranslationDefinitionFiles !== false;
 
     if (!isTargetClientUiFile(filename)) return {};
     if (isTestFile(filename)) return {};
-    if (isTranslationDefinitionFile(filename, skipTranslationDefinitionFiles))
-      return {};
+    if (isTranslationDefinitionFile(filename, skipTranslationDefinitionFiles)) return {};
 
     function checkAndReport(literalNode) {
       const v = literalNode.value;
       if (typeof v !== "string") return;
       if (!looksLikeI18nKey(v, ignoredFirstSegments)) return;
-      if (
-        isLiteralExempt(literalNode, translationCalleeNames, exemptCalleeNames)
-      )
-        return;
+      if (isLiteralExempt(literalNode, translationCalleeNames, exemptCalleeNames)) return;
       context.report({
         node: literalNode,
         messageId: "rawKey",
@@ -203,8 +186,7 @@ module.exports = {
         const exp = node.expression;
         if (!exp || exp.type !== "Literal") return;
         const parent = node.parent;
-        if (parent.type !== "JSXElement" && parent.type !== "JSXFragment")
-          return;
+        if (parent.type !== "JSXElement" && parent.type !== "JSXFragment") return;
         checkAndReport(exp);
       },
     };

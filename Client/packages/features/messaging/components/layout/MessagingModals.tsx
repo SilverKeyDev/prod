@@ -20,7 +20,7 @@ type MessagingModalsProps = {
   setShowSelectDocumentModal: (v: boolean) => void;
   showCalendarEventModal: boolean;
   setShowCalendarEventModal: (v: boolean) => void;
-  onSelectHome: (home: SavedHome) => Promise<void>;
+  onSelectHomes: (homes: SavedHome[]) => Promise<void>;
   onSelectDocument: (document: DocumentData) => Promise<void>;
   onCalendarEventSuccess: () => void;
   /** When set, calendar requests use optimistic messaging (conversation list updates while sending). */
@@ -40,7 +40,7 @@ export default function MessagingModals({
   setShowSelectDocumentModal,
   showCalendarEventModal,
   setShowCalendarEventModal,
-  onSelectHome,
+  onSelectHomes,
   onSelectDocument,
   onCalendarEventSuccess,
   sendCalendarEventMessage,
@@ -55,7 +55,7 @@ export default function MessagingModals({
       <SelectHomeModal
         isOpen={showSelectHomeModal}
         onClose={() => setShowSelectHomeModal(false)}
-        onSelect={onSelectHome}
+        onSelect={onSelectHomes}
       />
       <SelectDocumentModal
         isOpen={showSelectDocumentModal}

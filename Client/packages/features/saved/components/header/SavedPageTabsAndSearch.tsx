@@ -20,7 +20,7 @@ type SavedPageTabsAndSearchProps = {
   onViewTypeChange: (type: SavedPageViewType) => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
   onEventTypeFilterChange?: (
-    eventType: "listed" | "price_change" | "sold" | "withdrawn" | "",
+    eventType: "listed" | "price_change" | "sold" | "withdrawn" | ""
   ) => void;
   rightText?: string;
   onUploadClick?: () => void;
@@ -64,16 +64,11 @@ export default function SavedPageTabsAndSearch({
 }: SavedPageTabsAndSearchProps) {
   return (
     <Box className="mb-6 w-full">
-      <SavedPageTabNav
-        viewType={viewType}
-        onViewTypeChange={onViewTypeChange}
-      />
+      <SavedPageTabNav viewType={viewType} onViewTypeChange={onViewTypeChange} />
       <Card border="light" padding="none" className="w-full p-3">
         <Box className="flex flex-wrap items-center justify-between gap-3">
           {toolbarLeading ? (
-            <Box className="flex w-full shrink-0 items-center sm:w-auto">
-              {toolbarLeading}
-            </Box>
+            <Box className="flex w-full shrink-0 items-center sm:w-auto">{toolbarLeading}</Box>
           ) : null}
           {/* Search input */}
           <Box className="flex w-full min-w-0 flex-1 items-center justify-center gap-3 sm:w-auto sm:justify-start">
@@ -100,16 +95,14 @@ export default function SavedPageTabsAndSearch({
           onChange={(value) =>
             onEventTypeFilterChange(value as "listed" | "price_change" | "sold" | "withdrawn" | "")
           }
-          placeholder="Filter by event..."
+          placeholder="Filter by activity type..."
           variant="mobile"
         />
       </Box>
     )} */}
 
             {rightText && (
-              <Box className="text-text-secondary mr-2 whitespace-nowrap text-sm">
-                {rightText}
-              </Box>
+              <Box className="text-text-secondary mr-2 whitespace-nowrap text-sm">{rightText}</Box>
             )}
           </Box>
 

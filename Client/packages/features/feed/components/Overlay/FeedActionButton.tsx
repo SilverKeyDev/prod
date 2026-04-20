@@ -12,8 +12,7 @@ export const FEED_ACTION_INTERACTION_CLASS =
  * Profile picture / avatar in feed/reels: no border, no outline.
  * Apply to img and placeholder elements wherever feed avatars are shown.
  */
-export const FEED_AVATAR_IMAGE_CLASS =
-  "rounded-full object-cover border-0 outline-none";
+export const FEED_AVATAR_IMAGE_CLASS = "rounded-full object-cover border-0 outline-none";
 
 /**
  * Standardized action button for feed/reels overlay.
@@ -21,11 +20,7 @@ export const FEED_AVATAR_IMAGE_CLASS =
  */
 const FEED_ACTION_BUTTON_CLASS = `flex flex-col items-center gap-1 border-0 border-none bg-transparent text-white min-w-0 p-2 shadow-none outline-none hover:border-0 hover:shadow-none focus:border-0 focus:shadow-none active:border-0 disabled:border-0 ${FEED_ACTION_INTERACTION_CLASS}`;
 
-export function FeedActionButton({
-  className = "",
-  children,
-  ...props
-}: ButtonProps) {
+export function FeedActionButton({ className = "", children, ...props }: ButtonProps) {
   return (
     <Button
       variant="ghost"

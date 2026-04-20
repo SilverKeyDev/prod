@@ -23,6 +23,8 @@ export const SECTION_TITLES = {
   SEARCH_PREFS_NEIGHBORHOOD: "Neighborhood",
   /** Combined physical + condition + utilities step title. */
   SEARCH_PROPERTY_STEP: "Features",
+  /** When you are generally available for tours and meetings (saved with preferences; not your Google Calendar). */
+  AVAILABILITY: "Availability",
   COMMUNICATION_PREFERENCES: "Communication",
   AGENT_PROFESSIONAL_INFO: "Professional Info",
   AGENT_BROKERAGE: "Brokerage",
@@ -33,6 +35,10 @@ export const SECTION_TITLES = {
 /** Location section subtitle (web and native). */
 export const LOCATION_SUBTITLE =
   "Locations set your exact search range. Add work, family, and notes for neighborhoods, school districts, or school ratings.";
+
+/** Availability section subtitle — weekly blocks are stored in your profile, not synced from Google Calendar. */
+export const AVAILABILITY_SUBTITLE =
+  "Set times you are usually available. This schedule is saved with your preferences and does not use your Google Calendar. Double-click a time in week view to add a block; use “Repeat every week” for a recurring slot.";
 
 // Shared field labels
 export const FIELD_LABELS = {

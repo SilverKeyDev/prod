@@ -56,13 +56,13 @@ export type NavigationApi = {
   navigate: <R extends RouteName>(
     route: R,
     params?: ParamsForRoute<R>,
-    options?: NavigateOptions,
+    options?: NavigateOptions
   ) => void;
   /** Replace current entry with a named route. */
   replace: <R extends RouteName>(
     route: R,
     params?: ParamsForRoute<R>,
-    options?: NavigateOptions,
+    options?: NavigateOptions
   ) => void;
   /** Navigate to a raw path (e.g. from location.state.redirect). Use named routes when possible. */
   navigateToPath: (path: string, options?: NavigateOptions) => void;
@@ -73,14 +73,11 @@ export type NavigationApi = {
   /** Current URL search params (read-only snapshot). */
   getSearchParams: () => URLSearchParams;
   /** Update URL search params. */
-  setSearchParams: (
-    input: SetSearchParamsInput,
-    options?: SetSearchParamsOptions,
-  ) => void;
+  setSearchParams: (input: SetSearchParamsInput, options?: SetSearchParamsOptions) => void;
   /** Props for a Link to the given route (to, state). */
   linkProps: <R extends RouteName>(
     route: R,
     params?: ParamsForRoute<R>,
-    options?: { state?: unknown },
+    options?: { state?: unknown }
   ) => LinkProps;
 };

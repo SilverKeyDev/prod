@@ -18,6 +18,7 @@ export const SHARED_TRANSLATIONS: Record<string, string> = {
   "common.close": "Close",
   "common.previous": "Previous",
   "common.next": "Next",
+  "common.you_are_here": "You are here.",
 
   "profile.section_about_you": "About you",
 
@@ -54,4 +55,10 @@ export const SHARED_TRANSLATIONS: Record<string, string> = {
   "house.match_score": "Match",
   "house.no_match_score": "No match score",
   "house.match_score_value": "{{percent}}%",
+  "house.match_pill_aria": "Match score {{score}} out of 100, {{tier}}",
+  "house.match_pill_tier_excellent": "Excellent",
+  "house.match_pill_tier_strong": "Strong",
+  "house.match_pill_tier_fair": "Fair",
+  "house.match_pill_tier_weak": "Weak",
+  "house.match_pill_tier_poor": "Poor",
 };

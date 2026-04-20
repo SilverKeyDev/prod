@@ -4,23 +4,21 @@ import { useIsMobile } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import PageErrorBoundary from "@/app/error/PageErrorBoundary";
-import AgentPage from "@/pages/AgentPage";
+import AgentPage from "@/pages/workspace/AgentPage";
 
 import { useDashboardRoute } from "./useDashboardRoute";
 
 // Lazy-load heavy routes; `AgentPage` is static to avoid a separate dev-server fetch for messaging.
-const SearchPage = lazy(() => import("@/pages/SearchPage"));
-const SavedHomes = lazy(() => import("@/pages/SavedPage"));
-const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
-const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
+const SearchPage = lazy(() => import("@/pages/property/SearchPage"));
+const SavedHomes = lazy(() => import("@/pages/property/SavedPage"));
+const ProfilePage = lazy(() => import("@/pages/account/ProfilePage"));
+const DashboardPage = lazy(() => import("@/pages/workspace/DashboardPage"));
 const AgreementSigningCompletePage = lazy(
-  () => import("@/pages/AgreementSigningCompletePage"),
+  () => import("@/pages/workspace/AgreementSigningCompletePage")
 );
 
 type DashboardContentProps = {
-  setMobileHeaderActions: React.Dispatch<
-    React.SetStateAction<ReactNode | null>
-  >;
+  setMobileHeaderActions: React.Dispatch<React.SetStateAction<ReactNode | null>>;
   searchPageRef: React.RefObject<{
     triggerSearch: () => Promise<void>;
   }>;
@@ -40,10 +38,7 @@ export function DashboardContent({
   const { activeKey, isSearch, isMessaging, widthPercent } = route;
   const contentTopMargin = route.isDashboard || route.isProfile;
   const contentBottomMargin =
-    route.isDashboard ||
-    route.isProfile ||
-    route.isSaved ||
-    route.isAgreementSigningComplete;
+    route.isDashboard || route.isProfile || route.isSaved || route.isAgreementSigningComplete;
 
   const searchHeightClass =
     isSearch && isMobile
@@ -80,10 +75,7 @@ export function DashboardContent({
     activeKey === "search" ? (
       <PageErrorBoundary key="search" pageLabel="Search">
         <Suspense fallback={LoadingFallback}>
-          <SearchPage
-            setMobileHeaderActions={setMobileHeaderActions}
-            searchRef={searchPageRef}
-          />
+          <SearchPage setMobileHeaderActions={setMobileHeaderActions} searchRef={searchPageRef} />
         </Suspense>
       </PageErrorBoundary>
     ) : activeKey === "profile" ? (

@@ -26,11 +26,7 @@ export function LandingFeatureStrip() {
                 index > 0 ? "sm:border-border sm:border-l sm:pl-6" : ""
               }`}
             >
-              <Icon
-                name={item.icon}
-                className="text-text-secondary h-5 w-5 shrink-0"
-                aria-hidden
-              />
+              <Icon name={item.icon} className="text-text-secondary h-5 w-5 shrink-0" aria-hidden />
               <BodyText
                 as="span"
                 size="sm"

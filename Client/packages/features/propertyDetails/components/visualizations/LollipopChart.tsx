@@ -8,9 +8,7 @@ export type LollipopChartProps = {
   data: Array<{ label: string; value: number; displayValue: string }>;
 };
 
-export function LollipopChart({
-  data,
-}: LollipopChartProps): React.ReactElement {
+export function LollipopChart({ data }: LollipopChartProps): React.ReactElement {
   const maxValue = Math.max(...data.map((item) => item.value), 100);
 
   return (
@@ -23,11 +21,7 @@ export function LollipopChart({
               <BodyText as="span" size="sm" className="text-text-secondary">
                 {item.label}
               </BodyText>
-              <BodyText
-                as="span"
-                size="sm"
-                className="text-text-secondary font-medium"
-              >
+              <BodyText as="span" size="sm" className="text-text-secondary font-medium">
                 {item.displayValue}
               </BodyText>
             </Box>

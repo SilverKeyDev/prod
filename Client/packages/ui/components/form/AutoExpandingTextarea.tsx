@@ -2,8 +2,10 @@ import React, { useEffect, useRef } from "react";
 
 import { INPUT_AUTOFILL_CLASS_NAME } from "packages/ui/styles/variants/inputVariants";
 
-interface AutoExpandingTextareaProps
-  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "rows"> {
+interface AutoExpandingTextareaProps extends Omit<
+  React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+  "rows"
+> {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   minHeight?: number;
@@ -27,11 +29,10 @@ export const AutoExpandingTextarea = React.forwardRef<
       onKeyDown,
       ...props
     },
-    forwardedRef,
+    forwardedRef
   ) => {
     const internalRef = useRef<HTMLTextAreaElement>(null);
-    const textareaRef =
-      (forwardedRef as React.RefObject<HTMLTextAreaElement>) || internalRef;
+    const textareaRef = (forwardedRef as React.RefObject<HTMLTextAreaElement>) || internalRef;
 
     // Auto-resize functionality
     useEffect(() => {
@@ -42,10 +43,7 @@ export const AutoExpandingTextarea = React.forwardRef<
         textarea.style.height = "auto";
 
         // Calculate new height within constraints
-        const newHeight = Math.min(
-          Math.max(textarea.scrollHeight, minHeight),
-          maxHeight,
-        );
+        const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
 
         // Set the height
         textarea.style.height = `${newHeight}px`;
@@ -105,7 +103,7 @@ export const AutoExpandingTextarea = React.forwardRef<
         {...props}
       />
     );
-  },
+  }
 );
 
 AutoExpandingTextarea.displayName = "AutoExpandingTextarea";

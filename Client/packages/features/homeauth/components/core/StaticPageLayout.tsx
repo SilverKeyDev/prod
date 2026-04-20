@@ -45,12 +45,7 @@ function LegalSuiteNav({ active }: { active: LegalSuiteActive }) {
     >
       {LEGAL_SUITE_LINKS.map((item) =>
         item.key === active ? (
-          <BodyText
-            as="span"
-            key={item.key}
-            size="sm"
-            className="text-text-primary font-semibold"
-          >
+          <BodyText as="span" key={item.key} size="sm" className="text-text-primary font-semibold">
             {item.label}
           </BodyText>
         ) : (
@@ -61,7 +56,7 @@ function LegalSuiteNav({ active }: { active: LegalSuiteActive }) {
           >
             {item.label}
           </Link>
-        ),
+        )
       )}
     </Region>
   );
@@ -112,13 +107,7 @@ export function Bold({ children }: { children: ReactNode }) {
   );
 }
 
-export function EmailLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: ReactNode;
-}) {
+export function EmailLink({ href, children }: { href: string; children: ReactNode }) {
   if (
     href.startsWith("http://") ||
     href.startsWith("https://") ||
@@ -160,9 +149,7 @@ export default function StaticPageLayout({
       <Box className="px-responsive-sm mx-auto w-full max-w-3xl py-8 md:py-12">
         <Box className="mb-8 flex flex-col gap-6">
           <BackButton to={backButtonTo}>{backButtonText}</BackButton>
-          {legalSuiteActive ? (
-            <LegalSuiteNav active={legalSuiteActive} />
-          ) : null}
+          {legalSuiteActive ? <LegalSuiteNav active={legalSuiteActive} /> : null}
           <Box>
             <Title
               as="h1"

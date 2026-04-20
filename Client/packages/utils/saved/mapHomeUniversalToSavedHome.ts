@@ -1,8 +1,9 @@
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { SavedHome } from "packages/types/savedHome";
-import type { PropertySearchListingPriceSource } from "packages/utils/search/formatPropertySearchListingPrice";
-import { formatPropertySearchListingPrice } from "packages/utils/search/formatPropertySearchListingPrice";
+import type { SavedHome } from "packages/types/domain/savedHome";
+import { isLikelyInternalAppListingKey } from "packages/utils/property/listingIdentifier";
+import type { PropertySearchListingPriceSource } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
+import { formatPropertySearchListingPrice } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
 
 // Raw home data structure from API
 export interface RawHomeData {
@@ -43,10 +44,7 @@ export interface PropertyData {
  * beds, baths, sqft, lot_size, image_url; lat/lng from lat|latitude and lng|longitude|lon,
  * validated to valid lat/lng ranges.
  */
-export function mapHomeUniversalToSavedHome(
-  home: unknown,
-  index: number,
-): SavedHome {
+export function mapHomeUniversalToSavedHome(home: unknown, index: number): SavedHome {
   const homeData = home as {
     id?: string;
     home_id?: string;
@@ -64,6 +62,8 @@ export function mapHomeUniversalToSavedHome(
     latitude?: number | string;
     longitude?: number | string;
     lon?: number | string;
+    zpid?: string;
+    mls_home_id?: string;
     [key: string]: unknown;
   };
 
@@ -94,22 +94,17 @@ export function mapHomeUniversalToSavedHome(
         validLng,
         finalLat: lat,
         finalLng: lng,
-      },
+      }
     );
   }
 
   const rawData =
-    homeData.raw_data &&
-    typeof homeData.raw_data === "object" &&
-    !Array.isArray(homeData.raw_data)
+    homeData.raw_data && typeof homeData.raw_data === "object" && !Array.isArray(homeData.raw_data)
       ? (homeData.raw_data as Record<string, unknown>)
       : null;
   const listingSource = {
     ...(rawData ?? {}),
-    price:
-      (homeData.price as string | number | null | undefined) ??
-      rawData?.price ??
-      null,
+    price: (homeData.price as string | number | null | undefined) ?? rawData?.price ?? null,
   } as PropertySearchListingPriceSource;
   const resolvedPrice = formatPropertySearchListingPrice(listingSource);
   const priceString =
@@ -119,48 +114,43 @@ export function mapHomeUniversalToSavedHome(
         ? homeData.price
         : "";
 
+  const zpidRaw = typeof homeData.zpid === "string" ? homeData.zpid.trim() : "";
+  const mlsRaw = typeof homeData.mls_home_id === "string" ? homeData.mls_home_id.trim() : "";
+
   const resolvedHomeId = (() => {
-    if (
-      typeof homeData.home_id === "string" &&
-      homeData.home_id.trim() !== ""
-    ) {
-      return homeData.home_id;
-    }
-    if (typeof homeData.id === "string" && homeData.id.trim() !== "") {
-      return homeData.id;
-    }
-    if (
-      typeof homeData.address === "string" &&
-      homeData.address.trim() !== ""
-    ) {
-      return homeData.address;
+    if (zpidRaw !== "") return zpidRaw;
+    if (mlsRaw !== "") return mlsRaw;
+
+    const hid = typeof homeData.home_id === "string" ? homeData.home_id.trim() : "";
+    const idv = typeof homeData.id === "string" ? homeData.id.trim() : "";
+
+    if (hid !== "" && !isLikelyInternalAppListingKey(hid)) return hid;
+    if (idv !== "" && !isLikelyInternalAppListingKey(idv)) return idv;
+    if (hid !== "") return hid;
+    if (idv !== "") return idv;
+
+    if (typeof homeData.address === "string" && homeData.address.trim() !== "") {
+      return homeData.address.trim();
     }
     return `home_${index}_${Date.now()}`;
   })();
 
   return {
     home_id: resolvedHomeId,
+    ...(zpidRaw !== "" ? { zpid: zpidRaw } : {}),
+    ...(mlsRaw !== "" ? { mls_home_id: mlsRaw } : {}),
     description: homeData.address ?? "",
     address: homeData.address ?? "",
     price: priceString,
     bedrooms: (() => {
       if (homeData.beds != null && String(homeData.beds).trim() !== "") {
-        const parsed = Number.parseInt(
-          String(homeData.beds).replace(/,/g, ""),
-          10,
-        );
+        const parsed = Number.parseInt(String(homeData.beds).replace(/,/g, ""), 10);
         return isNaN(parsed) ? undefined : parsed;
       }
-      if (
-        typeof homeData.bedrooms === "number" &&
-        Number.isFinite(homeData.bedrooms)
-      ) {
+      if (typeof homeData.bedrooms === "number" && Number.isFinite(homeData.bedrooms)) {
         return Math.trunc(homeData.bedrooms);
       }
-      if (
-        typeof homeData.bedrooms === "string" &&
-        homeData.bedrooms.trim() !== ""
-      ) {
+      if (typeof homeData.bedrooms === "string" && homeData.bedrooms.trim() !== "") {
         const parsed = Number.parseInt(homeData.bedrooms.replace(/,/g, ""), 10);
         return isNaN(parsed) ? undefined : parsed;
       }
@@ -168,40 +158,26 @@ export function mapHomeUniversalToSavedHome(
     })(),
     bathrooms: (() => {
       if (homeData.baths != null && String(homeData.baths).trim() !== "") {
-        const parsed = Number.parseInt(
-          String(homeData.baths).replace(/,/g, ""),
-          10,
-        );
+        const parsed = Number.parseInt(String(homeData.baths).replace(/,/g, ""), 10);
         return isNaN(parsed) ? undefined : parsed;
       }
-      if (
-        typeof homeData.bathrooms === "number" &&
-        Number.isFinite(homeData.bathrooms)
-      ) {
+      if (typeof homeData.bathrooms === "number" && Number.isFinite(homeData.bathrooms)) {
         return Math.trunc(homeData.bathrooms);
       }
-      if (
-        typeof homeData.bathrooms === "string" &&
-        homeData.bathrooms.trim() !== ""
-      ) {
-        const parsed = Number.parseInt(
-          homeData.bathrooms.replace(/,/g, ""),
-          10,
-        );
+      if (typeof homeData.bathrooms === "string" && homeData.bathrooms.trim() !== "") {
+        const parsed = Number.parseInt(homeData.bathrooms.replace(/,/g, ""), 10);
         return isNaN(parsed) ? undefined : parsed;
       }
       return undefined;
     })(),
     sqft: (() => {
       const rawSqft = homeData.sqft;
-      if (rawSqft === undefined || rawSqft === null || rawSqft === "")
-        return undefined;
+      if (rawSqft === undefined || rawSqft === null || rawSqft === "") return undefined;
       if (typeof rawSqft === "number" && Number.isFinite(rawSqft)) {
         const n = Math.trunc(rawSqft);
         return n > 0 ? n : undefined;
       }
-      if (typeof rawSqft === "string" && rawSqft.trim() === "")
-        return undefined;
+      if (typeof rawSqft === "string" && rawSqft.trim() === "") return undefined;
       const parsed = Number.parseInt(String(rawSqft).replace(/,/g, ""), 10);
       return isNaN(parsed) || parsed <= 0 ? undefined : parsed;
     })(),

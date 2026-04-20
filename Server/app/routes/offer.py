@@ -154,7 +154,7 @@ def generate_negotiation_strategy(data: NegotiationStrategyRequest | None = None
 
             from ..services.research.graphs.graphic_generation import (
                 GOOGLE_MAPS_ID,
-                fetch_travel_time,
+                fetch_directions_leg,
                 generate_static_map_url,
             )
 
@@ -193,12 +193,17 @@ def generate_negotiation_strategy(data: NegotiationStrategyRequest | None = None
                         if isinstance(location, dict) and "address" in location:
                             location_address = location["address"]
                             location_name = (
-                                location.get("name") or location_address[:40] or f"Location {i + 1}"
+                                location.get("name")
+                                or location.get("label")
+                                or location_address[:40]
+                                or f"Location {i + 1}"
                             )
 
-                            travel_time = fetch_travel_time(
+                            leg = fetch_directions_leg(
                                 property_address, location_address, GOOGLE_MAPS_API_KEY
                             )
+                            travel_time = leg.get("duration_text") if leg else None
+                            encoded_polyline = leg.get("encoded_polyline") if leg else None
 
                             commute_data["travel_times"].append(
                                 {
@@ -206,6 +211,7 @@ def generate_negotiation_strategy(data: NegotiationStrategyRequest | None = None
                                     "address": location_address,
                                     "travel_time": travel_time,
                                     "commute_tolerance": location.get("commute_tolerance", 30),
+                                    "encoded_polyline": encoded_polyline,
                                 }
                             )
 

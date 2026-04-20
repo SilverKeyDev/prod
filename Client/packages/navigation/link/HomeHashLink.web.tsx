@@ -16,12 +16,7 @@ export type HomeHashLinkProps = {
  * Smooth-scroll to a section on `/` when already on home; otherwise navigates to `/#sectionId`
  * and lets {@link useLandingHashScroll} scroll after the route is active.
  */
-export function HomeHashLink({
-  sectionId,
-  className,
-  children,
-  title,
-}: HomeHashLinkProps) {
+export function HomeHashLink({ sectionId, className, children, title }: HomeHashLinkProps) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const href = `${ROUTES.HOME}#${sectionId}`;
@@ -31,18 +26,16 @@ export function HomeHashLink({
       e.preventDefault();
       const onHome = pathname === ROUTES.HOME || pathname === "";
       if (onHome) {
-        document
-          .getElementById(sectionId)
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
         void navigate(
           { pathname: ROUTES.HOME, hash: sectionId },
-          { replace: true, preventScrollReset: true },
+          { replace: true, preventScrollReset: true }
         );
         return;
       }
       void navigate({ pathname: ROUTES.HOME, hash: sectionId });
     },
-    [navigate, pathname, sectionId],
+    [navigate, pathname, sectionId]
   );
 
   return (

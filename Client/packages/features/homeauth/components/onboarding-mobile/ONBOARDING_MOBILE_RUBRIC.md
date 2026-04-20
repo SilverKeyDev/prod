@@ -219,7 +219,7 @@ This rubric defines what “most beautiful and optimized for user experience and
 
 ## References
 
-- Internal: `packages/features/profile/utils/steps.ts` (getOnboardingSteps), `homeauth/components/pages/OnboardingPage.tsx` (web flow).
+- Internal: `packages/features/profile/utils/onboarding/steps.ts` (getOnboardingSteps), `homeauth/components/pages/OnboardingPage.tsx` (web flow).
 - Mobile: `apps/mobile/app/navigation/AuthStack.native.tsx` (Onboarding screen); implement in `homeauth/components/onboarding-mobile/` or `apps/mobile/app/screens/`.
 
 ```

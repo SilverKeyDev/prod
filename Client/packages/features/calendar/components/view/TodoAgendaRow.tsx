@@ -64,7 +64,7 @@ export function TodoAgendaRow({
             <Box className="border-border-card-subtle bg-primary-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
               <Icon name="check" size={18} className="text-primary" />
             </Box>
-            <Box className="min-w-0 flex-1 flex flex-col gap-1">
+            <Box className="flex min-w-0 flex-1 flex-col gap-1">
               <Text className="text-text-primary text-left text-sm font-semibold leading-snug">
                 {todo.title}
               </Text>
@@ -87,7 +87,7 @@ export function TodoAgendaRow({
             <Box className="border-border-card-subtle bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
               <Icon name="file-signature" size={18} className="text-primary" />
             </Box>
-            <Box className="min-w-0 flex-1 flex flex-col gap-1.5">
+            <Box className="flex min-w-0 flex-1 flex-col gap-1.5">
               <Text className="text-text-primary text-left text-sm font-semibold leading-snug">
                 {todo.title}
               </Text>
@@ -129,9 +129,7 @@ export function TodoAgendaRow({
         <Box className="bg-primary w-1" />
         <Box className="flex flex-1 flex-row items-start gap-2 p-3">
           <Pressable
-            onPress={() =>
-              canEditComplete ? onToggleComplete(todo.id) : undefined
-            }
+            onPress={() => (canEditComplete ? onToggleComplete(todo.id) : undefined)}
             disabled={!canEditComplete}
             className={`mt-0.5 h-6 w-6 flex-shrink-0 items-center justify-center rounded border-2 ${
               todo.completed
@@ -141,25 +139,19 @@ export function TodoAgendaRow({
                   : "border-border"
             }`}
           >
-            {todo.completed ? (
-              <Text className="text-xs font-semibold text-white">✓</Text>
-            ) : null}
+            {todo.completed ? <Text className="text-xs font-semibold text-white">✓</Text> : null}
           </Pressable>
           <Box className="min-w-0 flex-1 space-y-1">
             <Text
               className={`text-left text-sm font-semibold ${
-                todo.completed
-                  ? "text-text-disabled line-through"
-                  : "text-text-primary"
+                todo.completed ? "text-text-disabled line-through" : "text-text-primary"
               }`}
             >
               {todo.title}
             </Text>
             {dueLine ? (
               <Box className="flex flex-row flex-wrap items-center gap-2">
-                <Text className="text-text-secondary text-left text-xs">
-                  {dueLine}
-                </Text>
+                <Text className="text-text-secondary text-left text-xs">{dueLine}</Text>
               </Box>
             ) : null}
           </Box>

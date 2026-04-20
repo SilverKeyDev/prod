@@ -10,7 +10,7 @@ alwaysApply: true
 
 ## Overview
 
-All UI components (buttons, text, forms) MUST use standardized components from `Client/apps/web/components/ui/`. Custom implementations are FORBIDDEN unless explicitly approved.
+All UI components (buttons, text, forms) MUST use standardized components from **`Client/packages/ui/`** (import via `packages/ui`, `@/components/ui`, or `@ui` per `Client/tsconfig.base.json`). Custom implementations are FORBIDDEN unless explicitly approved.
 
 ## Standardized Components
 
@@ -21,7 +21,7 @@ All UI components (buttons, text, forms) MUST use standardized components from `
 
 ### Buttons
 
-**Location**: `Client/apps/web/components/ui/button/`
+**Location**: `Client/packages/ui/components/button/`
 
 **Available Components**:
 - `Button` - Main button component with variants (primary, secondary, outline, ghost, danger, success, warning, cancel)
@@ -40,7 +40,7 @@ All UI components (buttons, text, forms) MUST use standardized components from `
 - ✅ ALWAYS use `CancelButton` for cancel actions
 - ✅ ALWAYS use `CloseButton` for closing modals/dialogs
 - ✅ ALWAYS use `IconButton` for icon-only buttons
-- ✅ ALWAYS import from `components/ui` or `components/ui/button/Button`
+- ✅ ALWAYS import from `packages/ui` (barrel), `@/components/ui`, or `@ui` — not ad-hoc paths under `apps/web`
 
 **Examples**:
 
@@ -88,7 +88,7 @@ import { CloseButton } from "../ui";
 
 ### Text Components
 
-**Location**: `Client/apps/web/components/ui/text/`
+**Location**: `Client/packages/ui/components/text/`
 
 **Available Components**:
 - `Title` - Heading component (sizes: sm, md, lg, xl)
@@ -212,7 +212,7 @@ import { SECTION_TITLES, FIELD_LABELS } from "packages/utils/domain/profile/cons
 // ✅ CORRECT: Import from ui/index
 import { Button, CancelButton, CloseButton, Title, BodyText, Label } from "../ui";
 // or
-import { Button } from "../../components/ui";
+import { Button } from "packages/ui";
 ```
 
 **Avoid direct imports from subdirectories** (unless necessary):
@@ -239,14 +239,14 @@ When updating existing code:
    - Search for subtitle-like text → Replace with `Subtitle`
 
 3. **Update imports**:
-   - Add imports from `components/ui`
+   - Add imports from `packages/ui` (or `@/components/ui`)
    - Remove custom button/text implementations
 
 ## Exceptions
 
 The following are allowed exceptions (must be documented):
 
-- Specialized button components in `components/ui/button/` (e.g., `NotInterested`, `HeartSave`) - these are domain-specific
+- Specialized button components in `packages/ui/components/button/` (e.g., `NotInterested`, `HeartSave`) - these are domain-specific
 - Utility CSS classes in `packages/styles/` - these are for internal component styling
 - Email templates - may use inline styles for email compatibility
 

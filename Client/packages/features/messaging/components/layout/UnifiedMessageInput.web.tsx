@@ -4,11 +4,11 @@ import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 
 import { AutoExpandingTextarea } from "@/components/ui";
-import AttachmentMenu from "@/features/agent/components/AttachmentMenu";
+import AttachmentMenu from "@/features/agent/components/messaging/menus/AttachmentMenu";
 import {
   getMessagingConfig,
   type MessagingMode,
-} from "@/features/agent/components/messagingConfig";
+} from "@/features/agent/components/messaging/screen/messagingConfig";
 
 export type UnifiedMessageInputProps = {
   mode: MessagingMode;
@@ -62,9 +62,7 @@ export default function UnifiedMessageInputWeb({
     }
   };
 
-  const hasAttachments = Boolean(
-    onAttachmentHome || onAttachmentCalendar || onAttachmentDocument,
-  );
+  const hasAttachments = Boolean(onAttachmentHome || onAttachmentCalendar || onAttachmentDocument);
 
   return (
     <Box className="border-border bg-background-base flex-shrink-0 border-t p-2 sm:p-3">

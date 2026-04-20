@@ -56,7 +56,7 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
               Try again
             </Button>
             <Link to="/dashboard" className="inline-block">
-              <Button variant="outline" size="md">
+              <Button variant="outline" size="md" iconName="home">
                 Go to Dashboard
               </Button>
             </Link>

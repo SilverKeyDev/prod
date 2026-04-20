@@ -9,7 +9,7 @@ import { agentApi } from "@/features/agent/api/agent";
 export type UseEventRequestsReturn = {
   updateEventRequestStatus: (
     messageId: string,
-    status: "accepted" | "cancelled",
+    status: "accepted" | "cancelled"
   ) => Promise<{ success: boolean; error?: string }>;
   isUpdating: boolean;
 };
@@ -29,14 +29,9 @@ export function useEventRequests(): UseEventRequestsReturn {
       messageId: string;
       status: "accepted" | "cancelled";
     }) => {
-      const response = await agentApi.updateEventRequestStatus(
-        messageId,
-        status,
-      );
+      const response = await agentApi.updateEventRequestStatus(messageId, status);
       if (!response.success) {
-        throw new Error(
-          response.error ?? "Failed to update event request status",
-        );
+        throw new Error(response.error ?? "Failed to update event request status");
       }
       return response;
     },
@@ -54,11 +49,11 @@ export function useEventRequests(): UseEventRequestsReturn {
   const updateEventRequestStatus = useCallback(
     async (
       messageId: string,
-      status: "accepted" | "cancelled",
+      status: "accepted" | "cancelled"
     ): Promise<{ success: boolean; error?: string }> => {
       return await updateStatusMutation.mutateAsync({ messageId, status });
     },
-    [updateStatusMutation],
+    [updateStatusMutation]
   );
 
   return {

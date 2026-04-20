@@ -32,11 +32,7 @@ export function LandingBrokerages() {
               key={pillar.title}
               className="flex min-w-0 flex-col gap-2 text-center md:text-left"
             >
-              <Title
-                as="h3"
-                size="sm"
-                className="text-text-primary font-medium"
-              >
+              <Title as="h3" size="sm" className="text-text-primary font-medium">
                 {pillar.title}
               </Title>
               <BodyText as="p" size="sm" muted>

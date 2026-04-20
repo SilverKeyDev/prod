@@ -5,17 +5,13 @@ import type {
 
 export function addFeatureFields(
   fields: CompareHomesComparisonField[],
-  comparisonData: CompareHomesPropertyDetails[],
+  comparisonData: CompareHomesPropertyDetails[]
 ): void {
   const hasCombinedFeatures = comparisonData.some((h) => {
-    if (h.combinedFeatures && typeof h.combinedFeatures === "object")
-      return true;
+    if (h.combinedFeatures && typeof h.combinedFeatures === "object") return true;
     if (h.features && typeof h.features === "object") {
       const features = h.features as Record<string, unknown>;
-      return (
-        features._combined_features &&
-        typeof features._combined_features === "object"
-      );
+      return features._combined_features && typeof features._combined_features === "object";
     }
     return false;
   });
@@ -46,17 +42,13 @@ export function addFeatureFields(
 
         if (preferred.length > 0) {
           displayParts.push(
-            `✓ ${preferred.slice(0, 3).join(", ")}${
-              preferred.length > 3 ? "..." : ""
-            }`,
+            `✓ ${preferred.slice(0, 3).join(", ")}${preferred.length > 3 ? "..." : ""}`
           );
         }
 
         if (dealbreakers.length > 0) {
           displayParts.push(
-            `⚠ ${dealbreakers.slice(0, 2).join(", ")}${
-              dealbreakers.length > 2 ? "..." : ""
-            }`,
+            `⚠ ${dealbreakers.slice(0, 2).join(", ")}${dealbreakers.length > 2 ? "..." : ""}`
           );
         }
 
@@ -77,9 +69,7 @@ export function addFeatureFields(
     return;
   }
 
-  const hasFeatures = comparisonData.some(
-    (h) => h.features && typeof h.features === "object",
-  );
+  const hasFeatures = comparisonData.some((h) => h.features && typeof h.features === "object");
   if (hasFeatures) {
     fields.push({
       key: "features",
@@ -94,15 +84,14 @@ export function addFeatureFields(
           }
         });
         return featureList.length > 0
-          ? featureList.slice(0, 5).join("; ") +
-              (featureList.length > 5 ? "..." : "")
+          ? featureList.slice(0, 5).join("; ") + (featureList.length > 5 ? "..." : "")
           : "-";
       },
     });
   }
 
   const hasImageFeatures = comparisonData.some(
-    (h) => h.imageFeatures && typeof h.imageFeatures === "object",
+    (h) => h.imageFeatures && typeof h.imageFeatures === "object"
   );
   if (hasImageFeatures) {
     fields.push({
@@ -117,8 +106,7 @@ export function addFeatureFields(
         if (imgFeatures.error) return "-";
         if (Array.isArray(imgFeatures.clean) && imgFeatures.clean.length > 0) {
           return (
-            imgFeatures.clean.slice(0, 5).join("; ") +
-            (imgFeatures.clean.length > 5 ? "..." : "")
+            imgFeatures.clean.slice(0, 5).join("; ") + (imgFeatures.clean.length > 5 ? "..." : "")
           );
         }
         return "-";

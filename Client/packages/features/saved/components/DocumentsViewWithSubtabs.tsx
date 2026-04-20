@@ -22,9 +22,7 @@ type DocumentsViewWithSubtabsProps = {
   documentsLoading: boolean;
   onDocumentDelete: (document: DocumentData) => void;
   documentActionHandlers?: DocumentCardExternalActionHandlers;
-  onFormSendForSignature?: (
-    form: import("packages/features/documents").ChecklistForm,
-  ) => void;
+  onFormSendForSignature?: (form: import("packages/features/documents").ChecklistForm) => void;
   isAgent: boolean;
   containerClass: string;
 };
@@ -39,8 +37,7 @@ export default function DocumentsViewWithSubtabs({
   containerClass,
 }: DocumentsViewWithSubtabsProps) {
   const { t } = useLocalization();
-  const [documentSubtab, setDocumentSubtab] =
-    useState<DocumentsViewSubtab>("my-documents");
+  const [documentSubtab, setDocumentSubtab] = useState<DocumentsViewSubtab>("my-documents");
 
   // Only show Forms Library tab to agents
   const subtabItems = isAgent
@@ -83,20 +80,14 @@ export default function DocumentsViewWithSubtabs({
       {documentSubtab === "my-documents" && (
         <>
           {documentsLoading && (
-            <Box
-              className={`${containerClass} py-responsive-lg flex justify-center`}
-            >
+            <Box className={`${containerClass} py-responsive-lg flex justify-center`}>
               <KeyTurnLoader message={t("saved.loading_documents")} />
             </Box>
           )}
 
           {!documentsLoading && documents.length === 0 && (
             <Box className={`${containerClass} py-responsive-lg text-center`}>
-              <BodyText
-                as="p"
-                size="sm"
-                className="text-responsive-sm text-text-secondary"
-              >
+              <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
                 {t("saved.no_documents_yet")}
               </BodyText>
             </Box>

@@ -26,10 +26,7 @@ export const secureUploadApi = {
   /**
    * Upload a document file
    */
-  uploadDocument: (
-    file: File,
-    metadata?: Record<string, unknown>,
-  ): Promise<UploadResponse> => {
+  uploadDocument: (file: File, metadata?: Record<string, unknown>): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("file", file);
     if (metadata) {
@@ -41,10 +38,7 @@ export const secureUploadApi = {
   /**
    * Upload an image file
    */
-  uploadImage: (
-    file: File,
-    metadata?: Record<string, unknown>,
-  ): Promise<UploadResponse> => {
+  uploadImage: (file: File, metadata?: Record<string, unknown>): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("file", file);
     if (metadata) {
@@ -85,13 +79,8 @@ export const secureUploadApi = {
   /**
    * Delete a document by ID
    */
-  deleteDocument: (
-    docId: string,
-  ): Promise<{ success: boolean; error?: string }> =>
-    apiRequest<{ success: boolean; error?: string }>(
-      `/api/v1/documents/${docId}`,
-      {
-        method: "DELETE",
-      },
-    ),
+  deleteDocument: (docId: string): Promise<{ success: boolean; error?: string }> =>
+    apiRequest<{ success: boolean; error?: string }>(`/api/v1/documents/${docId}`, {
+      method: "DELETE",
+    }),
 };

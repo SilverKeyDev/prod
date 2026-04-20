@@ -14,32 +14,19 @@ import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
 import {
   getMessagingConfig,
   type MessagingMode,
-} from "@/features/agent/components/messagingConfig";
-import { ConnectionRequestsInbox } from "@/features/agent/components/modals/ConnectionRequestsInbox";
+} from "@/features/agent/components/messaging/screen/messagingConfig";
+import { ConnectionRequestsInbox } from "@/features/agent/components/modals/inbox/ConnectionRequestsInbox";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 
-function MessagingSidebarAvatar({
-  name,
-  imageUrl,
-}: {
-  name: string;
-  imageUrl?: string | null;
-}) {
+function MessagingSidebarAvatar({ name, imageUrl }: { name: string; imageUrl?: string | null }) {
   return (
     <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100">
-      <ProfileAvatar
-        imageUrl={imageUrl}
-        label={name}
-        imageClassName="h-full w-full object-cover"
-      />
+      <ProfileAvatar imageUrl={imageUrl} label={name} imageClassName="h-full w-full object-cover" />
     </Box>
   );
 }
 
-function compareConversationsByRecency(
-  a: AgentConversation,
-  b: AgentConversation,
-): number {
+function compareConversationsByRecency(a: AgentConversation, b: AgentConversation): number {
   const taRaw = a.last_message_at ?? a.updated_at;
   const tbRaw = b.last_message_at ?? b.updated_at;
   if (!taRaw && !tbRaw) return 0;
@@ -88,13 +75,11 @@ export default function UnifiedMessagingSidebar({
   const config = getMessagingConfig(mode);
   const { requests: pendingConnectionRequests } = useConnectionRequests();
   const pendingConnectionRequestCount = pendingConnectionRequests.length;
-  const conversationMap = new Map(
-    conversations.map((conv) => [conv.client_id, conv]),
-  );
+  const conversationMap = new Map(conversations.map((conv) => [conv.client_id, conv]));
 
   const sortedClientConversations = useMemo(
     () => [...clientConversations].sort(compareConversationsByRecency),
-    [clientConversations],
+    [clientConversations]
   );
 
   const renderSidebarContent = () => {
@@ -108,10 +93,7 @@ export default function UnifiedMessagingSidebar({
       );
     }
     if (mode === "client") {
-      if (
-        isLoadingClientConversations &&
-        sortedClientConversations.length === 0
-      ) {
+      if (isLoadingClientConversations && sortedClientConversations.length === 0) {
         return (
           <Box className="flex h-full items-center justify-center p-3">
             <Box className="text-center">
@@ -125,10 +107,7 @@ export default function UnifiedMessagingSidebar({
           <Box className="flex h-full items-center justify-center p-3">
             <Box className="text-center">
               <Box className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
-                <Icon
-                  name="message-circle"
-                  className="h-6 w-6 text-neutral-400"
-                />
+                <Icon name="message-circle" className="h-6 w-6 text-neutral-400" />
               </Box>
               <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
                 {config.sidebar.emptyMessage}
@@ -163,9 +142,7 @@ export default function UnifiedMessagingSidebar({
                   }
                 }}
                 className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${
-                  activeConversationId === conv.id
-                    ? "border-l-olive bg-olive/10 border-l-4"
-                    : ""
+                  activeConversationId === conv.id ? "border-l-olive bg-olive/10 border-l-4" : ""
                 }`}
               >
                 <Box className="flex items-center gap-3">
@@ -174,32 +151,19 @@ export default function UnifiedMessagingSidebar({
                     imageUrl={conv.agent_profile_picture}
                   />
                   <Box className="min-w-0 flex-1">
-                    <Title
-                      as="h3"
-                      size="sm"
-                      className="mb-1 truncate font-medium text-neutral-800"
-                    >
+                    <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                       {displayName}
                     </Title>
                     {messagePreview ? (
-                      <BodyText
-                        as="p"
-                        className="truncate text-xs text-neutral-600"
-                      >
+                      <BodyText as="p" className="truncate text-xs text-neutral-600">
                         {messagePreview}
                       </BodyText>
                     ) : conv.agent_email ? (
-                      <BodyText
-                        as="p"
-                        className="truncate text-xs text-neutral-600"
-                      >
+                      <BodyText as="p" className="truncate text-xs text-neutral-600">
                         {conv.agent_email}
                       </BodyText>
                     ) : (
-                      <BodyText
-                        as="p"
-                        className="truncate text-xs text-neutral-600"
-                      >
+                      <BodyText as="p" className="truncate text-xs text-neutral-600">
                         {t("agent.role_agent")}
                       </BodyText>
                     )}
@@ -226,10 +190,7 @@ export default function UnifiedMessagingSidebar({
         <Box className="flex h-full items-center justify-center p-3">
           <Box className="text-center">
             <Box className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
-              <Icon
-                name="message-circle"
-                className="h-6 w-6 text-neutral-400"
-              />
+              <Icon name="message-circle" className="h-6 w-6 text-neutral-400" />
             </Box>
             <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
               {config.sidebar.emptyMessage}
@@ -264,47 +225,29 @@ export default function UnifiedMessagingSidebar({
                 }
               }}
               className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${
-                selectedClientId === client.id
-                  ? "border-l-olive bg-olive/10 border-l-4"
-                  : ""
+                selectedClientId === client.id ? "border-l-olive bg-olive/10 border-l-4" : ""
               }`}
             >
               <Box className="flex items-center gap-3">
                 <MessagingSidebarAvatar
                   name={client.name}
-                  imageUrl={
-                    client.profile_picture ??
-                    conversation?.client_profile_picture
-                  }
+                  imageUrl={client.profile_picture ?? conversation?.client_profile_picture}
                 />
                 <Box className="min-w-0 flex-1">
-                  <Title
-                    as="h3"
-                    size="sm"
-                    className="mb-1 truncate font-medium text-neutral-800"
-                  >
+                  <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                     {client.name}
                   </Title>
                   {messagePreview ? (
-                    <BodyText
-                      as="p"
-                      className="truncate text-xs text-neutral-600"
-                    >
+                    <BodyText as="p" className="truncate text-xs text-neutral-600">
                       {messagePreview}
                     </BodyText>
                   ) : (
-                    <BodyText
-                      as="p"
-                      className="truncate text-xs text-neutral-600"
-                    >
+                    <BodyText as="p" className="truncate text-xs text-neutral-600">
                       {t("agent.role_buyer")}
                     </BodyText>
                   )}
                   {client.phone && !messagePreview && (
-                    <BodyText
-                      as="p"
-                      className="truncate text-xs text-neutral-500"
-                    >
+                    <BodyText as="p" className="truncate text-xs text-neutral-500">
                       {client.phone}
                     </BodyText>
                   )}
@@ -337,9 +280,7 @@ export default function UnifiedMessagingSidebar({
             ? "z-sidebar absolute bottom-0 left-0 top-0 flex h-full w-80 translate-x-0 xl:relative xl:z-0"
             : "hidden -translate-x-full xl:flex xl:translate-x-0"
         } flex-col transition-transform duration-300 ease-in-out xl:w-80 ${
-          isSidebarExpanded
-            ? "rounded-xl shadow-xl xl:rounded-l-xl xl:shadow-none"
-            : ""
+          isSidebarExpanded ? "rounded-xl shadow-xl xl:rounded-l-xl xl:shadow-none" : ""
         }`}
       >
         <UnifiedMessagingHeader

@@ -10,16 +10,12 @@ import Title from "packages/ui/components/text/Title";
 
 const COLLAPSED_LINE_CLAMP = 4;
 
-export const PropertyDescription: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyDescription: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
   const [expanded, setExpanded] = useState(false);
 
-  const description = (property as unknown as Record<string, unknown>)
-    .description;
-  if (!description || typeof description !== "string" || !description.trim())
-    return null;
+  const description = (property as unknown as Record<string, unknown>).description;
+  if (!description || typeof description !== "string" || !description.trim()) return null;
 
   const text = description.trim();
   const isLong = text.length > 300;
@@ -27,12 +23,7 @@ export const PropertyDescription: React.FC<PropertyComponentProps> = ({
   return (
     <Box className="px-6 py-6">
       <Box className="mb-4 flex flex-row items-center gap-2">
-        <Icon
-          name="file-text"
-          size={20}
-          className="text-text-primary shrink-0"
-          aria-hidden
-        />
+        <Icon name="file-text" size={20} className="text-text-primary shrink-0" aria-hidden />
         <Title as="h3" size="lg" className="text-foreground font-semibold">
           {t("property_details.description_heading", {
             defaultValue: "About This Home",

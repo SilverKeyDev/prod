@@ -7,11 +7,7 @@ import { getDocument, getWindow } from "packages/utils/platform";
 import type { PopoverProps, PopoverSide } from "./Popover.types";
 import { usePopoverState } from "./usePopoverState";
 
-function panelPortalTransform(
-  side: PopoverSide,
-  left: number,
-  top: number,
-): string {
+function panelPortalTransform(side: PopoverSide, left: number, top: number): string {
   const base = `translate(${left}px, ${top}px)`;
   if (side === "left") {
     return `${base} translate(-100%, 0)`;
@@ -49,10 +45,7 @@ export default function Popover({
   panelStack = "page",
 }: PopoverProps): React.ReactElement {
   const panelZ = PANEL_Z_BY_STACK[panelStack];
-  const { open, onToggle, onClose } = usePopoverState(
-    controlledOpen,
-    onOpenChange,
-  );
+  const { open, onToggle, onClose } = usePopoverState(controlledOpen, onOpenChange);
   const triggerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const outsideSafeTargetsRef = useRef(new Set<HTMLElement>());
@@ -75,7 +68,7 @@ export default function Popover({
         const triggerEl = triggerRef.current;
         const first =
           triggerEl?.querySelector<HTMLElement>(
-            'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+            'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
           ) ?? (triggerEl as HTMLElement);
         first?.focus();
         onClose();
@@ -99,10 +92,7 @@ export default function Popover({
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       const node = (e.target as Node) ?? null;
       if (!node) return;
-      if (
-        triggerRef.current?.contains(node) ||
-        panelRef.current?.contains(node)
-      ) {
+      if (triggerRef.current?.contains(node) || panelRef.current?.contains(node)) {
         return;
       }
       for (const el of outsideSafeTargetsRef.current) {
@@ -113,7 +103,7 @@ export default function Popover({
       const triggerEl = triggerRef.current;
       const first =
         triggerEl?.querySelector<HTMLElement>(
-          'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
         ) ?? (triggerEl as HTMLElement);
       first?.focus();
       onClose();
@@ -135,7 +125,7 @@ export default function Popover({
     if (!win || typeof win.requestAnimationFrame !== "function") return;
     const id = win.requestAnimationFrame(() => {
       const first = panelRef.current?.querySelector<HTMLElement>(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
       );
       first?.focus();
     });
@@ -164,21 +154,12 @@ export default function Popover({
 
   return (
     <Box className={`relative flex flex-row ${className}`.trim()}>
-      <Box
-        ref={triggerRef}
-        className={triggerWrapperClassName || undefined}
-        tabIndex={-1}
-      >
+      <Box ref={triggerRef} className={triggerWrapperClassName || undefined} tabIndex={-1}>
         {trigger({ open, onToggle, panelId })}
       </Box>
       {usePortal && open ? (
         <Portal>
-          <PanelPortal
-            panelZ={panelZ}
-            triggerRef={triggerRef}
-            open={open}
-            side={side}
-          >
+          <PanelPortal panelZ={panelZ} triggerRef={triggerRef} open={open} side={side}>
             {panelContent}
           </PanelPortal>
         </Portal>
@@ -205,7 +186,7 @@ function updatePanelPosition(
   triggerRef: React.RefObject<HTMLDivElement | null>,
   side: PopoverSide,
   triggerPanelGap: number,
-  setPosition: (p: { top: number; left: number }) => void,
+  setPosition: (p: { top: number; left: number }) => void
 ) {
   if (!triggerRef.current) return;
   const rect = triggerRef.current.getBoundingClientRect();

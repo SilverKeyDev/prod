@@ -3,7 +3,7 @@
  * with status-specific colors for pending, sold, rent, and off-market.
  */
 import type { ScoreColors } from "./scoreColors";
-import { getScoreBasedColorForMap } from "./scoreColors";
+import { getMatchScoreGradientColors } from "./scoreColors";
 
 export type MapPinListingCategory =
   | "active"
@@ -54,9 +54,7 @@ function hexToScoreColors(fillHex: string, strokeHex: string): ScoreColors {
 /**
  * Normalizes API strings (e.g. "For Sale", "FOR_SALE", "Pending") for map styling.
  */
-export function categorizeListingStatusForMap(
-  raw: string | undefined,
-): MapPinListingCategory {
+export function categorizeListingStatusForMap(raw: string | undefined): MapPinListingCategory {
   if (raw == null || String(raw).trim() === "") {
     return "active";
   }
@@ -76,11 +74,7 @@ export function categorizeListingStatusForMap(
   if (compact.includes("RENT") || compact === "FOR_RENT") {
     return "rent";
   }
-  if (
-    compact.includes("OFF_MARKET") ||
-    compact === "OFFMARKET" ||
-    compact.includes("DELISTED")
-  ) {
+  if (compact.includes("OFF_MARKET") || compact === "OFFMARKET" || compact.includes("DELISTED")) {
     return "off_market";
   }
   if (
@@ -99,18 +93,18 @@ export function categorizeListingStatusForMap(
 }
 
 /**
- * Pin fill/stroke for Advanced Marker: score gradient for active/unknown; fixed palette otherwise.
+ * Listing-aware pin/card colors: active/unknown use tiered `getMatchScoreGradientColors(score)`; other statuses use fixed hexes.
  */
 export function getMapPinColorsForScoreAndStatus(
   score: number,
   listingStatus?: string,
-  homeStatus?: string,
+  homeStatus?: string
 ): ScoreColors {
   const raw = listingStatus ?? homeStatus;
   const category = categorizeListingStatusForMap(raw);
 
   if (category === "active" || category === "unknown") {
-    return getScoreBasedColorForMap(score);
+    return getMatchScoreGradientColors(score);
   }
 
   switch (category) {
@@ -123,7 +117,7 @@ export function getMapPinColorsForScoreAndStatus(
     case "off_market":
       return hexToScoreColors(MAP_PIN_STATUS_HEX.off_market, "#57534E");
     default:
-      return getScoreBasedColorForMap(score);
+      return getMatchScoreGradientColors(score);
   }
 }
 
@@ -140,15 +134,11 @@ export type NativeMapPinColorParams = {
 /**
  * Single marker color for react-native-maps default pin.
  */
-export function getNativeMapPinColorHex(
-  params: NativeMapPinColorParams,
-): string {
+export function getNativeMapPinColorHex(params: NativeMapPinColorParams): string {
   if (params.isFocused) {
     return params.focusedColor;
   }
-  const category = categorizeListingStatusForMap(
-    params.listingStatus ?? params.homeStatus,
-  );
+  const category = categorizeListingStatusForMap(params.listingStatus ?? params.homeStatus);
   switch (category) {
     case "pending":
       return MAP_PIN_STATUS_HEX.pending;

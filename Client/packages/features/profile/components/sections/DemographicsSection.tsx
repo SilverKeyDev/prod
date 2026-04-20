@@ -1,8 +1,10 @@
 import React from "react";
 
 import {
+  PROFILE_FIELDS_ROW_PROPS,
+  ProfileFullWidthField,
   ProfileSectionBody,
-  useHidePersonalizationStepHeading,
+  useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Box } from "packages/ui/components/primitives";
@@ -11,7 +13,7 @@ import AlignedRow from "@/components/layout/AlignedRow";
 import { Dropdown, Input, Title } from "@/components/ui";
 import ProfilePictureUpload from "@/features/profile/components/profilePicture/ProfilePictureUpload";
 import Label from "@/features/profile/components/settings/inputs/Label";
-import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";
+import OptionTagInput from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
 import {
   effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
@@ -46,12 +48,10 @@ const HAS_BUYERS_AGENT_OPTIONS = [
 
 function getOptionLabel(
   options: readonly { value: string; label: string }[],
-  value: string | undefined,
+  value: string | undefined
 ): string {
   if (!value) return PROFILE_NOT_SPECIFIED_LABEL;
-  return (
-    options.find((o) => o.value === value)?.label ?? PROFILE_NOT_SPECIFIED_LABEL
-  );
+  return options.find((o) => o.value === value)?.label ?? PROFILE_NOT_SPECIFIED_LABEL;
 }
 
 export default function DemographicsSection({
@@ -62,7 +62,7 @@ export default function DemographicsSection({
   hideNameWhenOnboarding = false,
   showAgentChoice = true,
 }: DemographicsSectionProps) {
-  const hideStepHeading = useHidePersonalizationStepHeading();
+  const showSectionTitle = useShowPersonalizationSectionBodyTitle();
   const authIsAgent = useIsAgent();
   const showBuyerFacingDemographics = !effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
@@ -70,7 +70,7 @@ export default function DemographicsSection({
   });
   return (
     <>
-      {!hideStepHeading && (
+      {showSectionTitle && (
         <Title size="md" className="mb-6">
           About You
         </Title>
@@ -85,9 +85,7 @@ export default function DemographicsSection({
 
         {!hideNameWhenOnboarding && (
           <AlignedRow
-            breakIntoRows="lg"
-            gap="lg"
-            justify="start"
+            {...PROFILE_FIELDS_ROW_PROPS}
             items={[
               {
                 title: <Label className="mb-0">{FIELD_LABELS.NAME}</Label>,
@@ -104,7 +102,7 @@ export default function DemographicsSection({
                 ) : (
                   <Box
                     className={`mobile-input bg-background-base mt-2 ${profileFieldValueClassName(
-                      formData.name,
+                      formData.name
                     )}`}
                   >
                     {formData.name ?? PROFILE_NOT_SPECIFIED_LABEL}
@@ -120,9 +118,7 @@ export default function DemographicsSection({
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       updateFormData(
                         "age",
-                        e.target.value
-                          ? parseInt(e.target.value, 10)
-                          : undefined,
+                        e.target.value ? parseInt(e.target.value, 10) : undefined
                       )
                     }
                     placeholder="Enter your age"
@@ -133,7 +129,7 @@ export default function DemographicsSection({
                 ) : (
                   <Box
                     className={`mobile-input bg-background-base mt-2 ${profileFieldValueClassName(
-                      formData.age,
+                      formData.age
                     )}`}
                   >
                     {formData.age ?? PROFILE_NOT_SPECIFIED_LABEL}
@@ -146,9 +142,7 @@ export default function DemographicsSection({
 
         {/* Are you a real estate agent? + Age (when name hidden) - agent choice only shown during onboarding */}
         <AlignedRow
-          breakIntoRows="lg"
-          gap="lg"
-          justify="start"
+          {...PROFILE_FIELDS_ROW_PROPS}
           items={[
             ...(showAgentChoice
               ? [
@@ -159,12 +153,12 @@ export default function DemographicsSection({
                         value={formData.is_agent ?? ""}
                         onChange={(value) => updateFormData("is_agent", value)}
                         options={IS_AGENT_OPTIONS}
-                        placeholder="Select..."
+                        placeholder="Select whether you are an agent"
                       />
                     ) : (
                       <Box
                         className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                          formData.is_agent,
+                          formData.is_agent
                         )}`}
                       >
                         {getOptionLabel(IS_AGENT_OPTIONS, formData.is_agent)}
@@ -184,9 +178,7 @@ export default function DemographicsSection({
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           updateFormData(
                             "age",
-                            e.target.value
-                              ? parseInt(e.target.value, 10)
-                              : undefined,
+                            e.target.value ? parseInt(e.target.value, 10) : undefined
                           )
                         }
                         placeholder="Enter your age"
@@ -196,7 +188,7 @@ export default function DemographicsSection({
                     ) : (
                       <Box
                         className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                          formData.age,
+                          formData.age
                         )}`}
                       >
                         {formData.age ?? PROFILE_NOT_SPECIFIED_LABEL}
@@ -211,71 +203,55 @@ export default function DemographicsSection({
         {showBuyerFacingDemographics ? (
           <>
             {/* Why are you joining SilverKey? (multiselect tags) */}
-            <Box>
-              <Label>{FIELD_LABELS.WHY_JOINING_SILVERKEY}</Label>
-              <Box className="mt-2">
-                <OptionTagInput
-                  options={WHY_JOINING_SILVERKEY_OPTIONS}
-                  value={(formData.why_joining_silverkey as string[]) ?? []}
-                  onChange={(value: string[]) =>
-                    updateFormData("why_joining_silverkey", value)
-                  }
-                  isEditMode={isEditMode}
-                />
-              </Box>
-            </Box>
+            <ProfileFullWidthField label={<Label>{FIELD_LABELS.WHY_JOINING_SILVERKEY}</Label>}>
+              <OptionTagInput
+                options={WHY_JOINING_SILVERKEY_OPTIONS}
+                value={(formData.why_joining_silverkey as string[]) ?? []}
+                onChange={(value: string[]) => updateFormData("why_joining_silverkey", value)}
+                isEditMode={isEditMode}
+              />
+            </ProfileFullWidthField>
 
             {/* Buyer's Agent Section */}
-            <Box>
-              <AlignedRow
-                breakIntoRows="lg"
-                gap="lg"
-                justify="start"
-                items={[
-                  {
-                    title: <Label>{FIELD_LABELS.HAS_BUYERS_AGENT}</Label>,
-                    content: isEditMode ? (
-                      <Dropdown
-                        value={formData.has_buyers_agent ?? ""}
-                        onChange={(value) =>
-                          updateFormData("has_buyers_agent", value)
-                        }
-                        options={HAS_BUYERS_AGENT_OPTIONS}
-                        placeholder="Select..."
-                      />
+            <AlignedRow
+              {...PROFILE_FIELDS_ROW_PROPS}
+              items={[
+                {
+                  title: <Label>{FIELD_LABELS.HAS_BUYERS_AGENT}</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.has_buyers_agent ?? ""}
+                      onChange={(value) => updateFormData("has_buyers_agent", value)}
+                      options={HAS_BUYERS_AGENT_OPTIONS}
+                      placeholder="Select buyer's agent status"
+                    />
+                  ) : (
+                    <Box
+                      className={`mobile-input bg-background-base ${profileFieldValueClassName(
+                        formData.has_buyers_agent
+                      )}`}
+                    >
+                      {getOptionLabel(HAS_BUYERS_AGENT_OPTIONS, formData.has_buyers_agent)}
+                    </Box>
+                  ),
+                },
+                {
+                  title:
+                    formData.has_buyers_agent === "no" ? (
+                      <Label>Looking for Agent?</Label>
                     ) : (
-                      <Box
-                        className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                          formData.has_buyers_agent,
-                        )}`}
-                      >
-                        {getOptionLabel(
-                          HAS_BUYERS_AGENT_OPTIONS,
-                          formData.has_buyers_agent,
-                        )}
-                      </Box>
+                      <Box className="mb-2 block text-sm font-medium text-transparent">&nbsp;</Box>
                     ),
-                  },
-                  {
-                    title:
-                      formData.has_buyers_agent === "no" ? (
-                        <Label>Looking for Agent?</Label>
-                      ) : (
-                        <Box className="mb-2 block text-sm font-medium text-transparent">
-                          &nbsp;
-                        </Box>
-                      ),
-                    content: (
-                      <DemographicsLookingForAgentCell
-                        formData={formData}
-                        isEditMode={isEditMode}
-                        updateFormData={updateFormData}
-                      />
-                    ),
-                  },
-                ]}
-              />
-            </Box>
+                  content: (
+                    <DemographicsLookingForAgentCell
+                      formData={formData}
+                      isEditMode={isEditMode}
+                      updateFormData={updateFormData}
+                    />
+                  ),
+                },
+              ]}
+            />
           </>
         ) : null}
       </ProfileSectionBody>

@@ -14,26 +14,19 @@ import { useConnectionRequests } from "@/features/agent/hooks/data/useConnection
 import UnifiedMessageInput from "@/features/messaging/components/layout/UnifiedMessageInput";
 import UnifiedMessagesList from "@/features/messaging/components/layout/UnifiedMessagesList";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
-import {
-  isSameMessagingUserId,
-  resolvePrimaryAgentId,
-} from "@/features/messaging/utils";
+import { isSameMessagingUserId, resolvePrimaryAgentId } from "@/features/messaging/utils";
 
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
 
 type ClientMessagingProps = {
-  setMobileHeaderActions?: React.Dispatch<
-    React.SetStateAction<ReactNode | null>
-  >;
+  setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
 };
 
-export default function ClientMessaging({
-  setMobileHeaderActions,
-}: ClientMessagingProps = {}) {
+export default function ClientMessaging({ setMobileHeaderActions }: ClientMessagingProps = {}) {
   const { userProfile } = useUserData();
   const agentId = useMemo(
     () => resolvePrimaryAgentId(userProfile?.agent_id),
-    [userProfile?.agent_id],
+    [userProfile?.agent_id]
   );
 
   const {
@@ -44,7 +37,7 @@ export default function ClientMessaging({
     activeConversation,
     conversations,
     sendMessage: sendMessageApi,
-    sendSharedHome,
+    sendSharedHomes,
     sendSharedDocument,
     retryMessage,
     refreshActiveConversationHistory,
@@ -61,9 +54,7 @@ export default function ClientMessaging({
   const clientConversations = useMemo(() => {
     if (!conversations.length) return [];
     if (!userProfile?.id) return conversations;
-    const mine = conversations.filter((c) =>
-      isSameMessagingUserId(c.client_id, userProfile.id),
-    );
+    const mine = conversations.filter((c) => isSameMessagingUserId(c.client_id, userProfile.id));
     return mine.length > 0 ? mine : conversations;
   }, [conversations, userProfile?.id]);
 
@@ -102,14 +93,14 @@ export default function ClientMessaging({
     setAcceptingEventRequestId,
     refreshActiveConversationHistory,
     refreshChats,
-    sendSharedHome,
+    sendSharedHomes,
     sendSharedDocument,
   });
 
   const { messagesEndRef } = useMessageScroll(
     localMessages,
     activeConversationId,
-    isLoadingHistory,
+    isLoadingHistory
   );
 
   const messageRef = useRef(message);
@@ -154,7 +145,7 @@ export default function ClientMessaging({
         onBackClick={() => setShowInbox(false)}
         pendingConnectionRequestCount={pendingConnectionRequestCount}
         agentName={activeConversation?.agent_name}
-      />,
+      />
     );
     return () => {
       headerContentKeyRef.current = null;
@@ -250,7 +241,7 @@ export default function ClientMessaging({
         setShowSelectDocumentModal={setShowSelectDocumentModal}
         showCalendarEventModal={showCalendarEventModal}
         setShowCalendarEventModal={setShowCalendarEventModal}
-        onSelectHome={handlers.handleSelectHome}
+        onSelectHomes={handlers.handleSelectHomes}
         onSelectDocument={handlers.handleSelectDocument}
         onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
         sendCalendarEventMessage={sendMessageApi}

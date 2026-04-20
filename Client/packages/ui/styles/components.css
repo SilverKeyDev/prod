@@ -113,9 +113,16 @@
   }
 
   /*
-   * Range slider (web): one gradient track layer (CSS vars for stops) + stacked inputs with
-   * transparent native tracks and visible thumbs only. Stops use the same 0–100% as input values.
+   * Range slider (web): gradient track + transparent native tracks with visible thumbs.
+   * Thumb center travels along (100% - thumb) inside the full width; gradient stops must use
+   * the same inset so fill edges match the knobs. Unitless vars: --sk-range-val / --sk-range-min /
+   * --sk-range-max in 0–100 (not 0%–100%). --sk-range-thumb is set on .sk-range-slider-root.
    */
+  /* Optional wrapper: sets thumb size for track math and pseudo-elements (inherit). */
+  .sk-range-slider-root {
+    --sk-range-thumb: 1.25rem;
+  }
+
   .sk-range-track-dual {
     pointer-events: none;
     position: absolute;
@@ -127,11 +134,27 @@
     transform: translateY(-50%);
     background: linear-gradient(
       to right,
-      var(--sk-track) 0%,
-      var(--sk-track) var(--sk-range-min, 0%),
-      var(--sk-fill) var(--sk-range-min, 0%),
-      var(--sk-fill) var(--sk-range-max, 100%),
-      var(--sk-track) var(--sk-range-max, 100%),
+      var(--sk-track) 0,
+      var(--sk-track)
+        calc(
+          var(--sk-range-thumb, 1.25rem) / 2 + (100% - var(--sk-range-thumb, 1.25rem)) *
+            var(--sk-range-min, 0) / 100
+        ),
+      var(--sk-fill)
+        calc(
+          var(--sk-range-thumb, 1.25rem) / 2 + (100% - var(--sk-range-thumb, 1.25rem)) *
+            var(--sk-range-min, 0) / 100
+        ),
+      var(--sk-fill)
+        calc(
+          var(--sk-range-thumb, 1.25rem) / 2 + (100% - var(--sk-range-thumb, 1.25rem)) *
+            var(--sk-range-max, 100) / 100
+        ),
+      var(--sk-track)
+        calc(
+          var(--sk-range-thumb, 1.25rem) / 2 + (100% - var(--sk-range-thumb, 1.25rem)) *
+            var(--sk-range-max, 100) / 100
+        ),
       var(--sk-track) 100%
     );
   }
@@ -159,9 +182,17 @@
     --sk-fill: theme("colors.accent");
     background: linear-gradient(
       to right,
-      var(--sk-fill) 0%,
-      var(--sk-fill) var(--sk-range-val, 0%),
-      var(--sk-track) var(--sk-range-val, 0%),
+      var(--sk-fill) 0,
+      var(--sk-fill)
+        calc(
+          var(--sk-range-thumb, 1.25rem) / 2 + (100% - var(--sk-range-thumb, 1.25rem)) *
+            var(--sk-range-val, 0) / 100
+        ),
+      var(--sk-track)
+        calc(
+          var(--sk-range-thumb, 1.25rem) / 2 + (100% - var(--sk-range-thumb, 1.25rem)) *
+            var(--sk-range-val, 0) / 100
+        ),
       var(--sk-track) 100%
     );
   }
@@ -212,12 +243,12 @@
     border: none;
   }
 
-  /* Thumb: 1.25rem orb, centered on value and vertically aligned with track */
+  /* Thumb: orb sized from .sk-range-slider-root; no horizontal margin (travel matches gradient). */
   .sk-range-slider-thumb::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: var(--sk-range-thumb, 1.25rem);
+    height: var(--sk-range-thumb, 1.25rem);
     border: none;
     border-radius: 50%;
     background: radial-gradient(circle at 50% 50%, white 7px, transparent 8px);
@@ -225,25 +256,20 @@
     cursor: pointer;
     pointer-events: auto;
     margin-top: 0; /* avoid default track-based offset */
-    /*
-     * Center on value using margin, not transform: translateX(-50%).
-     * Blink/WebKit often misaligns range-thumb hit-testing from the painted transform,
-     * which breaks the right handle on dual sliders and feels "off" on single sliders.
-     */
-    margin-left: -0.625rem;
+    margin-left: 0;
     transform: none;
   }
   .sk-range-slider-thumb::-moz-range-thumb {
     appearance: none;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: var(--sk-range-thumb, 1.25rem);
+    height: var(--sk-range-thumb, 1.25rem);
     border: none;
     border-radius: 50%;
     background: radial-gradient(circle at 50% 50%, white 7px, transparent 8px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     pointer-events: auto;
-    margin-left: -0.625rem;
+    margin-left: 0;
     transform: none;
   }
   /* Focus-visible ring (gold/accent) for accessibility */

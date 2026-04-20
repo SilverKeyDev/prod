@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -14,7 +8,7 @@ import { useSearchContextStore } from "packages/store";
 import Input from "packages/ui/components/form/Input";
 import { Box } from "packages/ui/components/primitives";
 import { getDocument, getWindow } from "packages/utils/platform";
-import { submitAfterTopSuggestionIfNeeded } from "packages/utils/search/autocompleteSubmit";
+import { submitAfterTopSuggestionIfNeeded } from "packages/utils/search/autocomplete/autocompleteSubmit";
 
 import { reverseGeocodeAndSearchForLocationBar } from "./searchLocationBarReverseGeocode";
 import {
@@ -43,17 +37,11 @@ export function SearchLocationBarWeb({
 }: import("./searchLocationBarTypes").SearchLocationBarWebProps): React.ReactElement {
   const setSearchAnchor = useSearchContextStore((s) => s.setAnchor);
   const setLocationPlaceViewportFromBar = useSearchContextStore(
-    (s) => s.setLocationPlaceViewportFromBar,
+    (s) => s.setLocationPlaceViewportFromBar
   );
-  const clearLocationPlaceSearchArea = useSearchContextStore(
-    (s) => s.clearLocationPlaceSearchArea,
-  );
-  const setLocationBarDraft = useSearchContextStore(
-    (s) => s.setLocationBarDraft,
-  );
-  const setLocationBarExternalSubmit = useSearchContextStore(
-    (s) => s.setLocationBarExternalSubmit,
-  );
+  const clearLocationPlaceSearchArea = useSearchContextStore((s) => s.clearLocationPlaceSearchArea);
+  const setLocationBarDraft = useSearchContextStore((s) => s.setLocationBarDraft);
+  const setLocationBarExternalSubmit = useSearchContextStore((s) => s.setLocationBarExternalSubmit);
   const [localValue, setLocalValue] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
@@ -74,15 +62,11 @@ export function SearchLocationBarWeb({
     setSuggestions,
   });
 
-  const showCurrentLocation =
-    isFocused && trimmedInput.length === 0 && !hasSelected;
+  const showCurrentLocation = isFocused && trimmedInput.length === 0 && !hasSelected;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsFocused(false);
       }
     };
@@ -102,20 +86,14 @@ export function SearchLocationBarWeb({
       setIsFocused,
       onSearch,
     }),
-    [
-      fitMapToBounds,
-      onSearch,
-      setSearchAnchor,
-      setLocationPlaceViewportFromBar,
-      setLocalValue,
-    ],
+    [fitMapToBounds, onSearch, setSearchAnchor, setLocationPlaceViewportFromBar, setLocalValue]
   );
 
   const reverseGeocodeAndSearch = useCallback(
     async (lat: number, lng: number) => {
       await reverseGeocodeAndSearchForLocationBar(lat, lng, mapDeps);
     },
-    [mapDeps],
+    [mapDeps]
   );
 
   const handleCurrentLocation = useCallback(() => {
@@ -123,8 +101,7 @@ export function SearchLocationBarWeb({
     const geo = w?.navigator?.geolocation;
     if (!geo) {
       showErrorToast(
-        SEARCH_TRANSLATIONS["search.location_unavailable"] ??
-          "Unable to determine your location.",
+        SEARCH_TRANSLATIONS["search.location_unavailable"] ?? "Unable to determine your location."
       );
       return;
     }
@@ -139,10 +116,10 @@ export function SearchLocationBarWeb({
         setIsLocating(false);
         showErrorToast(
           SEARCH_TRANSLATIONS["search.location_unavailable"] ??
-            "Unable to determine your location. Please allow location access and try again.",
+            "Unable to determine your location. Please allow location access and try again."
         );
       },
-      { enableHighAccuracy: true, maximumAge: 30_000, timeout: 10_000 },
+      { enableHighAccuracy: true, maximumAge: 30_000, timeout: 10_000 }
     );
   }, [reverseGeocodeAndSearch]);
 
@@ -151,12 +128,10 @@ export function SearchLocationBarWeb({
       ...mapDeps,
       setIsLoadingBoundary,
     }),
-    [mapDeps],
+    [mapDeps]
   );
 
-  const handleSelectSlipstream = async (
-    suggestion: SlipstreamSuggestion,
-  ): Promise<void> => {
+  const handleSelectSlipstream = async (suggestion: SlipstreamSuggestion): Promise<void> => {
     await selectSlipstreamSuggestionForLocationBar(suggestion, slipstreamDeps);
   };
 
@@ -167,12 +142,10 @@ export function SearchLocationBarWeb({
       clearLocationPlaceSearchArea,
       onPreciseStreetAddressSelected,
     }),
-    [mapDeps, clearLocationPlaceSearchArea, onPreciseStreetAddressSelected],
+    [mapDeps, clearLocationPlaceSearchArea, onPreciseStreetAddressSelected]
   );
 
-  const handleSelectGoogle = async (
-    suggestion: GoogleSuggestion,
-  ): Promise<boolean> => {
+  const handleSelectGoogle = async (suggestion: GoogleSuggestion): Promise<boolean> => {
     return selectGoogleSuggestionForLocationBar(suggestion, googleDeps);
   };
 
@@ -219,15 +192,12 @@ export function SearchLocationBarWeb({
   };
 
   const slipstreamSuggestions = useMemo(
-    () =>
-      suggestions.filter(
-        (s): s is SlipstreamSuggestion => s.kind === "slipstream",
-      ),
-    [suggestions],
+    () => suggestions.filter((s): s is SlipstreamSuggestion => s.kind === "slipstream"),
+    [suggestions]
   );
   const googleSuggestions = useMemo(
     () => suggestions.filter((s): s is GoogleSuggestion => s.kind === "google"),
-    [suggestions],
+    [suggestions]
   );
 
   return (

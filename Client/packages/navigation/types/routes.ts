@@ -32,6 +32,7 @@ export const ROUTES = {
   SEARCH: "/search",
   PROPERTY_DETAILS: "/property-details",
   PROPERTY: "/property/:zpid/:slug?",
+  AGENT_PROFILE: "/agent-profile/:agentId/:slug?",
 
   // Legacy redirects
   APP: "/app/*",

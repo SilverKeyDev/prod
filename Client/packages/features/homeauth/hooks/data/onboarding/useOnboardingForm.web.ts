@@ -36,24 +36,18 @@ export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
     setIsAffordabilityCollapsed,
   } = useOnboardingAffordability(core.formData, core.currentStep, core.steps);
 
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
-    useGoogleMaps();
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
 
   const currentStepId = core.steps[core.currentStep]?.id ?? "";
   const isCurrentStepComplete = useMemo(
     () => isOnboardingStepComplete(core.formData, currentStepId),
-    [core.formData, currentStepId],
+    [core.formData, currentStepId]
   );
-  const showSkipOnNext =
-    currentStepId !== "demographics" && !isCurrentStepComplete;
+  const showSkipOnNext = currentStepId !== "demographics" && !isCurrentStepComplete;
 
   useEffect(() => {
     if (googleMapsError) {
-      log.error(
-        LOG_CATEGORIES.ERRORS,
-        "Google Maps loading error",
-        googleMapsError,
-      );
+      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
       setLoadError("Failed to load Google Maps script.");
       return;
     }

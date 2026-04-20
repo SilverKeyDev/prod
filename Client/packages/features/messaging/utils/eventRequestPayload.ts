@@ -10,9 +10,7 @@ const EVENT_REQUEST_PREFIX = "__EVENT_REQUEST__";
  * If the message starts with __EVENT_REQUEST__{...}, parses the first line and returns the payload.
  * Otherwise returns null.
  */
-export function parseEventRequestPayload(
-  content: string,
-): EventRequestPayload | null {
+export function parseEventRequestPayload(content: string): EventRequestPayload | null {
   const trimmed = content?.trim();
   if (!trimmed || !trimmed.startsWith(EVENT_REQUEST_PREFIX)) {
     return null;
@@ -31,14 +29,24 @@ export function parseEventRequestPayload(
       typeof (parsed as EventRequestPayload).start === "string" &&
       typeof (parsed as EventRequestPayload).end === "string"
     ) {
-      const p = parsed as EventRequestPayload;
+      const p = parsed as EventRequestPayload & { itinerary?: unknown };
+      let itinerary: EventRequestPayload["itinerary"];
+      if (
+        p.itinerary &&
+        typeof p.itinerary === "object" &&
+        p.itinerary !== null &&
+        "stops" in p.itinerary &&
+        Array.isArray((p.itinerary as { stops: unknown }).stops)
+      ) {
+        itinerary = p.itinerary as EventRequestPayload["itinerary"];
+      }
       return {
         title: p.title,
         start: p.start,
         end: p.end,
-        description:
-          typeof p.description === "string" ? p.description : undefined,
+        description: typeof p.description === "string" ? p.description : undefined,
         location: typeof p.location === "string" ? p.location : undefined,
+        itinerary,
       };
     }
   } catch {
@@ -69,6 +77,10 @@ export function buildEventRequestMessage(payload: EventRequestPayload): string {
   human += `Time: ${formattedTime}\n`;
   if (payload.location?.trim()) {
     human += `\nLocation: ${payload.location.trim()}`;
+  }
+  const stops = payload.itinerary?.stops;
+  if (stops?.length) {
+    human += `\n\nStops:\n${stops.map((s, i) => `${i + 1}. ${s.label ?? s.address}`).join("\n")}`;
   }
   if (payload.description?.trim()) {
     human += `\n\n${payload.description.trim()}`;

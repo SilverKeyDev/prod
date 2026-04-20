@@ -1,7 +1,9 @@
 import { Icon } from "@ui/icons";
 
+import { color } from "packages/design-tokens";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
+import Dropdown from "packages/ui/components/form/dropdown";
 import { Box } from "packages/ui/components/primitives";
 
 import { Textarea } from "@/components/form/FormField";
@@ -11,22 +13,26 @@ import {
   useCalendarEventRequestForm,
   type UseCalendarEventRequestFormParams,
 } from "@/features/agent/hooks/data/useCalendarEventRequestForm";
+import { ViewingStopList } from "@/features/calendar/components/viewings/ViewingStopList";
+import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
+import { CALENDAR_EVENT_KINDS } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 
 import { EventRequestDateDropdown } from "./EventRequestDateDropdown.web";
 import { EventRequestTimeDropdown } from "./EventRequestTimeDropdown.web";
 
-export type CalendarEventRequestFormCoreProps =
-  UseCalendarEventRequestFormParams;
+export type CalendarEventRequestFormCoreProps = UseCalendarEventRequestFormParams;
 
-export function CalendarEventRequestFormCore(
-  props: CalendarEventRequestFormCoreProps,
-) {
+export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCoreProps) {
   const {
     isAgent,
     clients,
     isLoadingClients,
     selectedClientId,
     setSelectedClientId,
+    eventKindId,
+    onEventKindIdChange,
+    kindOptionSlice,
+    checklistProgressLoading,
     eventTitle,
     setEventTitle,
     eventDescription,
@@ -41,9 +47,32 @@ export function CalendarEventRequestFormCore(
     canSend,
     minDate,
     handleSend,
+    isPropertyViewing,
+    viewingStops,
+    setViewingStops,
+    eventRequestDateOptions,
+    eventRequestTimeOptions,
   } = useCalendarEventRequestForm(props);
 
   const { onClose } = props;
+  const showCustomTitle = eventKindId === "other";
+
+  const kindDropdownOptions = kindOptionSlice.allowedKindIds.map((id) => ({
+    value: id,
+    label: CALENDAR_EVENT_KINDS[id].label,
+    icon: (
+      <BodyText
+        as="span"
+        className="mt-0.5 inline-block h-3 w-3 shrink-0 rounded-sm"
+        style={{
+          backgroundColor: color(CALENDAR_EVENT_KINDS[id].uiColorPath),
+        }}
+        aria-hidden
+      >
+        {"\u200b"}
+      </BodyText>
+    ),
+  }));
 
   return (
     <Box className="space-y-4">
@@ -76,24 +105,13 @@ export function CalendarEventRequestFormCore(
                 >
                   <Box className="flex w-full items-center gap-2">
                     <Box className="bg-accent-muted flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
-                      <Icon
-                        name="calendar"
-                        className="text-text-primary h-4 w-4"
-                      />
+                      <Icon name="calendar" className="text-text-primary h-4 w-4" />
                     </Box>
                     <Box className="min-w-0 flex-1">
-                      <BodyText
-                        as="p"
-                        size="sm"
-                        className="text-text-primary font-medium"
-                      >
+                      <BodyText as="p" size="sm" className="text-text-primary font-medium">
                         {client.name}
                       </BodyText>
-                      <BodyText
-                        as="p"
-                        size="xs"
-                        className="text-text-secondary"
-                      >
+                      <BodyText as="p" size="xs" className="text-text-secondary">
                         {client.email}
                       </BodyText>
                     </Box>
@@ -108,36 +126,57 @@ export function CalendarEventRequestFormCore(
         </Box>
       )}
 
-      <Box>
-        <Label htmlFor="event-title">Event Title</Label>
-        <Input
-          id="event-title"
-          value={eventTitle}
-          onChange={(e) => setEventTitle(e.target.value)}
-          placeholder="e.g., Property Viewing, Home Inspection"
-          className="mt-1"
-        />
-      </Box>
+      <Dropdown<CalendarEventKindId>
+        label="Event type"
+        options={kindDropdownOptions}
+        value={eventKindId}
+        onChange={onEventKindIdChange}
+        disabled={checklistProgressLoading}
+        menuInPortal
+        menuPortalStack="modal"
+      />
+
+      {showCustomTitle ? (
+        <Box>
+          <Label htmlFor="event-title">Event title</Label>
+          <Input
+            id="event-title"
+            value={eventTitle}
+            onChange={(e) => setEventTitle(e.target.value)}
+            placeholder="e.g., Meet lender, Contractor walkthrough"
+            className="mt-1"
+          />
+        </Box>
+      ) : null}
 
       <Box className="grid grid-cols-2 gap-3">
         <EventRequestDateDropdown
           minDate={minDate}
           value={eventDate}
           onChange={setEventDate}
+          options={eventRequestDateOptions}
         />
-        <EventRequestTimeDropdown value={eventTime} onChange={setEventTime} />
+        <EventRequestTimeDropdown
+          value={eventTime}
+          onChange={setEventTime}
+          options={eventRequestTimeOptions}
+        />
       </Box>
 
-      <Box>
-        <Label htmlFor="event-location">Location (optional)</Label>
-        <Input
-          id="event-location"
-          value={eventLocation}
-          onChange={(e) => setEventLocation(e.target.value)}
-          placeholder="e.g., 123 Main St or Zoom link"
-          className="mt-1"
-        />
-      </Box>
+      {isPropertyViewing ? (
+        <ViewingStopList stops={viewingStops} onStopsChange={setViewingStops} />
+      ) : (
+        <Box>
+          <Label htmlFor="event-location">Location (optional)</Label>
+          <Input
+            id="event-location"
+            value={eventLocation}
+            onChange={(e) => setEventLocation(e.target.value)}
+            placeholder="e.g., 123 Main St or Zoom link"
+            className="mt-1"
+          />
+        </Box>
+      )}
 
       <Box>
         <Label htmlFor="event-description">Description (optional)</Label>
@@ -145,7 +184,7 @@ export function CalendarEventRequestFormCore(
           id="event-description"
           value={eventDescription}
           onChange={(e) => setEventDescription(e.target.value)}
-          placeholder="Add any additional details about the event..."
+          placeholder="Event details (optional)"
           rows={3}
           className="mt-1"
         />

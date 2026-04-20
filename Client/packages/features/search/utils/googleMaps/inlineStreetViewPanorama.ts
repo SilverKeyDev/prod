@@ -24,21 +24,18 @@ export function attachInlineStreetViewPanorama(
   map: google.maps.Map,
   container: HTMLElement,
   position: google.maps.LatLngLiteral,
-  options?: AttachInlineStreetViewPanoramaOptions,
+  options?: AttachInlineStreetViewPanoramaOptions
 ): InlineStreetViewAttachment | null {
   const win = getWindow() as (Window & { google?: typeof google }) | null;
   if (!win?.google?.maps?.StreetViewPanorama) {
-    log.debug(
-      LOG_CATEGORIES.PROPERTY_DETAILS,
-      "Street View: StreetViewPanorama API missing",
-    );
+    log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "Street View: StreetViewPanorama API missing");
     return null;
   }
 
   if (!container.isConnected) {
     log.debug(
       LOG_CATEGORIES.PROPERTY_DETAILS,
-      "Street View: overlay container not in document; skip attach (pegman may open externally)",
+      "Street View: overlay container not in document; skip attach (pegman may open externally)"
     );
     return null;
   }
@@ -60,14 +57,10 @@ export function attachInlineStreetViewPanorama(
 
   map.setStreetView(panorama);
   const attachCallSeq = ++attachInlineStreetViewPanoramaCallSeq;
-  log.debug(
-    LOG_CATEGORIES.PROPERTY_DETAILS,
-    "Street View: linked panorama to map",
-    {
-      attachCallSeq,
-      hint: "Two quick logs in dev usually mean React 18 Strict Mode (effect mount, cleanup, remount).",
-    },
-  );
+  log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "Street View: linked panorama to map", {
+    attachCallSeq,
+    hint: "Two quick logs in dev usually mean React 18 Strict Mode (effect mount, cleanup, remount).",
+  });
 
   const syncPointerEvents = (): void => {
     container.style.pointerEvents = panorama.getVisible() ? "auto" : "none";

@@ -50,9 +50,7 @@ export type DashboardRouteResult = {
  * Returns the current dashboard route and layout flags from React Router.
  * Use in DashboardLayout, DashboardContent, DashboardHeader for consistent behavior.
  */
-export function useDashboardRoute(
-  defaultWidthPercent = 85,
-): DashboardRouteResult {
+export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResult {
   const routerLocation = useLocation();
   const locationOverride = useLocationOverride();
   const location = locationOverride ?? routerLocation;
@@ -61,9 +59,7 @@ export function useDashboardRoute(
 
   // When override is set (browser URL diverged from router), derive activeKey from pathname.
   // Otherwise use useMatch so the router drives the result.
-  const agreementSigningCompleteMatch = useMatch(
-    ROUTES.AGREEMENT_SIGNING_COMPLETE,
-  );
+  const agreementSigningCompleteMatch = useMatch(ROUTES.AGREEMENT_SIGNING_COMPLETE);
   const searchMatch = useMatch(ROUTES.SEARCH);
   const messagingMatch = useMatch(ROUTES.MESSAGING);
   const dashboardMatch = useMatch(ROUTES.DASHBOARD);

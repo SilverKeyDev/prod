@@ -4,12 +4,7 @@
 
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
-import type {
-  AppError,
-  AuthenticationError,
-  NetworkError,
-  ValidationError,
-} from "./types";
+import type { AppError, AuthenticationError, NetworkError, ValidationError } from "./types";
 
 /**
  * Converts technical errors into user-friendly messages
@@ -18,9 +13,7 @@ export function getUserFriendlyMessage(error: AppError): string {
   switch (error.name) {
     case "ValidationError":
       return (error as ValidationError).field
-        ? `Please check the ${
-            (error as ValidationError).field
-          } field and try again.`
+        ? `Please check the ${(error as ValidationError).field} field and try again.`
         : "Please check your input and try again.";
 
     case "NetworkError": {
@@ -31,11 +24,7 @@ export function getUserFriendlyMessage(error: AppError): string {
       if (networkError.status === 500) {
         return "Something went wrong on our end. Please try again later.";
       }
-      if (
-        networkError.status &&
-        networkError.status >= 400 &&
-        networkError.status < 500
-      ) {
+      if (networkError.status && networkError.status >= 400 && networkError.status < 500) {
         return "There was a problem with your request. Please check your input and try again.";
       }
       return "Unable to connect to the server. Please check your internet connection and try again.";
@@ -81,10 +70,7 @@ export function isRetryableError(error: AppError): boolean {
 /**
  * Creates a timeout wrapper for promises
  */
-export function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return Promise.race([
     promise,
     new Promise<never>((_, reject) => {
@@ -101,7 +87,7 @@ export function withTimeout<T>(
 export function debounceErrorReporting(
   errorId: string,
   reportFn: () => void,
-  debounceMs = 5000,
+  debounceMs = 5000
 ): void {
   const key = `error_report_${errorId}`;
   const storage = getLocalStorage();

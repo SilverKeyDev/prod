@@ -13,7 +13,7 @@ import { getWindow } from "packages/utils/platform";
 import {
   getListingCoords,
   getListingCoordsUnavailableDiagnostics,
-} from "packages/utils/propertyDetails/listingCoords";
+} from "packages/utils/propertyDetails/location/listingCoords";
 
 import { PropertyDetailsMapOverlayControls } from "./PropertyDetailsMapOverlayControls.web";
 
@@ -31,9 +31,7 @@ export function PropertyLocationMapSection({
 }: PropertyLocationMapSectionProps): React.ReactElement {
   const { t } = useLocalization();
   const [mapHost, setMapHost] = useState<HTMLDivElement | null>(null);
-  const [streetViewHost, setStreetViewHost] = useState<HTMLDivElement | null>(
-    null,
-  );
+  const [streetViewHost, setStreetViewHost] = useState<HTMLDivElement | null>(null);
   const [satelliteMode, setSatelliteMode] = useState(false);
   const [streetViewOpen, setStreetViewOpen] = useState(false);
   const coords = getListingCoords(property);
@@ -63,14 +61,10 @@ export function PropertyLocationMapSection({
     }:${diagnostics.fields.lng}:${diagnostics.fields.longitude}`;
     if (loggedLocationUnavailableKeyRef.current === dedupeKey) return;
     loggedLocationUnavailableKeyRef.current = dedupeKey;
-    log.info(
-      LOG_CATEGORIES.PROPERTY_DETAILS,
-      "Property location map unavailable",
-      {
-        listingId,
-        ...diagnostics,
-      },
-    );
+    log.info(LOG_CATEGORIES.PROPERTY_DETAILS, "Property location map unavailable", {
+      listingId,
+      ...diagnostics,
+    });
   }, [enabled, isLoading, listingId, property]);
 
   useEffect(() => {
@@ -81,31 +75,19 @@ export function PropertyLocationMapSection({
       mapHost && typeof mapHost.getBoundingClientRect === "function"
         ? mapHost.getBoundingClientRect()
         : null;
-    log.debug(
-      LOG_CATEGORIES.PROPERTY_DETAILS,
-      "PropertyDetailsMapSection web hosts",
-      {
-        listingId,
-        hasMapHost: mapHost != null,
-        hasStreetViewHost: streetViewHost != null,
-        mapHostConnected: mapHost?.isConnected ?? false,
-        streetViewHostConnected: streetViewHost?.isConnected ?? false,
-        mapWidth: mapRect?.width ?? null,
-        mapHeight: mapRect?.height ?? null,
-        coords: coords ? { lat: coords.lat, lng: coords.lng } : null,
-        satelliteMode,
-        streetViewOpen,
-      },
-    );
-  }, [
-    coords,
-    enabled,
-    listingId,
-    mapHost,
-    satelliteMode,
-    streetViewHost,
-    streetViewOpen,
-  ]);
+    log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "PropertyDetailsMapSection web hosts", {
+      listingId,
+      hasMapHost: mapHost != null,
+      hasStreetViewHost: streetViewHost != null,
+      mapHostConnected: mapHost?.isConnected ?? false,
+      streetViewHostConnected: streetViewHost?.isConnected ?? false,
+      mapWidth: mapRect?.width ?? null,
+      mapHeight: mapRect?.height ?? null,
+      coords: coords ? { lat: coords.lat, lng: coords.lng } : null,
+      satelliteMode,
+      streetViewOpen,
+    });
+  }, [coords, enabled, listingId, mapHost, satelliteMode, streetViewHost, streetViewOpen]);
 
   usePropertyDetailsLocationMap({
     mapContainer: mapHost,

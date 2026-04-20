@@ -4,7 +4,7 @@ import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
-import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
+import BudgetRangeSlider from "@/features/profile/components/settings/inputs/sliders/BudgetRangeSlider";
 const BED_TICKS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 const BATH_TICKS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 

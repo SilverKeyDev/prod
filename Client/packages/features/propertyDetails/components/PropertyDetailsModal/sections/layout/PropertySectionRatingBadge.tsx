@@ -3,7 +3,7 @@ import React from "react";
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
-import { getScoreBasedColor } from "packages/utils";
+import { getMatchScoreGradientColors } from "packages/utils";
 
 export type PropertySectionRatingBadgeProps = {
   rating: number | null;
@@ -16,7 +16,7 @@ function formatSectionRatingDisplay(rating: number): string {
 }
 
 /**
- * Section score (0–10) shown as a pill; colors use getScoreBasedColor(rating * 10) for the 0–100 scale.
+ * Section score (0–10) shown as a pill; uses tiered match tokens via `getMatchScoreGradientColors` (same as map pins / match chips).
  */
 export function PropertySectionRatingBadge({
   rating,
@@ -27,7 +27,7 @@ export function PropertySectionRatingBadge({
 
   const display = formatSectionRatingDisplay(rating);
   const colorScore = Math.max(0, Math.min(100, rating * 10));
-  const colors = getScoreBasedColor(colorScore);
+  const colors = getMatchScoreGradientColors(colorScore);
 
   return (
     <Box

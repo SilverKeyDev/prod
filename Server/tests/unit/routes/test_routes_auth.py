@@ -65,6 +65,11 @@ class TestAuthRoutes:
         data = response.get_json()
         assert data["success"] is True
         assert "user_sub" in data
+        mock_cognito_service.sign_up.assert_called_once()
+        user_attributes = mock_cognito_service.sign_up.call_args.kwargs["user_attributes"]
+        phone_attrs = [a for a in user_attributes if a["Name"] == "phone_number"]
+        assert len(phone_attrs) == 1
+        assert phone_attrs[0]["Value"] == "+1234567890"
 
     def test_refresh_token_endpoint(
         self, client, mock_cognito_service, mock_jwt_decode, db_session

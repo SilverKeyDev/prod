@@ -1,0 +1,9 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    required:
+      - agent
+    properties:
+      agent:
+        $ref: './PublicAgentProfile.yaml'
+        description: Public agent profile; only returned when the user exists and is an active agent.

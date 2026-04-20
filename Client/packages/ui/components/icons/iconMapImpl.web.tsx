@@ -48,6 +48,7 @@ import {
   Inbox,
   Info,
   Key,
+  Library,
   Lightbulb,
   Link2,
   Loader2,
@@ -60,6 +61,7 @@ import {
   Menu,
   MessageCircle,
   MessageSquare,
+  Minus,
   MoreHorizontal,
   Pencil,
   Phone,
@@ -144,6 +146,7 @@ const ICONS: Record<IconName, React.ComponentType<Omit<LucideProps, "ref">>> = {
   info: Info,
   key: Key,
   lightbulb: Lightbulb,
+  library: Library,
   "link-2": Link2,
   "loader-2": Loader2,
   lock: Lock,
@@ -155,6 +158,7 @@ const ICONS: Record<IconName, React.ComponentType<Omit<LucideProps, "ref">>> = {
   menu: Menu,
   "message-circle": MessageCircle,
   "message-square": MessageSquare,
+  minus: Minus,
   "more-horizontal": MoreHorizontal,
   pencil: Pencil,
   phone: Phone,
@@ -189,8 +193,6 @@ const ICONS: Record<IconName, React.ComponentType<Omit<LucideProps, "ref">>> = {
   "x-circle": XCircle,
 };
 
-export function getIcon(
-  name: IconName,
-): React.ComponentType<Omit<LucideProps, "ref">> | undefined {
+export function getIcon(name: IconName): React.ComponentType<Omit<LucideProps, "ref">> | undefined {
   return ICONS[name];
 }

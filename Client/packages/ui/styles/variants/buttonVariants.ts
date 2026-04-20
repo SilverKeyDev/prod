@@ -50,10 +50,7 @@ export const BUTTON_VARIANT_STYLES: Record<ButtonStyleVariant, string> = {
 export const BUTTON_LOADING_FRAME_CLASSES =
   "relative overflow-hidden !border-transparent !shadow-none";
 
-export const BUTTON_LOADING_VARIANT_OVERRIDES: Record<
-  ButtonStyleVariant,
-  string
-> = {
+export const BUTTON_LOADING_VARIANT_OVERRIDES: Record<ButtonStyleVariant, string> = {
   primary: "!bg-primary/70",
   secondary: "!bg-neutral-50",
   tertiary: "!bg-accent/70",
@@ -92,10 +89,7 @@ export const BUTTON_TEXT_COLOR_CLASSES: Record<ButtonStyleVariant, string> = {
 export const BUTTON_BASE_CLASSES =
   "flex flex-row items-center gap-2 font-medium leading-none focus:outline-none focus:ring-2 focus:ring-offset-2 web:active:translate-y-[0.5px]";
 
-export const BUTTON_ROUNDED_CLASSES: Record<
-  "none" | "sm" | "md" | "lg" | "xl" | "full",
-  string
-> = {
+export const BUTTON_ROUNDED_CLASSES: Record<"none" | "sm" | "md" | "lg" | "xl" | "full", string> = {
   none: "rounded-none",
   sm: "rounded-sm",
   md: "rounded-md",

@@ -47,6 +47,7 @@ export function SavedDocumentsList({
 }: SavedDocumentsListProps) {
   const { t } = useLocalization();
   const viewerUserId = useAuthStore((s) => s.user?.id);
+  const viewerEmail = useAuthStore((s) => s.user?.email);
 
   const renderDocument = useCallback(
     (doc: DocumentData) => (
@@ -54,19 +55,14 @@ export function SavedDocumentsList({
         key={`doc-${doc.id}`}
         className="border-border bg-background-surface mb-3 rounded-lg border p-3 shadow-sm"
       >
-        <Text
-          className="text-text-primary text-sm font-semibold"
-          numberOfLines={2}
-        >
+        <Text className="text-text-primary text-sm font-semibold" numberOfLines={2}>
           {doc.address || doc.filename}
         </Text>
         <Text className="text-text-secondary mt-1 text-xs">
           {formatDate(doc.created_at)} · {doc.document_type ?? "Document"}
         </Text>
         {doc.library_kind === "agreement" ? (
-          <Text className="mt-1 text-xs font-semibold text-blue-700">
-            Status: {doc.status}
-          </Text>
+          <Text className="mt-1 text-xs font-semibold text-blue-700">Status: {doc.status}</Text>
         ) : null}
         <Box className="mt-3 flex flex-row flex-wrap gap-2">
           {onViewDocument && (
@@ -75,6 +71,7 @@ export function SavedDocumentsList({
               size="sm"
               onPress={() => onViewDocument(doc.id, doc.filename)}
               className="min-w-[30%] flex-1"
+              iconName="save"
             >
               <Text className="text-sm font-medium">
                 {t("saved.view_document", { defaultValue: "View" })}
@@ -87,6 +84,7 @@ export function SavedDocumentsList({
               size="sm"
               onPress={() => onDownloadDocument(doc.id, doc.filename)}
               className="min-w-[30%] flex-1"
+              iconName="download"
             >
               <Text className="text-sm font-medium">
                 {t("saved.download_document", { defaultValue: "Download" })}
@@ -99,35 +97,36 @@ export function SavedDocumentsList({
               size="sm"
               onPress={() => onShareDocument(doc.id, doc.filename)}
               className="min-w-[30%] flex-1"
+              iconName="share"
             >
               <Text className="text-sm font-medium">
                 {t("saved.share_document", { defaultValue: "Share" })}
               </Text>
             </Button>
           )}
-          {onSendForSignature &&
-            isAgent &&
-            doc.library_kind !== "agreement" && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onPress={() => onSendForSignature(doc)}
-                className="min-w-[30%] flex-1"
-              >
-                <Text className="text-sm font-medium">Send for signature</Text>
-              </Button>
-            )}
+          {onSendForSignature && isAgent && doc.library_kind !== "agreement" && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onPress={() => onSendForSignature(doc)}
+              className="min-w-[30%] flex-1"
+              iconName="send"
+            >
+              <Text className="text-sm font-medium">Send for signature</Text>
+            </Button>
+          )}
           {onSignNow &&
             doc.library_kind === "agreement" &&
             viewerUserId &&
             doc.participants?.length &&
-            getContextualAgreementStatus(doc, viewerUserId, isAgent) ===
+            getContextualAgreementStatus(doc, viewerUserId, isAgent, viewerEmail) ===
               "sign_now" && (
               <Button
                 variant="secondary"
                 size="sm"
                 onPress={() => onSignNow(doc)}
                 className="min-w-[30%] flex-1"
+                iconName="file-signature"
               >
                 <Text className="text-sm font-medium">Sign now</Text>
               </Button>
@@ -137,6 +136,7 @@ export function SavedDocumentsList({
             size="sm"
             onPress={() => onDocumentDelete(doc)}
             className="min-w-[30%] flex-1"
+            iconName="trash-2"
           >
             <Text className="text-sm font-medium text-red-700">
               {t("saved.delete_document", { defaultValue: "Delete" })}
@@ -154,8 +154,9 @@ export function SavedDocumentsList({
       onSignNow,
       onViewDocument,
       t,
+      viewerEmail,
       viewerUserId,
-    ],
+    ]
   );
 
   if (loading) {
@@ -175,8 +176,7 @@ export function SavedDocumentsList({
       <Box className="py-8">
         <Text className="text-text-secondary text-center text-sm">
           {t("saved.no_documents_yet", {
-            defaultValue:
-              "No documents yet. Upload documents to see them here.",
+            defaultValue: "No documents yet. Upload documents to see them here.",
           })}
         </Text>
       </Box>

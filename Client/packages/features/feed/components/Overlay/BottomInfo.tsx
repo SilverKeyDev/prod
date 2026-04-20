@@ -102,6 +102,7 @@ export function BottomInfo({
               size="sm"
               onClick={onFollow}
               className="hover:bg-background-surface/20 border-white/50 text-white"
+              iconName="user"
             >
               Follow
             </Button>

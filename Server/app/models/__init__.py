@@ -29,7 +29,12 @@ from .property import (
     UserPropertyLink,
     UserScoreWeights,
 )
-from .transactions import Transaction, TransactionAddress, TransactionTask
+from .transactions import (
+    ChecklistItemDispatchSetting,
+    Transaction,
+    TransactionAddress,
+    TransactionTask,
+)
 
 # Import from organized subfolders for backward compatibility
 from .user import (
@@ -58,6 +63,7 @@ def init_db():
 
 __all__ = [
     "User",
+    "ChecklistItemDispatchSetting",
     "Transaction",
     "TransactionAddress",
     "TransactionTask",

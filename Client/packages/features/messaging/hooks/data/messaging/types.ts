@@ -3,7 +3,8 @@
  */
 
 import type { AgentConversation } from "packages/api";
-import type { SavedHome } from "packages/types/savedHome";
+import type { SharedBundleItemV1 } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
+import type { SavedHome } from "packages/types/domain/savedHome";
 import type { DocumentData } from "packages/ui/components/cards/document/types";
 
 export type EventRequestStatus = "pending" | "accepted" | "cancelled";
@@ -41,12 +42,11 @@ export type UseMessagingReturn = {
   isChatsLoading: boolean;
   activeConversation: AgentConversation | null | undefined;
   conversations: AgentConversation[];
-  sendMessage: (
-    message: string,
-    options?: MessagingSendMessageOptions,
-  ) => Promise<void>;
-  sendSharedHome: (home: SavedHome) => Promise<void>;
+  sendMessage: (message: string, options?: MessagingSendMessageOptions) => Promise<void>;
+  sendSharedHomes: (homes: SavedHome[]) => Promise<void>;
   sendSharedDocument: (document: DocumentData) => Promise<void>;
+  sendSharedDocuments: (documents: DocumentData[]) => Promise<void>;
+  sendSharedBundle: (items: SharedBundleItemV1[]) => Promise<void>;
   retryMessage: (messageId: string) => Promise<void>;
   setActiveConversationId: (id: string) => void;
   refreshActiveConversationHistory: () => Promise<void>;

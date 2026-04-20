@@ -8,10 +8,7 @@ import { getDocument } from "packages/utils/platform";
 
 import type { CoverProps } from "./CoverTypes";
 
-function getTransformClass(
-  animation: CoverProps["animation"],
-  hasEntered: boolean,
-): string {
+function getTransformClass(animation: CoverProps["animation"], hasEntered: boolean): string {
   if (animation === "none" || !animation) return "";
   if (!hasEntered) {
     if (animation === "slideFromRight") return "translate-x-full";
@@ -65,8 +62,7 @@ function CoverPanel({
   }, [animation]);
 
   const transformClass = getTransformClass(animation, hasEntered);
-  const transitionClass =
-    animation !== "none" ? "transition-transform duration-300 ease-out" : "";
+  const transitionClass = animation !== "none" ? "transition-transform duration-300 ease-out" : "";
   const hasMaxWidth = maxWidth && maxWidth !== "100vw";
 
   const modalContent = (

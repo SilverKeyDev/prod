@@ -5,7 +5,7 @@ import { formatFormsLibraryCategoryLabel } from "./formatFormsLibraryCategoryLab
 describe("formatFormsLibraryCategoryLabel", () => {
   it("replaces underscores and title-cases words", () => {
     expect(formatFormsLibraryCategoryLabel("Buyer_broker_agreements")).toBe(
-      "Buyer Broker Agreements",
+      "Buyer Broker Agreements"
     );
   });
 

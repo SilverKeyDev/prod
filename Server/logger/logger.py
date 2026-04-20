@@ -81,6 +81,7 @@ class Logger:
             "polygonSearch": True,
             "docusign": True,
             "documents": True,
+            "profilePreferences": False,
             "logLevel": "DEBUG",
         }
 

@@ -36,6 +36,15 @@ properties:
   component_key:
     type: string
     nullable: true
+  forms_card_variant:
+    type: string
+    enum:
+      - default
+      - document
+    nullable: true
+    description: >-
+      Optional checklist-step UI for suggested forms. When omitted, use default
+      compact form cards; document uses DocumentCard-style layout.
   allow_unordered_check:
     type: boolean
     nullable: true
@@ -60,3 +69,50 @@ properties:
           type: integer
         nullable: true
     nullable: true
+  selectable_when:
+    nullable: true
+    allOf:
+      - $ref: "./ChecklistCondition.yaml"
+    description: >-
+      When set, the user may manually check this step only if this condition
+      holds (in addition to section unlock and sequential ordering). Omitted means
+      no extra gate for manual selection.
+  auto_complete_when:
+    nullable: true
+    allOf:
+      - $ref: "./ChecklistCondition.yaml"
+    description: >-
+      When this condition holds on the effective checked set, this item id is
+      included in checklist progress (server merge on GET/PUT).
+  lock_uncheck_when:
+    nullable: true
+    allOf:
+      - $ref: "./ChecklistCondition.yaml"
+    description: >-
+      When this condition holds, an id that was already checked (stored before
+      the request) cannot be removed from checkedIds; server re-adds it on PUT.
+  dispatchAutomationAvailable:
+    type: boolean
+    nullable: true
+    description: >-
+      When true, agents may configure automatic dispatch (messaging / DocuSign)
+      when this step is checked off, for this client context.
+  completionRequiresSubmit:
+    type: boolean
+    nullable: true
+    description: >-
+      When true, the checklist checkbox must not be used to mark this step
+      complete; the client completes it only via the integration submit action
+      after validating required fields.
+  completionType:
+    type: string
+    enum:
+      - manual
+      - signature_based
+      - signature_plus_review
+      - integration_based
+    nullable: true
+    description: >-
+      How the step becomes complete. Omitted or manual allows normal checkbox
+      behavior (subject to completionRequiresSubmit). signature_based steps
+      complete only when linked agreements are fully executed.

@@ -1,7 +1,9 @@
 import { useLocalization } from "packages/contexts";
+import { MatchPill } from "packages/ui/components/match/MatchPill";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
-import { getScoreBasedColor } from "packages/utils";
+import { categorizeListingStatusForMap } from "packages/utils/format/listingStatusMapPinColors";
+import { getMapPinColorsForScoreAndStatus } from "packages/utils";
 
 type CardMatchScoreProps = {
   /** Match score (0-100) */
@@ -12,6 +14,9 @@ type CardMatchScoreProps = {
   size?: "xs" | "sm" | "md";
   /** Use color-based styling */
   useColorStyling?: boolean;
+  /** Same as map pins via `getMapPinColorsForScoreAndStatus` — tier pill for active/unknown, status hex otherwise. */
+  listingStatus?: string;
+  homeStatus?: string;
   /** Additional className */
   className?: string;
 };
@@ -24,19 +29,16 @@ export default function CardMatchScore({
   maxScore = 100,
   size = "sm",
   useColorStyling = false,
+  listingStatus,
+  homeStatus,
   className = "",
 }: CardMatchScoreProps) {
   const { t } = useLocalization();
 
-  // Normalize score so getScoreBasedColor never receives NaN/Non-finite
   const safeScore =
-    typeof score === "number" && Number.isFinite(score)
-      ? Math.max(0, Math.min(100, score))
-      : 0;
+    typeof score === "number" && Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0;
   const safeMaxScore =
-    typeof maxScore === "number" && Number.isFinite(maxScore) && maxScore > 0
-      ? maxScore
-      : 100;
+    typeof maxScore === "number" && Number.isFinite(maxScore) && maxScore > 0 ? maxScore : 100;
   const displayPercent = Math.round((safeScore / safeMaxScore) * 100);
 
   const getSizeClasses = () => {
@@ -61,10 +63,18 @@ export default function CardMatchScore({
   };
 
   const sizeClasses = getSizeClasses();
-  const colors = useColorStyling ? getScoreBasedColor(safeScore) : null;
+  const colors = useColorStyling
+    ? getMapPinColorsForScoreAndStatus(safeScore, listingStatus, homeStatus)
+    : null;
+
+  const category = categorizeListingStatusForMap(listingStatus ?? homeStatus);
+  const useTierPill =
+    useColorStyling && colors && (category === "active" || category === "unknown");
 
   const valueNode =
-    useColorStyling && colors ? (
+    useTierPill ? (
+      <MatchPill score={displayPercent} className={`font-medium ${sizeClasses.text}`} />
+    ) : useColorStyling && colors ? (
       <Box
         className={`font-medium ${sizeClasses.text} whitespace-nowrap rounded px-2 py-1`}
         style={{
@@ -79,10 +89,7 @@ export default function CardMatchScore({
         </BodyText>
       </Box>
     ) : (
-      <BodyText
-        as="span"
-        className={`font-medium ${sizeClasses.text} whitespace-nowrap`}
-      >
+      <BodyText as="span" className={`font-medium ${sizeClasses.text} whitespace-nowrap`}>
         {t("house.match_score_value", {
           percent: displayPercent,
         })}
@@ -91,18 +98,14 @@ export default function CardMatchScore({
 
   if (useColorStyling && colors) {
     return (
-      <Box
-        className={`gap-responsive-xs flex flex-shrink-0 items-center ${className}`}
-      >
+      <Box className={`gap-responsive-xs flex flex-shrink-0 items-center ${className}`}>
         {valueNode}
       </Box>
     );
   }
 
   return (
-    <Box
-      className={`gap-responsive-xs text-brown flex flex-shrink-0 items-center ${className}`}
-    >
+    <Box className={`gap-responsive-xs text-brown flex flex-shrink-0 items-center ${className}`}>
       {valueNode}
     </Box>
   );

@@ -7,7 +7,6 @@ import { asError } from "packages/utils";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 import {
-  copyToClipboard,
   downloadStrategyJson as doDownloadStrategyJson,
   shareStrategyJson as doShareStrategyJson,
 } from "./downloadShare";
@@ -209,7 +208,7 @@ export class NegotiationService {
   }
 
   public async shareStrategyJson(): Promise<void> {
-    await doShareStrategyJson(this.state.strategyData, this.state.selectedHome, copyToClipboard);
+    await doShareStrategyJson(this.state.strategyData, this.state.selectedHome);
   }
 
   public clearData(): void {

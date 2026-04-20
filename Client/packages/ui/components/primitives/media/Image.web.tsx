@@ -31,7 +31,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function Image(
     decoding = "async",
     ...props
   },
-  ref,
+  ref
 ) {
   const resolvedSrc = src ?? source?.uri ?? undefined;
   const resolvedAlt = alt ?? label ?? "";

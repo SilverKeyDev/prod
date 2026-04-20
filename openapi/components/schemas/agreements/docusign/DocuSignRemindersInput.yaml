@@ -1,0 +1,19 @@
+type: object
+description: DocuSign envelope reminder settings (maps to notification.reminders).
+properties:
+  reminder_enabled:
+    type: boolean
+    nullable: true
+    description: When false, disables reminder emails for this envelope.
+  reminder_delay:
+    type: integer
+    minimum: 0
+    maximum: 999
+    nullable: true
+    description: Days after send before the first reminder.
+  reminder_frequency:
+    type: integer
+    minimum: 0
+    maximum: 999
+    nullable: true
+    description: Days between subsequent reminders.

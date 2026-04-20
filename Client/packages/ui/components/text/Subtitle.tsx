@@ -30,9 +30,7 @@ export default function Subtitle({
   const baseClasses = "font-normal";
   const colorClass = muted ? "text-warm-stone" : "text-black";
   const sizeClass = sizeClasses[size];
-  const combinedClasses = [baseClasses, colorClass, sizeClass, className]
-    .filter(Boolean)
-    .join(" ");
+  const combinedClasses = [baseClasses, colorClass, sizeClass, className].filter(Boolean).join(" ");
 
   return (
     <Text as="p" className={combinedClasses}>

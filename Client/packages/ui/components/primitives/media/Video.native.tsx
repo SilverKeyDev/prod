@@ -19,10 +19,7 @@ export type VideoProps = {
   children?: React.ReactNode;
 };
 
-const RESIZE_MODE_MAP: Record<
-  NonNullable<VideoProps["resizeMode"]>,
-  ExpoResizeMode
-> = {
+const RESIZE_MODE_MAP: Record<NonNullable<VideoProps["resizeMode"]>, ExpoResizeMode> = {
   cover: ExpoResizeMode.COVER,
   contain: ExpoResizeMode.CONTAIN,
   stretch: ExpoResizeMode.STRETCH,
@@ -34,15 +31,8 @@ const RESIZE_MODE_MAP: Record<
  * Web uses <video> (Video.web.tsx).
  */
 const Video = forwardRef<ExpoVideo, VideoProps>(function Video(
-  {
-    source,
-    style,
-    resizeMode = "cover",
-    shouldPlay = true,
-    isLooping = true,
-    isMuted = true,
-  },
-  ref,
+  { source, style, resizeMode = "cover", shouldPlay = true, isLooping = true, isMuted = true },
+  ref
 ) {
   const uri = source?.uri;
   const videoSource = useMemo(() => (uri ? { uri } : undefined), [uri]);

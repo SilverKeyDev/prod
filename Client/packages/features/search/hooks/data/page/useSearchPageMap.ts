@@ -3,11 +3,11 @@ import { useCallback, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { env } from "packages/config";
-import { calculatePropertyScore } from "packages/features/search/types/search/calculatePropertyScore";
+import { calculatePropertyScore } from "packages/features/search/types/search/scoring/calculatePropertyScore";
 import { useGoogleMaps } from "packages/hooks/data";
 import { useIsAgent } from "packages/hooks/store";
 import { useFiltersStore, useSearchContextStore } from "packages/store";
-import type { IsochroneData, UserPreferencesData } from "packages/types/api";
+import type { IsochroneData, UserPreferencesData } from "packages/types/domain/api";
 import { getWindow } from "packages/utils/platform";
 
 import { searchPropertiesInIsochrone } from "@/features/search/api/propertySearch";
@@ -25,7 +25,7 @@ import { useSearchPageMapMarkerDataEffect } from "@/features/search/hooks/data/p
 import { useSearchPageMapOverlayRenderers } from "@/features/search/hooks/data/page/useSearchPageMapOverlayRenderers";
 import { useMapMarkers } from "@/features/search/hooks/data/useMapMarkers";
 import type { SearchResult } from "@/features/search/types";
-import { getMapFocusedProperty } from "@/features/search/types/search/mapCardFocus";
+import { getMapFocusedProperty } from "@/features/search/types/search/map/mapCardFocus";
 
 export type { UseSearchPageMapParams } from "@/features/search/hooks/data/page/useSearchPageMap.types";
 
@@ -78,8 +78,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
 
   const onDismissMapPreview = useCallback(
     (propertyId: string) => {
-      const currentData =
-        activeTab === "results" ? filteredSearchResults : savedHomes;
+      const currentData = activeTab === "results" ? filteredSearchResults : savedHomes;
       const primary = getMapFocusedProperty(currentData, currentPage);
       dismissMapListingPreviewBase(propertyId);
       if (primary?.id === propertyId && mapHomeCardsCount <= 1) {
@@ -94,28 +93,16 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
       mapHomeCardsCount,
       dismissMapListingPreviewBase,
       setCurrentPage,
-    ],
+    ]
   );
 
-  const preferencesStrictFilter = useFiltersStore(
-    (s) => s.preferencesStrictFilter,
-  );
-  const searchFilterOverrides = useSearchContextStore(
-    (s) => s.searchFilterOverrides,
-  );
-  const locationPlaceViewportRing = useSearchContextStore(
-    (s) => s.locationPlaceViewportRing,
-  );
+  const preferencesStrictFilter = useFiltersStore((s) => s.preferencesStrictFilter);
+  const searchFilterOverrides = useSearchContextStore((s) => s.searchFilterOverrides);
+  const locationPlaceViewportRing = useSearchContextStore((s) => s.locationPlaceViewportRing);
   const locationPlaceLabel = useSearchContextStore((s) => s.locationPlaceLabel);
-  const locationSearchOverlayData = useSearchContextStore(
-    (s) => s.locationSearchOverlayData,
-  );
-  const setLocationSearchOverlayData = useSearchContextStore(
-    (s) => s.setLocationSearchOverlayData,
-  );
-  const clearLocationPlaceSearchArea = useSearchContextStore(
-    (s) => s.clearLocationPlaceSearchArea,
-  );
+  const locationSearchOverlayData = useSearchContextStore((s) => s.locationSearchOverlayData);
+  const setLocationSearchOverlayData = useSearchContextStore((s) => s.setLocationSearchOverlayData);
+  const clearLocationPlaceSearchArea = useSearchContextStore((s) => s.clearLocationPlaceSearchArea);
   const { isLoaded: isGoogleMapsLoaded, createMap } = useGoogleMaps();
   const mobileMapRef = useRef<HTMLDivElement>(null);
   const desktopMapRef = useRef<HTMLDivElement>(null);
@@ -185,43 +172,38 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     showCommuteOverlay,
   });
 
-  const saveSearchResultsToLocalStorage = useCallback(
-    async (_results: SearchResult[]) => {
-      // No-op: React Query handles caching automatically
-    },
-    [],
-  );
+  const saveSearchResultsToLocalStorage = useCallback(async (_results: SearchResult[]) => {
+    // No-op: React Query handles caching automatically
+  }, []);
 
-  const { runPreferencesSearch, runViewportSearch } = useSearchPageMapGeoSearch(
-    {
-      queryClient,
-      googleMapRef,
-      polygonRef,
-      individualPolygonsRef,
-      importantMarkersRef,
-      showCommuteOverlayRef,
-      locationPlaceViewportRing,
-      locationPlaceLabel,
-      setLocationSearchOverlayData,
-      renderIsochronePolygonWrapper,
-      renderImportantLocationMarkersWrapper,
-      mapFocusOnCurrentProperty,
-      clearLocationPlaceSearchArea,
-      setSearchStage,
-      setSearchResults,
-      setIsSearching,
-      setHasSearched,
-      setCurrentPage,
-      setShowPropertyModals,
-      saveSearchResultsToLocalStorage,
-      searchFilterOverrides,
-      preferencesStrictFilter,
-      preferencesSubjectUserId,
-      getSearchAbortSignal,
-      saveLastSearchContext,
-      mapPreviewSearchLifecycle,
-    },
-  );
+  const { runPreferencesSearch, runViewportSearch } = useSearchPageMapGeoSearch({
+    queryClient,
+    googleMapRef,
+    polygonRef,
+    individualPolygonsRef,
+    importantMarkersRef,
+    showCommuteOverlayRef,
+    locationPlaceViewportRing,
+    locationPlaceLabel,
+    setLocationSearchOverlayData,
+    renderIsochronePolygonWrapper,
+    renderImportantLocationMarkersWrapper,
+    mapFocusOnCurrentProperty,
+    clearLocationPlaceSearchArea,
+    setSearchStage,
+    setSearchResults,
+    setIsSearching,
+    setHasSearched,
+    setCurrentPage,
+    setShowPropertyModals,
+    saveSearchResultsToLocalStorage,
+    searchFilterOverrides,
+    preferencesStrictFilter,
+    preferencesSubjectUserId,
+    getSearchAbortSignal,
+    saveLastSearchContext,
+    mapPreviewSearchLifecycle,
+  });
 
   const { primeIsochroneOverlay, runIsochroneSearch } = useIsochroneFlow({
     env,
@@ -247,7 +229,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
         preferencesStrictFilter,
         preferencesSubjectUserId,
         getSearchAbortSignal(),
-        mapPreviewSearchLifecycle,
+        mapPreviewSearchLifecycle
       );
     },
     setSearchStage: (stage?: string) => setSearchStage(stage ?? ""),
@@ -272,7 +254,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
       if (!map) return;
       map.fitBounds(b, 16);
     },
-    [googleMapRef],
+    [googleMapRef]
   );
 
   useMarkerUpdates({

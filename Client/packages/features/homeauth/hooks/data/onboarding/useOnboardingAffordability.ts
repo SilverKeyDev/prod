@@ -4,25 +4,20 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import type { OnboardingData } from "packages/features/profile/utils"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Onboarding form data matches profile preference shape. */
-import {
-  calculateAffordableHomePrice,
-  type HomePriceResult,
-} from "packages/utils/affordability";
+import type { OnboardingData } from "packages/features/profile/utils";
+import { calculateAffordableHomePrice, type HomePriceResult } from "packages/utils/affordability";
 
 type OnboardingStep = { id: string };
 
 export function useOnboardingAffordability(
   formData: OnboardingData,
   currentStep: number,
-  steps: OnboardingStep[],
+  steps: OnboardingStep[]
 ) {
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
-  const [homePriceResult, setHomePriceResult] =
-    useState<HomePriceResult | null>(null);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] =
-    useState(false);
+  const [homePriceResult, setHomePriceResult] = useState<HomePriceResult | null>(null);
+  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
 
   const calculateHomePrice = useCallback(() => {
     if (formData.paying_cash) return;
@@ -43,11 +38,7 @@ export function useOnboardingAffordability(
         setHomePriceResult(result as HomePriceResult);
       }
     } catch (error: unknown) {
-      setHomePriceError(
-        error instanceof Error
-          ? error.message
-          : "Failed to calculate home price",
-      );
+      setHomePriceError(error instanceof Error ? error.message : "Failed to calculate home price");
       setHomePriceResult(null);
     } finally {
       setHomePriceLoading(false);

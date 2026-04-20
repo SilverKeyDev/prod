@@ -28,9 +28,7 @@ import { FilterChipRow } from "./FilterChipRow";
 type SearchFiltersContentProps = {
   formData: Partial<SearchFiltersFormData>;
   update: (field: keyof SearchFiltersFormData, value: unknown) => void;
-  onSearchFilterOverridesPatch?: (
-    patch: LotSizeHomeAgeSearchOverridesPatch,
-  ) => void;
+  onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
 };
@@ -68,15 +66,11 @@ export function SearchFiltersContent({
     >
       {selectedClientId !== undefined && onClientChange ? (
         <Box className="mb-4">
-          <ClientSelector
-            selectedClientId={selectedClientId}
-            onClientChange={onClientChange}
-          />
+          <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
         </Box>
       ) : null}
       <Text className="text-text-secondary mb-2 text-xs font-medium">
-        {SEARCH_TRANSLATIONS["search.location_preferences"] ??
-          "Location preferences"}
+        {SEARCH_TRANSLATIONS["search.location_preferences"] ?? "Location preferences"}
       </Text>
       <Box className="mb-4">
         <ImportantLocationsInput
@@ -88,17 +82,10 @@ export function SearchFiltersContent({
       <Box className="mb-4 flex-row gap-2">
         <Box className="flex-1">
           <Input
-            placeholder="Min $"
-            value={
-              formData.home_budget_min != null
-                ? String(formData.home_budget_min)
-                : ""
-            }
+            placeholder="Min price"
+            value={formData.home_budget_min != null ? String(formData.home_budget_min) : ""}
             onValueChange={(v) =>
-              update(
-                "home_budget_min",
-                parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined,
-              )
+              update("home_budget_min", parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined)
             }
             keyboardType="numeric"
             className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
@@ -106,17 +93,10 @@ export function SearchFiltersContent({
         </Box>
         <Box className="flex-1">
           <Input
-            placeholder="Max $"
-            value={
-              formData.home_budget_max != null
-                ? String(formData.home_budget_max)
-                : ""
-            }
+            placeholder="Max price"
+            value={formData.home_budget_max != null ? String(formData.home_budget_max) : ""}
             onValueChange={(v) =>
-              update(
-                "home_budget_max",
-                parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined,
-              )
+              update("home_budget_max", parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined)
             }
             keyboardType="numeric"
             className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
@@ -125,22 +105,19 @@ export function SearchFiltersContent({
       </Box>
 
       <Text className="text-text-secondary mb-1 text-xs font-medium">
-        {SEARCH_TRANSLATIONS["search.filters_beds_baths_range"] ??
-          "Beds and baths"}
+        {SEARCH_TRANSLATIONS["search.filters_beds_baths_range"] ?? "Beds and baths"}
       </Text>
       <Box className="mb-4 flex-row gap-2">
         <Box className="flex-1">
           <Input
-            placeholder="Min beds"
+            placeholder="Min bedrooms"
             value={
-              formData.preferred_bedrooms_min != null
-                ? String(formData.preferred_bedrooms_min)
-                : ""
+              formData.preferred_bedrooms_min != null ? String(formData.preferred_bedrooms_min) : ""
             }
             onValueChange={(v) =>
               update(
                 "preferred_bedrooms_min",
-                parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined,
+                parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined
               )
             }
             keyboardType="numeric"
@@ -149,18 +126,13 @@ export function SearchFiltersContent({
         </Box>
         <Box className="flex-1">
           <Input
-            placeholder="Max beds"
+            placeholder="Max bedrooms"
             value={
-              formData.preferred_bedrooms_max != null
-                ? String(formData.preferred_bedrooms_max)
-                : ""
+              formData.preferred_bedrooms_max != null ? String(formData.preferred_bedrooms_max) : ""
             }
             onValueChange={(v) => {
               const n = parseInt((v ?? "").replace(/\D/g, ""), 10);
-              update(
-                "preferred_bedrooms_max",
-                Number.isFinite(n) ? n : undefined,
-              );
+              update("preferred_bedrooms_max", Number.isFinite(n) ? n : undefined);
             }}
             keyboardType="numeric"
             className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
@@ -170,7 +142,7 @@ export function SearchFiltersContent({
       <Box className="mb-4 flex-row gap-2">
         <Box className="flex-1">
           <Input
-            placeholder="Min baths"
+            placeholder="Min bathrooms"
             value={
               formData.preferred_bathrooms_min != null
                 ? String(formData.preferred_bathrooms_min)
@@ -179,7 +151,7 @@ export function SearchFiltersContent({
             onValueChange={(v) =>
               update(
                 "preferred_bathrooms_min",
-                parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined,
+                parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined
               )
             }
             keyboardType="numeric"
@@ -188,7 +160,7 @@ export function SearchFiltersContent({
         </Box>
         <Box className="flex-1">
           <Input
-            placeholder="Max baths"
+            placeholder="Max bathrooms"
             value={
               formData.preferred_bathrooms_max != null
                 ? String(formData.preferred_bathrooms_max)
@@ -196,10 +168,7 @@ export function SearchFiltersContent({
             }
             onValueChange={(v) => {
               const n = parseInt((v ?? "").replace(/\D/g, ""), 10);
-              update(
-                "preferred_bathrooms_max",
-                Number.isFinite(n) ? n : undefined,
-              );
+              update("preferred_bathrooms_max", Number.isFinite(n) ? n : undefined);
             }}
             keyboardType="numeric"
             className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
@@ -208,8 +177,7 @@ export function SearchFiltersContent({
       </Box>
 
       <Text className="text-text-secondary mb-1 text-xs font-medium">
-        {SEARCH_TRANSLATIONS["search.must_have_features"] ??
-          "Must-have features"}
+        {SEARCH_TRANSLATIONS["search.must_have_features"] ?? "Must-have features"}
       </Text>
       <Text className="text-text-tertiary mb-2 text-xs">
         {SEARCH_TRANSLATIONS["search.must_have_features_hint"] ??
@@ -217,9 +185,7 @@ export function SearchFiltersContent({
       </Text>
       <Box className="mb-4 flex-row flex-wrap gap-2">
         {MUST_HAVE_OPTIONS.map((opt) => {
-          const selected = new Set(
-            Array.isArray(formData.must_have) ? formData.must_have : [],
-          );
+          const selected = new Set(Array.isArray(formData.must_have) ? formData.must_have : []);
           const isSelected = selected.has(opt.value);
           const next = isSelected
             ? [...selected].filter((v) => v !== opt.value)
@@ -264,7 +230,7 @@ export function SearchFiltersContent({
               (v ?? "")
                 .split(",")
                 .map((s) => s.trim())
-                .filter(Boolean),
+                .filter(Boolean)
             )
           }
           className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
@@ -278,51 +244,41 @@ export function SearchFiltersContent({
         <Box className="mb-3">
           <Text className="text-text-secondary mb-1 text-xs">Home type</Text>
           <Box className="flex-row flex-wrap gap-2">
-            {["single_family", "townhouse", "condo", "multi_family"].map(
-              (value) => {
-                const current =
-                  (formData.preferred_housing_type as string) ?? "";
-                const parts = current.split(",").filter(Boolean);
-                const isSelected = parts.includes(value);
-                const next = isSelected
-                  ? parts.filter((v) => v !== value)
-                  : [...parts, value];
-                const label = HOUSING_TYPE_LABELS[value] ?? value;
-                return (
-                  <Pressable
-                    key={value}
-                    onPress={() =>
-                      update(
-                        "preferred_housing_type",
-                        next.length ? next.join(",") : undefined,
-                      )
-                    }
-                    className={`rounded-full border px-3 py-1.5 ${
-                      isSelected
-                        ? "border-border bg-primary-muted"
-                        : "border-border bg-background-surface"
+            {["single_family", "townhouse", "condo", "multi_family"].map((value) => {
+              const current = (formData.preferred_housing_type as string) ?? "";
+              const parts = current.split(",").filter(Boolean);
+              const isSelected = parts.includes(value);
+              const next = isSelected ? parts.filter((v) => v !== value) : [...parts, value];
+              const label = HOUSING_TYPE_LABELS[value] ?? value;
+              return (
+                <Pressable
+                  key={value}
+                  onPress={() =>
+                    update("preferred_housing_type", next.length ? next.join(",") : undefined)
+                  }
+                  className={`rounded-full border px-3 py-1.5 ${
+                    isSelected
+                      ? "border-border bg-primary-muted"
+                      : "border-border bg-background-surface"
+                  }`}
+                >
+                  <Text
+                    className={`text-xs font-medium ${
+                      isSelected ? "text-primary" : "text-text-secondary"
                     }`}
                   >
-                    <Text
-                      className={`text-xs font-medium ${
-                        isSelected ? "text-primary" : "text-text-secondary"
-                      }`}
-                    >
-                      {label}
-                    </Text>
-                  </Pressable>
-                );
-              },
-            )}
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </Box>
         </Box>
 
         <Box className="mb-4">
           <LotSizeAndHomeAgeSliders
             formData={formData}
-            updateFormData={(field, value) =>
-              update(field as keyof SearchFiltersFormData, value)
-            }
+            updateFormData={(field, value) => update(field as keyof SearchFiltersFormData, value)}
             onSearchFilterOverridesPatch={onSearchFilterOverridesPatch}
           />
         </Box>

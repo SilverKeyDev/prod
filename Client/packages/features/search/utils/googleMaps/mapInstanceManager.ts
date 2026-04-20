@@ -13,25 +13,21 @@ export class MapInstanceManager {
   createMap(
     container: HTMLElement,
     mapId: string | undefined,
-    overrides?: Partial<google.maps.MapOptions>,
+    overrides?: Partial<google.maps.MapOptions>
   ): google.maps.Map | null {
-    const existingMapInstance = Array.from(
-      MapInstanceManager.activeMapInstances,
-    ).find((map) => map.getDiv() === container);
+    const existingMapInstance = Array.from(MapInstanceManager.activeMapInstances).find(
+      (map) => map.getDiv() === container
+    );
     if (existingMapInstance) return existingMapInstance;
 
     const win = getWindow() as Window & { google?: typeof google };
     if (!win?.google?.maps?.Map) return null;
 
     const effectiveMapId = mapId ?? undefined;
-    log.info(
-      LOG_CATEGORIES.MAP_RENDERING,
-      "Applying map ID to Google Map instance",
-      {
-        mapId: effectiveMapId ?? "(none - default styling)",
-        willUseCloudStyling: !!effectiveMapId,
-      },
-    );
+    log.info(LOG_CATEGORIES.MAP_RENDERING, "Applying map ID to Google Map instance", {
+      mapId: effectiveMapId ?? "(none - default styling)",
+      willUseCloudStyling: !!effectiveMapId,
+    });
 
     try {
       const baseOptions: google.maps.MapOptions = {
@@ -54,15 +50,11 @@ export class MapInstanceManager {
       });
       MapInstanceManager.mapInstanceCount++;
       MapInstanceManager.activeMapInstances.add(map);
-      log.info(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Google Map created successfully",
-        {
-          mapIdApplied: !!effectiveMapId,
-          mapId: effectiveMapId ?? undefined,
-          activeInstances: MapInstanceManager.activeMapInstances.size,
-        },
-      );
+      log.info(LOG_CATEGORIES.MAP_RENDERING, "Google Map created successfully", {
+        mapIdApplied: !!effectiveMapId,
+        mapId: effectiveMapId ?? undefined,
+        activeInstances: MapInstanceManager.activeMapInstances.size,
+      });
       return map;
     } catch (err: unknown) {
       const error = asError(err);
@@ -97,22 +89,14 @@ export class MapInstanceManager {
 
       if (MapInstanceManager.activeMapInstances.has(map)) {
         MapInstanceManager.activeMapInstances.delete(map);
-        log.debug(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Map instance removed from tracking",
-          {
-            remainingInstances: MapInstanceManager.activeMapInstances.size,
-            timestamp: dateNow().toISOString(),
-          },
-        );
+        log.debug(LOG_CATEGORIES.MAP_RENDERING, "Map instance removed from tracking", {
+          remainingInstances: MapInstanceManager.activeMapInstances.size,
+          timestamp: dateNow().toISOString(),
+        });
       } else {
-        log.warn(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Map instance not found in tracking",
-          {
-            timestamp: dateNow().toISOString(),
-          },
-        );
+        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map instance not found in tracking", {
+          timestamp: dateNow().toISOString(),
+        });
       }
     } catch (error) {
       log.warn(LOG_CATEGORIES.MAP_RENDERING, "Error during map cleanup", error);
@@ -120,17 +104,13 @@ export class MapInstanceManager {
   }
 
   cleanupContainerMaps(container: HTMLElement): void {
-    log.debug(
-      LOG_CATEGORIES.MAP_RENDERING,
-      "Cleaning up all maps for container",
-      {
-        timestamp: dateNow().toISOString(),
-      },
-    );
+    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleaning up all maps for container", {
+      timestamp: dateNow().toISOString(),
+    });
 
-    const mapsToCleanup = Array.from(
-      MapInstanceManager.activeMapInstances,
-    ).filter((map) => map.getDiv() === container);
+    const mapsToCleanup = Array.from(MapInstanceManager.activeMapInstances).filter(
+      (map) => map.getDiv() === container
+    );
 
     log.debug(LOG_CATEGORIES.MAP_RENDERING, "Found maps to cleanup", {
       count: mapsToCleanup.length,
@@ -142,15 +122,14 @@ export class MapInstanceManager {
 
   hasMapInContainer(container: HTMLElement): boolean {
     return Array.from(MapInstanceManager.activeMapInstances).some(
-      (map) => map.getDiv() === container,
+      (map) => map.getDiv() === container
     );
   }
 
   getMapForContainer(container: HTMLElement): google.maps.Map | null {
     return (
-      Array.from(MapInstanceManager.activeMapInstances).find(
-        (map) => map.getDiv() === container,
-      ) ?? null
+      Array.from(MapInstanceManager.activeMapInstances).find((map) => map.getDiv() === container) ??
+      null
     );
   }
 

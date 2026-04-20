@@ -50,7 +50,7 @@ module.exports = {
       if (pattern.endsWith(".")) return filename.includes(pattern);
       if (pattern.includes("*")) {
         const regex = new RegExp(
-          "^.*" + pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*") + "$",
+          "^.*" + pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*") + "$"
         );
         return regex.test(filename);
       }

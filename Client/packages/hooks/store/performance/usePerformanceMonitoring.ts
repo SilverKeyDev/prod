@@ -8,15 +8,9 @@ import {
   buildPerformanceReport,
   logRenderThresholdWarnings,
 } from "./performanceMonitoringHelpers";
-import type {
-  PerformanceMetrics,
-  PerformanceThresholds,
-} from "./performanceMonitoringTypes";
+import type { PerformanceMetrics, PerformanceThresholds } from "./performanceMonitoringTypes";
 
-export type {
-  PerformanceMetrics,
-  PerformanceThresholds,
-} from "./performanceMonitoringTypes";
+export type { PerformanceMetrics, PerformanceThresholds } from "./performanceMonitoringTypes";
 
 export interface PerformanceMonitoringOptions {
   /** Component name for logging */
@@ -61,10 +55,7 @@ export function usePerformanceMonitoring({
   const mountTime = useRef<number>(Date.now());
   const lastUpdateTime = useRef<number>(Date.now());
 
-  const finalThresholds = useMemo(
-    () => ({ ...DEFAULT_THRESHOLDS, ...thresholds }),
-    [thresholds],
-  );
+  const finalThresholds = useMemo(() => ({ ...DEFAULT_THRESHOLDS, ...thresholds }), [thresholds]);
 
   // Measure render time
   const startRender = useCallback(() => {
@@ -89,7 +80,7 @@ export function usePerformanceMonitoring({
           componentName,
           renderTime,
           reRenderCount.current,
-          finalThresholds,
+          finalThresholds
         );
       }
     }
@@ -105,11 +96,7 @@ export function usePerformanceMonitoring({
       };
     };
     const win = getWindow();
-    if (
-      win &&
-      "performance" in win &&
-      "memory" in (win.performance as PerformanceWithMemory)
-    ) {
+    if (win && "performance" in win && "memory" in (win.performance as PerformanceWithMemory)) {
       const memory = (win.performance as PerformanceWithMemory).memory;
       const memoryUsage = memory?.usedJSHeapSize ?? 0;
 
@@ -122,9 +109,7 @@ export function usePerformanceMonitoring({
         log.warn(LOG_CATEGORIES.PAGES, "High memory usage", {
           componentName,
           memoryUsageMB: (memoryUsage / 1024 / 1024).toFixed(2),
-          thresholdMB: (finalThresholds.maxMemoryUsage / 1024 / 1024).toFixed(
-            2,
-          ),
+          thresholdMB: (finalThresholds.maxMemoryUsage / 1024 / 1024).toFixed(2),
         });
       }
     }

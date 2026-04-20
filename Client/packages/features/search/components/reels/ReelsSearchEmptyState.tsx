@@ -14,14 +14,12 @@ export function ReelsSearchEmptyState({
   onSearch,
   isSearching = false,
 }: ReelsSearchEmptyStateProps) {
-  const title =
-    SEARCH_TRANSLATIONS["search.reels_empty_title"] ?? "Search to get results";
+  const title = SEARCH_TRANSLATIONS["search.reels_empty_title"] ?? "Search to get results";
   const subtitle =
     SEARCH_TRANSLATIONS["search.reels_empty_subtitle"] ??
     "Run a search to browse homes here in reels.";
   const searchLabel = SEARCH_TRANSLATIONS["search.search"] ?? "Search";
-  const searchingLabel =
-    SEARCH_TRANSLATIONS["search.searching"] ?? "Searching...";
+  const searchingLabel = SEARCH_TRANSLATIONS["search.searching"] ?? "Searching...";
 
   return (
     <Box className="flex h-full w-full flex-col items-center justify-center bg-black px-6 text-center">

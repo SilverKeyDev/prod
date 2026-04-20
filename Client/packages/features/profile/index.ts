@@ -3,22 +3,22 @@
  * Native-only screens are in ./native.
  */
 // Web pages must not import feature internals; re-export shared profile utilities.
+export { AgentPublicProfileView } from "./components/AgentPublicProfileView";
 export {
   LotSizeAndHomeAgeSliders,
   type LotSizeHomeAgeFormSlice,
   type LotSizeHomeAgeSearchOverridesPatch,
 } from "./components/LotSizeAndHomeAgeSliders";
-export { ProfileHousingEssentialsSection } from "./components/profileScreen/ProfileHousingEssentialsSection";
-export { ProfileHousingRangesSection } from "./components/profileScreen/ProfileHousingRangesSection";
-export { ProfileSearchPropertySection } from "./components/profileScreen/ProfileSearchPropertySection";
+export type { ProfileScreenProps } from "./components/ProfileScreen";
+export { ProfileScreen } from "./components/ProfileScreen";
 export type { PatchBuyerPreferenceExtensions } from "./components/profileScreen/searchPreferences/types";
+export { ProfileHousingEssentialsSection } from "./components/profileScreen/sections/ProfileHousingEssentialsSection";
+export { ProfileHousingRangesSection } from "./components/profileScreen/sections/ProfileHousingRangesSection";
+export { ProfileSearchPropertySection } from "./components/profileScreen/sections/ProfileSearchPropertySection";
 export { default as LocationSection } from "./components/sections/LocationSection";
-export { ImportantLocationsInput } from "./components/settings/inputs/ImportantLocationsInput";
-export type {
-  AgentProfileFormFieldKey,
-  ProfileStepId,
-  ProfileUiSurface,
-} from "./types";
+export { ImportantLocationsInput } from "./components/settings/inputs/locations/ImportantLocationsInput";
+export { default as ProfileFeature } from "./components/settings/inputs/ProfileFeature";
+export type { AgentProfileFormFieldKey, ProfileStepId, ProfileUiSurface } from "./types";
 export {
   AGENT_ONLY_SECTION_IDS,
   AGENT_PROFILE_FORM_FIELD_KEYS,
@@ -42,4 +42,4 @@ export {
   userPreferencesToOnboardingData,
   validateSettingsData,
 } from "./utils";
-export { API_GET_KEYS, API_POST_KEYS } from "./utils/fieldContract";
+export { API_GET_KEYS, API_POST_KEYS } from "./utils/onboarding/fieldContract";

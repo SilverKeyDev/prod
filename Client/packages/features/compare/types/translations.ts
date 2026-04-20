@@ -7,8 +7,7 @@ export const COMPARE_TRANSLATIONS: Record<string, string> = {
   "compare.compare": "Compare",
   "compare.comparison": "Comparison",
   "compare.manage_fields_title": "Manage Comparison Fields",
-  "compare.manage_fields_subtitle":
-    "Select which fields to include in your comparison table",
+  "compare.manage_fields_subtitle": "Select which fields to include in your comparison table",
   "compare.show_all": "Show All ({{count}})",
   "compare.hide_all": "Hide All",
   "compare.auto_hide_empty": "Auto-Hide Empty",

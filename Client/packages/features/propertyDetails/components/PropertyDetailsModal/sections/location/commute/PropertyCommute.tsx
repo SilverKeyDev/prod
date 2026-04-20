@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { color } from "packages/design-tokens";
 import { PropertySectionRatingBadge } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/PropertySectionRatingBadge";
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
@@ -14,11 +15,11 @@ import {
   stripSectionRatingField,
   unwrapPropertyAnalysisSection,
 } from "packages/utils/propertyDetails";
-import { commuteDestinationsForMap } from "packages/utils/propertyDetails/commuteMapDestinations";
+import { commuteDestinationsForMap } from "packages/utils/propertyDetails/location/commuteMapDestinations";
 import {
   getListingCoords,
   getListingCoordsUnavailableDiagnostics,
-} from "packages/utils/propertyDetails/listingCoords";
+} from "packages/utils/propertyDetails/location/listingCoords";
 
 import { CommuteAnalysisContent } from "./propertyCommuteRender";
 
@@ -29,12 +30,11 @@ type PropertyCommuteProps = PropertyComponentProps & {
 export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
   property,
   analysisContent,
+  commuteSearchOverlay = null,
 }) => {
   const { t } = useLocalization();
   const [mapHost, setMapHost] = useState<HTMLDivElement | null>(null);
-  const [streetViewHost, setStreetViewHost] = useState<HTMLDivElement | null>(
-    null,
-  );
+  const [streetViewHost, setStreetViewHost] = useState<HTMLDivElement | null>(null);
   const commute = (
     property as unknown as {
       commute_data?: unknown;
@@ -45,10 +45,12 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
         travel_times?: Array<{
           location_name?: string;
           name?: string;
+          label?: string;
           location_address?: string;
           address?: string;
           travel_time?: string | number;
           commute_tolerance?: number;
+          encoded_polyline?: string | null;
         }>;
         commute_time?: string | number;
         commute_distance?: string | number;
@@ -56,30 +58,19 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
     | undefined;
 
   const hasTravelTimes =
-    commute != null &&
-    Array.isArray(commute.travel_times) &&
-    commute.travel_times.length > 0;
+    commute != null && Array.isArray(commute.travel_times) && commute.travel_times.length > 0;
 
-  const commuteAnalysisFlat = unwrapPropertyAnalysisSection(
-    "commute",
-    analysisContent,
-  );
+  const commuteAnalysisFlat = unwrapPropertyAnalysisSection("commute", analysisContent);
   const hasAnalysisInput = useMemo(() => {
     if (commuteAnalysisFlat == null || commuteAnalysisFlat === "") return false;
-    if (
-      typeof commuteAnalysisFlat !== "object" ||
-      Array.isArray(commuteAnalysisFlat)
-    ) {
+    if (typeof commuteAnalysisFlat !== "object" || Array.isArray(commuteAnalysisFlat)) {
       return true;
     }
-    return (
-      Object.keys(commuteAnalysisFlat as Record<string, unknown>).length > 0
-    );
+    return Object.keys(commuteAnalysisFlat as Record<string, unknown>).length > 0;
   }, [commuteAnalysisFlat]);
 
   const hasSimple =
-    commute != null &&
-    (commute.commute_time != null || commute.commute_distance != null);
+    commute != null && (commute.commute_time != null || commute.commute_distance != null);
 
   const listingCoords = useMemo(() => getListingCoords(property), [property]);
   const loggedCommuteMapUnavailableKeyRef = useRef<string | null>(null);
@@ -106,12 +97,12 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
       {
         listingId,
         ...diagnostics,
-      },
+      }
     );
   }, [commute, hasTravelTimes, listingCoords, property]);
   const commuteMapDestinations = useMemo(
     () => commuteDestinationsForMap(commute?.travel_times ?? []),
-    [commute?.travel_times],
+    [commute?.travel_times]
   );
   const address = typeof property.address === "string" ? property.address : "";
   usePropertyCommuteLocationMap({
@@ -122,14 +113,15 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
     listingMarkerTitle: address,
     destinations: commuteMapDestinations,
     enabled: Boolean(commute && hasTravelTimes && listingCoords),
+    searchOverlay: commuteSearchOverlay,
   });
 
   if (!commute && !hasAnalysisInput) return null;
-  if (commute && !hasTravelTimes && !hasSimple && !hasAnalysisInput)
-    return null;
+  if (commute && !hasTravelTimes && !hasSimple && !hasAnalysisInput) return null;
 
-  const { rest: commuteAnalysisBody, rating: commuteSectionRating } =
-    stripSectionRatingField(commuteAnalysisFlat ?? null);
+  const { rest: commuteAnalysisBody, rating: commuteSectionRating } = stripSectionRatingField(
+    commuteAnalysisFlat ?? null
+  );
   const hasCommuteAnalysisBody =
     commuteAnalysisBody != null &&
     typeof commuteAnalysisBody === "object" &&
@@ -150,6 +142,71 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
       <SectionTintWrapper className="mt-2">
         {commute && hasTravelTimes ? (
           <Box className="flex flex-col gap-4">
+            <Box className="flex flex-col gap-2">
+              <Box className="text-text-secondary flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+                <Box className="flex items-center gap-2">
+                  <Box
+                    className="h-3 w-3 shrink-0 rounded-full border border-black/10"
+                    style={{ backgroundColor: color("olive.DEFAULT") }}
+                  />
+                  <BodyText as="span" size="xs">
+                    {t("property_details.commute_legend_listing")}
+                  </BodyText>
+                </Box>
+                <Box className="flex items-center gap-2">
+                  <Box
+                    className="h-3 w-3 shrink-0 rounded-full border border-black/10"
+                    style={{ backgroundColor: color("brown.DEFAULT") }}
+                  />
+                  <BodyText as="span" size="xs">
+                    {t("property_details.commute_legend_important_locations")}
+                  </BodyText>
+                </Box>
+                {commuteSearchOverlay ? (
+                  <Box className="flex items-center gap-2">
+                    <Box
+                      className="h-3 w-3 shrink-0 rounded border border-black/10"
+                      style={{
+                        backgroundColor: color("olive.DEFAULT"),
+                        opacity: 0.35,
+                      }}
+                    />
+                    <BodyText as="span" size="xs">
+                      {t("property_details.commute_legend_search_area")}
+                    </BodyText>
+                  </Box>
+                ) : null}
+              </Box>
+              {Array.isArray(commute.travel_times) && commute.travel_times.length > 0 ? (
+                <Box className="flex flex-col gap-1">
+                  {commute.travel_times.map((row, idx) => {
+                    const destLabel = String(
+                      row.location_name ?? row.label ?? row.name ?? row.address ?? `Stop ${idx + 1}`
+                    );
+                    const timeStr =
+                      row.travel_time != null && String(row.travel_time).trim()
+                        ? String(row.travel_time)
+                        : t("property_details.commute_travel_time_unknown");
+                    return (
+                      <BodyText
+                        key={`${destLabel}:${idx}`}
+                        as="p"
+                        size="xs"
+                        className="text-text-secondary"
+                      >
+                        <BodyText as="span" className="text-foreground font-medium">
+                          {t("property_details.commute_route_to", {
+                            defaultValue: "Drive to {{label}}",
+                            label: destLabel,
+                          })}
+                        </BodyText>{" "}
+                        · {timeStr}
+                      </BodyText>
+                    );
+                  })}
+                </Box>
+              ) : null}
+            </Box>
             <Box className="min-h-0 min-w-0">
               {listingCoords ? (
                 <Box className="border-border-card-subtle bg-background-surface overflow-hidden rounded-lg border">

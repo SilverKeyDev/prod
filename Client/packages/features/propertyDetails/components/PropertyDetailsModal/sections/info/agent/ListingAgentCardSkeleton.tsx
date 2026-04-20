@@ -38,11 +38,7 @@ export function ListingAgentCardSkeleton({
   return (
     <Box className={outerClass}>
       <Box className={`${headerMb} flex min-w-0 flex-row items-center gap-2`}>
-        <Icon
-          name="user"
-          className="text-foreground h-5 w-5 shrink-0"
-          aria-hidden
-        />
+        <Icon name="user" className="text-foreground h-5 w-5 shrink-0" aria-hidden />
         <Title
           as="h3"
           size={titleSize}
@@ -51,26 +47,14 @@ export function ListingAgentCardSkeleton({
           {resolvedTitle}
         </Title>
       </Box>
-      <Box
-        className={`flex flex-row items-start ${isCompact ? "gap-3" : "gap-4"}`}
-      >
+      <Box className={`flex flex-row items-start ${isCompact ? "gap-3" : "gap-4"}`}>
         <Box className={avatarClass} />
         <Box className="flex-1 space-y-2">
-          <Box
-            className={`bg-background-surface ${nameHeight} w-32 animate-pulse rounded`}
-          />
-          <Box
-            className={`bg-background-surface ${businessHeight} w-40 animate-pulse rounded`}
-          />
+          <Box className={`bg-background-surface ${nameHeight} w-32 animate-pulse rounded`} />
+          <Box className={`bg-background-surface ${businessHeight} w-40 animate-pulse rounded`} />
           <Box className="mt-2 flex flex-row items-center">
-            <Icon
-              name="phone"
-              className="text-text-secondary mr-1 h-4 w-4"
-              aria-hidden
-            />
-            <Box
-              className={`bg-background-surface ${phoneHeight} w-28 animate-pulse rounded`}
-            />
+            <Icon name="phone" className="text-text-secondary mr-1 h-4 w-4" aria-hidden />
+            <Box className={`bg-background-surface ${phoneHeight} w-28 animate-pulse rounded`} />
           </Box>
         </Box>
       </Box>

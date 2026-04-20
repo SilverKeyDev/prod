@@ -10,7 +10,4 @@ export type HomeDetailsBlock = {
   component?: ReactNode;
 };
 
-export type HomeDetailsTranslate = (
-  key: string,
-  options?: Record<string, unknown>,
-) => string;
+export type HomeDetailsTranslate = (key: string, options?: Record<string, unknown>) => string;

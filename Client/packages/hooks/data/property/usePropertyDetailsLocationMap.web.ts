@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 import type { GoogleAdvancedMarkerElement } from "packages/features/search/hooks/data/useMapMarkers/types";
 import { getAdvancedMarkerElement } from "packages/features/search/hooks/data/useMapMarkers/updateMarkersHelpers";
-import { createListingLocationPinElement } from "packages/features/search/types/search/listingLocationPin";
+import { createListingLocationPinElement } from "packages/features/search/types/search/map/listingLocationPin";
 import {
   attachInlineStreetViewPanorama,
   googleMapsService,
@@ -33,9 +33,7 @@ function applyMapBasemap(map: google.maps.Map, satelliteMode: boolean): void {
     return;
   }
   map.setMapTypeId(
-    satelliteMode
-      ? win.google.maps.MapTypeId.HYBRID
-      : win.google.maps.MapTypeId.ROADMAP,
+    satelliteMode ? win.google.maps.MapTypeId.HYBRID : win.google.maps.MapTypeId.ROADMAP
   );
 }
 
@@ -55,9 +53,7 @@ function scheduleUntilMapReady(run: () => void): () => void {
  * Renders a Google Map (same Cloud Map ID / defaults as search) centered on one listing with
  * optional inline Street View and a single advanced marker. Cleans up on unmount or when inputs change.
  */
-export function usePropertyDetailsLocationMap(
-  params: UsePropertyDetailsLocationMapParams,
-): void {
+export function usePropertyDetailsLocationMap(params: UsePropertyDetailsLocationMapParams): void {
   const {
     mapContainer,
     streetViewContainer,
@@ -83,17 +79,13 @@ export function usePropertyDetailsLocationMap(
   useEffect(() => {
     if (!enabled || !isLoaded || !mapContainer || !streetViewContainer) {
       if (enabled) {
-        log.debug(
-          LOG_CATEGORIES.PROPERTY_DETAILS,
-          "Property details map: init waiting",
-          {
-            isLoaded,
-            hasMapContainer: mapContainer != null,
-            hasStreetViewContainer: streetViewContainer != null,
-            lat,
-            lng,
-          },
-        );
+        log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "Property details map: init waiting", {
+          isLoaded,
+          hasMapContainer: mapContainer != null,
+          hasStreetViewContainer: streetViewContainer != null,
+          lat,
+          lng,
+        });
       }
       return;
     }
@@ -106,7 +98,7 @@ export function usePropertyDetailsLocationMap(
         {
           lat,
           lng,
-        },
+        }
       );
       return;
     }
@@ -154,14 +146,10 @@ export function usePropertyDetailsLocationMap(
 
     const setup = () => {
       if (cancelled || !container.isConnected) {
-        log.debug(
-          LOG_CATEGORIES.PROPERTY_DETAILS,
-          "Property details map: setup skipped",
-          {
-            cancelled,
-            containerConnected: container.isConnected,
-          },
-        );
+        log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "Property details map: setup skipped", {
+          cancelled,
+          containerConnected: container.isConnected,
+        });
         return;
       }
 
@@ -177,7 +165,7 @@ export function usePropertyDetailsLocationMap(
               containerConnected: container.isConnected,
               lat,
               lng,
-            },
+            }
           );
         }
         return;
@@ -205,7 +193,7 @@ export function usePropertyDetailsLocationMap(
           onVisibleChange: (visible) => {
             onStreetViewVisibilityChangeRef.current?.(visible);
           },
-        },
+        }
       );
       if (streetView) {
         streetViewRef.current = streetView;
@@ -218,7 +206,7 @@ export function usePropertyDetailsLocationMap(
             streetViewContainerConnected: streetViewContainer.isConnected,
             lat,
             lng,
-          },
+          }
         );
       }
 
@@ -237,13 +225,13 @@ export function usePropertyDetailsLocationMap(
           log.warn(
             LOG_CATEGORIES.PROPERTY_DETAILS,
             "Property details map: failed to create marker",
-            e,
+            e
           );
         }
       } else {
         log.warn(
           LOG_CATEGORIES.PROPERTY_DETAILS,
-          "Property details map: AdvancedMarkerElement not available",
+          "Property details map: AdvancedMarkerElement not available"
         );
       }
 
@@ -251,18 +239,14 @@ export function usePropertyDetailsLocationMap(
       requestAnimationFrame(triggerResize);
       setTimeout(triggerResize, 150);
 
-      log.debug(
-        LOG_CATEGORIES.PROPERTY_DETAILS,
-        "Property details map: init complete",
-        {
-          lat,
-          lng,
-          zoom: PROPERTY_DETAILS_NEIGHBORHOOD_ZOOM,
-          markerCreated: markerRef.current != null,
-          satelliteMode: satelliteModeRef.current,
-          streetViewLinked: streetViewRef.current != null,
-        },
-      );
+      log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "Property details map: init complete", {
+        lat,
+        lng,
+        zoom: PROPERTY_DETAILS_NEIGHBORHOOD_ZOOM,
+        markerCreated: markerRef.current != null,
+        satelliteMode: satelliteModeRef.current,
+        streetViewLinked: streetViewRef.current != null,
+      });
     };
 
     let innerRafId: number | null = null;
@@ -288,15 +272,7 @@ export function usePropertyDetailsLocationMap(
       resizeObserver.disconnect();
       dispose();
     };
-  }, [
-    enabled,
-    isLoaded,
-    mapContainer,
-    streetViewContainer,
-    lat,
-    lng,
-    markerTitle,
-  ]);
+  }, [enabled, isLoaded, mapContainer, streetViewContainer, lat, lng, markerTitle]);
 
   useEffect(() => {
     if (!enabled || !isLoaded) {

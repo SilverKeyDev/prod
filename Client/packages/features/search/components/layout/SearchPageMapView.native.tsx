@@ -25,9 +25,7 @@ type MapProperty = SearchResult;
 
 type NativeSearchPageMapViewProps = SearchPageMapViewProps;
 
-export function SearchPageMapView(
-  props: NativeSearchPageMapViewProps,
-): JSX.Element {
+export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Element {
   const {
     activeTab,
     onTabChange,
@@ -59,22 +57,16 @@ export function SearchPageMapView(
         onTabChange(tab);
       }
     },
-    [activeTab, onTabChange],
+    [activeTab, onTabChange]
   );
 
   const renderPropertyItem: ListRenderItem<MapProperty> = useCallback(
     ({ item }) => {
       return (
-        <Pressable
-          style={styles.propertyCard}
-          onPress={() => onViewPropertyDetails(item)}
-        >
+        <Pressable style={styles.propertyCard} onPress={() => onViewPropertyDetails(item)}>
           <Box style={styles.propertyCardRow}>
             <Box style={styles.propertyCardContent}>
-              <Text
-                className="text-text-primary text-base font-medium"
-                numberOfLines={2}
-              >
+              <Text className="text-text-primary text-base font-medium" numberOfLines={2}>
                 {item.address}
               </Text>
               <Text className="text-primary mt-1 text-sm">{item.price}</Text>
@@ -87,7 +79,7 @@ export function SearchPageMapView(
         </Pressable>
       );
     },
-    [onViewPropertyDetails],
+    [onViewPropertyDetails]
   );
 
   useEffect(() => {
@@ -108,7 +100,7 @@ export function SearchPageMapView(
     (index: number) => {
       setCurrentPage(index);
     },
-    [setCurrentPage],
+    [setCurrentPage]
   );
 
   return (
@@ -178,10 +170,10 @@ export function SearchPageMapView(
             <Box style={styles.emptyContainer}>
               <Text className="text-text-secondary text-center text-sm">
                 {hasSearched
-                  ? SEARCH_TRANSLATIONS["search.no_results_try_adjusting"] ??
-                    "No homes match your search yet. Try adjusting your preferences."
-                  : SEARCH_TRANSLATIONS["search.run_search_to_see_homes"] ??
-                    "Run a search to see homes that match your profile."}
+                  ? (SEARCH_TRANSLATIONS["search.no_results_try_adjusting"] ??
+                    "No homes match your search yet. Try adjusting your preferences.")
+                  : (SEARCH_TRANSLATIONS["search.run_search_to_see_homes"] ??
+                    "Run a search to see homes that match your profile.")}
               </Text>
             </Box>
           }

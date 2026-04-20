@@ -4,13 +4,10 @@ import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 
-import { PERFECT_CRITERIA_MATCH_CARD_CLASSNAME } from "@/components/cards/perfectMatchCardGlowClasses";
+import { PERFECT_CRITERIA_MATCH_CARD_CLASSNAME } from "@/components/cards/property/perfectMatchCardGlowClasses";
 import { SearchResultListingCard } from "@/features/search/components/list/SearchResultListingCard.web";
 import type { MapPropertyCardRenderProps } from "@/features/search/hooks/data/useMapMarkers";
-import {
-  isListingFullCriteriaMatch,
-  type SearchResult,
-} from "@/features/search/types";
+import { isListingFullCriteriaMatch, type SearchResult } from "@/features/search/types";
 
 export type MapPropertyCardProps = MapPropertyCardRenderProps & {
   onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void;
@@ -19,12 +16,10 @@ export type MapPropertyCardProps = MapPropertyCardRenderProps & {
 function mapCardPropertyToSearchResult(
   p: MapPropertyCardRenderProps["property"],
   normalizedScore: number | undefined,
-  showScore: boolean,
+  showScore: boolean
 ): SearchResult {
   const _score =
-    showScore && normalizedScore !== undefined && normalizedScore > 0
-      ? normalizedScore
-      : undefined;
+    showScore && normalizedScore !== undefined && normalizedScore > 0 ? normalizedScore : undefined;
   return {
     id: p.id,
     address: p.address,
@@ -38,6 +33,8 @@ function mapCardPropertyToSearchResult(
     propertyType: p.propertyType,
     imageUrl: p.images?.[0],
     images: p.images,
+    listingStatus: p.listingStatus,
+    homeStatus: p.homeStatus,
     _score,
   };
 }
@@ -67,16 +64,12 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   let normalizedScore = property.calculatedScore;
   if (normalizedScore !== undefined && normalizedScore !== null) {
     if (typeof normalizedScore !== "number" || isNaN(normalizedScore)) {
-      log.warn(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "🗺️ [MAP PROPERTY CARD] Invalid score type detected",
-        {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          propertyId: property.id,
-          originalScore: property.calculatedScore,
-          scoreType: typeof property.calculatedScore,
-        },
-      );
+      log.warn(LOG_CATEGORIES.MAP_RENDERING, "🗺️ [MAP PROPERTY CARD] Invalid score type detected", {
+        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+        propertyId: property.id,
+        originalScore: property.calculatedScore,
+        scoreType: typeof property.calculatedScore,
+      });
       normalizedScore = undefined;
     } else if (normalizedScore < 0 || normalizedScore > 100) {
       log.warn(
@@ -86,7 +79,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
           environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
           propertyId: property.id,
           score: normalizedScore,
-        },
+        }
       );
       normalizedScore = Math.max(0, Math.min(100, normalizedScore));
     } else if (normalizedScore === 0) {
@@ -96,7 +89,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
 
   const searchResult = useMemo(
     () => mapCardPropertyToSearchResult(property, normalizedScore, showScore),
-    [property, normalizedScore, showScore],
+    [property, normalizedScore, showScore]
   );
 
   const fullCriteriaMatch = isListingFullCriteriaMatch(searchResult);

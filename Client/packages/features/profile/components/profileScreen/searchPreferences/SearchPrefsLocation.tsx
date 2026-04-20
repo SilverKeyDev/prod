@@ -6,7 +6,7 @@ import {
   PROFILE_NOT_SPECIFIED_LABEL,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
-import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/constants";
+import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/public/constants";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";
 
@@ -24,11 +24,7 @@ type SearchPrefsLocationProps = {
   loc: BuyerLocationPrefs;
 };
 
-export function SearchPrefsLocation({
-  isEditMode,
-  patch,
-  loc,
-}: SearchPrefsLocationProps) {
+export function SearchPrefsLocation({ isEditMode, patch, loc }: SearchPrefsLocationProps) {
   return (
     <Box className="gap-4">
       <Title size="sm" as="h3" className="mb-3 text-base">
@@ -57,17 +53,16 @@ export function SearchPrefsLocation({
                   })
                 }
                 options={WALKABILITY_OPTIONS}
-                placeholder="Select..."
+                placeholder="Select flood risk importance"
               />
             ) : (
               <Box
                 className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                  loc.flood_importance,
+                  loc.flood_importance
                 )}`}
               >
-                {WALKABILITY_OPTIONS.find(
-                  (o) => o.value === loc.flood_importance,
-                )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                {WALKABILITY_OPTIONS.find((o) => o.value === loc.flood_importance)?.label ??
+                  PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },
@@ -89,17 +84,16 @@ export function SearchPrefsLocation({
                   })
                 }
                 options={WALKABILITY_OPTIONS}
-                placeholder="Select..."
+                placeholder="Select noise level importance"
               />
             ) : (
               <Box
                 className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                  loc.noise_importance,
+                  loc.noise_importance
                 )}`}
               >
-                {WALKABILITY_OPTIONS.find(
-                  (o) => o.value === loc.noise_importance,
-                )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                {WALKABILITY_OPTIONS.find((o) => o.value === loc.noise_importance)?.label ??
+                  PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },

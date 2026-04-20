@@ -32,8 +32,7 @@ export const MODAL_PANEL_HEADER_WEB =
 
 export const MODAL_PANEL_HEADER_BORDER_WEB = `border-b ${MODAL_PANEL_BORDER_COLOR}`;
 
-export const MODAL_PANEL_BODY_WEB =
-  "min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6";
+export const MODAL_PANEL_BODY_WEB = "min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6";
 
 /** Shared footer base - both platforms */
 export const MODAL_PANEL_FOOTER_BASE = `flex-shrink-0 border-t ${MODAL_PANEL_BORDER_COLOR}`;
@@ -64,5 +63,4 @@ export const MODAL_PANEL_BODY_LARGE_NATIVE = "max-h-[700px]";
 
 export const MODAL_PANEL_FOOTER_NATIVE = `${MODAL_PANEL_FOOTER_BASE} p-4`;
 
-export const MODAL_BACKDROP_NATIVE =
-  "flex-1 items-center justify-center bg-neutral-900 p-4";
+export const MODAL_BACKDROP_NATIVE = "flex-1 items-center justify-center bg-neutral-900 p-4";

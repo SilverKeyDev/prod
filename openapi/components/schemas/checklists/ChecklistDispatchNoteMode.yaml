@@ -1,0 +1,7 @@
+type: string
+description: >-
+  How optional message text is applied per recipient for messaging (and stored on agreement description for DocuSign).
+enum:
+  - none
+  - broadcast
+  - per_client

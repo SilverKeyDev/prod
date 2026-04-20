@@ -13,7 +13,7 @@ import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import { Region } from "@/components/ui";
-import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
+import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
 
@@ -23,9 +23,7 @@ type AgentMessagingProps = {
   selectedClientId: string | null;
   selectedClient?: AgentClient;
   onClientSelect?: (clientId: string) => void;
-  setMobileHeaderActions?: React.Dispatch<
-    React.SetStateAction<ReactNode | null>
-  >;
+  setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
 };
 
 export default function AgentMessaging({
@@ -43,7 +41,7 @@ export default function AgentMessaging({
     activeConversation,
     conversations,
     sendMessage: sendMessageApi,
-    sendSharedHome,
+    sendSharedHomes,
     sendSharedDocument,
     retryMessage,
     refreshActiveConversationHistory,
@@ -90,14 +88,14 @@ export default function AgentMessaging({
     setAcceptingEventRequestId,
     refreshActiveConversationHistory,
     refreshChats,
-    sendSharedHome,
+    sendSharedHomes,
     sendSharedDocument,
   });
 
   const { messagesEndRef } = useMessageScroll(
     localMessages,
     activeConversationId,
-    isLoadingHistory,
+    isLoadingHistory
   );
   const config = getMessagingConfig("agent");
 
@@ -118,9 +116,7 @@ export default function AgentMessaging({
   useEffect(() => {
     if (!setMobileHeaderActions) return;
     const headerMode = getHeaderMode();
-    const chatTitle = selectedClient
-      ? `Chat with ${selectedClient.name}`
-      : config.header.chatTitle;
+    const chatTitle = selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle;
     const contentKey = `${headerMode}-${isSidebarExpanded}-${
       selectedClient?.name ?? ""
     }-${chatTitle}-${pendingConnectionRequestCount}`;
@@ -137,7 +133,7 @@ export default function AgentMessaging({
         onInboxClick={() => setShowInbox(true)}
         onBackClick={() => setShowInbox(false)}
         pendingConnectionRequestCount={pendingConnectionRequestCount}
-      />,
+      />
     );
     return () => {
       headerContentKeyRef.current = null;
@@ -184,9 +180,7 @@ export default function AgentMessaging({
                   isSidebarExpanded={isSidebarExpanded}
                   setIsSidebarExpanded={setIsSidebarExpanded}
                   chatTitle={
-                    selectedClient
-                      ? `Chat with ${selectedClient.name}`
-                      : config.header.chatTitle
+                    selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle
                   }
                   selectedClientName={selectedClient?.name}
                   onSearchClick={() => setShowSearchModal(true)}
@@ -244,7 +238,7 @@ export default function AgentMessaging({
         setShowSelectDocumentModal={setShowSelectDocumentModal}
         showCalendarEventModal={showCalendarEventModal}
         setShowCalendarEventModal={setShowCalendarEventModal}
-        onSelectHome={handlers.handleSelectHome}
+        onSelectHomes={handlers.handleSelectHomes}
         onSelectDocument={handlers.handleSelectDocument}
         onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
         sendCalendarEventMessage={sendMessageApi}

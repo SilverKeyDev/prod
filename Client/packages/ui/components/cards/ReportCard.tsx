@@ -3,10 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import {
-  formatDate,
-  formatFilenameToAddress,
-} from "packages/features/search/types/search/address";
+import { formatDate, formatFilenameToAddress } from "packages/features/search/types/search/formatters/address";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Report } from "packages/schemas";
 import StatusBadge from "packages/ui/components/asset/StatusBadge";
@@ -30,7 +27,7 @@ export type ReportCardProps = {
   loadingUrls: Set<string>;
 };
 function getStatusVariant(
-  status: string,
+  status: string
 ): "success" | "warning" | "error" | "info" | "processing" | "default" {
   switch (status) {
     case "completed":
@@ -45,15 +42,10 @@ function getStatusVariant(
 }
 function formatReportDate(report: Report): string {
   try {
-    if (
-      report.generatedAt &&
-      typeof report.generatedAt.toISOString === "function"
-    ) {
+    if (report.generatedAt && typeof report.generatedAt.toISOString === "function") {
       return formatDate(report.generatedAt.toISOString());
     }
-    return formatDate(
-      report.generatedAt?.toString() || dateNow().toISOString(),
-    );
+    return formatDate(report.generatedAt?.toString() || dateNow().toISOString());
   } catch {
     return formatDate(dateNow().toISOString());
   }
@@ -93,13 +85,7 @@ function ReportCardDate({ report }: { report: Report }) {
     </Box>
   );
 }
-function ReportCardTitle({
-  report,
-  viewMode,
-}: {
-  report: Report;
-  viewMode: "grid" | "list";
-}) {
+function ReportCardTitle({ report, viewMode }: { report: Report; viewMode: "grid" | "list" }) {
   const address = formatFilenameToAddress(report.address);
   if (viewMode === "grid") {
     return (
@@ -249,18 +235,11 @@ function ReportCardCompletedActions({
     </Box>
   );
 }
-function ReportCardGeneratingProgress({
-  viewMode,
-}: {
-  viewMode: "grid" | "list";
-}) {
+function ReportCardGeneratingProgress({ viewMode }: { viewMode: "grid" | "list" }) {
   return (
     <Box className={viewMode === "grid" ? "w-full py-2" : "w-full space-y-2"}>
       <Box className="h-2.5 w-full rounded-full bg-gray-200">
-        <Box
-          className="bg-primary h-2.5 rounded-full"
-          style={{ width: "50%" }}
-        />
+        <Box className="bg-primary h-2.5 rounded-full" style={{ width: "50%" }} />
       </Box>
     </Box>
   );
@@ -283,6 +262,7 @@ function ReportCardErrorAction({
       onClick={() => report.s3Key && onDelete(report.id, report.s3Key)}
       disabled={loadingUrls.has(report.id) || !report.s3Key}
       className="w-full"
+      iconName="trash-2"
     >
       <Icon name="trash-2" className="mr-1 h-4 w-4" />
       {deleteLabel}
@@ -324,11 +304,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
     >
       <ReportCardDate report={report} />
       <Box className="absolute right-3 top-3 z-10 hidden sm:block">
-        <StatusBadge
-          text={statusText}
-          variant={getStatusVariant(report.status)}
-          size="sm"
-        />
+        <StatusBadge text={statusText} variant={getStatusVariant(report.status)} size="sm" />
       </Box>
 
       <Box className="flex min-w-0 flex-grow flex-col">
@@ -347,9 +323,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
               deleteTitle={t("reports.delete_report")}
             />
           )}
-          {report.status === "generating" && (
-            <ReportCardGeneratingProgress viewMode={viewMode} />
-          )}
+          {report.status === "generating" && <ReportCardGeneratingProgress viewMode={viewMode} />}
           {report.status === "error" && (
             <ReportCardErrorAction
               report={report}

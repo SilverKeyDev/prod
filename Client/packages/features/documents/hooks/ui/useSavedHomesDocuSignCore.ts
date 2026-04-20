@@ -1,16 +1,10 @@
 import { useCallback, useState } from "react";
 
-type EnqueueToast = (params: {
-  type: "success" | "error";
-  message: string;
-}) => void;
+type EnqueueToast = (params: { type: "success" | "error"; message: string }) => void;
 
 type SendAgreementFn = (params: { agreementId: string }) => Promise<unknown>;
 
-type VoidAgreementFn = (params: {
-  agreementId: string;
-  reason?: string;
-}) => Promise<unknown>;
+type VoidAgreementFn = (params: { agreementId: string; reason?: string }) => Promise<unknown>;
 
 export type UseSavedHomesDocuSignCoreOptions = {
   sendAgreement: SendAgreementFn;
@@ -26,23 +20,12 @@ export type UseSavedHomesDocuSignCoreOptions = {
 /**
  * Shared DocuSign agreement state and handlers. Platform files pass confirmVoid and voidReason.
  */
-export function useSavedHomesDocuSignCore(
-  options: UseSavedHomesDocuSignCoreOptions,
-) {
-  const {
-    sendAgreement,
-    voidAgreement,
-    refetchAgreements,
-    enqueueToast,
-    confirmVoid,
-    voidReason,
-  } = options;
+export function useSavedHomesDocuSignCore(options: UseSavedHomesDocuSignCoreOptions) {
+  const { sendAgreement, voidAgreement, refetchAgreements, enqueueToast, confirmVoid, voidReason } =
+    options;
 
-  const [isCreateAgreementModalOpen, setIsCreateAgreementModalOpen] =
-    useState(false);
-  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(
-    null,
-  );
+  const [isCreateAgreementModalOpen, setIsCreateAgreementModalOpen] = useState(false);
+  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
 
   const handleAgreementClick = useCallback((agreementId: string) => {
     setSelectedAgreementId(agreementId);
@@ -60,18 +43,17 @@ export function useSavedHomesDocuSignCore(
       } catch (error) {
         enqueueToast({
           type: "error",
-          message:
-            error instanceof Error ? error.message : "Failed to send agreement",
+          message: error instanceof Error ? error.message : "Failed to send agreement",
         });
       }
     },
-    [sendAgreement, refetchAgreements, enqueueToast],
+    [sendAgreement, refetchAgreements, enqueueToast]
   );
 
   const handleAgreementVoid = useCallback(
     async (agreementId: string) => {
       const confirmed = await confirmVoid(
-        "Are you sure you want to void this agreement? This action cannot be undone.",
+        "Are you sure you want to void this agreement? This action cannot be undone."
       );
       if (!confirmed) return;
 
@@ -88,12 +70,11 @@ export function useSavedHomesDocuSignCore(
       } catch (error) {
         enqueueToast({
           type: "error",
-          message:
-            error instanceof Error ? error.message : "Failed to void agreement",
+          message: error instanceof Error ? error.message : "Failed to void agreement",
         });
       }
     },
-    [voidAgreement, refetchAgreements, enqueueToast, confirmVoid, voidReason],
+    [voidAgreement, refetchAgreements, enqueueToast, confirmVoid, voidReason]
   );
 
   const handleCreateAgreementSuccess = useCallback(
@@ -101,7 +82,7 @@ export function useSavedHomesDocuSignCore(
       void refetchAgreements();
       setSelectedAgreementId(agreementId);
     },
-    [refetchAgreements],
+    [refetchAgreements]
   );
 
   return {

@@ -67,6 +67,8 @@ OPTIONAL_ENV_VARS = [
     "S3_PRESIGNED_URL_EXPIRATION",
     "UPLOAD_FOLDER",
     "MAX_CONTENT_LENGTH",
+    # Viewing itinerary routes (route_builder); only needed when that feature runs.
+    "GOOGLE_MAPS_SERVER_KEY",
 ]
 
 

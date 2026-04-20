@@ -8,6 +8,7 @@ import type { SavedHome, SearchResult } from "packages/types";
 import Input from "packages/ui/components/form/Input.web";
 import { BaseModal, PdfModal } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
+import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
 
 import { ClientSelector } from "@/components/ui";
 import { BodyText, Button, Label } from "@/components/ui";
@@ -59,20 +60,15 @@ export type SavedPageLayoutProps = {
   closePdfModal: () => void;
   // Document actions (optional on web layout, required for native layout)
   onViewDocument?: (documentId: string, documentName: string) => void;
-  onDownloadDocument?: (
-    documentId: string,
-    documentName: string,
-  ) => Promise<void>;
+  onDownloadDocument?: (documentId: string, documentName: string) => Promise<void>;
   onShareDocument?: (
     documentId: string,
-    documentName: string,
+    documentName: string
   ) => Promise<{ success: boolean; message: string }>;
   onSendForSignature?: (document: DocumentData) => void;
   onSignNow?: (document: DocumentData) => void;
   onViewSignedAgreement?: (document: DocumentData) => void;
-  onFormSendForSignature?: (
-    form: import("packages/features/documents").ChecklistForm,
-  ) => void;
+  onFormSendForSignature?: (form: import("packages/features/documents").ChecklistForm) => void;
   sendForSignatureModal?: SendForSignatureModalState;
   onToggleHomeSelection: (homeId: string) => void;
   onUnlockHome: (home: SavedHome) => Promise<void>;
@@ -183,15 +179,11 @@ export function SavedPageLayout({
                     ? `${filteredHomes.length} saved`
                     : viewType === "documents"
                       ? `${
-                          filteredDocuments.filter(
-                            (d) => d.library_kind !== "agreement",
-                          ).length
+                          filterDocumentLibraryExcludingAgreements(filteredDocuments).length
                         } documents`
                       : viewType === "agreements"
                         ? `${
-                            filteredDocuments.filter(
-                              (d) => d.library_kind === "agreement",
-                            ).length
+                            filteredDocuments.filter((d) => d.library_kind === "agreement").length
                           } agreements`
                         : ""
                 }
@@ -264,9 +256,7 @@ export function SavedPageLayout({
                 <Label size="sm">Agreement title</Label>
                 <Input
                   value={sendForSignatureModal.title}
-                  onChange={(event) =>
-                    sendForSignatureModal.onTitleChange(event.target.value)
-                  }
+                  onChange={(event) => sendForSignatureModal.onTitleChange(event.target.value)}
                   placeholder="Agreement title"
                   disabled={sendForSignatureModal.isSubmitting}
                 />
@@ -290,6 +280,7 @@ export function SavedPageLayout({
                   size="sm"
                   onClick={sendForSignatureModal.onClose}
                   disabled={sendForSignatureModal.isSubmitting}
+                  iconName="arrow-left"
                 >
                   Cancel
                 </Button>
@@ -303,6 +294,7 @@ export function SavedPageLayout({
                     !sendForSignatureModal.recipientClientId ||
                     sendForSignatureModal.disabledReason != null
                   }
+                  iconName="send"
                 >
                   {sendForSignatureModal.isSubmitting ? "Sending..." : "Send"}
                 </Button>

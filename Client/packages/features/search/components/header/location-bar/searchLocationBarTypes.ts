@@ -1,4 +1,4 @@
-import type { AreaSearchResult } from "packages/types/api";
+import type { AreaSearchResult } from "packages/types/domain/api";
 import { hasProperty } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
 
@@ -41,9 +41,7 @@ export type SearchLocationBarWebProps = {
   fitMapToBounds: (bounds: google.maps.LatLngBounds) => void;
   onSearch: () => void | Promise<void>;
   locationPlaceholder: string;
-  onPreciseStreetAddressSelected?: (
-    payload: PreciseStreetAddressPayload,
-  ) => void;
+  onPreciseStreetAddressSelected?: (payload: PreciseStreetAddressPayload) => void;
 };
 
 // ---------------------------------------------------------------------------
@@ -61,8 +59,7 @@ export const GEO_TYPE_LABELS: Record<string, string> = {
 
 export function geoTypeIcon(geoType: string): string {
   if (geoType === "area/neighborhood") return "map-pin";
-  if (geoType.includes("city") || geoType.includes("place"))
-    return "building-2";
+  if (geoType.includes("city") || geoType.includes("place")) return "building-2";
   if (geoType === "area/county") return "map";
   if (geoType === "area/zipcode") return "hash";
   return "map-pin";
@@ -72,19 +69,14 @@ export function geoTypeIcon(geoType: string): string {
 // Google Maps bounds helpers
 // ---------------------------------------------------------------------------
 
-export function boundsFromPlace(
-  place: google.maps.places.Place,
-): google.maps.LatLngBounds | null {
+export function boundsFromPlace(place: google.maps.places.Place): google.maps.LatLngBounds | null {
   const win = getWindow() as Window & { google?: typeof google };
   const g = win?.google;
   if (!g?.maps?.LatLngBounds) return null;
 
   if (hasProperty(place, "viewport") && place.viewport) {
     const v = place.viewport as google.maps.LatLngBounds;
-    if (
-      typeof v.getNorthEast === "function" &&
-      typeof v.getSouthWest === "function"
-    ) {
+    if (typeof v.getNorthEast === "function" && typeof v.getSouthWest === "function") {
       return v;
     }
   }
@@ -96,7 +88,7 @@ export function boundsFromPlace(
     const delta = 0.06;
     return new g.maps.LatLngBounds(
       { lat: lat - delta, lng: lng - delta },
-      { lat: lat + delta, lng: lng + delta },
+      { lat: lat + delta, lng: lng + delta }
     );
   }
 
@@ -104,7 +96,7 @@ export function boundsFromPlace(
 }
 
 export function boundsFromViewportRing(
-  ring: Array<{ lat: number; lng: number }>,
+  ring: Array<{ lat: number; lng: number }>
 ): google.maps.LatLngBounds | null {
   const win = getWindow() as Window & { google?: typeof google };
   const g = win?.google;

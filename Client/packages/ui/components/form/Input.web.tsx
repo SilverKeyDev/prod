@@ -50,7 +50,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       placeholder,
       ...props
     },
-    ref,
+    ref
   ) => {
     const { t } = useLocalization();
     const [showPassword, setShowPassword] = useState(false);
@@ -97,7 +97,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       errorStyles,
       disabledStyles,
       leftIcon ? "has-left-icon" : "",
-      rightIcon ?? (clearable || showPasswordToggle) ? "has-right-icon" : "",
+      (rightIcon ?? (clearable || showPasswordToggle)) ? "has-right-icon" : "",
       className,
     ]
       .filter(Boolean)
@@ -107,17 +107,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     // Icon positioning classes
     const iconClasses = {
       left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
-      right:
-        "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
+      right: "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
     };
     return (
       <Box className="w-full">
         {/* Label */}
         {label && (
-          <Label
-            htmlFor={props.id}
-            className="text-text-primary mb-2 block text-sm font-medium"
-          >
+          <Label htmlFor={props.id} className="text-text-primary mb-2 block text-sm font-medium">
             {label}
           </Label>
         )}
@@ -203,7 +199,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
       </Box>
     );
-  },
+  }
 );
 Input.displayName = "Input";
 // Export both named and default for compatibility

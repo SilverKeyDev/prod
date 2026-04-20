@@ -4,6 +4,7 @@ from app.services.aggregation.extended_buyer_preferences import (
     apply_extended_buyer_preference_canonical_keys,
     merge_extended_buyer_preferences,
     normalize_listing_status,
+    sanitize_section,
 )
 
 
@@ -50,3 +51,82 @@ def test_normalize_listing_status_for_sale_alias() -> None:
     assert normalize_listing_status("FOR_SALE") == "active"
     assert normalize_listing_status("pending") == "pending"
     assert normalize_listing_status("bogus") is None
+
+
+def test_sanitize_availability_weekly_and_oneoff() -> None:
+    doc = sanitize_section(
+        "availability",
+        {
+            "timezone": "America/Chicago",
+            "weekly": [
+                {
+                    "id": "w1",
+                    "weekday": 2,
+                    "start": "09:00",
+                    "end": "10:00",
+                }
+            ],
+            "oneOff": [
+                {
+                    "id": "o1",
+                    "date": "2026-04-20",
+                    "start": "14:00",
+                    "end": "15:30",
+                }
+            ],
+            "exceptions": [
+                {
+                    "id": "e1",
+                    "scope": "weekly",
+                    "ruleId": "w1",
+                    "date": "2026-04-22",
+                }
+            ],
+        },
+    )
+    assert doc is not None
+    assert doc["timezone"] == "America/Chicago"
+    assert doc["weekly"][0]["weekday"] == 2
+    assert doc["oneOff"][0]["date"] == "2026-04-20"
+    assert doc["exceptions"][0]["ruleId"] == "w1"
+
+
+def test_merge_availability_replaces_section() -> None:
+    first = merge_extended_buyer_preferences(
+        None,
+        {
+            "availability": {
+                "timezone": "UTC",
+                "weekly": [{"id": "a", "weekday": 1, "start": "10:00", "end": "11:00"}],
+            }
+        },
+    )
+    assert first is not None
+    second = merge_extended_buyer_preferences(
+        first,
+        {
+            "availability": {
+                "timezone": "America/New_York",
+                "weekly": [{"id": "b", "weekday": 3, "start": "12:00", "end": "13:00"}],
+            }
+        },
+    )
+    assert second is not None
+    assert second["availability"]["timezone"] == "America/New_York"
+    assert len(second["availability"]["weekly"]) == 1
+    assert second["availability"]["weekly"][0]["id"] == "b"
+
+
+def test_sanitize_availability_drops_invalid_time_order() -> None:
+    doc = sanitize_section(
+        "availability",
+        {
+            "weekly": [
+                {"id": "bad", "weekday": 0, "start": "18:00", "end": "09:00"},
+                {"id": "ok", "weekday": 0, "start": "09:00", "end": "10:00"},
+            ],
+        },
+    )
+    assert doc is not None
+    assert len(doc["weekly"]) == 1
+    assert doc["weekly"][0]["id"] == "ok"

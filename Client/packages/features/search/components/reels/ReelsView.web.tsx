@@ -14,7 +14,7 @@ import {
 import type { SearchResult } from "packages/features/search/types";
 import { useReelsCleanup } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
-import { searchResultToFeedListing } from "packages/utils/search/searchResultToFeedListing";
+import { searchResultToFeedListing } from "packages/utils/search/feed/searchResultToFeedListing";
 
 import { ReelsSearchEmptyState } from "./ReelsSearchEmptyState";
 
@@ -48,32 +48,20 @@ export function ReelsView({
   }, []);
 
   const items = useMemo(
-    () =>
-      filteredSearchResults.map((row) =>
-        listingToReelMedia(searchResultToFeedListing(row)),
-      ),
-    [filteredSearchResults],
+    () => filteredSearchResults.map((row) => listingToReelMedia(searchResultToFeedListing(row))),
+    [filteredSearchResults]
   );
 
   if (filteredSearchResults.length === 0) {
     return (
-      <Box
-        className={`h-full w-full bg-black ${className ?? ""}`}
-        data-reels-feed-container
-      >
-        <ReelsSearchEmptyState
-          onSearch={onRunSearch}
-          isSearching={isSearching}
-        />
+      <Box className={`h-full w-full bg-black ${className ?? ""}`} data-reels-feed-container>
+        <ReelsSearchEmptyState onSearch={onRunSearch} isSearching={isSearching} />
       </Box>
     );
   }
 
   return (
-    <Box
-      className={`h-full w-full bg-black ${className ?? ""}`}
-      data-reels-feed-container
-    >
+    <Box className={`h-full w-full bg-black ${className ?? ""}`} data-reels-feed-container>
       <FeedScrollContainer
         items={items}
         fetchNextPage={noopFetchNextPage}

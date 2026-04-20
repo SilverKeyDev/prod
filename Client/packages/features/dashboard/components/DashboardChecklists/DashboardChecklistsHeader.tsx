@@ -2,6 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import { ChecklistProgressBar } from "packages/features/checklists";
 import { CHECKLIST_TITLES, type ChecklistTab } from "packages/types";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
@@ -10,12 +11,14 @@ import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 
 type DashboardChecklistsHeaderProps = {
-  title: string;
-  subtitle: string;
-  completedCount: number;
-  totalCount: number;
-  loading?: boolean;
+  journeyTitle: string;
+  journeyProgressLabel: string;
+  currentPhaseLabel: string;
+  overallPercent: number;
+  overallLoading: boolean;
   activeTab?: ChecklistTab;
+  /** Journey phase tab (first incomplete section); distinct from {@link activeTab}. */
+  phaseIndicatorId?: ChecklistTab;
   onTabChange?: (tab: ChecklistTab) => void;
   isSectionUnlocked?: (section: ChecklistTab) => boolean;
 };
@@ -57,12 +60,13 @@ const TAB_CONFIG: Record<ChecklistTab, { label: string; icon: React.ReactNode }>
 };
 
 export default function DashboardChecklistsHeader({
-  title,
-  subtitle,
-  completedCount,
-  totalCount,
-  loading = false,
+  journeyTitle,
+  journeyProgressLabel,
+  currentPhaseLabel,
+  overallPercent,
+  overallLoading,
   activeTab,
+  phaseIndicatorId,
   onTabChange,
   isSectionUnlocked,
 }: DashboardChecklistsHeaderProps) {
@@ -78,25 +82,24 @@ export default function DashboardChecklistsHeader({
       <Box className="px-2 pl-4 pt-2">
         <Box className="items-center">
           <Title size="lg" as="h2" className="text-text-primary font-semibold">
-            {title}
+            {journeyTitle}
           </Title>
           <BodyText size="sm" className="text-text-secondary mt-1" as="p">
-            {subtitle}
+            {journeyProgressLabel}
           </BodyText>
         </Box>
 
-        {!loading && (
-          <Box className="mt-2">
-            <Box className="bg-card-muted-30 h-1 w-full overflow-hidden rounded">
-              <Box
-                className="bg-primary h-full rounded"
-                style={{
-                  width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`,
-                }}
-              />
-            </Box>
-          </Box>
-        )}
+        <Box className="mt-2">
+          <ChecklistProgressBar
+            loading={overallLoading}
+            percent={overallPercent}
+            variant="dashboard"
+          />
+        </Box>
+
+        <BodyText size="sm" className="text-text-secondary mt-2" as="p">
+          {currentPhaseLabel}
+        </BodyText>
       </Box>
 
       {activeTab != null && onTabChange != null && (
@@ -104,6 +107,7 @@ export default function DashboardChecklistsHeader({
           <UnderlineTabs
             items={tabs}
             activeId={activeTab}
+            phaseIndicatorId={phaseIndicatorId}
             onChange={(id) => onTabChange(id as ChecklistTab)}
           />
         </Box>

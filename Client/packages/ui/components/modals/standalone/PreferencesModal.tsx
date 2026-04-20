@@ -20,12 +20,9 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({
   const formContentRef = useRef<PreferencesFormContentRef | null>(null);
   const initialFormDataRef = useRef<string>("");
 
-  const handleInitialSnapshot = useCallback(
-    (formData: Partial<OnboardingData>) => {
-      initialFormDataRef.current = JSON.stringify(formData);
-    },
-    [],
-  );
+  const handleInitialSnapshot = useCallback((formData: Partial<OnboardingData>) => {
+    initialFormDataRef.current = JSON.stringify(formData);
+  }, []);
 
   const handleClose = useCallback(async () => {
     const current = formContentRef.current;

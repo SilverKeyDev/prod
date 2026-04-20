@@ -6,6 +6,7 @@
 import Button from "@ui/button/Button";
 import { Icon } from "@ui/icons";
 
+import { useLocalization } from "packages/contexts";
 import {
   AGREEMENT_EVENT_HEADLINES,
   type AgreementEventPayload,
@@ -46,6 +47,8 @@ const EVENT_CONFIG: Record<
 
 type AgreementEventCardProps = {
   payload: AgreementEventPayload;
+  /** When true, the agreement row is gone from the viewer's document library (e.g. deleted). */
+  isRemovedFromLibrary?: boolean;
   onSignNow?: (agreementId: string) => void;
   /**
    * Same contract as document cards: opens the standard PDF / agreement viewer.
@@ -58,22 +61,45 @@ type AgreementEventCardProps = {
 
 export default function AgreementEventCard({
   payload,
+  isRemovedFromLibrary = false,
   onSignNow,
   onViewDocument,
   isAgent = false,
   viewerUserId = null,
 }: AgreementEventCardProps) {
+  const { t } = useLocalization();
+
+  if (isRemovedFromLibrary) {
+    return (
+      <Box className="border-border bg-background-surface rounded-lg border border-dashed p-3 opacity-95">
+        <Box className="flex items-start gap-2.5">
+          <Box className="border-border bg-background-base mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border">
+            <Icon name="trash-2" size={14} className="text-text-secondary" />
+          </Box>
+          <Box className="min-w-0 flex-1">
+            <BodyText size="sm" className="text-text-primary font-semibold">
+              {t("agent.messaging_agreement_deleted_title")}
+            </BodyText>
+            <BodyText size="xs" muted className="mt-0.5">
+              {payload.title}
+            </BodyText>
+            <BodyText size="xs" muted className="mt-1.5">
+              {t("agent.messaging_agreement_deleted_body")}
+            </BodyText>
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
+
   const config = EVENT_CONFIG[payload.event] ?? EVENT_CONFIG.sent;
 
   const sentForClient = payload.event === "sent" && !isAgent;
   const signTurnMatchesViewer =
-    !payload.next_signer_user_id ||
-    !viewerUserId ||
-    payload.next_signer_user_id === viewerUserId;
+    !payload.next_signer_user_id || !viewerUserId || payload.next_signer_user_id === viewerUserId;
 
   const showSignNow =
-    (payload.event === "client_signed" && isAgent) ||
-    (sentForClient && signTurnMatchesViewer);
+    (payload.event === "client_signed" && isAgent) || (sentForClient && signTurnMatchesViewer);
 
   const showViewWhileEnvelopeOut =
     sentForClient && !signTurnMatchesViewer && Boolean(onViewDocument);
@@ -98,9 +124,7 @@ export default function AgreementEventCard({
             <Button
               variant="primary"
               size="sm"
-              onClick={() =>
-                onViewDocument(payload.agreement_id, payload.title)
-              }
+              onClick={() => onViewDocument(payload.agreement_id, payload.title)}
               icon={<Icon name="eye" size={16} />}
               fullWidth
               className="mt-2 justify-center"
@@ -111,9 +135,7 @@ export default function AgreementEventCard({
             <Button
               variant="success"
               size="sm"
-              onClick={() =>
-                onViewDocument(payload.agreement_id, payload.title)
-              }
+              onClick={() => onViewDocument(payload.agreement_id, payload.title)}
               icon={<Icon name="check-circle" size={16} />}
               fullWidth
               className="mt-2 justify-center"

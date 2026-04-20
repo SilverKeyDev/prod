@@ -1,14 +1,18 @@
 import { useCallback } from "react";
 
 import { getEnv } from "packages/config";
+import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useFiltersStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
-import { buildPropertyUrl } from "packages/utils/property";
+import {
+  propertyDetailsPathFromListing,
+  type ResearchListingKeyInput,
+} from "packages/utils/property";
 
 import type { SearchResult } from "@/features/search/types";
-import { getPageIndexForProperty } from "@/features/search/types/search/mapCardFocus";
+import { getPageIndexForProperty } from "@/features/search/types/search/map/mapCardFocus";
 
 export type UseSearchPageHandlersParams = {
   activeTab: "results" | "saved";
@@ -32,9 +36,7 @@ export function useSearchPageHandlers({
   currentPage,
 }: UseSearchPageHandlersParams) {
   const { navigateToPath } = useNavigation();
-  const restoreMapListingPreview = useFiltersStore(
-    (s) => s.restoreMapListingPreview,
-  );
+  const restoreMapListingPreview = useFiltersStore((s) => s.restoreMapListingPreview);
   const handleViewPropertyDetails = useCallback(
     async (property: SearchResult) => {
       const isDev = getEnv().isDevelopment;
@@ -62,15 +64,11 @@ export function useSearchPageHandlers({
 
         await fetchPropertyDetails(propertyForDetails);
 
-        log.debug(
-          LOG_CATEGORIES.SEARCH,
-          "fetchPropertyDetails completed successfully",
-          {
-            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-            propertyId: propertyForDetails.id,
-            timestamp: dateNow().toISOString(),
-          },
-        );
+        log.debug(LOG_CATEGORIES.SEARCH, "fetchPropertyDetails completed successfully", {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          propertyId: propertyForDetails.id,
+          timestamp: dateNow().toISOString(),
+        });
       } catch (error) {
         log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch property details", {
           environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
@@ -81,24 +79,17 @@ export function useSearchPageHandlers({
         throw error;
       }
     },
-    [fetchPropertyDetails],
+    [fetchPropertyDetails]
   );
 
   const handleFocusPropertyOnMap = useCallback(
     (property: SearchResult) => {
       restoreMapListingPreview(property.id);
-      const currentData =
-        activeTab === "results" ? filteredSearchResults : savedHomes;
+      const currentData = activeTab === "results" ? filteredSearchResults : savedHomes;
       const index = getPageIndexForProperty(currentData, property.id);
       _setCurrentPage(index);
     },
-    [
-      activeTab,
-      filteredSearchResults,
-      savedHomes,
-      _setCurrentPage,
-      restoreMapListingPreview,
-    ],
+    [activeTab, filteredSearchResults, savedHomes, _setCurrentPage, restoreMapListingPreview]
   );
 
   const handleNavigateToProperty = useCallback(
@@ -106,31 +97,35 @@ export function useSearchPageHandlers({
       log.debug(LOG_CATEGORIES.SEARCH, "handleNavigateToProperty called", {
         propertyId: property.id,
       });
+      const address =
+        typeof property.address === "string"
+          ? property.address
+          : property.address && typeof property.address === "object"
+            ? Object.values(property.address).filter(Boolean).join(" ")
+            : "property";
+
+      const listingInput: ResearchListingKeyInput & { address: string } = {
+        id: property.id,
+        zpid: property.zpid,
+        mls_home_id: property.mls_home_id,
+        mlsid: property.mlsid,
+        address,
+      };
+      const propertyUrl = propertyDetailsPathFromListing(listingInput);
+
+      if (!propertyUrl) {
+        log.error(LOG_CATEGORIES.SEARCH, "No provider listing id for property URL", {
+          propertyId: property.id,
+          timestamp: dateNow().toISOString(),
+        });
+        showErrorToast(
+          "This listing cannot be opened — missing provider listing id. Try opening it from Search."
+        );
+        return;
+      }
+
       try {
-        // Get the zpid from the property
-        const zpid = property.zpid ?? property.id;
-
-        if (!zpid) {
-          log.error(LOG_CATEGORIES.SEARCH, "Property missing zpid/id", {
-            propertyId: property.id,
-            timestamp: dateNow().toISOString(),
-          });
-          return;
-        }
-
-        // Format the address for the URL slug
-        const address =
-          typeof property.address === "string"
-            ? property.address
-            : property.address && typeof property.address === "object"
-              ? Object.values(property.address).filter(Boolean).join(" ")
-              : "property";
-
-        // Build and navigate to the property URL
-        const propertyUrl = buildPropertyUrl(zpid, address);
-
         log.debug(LOG_CATEGORIES.SEARCH, "Navigating to property URL", {
-          zpid,
           address: address.substring(0, 50),
           url: propertyUrl,
           timestamp: dateNow().toISOString(),
@@ -144,56 +139,42 @@ export function useSearchPageHandlers({
           timestamp: dateNow().toISOString(),
         });
 
-        // Fallback: just try to view details in modal
         void handleViewPropertyDetails(property);
       }
     },
-    [navigateToPath, handleViewPropertyDetails],
+    [navigateToPath, handleViewPropertyDetails]
   );
 
   const handleOpenPropertyDetails = useCallback(
     (propertyId: string) => {
-      const currentData =
-        activeTab === "results" ? filteredSearchResults : savedHomes;
+      const currentData = activeTab === "results" ? filteredSearchResults : savedHomes;
       const property = currentData.find((p) => p.id === propertyId);
 
       if (property) {
         // Navigate to the property URL instead of opening modal
         handleNavigateToProperty(property);
       } else {
-        log.error(
-          LOG_CATEGORIES.SEARCH,
-          "MAP MODAL: Property not found with ID",
-          {
-            propertyId,
-            availableProperties: currentData.map((p) => ({
-              id: p.id,
-              address: p.address,
-            })),
-          },
-        );
+        log.error(LOG_CATEGORIES.SEARCH, "MAP MODAL: Property not found with ID", {
+          propertyId,
+          availableProperties: currentData.map((p) => ({
+            id: p.id,
+            address: p.address,
+          })),
+        });
       }
     },
-    [activeTab, filteredSearchResults, savedHomes, handleNavigateToProperty],
+    [activeTab, filteredSearchResults, savedHomes, handleNavigateToProperty]
   );
 
   const handleBeforeSwitchToReels = useCallback(() => {
-    const currentData =
-      activeTab === "results" ? filteredSearchResults : savedHomes;
+    const currentData = activeTab === "results" ? filteredSearchResults : savedHomes;
     const currentItem = currentData[currentPage];
     const firstItem = currentData[0];
     const listingId = selectedPropertyId ?? currentItem?.id ?? firstItem?.id;
     if (listingId) {
       setAnchor({ listingId });
     }
-  }, [
-    activeTab,
-    currentPage,
-    filteredSearchResults,
-    savedHomes,
-    selectedPropertyId,
-    setAnchor,
-  ]);
+  }, [activeTab, currentPage, filteredSearchResults, savedHomes, selectedPropertyId, setAnchor]);
 
   return {
     handleViewPropertyDetails,

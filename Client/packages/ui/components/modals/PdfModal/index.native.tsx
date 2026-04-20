@@ -89,12 +89,12 @@ const PdfModalNative: React.FC<PdfModalProps> = ({
               )}
             </View>
             <View style={styles.actions}>
-              <Button variant="secondary" size="sm" onPress={handleOpen}>
+              <Button variant="secondary" size="sm" onPress={handleOpen} iconName="flag">
                 <Text style={styles.secondaryLabel}>
                   {t("pdf.open_report", { defaultValue: "Open" })}
                 </Text>
               </Button>
-              <Button variant="secondary" size="sm" onPress={handleShare}>
+              <Button variant="secondary" size="sm" onPress={handleShare} iconName="share">
                 <Text style={styles.secondaryLabel}>
                   {t("pdf.share_report", { defaultValue: "Share report" })}
                 </Text>

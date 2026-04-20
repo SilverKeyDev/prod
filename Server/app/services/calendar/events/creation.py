@@ -61,7 +61,9 @@ def resolve_create_event_target(user_id, event_data, current_user):
     return (primary_target, should_create_in_agent_calendar)
 
 
-def create_primary_event_and_db(user_id, event_data, calendar_id, event_type, primary_target):
+def create_primary_event_and_db(
+    user_id, event_data, calendar_id, event_type, primary_target, itinerary=None
+):
     """Create event in Google and CalendarEvent in DB. Returns (google_event, calendar_event)."""
     google_event = google_calendar_service.create_event(
         user_id,
@@ -107,6 +109,7 @@ def create_primary_event_and_db(user_id, event_data, calendar_id, event_type, pr
         is_synced=True,
         last_synced_at=datetime.now(timezone.utc),
         sync_source="google",
+        itinerary=itinerary,
     )
     calendar_event.calculate_duration()
     db.session.add(calendar_event)
@@ -114,7 +117,14 @@ def create_primary_event_and_db(user_id, event_data, calendar_id, event_type, pr
 
 
 def create_in_agent_calendars(
-    user_id, event_data, calendar_id, event_type, calendar_event, should_create, is_agent
+    user_id,
+    event_data,
+    calendar_id,
+    event_type,
+    calendar_event,
+    should_create,
+    is_agent,
+    itinerary=None,
 ):
     """Create event in each agent's calendar and update calendar_event.shared_with_user_ids."""
     if not should_create or is_agent:
@@ -177,6 +187,7 @@ def create_in_agent_calendars(
                 is_synced=True,
                 last_synced_at=datetime.now(timezone.utc),
                 sync_source="google",
+                itinerary=itinerary,
             )
             agent_calendar_event.calculate_duration()
             db.session.add(agent_calendar_event)

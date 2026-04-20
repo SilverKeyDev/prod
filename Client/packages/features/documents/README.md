@@ -9,7 +9,7 @@ The Documents feature provides DocuSign e-signature integration for real estate 
 ```
 documents/
 ├── api/              # DocuSign API client
-├── components/       # UI components (staged - see git)
+├── components/       # UI: agreement/, docusign/, forms/
 ├── hooks/
 │   ├── data/        # React Query hooks for server state
 │   ├── store/       # Zustand store integration hooks
@@ -25,7 +25,7 @@ documents/
 
 Displays the DocuSign embedded signing iframe for document signing.
 
-**Location**: `components/EmbeddedSigning.tsx` (staged in git)
+**Location**: `components/docusign/EmbeddedSigning.tsx`
 
 **Props**:
 
@@ -66,7 +66,7 @@ import { EmbeddedSigning } from "packages/features/documents";
 
 Dashboard widget showing pending signatures and recent agreements.
 
-**Location**: `components/DocuSignWidget.tsx` (staged in git)
+**Location**: `components/docusign/DocuSignWidget.tsx`
 
 **Props**: None (standalone widget)
 

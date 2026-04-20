@@ -25,6 +25,8 @@ tags:
   - name: Preferences
     description: Create/update persisted preferences (profile-adjacent fields; no
       PUT /user/profile on this API).
+  - name: Public
+    description: Unauthenticated read-only resources (e.g. shareable agent profile).
   - name: Search
     description: Authenticated property search (polygon pipeline).
   - name: Agent
@@ -58,6 +60,9 @@ tags:
   - name: Transactions
     description: Saved transaction address and checklist-linked documents
       (/api/v1/transactions).
+  - name: Viewings
+    description: Multi-stop property viewing routes and navigation helpers
+      (/api/v1/viewings).
   - name: Health
     description: Process liveness and infrastructure checks (/healthz).
   - name: Chatbot
@@ -121,6 +126,8 @@ components:
       $ref: "./components/schemas/shared/core/AuthResponse.yaml"
     AuthSessionUser:
       $ref: "./components/schemas/shared/core/AuthSessionUser.yaml"
+    BuildRouteRequest:
+      $ref: "./components/schemas/viewings/BuildRouteRequest.yaml"
     BulkUpdateFavoritesRequest:
       $ref: "./components/schemas/auth/BulkUpdateFavoritesRequest.yaml"
     ChatbotHistoryMessage:
@@ -135,6 +142,18 @@ components:
       $ref: "./components/schemas/checklists/ChecklistResponse.yaml"
     ChecklistType:
       $ref: "./components/schemas/checklists/ChecklistType.yaml"
+    ChecklistCondition:
+      $ref: "./components/schemas/checklists/ChecklistCondition.yaml"
+    ChecklistDispatchAutomationApiResponse:
+      $ref: "./components/schemas/checklists/ChecklistDispatchAutomationApiResponse.yaml"
+    ChecklistDispatchAutomationSetting:
+      $ref: "./components/schemas/checklists/ChecklistDispatchAutomationSetting.yaml"
+    ChecklistDispatchChannel:
+      $ref: "./components/schemas/checklists/ChecklistDispatchChannel.yaml"
+    ChecklistDispatchNoteMode:
+      $ref: "./components/schemas/checklists/ChecklistDispatchNoteMode.yaml"
+    ChecklistDispatchRecipientScope:
+      $ref: "./components/schemas/checklists/ChecklistDispatchRecipientScope.yaml"
     ClientAvailabilityRequest:
       $ref: "./components/schemas/calendar/ClientAvailabilityRequest.yaml"
     ClientAvailabilityResponse:
@@ -215,11 +234,34 @@ components:
       $ref: "./components/schemas/agreements/documents/WorkflowDocumentRecord.yaml"
     DocumentsResponse:
       $ref: "./components/schemas/agreements/documents/DocumentsResponse.yaml"
+    DocuSignEnvelopeNotificationInput:
+      $ref: "./components/schemas/agreements/docusign/DocuSignEnvelopeNotificationInput.y\
+        aml"
+    DocuSignEnvelopePrefillTabsInput:
+      $ref: "./components/schemas/agreements/docusign/DocuSignEnvelopePrefillTabsInput.y\
+        aml"
+    DocuSignExpirationsInput:
+      $ref: "./components/schemas/agreements/docusign/DocuSignExpirationsInput.yaml"
+    DocuSignParticipantTabPrefillInput:
+      $ref: "./components/schemas/agreements/docusign/DocuSignParticipantTabPrefillInput.y\
+        aml"
+    DocuSignPrefillCheckboxTabInput:
+      $ref: "./components/schemas/agreements/docusign/DocuSignPrefillCheckboxTabInput.y\
+        aml"
+    DocuSignPrefillTextTabInput:
+      $ref: "./components/schemas/agreements/docusign/DocuSignPrefillTextTabInput.yaml"
+    DocuSignRemindersInput:
+      $ref: "./components/schemas/agreements/docusign/DocuSignRemindersInput.yaml"
     DocusignListTemplatesResponse:
       $ref: "./components/schemas/agreements/docusign/DocusignListTemplatesResponse.y\
         aml"
     DocusignOAuthStartResponse:
       $ref: "./components/schemas/agreements/docusign/DocusignOAuthStartResponse.yaml"
+    DocusignResendRecipientRequest:
+      $ref: "./components/schemas/agreements/docusign/DocusignResendRecipientRequest.yaml"
+    DocusignResendRecipientResponse:
+      $ref: "./components/schemas/agreements/docusign/DocusignResendRecipientResponse.y\
+        aml"
     DocusignSyncTemplatesResponse:
       $ref: "./components/schemas/agreements/docusign/DocusignSyncTemplatesResponse.y\
         aml"
@@ -227,6 +269,12 @@ components:
       $ref: "./components/schemas/agreements/docusign/DocusignTemplate.yaml"
     DocusignTemplateListItem:
       $ref: "./components/schemas/agreements/docusign/DocusignTemplateListItem.yaml"
+    DocusignUpdateEnvelopeNotificationRequest:
+      $ref: "./components/schemas/agreements/docusign/DocusignUpdateEnvelopeNotificationRequ\
+        est.yaml"
+    DocusignUpdateEnvelopeNotificationResponse:
+      $ref: "./components/schemas/agreements/docusign/DocusignUpdateEnvelopeNotificationResp\
+        onse.yaml"
     DocusignWebhookPayload:
       $ref: "./components/schemas/agreements/docusign/DocusignWebhookPayload.yaml"
     DownloadUrlResponse:
@@ -365,6 +413,10 @@ components:
       $ref: "./components/schemas/preferences/PreferencesResponse.yaml"
     ProfilePictureResponse:
       $ref: "./components/schemas/auth/ProfilePictureResponse.yaml"
+    PublicAgentProfile:
+      $ref: "./components/schemas/user/profile/PublicAgentProfile.yaml"
+    PublicAgentProfileResponse:
+      $ref: "./components/schemas/user/profile/PublicAgentProfileResponse.yaml"
     PropertyCompsRequest:
       $ref: "./components/schemas/search/properties/PropertyCompsRequest.yaml"
     PropertyCompsResponse:
@@ -481,6 +533,8 @@ components:
       $ref: "./components/schemas/admin/UpdateAgentStatusRequest.yaml"
     UpdateAgentStatusResponse:
       $ref: "./components/schemas/admin/UpdateAgentStatusResponse.yaml"
+    UpdateChecklistDispatchAutomationRequest:
+      $ref: "./components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml"
     UpdateChecklistRequest:
       $ref: "./components/schemas/checklists/UpdateChecklistRequest.yaml"
     UpdateClosingModeRequest:
@@ -520,6 +574,18 @@ components:
       $ref: "./components/schemas/user/profile/UserProfile.yaml"
     UserResponse:
       $ref: "./components/schemas/user/profile/UserResponse.yaml"
+    ViewingBuildRouteApiResponse:
+      $ref: "./components/schemas/viewings/ViewingBuildRouteApiResponse.yaml"
+    ViewingItinerary:
+      $ref: "./components/schemas/viewings/ViewingItinerary.yaml"
+    ViewingNavigateApiResponse:
+      $ref: "./components/schemas/viewings/ViewingNavigateApiResponse.yaml"
+    ViewingNavigateResponse:
+      $ref: "./components/schemas/viewings/ViewingNavigateResponse.yaml"
+    ViewingRouteLeg:
+      $ref: "./components/schemas/viewings/ViewingRouteLeg.yaml"
+    ViewingStop:
+      $ref: "./components/schemas/viewings/ViewingStop.yaml"
     VerifyData:
       $ref: "./components/schemas/auth/VerifyData.yaml"
     ViewUrlResponse:
@@ -773,6 +839,41 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/public/agent-profile/{userId}:
+    get:
+      tags:
+        - Public
+      summary: Get public agent profile by user id
+      description: >
+        Unauthenticated read-only agent directory row for shareable profile URLs.
+        Returns 404 if the user does not exist, is not an agent, or is inactive.
+      operationId: getPublicAgentProfile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Agent application user id (users.id).
+          schema:
+            $ref: "#/components/schemas/UserId"
+      responses:
+        "200":
+          description: Public agent profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicAgentProfileResponse"
+        "404":
+          description: Not found or not a public agent profile
           content:
             application/json:
               schema:
@@ -1272,6 +1373,91 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Home not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/viewings/route:
+    post:
+      tags:
+        - Viewings
+      summary: Optimize viewing stop order and compute driving legs
+      description: >
+        Uses Google Distance Matrix (durations) for a TSP-style ordering heuristic,
+        then Google Directions for per-leg distance, duration, and encoded polylines.
+        Requires a server-side Google Maps API key.
+      operationId: buildViewingRoute
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BuildRouteRequest"
+      responses:
+        "200":
+          description: Ordered itinerary with legs when routing succeeds
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViewingBuildRouteApiResponse"
+        "400":
+          description: Invalid stops or missing coordinates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Routing service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/viewings/navigate:
+    post:
+      tags:
+        - Viewings
+      summary: Build Google Maps multi-stop navigation URL
+      description: Returns a maps/dir deep link with origin, destination, and waypoints.
+      operationId: buildViewingNavigateLink
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ViewingItinerary"
+      responses:
+        "200":
+          description: Navigation URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViewingNavigateApiResponse"
+        "400":
+          description: Invalid itinerary or missing coordinates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
           content:
             application/json:
               schema:
@@ -3374,6 +3560,147 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/transactions/{transaction_id}/tasks:
+    get:
+      tags: [ Tasks ]
+      summary: Task checklist for a transaction subject (buyer self or agent client)
+      description: >
+        Returns the same payload as GET /api/v1/tasks for the given transaction_id
+        (buyer user id). Callers may read their own checklist or, when authorized,
+        a client checklist (agent must manage the client).
+      operationId: getTransactionTaskChecklist
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Buyer / hub client user id whose checklist progress is returned.
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            default: escrow
+          description: Checklist category (search, offer, escrow, financing, closing, insurance).
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskChecklistApiResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/dispatch-automation:
+    parameters:
+      - name: transaction_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Hub client user id (same as checklist forms routes).
+      - name: section
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Checklist category (e.g. escrow, financing).
+      - name: item_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Checklist step id within the section.
+    get:
+      tags: [ Transactions ]
+      summary: Get checklist dispatch automation settings for a step
+      operationId: getChecklistDispatchAutomation
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistDispatchAutomationApiResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [ Transactions ]
+      summary: Replace checklist dispatch automation settings for a step
+      operationId: putChecklistDispatchAutomation
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChecklistDispatchAutomationRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistDispatchAutomationApiResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/tasks:
     get:
       tags: [ Tasks ]
@@ -4931,6 +5258,82 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SendAgreementResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/resend:
+    post:
+      tags: [ DocuSign ]
+      summary: Resend DocuSign notification to a pending signer
+      operationId: docusignResendAgreementRecipient
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocusignResendRecipientRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocusignResendRecipientResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/notification:
+    put:
+      tags: [ DocuSign ]
+      summary: Update DocuSign envelope reminder and expiration settings
+      operationId: docusignUpdateAgreementEnvelopeNotification
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocusignUpdateEnvelopeNotificationRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocusignUpdateEnvelopeNotificationResponse"
         "403":
           description: HTTP 403
           content:

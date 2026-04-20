@@ -7,59 +7,26 @@ from flask import Blueprint, current_app, jsonify, request
 from app.schemas import TaskChecklistApiResponse, UpdateTaskChecklistRequest
 from app.utils.validation import validate_request, validate_response
 
-from .. import db
-from ..models import TransactionTask
-from ..services.transactions.retrieval import get_checklist_definition, get_series_metadata
+from ..services.transactions.checklist_rules import merge_task_checklist_checked_ids
+from ..services.transactions.checklist_signature_completion import (
+    apply_signature_based_checked_ids,
+    run_signature_step_auto_send,
+)
+from ..services.transactions.retrieval import (
+    get_checklist_definition,
+    get_series_metadata,
+    normalize_checklist_items_for_api,
+)
+from ..services.transactions.unified_task_checklist_read import (
+    TASK_CATEGORIES,
+    build_task_checklist_data,
+    get_checked_ids_for_user,
+    replace_checked_ids_for_user,
+)
 from ..utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from ..utils.security.security import rate_limit
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/api/v1/tasks")
-
-# Categories supported by the unified route (search, offer, close checklists)
-TASK_CATEGORIES = frozenset({"search", "offer", "escrow", "financing", "closing", "insurance"})
-
-
-def _get_checked_ids(user_id, category):
-    """Return list of checked item IDs from TransactionTask rows for user_id + category."""
-    tasks = TransactionTask.query.filter_by(user_id=str(user_id), category=category).all()
-    ids = []
-    for t in tasks:
-        if t.status != "done":
-            continue
-        meta = t.task_metadata or {}
-        tid = meta.get("templateId")
-        if tid is not None:
-            try:
-                ids.append(int(tid))
-            except (TypeError, ValueError):
-                pass
-        elif t.order_index is not None:
-            ids.append(int(t.order_index))
-    return sorted(ids)
-
-
-def _set_checked_ids(user_id, category, ids):
-    """Replace all TransactionTask rows for user_id+category with one row per checked ID."""
-    if not isinstance(ids, list):
-        raise ValueError("Expected list")
-    user_id = str(user_id)
-    TransactionTask.query.filter_by(user_id=user_id, category=category).delete()
-    for i, tid in enumerate(ids):
-        try:
-            template_id = int(tid) if not isinstance(tid, int | float) else int(tid)
-        except (TypeError, ValueError):
-            continue
-        db.session.add(
-            TransactionTask(
-                user_id=user_id,
-                category=category,
-                title=f"Item {template_id}",
-                status="done",
-                order_index=i,
-                task_metadata={"templateId": template_id},
-            )
-        )
-    db.session.commit()
 
 
 @tasks_bp.route("", methods=["GET"])
@@ -69,26 +36,11 @@ def _set_checked_ids(user_id, category, ids):
 def get_task_checklist(user):
     """GET /api/v1/tasks?type=escrow|financing|closing|insurance. Returns items (definitions) + checkedIds."""
     checklist_type = request.args.get("type", "escrow")
-    if checklist_type not in TASK_CATEGORIES:
+    data = build_task_checklist_data(str(user.id), checklist_type)
+    if data is None:
         return jsonify({"success": False, "error": "Invalid checklist type"}), 400
 
-    items = get_checklist_definition(checklist_type)
-    checked_ids = _get_checked_ids(user.id, checklist_type)
-    metadata = get_series_metadata(checklist_type)
-
-    return jsonify(
-        {
-            "success": True,
-            "data": {
-                "items": items,
-                "checkedIds": checked_ids,
-                "title": metadata.get("title"),
-                "subtitle": metadata.get("subtitle"),
-                "deadline": metadata.get("deadline"),
-                "date_finished": metadata.get("date_finished"),
-            },
-        }
-    )
+    return jsonify({"success": True, "data": data})
 
 
 @tasks_bp.route("", methods=["PUT"])
@@ -98,7 +50,7 @@ def get_task_checklist(user):
 @validate_request(UpdateTaskChecklistRequest)
 @validate_response(TaskChecklistApiResponse)
 def put_task_checklist(user, data: UpdateTaskChecklistRequest | None = None):
-    """PUT /api/v1/tasks?type=... Body: { \"checkedIds\": number[] }. Updates user progress."""
+    """PUT /api/v1/tasks?type=... Body (OpenAPI): {\"data\": {\"items\": [], \"checkedIds\": number[]}}. Legacy flat {\"checkedIds\": []} is coerced in validation."""
     checklist_type = request.args.get("type", "escrow")
     if checklist_type not in TASK_CATEGORIES:
         return jsonify({"success": False, "error": "Invalid checklist type"}), 400
@@ -116,14 +68,24 @@ def put_task_checklist(user, data: UpdateTaskChecklistRequest | None = None):
         if not isinstance(ids, list):
             return jsonify({"success": False, "error": "checkedIds must be an array"}), 400
 
-        old_ids = set(_get_checked_ids(user.id, checklist_type))
-        new_ids = {int(x) for x in ids if isinstance(x, int | float)}
-        newly_checked = new_ids - old_ids
+        items = get_checklist_definition(checklist_type)
+        old_ids = {int(x) for x in get_checked_ids_for_user(str(user.id), checklist_type)}
+        coerced = [int(x) for x in ids if isinstance(x, int | float)]
+        effective_ids = merge_task_checklist_checked_ids(items, coerced, old_ids)
+        effective_set = set(effective_ids)
+        apply_signature_based_checked_ids(items, str(user.id), checklist_type, effective_set)
+        effective_ids = sorted(effective_set)
+        run_signature_step_auto_send(
+            buyer_user_id=str(user.id),
+            checklist_category=checklist_type,
+            effective_checked_ids=set(effective_set),
+            items_raw=items,
+        )
+        newly_checked = effective_set - old_ids
 
-        _set_checked_ids(user.id, checklist_type, ids)
+        replace_checked_ids_for_user(user.id, checklist_type, effective_ids)
 
         checkoff_time = datetime.now(timezone.utc)
-        items = get_checklist_definition(checklist_type)
 
         from ..services.transactions import calendar_from_checklist  # Lazy: breaks circular import
 
@@ -147,13 +109,23 @@ def put_task_checklist(user, data: UpdateTaskChecklistRequest | None = None):
                     e,
                 )
 
+        from ..services.transactions import checklist_dispatch_automation
+
+        checklist_dispatch_automation.run_checklist_dispatch_for_newly_checked(
+            buyer_user_id=str(user.id),
+            checklist_category=checklist_type,
+            newly_checked=set(newly_checked),
+            items_raw=items,
+        )
+
         metadata = get_series_metadata(checklist_type)
+        items_out = normalize_checklist_items_for_api(items)
         return jsonify(
             {
                 "success": True,
                 "data": {
-                    "items": items,
-                    "checkedIds": ids,
+                    "items": items_out,
+                    "checkedIds": effective_ids,
                     "title": metadata.get("title"),
                     "subtitle": metadata.get("subtitle"),
                     "deadline": metadata.get("deadline"),

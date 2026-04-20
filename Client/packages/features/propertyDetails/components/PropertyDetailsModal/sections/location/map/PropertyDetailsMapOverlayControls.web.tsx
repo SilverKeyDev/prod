@@ -25,6 +25,7 @@ export function PropertyDetailsMapOverlayControls({
           size="sm"
           label={t("property_details.map_layer_map")}
           onPress={onRoadMap}
+          iconName="map-pin"
         >
           {t("property_details.map_layer_map")}
         </Button>
@@ -33,6 +34,7 @@ export function PropertyDetailsMapOverlayControls({
           size="sm"
           label={t("property_details.map_layer_satellite")}
           onPress={onSatellite}
+          iconName="map-pin"
         >
           {t("property_details.map_layer_satellite")}
         </Button>
@@ -43,6 +45,7 @@ export function PropertyDetailsMapOverlayControls({
           size="sm"
           label={t("property_details.map_street_view")}
           onPress={onStreetView}
+          iconName="map-pin"
         >
           {t("property_details.map_street_view")}
         </Button>

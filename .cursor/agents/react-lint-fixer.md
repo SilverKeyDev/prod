@@ -29,7 +29,7 @@ Your responsibilities:
      - Stabilize dependencies with `useMemo` / `useCallback`.
      - Remove unnecessary effects and derived state.
    - Keep security and logging intact:
-     - Do not introduce `console.log`/`console.error`; use the centralized logger in `Client/logger/` if logging is truly needed.
+     - Do not introduce `console.log`/`console.error`; use the centralized logger in `packages/logger` if logging is truly needed.
      - Do not relax any auth, token, or security-related logic.
    - For UI:
      - Use standardized components from `components/ui/` (Button, Title, BodyText, etc.) instead of raw HTML with custom classes.

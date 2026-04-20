@@ -1,11 +1,10 @@
-/* eslint-disable silverkey/no-cross-feature-internals -- Native onboarding location step mirrors merged ProfileLocationSection (map + school/neighborhood prefs). */
 import React, { useCallback } from "react";
 
 import { SearchPrefsLocation } from "packages/features/profile/components/profileScreen/searchPreferences/SearchPrefsLocation";
 import { SearchPrefsNeighborhood } from "packages/features/profile/components/profileScreen/searchPreferences/SearchPrefsNeighborhood";
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
 import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
-import { ImportantLocationsInput } from "packages/features/profile/components/settings/inputs/ImportantLocationsInput";
+import { ImportantLocationsInput } from "packages/features/profile/components/settings/inputs/locations/ImportantLocationsInput";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import {
   AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT,
@@ -32,19 +31,13 @@ export function LocationStep({
     authIsAgent,
     formIsAgent: formData.is_agent,
   });
-  const locations = Array.isArray(formData.important_locations)
-    ? formData.important_locations
-    : [];
+  const locations = Array.isArray(formData.important_locations) ? formData.important_locations : [];
 
   const patch = useCallback(
-    (
-      fn: (
-        prev: BuyerPreferenceExtensions | undefined,
-      ) => BuyerPreferenceExtensions,
-    ) => {
+    (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {
       patchBuyerPreferenceExtensions(fn);
     },
-    [patchBuyerPreferenceExtensions],
+    [patchBuyerPreferenceExtensions]
   );
 
   const ext = withBuyerExtV1(formData.buyerPreferenceExtensions);
@@ -62,8 +55,8 @@ export function LocationStep({
         </Box>
       )}
       <Text className="text-text-secondary text-sm">
-        Add work, family, or other places you care about. We&apos;ll use these
-        to find homes that fit your life.
+        Add work, family, or other places you care about. We&apos;ll use these to find homes that
+        fit your life.
       </Text>
 
       <ImportantLocationsInput
@@ -73,16 +66,8 @@ export function LocationStep({
       />
 
       <Box className="gap-6">
-        <SearchPrefsLocation
-          isEditMode
-          patch={patch}
-          loc={ext.location_prefs ?? {}}
-        />
-        <SearchPrefsNeighborhood
-          isEditMode
-          patch={patch}
-          neigh={ext.neighborhood ?? {}}
-        />
+        <SearchPrefsLocation isEditMode patch={patch} loc={ext.location_prefs ?? {}} />
+        <SearchPrefsNeighborhood isEditMode patch={patch} neigh={ext.neighborhood ?? {}} />
       </Box>
     </Box>
   );

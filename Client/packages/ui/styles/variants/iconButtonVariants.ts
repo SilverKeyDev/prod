@@ -13,15 +13,7 @@ export type IconButtonVariant =
   | "danger"
   | "toolbar";
 
-export type IconButtonSize =
-  | "xs"
-  | "sm"
-  | "md"
-  | "lg"
-  | "xl"
-  | "small"
-  | "medium"
-  | "large";
+export type IconButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large";
 
 /**
  * Base styles that apply to all icon buttons.
@@ -93,10 +85,7 @@ export const ICON_BUTTON_TOUCH_CLASS = "touch-manipulation active:scale-95";
 export const ICON_BUTTON_LOADING_FRAME_CLASSES =
   "relative overflow-hidden !border-transparent !shadow-none";
 
-export const ICON_BUTTON_LOADING_VARIANT_OVERRIDES: Record<
-  IconButtonVariant,
-  string
-> = {
+export const ICON_BUTTON_LOADING_VARIANT_OVERRIDES: Record<IconButtonVariant, string> = {
   primary: "!bg-primary/70",
   secondary: "!bg-neutral-50",
   tertiary: "!bg-accent/70",

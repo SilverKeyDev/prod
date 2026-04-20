@@ -1,15 +1,16 @@
 import React, { useCallback, useState } from "react";
 
+import IconButton from "@ui/button/IconButton";
+import { Icon } from "@ui/icons";
+
 import { useLocalization } from "packages/contexts";
-import { color } from "packages/design-tokens";
 import type { PropertyHeaderProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import type { PropertyDetailsSectionId } from "packages/features/propertyDetails/types/sectionOrder";
 import { PROPERTY_DETAILS_SECTION_ORDER } from "packages/features/propertyDetails/types/sectionOrder";
 import { useNavigation } from "packages/navigation";
 import { ConnectedCardHeartSave } from "packages/ui/components/button/ConnectedCardHeartSave";
 import ShareHomeModal from "packages/ui/components/modals/ShareHomeModal";
-import { Icon } from "packages/ui/components/primitives";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/primitives";
 import type { UnderlineTabItem } from "packages/ui/components/tabs/UnderlineTabs";
 import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
 import { setToStorage } from "packages/utils/storage";
@@ -33,9 +34,7 @@ function getDisplayAddress(address: unknown): string | null {
   return null;
 }
 
-function normalizePropertyForFavorites(
-  property: PropertyHeaderProps["property"],
-): {
+function normalizePropertyForFavorites(property: PropertyHeaderProps["property"]): {
   id: string;
   address: string;
   [key: string]: unknown;
@@ -54,12 +53,7 @@ function normalizePropertyForFavorites(
     (p.streetAddress
       ? [p.streetAddress, p.city, p.state, p.zipcode].filter(Boolean).join(", ")
       : "");
-  const id =
-    typeof p.id === "string"
-      ? p.id
-      : typeof p.home_id === "string"
-        ? p.home_id
-        : "";
+  const id = typeof p.id === "string" ? p.id : typeof p.home_id === "string" ? p.home_id : "";
   return {
     ...(property as Record<string, unknown>),
     id,
@@ -80,14 +74,12 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   const { navigate } = useNavigation();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-  const tabItems: UnderlineTabItem[] = PROPERTY_DETAILS_SECTION_ORDER.map(
-    (id) => ({
-      id,
-      label: t(`property_details.tab_${id}`, {
-        defaultValue: id.charAt(0).toUpperCase() + id.slice(1),
-      }),
+  const tabItems: UnderlineTabItem[] = PROPERTY_DETAILS_SECTION_ORDER.map((id) => ({
+    id,
+    label: t(`property_details.tab_${id}`, {
+      defaultValue: id.charAt(0).toUpperCase() + id.slice(1),
     }),
-  );
+  }));
 
   const handleTabChange = useCallback(
     (tabId: string) => {
@@ -96,7 +88,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
         onScrollToSection(tabId as PropertyDetailsSectionId);
       }
     },
-    [onScrollToSection],
+    [onScrollToSection]
   );
 
   const propertyAddress = (property as { address?: unknown }).address;
@@ -128,37 +120,33 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
     setIsShareModalOpen(true);
   }, []);
 
-  const iconSize =
-    toolbarButtonSize === "large"
-      ? 22
-      : toolbarButtonSize === "small"
-        ? 18
-        : 20;
-
   return (
     <>
       <Box
         className="border-border bg-background-surface flex w-full flex-col border-b"
         data-property-header
       >
-        {/* Single row: Back button, address, tabs (centered), and action buttons */}
-        <Box className="flex w-full flex-row flex-nowrap items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3">
+        {/* Single toolbar row: same height as search header (HEADER_ROW_HEIGHT). */}
+        <Box className="flex min-h-11 w-full min-w-0 flex-row flex-nowrap items-center gap-2 px-3 sm:px-4">
           {/* Left section: Back button and address */}
           <Box className="flex min-w-0 flex-1 flex-row flex-nowrap items-center gap-2">
-            <Pressable
+            <IconButton
               onPress={handleBack}
-              className="shrink-0 rounded-lg p-2"
+              variant="ghost"
+              size="sm"
+              rounded="md"
+              icon={
+                <Icon
+                  name="chevron-left"
+                  className="text-text-secondary h-4 w-4 shrink-0 sm:h-4 sm:w-4"
+                />
+              }
+              className="text-text-secondary hover:text-text-primary shrink-0 touch-manipulation"
               label={t("common.back", { defaultValue: "Back" })}
-            >
-              <Icon
-                name="chevron-left"
-                size={iconSize}
-                color={color("neutral.700")}
-              />
-            </Pressable>
+            />
             {displayAddress ? (
               <Text
-                className="text-text-primary m-0 min-w-0 flex-1 truncate text-base font-semibold"
+                className="text-text-primary m-0 min-w-0 flex-1 truncate text-base font-semibold leading-none"
                 numberOfLines={1}
               >
                 {displayAddress}
@@ -167,7 +155,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           </Box>
 
           {/* Center section: Navigation tabs */}
-          <Box className="flex shrink-0 justify-center">
+          <Box className="flex shrink-0 items-center justify-center">
             <UnderlineTabs
               items={tabItems}
               activeId={activeSection}
@@ -178,38 +166,42 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           </Box>
 
           {/* Right section: Action buttons */}
-          <Box className="flex min-w-0 flex-1 flex-row flex-nowrap items-center justify-end gap-1">
+          <Box className="flex min-w-0 flex-1 flex-row flex-nowrap items-center justify-end gap-1 sm:gap-2">
             {onGenerateReport ? (
-              <Pressable
+              <IconButton
                 onPress={handleGenerateFullReport}
-                className="shrink-0 rounded-lg p-2"
+                variant="ghost"
+                size="sm"
+                rounded="md"
+                icon={
+                  <Icon
+                    name="file-text"
+                    className="text-text-secondary h-4 w-4 shrink-0 sm:h-4 sm:w-4"
+                  />
+                }
+                className="text-text-secondary hover:text-text-primary shrink-0 touch-manipulation"
                 label={t("property_details.generate_report", {
                   defaultValue: "Generate report",
                 })}
-              >
-                <Icon
-                  name="file-text"
-                  size={iconSize}
-                  color={color("neutral.600")}
-                />
-              </Pressable>
+              />
             ) : null}
-            <Pressable
+            <IconButton
               onPress={handleShare}
-              className="shrink-0 rounded-lg p-2"
+              variant="ghost"
+              size="sm"
+              rounded="md"
+              icon={
+                <Icon name="share" className="text-text-secondary h-4 w-4 shrink-0 sm:h-4 sm:w-4" />
+              }
+              className="text-text-secondary hover:text-accent shrink-0 touch-manipulation"
               label={t("common.share_aria", { defaultValue: "Share" })}
-            >
-              <Icon name="share" size={iconSize} color={color("neutral.600")} />
-            </Pressable>
+            />
             <ConnectedCardHeartSave
               property={normalizePropertyForFavorites(property)}
               inline
+              className="shrink-0"
               size={
-                toolbarButtonSize === "large"
-                  ? "lg"
-                  : toolbarButtonSize === "small"
-                    ? "sm"
-                    : "md"
+                toolbarButtonSize === "large" ? "lg" : toolbarButtonSize === "small" ? "sm" : "md"
               }
             />
           </Box>

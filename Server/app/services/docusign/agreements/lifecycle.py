@@ -139,6 +139,7 @@ class AgreementLifecycleService:
         signing_method: str,
         actor_id: str,
         participant_user_id: str | None = None,
+        envelope_options: dict | None = None,
     ):
         """
         Enqueue task to send agreement for signature.
@@ -148,8 +149,15 @@ class AgreementLifecycleService:
             signing_method: 'embedded' or 'email'
             actor_id: User initiating send
             participant_user_id: Optional selected signer user ID
+            envelope_options: Optional DocuSign extras (notification, tab prefill).
         """
-        return _send_for_signature(agreement_id, signing_method, actor_id, participant_user_id)
+        return _send_for_signature(
+            agreement_id,
+            signing_method,
+            actor_id,
+            participant_user_id,
+            envelope_options,
+        )
 
     @staticmethod
     def void_agreement(agreement_id: str, reason: str, actor_id: str):

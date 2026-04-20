@@ -8,7 +8,7 @@ import { useAuthStore } from "packages/store";
 
 import { searchApi } from "@/features/search/api/search";
 import type { SearchResult } from "@/features/search/types";
-import { transformSearchResponse } from "@/features/search/utils/searchTransform";
+import { transformSearchResponse } from "@/features/search/utils/transform/searchTransform";
 
 /** Stable empty array to avoid new reference on every render when data is undefined */
 const EMPTY_SEARCH_RESULTS: SearchResult[] = [];
@@ -33,7 +33,7 @@ export type UseSearchResultsDataOptions = {
  * fresh results come from setSearchResults after the user runs a search (forceSearch).
  */
 export function useSearchResultsData(
-  options?: UseSearchResultsDataOptions,
+  options?: UseSearchResultsDataOptions
 ): UseSearchResultsDataReturn {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -42,7 +42,7 @@ export function useSearchResultsData(
 
   const shouldLoadData = useMemo(
     () => authReady && isAuthenticated && !skipInitialFetch,
-    [authReady, isAuthenticated, skipInitialFetch],
+    [authReady, isAuthenticated, skipInitialFetch]
   );
 
   const {
@@ -54,29 +54,20 @@ export function useSearchResultsData(
     queryKey: queryKeys.search.results(),
     queryFn: async () => {
       try {
-        log.debug(
-          LOG_CATEGORIES.POLYGON_SEARCH,
-          "Fetching search results from database",
-        );
+        log.debug(LOG_CATEGORIES.POLYGON_SEARCH, "Fetching search results from database");
         const response = await searchApi.searchByPolygon({
           perBucketPages: 20,
           onlyCached: true, // Return stored results from DB (HomeUniversal), don't trigger new search
         });
 
         if (!response.success) {
-          log.warn(
-            LOG_CATEGORIES.POLYGON_SEARCH,
-            "Search API returned unsuccessful response",
-            {
-              error: response.error,
-            },
-          );
+          log.warn(LOG_CATEGORIES.POLYGON_SEARCH, "Search API returned unsuccessful response", {
+            error: response.error,
+          });
           return [] as SearchResult[];
         }
 
-        const rawLen = Array.isArray(response.properties)
-          ? response.properties.length
-          : 0;
+        const rawLen = Array.isArray(response.properties) ? response.properties.length : 0;
         log.info(
           LOG_CATEGORIES.POLYGON_SEARCH,
           "onlyCached DB load: API response before transform",
@@ -84,33 +75,22 @@ export function useSearchResultsData(
             propertiesCount: rawLen,
             totalCount: response.total_count,
             metaCached: response.meta?.cached,
-          },
+          }
         );
 
         const transformedResults = transformSearchResponse(response);
 
         if (transformedResults.length > 0) {
-          log.info(
-            LOG_CATEGORIES.POLYGON_SEARCH,
-            "Loaded search results from database",
-            {
-              count: transformedResults.length,
-            },
-          );
+          log.info(LOG_CATEGORIES.POLYGON_SEARCH, "Loaded search results from database", {
+            count: transformedResults.length,
+          });
         } else {
-          log.info(
-            LOG_CATEGORIES.POLYGON_SEARCH,
-            "No search results in database, returned empty",
-          );
+          log.info(LOG_CATEGORIES.POLYGON_SEARCH, "No search results in database, returned empty");
         }
 
         return transformedResults;
       } catch (error) {
-        log.error(
-          LOG_CATEGORIES.ERRORS,
-          "Failed to fetch search results from database",
-          error,
-        );
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch search results from database", error);
         return [] as SearchResult[];
       }
     },
@@ -136,7 +116,7 @@ export function useSearchResultsData(
     (results: SearchResult[]) => {
       setSearchResultsMutation.mutate(results);
     },
-    [setSearchResultsMutation],
+    [setSearchResultsMutation]
   );
 
   const clearSearchResults = useCallback(() => {

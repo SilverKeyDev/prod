@@ -19,10 +19,7 @@ import type { UseMessagingConfig, UseMessagingReturn } from "./types";
 import { useMessagingHistory } from "./useMessagingHistory";
 import { useMessagingSend } from "./useMessagingSend";
 
-function compareConversationsByRecency(
-  a: AgentConversation,
-  b: AgentConversation,
-): number {
+function compareConversationsByRecency(a: AgentConversation, b: AgentConversation): number {
   const taRaw = a.last_message_at ?? a.updated_at;
   const tbRaw = b.last_message_at ?? b.updated_at;
   if (!taRaw && !tbRaw) return 0;
@@ -41,31 +38,20 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     sendMessage: sendMessageApi,
     getChatHistory,
     refreshChats,
-  } = useAgentChats(
-    mode === "agent" ? conversationSelector ?? undefined : undefined,
-  );
+  } = useAgentChats(mode === "agent" ? (conversationSelector ?? undefined) : undefined);
 
-  const markConversationRead = useNotificationStore(
-    (s) => s.markConversationRead,
-  );
-  const updateLastReadTimestamp = useNotificationStore(
-    (s) => s.updateLastReadTimestamp,
-  );
-  const setActiveConversationIdInStore = useNotificationStore(
-    (s) => s.setActiveConversationId,
-  );
+  const markConversationRead = useNotificationStore((s) => s.markConversationRead);
+  const updateLastReadTimestamp = useNotificationStore((s) => s.updateLastReadTimestamp);
+  const setActiveConversationIdInStore = useNotificationStore((s) => s.setActiveConversationId);
 
-  const [activeConversationId, setActiveConversationIdState] =
-    useState<string>("");
+  const [activeConversationId, setActiveConversationIdState] = useState<string>("");
 
   const activeConversation = useMemo(() => {
     if (conversations.length === 0) return null;
     if (mode === "agent") {
       if (!conversationSelector) return null;
       return (
-        conversations.find((c) =>
-          isSameMessagingUserId(c.client_id, conversationSelector),
-        ) ?? null
+        conversations.find((c) => isSameMessagingUserId(c.client_id, conversationSelector)) ?? null
       );
     }
     if (!activeConversationId) return null;
@@ -75,9 +61,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
   const currentConversationLastMessageAt = useMemo(() => {
     if (!activeConversationId) return 0;
     const conv = conversations.find((c) => c.id === activeConversationId);
-    return conv?.last_message_at
-      ? dateParseISO(conv.last_message_at).valueOf()
-      : 0;
+    return conv?.last_message_at ? dateParseISO(conv.last_message_at).valueOf() : 0;
   }, [activeConversationId, conversations]);
 
   const history = useMessagingHistory({
@@ -98,17 +82,23 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     lastMessageAtRef,
   } = history;
 
-  const { sendMessage, sendSharedHome, sendSharedDocument, retryMessage } =
-    useMessagingSend({
-      config: { mode, conversationSelector, clientIdForSending, agentId },
-      activeConversationId,
-      localMessages,
-      sendMessageApi,
-      refreshChats,
-      setLocalMessages,
-      getChatHistoryRef,
-      loadedHistoryIdsRef,
-    });
+  const {
+    sendMessage,
+    sendSharedHomes,
+    sendSharedDocument,
+    sendSharedDocuments,
+    sendSharedBundle,
+    retryMessage,
+  } = useMessagingSend({
+    config: { mode, conversationSelector, clientIdForSending, agentId },
+    activeConversationId,
+    localMessages,
+    sendMessageApi,
+    refreshChats,
+    setLocalMessages,
+    getChatHistoryRef,
+    loadedHistoryIdsRef,
+  });
 
   useEffect(() => {
     if (mode !== "agent") return;
@@ -117,20 +107,13 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
       setActiveConversationIdState(newId);
       setActiveConversationIdInStore(newId || null);
     }
-  }, [
-    mode,
-    activeConversation?.id,
-    activeConversationId,
-    setActiveConversationIdInStore,
-  ]);
+  }, [mode, activeConversation?.id, activeConversationId, setActiveConversationIdInStore]);
 
   useEffect(() => {
     if (mode !== "client") return;
     const filtered =
       conversationSelector != null && conversationSelector !== ""
-        ? conversations.filter((c) =>
-            isSameMessagingUserId(c.client_id, conversationSelector),
-          )
+        ? conversations.filter((c) => isSameMessagingUserId(c.client_id, conversationSelector))
         : [];
     const pool = filtered.length > 0 ? filtered : conversations;
     const mine = [...pool].sort(compareConversationsByRecency);
@@ -162,7 +145,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
       setActiveConversationIdState(id);
       setActiveConversationIdInStore(id || null);
     },
-    [setActiveConversationIdInStore],
+    [setActiveConversationIdInStore]
   );
 
   const formatTime = useCallback((date: Date) => formatMessageTime(date), []);
@@ -173,13 +156,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
       return !!(activeConversationId || agentId || hasAnyConversation);
     }
     return !!clientIdForSending;
-  }, [
-    mode,
-    activeConversationId,
-    agentId,
-    clientIdForSending,
-    conversations.length,
-  ]);
+  }, [mode, activeConversationId, agentId, clientIdForSending, conversations.length]);
 
   const refreshActiveConversationHistory = useCallback(async () => {
     if (!activeConversationId) return;
@@ -215,8 +192,10 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     activeConversation,
     conversations,
     sendMessage,
-    sendSharedHome,
+    sendSharedHomes,
     sendSharedDocument,
+    sendSharedDocuments,
+    sendSharedBundle,
     retryMessage,
     setActiveConversationId,
     refreshActiveConversationHistory,

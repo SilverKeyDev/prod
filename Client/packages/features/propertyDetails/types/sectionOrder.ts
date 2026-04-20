@@ -14,5 +14,4 @@ export const PROPERTY_DETAILS_SECTION_ORDER = [
  * Property details section identifier.
  * Derived from PROPERTY_DETAILS_SECTION_ORDER to ensure type safety.
  */
-export type PropertyDetailsSectionId =
-  (typeof PROPERTY_DETAILS_SECTION_ORDER)[number];
+export type PropertyDetailsSectionId = (typeof PROPERTY_DETAILS_SECTION_ORDER)[number];

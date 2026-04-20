@@ -10,7 +10,7 @@ This guide covers:
 - **How to run the web app and core checks**
 - **An overview of the tech stack and repo organization**
 
-**Documentation:** Canonical docs live in **`documentation/`** — see `documentation/README.md`. Client and server each have a subfolder and index; major folders (Client, Server) have a short README.
+**Documentation:** Canonical docs live in **`documentation/`** — see `documentation/README.md`. **AI assistants:** start with **`AGENTS.md`** at the repo root. Client and server each have a subfolder and index; major folders (Client, Server) have a short README.
 
 ---
 
@@ -152,7 +152,7 @@ Tech Stack Overview
 - **Data Fetching / Caching**: `@tanstack/react-query` (hooks in `packages/hooks/data/*`).
 - **Styling**:
   - Tailwind CSS (via `tailwindcss`, `postcss`, `autoprefixer`).
-  - Design system + UI components in `apps/web/components/ui/`.
+  - Design system + UI components in `Client/packages/ui/`.
 - **UI / UX Libraries**:
   - `@headlessui/react` (accessible primitives).
   - `lucide-react` (icons).
@@ -169,7 +169,7 @@ Tech Stack Overview
   - Prettier (`prettier`, `prettier-plugin-tailwindcss`).
   - Additional helpers: `globals`, `eslint-config-prettier`, `eslint-import-resolver-typescript`, `eslint-plugin-import`, `eslint-plugin-boundaries`, `eslint-plugin-prettier`.
 - **Logging**:
-  - Centralized frontend logger under `Client/logger/` with PII-scrubbing and category-based configuration.
+  - Centralized frontend logger under `Client/packages/logger/` with PII-scrubbing and category-based configuration.
 
 ### Backend (Server)
 

@@ -215,11 +215,18 @@ if (agreement.status === 'sent') {
 - Updates database with envelope ID
 - Handles errors (stores in agreement.error_message if failed)
 
-**DocuSign Envelope Structure**:
+**DocuSign Envelope Structure** (simplified; actual tab placement is coordinate-based on page 1 — see `Server/app/services/docusign/docs/TABS.md`):
 ```json
 {
   "emailSubject": "Purchase Offer - 123 Main St",
   "status": "sent",
+  "customFields": {
+    "textCustomFields": [
+      { "name": "agreement_id", "value": "<uuid>", "show": "true", "required": "false" },
+      { "name": "buyer_id", "value": "<user id>", "show": "true", "required": "false" },
+      { "name": "agent_id", "value": "<user id>", "show": "true", "required": "false" }
+    ]
+  },
   "documents": [
     {
       "documentId": "1",
@@ -235,18 +242,16 @@ if (agreement.status === 'sent') {
         "recipientId": "participant-123",
         "routingOrder": "1",
         "tabs": {
-          "signHereTabs": [
+          "signHereTabs": [ { "pageNumber": "1", "xPosition": "100", "yPosition": "700" } ],
+          "dateSignedTabs": [ { "pageNumber": "1", "xPosition": "300", "yPosition": "700" } ],
+          "textTabs": [
             {
-              "anchorString": "SIGN HERE",
-              "anchorXOffset": "0",
-              "anchorYOffset": "-10"
-            }
-          ],
-          "dateSignedTabs": [
-            {
-              "anchorString": "DATE SIGNED",
-              "anchorXOffset": "0",
-              "anchorYOffset": "-10"
+              "tabLabel": "printed_name",
+              "value": "John Buyer",
+              "pageNumber": "1",
+              "xPosition": "100",
+              "yPosition": "740",
+              "required": "true"
             }
           ]
         }
@@ -569,8 +574,9 @@ function SigningPage() {
 1. Validates agreement (has revision, has participants)
 2. Fetches PDF from S3
 3. Encodes to base64
-4. Builds recipient list with tabs
-5. Returns EnvelopeDefinition object
+4. Builds recipient list with tabs (signers get a default **printed name** `textTab`; see `utils/recipients.py`)
+5. Attaches **envelope custom fields** (`agreement_id`, `buyer_id`, `agent_id`) for DocuSign search/metadata (`_build_custom_fields()`)
+6. Returns EnvelopeDefinition object
 
 ### WebhookProcessor
 

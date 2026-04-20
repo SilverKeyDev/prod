@@ -54,12 +54,7 @@ function DeleteModal({
             <CancelButton onClick={onClose} size="md">
               {cancelText}
             </CancelButton>
-            <Button
-              type="button"
-              variant="danger"
-              size="md"
-              onClick={onConfirm}
-            >
+            <Button type="button" variant="danger" size="md" onClick={onConfirm} iconName="trash-2">
               {confirmText}
             </Button>
           </Box>

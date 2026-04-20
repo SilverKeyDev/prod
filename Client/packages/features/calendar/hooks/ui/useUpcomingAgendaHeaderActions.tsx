@@ -21,6 +21,7 @@ export function useUpcomingAgendaHeaderActions({
         size="sm"
         aria-haspopup="dialog"
         onPress={openAllAgendaModal}
+        iconName="grid-3x3"
       >
         Display all
       </Button>
@@ -45,6 +46,7 @@ export function useUpcomingAgendaHeaderActions({
         size="sm"
         aria-haspopup="dialog"
         onPress={openAllAgendaModal}
+        iconName="grid-3x3"
       >
         Display all
       </Button>

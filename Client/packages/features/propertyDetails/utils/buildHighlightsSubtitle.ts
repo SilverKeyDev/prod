@@ -1,4 +1,4 @@
-import type { PropertyHighlightsContext } from "packages/types/propertyHighlightsContext";
+import type { PropertyHighlightsContext } from "packages/types/domain/propertyHighlightsContext";
 
 /** MCDA display scale defaults (must match Server MCDA_CONFIG output_display_*). */
 const DEFAULT_SCORE_MIN = 1;
@@ -6,14 +6,10 @@ const DEFAULT_SCORE_MAX = 99;
 
 export type HighlightsSubtitleTranslate = (
   key: string,
-  options?: { defaultValue?: string; percent?: number },
+  options?: { defaultValue?: string; percent?: number }
 ) => string;
 
-function scoreToDisplayPercent(
-  score: number,
-  min: number,
-  max: number,
-): number {
+function scoreToDisplayPercent(score: number, min: number, max: number): number {
   if (max <= min) return 50;
   const p = Math.round(((score - min) / (max - min)) * 100);
   return Math.max(0, Math.min(100, p));
@@ -30,7 +26,7 @@ export function buildHighlightsSubtitle(
     highlightsContext?: PropertyHighlightsContext | null;
     /** Listing `_score` when present; 0 treated as missing (real scores use the MCDA display band). */
     propertyMatchScore?: number | null;
-  },
+  }
 ): string {
   const fromProperty =
     typeof opts.propertyMatchScore === "number" &&
@@ -56,15 +52,13 @@ export function buildHighlightsSubtitle(
   if (prosCount > consCount) {
     return t("property_details.highlights_subtitle_emphasize_strengths", {
       percent,
-      defaultValue:
-        "Your match score is {{percent}}%, so we emphasize strengths for this listing.",
+      defaultValue: "Your match score is {{percent}}%, so we emphasize strengths for this listing.",
     });
   }
   if (consCount > prosCount) {
     return t("property_details.highlights_subtitle_emphasize_tradeoffs", {
       percent,
-      defaultValue:
-        "Your match score is {{percent}}%, so we emphasize tradeoffs for this listing.",
+      defaultValue: "Your match score is {{percent}}%, so we emphasize tradeoffs for this listing.",
     });
   }
   return t("property_details.highlights_subtitle_balanced", {

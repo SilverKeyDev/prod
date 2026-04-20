@@ -7,13 +7,13 @@ This document describes where **TypeScript-only (`.ts`)** files live in the Silv
 - **Shared logic and framework-agnostic code** live under `Client/packages/*` as `.ts` files.
 - **React hooks** are **TypeScript-only** (`.ts`); no `.tsx` in `packages/hooks/`.
 - **`apps/web/`** may contain `.ts` only for **barrel re-exports** (`index.ts`) or rare non-React modules; no standalone `.ts` utilities under `apps/web/components/` or `apps/web/features/` (those belong in `packages/utils/` or `packages/hooks/`).
-- **`Client/logger/`** is a top-level logging package and is all `.ts`.
+- **`Client/packages/logger/`** is the frontend logging package and is all `.ts`.
 
 ## Root-Level `.ts` Locations
 
 | Location              | Purpose                                      | React? |
 |-----------------------|----------------------------------------------|--------|
-| `Client/logger/`      | Centralized logging, PII scrubbing, categories | No     |
+| `Client/packages/logger/` | Centralized logging, PII scrubbing, categories | No     |
 | `Client/packages/*`   | Shared packages (see below)                  | Varies |
 
 ## Packages: Where `.ts` Files Live
@@ -50,7 +50,7 @@ This document describes where **TypeScript-only (`.ts`)** files live in the Silv
 - **`hooks/store/*`** – Store integration hooks. Use `store/*` and `hooks/data/*`.
 - **`hooks/ui/*`** – UI state and behavior hooks (e.g. clipboard, responsive, scroll, toast). No API calls.
 
-Hooks may use React APIs but do not render JSX; components live in `apps/web/`.
+Hooks may use React APIs but do not render JSX. **Feature UI** lives in `packages/features/`; **shared primitives** live in `packages/ui/`; **`apps/web`** holds thin pages and app shell only.
 
 ---
 
@@ -135,15 +135,30 @@ So under `apps/web/`, `.ts` files are mostly **index re-exports** or **type/conf
 | `contexts/`    | Context types/hooks        | Yes    | apps/web                  |
 | `navigation/` | Paths, adapter             | No     | apps/web                  |
 | `design-tokens/` | Tokens, helpers         | No     | apps/web, styles          |
-| `logger/`     | Logging, PII               | No     | All                       |
+| `packages/logger/` | Logging, PII          | No     | All                       |
 
 \* React Query lives in `config/query/`; rest of config is non-React.
 
 ---
 
+## Import path conventions (canonical)
+
+These conventions help humans and tooling (including IDE assistants) resolve the same module in one way.
+
+1. **`packages/...`** — **Preferred** for every file under `Client/packages/`, whether the importer lives in `packages/` or in an app. Example: `import { userApi } from "packages/config/api/user"`, `import { X } from "packages/features/search/components/SearchScreen"`.
+2. **`@/...`** — Use **only** for modules under **`Client/apps/web/`** (TypeScript `paths` map `@/*` → `apps/web/*`). Examples: `@/pages/property/SearchPage`, `@/app/layouts/dashboard/DashboardLayout`.
+3. **`@/features/...`** — Alias for `packages/features/...`. Prefer **`packages/features/...`** in new code so imports match other `packages/*` paths.
+4. **`@/components/ui` and `@ui`** — Aliases for `packages/ui/components` (see `Client/tsconfig.base.json`). Prefer **`packages/ui/...`** when importing deep paths unless you rely on the barrel.
+
+Layer rules (who may import `config/api`, etc.) are unchanged; this section is **path spelling** only.
+
+For the packages overview, see `Client/packages/README.md`.
+
+---
+
 ## Import Rules (Recap)
 
-- **Components (`apps/web/`)** → Use `hooks/*`, `store/*`, `schemas/*`, `utils/*`, `contexts/*`, `navigation/*`. Do not import `config/api/*` or `services/*` directly.
+- **Components (`apps/web/` pages and `packages/features/`, `packages/ui/`)** → Use `hooks/*`, `store/*`, `schemas/*`, `utils/*`, `contexts/*`, `navigation/*`, `packages/ui`, and sibling feature modules. Do not import `config/api/*` or `services/*` directly from UI or pages.
 - **Hooks (`packages/hooks/`)** → Use `config/api/*`, `store/*`, `schemas/*`, `services/http/*`, `services/security/*`. Do not import business-logic `services/*`.
 - **Services (`packages/services/`)** → Use `config/api/*`, `services/http/*`, `services/security/*`, `schemas/*`. Do not import `hooks/*` or `store/*`.
 - **Config (`packages/config/`)** → Use `services/http/*`, `services/security/*`, `schemas/*`.

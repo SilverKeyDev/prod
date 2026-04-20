@@ -5,15 +5,30 @@ Construct envelope definitions from agreements.
 """
 
 import base64
+from typing import Any
 
-from docusign_esign import Document, EnvelopeDefinition, Recipients
+from docusign_esign import (
+    CustomFields,
+    Document,
+    EnvelopeDefinition,
+    PrefillTabs,
+    Recipients,
+    TextCustomField,
+)
 
-from app.models import Agreement
+from app.models import Agreement, AgreementParticipant
+from app.schemas.generated import DocuSignEnvelopeNotificationInput
 from app.services.documents.s3_service import s3_service
 from logger import LOG_CATEGORIES, get_logger
 
 from ..errors import AgreementStateError
 from ..utils.recipients import build_recipients_from_participants, validate_participants
+from .notification_settings import build_notification_for_envelope_create
+from .tab_prefill import (
+    build_prefill_tabs_model,
+    parse_tab_prefill_by_participant,
+    prefill_tabs_nonempty,
+)
 
 logger = get_logger()
 
@@ -21,13 +36,19 @@ logger = get_logger()
 class EnvelopeBuilder:
     """Build DocuSign envelope from Agreement"""
 
-    def __init__(self, agreement: Agreement, signing_method: str = "embedded"):
+    def __init__(
+        self,
+        agreement: Agreement,
+        signing_method: str = "embedded",
+        envelope_options: dict[str, Any] | None = None,
+    ):
         """
         Initialize envelope builder.
 
         Args:
             agreement: Agreement model
             signing_method: 'embedded' or 'email'
+            envelope_options: Optional payload from SendAgreementRequest (notification, tab prefill).
         """
         logger.debug(
             LOG_CATEGORIES["DOCUSIGN"],
@@ -37,9 +58,26 @@ class EnvelopeBuilder:
 
         self.agreement = agreement
         self.signing_method = signing_method
+        self.envelope_options = envelope_options or {}
+        override_raw = self.envelope_options.get("envelope_notification")
+        override = (
+            DocuSignEnvelopeNotificationInput.model_validate(override_raw) if override_raw else None
+        )
+        self._notification = build_notification_for_envelope_create(override)
+        self._tab_prefill_by_pid = parse_tab_prefill_by_participant(
+            self.envelope_options.get("tab_prefill")
+        )
+        self._prefill_tabs = build_prefill_tabs_model(
+            self.envelope_options.get("envelope_prefill_tabs")
+        )
 
         # Validate agreement state
         self._validate()
+
+    @property
+    def prefill_tabs(self) -> PrefillTabs | None:
+        """Sender prefill tabs merged into create envelope body when non-empty."""
+        return self._prefill_tabs if prefill_tabs_nonempty(self._prefill_tabs) else None
 
     def _validate(self):
         """Validate agreement can be sent"""
@@ -110,6 +148,8 @@ class EnvelopeBuilder:
             email_subject=self.agreement.title,
             documents=[document],
             recipients=recipients,
+            custom_fields=self._build_custom_fields(),
+            notification=self._notification,
             status="sent",  # Send immediately
         )
 
@@ -120,6 +160,41 @@ class EnvelopeBuilder:
         )
 
         return envelope
+
+    def _first_signer_recipient_id(self) -> str:
+        """Recipient ID (participant UUID) for assignTabsToRecipientId / PDF field transform."""
+        participants_list = list(self.agreement.participants)  # pyright: ignore[reportArgumentType]
+        signers: list[AgreementParticipant] = [p for p in participants_list if p.role == "signer"]
+        if not signers:
+            raise AgreementStateError("Agreement has no signers")
+        first = min(signers, key=lambda p: (p.routing_order or 1, str(p.id)))
+        return str(first.id)
+
+    def _build_custom_fields(self) -> CustomFields:
+        """Envelope-level text custom fields for DocuSign search / reporting (not on the PDF)."""
+        agreement = self.agreement
+        return CustomFields(
+            text_custom_fields=[
+                TextCustomField(
+                    name="agreement_id",
+                    value=str(agreement.id),
+                    show="true",
+                    required="false",
+                ),
+                TextCustomField(
+                    name="buyer_id",
+                    value=str(agreement.buyer_id),
+                    show="true",
+                    required="false",
+                ),
+                TextCustomField(
+                    name="agent_id",
+                    value=str(agreement.agent_id),
+                    show="true",
+                    required="false",
+                ),
+            ]
+        )
 
     def _build_document(self) -> Document:
         """Build document from current revision"""
@@ -184,6 +259,8 @@ class EnvelopeBuilder:
             name=revision.filename,
             file_extension=revision.mime_type.split("/")[-1],
             document_id="1",
+            transform_pdf_fields="true",
+            assign_tabs_to_recipient_id=self._first_signer_recipient_id(),
         )
 
         logger.info(
@@ -208,7 +285,9 @@ class EnvelopeBuilder:
             },
         )
 
-        recipients_dict = build_recipients_from_participants(participants_list)
+        recipients_dict = build_recipients_from_participants(
+            participants_list, tab_prefill_by_pid=self._tab_prefill_by_pid or None
+        )
 
         # Always set clientUserId so embedded signing works; DocuSign may still email signers.
         if "signers" in recipients_dict:

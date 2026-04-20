@@ -2,15 +2,15 @@ import { useCallback, useMemo } from "react";
 
 import type { ReactNode } from "react";
 
-import Dropdown from "packages/ui/components/form/Dropdown";
+import Dropdown from "packages/ui/components/form/dropdown";
 import { Box } from "packages/ui/components/primitives";
 import Label from "packages/ui/components/text/Label.web";
 
+import { buildTimeOptions } from "@/features/calendar/utils/createEventModal/scheduleTimeOptions";
 import {
   CREATE_EVENT_TIME_STEP_MINUTES,
   parseHourMinute24,
-} from "@/features/calendar/utils/eventFormGooglePayload";
-import { buildTimeOptions } from "@/features/calendar/utils/scheduleTimeOptions";
+} from "@/features/calendar/utils/parsing/eventFormGooglePayload";
 
 function hhmmToMinutes(s: string): number {
   const p = parseHourMinute24(s);
@@ -75,7 +75,7 @@ export function EventFormTimeRange({
   const options = useMemo(() => buildTimeOptions(stepMinutes), [stepMinutes]);
   const dropdownOptions = useMemo(
     () => options.map((o) => ({ value: o.value, label: o.label })),
-    [options],
+    [options]
   );
 
   const handleStartChange = useCallback(
@@ -86,14 +86,7 @@ export function EventFormTimeRange({
         onEndTimeChange(nextEnd);
       }
     },
-    [
-      startDate,
-      endDate,
-      endTime,
-      onStartTimeChange,
-      onEndTimeChange,
-      stepMinutes,
-    ],
+    [startDate, endDate, endTime, onStartTimeChange, onEndTimeChange, stepMinutes]
   );
 
   const endOptions = useMemo(() => {
@@ -121,7 +114,7 @@ export function EventFormTimeRange({
             options={dropdownOptions}
             value={startTime || undefined}
             onChange={handleStartChange}
-            placeholder="Start"
+            placeholder="Select start time"
             searchable
             variant="compact"
             size="md"
@@ -138,7 +131,7 @@ export function EventFormTimeRange({
             options={endOptions.length > 0 ? endOptions : dropdownOptions}
             value={endTime || undefined}
             onChange={onEndTimeChange}
-            placeholder="End"
+            placeholder="Select end time"
             searchable
             variant="compact"
             size="md"
@@ -148,9 +141,7 @@ export function EventFormTimeRange({
             menuPortalStack={menuPortalStack}
           />
         </Box>
-        <Box className="col-start-3 row-start-2 flex items-center self-center">
-          {trailingSlot}
-        </Box>
+        <Box className="col-start-3 row-start-2 flex items-center self-center">{trailingSlot}</Box>
       </Box>
     );
   }
@@ -162,7 +153,7 @@ export function EventFormTimeRange({
         options={dropdownOptions}
         value={startTime || undefined}
         onChange={handleStartChange}
-        placeholder="Start"
+        placeholder="Select start time"
         searchable
         variant="compact"
         size="md"
@@ -176,7 +167,7 @@ export function EventFormTimeRange({
         options={endOptions.length > 0 ? endOptions : dropdownOptions}
         value={endTime || undefined}
         onChange={onEndTimeChange}
-        placeholder="End"
+        placeholder="Select end time"
         searchable
         variant="compact"
         size="md"

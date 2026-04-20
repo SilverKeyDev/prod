@@ -79,7 +79,7 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
    - Confirm it requests the exact key you added to the translation map.
    - Keep keys stable; if you must rename a key, update all usages across the codebase.
 2. Ensure the component uses standardized text primitives:
-   - For web: `Title`, `BodyText`, `Label`, etc. from `Client/apps/web/components/ui/`.
+   - For web: `Title`, `BodyText`, `Label`, etc. from `Client/packages/ui/` (or `@/components/ui` / `@ui` aliases).
    - Avoid inlining translation keys directly in JSX without `t()`.
 3. If the UI previously showed the raw key, re-run or reload the app so it now shows the human-readable copy.
 

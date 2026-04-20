@@ -10,6 +10,7 @@ from .chart_generation import (
 )
 from .map_generation import (
     GOOGLE_MAPS_ID,
+    fetch_directions_leg,
     fetch_route_polyline,
     fetch_travel_time,
     generate_commute_map,
@@ -21,6 +22,7 @@ from .map_generation import (
 __all__ = [
     "GOOGLE_MAPS_ID",
     "format_label",
+    "fetch_directions_leg",
     "fetch_route_polyline",
     "fetch_travel_time",
     "generate_commute_map",

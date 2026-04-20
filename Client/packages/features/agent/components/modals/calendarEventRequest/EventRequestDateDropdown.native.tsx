@@ -1,36 +1,25 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 
 import { Modal, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import {
-  Box,
-  ScrollView,
-  Text,
-  TouchableBox,
-} from "packages/ui/components/primitives";
-
-import {
-  buildDateOptions,
-  EVENT_REQUEST_DATE_RANGE_DAYS,
-} from "./eventRequestScheduleOptions";
+import { Box, ScrollView, Text, TouchableBox } from "packages/ui/components/primitives";
+import type { EventScheduleOption } from "packages/utils/scheduling/eventRequestScheduleOptions";
 
 export type EventRequestDateDropdownProps = {
   minDate: string;
   value: string;
   onChange: (value: string) => void;
+  options: EventScheduleOption[];
 };
 
 export function EventRequestDateDropdown({
-  minDate,
+  minDate: _minDate,
   value,
   onChange,
+  options,
 }: EventRequestDateDropdownProps) {
   const [open, setOpen] = useState(false);
-  const options = useMemo(
-    () => buildDateOptions(minDate, EVENT_REQUEST_DATE_RANGE_DAYS),
-    [minDate],
-  );
   const selectedLabel = options.find((o) => o.value === value)?.label;
 
   return (
@@ -42,22 +31,11 @@ export function EventRequestDateDropdown({
         label="Select date"
         interactionStyles={{ base: "" }}
       >
-        <Text
-          className={
-            value
-              ? "text-text-primary text-base"
-              : "text-text-secondary text-base"
-          }
-        >
+        <Text className={value ? "text-text-primary text-base" : "text-text-secondary text-base"}>
           {selectedLabel ?? "Select date"}
         </Text>
       </TouchableBox>
-      <Modal
-        visible={open}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setOpen(false)}
-      >
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <View style={styles.overlay}>
           <TouchableBox
             style={StyleSheet.absoluteFillObject}
@@ -66,32 +44,43 @@ export function EventRequestDateDropdown({
             interactionStyles={{ base: "" }}
           />
           <View style={styles.sheet}>
-            <Text className="text-text-primary mb-3 text-base font-semibold">
-              Select date
-            </Text>
+            <Text className="text-text-primary mb-3 text-base font-semibold">Select date</Text>
             <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
-              {options.map((o) => (
-                <TouchableBox
-                  key={o.value}
-                  label={o.label}
-                  onPress={() => {
-                    onChange(o.value);
-                    setOpen(false);
-                  }}
-                  style={[styles.row, value === o.value && styles.rowSelected]}
-                  interactionStyles={{ base: "" }}
-                >
-                  <Text
-                    className={
-                      value === o.value
-                        ? "text-base font-medium text-white"
-                        : "text-text-primary text-base"
-                    }
+              {options.map((o) => {
+                const selected = value === o.value;
+                const unavailable = Boolean(o.disabled);
+                const availableTone = o.availabilityTone === "available";
+                return (
+                  <TouchableBox
+                    key={o.value}
+                    label={o.label}
+                    onPress={() => {
+                      if (unavailable) return;
+                      onChange(o.value);
+                      setOpen(false);
+                    }}
+                    style={[
+                      styles.row,
+                      !selected && availableTone && !unavailable && styles.rowAvailable,
+                      !selected && unavailable && styles.rowUnavailable,
+                      selected && styles.rowSelected,
+                    ]}
+                    interactionStyles={{ base: "" }}
                   >
-                    {o.label}
-                  </Text>
-                </TouchableBox>
-              ))}
+                    <Text
+                      className={
+                        selected
+                          ? "text-base font-medium text-white"
+                          : unavailable
+                            ? "text-text-secondary text-base"
+                            : "text-text-primary text-base"
+                      }
+                    >
+                      {o.label}
+                    </Text>
+                  </TouchableBox>
+                );
+              })}
             </ScrollView>
             <TouchableBox
               onPress={() => setOpen(false)}
@@ -99,9 +88,7 @@ export function EventRequestDateDropdown({
               label="Done"
               interactionStyles={{ base: "" }}
             >
-              <Text className="text-center text-base font-semibold text-white">
-                Done
-              </Text>
+              <Text className="text-center text-base font-semibold text-white">Done</Text>
             </TouchableBox>
           </View>
         </View>
@@ -141,8 +128,17 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     backgroundColor: color("neutral.100"),
   },
+  rowAvailable: {
+    backgroundColor: color("brand.secondary"),
+    opacity: 0.22,
+  },
+  rowUnavailable: {
+    opacity: 0.5,
+    backgroundColor: color("neutral.200"),
+  },
   rowSelected: {
     backgroundColor: color("brand.accent"),
+    opacity: 1,
   },
   done: {
     marginTop: 12,

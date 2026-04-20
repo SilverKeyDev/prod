@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { authUtils, PERMISSIONS, UserRole } from "packages/config/auth/auth";
-import { useUserData } from "packages/hooks/data/useUserData";
+import { useUserData } from "packages/hooks/data/user/useUserData";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 
@@ -40,36 +40,26 @@ export function AdminGuard({ children }: AdminGuardProps) {
   //   if u and not any(r.role == "admin" for r in u.user_roles):
   //     db.session.add(UserRole(user_id=u.id, role="admin")); db.session.commit()
   const isAuthorized =
-    effectiveRole !== null &&
-    authUtils.hasPermission(effectiveRole, PERMISSIONS.MANAGE_SYSTEM);
+    effectiveRole !== null && authUtils.hasPermission(effectiveRole, PERMISSIONS.MANAGE_SYSTEM);
 
   if (!isAuthorized) {
     if (user?.id) {
-      log.security(
-        LOG_CATEGORIES.SECURITY,
-        "[ADMIN_GUARD] Unauthorized admin access attempt",
-        {
-          userId: user.id,
-          roles,
-        },
-      );
+      log.security(LOG_CATEGORIES.SECURITY, "[ADMIN_GUARD] Unauthorized admin access attempt", {
+        userId: user.id,
+        roles,
+      });
     }
 
     return (
       <Box className="flex min-h-screen items-center justify-center bg-background-base p-4">
-        <Card
-          border="none"
-          className="w-full max-w-md border-l-4 border-l-primary"
-          padding="lg"
-        >
+        <Card border="none" className="w-full max-w-md border-l-4 border-l-primary" padding="lg">
           <Box className="text-center">
             <Title size="lg" as="h2" className="mb-2">
               Admin Access Required
             </Title>
             <BodyText size="sm" muted className="mb-4">
-              You do not have permission to access this admin page. If you
-              believe this is an error, please contact your SilverKey
-              administrator.
+              You do not have permission to access this admin page. If you believe this is an error,
+              please contact your SilverKey administrator.
             </BodyText>
           </Box>
         </Card>

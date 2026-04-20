@@ -1,20 +1,17 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
-import {
-  SEARCH_HEADER_PANEL_CLASS_DEFAULT,
-  SEARCH_HEADER_PANEL_CLASS_HOME_TYPE,
-  SEARCH_HEADER_PANEL_MAX_HEIGHT,
-} from "packages/features/search/components/header/searchHeaderConstants";
+import { SEARCH_HEADER_PANEL_MAX_HEIGHT } from "packages/features/search/components/header/searchHeaderConstants";
+import { useSearchFilterControlsOverflow } from "packages/features/search/hooks/ui/useSearchFilterControlsOverflow.web";
 import {
   formatPriceRange,
   getBedBathSummary,
-} from "packages/features/search/types/search/searchFilterSummaries";
+} from "packages/features/search/types/search/filters/searchFilterSummaries";
+import { getSearchFilterHomeTypeLabel } from "packages/features/search/utils/filters/searchFilterControlsHomeTypeLabel.web";
 import {
-  SEARCH_HEADER_FILTER_GAP_PX,
   SEARCH_HEADER_FILTER_PROMOTION_ORDER,
   type SearchHeaderFilterId,
-} from "packages/features/search/utils/searchHeaderFilterOrder";
+} from "packages/features/search/utils/filters/searchHeaderFilterOrder";
 import { useContainerWidth } from "packages/hooks/ui/useContainerWidth";
 import { useSearchContextStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
@@ -23,61 +20,28 @@ import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
 import PreferencesSaveStatusRow from "@/features/profile/components/settings/inputs/PreferencesSaveStatusRow";
 import type { OnboardingData } from "@/features/profile/utils";
-import { HOUSING_TYPE_OPTIONS } from "@/features/profile/utils";
 import BedBathFilter from "@/features/search/components/filters/BedBathFilter.web";
 import HomeTypeFilter from "@/features/search/components/filters/HomeTypeFilter.web";
 import OtherFilterContent from "@/features/search/components/filters/OtherFilterContent.web";
 import PriceRangeFilter from "@/features/search/components/filters/PriceRangeFilter.web";
 
 import SearchFilterChip from "./SearchFilterChip.web";
-const panelClass = SEARCH_HEADER_PANEL_CLASS_DEFAULT;
-/** Hide horizontal scrollbar on stacked filter sections (sliders slightly wider than panel). */
-const morePopoverPanelClass = `${SEARCH_HEADER_PANEL_CLASS_DEFAULT} overflow-x-hidden`;
-const homeTypePanelClass = SEARCH_HEADER_PANEL_CLASS_HOME_TYPE;
-const buttonBase = `inline-flex items-center gap-1.5 rounded-lg border px-4 text-sm font-medium transition-colors whitespace-nowrap shrink-0 justify-between ${HEADER_ROW_HEIGHT}`;
-
-function getHomeTypeLabel(value: string): string {
-  if (!value) return "Any";
-  const values = value
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-  if (values.length === 0) return "Any";
-  const labels = values.map(
-    (v) => HOUSING_TYPE_OPTIONS.find((o) => o.value === v)?.label ?? v,
-  );
-  return labels.join(", ");
-}
+import {
+  searchFilterControlsButtonBase,
+  searchFilterControlsHomeTypePanelClass,
+  searchFilterControlsMorePopoverPanelClass,
+  searchFilterControlsPanelClass,
+} from "./searchFilterControls.web.styles";
+import { SearchFilterControlsMorePlaceholder } from "./SearchFilterControlsMorePlaceholder.web";
 
 export type SearchFilterControlsProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
   saveStatus?: "idle" | "saving" | "saved";
   onPreferencesChanged?: () => void | Promise<void>;
-  /** Called when the More popover is closed */
   onPopoverClose?: () => void;
   variant?: "desktop" | "mobile";
 };
-
-/** Placeholder More button used only for measuring width in the hidden row */
-function MoreButtonPlaceholder({ t }: { t: (key: string) => string }) {
-  return (
-    <Button
-      type="button"
-      variant="secondary"
-      size="sm"
-      rounded="lg"
-      className={`${buttonBase} justify-between`}
-    >
-      <Box className="flex w-full items-center justify-between gap-2">
-        <BodyText as="span" size="sm" className="text-inherit">
-          {t("search.more")}
-        </BodyText>
-        <DropdownChevron open={false} className="h-4 w-4" />
-      </Box>
-    </Button>
-  );
-}
 
 export default function SearchFilterControls({
   formData,
@@ -88,21 +52,12 @@ export default function SearchFilterControls({
 }: SearchFilterControlsProps): React.ReactElement {
   const { t } = useLocalization();
   const [moreOpen, setMoreOpen] = useState(false);
-  const [overflowFromIndex, setOverflowFromIndex] = useState(3);
-  const setSearchFilterOverrides = useSearchContextStore(
-    (s) => s.setSearchFilterOverrides,
-  );
+  const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const measureRefs = useRef<(HTMLDivElement | null)[]>(
-    Array.from(
-      { length: SEARCH_HEADER_FILTER_PROMOTION_ORDER.length },
-      () => null,
-    ),
-  );
-  const measureRefMore = useRef<HTMLDivElement>(null);
-
   const containerWidth = useContainerWidth(containerRef, { minDelta: 5 });
+  const { overflowFromIndex, measureRefs, measureRefMore } =
+    useSearchFilterControlsOverflow(containerWidth);
 
   const closeMorePopover = useCallback(() => {
     setMoreOpen(false);
@@ -117,26 +72,6 @@ export default function SearchFilterControls({
   const maxBaths = formData.preferred_bathrooms_max ?? 8;
   const housingType = formData.preferred_housing_type ?? "";
 
-  useLayoutEffect(() => {
-    if (containerWidth <= 0) return;
-    const chipWidths = measureRefs.current.map(
-      (el) => el?.getBoundingClientRect().width ?? 0,
-    );
-    const moreWidth =
-      measureRefMore.current?.getBoundingClientRect().width ?? 0;
-    if (moreWidth <= 0) return;
-    const need = moreWidth + SEARCH_HEADER_FILTER_GAP_PX;
-    let numVisibleInHeader = 0;
-    for (let i = 0; i <= SEARCH_HEADER_FILTER_PROMOTION_ORDER.length; i++) {
-      const chipSum =
-        i === 0 ? 0 : chipWidths.slice(0, i).reduce((a, b) => a + b, 0);
-      const total = chipSum + i * SEARCH_HEADER_FILTER_GAP_PX + need;
-      if (total <= containerWidth) numVisibleInHeader = i;
-      else break;
-    }
-    setOverflowFromIndex(numVisibleInHeader);
-  }, [containerWidth]);
-
   const renderChip = useCallback(
     (id: SearchHeaderFilterId): React.ReactNode => {
       switch (id) {
@@ -145,7 +80,7 @@ export default function SearchFilterControls({
             <SearchFilterChip
               label="Price"
               summary={formatPriceRange(priceMin, priceMax)}
-              panelClassName={panelClass}
+              panelClassName={searchFilterControlsPanelClass}
               panelMinWidth="320px"
               side="bottom"
             >
@@ -166,7 +101,7 @@ export default function SearchFilterControls({
             <SearchFilterChip
               label="Beds & baths"
               summary={getBedBathSummary(minBeds, maxBeds, minBaths, maxBaths)}
-              panelClassName={panelClass}
+              panelClassName={searchFilterControlsPanelClass}
               panelMinWidth="320px"
               side="bottom"
             >
@@ -176,9 +111,7 @@ export default function SearchFilterControls({
                   maxBeds={maxBeds}
                   minBaths={minBaths}
                   maxBaths={maxBaths}
-                  onMinBedsChange={(v) =>
-                    updateFormData("preferred_bedrooms_min", v)
-                  }
+                  onMinBedsChange={(v) => updateFormData("preferred_bedrooms_min", v)}
                   onMaxBedsChange={(v) => {
                     updateFormData("preferred_bedrooms_max", v);
                     setSearchFilterOverrides((prev) => ({
@@ -186,9 +119,7 @@ export default function SearchFilterControls({
                       preferred_bedrooms_max: v,
                     }));
                   }}
-                  onMinBathsChange={(v) =>
-                    updateFormData("preferred_bathrooms_min", v)
-                  }
+                  onMinBathsChange={(v) => updateFormData("preferred_bathrooms_min", v)}
                   onMaxBathsChange={(v) => {
                     updateFormData("preferred_bathrooms_max", v);
                     setSearchFilterOverrides((prev) => ({
@@ -204,8 +135,8 @@ export default function SearchFilterControls({
           return (
             <SearchFilterChip
               label="Home type"
-              summary={getHomeTypeLabel(housingType)}
-              panelClassName={homeTypePanelClass}
+              summary={getSearchFilterHomeTypeLabel(housingType)}
+              panelClassName={searchFilterControlsHomeTypePanelClass}
               panelMinWidth="260px"
               side="bottom"
             >
@@ -229,7 +160,7 @@ export default function SearchFilterControls({
       housingType,
       updateFormData,
       setSearchFilterOverrides,
-    ],
+    ]
   );
 
   const renderOverflowSection = useCallback(
@@ -269,9 +200,7 @@ export default function SearchFilterControls({
                 maxBeds={maxBeds}
                 minBaths={minBaths}
                 maxBaths={maxBaths}
-                onMinBedsChange={(v) =>
-                  updateFormData("preferred_bedrooms_min", v)
-                }
+                onMinBedsChange={(v) => updateFormData("preferred_bedrooms_min", v)}
                 onMaxBedsChange={(v) => {
                   updateFormData("preferred_bedrooms_max", v);
                   setSearchFilterOverrides((prev) => ({
@@ -279,9 +208,7 @@ export default function SearchFilterControls({
                     preferred_bedrooms_max: v,
                   }));
                 }}
-                onMinBathsChange={(v) =>
-                  updateFormData("preferred_bathrooms_min", v)
-                }
+                onMinBathsChange={(v) => updateFormData("preferred_bathrooms_min", v)}
                 onMaxBathsChange={(v) => {
                   updateFormData("preferred_bathrooms_max", v);
                   setSearchFilterOverrides((prev) => ({
@@ -316,7 +243,7 @@ export default function SearchFilterControls({
       housingType,
       updateFormData,
       setSearchFilterOverrides,
-    ],
+    ]
   );
 
   const overflowPanelContent = (
@@ -330,10 +257,8 @@ export default function SearchFilterControls({
       {SEARCH_HEADER_FILTER_PROMOTION_ORDER.map(
         (id, index) =>
           index >= overflowFromIndex && (
-            <React.Fragment key={id}>
-              {renderOverflowSection(id)}
-            </React.Fragment>
-          ),
+            <React.Fragment key={id}>{renderOverflowSection(id)}</React.Fragment>
+          )
       )}
       <OtherFilterContent
         formData={formData}
@@ -348,7 +273,6 @@ export default function SearchFilterControls({
 
   return (
     <>
-      {/* Hidden row used only to measure chip and More button widths */}
       <Box
         aria-hidden="true"
         className="pointer-events-none absolute -left-full top-0 flex items-center gap-2"
@@ -365,7 +289,7 @@ export default function SearchFilterControls({
           </Box>
         ))}
         <Box ref={measureRefMore}>
-          <MoreButtonPlaceholder t={t} />
+          <SearchFilterControlsMorePlaceholder t={t} />
         </Box>
       </Box>
 
@@ -373,13 +297,11 @@ export default function SearchFilterControls({
         ref={containerRef}
         className={`flex min-w-0 flex-nowrap items-center gap-2 ${HEADER_ROW_HEIGHT}`}
       >
-        {SEARCH_HEADER_FILTER_PROMOTION_ORDER.slice(0, overflowFromIndex).map(
-          (id) => (
-            <Box key={id} className="shrink-0">
-              {renderChip(id)}
-            </Box>
-          ),
-        )}
+        {SEARCH_HEADER_FILTER_PROMOTION_ORDER.slice(0, overflowFromIndex).map((id) => (
+          <Box key={id} className="shrink-0">
+            {renderChip(id)}
+          </Box>
+        ))}
 
         <Popover
           open={moreOpen}
@@ -389,7 +311,7 @@ export default function SearchFilterControls({
           }}
           usePortal={true}
           side="left"
-          panelClassName={morePopoverPanelClass}
+          panelClassName={searchFilterControlsMorePopoverPanelClass}
           panelMaxHeight={SEARCH_HEADER_PANEL_MAX_HEIGHT}
           panelMinWidth="320px"
           trigger={({ open: isActive, onToggle }) => (
@@ -399,9 +321,10 @@ export default function SearchFilterControls({
               variant={isActive ? "outline" : "secondary"}
               size="sm"
               rounded="lg"
-              className={buttonBase}
+              className={searchFilterControlsButtonBase}
               aria-expanded={isActive}
               aria-haspopup="true"
+              iconName="search"
             >
               <Box className="flex w-full items-center justify-between gap-2">
                 <BodyText as="span" size="sm" className="text-inherit">

@@ -75,11 +75,7 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
             >
               {t("validation.complete_required_title")}
             </Title>
-            <BodyText
-              as="p"
-              size="sm"
-              className="text-responsive-sm text-gray-600"
-            >
+            <BodyText as="p" size="sm" className="text-responsive-sm text-gray-600">
               {t("validation.complete_required_description")}
             </BodyText>
           </Box>

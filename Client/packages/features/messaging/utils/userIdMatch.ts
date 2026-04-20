@@ -4,7 +4,7 @@
  */
 export function isSameMessagingUserId(
   a: string | null | undefined,
-  b: string | null | undefined,
+  b: string | null | undefined
 ): boolean {
   if (a == null || b == null) return false;
   return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();

@@ -31,9 +31,7 @@ function safeStringify(value: unknown): string {
   return "[Unknown]";
 }
 
-export function formatAgentPhoneNumber(
-  ph: Record<string, unknown> | string | undefined,
-): string {
+export function formatAgentPhoneNumber(ph: Record<string, unknown> | string | undefined): string {
   if (!ph) return "";
   if (typeof ph === "string") {
     const s = ph.trim();
@@ -45,9 +43,7 @@ export function formatAgentPhoneNumber(
     number?: unknown;
   };
   if (areacode && prefix && number) {
-    return `(${safeStringify(areacode)}) ${safeStringify(
-      prefix,
-    )}-${safeStringify(number)}`;
+    return `(${safeStringify(areacode)}) ${safeStringify(prefix)}-${safeStringify(number)}`;
   }
   return (
     (typeof areacode === "string" ? areacode : null) ??
@@ -63,10 +59,7 @@ function pickTrimmedString(value: unknown): string | undefined {
   return s || undefined;
 }
 
-function firstNonEmptyString(
-  obj: Record<string, unknown>,
-  keys: string[],
-): string | undefined {
+function firstNonEmptyString(obj: Record<string, unknown>, keys: string[]): string | undefined {
   for (const k of keys) {
     const v = pickTrimmedString(obj[k]);
     if (v) return v;
@@ -74,15 +67,50 @@ function firstNonEmptyString(
   return undefined;
 }
 
-function agentNameFromListingAgent(
-  o: Record<string, unknown>,
-): string | undefined {
-  const direct = firstNonEmptyString(o, [
-    "name",
-    "fullName",
-    "displayName",
-    "agentName",
-  ]);
+/** RESO/MLS feeds often nest photo under objects or use alternate key names. */
+const LISTING_AGENT_IMAGE_KEYS = [
+  "photo",
+  "photoUrl",
+  "photoURL",
+  "imageUrl",
+  "imageURL",
+  "image",
+  "picture",
+  "headshot",
+  "headshotUrl",
+  "profilePhotoUrl",
+  "profileUrl",
+  "agentPhoto",
+  "memberPhotoUrl",
+  "MemberPhotoURL",
+] as const;
+
+function extractImageUrlFromUnknown(value: unknown): string | undefined {
+  const direct = pickTrimmedString(value);
+  if (direct) return direct;
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const o = value as Record<string, unknown>;
+    return firstNonEmptyString(o, ["url", "href", "src", "uri", "URL", "Uri", "link"]);
+  }
+  return undefined;
+}
+
+function imageUrlFromAgentRecord(o: Record<string, unknown>): string | undefined {
+  for (const k of LISTING_AGENT_IMAGE_KEYS) {
+    const v = o[k];
+    const u = extractImageUrlFromUnknown(v);
+    if (u) return u;
+  }
+  const media = o.media ?? o.photos ?? o.Media;
+  if (Array.isArray(media) && media.length > 0) {
+    const first = extractImageUrlFromUnknown(media[0]);
+    if (first) return first;
+  }
+  return undefined;
+}
+
+function agentNameFromListingAgent(o: Record<string, unknown>): string | undefined {
+  const direct = firstNonEmptyString(o, ["name", "fullName", "displayName", "agentName"]);
   if (direct) return direct;
   const first = pickTrimmedString(o.firstName);
   const last = pickTrimmedString(o.lastName);
@@ -90,9 +118,7 @@ function agentNameFromListingAgent(
   return undefined;
 }
 
-function parsePhoneField(
-  v: unknown,
-): Record<string, unknown> | string | undefined {
+function parsePhoneField(v: unknown): Record<string, unknown> | string | undefined {
   if (v == null) return undefined;
   if (typeof v === "string") {
     const s = v.trim();
@@ -108,38 +134,22 @@ function readSlipstreamListingAgent(property: Record<string, unknown>): {
   phone?: Record<string, unknown> | string;
   email?: string;
 } | null {
-  const la = property.listingAgent;
+  const la = property.listingAgent ?? property.listing_agent;
   if (!la || typeof la !== "object") return null;
   const o = la as Record<string, unknown>;
   return {
     displayName: agentNameFromListingAgent(o),
-    imageUrl: firstNonEmptyString(o, [
-      "photo",
-      "imageUrl",
-      "image",
-      "picture",
-      "headshot",
-    ]),
-    phone: parsePhoneField(
-      o.phone ?? o.telephone ?? o.mobile ?? o.workPhone ?? o.cellPhone,
-    ),
+    imageUrl: imageUrlFromAgentRecord(o),
+    phone: parsePhoneField(o.phone ?? o.telephone ?? o.mobile ?? o.workPhone ?? o.cellPhone),
     email: firstNonEmptyString(o, ["email", "emailAddress"]),
   };
 }
 
-function readSlipstreamListingOffice(
-  property: Record<string, unknown>,
-): string | undefined {
+function readSlipstreamListingOffice(property: Record<string, unknown>): string | undefined {
   const lo = property.listingOffice;
   if (!lo || typeof lo !== "object") return undefined;
   const o = lo as Record<string, unknown>;
-  return firstNonEmptyString(o, [
-    "name",
-    "company",
-    "brokerageName",
-    "officeName",
-    "firmName",
-  ]);
+  return firstNonEmptyString(o, ["name", "company", "brokerageName", "officeName", "firmName"]);
 }
 
 /** MLS / Slipstream listing number when present (not necessarily distinct from provider id). */
@@ -152,9 +162,7 @@ export function getMlsListingId(property: unknown): string | undefined {
 }
 
 /** Human-readable listing status for MLS snapshots (e.g. FOR_SALE → "For Sale"). */
-export function formatListingStatusLabel(
-  raw: string | undefined,
-): string | undefined {
+export function formatListingStatusLabel(raw: string | undefined): string | undefined {
   if (!raw || typeof raw !== "string") return undefined;
   const s = raw.trim();
   if (!s) return undefined;
@@ -196,22 +204,23 @@ export function getAgentFromProperty(property: unknown): {
     flatBrokerage ??
     (zillowAgent ? pickTrimmedString(zillowAgent.business_name) : undefined);
 
-  const phone =
-    slip?.phone ?? parsePhoneField(zillowAgent?.phone) ?? flatAgentPhone;
+  const phone = slip?.phone ?? parsePhoneField(zillowAgent?.phone) ?? flatAgentPhone;
 
-  const email =
-    slip?.email ?? flatAgentEmail ?? pickTrimmedString(p.listingAgentEmail);
+  const email = slip?.email ?? flatAgentEmail ?? pickTrimmedString(p.listingAgentEmail);
 
   const imageUrl =
     slip?.imageUrl ??
-    (zillowAgent ? pickTrimmedString(zillowAgent.image_url) : undefined);
+    (zillowAgent
+      ? firstNonEmptyString(zillowAgent as Record<string, unknown>, [
+          "image_url",
+          "imageUrl",
+          "profile_photo_url",
+          "photo_url",
+          "headshot_url",
+        ]) ?? imageUrlFromAgentRecord(zillowAgent as Record<string, unknown>)
+      : undefined);
 
-  const hasAgent = !!(
-    displayName ||
-    businessName ||
-    formatAgentPhoneNumber(phone) ||
-    email
-  );
+  const hasAgent = !!(displayName || businessName || formatAgentPhoneNumber(phone) || email);
 
   return {
     hasAgent,
@@ -248,10 +257,7 @@ export function getPropertyBasicFields(property: Record<string, unknown>): {
     lotSize: property.lotSize as number | string | undefined,
     homeType: property.homeType as string | undefined,
     propertyType: property.propertyType as string | undefined,
-    pricePerSquareFoot: property.pricePerSquareFoot as
-      | number
-      | string
-      | undefined,
+    pricePerSquareFoot: property.pricePerSquareFoot as number | string | undefined,
     garageSpaces: property.garageSpaces as number | undefined,
     parking: property.parking as number | undefined,
     zestimate: property.zestimate as number | undefined,
@@ -259,6 +265,4 @@ export function getPropertyBasicFields(property: Record<string, unknown>): {
   };
 }
 
-export type PropertyBasicDisplayFields = ReturnType<
-  typeof getPropertyBasicFields
->;
+export type PropertyBasicDisplayFields = ReturnType<typeof getPropertyBasicFields>;

@@ -76,7 +76,7 @@ function getScaleStyles(scale: string | number): string {
 /** Inline scale when `scale` is a number (see getScaleStyles). */
 export function getCardScaleInlineStyle(
   scaleProp: BaseCardStyleProps["scale"] | undefined,
-  cardType: BaseCardStyleProps["cardType"],
+  cardType: BaseCardStyleProps["cardType"]
 ): CSSProperties | undefined {
   const cardDefaults = getCardTypeDefaults(cardType);
   const scale = scaleProp ?? cardDefaults.scale;

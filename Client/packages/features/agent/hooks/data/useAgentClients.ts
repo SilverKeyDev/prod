@@ -30,7 +30,7 @@ export function useAgentClients(): UseAgentClientsReturn {
   // Check cache first when enabled becomes true (cache-first strategy)
   const shouldLoadData = useMemo(
     () => authReady && isAuthenticated && isAgent,
-    [authReady, isAuthenticated, isAgent],
+    [authReady, isAuthenticated, isAgent]
   );
 
   const {

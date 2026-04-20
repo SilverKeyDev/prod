@@ -99,9 +99,10 @@ export function ReelsMoreSheet({
               size="lg"
               className="justify-start"
               onPress={() => closeThen(onCopyLink)}
+              iconName="copy"
+              contentAlign="start"
             >
               <View style={styles.row}>
-                <Icon name="copy" size={20} color={color("neutral.700")} />
                 <Text className="text-text-primary text-sm">Copy link</Text>
               </View>
             </Button>
@@ -110,13 +111,10 @@ export function ReelsMoreSheet({
               size="lg"
               className="justify-start"
               onPress={() => closeThen(onSave)}
+              iconName="bookmark"
+              contentAlign="start"
             >
               <View style={styles.row}>
-                <Icon
-                  name="bookmark"
-                  size={20}
-                  color={isSaved ? color("neutral.900") : color("neutral.700")}
-                />
                 <Text className="text-text-primary text-sm">{isSaved ? "Unsave" : "Save"}</Text>
               </View>
             </Button>

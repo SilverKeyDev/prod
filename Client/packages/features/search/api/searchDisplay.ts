@@ -17,15 +17,12 @@ import { apiGet, apiPatch } from "packages/services/http/compatibility";
 import type { components } from "packages/types/api.generated";
 
 // Re-export type from generated schema
-export type SearchDisplayResponse =
-  components["schemas"]["SearchDisplayResponse"];
+export type SearchDisplayResponse = components["schemas"]["SearchDisplayResponse"];
 
 export const searchDisplayApi = {
   get: (): Promise<SearchDisplayResponse> =>
     apiGet<SearchDisplayResponse>("/api/v1/search-display"),
 
-  patch: (
-    partial: Partial<SearchDisplayPayload>,
-  ): Promise<SearchDisplayResponse> =>
+  patch: (partial: Partial<SearchDisplayPayload>): Promise<SearchDisplayResponse> =>
     apiPatch<SearchDisplayResponse>("/api/v1/search-display", partial),
 };

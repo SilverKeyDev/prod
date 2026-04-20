@@ -3,34 +3,16 @@ import { useCallback, useState } from "react";
 import { useIsAgent } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAgentDashboardStore } from "packages/store";
+import { type ResearchListingKeyInput, researchListingZpid } from "packages/utils/property";
 
 import type { PropertyRequest } from "@/features/search/api/research";
 import { researchApi } from "@/features/search/api/research";
 
-import {
-  applyStreamUpdate,
-  parseStreamError,
-} from "./propertyDetailsStreamHelpers";
+import { applyStreamUpdate, parseStreamError } from "./propertyDetailsStreamHelpers";
 import type { Property } from "./propertyDetailsTypes";
 
 export type { Property } from "./propertyDetailsTypes";
-
-/** Coerce listing id for research API (`PropertyRequest.zpid` is string). Search results use numeric `zpid`. */
-export function researchListingZpid(
-  property: Pick<Property, "id" | "zpid">,
-): string | undefined {
-  if (typeof property.zpid === "string") {
-    const s = property.zpid.trim();
-    if (s !== "") return s;
-  }
-  if (typeof property.zpid === "number" && Number.isFinite(property.zpid)) {
-    return String(Math.trunc(property.zpid));
-  }
-  if (typeof property.id === "string" && /^\d+$/.test(property.id)) {
-    return property.id;
-  }
-  return undefined;
-}
+export { researchListingZpid } from "packages/utils/property";
 
 export type UsePropertyDetailsReturn = {
   /** Whether property details are currently being fetched */
@@ -50,9 +32,7 @@ export type UsePropertyDetailsReturn = {
  * Opens modal immediately when basic info arrives, then updates as sections are generated
  */
 export function usePropertyDetails(): UsePropertyDetailsReturn {
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
-    null,
-  );
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isAgent = useIsAgent();
@@ -64,7 +44,7 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
       setError(null);
       setSelectedProperty(property);
       try {
-        const zpid = researchListingZpid(property);
+        const zpid = researchListingZpid(property as ResearchListingKeyInput);
         const payload: PropertyRequest = {
           address: property.address,
           ...(zpid ? { zpid } : {}),
@@ -81,31 +61,23 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
                   message?: string;
                   details?: string;
                   status_code?: number;
-                },
-              ),
+                }
+              )
             );
           }
           applyStreamUpdate(
             update as { type: string; data: unknown },
             setSelectedProperty,
-            setIsLoading,
+            setIsLoading
           );
         }
       } catch (err) {
-        log.error(
-          LOG_CATEGORIES.SEARCH,
-          "Error streaming property details",
-          err,
-        );
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to fetch property details",
-        );
+        log.error(LOG_CATEGORIES.SEARCH, "Error streaming property details", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch property details");
         setIsLoading(false);
       }
     },
-    [isAgent, selectedClientId],
+    [isAgent, selectedClientId]
   );
 
   const clearSelectedProperty = useCallback(() => {

@@ -41,8 +41,7 @@ export function SavedHomesList({
       <Box className="py-8">
         <Text className="text-text-secondary text-center text-sm">
           {t("saved.no_homes_yet", {
-            defaultValue:
-              "No saved homes yet. Save homes from Search to see them here.",
+            defaultValue: "No saved homes yet. Save homes from Search to see them here.",
           })}
         </Text>
       </Box>

@@ -64,9 +64,7 @@ export function getAllDocumentTypes(): DocumentTypeDefinition[] {
 /**
  * Get valid report types for a document type
  */
-export function getValidReportTypes(
-  documentTypeId: DocumentTypeId,
-): ReportType[] {
+export function getValidReportTypes(documentTypeId: DocumentTypeId): ReportType[] {
   return DOCUMENT_TYPES[documentTypeId]?.report_types ?? [];
 }
 
@@ -75,7 +73,7 @@ export function getValidReportTypes(
  */
 export function isValidReportTypeForDocumentType(
   documentTypeId: DocumentTypeId,
-  reportType: ReportType,
+  reportType: ReportType
 ): boolean {
   return getValidReportTypes(documentTypeId).includes(reportType);
 }

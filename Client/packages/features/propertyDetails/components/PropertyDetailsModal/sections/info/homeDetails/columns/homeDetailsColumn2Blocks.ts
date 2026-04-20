@@ -6,15 +6,12 @@ import {
   joinUnique,
   laundryFromFeatures,
 } from "./homeDetailsColumnHelpers";
-import type {
-  HomeDetailsBlock,
-  HomeDetailsTranslate,
-} from "./homeDetailsColumnTypes";
+import type { HomeDetailsBlock, HomeDetailsTranslate } from "./homeDetailsColumnTypes";
 
 export function buildHomeDetailsColumn2Blocks(
   property: Record<string, unknown>,
   fields: PropertyBasicDisplayFields,
-  t: HomeDetailsTranslate,
+  t: HomeDetailsTranslate
 ): HomeDetailsBlock[] {
   const col2: HomeDetailsBlock[] = [];
 
@@ -89,7 +86,7 @@ export function buildHomeDetailsColumn2Blocks(
   const communityAll = asStringList(property.communityFeatures, 50);
   const laundryLines = joinUnique(
     [...laundryFromFeatures(interiorAll), ...laundryFromFeatures(communityAll)],
-    8,
+    8
   );
   if (laundryLines.length > 0) {
     col2.push({
@@ -113,12 +110,7 @@ export function buildHomeDetailsColumn2Blocks(
   }
 
   const parkingFeat = asStringList(property.parkingFeatures, 8);
-  const parkingLines = formatParkingLines(
-    t,
-    fields.garageSpaces,
-    fields.parking,
-    parkingFeat,
-  );
+  const parkingLines = formatParkingLines(t, fields.garageSpaces, fields.parking, parkingFeat);
   if (parkingLines.length > 0) {
     col2.push({
       id: "parking",

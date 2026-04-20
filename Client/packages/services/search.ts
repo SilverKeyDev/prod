@@ -5,4 +5,4 @@
 export {
   transformPropertySearchResult,
   transformSearchResponse,
-} from "packages/features/search/utils/searchTransform";
+} from "packages/features/search/utils/transform/searchTransform";

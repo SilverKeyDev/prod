@@ -21,53 +21,40 @@ export const PropertyNeighborhood: React.FC<PropertyNeighborhoodProps> = ({
   analysisContent,
 }) => {
   const { t } = useLocalization();
-  const commute = (property as unknown as { commute_data?: unknown })
-    .commute_data as
+  const commute = (property as unknown as { commute_data?: unknown }).commute_data as
     | {
         commute_time?: string | number;
         commute_distance?: string | number;
       }
     | undefined;
   const hasCommuteInfo =
-    commute &&
-    (commute.commute_time != null || commute.commute_distance != null);
-  const neighborhoodOverview = analysisContent as
-    | Record<string, unknown>
-    | undefined;
+    commute && (commute.commute_time != null || commute.commute_distance != null);
+  const neighborhoodOverview = analysisContent as Record<string, unknown> | undefined;
 
-  const neighborhoodContent = neighborhoodOverview
-    ? { ...neighborhoodOverview }
-    : undefined;
+  const neighborhoodContent = neighborhoodOverview ? { ...neighborhoodOverview } : undefined;
   if (neighborhoodContent) {
     delete neighborhoodContent.age_distribution;
     delete neighborhoodContent.race_distribution;
     delete neighborhoodContent.income_distribution;
     delete neighborhoodContent.education_distribution;
   }
-  const { rest: neighborhoodBody, rating: neighborhoodSectionRating } =
-    stripSectionRatingField(neighborhoodContent ?? null);
+  const { rest: neighborhoodBody, rating: neighborhoodSectionRating } = stripSectionRatingField(
+    neighborhoodContent ?? null
+  );
   const neighborhoodContentForRender =
-    neighborhoodBody &&
-    typeof neighborhoodBody === "object" &&
-    !Array.isArray(neighborhoodBody)
+    neighborhoodBody && typeof neighborhoodBody === "object" && !Array.isArray(neighborhoodBody)
       ? (neighborhoodBody as Record<string, unknown>)
       : undefined;
   const hasNeighborhoodContent =
-    neighborhoodContentForRender &&
-    Object.keys(neighborhoodContentForRender).length > 0;
+    neighborhoodContentForRender && Object.keys(neighborhoodContentForRender).length > 0;
 
-  if (
-    !hasNeighborhoodContent &&
-    !hasCommuteInfo &&
-    neighborhoodSectionRating === null
-  ) {
+  if (!hasNeighborhoodContent && !hasCommuteInfo && neighborhoodSectionRating === null) {
     return null;
   }
 
   const sectionLabel =
-    DEFAULT_REPORT_SECTIONS.find(
-      (s: { key: string; label: string }) => s.key === "neighborhood",
-    )?.label ?? "Neighborhood Information";
+    DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "neighborhood")
+      ?.label ?? "Neighborhood Information";
 
   return (
     <Box className="p-6">
@@ -75,9 +62,7 @@ export const PropertyNeighborhood: React.FC<PropertyNeighborhoodProps> = ({
         iconName="shield"
         title={sectionLabel}
         className="!mb-4"
-        action={
-          <PropertySectionRatingBadge rating={neighborhoodSectionRating} />
-        }
+        action={<PropertySectionRatingBadge rating={neighborhoodSectionRating} />}
       />
       <SectionTintWrapper className="mt-2">
         <Box className="gap-6">

@@ -11,7 +11,10 @@ import {
   getAgentFromProperty,
   getMlsListingId,
 } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
-import { PropertyInfo } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/summary/PropertyInfo";
+import {
+  PropertyListingHeader,
+  PropertyListingQuickStats,
+} from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/summary/PropertyInfo";
 import { PropertyCommute } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/commute/PropertyCommute";
 import { PropertyDemographics } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/demographics/PropertyDemographics";
 import { PropertyLocationMapSection } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/map/PropertyLocationMapSection";
@@ -21,7 +24,7 @@ import { PropertyEnvironmentalFactors } from "packages/features/propertyDetails/
 import { ProsAndCons } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/other/ProsAndCons";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import type { PropertyDetailsSectionRefs } from "packages/features/propertyDetails/hooks/usePropertyDetailsSectionScroll.web";
-import type { PropertyWithAnalysis } from "packages/types/property-analysis";
+import type { PropertyWithAnalysis } from "packages/types/domain/property-analysis";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Text } from "packages/ui/components/primitives";
 import { Loading } from "packages/ui/components/primitives";
@@ -41,11 +44,12 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
   property,
   isLoading = false,
   sectionRefs,
+  commuteSearchOverlay = null,
 }) => {
   const { t } = useLocalization();
   const propertyAnalysis = useMemo(
     () => (property as PropertyWithAnalysis).property_analysis,
-    [property],
+    [property]
   );
 
   const hasCommute = useMemo(() => {
@@ -56,44 +60,35 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
 
   const hasAnalysis = useMemo(() => !!propertyAnalysis, [propertyAnalysis]);
   const commuteAnalysis = useMemo(
-    () =>
-      propertyAnalysis
-        ? (propertyAnalysis as Record<string, unknown>).commute
-        : undefined,
-    [propertyAnalysis],
+    () => (propertyAnalysis ? (propertyAnalysis as Record<string, unknown>).commute : undefined),
+    [propertyAnalysis]
   );
   const familyFriendlyAnalysis = useMemo(
     () =>
-      propertyAnalysis
-        ? (propertyAnalysis as Record<string, unknown>).family_friendly
-        : undefined,
-    [propertyAnalysis],
+      propertyAnalysis ? (propertyAnalysis as Record<string, unknown>).family_friendly : undefined,
+    [propertyAnalysis]
   );
   const neighborhoodAnalysis = useMemo(
-    () =>
-      getNeighborhoodAnalysisPayload(
-        propertyAnalysis as Record<string, unknown> | undefined,
-      ),
-    [propertyAnalysis],
+    () => getNeighborhoodAnalysisPayload(propertyAnalysis as Record<string, unknown> | undefined),
+    [propertyAnalysis]
   );
   const hasNeighborhood = useMemo(
     () =>
-      getNeighborhoodAnalysisPayload(
-        propertyAnalysis as Record<string, unknown> | undefined,
-      ) != null,
-    [propertyAnalysis],
+      getNeighborhoodAnalysisPayload(propertyAnalysis as Record<string, unknown> | undefined) !=
+      null,
+    [propertyAnalysis]
   );
 
   const climateEnvironmentalRaw = useMemo(
     () =>
       getClimateEnvironmentalSection(
-        propertyAnalysis as Record<string, unknown> | null | undefined,
+        propertyAnalysis as Record<string, unknown> | null | undefined
       ),
-    [propertyAnalysis],
+    [propertyAnalysis]
   );
   const hasEnvironmentalSection = useMemo(
     () => hasEnvironmentalFactorsContent(climateEnvironmentalRaw),
-    [climateEnvironmentalRaw],
+    [climateEnvironmentalRaw]
   );
 
   /**
@@ -101,9 +96,8 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
    * Hide the standalone location map to avoid duplicate "Map" sections.
    */
   const commuteSectionHasTravelTimesMap = useMemo(() => {
-    const cd = (
-      property as unknown as { commute_data?: { travel_times?: unknown[] } }
-    ).commute_data;
+    const cd = (property as unknown as { commute_data?: { travel_times?: unknown[] } })
+      .commute_data;
     return Array.isArray(cd?.travel_times) && cd.travel_times.length > 0;
   }, [property]);
 
@@ -133,6 +127,8 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
 
   const agent = useMemo(() => getAgentFromProperty(property), [property]);
   const mlsListingId = useMemo(() => getMlsListingId(property), [property]);
+  /** Stream stays "loading" until `complete`, but agent arrives on `basic` — avoid skeleton after data exists. */
+  const showListingAgentSkeleton = isLoading && !agent.hasAgent;
 
   return (
     <Box className="pb-4">
@@ -142,70 +138,57 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
         <Box className="min-w-0 flex-1">
           {/* Overview Section */}
           <Box
-            ref={
-              sectionRefs?.overview as
-                | React.RefObject<HTMLDivElement>
-                | undefined
-            }
+            ref={sectionRefs?.overview as React.RefObject<HTMLDivElement> | undefined}
             data-section-id="overview"
           >
-            <PropertyInfo property={property} />
+            <PropertyListingHeader property={property} />
+            <PropertyListingQuickStats property={property} />
+            <PropertyFeatures
+              key="propertyFeatures"
+              property={property}
+              hideListingAgentOnMdUp
+              includeListingAgent={false}
+              isLoading={isLoading}
+            />
+            <PropertyDescription property={property} />
           </Box>
 
           {/* Location Section */}
           <Box
-            ref={
-              sectionRefs?.location as
-                | React.RefObject<HTMLDivElement>
-                | undefined
-            }
+            ref={sectionRefs?.location as React.RefObject<HTMLDivElement> | undefined}
             data-section-id="location"
           >
             {!commuteSectionHasTravelTimesMap ? (
-              <PropertyLocationMapSection
-                property={property}
-                isLoading={isLoading}
-              />
+              <PropertyLocationMapSection property={property} isLoading={isLoading} />
             ) : null}
-            {commuteSectionHasTravelTimesMap &&
-            (hasCommute || commuteAnalysis) ? (
+            {commuteSectionHasTravelTimesMap && (hasCommute || commuteAnalysis) ? (
               <PropertyCommute
                 property={property}
                 analysisContent={commuteAnalysis}
+                commuteSearchOverlay={commuteSearchOverlay}
               />
             ) : null}
             {(hasNeighborhood || neighborhoodAnalysis) && (
-              <PropertyNeighborhood
-                property={property}
-                analysisContent={neighborhoodAnalysis}
-              />
+              <PropertyNeighborhood property={property} analysisContent={neighborhoodAnalysis} />
             )}
             {neighborhoodAnalysis && (
-              <PropertyDemographics
-                property={property}
-                analysisContent={neighborhoodAnalysis}
-              />
+              <PropertyDemographics property={property} analysisContent={neighborhoodAnalysis} />
             )}
-            {!commuteSectionHasTravelTimesMap &&
-            (hasCommute || commuteAnalysis) ? (
+            {!commuteSectionHasTravelTimesMap && (hasCommute || commuteAnalysis) ? (
               <PropertyCommute
                 property={property}
                 analysisContent={commuteAnalysis}
+                commuteSearchOverlay={commuteSearchOverlay}
               />
             ) : null}
             {familyFriendlyAnalysis && (
-              <PropertySchools
-                property={property}
-                analysisContent={familyFriendlyAnalysis}
-              />
+              <PropertySchools property={property} analysisContent={familyFriendlyAnalysis} />
             )}
           </Box>
 
           {/* Match Section */}
           <Box
-            ref={
-              sectionRefs?.match as React.RefObject<HTMLDivElement> | undefined
-            }
+            ref={sectionRefs?.match as React.RefObject<HTMLDivElement> | undefined}
             data-section-id="match"
           >
             <ProsAndCons property={property} />
@@ -213,35 +196,16 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
 
           {/* Analysis Section */}
           <Box
-            ref={
-              sectionRefs?.analysis as
-                | React.RefObject<HTMLDivElement>
-                | undefined
-            }
+            ref={sectionRefs?.analysis as React.RefObject<HTMLDivElement> | undefined}
             data-section-id="analysis"
           >
-            <PropertyFeatures
-              key="propertyFeatures"
-              property={property}
-              hideListingAgentOnMdUp
-              isLoading={isLoading}
-            />
             {hasEnvironmentalSection ? (
-              <PropertyEnvironmentalFactors
-                key="environmentalFactors"
-                property={property}
-              />
+              <PropertyEnvironmentalFactors key="environmentalFactors" property={property} />
             ) : null}
             {hasAnalysis && (
-              <PropertyAnalysis
-                property={property}
-                excludeSections={excludeSections}
-              />
+              <PropertyAnalysis property={property} excludeSections={excludeSections} />
             )}
           </Box>
-
-          {/* Description Section — rendered last */}
-          <PropertyDescription property={property} />
 
           {isLoading && (
             <Box className="mt-4 items-center px-4">
@@ -253,6 +217,26 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
               </Text>
             </Box>
           )}
+
+          {(isLoading || agent.hasAgent) && (
+            <Box className="mt-2 px-6 pb-6 lg:hidden">
+              <Card border="light" className="p-4">
+                {showListingAgentSkeleton ? (
+                  <ListingAgentCardSkeleton variant="default" />
+                ) : agent.hasAgent ? (
+                  <ListingAgentCard
+                    imageUrl={agent.imageUrl}
+                    displayName={agent.displayName}
+                    businessName={agent.businessName}
+                    phone={agent.phone}
+                    email={agent.email}
+                    mlsListingId={mlsListingId}
+                    variant="default"
+                  />
+                ) : null}
+              </Card>
+            </Box>
+          )}
         </Box>
 
         {/* Sidebar with listing agent card */}
@@ -260,12 +244,9 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
           <Box className="hidden lg:block lg:w-80 lg:flex-shrink-0">
             <Box className="sticky top-6">
               <Card border="light" className="p-4">
-                {isLoading ? (
-                  <ListingAgentCardSkeleton
-                    variant="default"
-                    className="w-full max-w-none"
-                  />
-                ) : (
+                {showListingAgentSkeleton ? (
+                  <ListingAgentCardSkeleton variant="default" className="w-full max-w-none" />
+                ) : agent.hasAgent ? (
                   <ListingAgentCard
                     imageUrl={agent.imageUrl}
                     displayName={agent.displayName}
@@ -276,7 +257,7 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
                     variant="default"
                     className="w-full max-w-none"
                   />
-                )}
+                ) : null}
               </Card>
             </Box>
           </Box>

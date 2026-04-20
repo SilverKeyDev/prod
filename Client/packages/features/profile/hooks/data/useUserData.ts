@@ -39,8 +39,7 @@ export function useUserData(): UseUserDataReturn {
       }
 
       const raw = userData as Record<string, unknown>;
-      const closing =
-        typeof raw.is_closing_mode === "boolean" ? raw.is_closing_mode : false;
+      const closing = typeof raw.is_closing_mode === "boolean" ? raw.is_closing_mode : false;
 
       // Convert User to UserProfile by adding missing properties
       const profile: UserProfile = {
@@ -88,7 +87,7 @@ export type ProfileUseUserPreferencesOptions = {
 };
 
 export function useUserPreferences(
-  options?: ProfileUseUserPreferencesOptions,
+  options?: ProfileUseUserPreferencesOptions
 ): UseUserPreferencesReturn {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);

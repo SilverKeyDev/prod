@@ -11,7 +11,7 @@ import {
 import type { SearchResult } from "packages/features/search/types";
 import { useReelsCleanup } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
-import { searchResultToFeedListing } from "packages/utils/search/searchResultToFeedListing";
+import { searchResultToFeedListing } from "packages/utils/search/feed/searchResultToFeedListing";
 
 import { ReelsSearchEmptyState } from "./ReelsSearchEmptyState";
 
@@ -43,20 +43,14 @@ export function ReelsView({
   }, []);
 
   const items = useMemo(
-    () =>
-      filteredSearchResults.map((row) =>
-        listingToReelMedia(searchResultToFeedListing(row)),
-      ),
-    [filteredSearchResults],
+    () => filteredSearchResults.map((row) => listingToReelMedia(searchResultToFeedListing(row))),
+    [filteredSearchResults]
   );
 
   if (filteredSearchResults.length === 0) {
     return (
       <Box className="bg-text-primary w-full flex-1">
-        <ReelsSearchEmptyState
-          onSearch={onRunSearch}
-          isSearching={isSearching}
-        />
+        <ReelsSearchEmptyState onSearch={onRunSearch} isSearching={isSearching} />
       </Box>
     );
   }

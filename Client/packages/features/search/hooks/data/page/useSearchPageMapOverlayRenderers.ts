@@ -1,21 +1,16 @@
-import {
-  type MutableRefObject,
-  type RefObject,
-  useCallback,
-  useRef,
-} from "react";
+import { type MutableRefObject, type RefObject, useCallback, useRef } from "react";
 
 import {
   clearImportantLocationMarkers,
   type GoogleAdvancedMarkerElement,
   renderImportantLocationMarkers,
-} from "packages/features/search/types/search/importantLocationRenderer";
+} from "packages/features/search/types/search/map/importantLocationRenderer";
 import {
   clearIsochroneOverlays,
   renderIsochronePolygon,
-} from "packages/features/search/types/search/isochroneRenderer";
+} from "packages/features/search/types/search/map/isochroneRenderer";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { IsochroneData } from "packages/types/api";
+import type { IsochroneData } from "packages/types/domain/api";
 
 type OverlayRefs = {
   googleMapRef: RefObject<google.maps.Map | null>;
@@ -50,13 +45,10 @@ export function useSearchPageMapOverlayRenderers({
          * stay hidden when commute overlay is disabled.
          */
         skipCommuteToggle?: boolean;
-      },
+      }
     ) => {
       if (!googleMapRef.current) {
-        log.warn(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Google Map not initialized yet",
-        );
+        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Map not initialized yet");
         return;
       }
       const map = googleMapRef.current;
@@ -77,12 +69,7 @@ export function useSearchPageMapOverlayRenderers({
         clearIsochroneOverlays(overlayOpts);
       }
     },
-    [
-      mapFocusOnCurrentProperty,
-      googleMapRef,
-      polygonRef,
-      individualPolygonsRef,
-    ],
+    [mapFocusOnCurrentProperty, googleMapRef, polygonRef, individualPolygonsRef]
   );
 
   const renderImportantLocationMarkersWrapper = useCallback(
@@ -90,7 +77,7 @@ export function useSearchPageMapOverlayRenderers({
       if (!googleMapRef.current) {
         log.warn(
           LOG_CATEGORIES.MAP_RENDERING,
-          "Cannot render important location markers: map not available",
+          "Cannot render important location markers: map not available"
         );
         return;
       }
@@ -101,15 +88,13 @@ export function useSearchPageMapOverlayRenderers({
       renderImportantLocationMarkers(data as IsochroneData, {
         map: googleMapRef.current,
         importantMarkersRef,
-        setImportantLocationMarkers: (
-          markers: GoogleAdvancedMarkerElement[],
-        ) => {
+        setImportantLocationMarkers: (markers: GoogleAdvancedMarkerElement[]) => {
           importantMarkersRef.current = markers;
         },
         resetToDefaultZoom,
       });
     },
-    [resetToDefaultZoom, googleMapRef, importantMarkersRef],
+    [resetToDefaultZoom, googleMapRef, importantMarkersRef]
   );
 
   return {

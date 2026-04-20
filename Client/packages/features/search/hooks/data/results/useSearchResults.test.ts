@@ -55,7 +55,7 @@ describe("useSearchResults", () => {
           setActiveTab: vi.fn(),
         };
         return selector(state);
-      },
+      }
     );
   });
 
@@ -86,7 +86,7 @@ describe("useSearchResults", () => {
             setActiveTab: vi.fn(),
           };
           return selector(state);
-        },
+        }
       );
 
       const { result } = renderHook(() => useSearchResults());
@@ -169,7 +169,7 @@ describe("useSearchResults", () => {
             setActiveTab: vi.fn(),
           };
           return selector(state);
-        },
+        }
       );
 
       const { result } = renderHook(() => useSearchResults());
@@ -221,7 +221,7 @@ describe("useSearchResults", () => {
             setActiveTab,
           };
           return selector(state);
-        },
+        }
       );
 
       const { result } = renderHook(() => useSearchResults());
@@ -274,7 +274,7 @@ describe("useSearchResults", () => {
             setActiveTab: vi.fn(),
           };
           return selector(state);
-        },
+        }
       );
 
       const { result } = renderHook(() => useSearchResults());
@@ -304,7 +304,7 @@ describe("useSearchResults", () => {
             setActiveTab: vi.fn(),
           };
           return selector(state);
-        },
+        }
       );
 
       const { result } = renderHook(() => useSearchResults());

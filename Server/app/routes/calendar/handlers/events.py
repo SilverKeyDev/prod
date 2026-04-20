@@ -6,6 +6,7 @@ from flask import jsonify, make_response, request
 
 from app import db
 from app.models import AgentConnections, User
+from app.models.calendar.calendar_event import CalendarEvent
 from app.schemas import (
     DeleteEventResponse,
     GoogleCalendarApiResponse,
@@ -28,6 +29,11 @@ from app.services.calendar.events.creation import (
 )
 from app.services.calendar.events.sync import delete_event_from_db, sync_event_to_db
 from app.services.calendar.permissions import require_permission
+from app.services.calendar.viewing_itinerary import (
+    itinerary_for_db,
+    merge_viewing_itinerary_into_event_data,
+    resolve_itinerary_with_route,
+)
 from app.utils.security.app_logging import get_logger
 from app.utils.security.security import (
     rate_limit,
@@ -36,6 +42,26 @@ from app.utils.security.security import (
 from app.utils.validation import validate_request, validate_response
 
 logger = get_logger()
+
+
+def _enrich_events_with_db_itinerary(user_id: str, events: list) -> None:
+    """Attach SilverKey DB itinerary to Google event dicts when present."""
+    if not events or not isinstance(events, list):
+        return
+    ids = [e.get("id") for e in events if isinstance(e, dict) and e.get("id")]
+    if not ids:
+        return
+    rows = CalendarEvent.query.filter(
+        CalendarEvent.user_id == user_id,
+        CalendarEvent.google_event_id.in_(ids),
+    ).all()
+    by_gid = {r.google_event_id: r.itinerary for r in rows if r.google_event_id and r.itinerary}
+    for ev in events:
+        if not isinstance(ev, dict):
+            continue
+        gid = ev.get("id")
+        if gid and gid in by_gid:
+            ev["itinerary"] = by_gid[gid]
 
 
 @rate_limit(max_requests=100, window_seconds=60)
@@ -69,6 +95,8 @@ def list_events():
         elif not isinstance(events, list):
             logger.warning(f"Unexpected events format for user {user_id}: {type(events)}")
             events = []
+
+        _enrich_events_with_db_itinerary(user_id, events)
 
         return jsonify({"success": True, "data": {"items": events}})
 
@@ -109,6 +137,19 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
         calendar_id = extract_calendar_id_from_request(event_data)
         event_type = event_data.pop("eventType", None)
 
+        itinerary_raw = event_data.pop("itinerary", None)
+        itinerary_plain = itinerary_for_db(itinerary_raw)
+        itinerary_db = None
+        if itinerary_plain:
+            try:
+                itinerary_db = resolve_itinerary_with_route(itinerary_plain)
+            except ValueError as e:
+                return jsonify({"success": False, "error": str(e)}), 400
+            except RuntimeError as e:
+                logger.error("Viewing itinerary route resolution failed: %s", e)
+                return jsonify({"success": False, "error": str(e)}), 503
+            merge_viewing_itinerary_into_event_data(event_data, itinerary_db)
+
         current_user = User.query.filter_by(id=user_id).first()
         result = resolve_create_event_target(user_id, event_data, current_user)
         event_data.pop("target_user_id", None)
@@ -121,7 +162,12 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
         is_agent = current_user.is_agent
 
         google_event, calendar_event = create_primary_event_and_db(
-            user_id, event_data, calendar_id, event_type, primary_target
+            user_id,
+            event_data,
+            calendar_id,
+            event_type,
+            primary_target,
+            itinerary=itinerary_db,
         )
 
         create_in_agent_calendars(
@@ -132,6 +178,7 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
             calendar_event,
             should_create_in_agent_calendar,
             is_agent,
+            itinerary=itinerary_db,
         )
 
         db.session.commit()
@@ -141,7 +188,10 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
             user_id,
             primary_target,
         )
-        return jsonify({"success": True, "data": google_event}), 201
+        response_body = {**google_event} if isinstance(google_event, dict) else dict(google_event)
+        if calendar_event.itinerary:
+            response_body["itinerary"] = calendar_event.itinerary
+        return jsonify({"success": True, "data": response_body}), 201
 
     except Exception as e:
         db.session.rollback()
@@ -174,13 +224,31 @@ def update_event(event_id, data: GoogleCalendarEventCreateBody | None = None):
         if not validate_event_data(event_data):
             return make_response(("Invalid event data", 400))
 
+        itinerary_raw = event_data.pop("itinerary", None)
+        itinerary_plain = itinerary_for_db(itinerary_raw)
+        itinerary_db = None
+        if itinerary_plain:
+            try:
+                itinerary_db = resolve_itinerary_with_route(itinerary_plain)
+            except ValueError as e:
+                return jsonify({"success": False, "error": str(e)}), 400
+            except RuntimeError as e:
+                logger.error("Viewing itinerary route resolution failed: %s", e)
+                return jsonify({"success": False, "error": str(e)}), 503
+            merge_viewing_itinerary_into_event_data(event_data, itinerary_db)
+
         calendar_id = extract_calendar_id_from_request(event_data)
         event = google_calendar_service.update_event(user_id, event_id, event_data, calendar_id)
 
         # Sync the updated event to the database
-        sync_event_to_db(event_id, event, user_id)
+        sync_event_to_db(event_id, event, user_id, itinerary=itinerary_db)
 
-        return jsonify({"success": True, "data": event}), 200
+        response_body = {**event} if isinstance(event, dict) else dict(event)
+        row = CalendarEvent.query.filter_by(google_event_id=event_id, user_id=user_id).first()
+        if row and row.itinerary:
+            response_body["itinerary"] = row.itinerary
+
+        return jsonify({"success": True, "data": response_body}), 200
 
     except Exception as e:
         return handle_google_api_error(e, user_id, "update event")
@@ -287,6 +355,8 @@ def list_client_events(client_id: str):
         elif not isinstance(events, list):
             logger.warning(f"Unexpected events format for client {client_id}: {type(events)}")
             events = []
+
+        _enrich_events_with_db_itinerary(client_id, events)
 
         return jsonify({"success": True, "data": {"items": events}})
 

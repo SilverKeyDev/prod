@@ -2,12 +2,7 @@ import React from "react";
 
 import { Box } from "packages/ui/components/primitives";
 
-import {
-  AccessibleCheckboxInput,
-  BodyText,
-  Label,
-  OliveCheckbox,
-} from "@/components/ui";
+import { AccessibleCheckboxInput, BodyText, Label, OliveCheckbox } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 type DemographicsLookingForAgentCellProps = {
   formData: OnboardingData;
@@ -26,21 +21,14 @@ export function DemographicsLookingForAgentCell({
 }: DemographicsLookingForAgentCellProps) {
   if (formData.has_buyers_agent !== "no") {
     return (
-      <BodyText
-        as="div"
-        size="sm"
-        className="mobile-input bg-background-base opacity-0"
-      >
+      <BodyText as="div" size="sm" className="mobile-input bg-background-base opacity-0">
         &nbsp;
       </BodyText>
     );
   }
 
   const toggle = () =>
-    updateFormData(
-      "looking_for_buyers_agent",
-      !formData.looking_for_buyers_agent,
-    );
+    updateFormData("looking_for_buyers_agent", !formData.looking_for_buyers_agent);
 
   return (
     <Box className="flex h-full items-center">
@@ -72,10 +60,7 @@ export function DemographicsLookingForAgentCell({
                 }
               }}
             >
-              <OliveCheckbox
-                checked={!!formData.looking_for_buyers_agent}
-                onToggle={toggle}
-              />
+              <OliveCheckbox checked={!!formData.looking_for_buyers_agent} onToggle={toggle} />
             </BodyText>
           </>
         ) : (
@@ -87,11 +72,7 @@ export function DemographicsLookingForAgentCell({
             }`}
           >
             {formData.looking_for_buyers_agent && (
-              <svg
-                className="text-text-secondary h-4 w-4"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
+              <svg className="text-text-secondary h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

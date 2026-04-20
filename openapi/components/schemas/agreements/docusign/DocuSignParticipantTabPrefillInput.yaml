@@ -1,0 +1,19 @@
+type: object
+required:
+  - participant_id
+properties:
+  participant_id:
+    type: string
+    description: SilverKey agreement participant UUID (DocuSign recipientId).
+  text_fields:
+    type: array
+    maxItems: 50
+    items:
+      $ref: ./DocuSignPrefillTextTabInput.yaml
+    nullable: true
+  checkboxes:
+    type: array
+    maxItems: 50
+    items:
+      $ref: ./DocuSignPrefillCheckboxTabInput.yaml
+    nullable: true

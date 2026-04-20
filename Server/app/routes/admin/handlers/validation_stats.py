@@ -9,6 +9,8 @@ from datetime import datetime, timedelta, timezone
 
 from flask import jsonify, request
 
+from app.utils.admin import user_has_admin_role
+
 
 def get_validation_stats(user):
     """
@@ -28,8 +30,7 @@ def get_validation_stats(user):
     Returns:
         JSON response with validation statistics
     """
-    # Check if user is admin
-    if not getattr(user, "is_admin", False):
+    if not user_has_admin_role(user):
         return jsonify({"success": False, "error": "Admin access required"}), 403
 
     # Time range for stats (last 7 days by default)

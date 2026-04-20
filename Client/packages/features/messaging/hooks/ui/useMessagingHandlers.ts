@@ -2,11 +2,12 @@ import { useCallback } from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
-import type { SavedHome } from "packages/types/savedHome";
+import type { components } from "packages/types/api.generated";
+import type { SavedHome } from "packages/types/domain/savedHome";
 import type { DocumentData } from "packages/ui/components/cards/document/types";
 
 import { useEventRequests } from "@/features/agent/hooks/data/useEventRequests";
-import { useGoogleEvents } from "@/features/calendar/hooks/data/useGoogleEvents";
+import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 
 // Parity note: this hook is used by both web (AgentMessaging, ClientMessaging) and mobile (MessagingScreen.native).
@@ -22,7 +23,7 @@ type UseMessagingHandlersArgs = {
   setAcceptingEventRequestId: (v: string | null) => void;
   refreshActiveConversationHistory: () => Promise<void>;
   refreshChats: () => Promise<void>;
-  sendSharedHome: (home: SavedHome) => Promise<void>;
+  sendSharedHomes: (homes: SavedHome[]) => Promise<void>;
   sendSharedDocument: (document: DocumentData) => Promise<void>;
   // Agent-only
   selectedClientId?: string | null;
@@ -41,7 +42,7 @@ export function useMessagingHandlers({
   setAcceptingEventRequestId,
   refreshActiveConversationHistory,
   refreshChats,
-  sendSharedHome,
+  sendSharedHomes,
   sendSharedDocument,
   selectedClientId,
   agentId,
@@ -51,20 +52,19 @@ export function useMessagingHandlers({
   const { updateEventRequestStatus } = useEventRequests();
   const { createEvent } = useGoogleEvents({ enabled: false });
 
-  const canShare =
-    mode === "agent" ? !!selectedClientId : !!(activeConversationId || agentId);
+  const canShare = mode === "agent" ? !!selectedClientId : !!(activeConversationId || agentId);
 
-  const handleSelectHome = useCallback(
-    async (home: SavedHome) => {
-      if (!canShare) return;
+  const handleSelectHomes = useCallback(
+    async (homes: SavedHome[]) => {
+      if (!canShare || homes.length === 0) return;
       try {
-        await sendSharedHome(home);
+        await sendSharedHomes(homes);
         setShowSelectHomeModal(false);
       } catch (error) {
         log.error(LOG_CATEGORIES.MESSAGES, "Error sharing home", error);
       }
     },
-    [canShare, sendSharedHome, setShowSelectHomeModal],
+    [canShare, sendSharedHomes, setShowSelectHomeModal]
   );
 
   const handleSelectDocument = useCallback(
@@ -77,7 +77,7 @@ export function useMessagingHandlers({
             {
               hasActiveConversationId: !!activeConversationId,
               hasAgentId: !!agentId,
-            },
+            }
           );
         }
         return;
@@ -101,14 +101,7 @@ export function useMessagingHandlers({
         });
       }
     },
-    [
-      canShare,
-      mode,
-      activeConversationId,
-      agentId,
-      sendSharedDocument,
-      setShowSelectDocumentModal,
-    ],
+    [canShare, mode, activeConversationId, agentId, sendSharedDocument, setShowSelectDocumentModal]
   );
 
   const handleCalendarEventSuccess = useCallback(() => {
@@ -116,9 +109,7 @@ export function useMessagingHandlers({
   }, [setShowCalendarEventModal]);
 
   const otherEmail =
-    mode === "agent"
-      ? activeConversation?.client_email
-      : activeConversation?.agent_email;
+    mode === "agent" ? activeConversation?.client_email : activeConversation?.agent_email;
   const otherEmailError =
     mode === "agent"
       ? "Could not add event. Client email is missing."
@@ -143,9 +134,8 @@ export function useMessagingHandlers({
           });
           return;
         }
-        const timeZone =
-          Intl.DateTimeFormat().resolvedOptions().timeZone ?? "UTC";
-        const event = {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "UTC";
+        const event: components["schemas"]["GoogleCalendarEventCreateBody"] = {
           summary: payload.title,
           description: payload.description ?? undefined,
           location: payload.location?.trim() || undefined,
@@ -154,6 +144,9 @@ export function useMessagingHandlers({
           attendees: [{ email: otherEmail }],
           calendarId: "primary",
         };
+        if (payload.itinerary) {
+          event.itinerary = payload.itinerary;
+        }
         await createEvent(event);
         if (mode === "client") {
           await refreshActiveConversationHistory();
@@ -164,11 +157,7 @@ export function useMessagingHandlers({
           message: "Event added to your calendar and invite sent.",
         });
       } catch (error) {
-        log.error(
-          LOG_CATEGORIES.CALENDAR,
-          "Error creating event from request",
-          error,
-        );
+        log.error(LOG_CATEGORIES.CALENDAR, "Error creating event from request", error);
         enqueueToast({
           type: "error",
           message: "Could not add event. Connect Google Calendar in Settings.",
@@ -187,7 +176,7 @@ export function useMessagingHandlers({
       refreshActiveConversationHistory,
       refreshChats,
       setAcceptingEventRequestId,
-    ],
+    ]
   );
 
   const handleCancelEventRequest = useCallback(
@@ -204,27 +193,18 @@ export function useMessagingHandlers({
           });
         }
       } catch (error) {
-        log.error(
-          LOG_CATEGORIES.CALENDAR,
-          "Error cancelling event request",
-          error,
-        );
+        log.error(LOG_CATEGORIES.CALENDAR, "Error cancelling event request", error);
         enqueueToast({
           type: "error",
           message: "Could not cancel event request.",
         });
       }
     },
-    [
-      enqueueToast,
-      updateEventRequestStatus,
-      refreshActiveConversationHistory,
-      refreshChats,
-    ],
+    [enqueueToast, updateEventRequestStatus, refreshActiveConversationHistory, refreshChats]
   );
 
   return {
-    handleSelectHome,
+    handleSelectHomes,
     handleSelectDocument,
     handleCalendarEventSuccess,
     handleAcceptEventRequest,

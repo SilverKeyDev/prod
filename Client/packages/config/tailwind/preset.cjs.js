@@ -6,9 +6,7 @@
 
 const path = require("node:path");
 
-const colors = require(
-  path.resolve(__dirname, "../../design-tokens/tokens/colors.json"),
-);
+const colors = require(path.resolve(__dirname, "../../design-tokens/tokens/colors.json"));
 
 const breakpoints = {
   xs: "475px",

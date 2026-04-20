@@ -15,6 +15,8 @@ type SidebarNavigationProps = {
   headerContent?: React.ReactNode;
   /** Optional section heading shown above nav items (e.g. "About you") */
   sectionTitle?: string;
+  /** Optional footer below the nav links (e.g. help / product tour). */
+  footerContent?: React.ReactNode;
   className?: string;
 };
 
@@ -24,6 +26,7 @@ export default function SidebarNavigation({
   onItemClick,
   headerContent,
   sectionTitle,
+  footerContent,
   className = "",
 }: SidebarNavigationProps) {
   // This component previously treated "mobile" as `< lg` (<=1024px). Preserve that
@@ -55,15 +58,11 @@ export default function SidebarNavigation({
             padding={isLargeScreen ? "sm" : "none"}
             hover={false}
             className={
-              isLargeScreen
-                ? "!bg-background-surface w-full"
-                : "!bg-background-surface w-full"
+              isLargeScreen ? "!bg-background-surface w-full" : "!bg-background-surface w-full"
             }
           >
             <Box
-              className={`${
-                isLargeScreen ? "" : "flex flex-col items-stretch p-3"
-              } ${
+              className={`${isLargeScreen ? "" : "flex flex-col items-stretch p-3"} ${
                 isLargeScreen ? "w-full" : "flex w-full flex-col items-stretch"
               }`}
             >
@@ -78,9 +77,7 @@ export default function SidebarNavigation({
           padding={isLargeScreen ? "sm" : "none"}
           hover={false}
           className={
-            isLargeScreen
-              ? "!bg-background-surface w-full"
-              : "!bg-background-surface w-full"
+            isLargeScreen ? "!bg-background-surface w-full" : "!bg-background-surface w-full"
           }
         >
           <Box className={isLargeScreen ? "" : "p-3"}>
@@ -113,11 +110,7 @@ export default function SidebarNavigation({
                       isActive
                         ? "!bg-neutral-100 !text-neutral-800 hover:!bg-neutral-100 hover:font-semibold hover:!text-neutral-800 active:!bg-neutral-100 active:font-semibold active:!text-neutral-800"
                         : "text-neutral-700 hover:!bg-neutral-100 hover:text-neutral-800 active:!bg-neutral-100 active:text-neutral-800"
-                    } ${
-                      item.disabled
-                        ? "bg-disabled text-text-disabled cursor-not-allowed"
-                        : ""
-                    }`}
+                    } ${item.disabled ? "bg-disabled text-text-disabled cursor-not-allowed" : ""}`}
                     title={!isLargeScreen ? item.label : undefined}
                     icon={
                       IconComponent ? (
@@ -150,6 +143,17 @@ export default function SidebarNavigation({
             </nav>
           </Box>
         </Card>
+
+        {footerContent ? (
+          <Card
+            border="light"
+            padding={isLargeScreen ? "sm" : "none"}
+            hover={false}
+            className="!bg-background-surface w-full"
+          >
+            <Box className={isLargeScreen ? "" : "p-3"}>{footerContent}</Box>
+          </Card>
+        ) : null}
       </Card>
     </aside>
   );

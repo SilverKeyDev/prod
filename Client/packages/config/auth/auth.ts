@@ -139,6 +139,8 @@ export const AUTH_CONFIG = {
     "/terms",
     "/about",
     "/contact",
+    "/agent-profile",
+    "/property",
   ],
 
   // Routes that require authentication

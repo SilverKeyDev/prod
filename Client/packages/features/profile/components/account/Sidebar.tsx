@@ -31,10 +31,7 @@ export default function PersonalizationSidebar({
   onScrollToSection,
 }: PersonalizationSidebarProps) {
   const isAgent = useIsAgent();
-  const steps = useMemo(
-    () => getPersonalizationNavItems({ isAgent }),
-    [isAgent],
-  );
+  const steps = useMemo(() => getPersonalizationNavItems({ isAgent }), [isAgent]);
   // This sidebar historically treated "mobile" as `< lg` (<=1024px). Preserve that intent.
   const { isLgUp } = useResponsive();
   const isLargeScreen = isLgUp;
@@ -67,9 +64,7 @@ export default function PersonalizationSidebar({
               onClick={onEdit}
               variant="primary"
               size="md"
-              className={`focus:ring-0 focus:ring-offset-0 ${
-                isLargeScreen ? "w-full" : ""
-              }`}
+              className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
               icon={<Icon name="edit" />}
             >
               {isLargeScreen ? "Edit" : ""}
@@ -85,9 +80,7 @@ export default function PersonalizationSidebar({
                 disabled={isSaving}
                 variant="primary"
                 size="md"
-                className={`focus:ring-0 focus:ring-offset-0 ${
-                  isLargeScreen ? "w-full" : ""
-                }`}
+                className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
                 icon={<Icon name="save" />}
               >
                 {isLargeScreen ? (isSaving ? "Saving..." : "Save") : ""}
@@ -96,9 +89,7 @@ export default function PersonalizationSidebar({
                 <CancelButton
                   onClick={onCancel}
                   size="md"
-                  className={`focus:ring-0 focus:ring-offset-0 ${
-                    isLargeScreen ? "w-full" : ""
-                  }`}
+                  className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
                 >
                   {isLargeScreen ? "Cancel" : ""}
                 </CancelButton>

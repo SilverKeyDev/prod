@@ -2,21 +2,21 @@ import { useEffect, useRef } from "react";
 
 import type { Dispatch, SetStateAction } from "react";
 
+import type { ViewingStop } from "packages/api/viewings";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { GoogleMapsWindow } from "packages/types/google-maps";
 import { dateParseISO, dayjs } from "packages/utils/date";
-import { getWindow } from "packages/utils/platform";
 
-import type {
-  Calendar,
-  ExtendedGoogleEvent,
-} from "@/features/calendar/types/calendar";
-import { defaultCreateEventTimedRange } from "@/features/calendar/utils/createEventModalDefaults";
+import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import {
+  calendarEventKindFromSummary,
+  type CalendarEventKindId,
+} from "@/features/calendar/utils/createEventModal/calendarEventKinds";
+import { defaultCreateEventTimedRange } from "@/features/calendar/utils/createEventModal/createEventModalDefaults";
 import {
   CREATE_EVENT_TIME_STEP_MINUTES,
   googleAllDayEndExclusiveToInclusiveEndYmd,
   quantizeHourMinute,
-} from "@/features/calendar/utils/eventFormGooglePayload";
+} from "@/features/calendar/utils/parsing/eventFormGooglePayload";
 
 export type UseCreateEventModalEffectsParams = {
   isOpen: boolean;
@@ -25,9 +25,7 @@ export type UseCreateEventModalEffectsParams = {
   initialDateMs: number | undefined;
   calendars: Calendar[];
   defaultCalendarId: string | null | undefined;
-  googleMapsLoaded: boolean;
   googleMapsError: unknown;
-  scriptsReady: boolean;
   setEventTitle: (v: string) => void;
   setEventDescription: (v: string) => void;
   setEventLocation: (v: string) => void;
@@ -38,17 +36,17 @@ export type UseCreateEventModalEffectsParams = {
   setEndTime: (v: string) => void;
   setSelectedCalendarId: Dispatch<SetStateAction<string>>;
   setSelectedClientId: (v: string | null) => void;
-  setScriptsReady: (v: boolean) => void;
   setLoadError: (v: string | null) => void;
   setIsSavingUnscheduled: (v: boolean) => void;
+  setViewingStops: (stops: ViewingStop[]) => void;
+  setEventKindId: (id: CalendarEventKindId) => void;
+  setAgentMultiStopViewing: (v: boolean) => void;
 };
 
 /**
  * Syncs CreateEventModal local state from props and Google Maps (keeps the modal component lean).
  */
-export function useCreateEventModalEffects(
-  p: UseCreateEventModalEffectsParams,
-): void {
+export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams): void {
   const {
     isOpen,
     mode,
@@ -56,9 +54,7 @@ export function useCreateEventModalEffects(
     initialDateMs,
     calendars,
     defaultCalendarId,
-    googleMapsLoaded,
     googleMapsError,
-    scriptsReady: _scriptsReady,
     setEventTitle,
     setEventDescription,
     setEventLocation,
@@ -69,9 +65,11 @@ export function useCreateEventModalEffects(
     setEndTime,
     setSelectedCalendarId,
     setSelectedClientId,
-    setScriptsReady,
     setLoadError,
     setIsSavingUnscheduled,
+    setViewingStops,
+    setEventKindId,
+    setAgentMultiStopViewing,
   } = p;
 
   /** Avoid re-seeding on every `existingEvent` reference change (parent re-renders), which cleared edits on blur. */
@@ -97,17 +95,24 @@ export function useCreateEventModalEffects(
     setEventTitle(existingEvent.summary || "");
     setEventDescription(existingEvent.description || "");
     setEventLocation(existingEvent.location || "");
-    const allDay = Boolean(
-      existingEvent.start?.date && !existingEvent.start?.dateTime,
-    );
+    const itineraryStops = existingEvent.itinerary?.stops;
+    if (itineraryStops && itineraryStops.length > 0) {
+      setViewingStops(itineraryStops);
+      setEventKindId("property_viewings");
+      setAgentMultiStopViewing(itineraryStops.length > 1);
+    } else {
+      setViewingStops([]);
+      setAgentMultiStopViewing(false);
+      const matched = calendarEventKindFromSummary(existingEvent.summary || "");
+      setEventKindId(matched ?? "other");
+    }
+    const allDay = Boolean(existingEvent.start?.date && !existingEvent.start?.dateTime);
     setIsAllDay(allDay);
     if (allDay && existingEvent.start?.date) {
       setStartDate(existingEvent.start.date);
       if (existingEvent.end?.date) {
         try {
-          setEndDate(
-            googleAllDayEndExclusiveToInclusiveEndYmd(existingEvent.end.date),
-          );
+          setEndDate(googleAllDayEndExclusiveToInclusiveEndYmd(existingEvent.end.date));
         } catch {
           setEndDate(existingEvent.start.date);
         }
@@ -118,8 +123,7 @@ export function useCreateEventModalEffects(
       setStartTime(st);
       setEndTime(et);
     } else {
-      const startRaw =
-        existingEvent.start?.dateTime ?? existingEvent.start?.date;
+      const startRaw = existingEvent.start?.dateTime ?? existingEvent.start?.date;
       const endRaw = existingEvent.end?.dateTime ?? existingEvent.end?.date;
       if (startRaw) {
         const startD = dateParseISO(startRaw);
@@ -127,29 +131,15 @@ export function useCreateEventModalEffects(
         const q = quantizeHourMinute(
           startD.hour(),
           startD.minute(),
-          CREATE_EVENT_TIME_STEP_MINUTES,
+          CREATE_EVENT_TIME_STEP_MINUTES
         );
-        setStartTime(
-          `${String(q.hour).padStart(2, "0")}:${String(q.minute).padStart(
-            2,
-            "0",
-          )}`,
-        );
+        setStartTime(`${String(q.hour).padStart(2, "0")}:${String(q.minute).padStart(2, "0")}`);
       }
       if (endRaw) {
         const endD = dateParseISO(endRaw);
         setEndDate(endD.format("YYYY-MM-DD"));
-        const qe = quantizeHourMinute(
-          endD.hour(),
-          endD.minute(),
-          CREATE_EVENT_TIME_STEP_MINUTES,
-        );
-        setEndTime(
-          `${String(qe.hour).padStart(2, "0")}:${String(qe.minute).padStart(
-            2,
-            "0",
-          )}`,
-        );
+        const qe = quantizeHourMinute(endD.hour(), endD.minute(), CREATE_EVENT_TIME_STEP_MINUTES);
+        setEndTime(`${String(qe.hour).padStart(2, "0")}:${String(qe.minute).padStart(2, "0")}`);
       }
     }
     if (existingEvent.calendarId) {
@@ -168,6 +158,9 @@ export function useCreateEventModalEffects(
     setSelectedCalendarId,
     setStartDate,
     setStartTime,
+    setViewingStops,
+    setEventKindId,
+    setAgentMultiStopViewing,
   ]);
 
   useEffect(() => {
@@ -176,39 +169,18 @@ export function useCreateEventModalEffects(
     }
     const base = dayjs(initialDateMs);
     const dateStr = base.format("YYYY-MM-DD");
-    const hasExplicitTime =
-      base.hour() !== 0 || base.minute() !== 0 || base.second() !== 0;
+    const hasExplicitTime = base.hour() !== 0 || base.minute() !== 0 || base.second() !== 0;
 
     if (hasExplicitTime) {
       setIsAllDay(false);
-      const q = quantizeHourMinute(
-        base.hour(),
-        base.minute(),
-        CREATE_EVENT_TIME_STEP_MINUTES,
-      );
-      const st = `${String(q.hour).padStart(2, "0")}:${String(
-        q.minute,
-      ).padStart(2, "0")}`;
+      const q = quantizeHourMinute(base.hour(), base.minute(), CREATE_EVENT_TIME_STEP_MINUTES);
+      const st = `${String(q.hour).padStart(2, "0")}:${String(q.minute).padStart(2, "0")}`;
       setStartDate(dateStr);
       setStartTime(st);
-      const endDt = base
-        .hour(q.hour)
-        .minute(q.minute)
-        .second(0)
-        .millisecond(0)
-        .add(1, "hour");
+      const endDt = base.hour(q.hour).minute(q.minute).second(0).millisecond(0).add(1, "hour");
       setEndDate(endDt.format("YYYY-MM-DD"));
-      const qe = quantizeHourMinute(
-        endDt.hour(),
-        endDt.minute(),
-        CREATE_EVENT_TIME_STEP_MINUTES,
-      );
-      setEndTime(
-        `${String(qe.hour).padStart(2, "0")}:${String(qe.minute).padStart(
-          2,
-          "0",
-        )}`,
-      );
+      const qe = quantizeHourMinute(endDt.hour(), endDt.minute(), CREATE_EVENT_TIME_STEP_MINUTES);
+      setEndTime(`${String(qe.hour).padStart(2, "0")}:${String(qe.minute).padStart(2, "0")}`);
     } else {
       // Single calendar day from picker: default to timed (not all-day).
       setIsAllDay(false);
@@ -231,36 +203,22 @@ export function useCreateEventModalEffects(
 
   useEffect(() => {
     if (googleMapsError) {
-      log.error(
-        LOG_CATEGORIES.ERRORS,
-        "Google Maps loading error",
-        googleMapsError,
-      );
+      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
       setLoadError("Failed to load Google Maps script.");
       return;
     }
-
-    const win = getWindow();
-    if (
-      googleMapsLoaded &&
-      (win as unknown as GoogleMapsWindow | null)?.google?.maps?.places
-    ) {
-      setScriptsReady(true);
-    }
-  }, [googleMapsError, googleMapsLoaded, setLoadError, setScriptsReady]);
+    setLoadError(null);
+  }, [googleMapsError, setLoadError]);
 
   useEffect(() => {
     if (calendars.length === 0 || !isOpen) return;
 
     const nextId = (() => {
       if (defaultCalendarId) {
-        const silverKeyCalendar = calendars.find(
-          (cal) => cal.id === defaultCalendarId,
-        );
+        const silverKeyCalendar = calendars.find((cal) => cal.id === defaultCalendarId);
         if (silverKeyCalendar) return defaultCalendarId;
       }
-      const primaryCalendar =
-        calendars.find((cal) => cal.primary) || calendars[0];
+      const primaryCalendar = calendars.find((cal) => cal.primary) || calendars[0];
       return primaryCalendar?.id;
     })();
 
@@ -274,6 +232,7 @@ export function useCreateEventModalEffects(
       setEventTitle("");
       setEventDescription("");
       setEventLocation("");
+      setViewingStops([]);
       setSelectedClientId(null);
       setIsAllDay(false);
       setStartDate("");
@@ -281,6 +240,8 @@ export function useCreateEventModalEffects(
       setStartTime("09:00");
       setEndTime("10:00");
       setIsSavingUnscheduled(false);
+      setEventKindId("other");
+      setAgentMultiStopViewing(false);
     }
   }, [
     isOpen,
@@ -294,5 +255,8 @@ export function useCreateEventModalEffects(
     setSelectedClientId,
     setStartDate,
     setStartTime,
+    setViewingStops,
+    setEventKindId,
+    setAgentMultiStopViewing,
   ]);
 }

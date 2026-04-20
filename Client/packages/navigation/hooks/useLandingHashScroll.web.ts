@@ -24,9 +24,7 @@ export function useLandingHashScroll(enabled: boolean): void {
     }
 
     const scroll = () => {
-      document
-        .getElementById(id)
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
     const raf = window.requestAnimationFrame(() => {

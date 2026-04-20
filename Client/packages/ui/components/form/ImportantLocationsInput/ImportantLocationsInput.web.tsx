@@ -4,7 +4,7 @@ import Input from "@ui/form/Input";
 import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { GoogleMapsWindow } from "packages/types/google-maps";
+import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import IconButton from "packages/ui/components/button/IconButton";
@@ -65,8 +65,7 @@ function ImportantLocationsInputAutocomplete({
           setSuggestions([]);
           return;
         }
-        const sessionToken =
-          new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
+        const sessionToken = new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
         const request = {
           input: locationAddress,
           sessionToken,
@@ -74,7 +73,7 @@ function ImportantLocationsInputAutocomplete({
         };
         const { suggestions: fetched } =
           await googleMapsWindow.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request,
+            request
           );
         const built: Suggestion[] = (
           fetched as Array<{
@@ -107,10 +106,7 @@ function ImportantLocationsInputAutocomplete({
   const handleSelect = async (suggestion: Suggestion) => {
     setHasSelected(true);
     const suggestionData = suggestion as Record<string, unknown>;
-    const placePrediction = suggestionData.placePrediction as Record<
-      string,
-      unknown
-    >;
+    const placePrediction = suggestionData.placePrediction as Record<string, unknown>;
     const place =
       placePrediction &&
       typeof placePrediction === "object" &&
@@ -122,11 +118,7 @@ function ImportantLocationsInputAutocomplete({
             }
           ).toPlace()
         : null;
-    if (
-      isObject(place) &&
-      hasProperty(place, "fetchFields") &&
-      isFunction(place.fetchFields)
-    ) {
+    if (isObject(place) && hasProperty(place, "fetchFields") && isFunction(place.fetchFields)) {
       try {
         // Call fetchFields with proper 'this' binding to preserve Google Maps context
         const fetchFieldsMethod = place.fetchFields;
@@ -138,21 +130,15 @@ function ImportantLocationsInputAutocomplete({
       } catch (error) {
         log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields", error);
       }
-      if (
-        hasProperty(place, "formattedAddress") &&
-        typeof place.formattedAddress === "string"
-      ) {
+      if (hasProperty(place, "formattedAddress") && typeof place.formattedAddress === "string") {
         setLocationAddress(place.formattedAddress);
       }
     }
     setSuggestions([]);
   };
   const parseCommuteTolerance = (): number | undefined => {
-    const parsed =
-      commuteTime.trim() === "" ? undefined : parseInt(commuteTime.trim(), 10);
-    return parsed !== undefined && !isNaN(parsed) && parsed >= 0
-      ? parsed
-      : undefined;
+    const parsed = commuteTime.trim() === "" ? undefined : parseInt(commuteTime.trim(), 10);
+    return parsed !== undefined && !isNaN(parsed) && parsed >= 0 ? parsed : undefined;
   };
   const handleAddLocation = () => {
     if (locationAddress.trim()) {
@@ -171,7 +157,7 @@ function ImportantLocationsInputAutocomplete({
         commute_tolerance: parseCommuteTolerance(),
       };
       const updatedLocations = locations.map((loc, i) =>
-        i === editingIndex ? updatedLocation : loc,
+        i === editingIndex ? updatedLocation : loc
       );
       onChange(updatedLocations);
       handleCancel();
@@ -180,9 +166,7 @@ function ImportantLocationsInputAutocomplete({
   const handleEditLocation = (index: number) => {
     const loc = locations[index];
     setLocationAddress(loc.address);
-    setCommuteTime(
-      loc.commute_tolerance !== undefined ? String(loc.commute_tolerance) : "",
-    );
+    setCommuteTime(loc.commute_tolerance !== undefined ? String(loc.commute_tolerance) : "");
     setEditingIndex(index);
     setIsAddingLocation(false);
     setHasSelected(false);
@@ -220,11 +204,7 @@ function ImportantLocationsInputAutocomplete({
               className="border-border-input bg-bg-card-subtle flex items-center justify-between rounded-lg border p-3"
             >
               <Box className="min-w-0 flex-1 space-y-1">
-                <BodyText
-                  as="span"
-                  size="sm"
-                  className="block break-words text-black"
-                >
+                <BodyText as="span" size="sm" className="block break-words text-black">
                   {location.address}
                 </BodyText>
                 {location.commute_tolerance != null && (
@@ -245,11 +225,12 @@ function ImportantLocationsInputAutocomplete({
                   />
                   <IconButton
                     variant="ghost"
-                    size="sm"
+                    size="md"
                     icon={<Icon name="x" className="h-4 w-4" />}
                     onClick={() => handleRemoveLocation(index)}
                     title="Remove location"
-                    className="text-destructive hover:text-destructive-hover active:text-destructive-hover"
+                    label="Remove location"
+                    className="text-destructive hover:text-destructive-hover active:text-destructive-hover touch-manipulation min-h-11 min-w-11"
                   />
                 </Box>
               )}
@@ -281,9 +262,10 @@ function ImportantLocationsInputAutocomplete({
                 value={locationAddress}
                 onChange={handleAddressInputChange}
                 placeholder={
-                  scriptsReady ? "Search for address..." : "Loading..."
+                  scriptsReady
+                    ? "Search or type an address..."
+                    : "Type an address (map search when ready)"
                 }
-                disabled={!scriptsReady}
                 leftIcon={<Icon name="map-pin" className="h-4 w-4" />}
                 autoComplete="off"
                 size="md"
@@ -293,10 +275,7 @@ function ImportantLocationsInputAutocomplete({
               {suggestions.length > 0 && (
                 <ul className="z-dropdown relative mt-2 flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md bg-white shadow-sm">
                   {suggestions.map((s, idx) => (
-                    <li
-                      key={idx}
-                      className="rounded border border-dotted border-neutral-300"
-                    >
+                    <li key={idx} className="rounded border border-dotted border-neutral-300">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -304,15 +283,8 @@ function ImportantLocationsInputAutocomplete({
                         className="w-full cursor-pointer !justify-start px-3 py-2 text-sm hover:bg-gray-100 active:bg-gray-200 [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start"
                       >
                         <Box className="flex w-full items-center justify-start gap-2 text-left">
-                          <Icon
-                            name="map-pin"
-                            className="h-4 w-4 shrink-0 text-neutral-500"
-                          />
-                          <BodyText
-                            as="span"
-                            size="sm"
-                            className="min-w-0 flex-1 text-left"
-                          >
+                          <Icon name="map-pin" className="h-4 w-4 shrink-0 text-neutral-500" />
+                          <BodyText as="span" size="sm" className="min-w-0 flex-1 text-left">
                             {s.description}
                           </BodyText>
                         </Box>
@@ -332,13 +304,13 @@ function ImportantLocationsInputAutocomplete({
                     setCommuteTime(value);
                   }
                 }}
-                placeholder="30"
+                placeholder="Minutes (e.g. 30)"
                 min="0"
                 max="180"
                 leftIcon={<Icon name="clock" className="h-4 w-4" />}
                 autoComplete="off"
                 size="md"
-                helperText="Maximum acceptable commute time to this location"
+                helperText="Maximum commute time to this address (minutes)."
               />
 
               <Box className="flex space-x-3">
@@ -347,6 +319,7 @@ function ImportantLocationsInputAutocomplete({
                   size="md"
                   onClick={handleFormSubmit}
                   disabled={!locationAddress.trim()}
+                  iconName="save"
                 >
                   {editingIndex !== null ? "Save" : "Add Location"}
                 </Button>
@@ -364,9 +337,7 @@ function ImportantLocationsInputAutocomplete({
 
 function ImportantLocationsInput(props: ImportantLocationsInputProps) {
   if (props.scriptsReady) {
-    return (
-      <ImportantLocationsInputAutocomplete {...props} scriptsReady={true} />
-    );
+    return <ImportantLocationsInputAutocomplete {...props} scriptsReady={true} />;
   }
   return (
     <ImportantLocationsInputManual

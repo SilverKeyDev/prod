@@ -2,13 +2,7 @@ import "yet-another-react-lightbox/plugins/thumbnails.css";
 import "yet-another-react-lightbox/styles.css";
 import "./PropertyImageGallery.css";
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@ui/icons";
 import Lightbox from "yet-another-react-lightbox";
@@ -72,8 +66,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
       gridRight: gridRect.right,
       imageCount: propertyImages.length,
       layout,
-      fullBleedGap:
-        rootRect.left !== 0 ? `${rootRect.left}px from left edge` : "flush",
+      fullBleedGap: rootRect.left !== 0 ? `${rootRect.left}px from left edge` : "flush",
     });
   }, [propertyImages.length, layout]);
 
@@ -85,7 +78,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   const firstPageContactIndices = useMemo(() => {
     if (propertyImages.length <= 1) return [];
     return Array.from({ length: CONTACT_SHEET_SIZE }, (_, i) => i + 1).filter(
-      (idx) => idx < propertyImages.length,
+      (idx) => idx < propertyImages.length
     );
   }, [propertyImages.length]);
 
@@ -96,9 +89,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   }, [firstPageContactIndices]);
 
   const stickyPreviewIndices = useMemo(() => {
-    return propertyImages
-      .slice(0, STICKY_PREVIEW_SIZE)
-      .map((_, index) => index);
+    return propertyImages.slice(0, STICKY_PREVIEW_SIZE).map((_, index) => index);
   }, [propertyImages]);
 
   const handleCloseFullGallery = useCallback(() => {
@@ -126,7 +117,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
       },
       {
         threshold: 0.15,
-      },
+      }
     );
     observer.observe(target);
     return () => {
@@ -137,21 +128,16 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   const totalPages = getTotalPagesCount(propertyImages.length);
   const currentPage = getPageForIndex(currentImageIndex);
 
-  const scrollGalleryToPage = useCallback(
-    (page: number, behavior: ScrollBehavior) => {
-      const el = galleryScrollRef.current;
-      if (!el) return;
-      const pageWidth = el.clientWidth;
-      el.scrollTo({ left: page * pageWidth, behavior });
-    },
-    [],
-  );
+  const scrollGalleryToPage = useCallback((page: number, behavior: ScrollBehavior) => {
+    const el = galleryScrollRef.current;
+    if (!el) return;
+    const pageWidth = el.clientWidth;
+    el.scrollTo({ left: page * pageWidth, behavior });
+  }, []);
 
   useEffect(() => {
     const page = getPageForIndex(currentImageIndex);
-    const behavior: ScrollBehavior = isFirstScrollSyncRef.current
-      ? "auto"
-      : "smooth";
+    const behavior: ScrollBehavior = isFirstScrollSyncRef.current ? "auto" : "smooth";
     isFirstScrollSyncRef.current = false;
     scrollGalleryToPage(page, behavior);
   }, [currentImageIndex, scrollGalleryToPage]);
@@ -191,9 +177,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
       {isModalSidebar ? (
         <Box
           className={`sticky top-0 z-20 transition-all duration-300 ${
-            isGridInView
-              ? "h-0 overflow-hidden opacity-0"
-              : "h-auto opacity-100"
+            isGridInView ? "h-0 overflow-hidden opacity-0" : "h-auto opacity-100"
           }`}
         >
           <Box
@@ -236,10 +220,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
         </Box>
       ) : null}
       <Box className="relative w-full">
-        <Box
-          ref={gridContainerRef}
-          className="w-full overflow-hidden rounded-sm"
-        >
+        <Box ref={gridContainerRef} className="w-full overflow-hidden rounded-sm">
           <Box
             ref={galleryScrollRef}
             className="flex w-full snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -248,7 +229,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
               if (page === 0) {
                 const moreAfterFirstPage = Math.max(
                   0,
-                  propertyImages.length - FIRST_PAGE_IMAGE_COUNT,
+                  propertyImages.length - FIRST_PAGE_IMAGE_COUNT
                 );
                 return (
                   <PropertyImageGalleryFirstPage
@@ -265,7 +246,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
               const pageStart = getPageStartForPage(page);
               const moreAfterPage = Math.max(
                 0,
-                propertyImages.length - (pageStart + OTHER_PAGE_IMAGE_COUNT),
+                propertyImages.length - (pageStart + OTHER_PAGE_IMAGE_COUNT)
               );
 
               return (
@@ -287,22 +268,22 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
               type="button"
               variant="cancel"
               onClick={prevImage}
-              className="border-border bg-background-base/50 text-text-primary absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border p-2.5 transition active:bg-neutral-200"
+              className="group bg-transparent text-white absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border-0 p-2.5 shadow-none transition hover:!bg-transparent active:!bg-transparent"
             >
               <Icon
                 name="chevron-left"
-                className="text-text-primary h-10 w-10"
+                className="h-10 w-10 text-white stroke-2 transition-[stroke-width] duration-150 ease-out group-hover:stroke-[3]"
               />
             </Button>
             <Button
               type="button"
               variant="cancel"
               onClick={nextImage}
-              className="border-border bg-background-base/50 text-text-primary absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border p-2.5 transition active:bg-neutral-200"
+              className="group bg-transparent text-white absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border-0 p-2.5 shadow-none transition hover:!bg-transparent active:!bg-transparent"
             >
               <Icon
                 name="chevron-right"
-                className="text-text-primary h-10 w-10"
+                className="h-10 w-10 text-white stroke-2 transition-[stroke-width] duration-150 ease-out group-hover:stroke-[3]"
               />
             </Button>
           </>

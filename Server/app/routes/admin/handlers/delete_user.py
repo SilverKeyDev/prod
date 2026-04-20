@@ -4,6 +4,7 @@ from flask import request
 
 from app.schemas import DeleteUserRequest, DeleteUserResponse
 from app.services.user.delete_user import delete_user_and_all_related_data
+from app.utils.admin import user_has_admin_role
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_authenticated_user,
@@ -24,12 +25,13 @@ def delete_user_account(user, data: DeleteUserRequest | None = None):
 
     JSON body: ``user_id`` (string), ``confirm`` (must be ``true``).
     """
-    # TEMPORARY: admin role check disabled for local/dev — restore before production.
-    log.warn(
-        LOG_CATEGORIES["SECURITY"],
-        "delete_user_account invoked without admin gate (temporary)",
-        {"actor_id": getattr(user, "id", None)},
-    )
+    if not user_has_admin_role(user):
+        log.security(
+            LOG_CATEGORIES["SECURITY"],
+            "Unauthorized admin delete user attempt",
+            {"actor_id": getattr(user, "id", None)},
+        )
+        return standardize_error_response("Admin access required", status_code=403)
 
     if data is None:
         request_data = request.get_json(silent=True) or {}

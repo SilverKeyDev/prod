@@ -93,6 +93,7 @@ export default function FindingHome({ onSave, onComplete }: FindingHomeProps) {
               onPress={handleSave}
               disabled={!canSave}
               loading={saveMutation.isPending}
+              iconName="save"
             >
               Save address
             </Button>

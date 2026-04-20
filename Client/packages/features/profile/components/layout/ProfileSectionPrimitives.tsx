@@ -15,6 +15,8 @@ type ProfileSectionGroupProps = {
   withDivider?: boolean;
   className?: string;
   titleClassName?: string;
+  /** When false, `title` is not rendered (outline / grouping only). Default true. */
+  showHeading?: boolean;
 };
 
 type ProfileSectionCalloutProps = {
@@ -22,10 +24,7 @@ type ProfileSectionCalloutProps = {
   className?: string;
 };
 
-export function ProfileSectionBody({
-  children,
-  className = "",
-}: ProfileSectionBodyProps) {
+export function ProfileSectionBody({ children, className = "" }: ProfileSectionBodyProps) {
   return <Box className={`space-y-6 ${className}`.trim()}>{children}</Box>;
 }
 
@@ -35,6 +34,7 @@ export function ProfileSectionGroup({
   withDivider = false,
   className = "",
   titleClassName = "",
+  showHeading = true,
 }: ProfileSectionGroupProps) {
   return (
     <Box
@@ -42,12 +42,8 @@ export function ProfileSectionGroup({
         withDivider ? "border-border border-t pt-8" : ""
       } space-y-4 ${className}`.trim()}
     >
-      {title ? (
-        <Title
-          size="sm"
-          as="h3"
-          className={`text-base ${titleClassName}`.trim()}
-        >
+      {showHeading && title ? (
+        <Title size="sm" as="h3" className={`text-base ${titleClassName}`.trim()}>
           {title}
         </Title>
       ) : null}
@@ -56,10 +52,7 @@ export function ProfileSectionGroup({
   );
 }
 
-export function ProfileSectionCallout({
-  children,
-  className = "",
-}: ProfileSectionCalloutProps) {
+export function ProfileSectionCallout({ children, className = "" }: ProfileSectionCalloutProps) {
   return (
     <Box
       className={`border-border bg-background-surface rounded-lg border px-3 py-2 ${className}`.trim()}

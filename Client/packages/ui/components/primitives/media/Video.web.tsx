@@ -8,7 +8,7 @@ export type VideoProps = React.VideoHTMLAttributes<HTMLVideoElement>;
  */
 const Video = forwardRef<HTMLVideoElement, VideoProps>(function Video(
   { className = "", children, ...props },
-  ref,
+  ref
 ) {
   return (
     <video ref={ref} className={className} {...props}>

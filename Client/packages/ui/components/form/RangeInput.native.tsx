@@ -48,12 +48,8 @@ export default function RangeInputNative({
         step={step}
         value={value}
         onValueChange={(v) => onChange?.({ target: { value: String(v) } })}
-        minimumTrackTintColor={
-          transparentTrack ? "transparent" : color("accent")
-        }
-        maximumTrackTintColor={
-          transparentTrack ? "transparent" : color("neutral.300")
-        }
+        minimumTrackTintColor={transparentTrack ? "transparent" : color("accent")}
+        maximumTrackTintColor={transparentTrack ? "transparent" : color("neutral.300")}
         thumbTintColor={color("neutral.50")}
         disabled={disabled}
         accessibilityLabel={label}

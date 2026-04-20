@@ -10,10 +10,10 @@ import { Box, Pressable } from "packages/ui/components/primitives";
 import type { HomePriceResult } from "packages/utils/affordability";
 
 import { BodyText, Dropdown, Input, Label, Title } from "@/components/ui";
-import { HomePriceEstimate } from "@/features/homeauth/components/HomePriceEstimate";
-import BudgetSlider from "@/features/profile/components/settings/inputs/BudgetSlider";
+import { HomePriceEstimate } from "@/features/homeauth/components/flows/HomePriceEstimate";
 import { OnPerLabel } from "@/features/profile/components/settings/inputs/Label";
-import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
+import BudgetSlider from "@/features/profile/components/settings/inputs/sliders/BudgetSlider";
+import PriceRangeSlider from "@/features/profile/components/settings/inputs/sliders/PriceRangeSlider";
 import {
   AGENT_OPTIONAL_BUYER_FINANCIAL_HINT,
   CREDIT_SCORE_OPTIONS,
@@ -62,9 +62,7 @@ export default function OnboardingFinancialSection({
         {SECTION_TITLES.FINANCIAL_PROFILE}
       </Title>
       {showAgentOptionalBuyerCallout && (
-        <ProfileSectionCallout>
-          {AGENT_OPTIONAL_BUYER_FINANCIAL_HINT}
-        </ProfileSectionCallout>
+        <ProfileSectionCallout>{AGENT_OPTIONAL_BUYER_FINANCIAL_HINT}</ProfileSectionCallout>
       )}
 
       <Box className="col-span-1 flex flex-col items-center md:col-span-2">
@@ -75,9 +73,7 @@ export default function OnboardingFinancialSection({
           <Pressable
             type="button"
             onPress={() =>
-              setPayingCash(!formData.paying_cash, (field, value) =>
-                updateFormData(field, value),
-              )
+              setPayingCash(!formData.paying_cash, (field, value) => updateFormData(field, value))
             }
             className="flex shrink-0 flex-row items-center gap-2 bg-transparent p-0 text-left"
             label={FIELD_LABELS.PAYING_WITH_CASH}
@@ -90,8 +86,7 @@ export default function OnboardingFinancialSection({
         </Box>
         <BudgetSlider
           tickValues={[
-            200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000, 6000000,
-            10000000,
+            200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000, 6000000, 10000000,
           ]}
           minValue={formData.home_budget_min ?? 200000}
           maxValue={formData.home_budget_max ?? 1000000}
@@ -114,9 +109,7 @@ export default function OnboardingFinancialSection({
                 {FIELD_LABELS.GROSS_INCOME} (after debts)
               </Label>
               <PriceRangeSlider
-                tickValues={[
-                  50000, 100000, 200000, 300000, 500000, 750000, 1000000,
-                ]}
+                tickValues={[50000, 100000, 200000, 300000, 500000, 750000, 1000000]}
                 value={formData.gross_income ?? 100000}
                 onChange={(value) => {
                   const roundedValue = Math.round(value / 5000) * 5000;
@@ -159,16 +152,12 @@ export default function OnboardingFinancialSection({
             </Box>
 
             <Box>
-              <OnPerLabel
-                required={REQUIRED_FIELDS_ONBOARDING.credit_score_range}
-              >
+              <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.credit_score_range}>
                 {FIELD_LABELS.CREDIT_SCORE_RANGE}
               </OnPerLabel>
               <Dropdown
                 value={formData.credit_score_range ?? ""}
-                onChange={(value) =>
-                  updateFormData("credit_score_range", value)
-                }
+                onChange={(value) => updateFormData("credit_score_range", value)}
                 options={CREDIT_SCORE_OPTIONS}
                 placeholder="Select credit score range"
               />

@@ -1,4 +1,7 @@
-import { getOnboardingSteps, getPersonalizationSteps } from "packages/features/profile/utils/steps";
+import {
+  getOnboardingSteps,
+  getPersonalizationSteps,
+} from "packages/features/profile/utils/onboarding/steps";
 
 import type { ProfileStepId } from "./profileStepIds";
 

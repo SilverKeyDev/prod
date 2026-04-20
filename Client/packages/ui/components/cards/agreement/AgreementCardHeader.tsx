@@ -16,10 +16,7 @@ interface AgreementCardHeaderProps {
   sentToLabel?: string | null;
 }
 
-const STATUS_BADGE: Record<
-  ContextualAgreementStatus,
-  { label: string; className: string }
-> = {
+const STATUS_BADGE: Record<ContextualAgreementStatus, { label: string; className: string }> = {
   sign_now: {
     label: "Sign Now",
     className: "border-yellow-400 bg-yellow-100 text-yellow-900",
@@ -116,11 +113,7 @@ export default function AgreementCardHeader({
 
       {/* Date */}
       <Box className="mb-4 flex flex-row items-center gap-2">
-        <Icon
-          name="calendar"
-          size={14}
-          className="flex-shrink-0 text-gray-400"
-        />
+        <Icon name="calendar" size={14} className="flex-shrink-0 text-gray-400" />
         <BodyText size="xs" muted>
           {uploadedDate}
         </BodyText>

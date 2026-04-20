@@ -4,33 +4,33 @@ import { StyleSheet, TextInput } from "react-native";
 
 import { color } from "packages/design-tokens";
 import Button from "packages/ui/components/button/Button";
-import {
-  Box,
-  ScrollView,
-  Text,
-  TouchableBox,
-} from "packages/ui/components/primitives";
+import Dropdown from "packages/ui/components/form/dropdown";
+import { Box, ScrollView, Text, TouchableBox } from "packages/ui/components/primitives";
 
 import {
   useCalendarEventRequestForm,
   type UseCalendarEventRequestFormParams,
 } from "@/features/agent/hooks/data/useCalendarEventRequestForm";
+import { ViewingStopList } from "@/features/calendar/components/viewings/ViewingStopList";
+import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
+import { CALENDAR_EVENT_KINDS } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 
 import { EventRequestDateDropdown } from "./EventRequestDateDropdown.native";
 import { EventRequestTimeDropdown } from "./EventRequestTimeDropdown.native";
 
-export type CalendarEventRequestFormCoreProps =
-  UseCalendarEventRequestFormParams;
+export type CalendarEventRequestFormCoreProps = UseCalendarEventRequestFormParams;
 
-export function CalendarEventRequestFormCore(
-  props: CalendarEventRequestFormCoreProps,
-) {
+export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCoreProps) {
   const {
     isAgent,
     clients,
     isLoadingClients,
     selectedClientId,
     setSelectedClientId,
+    eventKindId,
+    onEventKindIdChange,
+    kindOptionSlice,
+    checklistProgressLoading,
     eventTitle,
     setEventTitle,
     eventDescription,
@@ -45,9 +45,28 @@ export function CalendarEventRequestFormCore(
     canSend,
     minDate,
     handleSend,
+    isPropertyViewing,
+    viewingStops,
+    setViewingStops,
+    eventRequestDateOptions,
+    eventRequestTimeOptions,
   } = useCalendarEventRequestForm(props);
 
   const { onClose } = props;
+  const showCustomTitle = eventKindId === "other";
+
+  const kindDropdownOptions = kindOptionSlice.allowedKindIds.map((id) => ({
+    value: id,
+    label: CALENDAR_EVENT_KINDS[id].label,
+    icon: (
+      <Box
+        className="mt-0.5 h-3 w-3 rounded-sm"
+        style={{
+          backgroundColor: color(CALENDAR_EVENT_KINDS[id].uiColorPath),
+        }}
+      />
+    ),
+  }));
 
   return (
     <ScrollView
@@ -57,17 +76,11 @@ export function CalendarEventRequestFormCore(
     >
       {isAgent && (
         <Box className="mb-3">
-          <Text className="text-text-secondary mb-1 text-sm font-medium">
-            Send to client
-          </Text>
+          <Text className="text-text-secondary mb-1 text-sm font-medium">Send to client</Text>
           {isLoadingClients ? (
-            <Text className="text-text-secondary text-sm">
-              Loading clients...
-            </Text>
+            <Text className="text-text-secondary text-sm">Loading clients...</Text>
           ) : clients.length === 0 ? (
-            <Text className="text-text-secondary text-sm">
-              No clients available.
-            </Text>
+            <Text className="text-text-secondary text-sm">No clients available.</Text>
           ) : (
             <Box className="mt-1 max-h-48">
               {clients.map((client) => {
@@ -76,10 +89,7 @@ export function CalendarEventRequestFormCore(
                   <TouchableBox
                     key={client.id}
                     onPress={() => setSelectedClientId(client.id)}
-                    style={[
-                      styles.clientRow,
-                      selected && styles.clientRowSelected,
-                    ]}
+                    style={[styles.clientRow, selected && styles.clientRowSelected]}
                     label={client.name ?? client.email ?? client.id}
                     interactionStyles={{ base: "" }}
                   >
@@ -111,16 +121,27 @@ export function CalendarEventRequestFormCore(
         </Box>
       )}
 
-      <Text className="text-text-secondary mb-1 text-sm font-medium">
-        Event Title
-      </Text>
-      <TextInput
-        value={eventTitle}
-        onChangeText={setEventTitle}
-        placeholder="e.g., Property Viewing"
-        placeholderTextColor={color("neutral.400")}
-        style={styles.input}
+      <Dropdown<CalendarEventKindId>
+        label="Event type"
+        options={kindDropdownOptions}
+        value={eventKindId}
+        onChange={onEventKindIdChange}
+        disabled={checklistProgressLoading}
+        variant="mobile"
       />
+
+      {showCustomTitle ? (
+        <>
+          <Text className="text-text-secondary mb-1 text-sm font-medium">Event title</Text>
+          <TextInput
+            value={eventTitle}
+            onChangeText={setEventTitle}
+            placeholder="e.g., Meet lender, Contractor walkthrough"
+            placeholderTextColor={color("neutral.400")}
+            style={styles.input}
+          />
+        </>
+      ) : null}
 
       <Box className="mt-3 flex-row gap-3">
         <Box className="min-w-0 flex-1">
@@ -128,23 +149,34 @@ export function CalendarEventRequestFormCore(
             minDate={minDate}
             value={eventDate}
             onChange={setEventDate}
+            options={eventRequestDateOptions}
           />
         </Box>
         <Box className="min-w-0 flex-1">
-          <EventRequestTimeDropdown value={eventTime} onChange={setEventTime} />
+          <EventRequestTimeDropdown
+            value={eventTime}
+            onChange={setEventTime}
+            options={eventRequestTimeOptions}
+          />
         </Box>
       </Box>
 
-      <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">
-        Location (optional)
-      </Text>
-      <TextInput
-        value={eventLocation}
-        onChangeText={setEventLocation}
-        placeholder="Address or video link"
-        placeholderTextColor={color("neutral.400")}
-        style={styles.input}
-      />
+      {isPropertyViewing ? (
+        <ViewingStopList stops={viewingStops} onStopsChange={setViewingStops} />
+      ) : (
+        <>
+          <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">
+            Location (optional)
+          </Text>
+          <TextInput
+            value={eventLocation}
+            onChangeText={setEventLocation}
+            placeholder="e.g., 123 Main St or Zoom link"
+            placeholderTextColor={color("neutral.400")}
+            style={styles.input}
+          />
+        </>
+      )}
 
       <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">
         Description (optional)
@@ -152,7 +184,7 @@ export function CalendarEventRequestFormCore(
       <TextInput
         value={eventDescription}
         onChangeText={setEventDescription}
-        placeholder="Add details about the event"
+        placeholder="Event details (optional)"
         placeholderTextColor={color("neutral.400")}
         style={[styles.input, styles.textArea]}
         multiline
@@ -166,6 +198,7 @@ export function CalendarEventRequestFormCore(
           className="flex-1"
           onPress={onClose}
           disabled={isSending}
+          iconName="arrow-left"
         >
           Cancel
         </Button>
@@ -175,6 +208,7 @@ export function CalendarEventRequestFormCore(
           className="flex-1"
           onPress={() => void handleSend()}
           disabled={!canSend || isSending}
+          iconName="send"
         >
           {isSending ? "Sending..." : "Send Request"}
         </Button>

@@ -1,5 +1,5 @@
 import type { SearchViewMode } from "packages/store";
-import type { IsochroneData } from "packages/types/api";
+import type { IsochroneData } from "packages/types/domain/api";
 
 import type { MapPropertyCardRenderProps } from "@/features/search/hooks/data/useMapMarkers";
 import type { SearchResult } from "@/features/search/types";
@@ -43,7 +43,7 @@ export type UseSearchPageMapParams = {
   renderMapPropertyCard: (
     container: HTMLElement,
     props: MapPropertyCardRenderProps,
-    onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void,
+    onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void
   ) => void;
   /** Injected from apps/web (MapPropertyCardUtils) */
   cleanupMapPropertyCard: (container: HTMLElement) => void;

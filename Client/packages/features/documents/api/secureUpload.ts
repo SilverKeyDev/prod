@@ -40,10 +40,7 @@ export const secureUploadApi = {
   /**
    * Upload an image file
    */
-  uploadImage: (
-    file: File,
-    metadata?: Record<string, unknown>,
-  ): Promise<UploadResponse> => {
+  uploadImage: (file: File, metadata?: Record<string, unknown>): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("file", file);
     if (metadata) {
@@ -70,9 +67,7 @@ export const secureUploadApi = {
       const doc = getDocument();
       if (!win || !doc) return;
       const urlCreator = (
-        typeof URL !== "undefined"
-          ? URL
-          : (win as Window & { URL?: typeof URL }).URL
+        typeof URL !== "undefined" ? URL : (win as Window & { URL?: typeof URL }).URL
       ) as typeof URL | undefined;
       if (!urlCreator) return;
       const blob = createBlob([responseData.data as BlobPart]);
@@ -90,13 +85,8 @@ export const secureUploadApi = {
   /**
    * Delete a document by ID
    */
-  deleteDocument: (
-    docId: string,
-  ): Promise<{ success: boolean; error?: string }> =>
-    apiRequest<{ success: boolean; error?: string }>(
-      `/api/v1/documents/${docId}`,
-      {
-        method: "DELETE",
-      },
-    ),
+  deleteDocument: (docId: string): Promise<{ success: boolean; error?: string }> =>
+    apiRequest<{ success: boolean; error?: string }>(`/api/v1/documents/${docId}`, {
+      method: "DELETE",
+    }),
 };

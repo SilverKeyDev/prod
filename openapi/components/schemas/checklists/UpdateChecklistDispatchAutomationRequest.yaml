@@ -1,0 +1,29 @@
+type: object
+required:
+  - enabled
+  - channel
+  - recipientScope
+  - noteMode
+properties:
+  enabled:
+    type: boolean
+  channel:
+    $ref: "./ChecklistDispatchChannel.yaml"
+  recipientScope:
+    $ref: "./ChecklistDispatchRecipientScope.yaml"
+  selectedClientIds:
+    type: array
+    items:
+      type: string
+    nullable: true
+  noteMode:
+    $ref: "./ChecklistDispatchNoteMode.yaml"
+  noteBroadcast:
+    type: string
+    nullable: true
+    maxLength: 5000
+  notesPerClient:
+    type: object
+    additionalProperties:
+      type: string
+    nullable: true

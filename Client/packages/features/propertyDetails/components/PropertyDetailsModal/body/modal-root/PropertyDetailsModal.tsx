@@ -17,13 +17,13 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
   onGenerateReport,
   isLoading = false,
   toolbarButtonSize = "medium",
+  commuteSearchOverlay = null,
 }) => {
   useSavedHomesStoreIntegration();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const fullBleedRef = useRef<HTMLDivElement | null>(null);
 
-  const { activeSection, scrollToSection, sectionRefs } =
-    usePropertyDetailsSectionScroll();
+  const { activeSection, scrollToSection, sectionRefs } = usePropertyDetailsSectionScroll();
 
   useEffect(() => {
     if (!property || !fullBleedRef.current) return;
@@ -87,6 +87,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
               property={property}
               isLoading={isLoading}
               sectionRefs={sectionRefs}
+              commuteSearchOverlay={commuteSearchOverlay}
             />
           </Box>
         </Box>

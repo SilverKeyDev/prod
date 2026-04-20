@@ -4,7 +4,7 @@ import Input from "@ui/form/Input";
 import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { GoogleMapsWindow } from "packages/types/google-maps";
+import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
@@ -50,31 +50,22 @@ function parseAddressComponents(
         types?: string[];
       }>
     | undefined,
-  _formattedAddress: string,
+  _formattedAddress: string
 ): Pick<AddressData, "street" | "city" | "state" | "postal_code" | "country"> {
-  const result: Pick<
-    AddressData,
-    "street" | "city" | "state" | "postal_code" | "country"
-  > = {};
+  const result: Pick<AddressData, "street" | "city" | "state" | "postal_code" | "country"> = {};
   if (!Array.isArray(components)) return result;
 
   const getByType = (type: string): string | undefined => {
     const comp = components.find((c) => c.types?.includes(type));
-    return (
-      comp?.longText ?? comp?.shortText ?? comp?.long_name ?? comp?.short_name
-    );
+    return comp?.longText ?? comp?.shortText ?? comp?.long_name ?? comp?.short_name;
   };
 
   const streetNumber = getByType("street_number");
   const route = getByType("route");
   result.street =
-    streetNumber && route
-      ? `${streetNumber} ${route}`
-      : streetNumber ?? route ?? undefined;
+    streetNumber && route ? `${streetNumber} ${route}` : (streetNumber ?? route ?? undefined);
   result.city =
-    getByType("locality") ??
-    getByType("sublocality") ??
-    getByType("sublocality_level_1");
+    getByType("locality") ?? getByType("sublocality") ?? getByType("sublocality_level_1");
   result.state = getByType("administrative_area_level_1");
   result.postal_code = getByType("postal_code");
   result.country = getByType("country");
@@ -114,8 +105,7 @@ function AddressInputAutocomplete({
           setSuggestions([]);
           return;
         }
-        const sessionToken =
-          new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
+        const sessionToken = new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
         const request = {
           input: localValue,
           sessionToken,
@@ -123,7 +113,7 @@ function AddressInputAutocomplete({
         };
         const { suggestions: fetched } =
           await googleMapsWindow.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request,
+            request
           );
         const built: Suggestion[] = (
           fetched as Array<{
@@ -142,11 +132,7 @@ function AddressInputAutocomplete({
         setSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
-        log.error(
-          LOG_CATEGORIES.ERRORS,
-          "Address autocomplete fetch error",
-          error,
-        );
+        log.error(LOG_CATEGORIES.ERRORS, "Address autocomplete fetch error", error);
         setSuggestions([]);
       }
     };
@@ -164,10 +150,7 @@ function AddressInputAutocomplete({
   const handleSelect = async (suggestion: Suggestion) => {
     setHasSelected(true);
     const suggestionData = suggestion as Record<string, unknown>;
-    const placePrediction = suggestionData.placePrediction as Record<
-      string,
-      unknown
-    >;
+    const placePrediction = suggestionData.placePrediction as Record<string, unknown>;
     const place =
       placePrediction &&
       typeof placePrediction === "object" &&
@@ -184,16 +167,12 @@ function AddressInputAutocomplete({
       address: localValue.trim(),
     };
 
-    if (
-      isObject(place) &&
-      hasProperty(place, "fetchFields") &&
-      isFunction(place.fetchFields)
-    ) {
+    if (isObject(place) && hasProperty(place, "fetchFields") && isFunction(place.fetchFields)) {
       try {
         const fetchFieldsMethod = place.fetchFields;
         if (typeof fetchFieldsMethod === "function") {
           await fetchFieldsMethod.call(place, {
-            fields: ["formattedAddress", "addressComponents", "id"],
+            fields: ["formattedAddress", "addressComponents", "id", "location"],
           });
         }
       } catch (error) {
@@ -201,14 +180,11 @@ function AddressInputAutocomplete({
       }
 
       const formattedAddr =
-        hasProperty(place, "formattedAddress") &&
-        typeof place.formattedAddress === "string"
+        hasProperty(place, "formattedAddress") && typeof place.formattedAddress === "string"
           ? place.formattedAddress
           : localValue.trim();
       const placeId =
-        hasProperty(place, "id") && typeof place.id === "string"
-          ? place.id
-          : undefined;
+        hasProperty(place, "id") && typeof place.id === "string" ? place.id : undefined;
       const components = hasProperty(place, "addressComponents")
         ? (place.addressComponents as Array<{
             longText?: string;
@@ -220,10 +196,25 @@ function AddressInputAutocomplete({
         : undefined;
 
       const parsed = parseAddressComponents(components, formattedAddr);
+      let lat: number | undefined;
+      let lng: number | undefined;
+      if (
+        hasProperty(place, "location") &&
+        place.location &&
+        typeof place.location === "object" &&
+        "lat" in place.location &&
+        typeof (place.location as { lat: unknown }).lat === "function"
+      ) {
+        const loc = place.location as google.maps.LatLng;
+        lat = loc.lat();
+        lng = loc.lng();
+      }
       addressData = {
         address: formattedAddr,
         place_id: placeId,
         ...parsed,
+        lat,
+        lng,
       };
 
       setLocalValue(formattedAddr);
@@ -251,10 +242,7 @@ function AddressInputAutocomplete({
       {suggestions.length > 0 && (
         <ul className="z-dropdown relative flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md bg-white shadow-sm">
           {suggestions.map((s, idx) => (
-            <li
-              key={idx}
-              className="rounded border border-dotted border-neutral-300"
-            >
+            <li key={idx} className="rounded border border-dotted border-neutral-300">
               <Button
                 variant="ghost"
                 size="sm"
@@ -262,15 +250,8 @@ function AddressInputAutocomplete({
                 className="w-full cursor-pointer !justify-start px-3 py-2 text-sm hover:bg-gray-100 active:bg-gray-200 [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start"
               >
                 <Box className="flex w-full items-center justify-start gap-2 text-left">
-                  <Icon
-                    name="map-pin"
-                    className="h-4 w-4 shrink-0 text-neutral-500"
-                  />
-                  <BodyText
-                    as="span"
-                    size="sm"
-                    className="min-w-0 flex-1 text-left"
-                  >
+                  <Icon name="map-pin" className="h-4 w-4 shrink-0 text-neutral-500" />
+                  <BodyText as="span" size="sm" className="min-w-0 flex-1 text-left">
                     {s.description}
                   </BodyText>
                 </Box>

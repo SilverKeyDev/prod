@@ -5,11 +5,10 @@ import { useMutation } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { googleCalendarApi } from "packages/features/calendar/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { useGoogleCalendarStore } from "packages/store";
-import { useAuthStore } from "packages/store";
+import { useAuthStore, useGoogleCalendarStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
 
-import { useGoogleEvents } from "@/features/calendar/hooks/data";
+import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 
 import {
   useGoogleCalendarConnectionState,
@@ -70,7 +69,35 @@ export function useGoogleCalendarStoreIntegration() {
   const { events, eventsLoading, eventsError, refreshEvents, createEvent, isCreatingEvent } =
     useGoogleEvents(eventParams);
 
-  const storeSetters = useGoogleCalendarStore();
+  const setIsConnected = useGoogleCalendarStore((s) => s.setIsConnected);
+  const setCalendars = useGoogleCalendarStore((s) => s.setCalendars);
+  const setCalendarsLoading = useGoogleCalendarStore((s) => s.setCalendarsLoading);
+  const setCalendarsError = useGoogleCalendarStore((s) => s.setCalendarsError);
+  const setEvents = useGoogleCalendarStore((s) => s.setEvents);
+  const setEventsLoading = useGoogleCalendarStore((s) => s.setEventsLoading);
+  const setEventsError = useGoogleCalendarStore((s) => s.setEventsError);
+
+  const calendarStoreSyncSetters = useMemo(
+    () => ({
+      setIsConnected,
+      setCalendars,
+      setCalendarsLoading,
+      setCalendarsError,
+      setEvents,
+      setEventsLoading,
+      setEventsError,
+    }),
+    [
+      setIsConnected,
+      setCalendars,
+      setCalendarsLoading,
+      setCalendarsError,
+      setEvents,
+      setEventsLoading,
+      setEventsError,
+    ]
+  );
+
   useSyncCalendarToStore(
     isConnected,
     calendars,
@@ -79,7 +106,7 @@ export function useGoogleCalendarStoreIntegration() {
     events,
     eventsLoading,
     eventsError,
-    storeSetters
+    calendarStoreSyncSetters
   );
 
   return {

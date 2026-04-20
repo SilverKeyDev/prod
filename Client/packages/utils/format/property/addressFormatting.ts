@@ -106,17 +106,14 @@ export function formatFilenameToAddress(filename: string): string {
     // Soft guess: if address starts with a number, keep tokens until we hit something
     // that looks like a city start (usually after the number + a couple tokens).
     const startsWithNumber = /^\d+[A-Za-z]?$/.test(parts[0]);
-    const cutoff = startsWithNumber
-      ? Math.min(4, stateIndex)
-      : Math.min(3, stateIndex);
+    const cutoff = startsWithNumber ? Math.min(4, stateIndex) : Math.min(3, stateIndex);
     streetParts = parts.slice(0, cutoff);
     cityParts = parts.slice(cutoff, stateIndex);
   }
 
   const state = parts[stateIndex];
   const zip = zipIndex === stateIndex + 1 ? parts[zipIndex] : undefined;
-  const tail =
-    zipIndex > -1 ? parts.slice(zipIndex + 1) : parts.slice(stateIndex + 1); // country already removed
+  const tail = zipIndex > -1 ? parts.slice(zipIndex + 1) : parts.slice(stateIndex + 1); // country already removed
 
   const formatted: string[] = [];
   if (streetParts.length) formatted.push(streetParts.join(" "));
@@ -151,9 +148,7 @@ function titleCase(s: string): string {
  * when the string uses the usual comma-separated US form ("Street, City, ST, ZIP").
  * For a single segment, strips a trailing "ST ZIP" suffix when present.
  */
-export function addressStreetLineForCard(
-  address: string | number | undefined | null,
-): string {
+export function addressStreetLineForCard(address: string | number | undefined | null): string {
   if (address == null) return "";
   const raw = typeof address === "number" ? String(address) : address;
   const trimmed = raw.trim();
@@ -167,9 +162,7 @@ export function addressStreetLineForCard(
     return segments[0] ?? trimmed;
   }
 
-  const withoutStateZip = trimmed
-    .replace(/,?\s+[A-Z]{2}\s*,?\s*\d{5}(?:-\d{4})?\s*$/i, "")
-    .trim();
+  const withoutStateZip = trimmed.replace(/,?\s+[A-Z]{2}\s*,?\s*\d{5}(?:-\d{4})?\s*$/i, "").trim();
   if (withoutStateZip.length > 0 && withoutStateZip.length < trimmed.length) {
     return withoutStateZip;
   }
@@ -191,8 +184,7 @@ export function addressForMarkerTitle(address: string | undefined): string {
     // State + Zip: CA 94043 or NY 10001-1234
     if (/^[A-Z]{2}\s+\d{5}(-\d{4})?$/.test(part)) return false;
     // Country
-    if (/^(USA|US|United States|United States of America)$/i.test(part))
-      return false;
+    if (/^(USA|US|United States|United States of America)$/i.test(part)) return false;
     return true;
   });
   return filtered.join(", ").trim() || address;
@@ -291,9 +283,7 @@ export function formatSquareFootage(value: number, units?: string): string {
     return `${value.toFixed(2)} ${units.toLowerCase()}`;
   } else {
     // Always round to integer and format with commas for consistency
-    return `${Math.round(value).toLocaleString()} ${
-      units?.toLowerCase() ?? "sqft"
-    }`;
+    return `${Math.round(value).toLocaleString()} ${units?.toLowerCase() ?? "sqft"}`;
   }
 }
 

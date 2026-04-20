@@ -1,0 +1,38 @@
+type: object
+required:
+  - enabled
+  - channel
+  - recipientScope
+  - noteMode
+properties:
+  enabled:
+    type: boolean
+    description: When true, run configured dispatch when the step is newly checked.
+  channel:
+    $ref: "./ChecklistDispatchChannel.yaml"
+  recipientScope:
+    $ref: "./ChecklistDispatchRecipientScope.yaml"
+  selectedClientIds:
+    type: array
+    items:
+      type: string
+    nullable: true
+    description: Required when recipientScope is selected_clients; subset of agent clients.
+  noteMode:
+    $ref: "./ChecklistDispatchNoteMode.yaml"
+  noteBroadcast:
+    type: string
+    nullable: true
+    maxLength: 5000
+    description: Used when noteMode is broadcast.
+  notesPerClient:
+    type: object
+    additionalProperties:
+      type: string
+    nullable: true
+    description: Map of client user id to note when noteMode is per_client.
+  updatedAt:
+    type: string
+    format: date-time
+    nullable: true
+    description: Last update time when a row exists in the database.

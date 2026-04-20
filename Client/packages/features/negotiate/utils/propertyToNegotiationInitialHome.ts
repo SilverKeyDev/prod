@@ -40,7 +40,7 @@ function formatAddressFromProperty(property: unknown): string {
         city: string;
         state: string;
         zipcode: string;
-      },
+      }
     );
   }
   if (
@@ -48,9 +48,7 @@ function formatAddressFromProperty(property: unknown): string {
     typeof p.city === "string" &&
     typeof p.state === "string"
   ) {
-    return [p.streetAddress, p.city, p.state, p.zipcode]
-      .filter(Boolean)
-      .join(", ");
+    return [p.streetAddress, p.city, p.state, p.zipcode].filter(Boolean).join(", ");
   }
   const fromHome = getAddressFromHome(property);
   if (typeof fromHome === "string" && fromHome.trim().length > 0) {
@@ -94,9 +92,7 @@ function lotSizeString(property: Record<string, unknown>): string {
 /**
  * Map a property-details or search listing to NegotiationModal `initialHome`.
  */
-export function propertyToNegotiationInitialHome(
-  property: unknown,
-): NegotiationInitialHome {
+export function propertyToNegotiationInitialHome(property: unknown): NegotiationInitialHome {
   const p =
     property && typeof property === "object"
       ? (property as Record<string, unknown>)

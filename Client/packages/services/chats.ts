@@ -1,6 +1,6 @@
 import { chatbotApi, reportApi as _reportApi } from "packages/api";
 import type { Chat } from "packages/features/messaging/types/chat";
-import { formatFilenameToAddress } from "packages/features/search/types/search/address";
+import { formatFilenameToAddress } from "packages/features/search/types/search/formatters/address";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { dateNow, dayjs } from "packages/utils/date";
 import { getWindow } from "packages/utils/platform";

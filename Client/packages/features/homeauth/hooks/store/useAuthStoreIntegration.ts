@@ -120,14 +120,7 @@ export function useAuthStoreIntegration() {
     setLogin(authLogin);
     setLogout(authLogout);
     setRefreshToken(authRefreshToken);
-  }, [
-    authLogin,
-    authLogout,
-    authRefreshToken,
-    setLogin,
-    setLogout,
-    setRefreshToken,
-  ]);
+  }, [authLogin, authLogout, authRefreshToken, setLogin, setLogout, setRefreshToken]);
 
   // Stable logout reference so App/consumers don't re-render when useSecureAuth's ref changes
   const logoutRef = useRef(authLogout);

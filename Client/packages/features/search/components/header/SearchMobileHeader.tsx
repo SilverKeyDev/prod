@@ -29,9 +29,7 @@ const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
   onBeforeSwitchToReels,
 }) => {
   return (
-    <Box
-      className={`flex w-full max-w-full items-center gap-2 sm:max-w-lg ${HEADER_ROW_HEIGHT}`}
-    >
+    <Box className={`flex w-full max-w-full items-center gap-2 sm:max-w-lg ${HEADER_ROW_HEIGHT}`}>
       <SearchActions
         onSearchProperties={onSearch}
         onCancelSearch={onCancelSearch}

@@ -16,13 +16,11 @@ import type { UserProfile } from "@/features/homeauth/types";
 import { type NavCategory, type SidebarNavItem } from "./sidebarNav.web";
 import { getButtonStyles, getSubItemStyles } from "./sidebarNavStyles.web";
 
-const SINGLE_LINK_KEYS = new Set([
-  "dashboard",
-  "search",
-  "decide",
-  "profile",
-  "agent",
-]);
+/** Primary nav labels: inactive at sm; active one step up (base) so the gap is smaller than former xs→sm + icon jump. */
+const sidebarNavLabelInactive = "text-sm font-medium";
+const sidebarNavLabelActive = "text-base font-bold leading-snug";
+
+const SINGLE_LINK_KEYS = new Set(["dashboard", "search", "decide", "profile", "agent"]);
 type SidebarNavSingleLinkProps = {
   categoryKey: string;
   firstItem: SidebarNavItem;
@@ -43,17 +41,13 @@ function SidebarNavSingleLink({
 }: SidebarNavSingleLinkProps) {
   const location = useLocation();
   const itemIconName = firstItem.icon;
-  const buttonClass = `${getButtonStyles(isActive)} ${
-    !expanded ? "justify-center" : ""
-  }`;
+  const buttonClass = `${getButtonStyles(isActive)} ${!expanded ? "justify-center" : ""}`;
   const titleAttr = !expanded ? firstItem?.name : "";
   const iconEl = (
     <Box className="relative inline-flex items-center">
       <Icon
         name={itemIconName}
-        className={`h-6 w-6 transition-all duration-200 ${
-          expanded ? "mr-3" : ""
-        }`}
+        className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""}`}
       />
       {categoryKey === "agent" && isLoaded && (
         <NotificationBadge
@@ -73,9 +67,7 @@ function SidebarNavSingleLink({
       >
         {iconEl}
         {expanded && (
-          <span
-            className={isActive ? "text-sm font-bold" : "text-xs font-medium"}
-          >
+          <span className={isActive ? sidebarNavLabelActive : sidebarNavLabelInactive}>
             {firstItem?.name}
           </span>
         )}
@@ -84,9 +76,7 @@ function SidebarNavSingleLink({
   }
   const to = firstItem?.href ?? "/";
   const handleClick = () => {
-    const navId = `${Date.now().toString(36)}-${Math.random()
-      .toString(36)
-      .slice(2, 9)}`;
+    const navId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
     log.info(LOG_CATEGORIES.ROUTING, "[NAV] Sidebar nav click (link)", {
       navId,
       from: location.pathname,
@@ -106,9 +96,7 @@ function SidebarNavSingleLink({
     >
       {iconEl}
       {expanded && (
-        <span
-          className={isActive ? "text-sm font-bold" : "text-xs font-medium"}
-        >
+        <span className={isActive ? sidebarNavLabelActive : sidebarNavLabelInactive}>
           {firstItem?.name}
         </span>
       )}
@@ -176,9 +164,7 @@ function SidebarNavCategory({
       <button
         onClick={handleCategoryHeaderClick}
         type="button"
-        className={`${getButtonStyles(
-          isCategoryActive(category.items),
-        )} group relative ${
+        className={`${getButtonStyles(isCategoryActive(category.items))} group relative ${
           !expanded ? "justify-center" : "justify-between"
         } cursor-pointer`}
         title={!expanded ? category.name : ""}
@@ -195,9 +181,7 @@ function SidebarNavCategory({
           >
             <Icon
               name={category.icon}
-              className={`h-6 w-6 transition-all duration-200 ${
-                expanded ? "mr-3" : ""
-              } ${
+              className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""} ${
                 !expanded && openCategories[categoryKey] ? "text-white" : ""
               }`}
             />
@@ -205,9 +189,7 @@ function SidebarNavCategory({
           {expanded && (
             <span
               className={
-                isCategoryActive(category.items)
-                  ? "text-sm font-bold"
-                  : "text-xs font-medium"
+                isCategoryActive(category.items) ? sidebarNavLabelActive : sidebarNavLabelInactive
               }
             >
               {category.name}
@@ -244,15 +226,11 @@ function SidebarNavCategory({
             >
               <Icon
                 name={item.icon}
-                className={`${
-                  isActive(item.href) ? "h-6 w-6" : "h-5 w-5"
-                } transition-all duration-200 ${expanded ? "mr-3" : ""}`}
+                className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""}`}
               />
               {expanded && (
                 <span
-                  className={
-                    isActive(item.href) ? "text-sm font-bold" : "text-xs"
-                  }
+                  className={isActive(item.href) ? sidebarNavLabelActive : sidebarNavLabelInactive}
                 >
                   {item.name}
                 </span>
@@ -327,11 +305,11 @@ export function SidebarFooter({
         onClick={onLogoutClick}
         className={`${getButtonStyles(false).replace(
           "text-white/80",
-          "text-white",
+          "text-white"
         )} cursor-pointer justify-center py-3`}
       >
         <Icon name="log-out" className={`h-6 w-6 ${expanded ? "mr-3" : ""}`} />
-        {expanded && <span>Logout</span>}
+        {expanded && <span className={`${sidebarNavLabelInactive} text-white`}>Logout</span>}
       </button>
       <ConfirmationDialog
         isOpen={showLogoutConfirm}

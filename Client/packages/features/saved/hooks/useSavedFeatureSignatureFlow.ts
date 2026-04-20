@@ -20,7 +20,7 @@ export function useSavedFeatureSignatureFlow(
   documents: DocumentData[],
   selectedClientId: string | null,
   enqueueToast: UIState["enqueueToast"],
-  integration: SignatureIntegration,
+  integration: SignatureIntegration
 ) {
   const {
     sendDocumentForSignature,
@@ -30,28 +30,20 @@ export function useSavedFeatureSignatureFlow(
     signAgreementNow,
   } = integration;
 
-  const [isSendForSignatureModalOpen, setIsSendForSignatureModalOpen] =
-    useState(false);
-  const [sendForSignatureDocumentId, setSendForSignatureDocumentId] = useState<
-    string | null
-  >(null);
-  const [sendForSignatureFormId, setSendForSignatureFormId] = useState<
-    string | null
-  >(null);
+  const [isSendForSignatureModalOpen, setIsSendForSignatureModalOpen] = useState(false);
+  const [sendForSignatureDocumentId, setSendForSignatureDocumentId] = useState<string | null>(null);
+  const [sendForSignatureFormId, setSendForSignatureFormId] = useState<string | null>(null);
   const [sendForSignatureTitle, setSendForSignatureTitle] = useState("");
-  const [
-    sendForSignatureRecipientClientId,
-    setSendForSignatureRecipientClientId,
-  ] = useState<string | null>(null);
+  const [sendForSignatureRecipientClientId, setSendForSignatureRecipientClientId] = useState<
+    string | null
+  >(null);
 
   const sendForSignatureDocument = useMemo(
     () =>
       sendForSignatureDocumentId
-        ? documents.find(
-            (document) => document.id === sendForSignatureDocumentId,
-          ) ?? null
+        ? (documents.find((document) => document.id === sendForSignatureDocumentId) ?? null)
         : null,
-    [documents, sendForSignatureDocumentId],
+    [documents, sendForSignatureDocumentId]
   );
 
   const openSendForSignatureModal = useCallback(
@@ -64,17 +56,10 @@ export function useSavedFeatureSignatureFlow(
       setSendForSignatureDocumentId(document.id);
       setSendForSignatureFormId(null);
       setSendForSignatureTitle(getDefaultAgreementTitle(document));
-      setSendForSignatureRecipientClientId(
-        selectedClientId ?? document.user_id ?? null,
-      );
+      setSendForSignatureRecipientClientId(selectedClientId ?? document.user_id ?? null);
       setIsSendForSignatureModalOpen(true);
     },
-    [
-      enqueueToast,
-      getDefaultAgreementTitle,
-      selectedClientId,
-      sendForSignatureDisabledReason,
-    ],
+    [enqueueToast, getDefaultAgreementTitle, selectedClientId, sendForSignatureDisabledReason]
   );
 
   const openSendForSignatureModalForForm = useCallback(
@@ -85,7 +70,7 @@ export function useSavedFeatureSignatureFlow(
       setSendForSignatureRecipientClientId(selectedClientId ?? null);
       setIsSendForSignatureModalOpen(true);
     },
-    [selectedClientId],
+    [selectedClientId]
   );
 
   const closeSendForSignatureModal = useCallback(() => {
@@ -139,10 +124,7 @@ export function useSavedFeatureSignatureFlow(
     } catch (error) {
       enqueueToast({
         type: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to send for signature",
+        message: error instanceof Error ? error.message : "Failed to send for signature",
       });
     }
   }, [
@@ -180,10 +162,7 @@ export function useSavedFeatureSignatureFlow(
       } catch (error) {
         enqueueToast({
           type: "error",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Failed to send for signature",
+          message: error instanceof Error ? error.message : "Failed to send for signature",
         });
       }
     },
@@ -194,7 +173,7 @@ export function useSavedFeatureSignatureFlow(
       selectedClientId,
       sendDocumentForSignature,
       sendForSignatureDisabledReason,
-    ],
+    ]
   );
 
   const signNowDirect = useCallback(
@@ -211,14 +190,11 @@ export function useSavedFeatureSignatureFlow(
       } catch (error) {
         enqueueToast({
           type: "error",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Failed to open signing flow",
+          message: error instanceof Error ? error.message : "Failed to open signing flow",
         });
       }
     },
-    [enqueueToast, signAgreementNow],
+    [enqueueToast, signAgreementNow]
   );
 
   return {

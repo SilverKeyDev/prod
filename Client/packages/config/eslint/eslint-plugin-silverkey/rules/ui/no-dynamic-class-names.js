@@ -19,8 +19,7 @@ module.exports = {
           allowedPatterns: {
             type: "array",
             items: { type: "string" },
-            description:
-              "Array of regex patterns for allowed dynamic class constructions",
+            description: "Array of regex patterns for allowed dynamic class constructions",
           },
         },
         additionalProperties: false,
@@ -38,9 +37,7 @@ module.exports = {
 
   create(context) {
     const options = context.options[0] || {};
-    const allowedPatterns = (options.allowedPatterns || []).map(
-      (p) => new RegExp(p),
-    );
+    const allowedPatterns = (options.allowedPatterns || []).map((p) => new RegExp(p));
 
     // Patterns that indicate dynamic class construction
     const TAILWIND_PREFIX_PATTERN =
@@ -89,8 +86,7 @@ module.exports = {
       // Check cn() or clsx() calls with template literals
       const callee = node.callee;
       const isCnCall =
-        (callee.type === "Identifier" &&
-          (callee.name === "cn" || callee.name === "clsx")) ||
+        (callee.type === "Identifier" && (callee.name === "cn" || callee.name === "clsx")) ||
         (callee.type === "MemberExpression" &&
           callee.property &&
           (callee.property.name === "cn" || callee.property.name === "clsx"));

@@ -9,7 +9,7 @@ import { BodyText, Button, Title } from "@/components/ui";
 import type {
   MessagingConfig,
   MessagingMode,
-} from "@/features/agent/components/messagingConfig";
+} from "@/features/agent/components/messaging/screen/messagingConfig";
 
 type EmptyStatesProps = {
   mode: MessagingMode;
@@ -18,11 +18,7 @@ type EmptyStatesProps = {
   onSearchClick?: () => void;
 };
 
-export function UnifiedMessagesListAgentBlockedEmpty({
-  config,
-}: {
-  config: MessagingConfig;
-}) {
+export function UnifiedMessagesListAgentBlockedEmpty({ config }: { config: MessagingConfig }) {
   return (
     <Box className="flex h-full items-center justify-center">
       <Box className="text-center">
@@ -32,11 +28,7 @@ export function UnifiedMessagesListAgentBlockedEmpty({
         <Title as="h3" size="lg" className="text-text-primary mb-2 font-medium">
           {config.emptyStates.noMessages.title}
         </Title>
-        <BodyText
-          as="p"
-          size="sm"
-          className="text-text-secondary mx-auto max-w-md"
-        >
+        <BodyText as="p" size="sm" className="text-text-secondary mx-auto max-w-md">
           {config.emptyStates.noMessages.message}
         </BodyText>
       </Box>
@@ -51,10 +43,7 @@ export function UnifiedMessagesListClientNoAgentEmpty({
   return (
     <Box className="flex h-full items-center justify-center">
       <Box className="text-center">
-        <Icon
-          name="message-circle"
-          className="text-text-secondary mx-auto mb-3 h-16 w-16"
-        />
+        <Icon name="message-circle" className="text-text-secondary mx-auto mb-3 h-16 w-16" />
         <Title as="h3" size="lg" className="text-text-primary mb-2 font-medium">
           {config.emptyStates.noAgent.title}
         </Title>
@@ -100,16 +89,9 @@ export function UnifiedMessagesListNoMessagesYet({
         <Title as="h3" size="lg" className="text-text-primary mb-2 font-medium">
           {config.emptyStates.noMessages.title}
         </Title>
-        <BodyText
-          as="p"
-          size="sm"
-          className="text-text-secondary mx-auto max-w-md"
-        >
+        <BodyText as="p" size="sm" className="text-text-secondary mx-auto max-w-md">
           {mode === "agent" && selectedClientName
-            ? config.emptyStates.noMessages.message.replace(
-                "your client",
-                selectedClientName,
-              )
+            ? config.emptyStates.noMessages.message.replace("your client", selectedClientName)
             : config.emptyStates.noMessages.message}
         </BodyText>
       </Box>

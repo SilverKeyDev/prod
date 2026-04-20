@@ -76,9 +76,7 @@ export default function NotInterestedModal({
   };
 
   const canConfirm =
-    selectedReason === "other"
-      ? customReason.trim().length > 0
-      : selectedReason !== null;
+    selectedReason === "other" ? customReason.trim().length > 0 : selectedReason !== null;
 
   return (
     <BaseModal
@@ -106,6 +104,7 @@ export default function NotInterestedModal({
             size="md"
             onClick={handleConfirm}
             disabled={!canConfirm}
+            iconName="check"
           >
             {t("why_not.confirm")}
           </Button>

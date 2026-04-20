@@ -10,7 +10,11 @@ from flask import current_app
 
 from app.services.auth import SecurityException, get_current_user
 
-from ..graphs.graphic_generation import GOOGLE_MAPS_ID, fetch_travel_time, generate_static_map_url
+from ..graphs.graphic_generation import (
+    GOOGLE_MAPS_ID,
+    fetch_directions_leg,
+    generate_static_map_url,
+)
 
 
 def generate_commute_data(
@@ -52,20 +56,28 @@ def generate_commute_data(
             if isinstance(location, dict) and "address" in location:
                 location_address = location["address"]
                 location_name = (
-                    location.get("name") or location.get("address", "")[:40] or f"Location {i + 1}"
+                    location.get("name")
+                    or location.get("label")
+                    or location.get("address", "")[:40]
+                    or f"Location {i + 1}"
                 )
 
-                # Fetch travel time
-                travel_time = fetch_travel_time(
-                    property_address, location_address, google_maps_api_key
-                )
+                leg = fetch_directions_leg(property_address, location_address, google_maps_api_key)
+                travel_time = leg.get("duration_text") if leg else None
+                encoded_polyline = leg.get("encoded_polyline") if leg else None
 
+                tol = location.get("commute_tolerance")
+                if tol is None:
+                    tol = location.get("max_commute_minutes")
+                if tol is None:
+                    tol = 30
                 travel_times.append(
                     {
                         "name": location_name,
                         "address": location_address,
                         "travel_time": travel_time,
-                        "commute_tolerance": location.get("commute_tolerance", 30),
+                        "commute_tolerance": tol,
+                        "encoded_polyline": encoded_polyline,
                     }
                 )
 

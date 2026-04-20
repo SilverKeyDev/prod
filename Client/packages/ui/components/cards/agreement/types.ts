@@ -26,13 +26,10 @@ export interface AgreementData extends DocumentData {
 
 export interface AgreementCardExternalActionHandlers {
   handleViewDocument: (documentId: string, documentName: string) => void;
-  handleDownloadDocument: (
-    documentId: string,
-    documentName: string,
-  ) => Promise<void>;
+  handleDownloadDocument: (documentId: string, documentName: string) => Promise<void>;
   handleShareDocument: (
     documentId: string,
-    documentName: string,
+    documentName: string
   ) => Promise<{ success: boolean; message: string }>;
   handleSignNow?: (document: AgreementData) => void;
   handleViewSignedAgreement?: (document: AgreementData) => void;

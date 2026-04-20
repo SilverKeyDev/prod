@@ -7,9 +7,7 @@ import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 import { formatAnalysisLabel } from "packages/utils/propertyDetails";
 
-function parseDisplayNumber(
-  value: unknown,
-): { num: number; display: string } | null {
+function parseDisplayNumber(value: unknown): { num: number; display: string } | null {
   if (typeof value === "number" && Number.isFinite(value)) {
     return { num: value, display: value.toLocaleString() };
   }
@@ -27,18 +25,13 @@ function parseDisplayNumber(
  * When every scalar looks like a share or percentage (0–100 or 0–1), render bars.
  * Skips mixed records (e.g. year + score) so we do not mis-chart non-comparable fields.
  */
-function tryRenderPercentageBarGrid(
-  data: Record<string, unknown>,
-): React.ReactNode | null {
-  const entries = Object.entries(data).filter(
-    ([, v]) => v !== null && v !== undefined && v !== "",
-  );
+function tryRenderPercentageBarGrid(data: Record<string, unknown>): React.ReactNode | null {
+  const entries = Object.entries(data).filter(([, v]) => v !== null && v !== undefined && v !== "");
   if (entries.length < 2) return null;
 
   const parsed: { key: string; num: number; display: string }[] = [];
   for (const [key, value] of entries) {
-    if (Array.isArray(value) || (typeof value === "object" && value !== null))
-      return null;
+    if (Array.isArray(value) || (typeof value === "object" && value !== null)) return null;
     const p = parseDisplayNumber(value);
     if (!p) return null;
     parsed.push({ key, num: p.num, display: p.display });
@@ -81,18 +74,13 @@ function tryRenderPercentageBarGrid(
  * Exactly two large numeric scalars (e.g. money) - “affordability style” hero pair.
  * Avoids stealing true 0–100 pairs that should stay as percentage bars.
  */
-function tryRenderHeroNumberPair(
-  data: Record<string, unknown>,
-): React.ReactNode | null {
-  const entries = Object.entries(data).filter(
-    ([, v]) => v !== null && v !== undefined && v !== "",
-  );
+function tryRenderHeroNumberPair(data: Record<string, unknown>): React.ReactNode | null {
+  const entries = Object.entries(data).filter(([, v]) => v !== null && v !== undefined && v !== "");
   if (entries.length !== 2) return null;
 
   const parsed: { key: string; display: string }[] = [];
   for (const [key, value] of entries) {
-    if (Array.isArray(value) || (typeof value === "object" && value !== null))
-      return null;
+    if (Array.isArray(value) || (typeof value === "object" && value !== null)) return null;
     const p = parseDisplayNumber(value);
     if (!p) return null;
     const str = typeof value === "string" ? value : "";
@@ -133,7 +121,7 @@ function tryRenderHeroNumberPair(
 
 export function renderGenericPropertyAnalysisContent(
   sectionData: unknown,
-  noDataLabel: string,
+  noDataLabel: string
 ): React.ReactNode {
   if (!sectionData || typeof sectionData !== "object") return null;
   if (Array.isArray(sectionData)) {
@@ -150,7 +138,7 @@ export function renderGenericPropertyAnalysisContent(
 
   const data = sectionData as Record<string, unknown>;
   const entries = Object.entries(data).filter(
-    ([, value]) => value !== null && value !== undefined && value !== "",
+    ([, value]) => value !== null && value !== undefined && value !== ""
   );
   if (entries.length === 0) {
     return (
@@ -167,20 +155,12 @@ export function renderGenericPropertyAnalysisContent(
         if (Array.isArray(value)) {
           return (
             <Box key={key}>
-              <BodyText
-                as="p"
-                size="sm"
-                className="text-text-secondary mb-2 font-medium"
-              >
+              <BodyText as="p" size="sm" className="text-text-secondary mb-2 font-medium">
                 {displayKey}
               </BodyText>
               <Box className="text-text-secondary ml-4 flex flex-col gap-1 text-sm">
                 {value.map((item, i) => (
-                  <BodyText
-                    key={i}
-                    as="span"
-                    className="text-text-secondary text-sm"
-                  >
+                  <BodyText key={i} as="span" className="text-text-secondary text-sm">
                     • {String(item)}
                   </BodyText>
                 ))}
@@ -190,47 +170,29 @@ export function renderGenericPropertyAnalysisContent(
         }
         if (typeof value === "object" && value !== null) {
           return (
-            <Box
-              key={key}
-              className="border-border bg-accent-muted rounded-lg border p-3"
-            >
-              <BodyText
-                as="p"
-                size="sm"
-                className="text-text-secondary mb-2 font-medium"
-              >
+            <Box key={key} className="border-border bg-accent-muted rounded-lg border p-3">
+              <BodyText as="p" size="sm" className="text-text-secondary mb-2 font-medium">
                 {displayKey}
               </BodyText>
               <Box className="gap-2">
-                {Object.entries(value as Record<string, unknown>).map(
-                  ([subKey, subValue]) => (
-                    <AnalysisKeyValueLine
-                      key={subKey}
-                      label={formatAnalysisLabel(subKey)}
-                      value={String(subValue)}
-                    />
-                  ),
-                )}
+                {Object.entries(value as Record<string, unknown>).map(([subKey, subValue]) => (
+                  <AnalysisKeyValueLine
+                    key={subKey}
+                    label={formatAnalysisLabel(subKey)}
+                    value={String(subValue)}
+                  />
+                ))}
               </Box>
             </Box>
           );
         }
-        return (
-          <AnalysisKeyValueLine
-            key={key}
-            label={displayKey}
-            value={String(value)}
-          />
-        );
+        return <AnalysisKeyValueLine key={key} label={displayKey} value={String(value)} />;
       })}
     </Box>
   );
 }
 
-type SectionRenderer = (
-  data: unknown,
-  noDataLabel: string,
-) => React.ReactNode | null;
+type SectionRenderer = (data: unknown, noDataLabel: string) => React.ReactNode | null;
 
 /**
  * Explicit renderers keyed by **stable** `sectionKey` values from the property analysis payload.
@@ -245,7 +207,7 @@ const SECTION_RENDERERS: Record<string, SectionRenderer> = {};
 export function renderPropertyAnalysisSectionBody(
   sectionKey: string,
   sectionData: unknown,
-  noDataLabel: string,
+  noDataLabel: string
 ): React.ReactNode {
   const explicit = SECTION_RENDERERS[sectionKey];
   if (explicit) {
@@ -253,11 +215,7 @@ export function renderPropertyAnalysisSectionBody(
     if (node !== null) return node;
   }
 
-  if (
-    sectionData &&
-    typeof sectionData === "object" &&
-    !Array.isArray(sectionData)
-  ) {
+  if (sectionData && typeof sectionData === "object" && !Array.isArray(sectionData)) {
     const record = sectionData as Record<string, unknown>;
     const bars = tryRenderPercentageBarGrid(record);
     if (bars) return bars;

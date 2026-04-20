@@ -48,13 +48,11 @@ export const mapCreditScoreToNumber = (creditScoreRange?: string): number => {
 /** Builds human-readable explanation string for the home price result and form inputs. */
 export const generateHomePriceExplanation = (
   result: HomePriceResult,
-  data: AffordabilityInput,
+  data: AffordabilityInput
 ): string => {
   // Calculate down payment percent for display
   const downPaymentPercent =
-    result.maxHomePrice > 0
-      ? ((result.downPayment / result.maxHomePrice) * 100).toFixed(1)
-      : "-";
+    result.maxHomePrice > 0 ? ((result.downPayment / result.maxHomePrice) * 100).toFixed(1) : "-";
 
   return `Based on your gross annual income of $${data.gross_income?.toLocaleString()}, credit score range, and a down payment of $${data.down_payment?.toLocaleString()} (${downPaymentPercent}% of home price), we estimate you can afford a home up to $${result.maxHomePrice.toLocaleString()}.
 
@@ -62,25 +60,19 @@ This estimate is calculated using a debt-to-income (DTI) approach: your maximum 
 
 Key assumptions used:
 - **Interest Rate:** ${
-    typeof result.interestRate === "number"
-      ? (result.interestRate * 100).toFixed(2)
-      : "-"
+    typeof result.interestRate === "number" ? (result.interestRate * 100).toFixed(2) : "-"
   }%
 - **Property Tax Rate:** ${
-    typeof result.propertyTaxRate === "number"
-      ? result.propertyTaxRate.toFixed(2)
-      : "-"
+    typeof result.propertyTaxRate === "number" ? result.propertyTaxRate.toFixed(2) : "-"
   }%
-- **DTI Used:** ${
-    typeof result.dtiUsed === "number" ? result.dtiUsed.toFixed(0) : "-"
-  }%
+- **DTI Used:** ${typeof result.dtiUsed === "number" ? result.dtiUsed.toFixed(0) : "-"}%
 
 Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts, not just a budget cap.`;
 };
 
 // Main home price calculation function
 export const calculateAffordableHomePrice = (
-  formData: AffordabilityInput,
+  formData: AffordabilityInput
 ): HomePriceResult | HomePriceError => {
   // Check if we have all required data
   if (!formData.gross_income || !formData.ideal_zip_code) {
@@ -119,18 +111,12 @@ export const calculateAffordableHomePrice = (
       explanation: "", // Will be set below
     };
 
-    homePriceResult.explanation = generateHomePriceExplanation(
-      homePriceResult,
-      formData,
-    );
+    homePriceResult.explanation = generateHomePriceExplanation(homePriceResult, formData);
 
     return homePriceResult;
   } catch (error: unknown) {
     return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to calculate home price",
+      error: error instanceof Error ? error.message : "Failed to calculate home price",
     };
   }
 };

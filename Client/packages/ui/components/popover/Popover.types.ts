@@ -9,11 +9,7 @@ export type PopoverSide = "left" | "bottom" | "top" | "overlap";
  */
 export type PopoverProps = {
   /** Trigger element (e.g. button); receives open state, toggle, and optional panelId for aria-controls */
-  trigger: (props: {
-    open: boolean;
-    onToggle: () => void;
-    panelId?: string;
-  }) => ReactNode;
+  trigger: (props: { open: boolean; onToggle: () => void; panelId?: string }) => ReactNode;
   /** Panel content; receives close callback and panelId for aria-labelledby */
   children: (props: {
     onClose: () => void;

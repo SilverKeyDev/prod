@@ -30,9 +30,13 @@ def get_checklist_item_forms(user, transaction_id: str, section: str, item_id: s
     """
     GET /api/v1/transactions/<tid>/checklist-items/<section>/<item_id>/forms
 
-    Returns forms associated with a checklist step. Visible to all authenticated
-    users (agents and clients) so forms can be embedded directly in the step UI.
+    Returns forms associated with a checklist step. Agent-only; clients receive
+    forms via messaging attachments from the agent.
     """
+    auth_error = _require_agent(user)
+    if auth_error:
+        return auth_error
+
     try:
         item_id_int = int(item_id)
     except (TypeError, ValueError):
@@ -68,10 +72,12 @@ def download_form(user, transaction_id: str, section: str, item_id: str, form_id
     """
     GET /api/v1/transactions/<tid>/checklist-items/<section>/<item_id>/forms/<form_id>/download
 
-    Generate a presigned download URL for a specific form.
-    Available to all authenticated users (agents and clients).
+    Generate a presigned download URL for a specific form. Agent-only.
     """
-    # Get form
+    auth_error = _require_agent(user)
+    if auth_error:
+        return auth_error
+
     form = ChecklistForm.query.get(form_id)
     if not form:
         return jsonify({"success": False, "error": "Form not found"}), 404
@@ -121,12 +127,15 @@ def send_form(user, transaction_id: str, section: str, item_id: str, form_id: st
     Request body:
     {
         "method": "docusign" | "messaging" | "both",
-        "conversation_id": "uuid",  # Required if method includes "messaging"
+        "conversation_id": "uuid" | "new",  # Required for messaging; use client_id if "new"
+        "client_id": "uuid",  # Required when conversation_id is "new"
         "participants": [{"email": "...", "name": "..."}],  # Optional for DocuSign
         "message": "Optional message text"
     }
 
-    Returns 501 Not Implemented (stub for Phase 2).
+    `messaging` sends a chat message with a checklist_form attachment (presigned URL).
+    `docusign` creates an agreement from the PDF and sends for signature (email).
+    `both` runs messaging then DocuSign; returns partial success if one leg fails.
     """
     # Agent authorization
     auth_error = _require_agent(user)
@@ -162,15 +171,83 @@ def send_form(user, transaction_id: str, section: str, item_id: str, form_id: st
         },
     )
 
-    # Stub response - Phase 2 implementation
-    return (
-        jsonify(
-            {
-                "success": False,
-                "error": "Not Implemented",
-                "message": "Form sending will be implemented in Phase 2. "
-                "Use docusignApi.createAgreement() or send_message() directly for now.",
-            }
-        ),
-        501,
+    try:
+        item_id_int = int(item_id)
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "error": "Invalid item_id"}), 400
+
+    if method == "messaging":
+        try:
+            result = FormsService.send_form_via_messaging(
+                form=form,
+                agent_user_id=str(user.id),
+                conversation_id=data.get("conversation_id"),
+                client_id_for_new=data.get("client_id"),
+                optional_message=data.get("message"),
+            )
+            return jsonify({"success": True, "message_id": result["message_id"]})
+        except ValueError as e:
+            return jsonify({"success": False, "error": str(e)}), 400
+
+    if method == "docusign":
+        try:
+            result = FormsService.send_form_via_docusign(
+                form=form,
+                agent_user_id=str(user.id),
+                buyer_user_id=str(transaction_id),
+                section=str(section),
+                item_id=item_id_int,
+                optional_message=data.get("message"),
+            )
+            return jsonify({"success": True, "agreement_id": result["agreement_id"]})
+        except ValueError as e:
+            return jsonify({"success": False, "error": str(e)}), 400
+
+    # both
+    partial_errors: list[dict] = []
+    message_id_out = None
+    agreement_id_out = None
+    try:
+        msg = FormsService.send_form_via_messaging(
+            form=form,
+            agent_user_id=str(user.id),
+            conversation_id=data.get("conversation_id"),
+            client_id_for_new=data.get("client_id"),
+            optional_message=data.get("message"),
+        )
+        message_id_out = msg.get("message_id")
+    except ValueError as e:
+        partial_errors.append({"step": "messaging", "error": str(e)})
+    try:
+        ds = FormsService.send_form_via_docusign(
+            form=form,
+            agent_user_id=str(user.id),
+            buyer_user_id=str(transaction_id),
+            section=str(section),
+            item_id=item_id_int,
+            optional_message=data.get("message"),
+        )
+        agreement_id_out = ds.get("agreement_id")
+    except ValueError as e:
+        partial_errors.append({"step": "docusign", "error": str(e)})
+
+    if message_id_out is None and agreement_id_out is None:
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Both messaging and DocuSign failed",
+                    "details": partial_errors,
+                }
+            ),
+            400,
+        )
+
+    return jsonify(
+        {
+            "success": True,
+            "message_id": message_id_out,
+            "agreement_id": agreement_id_out,
+            "partial_errors": partial_errors or None,
+        }
     )

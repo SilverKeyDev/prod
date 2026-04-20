@@ -66,7 +66,10 @@ export function SearchHeaderLocations({
       const trimmed = address ?? "";
       const next = [...safeLocations];
       const existing = next[index] ?? { address: "" };
-      const updated: SearchImportantLocation = { ...existing, address: trimmed };
+      const updated: SearchImportantLocation = {
+        ...existing,
+        address: trimmed,
+      };
       if (next[index]) next[index] = updated;
       else next.push(updated);
       const filtered = next.filter((loc) => (loc.address ?? "").toString().trim().length > 0);
@@ -161,12 +164,12 @@ export function SearchHeaderLocations({
                   <Input
                     value={commuteText}
                     onValueChange={(v) => handleCommuteChange(index, v ?? "")}
-                    placeholder="Commute max (minutes, optional)"
+                    placeholder="Max commute time (minutes, optional)"
                     keyboardType="number-pad"
                     className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
                   />
                 </Box>
-                {displayList.length > 1 && (
+                {safeLocations.length > 0 && (
                   <Pressable
                     onPress={() => handleRemoveLocation(index)}
                     className="border-border bg-background-surface self-start rounded-lg border px-3 py-2"

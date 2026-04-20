@@ -55,7 +55,7 @@ Pure UI state management hooks (localStorage, modals, toasts, etc.).
 
 ```typescript
 // ✅ CORRECT: Component uses data hook
-import { useUserData } from "../../../packages/hooks/data/useUserData";
+import { useUserData } from "../../../packages/hooks/data/user/useUserData";
 
 function Component() {
   const { user, isLoading } = useUserData();

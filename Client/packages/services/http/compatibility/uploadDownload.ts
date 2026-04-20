@@ -4,7 +4,7 @@
 
 import { getEnv } from "packages/config/env";
 import { HttpError, normalizeHeaders, normalizeUrl } from "packages/services/http/client";
-import type { ApiRequestOptions } from "packages/types/api";
+import type { ApiRequestOptions } from "packages/types/domain/api";
 import { getFetch } from "packages/utils/platform";
 
 import { getAuthToken } from "./core/config";

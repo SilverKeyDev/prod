@@ -10,29 +10,16 @@ type AdminDocuSignDiagnosticsSectionProps = {
   isAgent: boolean;
 };
 
-export function AdminDocuSignDiagnosticsSection({
-  isAgent,
-}: AdminDocuSignDiagnosticsSectionProps) {
+export function AdminDocuSignDiagnosticsSection({ isAgent }: AdminDocuSignDiagnosticsSectionProps) {
   const [docusignAuthUrl, setDocusignAuthUrl] = useState<string | null>(null);
   const [docusignOAuthLoading, setDocusignOAuthLoading] = useState(false);
-  const [docusignOAuthError, setDocusignOAuthError] = useState<string | null>(
-    null,
-  );
-  const [docusignTemplatesLoading, setDocusignTemplatesLoading] =
-    useState(false);
-  const [docusignTemplatesError, setDocusignTemplatesError] = useState<
-    string | null
-  >(null);
-  const [docusignTemplatesPreview, setDocusignTemplatesPreview] = useState<
-    string | null
-  >(null);
+  const [docusignOAuthError, setDocusignOAuthError] = useState<string | null>(null);
+  const [docusignTemplatesLoading, setDocusignTemplatesLoading] = useState(false);
+  const [docusignTemplatesError, setDocusignTemplatesError] = useState<string | null>(null);
+  const [docusignTemplatesPreview, setDocusignTemplatesPreview] = useState<string | null>(null);
   const [docusignSyncLoading, setDocusignSyncLoading] = useState(false);
-  const [docusignSyncError, setDocusignSyncError] = useState<string | null>(
-    null,
-  );
-  const [docusignSyncTaskId, setDocusignSyncTaskId] = useState<string | null>(
-    null,
-  );
+  const [docusignSyncError, setDocusignSyncError] = useState<string | null>(null);
+  const [docusignSyncTaskId, setDocusignSyncTaskId] = useState<string | null>(null);
 
   const handleDocusignOAuthStart = useCallback(async () => {
     setDocusignOAuthError(null);
@@ -42,14 +29,9 @@ export function AdminDocuSignDiagnosticsSection({
       const { auth_url: authUrl } = await adminApi.docusignOAuthStart();
       setDocusignAuthUrl(authUrl);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "DocuSign OAuth start failed";
+      const message = err instanceof Error ? err.message : "DocuSign OAuth start failed";
       setDocusignOAuthError(message);
-      log.error(
-        LOG_CATEGORIES.ERRORS,
-        "[ADMIN_PAGE] docusignOAuthStart failed",
-        err,
-      );
+      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_PAGE] docusignOAuthStart failed", err);
     } finally {
       setDocusignOAuthLoading(false);
     }
@@ -63,14 +45,9 @@ export function AdminDocuSignDiagnosticsSection({
       const templates = await adminApi.docusignListTemplates();
       setDocusignTemplatesPreview(JSON.stringify(templates, null, 2));
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to list templates";
+      const message = err instanceof Error ? err.message : "Failed to list templates";
       setDocusignTemplatesError(message);
-      log.error(
-        LOG_CATEGORIES.ERRORS,
-        "[ADMIN_PAGE] docusignListTemplates failed",
-        err,
-      );
+      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_PAGE] docusignListTemplates failed", err);
     } finally {
       setDocusignTemplatesLoading(false);
     }
@@ -84,14 +61,9 @@ export function AdminDocuSignDiagnosticsSection({
       const { task_id: taskId } = await adminApi.docusignSyncTemplates();
       setDocusignSyncTaskId(taskId);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Template sync failed";
+      const message = err instanceof Error ? err.message : "Template sync failed";
       setDocusignSyncError(message);
-      log.error(
-        LOG_CATEGORIES.ERRORS,
-        "[ADMIN_PAGE] docusignSyncTemplates failed",
-        err,
-      );
+      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_PAGE] docusignSyncTemplates failed", err);
     } finally {
       setDocusignSyncLoading(false);
     }
@@ -103,17 +75,15 @@ export function AdminDocuSignDiagnosticsSection({
         DocuSign integration (agent)
       </Title>
       <BodyText size="sm" muted className="mb-4">
-        These actions call <code className="text-xs">/api/v1/docusign/*</code>{" "}
-        and require an account with agent access. Configure{" "}
-        <code className="text-xs">DOCUSIGN_CLIENT_ID</code>,{" "}
-        <code className="text-xs">DOCUSIGN_CLIENT_SECRET</code>, and related
-        keys in Server <code className="text-xs">.env</code>. Template sync
-        returns a Celery task id; a worker must be running to process it.
+        These actions call <code className="text-xs">/api/v1/docusign/*</code> and require an
+        account with agent access. Configure <code className="text-xs">DOCUSIGN_CLIENT_ID</code>,{" "}
+        <code className="text-xs">DOCUSIGN_CLIENT_SECRET</code>, and related keys in Server{" "}
+        <code className="text-xs">.env</code>. Template sync returns a Celery task id; a worker must
+        be running to process it.
       </BodyText>
       {!isAgent ? (
         <BodyText size="sm" className="text-amber-700">
-          Turn on &quot;Agent&quot; above to use DocuSign diagnostics from this
-          page.
+          Turn on &quot;Agent&quot; above to use DocuSign diagnostics from this page.
         </BodyText>
       ) : (
         <Box className="flex flex-col gap-4">
@@ -129,9 +99,7 @@ export function AdminDocuSignDiagnosticsSection({
                 void handleDocusignOAuthStart();
               }}
             >
-              {docusignOAuthLoading
-                ? "Loading…"
-                : "Start DocuSign OAuth (get auth URL)"}
+              {docusignOAuthLoading ? "Loading…" : "Start DocuSign OAuth (get auth URL)"}
             </Button>
             {docusignOAuthError ? (
               <BodyText size="sm" className="text-red-600">
@@ -187,10 +155,7 @@ export function AdminDocuSignDiagnosticsSection({
             ) : null}
             {docusignTemplatesPreview ? (
               <Box className="max-h-64 overflow-auto rounded-md border border-gray-200 bg-gray-50 p-3">
-                <BodyText
-                  size="xs"
-                  className="whitespace-pre-wrap break-all font-mono"
-                >
+                <BodyText size="xs" className="whitespace-pre-wrap break-all font-mono">
                   {docusignTemplatesPreview}
                 </BodyText>
               </Box>

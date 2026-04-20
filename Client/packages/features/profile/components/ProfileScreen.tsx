@@ -1,76 +1,43 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useLocalization } from "packages/contexts";
-import {
-  PersonalizationSectionLayoutProvider,
-  PersonalizationSectionPanel,
-} from "packages/features/profile/components/layout";
 import { getPersonalizationStepsUi } from "packages/features/profile/components/profilePicture/profileStepsUi";
-import { ProfileDemographicsSection } from "packages/features/profile/components/profileScreen/ProfileDemographicsSection";
-import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/ProfileFinancialSection";
-import { ProfileHousingEssentialsSection } from "packages/features/profile/components/profileScreen/ProfileHousingEssentialsSection";
-import { ProfileHousingRangesSection } from "packages/features/profile/components/profileScreen/ProfileHousingRangesSection";
-import { ProfileLocationSection } from "packages/features/profile/components/profileScreen/ProfileLocationSection";
-import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/ProfileSearchPropertySection";
-import {
-  AgentBrokerageSection,
-  AgentLicensingSection,
-  AgentProfileServiceSection,
-} from "packages/features/profile/components/sections";
+import { buildProfileUnderlineTabItems } from "packages/features/profile/components/profileScreen/buildProfileUnderlineTabItems";
+import { validateProfilePhotoFile } from "packages/features/profile/components/profileScreen/profilePhotoValidation";
+import { ProfileScreenActiveSectionPanel } from "packages/features/profile/components/profileScreen/ProfileScreenActiveSectionPanel";
+import { ProfileScreenPhotoFileInput } from "packages/features/profile/components/profileScreen/ProfileScreenPhotoFileInput";
+import { ProfileScreenPreferenceToolbar } from "packages/features/profile/components/profileScreen/ProfileScreenPreferenceToolbar";
+import { AgentPublicProfileShareRow } from "packages/features/profile/components/profileScreen/sections/AgentPublicProfileShareRow";
 import type { OnboardingData } from "packages/features/profile/utils";
 import {
   getProfileSectionCompletion,
   handleSubmit as handleSubmitUtil,
+  isAgentIdentityForProfileUi,
   nextPreferencesVersion,
+  resolveAgentPublicProfileShare,
   userPreferencesToOnboardingData,
 } from "packages/features/profile/utils";
 import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
 import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePictureUpload";
-import {
-  useUserData,
-  useUserPreferences,
-} from "packages/hooks/data/auth/useUserData";
+import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { showErrorToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
-import { ScrollView } from "packages/ui/components/primitives";
-import { Loading } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { useAuthStore } from "packages/store";
+import { Box, Loading, ScrollView, Text } from "packages/ui/components/primitives";
 import { UnderlineTabs } from "packages/ui/components/tabs";
 import { isWeb } from "packages/utils/platform";
 
-const PROFILE_PHOTO_ACCEPT = "image/jpeg,image/png,image/gif";
-const PROFILE_PHOTO_MAX_BYTES = 15 * 1024 * 1024;
+export type ProfileScreenProps = {
+  /** When set, loads that user's preferences read-only (e.g. agent client hub). */
+  agentSubject?: { userId: string; displayName: string } | null;
+};
 
-function validateProfilePhotoFile(file: File): string | null {
-  if (file.size > PROFILE_PHOTO_MAX_BYTES) {
-    return "Image must be 15MB or smaller.";
-  }
-  const allowed = ["image/jpeg", "image/png", "image/gif"];
-  if (!allowed.includes(file.type)) {
-    return "Please use a JPEG, PNG, or GIF image.";
-  }
-  return null;
-}
-
-export function ProfileScreen() {
-  const { t } = useLocalization();
+export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
   const { userProfile } = useUserData();
-  const {
-    userPreferences,
-    preferencesLoading,
-    preferencesError,
-    refreshUserPreferences,
-  } = useUserPreferences();
+  const { userPreferences, preferencesLoading, preferencesError, refreshUserPreferences } =
+    useUserPreferences(
+      agentSubject != null ? { preferencesSubjectUserId: agentSubject.userId } : undefined
+    );
   const submitPreferences = usePreferencesSubmit();
   const {
     uploadProfilePicture,
@@ -91,11 +58,45 @@ export function ProfileScreen() {
   const [showValidationWarning, setShowValidationWarning] = useState(false);
 
   const isAgent = useIsAgent();
-  const STEPS = useMemo(() => getPersonalizationStepsUi(isAgent), [isAgent]);
-  const [activeSection, setActiveSection] = useState<string>(
-    STEPS[0]?.id ?? "demographics",
+  const authUser = useAuthStore((s) => s.user);
+
+  const profileForSync = useMemo(
+    () => (agentSubject != null ? { name: agentSubject.displayName } : (userProfile ?? undefined)),
+    [agentSubject, userProfile]
   );
+
+  const isAgentForProfileUi = useMemo(
+    () =>
+      agentSubject != null
+        ? isAgentIdentityForProfileUi(false, { is_agent: false })
+        : isAgentIdentityForProfileUi(isAgent, userProfile),
+    [agentSubject, isAgent, userProfile]
+  );
+  const {
+    show: showAgentPublicProfileShare,
+    agentId: agentPublicProfileUserId,
+    displayName: agentPublicProfileDisplayName,
+  } = useMemo(
+    () =>
+      agentSubject != null
+        ? { show: false, agentId: "", displayName: null as string | null }
+        : resolveAgentPublicProfileShare({
+            storeIsAgent: isAgent,
+            authUser,
+            userProfile,
+          }),
+    [agentSubject, isAgent, authUser, userProfile]
+  );
+  const STEPS = useMemo(
+    () => getPersonalizationStepsUi(isAgentForProfileUi),
+    [isAgentForProfileUi]
+  );
+  const [activeSection, setActiveSection] = useState<string>(STEPS[0]?.id ?? "demographics");
   const hasInitializedFormRef = useRef(false);
+
+  useEffect(() => {
+    hasInitializedFormRef.current = false;
+  }, [agentSubject?.userId]);
 
   useEffect(() => {
     if (STEPS.length > 0 && !STEPS.some((s) => s.id === activeSection)) {
@@ -103,13 +104,17 @@ export function ProfileScreen() {
     }
   }, [STEPS, activeSection]);
 
-  const sectionCompletion = useMemo(
-    () => getProfileSectionCompletion(formData),
-    [formData],
-  );
+  const effectiveEditMode = agentSubject != null ? false : isEditMode;
+
+  const sectionCompletion = useMemo(() => getProfileSectionCompletion(formData), [formData]);
   const currentStep = useMemo(
     () => STEPS.find((s) => s.id === activeSection),
-    [STEPS, activeSection],
+    [STEPS, activeSection]
+  );
+
+  const underlineTabItems = useMemo(
+    () => buildProfileUnderlineTabItems(STEPS, sectionCompletion),
+    [STEPS, sectionCompletion]
   );
 
   const handleChangeProfilePhoto = useCallback(() => {
@@ -140,20 +145,15 @@ export function ProfileScreen() {
         e.target.value = "";
       }
     },
-    [uploadProfilePicture],
+    [uploadProfilePicture]
   );
 
   useEffect(() => {
     if (
       showValidationWarning &&
-      (validationResult.missingFields.length > 0 ||
-        validationResult.errors.length > 0)
+      (validationResult.missingFields.length > 0 || validationResult.errors.length > 0)
     ) {
-      const message = [
-        ...validationResult.missingFields,
-        ...validationResult.errors,
-      ].join("\n");
-      // Platform-specific alert - web would use a modal, native uses Alert
+      const message = [...validationResult.missingFields, ...validationResult.errors].join("\n");
       log.warn(LOG_CATEGORIES.ERRORS, "Profile validation issues", { message });
       setShowValidationWarning(false);
     }
@@ -163,59 +163,60 @@ export function ProfileScreen() {
     void refreshUserPreferences();
   }, [refreshUserPreferences]);
 
-  // Initialize form from server only once when preferences first become available.
-  // Never reset hasInitializedFormRef when userPreferences is falsy (e.g. during refetch
-  // or cache updates), so in-progress edits are not overwritten by a re-init.
   useEffect(() => {
+    if (agentSubject != null) return;
     if (!userPreferences) return;
     if (hasInitializedFormRef.current) return;
     hasInitializedFormRef.current = true;
     const data = userPreferencesToOnboardingData(
       userPreferences as Record<string, unknown>,
-      userProfile ?? undefined,
+      profileForSync
     );
     setFormData(data);
     setOriginalData(data);
-  }, [userPreferences, userProfile]);
+  }, [agentSubject, userPreferences, profileForSync]);
 
-  // When profile loads after form was already initialized, backfill name from user profile
-  // (stored at sign-up) so it displays correctly even if preferences loaded first.
   useEffect(() => {
+    if (agentSubject == null) return;
+    if (hasInitializedFormRef.current) return;
+    if (preferencesLoading) return;
+    hasInitializedFormRef.current = true;
+    const data = userPreferencesToOnboardingData(
+      userPreferences ? (userPreferences as Record<string, unknown>) : null,
+      profileForSync
+    );
+    setFormData(data);
+    setOriginalData(data);
+  }, [agentSubject, preferencesLoading, userPreferences, profileForSync]);
+
+  useEffect(() => {
+    if (agentSubject != null) return;
     if (!hasInitializedFormRef.current) return;
     const nameFromProfile =
-      userProfile != null &&
-      typeof userProfile.name === "string" &&
-      userProfile.name.trim() !== ""
+      userProfile != null && typeof userProfile.name === "string" && userProfile.name.trim() !== ""
         ? userProfile.name.trim()
         : undefined;
     if (!nameFromProfile) return;
-    setFormData((prev) =>
-      prev.name ? prev : { ...prev, name: nameFromProfile },
-    );
-    setOriginalData((prev) =>
-      prev.name ? prev : { ...prev, name: nameFromProfile },
-    );
-  }, [userProfile]);
+    setFormData((prev) => (prev.name ? prev : { ...prev, name: nameFromProfile }));
+    setOriginalData((prev) => (prev.name ? prev : { ...prev, name: nameFromProfile }));
+  }, [agentSubject, userProfile]);
 
-  const updateField = useCallback(
-    (field: keyof OnboardingData, value: unknown) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    },
-    [],
-  );
+  const updateField = useCallback((field: keyof OnboardingData, value: unknown) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const patchBuyerPreferenceExtensions = useCallback(
     (
       fn: (
-        prev: OnboardingData["buyerPreferenceExtensions"],
-      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>,
+        prev: OnboardingData["buyerPreferenceExtensions"]
+      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>
     ) => {
       setFormData((prev) => ({
         ...prev,
         buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
       }));
     },
-    [],
+    []
   );
 
   const handleStartEdit = useCallback(() => {
@@ -277,168 +278,49 @@ export function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Box className="gap-4 px-4 pb-10 pt-4">
-          {isWeb ? (
-            <>
-              {/* eslint-disable-next-line silverkey/no-primitive-components -- file input has no UI replacement */}
-              <input
-                ref={profilePhotoInputRef}
-                type="file"
-                accept={PROFILE_PHOTO_ACCEPT}
-                onChange={handleProfilePhotoInputChange}
-                className="hidden"
-                aria-hidden
-              />
-            </>
+          {showAgentPublicProfileShare ? (
+            <AgentPublicProfileShareRow
+              agentId={agentPublicProfileUserId}
+              displayName={agentPublicProfileDisplayName}
+            />
           ) : null}
-          <Box className="flex-row gap-3">
-            {isEditMode ? (
-              <>
-                <CancelButton
-                  onPress={handleCancel}
-                  disabled={loading}
-                  size="sm"
-                  className="flex-1"
-                >
-                  {t("profile.account.cancel")}
-                </CancelButton>
-                <Button
-                  onPress={handleSave}
-                  disabled={loading}
-                  loading={loading}
-                  variant="primary"
-                  size="sm"
-                  iconName="save"
-                  className="flex-1"
-                >
-                  {t("profile.account.save")}
-                </Button>
-              </>
-            ) : (
-              <Button
-                onPress={handleStartEdit}
-                variant="primary"
-                size="sm"
-                iconName="edit"
-                className="self-start"
-              >
-                {t("profile.account.edit")}
-              </Button>
-            )}
-          </Box>
+          {agentSubject == null ? (
+            <ProfileScreenPhotoFileInput
+              inputRef={profilePhotoInputRef}
+              onChange={handleProfilePhotoInputChange}
+            />
+          ) : null}
+          {agentSubject == null ? (
+            <ProfileScreenPreferenceToolbar
+              isEditMode={isEditMode}
+              loading={loading}
+              onStartEdit={handleStartEdit}
+              onCancel={handleCancel}
+              onSave={handleSave}
+            />
+          ) : null}
 
           <UnderlineTabs
-            items={STEPS.map((step) => {
-              const status =
-                sectionCompletion[step.id as keyof typeof sectionCompletion] ??
-                "empty";
-              const isComplete = status === "complete";
-              const needsAttention = status === "needs_attention";
-              const icon = step.icon
-                ? React.createElement(step.icon, { className: "h-4 w-4" })
-                : undefined;
-              const suffix = isComplete
-                ? " ✓"
-                : !isComplete && needsAttention
-                  ? " •"
-                  : "";
-              return {
-                id: step.id,
-                label: `${step.title}${suffix}`,
-                icon,
-              };
-            })}
+            items={underlineTabItems}
             activeId={activeSection}
             onChange={(id) => setActiveSection(id)}
             compact
             className="mb-4"
           />
 
-          {currentStep ? (
-            <PersonalizationSectionLayoutProvider>
-              <PersonalizationSectionPanel
-                sectionId={currentStep.id}
-                screenReaderHeading={currentStep.title}
-              >
-                {activeSection === "agent_brokerage" && (
-                  <AgentBrokerageSection
-                    formData={formData}
-                    isEditMode={isEditMode}
-                    updateFormData={updateField}
-                  />
-                )}
-                {activeSection === "agent_licensing" && (
-                  <AgentLicensingSection
-                    formData={formData}
-                    isEditMode={isEditMode}
-                    updateFormData={updateField}
-                  />
-                )}
-                {activeSection === "agent_profile" && (
-                  <AgentProfileServiceSection
-                    formData={formData}
-                    isEditMode={isEditMode}
-                    updateFormData={updateField}
-                  />
-                )}
-                {activeSection === "demographics" && (
-                  <ProfileDemographicsSection
-                    formData={formData}
-                    isEditMode={isEditMode}
-                    updateField={updateField}
-                    profilePictureUrl={userProfile?.profile_picture_url}
-                    onUploadPhoto={handleChangeProfilePhoto}
-                    isUploadingProfilePicture={isUploadingProfilePicture}
-                    profilePictureError={profilePictureError}
-                    userDisplayName={userProfile?.name}
-                  />
-                )}
-                {activeSection === "financial" && (
-                  <ProfileFinancialSection
-                    formData={formData}
-                    isEditMode={isEditMode}
-                    updateField={updateField}
-                    patchBuyerPreferenceExtensions={
-                      patchBuyerPreferenceExtensions
-                    }
-                  />
-                )}
-                {activeSection === "location" && (
-                  <ProfileLocationSection
-                    formData={formData}
-                    isEditMode={isEditMode}
-                    updateField={updateField}
-                    patchBuyerPreferenceExtensions={
-                      patchBuyerPreferenceExtensions
-                    }
-                  />
-                )}
-                {activeSection === "housing_essentials" && (
-                  <ProfileHousingEssentialsSection
-                    formData={formData}
-                    isEditMode={isEditMode}
-                    updateField={updateField}
-                  />
-                )}
-                {activeSection === "housing_ranges" && (
-                  <ProfileHousingRangesSection
-                    formData={formData}
-                    isEditMode={isEditMode}
-                    updateField={updateField}
-                  />
-                )}
-                {activeSection === "search_property" && (
-                  <ProfileSearchPropertySection
-                    formData={formData}
-                    isEditMode={isEditMode}
-                    updateField={updateField}
-                    patchBuyerPreferenceExtensions={
-                      patchBuyerPreferenceExtensions
-                    }
-                  />
-                )}
-              </PersonalizationSectionPanel>
-            </PersonalizationSectionLayoutProvider>
-          ) : null}
+          <ProfileScreenActiveSectionPanel
+            currentStep={currentStep}
+            activeSection={activeSection}
+            effectiveEditMode={effectiveEditMode}
+            formData={formData}
+            agentSubject={agentSubject}
+            userProfile={userProfile}
+            updateField={updateField}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+            onChangeProfilePhoto={handleChangeProfilePhoto}
+            isUploadingProfilePicture={isUploadingProfilePicture}
+            profilePictureError={profilePictureError}
+          />
         </Box>
       </ScrollView>
     </Box>

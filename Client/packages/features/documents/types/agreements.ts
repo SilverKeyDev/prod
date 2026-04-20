@@ -23,38 +23,31 @@ export type ParticipantStatus = components["schemas"]["ParticipantStatus"];
 
 export type Agreement = components["schemas"]["Agreement"];
 export type AgreementRevision = components["schemas"]["AgreementRevision"];
-export type AgreementParticipant =
-  components["schemas"]["AgreementParticipant"];
+export type AgreementParticipant = components["schemas"]["AgreementParticipant"];
 export type AgreementEvent = components["schemas"]["AgreementEvent"];
 export type DocusignTemplate = components["schemas"]["DocusignTemplate"];
 
-export type CreateAgreementRequest =
-  components["schemas"]["CreateAgreementRequest"];
-export type SendAgreementRequest =
-  components["schemas"]["SendAgreementRequest"];
-export type VoidAgreementRequest =
-  components["schemas"]["VoidAgreementRequest"];
-export type GetSigningUrlRequest =
-  components["schemas"]["GetSigningUrlRequest"];
+export type CreateAgreementRequest = components["schemas"]["CreateAgreementRequest"];
+export type SendAgreementRequest = components["schemas"]["SendAgreementRequest"];
+export type DocusignResendRecipientRequest =
+  components["schemas"]["DocusignResendRecipientRequest"];
+export type DocusignResendRecipientResponse =
+  components["schemas"]["DocusignResendRecipientResponse"];
+export type DocusignUpdateEnvelopeNotificationRequest =
+  components["schemas"]["DocusignUpdateEnvelopeNotificationRequest"];
+export type DocusignUpdateEnvelopeNotificationResponse =
+  components["schemas"]["DocusignUpdateEnvelopeNotificationResponse"];
+export type VoidAgreementRequest = components["schemas"]["VoidAgreementRequest"];
+export type GetSigningUrlRequest = components["schemas"]["GetSigningUrlRequest"];
 
-export type CreateAgreementResponse =
-  components["schemas"]["CreateAgreementResponse"];
-export type GetAgreementResponse =
-  components["schemas"]["GetAgreementResponse"];
-export type ListAgreementsResponse =
-  components["schemas"]["ListAgreementsResponse"];
-export type CreateRevisionResponse =
-  components["schemas"]["CreateRevisionResponse"];
-export type SendAgreementResponse =
-  components["schemas"]["SendAgreementResponse"];
-export type VoidAgreementResponse =
-  components["schemas"]["VoidAgreementResponse"];
-export type GetSigningUrlResponse =
-  components["schemas"]["GetSigningUrlResponse"];
-export type GetSenderViewUrlResponse =
-  components["schemas"]["GetSenderViewUrlResponse"];
-export type ListTemplatesResponse =
-  components["schemas"]["ListTemplatesResponse"];
-export type SyncTemplatesResponse =
-  components["schemas"]["SyncTemplatesResponse"];
+export type CreateAgreementResponse = components["schemas"]["CreateAgreementResponse"];
+export type GetAgreementResponse = components["schemas"]["GetAgreementResponse"];
+export type ListAgreementsResponse = components["schemas"]["ListAgreementsResponse"];
+export type CreateRevisionResponse = components["schemas"]["CreateRevisionResponse"];
+export type SendAgreementResponse = components["schemas"]["SendAgreementResponse"];
+export type VoidAgreementResponse = components["schemas"]["VoidAgreementResponse"];
+export type GetSigningUrlResponse = components["schemas"]["GetSigningUrlResponse"];
+export type GetSenderViewUrlResponse = components["schemas"]["GetSenderViewUrlResponse"];
+export type ListTemplatesResponse = components["schemas"]["ListTemplatesResponse"];
+export type SyncTemplatesResponse = components["schemas"]["SyncTemplatesResponse"];
 export type OAuthStartResponse = components["schemas"]["OAuthStartResponse"];

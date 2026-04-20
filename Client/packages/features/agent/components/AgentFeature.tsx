@@ -9,8 +9,8 @@ import { Box } from "packages/ui/components/primitives";
 
 import { KeyTurnLoader } from "@/components/ui";
 
-import AgentDashboard from "./AgentDashboard";
-import ClientMessaging from "./ClientMessaging";
+import ClientMessaging from "./messaging/ClientMessaging";
+import AgentDashboard from "./workspace/AgentDashboard";
 
 type AgentFeatureProps = {
   setMobileHeaderActions?: Dispatch<SetStateAction<ReactNode | null>>;

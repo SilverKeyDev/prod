@@ -1,0 +1,9 @@
+allOf:
+  - $ref: ../../shared/core/SuccessResponse.yaml
+  - type: object
+    properties:
+      detail:
+        type: object
+        additionalProperties: true
+        nullable: true
+        description: DocuSign RecipientsUpdateSummary or error detail.

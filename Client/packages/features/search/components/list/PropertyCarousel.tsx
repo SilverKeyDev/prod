@@ -4,10 +4,7 @@ import { Box } from "packages/ui/components/primitives";
 import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
 
 import { PropertyCard } from "@/components/cards";
-import {
-  CardCarousel,
-  CardHeartSaveWithProps,
-} from "@/components/cards/base/index.web";
+import { CardCarousel, CardHeartSaveWithProps } from "@/components/cards/base/index.web";
 import { BodyText } from "@/components/ui";
 import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/useNotInterestedHomesData";
 import type { SearchResult } from "@/features/search/types";
@@ -40,8 +37,7 @@ export function PropertyCarousel(props: {
   } = props;
 
   const { t } = useLocalization();
-  const { markNotInterested, removeNotInterested } =
-    useNotInterestedHomesData();
+  const { markNotInterested, removeNotInterested } = useNotInterestedHomesData();
 
   if (items.length === 0) {
     return (
@@ -60,22 +56,19 @@ export function PropertyCarousel(props: {
     <CardCarousel
       items={items}
       renderItem={(property: SearchResult, _index: number) => {
-        const propertyAddress =
-          typeof property.address === "string" ? property.address : "";
+        const propertyAddress = typeof property.address === "string" ? property.address : "";
 
         return (
           <PropertyCard
             id={property.id}
             imageUrl={property.imageUrl}
             address={
-              typeof property.address === "string" ||
-              typeof property.address === "number"
+              typeof property.address === "string" || typeof property.address === "number"
                 ? addressStreetLineForCard(property.address)
                 : "[Invalid address]"
             }
             price={
-              typeof property.price === "string" ||
-              typeof property.price === "number"
+              typeof property.price === "string" || typeof property.price === "number"
                 ? property.price.toString()
                 : "[Invalid price]"
             }
@@ -112,16 +105,11 @@ export function PropertyCarousel(props: {
                 <CardHeartSaveWithProps
                   property={{
                     id: property.id,
-                    address:
-                      typeof property.address === "string"
-                        ? property.address
-                        : undefined,
+                    address: typeof property.address === "string" ? property.address : undefined,
                   }}
                   isSaved={isHomeSaved(
                     property.id,
-                    typeof property.address === "string"
-                      ? property.address
-                      : undefined,
+                    typeof property.address === "string" ? property.address : undefined
                   )}
                   saveHome={async () => saveHome(property)}
                   removeSavedHome={removeSavedHome}
@@ -129,11 +117,7 @@ export function PropertyCarousel(props: {
                   position="top-right"
                 />
               ) : (
-                <ConnectedCardHeartSave
-                  property={property}
-                  size="sm"
-                  position="top-right"
-                />
+                <ConnectedCardHeartSave property={property} size="sm" position="top-right" />
               )
             }
           />

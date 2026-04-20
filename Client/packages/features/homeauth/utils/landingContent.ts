@@ -79,13 +79,11 @@ export const LANDING_CONTENT: LandingContent = {
     stats: [
       {
         value: "Buyers",
-        label:
-          "See listings, saves, and next steps without waiting on forwarded files.",
+        label: "See listings, saves, and next steps without waiting on forwarded files.",
       },
       {
         value: "Agents",
-        label:
-          "Spend less time chasing signatures, versions, and file-check messages.",
+        label: "Spend less time chasing signatures, versions, and file-check messages.",
       },
       {
         value: "Efficiency",

@@ -1,9 +1,5 @@
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
-import {
-  HomeHashLink,
-  homeLandingSectionIdFromHref,
-  Link,
-} from "packages/navigation";
+import { HomeHashLink, homeLandingSectionIdFromHref, Link } from "packages/navigation";
 import { LOGO } from "packages/ui/components/asset";
 import { Box, Image } from "packages/ui/components/primitives";
 
@@ -41,10 +37,7 @@ export function LandingFooter() {
                   return (
                     <li key={l.href}>
                       {sectionId ? (
-                        <HomeHashLink
-                          sectionId={sectionId}
-                          className={linkClass}
-                        >
+                        <HomeHashLink sectionId={sectionId} className={linkClass}>
                           {l.label}
                         </HomeHashLink>
                       ) : (

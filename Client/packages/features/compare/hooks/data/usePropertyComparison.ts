@@ -25,16 +25,11 @@ const toString = (value: unknown): string | undefined => {
   return String(value);
 };
 
-export function usePropertyComparison(
-  isOpen: boolean,
-  selectedHomes: SavedHome[],
-) {
+export function usePropertyComparison(isOpen: boolean, selectedHomes: SavedHome[]) {
   const [propertyDetails, setPropertyDetails] = useState<
     Record<string, CompareHomesPropertyDetails>
   >({});
-  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(
-    {},
-  );
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const isAgent = useIsAgent();
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
 
@@ -77,8 +72,7 @@ export function usePropertyComparison(
             bedrooms: home.bedrooms,
             bathrooms: home.bathrooms,
             sqft: home.sqft,
-            lotSize:
-              typeof home.lot_size === "string" ? home.lot_size : undefined,
+            lotSize: typeof home.lot_size === "string" ? home.lot_size : undefined,
             imageUrl: home.image_url,
           };
 
@@ -91,9 +85,7 @@ export function usePropertyComparison(
           if (isAgent && selectedClientId) {
             comparePayload.preferences_user_id = selectedClientId;
           }
-          for await (const update of researchApi.streamCompare(
-            comparePayload,
-          )) {
+          for await (const update of researchApi.streamCompare(comparePayload)) {
             if (cancelled) return;
 
             if (update.type === "error") {
@@ -104,13 +96,8 @@ export function usePropertyComparison(
                 status_code?: number;
               };
               const errorMessage =
-                errorData.details ||
-                errorData.message ||
-                errorData.error ||
-                "Unknown error";
-              const statusCode = errorData.status_code
-                ? ` (${errorData.status_code})`
-                : "";
+                errorData.details || errorData.message || errorData.error || "Unknown error";
+              const statusCode = errorData.status_code ? ` (${errorData.status_code})` : "";
               throw new Error(`${errorMessage}${statusCode}`);
             }
 
@@ -124,23 +111,15 @@ export function usePropertyComparison(
                 };
                 if (basicData.data) {
                   const data = basicData.data;
-                  const newPrice =
-                    toNumberOrString(data.price) ||
-                    toNumberOrString(data.listPrice);
+                  const newPrice = toNumberOrString(data.price) || toNumberOrString(data.listPrice);
                   const newBedrooms =
-                    toNumberOrString(data.bedrooms) ||
-                    toNumberOrString(data.beds);
+                    toNumberOrString(data.bedrooms) || toNumberOrString(data.beds);
                   const newBathrooms =
-                    toNumberOrString(data.bathrooms) ||
-                    toNumberOrString(data.baths);
-                  const newSqft =
-                    toNumberOrString(data.sqft) ||
-                    toNumberOrString(data.livingArea);
-                  const newLotSize =
-                    toString(data.lotSize) || toString(data.lotAreaValue);
+                    toNumberOrString(data.bathrooms) || toNumberOrString(data.baths);
+                  const newSqft = toNumberOrString(data.sqft) || toNumberOrString(data.livingArea);
+                  const newLotSize = toString(data.lotSize) || toString(data.lotAreaValue);
                   const newYearBuilt = toNumberOrString(data.yearBuilt);
-                  const newPropertyType =
-                    toString(data.propertyType) || toString(data.homeType);
+                  const newPropertyType = toString(data.propertyType) || toString(data.homeType);
                   const newHomeType = toString(data.homeType);
                   const newListingStatus = toString(data.listingStatus);
 

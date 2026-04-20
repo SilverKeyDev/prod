@@ -23,8 +23,7 @@ export interface UsePropertyDetailsSectionScrollResult {
  * smooth scrolling to sections when tabs are clicked.
  */
 export function usePropertyDetailsSectionScroll(): UsePropertyDetailsSectionScrollResult {
-  const [activeSection, setActiveSection] =
-    useState<PropertyDetailsSectionId>("overview");
+  const [activeSection, setActiveSection] = useState<PropertyDetailsSectionId>("overview");
 
   // Create refs for each section
   const overviewRef = useRef<HTMLElement>(null);
@@ -39,7 +38,7 @@ export function usePropertyDetailsSectionScroll(): UsePropertyDetailsSectionScro
       match: matchRef,
       analysis: analysisRef,
     }),
-    [],
+    []
   );
 
   // Track which sections are currently intersecting
@@ -74,18 +73,14 @@ export function usePropertyDetailsSectionScroll(): UsePropertyDetailsSectionScro
       const containerRect = scrollContainer.getBoundingClientRect();
       const elementRect = ref.current.getBoundingClientRect();
       const offsetPosition =
-        elementRect.top -
-        containerRect.top +
-        scrollContainer.scrollTop -
-        headerHeight -
-        16;
+        elementRect.top - containerRect.top + scrollContainer.scrollTop - headerHeight - 16;
 
       scrollContainer.scrollTo({
         top: offsetPosition,
         behavior: "smooth",
       });
     },
-    [sectionRefs],
+    [sectionRefs]
   );
 
   // Set up IntersectionObserver to track visible sections
@@ -119,9 +114,7 @@ export function usePropertyDetailsSectionScroll(): UsePropertyDetailsSectionScro
 
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       entries.forEach((entry) => {
-        const sectionId = entry.target.getAttribute(
-          "data-section-id",
-        ) as PropertyDetailsSectionId;
+        const sectionId = entry.target.getAttribute("data-section-id") as PropertyDetailsSectionId;
         if (!sectionId) return;
 
         if (entry.isIntersecting) {
@@ -141,10 +134,7 @@ export function usePropertyDetailsSectionScroll(): UsePropertyDetailsSectionScro
       }
     };
 
-    const observer = new IntersectionObserverCtor(
-      handleIntersection,
-      observerOptions,
-    );
+    const observer = new IntersectionObserverCtor(handleIntersection, observerOptions);
 
     // Observe all sections
     const refs = Object.values(sectionRefs);

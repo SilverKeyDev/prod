@@ -92,10 +92,7 @@ export default function FieldShell({
   return (
     <Box className={cx("w-full space-y-1.5", className)}>
       {label && (
-        <Label
-          htmlFor={id}
-          className="text-text-primary mb-1 block text-sm font-medium"
-        >
+        <Label htmlFor={id} className="text-text-primary mb-1 block text-sm font-medium">
           {label}
         </Label>
       )}
@@ -199,9 +196,7 @@ export default function FieldShell({
       <Box className={containerClasses}>
         {/* Field Container with exact Input.tsx styling */}
         <Box className={fieldClasses}>
-          <Box className="nested-input flex h-full w-full items-center">
-            {children}
-          </Box>
+          <Box className="nested-input flex h-full w-full items-center">{children}</Box>
         </Box>
 
         {/* Left Icon - always visible on top of input */}

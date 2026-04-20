@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
+import { useSavedHomesStoreIntegration } from "packages/hooks/store";
 import { useAgentDashboardStore } from "packages/store";
 
 import { useReportsStoreIntegration } from "@/features/documents/hooks/store/useReportsStoreIntegration";
-import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
 
 /**
  * Single integration for saved homes: follows agent dashboard "view as client" selection

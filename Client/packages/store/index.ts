@@ -1,7 +1,4 @@
-export {
-  type AgentDashboardState,
-  useAgentDashboardStore,
-} from "./slices/agentDashboard";
+export { type AgentDashboardState, useAgentDashboardStore } from "./slices/agentDashboard";
 export { useFeatureFlagsStore } from "./slices/featureFlags";
 export { useGoogleMapsStore } from "./slices/maps";
 export { useNotificationStore } from "./slices/notifications";
@@ -61,12 +58,7 @@ export const selectIsAuthenticated = (s: unknown): boolean =>
   );
 
 export const selectAuthReady = (s: unknown): boolean =>
-  !!(
-    s &&
-    typeof s === "object" &&
-    "authReady" in s &&
-    (s as Record<string, unknown>).authReady
-  );
+  !!(s && typeof s === "object" && "authReady" in s && (s as Record<string, unknown>).authReady);
 
 export const selectUserMeta = (s: unknown): unknown =>
   s && typeof s === "object" && "userMeta" in s

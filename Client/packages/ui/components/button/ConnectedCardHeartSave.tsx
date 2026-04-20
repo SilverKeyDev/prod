@@ -3,7 +3,7 @@ import React from "react";
 import type { CardHeartSavePropertyLike } from "@ui/button/HeartSave";
 import { CardHeartSaveWithProps } from "@ui/button/HeartSave";
 
-import { useSavedHomesData } from "packages/hooks/data/useSavedHomesData";
+import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 
 export type ConnectedCardHeartSaveProps = {
   property: CardHeartSavePropertyLike & {
@@ -36,12 +36,9 @@ export function ConnectedCardHeartSave({
   const data = useSavedHomesData();
   const propertyLike: CardHeartSavePropertyLike = {
     id: property.id,
-    address:
-      typeof property.address === "string" ? property.address : undefined,
+    address: typeof property.address === "string" ? property.address : undefined,
   };
-  const isSaved = data?.isHomeSaved
-    ? data.isHomeSaved(property.id, propertyLike.address)
-    : false;
+  const isSaved = data?.isHomeSaved ? data.isHomeSaved(property.id, propertyLike.address) : false;
   const saveHome = data?.saveHome ?? (async () => {});
   const removeSavedHome = data?.removeSavedHome ?? (async () => {});
 

@@ -28,7 +28,7 @@ export function formatParkingLines(
   t: HomeDetailsTranslate,
   garageSpaces: number | undefined,
   parking: number | undefined,
-  parkingFeatures: string[],
+  parkingFeatures: string[]
 ): string[] {
   const lines: string[] = [];
   if (typeof garageSpaces === "number" && garageSpaces > 0) {
@@ -36,14 +36,14 @@ export function formatParkingLines(
       t("property_details.car_garage", {
         count: garageSpaces,
         defaultValue: "{{count}}-car garage",
-      }),
+      })
     );
   } else if (typeof parking === "number" && parking > 0) {
     lines.push(
       t("property_details.spaces", {
         count: parking,
         defaultValue: "{{count}} spaces",
-      }),
+      })
     );
   }
   lines.push(...parkingFeatures);
@@ -70,7 +70,7 @@ export function joinUnique(lines: string[], max: number): string[] {
 export function formatSchoolLines(
   schools: unknown,
   t: HomeDetailsTranslate,
-  maxSchools: number,
+  maxSchools: number
 ): string[] {
   if (!Array.isArray(schools) || schools.length === 0) return [];
   const sep = t("property_details.bullet_separator", { defaultValue: " • " });
@@ -111,10 +111,7 @@ export function formatSchoolLines(
   return lines;
 }
 
-export function hoaLine(
-  p: Record<string, unknown>,
-  t: HomeDetailsTranslate,
-): string | undefined {
+export function hoaLine(p: Record<string, unknown>, t: HomeDetailsTranslate): string | undefined {
   const monthly = p.monthlyHoaFee;
   if (typeof monthly === "number" && monthly > 0) {
     return t("property_details.hd_hoa_monthly", {

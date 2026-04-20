@@ -40,9 +40,7 @@ export function getAgreementTypeLabel(type: AgreementType): string {
  * Get color class for agreement status badge.
  * Supports both raw DocuSign statuses and contextual statuses.
  */
-export function getStatusColor(
-  status: AgreementStatus | ContextualAgreementStatus,
-): string {
+export function getStatusColor(status: AgreementStatus | ContextualAgreementStatus): string {
   const colors: Record<string, string> = {
     draft: "bg-gray-100 text-gray-700 border-gray-300",
     sent: "bg-blue-100 text-blue-700 border-blue-300",
@@ -62,9 +60,7 @@ export function getStatusColor(
  * Get human-readable status label.
  * Supports both raw DocuSign statuses and contextual statuses.
  */
-export function getStatusLabel(
-  status: AgreementStatus | ContextualAgreementStatus,
-): string {
+export function getStatusLabel(status: AgreementStatus | ContextualAgreementStatus): string {
   const labels: Record<string, string> = {
     draft: "Draft",
     sent: "Sent",
@@ -102,9 +98,7 @@ export function getStatusTooltip(status: AgreementStatus): string {
 export function canUserSign(agreement: Agreement, userId: string): boolean {
   if (!agreement.participants) return false;
 
-  const userParticipant = agreement.participants.find(
-    (p) => p.user_id === userId,
-  );
+  const userParticipant = agreement.participants.find((p) => p.user_id === userId);
 
   if (!userParticipant) return false;
 
@@ -118,11 +112,7 @@ export function canUserSign(agreement: Agreement, userId: string): boolean {
 /**
  * Check if user can send the agreement
  */
-export function canUserSend(
-  agreement: Agreement,
-  userId: string,
-  isAgent: boolean,
-): boolean {
+export function canUserSend(agreement: Agreement, userId: string, isAgent: boolean): boolean {
   // Only agents can send
   if (!isAgent) return false;
 
@@ -136,11 +126,7 @@ export function canUserSend(
 /**
  * Check if user can void the agreement
  */
-export function canUserVoid(
-  agreement: Agreement,
-  userId: string,
-  isAgent: boolean,
-): boolean {
+export function canUserVoid(agreement: Agreement, userId: string, isAgent: boolean): boolean {
   // Only agents can void
   if (!isAgent) return false;
 
@@ -163,7 +149,7 @@ export function canUserVoid(
 export function canUserCreateRevision(
   agreement: Agreement,
   userId: string,
-  isAgent: boolean,
+  isAgent: boolean
 ): boolean {
   // Only agents can create revisions
   if (!isAgent) return false;
@@ -193,9 +179,7 @@ export function formatParticipantRole(role: ParticipantRole | string): string {
 /**
  * Calculate signing progress (percentage)
  */
-export function calculateSigningProgress(
-  participants?: AgreementParticipant[],
-): {
+export function calculateSigningProgress(participants?: AgreementParticipant[]): {
   signed: number;
   total: number;
   percentage: number;
@@ -218,7 +202,7 @@ export function calculateSigningProgress(
  * Get participant status color
  */
 export function getParticipantStatusColor(
-  status: AgreementParticipant["status"] | string | undefined,
+  status: AgreementParticipant["status"] | string | undefined
 ): string {
   const colors: Record<string, string> = {
     pending: "text-gray-500",
@@ -279,9 +263,7 @@ export function daysSinceSent(sentAt?: string): number {
 /**
  * Get urgency level based on days waiting
  */
-export function getUrgencyLevel(
-  daysWaiting: number,
-): "low" | "medium" | "high" {
+export function getUrgencyLevel(daysWaiting: number): "low" | "medium" | "high" {
   if (daysWaiting >= 7) return "high";
   if (daysWaiting >= 3) return "medium";
   return "low";

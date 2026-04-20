@@ -1,150 +1,151 @@
 # Packages Directory
 
-This directory contains shared packages used across the SilverKey application. All packages follow a strict layered architecture with clear separation of concerns.
+Shared packages under `Client/packages/` implement almost all client behavior. **`apps/web`** and **`apps/mobile`** compose these packages; they stay thin (routing, providers, thin pages/screens).
 
-## Directory Structure
+## Directory structure
 
 ```
 packages/
-├── config/          # API clients and configuration
-├── services/        # Business logic and infrastructure services
-├── hooks/           # React hooks for data fetching and state management
-├── store/           # Zustand store slices for global state
-├── schemas/         # TypeScript type definitions
-├── utils/           # Framework-agnostic utility functions
+├── api/             # Small API helpers surfaced as a package (see `packages/api/`)
+├── config/          # API clients, env, HTTP config, React Query setup
 ├── contexts/        # React Context providers
-├── features/        # Feature-level React components (future architecture goal)
-└── styles/          # CSS stylesheets
+├── design-tokens/   # Tokens (colors, spacing, breakpoints)
+├── email-templates/ # Email-oriented modules
+├── features/        # Feature modules (search, profile, agent, …) — primary UI + feature logic
+├── hooks/           # Shared React hooks (data, store, UI)
+├── logger/          # Frontend logging (`packages/logger`)
+├── navigation/      # Navigation adapter (paths; no react-router-dom in features)
+├── schemas/         # Shared TypeScript types
+├── services/        # HTTP, security, domain services
+├── store/           # Zustand slices
+├── types/           # Shared types barrel
+├── ui/              # Shared UI primitives and design-system components
+└── utils/           # Framework-agnostic utilities
 ```
 
-## Architecture Overview
+Shared CSS for the design system lives under **`packages/ui/styles/`**; the web app wires Tailwind and global styles from `apps/web`.
 
-The packages follow a strict layered architecture:
+## Architecture overview
 
 ```
-Components (apps/web/)
-    ↓
-Hooks (packages/hooks/)
-    ↓
-Config/API (packages/config/api/)
-    ↓
-Services/HTTP (packages/services/http/)
+apps/web (pages, layouts)
+  -> packages/hooks/
+    -> packages/config/api/
+      -> packages/services/http/
 ```
 
-### Key Principles
+### Principles
 
-1. **Framework Agnostic**: Services, utils, and schemas should not depend on React
-2. **Separation of Concerns**: Each layer has a specific responsibility
-3. **Import Rules**: Strict rules govern what can import from where
-4. **Type Safety**: All packages use TypeScript with strict type checking
+1. **Framework boundaries:** Services, store, utils, schemas, and most of `config/` avoid React. Hooks and contexts use React; feature modules are React-oriented but stay importable from both apps.
+2. **Single feature home:** Feature-specific components, hooks, API helpers, types, and utils live in **`packages/features/<name>/`** (not in fat app folders).
+3. **Type safety:** Strict TypeScript; API types follow OpenAPI-generated types where applicable.
 
-## Import Rules
+## Import paths (canonical)
 
-### Components (`apps/web/`)
+- **`packages/...`** — **Preferred** for every module under `Client/packages/` (from apps or from other packages).
+- **`@/...`** — **Only** for files under **`Client/apps/web/`** (e.g. `@/pages/property/SearchPage`, `@/app/layouts/...`).
+- **`@/features/...`** — TypeScript alias for `packages/features/...`. **New code** should prefer **`packages/features/...`** so shared imports read the same everywhere.
 
-- ✅ Can import from: `hooks/*`, `store/*`, `schemas/*`, `utils/*`, `contexts/*`
-- ❌ Cannot import from: `config/api/*`, `services/*` (use hooks instead)
+Do not import `packages/config/api` or business `packages/services` from page/components; use `packages/hooks`.
+
+## Import rules by layer
+
+### Apps (`apps/web/`, `apps/mobile/`)
+
+- Can import: `packages/hooks/*`, `packages/store`, `packages/schemas`, `packages/utils`, `packages/contexts`, `packages/navigation`, `packages/ui`, `packages/features/*`, `packages/logger`, and other allowed shared packages.
+- Cannot import: `packages/config/api/*` or business `packages/services/*` (use hooks).
 
 ### Hooks (`packages/hooks/`)
 
-- ✅ Can import from: `config/api/*`, `store/*`, `schemas/*`, `services/http/*`, `services/security/*`
-- ❌ Cannot import from: Business logic `services/*` (use `config/api/*` instead)
+- Can import: `packages/config/api/*`, `packages/store/*`, `packages/schemas/*`, `packages/services/http/*`, `packages/services/security/*`.
+- Cannot import: business-logic `packages/services/*` (use `config/api`).
 
 ### Services (`packages/services/`)
 
-- ✅ Can import from: `config/api/*`, `services/http/*`, `services/security/*`, `schemas/*`
-- ❌ Cannot import from: `hooks/*`, `store/*` (services are framework-agnostic)
+- Can import: `packages/config/api/*`, `packages/services/http/*`, `packages/services/security/*`, `packages/schemas/*`.
+- Cannot import: `packages/hooks/*`, `packages/store/*`.
 
 ### Config (`packages/config/`)
 
-- ✅ Can import from: `services/http/*`, `services/security/*`, `schemas/*`
-- ❌ Cannot import from: Business logic `services/*`
+- Can import: `packages/services/http/*`, `packages/services/security/*`, `packages/schemas/*`.
+- Cannot import: business-logic `packages/services/*`.
 
-## Package Descriptions
+## Package descriptions
 
 ### `config/`
 
-Thin, type-safe API client wrappers and configuration constants. These are the primary interface for making API calls.
+Thin API client modules and app configuration. Primary HTTP surface for hooks.
 
 ### `services/`
 
-Business logic orchestration, state management, and infrastructure services. Services use `config/api/*` for all API calls.
+HTTP client, security helpers, and domain orchestration. Apps use hooks, not services directly.
 
 ### `hooks/`
 
-React hooks for data fetching (React Query), store integration, and UI state management.
+Shared React hooks: React Query data hooks, store integration, UI behavior.
 
 ### `store/`
 
-Zustand slices for application-wide state. Updated via `hooks/store/*` integration hooks.
+Zustand slices; updated through `packages/hooks/store/*` where integration is needed.
 
 ### `schemas/`
 
-TypeScript type definitions shared across the application.
+Shared types and schema helpers.
 
 ### `utils/`
 
-Framework-agnostic utility functions. Must not import React or any framework-specific code.
+Pure, framework-agnostic helpers. No React.
 
 ### `contexts/`
 
-React Context providers for dependency injection and non-state configuration (theming, localization).
-
-### `styles/`
-
-CSS stylesheets and utility classes.
+React providers (theme, i18n, etc.).
 
 ### `features/`
 
-**Future Architecture Goal:** Feature-level React components that will be shared between web and mobile platforms. Currently, feature components live in `apps/web/features/` and will be migrated here as part of the Thin App architecture migration. See `features/README.md` for details.
+Feature modules consumed by thin pages/screens. Each feature exposes a barrel (`index.ts`) where applicable. Structure and allowed children are enforced (see `features/README.md` and `silverkey/package-module-allowed-children`).
 
-## Common Patterns
+### `ui/`
 
-### Data Fetching
+Shared layout primitives, buttons, text, modals, cards, and other cross-platform-oriented UI. Includes **`packages/ui/styles/`** (CSS and style helpers). Apps import via `packages/ui` or the `@/components/ui` / `@ui` aliases defined in `Client/tsconfig.base.json`.
+
+## Patterns
+
+### Data fetching
 
 ```typescript
-// ✅ CORRECT: Component uses hook
-import { useUserData } from "../../../packages/hooks/data/useUserData";
+// CORRECT: component uses a hook
+import { useUserData } from "packages/hooks/data/user/useUserData";
 
 function Component() {
   const { user } = useUserData();
   // ...
 }
 
-// ❌ WRONG: Component uses API directly
-import { userApi } from "../../../packages/config/api/user";
+// WRONG: component imports API client
+import { userApi } from "packages/config/api/user";
 ```
 
-### Error Handling
+### Errors
 
 ```typescript
-// ✅ CORRECT: Use centralized error utilities
-import { normalizeError, reportError } from "../../../packages/utils/errorHandling";
+import { normalizeError, reportError } from "packages/utils/errorHandling";
 ```
 
-### Type Definitions
+### Types
 
 ```typescript
-// ✅ CORRECT: Import types from schemas
-import type { UserProfile } from "../../../packages/schemas/user";
+import type { SavedHome } from "packages/types";
 ```
 
 ## Exceptions
 
-### React Query in Services
+`packages/services/data/` may use React Query’s `QueryClient` for prefetch/polling.
 
-The `services/data/` directory contains services that use React Query's `QueryClient`. This is an acceptable exception as these services are specifically designed for React Query integration (data prefetching and background polling).
+## Further reading
 
-## Further Reading
-
-See individual README files in each subdirectory for detailed documentation:
-
-- [config/README.md](./config/README.md) - API clients and configuration
-- [services/README.md](./services/README.md) - Business logic services
-- [hooks/README.md](./hooks/README.md) - React hooks
-- [store/README.md](./store/README.md) - Zustand stores
-- [schemas/README.md](./schemas/README.md) - Type definitions
-- [utils/README.md](./utils/README.md) - Utility functions
-- [contexts/README.md](./contexts/README.md) - React Context providers
-- [features/README.md](./features/README.md) - Feature components (future architecture goal)
-- [styles/README.md](./styles/README.md) - CSS stylesheets
+- `AGENTS.md` (repo root) — quickstart for AI assistants
+- `Client/ARCHITECTURE.md` — full client architecture
+- `documentation/client/README.md` — doc index
+- `documentation/client/shared-packages.md` — exhaustive package reference
+- `features/README.md` — feature module layout
+- `.cursor/rules/frontend/frontend-architecture.mdc` — ESLint-aligned layer rules

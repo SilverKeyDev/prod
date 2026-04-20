@@ -25,6 +25,5 @@ export const mapsApi = {
   /**
    * Get Google Maps script URL with API key
    */
-  getScriptUrl: (): Promise<MapsScriptResponse> =>
-    apiGet<MapsScriptResponse>("/api/maps/script"),
+  getScriptUrl: (): Promise<MapsScriptResponse> => apiGet<MapsScriptResponse>("/api/maps/script"),
 };

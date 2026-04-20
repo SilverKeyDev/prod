@@ -15,16 +15,7 @@ export function MapControls(props: {
   onZoomOut: () => void;
   disabled?: boolean;
 }): JSX.Element {
-  const {
-    page,
-    total,
-    perPage,
-    onPrev,
-    onNext,
-    onZoomIn,
-    onZoomOut,
-    disabled = false,
-  } = props;
+  const { page, total, perPage, onPrev, onNext, onZoomIn, onZoomOut, disabled = false } = props;
   const { t } = useLocalization();
   /** `page` = start index of visible window; `perPage` = number of items in that window. */
   const showNavigation = total > perPage;
@@ -43,10 +34,10 @@ export function MapControls(props: {
           disabled={disabled}
           variant="secondary"
           size="xs"
-          className="hover:text-primary border-border bg-background-surface text-text-secondary hover:bg-background-surface h-8 w-8 border p-0 shadow-md transition-all duration-200 hover:border-neutral-400 hover:shadow-lg focus:ring-2 focus:ring-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
+          className="hover:text-primary border-border bg-background-surface text-text-secondary hover:bg-background-surface disabled:hover:border-border disabled:hover:bg-background-surface disabled:hover:text-text-secondary h-8 w-8 border p-0 shadow-md transition-all duration-200 hover:border-neutral-400 hover:shadow-lg focus:ring-2 focus:ring-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
           title={t("search.zoom_out")}
         >
-          {t("search.zoom_out_symbol")}
+          <Icon name="minus" className="h-3 w-3 lg:h-3 lg:w-3" />
         </Button>
         <Button
           type="button"
@@ -54,10 +45,10 @@ export function MapControls(props: {
           disabled={disabled}
           variant="secondary"
           size="xs"
-          className="hover:text-primary border-border bg-background-surface text-text-secondary hover:bg-background-surface h-8 w-8 border p-0 shadow-md transition-all duration-200 hover:border-neutral-400 hover:shadow-lg focus:ring-2 focus:ring-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
+          className="hover:text-primary border-border bg-background-surface text-text-secondary hover:bg-background-surface disabled:hover:border-border disabled:hover:bg-background-surface disabled:hover:text-text-secondary h-8 w-8 border p-0 shadow-md transition-all duration-200 hover:border-neutral-400 hover:shadow-lg focus:ring-2 focus:ring-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
           title={t("search.zoom_in")}
         >
-          {t("search.zoom_in_symbol")}
+          <Icon name="plus" className="h-3 w-3 lg:h-3 lg:w-3" />
         </Button>
       </Box>
 

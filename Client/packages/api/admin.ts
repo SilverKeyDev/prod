@@ -17,15 +17,11 @@ import type { components } from "packages/types/api.generated";
 
 // Re-export types from generated schema
 export type ServerLoggerConfig = components["schemas"]["ServerLoggerConfig"];
-export type DocusignOAuthStartResponse =
-  components["schemas"]["DocusignOAuthStartResponse"];
-export type DocusignListTemplatesResponse =
-  components["schemas"]["DocusignListTemplatesResponse"];
-export type DocusignSyncTemplatesResponse =
-  components["schemas"]["DocusignSyncTemplatesResponse"];
+export type DocusignOAuthStartResponse = components["schemas"]["DocusignOAuthStartResponse"];
+export type DocusignListTemplatesResponse = components["schemas"]["DocusignListTemplatesResponse"];
+export type DocusignSyncTemplatesResponse = components["schemas"]["DocusignSyncTemplatesResponse"];
 export type DeleteUserResponse = components["schemas"]["DeleteUserResponse"];
-export type DocusignTemplateListItem =
-  components["schemas"]["DocusignTemplateListItem"];
+export type DocusignTemplateListItem = components["schemas"]["DocusignTemplateListItem"];
 
 /** Narrowed success payloads derived from OpenAPI response schemas (field names match the wire contract). */
 export type DocusignOAuthStartResult = Required<
@@ -39,28 +35,23 @@ export type DeleteUserByIdResult = Required<
 >;
 
 type GetLoggerConfigResponse = components["schemas"]["GetLoggerConfigResponse"];
-type UpdateLoggerConfigRequest =
-  components["schemas"]["UpdateLoggerConfigRequest"];
+type UpdateLoggerConfigRequest = components["schemas"]["UpdateLoggerConfigRequest"];
 type UpdateLoggerConfigResponse = GetLoggerConfigResponse;
 
 export const adminApi = {
   getLoggerConfig: async (): Promise<ServerLoggerConfig> => {
-    const response = await apiGet<GetLoggerConfigResponse>(
-      "/api/v1/admin/logger-config",
-    );
+    const response = await apiGet<GetLoggerConfigResponse>("/api/v1/admin/logger-config");
     if (!response.success || !response.config) {
       throw new Error(response.error ?? "Failed to fetch logger config");
     }
     return response.config;
   },
 
-  updateLoggerConfig: async (
-    updates: Partial<ServerLoggerConfig>,
-  ): Promise<ServerLoggerConfig> => {
-    const response = await apiPost<
-      UpdateLoggerConfigResponse,
-      UpdateLoggerConfigRequest
-    >("/api/v1/admin/logger-config", { updates });
+  updateLoggerConfig: async (updates: Partial<ServerLoggerConfig>): Promise<ServerLoggerConfig> => {
+    const response = await apiPost<UpdateLoggerConfigResponse, UpdateLoggerConfigRequest>(
+      "/api/v1/admin/logger-config",
+      { updates }
+    );
     if (!response.success || !response.config) {
       throw new Error(response.error ?? "Failed to update logger config");
     }
@@ -71,14 +62,10 @@ export const adminApi = {
    * DocuSign OAuth start (agent only). Returns authorize URL for the agent to complete in browser.
    */
   docusignOAuthStart: async (): Promise<DocusignOAuthStartResult> => {
-    const response = await apiGet<DocusignOAuthStartResponse>(
-      "/api/v1/docusign/oauth/start",
-    );
+    const response = await apiGet<DocusignOAuthStartResponse>("/api/v1/docusign/oauth/start");
     if (!response.success || typeof response.auth_url !== "string") {
       throw new Error(
-        typeof response.error === "string"
-          ? response.error
-          : "DocuSign OAuth start failed",
+        typeof response.error === "string" ? response.error : "DocuSign OAuth start failed"
       );
     }
     return { auth_url: response.auth_url };
@@ -86,14 +73,10 @@ export const adminApi = {
 
   /** List synced DocuSign templates (agent only). */
   docusignListTemplates: async (): Promise<DocusignTemplateListItem[]> => {
-    const response = await apiGet<DocusignListTemplatesResponse>(
-      "/api/v1/docusign/templates",
-    );
+    const response = await apiGet<DocusignListTemplatesResponse>("/api/v1/docusign/templates");
     if (!response.success || !Array.isArray(response.templates)) {
       throw new Error(
-        typeof response.error === "string"
-          ? response.error
-          : "Failed to list DocuSign templates",
+        typeof response.error === "string" ? response.error : "Failed to list DocuSign templates"
       );
     }
     return response.templates;
@@ -104,13 +87,11 @@ export const adminApi = {
     const response = await apiPost<DocusignSyncTemplatesResponse>(
       "/api/v1/docusign/templates/sync",
       {},
-      { acceptStatuses: [202] },
+      { acceptStatuses: [202] }
     );
     if (!response.success || typeof response.task_id !== "string") {
       throw new Error(
-        typeof response.error === "string"
-          ? response.error
-          : "DocuSign template sync failed",
+        typeof response.error === "string" ? response.error : "DocuSign template sync failed"
       );
     }
     return { task_id: response.task_id };
@@ -121,13 +102,10 @@ export const adminApi = {
    * Non-2xx responses throw HttpError with parsed body.
    */
   deleteUserById: async (userId: string): Promise<DeleteUserByIdResult> => {
-    const response = await apiPost<DeleteUserResponse>(
-      "/api/v1/admin/users/delete",
-      {
-        user_id: userId.trim(),
-        confirm: true,
-      },
-    );
+    const response = await apiPost<DeleteUserResponse>("/api/v1/admin/users/delete", {
+      user_id: userId.trim(),
+      confirm: true,
+    });
     if (!response.success || typeof response.deleted_user_id !== "string") {
       throw new Error(response.error ?? "Failed to delete user");
     }

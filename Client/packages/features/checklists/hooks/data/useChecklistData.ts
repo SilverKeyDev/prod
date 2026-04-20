@@ -8,7 +8,8 @@ import {
   type TaskChecklistResponse,
   updateTaskChecklist,
 } from "packages/features/checklists/api/checklists";
-import { getActiveChecklistItemId } from "packages/features/checklists/utils/getActiveChecklistItemId";
+import { getActiveChecklistItemId } from "packages/features/checklists/utils/presentation/getActiveChecklistItemId";
+import { mergeTaskChecklistCheckedIds } from "packages/features/checklists/utils/rules/checklistRules";
 import { useAuthStore } from "packages/store";
 
 export type { ChecklistType };
@@ -55,10 +56,7 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
   });
 
   const updateChecklistMutation = useMutation({
-    mutationFn: async (ids: number[]) => {
-      await updateTaskChecklist(type, ids);
-      return ids;
-    },
+    mutationFn: async (ids: number[]) => updateTaskChecklist(type, ids),
     onMutate: async (ids: number[]) => {
       const previous = queryClient.getQueryData<TaskChecklistResponse>(queryKey);
       queryClient.setQueryData(queryKey, (old: TaskChecklistResponse | undefined) =>
@@ -71,21 +69,26 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
         queryClient.setQueryData(queryKey, context.previous);
       }
     },
-    onSuccess: (ids) => {
+    onSuccess: (serverCheckedIds) => {
       queryClient.setQueryData(queryKey, (old: TaskChecklistResponse | undefined) =>
-        old ? { ...old, checkedIds: ids } : { items: [], checkedIds: ids }
+        old ? { ...old, checkedIds: serverCheckedIds } : { items: [], checkedIds: serverCheckedIds }
       );
     },
   });
 
   const toggleItem = useCallback(
     async (id: number) => {
+      const items = checklistData?.items ?? [];
       const currentIds = checklistData?.checkedIds ?? [];
+      const oldSet = new Set(currentIds);
       const isChecked = currentIds.includes(id);
-      const newIds = isChecked ? currentIds.filter((itemId) => itemId !== id) : [...currentIds, id];
-      await updateChecklistMutation.mutateAsync(newIds);
+      const requested = isChecked
+        ? currentIds.filter((itemId) => itemId !== id)
+        : [...currentIds, id];
+      const merged = mergeTaskChecklistCheckedIds(items, requested, oldSet);
+      await updateChecklistMutation.mutateAsync(merged);
     },
-    [checklistData?.checkedIds, updateChecklistMutation]
+    [checklistData?.checkedIds, checklistData?.items, updateChecklistMutation]
   );
 
   const refreshChecklist = useCallback(async () => {

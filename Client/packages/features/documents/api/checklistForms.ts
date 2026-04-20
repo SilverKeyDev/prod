@@ -14,7 +14,7 @@ import { apiGet, apiPost } from "packages/services/http/compatibility";
 
 /**
  * Checklist forms API client.
- * Agent-only endpoints for managing pre-defined forms attached to checklist steps.
+ * List/download/send are agent-only; clients receive forms via chat attachments.
  */
 export const checklistFormsApi = {
   /**
@@ -33,7 +33,7 @@ export const checklistFormsApi = {
   getFormsForStep: (
     transactionId: string,
     section: string,
-    itemId: number,
+    itemId: number
   ): Promise<GetFormsResponse> => {
     log.debug(LOG_CATEGORIES.API, "Fetching forms for checklist step", {
       transactionId,
@@ -41,7 +41,7 @@ export const checklistFormsApi = {
       itemId,
     });
     return apiGet<GetFormsResponse>(
-      `/api/v1/transactions/${transactionId}/checklist-items/${section}/${itemId}/forms`,
+      `/api/v1/transactions/${transactionId}/checklist-items/${section}/${itemId}/forms`
     );
   },
 
@@ -61,7 +61,7 @@ export const checklistFormsApi = {
     transactionId: string,
     section: string,
     itemId: number,
-    formId: string,
+    formId: string
   ): Promise<DownloadFormResponse> => {
     log.debug(LOG_CATEGORIES.API, "Generating form download URL", {
       transactionId,
@@ -70,14 +70,14 @@ export const checklistFormsApi = {
       formId,
     });
     return apiGet<DownloadFormResponse>(
-      `/api/v1/transactions/${transactionId}/checklist-items/${section}/${itemId}/forms/${formId}/download`,
+      `/api/v1/transactions/${transactionId}/checklist-items/${section}/${itemId}/forms/${formId}/download`
     );
   },
 
   /**
    * Send form to client via DocuSign and/or messaging.
    *
-   * NOTE: Returns 501 Not Implemented (Phase 2 stub).
+   * `method: "messaging"` sends a chat message with a checklist form attachment.
    *
    * @param transactionId - Transaction ID
    * @param section - Checklist section
@@ -94,7 +94,7 @@ export const checklistFormsApi = {
     section: string,
     itemId: number,
     formId: string,
-    data: SendFormRequest,
+    data: SendFormRequest
   ): Promise<SendFormResponse> => {
     log.info(LOG_CATEGORIES.API, "Sending form to client", {
       transactionId,
@@ -105,7 +105,7 @@ export const checklistFormsApi = {
     });
     return apiPost<SendFormResponse>(
       `/api/v1/transactions/${transactionId}/checklist-items/${section}/${itemId}/forms/${formId}/send`,
-      data,
+      data
     );
   },
 
@@ -145,7 +145,7 @@ export const checklistFormsApi = {
    * @throws {Error} If form not found or user is not an agent
    */
   getLibraryFormDownloadUrl: (
-    formId: string,
+    formId: string
   ): Promise<{
     success: boolean;
     download_url: string;

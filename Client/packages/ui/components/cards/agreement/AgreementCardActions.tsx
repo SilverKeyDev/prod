@@ -54,8 +54,7 @@ export default function AgreementCardActions({
     ? externalActionHandlers.handleShareDocument
     : internal.handleShareDocument;
   const handleSignNow = externalActionHandlers?.handleSignNow;
-  const handleViewSignedAgreement =
-    externalActionHandlers?.handleViewSignedAgreement;
+  const handleViewSignedAgreement = externalActionHandlers?.handleViewSignedAgreement;
 
   const showInlinePdfModal = !externalActionHandlers && internal.currentPdf;
 
@@ -72,8 +71,7 @@ export default function AgreementCardActions({
     contextualStatus === "sign_now";
 
   const resolvedDeleteTitle =
-    deleteModalTitle ??
-    (deleteVoidsEnvelope ? "Cancel agreement" : "Remove Agreement");
+    deleteModalTitle ?? (deleteVoidsEnvelope ? "Cancel agreement" : "Remove Agreement");
   const resolvedDeleteMessage =
     deleteModalMessage ??
     (deleteVoidsEnvelope

@@ -11,8 +11,7 @@ Client/
 ├── apps/
 │   ├── web/                    # Web app (Vite + React Router)
 │   │   ├── pages/              # Page components (thin shells)
-│   │   ├── app/layouts/        # Layout components
-│   │   ├── components/ui/      # Standardized UI components (Button, Title, etc.)
+│   │   ├── app/layouts/        # Layout and shell components (web-specific where needed)
 │   │   ├── main.tsx            # Entry point
 │   │   ├── vite.config.js      # Main Vite configuration
 │   │   └── vite.config.resolve.js  # Vite resolve configuration (extracted to reduce file size)
@@ -43,6 +42,12 @@ Client/
 │   └── schemas/                # Shared type definitions
 └── documentation/              # Client-specific documentation
 ```
+
+### Where UI components live
+
+- **Shared primitives and design system** — `Client/packages/ui/` (buttons, text, modals, cards, layout primitives, and `packages/ui/styles/` for CSS). This is what ESLint/UI rules refer to as the standardized component set.
+- **TypeScript aliases** — `Client/tsconfig.base.json` maps `@/components/ui` and `@ui` to `packages/ui/components` so existing imports stay short; **`packages/ui/...`** is the preferred spelling for new code (see `documentation/client/typescript-files.md`).
+- **Web app** — `apps/web` has **no** parallel `components/ui` tree; pages and `app/` layouts compose `packages/features/*` and `packages/ui`.
 
 ## Thin App (Fat Packages) Pattern
 
@@ -141,7 +146,7 @@ See: `.cursor/rules/frontend/platform-file-extensions.mdc`
 For **server data** (users, properties, preferences, etc.):
 
 ```typescript
-// packages/hooks/data/useUserData.ts
+// packages/hooks/data/user/useUserData.ts
 import { useQuery } from "@tanstack/react-query";
 import { userApi } from "../../config/api/user";
 
@@ -259,10 +264,10 @@ See: `.cursor/rules/frontend/react-hooks.mdc`, `.cursor/rules/frontend/async-can
 
 ### Standardized Components
 
-All buttons and text MUST use standardized components from `apps/web/components/ui/`:
+All buttons and text MUST use standardized components from **`Client/packages/ui/`** (see “Where UI components live” above):
 
 ```typescript
-import { Button, CancelButton, CloseButton, Title, BodyText, Label } from "../ui";
+import { Button, CancelButton, CloseButton, Title, BodyText, Label } from "packages/ui";
 
 // ✅ CORRECT
 <Button variant="primary" size="md">Save</Button>
@@ -332,7 +337,7 @@ See: `.cursor/rules/shared/ci-gates.mdc`, `.cursor/rules/shared/linting.mdc`
 Located in `packages/` next to source files:
 
 ```typescript
-// packages/hooks/data/useUserData.test.ts
+// packages/hooks/data/user/useUserData.test.ts
 import { renderHook } from "@testing-library/react";
 import { useUserData } from "./useUserData";
 

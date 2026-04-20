@@ -27,10 +27,7 @@ const HAS_BUYERS_AGENT_OPTIONS = [
 ];
 
 /** Mobile onboarding demographics. Agent/buyer choice appears only here; immutable after onboarding. */
-export function DemographicsStep({
-  formData,
-  updateFormData,
-}: DemographicsStepProps) {
+export function DemographicsStep({ formData, updateFormData }: DemographicsStepProps) {
   const authIsAgent = useIsAgent();
   const showBuyerFacingDemographics = !effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
@@ -41,17 +38,12 @@ export function DemographicsStep({
       ? formData.why_joining_silverkey
       : [];
     const exists = current.includes(value);
-    const next = exists
-      ? current.filter((v) => v !== value)
-      : [...current, value];
+    const next = exists ? current.filter((v) => v !== value) : [...current, value];
     updateFormData("why_joining_silverkey", next);
   };
 
   const toggleLookingForAgent = () => {
-    updateFormData(
-      "looking_for_buyers_agent",
-      !formData.looking_for_buyers_agent,
-    );
+    updateFormData("looking_for_buyers_agent", !formData.looking_for_buyers_agent);
   };
 
   return (
@@ -75,9 +67,7 @@ export function DemographicsStep({
             >
               <Text
                 className={`text-center text-base font-medium ${
-                  formData.is_agent === opt.value
-                    ? "text-primary"
-                    : "text-text-secondary"
+                  formData.is_agent === opt.value ? "text-primary" : "text-text-secondary"
                 }`}
               >
                 {opt.label}
@@ -88,14 +78,10 @@ export function DemographicsStep({
       </Box>
 
       <Box>
-        <Text className="text-text-secondary mb-2 text-sm font-medium">
-          {FIELD_LABELS.AGE}
-        </Text>
+        <Text className="text-text-secondary mb-2 text-sm font-medium">{FIELD_LABELS.AGE}</Text>
         <Input
           value={formData.age?.toString() ?? ""}
-          onValueChange={(v) =>
-            updateFormData("age", v ? parseInt(v, 10) : undefined)
-          }
+          onValueChange={(v) => updateFormData("age", v ? parseInt(v, 10) : undefined)}
           placeholder="Enter your age"
           keyboardType="number-pad"
           className={MOBILE_TEXT_INPUT_CLASS}
@@ -108,9 +94,7 @@ export function DemographicsStep({
         </Text>
         <Input
           value={formData.children_count?.toString() ?? ""}
-          onValueChange={(v) =>
-            updateFormData("children_count", v ? parseInt(v, 10) : undefined)
-          }
+          onValueChange={(v) => updateFormData("children_count", v ? parseInt(v, 10) : undefined)}
           placeholder="Number of children"
           keyboardType="number-pad"
           className={MOBILE_TEXT_INPUT_CLASS}
@@ -124,8 +108,7 @@ export function DemographicsStep({
               {FIELD_LABELS.WHY_JOINING_SILVERKEY}
             </Text>
             <Text className="text-text-secondary mb-3 text-xs">
-              Choose all that apply. We use this only to route onboarding and
-              set defaults.
+              Choose all that apply. We use this only to route onboarding and set defaults.
             </Text>
             <Box className="flex flex-row flex-wrap gap-2">
               {WHY_JOINING_SILVERKEY_OPTIONS.map((option) => {
@@ -137,9 +120,7 @@ export function DemographicsStep({
                     key={option.value}
                     onPress={() => toggleWhyJoining(option.value)}
                     className={`rounded-full border px-4 py-2 ${
-                      selected
-                        ? "border-primary bg-primary"
-                        : "border-border bg-background-surface"
+                      selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                     }`}
                   >
                     <Text
@@ -166,9 +147,7 @@ export function DemographicsStep({
                   return (
                     <Pressable
                       key={opt.value}
-                      onPress={() =>
-                        updateFormData("has_buyers_agent", opt.value)
-                      }
+                      onPress={() => updateFormData("has_buyers_agent", opt.value)}
                       className={`flex-1 rounded-lg border-2 px-4 py-3 ${
                         selected
                           ? "border-primary bg-primary"

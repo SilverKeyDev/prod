@@ -25,7 +25,9 @@ jobs:
     concurrency:
       group: prod-deploy
       cancel-in-progress: true
-
+    permissions:
+      contents: read
+      actions: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -105,6 +107,28 @@ jobs:
           target: "/tmp/deploy/"
           strip_components: 2
 
+      # Load optional repo variable DB_URL_SECRET_ID without ${{ vars.* }} (IDE language service flags unknown var names).
+      - name: Load DB_URL_SECRET_ID from repository variables
+        if: ${{ success() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/variables/DB_URL_SECRET_ID"
+          tmp="$(mktemp)"
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$api")"
+          if [ "$code" = "200" ]; then
+            value="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("value") or "")' < "$tmp")"
+            printf '%s\n' "DB_URL_SECRET_ID=${value}" >> "$GITHUB_ENV"
+          else
+            echo "DB_URL_SECRET_ID=" >> "$GITHUB_ENV"
+          fi
+          rm -f "$tmp"
+
       - name: SSH into EC2 and Deploy Container + Copy Frontend
         if: ${{ success() }}
         uses: appleboy/ssh-action@v1.0.0
@@ -113,7 +137,7 @@ jobs:
           AWS_REGION: ${{ env.REGION }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
           REPO: ${{ env.REPO }}
-          DB_URL_SECRET_ID: ${{ vars.DB_URL_SECRET_ID }}
+          DB_URL_SECRET_ID: ${{ env.DB_URL_SECRET_ID }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu

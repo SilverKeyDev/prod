@@ -17,6 +17,8 @@ export type MapPropertyCardRenderProps = {
     lng: number;
     images?: string[];
     calculatedScore?: number;
+    listingStatus?: string;
+    homeStatus?: string;
   };
   isSaved?: boolean;
   contextKey?: string;
@@ -24,10 +26,7 @@ export type MapPropertyCardRenderProps = {
   showScore?: boolean;
   isHomeSaved?: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome?: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome?: (
-    propertyId: string,
-    propertyAddress?: string,
-  ) => Promise<void>;
+  removeSavedHome?: (propertyId: string, propertyAddress?: string) => Promise<void>;
   /** Dev-only: hide this listing’s floating map card */
   onDismissMapPreview?: (propertyId: string) => void;
   /** Full details (e.g. property URL); used for floating map preview card click. */
@@ -49,10 +48,7 @@ export type UseMapMarkersProps = {
   calculatePropertyScore: (property: SearchResult) => number;
   isHomeSaved: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome: (
-    propertyId: string,
-    propertyAddress?: string,
-  ) => Promise<void>;
+  removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
   onMarkerClick?: (property: SearchResult) => void;
   /** Floating preview card: open full property details (not pin markers). */
   onMapPreviewNavigate?: (property: SearchResult) => void;
@@ -61,7 +57,7 @@ export type UseMapMarkersProps = {
   renderMapPropertyCard: (
     container: HTMLElement,
     props: MapPropertyCardRenderProps,
-    onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void,
+    onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void
   ) => void;
   cleanupMapPropertyCard: (container: HTMLElement) => void;
   /** When false, map pins still render but floating preview cards are skipped (dev only). */

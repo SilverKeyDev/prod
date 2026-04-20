@@ -7,3 +7,18 @@ properties:
     type: string
     nullable: true
     description: "Optional selected signer user id"
+  envelope_notification:
+    $ref: ../docusign/DocuSignEnvelopeNotificationInput.yaml
+    nullable: true
+    description: Optional per-send DocuSign reminder/expiration overrides.
+  tab_prefill:
+    type: array
+    maxItems: 20
+    items:
+      $ref: ../docusign/DocuSignParticipantTabPrefillInput.yaml
+    nullable: true
+    description: Per-signer text/checkbox tabs to pre-populate at send time.
+  envelope_prefill_tabs:
+    $ref: ../docusign/DocuSignEnvelopePrefillTabsInput.yaml
+    nullable: true
+    description: Sender-level prefill tabs (not tied to a recipient).

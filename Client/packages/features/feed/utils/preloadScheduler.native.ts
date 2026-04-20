@@ -24,7 +24,7 @@ export function preloadPoster(url: string): void {
 
 export function schedulePreload(
   items: Array<{ id: string; thumbnailUrl: string }>,
-  activeIndex: number,
+  activeIndex: number
 ): void {
   for (let i = 1; i <= 3; i++) {
     const idx = activeIndex + i;

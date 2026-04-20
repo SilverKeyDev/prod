@@ -18,7 +18,10 @@ export type ChecklistForm = {
 
 export type SendFormRequest = {
   method: "docusign" | "messaging" | "both";
-  conversation_id?: string; // Required if method includes "messaging"
+  /** Required for messaging; use `"new"` with `client_id` to create a thread. */
+  conversation_id?: string;
+  /** Required when `conversation_id` is `"new"`. */
+  client_id?: string;
   participants?: Array<{
     email: string;
     name: string;
@@ -40,4 +43,5 @@ export type SendFormResponse = {
   success: boolean;
   error?: string;
   message?: string;
+  message_id?: string;
 };

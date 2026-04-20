@@ -16,18 +16,10 @@ import Title from "packages/ui/components/text/Title";
 import type { IconName } from "packages/ui/types/icons";
 import { formatAnalysisLabel } from "packages/utils/propertyDetails";
 
-function demographicsChartHeading(
-  iconName: IconName,
-  title: string,
-): React.ReactElement {
+function demographicsChartHeading(iconName: IconName, title: string): React.ReactElement {
   return (
     <Box className="flex flex-row items-center gap-2">
-      <Icon
-        name={iconName}
-        size={16}
-        className="text-foreground shrink-0"
-        aria-hidden
-      />
+      <Icon name={iconName} size={16} className="text-foreground shrink-0" aria-hidden />
       <Title as="h4" size="sm" className="text-foreground font-medium">
         {title}
       </Title>
@@ -35,11 +27,9 @@ function demographicsChartHeading(
   );
 }
 
-export function renderNeighborhoodContent(
-  data: Record<string, unknown>,
-): React.ReactNode {
+export function renderNeighborhoodContent(data: Record<string, unknown>): React.ReactNode {
   const entries = Object.entries(data).filter(
-    ([_, value]) => value !== null && value !== undefined && value !== "",
+    ([_, value]) => value !== null && value !== undefined && value !== ""
   );
   if (entries.length === 0) return null;
   return (
@@ -49,11 +39,7 @@ export function renderNeighborhoodContent(
         if (Array.isArray(value)) {
           return (
             <Box key={key}>
-              <Title
-                as="h4"
-                size="sm"
-                className="text-text-secondary mb-2 font-medium"
-              >
+              <Title as="h4" size="sm" className="text-text-secondary mb-2 font-medium">
                 {displayKey}
               </Title>
               <ul className="text-text-secondary ml-4 space-y-1 text-sm">
@@ -68,46 +54,29 @@ export function renderNeighborhoodContent(
         }
         if (typeof value === "object" && value !== null) {
           return (
-            <Box
-              key={key}
-              className="border-border bg-accent-muted rounded-lg border p-3"
-            >
-              <Title
-                as="h4"
-                size="sm"
-                className="text-text-secondary mb-2 font-medium"
-              >
+            <Box key={key} className="border-border bg-accent-muted rounded-lg border p-3">
+              <Title as="h4" size="sm" className="text-text-secondary mb-2 font-medium">
                 {displayKey}
               </Title>
               <Box className="space-y-2">
-                {Object.entries(value as Record<string, unknown>).map(
-                  ([subKey, subValue]) => (
-                    <AnalysisKeyValueLine
-                      key={subKey}
-                      label={formatAnalysisLabel(subKey)}
-                      value={String(subValue)}
-                    />
-                  ),
-                )}
+                {Object.entries(value as Record<string, unknown>).map(([subKey, subValue]) => (
+                  <AnalysisKeyValueLine
+                    key={subKey}
+                    label={formatAnalysisLabel(subKey)}
+                    value={String(subValue)}
+                  />
+                ))}
               </Box>
             </Box>
           );
         }
-        return (
-          <AnalysisKeyValueLine
-            key={key}
-            label={displayKey}
-            value={String(value)}
-          />
-        );
+        return <AnalysisKeyValueLine key={key} label={displayKey} value={String(value)} />;
       })}
     </Box>
   );
 }
 
-export function renderAgeDistribution(
-  data: Record<string, string>,
-): React.ReactNode {
+export function renderAgeDistribution(data: Record<string, string>): React.ReactNode {
   const entries = Object.entries(data)
     .map(([key, value]) => {
       const numValue = parseFloat(String(value).replace("%", "")) || 0;
@@ -135,9 +104,7 @@ export function renderAgeDistribution(
   );
 }
 
-export function renderRaceDistribution(
-  data: Record<string, string>,
-): React.ReactNode {
+export function renderRaceDistribution(data: Record<string, string>): React.ReactNode {
   const labelMap: Record<string, string> = {
     white: "White",
     black: "Black/African American",
@@ -169,9 +136,7 @@ export function renderRaceDistribution(
   );
 }
 
-export function renderIncomeDistribution(
-  data: Record<string, string>,
-): React.ReactNode {
+export function renderIncomeDistribution(data: Record<string, string>): React.ReactNode {
   const labelMap: Record<string, string> = {
     under_25k: "<$25k",
     "25k_50k": "$25k-50k",
@@ -181,14 +146,7 @@ export function renderIncomeDistribution(
     over_150k: ">$150k",
   };
 
-  const order = [
-    "under_25k",
-    "25k_50k",
-    "50k_75k",
-    "75k_100k",
-    "100k_150k",
-    "over_150k",
-  ];
+  const order = ["under_25k", "25k_50k", "50k_75k", "75k_100k", "100k_150k", "over_150k"];
 
   const chartData = order
     .filter((key) => key in data)
@@ -210,9 +168,7 @@ export function renderIncomeDistribution(
   );
 }
 
-export function renderEducationDistribution(
-  data: Record<string, string>,
-): React.ReactNode {
+export function renderEducationDistribution(data: Record<string, string>): React.ReactNode {
   const labelMap: Record<string, string> = {
     high_school: "High School or Higher",
     bachelors: "Bachelor's Degree",

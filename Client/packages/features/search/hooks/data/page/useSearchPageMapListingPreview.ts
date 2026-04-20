@@ -5,21 +5,11 @@ import { useFiltersStore } from "packages/store";
 
 export function useSearchPageMapListingPreview() {
   const isDev = getEnv().isDevelopment;
-  const showMapListingPreviews = useFiltersStore(
-    (s) => s.showMapListingPreviews,
-  );
-  const dismissedMapPreviewIds = useFiltersStore(
-    (s) => s.dismissedMapPreviewIds,
-  );
-  const clearDismissedMapPreviews = useFiltersStore(
-    (s) => s.clearDismissedMapPreviews,
-  );
-  const setShowMapListingPreviewsAction = useFiltersStore(
-    (s) => s.setShowMapListingPreviews,
-  );
-  const dismissMapListingPreviewAction = useFiltersStore(
-    (s) => s.dismissMapListingPreview,
-  );
+  const showMapListingPreviews = useFiltersStore((s) => s.showMapListingPreviews);
+  const dismissedMapPreviewIds = useFiltersStore((s) => s.dismissedMapPreviewIds);
+  const clearDismissedMapPreviews = useFiltersStore((s) => s.clearDismissedMapPreviews);
+  const setShowMapListingPreviewsAction = useFiltersStore((s) => s.setShowMapListingPreviews);
+  const dismissMapListingPreviewAction = useFiltersStore((s) => s.dismissMapListingPreview);
   const mapListingPreviewsEnabled = !isDev || showMapListingPreviews;
 
   const mapPreviewSearchLifecycle = useMemo(
@@ -30,14 +20,14 @@ export function useSearchPageMapListingPreview() {
         setShowMapListingPreviewsAction(true);
       },
     }),
-    [clearDismissedMapPreviews, setShowMapListingPreviewsAction],
+    [clearDismissedMapPreviews, setShowMapListingPreviewsAction]
   );
 
   const onDismissMapPreview = useCallback(
     (propertyId: string) => {
       dismissMapListingPreviewAction(propertyId);
     },
-    [dismissMapListingPreviewAction],
+    [dismissMapListingPreviewAction]
   );
 
   return {

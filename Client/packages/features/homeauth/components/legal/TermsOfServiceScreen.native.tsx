@@ -12,10 +12,7 @@ import { TermsOfServiceContent } from "./TermsOfServiceContent";
 
 export function TermsOfServiceScreenNative() {
   return (
-    <StaticPageLayout
-      title="Terms of service"
-      subtitle={LEGAL_PAGES_LAST_UPDATED}
-    >
+    <StaticPageLayout title="Terms of service" subtitle={LEGAL_PAGES_LAST_UPDATED}>
       <TermsOfServiceContent
         Section={Section}
         Paragraph={Paragraph}

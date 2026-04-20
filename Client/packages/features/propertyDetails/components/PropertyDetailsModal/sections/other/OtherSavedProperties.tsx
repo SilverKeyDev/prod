@@ -4,16 +4,14 @@ import { Icon } from "@ui/icons";
 
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { usePropertyDetails } from "packages/hooks/data";
-import { useSavedHomesData } from "packages/hooks/data/useSavedHomesData";
+import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import Button from "packages/ui/components/button/Button";
 import { StyledImage } from "packages/ui/components/cards/base";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 
-export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ property }) => {
   const { savedHomes, savedHomesLoading } = useSavedHomesData();
   const { fetchPropertyDetails } = usePropertyDetails();
   const currentPropertyId = property?.id;
@@ -22,8 +20,7 @@ export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({
       .filter(
         (home) =>
           home.home_id !== currentPropertyId &&
-          (home.image_url ||
-            (Array.isArray(home.image_urls) && home.image_urls.length > 0)),
+          (home.image_url || (Array.isArray(home.image_urls) && home.image_urls.length > 0))
       )
       .slice(0, 6);
   }, [savedHomes, currentPropertyId]);
@@ -88,11 +85,7 @@ export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({
               />
               <Box className="absolute inset-0 bg-black/0 transition-colors duration-200 group-hover:bg-black/10" />
               <Box className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                <BodyText
-                  as="p"
-                  size="xs"
-                  className="truncate font-medium text-white"
-                >
+                <BodyText as="p" size="xs" className="truncate font-medium text-white">
                   {home.address || home.description || "Property"}
                 </BodyText>
               </Box>

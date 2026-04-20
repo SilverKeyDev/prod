@@ -60,7 +60,7 @@ export function SchedulingForm({
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add details..."
+          placeholder="Event details (optional)"
           rows={2}
           className="border-border mt-1 w-full rounded border px-3 py-2 text-sm"
         />
@@ -69,7 +69,7 @@ export function SchedulingForm({
         <CancelButton type="button" onClick={onCancel}>
           Back
         </CancelButton>
-        <Button type="submit" variant="primary" disabled={isLoading}>
+        <Button type="submit" variant="primary" disabled={isLoading} iconName="check">
           {isLoading ? "Scheduling..." : "Schedule"}
         </Button>
       </Box>

@@ -1,25 +1,17 @@
 import { useCallback, useRef, useState } from "react";
 
-import { renderImportantLocationMarkers } from "packages/features/search/types/search/importantLocationRenderer";
+import { renderImportantLocationMarkers } from "packages/features/search/types/search/map/importantLocationRenderer";
 import { resetMapToListingFocusZoom } from "packages/features/search/utils/googleMaps/mapCamera";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
-import type { IsochroneData } from "packages/types/api";
+import type { IsochroneData } from "packages/types/domain/api";
 import { getWindow } from "packages/utils/platform";
 
-import {
-  clearMapMarkers,
-  removeCardMarkersOnly,
-  teardownAdvancedMarker,
-} from "./clearMarkers";
+import { clearMapMarkers, removeCardMarkersOnly, teardownAdvancedMarker } from "./clearMarkers";
 import { addFocusedCardMarkers } from "./focusedCardMarker";
 import { createPinMarkersBatch } from "./pinMarkers";
 import { removeOrphanPinsAndListMissingForPins } from "./pinMarkerSync";
-import type {
-  GoogleAdvancedMarkerElement,
-  UseMapMarkersProps,
-  UseMapMarkersReturn,
-} from "./types";
+import type { GoogleAdvancedMarkerElement, UseMapMarkersProps, UseMapMarkersReturn } from "./types";
 import {
   centerMapOnFocusedProperty,
   ensureIsochroneAndRender,
@@ -73,7 +65,7 @@ export const useMapMarkers = ({
         },
       });
     },
-    [googleMapRef],
+    [googleMapRef]
   );
 
   const clearMapMarkersCallback = useCallback(() => {
@@ -89,7 +81,7 @@ export const useMapMarkers = ({
         title: string;
         content: HTMLElement;
         zIndex?: number | null;
-      }) => GoogleAdvancedMarkerElement,
+      }) => GoogleAdvancedMarkerElement
     ) => {
       if (!mapListingPreviewsEnabled) {
         setIsUpdatingMarkers(false);
@@ -132,7 +124,7 @@ export const useMapMarkers = ({
       dismissedMapPreviewIds,
       onDismissMapPreview,
       mapListingPreviewsEnabled,
-    ],
+    ]
   );
 
   const updateMapMarkers = useCallback(
@@ -172,7 +164,7 @@ export const useMapMarkers = ({
           const missingPins = removeOrphanPinsAndListMissingForPins(
             markersRef,
             results,
-            teardownPin,
+            teardownPin
           );
 
           const pinBatchComplete = () => {
@@ -193,11 +185,7 @@ export const useMapMarkers = ({
             onBatchComplete: pinBatchComplete,
           });
         } catch (error: unknown) {
-          log.error(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "updateMapMarkers failed",
-            error,
-          );
+          log.error(LOG_CATEGORIES.MAP_RENDERING, "updateMapMarkers failed", error);
           setIsUpdatingMarkers(false);
         }
       };
@@ -208,7 +196,7 @@ export const useMapMarkers = ({
           () => {
             void run();
           },
-          { timeout: 500 },
+          { timeout: 500 }
         );
       } else {
         void run();
@@ -227,7 +215,7 @@ export const useMapMarkers = ({
       handleRenderImportantLocationMarkers,
       cleanupMapPropertyCard,
       finishWithFocusedCards,
-    ],
+    ]
   );
 
   return {

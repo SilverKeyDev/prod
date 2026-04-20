@@ -109,7 +109,7 @@ export function ReelsCommentsSheet({
               <TextInput
                 value={draft}
                 onChangeText={setDraft}
-                placeholder="Add a comment..."
+                placeholder="Add a comment (optional)"
                 placeholderTextColor={color("neutral.500")}
                 style={styles.input}
               />

@@ -1,5 +1,6 @@
 import React from "react";
 
+import { PROFILE_FIELDS_ROW_PROPS } from "packages/features/profile/components/layout";
 import type { BuyerPhysicalPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
 import {
   ACCESSIBILITY_NEEDS_OPTIONS,
@@ -11,7 +12,7 @@ import {
   serializeAccessibilityNeeds,
   STORIES_PREFERENCE_OPTIONS,
 } from "packages/features/profile/utils";
-import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/constants";
+import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/public/constants";
 import { Input } from "packages/ui/components/form/Input";
 import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
 import { Pressable } from "packages/ui/components/primitives";
@@ -21,7 +22,7 @@ import Title from "packages/ui/components/text/Title";
 import AlignedRow from "@/components/layout/AlignedRow";
 import { Dropdown } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";
-import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";
+import OptionTagInput from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
 import { profileFieldValueClassName } from "@/features/profile/utils";
 
 import type { PatchBuyerPreferenceExtensions } from "./types";
@@ -33,20 +34,11 @@ type SearchPrefsPhysicalProps = {
   phys: BuyerPhysicalPrefs;
 };
 
-export function SearchPrefsPhysical({
-  isEditMode,
-  patch,
-  phys,
-}: SearchPrefsPhysicalProps) {
-  const rowProps = {
-    breakIntoRows: "sm" as const,
-    gap: "lg" as const,
-    justify: "start" as const,
-  };
+export function SearchPrefsPhysical({ isEditMode, patch, phys }: SearchPrefsPhysicalProps) {
   const shouldShowGarageMinCars = phys.garage_required === true;
   const accessibilityNeeds = parseAccessibilityNeeds(phys.accessibility_needs);
 
-  const firstRowItems = [
+  const garageRowItems = [
     {
       title: <Label>{FIELD_LABELS.GARAGE_REQUIRED}</Label>,
       content: isEditMode ? (
@@ -69,7 +61,7 @@ export function SearchPrefsPhysical({
       ) : (
         <Box
           className={`mobile-input bg-background-base ${profileFieldValueClassName(
-            phys.garage_required,
+            phys.garage_required
           )}`}
         >
           {phys.garage_required === true
@@ -102,12 +94,12 @@ export function SearchPrefsPhysical({
                     };
                   });
                 }}
-                placeholder="0-6"
+                placeholder="e.g. 2"
               />
             ) : (
               <Box
                 className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                  phys.garage_min_cars,
+                  phys.garage_min_cars
                 )}`}
               >
                 {phys.garage_min_cars ?? PROFILE_NOT_SPECIFIED_LABEL}
@@ -116,6 +108,9 @@ export function SearchPrefsPhysical({
           },
         ]
       : []),
+  ];
+
+  const storiesParkingRowItems = [
     {
       title: <Label>{FIELD_LABELS.STORIES_PREFERENCE}</Label>,
       content: isEditMode ? (
@@ -134,17 +129,16 @@ export function SearchPrefsPhysical({
             })
           }
           options={STORIES_PREFERENCE_OPTIONS}
-          placeholder="Select..."
+          placeholder="Select stories preference"
         />
       ) : (
         <Box
           className={`mobile-input bg-background-base ${profileFieldValueClassName(
-            phys.stories_preference,
+            phys.stories_preference
           )}`}
         >
-          {STORIES_PREFERENCE_OPTIONS.find(
-            (o) => o.value === phys.stories_preference,
-          )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+          {STORIES_PREFERENCE_OPTIONS.find((o) => o.value === phys.stories_preference)?.label ??
+            PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       ),
     },
@@ -163,16 +157,16 @@ export function SearchPrefsPhysical({
             })
           }
           options={PARKING_TYPE_OPTIONS}
-          placeholder="Select..."
+          placeholder="Select parking type"
         />
       ) : (
         <Box
           className={`mobile-input bg-background-base ${profileFieldValueClassName(
-            phys.parking_type,
+            phys.parking_type
           )}`}
         >
-          {PARKING_TYPE_OPTIONS.find((o) => o.value === phys.parking_type)
-            ?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+          {PARKING_TYPE_OPTIONS.find((o) => o.value === phys.parking_type)?.label ??
+            PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       ),
     },
@@ -184,9 +178,10 @@ export function SearchPrefsPhysical({
         {SECTION_TITLES.SEARCH_PREFS_PHYSICAL}
       </Title>
       <Box className="flex flex-col gap-6">
-        <AlignedRow {...rowProps} items={firstRowItems} />
+        <AlignedRow {...PROFILE_FIELDS_ROW_PROPS} items={garageRowItems} />
+        <AlignedRow {...PROFILE_FIELDS_ROW_PROPS} items={storiesParkingRowItems} />
         <AlignedRow
-          {...rowProps}
+          {...PROFILE_FIELDS_ROW_PROPS}
           items={[
             {
               title: <Label>{FIELD_LABELS.ACCESSIBILITY_NEEDS}</Label>,
@@ -201,8 +196,7 @@ export function SearchPrefsPhysical({
                         ...b,
                         physical: {
                           ...b.physical,
-                          accessibility_needs:
-                            serializeAccessibilityNeeds(value),
+                          accessibility_needs: serializeAccessibilityNeeds(value),
                         },
                       };
                     })
@@ -229,24 +223,23 @@ export function SearchPrefsPhysical({
                     })
                   }
                   options={WALKABILITY_OPTIONS}
-                  placeholder="Select..."
+                  placeholder="Select outdoor space importance"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                    phys.outdoor_space_importance,
+                    phys.outdoor_space_importance
                   )}`}
                 >
-                  {WALKABILITY_OPTIONS.find(
-                    (o) => o.value === phys.outdoor_space_importance,
-                  )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                  {WALKABILITY_OPTIONS.find((o) => o.value === phys.outdoor_space_importance)
+                    ?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },
           ]}
         />
         <AlignedRow
-          {...rowProps}
+          {...PROFILE_FIELDS_ROW_PROPS}
           items={[
             {
               title: <Label>{FIELD_LABELS.FIREPLACE}</Label>,
@@ -266,17 +259,16 @@ export function SearchPrefsPhysical({
                     })
                   }
                   options={WALKABILITY_OPTIONS}
-                  placeholder="Select..."
+                  placeholder="Select fireplace preference"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                    phys.fireplace_preference,
+                    phys.fireplace_preference
                   )}`}
                 >
-                  {WALKABILITY_OPTIONS.find(
-                    (o) => o.value === phys.fireplace_preference,
-                  )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                  {WALKABILITY_OPTIONS.find((o) => o.value === phys.fireplace_preference)?.label ??
+                    PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },
@@ -298,17 +290,16 @@ export function SearchPrefsPhysical({
                     })
                   }
                   options={WALKABILITY_OPTIONS}
-                  placeholder="Select..."
+                  placeholder="Select view importance"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                    phys.view_importance,
+                    phys.view_importance
                   )}`}
                 >
-                  {WALKABILITY_OPTIONS.find(
-                    (o) => o.value === phys.view_importance,
-                  )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                  {WALKABILITY_OPTIONS.find((o) => o.value === phys.view_importance)?.label ??
+                    PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },

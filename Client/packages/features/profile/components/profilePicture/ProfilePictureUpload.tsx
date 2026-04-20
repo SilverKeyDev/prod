@@ -28,8 +28,7 @@ function validateFile(file: File): string | null {
 export default function ProfilePictureUpload() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { userProfile } = useUserData();
-  const { uploadProfilePicture, isUploading, error } =
-    useProfilePictureUpload();
+  const { uploadProfilePicture, isUploading, error } = useProfilePictureUpload();
   const [remoteLoadFailed, setRemoteLoadFailed] = useState(false);
 
   const profilePictureUrl = userProfile?.profile_picture_url ?? null;
@@ -97,6 +96,7 @@ export default function ProfilePictureUpload() {
             onClick={handleClick}
             disabled={isUploading}
             loading={isUploading}
+            iconName="upload"
           >
             {profilePictureUrl ? "Change photo" : "Upload photo"}
           </Button>

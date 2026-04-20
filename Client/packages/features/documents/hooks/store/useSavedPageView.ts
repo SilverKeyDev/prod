@@ -29,7 +29,7 @@ export function useSavedPageView(): UseSavedPageViewReturn {
   const { getCurrentRoute, setSearchParams } = useNavigation();
   const route = getCurrentRoute();
   const [viewType, setViewType] = useState<SavedPageViewType>(() =>
-    getViewTypeFromSearch(route.search),
+    getViewTypeFromSearch(route.search)
   );
 
   // Keep the `saved` search param in sync with the current view type.
@@ -49,7 +49,7 @@ export function useSavedPageView(): UseSavedPageViewReturn {
         params.delete("view");
         return params;
       },
-      { replace: true },
+      { replace: true }
     );
   }, [viewType, route.search, route.pathname, setSearchParams]);
 

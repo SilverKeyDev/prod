@@ -36,12 +36,11 @@ export const useChecklistForms = (
   transactionId: string,
   section: string,
   itemId: number,
-  enabled = true,
+  enabled = true
 ): UseChecklistFormsResult => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["checklist-forms", transactionId, section, itemId],
-    queryFn: () =>
-      checklistFormsApi.getFormsForStep(transactionId, section, itemId),
+    queryFn: () => checklistFormsApi.getFormsForStep(transactionId, section, itemId),
     enabled: enabled && !!transactionId && !!section && itemId > 0,
     staleTime: 5 * 60 * 1000, // Forms are relatively static, cache for 5 minutes
   });

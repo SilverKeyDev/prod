@@ -23,25 +23,18 @@ export type ApiResponse<T = unknown> = {
 };
 
 // Re-export from generated schema
-export type AreaBoundaryResponse =
-  components["schemas"]["AreaBoundaryResponse"];
+export type AreaBoundaryResponse = components["schemas"]["AreaBoundaryResponse"];
 export type AreaSearchResult = components["schemas"]["AreaSearchResult"];
-export type AreaSuggestionsResponse =
-  components["schemas"]["AreaSuggestionsResponse"];
+export type AreaSuggestionsResponse = components["schemas"]["AreaSuggestionsResponse"];
 export type PreferencesResponse = components["schemas"]["PreferencesResponse"];
 export type IsochroneGeometry = components["schemas"]["IsochroneGeometry"];
 export type UserPreferencesData = components["schemas"]["UserPreferencesData"];
-export type ViewportPolygonPoint =
-  components["schemas"]["ViewportPolygonPoint"];
-export type SearchByPolygonRequest =
-  components["schemas"]["SearchByPolygonRequest"];
-export type SearchByPolygonResponse =
-  components["schemas"]["SearchByPolygonResponse"];
+export type ViewportPolygonPoint = components["schemas"]["ViewportPolygonPoint"];
+export type SearchByPolygonRequest = components["schemas"]["SearchByPolygonRequest"];
+export type SearchByPolygonResponse = components["schemas"]["SearchByPolygonResponse"];
 
 export function isApiResponse<T>(obj: unknown): obj is ApiResponse<T> {
   return (
-    typeof obj === "object" &&
-    obj !== null &&
-    typeof (obj as ApiResponse<T>).success === "boolean"
+    typeof obj === "object" && obj !== null && typeof (obj as ApiResponse<T>).success === "boolean"
   );
 }

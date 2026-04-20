@@ -40,13 +40,11 @@ export function HousingStepDetails({ formData, updateFormData }: Props) {
                 onPress={() =>
                   updateFormData(
                     "renovation_preference",
-                    selected ? undefined : (option.value as unknown as string),
+                    selected ? undefined : (option.value as unknown as string)
                   )
                 }
                 className={`rounded-full border px-4 py-2 ${
-                  selected
-                    ? "border-primary bg-primary"
-                    : "border-border bg-background-surface"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
@@ -75,13 +73,11 @@ export function HousingStepDetails({ formData, updateFormData }: Props) {
                 onPress={() =>
                   updateFormData(
                     "intended_property_use",
-                    selected ? undefined : (option.value as unknown as string),
+                    selected ? undefined : (option.value as unknown as string)
                   )
                 }
                 className={`rounded-full border px-4 py-2 ${
-                  selected
-                    ? "border-primary bg-primary"
-                    : "border-border bg-background-surface"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
@@ -110,13 +106,11 @@ export function HousingStepDetails({ formData, updateFormData }: Props) {
                 onPress={() =>
                   updateFormData(
                     "walkability_importance",
-                    selected ? undefined : (option.value as unknown as string),
+                    selected ? undefined : (option.value as unknown as string)
                   )
                 }
                 className={`rounded-full border px-4 py-2 ${
-                  selected
-                    ? "border-primary bg-primary"
-                    : "border-border bg-background-surface"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
@@ -141,9 +135,7 @@ export function HousingStepDetails({ formData, updateFormData }: Props) {
         </Text>
         <Input
           value={
-            Array.isArray(formData.other_requirements)
-              ? formData.other_requirements.join(", ")
-              : ""
+            Array.isArray(formData.other_requirements) ? formData.other_requirements.join(", ") : ""
           }
           onValueChange={(v) => {
             const next =
@@ -153,10 +145,7 @@ export function HousingStepDetails({ formData, updateFormData }: Props) {
                     .map((item) => item.trim())
                     .filter(Boolean)
                 : [];
-            updateFormData(
-              "other_requirements",
-              next.length > 0 ? next : undefined,
-            );
+            updateFormData("other_requirements", next.length > 0 ? next : undefined);
           }}
           placeholder="e.g., street parking, no gated communities"
           className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"

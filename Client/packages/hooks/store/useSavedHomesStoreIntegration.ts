@@ -1,19 +1,20 @@
 import { useEffect, useRef } from "react";
 
-import { useSavedHomesData } from "packages/hooks/data/useSavedHomesData";
+import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { useAuthStore, useSavedHomesStore } from "packages/store";
 
 /**
  * Hook that integrates useSavedHomesData with useSavedHomesStore
  * This replaces the SavedHomesContext functionality
+ * @param clientId - Optional client ID for agents to view client's saved homes
  */
-export function useSavedHomesStoreIntegration() {
+export function useSavedHomesStoreIntegration(clientId?: string) {
   const _isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const _authReady = useAuthStore((s) => s.authReady);
 
   // Always call useSavedHomesData to maintain hook order consistency
   // The hook itself will handle the authentication requirements via React Query's enabled option
-  const savedHomesResult = useSavedHomesData();
+  const savedHomesResult = useSavedHomesData(clientId);
 
   const {
     savedHomes,
@@ -22,9 +23,26 @@ export function useSavedHomesStoreIntegration() {
     refreshSavedHomes,
     saveHome,
     removeSavedHome,
+    isHomeSaved,
   } = savedHomesResult;
 
-  const { setSavedHomes, setSavedHomesLoading, setSavedHomesError } = useSavedHomesStore();
+  const {
+    setSavedHomes,
+    setSavedHomesLoading,
+    setSavedHomesError,
+    setRefreshSavedHomesImpl,
+    setSaveHomeImpl,
+    setRemoveSavedHomeAsyncImpl,
+  } = useSavedHomesStore();
+
+  // Refs to hold latest callbacks so we only inject impls once (avoids infinite loop from
+  // effect -> setState(store) -> re-render -> new callback refs -> effect)
+  const refreshSavedHomesRef = useRef(refreshSavedHomes);
+  const saveHomeRef = useRef(saveHome);
+  const removeSavedHomeRef = useRef(removeSavedHome);
+  refreshSavedHomesRef.current = refreshSavedHomes;
+  saveHomeRef.current = saveHome;
+  removeSavedHomeRef.current = removeSavedHome;
 
   // Sync hook data with store (guard against redundant updates)
   const lastSavedHomesRef = useRef<typeof savedHomes>();
@@ -56,16 +74,17 @@ export function useSavedHomesStoreIntegration() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedHomesError]); // Zustand setters are stable
 
-  // Override the store's placeholder methods with real implementations
+  // Inject store impls once on mount. Store methods call through refs so they always use
+  // the latest callbacks without re-running this effect (prevents maximum update depth).
   useEffect(() => {
-    const store = useSavedHomesStore.getState();
-    // Replace the placeholder methods with real implementations
-    store.refreshSavedHomes = async () => {
-      await refreshSavedHomes();
-    };
-    store.saveHome = saveHome;
-    store.removeSavedHomeAsync = removeSavedHome;
-  }, [refreshSavedHomes, saveHome, removeSavedHome]);
+    setRefreshSavedHomesImpl(async () => {
+      await refreshSavedHomesRef.current();
+    });
+    setSaveHomeImpl((property: Parameters<typeof saveHome>[0]) => saveHomeRef.current(property));
+    setRemoveSavedHomeAsyncImpl((propertyId: string) => removeSavedHomeRef.current(propertyId));
+    // Intentionally empty: run once; refs hold latest callbacks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     savedHomes,
@@ -74,5 +93,6 @@ export function useSavedHomesStoreIntegration() {
     refreshSavedHomes,
     saveHome,
     removeSavedHome,
+    isHomeSaved,
   };
 }

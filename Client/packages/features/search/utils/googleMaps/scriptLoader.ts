@@ -28,21 +28,14 @@ export class ScriptLoader {
       if (!mapId) {
         log.warn(
           LOG_CATEGORIES.MAP_RENDERING,
-          "VITE_GOOGLE_MAPS_ID not configured - using default map styling",
+          "VITE_GOOGLE_MAPS_ID not configured - using default map styling"
         );
         return undefined;
       }
-      log.info(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Web map ID resolved for Cloud styling",
-        { mapId },
-      );
+      log.info(LOG_CATEGORIES.MAP_RENDERING, "Web map ID resolved for Cloud styling", { mapId });
       return mapId;
     } catch {
-      log.warn(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Could not load config, using fallback",
-      );
+      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Could not load config, using fallback");
       return undefined;
     }
   }
@@ -55,7 +48,7 @@ export class ScriptLoader {
     const doc = getDocument();
     if (!doc) return false;
     const existingScripts = doc.querySelectorAll(
-      'script[src*="maps.googleapis.com"], script[src*="maps.google.com"]',
+      'script[src*="maps.googleapis.com"], script[src*="maps.google.com"]'
     );
     return existingScripts.length > 0;
   }
@@ -73,17 +66,11 @@ export class ScriptLoader {
           this.preloadLibraries();
           resolve();
         } else if (attempts >= maxAttempts) {
-          const errorMsg =
-            "Google Maps initialization timeout after 35 seconds";
-          log.error(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "Google Maps initialization timeout",
-            {
-              errorMsg,
-            },
-          );
-          this.error =
-            "Google Maps initialization timeout. Please refresh the page.";
+          const errorMsg = "Google Maps initialization timeout after 35 seconds";
+          log.error(LOG_CATEGORIES.MAP_RENDERING, "Google Maps initialization timeout", {
+            errorMsg,
+          });
+          this.error = "Google Maps initialization timeout. Please refresh the page.";
           this.isLoading = false;
           reject(new Error(errorMsg));
         } else {
@@ -100,38 +87,24 @@ export class ScriptLoader {
       win.google.maps
         .importLibrary("marker")
         .catch((err: unknown) =>
-          log.warn(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "Failed to import marker library",
-            err,
-          ),
+          log.warn(LOG_CATEGORIES.MAP_RENDERING, "Failed to import marker library", err)
         );
       win.google.maps
         .importLibrary("places")
         .catch((err: unknown) =>
-          log.warn(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "Failed to import places library",
-            err,
-          ),
+          log.warn(LOG_CATEGORIES.MAP_RENDERING, "Failed to import places library", err)
         );
       win.google.maps
         .importLibrary("routes")
         .catch((err: unknown) =>
-          log.warn(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "Failed to import routes library",
-            err,
-          ),
+          log.warn(LOG_CATEGORIES.MAP_RENDERING, "Failed to import routes library", err)
         );
     }
   }
 
   private optimizeScriptUrl(scriptUrl: string): string {
     const url = new URL(scriptUrl);
-    const libraries = new Set(
-      (url.searchParams.get("libraries") ?? "").split(",").filter(Boolean),
-    );
+    const libraries = new Set((url.searchParams.get("libraries") ?? "").split(",").filter(Boolean));
     libraries.add("marker");
     libraries.add("places");
     libraries.add("routes");
@@ -175,30 +148,21 @@ export class ScriptLoader {
 
       script.onerror = (error) => {
         win.removeEventListener("error", errorListener);
-        const errorMessage =
-          error instanceof ErrorEvent ? error.message : String(error);
-        if (
-          errorMessage.includes("gen_204") ||
-          errorMessage.includes("ERR_CONNECTION_CLOSED")
-        ) {
+        const errorMessage = error instanceof ErrorEvent ? error.message : String(error);
+        if (errorMessage.includes("gen_204") || errorMessage.includes("ERR_CONNECTION_CLOSED")) {
           log.warn(
             LOG_CATEGORIES.MAP_RENDERING,
             "Google Maps CSP test endpoint error (non-critical)",
-            { errorMessage },
+            { errorMessage }
           );
           resolve();
           return;
         }
-        log.error(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Failed to load Google Maps script",
-          {
-            error,
-            scriptUrl,
-          },
-        );
-        this.error =
-          "Failed to load Google Maps. Please check your connection.";
+        log.error(LOG_CATEGORIES.MAP_RENDERING, "Failed to load Google Maps script", {
+          error,
+          scriptUrl,
+        });
+        this.error = "Failed to load Google Maps. Please check your connection.";
         this.isLoading = false;
         reject(new Error("Failed to load Google Maps script"));
       };
@@ -219,7 +183,7 @@ export class ScriptLoader {
         log.error(
           LOG_CATEGORIES.MAP_RENDERING,
           "Google Maps failed to wait for existing script",
-          error,
+          error
         );
         throw error;
       }
@@ -246,13 +210,9 @@ export class ScriptLoader {
         const data: MapsScriptResponse = await mapsApi.getScriptUrl();
         if (!data.success || !data.script_url) {
           const errorMsg = data.error ?? "No script URL received from server";
-          log.error(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "Google Maps failed to get script URL",
-            {
-              errorMsg,
-            },
-          );
+          log.error(LOG_CATEGORIES.MAP_RENDERING, "Google Maps failed to get script URL", {
+            errorMsg,
+          });
           this.error = errorMsg;
           throw new Error(errorMsg);
         }

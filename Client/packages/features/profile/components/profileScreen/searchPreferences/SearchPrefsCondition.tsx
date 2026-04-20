@@ -16,7 +16,7 @@ import { Dropdown } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import OptionTagInput, {
   type OptionTagOption,
-} from "@/features/profile/components/settings/inputs/OptionTagInput.web";
+} from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
 import { profileFieldValueClassName } from "@/features/profile/utils";
 
 import type { PatchBuyerPreferenceExtensions } from "./types";
@@ -39,19 +39,15 @@ const CONDITION_PREF_OPTIONS: OptionTagOption[] = [
 
 function selectedConditionPrefs(cond: BuyerConditionPrefs): string[] {
   return CONDITION_PREF_OPTIONS.map((option) => option.value).filter(
-    (key) => cond[key as keyof BuyerConditionPrefs] === true,
+    (key) => cond[key as keyof BuyerConditionPrefs] === true
   );
 }
 
 function toConditionPrefs(selected: string[]): BuyerConditionPrefs {
   const selectedSet = new Set(selected);
   return {
-    prefer_price_reduced: selectedSet.has("prefer_price_reduced")
-      ? true
-      : undefined,
-    prefer_virtual_tour: selectedSet.has("prefer_virtual_tour")
-      ? true
-      : undefined,
+    prefer_price_reduced: selectedSet.has("prefer_price_reduced") ? true : undefined,
+    prefer_virtual_tour: selectedSet.has("prefer_virtual_tour") ? true : undefined,
     prefer_open_house: selectedSet.has("prefer_open_house") ? true : undefined,
     foreclosure_ok: selectedSet.has("foreclosure_ok") ? true : undefined,
   };
@@ -82,21 +78,18 @@ export function SearchPrefsCondition({
               content: isEditMode ? (
                 <Dropdown
                   value={listingStatus ?? ""}
-                  onChange={(value) =>
-                    updateField("listing_status", value || undefined)
-                  }
+                  onChange={(value) => updateField("listing_status", value || undefined)}
                   options={LISTING_STATUS_PROFILE_OPTIONS}
-                  placeholder="Select..."
+                  placeholder="Select listing status"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                    listingStatus,
+                    listingStatus
                   )}`}
                 >
-                  {LISTING_STATUS_PROFILE_OPTIONS.find(
-                    (o) => o.value === listingStatus,
-                  )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                  {LISTING_STATUS_PROFILE_OPTIONS.find((o) => o.value === listingStatus)?.label ??
+                    PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },

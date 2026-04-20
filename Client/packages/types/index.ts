@@ -12,9 +12,9 @@
  * Shared types barrel - re-exports from feature packages and generated schema.
  */
 
-export type { GoogleCalendar, GoogleEvent } from "./googleCalendar";
-export type { PropertyDetailsStreamProperty } from "./propertyDetailsStream";
-export type { SavedHome, SavedHomeRecord } from "./savedHome";
+export type { PropertyDetailsStreamProperty } from "./domain/propertyDetailsStream";
+export type { SavedHome, SavedHomeRecord } from "./domain/savedHome";
+export type { GoogleCalendar, GoogleEvent } from "./integrations/googleCalendar";
 export {
   CHECKLIST_SUBTITLES,
   CHECKLIST_TITLES,
@@ -25,13 +25,7 @@ export type {
   WorkflowDocument,
   WorkflowDocumentRecord,
 } from "packages/features/documents/types/documents";
-export type {
-  CompareReport,
-  Report,
-} from "packages/features/documents/types/reports";
-export type {
-  UserPreferences,
-  UserProfile,
-} from "packages/features/homeauth/types/index";
+export type { CompareReport, Report } from "packages/features/documents/types/reports";
+export type { UserPreferences, UserProfile } from "packages/features/homeauth/types/index";
 export type { Property } from "packages/features/search/types/property";
 export type { SearchResult } from "packages/features/search/types/result";

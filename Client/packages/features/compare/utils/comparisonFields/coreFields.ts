@@ -1,8 +1,5 @@
 import type { CompareHomesComparisonField } from "packages/features/compare/types/compareHomes";
-import {
-  formatPrice,
-  formatPropertyType,
-} from "packages/utils/format/property";
+import { formatPrice, formatPropertyType } from "packages/utils/format/property";
 import { formatLotSize } from "packages/utils/format/property/addressFormatting";
 
 export function getCoreFields(): CompareHomesComparisonField[] {
@@ -30,8 +27,7 @@ export function getCoreFields(): CompareHomesComparisonField[] {
       label: "Sqft",
       getValue: (h) => {
         if (!h.sqft || h.sqft === "-") return "-";
-        const sqftValue =
-          typeof h.sqft === "number" ? h.sqft : parseFloat(String(h.sqft));
+        const sqftValue = typeof h.sqft === "number" ? h.sqft : parseFloat(String(h.sqft));
         if (isNaN(sqftValue)) return String(h.sqft);
         return `${sqftValue.toLocaleString()} ft`;
       },

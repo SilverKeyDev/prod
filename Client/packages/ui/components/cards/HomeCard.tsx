@@ -9,13 +9,16 @@ import {
   formatLotSize,
   truncateText,
 } from "packages/utils/format/property/addressFormatting";
-import { displayListingPriceForCard } from "packages/utils/search/formatPropertySearchListingPrice";
+import { displayListingPriceForCard } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
 
 import { CardHeartSaveWithProps, TrianglePointer } from "./base/index";
-import PropertyCard from "./PropertyCard";
+import PropertyCard from "./property/PropertyCard";
 
 export type HomeDescription = {
   home_id: string;
+  /** Provider listing id when known (included in chat snapshots for opening details). */
+  zpid?: string;
+  mls_home_id?: string;
   description?: string;
   image_url?: string;
   calculatedScore?: number;
@@ -33,10 +36,7 @@ export type HomeDescription = {
 export type HomeCardSaveState = {
   isHomeSaved: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome: (property: CardHeartSavePropertyLike) => Promise<void>;
-  removeSavedHome: (
-    propertyId: string,
-    propertyAddress?: string,
-  ) => Promise<void>;
+  removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
 };
 
 type HomeCardProps = {
@@ -50,10 +50,7 @@ type HomeCardProps = {
   onViewDetails: (property: Property) => Promise<void>;
 };
 
-function convertHomeToProperty(
-  home: HomeDescription,
-  formattedAddress: string,
-): Property {
+function convertHomeToProperty(home: HomeDescription, formattedAddress: string): Property {
   const lat = home.lat ?? 37.7749;
   const lng = home.lng ?? -122.4194;
   return {
@@ -98,8 +95,7 @@ function HomeCardView({
 }: HomeCardViewProps) {
   const propertyLike: CardHeartSavePropertyLike = {
     id: property.id,
-    address:
-      typeof property.address === "string" ? property.address : undefined,
+    address: typeof property.address === "string" ? property.address : undefined,
   };
   const topContent = saveState ? (
     <CardHeartSaveWithProps
@@ -116,9 +112,7 @@ function HomeCardView({
     <Box
       role="button"
       tabIndex={0}
-      className={`relative cursor-pointer ${
-        isOnMap ? "scale-90 transform" : ""
-      }`}
+      className={`relative cursor-pointer ${isOnMap ? "scale-90 transform" : ""}`}
       onClick={onCardClick}
       onKeyDown={onKeyDown}
     >
@@ -153,10 +147,8 @@ export default function HomeCard({
 }: HomeCardProps) {
   const formattedAddress = formatFilenameToAddress(home.home_id);
   const displayName = truncateText(
-    addressStreetLineForCard(
-      home.address ?? formattedAddress ?? `Home ${home.home_id}`,
-    ),
-    35,
+    addressStreetLineForCard(home.address ?? formattedAddress ?? `Home ${home.home_id}`),
+    35
   );
   const property = convertHomeToProperty(home, formattedAddress);
   const score = showScore ? home.calculatedScore : undefined;

@@ -27,9 +27,7 @@ export function useWebMapCameraPersistence(params: {
 
   const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const attachedMapRef = useRef<google.maps.Map | null>(null);
-  const restoredForMapRef = useRef<WeakMap<google.maps.Map, boolean>>(
-    new WeakMap(),
-  );
+  const restoredForMapRef = useRef<WeakMap<google.maps.Map, boolean>>(new WeakMap());
 
   useEffect(() => {
     if (!isGoogleMapsLoaded) return;
@@ -86,7 +84,7 @@ export function useWebMapCameraPersistence(params: {
           "Map not ready for camera persistence within frame budget",
           {
             frames,
-          },
+          }
         );
       }
     };

@@ -37,9 +37,7 @@ function BaseModalPanel({
   return (
     <Box
       className={`relative flex min-h-0 w-full max-w-full transform flex-col overflow-hidden rounded-lg text-left shadow-xl transition-all sm:rounded-xl ${
-        contentBackground === "off-white"
-          ? "bg-background-base"
-          : "bg-background-base"
+        contentBackground === "off-white" ? "bg-background-base" : "bg-background-base"
       } ${SIZE_STYLES[size ?? "md"]} ${className ?? ""}`}
       style={{ maxHeight: "min(90vh, 90dvh)" }}
     >
@@ -88,13 +86,7 @@ function BaseModalPanel({
 }
 
 function BaseModalContent(p: BaseModalContentProps) {
-  const {
-    onClose,
-    closeOnBackdropClick = true,
-    backdropClassName = "",
-    zIndex,
-    ...rest
-  } = p;
+  const { onClose, closeOnBackdropClick = true, backdropClassName = "", zIndex, ...rest } = p;
   const handleBackdropClick = () => {
     if (closeOnBackdropClick) onClose();
   };

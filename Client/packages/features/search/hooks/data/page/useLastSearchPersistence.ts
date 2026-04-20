@@ -5,11 +5,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { searchDisplayApi } from "packages/features/search/api/searchDisplay";
 import type { LastSearchContext } from "packages/features/search/types/searchDisplay";
-import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/locationBoundsOverlay";
-import { centroidOfViewportRing } from "packages/features/search/utils/mapViewport";
+import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/map/locationBoundsOverlay";
+import { centroidOfViewportRing } from "packages/features/search/utils/map/mapViewport";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useFiltersStore, useSearchContextStore } from "packages/store";
-import type { ViewportPolygonPoint } from "packages/types/api";
+import type { ViewportPolygonPoint } from "packages/types/domain/api";
 import { dateNow } from "packages/utils/date";
 
 /**
@@ -23,7 +23,7 @@ export function useLastSearchPersistence(): {
   const hydratedRef = useRef(false);
 
   const setLocationPlaceViewportFromBar = useSearchContextStore(
-    (s) => s.setLocationPlaceViewportFromBar,
+    (s) => s.setLocationPlaceViewportFromBar
   );
   const setWebMapCamera = useFiltersStore((s) => s.setWebMapCamera);
   const setSearchSource = useFiltersStore((s) => s.setSearchSource);
@@ -36,12 +36,9 @@ export function useLastSearchPersistence(): {
     if (hydratedRef.current) return;
 
     const cached = queryClient.getQueryData<Record<string, unknown>>(
-      queryKeys.user.searchDisplay(),
+      queryKeys.user.searchDisplay()
     );
-    const ctx = cached?.last_search_context as
-      | LastSearchContext
-      | null
-      | undefined;
+    const ctx = cached?.last_search_context as LastSearchContext | null | undefined;
     if (!ctx) return;
 
     hydratedRef.current = true;
@@ -59,11 +56,7 @@ export function useLastSearchPersistence(): {
       const ring = ctx.viewport_ring as ViewportPolygonPoint[];
       const center = centroidOfViewportRing(ring);
       const label = ctx.place_label ?? "";
-      const overlay = buildIsochroneOverlayFromViewportRing(
-        ring,
-        center,
-        label || undefined,
-      );
+      const overlay = buildIsochroneOverlayFromViewportRing(ring, center, label || undefined);
       // Ring must live on location-bar context so runViewportSearch uses it (not only overlay).
       setLocationPlaceViewportFromBar({
         ring,
@@ -79,12 +72,7 @@ export function useLastSearchPersistence(): {
         zoom: ctx.map_zoom,
       });
     }
-  }, [
-    queryClient,
-    setSearchSource,
-    setLocationPlaceViewportFromBar,
-    setWebMapCamera,
-  ]);
+  }, [queryClient, setSearchSource, setLocationPlaceViewportFromBar, setWebMapCamera]);
 
   const saveLastSearchContext = useCallback(
     (ctx: LastSearchContext) => {
@@ -98,21 +86,14 @@ export function useLastSearchPersistence(): {
         .patch({ last_search_context: payload })
         .then((res) => {
           if (res.success && res.search_display) {
-            queryClient.setQueryData(
-              queryKeys.user.searchDisplay(),
-              res.search_display,
-            );
+            queryClient.setQueryData(queryKeys.user.searchDisplay(), res.search_display);
           }
         })
         .catch((err: unknown) => {
-          log.error(
-            LOG_CATEGORIES.API,
-            "Failed to save last search context",
-            err,
-          );
+          log.error(LOG_CATEGORIES.API, "Failed to save last search context", err);
         });
     },
-    [queryClient],
+    [queryClient]
   );
 
   return { saveLastSearchContext };

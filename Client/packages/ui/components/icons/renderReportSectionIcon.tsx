@@ -2,7 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { getSectionIconName } from "packages/utils/propertyDetails/sectionIconNames";
+import { getSectionIconName } from "packages/utils/propertyDetails/analysis/sectionIconNames";
 
 export function renderReportSectionIcon(
   sectionKey: string,

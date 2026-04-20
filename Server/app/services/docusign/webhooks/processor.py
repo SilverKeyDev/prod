@@ -137,6 +137,21 @@ class WebhookProcessor:
                 },
             )
 
+            try:
+                from app.services.transactions.checklist_signature_completion import (
+                    sync_checklist_for_completed_agreement,
+                )
+
+                fresh = Agreement.query.get(agreement.id)
+                if fresh is not None and str(fresh.status) == "completed":
+                    sync_checklist_for_completed_agreement(fresh)
+            except Exception as sync_exc:
+                logger.error(
+                    LOG_CATEGORIES["ERRORS"],
+                    "checklist_sync_after_webhook_commit_failed",
+                    sync_exc,
+                )
+
         except Exception as e:
             logger.error(
                 LOG_CATEGORIES["ERRORS"],

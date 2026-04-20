@@ -4,8 +4,6 @@
 
 import { useParams } from "react-router-dom";
 
-export function useRouteParams<
-  T extends Partial<Record<string, string | undefined>>,
->(): T {
+export function useRouteParams<T extends Partial<Record<string, string | undefined>>>(): T {
   return useParams() as T;
 }

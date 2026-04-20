@@ -2,10 +2,7 @@ import React, { forwardRef } from "react";
 
 import { Box } from "packages/ui/components/primitives";
 
-import {
-  getBaseCardClasses,
-  getCardScaleInlineStyle,
-} from "./base/BaseCardStyles";
+import { getBaseCardClasses, getCardScaleInlineStyle } from "./base/BaseCardStyles";
 
 export type BaseCardProps = {
   variant?: "default" | "elevated" | "outlined" | "flat";
@@ -43,7 +40,7 @@ const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
       children,
       ...props
     },
-    ref,
+    ref
   ) => {
     const cardClasses = getBaseCardClasses({
       variant,
@@ -62,16 +59,11 @@ const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
     });
     const scaleStyle = getCardScaleInlineStyle(scale, cardType);
     return (
-      <Box
-        ref={ref}
-        className={cardClasses}
-        style={{ ...scaleStyle, ...style }}
-        {...props}
-      >
+      <Box ref={ref} className={cardClasses} style={{ ...scaleStyle, ...style }} {...props}>
         {children}
       </Box>
     );
-  },
+  }
 );
 
 BaseCard.displayName = "BaseCard";

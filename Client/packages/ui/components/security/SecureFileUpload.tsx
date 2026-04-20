@@ -13,10 +13,7 @@ import Label from "@ui/text/Label.web";
 import Title from "@ui/text/Title";
 
 import { useLocalization } from "packages/contexts";
-import {
-  formatFileSize,
-  processImage,
-} from "packages/services/security/imageProcessor";
+import { formatFileSize, processImage } from "packages/services/security/imageProcessor";
 import { log } from "packages/services/security/secureLogger";
 import { DROP_ZONE_BORDER_BASE } from "packages/ui/components/form/fileUploadStyles";
 import { Box, Image } from "packages/ui/components/primitives";
@@ -68,20 +65,20 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       if (file.size > maxSize) {
         errors.push(
           `File "${file.name}" is too large (${formatFileSize(
-            file.size,
-          )}). Maximum size is ${formatFileSize(maxSize)}.`,
+            file.size
+          )}). Maximum size is ${formatFileSize(maxSize)}.`
         );
       }
       if (!acceptedTypes.includes(file.type)) {
         errors.push(
           `File "${file.name}" has unsupported type (${
             file.type
-          }). Accepted types: ${acceptedTypes.join(", ")}.`,
+          }). Accepted types: ${acceptedTypes.join(", ")}.`
         );
       }
       return errors;
     },
-    [maxSize, acceptedTypes],
+    [maxSize, acceptedTypes]
   );
   const processFiles = useCallback(
     (fileList: File[]) => {
@@ -100,39 +97,31 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
           setProcessing(false);
           return;
         }
-        const validFiles = fileList.filter((file) =>
-          file.type.startsWith("image/"),
-        );
-        const processedFiles: ProcessedImage[] = validFiles.map(
-          (file): ProcessedImage => {
-            try {
-              return processImage(file, {
-                maxWidth: 2048,
-                maxHeight: 2048,
-                quality: 0.8,
-                stripAllMetadata: true,
-              });
-            } catch (error: unknown) {
-              log.error("SECURE_UPLOAD", "Image processing failed", error);
-              return {
-                file,
-                originalSize: file.size,
-                processedSize: file.size,
-                metadataRemoved: [],
-                warnings: [],
-              };
-            }
-          },
-        );
-        const filesWithPreview: FileWithPreview[] = processedFiles.map(
-          (processed, index) => ({
-            ...processed,
-            preview: showPreview
-              ? URL.createObjectURL(processed.file)
-              : undefined,
-            id: `file-${Date.now()}-${index}`,
-          }),
-        );
+        const validFiles = fileList.filter((file) => file.type.startsWith("image/"));
+        const processedFiles: ProcessedImage[] = validFiles.map((file): ProcessedImage => {
+          try {
+            return processImage(file, {
+              maxWidth: 2048,
+              maxHeight: 2048,
+              quality: 0.8,
+              stripAllMetadata: true,
+            });
+          } catch (error: unknown) {
+            log.error("SECURE_UPLOAD", "Image processing failed", error);
+            return {
+              file,
+              originalSize: file.size,
+              processedSize: file.size,
+              metadataRemoved: [],
+              warnings: [],
+            };
+          }
+        });
+        const filesWithPreview: FileWithPreview[] = processedFiles.map((processed, index) => ({
+          ...processed,
+          preview: showPreview ? URL.createObjectURL(processed.file) : undefined,
+          id: `file-${Date.now()}-${index}`,
+        }));
         setFiles((prev) => [...prev, ...filesWithPreview]);
         if (autoProcess) {
           onFilesProcessed(processedFiles);
@@ -141,21 +130,17 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
           totalFiles: processedFiles.length,
           totalSizeReduction: processedFiles.reduce(
             (acc, f) => acc + (f.originalSize - f.processedSize),
-            0,
+            0
           ),
         });
       } catch (error: unknown) {
         log.error("SECURE_UPLOAD", "File processing failed", error);
-        setError(
-          `Processing failed: ${
-            error instanceof Error ? error.message : "Unknown error"
-          }`,
-        );
+        setError(`Processing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
       } finally {
         setProcessing(false);
       }
     },
-    [showPreview, autoProcess, onFilesProcessed, validateFile],
+    [showPreview, autoProcess, onFilesProcessed, validateFile]
   );
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -169,7 +154,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       }
       void processFiles(droppedFiles);
     },
-    [files.length, maxFiles, processFiles],
+    [files.length, maxFiles, processFiles]
   );
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -269,10 +254,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       {error && (
         <Box className="border-border mt-4 rounded-lg border bg-red-50 p-3">
           <Box className="flex flex-row items-center gap-2">
-            <Icon
-              name="alert-triangle"
-              className="h-4 w-4 flex-shrink-0 text-red-600"
-            />
+            <Icon name="alert-triangle" className="h-4 w-4 flex-shrink-0 text-red-600" />
             <BodyText as="p" size="sm" className="text-red-800">
               {error}
             </BodyText>
@@ -302,6 +284,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                 setError(null);
               }}
               className="text-gray-500 hover:text-gray-700 active:text-gray-700 active:text-gray-800"
+              iconName="upload"
             >
               {t("secure_upload.clear_all")}
             </Button>
@@ -323,28 +306,19 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                     ) : (
                       <Box className="flex h-12 w-12 flex-row items-center justify-center rounded-lg bg-gray-200">
                         <BodyText as="span" className="text-xs text-gray-600">
-                          {`${(file.processedSize / 1024 / 1024).toFixed(2)}${t(
-                            "common.mb",
-                          )}`}
+                          {`${(file.processedSize / 1024 / 1024).toFixed(2)}${t("common.mb")}`}
                         </BodyText>
                       </Box>
                     )}
                   </Box>
                   <Box className="min-w-0 flex-1">
-                    <BodyText
-                      as="p"
-                      size="sm"
-                      className="truncate font-medium text-gray-900"
-                    >
+                    <BodyText as="p" size="sm" className="truncate font-medium text-gray-900">
                       {file.file.name}
                     </BodyText>
                     <Box className="mt-1 flex flex-row items-center gap-3 text-xs text-gray-500">
                       {formatFileSize(file.processedSize)}
                       {file.originalSize !== file.processedSize && (
-                        <BodyText
-                          as="span"
-                          className="flex flex-row items-center"
-                        >
+                        <BodyText as="span" className="flex flex-row items-center">
                           <Icon name="check-circle" className="mr-1 h-3 w-3" />
                           {t("secure_upload.exif_stripped")}
                         </BodyText>
@@ -353,12 +327,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                     {file.warnings.length > 0 && (
                       <Box className="mt-1">
                         {file.warnings.map((warning, index) => (
-                          <BodyText
-                            key={index}
-                            as="p"
-                            size="xs"
-                            className="text-yellow-600"
-                          >
+                          <BodyText key={index} as="p" size="xs" className="text-yellow-600">
                             {t("secure_upload.warning_prefix")}
                             {warning}
                           </BodyText>

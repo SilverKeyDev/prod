@@ -2,12 +2,15 @@ import { Subtitle } from "@ui";
 import NavigationButton from "@ui/button/NavigationButton";
 
 import { useLocalization } from "packages/contexts";
+import { useMoveConciergeEmbedUrl } from "packages/features/checklists/hooks/data/useMoveConciergeEmbedUrl";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Image } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
 export default function HomeConcierge() {
   const { t } = useLocalization();
+  const embedUrl = useMoveConciergeEmbedUrl();
+
   return (
     <Box className="px-responsive-sm w-full max-w-none self-center">
       <Card border="dotted" padding="md" className="mb-2">
@@ -19,11 +22,7 @@ export default function HomeConcierge() {
             loading="lazy"
           />
           <Box className="flex min-w-0 max-w-[72ch] flex-1 flex-col justify-between self-stretch">
-            <Subtitle
-              size="sm"
-              muted
-              className="leading-relaxed md:text-base lg:text-lg"
-            >
+            <Subtitle size="sm" muted className="leading-relaxed md:text-base lg:text-lg">
               {t("close.home_concierge.subtitle")}
             </Subtitle>
             <Subtitle
@@ -33,22 +32,23 @@ export default function HomeConcierge() {
             >
               {t("close.home_concierge.how_possible")}
             </Subtitle>
-            <NavigationButton
-              onClick={() =>
-                getWindow()?.open?.(
-                  "https://mc.partners/SilverKey",
-                  "_blank",
-                  "noopener,noreferrer",
-                )
-              }
-              size="md"
-              className="text-olive hover:text-olive active:text-olive rounded border border-dotted border-neutral-400 px-2 py-1"
-            >
-              {t("close.home_concierge.start_today")}
-            </NavigationButton>
           </Box>
         </Box>
       </Card>
+      <Box className="gap-responsive-sm flex w-full flex-col">
+        <iframe
+          src={embedUrl}
+          title={t("close.home_concierge.alt")}
+          className="border-border min-h-80 w-full rounded-lg border md:min-h-96"
+        />
+        <NavigationButton
+          onClick={() => getWindow()?.open?.(embedUrl, "_blank", "noopener,noreferrer")}
+          size="md"
+          className="text-olive hover:text-olive active:text-olive self-start rounded border border-dotted border-neutral-400 px-2 py-1"
+        >
+          {t("close.home_concierge.open_in_new_tab")}
+        </NavigationButton>
+      </Box>
     </Box>
   );
 }

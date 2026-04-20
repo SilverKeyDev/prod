@@ -9,7 +9,7 @@ import { usePerformanceMonitoring } from "packages/hooks/store/performance/usePe
  */
 export function withPerformanceMonitoring<P extends object>(
   WrappedComponent: React.ComponentType<P>,
-  options: PerformanceMonitoringOptions,
+  options: PerformanceMonitoringOptions
 ) {
   const WithPerformanceMonitoring = (props: P) => {
     const { startRender, endRender } = usePerformanceMonitoring(options);

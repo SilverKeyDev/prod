@@ -22,7 +22,7 @@ export type SecureAuthState = {
 export type SecureAuthActions = {
   login: (
     email: string,
-    password: string,
+    password: string
   ) => Promise<{ success: boolean; needsVerification?: boolean }>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>;

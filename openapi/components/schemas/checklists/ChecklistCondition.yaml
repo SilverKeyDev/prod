@@ -1,0 +1,24 @@
+type: object
+required:
+  - kind
+  - item_ids
+description: >-
+  Declarative condition for checklist rules (v1). Evaluates against the
+  effective checked item ids for the same checklist type (API `type` query param).
+properties:
+  kind:
+    type: string
+    enum:
+      - all_items_checked
+      - any_item_checked
+    description: >-
+      all_items_checked: true when every id in item_ids is in the checked set.
+      any_item_checked: true when at least one id in item_ids is in the checked set.
+  item_ids:
+    type: array
+    items:
+      type: integer
+    description: >-
+      Checklist item ids within the same category that participate in the
+      condition. Empty item_ids: all_items_checked is vacuously true;
+      any_item_checked is false.

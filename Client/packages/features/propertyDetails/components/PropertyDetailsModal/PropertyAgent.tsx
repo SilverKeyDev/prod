@@ -28,9 +28,7 @@ const formatPhoneNumber = (phone: Record<string, unknown>): string => {
   return areacode || prefix || number || "Phone available";
 };
 
-export const PropertyAgent: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) => {
   const listedBy = (property as unknown as { listed_by: unknown }).listed_by;
 
   if (!listedBy || typeof listedBy !== "object") {

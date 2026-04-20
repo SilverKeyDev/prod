@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 import type { IsochroneData } from "packages/features/search/types/isochrone";
 import { withDevtools } from "packages/store/middleware/devtools";
-import type { ViewportPolygonPoint } from "packages/types/api";
+import type { ViewportPolygonPoint } from "packages/types/domain/api";
 
 export type SearchContextAnchor = {
   listingId?: string;
@@ -54,7 +54,7 @@ export type SearchContextState = {
   setSearchFilterOverrides: (
     overrides:
       | Partial<SearchFilterOverrides>
-      | ((prev: SearchFilterOverrides) => Partial<SearchFilterOverrides>),
+      | ((prev: SearchFilterOverrides) => Partial<SearchFilterOverrides>)
   ) => void;
   clearAnchor: () => void;
   setLocationPlaceViewportFromBar: (payload: {
@@ -70,9 +70,7 @@ export type SearchContextState = {
 
 const initialAnchor: SearchContextAnchor = {};
 
-const baseCreator: import("zustand").StateCreator<SearchContextState> = (
-  set,
-) => ({
+const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) => ({
   anchor: initialAnchor,
   filtersHash: "",
   feedCursor: undefined,
@@ -112,8 +110,7 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (
       locationSearchOverlayData: overlay,
     }),
 
-  setLocationSearchOverlayData: (overlay) =>
-    set({ locationSearchOverlayData: overlay }),
+  setLocationSearchOverlayData: (overlay) => set({ locationSearchOverlayData: overlay }),
 
   clearLocationPlaceSearchArea: () =>
     set({
@@ -124,10 +121,9 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (
 
   setLocationBarDraft: (locationBarDraft) => set({ locationBarDraft }),
 
-  setLocationBarExternalSubmit: (locationBarExternalSubmit) =>
-    set({ locationBarExternalSubmit }),
+  setLocationBarExternalSubmit: (locationBarExternalSubmit) => set({ locationBarExternalSubmit }),
 });
 
 export const useSearchContextStore = create<SearchContextState>()(
-  withDevtools<SearchContextState>("searchContext")(baseCreator),
+  withDevtools<SearchContextState>("searchContext")(baseCreator)
 );

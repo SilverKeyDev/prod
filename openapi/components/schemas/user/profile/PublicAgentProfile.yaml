@@ -1,0 +1,96 @@
+type: object
+description: >
+  Public, read-only agent directory fields for shareable profile URLs. Combines
+  `users` row contact with `user_agent_profiles` when present. Omits Cognito/Google  ids and internal S3 keys; profile images are exposed only as presigned URLs when available.
+required:
+  - id
+  - name
+  - email
+properties:
+  id:
+    $ref: './UserId.yaml'
+  name:
+    type: string
+  email:
+    type: string
+    format: email
+  phone:
+    type: string
+    nullable: true
+  mls_id:
+    type: string
+    nullable: true
+  brokerage:
+    type: string
+    nullable: true
+    description: Legacy brokerage name on the users row.
+  profile_picture_url:
+    type: string
+    format: uri
+    nullable: true
+    description: Presigned URL for the user's profile picture when stored in S3.
+  agent_bio:
+    type: string
+    nullable: true
+  brokerage_name:
+    type: string
+    nullable: true
+  brokerage_bic_name:
+    type: string
+    nullable: true
+  brokerage_address:
+    type: string
+    nullable: true
+  brokerage_email:
+    type: string
+    format: email
+    nullable: true
+  brokerage_phone:
+    type: string
+    nullable: true
+  professional_headshot_url:
+    type: string
+    nullable: true
+    description: URL or stored headshot reference as persisted on user_agent_profiles.
+  primary_service_zips:
+    type: array
+    items:
+      type: string
+    nullable: true
+  specialties:
+    type: array
+    items:
+      type: string
+    nullable: true
+  licensed_states:
+    type: array
+    items:
+      type: string
+    nullable: true
+  license_types:
+    type: array
+    items:
+      type: string
+    nullable: true
+  license_numbers:
+    type: array
+    items:
+      type: string
+    nullable: true
+  license_expiration_dates:
+    type: array
+    items:
+      type: string
+    nullable: true
+  mls_affiliations:
+    description: Parsed JSON array from user_agent_profiles.mls_affiliations (list of objects).
+    type: array
+    nullable: true
+    items:
+      type: object
+      additionalProperties: true
+  social_links:
+    type: object
+    additionalProperties:
+      type: string
+    nullable: true

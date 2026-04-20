@@ -3,6 +3,10 @@ import React from "react";
 
 import { Img } from "@react-email/components";
 
+import { color } from "packages/design-tokens";
+
+import { getMatchTier } from "packages/utils/format/matchScore";
+
 import { emailColors } from "./colors";
 import type { Listing } from "./listingCardTypes";
 import { formatPrice } from "./listingCardUtils";
@@ -25,6 +29,10 @@ type ListingCardImageSectionProps = {
 
 export function ListingCardImageSection({ listing }: ListingCardImageSectionProps) {
   const priceCutTop = listing.isNewListing ? "48px" : "16px";
+  const matchTier =
+    listing.score !== undefined ? getMatchTier(Math.round(listing.score)) : null;
+  const matchFill = matchTier ? color(`match.${matchTier}.bg`) : "";
+  const matchText = matchTier ? color(`match.${matchTier}.fg`) : "";
 
   return (
     <div
@@ -73,13 +81,15 @@ export function ListingCardImageSection({ listing }: ListingCardImageSectionProp
           {listing.priceCut.percent != null && ` (${listing.priceCut.percent}% off)`}
         </div>
       )}
-      {listing.score !== undefined && !listing.priceCut && !listing.isNewListing && (
+      {listing.score !== undefined && !listing.priceCut && !listing.isNewListing && matchTier && (
         <div
           style={{
             ...BADGE_BASE,
             top: "16px",
             left: "16px",
-            backgroundColor: `${emailColors.brown.DEFAULT}F2`,
+            backgroundColor: `${matchFill}F2`,
+            color: matchText,
+            textTransform: "none",
           }}
         >
           {Math.round(listing.score)}% Match

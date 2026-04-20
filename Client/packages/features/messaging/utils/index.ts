@@ -3,6 +3,7 @@ export * from "./agreementEventPayload";
 export * from "./eventRequestPayload";
 export * from "./messageDateUtils";
 export * from "./messagePreview";
+export * from "./messagingAttachmentAvailability";
 export * from "./reportToChat";
 export * from "./sharedAttachmentSnapshot";
 export * from "./userIdMatch";

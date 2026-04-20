@@ -65,24 +65,17 @@ function ErrorFallbackContent({
         <Box className="text-center">
           <Box className="mb-responsive-md flex justify-center">
             <Box className="p-responsive-sm rounded-full border-2 border-border bg-background-surface">
-              <Icon
-                name="alert-triangle"
-                className="mobile-icon-lg text-destructive"
-              />
+              <Icon name="alert-triangle" className="mobile-icon-lg text-destructive" />
             </Box>
           </Box>
 
-          <Title
-            size="xl"
-            as="h1"
-            className="mb-responsive-xs text-text-primary"
-          >
+          <Title size="xl" as="h1" className="mb-responsive-xs text-text-primary">
             Something went wrong
           </Title>
 
           <BodyText size="sm" muted className="mb-responsive-md">
-            We're sorry, but something unexpected happened. Our team has been
-            notified and we're working to resolve this issue.
+            We're sorry, but something unexpected happened. Our team has been notified and we're
+            working to resolve this issue.
           </BodyText>
 
           <Box className="gap-responsive-xs mb-responsive-md flex flex-col sm:flex-row">
@@ -143,6 +136,7 @@ function ErrorDetailsSection({
         size="sm"
         onClick={onToggleDetails}
         className="mb-responsive-xs text-destructive hover:text-destructive-hover"
+        iconName="alert-circle"
       >
         {showDetails ? "Hide" : "Show"} Error Details
       </Button>
@@ -154,8 +148,7 @@ function ErrorDetailsSection({
         >
           <Box className="text-responsive-xs font-mono text-text-secondary">
             <Box className="mb-responsive-xs">
-              <strong className="text-text-primary">Error:</strong>{" "}
-              {normalizedError.message}
+              <strong className="text-text-primary">Error:</strong> {normalizedError.message}
             </Box>
             {normalizedError.stack && (
               <Box className="mb-responsive-xs">
@@ -191,22 +184,11 @@ function ErrorFeedbackSection({
   onFeedbackSubmit: () => void;
 }) {
   return (
-    <Card
-      border="light"
-      className="border-border bg-primary-muted"
-      padding="md"
-    >
+    <Card border="light" className="border-border bg-primary-muted" padding="md">
       <Box className="space-responsive-xs flex items-start">
-        <Icon
-          name="message-square"
-          className="mobile-icon-sm mt-0.5 flex-shrink-0 text-primary"
-        />
+        <Icon name="message-square" className="mobile-icon-sm mt-0.5 flex-shrink-0 text-primary" />
         <Box className="flex-1">
-          <Title
-            size="sm"
-            as="h3"
-            className="mb-responsive-xs text-text-primary"
-          >
+          <Title size="sm" as="h3" className="mb-responsive-xs text-text-primary">
             Help us improve
           </Title>
           {!feedbackSubmitted ? (
@@ -214,7 +196,7 @@ function ErrorFeedbackSection({
               <Textarea
                 value={feedbackMessage}
                 onChange={(e) => onFeedbackMessageChange(e.target.value)}
-                placeholder="What were you trying to do when this error occurred?"
+                placeholder="What were you doing before this error? (optional)"
                 className="p-responsive-xs text-responsive-xs focus:border-input-variant-focus-border w-full resize-none rounded-lg border border-border bg-background-surface font-sans focus:ring-2 focus:ring-neutral-300"
                 rows={3}
               />
@@ -224,6 +206,7 @@ function ErrorFeedbackSection({
                 onClick={onFeedbackSubmit}
                 className="mt-responsive-xs"
                 disabled={!feedbackMessage.trim()}
+                iconName="send"
               >
                 Send Feedback
               </Button>
@@ -315,9 +298,7 @@ export class ErrorBoundary extends Component<Props, State> {
           feedbackMessage={this.state.feedbackMessage}
           feedbackSubmitted={this.state.feedbackSubmitted}
           onToggleDetails={this.handleToggleDetails}
-          onFeedbackMessageChange={(value) =>
-            this.setState({ feedbackMessage: value })
-          }
+          onFeedbackMessageChange={(value) => this.setState({ feedbackMessage: value })}
           onFeedbackSubmit={this.handleFeedbackSubmit}
           onRetry={this.handleRetry}
           onGoHome={this.handleGoHome}
@@ -340,11 +321,7 @@ export function ErrorBoundaryWithReporting({
   const { reportError } = useErrorReporting();
 
   return (
-    <ErrorBoundary
-      fallback={fallback}
-      onError={onError}
-      reportError={reportError}
-    >
+    <ErrorBoundary fallback={fallback} onError={onError} reportError={reportError}>
       {children}
     </ErrorBoundary>
   );

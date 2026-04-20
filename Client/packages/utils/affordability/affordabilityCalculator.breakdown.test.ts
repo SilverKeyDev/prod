@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  estimateMonthlyPayment,
-  estimateMonthlyPaymentBreakdown,
-} from "./affordabilityCalculator";
+import { estimateMonthlyPayment, estimateMonthlyPaymentBreakdown } from "./affordabilityCalculator";
 
 describe("estimateMonthlyPaymentBreakdown", () => {
   it("matches legacy estimateMonthlyPayment for financed (no HOA/utilities)", () => {
@@ -51,9 +48,7 @@ describe("estimateMonthlyPaymentBreakdown", () => {
     expect(breakdown!.interestRateApr).toBeNull();
     expect(breakdown!.propertyTax).toBeGreaterThan(0);
     expect(breakdown!.homeownersInsurance).toBeGreaterThan(0);
-    expect(breakdown!.totalMonthly).toBe(
-      breakdown!.propertyTax + breakdown!.homeownersInsurance,
-    );
+    expect(breakdown!.totalMonthly).toBe(breakdown!.propertyTax + breakdown!.homeownersInsurance);
   });
 
   it("returns null for unsupported ZIP", () => {
@@ -62,7 +57,7 @@ describe("estimateMonthlyPaymentBreakdown", () => {
         homePrice: 300_000,
         zipCode: "xx",
         payingCash: true,
-      }),
+      })
     ).toBeNull();
   });
 
@@ -74,7 +69,7 @@ describe("estimateMonthlyPaymentBreakdown", () => {
         payingCash: false,
         downPayment: 60_000,
         creditScore: 500,
-      }),
+      })
     ).toBeNull();
   });
 

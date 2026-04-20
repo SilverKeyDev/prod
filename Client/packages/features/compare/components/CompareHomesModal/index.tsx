@@ -50,7 +50,7 @@ function useCompareHomesData(
   loadingStates: Record<string, boolean>,
   omittedRows: Set<string>,
   manuallyEnabledRows: Set<string>,
-  _t: (key: string, opts?: Record<string, unknown>) => string,
+  _t: (key: string, opts?: Record<string, unknown>) => string
 ) {
   const orderedSections = DEFAULT_REPORT_SECTIONS;
   const comparisonData = useMemo(() => {
@@ -63,9 +63,8 @@ function useCompareHomesData(
     });
   }, [selectedHomes, propertyDetails]);
   const allComparisonFields = useMemo(
-    () =>
-      getAllComparisonFields(comparisonData, loadingStates, orderedSections),
-    [comparisonData, loadingStates, orderedSections],
+    () => getAllComparisonFields(comparisonData, loadingStates, orderedSections),
+    [comparisonData, loadingStates, orderedSections]
   );
   const hasDataForAnyProperty = useCallback(
     (fieldKey: string): boolean => {
@@ -76,23 +75,17 @@ function useCompareHomesData(
         return value !== "-" && value !== "" && value !== "N/A";
       });
     },
-    [comparisonData, allComparisonFields],
+    [comparisonData, allComparisonFields]
   );
   const visibleComparisonFields = useMemo(() => {
     return allComparisonFields.filter((field) => {
       if (field.isSectionHeader) return !omittedRows.has(field.key);
       const isManuallyOmitted = omittedRows.has(field.key);
       const isAutoOmitted =
-        !hasDataForAnyProperty(field.key) &&
-        !manuallyEnabledRows.has(field.key);
+        !hasDataForAnyProperty(field.key) && !manuallyEnabledRows.has(field.key);
       return !isManuallyOmitted && !isAutoOmitted;
     });
-  }, [
-    allComparisonFields,
-    omittedRows,
-    manuallyEnabledRows,
-    hasDataForAnyProperty,
-  ]);
+  }, [allComparisonFields, omittedRows, manuallyEnabledRows, hasDataForAnyProperty]);
   return {
     comparisonData,
     allComparisonFields,
@@ -105,17 +98,14 @@ function useCompareHomesCSVActions(
   visibleComparisonFields: ReturnType<typeof getAllComparisonFields>,
   selectedCount: number,
   enqueueToast: (t: { type: string; message: string }) => void,
-  t: (key: string, opts?: Record<string, unknown>) => string,
+  t: (key: string, opts?: Record<string, unknown>) => string
 ) {
   const handleExportToCSV = useCallback(() => {
     if (selectedCount === 0) {
       enqueueToast({ type: "error", message: t("compare.no_homes_export") });
       return;
     }
-    const csvContent = generateCSVContent(
-      comparisonData,
-      visibleComparisonFields,
-    );
+    const csvContent = generateCSVContent(comparisonData, visibleComparisonFields);
     void exportToCSV(
       csvContent,
       () =>
@@ -123,7 +113,7 @@ function useCompareHomesCSVActions(
           type: "success",
           message: t("compare.export_success"),
         }),
-      (error) => enqueueToast({ type: "error", message: error }),
+      (error) => enqueueToast({ type: "error", message: error })
     );
   }, [selectedCount, comparisonData, visibleComparisonFields, enqueueToast, t]);
   const handleShareCSV = useCallback(async () => {
@@ -131,15 +121,12 @@ function useCompareHomesCSVActions(
       enqueueToast({ type: "error", message: t("compare.no_homes_share") });
       return;
     }
-    const csvContent = generateCSVContent(
-      comparisonData,
-      visibleComparisonFields,
-    );
+    const csvContent = generateCSVContent(comparisonData, visibleComparisonFields);
     await shareCSV(
       csvContent,
       selectedCount,
       (message) => enqueueToast({ type: "success", message }),
-      (error) => enqueueToast({ type: "error", message: error }),
+      (error) => enqueueToast({ type: "error", message: error })
     );
   }, [selectedCount, comparisonData, visibleComparisonFields, enqueueToast, t]);
   return { handleExportToCSV, handleShareCSV };
@@ -162,14 +149,8 @@ function CompareHomesModalHeader({
   return (
     <Box className="flex w-full items-center justify-between gap-2 sm:gap-4">
       <Box className="flex min-w-0 flex-1 items-center gap-2">
-        <Icon
-          name="git-compare"
-          className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5"
-        />
-        <BodyText
-          as="span"
-          className="text-text-primary truncate text-base font-medium sm:text-lg"
-        >
+        <Icon name="git-compare" className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+        <BodyText as="span" className="text-text-primary truncate text-base font-medium sm:text-lg">
           {t("compare.compare_properties")}
         </BodyText>
       </Box>
@@ -224,43 +205,33 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
   const { t } = useLocalization();
   const { navigateToPath } = useNavigation();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const { propertyDetails, loadingStates } = usePropertyComparison(
-    isOpen,
-    selectedHomes,
-  );
+  const { propertyDetails, loadingStates } = usePropertyComparison(isOpen, selectedHomes);
   const [showRowModal, setShowRowModal] = useState(false);
   const [omittedRows, setOmittedRows] = useState<Set<string>>(new Set());
-  const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(
-    new Set(),
-  );
-  const {
-    comparisonData,
-    allComparisonFields,
-    hasDataForAnyProperty,
-    visibleComparisonFields,
-  } = useCompareHomesData(
-    selectedHomes,
-    propertyDetails,
-    loadingStates,
-    omittedRows,
-    manuallyEnabledRows,
-    t,
-  );
+  const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(new Set());
+  const { comparisonData, allComparisonFields, hasDataForAnyProperty, visibleComparisonFields } =
+    useCompareHomesData(
+      selectedHomes,
+      propertyDetails,
+      loadingStates,
+      omittedRows,
+      manuallyEnabledRows,
+      t
+    );
   const { handleExportToCSV, handleShareCSV } = useCompareHomesCSVActions(
     comparisonData,
     visibleComparisonFields,
     selectedHomes.length,
     enqueueToast,
-    t,
+    t
   );
   const handleUnlockHome = useCallback(
     async (home: SavedHome) => {
-      const zpid =
-        (home as SavedHomeWithDetails).home_id ?? String(home.address ?? "");
+      const zpid = (home as SavedHomeWithDetails).home_id ?? String(home.address ?? "");
       const address = String(home.address ?? home.description ?? "");
       navigateToPath(buildPropertyUrl(zpid, address));
     },
-    [navigateToPath],
+    [navigateToPath]
   );
   return (
     <Cover
@@ -306,11 +277,7 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
         )}
         {selectedHomes.length === 0 && (
           <Box className="py-responsive-lg text-center">
-            <BodyText
-              as="p"
-              size="sm"
-              className="text-responsive-sm text-text-secondary"
-            >
+            <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
               {t("compare.no_homes_selected")}
             </BodyText>
           </Box>

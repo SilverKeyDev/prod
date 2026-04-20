@@ -9,10 +9,7 @@ function stripFileExtension(fileName: string): string {
 }
 
 export function getDefaultAgreementTitle(document: DocumentData): string {
-  if (
-    document.library_kind === "agreement" &&
-    document.filename.trim().length > 0
-  ) {
+  if (document.library_kind === "agreement" && document.filename.trim().length > 0) {
     return document.filename;
   }
   return stripFileExtension(document.filename) || "Untitled agreement";
@@ -26,9 +23,7 @@ export function canSendForSignature(document: DocumentData): boolean {
   return true;
 }
 
-export function sendForSignatureDisabledReason(
-  document: DocumentData,
-): string | null {
+export function sendForSignatureDisabledReason(document: DocumentData): string | null {
   if (document.library_kind !== "agreement") return null;
   if (!canSendForSignature(document)) {
     return `Agreement in ${document.status} state cannot be sent`;

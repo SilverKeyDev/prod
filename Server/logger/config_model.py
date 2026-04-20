@@ -27,6 +27,7 @@ class LoggerConfig:
         self.polygonSearch: bool = config_dict.get("polygonSearch", True)
         self.docusign: bool = config_dict.get("docusign", True)
         self.documents: bool = config_dict.get("documents", True)
+        self.profilePreferences: bool = config_dict.get("profilePreferences", True)
         self.logLevel: LogLevel = config_dict.get("logLevel", "DEBUG")
 
     def to_dict(self) -> dict[str, Any]:
@@ -43,6 +44,7 @@ class LoggerConfig:
             "polygonSearch": self.polygonSearch,
             "docusign": self.docusign,
             "documents": self.documents,
+            "profilePreferences": self.profilePreferences,
             "logLevel": self.logLevel,
         }
 

@@ -10,16 +10,10 @@ export type TextProps = RNTextProps & { className?: string };
  */
 const Text = forwardRef<RNText, TextProps>(function Text(
   { className, style, numberOfLines, children, ...props },
-  ref,
+  ref
 ) {
   return (
-    <RNText
-      ref={ref}
-      className={className}
-      style={style}
-      numberOfLines={numberOfLines}
-      {...props}
-    >
+    <RNText ref={ref} className={className} style={style} numberOfLines={numberOfLines} {...props}>
       {children}
     </RNText>
   );

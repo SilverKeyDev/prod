@@ -45,9 +45,7 @@ export default function CardImageContainer({
     }
   };
   return (
-    <Box
-      className={`relative w-full overflow-hidden bg-gray-100 ${getHeightClass()} ${className}`}
-    >
+    <Box className={`relative w-full overflow-hidden bg-gray-100 ${getHeightClass()} ${className}`}>
       <StyledImage
         src={imageUrl ?? undefined}
         alt={alt}

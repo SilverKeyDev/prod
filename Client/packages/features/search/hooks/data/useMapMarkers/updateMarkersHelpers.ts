@@ -2,8 +2,8 @@
  * Helpers for useMapMarkers: isochrone render, map center, and pin batch.
  */
 
-import { getMapFocusedProperty } from "packages/features/search/types/search/mapCardFocus";
-import { calculatePropertyCardCenter } from "packages/features/search/types/search/propertyCardCenter";
+import { getMapFocusedProperty } from "packages/features/search/types/search/map/mapCardFocus";
+import { calculatePropertyCardCenter } from "packages/features/search/types/search/map/propertyCardCenter";
 import { applyListingFocusCamera } from "packages/features/search/utils/googleMaps/mapCamera";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
@@ -24,15 +24,8 @@ export type EnsureIsochroneParams = {
   onRenderImportant: (data: unknown) => void;
 };
 
-export async function ensureIsochroneAndRender(
-  params: EnsureIsochroneParams,
-): Promise<void> {
-  const {
-    isochroneData,
-    setIsochroneData,
-    fetchIsochroneForMapOnly,
-    onRenderImportant,
-  } = params;
+export async function ensureIsochroneAndRender(params: EnsureIsochroneParams): Promise<void> {
+  const { isochroneData, setIsochroneData, fetchIsochroneForMapOnly, onRenderImportant } = params;
   if (isochroneData) {
     onRenderImportant(isochroneData);
     return;
@@ -47,7 +40,7 @@ export async function ensureIsochroneAndRender(
 export function centerMapOnFocusedProperty(
   results: SearchResult[],
   currentPage: number,
-  googleMapRef: MapRef,
+  googleMapRef: MapRef
 ): void {
   const focusedProperty = getMapFocusedProperty(results, currentPage);
   if (
@@ -61,7 +54,7 @@ export function centerMapOnFocusedProperty(
   const center = calculatePropertyCardCenter(
     focusedProperty.lat,
     focusedProperty.lng,
-    focusedProperty.id,
+    focusedProperty.id
   );
   applyListingFocusCamera(googleMapRef.current, center);
 }
@@ -79,7 +72,7 @@ export function getAdvancedMarkerElement():
   if (!win?.google?.maps?.marker?.AdvancedMarkerElement) {
     log.error(
       LOG_CATEGORIES.MAP_RENDERING,
-      "❌ [MARKER POSITION UPDATE] AdvancedMarkerElement not available, skipping marker update",
+      "❌ [MARKER POSITION UPDATE] AdvancedMarkerElement not available, skipping marker update"
     );
     return null;
   }

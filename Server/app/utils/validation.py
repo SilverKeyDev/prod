@@ -52,25 +52,25 @@ def _coerce_json_body_for_schema(schema: type[BaseModel], json_data: Any) -> dic
                 d["end_date"] = d.pop("timeMax")
             if "timezone" not in d and "timeZone" in d:
                 d["timezone"] = d.pop("timeZone")
+        if name == "UpdateTaskChecklistRequest":
+            if "data" not in d and "checkedIds" in d:
+                raw_ids = d.get("checkedIds")
+                if isinstance(raw_ids, list):
+                    coerced_ids: list[int] = []
+                    for x in raw_ids:
+                        if isinstance(x, bool):
+                            continue
+                        if isinstance(x, int):
+                            coerced_ids.append(x)
+                        elif isinstance(x, float) and x.is_integer():
+                            coerced_ids.append(int(x))
+                    return {"data": {"items": [], "checkedIds": coerced_ids}}
         return d
     # Match OpenAPI-generated class names without importing app.schemas (heavy import graph).
     if schema.__name__ == "UpdateChecklistRequest" and isinstance(json_data, list):
         return {"checklist": {"checkedIds": json_data}}
     if schema.__name__ == "BulkUpdateFavoritesRequest" and isinstance(json_data, list):
         return {"favorites": json_data}
-    if schema.__name__ == "UpdateTaskChecklistRequest" and isinstance(json_data, dict):
-        if "data" not in json_data and "checkedIds" in json_data:
-            raw_ids = json_data.get("checkedIds")
-            if isinstance(raw_ids, list):
-                coerced_ids: list[int] = []
-                for x in raw_ids:
-                    if isinstance(x, bool):
-                        continue
-                    if isinstance(x, int):
-                        coerced_ids.append(x)
-                    elif isinstance(x, float) and x.is_integer():
-                        coerced_ids.append(int(x))
-                return {"data": {"items": [], "checkedIds": coerced_ids}}
     if schema.__name__ in ("AddFeedLikeRequest", "AddCommentRequest") and isinstance(
         json_data, dict
     ):

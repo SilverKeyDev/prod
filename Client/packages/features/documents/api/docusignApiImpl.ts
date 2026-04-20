@@ -5,7 +5,11 @@ import type {
   CreateAgreementRequest,
   CreateAgreementResponse,
   CreateRevisionResponse,
+  DocusignResendRecipientRequest,
+  DocusignResendRecipientResponse,
   DocusignRevisionUploadBody,
+  DocusignUpdateEnvelopeNotificationRequest,
+  DocusignUpdateEnvelopeNotificationResponse,
   GetAgreementResponse,
   GetSenderViewUrlResponse,
   GetSigningUrlRequest,
@@ -20,11 +24,7 @@ import type {
   VoidAgreementResponse,
 } from "packages/features/documents/types/docusign";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import {
-  apiGet,
-  apiPost,
-  apiUpload,
-} from "packages/services/http/compatibility";
+import { apiGet, apiPost, apiPut, apiUpload } from "packages/services/http/compatibility";
 
 function resolveRevisionUploadFileName(fileName?: string): string {
   const name = fileName?.trim();
@@ -35,28 +35,21 @@ function resolveRevisionUploadFileName(fileName?: string): string {
 }
 
 export const docusignApi = {
-  createAgreement: (
-    data: CreateAgreementRequest,
-  ): Promise<CreateAgreementResponse> => {
+  createAgreement: (data: CreateAgreementRequest): Promise<CreateAgreementResponse> => {
     log.debug(LOG_CATEGORIES.DOCUSIGN, "Creating DocuSign agreement", {
       title: data.title,
       agreement_type: data.agreement_type,
       buyer_id: data.buyer_id,
       has_property_address: !!data.property_address,
     });
-    return apiPost<CreateAgreementResponse>(
-      "/api/v1/docusign/agreements",
-      data,
-    );
+    return apiPost<CreateAgreementResponse>("/api/v1/docusign/agreements", data);
   },
 
   getAgreement: (agreementId: string): Promise<GetAgreementResponse> => {
     log.debug(LOG_CATEGORIES.DOCUSIGN, "Fetching DocuSign agreement", {
       agreementId,
     });
-    return apiGet<GetAgreementResponse>(
-      `/api/v1/docusign/agreements/${agreementId}`,
-    );
+    return apiGet<GetAgreementResponse>(`/api/v1/docusign/agreements/${agreementId}`);
   },
 
   listAgreements: (): Promise<ListAgreementsResponse> => {
@@ -68,7 +61,7 @@ export const docusignApi = {
     agreementId: string,
     file: DocusignRevisionUploadBody,
     notes?: string,
-    uploadFileName?: string,
+    uploadFileName?: string
   ): Promise<CreateRevisionResponse> => {
     const uploadName = resolveRevisionUploadFileName(uploadFileName);
     log.debug(LOG_CATEGORIES.DOCUSIGN, "Creating DocuSign revision", {
@@ -87,38 +80,72 @@ export const docusignApi = {
 
     return apiUpload<CreateRevisionResponse>(
       `/api/v1/docusign/agreements/${agreementId}/revisions`,
-      formData,
+      formData
     );
   },
 
   sendAgreement: (
     agreementId: string,
-    data?: SendAgreementRequest,
+    data?: SendAgreementRequest
   ): Promise<SendAgreementResponse> => {
     const requestData: SendAgreementRequest = {
       signing_method: data?.signing_method ?? "embedded",
       participant_user_id: data?.participant_user_id,
+      ...(data?.envelope_notification != null
+        ? { envelope_notification: data.envelope_notification }
+        : {}),
+      ...(data?.tab_prefill != null ? { tab_prefill: data.tab_prefill } : {}),
+      ...(data?.envelope_prefill_tabs != null
+        ? { envelope_prefill_tabs: data.envelope_prefill_tabs }
+        : {}),
     };
 
-    log.info(
-      LOG_CATEGORIES.DOCUSIGN,
-      "Sending DocuSign agreement for signature",
-      {
-        agreementId,
-        signingMethod: requestData.signing_method,
-        participantUserId: requestData.participant_user_id,
-      },
-    );
+    log.info(LOG_CATEGORIES.DOCUSIGN, "Sending DocuSign agreement for signature", {
+      agreementId,
+      signingMethod: requestData.signing_method,
+      participantUserId: requestData.participant_user_id,
+      hasEnvelopeNotification: requestData.envelope_notification != null,
+      hasTabPrefill: requestData.tab_prefill != null,
+      hasEnvelopePrefillTabs: requestData.envelope_prefill_tabs != null,
+    });
 
     return apiPost<SendAgreementResponse>(
       `/api/v1/docusign/agreements/${agreementId}/send`,
-      requestData,
+      requestData
+    );
+  },
+
+  resendAgreementRecipient: (
+    agreementId: string,
+    body: DocusignResendRecipientRequest
+  ): Promise<DocusignResendRecipientResponse> => {
+    log.info(LOG_CATEGORIES.DOCUSIGN, "Resending DocuSign recipient email", {
+      agreementId,
+      participantId: body.participant_id,
+      hasNote: Boolean(body.note?.trim()),
+    });
+    return apiPost<DocusignResendRecipientResponse>(
+      `/api/v1/docusign/agreements/${agreementId}/resend`,
+      body
+    );
+  },
+
+  updateAgreementEnvelopeNotification: (
+    agreementId: string,
+    body: DocusignUpdateEnvelopeNotificationRequest
+  ): Promise<DocusignUpdateEnvelopeNotificationResponse> => {
+    log.info(LOG_CATEGORIES.DOCUSIGN, "Updating DocuSign envelope notification settings", {
+      agreementId,
+    });
+    return apiPut<DocusignUpdateEnvelopeNotificationResponse>(
+      `/api/v1/docusign/agreements/${agreementId}/notification`,
+      body
     );
   },
 
   voidAgreement: (
     agreementId: string,
-    data?: VoidAgreementRequest,
+    data?: VoidAgreementRequest
   ): Promise<VoidAgreementResponse> => {
     log.warn(LOG_CATEGORIES.DOCUSIGN, "Voiding DocuSign agreement", {
       agreementId,
@@ -126,31 +153,27 @@ export const docusignApi = {
     });
     return apiPost<VoidAgreementResponse>(
       `/api/v1/docusign/agreements/${agreementId}/void`,
-      data ?? {},
+      data ?? {}
     );
   },
 
   discardAgreement: (
     agreementId: string,
-    data?: VoidAgreementRequest,
+    data?: VoidAgreementRequest
   ): Promise<VoidAgreementResponse> => {
-    log.info(
-      LOG_CATEGORIES.DOCUSIGN,
-      "Discarding DocuSign agreement from Saved",
-      {
-        agreementId,
-        reason: data?.reason ?? "No reason provided",
-      },
-    );
+    log.info(LOG_CATEGORIES.DOCUSIGN, "Discarding DocuSign agreement from Saved", {
+      agreementId,
+      reason: data?.reason ?? "No reason provided",
+    });
     return apiPost<VoidAgreementResponse>(
       `/api/v1/docusign/agreements/${agreementId}/discard`,
-      data ?? {},
+      data ?? {}
     );
   },
 
   getSigningUrl: (
     agreementId: string,
-    data: GetSigningUrlRequest,
+    data: GetSigningUrlRequest
   ): Promise<GetSigningUrlResponse> => {
     log.debug(LOG_CATEGORIES.DOCUSIGN, "Getting DocuSign signing URL", {
       agreementId,
@@ -158,18 +181,16 @@ export const docusignApi = {
     });
     return apiPost<GetSigningUrlResponse>(
       `/api/v1/docusign/agreements/${agreementId}/signing-url`,
-      data,
+      data
     );
   },
 
-  getSenderViewUrl: (
-    agreementId: string,
-  ): Promise<GetSenderViewUrlResponse> => {
+  getSenderViewUrl: (agreementId: string): Promise<GetSenderViewUrlResponse> => {
     log.debug(LOG_CATEGORIES.DOCUSIGN, "Getting DocuSign sender view URL", {
       agreementId,
     });
     return apiGet<GetSenderViewUrlResponse>(
-      `/api/v1/docusign/agreements/${agreementId}/sender-view`,
+      `/api/v1/docusign/agreements/${agreementId}/sender-view`
     );
   },
 
@@ -179,21 +200,12 @@ export const docusignApi = {
   },
 
   syncTemplates: (): Promise<SyncTemplatesResponse> => {
-    log.info(
-      LOG_CATEGORIES.DOCUSIGN,
-      "Syncing DocuSign templates from DocuSign account",
-    );
-    return apiPost<SyncTemplatesResponse>(
-      "/api/v1/docusign/templates/sync",
-      {},
-    );
+    log.info(LOG_CATEGORIES.DOCUSIGN, "Syncing DocuSign templates from DocuSign account");
+    return apiPost<SyncTemplatesResponse>("/api/v1/docusign/templates/sync", {});
   },
 
   startOAuth: (): Promise<OAuthStartResponse> => {
-    log.info(
-      LOG_CATEGORIES.DOCUSIGN,
-      "Starting DocuSign OAuth connection flow",
-    );
+    log.info(LOG_CATEGORIES.DOCUSIGN, "Starting DocuSign OAuth connection flow");
     return apiGet<OAuthStartResponse>("/api/v1/docusign/oauth/start");
   },
 
@@ -201,8 +213,6 @@ export const docusignApi = {
     log.debug(LOG_CATEGORIES.DOCUSIGN, "Getting signed document download URL", {
       agreementId,
     });
-    return apiGet<{ download_url: string }>(
-      `/api/v1/docusign/agreements/${agreementId}/download`,
-    );
+    return apiGet<{ download_url: string }>(`/api/v1/docusign/agreements/${agreementId}/download`);
   },
 };

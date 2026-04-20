@@ -6,15 +6,9 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "paths": {
-      "@/features/homeauth/Auth/Button": [
-        "packages/features/homeauth/components/Auth/Button"
-      ],
-      "@/features/homeauth/Auth/Divider": [
-        "packages/features/homeauth/components/core/Divider"
-      ],
-      "@/features/homeauth/Auth/Link": [
-        "packages/features/homeauth/components/core/Link"
-      ],
+      "@/features/homeauth/Auth/Button": ["packages/features/homeauth/components/Auth/Button"],
+      "@/features/homeauth/Auth/Divider": ["packages/features/homeauth/components/core/Divider"],
+      "@/features/homeauth/Auth/Link": ["packages/features/homeauth/components/core/Link"],
       "@/features/homeauth/Auth/PageLayout": [
         "packages/features/homeauth/components/core/PageLayout"
       ],
@@ -43,29 +37,17 @@
       "packages/hooks/*": ["packages/hooks/*"],
       "packages/hooks/data/auth/*": ["packages/features/homeauth/hooks/data/*"],
       "packages/hooks/data/chat": ["packages/features/messaging/hooks/data"],
-      "packages/hooks/data/chat/*": [
-        "packages/features/messaging/hooks/data/*"
-      ],
+      "packages/hooks/data/chat/*": ["packages/features/messaging/hooks/data/*"],
       "packages/features/agent/src": ["packages/features/agent/components"],
       "packages/features/agent/src/*": ["packages/features/agent/components/*"],
-      "packages/features/dashboard/src": [
-        "packages/features/dashboard/components"
-      ],
-      "packages/features/dashboard/src/*": [
-        "packages/features/dashboard/components/*"
-      ],
+      "packages/features/dashboard/src": ["packages/features/dashboard/components"],
+      "packages/features/dashboard/src/*": ["packages/features/dashboard/components/*"],
       "packages/features/saved/src": ["packages/features/saved/components"],
       "packages/features/saved/src/*": ["packages/features/saved/components/*"],
       "@/features/homeauth/types/user": ["packages/features/homeauth/types"],
-      "@/features/homeauth/types/user/*": [
-        "packages/features/homeauth/types/*"
-      ],
-      "@/features/saved/SavedLayout": [
-        "packages/features/saved/components/SavedLayout"
-      ],
-      "@/components/ui/button/*": [
-        "packages/ui/components/primitives/button/*"
-      ],
+      "@/features/homeauth/types/user/*": ["packages/features/homeauth/types/*"],
+      "@/features/saved/SavedLayout": ["packages/features/saved/components/SavedLayout"],
+      "@/components/ui/button/*": ["packages/ui/components/primitives/button/*"],
       "@/components/ui/form/*": ["packages/ui/components/primitives/form/*"],
       "@/components/ui": ["packages/ui/components"],
       "@/components/ui/*": ["packages/ui/components/*"],
@@ -75,9 +57,7 @@
       "@ui": ["packages/ui/components"],
       "@ui/*": ["packages/ui/components/*"],
       "@/features/documents/data": ["packages/features/documents/hooks/data"],
-      "@/features/documents/data/*": [
-        "packages/features/documents/hooks/data/*"
-      ],
+      "@/features/documents/data/*": ["packages/features/documents/hooks/data/*"],
       "packages/ui/components/ui": ["packages/ui/components/ui"],
       "packages/ui/components/ui/*": ["packages/ui/components/ui/*"],
       "packages/features/homeauth/Auth/Button": [
@@ -86,9 +66,7 @@
       "packages/features/homeauth/Auth/Divider": [
         "packages/features/homeauth/components/core/Divider"
       ],
-      "packages/features/homeauth/Auth/Link": [
-        "packages/features/homeauth/components/core/Link"
-      ],
+      "packages/features/homeauth/Auth/Link": ["packages/features/homeauth/components/core/Link"],
       "packages/features/homeauth/Auth/PageLayout": [
         "packages/features/homeauth/components/core/PageLayout"
       ],
@@ -98,9 +76,7 @@
       "packages/utils/date": ["packages/utils/date"],
       "packages/utils/date/*": ["packages/utils/date/*"],
       "packages/utils/platform": ["packages/utils/platform"],
-      "packages/utils/storage/platformStorage": [
-        "packages/utils/storage/platformStorage"
-      ]
+      "packages/utils/storage/platformStorage": ["packages/utils/storage/platformStorage"]
     },
     "target": "ES2020",
     "resolveJsonModule": true,

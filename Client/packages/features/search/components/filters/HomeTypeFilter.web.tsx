@@ -3,7 +3,7 @@ import React from "react";
 import { Box } from "packages/ui/components/primitives";
 
 import Label from "@/features/profile/components/settings/inputs/Label";
-import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";
+import OptionTagInput from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
 import {
   FIELD_LABELS,
   HOUSING_TYPE_OPTIONS,

@@ -13,5 +13,17 @@
     --color-text-primary: theme("colors.text-primary");
     --color-text-secondary: theme("colors.text-secondary");
     --color-border: theme("colors.border");
+
+    /* Match score tiers (sage → terracotta). Use with getMatchStyle() in app code. */
+    --match-excellent-bg: theme("colors.match.excellent.bg");
+    --match-excellent-fg: theme("colors.match.excellent.fg");
+    --match-strong-bg: theme("colors.match.strong.bg");
+    --match-strong-fg: theme("colors.match.strong.fg");
+    --match-fair-bg: theme("colors.match.fair.bg");
+    --match-fair-fg: theme("colors.match.fair.fg");
+    --match-weak-bg: theme("colors.match.weak.bg");
+    --match-weak-fg: theme("colors.match.weak.fg");
+    --match-poor-bg: theme("colors.match.poor.bg");
+    --match-poor-fg: theme("colors.match.poor.fg");
   }
 }

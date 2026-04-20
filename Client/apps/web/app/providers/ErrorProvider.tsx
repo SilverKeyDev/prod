@@ -38,10 +38,7 @@ export function ErrorProvider({ children, fallback }: ErrorProviderProps) {
     } catch (reportingError) {
       // Fail silently to prevent infinite error loops
       log.error(LOG_CATEGORIES.ERRORS, "ErrorProvider error reporting failed", {
-        error:
-          reportingError instanceof Error
-            ? reportingError.message
-            : String(reportingError),
+        error: reportingError instanceof Error ? reportingError.message : String(reportingError),
       });
     }
   };

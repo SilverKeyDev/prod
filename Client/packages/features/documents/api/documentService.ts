@@ -4,11 +4,7 @@ import type {
   WorkflowDocument,
 } from "packages/features/documents/types/documents";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import {
-  createAbortManager,
-  HttpError,
-  isAbortError,
-} from "packages/services/http";
+import { createAbortManager, HttpError, isAbortError } from "packages/services/http";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 /** Client-side category when upload UI does not collect one (not sent on multipart upload). */
@@ -27,10 +23,7 @@ export class DocumentService {
 
   async fetchDocuments(): Promise<WorkflowDocument[]> {
     // getDocuments should not be called - return empty array
-    log.warn(
-      LOG_CATEGORIES.API,
-      "fetchDocuments called but getDocuments should not be used",
-    );
+    log.warn(LOG_CATEGORIES.API, "fetchDocuments called but getDocuments should not be used");
     return [];
   }
 
@@ -74,7 +67,7 @@ export class DocumentService {
     category?: string,
     propertyId?: string,
     offerId?: string,
-    address?: string,
+    address?: string
   ): Promise<WorkflowDocument> {
     const resolvedCategory = category ?? DEFAULT_UPLOAD_DOCUMENT_CATEGORY;
     try {
@@ -139,7 +132,7 @@ export class DocumentService {
 
   async updateDocumentStatus(
     docId: string,
-    status: WorkflowDocument["status"],
+    status: WorkflowDocument["status"]
   ): Promise<WorkflowDocument> {
     try {
       const response = await dashboardApi.updateDocumentStatus(docId, status);
@@ -222,24 +215,15 @@ export class DocumentService {
      Helper Methods
      ========================= */
 
-  getDocumentsByCategory(
-    documents: WorkflowDocument[],
-    category: string,
-  ): WorkflowDocument[] {
+  getDocumentsByCategory(documents: WorkflowDocument[], category: string): WorkflowDocument[] {
     return documents.filter((doc) => doc.category === category);
   }
 
-  getDocumentsByProperty(
-    documents: WorkflowDocument[],
-    propertyId: string,
-  ): WorkflowDocument[] {
+  getDocumentsByProperty(documents: WorkflowDocument[], propertyId: string): WorkflowDocument[] {
     return documents.filter((doc) => doc.property_id === propertyId);
   }
 
-  getDocumentsByOffer(
-    documents: WorkflowDocument[],
-    offerId: string,
-  ): WorkflowDocument[] {
+  getDocumentsByOffer(documents: WorkflowDocument[], offerId: string): WorkflowDocument[] {
     return documents.filter((doc) => doc.offer_id === offerId);
   }
 

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { formatPriceRange } from "packages/features/search/types/search/searchFilterSummaries";
+import { formatPriceRange } from "packages/features/search/types/search/filters/searchFilterSummaries";
 
 /** Open-ended range upper bound (UI sentinel for "8+"). */
 const RANGE_OPEN_MAX = 8;

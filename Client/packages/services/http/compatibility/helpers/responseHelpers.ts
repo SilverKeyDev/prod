@@ -2,7 +2,7 @@
  * Response type helpers
  */
 
-import type { ApiResponse } from "packages/types/api";
+import type { ApiResponse } from "packages/types/domain/api";
 
 export function isApiResponse<T>(response: unknown): response is ApiResponse<T> {
   return (

@@ -1,6 +1,7 @@
 import Button from "@ui/button/Button";
 import CancelButton from "@ui/button/CancelButton";
 import { Icon } from "@ui/icons";
+import type { ReactNode } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { NavItem } from "packages/navigation";
@@ -16,6 +17,7 @@ type SettingsSidebarProps = {
   onSave: () => void;
   onCancel: () => void;
   onScrollToSection: (sectionId: string) => void;
+  footerContent?: ReactNode;
 };
 export default function SettingsSidebar({
   items,
@@ -26,6 +28,7 @@ export default function SettingsSidebar({
   onSave,
   onCancel,
   onScrollToSection,
+  footerContent,
 }: SettingsSidebarProps) {
   const { t } = useLocalization();
   const headerContent = !isEditMode ? (
@@ -71,6 +74,7 @@ export default function SettingsSidebar({
       activeItem={activeSection}
       onItemClick={onScrollToSection}
       headerContent={headerContent}
+      footerContent={footerContent}
     />
   );
 }

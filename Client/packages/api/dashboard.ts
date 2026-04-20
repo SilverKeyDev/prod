@@ -12,19 +12,12 @@
  * This shim maintains backward compatibility for existing imports.
  */
 
-import {
-  apiDelete,
-  apiGet,
-  apiPatch,
-  apiPost,
-} from "packages/services/http/compatibility";
+import { apiDelete, apiGet, apiPatch, apiPost } from "packages/services/http/compatibility";
 import type { components } from "packages/types/api.generated";
 
 // Re-export types from generated schema
-export type WorkflowDocumentRecord =
-  components["schemas"]["WorkflowDocumentRecord"];
-export type GetDashboardResponse =
-  components["schemas"]["GetDashboardResponse"];
+export type WorkflowDocumentRecord = components["schemas"]["WorkflowDocumentRecord"];
+export type GetDashboardResponse = components["schemas"]["GetDashboardResponse"];
 export type DashboardResponse = components["schemas"]["DashboardResponse"];
 export type ReportsResponse = components["schemas"]["ReportsResponse"];
 export type DocumentsResponse = components["schemas"]["DocumentsResponse"];
@@ -44,8 +37,7 @@ export const dashboardApi = {
   /**
    * Get all reports for current user
    */
-  getReports: (): Promise<ReportsResponse> =>
-    apiGet<ReportsResponse>("/api/dashboard/reports"),
+  getReports: (): Promise<ReportsResponse> => apiGet<ReportsResponse>("/api/dashboard/reports"),
 
   /**
    * Get all documents for current user
@@ -82,7 +74,7 @@ export const dashboardApi = {
    */
   updateDocumentStatus: (
     docId: string,
-    status: WorkflowDocumentRecord["status"],
+    status: WorkflowDocumentRecord["status"]
   ): Promise<DashboardResponse> =>
     apiPatch<DashboardResponse>(`/api/v1/documents/${docId}`, { status }),
 

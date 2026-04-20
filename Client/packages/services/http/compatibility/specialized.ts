@@ -3,7 +3,7 @@
  */
 
 import { AuthenticationError, HttpError } from "packages/services/http/client";
-import type { ApiRequestOptions } from "packages/types/api";
+import type { ApiRequestOptions } from "packages/types/domain/api";
 
 import { getAuthToken } from "./core/config";
 import { apiRequest } from "./core/core";

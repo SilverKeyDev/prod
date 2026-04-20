@@ -1,10 +1,10 @@
 # Shared UI Package (Option 2: The Monorepo Route)
 
-This document describes **Option 2** for cross-platform UI: introducing a shared **`packages/ui`** (e.g. `@silverkey/ui`) so that Web and Mobile can share the same design system and primitives. It is **documentation only**; implementation is separate.
+This document originally described **Option 2** for cross-platform UI: a shared **`packages/ui`** so Web and Mobile can share the same design system. **That package now exists** at **`Client/packages/ui/`**; web and features import it today. Keep this doc for **rationale and migration patterns**; where the text below says “all UI in apps/web” or “no `.tsx` in packages,” treat that as **historical** unless marked otherwise.
 
 ## Context: The Fork in the Road
 
-Today, **all `.tsx` (React components) live in `apps/web/`**, and **all `.ts` (logic, hooks, API clients) live in `packages/`**. That gives a clean separation of logic and presentation, but **zero UI sharing** between Web and Mobile.
+Historically, many teams kept **all `.tsx` in `apps/web/`** and **logic in `packages/`**, which limited UI sharing with React Native. SilverKey moved the design system and feature UI into **`packages/`** so both apps compose the same modules.
 
 - **Option 1 (Duplicate UI):** Leave `apps/web` as-is. Build `apps/mobile` with its own React Native components. Two separate UI libraries; brand/primitive changes must be done in both places.
 - **Option 2 (Shared UI):** Extract the base design system into **`packages/ui`** with platform-specific implementations (`.web.tsx` / `.native.tsx`). One design system; Web and Mobile both consume `@silverkey/ui`.
@@ -15,50 +15,25 @@ This document details **Option 2** only.
 
 ## Current State vs Target State
 
-### Current State
+### Current state (repository)
 
-- **Packages:** Only non-React or hook-only code. No `.tsx` in `packages/` (except `packages/contexts/` providers).
-- **Web UI:** All components, including primitives (Button, Text, Input, etc.), live under `apps/web/components/ui/`.
-- **Mobile:** Would have to reimplement every primitive and screen from scratch.
+- **`packages/ui/`** — Shared primitives, design-system components, and `packages/ui/styles/` (web CSS). Platform splits use `.web.tsx` / `.native.tsx` where needed.
+- **`packages/features/`** — Feature screens and feature-specific components; composed by thin `apps/web/pages/` and `apps/mobile` screens.
+- **`apps/web` / `apps/mobile`** — Routing, providers, and thin composition only (see `thin-app-architecture.md`).
 
-```
-/packages
-  /hooks       (100% shared .ts)
-  /store       (100% shared .ts)
-  /schemas     (100% shared .ts)
-  /utils       (100% shared .ts)
-  /config      (100% shared .ts)
-  ...
-/apps
-  /web
-    /components
-      /ui      (Web-only .tsx — Button, Text, Input, etc.)
-```
+### Target state (fully aligned cross-platform)
 
-### Target State (Option 2)
-
-- **New package:** `packages/ui` (e.g. `@silverkey/ui`) contains the **shared design primitives**.
-- **Platform variants:** Each primitive has a web and a native implementation (e.g. `Button.web.tsx`, `Button.native.tsx`). Bundlers resolve by platform (Vite → `.web`, Metro → `.native`).
-- **Apps:** Both `apps/web` and `apps/mobile` import from `@silverkey/ui`. Complex pages and app-specific layouts stay in each app; they are built from shared Lego bricks.
+- **Ongoing:** Expand native implementations and adapters so Mobile reaches parity with Web using the same `packages/ui` APIs.
+- **Platform variants:** Bundlers resolve `.web` vs `.native` (Vite vs Metro).
 
 ```
 /packages
-  /hooks       (100% shared .ts)
-  /store       (100% shared .ts)
-  /schemas     (100% shared .ts)
-  /utils       (100% shared .ts)
-  /config      (100% shared .ts)
-  /ui          ← NEW: shared UI package
-    /Button
-      index.web.tsx
-      index.native.tsx
-    /Text
-      index.web.tsx
-      index.native.tsx
-    ...
+  /ui          # Design system (shared .tsx + platform variants)
+  /features    # Feature modules
+  /hooks, /store, /config, …
 /apps
-  /web         (imports Button, Text, etc. from @silverkey/ui)
-  /mobile      (imports Button, Text, etc. from @silverkey/ui)
+  /web         # Thin pages + shell
+  /mobile      # Thin screens + shell
 ```
 
 ---
@@ -86,7 +61,7 @@ You do **not** need to move everything at once.
 
 ### 2. Move primitives first
 
-- Start with the **lowest-level, dumbest** components in `apps/web/components/ui/`: e.g. **Button**, **Text**, **Input**, **Label**.
+- When extracting **new** primitives, start with the **lowest-level** components in `packages/ui/`: e.g. **Button**, **Text**, **Input**, **Label**.
 - Move each into `packages/ui/<ComponentName>/`.
 - **Web:** Use **`.web.tsx`** (e.g. `Button.web.tsx` or `index.web.tsx` inside `Button/`) so Vite keeps using the web implementation.
 - **Native:** Add **`.native.tsx`** (e.g. `Button.native.tsx` or `index.native.tsx`) that implements the same public API with React Native primitives (`Pressable`, `Text`, etc.). Initially these can be minimal (e.g. a simple `<Pressable>` + `<Text>`).
@@ -95,7 +70,7 @@ You do **not** need to move everything at once.
 
 - Replace app-local UI imports with the shared package.
 - **Before:** `import { Button } from "@/components/ui"` (or `from "../../components/ui"`).
-- **After:** `import { Button } from "@silverkey/ui"` (or the chosen package name).
+- **After:** `import { Button } from "packages/ui"` (or `@/components/ui` / `@ui` aliases).
 - Do this incrementally (e.g. one component at a time) and fix lint/type errors as you go.
 
 ### 4. Leave complex and app-specific UI in the app

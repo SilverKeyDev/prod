@@ -61,7 +61,13 @@ def _record_send_failure_event(
     retry_backoff=True,
     retry_jitter=True,
 )
-def send_envelope_task(self, agreement_id: str, signing_method: str, actor_id: str):
+def send_envelope_task(
+    self,
+    agreement_id: str,
+    signing_method: str,
+    actor_id: str,
+    envelope_options: dict | None = None,
+):
     """
     Send agreement envelope to DocuSign.
 
@@ -72,6 +78,7 @@ def send_envelope_task(self, agreement_id: str, signing_method: str, actor_id: s
         agreement_id: Agreement ID
         signing_method: 'embedded' or 'email'
         actor_id: User ID initiating send
+        envelope_options: Optional notification/tab prefill from SendAgreementRequest
     """
     agreement = None
 
@@ -97,12 +104,14 @@ def send_envelope_task(self, agreement_id: str, signing_method: str, actor_id: s
             return {"success": False, "error": "Agreement not found"}
 
         # Build envelope
-        envelope_builder = EnvelopeBuilder(agreement, signing_method)
+        envelope_builder = EnvelopeBuilder(agreement, signing_method, envelope_options)
         envelope_definition = envelope_builder.build()
 
         # Send to DocuSign (use JWT auth)
         client = DocusignClient(auth_type="jwt")
-        envelope_response = client.create_envelope(envelope_definition)
+        envelope_response = client.create_envelope(
+            envelope_definition, prefill_tabs=envelope_builder.prefill_tabs
+        )
 
         # Update agreement with success
         agreement.docusign_envelope_id = envelope_response["envelopeId"]

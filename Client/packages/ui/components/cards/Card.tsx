@@ -2,7 +2,7 @@ import React from "react";
 
 import { Box } from "packages/ui/components/primitives";
 
-export type CardBorderVariant = "charcoal" | "light" | "dotted" | "none";
+export type CardBorderVariant = "charcoal" | "medium" | "light" | "dotted" | "none";
 
 /**
  * Card container with optional border variant, padding, and shadow.
@@ -10,7 +10,7 @@ export type CardBorderVariant = "charcoal" | "light" | "dotted" | "none";
  */
 type CardProps = {
   children: React.ReactNode;
-  /** Border style: charcoal (neutral-700), light (neutral-200), dotted (light gray dashed), or none. Default charcoal. */
+  /** Border style: charcoal (neutral-700), medium (neutral-400), light (neutral-200), dotted (light gray dashed), or none. Default charcoal. */
   border?: CardBorderVariant;
   className?: string;
   hover?: boolean;
@@ -22,6 +22,7 @@ type CardProps = {
 
 const BORDER_CLASSES: Record<CardBorderVariant, string> = {
   charcoal: "border border-neutral-700",
+  medium: "border border-neutral-400",
   light: "border border-neutral-200",
   dotted: "border border-neutral-200 border-dashed",
   none: "",

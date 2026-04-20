@@ -2,12 +2,37 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { GoogleCalendar } from "packages/config/http/api";
+import type { GoogleCalendar, GoogleEvent } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
-import { useGoogleCalendarStore } from "packages/store";
+import type { GoogleCalendarState } from "packages/features/calendar/store";
 
 import { googleCalendarApi } from "@/features/calendar/api";
-import { useGoogleEvents } from "@/features/calendar/hooks/data";
+import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
+
+/** Avoids writing the Zustand slice when only the events array reference changed. */
+function calendarEventsStoreSyncSignature(events: GoogleEvent[]): string {
+  if (events.length === 0) {
+    return "";
+  }
+  return events
+    .map((e) => {
+      const st = e.start?.dateTime ?? e.start?.date ?? "";
+      const en = e.end?.dateTime ?? e.end?.date ?? "";
+      return `${e.id ?? ""}\t${st}\t${en}`;
+    })
+    .join("\n");
+}
+
+export type GoogleCalendarStoreSyncSetters = Pick<
+  GoogleCalendarState,
+  | "setIsConnected"
+  | "setCalendars"
+  | "setCalendarsLoading"
+  | "setCalendarsError"
+  | "setEvents"
+  | "setEventsLoading"
+  | "setEventsError"
+>;
 
 function useCalendarCache(queryClient: ReturnType<typeof useQueryClient>, shouldLoadData: boolean) {
   const cachedConnectionStatus = useMemo(() => {
@@ -17,12 +42,14 @@ function useCalendarCache(queryClient: ReturnType<typeof useQueryClient>, should
     );
   }, [shouldLoadData, queryClient]);
 
-  const cachedCalendars = useMemo(() => {
-    if (!shouldLoadData) return [];
-    return queryClient.getQueryData<GoogleCalendar[]>(queryKeys.googleCalendar.calendars()) ?? [];
+  const cachedSilverKeyCalendar = useMemo(() => {
+    if (!shouldLoadData) return null;
+    return (
+      queryClient.getQueryData<GoogleCalendar>(queryKeys.scheduling.silverKeyCalendar()) ?? null
+    );
   }, [shouldLoadData, queryClient]);
 
-  return { cachedConnectionStatus, cachedCalendars };
+  return { cachedConnectionStatus, cachedSilverKeyCalendar };
 }
 
 export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
@@ -37,34 +64,37 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
     refetchOnWindowFocus: false,
   });
 
-  const { cachedConnectionStatus, cachedCalendars } = useCalendarCache(queryClient, shouldLoadData);
+  const { cachedConnectionStatus, cachedSilverKeyCalendar } = useCalendarCache(
+    queryClient,
+    shouldLoadData
+  );
 
   const isConnected = connectionStatusQuery.data ?? cachedConnectionStatus ?? false;
 
-  const calendarsQuery = useQuery({
-    queryKey: queryKeys.googleCalendar.calendars(),
+  const silverKeyQuery = useQuery({
+    queryKey: queryKeys.scheduling.silverKeyCalendar(),
     queryFn: async () => {
-      const response = await googleCalendarApi.listCalendars();
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch calendars");
+      const response = await googleCalendarApi.getOrCreateSilverKeyCalendar(undefined);
+      if (!response.success || !response.data) {
+        throw new Error(response.error ?? "Failed to load SilverKey calendar");
       }
-      return response.data?.items ?? [];
+      return response.data;
     },
     enabled: shouldLoadData && isConnected,
-    staleTime: 5 * 60 * 1000,
+    staleTime: Number.POSITIVE_INFINITY,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
 
-  const calendars = useMemo(
-    () => calendarsQuery.data ?? cachedCalendars ?? [],
-    [calendarsQuery.data, cachedCalendars]
-  );
-  const calendarsLoading = calendarsQuery.isLoading;
-  const calendarsError = calendarsQuery.error
-    ? calendarsQuery.error instanceof Error
-      ? calendarsQuery.error.message
-      : "Failed to fetch calendars"
+  const calendars = useMemo((): GoogleCalendar[] => {
+    const cal = silverKeyQuery.data ?? cachedSilverKeyCalendar;
+    return cal ? [cal] : [];
+  }, [silverKeyQuery.data, cachedSilverKeyCalendar]);
+  const calendarsLoading = silverKeyQuery.isLoading;
+  const calendarsError = silverKeyQuery.error
+    ? silverKeyQuery.error instanceof Error
+      ? silverKeyQuery.error.message
+      : "Failed to load SilverKey calendar"
     : null;
 
   return {
@@ -84,50 +114,46 @@ export function useSyncCalendarToStore(
   events: ReturnType<typeof useGoogleEvents>["events"],
   eventsLoading: boolean,
   eventsError: string | null,
-  store: ReturnType<typeof useGoogleCalendarStore>
+  setters: GoogleCalendarStoreSyncSetters
 ) {
   const lastIsConnectedRef = useRef<typeof isConnected>();
   const lastCalendarsRef = useRef<typeof calendars>();
   const lastCalendarsLoadingRef = useRef<typeof calendarsLoading>();
   const lastCalendarsErrorRef = useRef<typeof calendarsError>();
-  const lastEventsRef = useRef<typeof events>();
+  const lastEventsSignatureRef = useRef<string>();
   const lastEventsLoadingRef = useRef<typeof eventsLoading>();
   const lastEventsErrorRef = useRef<typeof eventsError>();
-  const storeRef = useRef(store);
-  storeRef.current = store;
 
   useEffect(() => {
-    const s = storeRef.current;
     if (lastIsConnectedRef.current !== isConnected) {
       lastIsConnectedRef.current = isConnected;
-      s.setIsConnected(isConnected);
+      setters.setIsConnected(isConnected);
     }
     if (lastCalendarsRef.current !== calendars) {
       lastCalendarsRef.current = calendars;
-      s.setCalendars(calendars);
+      setters.setCalendars(calendars);
     }
     if (lastCalendarsLoadingRef.current !== calendarsLoading) {
       lastCalendarsLoadingRef.current = calendarsLoading;
-      s.setCalendarsLoading(calendarsLoading);
+      setters.setCalendarsLoading(calendarsLoading);
     }
     if (lastCalendarsErrorRef.current !== calendarsError) {
       lastCalendarsErrorRef.current = calendarsError;
-      s.setCalendarsError(calendarsError);
+      setters.setCalendarsError(calendarsError);
     }
-    if (lastEventsRef.current !== events) {
-      lastEventsRef.current = events;
-      s.setEvents(events);
+    const nextEventsSig = calendarEventsStoreSyncSignature(events);
+    if (lastEventsSignatureRef.current !== nextEventsSig) {
+      lastEventsSignatureRef.current = nextEventsSig;
+      setters.setEvents(events);
     }
     if (lastEventsLoadingRef.current !== eventsLoading) {
       lastEventsLoadingRef.current = eventsLoading;
-      s.setEventsLoading(eventsLoading);
+      setters.setEventsLoading(eventsLoading);
     }
     if (lastEventsErrorRef.current !== eventsError) {
       lastEventsErrorRef.current = eventsError;
-      s.setEventsError(eventsError);
+      setters.setEventsError(eventsError);
     }
-    // store omitted from deps intentionally: it's the hook return value and changes when
-    // state updates, which would re-run this effect and cause an infinite loop.
   }, [
     isConnected,
     calendars,
@@ -136,5 +162,6 @@ export function useSyncCalendarToStore(
     events,
     eventsLoading,
     eventsError,
+    setters,
   ]);
 }

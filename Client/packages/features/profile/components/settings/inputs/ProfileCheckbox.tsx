@@ -71,9 +71,5 @@ export function ProfileCheckbox({
     );
   }
 
-  return (
-    <Box className={`flex flex-row items-center ${gap} ${className}`}>
-      {content}
-    </Box>
-  );
+  return <Box className={`flex flex-row items-center ${gap} ${className}`}>{content}</Box>;
 }

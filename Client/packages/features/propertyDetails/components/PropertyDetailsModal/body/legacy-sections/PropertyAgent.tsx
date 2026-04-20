@@ -10,9 +10,7 @@ import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 
-export const PropertyAgent: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
   const listedBy = (
     property as unknown as {
@@ -42,10 +40,7 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({
             {imageUrl ? (
               <Image
                 src={imageUrl}
-                alt={
-                  displayName ??
-                  t("property_details.listing_agent", { defaultValue: "Agent" })
-                }
+                alt={displayName ?? t("property_details.listing_agent", { defaultValue: "Agent" })}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -100,7 +95,7 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({
                   };
                   if (areacode && prefix && number) {
                     return `(${safeStringify(areacode)}) ${safeStringify(
-                      prefix,
+                      prefix
                     )}-${safeStringify(number)}`;
                   }
                   return (

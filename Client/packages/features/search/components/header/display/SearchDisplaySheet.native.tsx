@@ -7,10 +7,9 @@ import { color } from "packages/design-tokens";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useFiltersStore } from "packages/features/search/store/filters.slice";
 import {
-  MAP_HOME_CARDS_MAX,
-  MAP_HOME_CARDS_MIN,
   RESULTS_ORDER_BY_OPTIONS,
   type ResultsOrderBy,
+  type ResultsSortDirection,
 } from "packages/features/search/types/searchDisplay";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { useAuthStore } from "packages/store";
@@ -40,23 +39,15 @@ export function SearchDisplaySheetNative({
 
   const showCommuteOverlay = useFiltersStore((s) => s.showCommuteOverlay);
   const setShowCommuteOverlay = useFiltersStore((s) => s.setShowCommuteOverlay);
-  const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);
-  const setMapHomeCardsCount = useFiltersStore((s) => s.setMapHomeCardsCount);
   const resultsOrderBy = useFiltersStore((s) => s.resultsOrderBy);
   const setResultsOrderBy = useFiltersStore((s) => s.setResultsOrderBy);
-  const preferencesStrictFilter = useFiltersStore(
-    (s) => s.preferencesStrictFilter,
-  );
-  const setPreferencesStrictFilter = useFiltersStore(
-    (s) => s.setPreferencesStrictFilter,
-  );
+  const resultsSortDirection = useFiltersStore((s) => s.resultsSortDirection);
+  const setResultsSortDirection = useFiltersStore((s) => s.setResultsSortDirection);
+  const preferencesStrictFilter = useFiltersStore((s) => s.preferencesStrictFilter);
+  const setPreferencesStrictFilter = useFiltersStore((s) => s.setPreferencesStrictFilter);
   const hasSearched = useFiltersStore((s) => s.hasSearched);
-  const showMapListingPreviews = useFiltersStore(
-    (s) => s.showMapListingPreviews,
-  );
-  const setShowMapListingPreviews = useFiltersStore(
-    (s) => s.setShowMapListingPreviews,
-  );
+  const showMapListingPreviews = useFiltersStore((s) => s.showMapListingPreviews);
+  const setShowMapListingPreviews = useFiltersStore((s) => s.setShowMapListingPreviews);
   const isDev = getEnv().isDevelopment;
 
   const onCommute = useCallback(
@@ -64,7 +55,7 @@ export function SearchDisplaySheetNative({
       setShowCommuteOverlay(v);
       patchSearchDisplay({ show_commute_overlay: v });
     },
-    [setShowCommuteOverlay, patchSearchDisplay],
+    [setShowCommuteOverlay, patchSearchDisplay]
   );
 
   const onStrictPreferences = useCallback(
@@ -72,40 +63,33 @@ export function SearchDisplaySheetNative({
       setPreferencesStrictFilter(v);
       patchSearchDisplay({ preferences_strict_filter: v });
     },
-    [setPreferencesStrictFilter, patchSearchDisplay],
+    [setPreferencesStrictFilter, patchSearchDisplay]
   );
 
   const title = SEARCH_TRANSLATIONS["search.display"] ?? "Display";
 
   return (
-    <Modal
-      visible={open}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
+    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-          <Text className="text-text-primary mb-3 text-lg font-semibold">
-            {title}
-          </Text>
+          <Text className="text-text-primary mb-3 text-lg font-semibold">{title}</Text>
           <ScrollView>
             <Box style={styles.row}>
               <Text className="text-text-primary flex-1 text-sm">
-                {SEARCH_TRANSLATIONS["search.show_commute_area"] ??
-                  "Show commute area"}
+                {SEARCH_TRANSLATIONS["search.show_commute_area"] ?? "Show commute area"}
               </Text>
               <Switch value={showCommuteOverlay} onValueChange={onCommute} />
             </Box>
+            <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
+              {SEARCH_TRANSLATIONS["search.show_commute_area_hint"] ??
+                "For searches from your profile (important locations). Shows drive-time areas when on, or a simple bounds around those places when off. Map-only searches use the place or area you picked instead."}
+            </Text>
             <Box style={styles.row}>
               <Text className="text-text-primary flex-1 pr-2 text-sm">
                 {SEARCH_TRANSLATIONS["search.strict_preferences"] ??
                   "Match all preferences strictly"}
               </Text>
-              <Switch
-                value={preferencesStrictFilter}
-                onValueChange={onStrictPreferences}
-              />
+              <Switch value={preferencesStrictFilter} onValueChange={onStrictPreferences} />
             </Box>
             <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
               {SEARCH_TRANSLATIONS["search.strict_preferences_hint"] ??
@@ -127,44 +111,11 @@ export function SearchDisplaySheetNative({
                   />
                 </Box>
                 <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
-                  {SEARCH_TRANSLATIONS[
-                    "search.show_map_listing_previews_hint"
-                  ] ?? "Floating home cards on the map. Run a search first."}
+                  {SEARCH_TRANSLATIONS["search.show_map_listing_previews_hint"] ??
+                    "Floating home cards on the map. Run a search first."}
                 </Text>
               </>
             ) : null}
-            <Text className="text-text-secondary mt-4 text-xs font-medium uppercase">
-              {SEARCH_TRANSLATIONS["search.display_map_cards"] ??
-                "Homes on map"}
-            </Text>
-            <Box className="mt-2 flex-row flex-wrap gap-2">
-              {Array.from(
-                { length: MAP_HOME_CARDS_MAX - MAP_HOME_CARDS_MIN + 1 },
-                (_, i) => MAP_HOME_CARDS_MIN + i,
-              ).map((n) => (
-                <Pressable
-                  key={n}
-                  onPress={() => {
-                    setMapHomeCardsCount(n);
-                    patchSearchDisplay({ map_home_cards_count: n });
-                  }}
-                  style={[
-                    styles.chip,
-                    mapHomeCardsCount === n && styles.chipActive,
-                  ]}
-                >
-                  <Text
-                    className={
-                      mapHomeCardsCount === n
-                        ? "text-text-primary text-sm font-medium"
-                        : "text-text-secondary text-sm"
-                    }
-                  >
-                    {String(n)}
-                  </Text>
-                </Pressable>
-              ))}
-            </Box>
             <Text className="text-text-secondary mt-4 text-xs font-medium uppercase">
               {SEARCH_TRANSLATIONS["search.display_order_by"] ?? "Order by"}
             </Text>
@@ -176,10 +127,7 @@ export function SearchDisplaySheetNative({
                     setResultsOrderBy(key);
                     patchSearchDisplay({ results_order_by: key });
                   }}
-                  style={[
-                    styles.orderRow,
-                    resultsOrderBy === key && styles.orderRowActive,
-                  ]}
+                  style={[styles.orderRow, resultsOrderBy === key && styles.orderRowActive]}
                 >
                   <Text
                     className={
@@ -193,11 +141,38 @@ export function SearchDisplaySheetNative({
                 </Pressable>
               ))}
             </Box>
+            <Text className="text-text-secondary mt-4 text-xs font-medium uppercase">
+              {SEARCH_TRANSLATIONS["search.display_sort_direction"] ?? "Sort direction"}
+            </Text>
+            <Box className="mt-2 flex-row flex-wrap gap-2">
+              {(
+                [
+                  ["asc", SEARCH_TRANSLATIONS["search.sort_low_to_high"] ?? "Low to high"],
+                  ["desc", SEARCH_TRANSLATIONS["search.sort_high_to_low"] ?? "High to low"],
+                ] as const satisfies ReadonlyArray<readonly [ResultsSortDirection, string]>
+              ).map(([dir, dirLabel]) => (
+                <Pressable
+                  key={dir}
+                  onPress={() => {
+                    setResultsSortDirection(dir);
+                  }}
+                  style={[styles.chip, resultsSortDirection === dir && styles.chipActive]}
+                >
+                  <Text
+                    className={
+                      resultsSortDirection === dir
+                        ? "text-text-primary text-sm font-medium"
+                        : "text-text-secondary text-sm"
+                    }
+                  >
+                    {dirLabel}
+                  </Text>
+                </Pressable>
+              ))}
+            </Box>
           </ScrollView>
           <Pressable onPress={onClose} style={styles.done}>
-            <Text className="text-primary text-center text-sm font-semibold">
-              Done
-            </Text>
+            <Text className="text-primary text-center text-sm font-semibold">Done</Text>
           </Pressable>
         </Pressable>
       </Pressable>

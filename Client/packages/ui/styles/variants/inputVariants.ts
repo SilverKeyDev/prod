@@ -95,8 +95,7 @@ export const INPUT_RIGHT_ICON_GROUP_WRAPPER_CLASSES =
   "absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary flex flex-row flex-row items-center gap-1";
 
 /** Inner flex flex-row container for right-side icon group (clear, password toggle, custom) */
-export const INPUT_ICON_GROUP_CLASSES =
-  "flex flex-row flex-row items-center gap-1";
+export const INPUT_ICON_GROUP_CLASSES = "flex flex-row flex-row items-center gap-1";
 
 /** Display box - read-only cells (profile sections). Mobile-first, same base as input. */
 export const DISPLAY_BOX_CLASSES =

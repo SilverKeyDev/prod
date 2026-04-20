@@ -1,14 +1,21 @@
 """Service layer for checklist forms management."""
 
+import json
 from datetime import date, timedelta
 
-from app.models import ChecklistForm
+from app import db
+from app.models import AgreementLink, ChecklistForm
+from app.services.agent.conversation_list import get_conversation
+from app.services.agent.conversation_messages import send_message as send_conversation_message
+from app.services.agent.conversation_service import create_conversation
 from app.services.transactions.retrieval import get_checklist_definition
 from app.utils.security.app_logging import get_logger
 
 from .s3_service import s3_service
 
 logger = get_logger()
+
+SHARED_ATTACHMENT_PREFIX = "__SK_SHARE__"
 
 
 class FormsService:
@@ -78,51 +85,132 @@ class FormsService:
 
     @staticmethod
     def send_form_via_docusign(
-        form_id: str, agreement_data: dict, transaction_id: str, section: str, item_id: int
+        *,
+        form: ChecklistForm,
+        agent_user_id: str,
+        buyer_user_id: str,
+        section: str,
+        item_id: int,
+        optional_message: str | None = None,
     ) -> dict:
         """
-        Create DocuSign agreement from form template and send to client.
-
-        Args:
-            form_id: ChecklistForm ID
-            agreement_data: Dict with buyer_id, agent_id, participants, etc.
-            transaction_id: Transaction ID to link agreement to
-            section: Checklist section
-            item_id: Checklist item ID
+        Create a draft agreement from the checklist PDF, attach as first revision, send for signature.
 
         Returns:
-            Dict with agreement_id and status
+            Dict with agreement_id (str).
 
         Raises:
-            NotImplementedError: Phase 2 implementation
+            ValueError: Missing PDF bytes or upload failure.
         """
-        raise NotImplementedError(
-            "DocuSign sending not yet implemented. "
-            "Use docusignApi.createAgreement() + link to checklist in Phase 2."
+        from app.services.docusign import AgreementLifecycleService
+        from app.services.docusign.agreements.revisions import RevisionService
+
+        file_content = s3_service.get_pdf(form.s3_template_path)
+        if not file_content:
+            raise ValueError("Failed to download form PDF from storage")
+
+        title = f"{form.title} ({section} · step {item_id})"
+        agreement = AgreementLifecycleService.create_agreement(
+            str(agent_user_id),
+            str(buyer_user_id),
+            title,
+            "checklist_form",
+            description=(optional_message or None),
         )
+        filename = f"{form.form_key}.pdf"
+        RevisionService.create_revision(
+            agreement.id,
+            file_content,
+            filename,
+            str(agent_user_id),
+            notes=optional_message,
+        )
+        AgreementLifecycleService.send_for_signature(
+            agreement.id,
+            "email",
+            str(agent_user_id),
+            participant_user_id=str(buyer_user_id),
+        )
+        linked_item_id = f"{section}.{item_id}"
+        existing = AgreementLink.query.filter_by(
+            transaction_id=str(buyer_user_id),
+            agreement_id=agreement.id,
+            linked_item_type="checklist_item",
+            linked_item_id=linked_item_id,
+        ).first()
+        if not existing:
+            db.session.add(
+                AgreementLink(
+                    transaction_id=str(buyer_user_id),
+                    agreement_id=agreement.id,
+                    linked_item_type="checklist_item",
+                    linked_item_id=linked_item_id,
+                )
+            )
+            db.session.commit()
+        return {"agreement_id": agreement.id}
 
     @staticmethod
     def send_form_via_messaging(
-        form_id: str, conversation_id: str, message: str, sender_id: str
+        *,
+        form: ChecklistForm,
+        agent_user_id: str,
+        conversation_id: str | None,
+        client_id_for_new: str | None,
+        optional_message: str | None,
     ) -> dict:
         """
-        Share form via agent-client messaging.
-
-        Args:
-            form_id: ChecklistForm ID
-            conversation_id: Messaging conversation ID
-            message: Message text to send with form
-            sender_id: ID of agent sending the form
+        Share a checklist form PDF with the client via agent messaging.
 
         Returns:
-            Dict with message_id and status
+            Dict with message_id (ChatHistory id).
 
         Raises:
-            NotImplementedError: Phase 2 implementation
+            ValueError: Missing/invalid conversation, access denied, or presign failure.
         """
-        raise NotImplementedError(
-            "Messaging sending not yet implemented. "
-            "Use send_message() with shared_document_id in Phase 2."
+        if not conversation_id or not str(conversation_id).strip():
+            raise ValueError("conversation_id is required")
+
+        resolved_id = str(conversation_id).strip()
+        if resolved_id == "new":
+            if not client_id_for_new or not str(client_id_for_new).strip():
+                raise ValueError("client_id is required to create a conversation")
+            conv = create_conversation(str(agent_user_id), str(client_id_for_new).strip())
+            resolved_id = str(conv["id"])
+        else:
+            conv = get_conversation(resolved_id)
+            if not conv:
+                raise ValueError("Conversation not found")
+            if str(conv.get("agent_id")) != str(agent_user_id):
+                raise ValueError("Access denied")
+
+        download_url = s3_service.generate_presigned_url(
+            form.s3_template_path, download_filename=f"{form.form_key}.pdf"
+        )
+        if not download_url:
+            raise ValueError("Failed to generate download URL")
+
+        display_line = (form.title or "").strip() or form.form_key
+        payload = {
+            "v": 1,
+            "kind": "checklist_form",
+            "displayLine": display_line,
+            "checklistForm": {
+                "id": form.id,
+                "form_key": form.form_key,
+                "title": form.title,
+                "download_url": download_url,
+            },
+        }
+        line0 = f"{SHARED_ATTACHMENT_PREFIX}{json.dumps(payload, separators=(',', ':'))}"
+        note = (optional_message or "").strip()
+        full_message = f"{line0}\n\n{note}" if note else line0
+
+        return send_conversation_message(
+            resolved_id,
+            str(agent_user_id),
+            full_message,
+            "agent",
         )
 
     @staticmethod

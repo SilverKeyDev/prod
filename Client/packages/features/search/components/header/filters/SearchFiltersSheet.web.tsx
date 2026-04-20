@@ -40,11 +40,7 @@ export default function SearchFiltersSheet({
 
   return (
     <Transition show={open} as="div">
-      <AccessibleDialog
-        onClose={onClose}
-        className="z-modal relative"
-        label={t("search.filters")}
-      >
+      <AccessibleDialog onClose={onClose} className="z-modal relative" label={t("search.filters")}>
         <Transition.Child
           enter="ease-out duration-200"
           enterFrom="opacity-0"
@@ -53,11 +49,7 @@ export default function SearchFiltersSheet({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Box
-            className="bg-overlay-backdrop fixed inset-0"
-            aria-hidden
-            onClick={onClose}
-          />
+          <Box className="bg-overlay-backdrop fixed inset-0" aria-hidden onClick={onClose} />
         </Transition.Child>
         <Box className="pointer-events-none fixed inset-0 flex items-end justify-center p-0">
           <Transition.Child
@@ -73,21 +65,14 @@ export default function SearchFiltersSheet({
               onClick={(e) => e.stopPropagation()}
             >
               <Box className="border-border flex shrink-0 flex-col items-center border-b pt-2">
-                <Box
-                  className="bg-border mb-2 h-1 w-10 rounded-full"
-                  aria-hidden
-                />
+                <Box className="bg-border mb-2 h-1 w-10 rounded-full" aria-hidden />
                 <Box className="flex w-full items-center justify-between gap-2 px-4 pb-3">
                   <Box className="w-9 shrink-0" aria-hidden />
                   <Title size="sm" as="h2" className="flex-1 text-center">
                     {t("search.filters")}
                   </Title>
                   <Box className="flex w-9 shrink-0 justify-end">
-                    <CloseButton
-                      onClick={onClose}
-                      size="sm"
-                      label={t("search.close_filters")}
-                    />
+                    <CloseButton onClick={onClose} size="sm" label={t("search.close_filters")} />
                   </Box>
                 </Box>
               </Box>
@@ -97,9 +82,7 @@ export default function SearchFiltersSheet({
                   formData={formData}
                   updateFormData={updateFormData}
                   saveStatus={saveStatus}
-                  patchBuyerPreferenceExtensions={
-                    patchBuyerPreferenceExtensions
-                  }
+                  patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
                   scriptsReady={scriptsReady}
                 />
               </Box>
@@ -111,6 +94,7 @@ export default function SearchFiltersSheet({
                   fullWidth
                   onClick={handleApply}
                   className="touch-friendly"
+                  iconName="search"
                 >
                   {t("search.apply")}
                 </Button>

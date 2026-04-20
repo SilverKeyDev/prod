@@ -53,11 +53,7 @@ export function ListingAgentCard({
   return (
     <Box>
       <Box className={`${headerMb} flex-row items-center gap-2`}>
-        <Icon
-          name="user"
-          size={isCompact ? 18 : 20}
-          color={color("brown.DEFAULT")}
-        />
+        <Icon name="user" size={isCompact ? 18 : 20} color={color("brown.DEFAULT")} />
         <Text className={titleClass}>{resolvedTitle}</Text>
       </Box>
       <Box className={`flex-row items-start ${isCompact ? "gap-3" : "gap-4"}`}>
@@ -77,20 +73,14 @@ export function ListingAgentCard({
             />
           ) : (
             <Box className="h-full w-full items-center justify-center">
-              <Icon
-                name="user"
-                size={isCompact ? 24 : 32}
-                color="rgba(140, 111, 90, 0.6)"
-              />
+              <Icon name="user" size={isCompact ? 24 : 32} color="rgba(140, 111, 90, 0.6)" />
             </Box>
           )}
         </Box>
         <Box className="min-w-0 flex-1">
           {displayName && (
             <Text
-              className={`text-accent font-medium ${
-                isCompact ? "text-base" : "text-lg"
-              }`}
+              className={`text-accent font-medium ${isCompact ? "text-base" : "text-lg"}`}
               numberOfLines={2}
             >
               {displayName}

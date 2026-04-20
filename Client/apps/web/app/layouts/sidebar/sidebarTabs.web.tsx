@@ -45,15 +45,15 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
   },
   decide: {
     key: "decide",
-    name: "Saved",
+    name: "Library",
     description: "Compare and pick your best options",
-    icon: "bookmark",
+    icon: "library",
     href: "/saved",
     subSteps: [
       {
         label: "Compare Reports",
         to: "/saved",
-        icon: "bookmark",
+        icon: "library",
       },
     ],
   },

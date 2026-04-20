@@ -2,7 +2,8 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Box, Row } from "packages/ui/components/primitives";
+import { useLocalization } from "packages/contexts";
+import { Box, Row, Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { HOVER_BG_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 
@@ -27,6 +28,12 @@ export type UnderlineTabsProps = {
   items: UnderlineTabItem[];
   activeId: string;
   onChange: (id: string) => void;
+  /**
+   * Optional tab id for the user's current journey phase (e.g. first incomplete checklist section).
+   * Renders a small inline “You are here.” pill next to that tab’s label, distinct from {@link activeId}
+   * (the tab being viewed).
+   */
+  phaseIndicatorId?: string;
   /** When true, uses tighter padding for mobile. */
   compact?: boolean;
   /** Tab label scale; default matches previous sizing. */
@@ -47,12 +54,14 @@ export function UnderlineTabs({
   items,
   activeId,
   onChange,
+  phaseIndicatorId,
   compact = false,
   size: tabSize = "sm",
   className = "",
   underlineColor = "bg-gold",
   variant = "default",
 }: UnderlineTabsProps): JSX.Element {
+  const { t } = useLocalization();
   const isSidebar = variant === "sidebar";
   const sizeStyles = UNDERLINE_TAB_SIZE_STYLES[tabSize];
   const containerClass = compact
@@ -62,24 +71,25 @@ export function UnderlineTabs({
     : `flex flex-row flex-shrink-0 rounded-none border-b ${
         isSidebar ? "border-white/20" : "border-border"
       }`;
-  const buttonLayoutClass = compact
-    ? sizeStyles.paddingCompact
-    : sizeStyles.paddingDefault;
+  const paddingWithFlex = compact ? sizeStyles.paddingCompact : sizeStyles.paddingDefault;
+  /** `flex-1` on every tab forces equal widths; strip it when distributing extra space to the journey tab. */
+  const buttonLayoutClass = paddingWithFlex.replace(/\bflex-1\b/g, "").replace(/\s{2,}/g, " ").trim();
 
   return (
-    <Row
-      className={className ? `${containerClass} ${className}` : containerClass}
-    >
+    <Row className={className ? `${containerClass} ${className}` : containerClass}>
       {items.map((item) => {
         const isActive = activeId === item.id;
         const isLocked = item.locked === true;
-        const textSizeClass = isActive
-          ? sizeStyles.activeText
-          : sizeStyles.inactiveText;
-        const iconSizeClass = isActive
-          ? sizeStyles.activeIcon
-          : sizeStyles.inactiveIcon;
+        const isJourneyPhase = phaseIndicatorId != null && phaseIndicatorId === item.id;
+        const textSizeClass = isActive ? sizeStyles.activeText : sizeStyles.inactiveText;
+        const iconSizeClass = isActive ? sizeStyles.activeIcon : sizeStyles.inactiveIcon;
         const fontWeightClass = isActive ? "font-bold" : "font-medium";
+        const flexClass =
+          phaseIndicatorId != null
+            ? isJourneyPhase
+              ? "min-w-0 flex-[1.55] sm:flex-[1.65]"
+              : "min-w-0 flex-1"
+            : "min-w-0 flex-1";
         return (
           <Button
             key={item.id}
@@ -88,7 +98,7 @@ export function UnderlineTabs({
             size={underlineTabsButtonSize(tabSize)}
             rounded="none"
             onClick={() => onChange(item.id)}
-            className={`${buttonLayoutClass} ${textSizeClass} ${fontWeightClass} ${HOVER_BG_CLASSES} focus:outline-none focus:ring-0 ${
+            className={`relative ${buttonLayoutClass} ${flexClass} ${textSizeClass} ${fontWeightClass} ${HOVER_BG_CLASSES} focus:outline-none focus:ring-0 ${
               isSidebar
                 ? isLocked
                   ? "text-white/50 opacity-75 hover:text-white/70 active:opacity-90"
@@ -100,23 +110,26 @@ export function UnderlineTabs({
                   : isActive
                     ? "text-neutral-600"
                     : "text-neutral-600 hover:text-neutral-800 active:text-neutral-900 active:opacity-90"
-            } ${
-              isSidebar ? "" : "active:text-neutral-500 active:text-neutral-800"
-            }`}
+            } ${isSidebar ? "" : "active:text-neutral-500 active:text-neutral-800"}`}
           >
             <Box className="flex flex-row items-center justify-center gap-2">
               {isLocked ? (
-                <Icon
-                  name="lock"
-                  className={`${iconSizeClass} shrink-0`}
-                  aria-hidden
-                />
+                <Icon name="lock" className={`${iconSizeClass} shrink-0`} aria-hidden />
               ) : (
-                item.icon != null && (
-                  <Box className={`${iconSizeClass} shrink-0`}>{item.icon}</Box>
-                )
+                item.icon != null && <Box className={`${iconSizeClass} shrink-0`}>{item.icon}</Box>
               )}
               {item.label}
+              {isJourneyPhase ? (
+                <Box className="inline-flex shrink-0 flex-row items-center gap-0.5 rounded-full bg-gold-muted py-0.5 pl-1.5 pr-1.5">
+                  <Box className="h-1 w-1 shrink-0 rounded-full bg-gold" aria-hidden />
+                  <Text
+                    as="span"
+                    className="text-xs font-medium leading-none tracking-tight text-gold"
+                  >
+                    {t("common.you_are_here")}
+                  </Text>
+                </Box>
+              ) : null}
             </Box>
             {isActive && (
               <BodyText

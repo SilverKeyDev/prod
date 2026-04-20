@@ -33,7 +33,7 @@ const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
       max,
       ...props
     },
-    ref,
+    ref
   ) => {
     const baseStyles =
       "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input " +
@@ -96,7 +96,7 @@ const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
         )}
       </Box>
     );
-  },
+  }
 );
 
 TimeInput.displayName = "TimeInput";

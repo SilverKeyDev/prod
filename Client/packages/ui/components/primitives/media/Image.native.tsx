@@ -1,9 +1,6 @@
 import React, { forwardRef } from "react";
 
-import {
-  Image as RNImage,
-  type ImageProps as RNImageProps,
-} from "react-native";
+import { Image as RNImage, type ImageProps as RNImageProps } from "react-native";
 
 export type ImageProps = RNImageProps & {
   className?: string;
@@ -17,7 +14,7 @@ export type ImageProps = RNImageProps & {
  */
 const Image = forwardRef<RNImage, ImageProps>(function Image(
   { source, className, style, label, ...props },
-  ref,
+  ref
 ) {
   const a11yProps = label != null ? { accessibilityLabel: label } : {};
   return (

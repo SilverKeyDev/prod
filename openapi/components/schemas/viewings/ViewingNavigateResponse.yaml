@@ -1,0 +1,9 @@
+type: object
+description: Google Maps multi-stop navigation URL.
+required:
+  - url
+properties:
+  url:
+    type: string
+    format: uri
+    description: https://www.google.com/maps/dir/... deep link for driving directions.

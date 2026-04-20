@@ -8,11 +8,9 @@ import {
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useGoogleMaps } from "packages/hooks/data";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
-import {
-  useUserData,
-  useUserPreferences,
-} from "packages/hooks/data/auth/useUserData";
+import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useResponsive } from "packages/hooks/ui";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
@@ -39,9 +37,7 @@ type PreferencesFormContentProps = {
     updateFormData: (field: keyof OnboardingData, value: unknown) => void;
     saveStatus: "idle" | "saving" | "saved";
     patchBuyerPreferenceExtensions: (
-      fn: (
-        prev: BuyerPreferenceExtensions | undefined,
-      ) => BuyerPreferenceExtensions,
+      fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions
     ) => void;
     scriptsReady: boolean;
   }) => React.ReactNode;
@@ -57,6 +53,7 @@ export default function PreferencesFormContent({
   preferencesSubjectUserId,
 }: PreferencesFormContentProps): React.ReactElement {
   const hasReportedInitialRef = useRef(false);
+  const appliedRemoteSyncKeyRef = useRef<string | null>(null);
   const { t } = useLocalization();
   const { userProfile } = useUserData();
   const { userPreferences, refreshUserPreferences } = useUserPreferences({
@@ -82,26 +79,64 @@ export default function PreferencesFormContent({
       ).google?.maps?.places
     );
   })();
-  const { saveStatus, updateFormData: updateFormDataWithAutoSave } =
-    useAutoSavePreferences({
-      refreshUserPreferences,
-      debounceMs: 3000,
-      showErrorToastOnError,
-      successToastMessage: t("common.saved"),
-      onAfterSave: onPreferencesSaved,
-    });
+  const {
+    saveStatus,
+    updateFormData: updateFormDataWithAutoSave,
+    autoSave,
+  } = useAutoSavePreferences({
+    refreshUserPreferences,
+    showErrorToastOnError,
+    showSuccessToastOnSave: false,
+    onAfterSave: onPreferencesSaved,
+  });
   useEffect(() => {
     hasReportedInitialRef.current = false;
+    appliedRemoteSyncKeyRef.current = null;
   }, [preferencesSubjectUserId]);
 
   useEffect(() => {
     if (!userPreferences) return;
-    const initialData = userPreferencesToOnboardingData(
+    const subjectKey =
+      preferencesSubjectUserId != null && preferencesSubjectUserId !== ""
+        ? preferencesSubjectUserId
+        : "self";
+    const version = userPreferences.preferences_version ?? "";
+    // Do not include profile name in syncKey: when the profile loads or name updates, a full reset
+    // from GET preferences would race local edits (e.g. clearing important_locations) and restore
+    // stale server data before the save+refetch completes.
+    const syncKey = `${subjectKey}:${String(version)}`;
+    const remoteIl = userPreferences.important_locations;
+    const skipped = appliedRemoteSyncKeyRef.current === syncKey;
+    log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "preferencesFormContent.remoteSync", {
+      syncKey,
+      skipped,
+      remoteImportantLocationsLen: Array.isArray(remoteIl) ? remoteIl.length : null,
+    });
+    if (skipped) {
+      return;
+    }
+    appliedRemoteSyncKeyRef.current = syncKey;
+    const nextForm = userPreferencesToOnboardingData(
       userPreferences as Record<string, unknown>,
-      userProfile ?? undefined,
+      userProfile ?? undefined
     );
-    setFormData(initialData);
+    log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "preferencesFormContent.remoteSync.apply", {
+      formImportantLocationsLen: Array.isArray(nextForm.important_locations)
+        ? nextForm.important_locations.length
+        : null,
+    });
+    setFormData(nextForm);
   }, [userPreferences, userProfile, preferencesSubjectUserId]);
+
+  /** Keep form name in sync with auth profile without resetting the whole preferences form. */
+  useEffect(() => {
+    const nameFromProfile =
+      userProfile != null && typeof userProfile.name === "string" && userProfile.name.trim() !== ""
+        ? userProfile.name.trim()
+        : undefined;
+    if (!nameFromProfile) return;
+    setFormData((prev) => (prev.name === nameFromProfile ? prev : { ...prev, name: nameFromProfile }));
+  }, [userProfile]);
   useEffect(() => {
     if (formContentRef) {
       formContentRef.current = {
@@ -110,11 +145,7 @@ export default function PreferencesFormContent({
     }
   }, [formContentRef, formData]);
   useEffect(() => {
-    if (
-      onInitialSnapshot &&
-      !hasReportedInitialRef.current &&
-      Object.keys(formData).length > 0
-    ) {
+    if (onInitialSnapshot && !hasReportedInitialRef.current && Object.keys(formData).length > 0) {
       hasReportedInitialRef.current = true;
       onInitialSnapshot(formData);
     }
@@ -125,29 +156,29 @@ export default function PreferencesFormContent({
         const nextLocations = Array.isArray(value)
           ? (value as NonNullable<OnboardingData["important_locations"]>)
           : [];
+        log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "preferencesFormContent.updateImportantLocations", {
+          nextLen: nextLocations.length,
+        });
         updateFormDataWithAutoSave(formData, setFormData, field, nextLocations);
         return;
       }
       updateFormDataWithAutoSave(formData, setFormData, field, value);
     },
-    [formData, updateFormDataWithAutoSave],
+    [formData, updateFormDataWithAutoSave]
   );
 
   const patchBuyerPreferenceExtensions = useCallback(
-    (
-      fn: (
-        prev: BuyerPreferenceExtensions | undefined,
-      ) => BuyerPreferenceExtensions,
-    ) => {
-      const next = fn(formData.buyerPreferenceExtensions);
-      updateFormDataWithAutoSave(
-        formData,
-        setFormData,
-        "buyerPreferenceExtensions",
-        next,
-      );
+    (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {
+      setFormData((prev) => {
+        const next = {
+          ...prev,
+          buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
+        };
+        autoSave(next);
+        return next;
+      });
     },
-    [formData, updateFormDataWithAutoSave],
+    [autoSave]
   );
   if (renderContent) {
     return (

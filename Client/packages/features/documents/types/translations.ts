@@ -21,8 +21,7 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "documents_upload.uploading": "Uploading...",
   "documents_upload.upload_document": "Upload Document",
   "documents_upload.modal_title": "Upload Document",
-  "documents_upload.error_selecting_file":
-    "Unable to select file. Please try again.",
+  "documents_upload.error_selecting_file": "Unable to select file. Please try again.",
   "documents_upload.change_file": "Change file",
   "documents_upload.missing_file": "Please select a file to upload.",
 
@@ -33,8 +32,7 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "secure_upload.exif_stripped": "EXIF Stripped",
   "secure_upload.warning_prefix": "⚠️ ",
   "secure_upload.title_mobile_fallback": "Document upload",
-  "secure_upload.mobile_description":
-    "Documents added by your team will appear here.",
+  "secure_upload.mobile_description": "Documents added by your team will appear here.",
 
   "reports.delete": "Delete",
   "reports.delete_report": "Delete report",
@@ -73,8 +71,7 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "forms.downloading": "Downloading…",
   "forms.send_for_signature": "Send for Signature",
 
-  "documents.revision_download_unavailable":
-    "Download is not available for this revision.",
+  "documents.revision_download_unavailable": "Download is not available for this revision.",
 
   "docusign.notice_embedded_legal":
     "Please review and sign the document below. Your signature will be legally binding.",
@@ -95,4 +92,38 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "docusign.widget_empty_pending": "No pending signatures",
   "docusign.widget_empty_recent": "No agreements yet",
   "docusign.widget_view_all": "View All Agreements",
+
+  "docusign.detail_title_fallback": "Agreement details",
+  "docusign.detail_loading": "Loading agreement…",
+  "docusign.detail_buyer_label": "Buyer:",
+  "docusign.detail_updated_prefix": "Updated",
+  "docusign.detail_not_found": "Agreement not found.",
+  "docusign.detail_awaiting_send_buyer":
+    "Your agent has not sent this agreement for signing yet. You will be able to sign once it has been sent.",
+  "docusign.detail_send_button": "Send Agreement",
+  "docusign.detail_send_sending": "Sending…",
+  "docusign.detail_sign_now": "Sign Now",
+  "docusign.detail_back": "Back",
+  "docusign.detail_close": "Close",
+  "docusign.detail_advanced_send_show": "Reminders & expiration (optional)",
+  "docusign.detail_advanced_send_hide": "Hide reminders & expiration",
+  "docusign.detail_advanced_send_heading": "DocuSign scheduling",
+  "docusign.detail_advanced_send_help":
+    "Leave fields blank to use server defaults. Filled values apply only to this send.",
+  "docusign.detail_reminder_first_days": "Days until first reminder",
+  "docusign.detail_reminder_repeat_days": "Days between reminders",
+  "docusign.detail_expire_after_days": "Expire envelope after (days)",
+  "docusign.detail_expire_warn_days": "Warn before expiry (days)",
+  "docusign.detail_resend_section": "Pending signers",
+  "docusign.detail_resend_help":
+    "Resend the signing email using the address on file. An optional private note is included with the resend only.",
+  "docusign.detail_resend_note": "Private note (optional)",
+  "docusign.detail_resend_button": "Resend email",
+  "docusign.detail_resend_sending": "Sending…",
+  "docusign.detail_notification_section": "DocuSign reminder settings",
+  "docusign.detail_notification_help":
+    "Update reminder and expiration behavior for this envelope after it has been sent.",
+  "docusign.detail_use_account_defaults": "Use DocuSign account defaults",
+  "docusign.detail_notification_save": "Save reminder settings",
+  "docusign.detail_notification_saving": "Saving…",
 };

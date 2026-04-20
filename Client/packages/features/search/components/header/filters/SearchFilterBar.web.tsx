@@ -86,9 +86,7 @@ export default function SearchFilterBar({
   }
 
   return (
-    <Box
-      className={`flex min-w-0 flex-nowrap items-center gap-2 ${HEADER_ROW_HEIGHT}`}
-    >
+    <Box className={`flex min-w-0 flex-nowrap items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
       <Popover
         open={popoverOpen}
         onOpenChange={(open) => {
@@ -110,6 +108,7 @@ export default function SearchFilterBar({
             className={buttonBase}
             aria-expanded={isActive}
             aria-haspopup="true"
+            iconName="search"
           >
             <Box className="flex w-full items-center justify-between gap-2">
               <BodyText as="span" size="sm" className="text-inherit">

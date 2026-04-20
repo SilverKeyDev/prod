@@ -25,13 +25,10 @@ export interface DocumentData {
 /** When provided, view/download/share use these handlers and no in-card PdfModal is rendered. */
 export type DocumentCardExternalActionHandlers = {
   handleViewDocument: (documentId: string, documentName: string) => void;
-  handleDownloadDocument: (
-    documentId: string,
-    documentName: string,
-  ) => Promise<void>;
+  handleDownloadDocument: (documentId: string, documentName: string) => Promise<void>;
   handleShareDocument: (
     documentId: string,
-    documentName: string,
+    documentName: string
   ) => Promise<{ success: boolean; message: string }>;
   handleSendForSignature?: (document: DocumentData) => void;
   handleSignNow?: (document: DocumentData) => void;

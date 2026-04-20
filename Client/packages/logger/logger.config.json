@@ -25,5 +25,6 @@
   "routing": false,
   "docusign": true,
   "documents": true,
+  "profilePreferences": true,
   "logLevel": "INFO"
 }

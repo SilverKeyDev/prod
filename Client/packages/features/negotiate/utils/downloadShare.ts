@@ -2,15 +2,11 @@
  * Download, share, and clipboard helpers for negotiation strategy
  */
 
-import { log } from "packages/services/security/secureLogger";
-import { asError, isObject } from "packages/utils";
-import {
-  createBlob,
-  createFile,
-  getDocument,
-  getNavigator,
-  getWindow,
-} from "packages/utils/platform";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
+import { isObject } from "packages/utils";
+import { createBlob, createFile, getDocument, getNavigator } from "packages/utils/platform";
+import { tryWebShare } from "packages/utils/share";
 
 function getAddressForFilename(selectedHome: unknown): string {
   if (isObject(selectedHome)) {
@@ -26,7 +22,7 @@ function getAddressForFilename(selectedHome: unknown): string {
 
 export function downloadStrategyJson(strategyData: unknown, selectedHome: unknown): void {
   if (!strategyData) {
-    log.warn("NEGOTIATION_SERVICE", "No strategy data to download");
+    log.warn(LOG_CATEGORIES.NEGOTIATION, "No strategy data to download");
     return;
   }
 
@@ -51,19 +47,18 @@ export function downloadStrategyJson(strategyData: unknown, selectedHome: unknow
     doc.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    log.info("NEGOTIATION_SERVICE", "Strategy JSON downloaded successfully");
+    log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy JSON downloaded successfully");
   } catch (error: unknown) {
-    log.error("NEGOTIATION_SERVICE", "Failed to download strategy JSON", error);
+    log.error(LOG_CATEGORIES.ERRORS, "Failed to download strategy JSON", error);
   }
 }
 
 export async function shareStrategyJson(
   strategyData: unknown,
-  selectedHome: unknown,
-  copyToClipboard: (text: string) => Promise<void>
+  selectedHome: unknown
 ): Promise<void> {
   if (!strategyData) {
-    log.warn("NEGOTIATION_SERVICE", "No strategy data to share");
+    log.warn(LOG_CATEGORIES.NEGOTIATION, "No strategy data to share");
     return;
   }
 
@@ -72,83 +67,55 @@ export async function shareStrategyJson(
     const address = getAddressForFilename(selectedHome);
 
     const nav = getNavigator();
-    if (nav?.share && typeof nav.canShare === "function") {
-      const shareData = {
-        title: "Negotiation Strategy",
-        text: `Negotiation strategy for ${address}`,
-        files: [
-          createFile([dataStr], "negotiation-strategy.json", {
-            type: "application/json",
-          }),
-        ],
-      };
+    const fileShareData: ShareData = {
+      title: "Negotiation Strategy",
+      text: `Negotiation strategy for ${address}`,
+      files: [
+        createFile([dataStr], "negotiation-strategy.json", {
+          type: "application/json",
+        }),
+      ],
+    };
 
-      if (nav.canShare(shareData)) {
-        try {
-          await nav.share(shareData);
-          log.info("NEGOTIATION_SERVICE", "Strategy shared successfully via Web Share API");
-          return;
-        } catch (err: unknown) {
-          const error = asError(err);
-          if (error instanceof Error && error.name !== "AbortError") {
-            log.warn("NEGOTIATION_SERVICE", "Web Share API failed, trying text share", error);
-          } else {
-            return;
-          }
-        }
-      }
-    }
-
-    if (nav?.share && typeof nav.share === "function") {
-      try {
-        await nav.share({
-          title: "Negotiation Strategy",
-          text: `Negotiation strategy for ${address}:\n\n${dataStr}`,
-        });
-        log.info("NEGOTIATION_SERVICE", "Strategy shared as text via Web Share API");
+    if (nav?.share && typeof nav.canShare === "function" && nav.canShare(fileShareData)) {
+      const fileResult = await tryWebShare(fileShareData);
+      if (fileResult === "shared") {
+        log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy shared successfully via Web Share API");
         return;
-      } catch (err: unknown) {
-        const error = asError(err);
-        if (error instanceof Error && error.name !== "AbortError") {
-          log.warn(
-            "NEGOTIATION_SERVICE",
-            "Text share also failed, falling back to clipboard",
-            error
-          );
-        } else {
-          return;
-        }
       }
+      if (fileResult === "aborted") {
+        return;
+      }
+      log.warn(
+        LOG_CATEGORIES.NEGOTIATION,
+        "Web Share API file share failed or unavailable, trying text share"
+      );
     }
 
-    await copyToClipboard(dataStr);
-    log.info("NEGOTIATION_SERVICE", "Strategy copied to clipboard as fallback");
-  } catch (error: unknown) {
-    log.error("NEGOTIATION_SERVICE", "Failed to share strategy", error);
-  }
-}
+    const textShareData: ShareData = {
+      title: "Negotiation Strategy",
+      text: `Negotiation strategy for ${address}:\n\n${dataStr}`,
+    };
+    const textResult = await tryWebShare(textShareData);
+    if (textResult === "shared") {
+      log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy shared as text via Web Share API");
+      return;
+    }
+    if (textResult === "aborted") {
+      return;
+    }
+    log.warn(
+      LOG_CATEGORIES.NEGOTIATION,
+      "Text Web Share unavailable or failed, falling back to clipboard"
+    );
 
-export async function copyToClipboard(text: string): Promise<void> {
-  try {
-    const nav = getNavigator();
-    const win = getWindow();
-    const doc = getDocument();
-    if (nav?.clipboard && win?.isSecureContext) {
-      await nav.clipboard.writeText(text);
-    } else if (doc?.body) {
-      const textArea = doc.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-999999px";
-      textArea.style.top = "-999999px";
-      doc.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      doc.execCommand("copy");
-      textArea.remove();
+    const copied = await secureClipboardCopy(dataStr);
+    if (copied) {
+      log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy copied to clipboard as fallback");
+    } else {
+      log.warn(LOG_CATEGORIES.NEGOTIATION, "Strategy share fallback: clipboard copy unsuccessful");
     }
   } catch (error: unknown) {
-    log.error("NEGOTIATION_SERVICE", "Failed to copy to clipboard", error);
-    throw error;
+    log.error(LOG_CATEGORIES.ERRORS, "Failed to share strategy", error);
   }
 }

@@ -28,10 +28,7 @@ export type CardHeartSaveWithPropsProps = {
   property: CardHeartSavePropertyLike;
   isSaved: boolean;
   saveHome: (property: CardHeartSavePropertyLike) => Promise<void>;
-  removeSavedHome: (
-    propertyId: string,
-    propertyAddress?: string,
-  ) => Promise<void>;
+  removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   /** When true, heart stays in layout flow (e.g. modal/toolbar). Ignores overlay `position`. Web only. */
   inline?: boolean;
@@ -46,10 +43,7 @@ export type CardHeartSaveWithPropsProps = {
 };
 
 /** Maps small/medium/large to legacy sizes for card overlay */
-const TOOLBAR_TO_LEGACY: Record<
-  "small" | "medium" | "large",
-  "xs" | "sm" | "md" | "lg"
-> = {
+const TOOLBAR_TO_LEGACY: Record<"small" | "medium" | "large", "xs" | "sm" | "md" | "lg"> = {
   small: "sm",
   medium: "md",
   large: "lg",
@@ -62,10 +56,7 @@ const ICON_SIZE_FALLBACK: Record<"xs" | "sm" | "md" | "lg", string> = {
   lg: "w-6 h-6",
 };
 
-const POSITION_MAP: Record<
-  NonNullable<CardHeartSaveWithPropsProps["position"]>,
-  string
-> = {
+const POSITION_MAP: Record<NonNullable<CardHeartSaveWithPropsProps["position"]>, string> = {
   "top-left": "top-2 left-2",
   "top-right": "top-2 right-2",
   "bottom-left": "bottom-2 left-2",
@@ -92,8 +83,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
   nonFocusableMapMarkerSurface = false,
 }) => {
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const propertyAddress =
-    typeof property.address === "string" ? property.address : undefined;
+  const propertyAddress = typeof property.address === "string" ? property.address : undefined;
 
   const handlePress = async () => {
     try {
@@ -103,8 +93,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         await saveHome(property);
       }
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       log.error(LOG_CATEGORIES.SEARCH, "Error updating favorites", {
         propertyId: property.id,
         address: propertyAddress,
@@ -124,8 +113,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
     void handlePress();
   };
 
-  const label =
-    ariaLabel ?? (isSaved ? "Remove from saved homes" : "Save to favorites");
+  const label = ariaLabel ?? (isSaved ? "Remove from saved homes" : "Save to favorites");
 
   // Native: simplified overlay only (Pressable with shadow style)
   if (!isWeb) {
@@ -161,13 +149,9 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
     s === "small" || s === "medium" || s === "large";
   const effectiveSize = isToolbarSize(size) ? TOOLBAR_TO_LEGACY[size] : size;
   const sizeConfig = getCardBubbleSizeClasses(effectiveSize);
-  const iconSizeClass =
-    sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[effectiveSize];
+  const iconSizeClass = sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[effectiveSize];
   const isInlineButton =
-    inline ||
-    !position ||
-    className.includes("border") ||
-    className.includes("rounded-md");
+    inline || !position || className.includes("border") || className.includes("rounded-md");
 
   if (isInlineButton && isToolbarSize(size)) {
     return (
@@ -175,12 +159,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         variant="toolbar"
         size={size}
         rounded="md"
-        icon={
-          <Icon
-            name="heart"
-            className={`h-full w-full ${isSaved ? "fill-current" : ""}`}
-          />
-        }
+        icon={<Icon name="heart" className={`h-full w-full ${isSaved ? "fill-current" : ""}`} />}
         onClick={handleClick}
         label={label}
         className={`bg-gray-50 ${

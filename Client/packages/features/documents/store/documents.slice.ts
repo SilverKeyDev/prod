@@ -32,13 +32,10 @@ export type DocumentsState = DocumentsData & {
     file: File,
     category: string,
     propertyId?: string,
-    offerId?: string,
+    offerId?: string
   ) => Promise<WorkflowDocument>;
   deleteDocument: (docId: string) => Promise<void>;
-  updateDocumentStatus: (
-    docId: string,
-    status: WorkflowDocument["status"],
-  ) => Promise<void>;
+  updateDocumentStatus: (docId: string, status: WorkflowDocument["status"]) => Promise<void>;
   signDocument: (docId: string) => Promise<void>;
   downloadDocument: (docId: string) => Promise<void>;
   refreshDocuments: () => Promise<void>;
@@ -52,9 +49,7 @@ export type DocumentsState = DocumentsData & {
   // Setters for integration hook to inject implementations (no getState)
   setUploadDocumentImpl: (fn: DocumentsState["uploadDocument"]) => void;
   setDeleteDocumentImpl: (fn: DocumentsState["deleteDocument"]) => void;
-  setUpdateDocumentStatusImpl: (
-    fn: DocumentsState["updateDocumentStatus"],
-  ) => void;
+  setUpdateDocumentStatusImpl: (fn: DocumentsState["updateDocumentStatus"]) => void;
   setSignDocumentImpl: (fn: DocumentsState["signDocument"]) => void;
   setDownloadDocumentImpl: (fn: DocumentsState["downloadDocument"]) => void;
   setRefreshDocumentsImpl: (fn: DocumentsState["refreshDocuments"]) => void;
@@ -107,146 +102,94 @@ export const useDocumentsStore = create<DocumentsState>((set, get) => ({
 
   // Actions
   setDocuments: (documents: WorkflowDocument[]) =>
-    set((state) =>
-      arraysShallowEqual(state.documents, documents) ? state : { documents },
-    ),
+    set((state) => (arraysShallowEqual(state.documents, documents) ? state : { documents })),
   setDocumentCategories: (categories: DocumentCategory[]) =>
     set((state) =>
       arraysShallowEqual(state.documentCategories, categories)
         ? state
-        : { documentCategories: categories },
+        : { documentCategories: categories }
     ),
   setUploadedFiles: (files: unknown[]) =>
     set((state) =>
-      arraysShallowEqual(state.uploadedFiles, files)
-        ? state
-        : { uploadedFiles: files },
+      arraysShallowEqual(state.uploadedFiles, files) ? state : { uploadedFiles: files }
     ),
   setDocumentsLoading: (loading: boolean) =>
-    set((state) =>
-      state.documentsLoading === loading
-        ? state
-        : { documentsLoading: loading },
-    ),
+    set((state) => (state.documentsLoading === loading ? state : { documentsLoading: loading })),
   setCategoriesLoading: (loading: boolean) =>
-    set((state) =>
-      state.categoriesLoading === loading
-        ? state
-        : { categoriesLoading: loading },
-    ),
+    set((state) => (state.categoriesLoading === loading ? state : { categoriesLoading: loading })),
   setDocumentsError: (error: string | null) =>
-    set((state) =>
-      state.documentsError === error ? state : { documentsError: error },
-    ),
+    set((state) => (state.documentsError === error ? state : { documentsError: error })),
   setCategoriesError: (error: string | null) =>
-    set((state) =>
-      state.categoriesError === error ? state : { categoriesError: error },
-    ),
+    set((state) => (state.categoriesError === error ? state : { categoriesError: error })),
 
   // Helper functions
   getDocumentsByCategory: (category: string) => {
     const state = get();
-    return state.documents.filter(
-      (doc: WorkflowDocument) => doc.category === category,
-    );
+    return state.documents.filter((doc: WorkflowDocument) => doc.category === category);
   },
   getDocumentsByProperty: (propertyId: string) => {
     const state = get();
-    return state.documents.filter(
-      (doc: WorkflowDocument) => doc.property_id === propertyId,
-    );
+    return state.documents.filter((doc: WorkflowDocument) => doc.property_id === propertyId);
   },
   getDocumentsByOffer: (offerId: string) => {
     const state = get();
-    return state.documents.filter(
-      (doc: WorkflowDocument) => doc.offer_id === offerId,
-    );
+    return state.documents.filter((doc: WorkflowDocument) => doc.offer_id === offerId);
   },
 
   // Async actions will be implemented by hooks that use this store
   uploadDocument: () => {
     // This will be implemented by useDocuments hook
-    log.warn(
-      LOG_CATEGORIES.ERRORS,
-      "uploadDocument should be implemented by useDocuments hook",
-    );
+    log.warn(LOG_CATEGORIES.ERRORS, "uploadDocument should be implemented by useDocuments hook");
     throw new Error("Not implemented");
   },
   deleteDocument: () => {
     // This will be implemented by useDocuments hook
-    log.warn(
-      LOG_CATEGORIES.ERRORS,
-      "deleteDocument should be implemented by useDocuments hook",
-    );
+    log.warn(LOG_CATEGORIES.ERRORS, "deleteDocument should be implemented by useDocuments hook");
     return Promise.resolve();
   },
   updateDocumentStatus: () => {
     // This will be implemented by useDocuments hook
     log.warn(
       LOG_CATEGORIES.ERRORS,
-      "updateDocumentStatus should be implemented by useDocuments hook",
+      "updateDocumentStatus should be implemented by useDocuments hook"
     );
     return Promise.resolve();
   },
   signDocument: () => {
     // This will be implemented by useDocuments hook
-    log.warn(
-      LOG_CATEGORIES.ERRORS,
-      "signDocument should be implemented by useDocuments hook",
-    );
+    log.warn(LOG_CATEGORIES.ERRORS, "signDocument should be implemented by useDocuments hook");
     return Promise.resolve();
   },
   downloadDocument: () => {
     // This will be implemented by useDocuments hook
-    log.warn(
-      LOG_CATEGORIES.ERRORS,
-      "downloadDocument should be implemented by useDocuments hook",
-    );
+    log.warn(LOG_CATEGORIES.ERRORS, "downloadDocument should be implemented by useDocuments hook");
     return Promise.resolve();
   },
   refreshDocuments: () => {
     // This will be implemented by useDocuments hook
-    log.warn(
-      LOG_CATEGORIES.ERRORS,
-      "refreshDocuments should be implemented by useDocuments hook",
-    );
+    log.warn(LOG_CATEGORIES.ERRORS, "refreshDocuments should be implemented by useDocuments hook");
     return Promise.resolve();
   },
   refreshCategories: () => {
     // This will be implemented by useDocuments hook
-    log.warn(
-      LOG_CATEGORIES.ERRORS,
-      "refreshCategories should be implemented by useDocuments hook",
-    );
+    log.warn(LOG_CATEGORIES.ERRORS, "refreshCategories should be implemented by useDocuments hook");
     return Promise.resolve();
   },
 
   setUploadDocumentImpl: (fn) =>
-    set((state) =>
-      state.uploadDocument === fn ? state : { uploadDocument: fn },
-    ),
+    set((state) => (state.uploadDocument === fn ? state : { uploadDocument: fn })),
   setDeleteDocumentImpl: (fn) =>
-    set((state) =>
-      state.deleteDocument === fn ? state : { deleteDocument: fn },
-    ),
+    set((state) => (state.deleteDocument === fn ? state : { deleteDocument: fn })),
   setUpdateDocumentStatusImpl: (fn) =>
-    set((state) =>
-      state.updateDocumentStatus === fn ? state : { updateDocumentStatus: fn },
-    ),
+    set((state) => (state.updateDocumentStatus === fn ? state : { updateDocumentStatus: fn })),
   setSignDocumentImpl: (fn) =>
     set((state) => (state.signDocument === fn ? state : { signDocument: fn })),
   setDownloadDocumentImpl: (fn) =>
-    set((state) =>
-      state.downloadDocument === fn ? state : { downloadDocument: fn },
-    ),
+    set((state) => (state.downloadDocument === fn ? state : { downloadDocument: fn })),
   setRefreshDocumentsImpl: (fn) =>
-    set((state) =>
-      state.refreshDocuments === fn ? state : { refreshDocuments: fn },
-    ),
+    set((state) => (state.refreshDocuments === fn ? state : { refreshDocuments: fn })),
   setRefreshCategoriesImpl: (fn) =>
-    set((state) =>
-      state.refreshCategories === fn ? state : { refreshCategories: fn },
-    ),
+    set((state) => (state.refreshCategories === fn ? state : { refreshCategories: fn })),
 
   // Reset function
   reset: () => set(initialState()),

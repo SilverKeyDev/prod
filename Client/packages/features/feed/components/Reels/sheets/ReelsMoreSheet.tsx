@@ -3,19 +3,9 @@ import { Icon } from "@ui/icons";
 import { Transition } from "packages/ui/components/adapters/headless";
 import { Box } from "packages/ui/components/primitives";
 
-import {
-  AccessibleDialog,
-  BodyText,
-  Button,
-  CloseButton,
-  Title,
-} from "@/components/ui";
+import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";
-export type ReelsMoreActionId =
-  | "not-interested"
-  | "report"
-  | "copy-link"
-  | "save";
+export type ReelsMoreActionId = "not-interested" | "report" | "copy-link" | "save";
 type ReelsMoreSheetProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -56,11 +46,7 @@ export function ReelsMoreSheet({
   };
   return (
     <Transition show={isOpen} as={Box}>
-      <AccessibleDialog
-        onClose={onClose}
-        className="z-modal relative"
-        label="More options"
-      >
+      <AccessibleDialog onClose={onClose} className="z-modal relative" label="More options">
         {}
         <Transition.Child
           enter="ease-out duration-200"
@@ -70,11 +56,7 @@ export function ReelsMoreSheet({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Box
-            className="bg-overlay-backdrop fixed inset-0"
-            aria-hidden
-            onClick={onClose}
-          />
+          <Box className="bg-overlay-backdrop fixed inset-0" aria-hidden onClick={onClose} />
         </Transition.Child>
         {}
         <Box className="pointer-events-none fixed inset-0 flex flex-row items-end justify-center p-0">
@@ -93,21 +75,14 @@ export function ReelsMoreSheet({
             >
               {/* Header - same pattern as Comments: drag handle + title + close */}
               <Box className="border-border flex shrink-0 flex-row flex-col items-center border-b pt-2">
-                <Box
-                  className="bg-border mb-2 h-1 w-10 rounded-full"
-                  aria-hidden
-                />
+                <Box className="bg-border mb-2 h-1 w-10 rounded-full" aria-hidden />
                 <Box className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-3">
                   <Box className="w-9 shrink-0" aria-hidden />
                   <Title size="sm" as="h2" className="flex-1 text-center">
                     More
                   </Title>
                   <Box className="flex w-9 shrink-0 flex-row justify-end">
-                    <CloseButton
-                      onClick={onClose}
-                      size="sm"
-                      label="Close more options"
-                    />
+                    <CloseButton onClick={onClose} size="sm" label="Close more options" />
                   </Box>
                 </Box>
               </Box>
@@ -122,10 +97,7 @@ export function ReelsMoreSheet({
                     onClick={handleNotInterested}
                     label="Not interested"
                   >
-                    <Icon
-                      name="x-circle"
-                      className="text-text-secondary h-5 w-5 shrink-0"
-                    />
+                    <Icon name="x-circle" className="text-text-secondary h-5 w-5 shrink-0" />
                     <BodyText as="span" size="sm">
                       Not interested
                     </BodyText>
@@ -137,10 +109,7 @@ export function ReelsMoreSheet({
                     onClick={handleReport}
                     label="Report"
                   >
-                    <Icon
-                      name="flag"
-                      className="text-text-secondary h-5 w-5 shrink-0"
-                    />
+                    <Icon name="flag" className="text-text-secondary h-5 w-5 shrink-0" />
                     <BodyText as="span" size="sm">
                       Report
                     </BodyText>
@@ -151,11 +120,9 @@ export function ReelsMoreSheet({
                     className={ACTION_ROW_CLASS}
                     onClick={handleCopyLink}
                     label="Copy link"
+                    iconName="copy"
+                    contentAlign="start"
                   >
-                    <Icon
-                      name="copy"
-                      className="text-text-secondary h-5 w-5 shrink-0"
-                    />
                     <BodyText as="span" size="sm">
                       Copy link
                     </BodyText>
@@ -166,15 +133,9 @@ export function ReelsMoreSheet({
                     className={ACTION_ROW_CLASS}
                     onClick={handleSave}
                     label={isSaved ? "Unsave" : "Save"}
+                    iconName="bookmark"
+                    contentAlign="start"
                   >
-                    <Icon
-                      name="bookmark"
-                      className={`h-5 w-5 shrink-0 ${
-                        isSaved
-                          ? "fill-text-primary text-text-primary"
-                          : "text-text-secondary"
-                      }`}
-                    />
                     <BodyText as="span" size="sm">
                       {isSaved ? "Unsave" : "Save"}
                     </BodyText>

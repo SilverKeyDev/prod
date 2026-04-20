@@ -1,27 +1,24 @@
-import Dropdown from "packages/ui/components/form/Dropdown";
+import Dropdown from "packages/ui/components/form/dropdown";
 import { Box } from "packages/ui/components/primitives";
-
-import {
-  buildTimeOptions,
-  EVENT_REQUEST_TIME_STEP_MINUTES,
-  type EventScheduleOption,
-} from "./eventRequestScheduleOptions";
+import type { EventScheduleOption } from "packages/utils/scheduling/eventRequestScheduleOptions";
 
 export type EventRequestTimeDropdownProps = {
   value: string;
   onChange: (value: string) => void;
+  /** Time rows for the selected date (from `useEventRequestScheduleAvailability`). */
+  options: EventScheduleOption[];
 };
 
 export function EventRequestTimeDropdown({
   value,
   onChange,
+  options,
 }: EventRequestTimeDropdownProps) {
-  const options: EventScheduleOption[] = buildTimeOptions(
-    EVENT_REQUEST_TIME_STEP_MINUTES,
-  );
   const dropdownOptions = options.map((o) => ({
     value: o.value,
     label: o.label,
+    disabled: o.disabled,
+    menuRowClassName: o.menuRowClassName,
   }));
 
   return (
@@ -35,6 +32,8 @@ export function EventRequestTimeDropdown({
         searchable
         variant="compact"
         size="sm"
+        menuInPortal
+        menuPortalStack="modal"
       />
     </Box>
   );

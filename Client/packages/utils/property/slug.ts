@@ -14,10 +14,7 @@ export function generatePropertySlug(address: string): string {
 /**
  * Build a full property detail URL with zpid and address slug
  */
-export function buildPropertyUrl(
-  zpid: string | number | undefined,
-  address: string,
-): string {
+export function buildPropertyUrl(zpid: string | number | undefined, address: string): string {
   if (!zpid) {
     throw new Error("zpid is required to build property URL");
   }

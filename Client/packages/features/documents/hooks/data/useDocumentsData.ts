@@ -55,10 +55,7 @@ export function useDocumentsData(clientId?: string): UseDocumentsDataReturn {
   const authReady = useAuthStore((s) => s.authReady);
 
   // Gate loading on auth readiness and authentication
-  const shouldLoadData = useMemo(
-    () => authReady && isAuthenticated,
-    [authReady, isAuthenticated],
-  );
+  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
   const {
     data: documentsResponse,
@@ -71,8 +68,7 @@ export function useDocumentsData(clientId?: string): UseDocumentsDataReturn {
       try {
         const response = await reportApi.getDocumentLibrary(clientId);
         if (!response.success) {
-          const errorMessage =
-            response.error ?? "Failed to fetch document library";
+          const errorMessage = response.error ?? "Failed to fetch document library";
           log.error(LOG_CATEGORIES.API, "Failed to fetch document library", {
             error: errorMessage,
           });
@@ -93,16 +89,11 @@ export function useDocumentsData(clientId?: string): UseDocumentsDataReturn {
           library_item_id: row.library_item_id,
           library_kind: row.library_kind,
           agreement_type: row.agreement_type ?? null,
-          agent_id:
-            ((row as Record<string, unknown>).agent_id as string | null) ??
-            null,
-          buyer_id:
-            ((row as Record<string, unknown>).buyer_id as string | null) ??
-            null,
+          agent_id: ((row as Record<string, unknown>).agent_id as string | null) ?? null,
+          buyer_id: ((row as Record<string, unknown>).buyer_id as string | null) ?? null,
           participants:
-            ((row as Record<string, unknown>).participants as
-              | AgreementParticipantData[]
-              | null) ?? null,
+            ((row as Record<string, unknown>).participants as AgreementParticipantData[] | null) ??
+            null,
         }));
       } catch (err) {
         log.error(LOG_CATEGORIES.ERRORS, "Error fetching documents", err);

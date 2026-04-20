@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
-import { HousingStep } from "packages/features/homeauth/components/onboarding-mobile"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist DefineCriteria reuses HousingStep from onboarding; shared composition. */
+import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/ChecklistStepSubmitFooter";
+import { isDefineCriteriaStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
+import { HousingStep } from "packages/features/homeauth/components/onboarding-mobile";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import Button from "packages/ui/components/button/Button";
+import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 
@@ -16,9 +18,7 @@ type DefineCriteriaSectionProps = {
   onComplete?: () => void;
 };
 
-export default function DefineCriteriaSection({
-  onComplete,
-}: DefineCriteriaSectionProps) {
+export default function DefineCriteriaSection({ onComplete }: DefineCriteriaSectionProps) {
   const { t } = useLocalization();
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
 
@@ -30,16 +30,18 @@ export default function DefineCriteriaSection({
     autoSave,
   } = useAutoSavePreferences({
     refreshUserPreferences,
-    debounceMs: 3000,
     showErrorToastOnError: true,
+    showSuccessToastOnSave: false,
     successToastMessage: t("common.saved"),
   });
+
+  const appliedRemoteSyncKeyRef = useRef<string | null>(null);
 
   const patchBuyerPreferenceExtensions = useCallback(
     (
       fn: (
-        prev: OnboardingData["buyerPreferenceExtensions"],
-      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>,
+        prev: OnboardingData["buyerPreferenceExtensions"]
+      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>
     ) => {
       setFormData((prev) => {
         const next = {
@@ -50,28 +52,39 @@ export default function DefineCriteriaSection({
         return next;
       });
     },
-    [autoSave],
+    [autoSave]
   );
 
   useEffect(() => {
-    if (userPreferences) {
-      const initialData = userPreferencesToOnboardingData(
-        userPreferences as Record<string, unknown>,
-      );
-      setFormData(initialData);
+    if (!userPreferences) return;
+    const syncKey = `self:${String(userPreferences.preferences_version ?? "")}`;
+    if (appliedRemoteSyncKeyRef.current === syncKey) {
+      return;
     }
+    appliedRemoteSyncKeyRef.current = syncKey;
+    setFormData(userPreferencesToOnboardingData(userPreferences as Record<string, unknown>));
   }, [userPreferences]);
 
   const updateFormData = useCallback(
     (field: string | number | symbol, value: unknown) => {
       updateFormDataWithAutoSave(formData, setFormData, field, value);
     },
-    [formData, updateFormDataWithAutoSave],
+    [formData, updateFormDataWithAutoSave]
   );
 
-  const handleDone = useCallback(() => {
+  const stepComplete = useMemo(() => isDefineCriteriaStepComplete(formData), [formData]);
+
+  const handleSubmit = useCallback(() => {
+    if (!isDefineCriteriaStepComplete(formData)) {
+      showWarningToast(
+        t("checklists.step.incomplete_warning", {
+          defaultValue: "Complete all required fields in this step before submitting.",
+        })
+      );
+      return;
+    }
     onComplete?.();
-  }, [onComplete]);
+  }, [formData, onComplete, t]);
 
   return (
     <Card border="dotted" padding="md" className="mb-2">
@@ -89,9 +102,7 @@ export default function DefineCriteriaSection({
           patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
 
-        <Button variant="primary" size="md" onPress={handleDone}>
-          Done
-        </Button>
+        <ChecklistStepSubmitFooter disabled={!stepComplete} onSubmit={handleSubmit} />
       </Box>
     </Card>
   );

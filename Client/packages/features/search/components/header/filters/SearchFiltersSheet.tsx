@@ -2,10 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
-import {
-  usePreferencesSubmit,
-  useUserPreferences,
-} from "packages/hooks/data/useUserData";
+import { usePreferencesSubmit, useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { useSearchContextStore } from "packages/store";
 import Button from "packages/ui/components/button/Button";
 import { BaseModal } from "packages/ui/components/modals";
@@ -19,20 +16,14 @@ export type SearchFiltersSheetProps = {
 };
 
 function preferencesToFormData(
-  prefs: Record<string, unknown> | null,
+  prefs: Record<string, unknown> | null
 ): Partial<SearchFiltersFormData> {
   if (!prefs) return {};
   const base = { ...prefs } as Partial<SearchFiltersFormData>;
-  if (
-    base.preferred_bedrooms_min == null &&
-    typeof prefs.preferred_bedrooms === "number"
-  ) {
+  if (base.preferred_bedrooms_min == null && typeof prefs.preferred_bedrooms === "number") {
     base.preferred_bedrooms_min = prefs.preferred_bedrooms;
   }
-  if (
-    base.preferred_bathrooms_min == null &&
-    typeof prefs.preferred_bathrooms === "number"
-  ) {
+  if (base.preferred_bathrooms_min == null && typeof prefs.preferred_bathrooms === "number") {
     base.preferred_bathrooms_min = prefs.preferred_bathrooms;
   }
   return base;
@@ -45,27 +36,20 @@ export function SearchFiltersSheet({
 }: SearchFiltersSheetProps): React.ReactElement {
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const submitPreferences = usePreferencesSubmit();
-  const setSearchFilterOverrides = useSearchContextStore(
-    (s) => s.setSearchFilterOverrides,
-  );
+  const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
 
   const [formData, setFormData] = useState<Partial<SearchFiltersFormData>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open && userPreferences) {
-      setFormData(
-        preferencesToFormData(userPreferences as Record<string, unknown>),
-      );
+      setFormData(preferencesToFormData(userPreferences as Record<string, unknown>));
     }
   }, [open, userPreferences]);
 
-  const update = useCallback(
-    (field: keyof SearchFiltersFormData, value: unknown) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    },
-    [],
-  );
+  const update = useCallback((field: keyof SearchFiltersFormData, value: unknown) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const handleApply = useCallback(async () => {
     setSaving(true);
@@ -125,6 +109,7 @@ export function SearchFiltersSheet({
           onPress={handleApply}
           loading={saving}
           className="w-full"
+          iconName="check"
         >
           {SEARCH_TRANSLATIONS["search.apply"] ?? "Apply"}
         </Button>

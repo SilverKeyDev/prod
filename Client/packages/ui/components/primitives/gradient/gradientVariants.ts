@@ -9,10 +9,7 @@ import { color } from "packages/design-tokens";
 import type { UniversalGradientVariant } from "./types";
 
 /** Web: Tailwind gradient classes per variant. Used by UniversalGradient.web.tsx; native uses UNIVERSAL_GRADIENT_VARIANT_CONFIG (expo-linear-gradient). */
-export const UNIVERSAL_GRADIENT_VARIANT_CLASSES: Record<
-  UniversalGradientVariant,
-  string
-> = {
+export const UNIVERSAL_GRADIENT_VARIANT_CLASSES: Record<UniversalGradientVariant, string> = {
   "accent-header": "bg-gradient-to-r from-accent-header to-accent-header",
   "overlay-dark": "bg-gradient-to-t from-neutral-900 to-transparent",
   "overlay-dark-bottom": "bg-gradient-to-t from-neutral-900 to-transparent",

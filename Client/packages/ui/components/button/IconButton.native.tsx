@@ -24,15 +24,7 @@ type IconButtonVariant =
   | "danger"
   | "toolbar";
 
-type IconButtonSize =
-  | "xs"
-  | "sm"
-  | "md"
-  | "lg"
-  | "xl"
-  | "small"
-  | "medium"
-  | "large";
+type IconButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large";
 
 type IconButtonOwnProps = {
   variant?: IconButtonVariant;
@@ -63,10 +55,7 @@ const SIZE_CLASSES: Record<IconButtonSize, string> = {
   large: "min-h-8 min-w-8",
 };
 
-const ROUNDED_CLASSES: Record<
-  NonNullable<IconButtonProps["rounded"]>,
-  string
-> = {
+const ROUNDED_CLASSES: Record<NonNullable<IconButtonProps["rounded"]>, string> = {
   none: "rounded-none",
   sm: "rounded-sm",
   md: "rounded-md",
@@ -93,9 +82,7 @@ const PRESSABLE_FORWARD_KEYS = [
   "nativeID",
 ] as const;
 
-function pickPressableProps(
-  props: Record<string, unknown>,
-): Partial<PressableProps> {
+function pickPressableProps(props: Record<string, unknown>): Partial<PressableProps> {
   const result: Record<string, unknown> = {};
   for (const key of PRESSABLE_FORWARD_KEYS) {
     if (key in props && props[key] !== undefined) {
@@ -109,10 +96,7 @@ function pickPressableProps(
  * Native IconButton - Pressable with icon and variant/size styling.
  * Avoids DOM <button> so React Native does not throw "View config getter for component button".
  */
-const IconButton = forwardRef<
-  React.ElementRef<typeof Pressable>,
-  IconButtonProps
->(
+const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProps>(
   (
     {
       variant = "primary",
@@ -128,13 +112,12 @@ const IconButton = forwardRef<
       className = "",
       ...rest
     },
-    ref,
+    ref
   ) => {
     const sizeClass = SIZE_CLASSES[size];
     const roundedClass = ROUNDED_CLASSES[rounded];
     const variantClass = VARIANT_CLASSES[variant];
-    const resolvedIcon =
-      icon ?? (iconName ? <Icon name={iconName} size={20} /> : null);
+    const resolvedIcon = icon ?? (iconName ? <Icon name={iconName} size={20} /> : null);
     const handlePress = onPress ?? onClick;
     const pressableProps = pickPressableProps(rest);
 
@@ -166,7 +149,7 @@ const IconButton = forwardRef<
         {content}
       </Pressable>
     );
-  },
+  }
 );
 
 IconButton.displayName = "IconButton";

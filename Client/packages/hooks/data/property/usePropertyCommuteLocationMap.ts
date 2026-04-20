@@ -1,4 +1,5 @@
-import type { CommuteMapDestination } from "packages/utils/propertyDetails/commuteMapDestinations";
+import type { IsochroneData } from "packages/types/domain/api";
+import type { CommuteMapDestination } from "packages/utils/propertyDetails/location/commuteMapDestinations";
 
 export type UsePropertyCommuteLocationMapParams = {
   mapContainer: unknown;
@@ -9,9 +10,9 @@ export type UsePropertyCommuteLocationMapParams = {
   listingMarkerTitle: string;
   destinations: CommuteMapDestination[];
   enabled: boolean;
+  /** Search commute overlay (isochrone); web-only rendering. */
+  searchOverlay?: IsochroneData | null;
 };
 
 /** Native / non-web: interactive commute map is web-only; no-op here. */
-export function usePropertyCommuteLocationMap(
-  _params: UsePropertyCommuteLocationMapParams,
-): void {}
+export function usePropertyCommuteLocationMap(_params: UsePropertyCommuteLocationMapParams): void {}

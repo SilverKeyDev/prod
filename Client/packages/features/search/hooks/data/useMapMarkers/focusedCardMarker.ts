@@ -1,16 +1,13 @@
-import { addressForMarkerTitle } from "packages/features/search/types/search/address";
-import { getMapFocusedSlotAssignmentsExcludingDismissed } from "packages/features/search/types/search/mapCardFocus";
-import { searchMapHomeCardZIndex } from "packages/features/search/types/search/mapOverlayLayerOrder";
+import { addressForMarkerTitle } from "packages/features/search/types/search/formatters/address";
+import { getMapFocusedSlotAssignmentsExcludingDismissed } from "packages/features/search/types/search/map/mapCardFocus";
+import { searchMapHomeCardZIndex } from "packages/features/search/types/search/map/mapOverlayLayerOrder";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
 import { escapeHtml } from "packages/utils/dom/escapeHtml";
 import { getDocument } from "packages/utils/platform";
 
 import { geocodeAddress } from "./geocode";
-import type {
-  GoogleAdvancedMarkerElement,
-  MapPropertyCardRenderProps,
-} from "./types";
+import type { GoogleAdvancedMarkerElement, MapPropertyCardRenderProps } from "./types";
 
 type FocusedCardMarkerOptions = {
   activeTab: "results" | "saved";
@@ -23,18 +20,12 @@ type FocusedCardMarkerOptions = {
     content: HTMLElement;
     zIndex?: number | null;
   }) => GoogleAdvancedMarkerElement;
-  renderMapPropertyCard: (
-    container: HTMLElement,
-    props: MapPropertyCardRenderProps,
-  ) => void;
+  renderMapPropertyCard: (container: HTMLElement, props: MapPropertyCardRenderProps) => void;
   cleanupMapPropertyCard: (container: HTMLElement) => void;
   calculatePropertyScore: (property: SearchResult) => number;
   isHomeSaved: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome: (property: SearchResult) => Promise<void>;
-  removeSavedHome: (
-    propertyId: string,
-    propertyAddress?: string,
-  ) => Promise<void>;
+  removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
   onMapPreviewNavigate?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void | Promise<void>;
   contextKey?: string;
@@ -49,7 +40,7 @@ function placeFocusedCardAtCoords(
   coordLng: number,
   score: number,
   options: FocusedCardMarkerOptions,
-  stackIndex = 0,
+  stackIndex = 0
 ): void {
   const {
     activeTab,
@@ -79,6 +70,8 @@ function placeFocusedCardAtCoords(
     lng: coordLng,
     images: focused.imageUrl ? [focused.imageUrl] : undefined,
     calculatedScore: hasValidScore ? score : undefined,
+    listingStatus: focused.listingStatus,
+    homeStatus: focused.homeStatus,
   };
 
   const doc = getDocument();
@@ -103,7 +96,7 @@ function placeFocusedCardAtCoords(
               log.error(
                 LOG_CATEGORIES.MAP_RENDERING,
                 "🗺️ [USE MAP MARKERS] Error in onUnlockClick:",
-                error,
+                error
               );
               throw error;
             }
@@ -124,16 +117,14 @@ function placeFocusedCardAtCoords(
     log.error(
       LOG_CATEGORIES.MAP_RENDERING,
       `Error rendering MapPropertyCard for focused property ${focused.id}:`,
-      error,
+      error
     );
     markerElement.innerHTML = `
       <div style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 8px; min-width: 120px;">
         <div style="font-weight: bold; font-size: 12px;">${escapeHtml(
-          addressForMarkerTitle(focused.address),
+          addressForMarkerTitle(focused.address)
         )}</div>
-        <div style="color: #666; font-size: 11px;">${escapeHtml(
-          String(focused.price ?? ""),
-        )}</div>
+        <div style="color: #666; font-size: 11px;">${escapeHtml(String(focused.price ?? ""))}</div>
       </div>
     `;
   }
@@ -151,11 +142,7 @@ function placeFocusedCardAtCoords(
     });
     markersRef.current.push(marker);
   } catch (error) {
-    log.error(
-      LOG_CATEGORIES.MAP_RENDERING,
-      "Error creating focused card marker:",
-      error,
-    );
+    log.error(LOG_CATEGORIES.MAP_RENDERING, "Error creating focused card marker:", error);
     setTimeout(() => cleanupMapPropertyCard(markerElement), 0);
   }
 }
@@ -164,7 +151,7 @@ function placeOneFocusedCard(
   focused: SearchResult,
   stackIndex: number,
   options: FocusedCardMarkerOptions,
-  onDone: () => void,
+  onDone: () => void
 ): void {
   const score =
     typeof focused._score === "number" && focused._score >= 0
@@ -172,31 +159,18 @@ function placeOneFocusedCard(
       : options.calculatePropertyScore(focused);
   const lat = focused.lat;
   const lng = focused.lng;
-  const hasZeroOrNullCoords =
-    lat == null || lng == null || lat === 0 || lng === 0;
+  const hasZeroOrNullCoords = lat == null || lng == null || lat === 0 || lng === 0;
 
   if (hasZeroOrNullCoords && focused.address) {
     void geocodeAddress(focused.address).then((coords) => {
       if (coords) {
-        placeFocusedCardAtCoords(
-          focused,
-          coords.lat,
-          coords.lng,
-          score,
-          options,
-          stackIndex,
-        );
+        placeFocusedCardAtCoords(focused, coords.lat, coords.lng, score, options, stackIndex);
       }
       onDone();
     });
     return;
   }
-  if (
-    typeof lat === "number" &&
-    typeof lng === "number" &&
-    !isNaN(lat) &&
-    !isNaN(lng)
-  ) {
+  if (typeof lat === "number" && typeof lng === "number" && !isNaN(lat) && !isNaN(lng)) {
     placeFocusedCardAtCoords(focused, lat, lng, score, options, stackIndex);
   }
   onDone();
@@ -206,7 +180,7 @@ function placeOneFocusedCard(
 export function addFocusedCardMarker(
   results: SearchResult[],
   currentPage: number,
-  options: FocusedCardMarkerOptions,
+  options: FocusedCardMarkerOptions
 ): void {
   addFocusedCardMarkers(results, currentPage, 1, options);
 }
@@ -215,7 +189,7 @@ export function addFocusedCardMarkers(
   results: SearchResult[],
   startPage: number,
   cardCount: number,
-  options: FocusedCardMarkerOptions,
+  options: FocusedCardMarkerOptions
 ): void {
   if (startPage < 0) {
     options.onComplete();
@@ -226,7 +200,7 @@ export function addFocusedCardMarkers(
     results,
     startPage,
     cardCount,
-    dismissed,
+    dismissed
   );
   if (assignments.length === 0) {
     options.onComplete();

@@ -47,11 +47,7 @@ export type {
   PropertyType,
   SearchResult,
 } from "./result";
-export {
-  getMatchScore,
-  isListingFullCriteriaMatch,
-  isPropertyDetails,
-} from "./result";
+export { getMatchScore, isListingFullCriteriaMatch, isPropertyDetails } from "./result";
 export {
   SEARCH_HEADER_FILTER_GAP_PX,
   SEARCH_HEADER_FILTER_PROMOTION_ORDER,

@@ -1,7 +1,4 @@
-import {
-  formatDate,
-  formatFilenameToAddress,
-} from "packages/features/search/types/search/address";
+import { formatDate, formatFilenameToAddress } from "packages/features/search/types/search/formatters/address";
 import { useAuthStore } from "packages/store";
 
 import BaseCard from "@/components/cards/BaseCard";
@@ -37,8 +34,7 @@ export default function DocumentCard({
   const formattedDate = doc.created_at ? formatDate(doc.created_at) : "Unknown";
 
   // Determine if document was uploaded by someone else
-  const isFromOtherUser =
-    currentUserId && doc.user_id && currentUserId !== doc.user_id;
+  const isFromOtherUser = currentUserId && doc.user_id && currentUserId !== doc.user_id;
 
   // Show delete button for documents from other users or if explicitly requested
   const shouldShowDelete = isFromOtherUser || showDelete || !!onDelete;

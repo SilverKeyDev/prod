@@ -5,14 +5,19 @@ import type { MutableRefObject } from "react";
 
 import { queryKeys } from "packages/config/query/keys";
 import { searchApi } from "packages/features/search/api/search";
-import type { GoogleAdvancedMarkerElement } from "packages/features/search/types/search/importantLocationRenderer";
-import { clearImportantLocationMarkers } from "packages/features/search/types/search/importantLocationRenderer";
-import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/locationBoundsOverlay";
+import type { GoogleAdvancedMarkerElement } from "packages/features/search/types/search/map/importantLocationRenderer";
+import { clearImportantLocationMarkers } from "packages/features/search/types/search/map/importantLocationRenderer";
+import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/map/locationBoundsOverlay";
 import {
   boundsToViewportPolygon,
   centroidOfViewportRing,
-} from "packages/features/search/utils/mapViewport";
-import { normalizeIsochroneApiData } from "packages/features/search/utils/normalizeIsochroneApiData";
+} from "packages/features/search/utils/map/mapViewport";
+import { normalizeIsochroneApiData } from "packages/features/search/utils/map/normalizeIsochroneApiData";
+import {
+  warnMapNotReady,
+  warnSearchAreaInvalid,
+  warnSearchFailed,
+} from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import {
@@ -35,10 +40,7 @@ export type UseSearchPageMapGeoSearchParams = {
   locationPlaceViewportRing: google.maps.LatLngLiteral[] | null;
   locationPlaceLabel: string | null;
   setLocationSearchOverlayData: (data: IsochroneData | null) => void;
-  renderIsochronePolygonWrapper: (
-    data: unknown,
-    options?: { skipCommuteToggle?: boolean },
-  ) => void;
+  renderIsochronePolygonWrapper: (data: unknown, options?: { skipCommuteToggle?: boolean }) => void;
   renderImportantLocationMarkersWrapper: (data: unknown) => Promise<void>;
   mapFocusOnCurrentProperty: () => void;
   clearLocationPlaceSearchArea: () => void;
@@ -92,11 +94,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
   } = p;
 
   const runPreferencesSearch = useCallback(async () => {
-    log.info(
-      LOG_CATEGORIES.SEARCH,
-      "Preferences search (isochrone pipeline)",
-      {},
-    );
+    log.info(LOG_CATEGORIES.SEARCH, "Preferences search (isochrone pipeline)", {});
     clearLocationPlaceSearchArea();
     setIsSearching(true);
     setSearchStage("Preparing search...");
@@ -110,14 +108,12 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
           success: response.success,
         });
         setSearchStage("No search area. Add important locations in Filters.");
+        warnSearchAreaInvalid("isochrone_api");
         setIsSearching(false);
         return;
       }
       const normalized = normalizeIsochroneApiData(response.data);
-      queryClient.setQueryData(
-        queryKeys.search.isochrone(preferencesSubjectUserId),
-        normalized,
-      );
+      queryClient.setQueryData(queryKeys.search.isochrone(preferencesSubjectUserId), normalized);
 
       // Note: Overlay rendering is now handled by useSearchMapOverlayData hook
       // which determines whether to show commute isochrone or neighborhood polygon
@@ -148,7 +144,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
         preferencesStrictFilter,
         preferencesSubjectUserId,
         getSearchAbortSignal(),
-        mapPreviewSearchLifecycle,
+        mapPreviewSearchLifecycle
       );
 
       if (saveLastSearchContext) {
@@ -163,7 +159,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
                 lng: map.getCenter()?.lng() ?? 0,
               }
             : null,
-          map_zoom: map ? map.getZoom() ?? null : null,
+          map_zoom: map ? (map.getZoom() ?? null) : null,
         };
         saveLastSearchContext(ctx);
       }
@@ -171,6 +167,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
       const err = error as Error;
       if (err?.name === "AbortError") return;
       log.error(LOG_CATEGORIES.ERRORS, "Preferences search failed", error);
+      warnSearchFailed(error);
       setIsSearching(false);
       setSearchStage("");
     }
@@ -204,6 +201,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     const map = googleMapRef.current;
     if (!map) {
       log.warn(LOG_CATEGORIES.SEARCH, "Map not ready for viewport search");
+      warnMapNotReady("no_map");
       setIsSearching(false);
       setSearchStage("");
       return;
@@ -211,8 +209,9 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     const bounds = map.getBounds();
     if (!bounds) {
       log.warn(LOG_CATEGORIES.SEARCH, "Map bounds not available yet");
-      setIsSearching(false);
       setSearchStage("Map is still loading. Try again in a moment.");
+      warnMapNotReady("no_bounds");
+      setIsSearching(false);
       return;
     }
     const ring =
@@ -223,7 +222,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     const overlay = buildIsochroneOverlayFromViewportRing(
       ring,
       center,
-      locationPlaceLabel ?? undefined,
+      locationPlaceLabel ?? undefined
     );
     setLocationSearchOverlayData(overlay);
 
@@ -246,7 +245,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
         preferencesStrictFilter,
         preferencesSubjectUserId,
         getSearchAbortSignal(),
-        mapPreviewSearchLifecycle,
+        mapPreviewSearchLifecycle
       );
 
       if (saveLastSearchContext) {
@@ -261,7 +260,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
                 lng: map.getCenter()?.lng() ?? 0,
               }
             : center,
-          map_zoom: map ? map.getZoom() ?? null : null,
+          map_zoom: map ? (map.getZoom() ?? null) : null,
         };
         saveLastSearchContext(ctx);
       }
@@ -269,6 +268,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
       const err = error as Error;
       if (err?.name === "AbortError") return;
       log.error(LOG_CATEGORIES.ERRORS, "Viewport search failed", error);
+      warnSearchFailed(error);
       setIsSearching(false);
       setSearchStage("");
     }

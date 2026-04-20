@@ -1,8 +1,10 @@
 import React from "react";
 
 import {
+  PROFILE_FIELDS_ROW_PROPS,
+  ProfileFullWidthField,
   ProfileSectionBody,
-  useHidePersonalizationStepHeading,
+  useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
 import { Box } from "packages/ui/components/primitives";
 
@@ -31,11 +33,11 @@ export default function AgentBrokerageSection({
   updateFormData,
   titleId,
 }: AgentBrokerageSectionProps) {
-  const hideStepHeading = useHidePersonalizationStepHeading();
+  const showSectionTitle = useShowPersonalizationSectionBodyTitle();
 
   return (
     <>
-      {!hideStepHeading && (
+      {showSectionTitle && (
         <Title size="md" as="h2" className="mb-6" id={titleId}>
           {SECTION_TITLES.AGENT_BROKERAGE}
         </Title>
@@ -43,9 +45,7 @@ export default function AgentBrokerageSection({
 
       <ProfileSectionBody>
         <AlignedRow
-          breakIntoRows="lg"
-          gap="lg"
-          justify="start"
+          {...PROFILE_FIELDS_ROW_PROPS}
           items={[
             {
               title: <Label>{FIELD_LABELS.AGENT_BROKERAGE_NAME}</Label>,
@@ -62,7 +62,7 @@ export default function AgentBrokerageSection({
               ) : (
                 <Box
                   className={`mobile-input bg-background-base mt-2 ${profileFieldValueClassName(
-                    formData.agent_brokerage_name,
+                    formData.agent_brokerage_name
                   )}`}
                 >
                   {formData.agent_brokerage_name ?? PROFILE_NOT_SPECIFIED_LABEL}
@@ -78,27 +78,25 @@ export default function AgentBrokerageSection({
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     updateFormData("agent_brokerage_bic_name", e.target.value)
                   }
-                  placeholder="BIC name"
+                  placeholder="Broker-in-charge name"
                   className="mt-2"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base mt-2 ${profileFieldValueClassName(
-                    formData.agent_brokerage_bic_name,
+                    formData.agent_brokerage_bic_name
                   )}`}
                 >
-                  {formData.agent_brokerage_bic_name ??
-                    PROFILE_NOT_SPECIFIED_LABEL}
+                  {formData.agent_brokerage_bic_name ?? PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },
           ]}
         />
 
-        <Box>
-          <Label className="mb-2 block">
-            {FIELD_LABELS.AGENT_BROKERAGE_ADDRESS}
-          </Label>
+        <ProfileFullWidthField
+          label={<Label className="block">{FIELD_LABELS.AGENT_BROKERAGE_ADDRESS}</Label>}
+        >
           {isEditMode ? (
             <Input
               type="text"
@@ -106,24 +104,21 @@ export default function AgentBrokerageSection({
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 updateFormData("agent_brokerage_address", e.target.value)
               }
-              placeholder="Address"
-              className="mt-2"
+              placeholder="Office address"
             />
           ) : (
             <Box
-              className={`mobile-input bg-background-base mt-2 ${profileFieldValueClassName(
-                formData.agent_brokerage_address,
+              className={`mobile-input bg-background-base ${profileFieldValueClassName(
+                formData.agent_brokerage_address
               )}`}
             >
               {formData.agent_brokerage_address ?? PROFILE_NOT_SPECIFIED_LABEL}
             </Box>
           )}
-        </Box>
+        </ProfileFullWidthField>
 
         <AlignedRow
-          breakIntoRows="lg"
-          gap="lg"
-          justify="start"
+          {...PROFILE_FIELDS_ROW_PROPS}
           items={[
             {
               title: <Label>{FIELD_LABELS.AGENT_BROKERAGE_EMAIL}</Label>,
@@ -134,17 +129,16 @@ export default function AgentBrokerageSection({
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     updateFormData("agent_brokerage_email", e.target.value)
                   }
-                  placeholder="Email"
+                  placeholder="Office email"
                   className="mt-2"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base mt-2 ${profileFieldValueClassName(
-                    formData.agent_brokerage_email,
+                    formData.agent_brokerage_email
                   )}`}
                 >
-                  {formData.agent_brokerage_email ??
-                    PROFILE_NOT_SPECIFIED_LABEL}
+                  {formData.agent_brokerage_email ?? PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },
@@ -157,27 +151,25 @@ export default function AgentBrokerageSection({
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     updateFormData("agent_brokerage_phone", e.target.value)
                   }
-                  placeholder="Phone"
+                  placeholder="Office phone"
                   className="mt-2"
                 />
               ) : (
                 <Box
                   className={`mobile-input bg-background-base mt-2 ${profileFieldValueClassName(
-                    formData.agent_brokerage_phone,
+                    formData.agent_brokerage_phone
                   )}`}
                 >
-                  {formData.agent_brokerage_phone ??
-                    PROFILE_NOT_SPECIFIED_LABEL}
+                  {formData.agent_brokerage_phone ?? PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },
           ]}
         />
 
-        <Box>
-          <Label className="mb-2 block">
-            {FIELD_LABELS.AGENT_PHYSICAL_MAILING_ADDRESS}
-          </Label>
+        <ProfileFullWidthField
+          label={<Label className="block">{FIELD_LABELS.AGENT_PHYSICAL_MAILING_ADDRESS}</Label>}
+        >
           {isEditMode ? (
             <Input
               type="text"
@@ -185,20 +177,18 @@ export default function AgentBrokerageSection({
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 updateFormData("agent_physical_mailing_address", e.target.value)
               }
-              placeholder="Mailing address"
-              className="mt-2"
+              placeholder="Mailing address (if different)"
             />
           ) : (
             <Box
-              className={`mobile-input bg-background-base mt-2 ${profileFieldValueClassName(
-                formData.agent_physical_mailing_address,
+              className={`mobile-input bg-background-base ${profileFieldValueClassName(
+                formData.agent_physical_mailing_address
               )}`}
             >
-              {formData.agent_physical_mailing_address ??
-                PROFILE_NOT_SPECIFIED_LABEL}
+              {formData.agent_physical_mailing_address ?? PROFILE_NOT_SPECIFIED_LABEL}
             </Box>
           )}
-        </Box>
+        </ProfileFullWidthField>
       </ProfileSectionBody>
     </>
   );

@@ -1,15 +1,13 @@
 import { useMemo } from "react";
 
 import { useLocalization } from "packages/contexts";
-import type {
-  DocumentData,
-  SavedPageViewType,
-} from "packages/features/documents";
+import type { DocumentData, SavedPageViewType } from "packages/features/documents";
 import type { SavedHome } from "packages/types";
 import { AgreementCard } from "packages/ui/components/cards/agreement";
 import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
 import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
+import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
 
@@ -29,9 +27,7 @@ type SavedHomesContentProps = {
   /** When set, document cards use this modal owner instead of a PdfModal per card. */
   documentActionHandlers?: DocumentCardExternalActionHandlers;
   /** Handler for sending forms for signature */
-  onFormSendForSignature?: (
-    form: import("packages/features/documents").ChecklistForm,
-  ) => void;
+  onFormSendForSignature?: (form: import("packages/features/documents").ChecklistForm) => void;
   selectedHomesDataLength: number;
   /** When true, container has no padding (parent provides it for alignment) */
   noPadding?: boolean;
@@ -61,8 +57,7 @@ export default function SavedHomesContent({
   const { t } = useLocalization();
   const containerClass = noPadding ? "w-full" : `w-full ${CONTENT_PADDING}`;
   const sortedDocuments = useMemo(() => {
-    const toMs = (v: number | string) =>
-      typeof v === "number" ? v : dateParseISO(v).valueOf();
+    const toMs = (v: number | string) => (typeof v === "number" ? v : dateParseISO(v).valueOf());
     return [...documents].sort((a, b) => {
       const dateA = toMs(a.created_at ?? a.updated_at ?? 0);
       const dateB = toMs(b.created_at ?? b.updated_at ?? 0);
@@ -70,8 +65,8 @@ export default function SavedHomesContent({
     });
   }, [documents]);
   const sortedDocumentsExcludingAgreements = useMemo(
-    () => sortedDocuments.filter((d) => d.library_kind !== "agreement"),
-    [sortedDocuments],
+    () => filterDocumentLibraryExcludingAgreements(sortedDocuments),
+    [sortedDocuments]
   );
   if (viewType === "documents") {
     return (
@@ -87,14 +82,10 @@ export default function SavedHomesContent({
     );
   }
   if (viewType === "agreements") {
-    const agreementDocs = sortedDocuments.filter(
-      (d) => d.library_kind === "agreement",
-    );
+    const agreementDocs = sortedDocuments.filter((d) => d.library_kind === "agreement");
     if (documentsLoading) {
       return (
-        <Box
-          className={`${containerClass} py-responsive-lg flex justify-center`}
-        >
+        <Box className={`${containerClass} py-responsive-lg flex justify-center`}>
           <KeyTurnLoader message={t("saved.loading_agreements")} />
         </Box>
       );
@@ -102,11 +93,7 @@ export default function SavedHomesContent({
     if (agreementDocs.length === 0) {
       return (
         <Box className={`${containerClass} py-responsive-lg text-center`}>
-          <BodyText
-            as="p"
-            size="sm"
-            className="text-responsive-sm text-text-secondary"
-          >
+          <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
             {t("saved.no_agreements_yet")}
           </BodyText>
         </Box>
@@ -125,15 +112,11 @@ export default function SavedHomesContent({
               externalActionHandlers={
                 documentActionHandlers
                   ? {
-                      handleViewDocument:
-                        documentActionHandlers.handleViewDocument,
-                      handleDownloadDocument:
-                        documentActionHandlers.handleDownloadDocument,
-                      handleShareDocument:
-                        documentActionHandlers.handleShareDocument,
+                      handleViewDocument: documentActionHandlers.handleViewDocument,
+                      handleDownloadDocument: documentActionHandlers.handleDownloadDocument,
+                      handleShareDocument: documentActionHandlers.handleShareDocument,
                       handleSignNow: documentActionHandlers.handleSignNow,
-                      handleViewSignedAgreement:
-                        documentActionHandlers.handleViewSignedAgreement,
+                      handleViewSignedAgreement: documentActionHandlers.handleViewSignedAgreement,
                     }
                   : undefined
               }
@@ -147,20 +130,14 @@ export default function SavedHomesContent({
     if (filteredHomes.length === 0) {
       if (homesLoading) {
         return (
-          <Box
-            className={`${containerClass} py-responsive-lg flex justify-center`}
-          >
+          <Box className={`${containerClass} py-responsive-lg flex justify-center`}>
             <KeyTurnLoader message={t("saved.loading_homes")} />
           </Box>
         );
       }
       return (
         <Box className={`${containerClass} py-responsive-lg text-center`}>
-          <BodyText
-            as="p"
-            size="sm"
-            className="text-responsive-sm text-text-secondary"
-          >
+          <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
             {t(noHomesYetKey ?? "saved.no_homes_yet")}
           </BodyText>
         </Box>

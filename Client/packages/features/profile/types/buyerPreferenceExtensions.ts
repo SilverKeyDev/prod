@@ -43,6 +43,35 @@ export type BuyerNeighborhoodPrefs = {
   pet_friendly_area?: string;
 };
 
+/** Weekly recurring availability (0 = Sunday …6 = Saturday). Stored in `extended_buyer_preferences.availability`. */
+export type BuyerAvailabilityWeeklySlot = {
+  id: string;
+  weekday: number;
+  start: string;
+  end: string;
+};
+
+export type BuyerAvailabilityOneOff = {
+  id: string;
+  date: string;
+  start: string;
+  end: string;
+};
+
+export type BuyerAvailabilityException = {
+  id: string;
+  scope: "weekly";
+  ruleId: string;
+  date: string;
+};
+
+export type BuyerAvailabilityPrefs = {
+  timezone?: string;
+  weekly?: BuyerAvailabilityWeeklySlot[];
+  oneOff?: BuyerAvailabilityOneOff[];
+  exceptions?: BuyerAvailabilityException[];
+};
+
 export type BuyerPreferenceExtensions = {
   v: typeof BUYER_PREFERENCE_EXTENSIONS_VERSION;
   price_financing?: BuyerPriceFinancing;
@@ -51,6 +80,7 @@ export type BuyerPreferenceExtensions = {
   condition?: BuyerConditionPrefs;
   utilities?: BuyerUtilitiesPrefs;
   neighborhood?: BuyerNeighborhoodPrefs;
+  availability?: BuyerAvailabilityPrefs;
 };
 
 const EXT_SECTION_KEYS = [
@@ -60,21 +90,37 @@ const EXT_SECTION_KEYS = [
   "condition",
   "utilities",
   "neighborhood",
+  "availability",
 ] as const;
 
-export function toBuyerPreferenceExtensions(
-  value: unknown,
-): BuyerPreferenceExtensions | undefined {
-  if (value === null || typeof value !== "object" || Array.isArray(value))
-    return undefined;
+export function toBuyerPreferenceExtensions(value: unknown): BuyerPreferenceExtensions | undefined {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return undefined;
   const o = value as Record<string, unknown>;
   if ("v" in o && o.v !== 1 && o.v !== undefined) return undefined;
   const out: BuyerPreferenceExtensions = { v: 1 };
   for (const key of EXT_SECTION_KEYS) {
     const s = o[key];
-    if (s && typeof s === "object" && !Array.isArray(s)) {
-      (out as Record<string, unknown>)[key] = s;
+    if (!s || typeof s !== "object" || Array.isArray(s)) continue;
+    if (key === "availability") {
+      const a = s as Record<string, unknown>;
+      const availability: BuyerAvailabilityPrefs = {};
+      if (typeof a.timezone === "string" && a.timezone.trim())
+        availability.timezone = a.timezone.trim();
+      if (Array.isArray(a.weekly)) availability.weekly = a.weekly as BuyerAvailabilityWeeklySlot[];
+      if (Array.isArray(a.oneOff)) availability.oneOff = a.oneOff as BuyerAvailabilityOneOff[];
+      if (Array.isArray(a.exceptions))
+        availability.exceptions = a.exceptions as BuyerAvailabilityException[];
+      if (
+        availability.timezone ||
+        availability.weekly?.length ||
+        availability.oneOff?.length ||
+        availability.exceptions?.length
+      ) {
+        (out as Record<string, unknown>).availability = availability;
+      }
+      continue;
     }
+    (out as Record<string, unknown>)[key] = s;
   }
   return out;
 }

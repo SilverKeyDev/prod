@@ -24,7 +24,7 @@ The RN asset pipeline differs from web (no raw URL imports, different bundling).
 
 - **Do** use a **single icon entry point** for the app (e.g. one module that re-exports Lucide icons or a custom set). This can be:
   - A barrel in `packages/icons/index.ts` that re-exports from `lucide-react` (or a subset), or
-  - `apps/web/components/ui/icons.tsx` that re-exports icons used by the design system.
+  - `packages/ui/components/icons/Icon.web.tsx` (or the project’s icon barrel) that re-exports icons used by the design system.
 - **Avoid** scattering `import { X } from 'lucide-react'` across many files if you need to replace icons for RN (e.g. with a native icon set). Prefer importing from the single entry so swapping is one-place.
 
 ### 3. Fonts

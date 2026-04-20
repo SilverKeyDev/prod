@@ -24,7 +24,7 @@ export function DonutChart({ data }: DonutChartProps): React.ReactElement {
     centerX: number,
     centerY: number,
     radius: number,
-    angleInDegrees: number,
+    angleInDegrees: number
   ) => {
     const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
     return {
@@ -78,19 +78,12 @@ export function DonutChart({ data }: DonutChartProps): React.ReactElement {
         {segments.map((segment, index) => (
           <Box key={index} className="flex items-center justify-between">
             <Box className="flex items-center gap-2">
-              <Box
-                className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: segment.color }}
-              />
+              <Box className="h-3 w-3 rounded-full" style={{ backgroundColor: segment.color }} />
               <BodyText as="span" size="sm" className="text-text-secondary">
                 {segment.label}
               </BodyText>
             </Box>
-            <BodyText
-              as="span"
-              size="sm"
-              className="text-text-secondary font-medium"
-            >
+            <BodyText as="span" size="sm" className="text-text-secondary font-medium">
               {segment.percentage.toFixed(1)}%
             </BodyText>
           </Box>

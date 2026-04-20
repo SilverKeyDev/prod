@@ -7,9 +7,10 @@ import { HttpError } from "packages/services/http/compatibility";
 /**
  * Wraps a calendar API call, catching HttpError and mapping to a failure payload.
  */
-export async function wrapGoogleCalendarError<
-  T extends { success?: boolean; error?: string },
->(fn: () => Promise<T>, fallbackMessage: string): Promise<T> {
+export async function wrapGoogleCalendarError<T extends { success?: boolean; error?: string }>(
+  fn: () => Promise<T>,
+  fallbackMessage: string
+): Promise<T> {
   try {
     return await fn();
   } catch (error) {

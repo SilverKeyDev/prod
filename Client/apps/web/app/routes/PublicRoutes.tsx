@@ -16,7 +16,7 @@ const OnboardingPage = lazy(() => import("../../pages/HomeAuth/auth/OnboardingPa
 const PrivacyPolicy = lazy(() => import("../../pages/HomeAuth/legal/PrivacyPolicyPage"));
 const TermsOfService = lazy(() => import("../../pages/HomeAuth/legal/TermsOfServicePage"));
 const ContactUs = lazy(() => import("../../pages/HomeAuth/legal/ContactUsPage"));
-const ButtonShowcasePage = lazy(() => import("../../pages/ButtonShowcasePage"));
+const ButtonShowcasePage = lazy(() => import("../../pages/misc/ButtonShowcasePage"));
 
 export function PublicRoutes() {
   return [

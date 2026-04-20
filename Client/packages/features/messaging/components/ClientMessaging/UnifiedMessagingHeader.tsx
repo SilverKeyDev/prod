@@ -1,5 +1,3 @@
-import { Icon } from "@ui/icons";
-
 import { useLocalization } from "packages/contexts";
 import MiniLogo from "packages/ui/components/asset/MiniLogo";
 import { Box } from "packages/ui/components/primitives";
@@ -44,8 +42,8 @@ function ConnectionRequestsHeaderButton({
         onClick={onClick}
         className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
         label={label}
+        iconName="inbox"
       >
-        <Icon name="inbox" className="h-4 w-4 text-neutral-600" />
         <BodyText as="span" size="sm" className="text-neutral-600">
           {label}
         </BodyText>
@@ -86,9 +84,8 @@ function HeaderLeftContent({
               onClick={onBackClick}
               className="flex items-center justify-center rounded-lg p-1.5 text-neutral-700 transition hover:bg-neutral-100"
               label={t("agent.back_to_inbox")}
-            >
-              <Icon name="arrow-left" className="h-4 w-4 text-neutral-700" />
-            </Button>
+              iconName="arrow-left"
+            />
           )}
           <Title as="h2" size="sm" className="font-medium text-neutral-800">
             {t("agent.connection_requests")}
@@ -97,11 +94,7 @@ function HeaderLeftContent({
       );
     case "inbox":
       return (
-        <Title
-          as="h2"
-          size="lg"
-          className="flex items-center gap-2 font-medium text-neutral-800"
-        >
+        <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
           <MiniLogo size="sm" />
           {t("agent.inbox")}
         </Title>
@@ -109,11 +102,7 @@ function HeaderLeftContent({
     case "clients":
       return (
         <Box className="flex items-center gap-2">
-          <Title
-            as="h2"
-            size="lg"
-            className="flex items-center gap-2 font-medium text-neutral-800"
-          >
+          <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
             <MiniLogo size="sm" />
             {t("agent.clients")}
           </Title>
@@ -122,11 +111,7 @@ function HeaderLeftContent({
     case "agents":
       return (
         <Box className="flex items-center gap-2">
-          <Title
-            as="h2"
-            size="lg"
-            className="flex items-center gap-2 font-medium text-neutral-800"
-          >
+          <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
             <MiniLogo size="sm" />
             {t("agent.messaging_sidebar_agents")}
           </Title>
@@ -142,19 +127,10 @@ function HeaderLeftContent({
               size="sm"
               onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
               className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 hover:bg-neutral-100 focus:outline-none xl:hidden"
-              label={
-                isSidebarExpanded
-                  ? t("agent.close_sidebar")
-                  : t("agent.open_sidebar")
-              }
+              label={isSidebarExpanded ? t("agent.close_sidebar") : t("agent.open_sidebar")}
               aria-expanded={isSidebarExpanded}
-            >
-              {isSidebarExpanded ? (
-                <Icon name="arrow-left" className="h-5 w-5 text-neutral-700" />
-              ) : (
-                <Icon name="menu" className="h-5 w-5 text-neutral-700" />
-              )}
-            </Button>
+              iconName={isSidebarExpanded ? "arrow-left" : "menu"}
+            />
           )}
           {mode === "chat" && agentName && (
             <Title as="h2" size="lg" className="font-medium text-neutral-800">
@@ -192,9 +168,8 @@ function HeaderRightContent({
         className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-3 py-2 text-neutral-700 transition hover:bg-neutral-200 xl:hidden"
         label={t("agent.collapse_sidebar")}
         aria-expanded={isSidebarExpanded}
-      >
-        <Icon name="chevron-left" className="h-4 w-4 text-neutral-700" />
-      </Button>
+        iconName="chevron-left"
+      />
     ) : null;
   switch (mode) {
     case "connection-requests":
@@ -230,9 +205,8 @@ function HeaderRightContent({
               className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
               label={t("agent.search_for_clients")}
               title={t("agent.search_for_clients")}
-            >
-              <Icon name="plus" className="h-4 w-4 text-neutral-600" />
-            </Button>
+              iconName="plus"
+            />
           )}
           {collapseBtn}
         </Box>
@@ -255,9 +229,8 @@ function HeaderRightContent({
               className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
               label={t("agent.search_for_agent")}
               title={t("agent.search_agent_to_start_messaging")}
-            >
-              <Icon name="plus" className="h-4 w-4 text-neutral-600" />
-            </Button>
+              iconName="plus"
+            />
           )}
           {collapseBtn}
         </Box>
@@ -296,8 +269,8 @@ function HeaderRightContent({
               className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
               label={t("agent.search_agent_to_start_messaging")}
               title={t("agent.search_agent_to_start_messaging")}
+              iconName="search"
             >
-              <Icon name="search" className="h-4 w-4 text-neutral-600" />
               <BodyText as="span" size="sm" className="text-neutral-600">
                 {t("agent.search_for_agent")}
               </BodyText>

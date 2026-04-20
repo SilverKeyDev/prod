@@ -28,26 +28,17 @@ function formatPrice(value: string | number | null | undefined): string {
  * Native saved home card: image with overlay (compare + heart),
  * address, price, beds/baths. Pressing the card navigates to property details.
  */
-export function SavedHomeCard({
-  home,
-  isSelected,
-  onToggleCompare,
-  onUnlock,
-}: SavedHomeCardProps) {
+export function SavedHomeCard({ home, isSelected, onToggleCompare, onUnlock }: SavedHomeCardProps) {
   const addressRaw =
     typeof home.address === "string" || typeof home.address === "number"
       ? home.address.toString()
-      : home.description ?? "[Invalid address]";
+      : (home.description ?? "[Invalid address]");
   const address = addressStreetLineForCard(addressRaw);
-  const priceStr = formatPrice(
-    home.price as string | number | null | undefined,
-  );
+  const priceStr = formatPrice(home.price as string | number | null | undefined);
   const details = [
     home.bedrooms != null ? `${home.bedrooms} bed` : null,
     home.bathrooms != null ? `${home.bathrooms} bath` : null,
-    home.sqft != null && home.sqft > 0
-      ? `${home.sqft.toLocaleString()} sqft`
-      : null,
+    home.sqft != null && home.sqft > 0 ? `${home.sqft.toLocaleString()} sqft` : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -78,38 +69,23 @@ export function SavedHomeCard({
               <Icon
                 name={isSelected ? "check" : "plus"}
                 size={16}
-                color={
-                  isSelected ? color("olive.DEFAULT") : color("neutral.600")
-                }
+                color={isSelected ? color("olive.DEFAULT") : color("neutral.600")}
               />
             </Pressable>
           </View>
           {/* Top-right: heart save */}
           <View style={styles.overlayRight}>
-            <ConnectedCardHeartSave
-              property={propertyForHeart}
-              position="top-right"
-              size="sm"
-            />
+            <ConnectedCardHeartSave property={propertyForHeart} position="top-right" size="sm" />
           </View>
         </View>
 
         {/* Body: address, price, details */}
         <Box className="px-3 pb-3 pt-2">
-          <Text
-            className="text-text-primary text-sm font-medium"
-            numberOfLines={2}
-          >
+          <Text className="text-text-primary text-sm font-medium" numberOfLines={2}>
             {address}
           </Text>
-          <Text className="text-primary mt-0.5 text-lg font-bold">
-            {priceStr}
-          </Text>
-          {details ? (
-            <Text className="text-text-secondary mt-0.5 text-xs">
-              {details}
-            </Text>
-          ) : null}
+          <Text className="text-primary mt-0.5 text-lg font-bold">{priceStr}</Text>
+          {details ? <Text className="text-text-secondary mt-0.5 text-xs">{details}</Text> : null}
         </Box>
       </Box>
     </Pressable>

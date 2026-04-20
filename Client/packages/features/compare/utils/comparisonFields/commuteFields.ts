@@ -5,10 +5,10 @@ import type {
 
 export function addCommuteFields(
   fields: CompareHomesComparisonField[],
-  comparisonData: CompareHomesPropertyDetails[],
+  comparisonData: CompareHomesPropertyDetails[]
 ): void {
   const hasCommuteData = comparisonData.some(
-    (h) => h.commuteData && typeof h.commuteData === "object",
+    (h) => h.commuteData && typeof h.commuteData === "object"
   );
   if (!hasCommuteData) return;
 
@@ -16,11 +16,7 @@ export function addCommuteFields(
   comparisonData.forEach((h) => {
     if (h.commuteData && typeof h.commuteData === "object") {
       const commute = h.commuteData as Record<string, unknown>;
-      if (
-        !commute.error &&
-        commute.travel_times &&
-        Array.isArray(commute.travel_times)
-      ) {
+      if (!commute.error && commute.travel_times && Array.isArray(commute.travel_times)) {
         (commute.travel_times as Array<{ name?: string }>).forEach((tt) => {
           if (tt.name) {
             locationNames.add(tt.name);

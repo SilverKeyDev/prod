@@ -11,7 +11,7 @@ alwaysApply: true
 
 The frontend follows a strict layered architecture with clear separation of concerns. This document defines the roles and import rules for each layer.
 
-**Note**: For UI component standards (buttons, text, forms), see `ui-components.mdc`. All UI components MUST use standardized components from `Client/apps/web/components/ui/`. For **platform file extensions** (`.native.tsx` in `apps/mobile/`, `.tsx` or `.web.tsx` in `apps/web/`), see `platform-file-extensions.mdc`. For **API type management**, see `openapi-types.mdc` - all API types are centralized in `openapi.yaml` and auto-generated.
+**Note**: For UI component standards (buttons, text, forms), see `ui-components.mdc`. All UI components MUST use standardized components from **`Client/packages/ui/`** (see `Client/ARCHITECTURE.md` — “Where UI components live”). For **platform file extensions** (`.native.tsx` in `apps/mobile/`, `.tsx` or `.web.tsx` in `apps/web/`), see `platform-file-extensions.mdc`. For **API type management**, see `openapi-types.mdc` - all API types are centralized in `openapi.yaml` and auto-generated.
 
 ## React Code Placement Rules
 

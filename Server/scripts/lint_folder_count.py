@@ -28,7 +28,9 @@ EXCLUDED_DIRS = frozenset(
 WARN_THRESHOLD = 14
 ERROR_THRESHOLD = 16
 # Large flat roots: full decomposition is tracked separately; avoid blocking CI on count alone.
-RELAXED_REL_PATHS = frozenset({"app/routes", "app/models/user", "app/utils", "tests/unit"})
+RELAXED_REL_PATHS = frozenset(
+    {"app/routes", "app/models/user", "app/utils", "app/services", "tests/unit"}
+)
 RELAXED_ERROR_THRESHOLD = 48
 
 

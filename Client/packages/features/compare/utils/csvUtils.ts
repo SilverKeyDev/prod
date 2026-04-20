@@ -3,7 +3,8 @@ import type {
   CompareHomesPropertyDetails,
 } from "packages/features/compare/types/compareHomes";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
-import { createBlob, createFile, getDocument, getNavigator } from "packages/utils/platform";
+import { createBlob, createFile, getDocument } from "packages/utils/platform";
+import { tryWebShare } from "packages/utils/share";
 
 export function generateCSVContent(
   comparisonData: CompareHomesPropertyDetails[],
@@ -53,37 +54,31 @@ export async function shareCSV(
   onSuccess: (message: string) => void,
   onError: (message: string) => void
 ) {
-  const nav = getNavigator();
-  if (nav?.share) {
-    try {
-      const blob = createBlob([csvContent], {
-        type: "text/csv;charset=utf-8;",
-      });
-      const file = createFile([blob], "homes_comparison.csv", {
-        type: "text/csv",
-      });
-      await nav.share({
-        title: "Homes Comparison",
-        text: `Comparison of ${propertyCount} properties`,
-        files: [file],
-      });
-      onSuccess("CSV shared successfully");
-    } catch (error: unknown) {
-      if ((error as Error).name !== "AbortError") {
-        const success = await secureClipboardCopy(csvContent);
-        if (success) {
-          onSuccess("Comparison data copied to clipboard");
-        } else {
-          onError("Unable to share comparison");
-        }
-      }
-    }
+  const blob = createBlob([csvContent], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const file = createFile([blob], "homes_comparison.csv", {
+    type: "text/csv",
+  });
+  const shareData: ShareData = {
+    title: "Homes Comparison",
+    text: `Comparison of ${propertyCount} properties`,
+    files: [file],
+  };
+
+  const shareResult = await tryWebShare(shareData);
+  if (shareResult === "shared") {
+    onSuccess("CSV shared successfully");
+    return;
+  }
+  if (shareResult === "aborted") {
+    return;
+  }
+
+  const success = await secureClipboardCopy(csvContent);
+  if (success) {
+    onSuccess("Comparison data copied to clipboard");
   } else {
-    const success = await secureClipboardCopy(csvContent);
-    if (success) {
-      onSuccess("Comparison data copied to clipboard");
-    } else {
-      onError("Unable to share comparison");
-    }
+    onError("Unable to share comparison");
   }
 }

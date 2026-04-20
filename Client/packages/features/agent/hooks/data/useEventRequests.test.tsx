@@ -60,16 +60,10 @@ describe("useEventRequests", () => {
 
       expect(result.current.isUpdating).toBe(false);
 
-      const response = await result.current.updateEventRequestStatus(
-        messageId,
-        "accepted",
-      );
+      const response = await result.current.updateEventRequestStatus(messageId, "accepted");
 
       expect(response.success).toBe(true);
-      expect(agentApi.updateEventRequestStatus).toHaveBeenCalledWith(
-        messageId,
-        "accepted",
-      );
+      expect(agentApi.updateEventRequestStatus).toHaveBeenCalledWith(messageId, "accepted");
       expect(agentApi.updateEventRequestStatus).toHaveBeenCalledTimes(1);
     });
 
@@ -106,9 +100,9 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      await expect(
-        result.current.updateEventRequestStatus(messageId, "accepted"),
-      ).rejects.toThrow(errorMessage);
+      await expect(result.current.updateEventRequestStatus(messageId, "accepted")).rejects.toThrow(
+        errorMessage
+      );
     });
 
     it("should handle sender trying to accept their own request", async () => {
@@ -123,9 +117,9 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      await expect(
-        result.current.updateEventRequestStatus(messageId, "accepted"),
-      ).rejects.toThrow("Only the recipient can accept an event request");
+      await expect(result.current.updateEventRequestStatus(messageId, "accepted")).rejects.toThrow(
+        "Only the recipient can accept an event request"
+      );
     });
 
     it("should handle already accepted event request", async () => {
@@ -140,9 +134,9 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      await expect(
-        result.current.updateEventRequestStatus(messageId, "accepted"),
-      ).rejects.toThrow("Event request is no longer pending");
+      await expect(result.current.updateEventRequestStatus(messageId, "accepted")).rejects.toThrow(
+        "Event request is no longer pending"
+      );
     });
   });
 
@@ -158,16 +152,10 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      const response = await result.current.updateEventRequestStatus(
-        messageId,
-        "cancelled",
-      );
+      const response = await result.current.updateEventRequestStatus(messageId, "cancelled");
 
       expect(response.success).toBe(true);
-      expect(agentApi.updateEventRequestStatus).toHaveBeenCalledWith(
-        messageId,
-        "cancelled",
-      );
+      expect(agentApi.updateEventRequestStatus).toHaveBeenCalledWith(messageId, "cancelled");
     });
 
     it("should successfully cancel an event request (recipient)", async () => {
@@ -181,16 +169,10 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      const response = await result.current.updateEventRequestStatus(
-        messageId,
-        "cancelled",
-      );
+      const response = await result.current.updateEventRequestStatus(messageId, "cancelled");
 
       expect(response.success).toBe(true);
-      expect(agentApi.updateEventRequestStatus).toHaveBeenCalledWith(
-        messageId,
-        "cancelled",
-      );
+      expect(agentApi.updateEventRequestStatus).toHaveBeenCalledWith(messageId, "cancelled");
     });
 
     it("should invalidate queries after successful cancellation", async () => {
@@ -227,9 +209,9 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      await expect(
-        result.current.updateEventRequestStatus(messageId, "accepted"),
-      ).rejects.toThrow("Message not found");
+      await expect(result.current.updateEventRequestStatus(messageId, "accepted")).rejects.toThrow(
+        "Message not found"
+      );
     });
 
     it("should handle user not in conversation error", async () => {
@@ -244,9 +226,9 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      await expect(
-        result.current.updateEventRequestStatus(messageId, "accepted"),
-      ).rejects.toThrow("User is not part of this conversation");
+      await expect(result.current.updateEventRequestStatus(messageId, "accepted")).rejects.toThrow(
+        "User is not part of this conversation"
+      );
     });
 
     it("should handle invalid message type error", async () => {
@@ -261,9 +243,9 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      await expect(
-        result.current.updateEventRequestStatus(messageId, "accepted"),
-      ).rejects.toThrow("Message is not an event request");
+      await expect(result.current.updateEventRequestStatus(messageId, "accepted")).rejects.toThrow(
+        "Message is not an event request"
+      );
     });
 
     it("should handle generic API error", async () => {
@@ -278,9 +260,9 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      await expect(
-        result.current.updateEventRequestStatus(messageId, "accepted"),
-      ).rejects.toThrow("Failed to update event request status");
+      await expect(result.current.updateEventRequestStatus(messageId, "accepted")).rejects.toThrow(
+        "Failed to update event request status"
+      );
     });
   });
 
@@ -291,9 +273,7 @@ describe("useEventRequests", () => {
         resolveUpdate = resolve;
       });
 
-      vi.mocked(agentApi.updateEventRequestStatus).mockReturnValue(
-        updatePromise as Promise<never>,
-      );
+      vi.mocked(agentApi.updateEventRequestStatus).mockReturnValue(updatePromise as Promise<never>);
 
       const { result } = renderHook(() => useEventRequests(), {
         wrapper: createWrapper(),
@@ -301,10 +281,7 @@ describe("useEventRequests", () => {
 
       expect(result.current.isUpdating).toBe(false);
 
-      const updatePromiseCall = result.current.updateEventRequestStatus(
-        "msg-123",
-        "accepted",
-      );
+      const updatePromiseCall = result.current.updateEventRequestStatus("msg-123", "accepted");
 
       await waitFor(() => {
         expect(result.current.isUpdating).toBe(true);
@@ -332,10 +309,7 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      const response = await result.current.updateEventRequestStatus(
-        messageId,
-        "cancelled",
-      );
+      const response = await result.current.updateEventRequestStatus(messageId, "cancelled");
 
       expect(response.success).toBe(true);
     });
@@ -353,10 +327,7 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      const response = await result.current.updateEventRequestStatus(
-        messageId,
-        "cancelled",
-      );
+      const response = await result.current.updateEventRequestStatus(messageId, "cancelled");
 
       expect(response.success).toBe(true);
     });
@@ -372,16 +343,10 @@ describe("useEventRequests", () => {
         wrapper: createWrapper(),
       });
 
-      const response = await result.current.updateEventRequestStatus(
-        messageId,
-        "accepted",
-      );
+      const response = await result.current.updateEventRequestStatus(messageId, "accepted");
 
       expect(response.success).toBe(true);
-      expect(agentApi.updateEventRequestStatus).toHaveBeenCalledWith(
-        messageId,
-        "accepted",
-      );
+      expect(agentApi.updateEventRequestStatus).toHaveBeenCalledWith(messageId, "accepted");
     });
   });
 });

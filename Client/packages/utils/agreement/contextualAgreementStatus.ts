@@ -20,6 +20,7 @@ export type AgreementLikeForContext = {
   status: string;
   participants?: Array<{
     user_id?: string | null;
+    email?: string | null;
     role?: string | null;
     routing_order?: number | null;
     recipient_status?: string | null;
@@ -27,43 +28,94 @@ export type AgreementLikeForContext = {
   buyer_id?: string | null;
 };
 
-function participantRecipientSigned(
-  recipientStatus: string | null | undefined,
+function normalizeEmail(value: string | null | undefined): string | null {
+  const trimmed = (value ?? "").trim().toLowerCase();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function hasParticipantIdentity(p: { user_id?: string | null; email?: string | null }): boolean {
+  const uid = (p.user_id ?? "").trim();
+  return uid.length > 0 || normalizeEmail(p.email) != null;
+}
+
+function participantMatchesViewer(
+  p: NonNullable<AgreementLikeForContext["participants"]>[number],
+  viewerUserId: string,
+  viewerEmailNorm: string | null
 ): boolean {
+  const uid = (p.user_id ?? "").trim();
+  if (uid.length > 0 && uid === viewerUserId) {
+    return true;
+  }
+  const pe = normalizeEmail(p.email);
+  if (viewerEmailNorm != null && pe != null && pe === viewerEmailNorm) {
+    return true;
+  }
+  return false;
+}
+
+function isSignerRole(role: string | null | undefined): boolean {
+  return String(role ?? "").toLowerCase() === "signer";
+}
+
+function participantRecipientSigned(recipientStatus: string | null | undefined): boolean {
   const s = (recipientStatus ?? "").toLowerCase();
   return s === "signed" || s === "completed";
 }
 
-/**
- * First signer by DocuSign routing order who has not yet completed signing.
- */
-export function getNextSignerUserId(
-  participants: NonNullable<AgreementLikeForContext["participants"]>,
-): string | null {
-  const signers = participants
-    .filter((p) => p.role === "signer" && p.user_id)
+type SignerParticipant = NonNullable<AgreementLikeForContext["participants"]>[number];
+
+function getOrderedSignerParticipants(
+  participants: NonNullable<AgreementLikeForContext["participants"]>
+): SignerParticipant[] {
+  return participants
+    .filter((p) => isSignerRole(p.role) && hasParticipantIdentity(p))
     .sort((a, b) => {
       const ao = a.routing_order ?? 999;
       const bo = b.routing_order ?? 999;
       if (ao !== bo) return ao - bo;
-      return String(a.user_id).localeCompare(String(b.user_id));
+      const ak = `${(a.user_id ?? "").trim()}\0${normalizeEmail(a.email) ?? ""}`;
+      const bk = `${(b.user_id ?? "").trim()}\0${normalizeEmail(b.email) ?? ""}`;
+      return ak.localeCompare(bk);
     });
-  const next = signers.find(
-    (p) => !participantRecipientSigned(p.recipient_status),
-  );
-  return next?.user_id ?? null;
+}
+
+function getNextUnsignedSigner(
+  participants: NonNullable<AgreementLikeForContext["participants"]>
+): SignerParticipant | null {
+  const signers = getOrderedSignerParticipants(participants);
+  return signers.find((p) => !participantRecipientSigned(p.recipient_status)) ?? null;
+}
+
+/**
+ * First signer by DocuSign routing order who has not yet completed signing.
+ * Returns that participant's SilverKey `user_id` when present; otherwise `null`
+ * (e.g. recipient matched only by email until linked).
+ */
+export function getNextSignerUserId(
+  participants: NonNullable<AgreementLikeForContext["participants"]>
+): string | null {
+  const next = getNextUnsignedSigner(participants);
+  if (!next) return null;
+  const uid = (next.user_id ?? "").trim();
+  return uid.length > 0 ? uid : null;
 }
 
 /**
  * Derive contextual status for the current user. Only the current routing recipient
  * receives `sign_now`; others waiting on an earlier signer get `waiting_for_signature`.
+ *
+ * @param viewerEmail - Optional viewer email; when DocuSign rows are not yet linked to
+ *   `user_id`, matching by email still yields correct `sign_now` (same as detail modal).
  */
 export function getContextualAgreementStatus(
   agreement: AgreementLikeForContext,
   viewerUserId: string,
   _isAgent: boolean,
+  viewerEmail?: string | null
 ): ContextualAgreementStatus {
   const status = String(agreement.status ?? "").toLowerCase();
+  const viewerEmailNorm = normalizeEmail(viewerEmail);
 
   if (
     status === "completed" ||
@@ -74,16 +126,14 @@ export function getContextualAgreementStatus(
     return status;
   }
 
-  if (!agreement.participants?.length)
-    return status as ContextualAgreementStatus;
+  if (!agreement.participants?.length) return status as ContextualAgreementStatus;
 
-  const viewerParticipant = agreement.participants.find(
-    (p) => p.user_id === viewerUserId,
+  const viewerParticipant = agreement.participants.find((p) =>
+    participantMatchesViewer(p, viewerUserId, viewerEmailNorm)
   );
-  const viewerIsSigner = viewerParticipant?.role === "signer";
+  const viewerIsSigner = viewerParticipant ? isSignerRole(viewerParticipant.role) : false;
   const viewerSigned =
-    viewerIsSigner &&
-    participantRecipientSigned(viewerParticipant?.recipient_status);
+    viewerIsSigner && participantRecipientSigned(viewerParticipant?.recipient_status);
 
   if (status === "sent" || status === "delivered" || status === "signed") {
     if (!viewerIsSigner) {
@@ -92,8 +142,8 @@ export function getContextualAgreementStatus(
     if (viewerSigned) {
       return "waiting_for_review";
     }
-    const currentSignerId = getNextSignerUserId(agreement.participants);
-    if (currentSignerId === viewerUserId) {
+    const nextSigner = getNextUnsignedSigner(agreement.participants);
+    if (nextSigner && participantMatchesViewer(nextSigner, viewerUserId, viewerEmailNorm)) {
       return "sign_now";
     }
     return "waiting_for_signature";

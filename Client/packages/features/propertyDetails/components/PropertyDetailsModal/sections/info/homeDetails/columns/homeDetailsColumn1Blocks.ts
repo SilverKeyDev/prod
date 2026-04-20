@@ -3,20 +3,17 @@ import { formatPropertyType } from "packages/utils/format/property";
 import { formatLotSize } from "packages/utils/format/property/addressFormatting";
 
 import { asStringList, asTrimmedString } from "./homeDetailsColumnHelpers";
-import type {
-  HomeDetailsBlock,
-  HomeDetailsTranslate,
-} from "./homeDetailsColumnTypes";
+import type { HomeDetailsBlock, HomeDetailsTranslate } from "./homeDetailsColumnTypes";
 
 export function buildHomeDetailsColumn1Blocks(
   property: Record<string, unknown>,
   fields: PropertyBasicDisplayFields,
-  t: HomeDetailsTranslate,
+  t: HomeDetailsTranslate
 ): HomeDetailsBlock[] {
   const col1: HomeDetailsBlock[] = [];
 
   const homeTypeLine = formatPropertyType(
-    (fields.homeType as string) ?? (fields.propertyType as string) ?? "",
+    (fields.homeType as string) ?? (fields.propertyType as string) ?? ""
   );
   if (homeTypeLine && homeTypeLine !== "N/A") {
     col1.push({
@@ -66,23 +63,20 @@ export function buildHomeDetailsColumn1Blocks(
     lotLines.push(
       t("property_details.hd_lot_size_line", {
         size: formatLotSize(
-          typeof fields.lotSize === "number"
-            ? fields.lotSize
-            : String(fields.lotSize),
+          typeof fields.lotSize === "number" ? fields.lotSize : String(fields.lotSize)
         ),
         defaultValue: "{{size}} lot",
-      }),
+      })
     );
   }
   const subdivision =
-    asTrimmedString(property.subdivisionName) ??
-    asTrimmedString(property.subdivision);
+    asTrimmedString(property.subdivisionName) ?? asTrimmedString(property.subdivision);
   if (subdivision) {
     lotLines.push(
       t("property_details.hd_subdivision_line", {
         name: subdivision,
         defaultValue: "{{name}}",
-      }),
+      })
     );
   }
   const parcel = asTrimmedString(property.parcelNumber);
@@ -91,7 +85,7 @@ export function buildHomeDetailsColumn1Blocks(
       t("property_details.hd_parcel_line", {
         id: parcel,
         defaultValue: "Parcel #{{id}}",
-      }),
+      })
     );
   }
   if (lotLines.length > 0) {
@@ -106,8 +100,7 @@ export function buildHomeDetailsColumn1Blocks(
   }
 
   const designLines: string[] = [];
-  const stories =
-    asTrimmedString(property.stories) ?? asTrimmedString(property.floors);
+  const stories = asTrimmedString(property.stories) ?? asTrimmedString(property.floors);
   if (stories) designLines.push(`${stories} stories`);
   const arch = asTrimmedString(property.architecturalStyle);
   if (arch) designLines.push(arch);
@@ -115,8 +108,7 @@ export function buildHomeDetailsColumn1Blocks(
   if (styleVal && !arch) designLines.push(styleVal);
   const structure = asTrimmedString(property.structureType);
   if (structure) designLines.push(structure);
-  const roof =
-    asTrimmedString(property.roofType) ?? asTrimmedString(property.roof);
+  const roof = asTrimmedString(property.roofType) ?? asTrimmedString(property.roof);
   if (roof) designLines.push(`${roof} roof`);
   designLines.push(...asStringList(property.constructionMaterials, 6));
   if (designLines.length > 0) {
@@ -134,8 +126,7 @@ export function buildHomeDetailsColumn1Blocks(
   const sqftNum =
     fields.sqft != null && Number(fields.sqft) > 0
       ? Math.round(Number(fields.sqft))
-      : typeof property.livingAreaValue === "number" &&
-          property.livingAreaValue > 0
+      : typeof property.livingAreaValue === "number" && property.livingAreaValue > 0
         ? Math.round(property.livingAreaValue)
         : undefined;
   if (sqftNum !== undefined) {
@@ -143,13 +134,12 @@ export function buildHomeDetailsColumn1Blocks(
       t("property_details.hd_sqft_home", {
         count: sqftNum.toLocaleString(),
         defaultValue: "{{count}} Sq Ft Home",
-      }),
+      })
     );
   }
   const pricePerSqftDisplay =
     fields.pricePerSquareFoot &&
-    ((typeof fields.pricePerSquareFoot === "number" &&
-      fields.pricePerSquareFoot > 0) ||
+    ((typeof fields.pricePerSquareFoot === "number" && fields.pricePerSquareFoot > 0) ||
       (typeof fields.pricePerSquareFoot === "string" &&
         fields.pricePerSquareFoot !== "0" &&
         fields.pricePerSquareFoot.trim() !== ""))
@@ -162,7 +152,7 @@ export function buildHomeDetailsColumn1Blocks(
       t("property_details.hd_price_per_sqft_line", {
         value: pricePerSqftDisplay,
         defaultValue: "${{value}} per sq ft",
-      }),
+      })
     );
   }
   interiorLines.push(...asStringList(property.interiorFeatures, 10));
@@ -219,12 +209,9 @@ export function buildHomeDetailsColumn1Blocks(
         defaultValue: "Rent estimate",
       }),
       lines: [
-        `$${fields.rentZestimate.toLocaleString()}${t(
-          "property_details.per_month",
-          {
-            defaultValue: "/month",
-          },
-        )}`,
+        `$${fields.rentZestimate.toLocaleString()}${t("property_details.per_month", {
+          defaultValue: "/month",
+        })}`,
       ],
     });
   }

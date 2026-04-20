@@ -29,8 +29,7 @@ export class ErrorReporter {
     if (this.isInitialized) return;
 
     try {
-      this.userId =
-        typeof config?.userId === "string" ? config.userId : undefined;
+      this.userId = typeof config?.userId === "string" ? config.userId : undefined;
 
       if (this.isProduction && typeof config?.dsn === "string") {
         this.initializeSentry(config.dsn);
@@ -42,21 +41,13 @@ export class ErrorReporter {
       if (log && typeof log.info === "function") {
         log.info("ERROR_REPORTER", "Error reporting initialized", {
           environment: this.isProduction ? "production" : "development",
-          buildVersion:
-            typeof this.buildVersion === "string"
-              ? this.buildVersion
-              : "unknown",
-          sessionId:
-            typeof this.sessionId === "string" ? this.sessionId : "unknown",
+          buildVersion: typeof this.buildVersion === "string" ? this.buildVersion : "unknown",
+          sessionId: typeof this.sessionId === "string" ? this.sessionId : "unknown",
         });
       }
     } catch (error: unknown) {
       if (log && typeof log.error === "function") {
-        log.error(
-          "ERROR_REPORTER",
-          "Failed to initialize error reporting",
-          error,
-        );
+        log.error("ERROR_REPORTER", "Failed to initialize error reporting", error);
       }
     }
   }
@@ -86,10 +77,7 @@ export class ErrorReporter {
     if (!win) return;
 
     win.addEventListener("unhandledrejection", (event) => {
-      const error =
-        event.reason instanceof Error
-          ? event.reason
-          : new Error(String(event.reason));
+      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
       this.captureError(error, {
         type: "unhandled_promise_rejection",
         url: win.location.href,
@@ -98,9 +86,7 @@ export class ErrorReporter {
 
     win.addEventListener("error", (event) => {
       const error =
-        event.error instanceof Error
-          ? event.error
-          : new Error(event.message || "Unknown error");
+        event.error instanceof Error ? event.error : new Error(event.message || "Unknown error");
       this.captureError(error, {
         type: "uncaught_error",
         url: win.location.href,
@@ -237,9 +223,7 @@ export class ErrorReporter {
   /**
    * Build error context with environment info
    */
-  private buildErrorContext(
-    additionalContext?: Record<string, unknown>,
-  ): ErrorContext {
+  private buildErrorContext(additionalContext?: Record<string, unknown>): ErrorContext {
     const nav = getNavigator();
     const win = getWindow();
     return {
@@ -297,8 +281,7 @@ export class ErrorReporter {
       };
 
       if (context.type) payload.type = String(context.type);
-      if (context.componentStack)
-        payload.componentStack = String(context.componentStack);
+      if (context.componentStack) payload.componentStack = String(context.componentStack);
       if (context.errorBoundary === true) payload.errorBoundary = true;
       if (context.routeError === true) payload.routeError = true;
       if (context.filename) payload.filename = String(context.filename);
@@ -332,11 +315,7 @@ export class ErrorReporter {
   /**
    * Send user feedback to support system
    */
-  private sendUserFeedback(
-    message: string,
-    error: Error | undefined,
-    context: ErrorContext,
-  ): void {
+  private sendUserFeedback(message: string, error: Error | undefined, context: ErrorContext): void {
     try {
       if (log && typeof log.debug === "function") {
         log.debug("ERROR_REPORTER", "Would send user feedback", {

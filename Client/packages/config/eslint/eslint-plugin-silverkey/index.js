@@ -27,7 +27,6 @@ module.exports = {
     "no-standalone-ts-in-pages": require("./rules/architecture/no-standalone-ts-in-pages"),
     "no-unimported-identifiers": require("./rules/architecture/no-unimported-identifiers"),
     "package-module-allowed-children": require("./rules/architecture/package-module-allowed-children"),
-    "no-cross-feature-internals": require("./rules/architecture/no-cross-feature-internals"),
     "platform-variants-exception-list": require("./rules/architecture/platform-variants-exception-list"),
     "require-platform-primitives": require("./rules/ui/require-platform-primitives"),
     "platform-file-justification": require("./rules/architecture/platform-file-justification"),

@@ -17,12 +17,15 @@ type ClientSelectorProps = {
   className?: string;
   /** When true, omits the "Me" row so agents only pick among clients (e.g. client hub). */
   hideMeOption?: boolean;
+  /** Use `"above"` when the trigger sits on a fixed bottom bar so the menu opens into the viewport. */
+  menuPlacement?: "below" | "above";
 };
 export default function ClientSelector({
   selectedClientId,
   onClientChange,
   className = "",
   hideMeOption = false,
+  menuPlacement = "below",
 }: ClientSelectorProps) {
   const { clients, isLoading } = useAgentClients();
   const [isOpen, setIsOpen] = useState(false);
@@ -57,9 +60,7 @@ export default function ClientSelector({
           </BodyText>
           <Icon
             name="chevron-down"
-            className={`h-4 w-4 transition-transform ${
-              isOpen ? "rotate-180" : ""
-            }`}
+            className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
           />
         </>
       </Button>
@@ -81,7 +82,11 @@ export default function ClientSelector({
           />
 
           {/* Dropdown */}
-          <Box className="border-border bg-background-surface absolute left-0 top-full z-20 mt-2 w-60 min-w-56 rounded-md border py-1 shadow-lg">
+          <Box
+            className={`border-border bg-background-surface absolute left-0 z-20 w-60 min-w-56 rounded-md border py-1 shadow-lg ${
+              menuPlacement === "above" ? "bottom-full mb-2" : "top-full mt-2"
+            }`}
+          >
             <Box className="flex flex-col gap-1 px-1">
               {!hideMeOption ? (
                 <>
@@ -102,9 +107,7 @@ export default function ClientSelector({
                       {t("client_selector.me")}
                     </BodyText>
                   </Button>
-                  {clients.length > 0 ? (
-                    <Box className="border-border mx-1 my-1 border-t" />
-                  ) : null}
+                  {clients.length > 0 ? <Box className="border-border mx-1 my-1 border-t" /> : null}
                 </>
               ) : null}
 

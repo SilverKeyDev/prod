@@ -33,8 +33,7 @@ export function SearchLocationSuggestionList({
   isLocating,
   onSelectCurrentLocation,
 }: SearchLocationSuggestionListProps): React.ReactElement | null {
-  const hasSuggestions =
-    slipstreamSuggestions.length > 0 || googleSuggestions.length > 0;
+  const hasSuggestions = slipstreamSuggestions.length > 0 || googleSuggestions.length > 0;
   if (!hasSuggestions && !showCurrentLocation) return null;
 
   return (
@@ -47,18 +46,14 @@ export function SearchLocationSuggestionList({
             onClick={onSelectCurrentLocation}
             disabled={isLocating}
             className="w-full !justify-start px-3 py-2.5 text-left"
+            iconName="target"
+            contentAlign="start"
           >
             <Box className="flex w-full items-center gap-2 text-left">
-              <Icon
-                name="target"
-                className="text-brand-accent h-4 w-4 shrink-0"
-              />
               <BodyText as="span" size="sm" className="font-medium">
                 {isLocating
-                  ? SEARCH_TRANSLATIONS["search.locating"] ??
-                    "Finding your location..."
-                  : SEARCH_TRANSLATIONS["search.current_location"] ??
-                    "Current Location"}
+                  ? (SEARCH_TRANSLATIONS["search.locating"] ?? "Finding your location...")
+                  : (SEARCH_TRANSLATIONS["search.current_location"] ?? "Current Location")}
               </BodyText>
             </Box>
           </Button>
@@ -72,10 +67,7 @@ export function SearchLocationSuggestionList({
             </BodyText>
           </li>
           {slipstreamSuggestions.map((s) => (
-            <li
-              key={`ss-${s.area.id}`}
-              className="border-border border-b last:border-b-0"
-            >
+            <li key={`ss-${s.area.id}`} className="border-border border-b last:border-b-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -113,10 +105,7 @@ export function SearchLocationSuggestionList({
             </li>
           ) : null}
           {googleSuggestions.map((s, idx) => (
-            <li
-              key={`gp-${idx}`}
-              className="border-border border-b last:border-b-0"
-            >
+            <li key={`gp-${idx}`} className="border-border border-b last:border-b-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -124,15 +113,8 @@ export function SearchLocationSuggestionList({
                 className="w-full !justify-start px-3 py-2 text-left"
               >
                 <Box className="flex w-full items-center gap-2 text-left">
-                  <Icon
-                    name="map-pin"
-                    className="text-text-secondary h-4 w-4 shrink-0"
-                  />
-                  <BodyText
-                    as="span"
-                    size="sm"
-                    className="min-w-0 flex-1 text-left"
-                  >
+                  <Icon name="map-pin" className="text-text-secondary h-4 w-4 shrink-0" />
+                  <BodyText as="span" size="sm" className="min-w-0 flex-1 text-left">
                     {s.description}
                   </BodyText>
                 </Box>

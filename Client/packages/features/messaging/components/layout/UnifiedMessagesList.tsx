@@ -5,18 +5,22 @@ import { useLocalization } from "packages/contexts";
 import {
   useDocumentActions,
   useDocumentsDataIntegration,
+  useFormsLibrary,
 } from "packages/features/documents";
 import type { SearchResult } from "packages/features/search";
-import { useSavedHomesData } from "packages/hooks/data/useSavedHomesData";
+import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { showErrorToast } from "packages/hooks/ui";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
-import { buildPropertyUrl } from "packages/utils/property/slug";
+import {
+  propertyDetailsPathFromListing,
+  type ResearchListingKeyInput,
+} from "packages/utils/property";
 
 import {
   getMessagingConfig,
   type MessagingMode,
-} from "@/features/agent/components/messagingConfig";
+} from "@/features/agent/components/messaging/screen/messagingConfig";
 import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/types";
 import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 
@@ -41,10 +45,7 @@ type UnifiedMessagesListProps = {
   selectedClientName?: string;
   onRetryMessage?: (messageId: string) => void;
   activeConversation?: AgentConversation | null;
-  onAcceptEventRequest?: (
-    messageId: string,
-    payload: EventRequestPayload,
-  ) => Promise<void>;
+  onAcceptEventRequest?: (messageId: string, payload: EventRequestPayload) => Promise<void>;
   onCancelEventRequest?: (messageId: string) => Promise<void>;
   acceptedEventRequestIds?: Set<string>;
   acceptingEventRequestId?: string | null;
@@ -69,8 +70,7 @@ export default function UnifiedMessagesList({
 }: UnifiedMessagesListProps) {
   const { t } = useLocalization();
   const config = getMessagingConfig(mode);
-  const { getSavedHome, isHomeSaved, saveHome, removeSavedHome } =
-    useSavedHomesData();
+  const { getSavedHome, isHomeSaved, saveHome, removeSavedHome } = useSavedHomesData();
   const {
     currentPdf,
     currentDocumentId,
@@ -87,11 +87,13 @@ export default function UnifiedMessagesList({
       handleDownloadDocument,
       handleShareDocument,
     }),
-    [handleViewDocument, handleDownloadDocument, handleShareDocument],
+    [handleViewDocument, handleDownloadDocument, handleShareDocument]
   );
 
   const {
     documents,
+    documentsLoading,
+    documentsError,
     agreementSigningSession,
     dismissAgreementSigning,
     viewSignedAgreement,
@@ -101,31 +103,42 @@ export default function UnifiedMessagesList({
     signAgreementNow,
   } = useDocumentsDataIntegration(undefined, documentHandlers);
 
+  const {
+    categories: formsLibraryCategories,
+    isLoading: formsLibraryLoading,
+    error: formsLibraryError,
+  } = useFormsLibrary(mode === "agent");
+
+  const checklistFormIdsInLibrary = useMemo(() => {
+    if (mode !== "agent") return null;
+    const next = new Set<string>();
+    for (const cat of formsLibraryCategories) {
+      for (const f of cat.forms) {
+        next.add(f.id);
+      }
+    }
+    return next;
+  }, [mode, formsLibraryCategories]);
+
   const handleMessagingAgreementView = useCallback(
     (agreementId: string, documentName: string) => {
       openAgreementPdfViewer(agreementId, documentName);
     },
-    [openAgreementPdfViewer],
+    [openAgreementPdfViewer]
   );
 
   const handleMessagingAgreementSignNow = useCallback(
     (agreementId: string) => {
-      const row = documents.find(
-        (d) => d.id === agreementId && d.library_kind === "agreement",
-      );
+      const row = documents.find((d) => d.id === agreementId && d.library_kind === "agreement");
       if (!row) {
-        showErrorToast(
-          "This agreement is not in your documents yet. Open Saved and try again.",
-        );
+        showErrorToast("This agreement is not in your documents yet. Open Saved and try again.");
         return;
       }
       void signAgreementNow(row).catch((err: unknown) => {
-        showErrorToast(
-          err instanceof Error ? err.message : "Failed to open signing",
-        );
+        showErrorToast(err instanceof Error ? err.message : "Failed to open signing");
       });
     },
-    [documents, signAgreementNow],
+    [documents, signAgreementNow]
   );
 
   const { navigateToPath } = useNavigation();
@@ -133,28 +146,36 @@ export default function UnifiedMessagesList({
 
   const openSharedHomeDetails = useCallback(
     (property: SearchResult) => {
-      const zpid = property.zpid ?? property.id;
       const address =
         typeof property.address === "string"
           ? property.address
           : property.address && typeof property.address === "object"
             ? Object.values(property.address).filter(Boolean).join(" ")
             : "property";
-      navigateToPath(buildPropertyUrl(zpid, address));
+      const listingInput: ResearchListingKeyInput & { address: string } = {
+        id: property.id,
+        zpid: property.zpid,
+        mls_home_id: property.mls_home_id,
+        mlsid: property.mlsid,
+        address,
+      };
+      const path = propertyDetailsPathFromListing(listingInput);
+      if (!path) {
+        showErrorToast(
+          "This shared home is missing a listing id. Ask your agent to re-share from search, or open it from Saved / Search."
+        );
+        return;
+      }
+      navigateToPath(path);
     },
-    [navigateToPath],
+    [navigateToPath]
   );
 
   if (!canSendMessage) {
     if (mode === "agent") {
       return <UnifiedMessagesListAgentBlockedEmpty config={config} />;
     }
-    return (
-      <UnifiedMessagesListClientNoAgentEmpty
-        config={config}
-        onSearchClick={onSearchClick}
-      />
-    );
+    return <UnifiedMessagesListClientNoAgentEmpty config={config} onSearchClick={onSearchClick} />;
   }
   if (isLoadingHistory) {
     return <UnifiedMessagesListLoadingHistory />;
@@ -192,6 +213,11 @@ export default function UnifiedMessagesList({
           saveHome={saveHome}
           removeSavedHome={removeSavedHome}
           documents={documents}
+          documentsLoading={documentsLoading}
+          documentsError={documentsError}
+          formsLibraryLoading={formsLibraryLoading}
+          formsLibraryError={formsLibraryError}
+          checklistFormIdsInLibrary={checklistFormIdsInLibrary}
           t={t}
           openSharedHomeDetails={openSharedHomeDetails}
           onRetryMessage={onRetryMessage}

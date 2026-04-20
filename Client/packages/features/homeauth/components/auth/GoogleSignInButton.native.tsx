@@ -40,18 +40,12 @@ export default function GoogleSignInButton({
   text: _text = "Sign up with Google",
 }: GoogleSignInButtonProps) {
   const handlePress = () => {
-    const apiUrl = getEnv().isDevelopment
-      ? "http://localhost:5000"
-      : "https://usesilverkey.com";
+    const apiUrl = getEnv().isDevelopment ? "http://localhost:5000" : "https://usesilverkey.com";
     void Linking.openURL(`${apiUrl}/api/v1/auth/google/start`);
   };
 
   return (
-    <Pressable
-      onPress={handlePress}
-      style={styles.button}
-      accessibilityRole="button"
-    >
+    <Pressable onPress={handlePress} style={styles.button} accessibilityRole="button">
       <GoogleIcon />
     </Pressable>
   );

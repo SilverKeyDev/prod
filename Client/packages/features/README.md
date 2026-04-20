@@ -1,29 +1,25 @@
 # Features Package
 
-This directory is the **future home** for feature-level React components as part of SilverKey's Thin App (Fat Packages) architecture migration.
+Feature-level React modules live here. **`apps/web`** and **`apps/mobile`** stay thin: they compose exports from `packages/features/<name>/` inside pages and screens. See [thin-app-architecture.md](../../../documentation/client/thin-app-architecture.md).
 
-## Current State
-
-Feature components live in `packages/features/<name>/` and are composed by `apps/web/pages/` and app routes. See [thin-app-architecture.md](../../../documentation/client/thin-app-architecture.md) for the Thin App (Fat Packages) pattern.
-
-## Future Architecture Goal
-
-### Target Structure
+## Feature list (examples)
 
 ```
 packages/features/
 ├── saved/          # Saved homes, documents, tabs
-├── dashboard/      # Calendar, checklists, client list, client hub
-├── auth/           # Login, signup, verification
-├── search/         # Filters, list, map
-├── agent/          # Agent dashboard, messaging, settings
-├── profile/        # User profile, preferences, settings
-├── documents/      # Document management (uploads, reports, SkySlope links)
-├── negotiate/      # Negotiation strategies and tools
+├── dashboard/      # Client hub, calendar entrypoints, checklists
+├── homeauth/       # Login, signup, onboarding, landing
+├── search/         # Map, list, filters, reels on search
+├── agent/          # Agent workspace, messaging, settings
+├── profile/        # Profile, preferences, settings
+├── documents/      # Documents, agreements, uploads
+├── negotiate/      # Negotiation UI
+├── calendar/       # Calendar shell, events, viewings
+├── feed/           # Feed and reels
 └── ...
 ```
 
-### Structure inside each feature
+## Structure inside each feature
 
 Each feature subfolder (e.g. `saved/`, `dashboard/`, `agent/`) **may only** contain the following subfolders and the barrel file. No other direct children are allowed (enforced by ESLint rule `silverkey/package-module-allowed-children`).
 
@@ -50,38 +46,23 @@ packages/features/saved/
 └── index.ts     # public API barrel
 ```
 
-### Migration Strategy
-
-Feature components will be migrated incrementally following the **Hybrid approach** (Option D) outlined in the implementation strategy:
-
-1. **Phase 1** - Primitives first: Move UI primitives to `packages/ui/`
-2. **Phase 2** - Features: Move feature components here to `packages/features/<name>/`
-3. **Phase 3** - Thin pages: Refactor pages in `apps/web/` to thin composition only
-
-### Benefits
-
-- **Cross-platform sharing**: Web and mobile apps compose the same feature components
-- **Single source of truth**: Features implemented once, used everywhere
-- **Easier testing**: Feature components can be tested independently
-- **Clear boundaries**: Features depend only on packages (ui, hooks, store, utils, schemas)
-
 ## Import Rules
 
-Once migrated, feature code in `packages/features/<name>/`:
+Feature code in `packages/features/<name>/`:
 
 - ✅ **Can import from** (within the same feature): the feature’s own `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`
-- ✅ **Can import from** (shared packages): `packages/ui`, `packages/hooks`, `packages/store`, `packages/utils`, `packages/schemas`, `packages/platform`
+- ✅ **Can import from** (shared packages): `packages/ui`, `packages/hooks`, `packages/store`, `packages/utils`, `packages/schemas`, `packages/navigation`, `packages/logger`, and other paths allowed by ESLint for feature modules
 - ❌ **Cannot import from**: `apps/web/*` or `apps/mobile/*` (features are framework-agnostic)
 - ❌ **Cannot import from**: Other feature packages (to prevent circular dependencies)
 
 Apps (`apps/web/` and `apps/mobile/`) will import feature components from here:
 
 ```typescript
-// ✅ CORRECT: App imports feature from package
-import { SavedLayout, SavedContent } from "@silverkey/features/saved";
+// CORRECT: app imports feature from packages
+import { SavedLayout } from "packages/features/saved";
 
-// ❌ WRONG: Feature imports from app
-import { SomeComponent } from "../../../apps/web/components/...";
+// WRONG: feature imports from app
+import { SomeComponent } from "../../../apps/web/pages/...";
 ```
 
 ## Related Documentation
@@ -91,4 +72,4 @@ import { SomeComponent } from "../../../apps/web/components/...";
 
 ## Status
 
-Feature components live in `packages/features/<name>/`; apps compose them via thin pages and routes. Remaining feature code in `apps/web/` continues to move here incrementally.
+New work belongs in `packages/features/<name>/` with thin shells in `apps/web/pages/` or `apps/mobile/app/screens/`. If you find legacy fat logic under `apps/web/`, move it into the appropriate package and keep the app file as composition only.

@@ -3,7 +3,7 @@
  * Single source for SearchResult, PropertyDetails, and related type guards.
  */
 
-import { getPropertyMatchScore } from "packages/utils/search/propertyMatchScore";
+import { getPropertyMatchScore } from "packages/utils/search/scoring/propertyMatchScore";
 
 export type PropertyType =
   | "SINGLE_FAMILY"
@@ -13,12 +13,7 @@ export type PropertyType =
   | "LAND"
   | "COMMERCIAL";
 
-export type ListingStatus =
-  | "FOR_SALE"
-  | "FOR_RENT"
-  | "SOLD"
-  | "PENDING"
-  | "OFF_MARKET";
+export type ListingStatus = "FOR_SALE" | "FOR_RENT" | "SOLD" | "PENDING" | "OFF_MARKET";
 
 export type PropertyImage = {
   url: string;
@@ -63,7 +58,9 @@ export type SearchResult = {
   _score?: number; // Backend ML match score (0-100 integer)
 
   // Enhanced property details from searchAddress API
-  zpid?: number;
+  zpid?: number | string;
+  /** MLS / provider listing key when present (e.g. saved homes, shared-home snapshots). */
+  mls_home_id?: string;
   streetAddress?: string;
   city?: string;
   state?: string;
@@ -222,7 +219,6 @@ export function isPropertyDetails(obj: unknown): obj is PropertyDetails {
 }
 
 /** Centralized match score read (backend MCDA display scale when `_score` is set). */
-export const getMatchScore = (property: SearchResult): number =>
-  getPropertyMatchScore(property);
+export const getMatchScore = (property: SearchResult): number => getPropertyMatchScore(property);
 
-export { isListingFullCriteriaMatch } from "packages/utils/search/propertyMatchScore";
+export { isListingFullCriteriaMatch } from "packages/utils/search/scoring/propertyMatchScore";

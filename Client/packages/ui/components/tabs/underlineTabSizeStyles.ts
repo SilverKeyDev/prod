@@ -9,10 +9,7 @@ export type UnderlineTabSizeStyleSet = {
   paddingDefault: string;
 };
 
-export const UNDERLINE_TAB_SIZE_STYLES: Record<
-  UnderlineTabsSize,
-  UnderlineTabSizeStyleSet
-> = {
+export const UNDERLINE_TAB_SIZE_STYLES: Record<UnderlineTabsSize, UnderlineTabSizeStyleSet> = {
   sm: {
     activeText: "text-responsive-md",
     inactiveText: "text-responsive-sm",
@@ -45,9 +42,7 @@ export const UNDERLINE_TAB_SIZE_STYLES: Record<
   },
 };
 
-export function underlineTabsButtonSize(
-  tabSize: UnderlineTabsSize,
-): "sm" | "md" | "lg" {
+export function underlineTabsButtonSize(tabSize: UnderlineTabsSize): "sm" | "md" | "lg" {
   if (tabSize === "lg") {
     return "lg";
   }

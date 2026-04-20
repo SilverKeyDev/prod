@@ -13,35 +13,22 @@
  */
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import {
-  apiGet,
-  apiPost,
-  buildApiUrl,
-  isAbortError,
-} from "packages/services/http/compatibility";
-import type {
-  AreaBoundaryResponse,
-  AreaSuggestionsResponse,
-} from "packages/types/api";
+import { apiGet, apiPost, buildApiUrl, isAbortError } from "packages/services/http/compatibility";
 import type { components } from "packages/types/api.generated";
+import type { AreaBoundaryResponse, AreaSuggestionsResponse } from "packages/types/domain/api";
 
 // UI type (not API contract - keep local)
 export type GetIsochroneOptions = {
   preferencesUserId?: string | null;
   signal?: AbortSignal;
 };
-import type {
-  SearchByPolygonRequest,
-  SearchByPolygonResponse,
-} from "packages/types/api";
+import type { SearchByPolygonRequest, SearchByPolygonResponse } from "packages/types/domain/api";
 
 /** Log-safe summary of polygon search request (no addresses / PII). */
 function summarizePolygonSearchRequestForLog(req: SearchByPolygonRequest) {
   const up = req.user_preferences;
   const upKeys =
-    up && typeof up === "object" && !Array.isArray(up)
-      ? Object.keys(up as object)
-      : [];
+    up && typeof up === "object" && !Array.isArray(up) ? Object.keys(up as object) : [];
   return {
     perBucketPages: req.perBucketPages,
     forceSearch: req.forceSearch,
@@ -49,24 +36,19 @@ function summarizePolygonSearchRequestForLog(req: SearchByPolygonRequest) {
     preferencesStrictFilter: req.preferences_strict_filter === true,
     userPreferenceKeyCount: upKeys.length,
     userPreferenceKeysSample: upKeys.slice(0, 12),
-    viewportPointCount: Array.isArray(req.viewport_polygon)
-      ? req.viewport_polygon.length
-      : 0,
+    viewportPointCount: Array.isArray(req.viewport_polygon) ? req.viewport_polygon.length : 0,
   };
 }
 
 // Re-export types from generated schema
-export type PropertyCompsRequest =
-  components["schemas"]["PropertyCompsRequest"];
-export type PropertyCompsResponse =
-  components["schemas"]["PropertyCompsResponse"];
+export type PropertyCompsRequest = components["schemas"]["PropertyCompsRequest"];
+export type PropertyCompsResponse = components["schemas"]["PropertyCompsResponse"];
 
 // Re-export for convenience
 export type PolygonSearchRequest = SearchByPolygonRequest;
 export type PolygonSearchResponse = SearchByPolygonResponse;
 
-export type MonthlyCostEstimatesResponse =
-  components["schemas"]["MonthlyCostEstimatesResponse"];
+export type MonthlyCostEstimatesResponse = components["schemas"]["MonthlyCostEstimatesResponse"];
 export type IsochroneResponse = components["schemas"]["IsochroneResponse"];
 
 /**
@@ -78,7 +60,7 @@ export const searchApi = {
    */
   getPropertyComps: (
     params: PropertyCompsRequest,
-    options?: { signal?: AbortSignal },
+    options?: { signal?: AbortSignal }
   ): Promise<PropertyCompsResponse> => {
     const url = buildApiUrl("/api/v1/search/propertyComps", {
       address: params.address,
@@ -94,9 +76,7 @@ export const searchApi = {
         const respWithComps = resp as typeof resp & { comps?: unknown[] };
         log.debug(LOG_CATEGORIES.API, "getPropertyComps response", {
           success: resp?.success,
-          compsCount: Array.isArray(respWithComps?.comps)
-            ? respWithComps.comps.length
-            : undefined,
+          compsCount: Array.isArray(respWithComps?.comps) ? respWithComps.comps.length : undefined,
           hasError: !!resp?.error,
         });
         return resp;
@@ -116,7 +96,7 @@ export const searchApi = {
    */
   searchByPolygon: (
     data: PolygonSearchRequest,
-    options?: { signal?: AbortSignal },
+    options?: { signal?: AbortSignal }
   ): Promise<PolygonSearchResponse> => {
     const url = "/api/v1/search/properties-by-polygon";
     log.info(LOG_CATEGORIES.POLYGON_SEARCH, "searchByPolygon API request", {
@@ -128,29 +108,21 @@ export const searchApi = {
       ...options,
     })
       .then((resp) => {
-        const rawCount = Array.isArray(resp.properties)
-          ? resp.properties.length
-          : 0;
+        const rawCount = Array.isArray(resp.properties) ? resp.properties.length : 0;
         const meta = resp.meta;
-        log.info(
-          LOG_CATEGORIES.POLYGON_SEARCH,
-          "searchByPolygon API response",
-          {
-            success: resp.success,
-            error: resp.error,
-            propertiesCount: rawCount,
-            totalCount: resp.total_count,
-            metaCached: meta?.cached,
-            metaDeduped: meta?.deduped,
-            metaRequestsMade: meta?.requestsMade,
-            metaLimit: meta?.limit,
-            metaSearchArea:
-              meta && "searchArea" in meta
-                ? (meta as { searchArea?: string }).searchArea
-                : undefined,
-            requestSummary: summarizePolygonSearchRequestForLog(data),
-          },
-        );
+        log.info(LOG_CATEGORIES.POLYGON_SEARCH, "searchByPolygon API response", {
+          success: resp.success,
+          error: resp.error,
+          propertiesCount: rawCount,
+          totalCount: resp.total_count,
+          metaCached: meta?.cached,
+          metaDeduped: meta?.deduped,
+          metaRequestsMade: meta?.requestsMade,
+          metaLimit: meta?.limit,
+          metaSearchArea:
+            meta && "searchArea" in meta ? (meta as { searchArea?: string }).searchArea : undefined,
+          requestSummary: summarizePolygonSearchRequestForLog(data),
+        });
         return resp;
       })
       .catch((error) => {
@@ -168,7 +140,7 @@ export const searchApi = {
     const uid = options?.preferencesUserId;
     const url = buildApiUrl(
       "/api/v1/search/isochrone",
-      uid != null && uid !== "" ? { preferences_user_id: uid } : {},
+      uid != null && uid !== "" ? { preferences_user_id: uid } : {}
     );
     return apiGet<IsochroneResponse>(url, {
       timeout: 300000, // 5 minutes for isochrone generation
@@ -190,7 +162,7 @@ export const searchApi = {
    */
   getAreaSuggestions: (
     params: { keyword: string; state?: string; limit?: number },
-    options?: { signal?: AbortSignal },
+    options?: { signal?: AbortSignal }
   ): Promise<AreaSuggestionsResponse> => {
     const url = buildApiUrl("/api/v1/search/area-suggestions", {
       keyword: params.keyword,
@@ -215,7 +187,7 @@ export const searchApi = {
    */
   getAreaBoundary: (
     params: { id: string },
-    options?: { signal?: AbortSignal },
+    options?: { signal?: AbortSignal }
   ): Promise<AreaBoundaryResponse> => {
     const url = buildApiUrl("/api/v1/search/area-boundary", {
       id: params.id,
@@ -238,7 +210,7 @@ export const searchApi = {
    */
   getMonthlyCostEstimates: (
     params: { zipcode: string },
-    options?: { signal?: AbortSignal },
+    options?: { signal?: AbortSignal }
   ): Promise<MonthlyCostEstimatesResponse> => {
     const url = buildApiUrl("/api/v1/search/monthly-cost-estimates", {
       zipcode: params.zipcode,

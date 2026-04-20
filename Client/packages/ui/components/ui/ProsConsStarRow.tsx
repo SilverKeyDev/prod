@@ -26,11 +26,7 @@ function starClasses(variant: ProsConsStarVariant, filled: boolean): string {
   return "h-3.5 w-3.5 fill-yellow-800 text-yellow-800";
 }
 
-export function ProsConsStarRow({
-  score,
-  variant,
-  ariaLabelKind,
-}: ProsConsStarRowProps) {
+export function ProsConsStarRow({ score, variant, ariaLabelKind }: ProsConsStarRowProps) {
   const filled = Math.max(0, Math.min(STAR_COUNT, Math.round(score)));
   const label =
     ariaLabelKind === "strength"
@@ -40,11 +36,7 @@ export function ProsConsStarRow({
   return (
     <Box className="flex flex-row gap-0.5" role="img" aria-label={label}>
       {Array.from({ length: STAR_COUNT }, (_, i) => (
-        <Icon
-          key={i}
-          name="star"
-          className={starClasses(variant, i < filled)}
-        />
+        <Icon key={i} name="star" className={starClasses(variant, i < filled)} />
       ))}
     </Box>
   );

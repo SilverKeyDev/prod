@@ -6,8 +6,6 @@ import {
   type AgendaTodoDTO,
   Calendar,
   CreateEventModal,
-  filterCalendarsToAgentOwned,
-  findSilverKeyCalendar,
   UpcomingEvents,
 } from "packages/features/calendar";
 import {
@@ -16,11 +14,11 @@ import {
   useDocumentsDataIntegration,
 } from "packages/features/documents";
 import { useIsAgent } from "packages/features/homeauth";
-import { submitAgentAgendaTodo } from "packages/hooks/data/agentAgendaTodoSubmit";
+import { submitAgentAgendaTodo } from "packages/hooks/data/agenda/agentAgendaTodoSubmit";
 import {
   useCompletedSigningTodos,
   useSigningTodos,
-} from "packages/hooks/data/useSigningTodos";
+} from "packages/hooks/data/agenda/useSigningTodos";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useUIStore } from "packages/store";
@@ -39,9 +37,7 @@ import ClientList from "./ClientList/ClientList";
 import DashboardChecklists from "./DashboardChecklists/DashboardChecklists";
 
 type DashboardFeatureProps = {
-  setMobileHeaderActions?: React.Dispatch<
-    React.SetStateAction<React.ReactNode | null>
-  >;
+  setMobileHeaderActions?: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
 };
 
 function mapTodosToAgendaDTO(todos: TodoItem[]): AgendaTodoDTO[] {
@@ -53,9 +49,7 @@ function mapTodosToAgendaDTO(todos: TodoItem[]): AgendaTodoDTO[] {
   }));
 }
 
-export function DashboardFeature({
-  setMobileHeaderActions,
-}: DashboardFeatureProps) {
+export function DashboardFeature({ setMobileHeaderActions }: DashboardFeatureProps) {
   const { navigateToPath, getCurrentRoute } = useNavigation();
   const isAgent = useIsAgent();
   const queryClient = useQueryClient();
@@ -72,29 +66,14 @@ export function DashboardFeature({
     dismissAgreementSigning,
     onAgreementSigningComplete,
   } = useDocumentsDataIntegration();
-  const { isConnected, calendars, refreshEvents } =
-    useGoogleCalendarStoreIntegration();
+  const { isConnected, calendars, refreshEvents } = useGoogleCalendarStoreIntegration();
   const [createEventModalOpen, setCreateEventModalOpen] = useState(false);
 
-  const scopedCalendars = useMemo(() => {
-    if (!isAgent || !calendars?.length) {
-      return calendars ?? [];
-    }
-    return filterCalendarsToAgentOwned(calendars);
-  }, [isAgent, calendars]);
-
-  const silverKeyCalendar = useMemo(
-    () => findSilverKeyCalendar(scopedCalendars),
-    [scopedCalendars],
-  );
+  const scopedCalendars = useMemo(() => calendars ?? [], [calendars]);
 
   const agendaTodos = useMemo<AgendaTodoDTO[]>(
-    () => [
-      ...mapTodosToAgendaDTO(todos),
-      ...signingTodos,
-      ...completedSigningTodos,
-    ],
-    [todos, signingTodos, completedSigningTodos],
+    () => [...mapTodosToAgendaDTO(todos), ...signingTodos, ...completedSigningTodos],
+    [todos, signingTodos, completedSigningTodos]
   );
 
   const handleToggleAgendaTodo = async (id: string) => {
@@ -111,9 +90,7 @@ export function DashboardFeature({
 
   const handleSigningAgendaPress = useCallback(
     async (agreementId: string) => {
-      const doc = documents.find(
-        (d) => d.id === agreementId && d.library_kind === "agreement",
-      );
+      const doc = documents.find((d) => d.id === agreementId && d.library_kind === "agreement");
       if (!doc) {
         enqueueToast({
           type: "error",
@@ -124,23 +101,17 @@ export function DashboardFeature({
       try {
         await signAgreementNow(doc);
       } catch (error) {
-        log.error(
-          LOG_CATEGORIES.ERRORS,
-          "Agenda DocuSign signing failed",
-          error,
-        );
+        log.error(LOG_CATEGORIES.ERRORS, "Agenda DocuSign signing failed", error);
         enqueueToast({
           type: "error",
-          message:
-            error instanceof Error ? error.message : "Signing could not start.",
+          message: error instanceof Error ? error.message : "Signing could not start.",
         });
       }
     },
-    [documents, enqueueToast, signAgreementNow],
+    [documents, enqueueToast, signAgreementNow]
   );
 
-  const defaultCalendarId =
-    silverKeyCalendar?.id ?? scopedCalendars[0]?.id ?? null;
+  const defaultCalendarId = scopedCalendars[0]?.id ?? null;
 
   const canAddGoogleCalendarItem = Boolean(isConnected && defaultCalendarId);
   const showAddButton = isAgent || canAddGoogleCalendarItem || !isAgent;
@@ -174,9 +145,7 @@ export function DashboardFeature({
     navigateToPath(`/dashboard/client/${clientId}`);
   };
 
-  const pathMatch = getCurrentRoute().pathname.match(
-    /^\/dashboard\/client\/(.+)$/,
-  );
+  const pathMatch = getCurrentRoute().pathname.match(/^\/dashboard\/client\/(.+)$/);
   const clientIdFromPath = pathMatch ? pathMatch[1] : null;
 
   if (clientIdFromPath) {
@@ -193,14 +162,13 @@ export function DashboardFeature({
           canEditAgendaTodos={true}
           onSigningAgendaPress={handleSigningAgendaPress}
           headerActions={headerActions}
-          ownedCalendarsOnly={isAgent}
         />
 
         {isAgent ? <ClientList onClientClick={handleClientClick} /> : null}
 
         {!isAgent ? <DashboardChecklists /> : null}
 
-        <Calendar ownedCalendarsOnly={isAgent} />
+        <Calendar />
 
         {showAddButton ? (
           <CreateEventModal
@@ -224,14 +192,10 @@ export function DashboardFeature({
                     defaultCalendarId,
                     createTodo,
                     queryClient,
-                  },
+                  }
                 );
               } catch (error) {
-                log.error(
-                  LOG_CATEGORIES.DASHBOARD,
-                  "Failed to create agenda to-do",
-                  error,
-                );
+                log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create agenda to-do", error);
                 throw error;
               }
             }}

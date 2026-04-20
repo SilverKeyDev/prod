@@ -16,14 +16,11 @@ import { apiPost } from "packages/services/http/compatibility";
 import type { components } from "packages/types/api.generated";
 
 // Re-export types from generated schema
-export type NegotiationStrategyRequest =
-  components["schemas"]["NegotiationStrategyRequest"];
+export type NegotiationStrategyRequest = components["schemas"]["NegotiationStrategyRequest"];
 export type PropertyData = components["schemas"]["PropertyData"];
 export type CommuteData = components["schemas"]["CommuteData"];
-export type NegotiationStrategyResponse =
-  components["schemas"]["NegotiationStrategyResponse"];
-export type PreApprovalLetterRequest =
-  components["schemas"]["PreApprovalLetterRequest"];
+export type NegotiationStrategyResponse = components["schemas"]["NegotiationStrategyResponse"];
+export type PreApprovalLetterRequest = components["schemas"]["PreApprovalLetterRequest"];
 export type EarnestMoneyRequest = components["schemas"]["EarnestMoneyRequest"];
 export type CoverLetterRequest = components["schemas"]["CoverLetterRequest"];
 export type OfferDocumentGenerationResponse =
@@ -38,47 +35,32 @@ export const offerApi = {
    */
   generateStrategy: (
     data: NegotiationStrategyRequest,
-    options?: { signal?: AbortSignal },
+    options?: { signal?: AbortSignal }
   ): Promise<NegotiationStrategyResponse> =>
-    apiPost<NegotiationStrategyResponse>(
-      "/api/v1/offer/generate-strategy",
-      data,
-      {
-        timeout: 300000,
-        ...options,
-      },
-    ),
+    apiPost<NegotiationStrategyResponse>("/api/v1/offer/generate-strategy", data, {
+      timeout: 300000,
+      ...options,
+    }),
 
   /**
    * Generate a pre-approval letter
    */
   generatePreApprovalLetter: (
-    data: PreApprovalLetterRequest,
+    data: PreApprovalLetterRequest
   ): Promise<OfferDocumentGenerationResponse> =>
-    apiPost<OfferDocumentGenerationResponse>(
-      "/api/v1/offer/pre-approval-letter",
-      data,
-    ),
+    apiPost<OfferDocumentGenerationResponse>("/api/v1/offer/pre-approval-letter", data),
 
   /**
    * Generate earnest money instructions
    */
   generateEarnestMoneyInstructions: (
-    data: EarnestMoneyRequest,
+    data: EarnestMoneyRequest
   ): Promise<OfferDocumentGenerationResponse> =>
-    apiPost<OfferDocumentGenerationResponse>(
-      "/api/v1/offer/earnest-money-instructions",
-      data,
-    ),
+    apiPost<OfferDocumentGenerationResponse>("/api/v1/offer/earnest-money-instructions", data),
 
   /**
    * Generate a cover letter for the offer
    */
-  generateCoverLetter: (
-    data: CoverLetterRequest,
-  ): Promise<OfferDocumentGenerationResponse> =>
-    apiPost<OfferDocumentGenerationResponse>(
-      "/api/v1/offer/cover-letter",
-      data,
-    ),
+  generateCoverLetter: (data: CoverLetterRequest): Promise<OfferDocumentGenerationResponse> =>
+    apiPost<OfferDocumentGenerationResponse>("/api/v1/offer/cover-letter", data),
 };

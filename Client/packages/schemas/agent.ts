@@ -22,12 +22,7 @@
 
 import type { AgentClient } from "packages/features/agent/api/agent";
 
-export type DealStage =
-  | "search"
-  | "touring"
-  | "offer"
-  | "under_contract"
-  | "closing";
+export type DealStage = "search" | "touring" | "offer" | "under_contract" | "closing";
 
 export type AlertSeverity = "low" | "medium" | "high" | "critical";
 
@@ -54,12 +49,7 @@ export type ClientDealInfo = AgentClient & {
 };
 
 export type ClientFinancialSnapshot = {
-  pre_approval_status:
-    | "not_started"
-    | "in_progress"
-    | "approved"
-    | "denied"
-    | "pending";
+  pre_approval_status: "not_started" | "in_progress" | "approved" | "denied" | "pending";
   loan_type: string;
   cash_to_close: number;
   pre_approval_amount: number;

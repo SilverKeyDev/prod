@@ -12,16 +12,10 @@ type ErrorUpdateData = {
 };
 
 export function parseStreamError(errorData: ErrorUpdateData): string {
-  let errorMessage =
-    errorData.details ||
-    errorData.message ||
-    errorData.error ||
-    "Unknown error";
+  let errorMessage = errorData.details || errorData.message || errorData.error || "Unknown error";
   if (errorData.details) {
     try {
-      const parsed = JSON.parse(errorData.details) as
-        | { message?: string }
-        | string;
+      const parsed = JSON.parse(errorData.details) as { message?: string } | string;
       if (typeof parsed === "object" && parsed?.message) {
         errorMessage = parsed.message;
       } else if (typeof parsed === "string") {
@@ -41,13 +35,13 @@ type StreamUpdate = {
 };
 
 type SetPropertyState = (
-  value: Property | null | ((prev: Property | null) => Property | null),
+  value: Property | null | ((prev: Property | null) => Property | null)
 ) => void;
 
 export function applyStreamUpdate(
   update: StreamUpdate,
   setSelectedProperty: SetPropertyState,
-  setIsLoading: (loading: boolean) => void,
+  setIsLoading: (loading: boolean) => void
 ): void {
   if (!update || !update.type) {
     return;
@@ -72,8 +66,7 @@ export function applyStreamUpdate(
     // Handle individual section updates as they complete (streaming)
     setSelectedProperty((prev) => {
       if (!prev) return prev;
-      const existing =
-        (prev.property_analysis as Record<string, unknown>) || {};
+      const existing = (prev.property_analysis as Record<string, unknown>) || {};
       return {
         ...prev,
         property_analysis: {
@@ -84,14 +77,10 @@ export function applyStreamUpdate(
     });
     return;
   }
-  if (
-    update.type === "property_analysis" ||
-    update.type === "property_analysis_partial"
-  ) {
+  if (update.type === "property_analysis" || update.type === "property_analysis_partial") {
     setSelectedProperty((prev) => {
       if (!prev) return prev;
-      const existing =
-        (prev.property_analysis as Record<string, unknown>) || {};
+      const existing = (prev.property_analysis as Record<string, unknown>) || {};
       return {
         ...prev,
         property_analysis: {

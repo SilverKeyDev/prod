@@ -1,5 +1,5 @@
 import inject from "@rollup/plugin-inject";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import fs from "fs";
 import path from "path";
 import { defineConfig, loadEnv } from "vite";
@@ -43,21 +43,14 @@ export default defineConfig(function (_a) {
     EXPO_PUBLIC_GOOGLE_MAPS_ID:
       (_h = env.EXPO_PUBLIC_GOOGLE_MAPS_ID) !== null && _h !== void 0 ? _h : "",
     EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS:
-      (_j = env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS) !== null && _j !== void 0
-        ? _j
-        : "",
+      (_j = env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS) !== null && _j !== void 0 ? _j : "",
     EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR:
-      (_k = env.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR) !== null &&
-      _k !== void 0
-        ? _k
-        : "",
-    EXPO_PUBLIC_API_URL:
-      (_l = env.EXPO_PUBLIC_API_URL) !== null && _l !== void 0 ? _l : "",
+      (_k = env.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR) !== null && _k !== void 0 ? _k : "",
+    EXPO_PUBLIC_API_URL: (_l = env.EXPO_PUBLIC_API_URL) !== null && _l !== void 0 ? _l : "",
     VITE_API_URL: (_m = env.VITE_API_URL) !== null && _m !== void 0 ? _m : "",
     EXPO_PUBLIC_API_BASE_URL:
       (_o = env.EXPO_PUBLIC_API_BASE_URL) !== null && _o !== void 0 ? _o : "",
-    VITE_API_BASE_URL:
-      (_p = env.VITE_API_BASE_URL) !== null && _p !== void 0 ? _p : "",
+    VITE_API_BASE_URL: (_p = env.VITE_API_BASE_URL) !== null && _p !== void 0 ? _p : "",
   };
   // esbuild define only accepts JSON literals or identifiers; object expressions like
   // ({ env: {...} }) are rejected. Inject process via a generated shim so env.ts sees process.env.
@@ -66,7 +59,7 @@ export default defineConfig(function (_a) {
   fs.mkdirSync(shimDir, { recursive: true });
   var shimContent = "const env = ".concat(
     JSON.stringify(envVars),
-    ";\nconst processLike = { env };\nmodule.exports = processLike;\nmodule.exports.default = processLike;",
+    ";\nconst processLike = { env };\nmodule.exports = processLike;\nmodule.exports.default = processLike;"
   );
   fs.writeFileSync(shimPath, shimContent, "utf8");
   // #region agent log
@@ -137,9 +130,7 @@ export default defineConfig(function (_a) {
         name: "process-shim-esm",
         enforce: "pre",
         resolveId: function (id) {
-          var normalizedForLog = id
-            .replace(/\?.*$/, "")
-            .replace(/^file:\/\//, "");
+          var normalizedForLog = id.replace(/\?.*$/, "").replace(/^file:\/\//, "");
           var mightBeShim =
             id.includes("process-shim") ||
             id === shimPath ||
@@ -169,7 +160,7 @@ export default defineConfig(function (_a) {
                   runId: "debug-resolve",
                   hypothesisId: "D",
                 }) + "\n",
-                "utf8",
+                "utf8"
               );
             } catch {
               // Ignore debug log write failures (e.g. read-only FS).
@@ -196,17 +187,14 @@ export default defineConfig(function (_a) {
                   runId: "verify",
                   hypothesisId: "B",
                 }) + "\n",
-                "utf8",
+                "utf8"
               );
             } catch {
               // Ignore debug log write failures (e.g. read-only FS).
             }
             // #endregion
             // Fix: serve as ESM so default export exists; CJS->ESM interop does not expose default.
-            return "export default { env: ".concat(
-              JSON.stringify(envVars),
-              " };",
-            );
+            return "export default { env: ".concat(JSON.stringify(envVars), " };");
           }
           return null;
         },
@@ -220,10 +208,7 @@ export default defineConfig(function (_a) {
         configureServer: function (server) {
           server.middlewares.use(function (req, res, next) {
             if (req.url && req.url.includes("process-shim.cjs")) {
-              var esm = "export default { env: ".concat(
-                JSON.stringify(envVars),
-                " };",
-              );
+              var esm = "export default { env: ".concat(JSON.stringify(envVars), " };");
               res.setHeader("Content-Type", "application/javascript");
               res.setHeader("Cache-Control", "no-cache");
               res.end(esm);
@@ -259,12 +244,8 @@ export default defineConfig(function (_a) {
       hmr: {
         protocol: "ws",
         host: "localhost",
-        port: process.env.VITE_PORT
-          ? parseInt(process.env.VITE_PORT, 10)
-          : 5173,
-        clientPort: process.env.VITE_PORT
-          ? parseInt(process.env.VITE_PORT, 10)
-          : 5173,
+        port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT, 10) : 5173,
+        clientPort: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT, 10) : 5173,
       },
       // Proxy: secure: false is intentional for local HTTP backend (e.g. Flask on localhost:5000).
       // If the backend requires SameSite=None; Secure cookies, serve dev over HTTPS (e.g. set
@@ -338,8 +319,8 @@ export default defineConfig(function (_a) {
       outDir: path.join(root, "dist"),
       // Single vendor chunk is ~1.3MB minified; threshold avoids noisy Rollup reporter only
       chunkSizeWarningLimit: 1600,
-      // Configure code splitting for consistent behavior
-      rollupOptions: {
+      // Configure code splitting for consistent behavior (Vite 8+: rolldownOptions)
+      rolldownOptions: {
         output: {
           // Ensure consistent chunk naming and splitting
           manualChunks: function (id) {
@@ -361,10 +342,7 @@ export default defineConfig(function (_a) {
               return undefined; // Include in main bundle
             }
             // Ensure hooks that use router are in main bundle
-            if (
-              id.includes("packages/hooks") &&
-              id.includes("useDataPolling")
-            ) {
+            if (id.includes("packages/hooks") && id.includes("useDataPolling")) {
               return undefined; // Include in main bundle
             }
           },

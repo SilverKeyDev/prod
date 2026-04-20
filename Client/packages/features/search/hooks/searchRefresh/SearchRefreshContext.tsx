@@ -15,12 +15,10 @@ export function SearchRefreshProvider({ children }: { children: ReactNode }) {
 
   const contextValue = useMemo(
     () => ({ triggerRefresh, setTriggerRefresh }),
-    [triggerRefresh, setTriggerRefresh],
+    [triggerRefresh, setTriggerRefresh]
   );
 
   return (
-    <SearchRefreshContext.Provider value={contextValue}>
-      {children}
-    </SearchRefreshContext.Provider>
+    <SearchRefreshContext.Provider value={contextValue}>{children}</SearchRefreshContext.Provider>
   );
 }

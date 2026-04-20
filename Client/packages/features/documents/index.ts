@@ -10,7 +10,7 @@ export { useDocumentsData } from "./hooks/data/useDocumentsData";
 export { useSavedPageDocumentHandlers } from "./hooks/data/useSavedPageDocumentHandlers";
 
 // Document store integration hooks
-export type { SendForSignatureParams } from "./hooks/store/useDocumentsDataIntegration";
+export type { SendForSignatureParams } from "./hooks/store/documentsDataIntegrationTypes";
 export { useDocumentsDataIntegration } from "./hooks/store/useDocumentsDataIntegration";
 export { useDocumentsStoreIntegration } from "./hooks/store/useDocumentsStoreIntegration";
 export { useHomeComparison } from "./hooks/store/useHomeComparison";
@@ -19,10 +19,7 @@ export type { SavedPageViewType } from "./hooks/store/useSavedPageView";
 export { useSavedPageView } from "./hooks/store/useSavedPageView";
 
 // Document types
-export type {
-  DocumentLibraryKind,
-  DocumentLibraryListItem,
-} from "./types/documentLibrary";
+export type { DocumentLibraryKind, DocumentLibraryListItem } from "./types/documentLibrary";
 export type {
   DocumentCategory,
   UploadedFile,
@@ -37,10 +34,7 @@ export { docusignApi } from "./api/docusign";
 export { checklistFormsApi } from "./api/checklistForms";
 export type { UseChecklistFormsResult } from "./hooks/data/useChecklistForms";
 export { useChecklistForms } from "./hooks/data/useChecklistForms";
-export type {
-  FormCategory,
-  UseFormsLibraryResult,
-} from "./hooks/data/useFormsLibrary";
+export type { FormCategory, UseFormsLibraryResult } from "./hooks/data/useFormsLibrary";
 export { useFormsLibrary } from "./hooks/data/useFormsLibrary";
 export type {
   ChecklistForm,
@@ -51,13 +45,16 @@ export type {
 } from "./types/forms";
 
 // DocuSign hooks (data)
-export type { UseDocusignActionsReturn } from "./hooks/data/useDocusignActions";
-export { useDocusignActions } from "./hooks/data/useDocusignActions";
-export { useDocusignAgreement } from "./hooks/data/useDocusignAgreement";
-export type { UseDocusignAgreementsReturn } from "./hooks/data/useDocusignAgreements";
-export { useDocusignAgreements } from "./hooks/data/useDocusignAgreements";
-export type { UseDocusignTemplatesReturn } from "./hooks/data/useDocusignTemplates";
-export { useDocusignTemplates } from "./hooks/data/useDocusignTemplates";
+export type {
+  SendAgreementParams,
+  UseDocusignActionsReturn,
+} from "./hooks/data/docusign/useDocusignActions";
+export { useDocusignActions } from "./hooks/data/docusign/useDocusignActions";
+export { useDocusignAgreement } from "./hooks/data/docusign/useDocusignAgreement";
+export type { UseDocusignAgreementsReturn } from "./hooks/data/docusign/useDocusignAgreements";
+export { useDocusignAgreements } from "./hooks/data/docusign/useDocusignAgreements";
+export type { UseDocusignTemplatesReturn } from "./hooks/data/docusign/useDocusignTemplates";
+export { useDocusignTemplates } from "./hooks/data/docusign/useDocusignTemplates";
 
 // DocuSign hooks (UI)
 export { useSavedHomesDocuSign } from "./hooks/ui/useSavedHomesDocuSign";
@@ -65,14 +62,14 @@ export type { UseSavedHomesDocuSignCoreOptions } from "./hooks/ui/useSavedHomesD
 export { useSavedHomesDocuSignCore } from "./hooks/ui/useSavedHomesDocuSignCore";
 
 // DocuSign components
-export { DocuSignLegalNotice } from "./components/DocuSignLegalNotice";
-export { default as DocuSignWidget } from "./components/DocuSignWidget";
-export { default as EmbeddedSigning } from "./components/EmbeddedSigning";
-export { default as ViewSignedDocument } from "./components/ViewSignedDocument";
+export { DocuSignLegalNotice } from "./components/docusign/DocuSignLegalNotice";
+export { default as DocuSignWidget } from "./components/docusign/DocuSignWidget";
+export { default as EmbeddedSigning } from "./components/docusign/EmbeddedSigning";
+export { default as ViewSignedDocument } from "./components/docusign/ViewSignedDocument";
 
 // Forms components
-export { default as FormsBrowser } from "./components/FormsBrowser";
-export { default as FormsLibraryTab } from "./components/FormsLibraryTab";
+export { default as FormsBrowser } from "./components/forms/FormsBrowser";
+export { default as FormsLibraryTab } from "./components/forms/FormsLibraryTab";
 
 // DocuSign types
 export type {

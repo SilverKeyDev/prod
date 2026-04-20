@@ -1,8 +1,6 @@
 import type { PropertyDetailsSectionId } from "packages/features/propertyDetails/types/sectionOrder";
-import type {
-  PropertyDetailsStreamProperty,
-  SearchResult,
-} from "packages/types";
+import type { PropertyDetailsStreamProperty, SearchResult } from "packages/types";
+import type { IsochroneData } from "packages/types/domain/api";
 
 export type PropertyDetailsModalProps = {
   property: PropertyDetailsStreamProperty | SearchResult | null;
@@ -11,10 +9,17 @@ export type PropertyDetailsModalProps = {
   isLoading?: boolean;
   /** Size for toolbar buttons (heart, share, close). Default: medium */
   toolbarButtonSize?: "small" | "medium" | "large";
+  /**
+   * When opening details from search, pass the active isochrone overlay so the
+   * commute map can show the same commute-area polygons as the search map.
+   */
+  commuteSearchOverlay?: IsochroneData | null;
 };
 
 export type PropertyComponentProps = {
   property: PropertyDetailsStreamProperty | SearchResult;
+  /** Optional search isochrone overlay (see PropertyDetailsModalProps). */
+  commuteSearchOverlay?: IsochroneData | null;
 };
 
 export type PropertyHeaderProps = PropertyComponentProps & {

@@ -36,20 +36,14 @@ export function FilterChipRow({
             return (
               <Pressable
                 key={opt.value}
-                onPress={() =>
-                  onChange(isSelected ? undefined : (opt.value as string))
-                }
+                onPress={() => onChange(isSelected ? undefined : (opt.value as string))}
                 className={`mr-2 rounded-full border px-3 py-1.5 ${
                   isSelected
                     ? "border-border bg-primary-muted"
                     : "border-border bg-background-surface"
                 }`}
               >
-                <Text
-                  className={`text-xs ${
-                    isSelected ? "text-primary" : "text-text-primary"
-                  }`}
-                >
+                <Text className={`text-xs ${isSelected ? "text-primary" : "text-text-primary"}`}>
                   {opt.label}
                 </Text>
               </Pressable>

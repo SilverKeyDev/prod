@@ -5,9 +5,7 @@ import { getWindow } from "packages/utils/platform";
 
 type FeedScrollRef = MutableRefObject<unknown>;
 
-type SearchRef =
-  | MutableRefObject<{ triggerSearch: () => Promise<void> } | null>
-  | undefined;
+type SearchRef = MutableRefObject<{ triggerSearch: () => Promise<void> } | null> | undefined;
 
 export function useSearchFeatureLifecycle({
   setTriggerRefresh,
@@ -41,10 +39,7 @@ export function useSearchFeatureLifecycle({
     setTriggerRefresh(() => {
       const scroller = feedScrollRef.current as
         | {
-            scrollToIndex: (opts: {
-              index: number;
-              behavior?: "smooth" | "auto";
-            }) => void;
+            scrollToIndex: (opts: { index: number; behavior?: "smooth" | "auto" }) => void;
           }
         | null
         | undefined;
@@ -74,10 +69,7 @@ export function useSearchFeatureLifecycle({
       return;
     }
     const policy = w.document?.permissionsPolicy;
-    if (
-      typeof policy?.allowsFeature === "function" &&
-      !policy.allowsFeature("geolocation")
-    ) {
+    if (typeof policy?.allowsFeature === "function" && !policy.allowsFeature("geolocation")) {
       return;
     }
     const geo = nav.geolocation;
@@ -91,7 +83,7 @@ export function useSearchFeatureLifecycle({
       () => {
         setUserGeolocation(null);
       },
-      { enableHighAccuracy: false, maximumAge: 60_000, timeout: 20_000 },
+      { enableHighAccuracy: false, maximumAge: 60_000, timeout: 20_000 }
     );
     return () => {
       geo.clearWatch(watchId);
@@ -116,11 +108,7 @@ export function useSearchFeatureLifecycle({
     return () => {
       const pending = acRef.current;
       if (pending) {
-        log.debug(
-          LOG_CATEGORIES.ROUTING,
-          "[SEARCH] Aborting in-flight search on unmount",
-          {},
-        );
+        log.debug(LOG_CATEGORIES.ROUTING, "[SEARCH] Aborting in-flight search on unmount", {});
         pending.abort();
       }
     };

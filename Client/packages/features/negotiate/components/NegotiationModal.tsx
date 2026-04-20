@@ -8,12 +8,12 @@ import { useNegotiationStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 
 import { Cover, Title } from "@/components/ui";
-import { ComparablesSection } from "@/features/negotiate/components/ComparablesSection";
-import { DebugSection } from "@/features/negotiate/components/DebugSection";
-import { ErrorSection } from "@/features/negotiate/components/ErrorSection";
-import { LoadingSection } from "@/features/negotiate/components/LoadingSection";
-import { OpeningOfferSection } from "@/features/negotiate/components/OpeningOfferSection";
-import { StrategyDisplaySection } from "@/features/negotiate/components/StrategyDisplaySection";
+import { ErrorSection } from "@/features/negotiate/components/layout/ErrorSection";
+import { LoadingSection } from "@/features/negotiate/components/layout/LoadingSection";
+import { ComparablesSection } from "@/features/negotiate/components/sections/ComparablesSection";
+import { DebugSection } from "@/features/negotiate/components/sections/DebugSection";
+import { OpeningOfferSection } from "@/features/negotiate/components/sections/OpeningOfferSection";
+import { StrategyDisplaySection } from "@/features/negotiate/components/sections/StrategyDisplaySection";
 import { useNegotiation } from "@/features/negotiate/hooks/data/useNegotiation";
 import type { NegotiationInitialHome } from "@/features/negotiate/types/negotiationInitialHome";
 
@@ -22,16 +22,10 @@ type NegotiationModalProps = {
   onClose: () => void;
   initialHome?: NegotiationInitialHome | null;
 };
-export default function NegotiationModal({
-  isOpen,
-  onClose,
-  initialHome,
-}: NegotiationModalProps) {
+export default function NegotiationModal({ isOpen, onClose, initialHome }: NegotiationModalProps) {
   const { t } = useLocalization();
-  const { strategyData, compsData, isLoading, error, setLoading, setError } =
-    useNegotiationStore();
-  const { generateStrategy, cancelGeneration, selectHome, shareStrategyJson } =
-    useNegotiation();
+  const { strategyData, compsData, isLoading, error, setLoading, setError } = useNegotiationStore();
+  const { generateStrategy, cancelGeneration, selectHome, shareStrategyJson } = useNegotiation();
   // Ref for the price element to scroll to
   const priceElementRef = useRef<HTMLDivElement>(null);
   const previousLoadingRef = useRef<boolean>(false);
@@ -84,16 +78,11 @@ export default function NegotiationModal({
   };
   // Extract error message for proper type handling
   const errorMessage: string | null =
-    error && typeof error !== "object"
-      ? typeof error === "string"
-        ? error
-        : String(error)
-      : null;
+    error && typeof error !== "object" ? (typeof error === "string" ? error : String(error)) : null;
   // Auto-scroll to price element when strategy finishes loading
   useEffect(() => {
     // Check if loading just finished (was true, now false)
-    const loadingJustFinished =
-      previousLoadingRef.current === true && isLoading === false;
+    const loadingJustFinished = previousLoadingRef.current === true && isLoading === false;
     if (loadingJustFinished && priceElementRef.current && strategyData) {
       // Small delay to ensure DOM is updated
       setTimeout(() => {
@@ -115,15 +104,8 @@ export default function NegotiationModal({
       maxWidth="80vw"
       headerContent={
         <Box className="flex min-w-0 items-center gap-2">
-          <Icon
-            name="handshake"
-            className="text-text-secondary h-5 w-5 flex-shrink-0"
-          />
-          <Title
-            as="h3"
-            size="sm"
-            className="text-text-primary truncate font-sans font-medium"
-          >
+          <Icon name="handshake" className="text-text-secondary h-5 w-5 flex-shrink-0" />
+          <Title as="h3" size="sm" className="text-text-primary truncate font-sans font-medium">
             {t("negotiation.title")}
           </Title>
         </Box>
@@ -141,20 +123,14 @@ export default function NegotiationModal({
           <ComparablesSection compsData={compsData} isLoading={isLoading} />
 
           {/* Recommended Opening Offer - Displayed after comps */}
-          <OpeningOfferSection
-            strategyData={strategyData}
-            priceElementRef={priceElementRef}
-          />
+          <OpeningOfferSection strategyData={strategyData} priceElementRef={priceElementRef} />
 
           {/* Property Comps Debug JSON (fallback) */}
           <DebugSection compsData={compsData} isLoading={isLoading} />
 
           {/* Strategy output - Dynamic display of all AI fields */}
           {hasStrategyData && !isLoading && (
-            <StrategyDisplaySection
-              strategyData={strategyData}
-              onShareJson={handleShareJson}
-            />
+            <StrategyDisplaySection strategyData={strategyData} onShareJson={handleShareJson} />
           )}
         </Box>
       </Box>

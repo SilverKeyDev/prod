@@ -57,11 +57,9 @@ export function useSearchPageMapMarkerDataEffect({
       prevDataRef.current.currentPage !== currentPage ||
       prevDataRef.current.mapHomeCardsCount !== mapHomeCardsCount ||
       prevDataRef.current.dismissedKey !== dismissedKey ||
-      prevDataRef.current.mapListingPreviewsEnabled !==
-        mapListingPreviewsEnabled;
+      prevDataRef.current.mapListingPreviewsEnabled !== mapListingPreviewsEnabled;
 
-    const currentData =
-      activeTab === "results" ? filteredSearchResults : savedHomes;
+    const currentData = activeTab === "results" ? filteredSearchResults : savedHomes;
 
     const syncPrev = () => {
       prevDataRef.current = {

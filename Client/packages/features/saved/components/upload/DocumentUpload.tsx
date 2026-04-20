@@ -20,10 +20,7 @@ type DocumentUploadProps = {
   /** Whether to wrap content in a Card component */
   useCard?: boolean;
 };
-export default function DocumentUpload({
-  onUploadSuccess,
-  useCard = true,
-}: DocumentUploadProps) {
+export default function DocumentUpload({ onUploadSuccess, useCard = true }: DocumentUploadProps) {
   const { t } = useLocalization();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const { uploadDocument, uploadedFiles } = useDocuments();
@@ -33,24 +30,19 @@ export default function DocumentUpload({
   // Find current upload status for selected file
   const currentUpload = selectedFile
     ? uploadedFiles.find(
-        (upload) =>
-          upload.file.name === selectedFile.name &&
-          upload.file.size === selectedFile.size,
+        (upload) => upload.file.name === selectedFile.name && upload.file.size === selectedFile.size
       )
     : null;
   const uploadStatus = currentUpload?.status;
   const isUploadComplete = uploadStatus === "completed";
   const isUploadFailed = uploadStatus === "failed";
   const isUploadInProgress = isUploading || uploadStatus === "uploading";
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        setSelectedFile(file);
-      }
-    },
-    [],
-  );
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  }, []);
   const handleUpload = useCallback(async () => {
     if (!selectedFile) {
       enqueueToast({
@@ -154,9 +146,7 @@ export default function DocumentUpload({
                       </BodyText>
                     ) : (
                       <BodyText size="xs" muted>
-                        {`${(selectedFile.size / 1024 / 1024).toFixed(2)}${t(
-                          "common.mb",
-                        )}`}
+                        {`${(selectedFile.size / 1024 / 1024).toFixed(2)}${t("common.mb")}`}
                       </BodyText>
                     )}
                   </Box>
@@ -168,9 +158,7 @@ export default function DocumentUpload({
                     className="text-text-disabled h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6"
                   />
                   <Box className="min-w-0 flex-1">
-                    <BodyText size="sm">
-                      {t("documents_upload.click_to_select")}
-                    </BodyText>
+                    <BodyText size="sm">{t("documents_upload.click_to_select")}</BodyText>
                     <BodyText size="xs" muted>
                       {t("documents_upload.file_types")}
                     </BodyText>
@@ -200,17 +188,9 @@ export default function DocumentUpload({
       {currentUpload && (isUploadComplete || isUploadFailed) && (
         <Box className="gap-responsive-sm flex flex-row items-center">
           {isUploadComplete ? (
-            <StatusBadge
-              variant="success"
-              size="sm"
-              text={t("documents_upload.upload_success")}
-            />
+            <StatusBadge variant="success" size="sm" text={t("documents_upload.upload_success")} />
           ) : (
-            <StatusBadge
-              variant="error"
-              size="sm"
-              text={t("documents_upload.upload_failed")}
-            />
+            <StatusBadge variant="error" size="sm" text={t("documents_upload.upload_failed")} />
           )}
         </Box>
       )}
@@ -225,6 +205,7 @@ export default function DocumentUpload({
           loading={isUploading}
           fullWidth
           className="sm:w-auto"
+          iconName="upload"
         >
           {t("documents_upload.upload_document")}
         </Button>

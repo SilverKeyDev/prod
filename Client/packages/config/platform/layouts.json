@@ -42,9 +42,25 @@
   {
     "id": "messaging-screen",
     "description": "Full-screen messaging layout with platform-specific navigation",
-    "webPath": "packages/features/agent/components/MessagingScreen.tsx",
-    "nativePath": "packages/features/agent/components/MessagingScreen.native.tsx",
+    "webPath": "packages/features/agent/components/messaging/MessagingScreen.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screen/MessagingScreen.native.tsx",
     "reason": "Full-screen messaging layout with platform-specific navigation. Native uses RN stack navigation and full-screen presentation.",
+    "category": "layout"
+  },
+  {
+    "id": "messaging-agent-list-subview",
+    "description": "Agent messaging inbox list before a client conversation is selected",
+    "webPath": "packages/features/agent/components/messaging/screen/MessagingAgentListSubview.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screen/MessagingAgentListSubview.native.tsx",
+    "reason": "Native uses RN FlatList and Pressable rows; web agent inbox uses UnifiedMessagingSidebar in the workspace layout.",
+    "category": "layout"
+  },
+  {
+    "id": "messaging-client-empty-state",
+    "description": "Client messaging empty state when no agent is connected",
+    "webPath": "packages/features/agent/components/messaging/screen/MessagingClientEmptyState.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screen/MessagingClientEmptyState.native.tsx",
+    "reason": "Native full-screen centered empty state; web uses UnifiedMessagesList empty-state copy and layout.",
     "category": "layout"
   },
   {

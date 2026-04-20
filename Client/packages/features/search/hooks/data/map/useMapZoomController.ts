@@ -1,6 +1,6 @@
 import { type MutableRefObject, useCallback } from "react";
 
-import { calculatePropertyCardCenter } from "packages/features/search/types/search/propertyCardCenter";
+import { calculatePropertyCardCenter } from "packages/features/search/types/search/map/propertyCardCenter";
 import {
   adjustMapZoomByDelta,
   applyListingFocusCamera,
@@ -38,7 +38,7 @@ export const useMapZoomController = ({
       return calculatePropertyCardCenter(
         currentProperty.lat,
         currentProperty.lng,
-        currentProperty.id,
+        currentProperty.id
       );
     }
 
@@ -63,18 +63,11 @@ export const useMapZoomController = ({
             lat: currentProperty.lat,
             lng: currentProperty.lng,
           },
-        },
+        }
       );
       applyListingFocusCamera(googleMapRef.current, center);
     }
-  }, [
-    activeTab,
-    calculateMapCenter,
-    currentPage,
-    googleMapRef,
-    savedHomes,
-    searchResults,
-  ]);
+  }, [activeTab, calculateMapCenter, currentPage, googleMapRef, savedHomes, searchResults]);
 
   const resetToDefaultZoom = useCallback(() => {
     if (!googleMapRef.current) return;

@@ -8,7 +8,7 @@ from app.models import UserPropertyLink
 from app.services.aggregation import get_preferences_dict_optional
 from app.services.research.graphs.graphic_generation import (
     GOOGLE_MAPS_ID,
-    fetch_travel_time,
+    fetch_directions_leg,
     generate_static_map_url,
 )
 from app.services.search.data import get_property_detail, get_property_images
@@ -83,14 +83,27 @@ def build_commute_data(
     for i, location in enumerate(important_locations):
         if isinstance(location, dict) and "address" in location:
             location_address = location["address"]
-            location_name = location.get("name") or location_address[:40] or f"Location {i + 1}"
-            travel_time = fetch_travel_time(property_address, location_address, google_maps_key)
+            location_name = (
+                location.get("name")
+                or location.get("label")
+                or location_address[:40]
+                or f"Location {i + 1}"
+            )
+            leg = fetch_directions_leg(property_address, location_address, google_maps_key)
+            travel_time = leg.get("duration_text") if leg else None
+            encoded_polyline = leg.get("encoded_polyline") if leg else None
+            tol = location.get("commute_tolerance")
+            if tol is None:
+                tol = location.get("max_commute_minutes")
+            if tol is None:
+                tol = 30
             travel_times.append(
                 {
                     "name": location_name,
                     "address": location_address,
                     "travel_time": travel_time,
-                    "commute_tolerance": location.get("commute_tolerance", 30),
+                    "commute_tolerance": tol,
+                    "encoded_polyline": encoded_polyline,
                 }
             )
             secondary_locations.append(

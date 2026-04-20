@@ -1,30 +1,26 @@
-import Dropdown from "packages/ui/components/form/Dropdown";
+import Dropdown from "packages/ui/components/form/dropdown";
 import { Box } from "packages/ui/components/primitives";
-
-import {
-  buildDateOptions,
-  EVENT_REQUEST_DATE_RANGE_DAYS,
-  type EventScheduleOption,
-} from "./eventRequestScheduleOptions";
+import type { EventScheduleOption } from "packages/utils/scheduling/eventRequestScheduleOptions";
 
 export type EventRequestDateDropdownProps = {
   minDate: string;
   value: string;
   onChange: (value: string) => void;
+  /** Date rows with availability styling (from `useEventRequestScheduleAvailability`). */
+  options: EventScheduleOption[];
 };
 
 export function EventRequestDateDropdown({
-  minDate,
+  minDate: _minDate,
   value,
   onChange,
+  options,
 }: EventRequestDateDropdownProps) {
-  const options: EventScheduleOption[] = buildDateOptions(
-    minDate,
-    EVENT_REQUEST_DATE_RANGE_DAYS,
-  );
   const dropdownOptions = options.map((o) => ({
     value: o.value,
     label: o.label,
+    disabled: o.disabled,
+    menuRowClassName: o.menuRowClassName,
   }));
 
   return (
@@ -38,6 +34,8 @@ export function EventRequestDateDropdown({
         searchable
         variant="compact"
         size="sm"
+        menuInPortal
+        menuPortalStack="modal"
       />
     </Box>
   );

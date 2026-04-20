@@ -6,8 +6,8 @@ import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 
 import { BodyText, Button, CancelButton, Title } from "@/components/ui";
-import { useGoogleCalendarOAuth } from "@/features/calendar/hooks/data/useGoogleCalendarOAuth";
-import { useScheduling } from "@/features/calendar/hooks/data/useScheduling";
+import { useScheduling } from "@/features/calendar/hooks/data/core/useScheduling";
+import { useGoogleCalendarOAuth } from "@/features/calendar/hooks/data/google/useGoogleCalendarOAuth";
 import type { ScheduleEventRequest } from "@/packages/schemas/scheduling";
 
 import { SchedulingForm } from "./SchedulingForm";
@@ -79,7 +79,13 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
         </Box>
 
         <Box className="space-y-responsive-sm">
-          <Button variant="primary" onClick={handleConnect} fullWidth className="w-full">
+          <Button
+            variant="primary"
+            onClick={handleConnect}
+            fullWidth
+            className="w-full"
+            iconName="link-2"
+          >
             Connect Google Calendar
           </Button>
           <CancelButton onClick={onClose} fullWidth>

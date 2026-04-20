@@ -5,9 +5,9 @@ import type { MutableRefObject, RefObject } from "react";
 import {
   clearImportantLocationMarkers,
   type GoogleAdvancedMarkerElement,
-} from "packages/features/search/types/search/importantLocationRenderer";
-import { clearIsochroneOverlays } from "packages/features/search/types/search/isochroneRenderer";
-import type { IsochroneData } from "packages/types/api";
+} from "packages/features/search/types/search/map/importantLocationRenderer";
+import { clearIsochroneOverlays } from "packages/features/search/types/search/map/isochroneRenderer";
+import type { IsochroneData } from "packages/types/domain/api";
 
 type Params = {
   isGoogleMapsLoaded: boolean;
@@ -21,13 +21,8 @@ type Params = {
   importantMarkersRef: MutableRefObject<GoogleAdvancedMarkerElement[]>;
   mapFocusOnCurrentProperty: () => void;
   primeIsochroneOverlay: () => void | Promise<void>;
-  renderIsochronePolygonWrapper: (
-    data: unknown,
-    options?: { skipCommuteToggle?: boolean },
-  ) => void;
-  renderImportantLocationMarkersWrapper: (
-    data: unknown,
-  ) => void | Promise<void>;
+  renderIsochronePolygonWrapper: (data: unknown, options?: { skipCommuteToggle?: boolean }) => void;
+  renderImportantLocationMarkersWrapper: (data: unknown) => void | Promise<void>;
   /** When false, skip map-only isochrone fetch/render until explicit search (agents). */
   shouldPrimeIsochrone?: boolean;
 };
@@ -81,11 +76,7 @@ export function useSearchPageMapDisplayOverlayEffect({
       clearImportantLocationMarkers(importantMarkersRef);
     }
 
-    if (
-      shouldPrimeIsochrone &&
-      !isochroneData &&
-      !hasPrimedWithoutIsochroneData.current
-    ) {
+    if (shouldPrimeIsochrone && !isochroneData && !hasPrimedWithoutIsochroneData.current) {
       hasPrimedWithoutIsochroneData.current = true;
       setTimeout(() => {
         void primeIsochroneOverlay();

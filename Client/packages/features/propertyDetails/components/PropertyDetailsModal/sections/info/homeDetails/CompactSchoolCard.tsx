@@ -17,9 +17,7 @@ type CompactSchoolCardProps = {
   school: School;
 };
 
-export const CompactSchoolCard: React.FC<CompactSchoolCardProps> = ({
-  school,
-}) => {
+export const CompactSchoolCard: React.FC<CompactSchoolCardProps> = ({ school }) => {
   const { t } = useLocalization();
 
   const ratingRaw = school.rating;
@@ -32,8 +30,7 @@ export const CompactSchoolCard: React.FC<CompactSchoolCardProps> = ({
   const hasRating = Number.isFinite(ratingNum);
 
   const distRaw = school.distance;
-  const distStr =
-    distRaw !== undefined && distRaw !== null ? String(distRaw) : "";
+  const distStr = distRaw !== undefined && distRaw !== null ? String(distRaw) : "";
   const miSuffix = t("property_details.mi", { defaultValue: "mi" });
 
   return (
@@ -56,11 +53,7 @@ export const CompactSchoolCard: React.FC<CompactSchoolCardProps> = ({
         {hasRating ? <PropertySectionRatingBadge rating={ratingNum} /> : null}
         {distStr !== "" ? (
           <Box className="border-border rounded-full border px-2 py-0.5">
-            <BodyText
-              as="span"
-              size="xs"
-              className="text-text-secondary font-medium"
-            >
+            <BodyText as="span" size="xs" className="text-text-secondary font-medium">
               {distStr} {miSuffix}
             </BodyText>
           </Box>

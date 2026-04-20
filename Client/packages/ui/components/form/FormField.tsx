@@ -26,9 +26,7 @@ const FormField = ({
   return (
     <Box className={`mb-4 ${className}`}>
       {label && (
-        <Label
-          className={`text-text-primary mb-2 block font-medium ${labelClassName}`}
-        >
+        <Label className={`text-text-primary mb-2 block font-medium ${labelClassName}`}>
           {label}
         </Label>
       )}
@@ -54,12 +52,7 @@ export function Input({ error, className = "", ...props }: InputProps) {
     INPUT_AUTOFILL_CLASS_NAME;
   const errorClasses = error ? "border-neutral-600" : "border-border";
 
-  return (
-    <input
-      className={`${baseClasses} ${errorClasses} ${className}`}
-      {...props}
-    />
-  );
+  return <input className={`${baseClasses} ${errorClasses} ${className}`} {...props} />;
 }
 
 type TextareaProps = {
@@ -72,10 +65,5 @@ export function Textarea({ error, className = "", ...props }: TextareaProps) {
     INPUT_AUTOFILL_CLASS_NAME;
   const errorClasses = error ? "border-neutral-600" : "border-border";
 
-  return (
-    <textarea
-      className={`${baseClasses} ${errorClasses} ${className}`}
-      {...props}
-    />
-  );
+  return <textarea className={`${baseClasses} ${errorClasses} ${className}`} {...props} />;
 }

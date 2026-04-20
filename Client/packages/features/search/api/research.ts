@@ -19,8 +19,7 @@ import type { components } from "packages/types/api.generated";
 import { getFetch } from "packages/utils/platform";
 
 // Re-export types from generated schema
-export type PropertyResearchOptions =
-  components["schemas"]["PropertyResearchOptions"];
+export type PropertyResearchOptions = components["schemas"]["PropertyResearchOptions"];
 export type PropertyRequest = components["schemas"]["PropertyRequest"];
 export type PropertyResponse = components["schemas"]["PropertyResponse"];
 export type TaskStatusResponse = components["schemas"]["TaskStatusResponse"];
@@ -45,9 +44,7 @@ export const researchApi = {
           hasFeatures: !!resp?.features,
           hasCommute: !!resp?.commute_data,
           hasAnalysis: !!resp?.property_analysis,
-          imagesCount: Array.isArray(resp?.images)
-            ? resp?.images?.length
-            : undefined,
+          imagesCount: Array.isArray(resp?.images) ? resp?.images?.length : undefined,
           hasError: !!resp?.error,
         });
         return resp;
@@ -65,7 +62,7 @@ export const researchApi = {
    * Returns an async generator that yields property updates as sections are generated
    */
   streamProperty: async function* (
-    data: PropertyRequest,
+    data: PropertyRequest
   ): AsyncGenerator<{ type: string; data: unknown }, void, unknown> {
     const baseUrl = getEnv().apiBaseUrl;
     const url = `${baseUrl}/api/v1/research/property?stream=true`;
@@ -120,7 +117,7 @@ export const researchApi = {
                 {
                   line,
                   error: parseError,
-                },
+                }
               );
             }
           }
@@ -160,7 +157,7 @@ export const researchApi = {
    * Returns an async generator that yields property updates as sections are generated
    */
   streamCompare: async function* (
-    data: PropertyRequest,
+    data: PropertyRequest
   ): AsyncGenerator<{ type: string; data: unknown }, void, unknown> {
     const baseUrl = getEnv().apiBaseUrl;
     const url = `${baseUrl}/api/v1/research/compare?stream=true`;
@@ -215,7 +212,7 @@ export const researchApi = {
                 {
                   line,
                   error: parseError,
-                },
+                }
               );
             }
           }

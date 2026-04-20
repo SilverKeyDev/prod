@@ -10,10 +10,7 @@ export const CREATE_EVENT_TIME_STEP_MINUTES = 15;
 /**
  * Snap total minutes from midnight to the nearest step (floor) within 0..24h.
  */
-export function quantizeMinutesFromMidnight(
-  totalMinutes: number,
-  stepMinutes: number,
-): number {
+export function quantizeMinutesFromMidnight(totalMinutes: number, stepMinutes: number): number {
   if (stepMinutes < 1 || stepMinutes > 60 || 60 % stepMinutes !== 0) {
     return Math.max(0, Math.min(24 * 60 - stepMinutes, totalMinutes));
   }
@@ -26,7 +23,7 @@ export function quantizeMinutesFromMidnight(
  * Parse HH:mm; returns null if invalid.
  */
 export function parseHourMinute24(
-  raw: string | null | undefined,
+  raw: string | null | undefined
 ): { hour: number; minute: number } | null {
   if (raw == null || raw.trim() === "") {
     return null;
@@ -56,7 +53,7 @@ export function parseHourMinute24(
 export function quantizeHourMinute(
   hour: number,
   minute: number,
-  stepMinutes: number,
+  stepMinutes: number
 ): { hour: number; minute: number } {
   const total = hour * 60 + minute;
   const q = quantizeMinutesFromMidnight(total, stepMinutes);
@@ -73,7 +70,7 @@ function isValidYmd(s: string): boolean {
  */
 export function inclusiveRangeToGoogleAllDayDates(
   startYmdInclusive: string,
-  endYmdInclusive: string,
+  endYmdInclusive: string
 ): { startDate: string; endDateExclusive: string } {
   const start = dayjs(startYmdInclusive.trim(), "YYYY-MM-DD", true);
   const endIncl = dayjs(endYmdInclusive.trim(), "YYYY-MM-DD", true);
@@ -93,9 +90,7 @@ export function inclusiveRangeToGoogleAllDayDates(
 /**
  * Inclusive end date from Google all-day response (`end.date` exclusive).
  */
-export function googleAllDayEndExclusiveToInclusiveEndYmd(
-  endDateExclusive: string,
-): string {
+export function googleAllDayEndExclusiveToInclusiveEndYmd(endDateExclusive: string): string {
   const end = dayjs(endDateExclusive.trim(), "YYYY-MM-DD", true);
   if (!end.isValid()) {
     throw new Error("Invalid end date.");
@@ -110,13 +105,18 @@ export type BuildCreateEventGooglePayloadParams = {
   startTime: string;
   endTime: string;
   timeStepMinutes?: number;
+  /**
+   * When true, timed `end` is capped to 23:59 on the start date's local calendar day
+   * (no spill into the next local day).
+   */
+  clampTimedEndToStartLocalDay?: boolean;
 };
 
 /**
  * Builds `start` / `end` for Google Calendar API from form state.
  */
 export function buildCreateEventGoogleStartEnd(
-  params: BuildCreateEventGooglePayloadParams,
+  params: BuildCreateEventGooglePayloadParams
 ): Pick<GoogleEvent, "start" | "end"> {
   const step = params.timeStepMinutes ?? CREATE_EVENT_TIME_STEP_MINUTES;
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -124,7 +124,7 @@ export function buildCreateEventGoogleStartEnd(
   if (params.isAllDay) {
     const { startDate, endDateExclusive } = inclusiveRangeToGoogleAllDayDates(
       params.startDate,
-      params.endDate,
+      params.endDate
     );
     return {
       start: { date: startDate },
@@ -149,7 +149,7 @@ export function buildCreateEventGoogleStartEnd(
     .minute(startHm.minute)
     .second(0)
     .millisecond(0);
-  const end = dayjs(params.endDate, "YYYY-MM-DD", true)
+  let end = dayjs(params.endDate, "YYYY-MM-DD", true)
     .hour(endHm.hour)
     .minute(endHm.minute)
     .second(0)
@@ -160,6 +160,22 @@ export function buildCreateEventGoogleStartEnd(
   }
   if (!end.isAfter(start)) {
     throw new Error("End must be after start.");
+  }
+
+  if (params.clampTimedEndToStartLocalDay) {
+    const startYmd = start.format("YYYY-MM-DD");
+    if (end.format("YYYY-MM-DD") !== startYmd) {
+      end = dayjs(startYmd, "YYYY-MM-DD", true).hour(23).minute(59).second(0).millisecond(0);
+    }
+    if (!end.isAfter(start)) {
+      end = start.add(1, "minute");
+      if (end.format("YYYY-MM-DD") !== startYmd) {
+        end = dayjs(startYmd, "YYYY-MM-DD", true).hour(23).minute(59).second(0).millisecond(0);
+      }
+    }
+    if (!end.isAfter(start)) {
+      throw new Error("End must be after start.");
+    }
   }
 
   return {

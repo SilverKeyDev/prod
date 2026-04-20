@@ -1,9 +1,10 @@
 import React, { useCallback } from "react";
 
 import {
+  PROFILE_FIELDS_ROW_PROPS,
   ProfileSectionBody,
   ProfileSectionCallout,
-  useHidePersonalizationStepHeading,
+  useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
@@ -15,9 +16,9 @@ import { BodyText, Dropdown, Input, Title } from "@/components/ui";
 import { SearchPrefsPriceFinancing } from "@/features/profile/components/profileScreen/searchPreferences/SearchPrefsPriceFinancing";
 import type { PatchBuyerPreferenceExtensions } from "@/features/profile/components/profileScreen/searchPreferences/types";
 import { withBuyerExtV1 } from "@/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
-import BudgetSlider from "@/features/profile/components/settings/inputs/BudgetSlider";
 import Label from "@/features/profile/components/settings/inputs/Label";
-import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
+import BudgetSlider from "@/features/profile/components/settings/inputs/sliders/BudgetSlider";
+import PriceRangeSlider from "@/features/profile/components/settings/inputs/sliders/PriceRangeSlider";
 import {
   AGENT_OPTIONAL_BUYER_FINANCIAL_HINT,
   CREDIT_SCORE_OPTIONS,
@@ -42,7 +43,7 @@ export function SettingsFinancialSection({
   updateFormData,
   patchBuyerPreferenceExtensions,
 }: SettingsFinancialSectionProps) {
-  const hideStepHeading = useHidePersonalizationStepHeading();
+  const showSectionTitle = useShowPersonalizationSectionBodyTitle();
   const authIsAgent = useIsAgent();
   const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
@@ -50,14 +51,10 @@ export function SettingsFinancialSection({
   });
 
   const patch = useCallback(
-    (
-      fn: (
-        prev: BuyerPreferenceExtensions | undefined,
-      ) => BuyerPreferenceExtensions,
-    ) => {
+    (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {
       patchBuyerPreferenceExtensions(fn);
     },
-    [patchBuyerPreferenceExtensions],
+    [patchBuyerPreferenceExtensions]
   );
 
   const minB = formData.home_budget_min;
@@ -73,33 +70,25 @@ export function SettingsFinancialSection({
 
   return (
     <ProfileSectionBody>
-      {!hideStepHeading && (
+      {showSectionTitle && (
         <Title size="md" className="mb-6">
           Financial Information
         </Title>
       )}
       {showAgentOptionalBuyerCallout && (
-        <ProfileSectionCallout>
-          {AGENT_OPTIONAL_BUYER_FINANCIAL_HINT}
-        </ProfileSectionCallout>
+        <ProfileSectionCallout>{AGENT_OPTIONAL_BUYER_FINANCIAL_HINT}</ProfileSectionCallout>
       )}
 
       <Box className="col-span-1 flex flex-col items-center md:col-span-2">
         <Box className="mb-2 flex w-full flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          <Title
-            size="sm"
-            as="h3"
-            className="min-w-0 flex-1 text-left text-base"
-          >
+          <Title size="sm" as="h3" className="min-w-0 flex-1 text-left text-base">
             {FIELD_LABELS.HOME_BUDGET}
           </Title>
           {isEditMode ? (
             <Pressable
               type="button"
               onPress={() =>
-                setPayingCash(!formData.paying_cash, (field, value) =>
-                  updateFormData(field, value),
-                )
+                setPayingCash(!formData.paying_cash, (field, value) => updateFormData(field, value))
               }
               className="flex shrink-0 flex-row items-center gap-2 bg-transparent p-0 text-left"
               label={FIELD_LABELS.PAYING_WITH_CASH}
@@ -121,8 +110,7 @@ export function SettingsFinancialSection({
         {isEditMode ? (
           <BudgetSlider
             tickValues={[
-              200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000,
-              6000000, 10000000,
+              200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000, 6000000, 10000000,
             ]}
             minValue={formData.home_budget_min ?? 200000}
             maxValue={formData.home_budget_max ?? 1000000}
@@ -155,17 +143,13 @@ export function SettingsFinancialSection({
       {!formData.paying_cash && (
         <>
           <AlignedRow
-            breakIntoRows="lg"
-            gap="lg"
-            justify="start"
+            {...PROFILE_FIELDS_ROW_PROPS}
             items={[
               {
                 title: <Label>Gross Annual Income (after debts)</Label>,
                 content: isEditMode ? (
                   <PriceRangeSlider
-                    tickValues={[
-                      50000, 100000, 200000, 300000, 500000, 750000, 1000000,
-                    ]}
+                    tickValues={[50000, 100000, 200000, 300000, 500000, 750000, 1000000]}
                     value={formData.gross_income ?? 100000}
                     onChange={(value) => {
                       const roundedValue = Math.round(value / 5000) * 5000;
@@ -177,9 +161,7 @@ export function SettingsFinancialSection({
                 ) : (
                   <Box
                     className={`mobile-input bg-background-base text-left ${
-                      formData.gross_income
-                        ? "text-text-primary"
-                        : "text-text-secondary"
+                      formData.gross_income ? "text-text-primary" : "text-text-secondary"
                     }`}
                   >
                     {formData.gross_income
@@ -192,9 +174,7 @@ export function SettingsFinancialSection({
                 title: <Label>Down Payment</Label>,
                 content: isEditMode ? (
                   <PriceRangeSlider
-                    tickValues={[
-                      100000, 250000, 500000, 1000000, 2000000, 5000000,
-                    ]}
+                    tickValues={[100000, 250000, 500000, 1000000, 2000000, 5000000]}
                     value={formData.down_payment ?? 100000}
                     onChange={(value) => {
                       const roundedValue = Math.round(value / 5000) * 5000;
@@ -206,9 +186,7 @@ export function SettingsFinancialSection({
                 ) : (
                   <Box
                     className={`mobile-input bg-background-base text-left ${
-                      formData.down_payment
-                        ? "text-text-primary"
-                        : "text-text-secondary"
+                      formData.down_payment ? "text-text-primary" : "text-text-secondary"
                     }`}
                   >
                     {formData.down_payment
@@ -221,9 +199,7 @@ export function SettingsFinancialSection({
           />
 
           <AlignedRow
-            breakIntoRows="lg"
-            gap="lg"
-            justify="evenly"
+            {...PROFILE_FIELDS_ROW_PROPS}
             items={[
               {
                 title: <Label>Ideal Zip Code</Label>,
@@ -239,7 +215,7 @@ export function SettingsFinancialSection({
                 ) : (
                   <Box
                     className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                      formData.ideal_zip_code,
+                      formData.ideal_zip_code
                     )}`}
                   >
                     {formData.ideal_zip_code ?? PROFILE_NOT_SPECIFIED_LABEL}
@@ -251,23 +227,20 @@ export function SettingsFinancialSection({
                 content: isEditMode ? (
                   <Dropdown
                     value={formData.credit_score_range ?? ""}
-                    onChange={(value) =>
-                      updateFormData("credit_score_range", value)
-                    }
+                    onChange={(value) => updateFormData("credit_score_range", value)}
                     options={CREDIT_SCORE_OPTIONS}
-                    placeholder="Select..."
+                    placeholder="Select credit score range"
                   />
                 ) : (
                   <Box
                     className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                      formData.credit_score_range,
+                      formData.credit_score_range
                     )}`}
                   >
                     {formData.credit_score_range
-                      ? CREDIT_SCORE_OPTIONS.find(
-                          (option) =>
-                            option.value === formData.credit_score_range,
-                        )?.label ?? PROFILE_NOT_SPECIFIED_LABEL
+                      ? (CREDIT_SCORE_OPTIONS.find(
+                          (option) => option.value === formData.credit_score_range
+                        )?.label ?? PROFILE_NOT_SPECIFIED_LABEL)
                       : PROFILE_NOT_SPECIFIED_LABEL}
                   </Box>
                 ),

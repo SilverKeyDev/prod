@@ -15,9 +15,7 @@ import { useAuthStore } from "packages/store";
  */
 export function useSearchDisplaySettings(authReady: boolean) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const applySearchDisplayFromApi = useFiltersStore(
-    (s) => s.applySearchDisplayFromApi,
-  );
+  const applySearchDisplayFromApi = useFiltersStore((s) => s.applySearchDisplayFromApi);
   const hydratedRef = useRef(false);
   const queryClient = useQueryClient();
 
@@ -64,7 +62,7 @@ export function useSearchDisplaySettings(authReady: boolean) {
         /* logged in onError */
       });
     },
-    [isAuthenticated, mutation],
+    [isAuthenticated, mutation]
   );
 
   return {

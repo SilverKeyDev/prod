@@ -18,7 +18,7 @@ export type StoreDocumentLike = {
 /**
  * Maps store-like documents to DocumentData[] for SelectDocumentModal and other
  * components. Shared by agent (web + native) and documents feature; lives in
- * packages/utils to satisfy no-cross-feature-internals.
+ * packages/utils for reuse across features.
  */
 export function mapStoreDocumentsToDocumentData(documents: StoreDocumentLike[]): DocumentData[] {
   return documents.map((d) => ({

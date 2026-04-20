@@ -15,8 +15,15 @@ VALID_SECTIONS = frozenset(
         "condition",
         "utilities",
         "neighborhood",
+        "availability",
     }
 )
+
+AVAILABILITY_MAX_WEEKLY = 64
+AVAILABILITY_MAX_ONEOFF = 128
+AVAILABILITY_MAX_EXCEPTIONS = 256
+AVAILABILITY_TZ_MAX_LEN = 64
+AVAILABILITY_ID_MAX_LEN = 80
 
 IMPORTANCE_VALUES = frozenset(
     {
@@ -70,6 +77,48 @@ def _importance(v: Any) -> str | None:
     if s in IMPORTANCE_VALUES:
         return s
     return None
+
+
+def _availability_id(v: Any) -> str | None:
+    s = _short_str(v, AVAILABILITY_ID_MAX_LEN)
+    if not s:
+        return None
+    if any(c in s for c in (" ", "\n", "\t", "<", ">", '"', "'")):
+        return None
+    return s
+
+
+def _hhmm(v: Any) -> str | None:
+    """Return 'HH:MM' in 24h if valid, else None."""
+    if v is None:
+        return None
+    s = str(v).strip()
+    parts = s.split(":")
+    if len(parts) != 2:
+        return None
+    try:
+        h = int(parts[0])
+        m = int(parts[1])
+    except (TypeError, ValueError):
+        return None
+    if h < 0 or h > 23 or m < 0 or m > 59:
+        return None
+    return f"{h:02d}:{m:02d}"
+
+
+def _date_ymd(v: Any) -> str | None:
+    s = _short_str(v, 12)
+    if not s or len(s) != 10 or s[4] != "-" or s[7] != "-":
+        return None
+    try:
+        y = int(s[0:4])
+        mo = int(s[5:7])
+        d = int(s[8:10])
+    except ValueError:
+        return None
+    if y < 1970 or y > 2100 or mo < 1 or mo > 12 or d < 1 or d > 31:
+        return None
+    return s
 
 
 def _short_str(v: Any, max_len: int = 120) -> str | None:
@@ -155,6 +204,65 @@ def sanitize_section(section: str, data: Any) -> dict[str, Any] | None:
             if im:
                 out[key] = im
         return out or None
+    if section == "availability":
+        out: dict[str, Any] = {}
+        tz = _short_str(data.get("timezone"), AVAILABILITY_TZ_MAX_LEN)
+        if tz:
+            out["timezone"] = tz
+
+        weekly_raw = data.get("weekly")
+        weekly_out: list[dict[str, Any]] = []
+        if isinstance(weekly_raw, list):
+            for item in weekly_raw[:AVAILABILITY_MAX_WEEKLY]:
+                if not isinstance(item, dict):
+                    continue
+                wid = _availability_id(item.get("id"))
+                wd = _int_clamped(item.get("weekday"), 0, 6)
+                st = _hhmm(item.get("start"))
+                en = _hhmm(item.get("end"))
+                if wid is None or wd is None or st is None or en is None:
+                    continue
+                if st >= en:
+                    continue
+                weekly_out.append({"id": wid, "weekday": wd, "start": st, "end": en})
+        if weekly_out:
+            out["weekly"] = weekly_out
+
+        one_raw = data.get("oneOff")
+        one_out: list[dict[str, Any]] = []
+        if isinstance(one_raw, list):
+            for item in one_raw[:AVAILABILITY_MAX_ONEOFF]:
+                if not isinstance(item, dict):
+                    continue
+                oid = _availability_id(item.get("id"))
+                d = _date_ymd(item.get("date"))
+                st = _hhmm(item.get("start"))
+                en = _hhmm(item.get("end"))
+                if oid is None or d is None or st is None or en is None:
+                    continue
+                if st >= en:
+                    continue
+                one_out.append({"id": oid, "date": d, "start": st, "end": en})
+        if one_out:
+            out["oneOff"] = one_out
+
+        exc_raw = data.get("exceptions")
+        exc_out: list[dict[str, Any]] = []
+        if isinstance(exc_raw, list):
+            for item in exc_raw[:AVAILABILITY_MAX_EXCEPTIONS]:
+                if not isinstance(item, dict):
+                    continue
+                eid = _availability_id(item.get("id"))
+                scope = _short_str(item.get("scope"), 16)
+                rule_id = _availability_id(item.get("ruleId"))
+                d = _date_ymd(item.get("date"))
+                if eid is None or scope != "weekly" or rule_id is None or d is None:
+                    continue
+                exc_out.append({"id": eid, "scope": "weekly", "ruleId": rule_id, "date": d})
+        if exc_out:
+            out["exceptions"] = exc_out
+
+        return out or None
     return None
 
 
@@ -216,7 +324,7 @@ def merge_extended_buyer_preferences(existing: Any, incoming: Any) -> dict[str, 
         if sanitized is None:
             base.pop(k, None)
             continue
-        if k in ("location_prefs", "neighborhood"):
+        if k in ("location_prefs", "neighborhood", "availability"):
             # Replace section to allow deprecated keys to be removed.
             base[k] = sanitized
             continue

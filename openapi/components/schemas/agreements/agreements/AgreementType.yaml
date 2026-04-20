@@ -18,3 +18,4 @@ enum:
   - closing_disclosure
   - other
   - uploaded_document
+  - checklist_form

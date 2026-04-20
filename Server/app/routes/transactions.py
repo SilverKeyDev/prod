@@ -3,15 +3,44 @@
 from flask import Blueprint, current_app, jsonify, request
 
 from app.schemas import TransactionAddressData, TransactionAddressResponse
+from app.services.agent.client_service import get_agent_client_ids
+from app.services.transactions.unified_task_checklist_read import build_task_checklist_data
 from app.utils.validation import validate_request, validate_response
 
 from .. import db
 from ..models import TransactionAddress
 from ..utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from ..utils.security.security import rate_limit
+from .checklist_dispatch_automation import (
+    get_checklist_dispatch_automation,
+    put_checklist_dispatch_automation,
+)
 from .checklist_forms import download_form, get_checklist_item_forms, send_form
 
 transactions_bp = Blueprint("transactions", __name__, url_prefix="/api/v1/transactions")
+
+
+def _can_read_transaction_task_checklist(user, transaction_id: str) -> bool:
+    if str(user.id) == str(transaction_id):
+        return True
+    return str(transaction_id) in set(get_agent_client_ids(str(user.id)))
+
+
+@transactions_bp.route("/<transaction_id>/tasks", methods=["GET"])
+@rate_limit(max_requests=200, window_seconds=60)
+@handle_exceptions_with_logging
+@require_authenticated_user
+def get_transaction_task_checklist(user, transaction_id: str):
+    """GET checklist definitions + checkedIds for a buyer (self) or an agent's client."""
+    if not _can_read_transaction_task_checklist(user, str(transaction_id)):
+        return jsonify({"success": False, "error": "Access denied"}), 403
+
+    checklist_type = request.args.get("type", "escrow")
+    data = build_task_checklist_data(str(transaction_id), checklist_type)
+    if data is None:
+        return jsonify({"success": False, "error": "Invalid checklist type"}), 400
+
+    return jsonify({"success": True, "data": data})
 
 
 @transactions_bp.route("/address", methods=["GET"])
@@ -157,4 +186,16 @@ transactions_bp.add_url_rule(
     "send_form",
     send_form,
     methods=["POST"],
+)
+transactions_bp.add_url_rule(
+    "/<transaction_id>/checklist-items/<section>/<item_id>/dispatch-automation",
+    "get_checklist_dispatch_automation",
+    get_checklist_dispatch_automation,
+    methods=["GET"],
+)
+transactions_bp.add_url_rule(
+    "/<transaction_id>/checklist-items/<section>/<item_id>/dispatch-automation",
+    "put_checklist_dispatch_automation",
+    put_checklist_dispatch_automation,
+    methods=["PUT"],
 )

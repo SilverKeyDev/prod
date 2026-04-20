@@ -5,10 +5,7 @@
 
 import { type ShadowTokenName, shadowTokens } from "packages/design-tokens";
 
-function buildCss(
-  t: (typeof shadowTokens)[ShadowTokenName],
-  color: string,
-): string {
+function buildCss(t: (typeof shadowTokens)[ShadowTokenName], color: string): string {
   return `${t.offsetX}px ${t.offsetY}px ${t.blur}px ${t.spread}px ${color}`;
 }
 

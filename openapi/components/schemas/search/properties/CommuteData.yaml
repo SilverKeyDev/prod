@@ -16,5 +16,9 @@ properties:
           type: string
         commute_tolerance:
           type: number
+        encoded_polyline:
+          type: string
+          nullable: true
+          description: Google-encoded overview polyline for the driving route from the listing to this location (Directions API).
   property_address:
     type: string

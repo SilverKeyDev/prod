@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import Dropdown from "packages/ui/components/form/Dropdown";
-import type { DropdownOption } from "packages/ui/components/form/Dropdown.types";
+import Dropdown, { type DropdownOption } from "packages/ui/components/form/dropdown";
 import Cover from "packages/ui/components/modals/cover";
 import { Box, Text } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";
@@ -12,8 +11,8 @@ import {
   AGENDA_ALL_DISPLAY_OPTIONS,
   type AgendaAllDisplayMode,
   applyAgendaAllDisplayMode,
-} from "@/features/calendar/utils/agendaAllDisplay";
-import type { UpcomingAgendaItem } from "@/features/calendar/utils/mergeUpcomingAgenda";
+} from "@/features/calendar/utils/agenda/agendaAllDisplay";
+import type { UpcomingAgendaItem } from "@/features/calendar/utils/agenda/mergeUpcomingAgenda";
 
 import { EventCard } from "./EventCard";
 import { TodoAgendaRow } from "./TodoAgendaRow";
@@ -34,11 +33,7 @@ type AllAgendaEventsModalProps = {
   loading?: boolean;
   silverKeyCalendarId?: string | null;
   refreshEvents?: () => Promise<void>;
-  updateEvent?: (
-    eventId: string,
-    event: GoogleEvent,
-    calendarId?: string,
-  ) => Promise<unknown>;
+  updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
   deleteEvent?: (eventId: string, calendarId?: string) => Promise<void>;
   calendars?: Calendar[];
   onToggleAgendaTodo?: (id: string) => void;
@@ -60,8 +55,7 @@ export function AllAgendaEventsModal({
   canEditAgendaTodos = false,
   onSigningAgendaPress,
 }: AllAgendaEventsModalProps) {
-  const [displayMode, setDisplayMode] =
-    useState<AgendaAllDisplayMode>("chronological");
+  const [displayMode, setDisplayMode] = useState<AgendaAllDisplayMode>("chronological");
 
   useEffect(() => {
     if (!isOpen) {
@@ -71,7 +65,7 @@ export function AllAgendaEventsModal({
 
   const displayedItems = useMemo(
     () => applyAgendaAllDisplayMode(items, displayMode),
-    [items, displayMode],
+    [items, displayMode]
   );
 
   const sortOptions = useMemo((): DropdownOption<AgendaAllDisplayMode>[] => {
@@ -108,7 +102,7 @@ export function AllAgendaEventsModal({
         </Box>
       </Box>
     ),
-    [displayMode, sortOptions],
+    [displayMode, sortOptions]
   );
 
   return (
@@ -122,15 +116,11 @@ export function AllAgendaEventsModal({
     >
       {loading ? (
         <Box className="py-6">
-          <Text className="text-text-secondary text-center text-sm">
-            Loading calendar events…
-          </Text>
+          <Text className="text-text-secondary text-center text-sm">Loading calendar events…</Text>
         </Box>
       ) : items.length === 0 ? (
         <Box className="py-4">
-          <Text className="text-text-secondary text-sm">
-            No events or to-dos to show.
-          </Text>
+          <Text className="text-text-secondary text-sm">No events or to-dos to show.</Text>
         </Box>
       ) : (
         <Box className="pb-2">
@@ -157,9 +147,7 @@ export function AllAgendaEventsModal({
                   <TodoAgendaRow
                     todo={item.todo}
                     onToggleComplete={(id) => onToggleAgendaTodo?.(id)}
-                    canEditComplete={Boolean(
-                      canEditAgendaTodos && onToggleAgendaTodo,
-                    )}
+                    canEditComplete={Boolean(canEditAgendaTodos && onToggleAgendaTodo)}
                     onSigningPress={onSigningAgendaPress}
                   />
                 )}

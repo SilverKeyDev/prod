@@ -137,11 +137,7 @@ export default function DocumentCardHeader({
 
       {/* Upload/Send date */}
       <Box className="mb-4 flex flex-row items-center gap-2">
-        <Icon
-          name="calendar"
-          size={14}
-          className="flex-shrink-0 text-gray-400"
-        />
+        <Icon name="calendar" size={14} className="flex-shrink-0 text-gray-400" />
         <BodyText size="xs" muted>
           {shouldShowSentBy
             ? t("documents.sent_by", {

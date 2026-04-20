@@ -65,12 +65,7 @@ export default function SuccessDialog({
 
           {/* Action */}
           <Box className="flex justify-center">
-            <Button
-              type="button"
-              variant="primary"
-              size="md"
-              onClick={onConfirm}
-            >
+            <Button type="button" variant="primary" size="md" onClick={onConfirm}>
               {confirmText}
             </Button>
           </Box>

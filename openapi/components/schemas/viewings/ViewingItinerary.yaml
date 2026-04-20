@@ -1,0 +1,21 @@
+type: object
+description: Ordered viewing stops with optional computed route legs.
+required:
+  - stops
+properties:
+  stops:
+    type: array
+    items:
+      $ref: ./ViewingStop.yaml
+    minItems: 1
+    description: Ordered list of stops (reordered after Build Route when ordered is true).
+  ordered:
+    type: boolean
+    description: True when stops were optimized via the route service.
+    default: false
+  legs:
+    type: array
+    nullable: true
+    items:
+      $ref: ./ViewingRouteLeg.yaml
+    description: Per-leg metrics and polylines; length should be len(stops)-1 when complete.

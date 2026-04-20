@@ -19,7 +19,7 @@ alwaysApply: false
 - **Touch targets:** ≥44×44px (web: min size / padding; RN: `minHeight`/`minWidth` or `hitSlop`).
 - **Forms (web):** Inputs use at least `text-base` on touch devices to reduce iOS zoom-on-focus.
 - **React Native:** `SafeAreaView` from `react-native-safe-area-context` on root screens; keyboard + `ScrollView` patterns per doc; bounded images (`width: '100%'` + `aspectRatio` where appropriate).
-- **Design system:** Keep using standardized `Button`, `Title`, `BodyText`, etc. from `Client/apps/web/components/ui/` — responsive work adjusts layout and primitives, not one-off raw `<button>`/heading styles.
+- **Design system:** Keep using standardized `Button`, `Title`, `BodyText`, etc. from **`Client/packages/ui/`** (or `@/components/ui` / `@ui` aliases) — responsive work adjusts layout and primitives, not one-off raw `<button>`/heading styles.
 
 ## SilverKey specifics
 

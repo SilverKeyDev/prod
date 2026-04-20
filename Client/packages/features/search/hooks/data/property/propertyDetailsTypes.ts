@@ -1,1 +1,1 @@
-export type { PropertyDetailsStreamProperty as Property } from "packages/types/propertyDetailsStream";
+export type { PropertyDetailsStreamProperty as Property } from "packages/types/domain/propertyDetailsStream";

@@ -4,6 +4,7 @@ import { SidebarList } from "packages/features/search/components/list/SidebarLis
 import { Tabs } from "packages/features/search/components/list/Tabs.web";
 import type { SearchResult } from "packages/features/search/types";
 import { Box } from "packages/ui/components/primitives";
+import { TOUR_TARGETS_DESKTOP } from "packages/utils/tour/tourTargets";
 
 import { SearchPageMapContainer } from "./SearchPageMapContainer.web";
 
@@ -43,9 +44,11 @@ export type SearchPageDesktopLayoutProps = {
   onBeforeSwitchToReels?: () => void;
   fitMapToBounds: (bounds: google.maps.LatLngBounds) => void;
   mapHomeCardsCount: number;
-  onPreciseStreetAddressSelected?: (
-    payload: PreciseStreetAddressPayload,
-  ) => void;
+  onPreciseStreetAddressSelected?: (payload: PreciseStreetAddressPayload) => void;
+  agentShareBundle?: {
+    isSelected: (propertyId: string) => boolean;
+    onToggle: (propertyId: string) => void;
+  };
 };
 
 export function SearchPageDesktopLayout({
@@ -85,6 +88,7 @@ export function SearchPageDesktopLayout({
   fitMapToBounds,
   mapHomeCardsCount,
   onPreciseStreetAddressSelected,
+  agentShareBundle,
 }: SearchPageDesktopLayoutProps): JSX.Element {
   const handleTabChangeWithSideEffects = (tab: "results" | "saved") => {
     onTabChange(tab);
@@ -96,22 +100,16 @@ export function SearchPageDesktopLayout({
     }
   };
 
-  const total =
-    activeTab === "results" ? filteredSearchResults.length : savedHomes.length;
+  const total = activeTab === "results" ? filteredSearchResults.length : savedHomes.length;
   const perPage = mapHomeCardsCount;
   const maxCardStart = Math.max(0, total - perPage);
   const isLoading =
-    (isSearching &&
-      !hasSearched &&
-      searchResults.length === 0 &&
-      savedHomes.length === 0) ||
-    (isLoadingSearchResults &&
-      searchResults.length === 0 &&
-      savedHomes.length === 0) ||
+    (isSearching && !hasSearched && searchResults.length === 0 && savedHomes.length === 0) ||
+    (isLoadingSearchResults && searchResults.length === 0 && savedHomes.length === 0) ||
     (isLoadingIsochrone && !isochroneData && !hasSearched);
 
   const loadingMessage = isSearching
-    ? searchStage ?? "Searching properties..."
+    ? (searchStage ?? "Searching properties...")
     : "Loading map...";
   const loadingVariant = isSearching ? "gray" : "default";
 
@@ -119,20 +117,20 @@ export function SearchPageDesktopLayout({
     <Box className="gap-responsive-md hidden h-full md:flex">
       <Box className="flex w-64 flex-shrink-0 flex-col">
         <Box className="border-border bg-background-surface flex h-full flex-col rounded-tr-lg border p-4">
-          <Tabs
-            active={activeTab}
-            onChange={handleTabChangeWithSideEffects}
-            counts={{
-              results: filteredSearchResults.length,
-              saved: savedHomes.length,
-            }}
-          />
+          <Box id={TOUR_TARGETS_DESKTOP.resultsTabs}>
+            <Tabs
+              active={activeTab}
+              onChange={handleTabChangeWithSideEffects}
+              counts={{
+                results: filteredSearchResults.length,
+                saved: savedHomes.length,
+              }}
+            />
+          </Box>
 
-          <Box className="flex-1 overflow-hidden">
+          <Box className="flex-1 overflow-hidden" id={TOUR_TARGETS_DESKTOP.resultsList}>
             <SidebarList
-              items={
-                activeTab === "results" ? filteredSearchResults : savedHomes
-              }
+              items={activeTab === "results" ? filteredSearchResults : savedHomes}
               selectedId={selectedPropertyId}
               isLoading={isLoadingPropertyDetails}
               onNavigateToProperty={onNavigateToProperty}
@@ -140,6 +138,7 @@ export function SearchPageDesktopLayout({
               isHomeSaved={isHomeSaved}
               saveHome={saveHome}
               removeSavedHome={removeSavedHome}
+              agentShareBundle={agentShareBundle}
             />
           </Box>
         </Box>
@@ -166,7 +165,10 @@ export function SearchPageDesktopLayout({
           </Box>
         </Box>
 
-        <Box className="border-border bg-background-surface relative flex-1 overflow-hidden rounded-tl-lg border">
+        <Box
+          className="border-border bg-background-surface relative flex-1 overflow-hidden rounded-tl-lg border"
+          id={TOUR_TARGETS_DESKTOP.mapArea}
+        >
           <SearchPageMapContainer
             mapRef={desktopMapRef}
             isLoading={isLoading}
@@ -177,9 +179,7 @@ export function SearchPageDesktopLayout({
             total={total}
             perPage={perPage}
             onPrev={() => setCurrentPage(Math.max(0, currentPage - 1))}
-            onNext={() =>
-              setCurrentPage(Math.min(maxCardStart, currentPage + 1))
-            }
+            onNext={() => setCurrentPage(Math.min(maxCardStart, currentPage + 1))}
             onZoomIn={mapZoomIn}
             onZoomOut={mapZoomOut}
             disabled={!hasSearched}

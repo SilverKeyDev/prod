@@ -13,11 +13,7 @@ export {
   type CardPropertyDetailsProps,
 } from "./display";
 export { CardImageContainer, StyledImage } from "./image";
-export {
-  getCardHoverClasses,
-  getInteractiveCardClasses,
-  TrianglePointer,
-} from "./styles";
+export { getCardHoverClasses, getInteractiveCardClasses, TrianglePointer } from "./styles";
 export {
   default as CardHeartSave,
   type CardHeartSavePropertyLike,

@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
-import {
-  HomeHashLink,
-  homeLandingSectionIdFromHref,
-  Link,
-  ROUTES,
-} from "packages/navigation";
+import { HomeHashLink, homeLandingSectionIdFromHref, Link, ROUTES } from "packages/navigation";
 import { LOGO } from "packages/ui/components/asset";
 import { Box, Image } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
@@ -45,9 +40,7 @@ export function LandingNav({ onSignUp }: LandingNavProps) {
   return (
     <header
       className={`safe-top border-border z-header px-responsive-sm fixed left-0 right-0 top-0 flex w-full min-w-0 flex-col gap-0 border-b motion-safe:transition-colors motion-safe:duration-200 ${
-        scrolled
-          ? "bg-background-surface/95 shadow-sm backdrop-blur-sm"
-          : "bg-transparent"
+        scrolled ? "bg-background-surface/95 shadow-sm backdrop-blur-sm" : "bg-transparent"
       }`}
     >
       <Box className="flex min-h-16 w-full min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-2">
@@ -58,11 +51,7 @@ export function LandingNav({ onSignUp }: LandingNavProps) {
           {nav.links.map((item) => {
             const sectionId = homeLandingSectionIdFromHref(item.href);
             return sectionId ? (
-              <HomeHashLink
-                key={item.href}
-                sectionId={sectionId}
-                className={sectionLinkClass}
-              >
+              <HomeHashLink key={item.href} sectionId={sectionId} className={sectionLinkClass}>
                 {item.label}
               </HomeHashLink>
             ) : (

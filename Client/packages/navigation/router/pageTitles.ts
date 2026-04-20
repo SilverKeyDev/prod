@@ -13,6 +13,7 @@ const ROUTE_TITLE_MAP: Array<{ pattern: string | RegExp; title: string }> = [
   { pattern: "/privacy", title: "Privacy" },
   { pattern: "/terms", title: "Terms" },
   { pattern: "/contact", title: "Contact" },
+  { pattern: /^\/agent-profile\//, title: "Agent profile" },
   { pattern: /^\/dashboard/, title: "Dashboard" },
   { pattern: "/search", title: "Search" },
   { pattern: /^\/saved/, title: "Saved" },

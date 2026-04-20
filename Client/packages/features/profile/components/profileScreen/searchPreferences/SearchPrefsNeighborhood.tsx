@@ -6,7 +6,7 @@ import {
   PROFILE_NOT_SPECIFIED_LABEL,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
-import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/constants";
+import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/public/constants";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";
 
@@ -57,17 +57,16 @@ export function SearchPrefsNeighborhood({
                   })
                 }
                 options={WALKABILITY_OPTIONS}
-                placeholder="Select..."
+                placeholder="Select walkability importance"
               />
             ) : (
               <Box
                 className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                  neigh.walkability_importance,
+                  neigh.walkability_importance
                 )}`}
               >
-                {WALKABILITY_OPTIONS.find(
-                  (o) => o.value === neigh.walkability_importance,
-                )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                {WALKABILITY_OPTIONS.find((o) => o.value === neigh.walkability_importance)?.label ??
+                  PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },
@@ -89,17 +88,16 @@ export function SearchPrefsNeighborhood({
                   })
                 }
                 options={WALKABILITY_OPTIONS}
-                placeholder="Select..."
+                placeholder="Select neighborhood safety importance"
               />
             ) : (
               <Box
                 className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                  neigh.crime_importance,
+                  neigh.crime_importance
                 )}`}
               >
-                {WALKABILITY_OPTIONS.find(
-                  (o) => o.value === neigh.crime_importance,
-                )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                {WALKABILITY_OPTIONS.find((o) => o.value === neigh.crime_importance)?.label ??
+                  PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },
@@ -121,17 +119,16 @@ export function SearchPrefsNeighborhood({
                   })
                 }
                 options={WALKABILITY_OPTIONS}
-                placeholder="Select..."
+                placeholder="Select pet-friendly area importance"
               />
             ) : (
               <Box
                 className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                  neigh.pet_friendly_area,
+                  neigh.pet_friendly_area
                 )}`}
               >
-                {WALKABILITY_OPTIONS.find(
-                  (o) => o.value === neigh.pet_friendly_area,
-                )?.label ?? PROFILE_NOT_SPECIFIED_LABEL}
+                {WALKABILITY_OPTIONS.find((o) => o.value === neigh.pet_friendly_area)?.label ??
+                  PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },

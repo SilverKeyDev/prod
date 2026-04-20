@@ -9,6 +9,8 @@ import { UnderlineTabs } from "packages/ui/components/tabs";
 import MiniLogo from "@/components/asset/MiniLogo";
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
+
+import { ChecklistProgressBar } from "./ChecklistProgressBar";
 type ClosePageHeaderProps = {
   title: string;
   subtitle: string;
@@ -30,12 +32,18 @@ const TAB_IDS: ChecklistTab[] = [
 ];
 
 const TAB_CONFIG: Record<ChecklistTab, { label: string; icon: React.ReactNode }> = {
-  search: { label: CHECKLIST_TITLES.search, icon: <Icon name="search" className="h-4 w-4" /> },
+  search: {
+    label: CHECKLIST_TITLES.search,
+    icon: <Icon name="search" className="h-4 w-4" />,
+  },
   offer: {
     label: CHECKLIST_TITLES.offer,
     icon: <Icon name="file-signature" className="h-4 w-4" />,
   },
-  escrow: { label: CHECKLIST_TITLES.escrow, icon: <Icon name="file-text" className="h-4 w-4" /> },
+  escrow: {
+    label: CHECKLIST_TITLES.escrow,
+    icon: <Icon name="file-text" className="h-4 w-4" />,
+  },
   inspections: {
     label: CHECKLIST_TITLES.inspections,
     icon: <Icon name="clipboard-check" className="h-4 w-4" />,
@@ -44,7 +52,10 @@ const TAB_CONFIG: Record<ChecklistTab, { label: string; icon: React.ReactNode }>
     label: CHECKLIST_TITLES.financing,
     icon: <Icon name="dollar-sign" className="h-4 w-4" />,
   },
-  closing: { label: CHECKLIST_TITLES.closing, icon: <Icon name="home" className="h-4 w-4" /> },
+  closing: {
+    label: CHECKLIST_TITLES.closing,
+    icon: <Icon name="home" className="h-4 w-4" />,
+  },
 };
 export default function ClosePageHeader({
   title,
@@ -95,16 +106,14 @@ export default function ClosePageHeader({
           </Box>
 
           {/* Progress Bar */}
-          {!loading && (
-            <Box className="mt-1 lg:mt-2">
-              <Box className="bg-bg-card-muted-30 h-1 w-full rounded lg:h-2">
-                <Box
-                  className="bg-primary h-full rounded"
-                  style={{ width: `${(completedCount / totalCount) * 100}%` }}
-                />
-              </Box>
-            </Box>
-          )}
+          <Box className="mt-1 lg:mt-2">
+            <ChecklistProgressBar
+              loading={loading}
+              percent={totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}
+              hideWhileLoading
+              variant="closePage"
+            />
+          </Box>
         </Box>
 
         {/* Tabs Bar - unified with search Results/Saved */}

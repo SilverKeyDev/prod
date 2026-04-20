@@ -29,17 +29,19 @@
     "typecheck:workspace": "tsc -p packages/config/tsconfig/tsconfig.app.json --noEmit",
     "typecheck:watch": "pnpm --filter @silverkey/web typecheck:watch",
     "typecheck:mobile": "tsc -p apps/mobile/tsconfig.json",
-    "audit": "pnpm audit --audit-level=critical",
+    "audit": "bash scripts/npm-audit-critical.sh",
     "lint:cycles": "madge --circular --ts-config packages/config/tsconfig/tsconfig.app.json --extensions ts,tsx apps/web packages",
+    "check:concurrent": "concurrently -g -c auto -n typecheck,lint,format,cycles \"pnpm typecheck\" \"pnpm lint\" \"pnpm format:check\" \"pnpm lint:cycles\"",
     "fix": "pnpm format && pnpm lint:fix",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm lint:cycles && pnpm audit --audit-level=critical && pnpm build:web",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm lint:cycles && pnpm run audit && pnpm build:web",
     "check:all": "pnpm fix && pnpm check",
     "audit:native-duplication": "node scripts/duplication/audit-native-regular-dup.mjs --min-lines 40",
     "audit:native-duplication:json": "node scripts/duplication/audit-native-regular-dup.mjs --min-lines 40 --json",
     "audit:native-duplication:ci": "node scripts/duplication/audit-native-regular-dup.mjs --min-lines 80 --fail-on-duplication",
     "parity:web:record-storage": "node scripts/visual-parity/record-web-storage.mjs",
     "parity:web:screenshots": "node scripts/visual-parity/capture-web.mjs",
-    "generate:api-types": "bash scripts/generate-api-types.sh"
+    "generate:api-types": "bash scripts/generate-api-types.sh",
+    "audit:button-icons": "node scripts/audit-button-icons.mjs"
   },
   "devDependencies": {
     "@apidevtools/json-schema-ref-parser": "11",
@@ -54,6 +56,7 @@
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.18",
     "baseline-browser-mapping": "^2.9.19",
+    "concurrently": "^9.1.0",
     "dotenv": "^16.4.5",
     "eslint": "^9.9.0",
     "eslint-import-resolver-typescript": "^4.4.4",
@@ -101,6 +104,7 @@
       "react-native-svg": "15.12.1",
       "tar": ">=7.5.10",
       "minimatch": ">=10.2.3",
+      "eslint-plugin-jsx-a11y>minimatch": "3.1.2",
       "rollup": ">=4.59.0",
       "prismjs": ">=1.30.0",
       "vite": ">=7.1.11",
@@ -126,6 +130,9 @@
       "@xmldom/xmldom@<0.8.12": ">=0.8.12",
       "vite@>=7.0.0 <=7.3.1": ">=7.3.2",
       "vite@>=7.1.0 <=7.3.1": ">=7.3.2"
+    },
+    "patchedDependencies": {
+      "eslint-plugin-jsx-a11y@6.10.2": "patches/eslint-plugin-jsx-a11y@6.10.2.patch"
     }
   }
 }

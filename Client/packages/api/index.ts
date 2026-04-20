@@ -17,6 +17,8 @@ export { adminApi } from "./admin";
 export { dashboardApi } from "./dashboard";
 export { mapsApi } from "./maps";
 export { offerApi } from "./offer";
+export { publicApi } from "./public";
+export { buildViewingNavigateLink, buildViewingRoute, viewingsApi } from "./viewings";
 export { agentApi } from "packages/features/agent/api/agent";
 export { googleCalendarApi } from "packages/features/calendar/api";
 export { reportApi } from "packages/features/documents/api/report";
@@ -46,11 +48,7 @@ export {
 } from "packages/services/http/compatibility";
 
 // Re-export types from individual API modules
-export type {
-  DashboardResponse,
-  ReportsResponse,
-  WorkflowDocumentRecord,
-} from "./dashboard";
+export type { DashboardResponse, ReportsResponse, WorkflowDocumentRecord } from "./dashboard";
 export type { MapsScriptResponse } from "./maps";
 export type {
   CommuteData,
@@ -58,6 +56,13 @@ export type {
   NegotiationStrategyResponse,
   PropertyData,
 } from "./offer";
+export type {
+  BuildRouteRequest,
+  ViewingBuildRouteApiResponse,
+  ViewingItinerary,
+  ViewingNavigateApiResponse,
+  ViewingStop,
+} from "./viewings";
 export type {
   AgentChatHistoryResponse,
   AgentChatMessage,
@@ -103,11 +108,7 @@ export type {
   ViewUrlResponse,
 } from "packages/features/documents/api/report";
 export type { UploadResponse } from "packages/features/documents/api/secureUpload";
-export type {
-  AuthResponse,
-  LoginData,
-  SignupData,
-} from "packages/features/homeauth/api/auth";
+export type { AuthResponse, LoginData, SignupData } from "packages/features/homeauth/api/auth";
 export type {
   ClientInfo,
   ClientsResponse,

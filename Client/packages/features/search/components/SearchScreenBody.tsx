@@ -95,9 +95,7 @@ export function SearchScreenBody({
   return (
     <Box className="flex-1">
       <Box className="gap-2 px-4 py-3">
-        <Box
-          className={`flex-row flex-wrap items-center gap-2 ${HEADER_ROW_HEIGHT}`}
-        >
+        <Box className={`flex-row flex-wrap items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
           <Button
             variant="cancel"
             size="sm"
@@ -125,8 +123,8 @@ export function SearchScreenBody({
             className={headerBtnClass}
           >
             {isSearching
-              ? SEARCH_TRANSLATIONS["search.searching"] ?? "Searching..."
-              : SEARCH_TRANSLATIONS["search.search"] ?? "Search"}
+              ? (SEARCH_TRANSLATIONS["search.searching"] ?? "Searching...")
+              : (SEARCH_TRANSLATIONS["search.search"] ?? "Search")}
           </Button>
           {isSearching ? (
             <Button
@@ -134,6 +132,7 @@ export function SearchScreenBody({
               size="sm"
               onPress={handleCancelSearch}
               className={headerBtnClass}
+              iconName="x"
             >
               {SEARCH_TRANSLATIONS["common.cancel"] ?? "Cancel"}
             </Button>
@@ -146,8 +145,8 @@ export function SearchScreenBody({
               className={headerBtnClass}
             >
               {mode === "map"
-                ? SEARCH_TRANSLATIONS["search.reels"] ?? "Reels"
-                : SEARCH_TRANSLATIONS["search.map"] ?? "Map"}
+                ? (SEARCH_TRANSLATIONS["search.reels"] ?? "Reels")
+                : (SEARCH_TRANSLATIONS["search.map"] ?? "Map")}
             </Button>
           )}
         </Box>
@@ -155,17 +154,12 @@ export function SearchScreenBody({
           className={`border-border bg-background-surface min-h-0 flex-row items-center gap-2 overflow-hidden rounded-lg border px-3 ${HEADER_ROW_HEIGHT}`}
         >
           <Box className="min-h-0 min-w-0 flex-1 justify-center py-2">
-            <Text
-              className="text-text-secondary truncate text-sm"
-              numberOfLines={1}
-            >
+            <Text className="text-text-secondary truncate text-sm" numberOfLines={1}>
               {criteriaSummary || " "}
             </Text>
           </Box>
         </Box>
-        <Box
-          className={`flex-row flex-wrap items-center justify-end gap-2 ${HEADER_ROW_HEIGHT}`}
-        >
+        <Box className={`flex-row flex-wrap items-center justify-end gap-2 ${HEADER_ROW_HEIGHT}`}>
           <Button
             variant="outline"
             size="sm"
@@ -173,6 +167,7 @@ export function SearchScreenBody({
             loading={isSearching}
             disabled={isSearching}
             className={headerBtnClass}
+            iconName="search"
           >
             {SEARCH_TRANSLATIONS["search.search"] ?? "Search"}
           </Button>

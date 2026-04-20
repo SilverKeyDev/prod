@@ -1,20 +1,20 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { useLocalization } from "packages/contexts";
-import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/ProfileFinancialSection"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds profile financial UI; shared composition. */
-import type { OnboardingData } from "packages/features/profile/utils"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds profile financial UI; shared composition. */
+import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/ChecklistStepSubmitFooter";
+import { isSetBudgetStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
+import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/sections/ProfileFinancialSection";
+import type { OnboardingData } from "packages/features/profile/utils";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
-import {
-  calculateAffordableHomePrice,
-  type HomePriceResult,
-} from "packages/utils/affordability";
+import { calculateAffordableHomePrice, type HomePriceResult } from "packages/utils/affordability";
 
 import { userPreferencesToOnboardingData } from "@/features/profile/utils";
 
@@ -22,9 +22,7 @@ type SetBudgetSectionProps = {
   onComplete?: () => void;
 };
 
-export default function SetBudgetSection({
-  onComplete: _onComplete,
-}: SetBudgetSectionProps) {
+export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) {
   const { t } = useLocalization();
   const queryClient = useQueryClient();
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
@@ -33,33 +31,35 @@ export default function SetBudgetSection({
     void queryClient.invalidateQueries({
       queryKey: [...queryKeys.search.all, "isochrone"],
     });
-    void refreshUserPreferences();
-  }, [queryClient, refreshUserPreferences]);
+    // performSave in useAutoSavePreferences already refreshUserPreferences(); avoid a second
+    // refetch that re-runs remote sync and can wipe in-progress field edits.
+  }, [queryClient]);
 
-  const { updateFormData: updateFormDataWithAutoSave, autoSave } =
-    useAutoSavePreferences({
-      refreshUserPreferences,
-      debounceMs: 3000,
-      showErrorToastOnError: true,
-      successToastMessage: t("common.saved"),
-      onAfterSave,
-    });
+  const { updateFormData: updateFormDataWithAutoSave, autoSave } = useAutoSavePreferences({
+    refreshUserPreferences,
+    showErrorToastOnError: true,
+    successToastMessage: t("common.saved"),
+    onAfterSave,
+  });
 
   const [formData, setFormData] = useState<Partial<OnboardingData>>({});
-  const [homePriceResult, setHomePriceResult] =
-    useState<HomePriceResult | null>(null);
+  const [homePriceResult, setHomePriceResult] = useState<HomePriceResult | null>(null);
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] =
-    useState(false);
+
+  /** Match PreferencesFormContent: only hydrate from GET when preferences_version changes. */
+  const appliedRemoteSyncKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (userPreferences) {
-      const initialData = userPreferencesToOnboardingData(
-        userPreferences as Record<string, unknown>,
-      );
-      setFormData(initialData);
+    if (!userPreferences) return;
+    const syncKey = `self:${String(userPreferences.preferences_version ?? "")}`;
+    if (appliedRemoteSyncKeyRef.current === syncKey) {
+      return;
     }
+    appliedRemoteSyncKeyRef.current = syncKey;
+    setFormData(
+      userPreferencesToOnboardingData(userPreferences as Record<string, unknown>)
+    );
   }, [userPreferences]);
 
   const calculateHomePrice = useCallback(() => {
@@ -77,7 +77,7 @@ export default function SetBudgetSection({
 
       if ("error" in result) {
         setHomePriceError(
-          "We couldn't calculate an estimate. Check your income and zip code and try again.",
+          "We couldn't calculate an estimate. Check your income and zip code and try again."
         );
         setHomePriceResult(null);
       } else {
@@ -87,7 +87,7 @@ export default function SetBudgetSection({
       setHomePriceError(
         error instanceof Error
           ? error.message
-          : "We couldn't calculate an estimate. Check your income and zip code and try again.",
+          : "We couldn't calculate an estimate. Check your income and zip code and try again."
       );
       setHomePriceResult(null);
     } finally {
@@ -114,14 +114,14 @@ export default function SetBudgetSection({
     (field: keyof OnboardingData, value: unknown) => {
       updateFormDataWithAutoSave(formData, setFormData, field, value);
     },
-    [formData, updateFormDataWithAutoSave],
+    [formData, updateFormDataWithAutoSave]
   );
 
   const patchBuyerPreferenceExtensions = useCallback(
     (
       fn: (
-        prev: OnboardingData["buyerPreferenceExtensions"],
-      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>,
+        prev: OnboardingData["buyerPreferenceExtensions"]
+      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>
     ) => {
       setFormData((prev) => {
         const next = {
@@ -132,15 +132,30 @@ export default function SetBudgetSection({
         return next;
       });
     },
-    [autoSave],
+    [autoSave]
   );
+
+  const stepComplete = useMemo(() => isSetBudgetStepComplete(formData), [formData]);
+
+  const handleSubmitStep = useCallback(() => {
+    if (!isSetBudgetStepComplete(formData)) {
+      showWarningToast(
+        t("checklists.step.incomplete_warning", {
+          defaultValue: "Complete all required fields in this step before submitting.",
+        })
+      );
+      return;
+    }
+    onComplete?.();
+  }, [formData, onComplete, t]);
 
   return (
     <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
         <BodyText size="sm" className="text-text-secondary">
-          Set your budget range, income, and down payment so search results
-          match what you can afford. Your preferences are saved automatically.
+          Set your budget range and HOA preference; if you are not paying with cash, add income,
+          down payment, zip, and credit band so affordability matches your situation. Your
+          preferences are saved automatically.
         </BodyText>
 
         <ProfileFinancialSection
@@ -151,9 +166,8 @@ export default function SetBudgetSection({
           homePriceResult={homePriceResult}
           homePriceLoading={homePriceLoading}
           homePriceError={homePriceError}
-          isAffordabilityCollapsed={isAffordabilityCollapsed}
-          setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
         />
+        <ChecklistStepSubmitFooter disabled={!stepComplete} onSubmit={handleSubmitStep} />
       </Box>
     </Card>
   );

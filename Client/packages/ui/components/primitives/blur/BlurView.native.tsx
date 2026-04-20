@@ -21,11 +21,7 @@ export const BlurView: React.FC<BlurViewProps> = ({
   const blurIntensity = BLUR_INTENSITY_MAP[intensity];
   return (
     <View className={className} style={{ overflow: "hidden" }}>
-      <ExpoBlurView
-        intensity={blurIntensity}
-        tint={tint}
-        style={{ flex: 1, overflow: "hidden" }}
-      >
+      <ExpoBlurView intensity={blurIntensity} tint={tint} style={{ flex: 1, overflow: "hidden" }}>
         {children}
       </ExpoBlurView>
     </View>

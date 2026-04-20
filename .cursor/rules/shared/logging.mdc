@@ -128,7 +128,7 @@ log.security(LOG_CATEGORIES["SECURITY"], "Unauthorized access attempt", {"ip": "
 - **NEVER use** `console.log()`, `console.info()`, `console.warn()`, `console.error()` directly in frontend code
 - **NEVER use** `print()`, `logging.info()`, `logging.warn()`, `logging.error()` directly in backend code
 - **ALWAYS specify a category** - use the appropriate category from `LOG_CATEGORIES`
-- **ALWAYS use PII-safe logging** - the logger automatically scrubs sensitive data via `Client/logger/pii.ts` or `Server/logger/pii.py`, but be mindful of what you pass
+- **ALWAYS use PII-safe logging** - the logger automatically scrubs sensitive data via `Client/packages/logger/pii.ts` or `Server/logger/pii.py`, but be mindful of what you pass
 - **Use appropriate log levels**:
   - `debug()` - Detailed debugging information
   - `info()` - General informational messages

@@ -46,7 +46,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
       size = "md",
       className = "",
     },
-    ref,
+    ref
   ) => {
     const baseStyles =
       "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input appearance-none bg-background-surface";
@@ -104,7 +104,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         )}
       </Box>
     );
-  },
+  }
 );
 
 Select.displayName = "Select";

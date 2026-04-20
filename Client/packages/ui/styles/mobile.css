@@ -65,8 +65,7 @@
     :root {
       /* Match MobileBottomNav: 4rem row + top/bottom padding max(safe-area, 4px) */
       --mobile-bottom-reserved: calc(
-        4rem + max(env(safe-area-inset-bottom, 0), 4px) +
-          max(env(safe-area-inset-bottom, 0), 4px)
+        4rem + max(env(safe-area-inset-bottom, 0), 4px) + max(env(safe-area-inset-bottom, 0), 4px)
       );
     }
     .bottom-reserved {
@@ -392,9 +391,7 @@
     }
 
     /* Only scale buttons without responsive classes */
-    button:not([class*="text-"]):not(input):not(.mobile-input):not(
-        .input-field
-      ) {
+    button:not([class*="text-"]):not(input):not(.mobile-input):not(.input-field) {
       font-size: 0.75rem;
     }
 

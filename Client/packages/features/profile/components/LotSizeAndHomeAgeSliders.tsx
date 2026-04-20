@@ -1,12 +1,12 @@
 import React from "react";
 
-import BudgetRangeSlider from "packages/features/profile/components/settings/inputs/BudgetRangeSlider";
 import Label from "packages/features/profile/components/settings/inputs/Label";
+import BudgetRangeSlider from "packages/features/profile/components/settings/inputs/sliders/BudgetRangeSlider";
 import {
   FIELD_LABELS,
   HOME_AGE_YEARS_TICK_VALUES,
   LOT_SIZE_ACRES_TICK_VALUES,
-} from "packages/features/profile/utils/constants";
+} from "packages/features/profile/utils/public/constants";
 import { Box } from "packages/ui/components/primitives";
 
 export type LotSizeHomeAgeFormSlice = {
@@ -27,15 +27,10 @@ export type LotSizeHomeAgeSearchOverridesPatch = {
 type LotSizeAndHomeAgeSlidersProps = {
   formData: LotSizeHomeAgeFormSlice;
   updateFormData: (
-    field:
-      | keyof LotSizeHomeAgeFormSlice
-      | "preferred_lot_size"
-      | "preferred_home_age",
-    value: unknown,
+    field: keyof LotSizeHomeAgeFormSlice | "preferred_lot_size" | "preferred_home_age",
+    value: unknown
   ) => void;
-  onSearchFilterOverridesPatch?: (
-    patch: LotSizeHomeAgeSearchOverridesPatch,
-  ) => void;
+  onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
   className?: string;
 };
 
@@ -55,9 +50,7 @@ export function LotSizeAndHomeAgeSliders({
         <Label>{FIELD_LABELS.PREFERRED_LOT_SIZE}</Label>
         <BudgetRangeSlider
           tickValues={LOT_SIZE_ACRES_TICK_VALUES}
-          minValue={
-            formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]
-          }
+          minValue={formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]}
           maxValue={
             formData.preferred_lot_size_max ??
             LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]
@@ -82,9 +75,7 @@ export function LotSizeAndHomeAgeSliders({
         <Label>{FIELD_LABELS.PREFERRED_HOME_AGE}</Label>
         <BudgetRangeSlider
           tickValues={HOME_AGE_YEARS_TICK_VALUES}
-          minValue={
-            formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]
-          }
+          minValue={formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]}
           maxValue={
             formData.preferred_home_age_max ??
             HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]

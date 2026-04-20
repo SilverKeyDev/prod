@@ -81,10 +81,7 @@ export function buildWebViteResolve(packages, uiComponents, dirname) {
       },
       {
         find: "@/features/saved/SavedLayout",
-        replacement: path.join(
-          packages,
-          "features/saved/components/SavedLayout",
-        ),
+        replacement: path.join(packages, "features/saved/components/SavedLayout"),
       },
       {
         find: "@/components/ui/button",
@@ -102,7 +99,7 @@ export function buildWebViteResolve(packages, uiComponents, dirname) {
         find: "@/components/modals/PropertyDetailsModal",
         replacement: path.join(
           packages,
-          "features/propertyDetails/components/PropertyDetailsModal",
+          "features/propertyDetails/components/PropertyDetailsModal"
         ),
       },
       {

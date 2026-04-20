@@ -17,10 +17,7 @@ export type UseGoogleMapsReturn = {
   isLoaded: boolean;
   error: string | null;
   scriptUrl: string | null;
-  createMap: (
-    container: HTMLElement,
-    overrides?: Partial<google.maps.MapOptions>,
-  ) => unknown;
+  createMap: (container: HTMLElement, overrides?: Partial<google.maps.MapOptions>) => unknown;
 };
 
 export function useGoogleMaps(): UseGoogleMapsReturn {
@@ -33,10 +30,7 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
     (container: HTMLElement, overrides?: Partial<google.maps.MapOptions>) => {
       const win = getWindow();
       if (!win) {
-        log.warn(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Google Maps: window not available (SSR)",
-        );
+        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Maps: window not available (SSR)");
         return null;
       }
 
@@ -54,7 +48,7 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
         return null;
       }
     },
-    [isLoaded],
+    [isLoaded]
   );
 
   useEffect(() => {
@@ -73,11 +67,7 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
           setHasInitialized(true);
         } catch (err: unknown) {
           const error = asError(err);
-          log.error(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "Error loading Google Maps",
-            error,
-          );
+          log.error(LOG_CATEGORIES.MAP_RENDERING, "Error loading Google Maps", error);
           setError(error.message);
           setIsLoaded(false);
         }

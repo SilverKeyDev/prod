@@ -5,7 +5,7 @@ import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Title } from "@/components/ui";
-import { ConnectionRequestsInbox } from "@/features/agent/components/modals/ConnectionRequestsInbox";
+import { ConnectionRequestsInbox } from "@/features/agent/components/modals/inbox/ConnectionRequestsInbox";
 import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/types";
 import { getMessagePreview } from "@/features/messaging/utils";
 
@@ -51,9 +51,7 @@ export default function ClientMessagingSidebar({
             ? "z-sidebar fixed left-0 top-0 flex h-full w-80 translate-x-0 xl:relative xl:z-0"
             : "hidden -translate-x-full xl:flex xl:translate-x-0"
         } flex-col transition-transform duration-300 ease-in-out xl:w-80 ${
-          isSidebarExpanded
-            ? "rounded-xl shadow-xl xl:rounded-l-xl xl:shadow-none"
-            : ""
+          isSidebarExpanded ? "rounded-xl shadow-xl xl:rounded-l-xl xl:shadow-none" : ""
         }`}
       >
         {/* Fixed Header */}
@@ -83,10 +81,7 @@ export default function ClientMessagingSidebar({
           ) : !agentId ? (
             <Box className="flex h-full items-center justify-center p-3">
               <Box className="text-center">
-                <Icon
-                  name="message-circle"
-                  className="mx-auto mb-3 h-12 w-12 text-neutral-400"
-                />
+                <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-neutral-400" />
                 <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
                   {t("agent.search_agent_to_start_messaging")}
                 </BodyText>
@@ -119,22 +114,15 @@ export default function ClientMessagingSidebar({
             >
               <Box className="flex items-start justify-between">
                 <Box className="min-w-0 flex-1">
-                  <Title
-                    as="h3"
-                    size="sm"
-                    className="mb-1 truncate font-medium text-neutral-800"
-                  >
+                  <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                     {t("agent.your_agent")}
                   </Title>
                   {localMessages.length > 0 && (
-                    <BodyText
-                      as="p"
-                      className="truncate text-xs text-neutral-600"
-                    >
+                    <BodyText as="p" className="truncate text-xs text-neutral-600">
                       {getMessagePreview(
                         localMessages[localMessages.length - 1] ?? {
                           content: "",
-                        },
+                        }
                       )}
                     </BodyText>
                   )}

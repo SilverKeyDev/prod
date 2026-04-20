@@ -4,10 +4,8 @@ import { ErrorReporter } from "./ErrorReporterClass";
 export const errorReporter = new ErrorReporter();
 
 // Convenience functions
-export const captureError = (
-  error: Error | string,
-  context?: Record<string, unknown>,
-) => errorReporter.captureError(error, context);
+export const captureError = (error: Error | string, context?: Record<string, unknown>) =>
+  errorReporter.captureError(error, context);
 
 export const reportSecurityEvent = (event: {
   type:
@@ -24,18 +22,14 @@ export const reportSecurityEvent = (event: {
 export const captureUserFeedback = (message: string, error?: Error) =>
   errorReporter.captureUserFeedback(message, error);
 
-export const setUserContext = (
-  userId: string,
-  userInfo?: Record<string, unknown>,
-) => errorReporter.setUserContext(userId, userInfo);
+export const setUserContext = (userId: string, userInfo?: Record<string, unknown>) =>
+  errorReporter.setUserContext(userId, userInfo);
 
 export const clearUserContext = () => errorReporter.clearUserContext();
 
 // Initialize error reporting
-export const initializeErrorReporting = (config?: {
-  userId?: string;
-  dsn?: string;
-}) => errorReporter.initialize(config);
+export const initializeErrorReporting = (config?: { userId?: string; dsn?: string }) =>
+  errorReporter.initialize(config);
 
 // Hook for React components to report errors
 export const useErrorReporter = () => ({

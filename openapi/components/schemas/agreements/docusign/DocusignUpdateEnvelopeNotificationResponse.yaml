@@ -1,0 +1,8 @@
+allOf:
+  - $ref: ../../shared/core/SuccessResponse.yaml
+  - type: object
+    properties:
+      notification:
+        type: object
+        additionalProperties: true
+        nullable: true

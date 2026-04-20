@@ -13,8 +13,7 @@ export type StatusBadgeVariant =
 
 export type StatusBadgeSize = "xs" | "sm" | "md" | "lg";
 
-export const STATUS_BADGE_BASE_STYLES =
-  "flex flex-row px-2 py-1 rounded-full font-medium";
+export const STATUS_BADGE_BASE_STYLES = "flex flex-row px-2 py-1 rounded-full font-medium";
 
 export const STATUS_BADGE_SIZE_STYLES: Record<StatusBadgeSize, string> = {
   xs: "text-xs px-1.5 py-0.5",

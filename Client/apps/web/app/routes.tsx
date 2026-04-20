@@ -4,22 +4,20 @@ import type { Location } from "react-router-dom";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
 import { authUtils } from "packages/config/auth/auth";
-import { useDataInitialization } from "packages/hooks/data/useDataInitialization";
-import { useDataPolling } from "packages/hooks/data/useDataPolling";
+import { useResumePendingAgentPublicConnect } from "packages/features/agent";
+import { useDataInitialization } from "packages/hooks/data/polling/useDataInitialization";
+import { useDataPolling } from "packages/hooks/data/polling/useDataPolling";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { getDocumentTitle, ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 
 import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
 import type { UserProfile } from "@/features/homeauth/types";
-import NotFoundPage from "@/pages/NotFoundPage";
+import NotFoundPage from "@/pages/misc/NotFoundPage";
 
 // Modular route components
 import { DynamicRoutes } from "./routes/DynamicRoutes";
-import {
-  LocationOverrideContext,
-  useLocationOverride,
-} from "./routes/locationOverrideContext";
+import { LocationOverrideContext, useLocationOverride } from "./routes/locationOverrideContext";
 import { PublicRoutes } from "./routes/PublicRoutes";
 
 const MAIN_CONTENT_ID = "main-content";
@@ -71,6 +69,7 @@ function AppLayout() {
   useDataPolling();
   // Initialize data prefetch and background polling on login
   useDataInitialization();
+  useResumePendingAgentPublicConnect();
   useEffect(() => {
     document.title = getDocumentTitle(location.pathname);
   }, [location.pathname]);
@@ -120,10 +119,9 @@ function AppLayout() {
  * we pass the browser's location to Routes so the UI matches the address bar.
  */
 function useBrowserLocationOverride(routerLocation: Location) {
-  const [override, setOverride] = useState<Pick<
-    Location,
-    "pathname" | "search" | "key"
-  > | null>(null);
+  const [override, setOverride] = useState<Pick<Location, "pathname" | "search" | "key"> | null>(
+    null
+  );
 
   // When on a full-height route, poll; if browser URL !== router, set override so Routes uses browser URL (set once per browser location).
   useEffect(() => {
@@ -135,16 +133,11 @@ function useBrowserLocationOverride(routerLocation: Location) {
       const routerSearch = routerLocation.search ?? "";
       if (winPath !== routerPath || winSearch !== routerSearch) {
         setOverride((prev) => {
-          if (prev && prev.pathname === winPath && prev.search === winSearch)
-            return prev;
-          log.debug(
-            LOG_CATEGORIES.ROUTING,
-            "[NAV] Router URL sync: using browser location",
-            {
-              routerPath,
-              browserPath: winPath,
-            },
-          );
+          if (prev && prev.pathname === winPath && prev.search === winSearch) return prev;
+          log.debug(LOG_CATEGORIES.ROUTING, "[NAV] Router URL sync: using browser location", {
+            routerPath,
+            browserPath: winPath,
+          });
           return {
             pathname: winPath,
             search: winSearch,
@@ -194,21 +187,12 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
   // Provide effectiveLocation in context so useDashboardRoute/AppLayout see the real URL.
   return (
     <>
-      <Suspense
-        fallback={
-          <Box className="p-6 text-sm text-text-secondary">Loading…</Box>
-        }
-      >
-        <LocationOverrideContext.Provider
-          value={locationOverride ? effectiveLocation : null}
-        >
+      <Suspense fallback={<Box className="p-6 text-sm text-text-secondary">Loading…</Box>}>
+        <LocationOverrideContext.Provider value={locationOverride ? effectiveLocation : null}>
           <Routes location={effectiveLocation}>
             {/* Layout route that wraps all routes to ensure Router context is available */}
             {/* This prevents React 18 concurrent rendering issues in production builds */}
-            <Route
-              element={<AppLayout />}
-              errorElement={<RouteErrorBoundary />}
-            >
+            <Route element={<AppLayout />} errorElement={<RouteErrorBoundary />}>
               {/* Public Routes */}
               {PublicRoutes()}
 
@@ -216,10 +200,7 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
               {DynamicRoutes({ user, handleLogout })}
 
               {/* Legacy redirect */}
-              <Route
-                path={ROUTES.APP}
-                element={<Navigate to={ROUTES.SEARCH} replace />}
-              />
+              <Route path={ROUTES.APP} element={<Navigate to={ROUTES.SEARCH} replace />} />
 
               {/* 404 catch-all */}
               <Route path="*" element={<NotFoundPage />} />

@@ -16,10 +16,11 @@ export { default as Subtitle } from "./text/Subtitle";
 export { default as Title } from "./text/Title";
 
 // Form components
+export { default as AccessibleRadioInput } from "./form/AccessibleRadioInput";
 export { default as AccessibleTextInput } from "./form/AccessibleTextInput";
 export { default as ChecklistCheckbox } from "./form/ChecklistCheckbox";
 export { default as DateInput } from "./form/DateInput";
-export { default as Dropdown } from "./form/Dropdown";
+export { default as Dropdown } from "./form/dropdown";
 export { default as FavoriteHomesDropdown } from "./form/FavoriteHomesDropdown";
 export { default as FieldShell } from "./form/FieldShell";
 export { default as FormField } from "./form/FormField";
@@ -62,12 +63,16 @@ export { default as AlignedRow } from "./layout/AlignedRow";
 export { default as SectionCard } from "./layout/SectionCard";
 export { default as Popover } from "./popover/Popover";
 
+// Match score
+export { MatchPill } from "./match";
+export type { MatchPillProps } from "./match";
+
 // Card components
 export { default as BaseCard } from "./cards/BaseCard";
 export { default as CompCard } from "./cards/CompCard";
 export { default as HomeCard } from "./cards/HomeCard";
-export { default as PropertyCard } from "./cards/PropertyCard";
-export * from "./cards/PropertyCardBodySection";
+export { default as PropertyCard } from "./cards/property/PropertyCard";
+export * from "./cards/property/PropertyCardBodySection";
 export { default as ReportCard } from "./cards/ReportCard";
 
 // Modal components

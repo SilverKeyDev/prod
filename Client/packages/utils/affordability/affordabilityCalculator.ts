@@ -165,7 +165,7 @@ export function estimateAffordableHomePrice({
 
   if (interestRate >= 7.0) {
     warnings.push(
-      "Current rates are elevated. Consider waiting for potential decreases or rate buydown options.",
+      "Current rates are elevated. Consider waiting for potential decreases or rate buydown options."
     );
   }
 
@@ -334,8 +334,7 @@ export function estimateMonthlyPaymentBreakdown({
   const r = interestRate / 100 / 12;
   const n = loanTermYears * 12;
   const loanAmount = Math.max(0, homePrice - downPayment);
-  const monthlyPI =
-    (loanAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  const monthlyPI = (loanAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 
   const principalAndInterest = Math.round(monthlyPI);
   const propertyTax = Math.round(monthlyTax);
@@ -377,7 +376,5 @@ export function estimateMonthlyPayment({
     utilitiesMonthly: 0,
   });
   if (!breakdown) return null;
-  return (
-    breakdown.totalMonthly - breakdown.hoaMonthly - breakdown.utilitiesMonthly
-  );
+  return breakdown.totalMonthly - breakdown.hoaMonthly - breakdown.utilitiesMonthly;
 }

@@ -48,10 +48,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
     const doc = getDocument();
     if (!doc) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
@@ -79,9 +76,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                 {(() => {
                   const { address } = selectedHome;
                   const lastCommaIndex = address.lastIndexOf(",");
-                  return lastCommaIndex > 0
-                    ? address.substring(0, lastCommaIndex)
-                    : address;
+                  return lastCommaIndex > 0 ? address.substring(0, lastCommaIndex) : address;
                 })()}
               </Box>
               <Box className="text-responsive-xs text-text-secondary hidden sm:block">
@@ -101,9 +96,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
             </Box>
           ) : (
             <Box>
-              <Box className="text-responsive-xs text-text-secondary">
-                {displayPlaceholder}
-              </Box>
+              <Box className="text-responsive-xs text-text-secondary">{displayPlaceholder}</Box>
               {placeholder === undefined ? (
                 <Box className="text-responsive-xs text-text-secondary mt-0.5 hidden sm:block">
                   {t("favorite_homes.choose_saved_properties")}
@@ -136,23 +129,18 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                   onClick={() => handleHomeSelection(home)}
                   className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${
                     index === 0 ? "first:rounded-t-lg" : ""
-                  } ${
-                    index === favoriteHomes.length - 1
-                      ? "last:rounded-b-lg"
-                      : ""
-                  } ${
+                  } ${index === favoriteHomes.length - 1 ? "last:rounded-b-lg" : ""} ${
                     selectedHome?.address === home.address
                       ? "bg-primary-muted text-primary"
                       : "hover:bg-accent-muted text-text-primary"
                   }`}
+                  iconName="heart"
                 >
                   <Box className="text-responsive-xs">
                     {(() => {
                       const { address } = home;
                       const lastCommaIndex = address.lastIndexOf(",");
-                      return lastCommaIndex > 0
-                        ? address.substring(0, lastCommaIndex)
-                        : address;
+                      return lastCommaIndex > 0 ? address.substring(0, lastCommaIndex) : address;
                     })()}
                   </Box>
                   <Box className="text-responsive-xs text-text-secondary mt-1 hidden sm:block">
@@ -164,15 +152,9 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                       : t("favorite_homes.property_details")}
                     {home.sqft &&
                       Number(home.sqft) > 0 &&
-                      ` • ${Math.round(
-                        Number(home.sqft),
-                      ).toLocaleString()} sqft`}
+                      ` • ${Math.round(Number(home.sqft)).toLocaleString()} sqft`}
                     {home.price &&
-                      ` • ${
-                        home.price.startsWith("$")
-                          ? home.price
-                          : `$${home.price}`
-                      }`}
+                      ` • ${home.price.startsWith("$") ? home.price : `$${home.price}`}`}
                   </Box>
                 </Button>
               );

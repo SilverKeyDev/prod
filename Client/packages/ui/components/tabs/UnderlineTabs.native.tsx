@@ -7,10 +7,7 @@ import { Pressable, View } from "react-native";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
-import {
-  UNDERLINE_TAB_SIZE_STYLES,
-  type UnderlineTabsSize,
-} from "./underlineTabSizeStyles";
+import { UNDERLINE_TAB_SIZE_STYLES, type UnderlineTabsSize } from "./underlineTabSizeStyles";
 
 export type UnderlineTabItem = {
   id: string;
@@ -52,23 +49,15 @@ export function UnderlineTabs({
   const containerClass = compact
     ? "flex flex-row items-center justify-center rounded-none border-b border-border"
     : "flex flex-row flex-shrink-0 rounded-none border-b border-border";
-  const tabLayoutClass = `${
-    compact ? sizeStyles.paddingCompact : sizeStyles.paddingDefault
-  } gap-2`;
+  const tabLayoutClass = `${compact ? sizeStyles.paddingCompact : sizeStyles.paddingDefault} gap-2`;
 
   return (
-    <Box
-      className={className ? `${containerClass} ${className}` : containerClass}
-    >
+    <Box className={className ? `${containerClass} ${className}` : containerClass}>
       {items.map((item) => {
         const isActive = activeId === item.id;
         const isLocked = item.locked === true;
-        const textSizeClass = isActive
-          ? sizeStyles.activeText
-          : sizeStyles.inactiveText;
-        const iconSizeClass = isActive
-          ? sizeStyles.activeIcon
-          : sizeStyles.inactiveIcon;
+        const textSizeClass = isActive ? sizeStyles.activeText : sizeStyles.inactiveText;
+        const iconSizeClass = isActive ? sizeStyles.activeIcon : sizeStyles.inactiveIcon;
         const fontWeightClass = isActive ? "font-bold" : "font-medium";
         return (
           <Pressable
@@ -81,9 +70,7 @@ export function UnderlineTabs({
             {isLocked ? (
               <Icon name="lock" className={`${iconSizeClass} shrink-0`} />
             ) : (
-              item.icon != null && (
-                <Box className={`${iconSizeClass} shrink-0`}>{item.icon}</Box>
-              )
+              item.icon != null && <Box className={`${iconSizeClass} shrink-0`}>{item.icon}</Box>
             )}
             {typeof item.label === "string" ? (
               <Text

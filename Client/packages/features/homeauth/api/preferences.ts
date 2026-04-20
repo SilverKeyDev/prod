@@ -29,16 +29,13 @@ export const preferencesApi = {
   /**
    * Create or update user preferences
    */
-  createOrUpdate: (
-    preferences: Partial<UserPreferences>,
-  ): Promise<PreferencesResponse> =>
+  createOrUpdate: (preferences: Partial<UserPreferences>): Promise<PreferencesResponse> =>
     apiPost<PreferencesResponse>("/api/v1/preferences", preferences),
 
   /**
    * Get current user's preferences
    */
-  get: (): Promise<PreferencesResponse> =>
-    apiGet<PreferencesResponse>("/api/v1/preferences"),
+  get: (): Promise<PreferencesResponse> => apiGet<PreferencesResponse>("/api/v1/preferences"),
 
   /**
    * Get preferences for a specific user by ID (admin/agent only)

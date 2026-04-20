@@ -6,7 +6,10 @@ from typing import Any
 from docusign_esign import (
     ApiClient,
     EnvelopeDefinition,
+    EnvelopeNotificationRequest,
     EnvelopesApi,
+    PrefillTabs,
+    Recipients,
     RecipientViewRequest,
     ReturnUrlRequest,
 )
@@ -30,6 +33,7 @@ def create_envelope(
     account_id: str,
     envelope_definition: EnvelopeDefinition,
     handle_exception: Callable[[ApiException, str], None],
+    prefill_tabs: PrefillTabs | None = None,
 ) -> dict[str, Any]:
     """Create envelope in DocuSign."""
     try:
@@ -42,12 +46,18 @@ def create_envelope(
                 if envelope_definition.documents
                 else 0,
                 "email_subject": envelope_definition.email_subject,
+                "has_prefill_tabs": bool(prefill_tabs),
             },
         )
         envelopes_api = EnvelopesApi(api_client)
-        results = envelopes_api.create_envelope(
-            account_id=account_id, envelope_definition=envelope_definition
-        )
+        body: EnvelopeDefinition | dict[str, Any] = envelope_definition
+        if prefill_tabs is not None:
+            merged = api_client.sanitize_for_serialization(prefill_tabs)
+            if merged:
+                body_dict = api_client.sanitize_for_serialization(envelope_definition)
+                body_dict["prefillTabs"] = merged
+                body = body_dict
+        results = envelopes_api.create_envelope(account_id=account_id, envelope_definition=body)
         logger.info(
             LOG_CATEGORIES["DOCUSIGN"],
             "DocuSign envelope created successfully",
@@ -266,4 +276,47 @@ def get_envelope_certificate(
         return {"pdf": cert_bytes, "envelope_id": envelope_id}
     except ApiException as e:
         _handle(handle_exception, e, "get envelope certificate")
+        return {}
+
+
+def update_notification_settings(
+    api_client: ApiClient,
+    account_id: str,
+    envelope_id: str,
+    envelope_notification_request: EnvelopeNotificationRequest,
+    handle_exception: Callable[[ApiException, str], None],
+) -> dict[str, Any]:
+    """PUT envelope notification (reminders / expirations)."""
+    try:
+        envelopes_api = EnvelopesApi(api_client)
+        notification = envelopes_api.update_notification_settings(
+            account_id=account_id,
+            envelope_id=envelope_id,
+            envelope_notification_request=envelope_notification_request,
+        )
+        return api_client.sanitize_for_serialization(notification)
+    except ApiException as e:
+        _handle(handle_exception, e, "update notification settings")
+        return {}
+
+
+def update_recipients_resend(
+    api_client: ApiClient,
+    account_id: str,
+    envelope_id: str,
+    recipients: Recipients,
+    handle_exception: Callable[[ApiException, str], None],
+) -> dict[str, Any]:
+    """Resend envelope email to pending recipient(s)."""
+    try:
+        envelopes_api = EnvelopesApi(api_client)
+        summary = envelopes_api.update_recipients(
+            account_id=account_id,
+            envelope_id=envelope_id,
+            recipients=recipients,
+            resend_envelope="true",
+        )
+        return api_client.sanitize_for_serialization(summary)
+    except ApiException as e:
+        _handle(handle_exception, e, "resend envelope to recipients")
         return {}

@@ -14,9 +14,17 @@ function loadVariantPaths() {
       for (const variant of variants) {
         if (variant && typeof variant.webPath === "string" && variant.webPath.length > 0) {
           paths.add(variant.webPath);
+          const webNoExt = variant.webPath.replace(/\.(tsx|ts)$/, "");
+          if (webNoExt !== variant.webPath) {
+            paths.add(webNoExt);
+          }
         }
         if (variant && typeof variant.nativePath === "string" && variant.nativePath.length > 0) {
           paths.add(variant.nativePath);
+          const nativeNoExt = variant.nativePath.replace(/\.(tsx|ts)$/, "");
+          if (nativeNoExt !== variant.nativePath) {
+            paths.add(nativeNoExt);
+          }
         }
       }
     }

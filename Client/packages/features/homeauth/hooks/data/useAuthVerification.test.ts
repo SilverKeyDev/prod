@@ -31,11 +31,7 @@ describe("useAuthVerification", () => {
 
     await result.current.verify("user@example.com", "123456", "secret-pass");
 
-    expect(authApi.verify).toHaveBeenCalledWith(
-      "user@example.com",
-      "123456",
-      "secret-pass",
-    );
+    expect(authApi.verify).toHaveBeenCalledWith("user@example.com", "123456", "secret-pass");
   });
 
   it("resendCode forwards to authApi.resendCode", async () => {

@@ -74,7 +74,7 @@ export function useSignup() {
         setIsLoading(false);
       }
     },
-    [],
+    []
   );
 
   return { signup, isLoading, error, clearError: () => setError(null) };
@@ -138,53 +138,50 @@ export function useResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const resetPassword = useCallback(
-    async (email: string, code: string, newPassword: string) => {
-      setIsLoading(true);
-      setError(null);
+  const resetPassword = useCallback(async (email: string, code: string, newPassword: string) => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        const response = await authApi.resetPassword(email, code, newPassword);
-        if (!response.success) {
-          const errorMessage = response.error ?? "Failed to reset password";
-          setError(errorMessage);
-          log.warn(LOG_CATEGORIES.AUTH, "Reset password failed", {
-            email,
-            error: errorMessage,
-          });
-          return { success: false, error: errorMessage };
-        }
-
-        log.info(LOG_CATEGORIES.AUTH, "Password reset successful", { email });
-        return {
-          success: true,
-          user: response.user,
-          message: response.message,
-        };
-      } catch (err: unknown) {
-        let errorMessage = "Failed to reset password";
-
-        // Extract error message from HttpError parsedBody
-        if (err instanceof HttpError && err.parsedBody) {
-          const parsedBody = err.parsedBody as Record<string, unknown>;
-          if (typeof parsedBody.message === "string") {
-            errorMessage = parsedBody.message;
-          } else if (typeof parsedBody.error === "string") {
-            errorMessage = parsedBody.error;
-          }
-        } else if (err instanceof Error) {
-          errorMessage = err.message;
-        }
-
+    try {
+      const response = await authApi.resetPassword(email, code, newPassword);
+      if (!response.success) {
+        const errorMessage = response.error ?? "Failed to reset password";
         setError(errorMessage);
-        log.error(LOG_CATEGORIES.AUTH, "Reset password error", err);
+        log.warn(LOG_CATEGORIES.AUTH, "Reset password failed", {
+          email,
+          error: errorMessage,
+        });
         return { success: false, error: errorMessage };
-      } finally {
-        setIsLoading(false);
       }
-    },
-    [],
-  );
+
+      log.info(LOG_CATEGORIES.AUTH, "Password reset successful", { email });
+      return {
+        success: true,
+        user: response.user,
+        message: response.message,
+      };
+    } catch (err: unknown) {
+      let errorMessage = "Failed to reset password";
+
+      // Extract error message from HttpError parsedBody
+      if (err instanceof HttpError && err.parsedBody) {
+        const parsedBody = err.parsedBody as Record<string, unknown>;
+        if (typeof parsedBody.message === "string") {
+          errorMessage = parsedBody.message;
+        } else if (typeof parsedBody.error === "string") {
+          errorMessage = parsedBody.error;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+      log.error(LOG_CATEGORIES.AUTH, "Reset password error", err);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   return { resetPassword, isLoading, error, clearError: () => setError(null) };
 }

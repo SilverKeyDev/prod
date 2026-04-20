@@ -166,7 +166,7 @@ export function VerificationScreenNative() {
             <Input
               value={code}
               onValueChange={setCode}
-              placeholder="000000"
+              placeholder="6-digit code"
               keyboardType="number-pad"
               maxLength={6}
               label="Verification code"

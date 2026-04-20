@@ -20,9 +20,7 @@ function toCardProperty(home: SavedHome) {
     id: home.home_id,
     address: home.address ?? home.description ?? "",
     price:
-      typeof home.price === "string" || typeof home.price === "number"
-        ? String(home.price)
-        : "",
+      typeof home.price === "string" || typeof home.price === "number" ? String(home.price) : "",
     bedrooms: home.bedrooms ?? 0,
     bathrooms: home.bathrooms ?? 0,
     sqft: home.sqft ?? 0,
@@ -36,16 +34,11 @@ function toCardProperty(home: SavedHome) {
  * Saved home card for web: PropertyCard with image, compare checkbox (top-left),
  * heart save (top-right). Clicking the card navigates to property details.
  */
-export function SavedHomeCard({
-  home,
-  isSelected,
-  onToggleCompare,
-  onUnlock,
-}: SavedHomeCardProps) {
+export function SavedHomeCard({ home, isSelected, onToggleCompare, onUnlock }: SavedHomeCardProps) {
   const address = addressStreetLineForCard(
     typeof home.address === "string" || typeof home.address === "number"
       ? home.address.toString()
-      : home.description ?? "[Invalid address]",
+      : (home.description ?? "[Invalid address]")
   );
   const price =
     typeof home.price === "string" || typeof home.price === "number"
@@ -87,11 +80,7 @@ export function SavedHomeCard({
               position="top-left"
               size="sm"
             />
-            <ConnectedCardHeartSave
-              property={property}
-              position="top-right"
-              size="sm"
-            />
+            <ConnectedCardHeartSave property={property} position="top-right" size="sm" />
           </>
         }
       />

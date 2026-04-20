@@ -21,7 +21,7 @@ export type UseAgentChatsReturn = {
     message: string,
     clientId?: string,
     sharedHomeId?: string,
-    sharedDocumentId?: string,
+    sharedDocumentId?: string
   ) => Promise<void>;
   getChatHistory: (conversationId: string) => Promise<{
     messages: AgentChatMessage[];
@@ -40,15 +40,10 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
   const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
-  const setTotalUnreadCount = useNotificationStore(
-    (s) => s.setTotalUnreadCount,
-  );
+  const setTotalUnreadCount = useNotificationStore((s) => s.setTotalUnreadCount);
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(
-    () => authReady && isAuthenticated,
-    [authReady, isAuthenticated],
-  );
+  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
   // Use the same query key as dataConfig when clientId is undefined
   // This ensures cache hits for prefetched data
@@ -69,9 +64,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     if (cached) {
       // If clientId is provided, filter to that client's conversation
       if (clientId) {
-        return cached.filter((conv) =>
-          isSameMessagingUserId(conv.client_id, clientId),
-        );
+        return cached.filter((conv) => isSameMessagingUserId(conv.client_id, clientId));
       }
       return cached;
     }
@@ -80,13 +73,11 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     // but we're querying with conversation(clientId) key
     if (clientId !== undefined) {
       const cachedAll = queryClient.getQueryData<AgentConversation[]>(
-        queryKeys.agent.conversations(),
+        queryKeys.agent.conversations()
       );
       if (cachedAll) {
         return clientId
-          ? cachedAll.filter((conv) =>
-              isSameMessagingUserId(conv.client_id, clientId),
-            )
+          ? cachedAll.filter((conv) => isSameMessagingUserId(conv.client_id, clientId))
           : cachedAll;
       }
     }
@@ -122,14 +113,10 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
 
   useEffect(() => {
     if (!shouldLoadData) {
-      log.info(
-        LOG_CATEGORIES.MESSAGES,
-        "useAgentChats: query disabled until auth ready",
-        {
-          authReady,
-          isAuthenticated,
-        },
-      );
+      log.info(LOG_CATEGORIES.MESSAGES, "useAgentChats: query disabled until auth ready", {
+        authReady,
+        isAuthenticated,
+      });
       return;
     }
     if (error) {
@@ -191,7 +178,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
         message,
         clientId,
         sharedHomeId,
-        sharedDocumentId,
+        sharedDocumentId
       );
 
       log.debug(LOG_CATEGORIES.MESSAGES, "sendMessage API response", {
@@ -261,7 +248,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       message: string,
       clientId?: string,
       sharedHomeId?: string,
-      sharedDocumentId?: string,
+      sharedDocumentId?: string
     ) => {
       await sendMessageMutation.mutateAsync({
         conversationId,
@@ -271,7 +258,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
         sharedDocumentId,
       });
     },
-    [sendMessageMutation],
+    [sendMessageMutation]
   );
 
   const getChatHistory = useCallback(
@@ -293,9 +280,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
             queryFn: async () => {
               const response = await agentApi.getChatHistory(conversationId);
               if (!response.success) {
-                throw new Error(
-                  response.error ?? "Failed to fetch chat history",
-                );
+                throw new Error(response.error ?? "Failed to fetch chat history");
               }
               return {
                 messages: response.messages ?? [],
@@ -313,7 +298,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       // No cache, fetch and cache it
       return await getChatHistoryMutation.mutateAsync(conversationId);
     },
-    [getChatHistoryMutation, queryClient],
+    [getChatHistoryMutation, queryClient]
   );
 
   // Fetch notification counter (unread messages + pending requests)
@@ -322,9 +307,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     queryFn: async () => {
       const response = await agentApi.getNotificationCounter();
       if (!response.success) {
-        throw new Error(
-          response.error ?? "Failed to fetch notification counter",
-        );
+        throw new Error(response.error ?? "Failed to fetch notification counter");
       }
       return response.total_count;
     },

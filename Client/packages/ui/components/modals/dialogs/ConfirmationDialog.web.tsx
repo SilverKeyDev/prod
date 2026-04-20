@@ -10,10 +10,7 @@ import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 
 import type { ConfirmationDialogProps } from "./ConfirmationDialog.types";
-type ConfirmationDialogContentProps = Omit<
-  ConfirmationDialogProps,
-  "isOpen"
-> & {
+type ConfirmationDialogContentProps = Omit<ConfirmationDialogProps, "isOpen"> & {
   showLogoutIcon: boolean;
 };
 function ConfirmationDialogContent({
@@ -73,18 +70,11 @@ function ConfirmationDialogContent({
               size="md"
               onClick={onConfirm}
               className="w-full sm:w-auto"
-              icon={
-                confirmIcon ??
-                (showLogoutIcon ? <Icon name="log-out" /> : undefined)
-              }
+              icon={confirmIcon ?? (showLogoutIcon ? <Icon name="log-out" /> : undefined)}
             >
               {confirmText}
             </Button>
-            <CancelButton
-              onClick={onCancel}
-              size="md"
-              className="w-full sm:w-auto"
-            >
+            <CancelButton onClick={onCancel} size="md" className="w-full sm:w-auto">
               {cancelText}
             </CancelButton>
           </Box>

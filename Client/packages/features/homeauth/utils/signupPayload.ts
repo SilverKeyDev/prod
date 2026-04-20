@@ -21,10 +21,7 @@ export function getSignupPayload(form: SignupFormPayload): SignupData {
 /**
  * Persist email and password in session for the verification step. Shared by web and native.
  */
-export function persistSignupEmailForVerification(
-  email: string,
-  password: string,
-): void {
+export function persistSignupEmailForVerification(email: string, password: string): void {
   const session = getSessionStorage();
   session.setItem("signupEmail", email);
   session.setItem("signupPassword", password);

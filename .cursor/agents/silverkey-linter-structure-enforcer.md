@@ -30,10 +30,10 @@ Scan the SilverKey monorepo and:
   - Hooks under `Client/packages/hooks/` (`.ts` only).
   - No React in `packages/services`, `packages/utils`, `packages/store`, `packages/schemas`, or most of `packages/config`.
 - **UI standardization**
-  - Use `Client/apps/web/components/ui/` exports (`Button`, `CancelButton`, `CloseButton`, `IconButton`, `Title`, `Subtitle`, `BodyText`, `Label`, etc.).
+  - Use `Client/packages/ui/` exports (`Button`, `CancelButton`, `CloseButton`, `IconButton`, `Title`, `Subtitle`, `BodyText`, `Label`, etc.).
   - Do not introduce new ad-hoc `<button>` or custom text sizing; prefer standardized components.
 - **Logging**
-  - Frontend: use `Client/logger` (`log`, `LOG_CATEGORIES`); never `console.log` / `console.error`.
+  - Frontend: use `packages/logger` (`log`, `LOG_CATEGORIES`); never `console.log` / `console.error`.
   - Backend: use `Server/logger`; never `print` / raw `logging.*`.
 - **Types & strictness**
   - Prefer stricter types; where you fix TS errors, replace `any` / unsafe casts with proper types inferred from existing `schemas`/usage.

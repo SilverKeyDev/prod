@@ -26,20 +26,14 @@ function deriveSizeFromClassName(className?: string): number | undefined {
 function deriveColorFromClassName(className?: string): string | undefined {
   if (!className) return undefined;
 
-  if (/(?:^|\\s)text-white(?:\\s|$)/.test(className))
-    return tokenColor("neutral.50");
-  if (/(?:^|\\s)text-black(?:\\s|$)/.test(className))
-    return tokenColor("neutral.900");
-  if (/(?:^|\\s)text-brand-accent(?:\\s|$)/.test(className))
-    return tokenColor("brand.accent");
+  if (/(?:^|\\s)text-white(?:\\s|$)/.test(className)) return tokenColor("neutral.50");
+  if (/(?:^|\\s)text-black(?:\\s|$)/.test(className)) return tokenColor("neutral.900");
+  if (/(?:^|\\s)text-brand-accent(?:\\s|$)/.test(className)) return tokenColor("brand.accent");
   if (/(?:^|\\s)text-brand-secondary(?:\\s|$)/.test(className))
     return tokenColor("brand.secondary");
-  if (/(?:^|\\s)text-brand-primary(?:\\s|$)/.test(className))
-    return tokenColor("brand.primary");
+  if (/(?:^|\\s)text-brand-primary(?:\\s|$)/.test(className)) return tokenColor("brand.primary");
 
-  const neutralMatch = className.match(
-    /(?:^|\\s)text-(?:gray|neutral)-(\\d{2,3})(?:\\s|$)/,
-  );
+  const neutralMatch = className.match(/(?:^|\\s)text-(?:gray|neutral)-(\\d{2,3})(?:\\s|$)/);
   if (neutralMatch?.[1]) {
     const shade = neutralMatch[1];
     return tokenColor(`neutral.${shade}`);
@@ -53,17 +47,13 @@ function deriveColorFromClassName(className?: string): string | undefined {
     return tokenColor("rose.DEFAULT");
   }
 
-  const greenMatch = className.match(
-    /(?:^|\\s)text-(?:green|emerald)-(\\d{2,3})(?:\\s|$)/,
-  );
+  const greenMatch = className.match(/(?:^|\\s)text-(?:green|emerald)-(\\d{2,3})(?:\\s|$)/);
   if (greenMatch?.[1]) {
     const shade = greenMatch[1];
     return tokenColor(`green.${shade}`);
   }
 
-  const yellowMatch = className.match(
-    /(?:^|\\s)text-(?:yellow|amber)-(\\d{2,3})(?:\\s|$)/,
-  );
+  const yellowMatch = className.match(/(?:^|\\s)text-(?:yellow|amber)-(\\d{2,3})(?:\\s|$)/);
   if (yellowMatch?.[1]) {
     const shade = Number(yellowMatch[1]);
     if (shade >= 800) return tokenColor("yellow.800");
@@ -107,14 +97,8 @@ export function Icon({
   accessibilityLabel,
 }: IconProps): JSX.Element | null {
   const IconComponent = getIcon(name);
-  const derivedSize = useMemo(
-    () => deriveSizeFromClassName(className),
-    [className],
-  );
-  const derivedColor = useMemo(
-    () => deriveColorFromClassName(className),
-    [className],
-  );
+  const derivedSize = useMemo(() => deriveSizeFromClassName(className), [className]);
+  const derivedColor = useMemo(() => deriveColorFromClassName(className), [className]);
 
   if (!IconComponent) return null;
 

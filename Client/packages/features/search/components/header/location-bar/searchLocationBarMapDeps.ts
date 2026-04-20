@@ -1,5 +1,5 @@
 /// <reference types="google.maps" />
-import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/locationBoundsOverlay";
+import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/map/locationBoundsOverlay";
 
 import type { Suggestion } from "./searchLocationBarTypes";
 

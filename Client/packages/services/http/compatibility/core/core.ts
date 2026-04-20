@@ -18,7 +18,7 @@ import type {
   ApiResponse,
   FetchJsonOpts,
   RetryOpts,
-} from "packages/types/api";
+} from "packages/types/domain/api";
 import { getFetch } from "packages/utils/platform";
 
 import { getAuthToken, httpClient } from "./config";
@@ -26,10 +26,7 @@ import { getAuthToken, httpClient } from "./config";
 const toPlainHeaderObject = normalizeHeaders;
 const normalizeBase = normalizeUrl;
 
-export async function fetchJson<T>(
-  url: string,
-  opts: FetchJsonOpts = {},
-): Promise<T> {
+export async function fetchJson<T>(url: string, opts: FetchJsonOpts = {}): Promise<T> {
   const { acceptStatuses, timeout, ...requestInit } = opts;
   return httpClient.request<T>(url, {
     ...requestInit,
@@ -42,7 +39,7 @@ export async function fetchJson<T>(
 export async function fetchJsonWithRetry<T>(
   url: string,
   init: FetchJsonOpts,
-  retry: RetryOpts = {},
+  retry: RetryOpts = {}
 ): Promise<T> {
   const { acceptStatuses, timeout, ...requestInit } = init;
   return httpClient.requestWithRetry<T>(
@@ -53,13 +50,13 @@ export async function fetchJsonWithRetry<T>(
       timeout,
       baseUrl: "",
     },
-    retry,
+    retry
   );
 }
 
 export async function apiRequest<T = unknown>(
   endpoint: string,
-  options: ApiRequestOptions = {},
+  options: ApiRequestOptions = {}
 ): Promise<T> {
   const {
     includeCredentials = true,
@@ -77,9 +74,7 @@ export async function apiRequest<T = unknown>(
     ...fetchOptions
   } = options;
 
-  const base = normalizeBase(
-    baseUrl ?? getEnv().apiBaseUrl.replace(/\/+$/, ""),
-  );
+  const base = normalizeBase(baseUrl ?? getEnv().apiBaseUrl.replace(/\/+$/, ""));
   const url = endpoint.startsWith("http")
     ? endpoint
     : `${base}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
@@ -101,7 +96,7 @@ export async function apiRequest<T = unknown>(
     return await fetchJsonWithRetry<T>(
       url,
       { ...requestOptions, acceptStatuses, timeout },
-      { retries, retryOnStatuses, retryDelayMs, backoffFactor, jitter },
+      { retries, retryOnStatuses, retryDelayMs, backoffFactor, jitter }
     );
   } catch (error: unknown) {
     if (isAuthenticationError(error)) {
@@ -124,7 +119,7 @@ export type ApiHeadResponse = {
  */
 export async function apiHead(
   endpoint: string,
-  options: Omit<ApiRequestOptions, "method" | "body"> = {},
+  options: Omit<ApiRequestOptions, "method" | "body"> = {}
 ): Promise<ApiHeadResponse> {
   const {
     includeCredentials = true,
@@ -135,9 +130,7 @@ export async function apiHead(
     ...fetchOptions
   } = options;
 
-  const base = normalizeBase(
-    baseUrl ?? getEnv().apiBaseUrl.replace(/\/+$/, ""),
-  );
+  const base = normalizeBase(baseUrl ?? getEnv().apiBaseUrl.replace(/\/+$/, ""));
   const url = endpoint.startsWith("http")
     ? endpoint
     : `${base}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;

@@ -28,14 +28,14 @@ export function useDocumentsLibraryMutations(clientId?: string) {
     },
     onMutate: async ({ docId }) => {
       const previousDocuments = queryClient.getQueryData<DocumentData[]>(
-        queryKeys.documents.list(undefined, clientId),
+        queryKeys.documents.list(undefined, clientId)
       );
       queryClient.setQueryData(
         queryKeys.documents.list(undefined, clientId),
         (old: DocumentData[] | undefined) => {
           if (!old) return old;
           return old.filter((doc) => doc.id !== docId);
-        },
+        }
       );
       return { previousDocuments };
     },
@@ -44,7 +44,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
       if (context?.previousDocuments) {
         queryClient.setQueryData(
           queryKeys.documents.list(undefined, clientId),
-          context.previousDocuments,
+          context.previousDocuments
         );
       }
     },
@@ -60,8 +60,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
     mutationFn: async (libraryItemId: string) => {
       const response = await reportApi.removeFromLibrary(libraryItemId);
       if (!response.success) {
-        const errorMessage =
-          response.error ?? "Failed to remove document from library";
+        const errorMessage = response.error ?? "Failed to remove document from library";
         log.error(LOG_CATEGORIES.API, "Failed to remove from library", {
           libraryItemId,
           error: errorMessage,
@@ -72,14 +71,14 @@ export function useDocumentsLibraryMutations(clientId?: string) {
     },
     onMutate: async (libraryItemId) => {
       const previousDocuments = queryClient.getQueryData<DocumentData[]>(
-        queryKeys.documents.list(undefined, clientId),
+        queryKeys.documents.list(undefined, clientId)
       );
       queryClient.setQueryData(
         queryKeys.documents.list(undefined, clientId),
         (old: DocumentData[] | undefined) => {
           if (!old) return old;
           return old.filter((doc) => doc.library_item_id !== libraryItemId);
-        },
+        }
       );
       return { previousDocuments };
     },
@@ -88,15 +87,12 @@ export function useDocumentsLibraryMutations(clientId?: string) {
       if (context?.previousDocuments) {
         queryClient.setQueryData(
           queryKeys.documents.list(undefined, clientId),
-          context.previousDocuments,
+          context.previousDocuments
         );
       }
     },
     onSuccess: () => {
-      log.info(
-        LOG_CATEGORIES.API,
-        "Document removed from library successfully",
-      );
+      log.info(LOG_CATEGORIES.API, "Document removed from library successfully");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.documents.all });
@@ -107,8 +103,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
     async (doc: DocumentData) => {
       const currentUser = user;
       const currentUserId = currentUser?.id;
-      const isFromOtherUser =
-        currentUserId && doc.user_id && currentUserId !== doc.user_id;
+      const isFromOtherUser = currentUserId && doc.user_id && currentUserId !== doc.user_id;
 
       if (doc.library_kind === "agreement") {
         if (currentUserId && doc.agent_id === currentUserId) {
@@ -116,9 +111,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
             reason: "Removed by agent from Saved",
           });
           if (!discardResponse.success) {
-            throw new Error(
-              discardResponse.error ?? "Failed to discard agreement",
-            );
+            throw new Error(discardResponse.error ?? "Failed to discard agreement");
           }
           void queryClient.invalidateQueries({
             queryKey: queryKeys.documents.all,
@@ -140,7 +133,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
         });
       }
     },
-    [deleteDocumentMutation, removeFromLibraryMutation, queryClient, user],
+    [deleteDocumentMutation, removeFromLibraryMutation, queryClient, user]
   );
 
   return { handleDelete };

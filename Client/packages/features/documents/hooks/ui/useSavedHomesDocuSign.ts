@@ -4,17 +4,11 @@ import { getWindow } from "packages/utils/platform";
 
 import { useSavedHomesDocuSignCore } from "./useSavedHomesDocuSignCore";
 
-type EnqueueToast = (params: {
-  type: "success" | "error";
-  message: string;
-}) => void;
+type EnqueueToast = (params: { type: "success" | "error"; message: string }) => void;
 
 type SendAgreementFn = (params: { agreementId: string }) => Promise<unknown>;
 
-type VoidAgreementFn = (params: {
-  agreementId: string;
-  reason?: string;
-}) => Promise<unknown>;
+type VoidAgreementFn = (params: { agreementId: string; reason?: string }) => Promise<unknown>;
 
 /**
  * DocuSign agreement state and handlers for SavedHomes (web).
@@ -24,7 +18,7 @@ export function useSavedHomesDocuSign(
   sendAgreement: SendAgreementFn,
   voidAgreement: VoidAgreementFn,
   refetchAgreements: () => Promise<unknown>,
-  enqueueToast: EnqueueToast,
+  enqueueToast: EnqueueToast
 ) {
   const confirmVoid = useCallback((message: string) => {
     return Promise.resolve(getWindow()?.confirm?.(message) ?? false);

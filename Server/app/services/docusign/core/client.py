@@ -8,7 +8,12 @@ import json
 import logging
 from typing import Any, cast
 
-from docusign_esign import EnvelopeDefinition
+from docusign_esign import (
+    EnvelopeDefinition,
+    EnvelopeNotificationRequest,
+    PrefillTabs,
+    Recipients,
+)
 from docusign_esign.client.api_exception import ApiException
 from tenacity import (
     before_sleep_log,
@@ -167,7 +172,11 @@ class DocusignClient:
     # Envelope operations (with automatic retry on transient failures)
 
     @retry(**retry_config)
-    def create_envelope(self, envelope_definition: EnvelopeDefinition) -> dict[str, Any]:
+    def create_envelope(
+        self,
+        envelope_definition: EnvelopeDefinition,
+        prefill_tabs: PrefillTabs | None = None,
+    ) -> dict[str, Any]:
         """
         Create envelope with automatic retry.
 
@@ -181,6 +190,7 @@ class DocusignClient:
             cast(str, self.account_id),
             envelope_definition,
             self._handle_api_exception,
+            prefill_tabs=prefill_tabs,
         )
 
     @retry(**retry_config)
@@ -246,6 +256,30 @@ class DocusignClient:
             self.api_client,
             cast(str, self.account_id),
             envelope_id,
+            self._handle_api_exception,
+        )
+
+    @retry(**retry_config)
+    def update_notification_settings(
+        self, envelope_id: str, envelope_notification_request: EnvelopeNotificationRequest
+    ) -> dict[str, Any]:
+        """Update reminder/expiration settings on an existing envelope."""
+        return envelope_ops.update_notification_settings(
+            self.api_client,
+            cast(str, self.account_id),
+            envelope_id,
+            envelope_notification_request,
+            self._handle_api_exception,
+        )
+
+    @retry(**retry_config)
+    def update_recipients_resend(self, envelope_id: str, recipients: Recipients) -> dict[str, Any]:
+        """Trigger DocuSign to resend the envelope to the given recipient(s)."""
+        return envelope_ops.update_recipients_resend(
+            self.api_client,
+            cast(str, self.account_id),
+            envelope_id,
+            recipients,
             self._handle_api_exception,
         )
 

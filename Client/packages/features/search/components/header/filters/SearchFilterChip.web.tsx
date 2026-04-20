@@ -56,10 +56,7 @@ export default function SearchFilterChip({
           aria-expanded={isActive}
           aria-haspopup="true"
         >
-          <BodyText
-            size="sm"
-            className="min-w-0 truncate font-medium text-inherit"
-          >
+          <BodyText size="sm" className="min-w-0 truncate font-medium text-inherit">
             {label}: {summary}
           </BodyText>
           <DropdownChevron open={isActive} className="h-4 w-4 shrink-0" />

@@ -1,6 +1,4 @@
-export function normalizeHeaders(
-  headers?: HeadersInit,
-): Record<string, string> {
+export function normalizeHeaders(headers?: HeadersInit): Record<string, string> {
   const result: Record<string, string> = {};
   if (!headers) return result;
 
@@ -21,9 +19,7 @@ export function normalizeUrl(base: string): string {
   return base.replace(/\/+$/, "");
 }
 
-export function createAuthHeaders(
-  token?: string | null,
-): Record<string, string> {
+export function createAuthHeaders(token?: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "application/json",

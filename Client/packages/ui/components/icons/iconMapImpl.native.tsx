@@ -46,6 +46,7 @@ import {
   Inbox,
   Info,
   Key,
+  Library,
   Lightbulb,
   Link2,
   Loader2,
@@ -58,6 +59,7 @@ import {
   Menu,
   MessageCircle,
   MessageSquare,
+  Minus,
   MoreHorizontal,
   Pencil,
   Phone,
@@ -143,6 +145,7 @@ const ICONS: Record<IconName, React.ComponentType<SvgProps>> = {
   info: Info,
   key: Key,
   lightbulb: Lightbulb,
+  library: Library,
   "link-2": Link2,
   "loader-2": Loader2,
   lock: Lock,
@@ -154,6 +157,7 @@ const ICONS: Record<IconName, React.ComponentType<SvgProps>> = {
   menu: Menu,
   "message-circle": MessageCircle,
   "message-square": MessageSquare,
+  minus: Minus,
   "more-horizontal": MoreHorizontal,
   pencil: Pencil,
   phone: Phone,
@@ -188,8 +192,6 @@ const ICONS: Record<IconName, React.ComponentType<SvgProps>> = {
   "x-circle": XCircle,
 };
 
-export function getIcon(
-  name: IconName,
-): React.ComponentType<SvgProps> | undefined {
+export function getIcon(name: IconName): React.ComponentType<SvgProps> | undefined {
   return ICONS[name];
 }

@@ -10,7 +10,7 @@ import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Box } from "packages/ui/components/primitives";
 
 import { Title } from "@/components/ui";
-import BudgetSlider from "@/features/profile/components/settings/inputs/BudgetSlider";
+import BudgetSlider from "@/features/profile/components/settings/inputs/sliders/BudgetSlider";
 import {
   AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT,
   effectiveIsAgentForOptionalBuyerUi,
@@ -34,9 +34,7 @@ type HousingSectionProps = {
   showBudgetSlider?: boolean;
   /** Optional patch function for buyer preference extensions (physical, condition, utilities) */
   patchBuyerPreferenceExtensions?: (
-    fn: (
-      prev: BuyerPreferenceExtensions | undefined,
-    ) => BuyerPreferenceExtensions,
+    fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions
   ) => void;
 };
 

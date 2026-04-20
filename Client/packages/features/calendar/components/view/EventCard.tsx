@@ -1,19 +1,20 @@
 import { useCallback, useMemo, useState } from "react";
 
+import { Linking } from "react-native";
+
+import { type ViewingItinerary, viewingsApi } from "packages/api/viewings";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import type { UIState } from "packages/store";
+import { useUIStore } from "packages/store";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
-import { DeleteModal } from "packages/ui/components/modals";
+import DeleteModal from "packages/ui/components/modals/standalone/DeleteModal";
 import { Box, Text, TouchableBox } from "packages/ui/components/primitives";
+import { getWindow } from "packages/utils/platform";
 
-import type {
-  Calendar,
-  ExtendedGoogleEvent,
-} from "@/features/calendar/types/calendar";
+import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
-import {
-  getEventEndDate,
-  getEventStartDate,
-} from "@/features/calendar/utils/eventParsing";
+import { getEventEndDate, getEventStartDate } from "@/features/calendar/utils/parsing/eventParsing";
 
 import { CreateEventModal } from "./CreateEventModal";
 
@@ -21,11 +22,7 @@ type EventCardProps = {
   event: ExtendedGoogleEvent;
   silverKeyCalendarId?: string | null;
   refreshEvents?: () => Promise<void>;
-  updateEvent?: (
-    eventId: string,
-    event: GoogleEvent,
-    calendarId?: string,
-  ) => Promise<unknown>;
+  updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
   deleteEvent?: (eventId: string, calendarId?: string) => Promise<void>;
   calendars?: Calendar[];
   onClick?: () => void;
@@ -41,6 +38,13 @@ function formatDate(date: Date) {
   } catch {
     return "";
   }
+}
+
+function itineraryCanOpenNavigation(itinerary: ViewingItinerary | null | undefined): boolean {
+  if (!itinerary?.stops?.length) {
+    return false;
+  }
+  return itinerary.stops.filter((s) => s.lat != null && s.lng != null).length >= 2;
 }
 
 function formatTime(date: Date) {
@@ -64,8 +68,10 @@ export function EventCard({
   calendars = [],
   onClick,
 }: EventCardProps) {
+  const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [isOpeningNavigation, setIsOpeningNavigation] = useState(false);
 
   // Check if event is from a SilverKey calendar (matches "SilverKey" or "SilverKey ~ [Name]")
   const isSilverKeyEvent = useMemo(() => {
@@ -109,6 +115,42 @@ export function EventCard({
     void refreshEvents?.();
   }, [refreshEvents]);
 
+  const showStartViewingNavigation = useMemo(
+    () => itineraryCanOpenNavigation(event.itinerary),
+    [event.itinerary]
+  );
+
+  const handleStartViewingNavigation = useCallback(async () => {
+    if (!event.itinerary || !itineraryCanOpenNavigation(event.itinerary)) {
+      return;
+    }
+    setIsOpeningNavigation(true);
+    try {
+      const res = await viewingsApi.navigateLink(event.itinerary);
+      if (res.success && res.data?.url) {
+        const win = getWindow();
+        if (win) {
+          win.open(res.data.url, "_blank", "noopener,noreferrer");
+        } else {
+          await Linking.openURL(res.data.url);
+        }
+      } else {
+        enqueueToast({
+          type: "error",
+          message: res.error ?? "Could not open maps",
+        });
+      }
+    } catch (error) {
+      log.error(LOG_CATEGORIES.CALENDAR, "Viewing navigation link failed", error);
+      enqueueToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Could not open maps",
+      });
+    } finally {
+      setIsOpeningNavigation(false);
+    }
+  }, [enqueueToast, event.itinerary]);
+
   const dateRange = useMemo(() => {
     try {
       const start = getEventStartDate(event);
@@ -119,21 +161,17 @@ export function EventCard({
       }
 
       if (start.toDateString() === end.toDateString()) {
-        return `${formatDate(start)} • ${formatTime(start)} - ${formatTime(
-          end,
-        )}`;
+        return `${formatDate(start)} • ${formatTime(start)} - ${formatTime(end)}`;
       }
 
-      return `${formatDate(start)} ${formatTime(start)} - ${formatDate(
-        end,
-      )} ${formatTime(end)}`;
+      return `${formatDate(start)} ${formatTime(start)} - ${formatDate(end)} ${formatTime(end)}`;
     } catch {
       return "";
     }
   }, [event]);
 
-  // Only allow editing events from SilverKey calendars
-  const showEditActions = isSilverKeyEvent && updateEvent && deleteEvent;
+  const showEditActions =
+    (isSilverKeyEvent || event.isProfileAvailabilityEvent) && updateEvent && deleteEvent;
 
   const eventBody = (
     <>
@@ -141,14 +179,10 @@ export function EventCard({
         {event.summary || "Untitled Event"}
       </Text>
       {dateRange ? (
-        <Text className="text-text-secondary text-left text-xs sm:text-sm">
-          {dateRange}
-        </Text>
+        <Text className="text-text-secondary text-left text-xs sm:text-sm">{dateRange}</Text>
       ) : null}
       {event.location ? (
-        <Text className="text-text-secondary text-left text-xs sm:text-sm">
-          {event.location}
-        </Text>
+        <Text className="text-text-secondary text-left text-xs sm:text-sm">{event.location}</Text>
       ) : null}
       {event.description ? (
         <Text className="text-text-secondary line-clamp-2 text-left text-xs sm:text-sm">
@@ -167,24 +201,37 @@ export function EventCard({
             <Box className="flex flex-row items-start gap-2">
               <Box className="min-w-0 flex-1">
                 {onClick ? (
-                  <TouchableBox
-                    onPress={onClick}
-                    className="space-y-1 text-left outline-none"
-                  >
+                  <TouchableBox onPress={onClick} className="space-y-1 text-left outline-none">
                     {eventBody}
                   </TouchableBox>
                 ) : (
                   <Box className="space-y-1">{eventBody}</Box>
                 )}
               </Box>
-              {showEditActions ? (
+              {showEditActions || showStartViewingNavigation ? (
                 <Box className="flex flex-shrink-0 flex-row flex-wrap justify-end gap-2">
-                  <Button variant="outline" size="sm" onPress={handleEdit}>
-                    Edit
-                  </Button>
-                  <CancelButton size="sm" onPress={handleCancel}>
-                    Cancel
-                  </CancelButton>
+                  {showStartViewingNavigation ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      loading={isOpeningNavigation}
+                      disabled={isOpeningNavigation}
+                      onPress={() => void handleStartViewingNavigation()}
+                      iconName="map-pin"
+                    >
+                      Start navigation
+                    </Button>
+                  ) : null}
+                  {showEditActions ? (
+                    <>
+                      <Button variant="outline" size="sm" onPress={handleEdit} iconName="pencil">
+                        Edit
+                      </Button>
+                      <CancelButton size="sm" onPress={handleCancel}>
+                        Cancel
+                      </CancelButton>
+                    </>
+                  ) : null}
                 </Box>
               ) : null}
             </Box>

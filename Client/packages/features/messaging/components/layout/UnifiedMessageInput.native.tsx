@@ -12,11 +12,11 @@ import {
 
 import { color } from "packages/design-tokens";
 
-import AttachmentMenu from "@/features/agent/components/AttachmentMenu";
+import AttachmentMenu from "@/features/agent/components/messaging/menus/AttachmentMenu";
 import {
   getMessagingConfig,
   type MessagingMode,
-} from "@/features/agent/components/messagingConfig";
+} from "@/features/agent/components/messaging/screen/messagingConfig";
 
 export type UnifiedMessageInputProps = {
   mode: MessagingMode;
@@ -110,9 +110,7 @@ export default function UnifiedMessageInputNative({
       ? `Message ${selectedClientName}...`
       : config.input.placeholder);
 
-  const hasAttachments = Boolean(
-    onAttachmentHome || onAttachmentCalendar || onAttachmentDocument,
-  );
+  const hasAttachments = Boolean(onAttachmentHome || onAttachmentCalendar || onAttachmentDocument);
 
   const canSend = message.trim() && !isTyping && !disabled;
 
@@ -167,9 +165,7 @@ export default function UnifiedMessageInputNative({
             <Icon
               name="send"
               size={20}
-              color={
-                canSend ? color("background-surface") : color("neutral.400")
-              }
+              color={canSend ? color("background-surface") : color("neutral.400")}
             />
           </TouchableOpacity>
         </View>

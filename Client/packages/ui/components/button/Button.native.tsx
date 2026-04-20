@@ -25,9 +25,7 @@ const PRESSABLE_FORWARD_KEYS = [
   "nativeID",
 ] as const;
 
-function pickPressableProps(
-  props: Record<string, unknown>,
-): Partial<PressableProps> {
+function pickPressableProps(props: Record<string, unknown>): Partial<PressableProps> {
   const result: Record<string, unknown> = {};
   for (const key of PRESSABLE_FORWARD_KEYS) {
     if (key in props && props[key] !== undefined) {
@@ -84,19 +82,16 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       onClick,
       ...props
     },
-    ref,
+    ref
   ) => {
     const effectiveVariant = variant === "cancel" ? "ghost" : variant;
     const variantClass = VARIANT_CLASSES[effectiveVariant];
     const sizeClass = SIZE_CLASSES[size];
     const textColorClass = TEXT_COLOR_CLASSES[effectiveVariant];
 
-    const iconClassName = `${
-      size === "lg" ? "h-5 w-5" : "h-4 w-4"
-    } ${textColorClass}`;
+    const iconClassName = `${size === "lg" ? "h-5 w-5" : "h-4 w-4"} ${textColorClass}`;
     const resolvedIcon =
-      icon ??
-      (iconName ? <Icon name={iconName} className={iconClassName} /> : null);
+      icon ?? (iconName ? <Icon name={iconName} className={iconClassName} /> : null);
 
     const handlePress = onPress ?? (onClick as (() => void) | undefined);
 
@@ -104,9 +99,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       <>
         <RippleBackground overlay />
         <Box className="relative z-10 flex-row items-center justify-center gap-2">
-          <Box className="items-center justify-center">
-            {/* <KeyTurnLoader message="" /> */}
-          </Box>
+          <Box className="items-center justify-center">{/* <KeyTurnLoader message="" /> */}</Box>
         </Box>
       </>
     ) : (
@@ -118,11 +111,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
           (typeof children === "string" ? (
             <Text
               className={`font-medium leading-none ${textColorClass} ${
-                size === "sm"
-                  ? "text-sm"
-                  : size === "lg"
-                    ? "text-base"
-                    : "text-sm"
+                size === "sm" ? "text-sm" : size === "lg" ? "text-base" : "text-sm"
               }`}
             >
               {children}
@@ -141,10 +130,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       pressableProps.accessibilityState &&
       typeof pressableProps.accessibilityState === "object" &&
       !Array.isArray(pressableProps.accessibilityState)
-        ? (pressableProps.accessibilityState as Record<
-            string,
-            boolean | undefined
-          >)
+        ? (pressableProps.accessibilityState as Record<string, boolean | undefined>)
         : {};
     const mergedAccessibilityState = { ...priorA11yState, busy: loading };
 
@@ -165,7 +151,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         {content}
       </Pressable>
     );
-  },
+  }
 );
 
 Button.displayName = "Button";

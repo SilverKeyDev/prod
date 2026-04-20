@@ -1,6 +1,6 @@
 # Shared Packages — Exhaustive Reference
 
-This document is the **exhaustive** reference for all **shared packages** in the SilverKey Client monorepo. Shared packages live under `Client/packages/` (and the top-level `Client/logger/`) and are consumed by one or more apps (`apps/web`, and when present `apps/mobile`). They contain no app-specific UI; they provide logic, types, configuration, and shared primitives.
+This document is the **exhaustive** reference for all **shared packages** in the SilverKey Client monorepo. Shared packages live under `Client/packages/` and are consumed by one or more apps (`apps/web`, and when present `apps/mobile`). They contain no app-specific routes; they provide logic, types, configuration, shared UI (`packages/ui`), and feature modules (`packages/features`).
 
 ---
 
@@ -8,10 +8,11 @@ This document is the **exhaustive** reference for all **shared packages** in the
 
 1. [Overview and Principles](#overview-and-principles)
 2. [Package Inventory](#package-inventory)
-3. [Per-Package Exhaustive Reference](#per-package-exhaustive-reference)
-4. [Dependency Graph and Import Rules](#dependency-graph-and-import-rules)
-5. [Consumers and Usage](#consumers-and-usage)
-6. [Workspace and Build](#workspace-and-build)
+3. [Large feature modules: subdirectory map](#large-feature-modules-subdirectory-map)
+4. [Per-Package Exhaustive Reference](#per-package-exhaustive-reference)
+5. [Dependency Graph and Import Rules](#dependency-graph-and-import-rules)
+6. [Consumers and Usage](#consumers-and-usage)
+7. [Workspace and Build](#workspace-and-build)
 
 ---
 
@@ -19,9 +20,9 @@ This document is the **exhaustive** reference for all **shared packages** in the
 
 ### What Counts as a Shared Package
 
-- **Location:** `Client/packages/<name>/` or (for logger) `Client/logger/`.
+- **Location:** `Client/packages/<name>/` (including `packages/logger/`).
 - **Consumed by:** `apps/web`, and when applicable `apps/mobile`, and optionally other packages.
-- **No app-specific UI:** Shared packages do not contain pages, app routes, or app-only layouts; they may contain shared UI primitives only if the project adopts a shared `packages/ui` (see [shared-ui-package.md](./shared-ui-package.md)).
+- **No app-specific UI:** Shared packages do not contain pages, app routes, or app-only layouts. Shared UI primitives and design-system components live in **`packages/ui/`** (see also [shared-ui-package.md](./shared-ui-package.md)).
 
 ### Core Principles
 
@@ -45,17 +46,73 @@ This document is the **exhaustive** reference for all **shared packages** in the
 | **contexts** | `packages/contexts/` | React Context providers | Yes | Yes*** |
 | **navigation** | `packages/navigation/` | Route paths, adapter (no router-dom in features) | No | Yes |
 | **design-tokens** | `packages/design-tokens/` | Colors, spacing, breakpoints, typography | No | Yes |
-| **styles** | `packages/styles/` | CSS / Tailwind utilities | N/A (CSS) | Web-only |
+| **ui** | `packages/ui/` | Design-system components, primitives, `packages/ui/styles/` (web CSS) | Yes | Yes**** |
 | **features** | `packages/features/` | Feature-level modules (saved, agent, search, etc.) | Yes | Yes |
-| **logger** | `Client/logger/` | Centralized logging, PII scrubbing | No | Yes |
+| **types** | `packages/types/` | API/generated and shared type barrel | No | Yes |
+| **api** | `packages/api/` | Small surfaced API helpers (see folder) | No | Yes |
+| **logger** | `packages/logger/` | Centralized logging, PII scrubbing | No | Yes |
 
 **Feature module structure:** Each subfolder under `packages/features/<name>/` may only contain: `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`, and `index.ts` (barrel). Enforced by ESLint rule `silverkey/package-module-allowed-children`. See `Client/packages/features/README.md` and `.cursor/rules/shared/package-feature-structure.mdc`.
 
 \* React Query lives in `config/query/`; the rest of config is non-React.  
 \** `services/data/` uses React Query's `QueryClient` for prefetch/polling; otherwise services are framework-agnostic.  
-\*** Contexts use React but no DOM; mobile can consume the same contexts or provide its own provider shell.
+\*** Contexts use React but no DOM; mobile can consume the same contexts or provide its own provider shell.  
+\**** `packages/ui` uses `.web` / `.native` where needed; CSS files are web-oriented.
 
-**Note:** `packages/ui/` may exist as a placeholder or future shared UI package; see [shared-ui-package.md](./shared-ui-package.md).
+**Note:** Email templates may live under `packages/email-templates/`. See [shared-ui-package.md](./shared-ui-package.md) for design-system rationale.
+
+---
+
+## Large feature modules: subdirectory map
+
+Large features accumulate many files. When using `@` / search in the repo, start from these subtrees (each lives under `Client/packages/features/<name>/`).
+
+### `search/`
+
+| Subtree | Role |
+|--------|------|
+| `api/` | Search and research API helpers |
+| `components/` | Shell UI: `header/`, `layout/`, `list/`, `map/`, `filters/`, `reels/`, `cards/`, `share/`, top-level `SearchScreen*.tsx` |
+| `hooks/data/` | `page/`, `map/`, `results/`, `property/`, `saved/`, `isochrone/`, `useMapMarkers/` |
+| `hooks/store/` | Search view / store integration |
+| `hooks/ui/` | Mobile header and other UI-only search hooks |
+| `store/` | Search slice and cache helpers |
+| `utils/` | `filters/`, `googleMaps/`, `map/`, `transform/`, `outcomes/` |
+
+### `profile/`
+
+| Subtree | Role |
+|--------|------|
+| `api/` | Profile-related API |
+| `components/` | `sections/`, `settings/`, `profileScreen/`, `onboard/`, `account/`, `layout/`, etc. |
+| `hooks/data/` | Profile and favorites data |
+| `utils/` | Onboarding helpers, financials, `agentPublicProfile/`, `public/`, etc. |
+
+### `calendar/`
+
+| Subtree | Role |
+|--------|------|
+| `api/` | Calendar and scheduling queries |
+| `components/` | `shell/`, `view/`, `timeGrid/`, `agenda/`, `eventForm/`, `scheduling/`, `viewings/` |
+| `hooks/data/` | `core/`, `createEvent/`, `google/`, etc. |
+| `hooks/store/` | Google calendar / integration hooks |
+| `hooks/ui/` | Quick-create and UI session hooks |
+| `store/` | Calendar feature store |
+| `utils/` | `grid/`, `agenda/`, `createEventModal/`, `parsing/`, `viewing/`, `core/` |
+
+### `feed/`
+
+| Subtree | Role |
+|--------|------|
+| `api/` | Feed and reel API |
+| `components/` | `Reels/`, `FeedItem/`, `Overlay/`, `carousel/`, `Modals/` |
+| `hooks/data/` | Feed query hooks |
+| `hooks/ui/` | Reels scroll, shortcuts, axis lock |
+| `hooks/feedReels/` | Reels-specific hook helpers |
+| `store/` | Feed slice |
+| `utils/` | Telemetry, media carousel constants, preload schedulers |
+
+For allowed children of any feature folder, see `.cursor/rules/shared/package-feature-structure.mdc` and `Client/packages/features/README.md`.
 
 ---
 
@@ -216,7 +273,7 @@ This document is the **exhaustive** reference for all **shared packages** in the
 
 **Forbidden imports:** `apps/*`; direct `react-router-dom` in exported API (app shell may still use it for setup).
 
-**Consumers:** `apps/web/features/**`, `packages/hooks/**` (for navigation/location); root route setup in `apps/web/app/` may still use react-router-dom.
+**Consumers:** `packages/features/**`, `packages/hooks/**` (for navigation/location); root route setup in `apps/web/app/` may still use react-router-dom.
 
 ---
 
@@ -239,21 +296,24 @@ This document is the **exhaustive** reference for all **shared packages** in the
 
 ---
 
-### 10. `packages/styles/`
+### 10. `packages/ui/`
 
-**Purpose:** CSS stylesheets and Tailwind utility classes (web styling).
+**Purpose:** Shared design-system components, layout primitives, adapters (headless, virtuoso, motion), and **`packages/ui/styles/`** (CSS entrypoints and utilities for web).
 
-**Contents:** CSS/PostCSS/Tailwind files (exact layout may vary).
+**Contents (summary):**
 
-**File types:** `.css`, config files. No TypeScript/React in styles themselves.
+- **`components/`** — `button/`, `text/`, `form/`, `modals/`, `cards/`, `primitives/` (Box, Row, etc.), `adapters/`, `layout/`, and platform variants (`.web.tsx` / `.native.tsx`).
+- **`styles/`** — Global and component CSS consumed by the web app build.
 
-**Platform:** **Web-only.** React Native does not use CSS; mobile uses its own styling (StyleSheet, etc.).
+**File types:** Mostly `.tsx` / `.ts`; CSS under `styles/`.
 
-**Consumers:** `apps/web` build (Tailwind/PostCSS pipeline).
+**Allowed imports:** Per ESLint architecture rules (typically `packages/utils`, `packages/design-tokens`, `packages/hooks` only where needed for UI behavior — follow `ui-components.mdc` and import-boundary rules).
+
+**Consumers:** `apps/web`, `apps/mobile`, and `packages/features/*`.
 
 ---
 
-### 11. `Client/logger/`
+### 11. `packages/logger/`
 
 **Purpose:** Centralized logging with category-based filtering and PII scrubbing (frontend).
 
@@ -269,7 +329,7 @@ This document is the **exhaustive** reference for all **shared packages** in the
 
 **Allowed imports:** No dependency on other Client packages (or minimal); PII and categories are self-contained.
 
-**Consumers:** All packages and apps that need frontend logging (use `logger` from `Client/logger`).
+**Consumers:** All packages and apps that need frontend logging (`import { log } from "packages/logger"`).
 
 ---
 
@@ -278,8 +338,8 @@ This document is the **exhaustive** reference for all **shared packages** in the
 ### Allowed Dependency Flow (summary)
 
 ```
-apps/web (components)
-  → packages/hooks, packages/store, packages/schemas, packages/utils, packages/contexts, packages/navigation, packages/design-tokens, logger
+apps/web (pages, layouts)
+  → packages/hooks, packages/store, packages/schemas, packages/utils, packages/contexts, packages/navigation, packages/design-tokens, packages/ui, packages/features, packages/logger
 
 packages/hooks
   → packages/config, packages/store, packages/schemas, packages/services/http, packages/services/security
@@ -323,8 +383,8 @@ packages/design-tokens
 
 | Consumer | Uses |
 |----------|------|
-| **apps/web** | hooks, store, schemas, utils, contexts, navigation, design-tokens, logger. Does **not** import config/api or services directly from components. |
-| **apps/mobile** (when present) | Same shared packages as web for logic; UI will use RN components; navigation adapter can have a native implementation. |
+| **apps/web** | hooks, store, schemas, utils, contexts, navigation, design-tokens, **ui**, **features**, logger. Does **not** import config/api or services directly from pages/components. |
+| **apps/mobile** (when present) | Same as web: hooks, store, **ui**, **features**, etc.; RN shells compose shared packages; navigation adapter uses native implementation where needed. |
 | **packages/hooks** | config/api, store, schemas, services/http, services/security. |
 | **packages/services** | config/api, services/http, services/security, schemas. |
 | **packages/config** | services/http, services/security, schemas. |
@@ -342,7 +402,7 @@ packages/design-tokens
 ## Related Documentation
 
 - [typescript-files.md](./typescript-files.md) — Where `.ts` files live and their roles.
-- [shared-ui-package.md](./shared-ui-package.md) — Optional shared `packages/ui` for cross-platform primitives.
+- [shared-ui-package.md](./shared-ui-package.md) — Rationale and patterns for **`packages/ui`** (now the canonical design system).
 - [react-vs-react-native-packages.md](./react-vs-react-native-packages.md) — React vs React Native–specific code and platform extensions.
 - **.cursor/rules/frontend/frontend-architecture.mdc** — Full frontend architecture and layer descriptions.
 - **Client/packages/README.md** — High-level package overview and import rules.

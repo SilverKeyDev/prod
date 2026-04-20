@@ -27,6 +27,7 @@ Docs for the SilverKey frontend: TypeScript/React (web) and React Native (mobile
 
 ## Related in repo
 
+- **Agent quickstart (Cursor / automation):** `AGENTS.md` at the repository root.
 - **Architecture and layer rules:** `.cursor/rules/frontend/frontend-architecture.mdc` and `thin-app-architecture.mdc`.
 - **Platform file conventions (web-only / desktop-only):** `.cursor/rules/frontend/platform-file-extensions.mdc`.
 - **Lint and checks:** [documentation/client/LINTING.md](./LINTING.md).

@@ -5,10 +5,7 @@
 
 import type { MessagePreviewInput } from "packages/features/messaging/types/messagePreview";
 
-import {
-  getAgreementEventPreviewLabel,
-  parseAgreementEventPayload,
-} from "./agreementEventPayload";
+import { getAgreementEventPreviewLabel, parseAgreementEventPayload } from "./agreementEventPayload";
 import { parseSharedAttachmentSnapshot } from "./sharedAttachmentSnapshot";
 
 export type { MessagePreviewInput } from "packages/features/messaging/types/messagePreview";
@@ -26,6 +23,19 @@ const PREVIEW_MAX_LENGTH = 60;
  */
 export function getMessagePreview(msg: MessagePreviewInput): string {
   const snapshot = parseSharedAttachmentSnapshot(msg.content);
+  if (snapshot?.kind === "bundle") {
+    const line = snapshot.displayLine.trim();
+    if (line) {
+      if (line.length <= PREVIEW_MAX_LENGTH) return line;
+      return `${line.slice(0, PREVIEW_MAX_LENGTH - 3)}...`;
+    }
+    const n = snapshot.items.length;
+    const homeN = snapshot.items.filter((i) => i.type === "home").length;
+    const docN = snapshot.items.filter((i) => i.type === "document").length;
+    if (homeN > 0 && docN === 0) return n > 1 ? `Shared ${homeN} homes` : "Shared homes";
+    if (docN > 0 && homeN === 0) return n > 1 ? `Shared ${docN} documents` : "Shared document";
+    return "Shared bundle";
+  }
   if (snapshot?.kind === "home") {
     const line = snapshot.displayLine.trim();
     if (!line) return "Shared home";
@@ -37,6 +47,12 @@ export function getMessagePreview(msg: MessagePreviewInput): string {
     if (!line) return "Shared document";
     if (line.length <= PREVIEW_MAX_LENGTH) return `Shared document: ${line}`;
     return `Shared document: ${line.slice(0, PREVIEW_MAX_LENGTH - 3)}...`;
+  }
+  if (snapshot?.kind === "checklist_form") {
+    const line = snapshot.displayLine.trim();
+    if (!line) return "Shared form";
+    if (line.length <= PREVIEW_MAX_LENGTH) return `Shared form: ${line}`;
+    return `Shared form: ${line.slice(0, PREVIEW_MAX_LENGTH - 3)}...`;
   }
 
   const agreementPayload = parseAgreementEventPayload(msg.content);

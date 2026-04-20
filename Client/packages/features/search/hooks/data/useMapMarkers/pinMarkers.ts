@@ -1,6 +1,6 @@
-import { addressForMarkerTitle } from "packages/features/search/types/search/address";
-import { searchMapOverlayBaseZIndex } from "packages/features/search/types/search/mapOverlayLayerOrder";
-import { createScorePinElement } from "packages/features/search/types/search/scorePinMarker";
+import { addressForMarkerTitle } from "packages/features/search/types/search/formatters/address";
+import { searchMapOverlayBaseZIndex } from "packages/features/search/types/search/map/mapOverlayLayerOrder";
+import { createScorePinElement } from "packages/features/search/types/search/map/scorePinMarker";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
 
@@ -25,7 +25,7 @@ type PinMarkersOptions = {
 export async function createPinMarkersBatch(
   data: SearchResult[],
   options: PinMarkersOptions,
-  pinStartIndex = 0,
+  pinStartIndex = 0
 ): Promise<void> {
   const {
     map,
@@ -47,8 +47,7 @@ export async function createPinMarkersBatch(
         : calculatePropertyScore(result);
     let lat = result.lat;
     let lng = result.lng;
-    const hasZeroOrNullCoords =
-      lat == null || lng == null || lat === 0 || lng === 0;
+    const hasZeroOrNullCoords = lat == null || lng == null || lat === 0 || lng === 0;
     if (hasZeroOrNullCoords && result.address) {
       const coords = await geocodeAddress(result.address);
       if (coords) {
@@ -60,12 +59,7 @@ export async function createPinMarkersBatch(
     } else if (hasZeroOrNullCoords) {
       continue;
     }
-    if (
-      typeof lat !== "number" ||
-      typeof lng !== "number" ||
-      isNaN(lat) ||
-      isNaN(lng)
-    ) {
+    if (typeof lat !== "number" || typeof lng !== "number" || isNaN(lat) || isNaN(lng)) {
       continue;
     }
 
@@ -97,15 +91,13 @@ export async function createPinMarkersBatch(
       log.error(
         LOG_CATEGORIES.MAP_RENDERING,
         `Error creating score pin marker for property ${result.id}:`,
-        error,
+        error
       );
     }
   }
 
   if (pinEndIndex < data.length) {
-    requestAnimationFrame(() =>
-      createPinMarkersBatch(data, options, pinEndIndex),
-    );
+    requestAnimationFrame(() => createPinMarkersBatch(data, options, pinEndIndex));
   } else {
     onBatchComplete();
   }

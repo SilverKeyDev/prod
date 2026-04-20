@@ -70,8 +70,7 @@ function CardViewDetailsButton({
   // Variant styles
   const variantStyles = {
     primary: "bg-primary text-white hover:bg-primary-hover border-border",
-    secondary:
-      "bg-background-surface text-primary border-border hover:bg-primary-muted",
+    secondary: "bg-background-surface text-primary border-border hover:bg-primary-muted",
     muted: "muted-button-primary",
     unlock: "bg-primary text-white hover:bg-primary-hover border-border",
     negotiate: "bg-accent text-white hover:bg-accent-hover border-border",
@@ -79,19 +78,14 @@ function CardViewDetailsButton({
   // Ensure size and variant are valid to avoid undefined style access
   const validSize = sizeStyles[size] ? size : "md";
   const validVariant =
-    variant && variantStyles[variant as keyof typeof variantStyles]
-      ? variant
-      : "primary";
+    variant && variantStyles[variant as keyof typeof variantStyles] ? variant : "primary";
   const currentSizeStyles = sizeStyles[validSize];
   const currentVariantStyles =
-    variantStyles[validVariant as keyof typeof variantStyles] ??
-    variantStyles.primary;
+    variantStyles[validVariant as keyof typeof variantStyles] ?? variantStyles.primary;
   // Filled variants use white text on the button; BodyText defaults to text-gray-900, so we
   // pass text-inherit so the label inherits the button's text color.
   const filledVariants = ["primary", "unlock", "negotiate"];
-  const textColorClass = filledVariants.includes(validVariant)
-    ? "!text-inherit"
-    : "";
+  const textColorClass = filledVariants.includes(validVariant) ? "!text-inherit" : "";
   const buttonClasses = [
     "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200",
     "border touch-friendly disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed",
@@ -103,9 +97,7 @@ function CardViewDetailsButton({
   ]
     .filter(Boolean)
     .join(" ");
-  const iconClasses = `${currentSizeStyles.icon} ${
-    showIcon && text ? "mr-1 sm:mr-2" : ""
-  }`;
+  const iconClasses = `${currentSizeStyles.icon} ${showIcon && text ? "mr-1 sm:mr-2" : ""}`;
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event from bubbling up to parent card
     if (disabled || isUnlocking || typeof onClick !== "function") return;
@@ -114,16 +106,12 @@ function CardViewDetailsButton({
       setIsUnlocking(true);
       await onClick();
     } catch (error) {
-      log.error(
-        LOG_CATEGORIES.SEARCH,
-        "CardViewDetailsButton error during unlock",
-        {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          text,
-          error: error instanceof Error ? error.message : String(error),
-          timestamp: dateNow().toISOString(),
-        },
-      );
+      log.error(LOG_CATEGORIES.SEARCH, "CardViewDetailsButton error during unlock", {
+        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+        text,
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: dateNow().toISOString(),
+      });
     } finally {
       setIsUnlocking(false);
     }
@@ -141,9 +129,7 @@ function CardViewDetailsButton({
         {showIcon && <Icon name={iconName} className={iconClasses} />}
         <BodyText
           as="span"
-          className={["whitespace-nowrap", textColorClass]
-            .filter(Boolean)
-            .join(" ")}
+          className={["whitespace-nowrap", textColorClass].filter(Boolean).join(" ")}
         >
           {text}
         </BodyText>

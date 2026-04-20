@@ -17,8 +17,7 @@ export function isImageFeatures(x: unknown): x is ImageFeatures {
 export function isFeatures(x: unknown): x is Features {
   if (typeof x !== "object" || x === null) return false;
   return Object.values(x as Record<string, unknown>).every(
-    (v) =>
-      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string"),
+    (v) => Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string")
   );
 }
 
@@ -104,9 +103,7 @@ export const getCategoryIconName = (rawCategory: string): string => {
   const normalized = rawCategory.toLowerCase().replace(/_/g, " ");
   const exact = FEATURE_ICONS[normalized];
   if (exact) return exact;
-  const partial = Object.entries(FEATURE_ICONS).find(([key]) =>
-    normalized.includes(key),
-  )?.[1];
+  const partial = Object.entries(FEATURE_ICONS).find(([key]) => normalized.includes(key))?.[1];
   return partial ?? "square";
 };
 
@@ -120,15 +117,13 @@ export type CategoryBlock = {
 export const buildCategoryBlocks = (
   imageFeatures: unknown,
   features: unknown,
-  aiDetectedFeaturesTitle: string,
+  aiDetectedFeaturesTitle: string
 ): CategoryBlock[] | null => {
   const img =
     isImageFeatures(imageFeatures) && !imageFeatures.error
       ? { ...imageFeatures, clean: deduplicateFeatures(imageFeatures.clean) }
       : null;
-  const feats = isFeatures(features)
-    ? sanitizeCategoryFeatures(features)
-    : null;
+  const feats = isFeatures(features) ? sanitizeCategoryFeatures(features) : null;
 
   if (!img && !feats) return null;
 

@@ -23,14 +23,9 @@ export function useMonthlyCostEstimates(zipcode: string | undefined | null) {
   return useQuery({
     queryKey: queryKeys.search.monthlyCostEstimates(normalized),
     queryFn: async ({ signal }) => {
-      const resp = await searchApi.getMonthlyCostEstimates(
-        { zipcode: normalized },
-        { signal },
-      );
+      const resp = await searchApi.getMonthlyCostEstimates({ zipcode: normalized }, { signal });
       if (!resp.success) {
-        throw new Error(
-          resp.message ?? resp.error ?? "Monthly cost estimates request failed",
-        );
+        throw new Error(resp.message ?? resp.error ?? "Monthly cost estimates request failed");
       }
       const data: MonthlyCostEstimatesData = {
         hoaMonthly: Number(resp.hoa_monthly ?? 0),

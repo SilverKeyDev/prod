@@ -13,12 +13,7 @@
  */
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import {
-  apiGet,
-  apiPatch,
-  apiPost,
-  apiPut,
-} from "packages/services/http/compatibility";
+import { apiGet, apiPatch, apiPost, apiPut } from "packages/services/http/compatibility";
 import type { components } from "packages/types/api.generated";
 
 // Re-export types from generated schema
@@ -26,28 +21,19 @@ export type AgentClient = components["schemas"]["AgentClient"];
 export type AgentConversation = components["schemas"]["AgentConversation"];
 export type EventRequestStatus = components["schemas"]["EventRequestStatus"];
 export type AgentChatMessage = components["schemas"]["AgentChatMessage"];
-export type AgentClientsResponse =
-  components["schemas"]["AgentClientsResponse"];
-export type AgentConversationsResponse =
-  components["schemas"]["AgentConversationsResponse"];
-export type AgentChatHistoryResponse =
-  components["schemas"]["AgentChatHistoryResponse"];
+export type AgentClientsResponse = components["schemas"]["AgentClientsResponse"];
+export type AgentConversationsResponse = components["schemas"]["AgentConversationsResponse"];
+export type AgentChatHistoryResponse = components["schemas"]["AgentChatHistoryResponse"];
 export type SendMessageRequest = components["schemas"]["SendMessageRequest"];
 export type SendMessageResponse = components["schemas"]["SendMessageResponse"];
-export type CreateConversationRequest =
-  components["schemas"]["CreateConversationRequest"];
-export type CreateConversationResponse =
-  components["schemas"]["CreateConversationResponse"];
+export type CreateConversationRequest = components["schemas"]["CreateConversationRequest"];
+export type CreateConversationResponse = components["schemas"]["CreateConversationResponse"];
 export type AgentSearchResult = components["schemas"]["AgentSearchResult"];
 export type ClientSearchResult = components["schemas"]["ClientSearchResult"];
-export type AgentConnectionRequest =
-  components["schemas"]["AgentConnectionRequest"];
-export type SearchAgentsResponse =
-  components["schemas"]["SearchAgentsResponse"];
-export type SearchClientsResponse =
-  components["schemas"]["SearchClientsResponse"];
-export type ConnectionRequestsResponse =
-  components["schemas"]["ConnectionRequestsResponse"];
+export type AgentConnectionRequest = components["schemas"]["AgentConnectionRequest"];
+export type SearchAgentsResponse = components["schemas"]["SearchAgentsResponse"];
+export type SearchClientsResponse = components["schemas"]["SearchClientsResponse"];
+export type ConnectionRequestsResponse = components["schemas"]["ConnectionRequestsResponse"];
 export type CreateConnectionRequestRequest =
   components["schemas"]["CreateConnectionRequestRequest"];
 export type CreateConnectionRequestResponse =
@@ -56,10 +42,8 @@ export type RespondToConnectionRequestRequest =
   components["schemas"]["RespondToConnectionRequestRequest"];
 export type RespondToConnectionRequestResponse =
   components["schemas"]["RespondToConnectionRequestResponse"];
-export type MarkMessagesAsReadResponse =
-  components["schemas"]["MarkMessagesAsReadResponse"];
-export type NotificationCounterResponse =
-  components["schemas"]["NotificationCounterResponse"];
+export type MarkMessagesAsReadResponse = components["schemas"]["MarkMessagesAsReadResponse"];
+export type NotificationCounterResponse = components["schemas"]["NotificationCounterResponse"];
 export type TodoItem = components["schemas"]["TodoItem"];
 export type GetTodosResponse = components["schemas"]["GetTodosResponse"];
 export type CreateTodoRequest = components["schemas"]["CreateTodoRequest"];
@@ -89,9 +73,7 @@ export const agentApi = {
    * Get chat history for a specific conversation
    */
   getChatHistory: (conversationId: string): Promise<AgentChatHistoryResponse> =>
-    apiGet<AgentChatHistoryResponse>(
-      `/api/v1/agent/chats/${conversationId}/history`,
-    ),
+    apiGet<AgentChatHistoryResponse>(`/api/v1/agent/chats/${conversationId}/history`),
 
   /**
    * Send a message in a conversation
@@ -101,7 +83,7 @@ export const agentApi = {
     message: string,
     clientId?: string,
     sharedHomeId?: string,
-    sharedDocumentId?: string,
+    sharedDocumentId?: string
   ): Promise<SendMessageResponse> => {
     const requestBody = {
       conversation_id: conversationId,
@@ -124,7 +106,7 @@ export const agentApi = {
     try {
       const response = await apiPost<SendMessageResponse>(
         "/api/v1/agent/chats/message",
-        requestBody,
+        requestBody
       );
 
       log.debug(LOG_CATEGORIES.API, "Message request response", {
@@ -156,29 +138,19 @@ export const agentApi = {
   /**
    * Search for agents (for clients)
    */
-  searchAgents: (
-    query: string,
-    limit?: number,
-  ): Promise<SearchAgentsResponse> => {
+  searchAgents: (query: string, limit?: number): Promise<SearchAgentsResponse> => {
     const params = new URLSearchParams({ q: query });
     if (limit) params.append("limit", limit.toString());
-    return apiGet<SearchAgentsResponse>(
-      `/api/v1/agent/search-agents?${params.toString()}`,
-    );
+    return apiGet<SearchAgentsResponse>(`/api/v1/agent/search-agents?${params.toString()}`);
   },
 
   /**
    * Search for clients (for agents)
    */
-  searchClients: (
-    query: string,
-    limit?: number,
-  ): Promise<SearchClientsResponse> => {
+  searchClients: (query: string, limit?: number): Promise<SearchClientsResponse> => {
     const params = new URLSearchParams({ q: query });
     if (limit) params.append("limit", limit.toString());
-    return apiGet<SearchClientsResponse>(
-      `/api/v1/agent/search-clients?${params.toString()}`,
-    );
+    return apiGet<SearchClientsResponse>(`/api/v1/agent/search-clients?${params.toString()}`);
   },
 
   /**
@@ -193,50 +165,42 @@ export const agentApi = {
   createConnectionRequest: (
     agentId: string,
     clientId: string,
-    message?: string,
+    message?: string
   ): Promise<CreateConnectionRequestResponse> =>
-    apiPost<CreateConnectionRequestResponse>(
-      "/api/v1/agent/connection-requests",
-      {
-        agent_id: agentId,
-        client_id: clientId,
-        message,
-      },
-    ),
+    apiPost<CreateConnectionRequestResponse>("/api/v1/agent/connection-requests", {
+      agent_id: agentId,
+      client_id: clientId,
+      message,
+    }),
 
   /**
    * Respond to a connection request (accept or reject)
    */
   respondToConnectionRequest: (
     requestId: string,
-    accept: boolean,
+    accept: boolean
   ): Promise<RespondToConnectionRequestResponse> =>
     apiPost<RespondToConnectionRequestResponse>(
       `/api/v1/agent/connection-requests/${requestId}/respond`,
-      { accept },
+      { accept }
     ),
 
   /**
    * Mark all messages in a conversation as read
    */
-  markMessagesAsRead: (
-    conversationId: string,
-  ): Promise<MarkMessagesAsReadResponse> =>
-    apiPost<MarkMessagesAsReadResponse>(
-      `/api/v1/agent/chats/${conversationId}/read`,
-      {},
-    ),
+  markMessagesAsRead: (conversationId: string): Promise<MarkMessagesAsReadResponse> =>
+    apiPost<MarkMessagesAsReadResponse>(`/api/v1/agent/chats/${conversationId}/read`, {}),
 
   /**
    * Update event request status (accepted or cancelled) for a calendar event request message
    */
   updateEventRequestStatus: (
     messageId: string,
-    status: "accepted" | "cancelled",
+    status: "accepted" | "cancelled"
   ): Promise<{ success: boolean; error?: string }> =>
     apiPatch<{ success: boolean; error?: string }>(
       `/api/v1/agent/chats/messages/${messageId}/event-request-status`,
-      { status },
+      { status }
     ),
 
   /**
@@ -262,9 +226,6 @@ export const agentApi = {
   /**
    * Update a todo
    */
-  updateTodo: (
-    todoId: string,
-    data: UpdateTodoRequest,
-  ): Promise<UpdateTodoResponse> =>
+  updateTodo: (todoId: string, data: UpdateTodoRequest): Promise<UpdateTodoResponse> =>
     apiPut<UpdateTodoResponse>(`/api/v1/agent/todos/${todoId}`, data),
 };

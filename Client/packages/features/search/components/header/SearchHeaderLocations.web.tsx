@@ -59,7 +59,7 @@ export default function SearchHeaderLocations({
         setOpen(true);
       }
     },
-    [saveAndClose],
+    [saveAndClose]
   );
 
   const formData: Partial<OnboardingData> = {

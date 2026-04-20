@@ -1,21 +1,12 @@
 import { useMemo, useState } from "react";
 
-import type { OnboardingData } from "packages/features/profile/utils"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Feed needs profile preference shape for payment estimate. */
+import type { OnboardingData } from "packages/features/profile/utils";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { Transition } from "packages/ui/components/adapters/headless";
 import { Box } from "packages/ui/components/primitives";
-import {
-  estimateMonthlyPayment,
-  mapCreditScoreToNumber,
-} from "packages/utils/affordability";
+import { estimateMonthlyPayment, mapCreditScoreToNumber } from "packages/utils/affordability";
 
-import {
-  AccessibleDialog,
-  BodyText,
-  Button,
-  CloseButton,
-  Title,
-} from "@/components/ui";
+import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";
 
 type FeedAffordabilityBadgeProps = {
@@ -24,11 +15,10 @@ type FeedAffordabilityBadgeProps = {
 
 function computeMonthlyPayment(
   item: FeedListing,
-  preferences: OnboardingData | null,
+  preferences: OnboardingData | null
 ): number | null {
   if (preferences?.paying_cash) return null;
-  if (!item.price || !preferences?.down_payment || !preferences?.ideal_zip_code)
-    return null;
+  if (!item.price || !preferences?.down_payment || !preferences?.ideal_zip_code) return null;
   const zipCode = item.zipCode ?? preferences.ideal_zip_code;
   const creditScore = mapCreditScoreToNumber(preferences.credit_score_range);
   return estimateMonthlyPayment({
@@ -45,7 +35,7 @@ export function FeedAffordabilityBadge({ item }: FeedAffordabilityBadgeProps) {
 
   const monthlyPayment = useMemo(
     () => computeMonthlyPayment(item, userPreferences ?? null),
-    [item, userPreferences],
+    [item, userPreferences]
   );
 
   if (!monthlyPayment && !item.price) return null;
@@ -119,22 +109,19 @@ export function FeedAffordabilityBadge({ item }: FeedAffordabilityBadgeProps) {
                         <BodyText size="xs" muted className="mb-1">
                           Est. monthly payment
                         </BodyText>
-                        <BodyText
-                          size="lg"
-                          className="text-primary font-semibold"
-                        >
+                        <BodyText size="lg" className="text-primary font-semibold">
                           ${monthlyPayment.toLocaleString()}/mo
                         </BodyText>
                       </Box>
                       <BodyText size="xs" muted>
-                        Based on your saved down payment and zip code. Tap
-                        Settings to update your financial profile.
+                        Based on your saved down payment and zip code. Tap Settings to update your
+                        financial profile.
                       </BodyText>
                     </Box>
                   ) : (
                     <BodyText size="sm" muted>
-                      Add your down payment and zip code in Settings to see
-                      estimated monthly payments.
+                      Add your down payment and zip code in Settings to see estimated monthly
+                      payments.
                     </BodyText>
                   )}
                 </Box>

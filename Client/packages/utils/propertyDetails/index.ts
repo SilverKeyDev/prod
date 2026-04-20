@@ -2,7 +2,7 @@ export {
   buildPropertyAnalysisSections,
   type BuildPropertyAnalysisSectionsOptions,
   type PropertyAnalysisSection,
-} from "./buildPropertyAnalysisSections";
+} from "./analysis/buildPropertyAnalysisSections";
 export {
   CLIMATE_ENVIRONMENTAL_KEY,
   ENVIRONMENTAL_FACTOR_SCORE_KEYS,
@@ -11,12 +11,12 @@ export {
   hasEnvironmentalFactorsContent,
   type ParsedEnvironmentalSection,
   parseEnvironmentalSection,
-} from "./environmentalFactors";
-export { formatAnalysisLabel } from "./formatAnalysisLabel";
-export { getPropertyImages } from "./getPropertyImages";
-export { getNeighborhoodAnalysisPayload } from "./neighborhoodAnalysisPayload";
+} from "./analysis/environmentalFactors";
+export { formatAnalysisLabel } from "./analysis/formatAnalysisLabel";
+export { getNeighborhoodAnalysisPayload } from "./analysis/neighborhoodAnalysisPayload";
 export {
   parseSectionRatingValue,
   stripSectionRatingField,
   unwrapPropertyAnalysisSection,
-} from "./sectionRating";
+} from "./analysis/sectionRating";
+export { getPropertyImages } from "./media/getPropertyImages";

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -35,6 +35,10 @@ export function ListingAgentCard({
   className = "",
 }: ListingAgentCardProps) {
   const { t } = useLocalization();
+  const [imageFailed, setImageFailed] = useState(false);
+  useEffect(() => {
+    setImageFailed(false);
+  }, [imageUrl]);
   const phoneDisplay = formatAgentPhoneNumber(phone);
   const resolvedTitle =
     title ??
@@ -54,11 +58,7 @@ export function ListingAgentCard({
   return (
     <Box className={outerClass}>
       <Box className={`${headerMb} flex min-w-0 flex-row items-center gap-2`}>
-        <Icon
-          name="user"
-          className="text-foreground h-5 w-5 shrink-0"
-          aria-hidden
-        />
+        <Icon name="user" className="text-foreground h-5 w-5 shrink-0" aria-hidden />
         <Title
           as="h3"
           size={titleSize}
@@ -67,41 +67,31 @@ export function ListingAgentCard({
           {resolvedTitle}
         </Title>
       </Box>
-      <Box
-        className={`flex flex-row items-start ${isCompact ? "gap-3" : "gap-4"}`}
-      >
+      <Box className={`flex flex-row items-start ${isCompact ? "gap-3" : "gap-4"}`}>
         <Box className={avatarClass}>
-          {imageUrl ? (
+          {imageUrl && !imageFailed ? (
             <Image
               src={imageUrl}
               alt={displayName ?? resolvedTitle}
               className="h-full w-full object-cover"
+              referrerPolicy="no-referrer"
+              loading="eager"
+              onError={() => setImageFailed(true)}
             />
           ) : (
             <Box className="flex h-full w-full flex-row items-center justify-center">
-              <Icon
-                name="user"
-                className={`text-text-secondary ${iconFallbackClass}`}
-              />
+              <Icon name="user" className={`text-text-secondary ${iconFallbackClass}`} />
             </Box>
           )}
         </Box>
         <Box className="flex-1">
           {displayName && (
-            <Title
-              as="h4"
-              size={nameTitleSize}
-              className="text-accent-underline font-medium"
-            >
+            <Title as="h4" size={nameTitleSize} className="text-accent-underline font-medium">
               {displayName}
             </Title>
           )}
           {businessName && (
-            <BodyText
-              as="p"
-              size={isCompact ? "xs" : "sm"}
-              className="text-text-secondary"
-            >
+            <BodyText as="p" size={isCompact ? "xs" : "sm"} className="text-text-secondary">
               {businessName}
             </BodyText>
           )}
@@ -118,21 +108,13 @@ export function ListingAgentCard({
       {email ? (
         <Box className="text-foreground mt-2 flex min-w-0 flex-row items-center gap-1">
           <Icon name="mail" className="h-4 w-4 shrink-0" aria-hidden />
-          <BodyText
-            as="span"
-            size={isCompact ? "xs" : "sm"}
-            className="min-w-0 break-all"
-          >
+          <BodyText as="span" size={isCompact ? "xs" : "sm"} className="min-w-0 break-all">
             {email}
           </BodyText>
         </Box>
       ) : null}
       {mlsListingId ? (
-        <BodyText
-          as="p"
-          size="xs"
-          className="text-text-secondary mt-3 leading-snug"
-        >
+        <BodyText as="p" size="xs" className="text-text-secondary mt-3 leading-snug">
           {t("property_details.listing_number_line", {
             id: mlsListingId,
             defaultValue: `Listing #${mlsListingId}`,

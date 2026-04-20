@@ -7,12 +7,11 @@ import type { components } from "packages/types/api.generated";
 
 export type FreebusyRequest = components["schemas"]["FreebusyRequest"];
 export type FreebusyResponse = components["schemas"]["FreebusyResponse"];
+export type ViewingItinerary = components["schemas"]["ViewingItinerary"];
 
 /** Busy interval as returned under each calendar in a Freebusy response. */
 type FreebusyCalendarEntry = FreebusyResponse["calendars"][string];
-export type FreebusyTimeBlock = NonNullable<
-  NonNullable<FreebusyCalendarEntry["busy"]>[number]
->;
+export type FreebusyTimeBlock = NonNullable<NonNullable<FreebusyCalendarEntry["busy"]>[number]>;
 
 export interface TimeSlot {
   start: Date;
@@ -31,6 +30,7 @@ export interface ScheduleEventRequest {
   }>;
   location?: string;
   calendarId?: string; // SilverKey calendar ID
+  itinerary?: ViewingItinerary;
 }
 
 export interface WorkingHours {

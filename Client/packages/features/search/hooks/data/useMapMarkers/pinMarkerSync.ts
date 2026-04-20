@@ -16,13 +16,11 @@ function hasUsableCoords(lat: unknown, lng: unknown): boolean {
 
 function findPinMarker(
   markers: GoogleAdvancedMarkerElement[],
-  listingId: string,
+  listingId: string
 ): GoogleAdvancedMarkerElement | undefined {
   return markers.find((m) => {
     const c = (m as unknown as { content?: HTMLElement }).content;
-    return (
-      c?.dataset?.markerType === "pin" && c.dataset.listingId === listingId
-    );
+    return c?.dataset?.markerType === "pin" && c.dataset.listingId === listingId;
   });
 }
 
@@ -33,7 +31,7 @@ function findPinMarker(
 export function removeOrphanPinsAndListMissingForPins(
   markersRef: { current: GoogleAdvancedMarkerElement[] },
   results: SearchResult[],
-  teardownMarker: (marker: GoogleAdvancedMarkerElement) => void,
+  teardownMarker: (marker: GoogleAdvancedMarkerElement) => void
 ): SearchResult[] {
   const desired = new Set(results.map((r) => r.id));
 

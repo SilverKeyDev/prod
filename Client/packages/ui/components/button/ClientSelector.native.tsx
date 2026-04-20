@@ -33,7 +33,7 @@ export default function ClientSelectorNative({
       onClientChange(clientId);
       setIsOpen(false);
     },
-    [onClientChange],
+    [onClientChange]
   );
 
   if (!isAgent) return null;
@@ -43,8 +43,8 @@ export default function ClientSelectorNative({
       ? hideMeOption
         ? t("client_selector.select_client")
         : t("client_selector.me")
-      : clients.find((c) => c.id === selectedClientId)?.name ??
-        t("client_selector.select_client");
+      : (clients.find((c) => c.id === selectedClientId)?.name ??
+        t("client_selector.select_client"));
 
   return (
     <Box>
@@ -54,9 +54,7 @@ export default function ClientSelectorNative({
         onPress={() => setIsOpen(true)}
         className="flex-row items-center gap-2"
       >
-        <Text className="text-text-primary text-sm font-medium">
-          {displayLabel}
-        </Text>
+        <Text className="text-text-primary text-sm font-medium">{displayLabel}</Text>
         <Text className="text-text-secondary text-sm">▼</Text>
       </Button>
 
@@ -79,9 +77,7 @@ export default function ClientSelectorNative({
             >
               <Text
                 className={`text-sm font-medium ${
-                  selectedClientId === null
-                    ? "text-primary"
-                    : "text-text-primary"
+                  selectedClientId === null ? "text-primary" : "text-text-primary"
                 }`}
               >
                 {t("client_selector.me")}
@@ -110,17 +106,13 @@ export default function ClientSelectorNative({
               >
                 <Text
                   className={`text-sm font-medium ${
-                    selectedClientId === client.id
-                      ? "text-primary"
-                      : "text-text-primary"
+                    selectedClientId === client.id ? "text-primary" : "text-text-primary"
                   }`}
                 >
                   {client.name}
                 </Text>
                 {client.email ? (
-                  <Text className="text-text-secondary mt-0.5 text-xs">
-                    {client.email}
-                  </Text>
+                  <Text className="text-text-secondary mt-0.5 text-xs">{client.email}</Text>
                 ) : null}
               </Pressable>
             ))

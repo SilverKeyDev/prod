@@ -13,6 +13,9 @@ export type AddressData = {
   state?: string;
   postal_code?: string;
   country?: string;
+  /** Present when Places returns geometry (web autocomplete). */
+  lat?: number;
+  lng?: number;
 };
 
 export type AddressInputProps = {

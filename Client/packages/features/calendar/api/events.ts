@@ -2,12 +2,7 @@
  * Google Calendar events CRUD.
  */
 
-import {
-  apiDelete,
-  apiGet,
-  apiPatch,
-  apiPost,
-} from "packages/services/http/compatibility";
+import { apiDelete, apiGet, apiPatch, apiPost } from "packages/services/http/compatibility";
 
 import { wrapGoogleCalendarError } from "./errors";
 import type {
@@ -33,47 +28,44 @@ export async function listEvents(params?: {
   }`;
   return wrapGoogleCalendarError(
     () => apiGet<GoogleCalendarApiResponse<GoogleEventListResponse>>(url),
-    "Failed to list events",
+    "Failed to list events"
   );
 }
 
 export async function createEvent(
-  event: GoogleCalendarEventCreateBody,
+  event: GoogleCalendarEventCreateBody
 ): Promise<GoogleCalendarApiResponse<GoogleEventCreateResponse>> {
   return wrapGoogleCalendarError(
     () =>
       apiPost<GoogleCalendarApiResponse<GoogleEventCreateResponse>>(
         "/api/v1/google/me/events",
-        event,
+        event
       ),
-    "Failed to create event",
+    "Failed to create event"
   );
 }
 
 export async function updateEvent(
   eventId: string,
-  event: GoogleEvent,
+  event: GoogleEvent
 ): Promise<GoogleCalendarApiResponse<GoogleEventCreateResponse>> {
   return wrapGoogleCalendarError(
     () =>
       apiPatch<GoogleCalendarApiResponse<GoogleEventCreateResponse>>(
         `/api/v1/google/me/events/${eventId}`,
-        event,
+        event
       ),
-    "Failed to update event",
+    "Failed to update event"
   );
 }
 
 export async function deleteEvent(
   eventId: string,
-  calendarId?: string,
+  calendarId?: string
 ): Promise<DeleteEventResponse> {
   const queryParams = calendarId ? `?calendarId=${calendarId}` : "";
   return wrapGoogleCalendarError(
-    () =>
-      apiDelete<DeleteEventResponse>(
-        `/api/v1/google/me/events/${eventId}${queryParams}`,
-      ),
-    "Failed to delete event",
+    () => apiDelete<DeleteEventResponse>(`/api/v1/google/me/events/${eventId}${queryParams}`),
+    "Failed to delete event"
   );
 }

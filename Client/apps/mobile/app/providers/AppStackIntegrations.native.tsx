@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { useReportsStoreIntegration } from "packages/features/documents";
-import { useSavedHomesStoreIntegration } from "packages/features/search";
+import { useSavedHomesStoreIntegration } from "packages/hooks/store";
 import { useAgentDashboardStore } from "packages/store";
 
 function SavedHomesShellIntegrationNative() {

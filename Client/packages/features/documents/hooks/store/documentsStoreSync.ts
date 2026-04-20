@@ -23,7 +23,7 @@ export function useDocumentsStoreSync(
   documentsError: string | null,
   setDocumentsError: (v: string | null) => void,
   categoriesError: string | null,
-  setCategoriesError: (v: string | null) => void,
+  setCategoriesError: (v: string | null) => void
 ) {
   const r1 = useRef<WorkflowDocument[]>();
   const r2 = useRef<DocumentCategory[]>();

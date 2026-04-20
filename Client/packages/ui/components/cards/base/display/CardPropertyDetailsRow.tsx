@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 import PropertyStat from "@ui/text/PropertyStat";
 
 import { useLocalization } from "packages/contexts";
-import { formatLotSizeInAcres } from "packages/features/search/types/search/address";
+import { formatLotSizeInAcres } from "packages/features/search/types/search/formatters/address";
 import { Box } from "packages/ui/components/primitives";
 
 import {

@@ -51,9 +51,11 @@ export type SearchPageMapViewProps = {
   /** Native map: toggles isochrone polygon drawing. */
   showCommuteOverlay?: boolean;
   mapHomeCardsCount: number;
-  onPreciseStreetAddressSelected?: (
-    payload: PreciseStreetAddressPayload,
-  ) => void;
+  onPreciseStreetAddressSelected?: (payload: PreciseStreetAddressPayload) => void;
+  agentShareBundle?: {
+    isSelected: (propertyId: string) => boolean;
+    onToggle: (propertyId: string) => void;
+  };
 };
 
 export function SearchPageMapView({
@@ -95,6 +97,7 @@ export function SearchPageMapView({
   fitMapToBounds,
   mapHomeCardsCount,
   onPreciseStreetAddressSelected,
+  agentShareBundle,
 }: SearchPageMapViewProps): JSX.Element {
   const mode = useSearchViewStore((s) => s.mode);
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
@@ -182,6 +185,7 @@ export function SearchPageMapView({
         fitMapToBounds={fitMapToBounds}
         mapHomeCardsCount={mapHomeCardsCount}
         onPreciseStreetAddressSelected={onPreciseStreetAddressSelected}
+        agentShareBundle={agentShareBundle}
       />
     </MotionView>
   );

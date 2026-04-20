@@ -15,9 +15,7 @@ function toCardProperty(home: SavedHome) {
     id: home.home_id,
     address: home.address ?? home.description ?? "",
     price:
-      typeof home.price === "string" || typeof home.price === "number"
-        ? String(home.price)
-        : "",
+      typeof home.price === "string" || typeof home.price === "number" ? String(home.price) : "",
     bedrooms: home.bedrooms ?? 0,
     bathrooms: home.bathrooms ?? 0,
     sqft: home.sqft ?? 0,
@@ -42,16 +40,11 @@ export function RemainingLikedHomes({
 }: RemainingLikedHomesProps) {
   const { t } = useLocalization();
   const selectedHomeIds = new Set(selectedHomes.map((h) => h.home_id));
-  const remainingHomes = allLikedHomes.filter(
-    (home) => !selectedHomeIds.has(home.home_id),
-  );
+  const remainingHomes = allLikedHomes.filter((home) => !selectedHomeIds.has(home.home_id));
   if (remainingHomes.length === 0) return null;
   return (
     <Box>
-      <Title
-        size="sm"
-        className="mb-responsive-md text-text-primary font-medium"
-      >
+      <Title size="sm" className="mb-responsive-md text-text-primary font-medium">
         {t("compare.add_more_properties")}
       </Title>
       <Box className="gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -59,7 +52,7 @@ export function RemainingLikedHomes({
           const address = addressStreetLineForCard(
             typeof home.address === "string" || typeof home.address === "number"
               ? home.address.toString()
-              : home.description ?? t("house.invalid_address"),
+              : (home.description ?? t("house.invalid_address"))
           );
           const price =
             typeof home.price === "string" || typeof home.price === "number"
@@ -90,11 +83,7 @@ export function RemainingLikedHomes({
                   bedrooms={home.bedrooms}
                   bathrooms={home.bathrooms}
                   sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
-                  lotSize={
-                    typeof home.lot_size === "string"
-                      ? home.lot_size
-                      : undefined
-                  }
+                  lotSize={typeof home.lot_size === "string" ? home.lot_size : undefined}
                   pricePosition="below-address"
                   cardType="searchpage"
                   showScore={false}
@@ -107,11 +96,7 @@ export function RemainingLikedHomes({
                         position="top-left"
                         size="sm"
                       />
-                      <ConnectedCardHeartSave
-                        property={property}
-                        position="top-right"
-                        size="sm"
-                      />
+                      <ConnectedCardHeartSave property={property} position="top-right" size="sm" />
                     </>
                   }
                 />

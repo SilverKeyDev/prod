@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 
-import { formatFilenameToAddress } from "packages/features/search/types/search/address";
+import { formatFilenameToAddress } from "packages/features/search/types/search/formatters/address";
 import { useResponsive } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import ModalPortal from "packages/ui/components/modals/ModalPortal";
@@ -52,10 +52,7 @@ const PdfModal: React.FC<PdfModalProps> = ({
     const doc = getDocument();
     if (!doc) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         onClose();
       }
     };
@@ -75,8 +72,7 @@ const PdfModal: React.FC<PdfModalProps> = ({
   }, [currentPdf]);
 
   const getReportTitle = () => {
-    if (currentReportAddress)
-      return formatFilenameToAddress(currentReportAddress);
+    if (currentReportAddress) return formatFilenameToAddress(currentReportAddress);
     if (!currentPdf) return "Property Report";
     return formatFilenameToAddress(currentPdf);
   };
@@ -106,24 +102,16 @@ const PdfModal: React.FC<PdfModalProps> = ({
     return generateOptimizedPdfUrl(currentPdf, {}, reportId || undefined);
   }, [currentPdf, reportId]);
 
-  const { onLoad, onError } = usePdfIframeHandlers(
-    reportId,
-    currentReportAddress,
-    currentPdf,
-  );
+  const { onLoad, onError } = usePdfIframeHandlers(reportId, currentReportAddress, currentPdf);
 
   useEffect(() => {
     if (optimizedPdfUrl) {
-      log.debug(
-        LOG_CATEGORIES.HTTP,
-        "[PdfModal] Generated optimized URL for iframe",
-        {
-          originalUrl: currentPdf,
-          optimizedUrl: optimizedPdfUrl,
-          reportId,
-          timestamp: dateNow().toISOString(),
-        },
-      );
+      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Generated optimized URL for iframe", {
+        originalUrl: currentPdf,
+        optimizedUrl: optimizedPdfUrl,
+        reportId,
+        timestamp: dateNow().toISOString(),
+      });
     }
   }, [optimizedPdfUrl, currentPdf, reportId]);
 

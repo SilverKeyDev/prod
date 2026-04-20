@@ -79,43 +79,78 @@
   {
     "id": "messaging-message-row",
     "description": "Message row component with RN-specific layout and touch handling.",
-    "webPath": "packages/features/agent/components/MessagingMessageRow.tsx",
-    "nativePath": "packages/features/agent/components/MessagingMessageRow.native.tsx",
+    "webPath": "packages/features/agent/components/messaging/messageRow/MessagingMessageRow.tsx",
+    "nativePath": "packages/features/agent/components/messaging/messageRow/MessagingMessageRow.native.tsx",
     "reason": "RN-specific message row layout and touch handling."
   },
   {
     "id": "messaging-screen",
     "description": "Full-screen messaging layout with RN navigation.",
-    "webPath": "packages/features/agent/components/MessagingScreen.tsx",
-    "nativePath": "packages/features/agent/components/MessagingScreen.native.tsx",
+    "webPath": "packages/features/agent/components/messaging/AgentMessaging.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screen/MessagingScreen.native.tsx",
     "reason": "Full-screen messaging layout with RN navigation."
+  },
+  {
+    "id": "messaging-screen-native-styles",
+    "description": "StyleSheet constants for native messaging screen layout.",
+    "webPath": "packages/features/agent/components/messaging/AgentMessaging.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screenNative/MessagingScreen.native.styles.ts",
+    "reason": "React Native StyleSheet-only module colocated with MessagingScreen.native."
+  },
+  {
+    "id": "messaging-screen-native-composer",
+    "description": "Native message composer row (+ attach, text field, send).",
+    "webPath": "packages/features/agent/components/messaging/AgentMessaging.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeComposer.native.tsx",
+    "reason": "Uses React Native View and shared Input primitive; web uses UnifiedMessagesList and different composer."
+  },
+  {
+    "id": "messaging-screen-native-header",
+    "description": "Native messaging header and back-to-conversations control.",
+    "webPath": "packages/features/agent/components/messaging/AgentMessaging.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeHeader.native.tsx",
+    "reason": "RN header layout and Pressable controls; web messaging lives in agent workspace layout."
+  },
+  {
+    "id": "messaging-screen-native-message-list",
+    "description": "Native FlatList wrapper for chat messages.",
+    "webPath": "packages/features/agent/components/messaging/AgentMessaging.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeMessageList.native.tsx",
+    "reason": "FlatList and RN list lifecycle; web uses scroll container and UnifiedMessageThreadRow."
+  },
+  {
+    "id": "messaging-screen-native-overlays",
+    "description": "Native modals and portals for messaging (attachments, PDF, DocuSign).",
+    "webPath": "packages/features/agent/components/messaging/AgentMessaging.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeOverlays.native.tsx",
+    "reason": "WebView, Portal, and modal stack differ from web agent messaging overlays."
   },
   {
     "id": "messaging-agent-list-subview",
     "description": "Agent list subview with RN list and gesture handling.",
-    "webPath": "packages/features/agent/components/messaging/MessagingAgentListSubview.tsx",
-    "nativePath": "packages/features/agent/components/messaging/MessagingAgentListSubview.native.tsx",
+    "webPath": "packages/features/agent/components/messaging/screen/MessagingAgentListSubview.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screen/MessagingAgentListSubview.native.tsx",
     "reason": "RN list and gesture handling."
   },
   {
     "id": "messaging-attachment-menu",
     "description": "Attachment menu with RN picker and layout.",
-    "webPath": "packages/features/agent/components/messaging/MessagingAttachmentMenu.tsx",
-    "nativePath": "packages/features/agent/components/messaging/MessagingAttachmentMenu.native.tsx",
+    "webPath": "packages/features/agent/components/messaging/menus/AttachmentMenu.tsx",
+    "nativePath": "packages/features/agent/components/messaging/menus/MessagingAttachmentMenu.native.tsx",
     "reason": "RN attachment picker and layout."
   },
   {
     "id": "messaging-client-empty-state",
     "description": "Empty state for messaging with RN layout.",
-    "webPath": "packages/features/agent/components/messaging/MessagingClientEmptyState.tsx",
-    "nativePath": "packages/features/agent/components/messaging/MessagingClientEmptyState.native.tsx",
+    "webPath": "packages/features/agent/components/messaging/screen/MessagingClientEmptyState.tsx",
+    "nativePath": "packages/features/agent/components/messaging/screen/MessagingClientEmptyState.native.tsx",
     "reason": "RN empty state layout."
   },
   {
     "id": "calendar-event-request-modal",
     "description": "Calendar event request modal with RN presentation.",
-    "webPath": "packages/features/agent/components/modals/CalendarEventRequestModal.tsx",
-    "nativePath": "packages/features/agent/components/modals/CalendarEventRequestModal.native.tsx",
+    "webPath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestModal.tsx",
+    "nativePath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestModal.native.tsx",
     "reason": "RN modal presentation."
   },
   {
@@ -142,22 +177,22 @@
   {
     "id": "client-search-modal",
     "description": "Client search modal with RN modal and list behavior.",
-    "webPath": "packages/features/agent/components/modals/ClientSearchModal.tsx",
-    "nativePath": "packages/features/agent/components/modals/ClientSearchModal.native.tsx",
+    "webPath": "packages/features/agent/components/modals/search/ClientSearchModal.tsx",
+    "nativePath": "packages/features/agent/components/modals/search/ClientSearchModal.native.tsx",
     "reason": "RN modal and list behavior."
   },
   {
     "id": "select-document-modal",
     "description": "Select document modal with RN document picker.",
-    "webPath": "packages/features/agent/components/modals/SelectDocumentModal.tsx",
-    "nativePath": "packages/features/agent/components/modals/SelectDocumentModal.native.tsx",
+    "webPath": "packages/features/agent/components/modals/search/SelectDocumentModal.tsx",
+    "nativePath": "packages/features/agent/components/modals/search/SelectDocumentModal.native.tsx",
     "reason": "RN document picker and modal."
   },
   {
     "id": "select-home-modal",
     "description": "Select home modal with RN modal and list.",
-    "webPath": "packages/features/agent/components/modals/SelectHomeModal.tsx",
-    "nativePath": "packages/features/agent/components/modals/SelectHomeModal.native.tsx",
+    "webPath": "packages/features/agent/components/modals/search/SelectHomeModal.tsx",
+    "nativePath": "packages/features/agent/components/modals/search/SelectHomeModal.native.tsx",
     "reason": "RN modal and list."
   },
   {
@@ -285,6 +320,13 @@
     "webPath": "packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGallery.tsx",
     "nativePath": "packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGallery.native.tsx",
     "reason": "Native uses FlatList; web uses carousel."
+  },
+  {
+    "id": "property-image-gallery-zoomable",
+    "description": "Fullscreen pinch/zoom image for native property gallery modal.",
+    "webPath": "packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGallery.tsx",
+    "nativePath": "packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGalleryZoomableImage.native.tsx",
+    "reason": "Native modal uses react-native-gesture-handler and Reanimated; web gallery uses a separate carousel without this fullscreen zoom helper."
   },
   {
     "id": "property-details-screen",
@@ -707,6 +749,13 @@
     "reason": "Native uses react-native-maps, Google Cloud Map ID, and Linking for Street View; web uses Google Maps JS API (usePropertyCommuteLocationMap.web) with directions polylines."
   },
   {
+    "id": "property-details-commute-map-legend",
+    "description": "Commute map legend: inline on web; native module uses react-native View for marker shapes.",
+    "webPath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/commute/PropertyCommute.tsx",
+    "nativePath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/commute/PropertyCommuteMapLegend.native.tsx",
+    "reason": "Web renders the legend inline with Box primitives; native extracts it to PropertyCommuteMapLegend.native.tsx using react-native View and StyleSheet for dots and squares."
+  },
+  {
     "id": "native-google-maps-cloud-config",
     "description": "Google Cloud Map ID and provider selection for react-native-maps.",
     "webPath": "packages/utils/maps/nativeGoogleMapsCloudConfig.ts",
@@ -723,22 +772,36 @@
   {
     "id": "embedded-signing",
     "description": "DocuSign embedded signing: web uses iframe, native uses WebView.",
-    "webPath": "packages/features/documents/components/EmbeddedSigning.tsx",
-    "nativePath": "packages/features/documents/components/EmbeddedSigning.native.tsx",
+    "webPath": "packages/features/documents/components/docusign/EmbeddedSigning.tsx",
+    "nativePath": "packages/features/documents/components/docusign/EmbeddedSigning.native.tsx",
     "reason": "Web renders signing URL in an iframe. Native uses react-native-webview to embed the signing experience."
   },
   {
     "id": "view-signed-document",
     "description": "View signed document: web uses iframe/window.open, native uses react-native-pdf.",
-    "webPath": "packages/features/documents/components/ViewSignedDocument.tsx",
-    "nativePath": "packages/features/documents/components/ViewSignedDocument.native.tsx",
+    "webPath": "packages/features/documents/components/docusign/ViewSignedDocument.tsx",
+    "nativePath": "packages/features/documents/components/docusign/ViewSignedDocument.native.tsx",
     "reason": "Web uses window.open or iframe for PDF viewing. Native uses react-native-pdf and Linking for external viewer."
   },
   {
     "id": "docusign-legal-notice",
     "description": "DocuSign legal/notice banner: Tailwind on web, StyleSheet + design-tokens color() on native.",
-    "webPath": "packages/features/documents/components/DocuSignLegalNotice.tsx",
-    "nativePath": "packages/features/documents/components/DocuSignLegalNotice.native.tsx",
+    "webPath": "packages/features/documents/components/docusign/DocuSignLegalNotice.tsx",
+    "nativePath": "packages/features/documents/components/docusign/DocuSignLegalNotice.native.tsx",
     "reason": "Web uses semantic Tailwind classes (border-border, bg-accent-muted). Native uses React Native StyleSheet and packages/design-tokens color() helpers; no Tailwind on RN."
+  },
+  {
+    "id": "viewing-stop-list",
+    "description": "Multi-stop viewing itinerary editor: web uses AddressInput + Maps Places; native uses TextInput only.",
+    "webPath": "packages/features/calendar/components/viewings/ViewingStopList.tsx",
+    "nativePath": "packages/features/calendar/components/viewings/ViewingStopList.native.tsx",
+    "reason": "Web relies on DOM-based AddressInput and Google Places autocomplete. Native has no equivalent widget in shared packages; manual TextInput per stop until a shared RN address field exists."
+  },
+  {
+    "id": "external-anchor",
+    "description": "External links (mailto, tel, http(s)) in shared UI.",
+    "webPath": "packages/ui/components/accessibility/ExternalAnchor.web.tsx",
+    "nativePath": "packages/ui/components/accessibility/ExternalAnchor.native.tsx",
+    "reason": "Web uses a semantic anchor with target/rel for http(s). Native has no DOM anchor; opens URLs via Linking.openURL and Pressable."
   }
 ]

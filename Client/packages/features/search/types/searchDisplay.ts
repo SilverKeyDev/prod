@@ -17,15 +17,25 @@ export function isResultsOrderBy(v: string): v is ResultsOrderBy {
 
 export const DEFAULT_RESULTS_ORDER_BY: ResultsOrderBy = "match_score";
 
+/** Client-side only: ascending = low→high on the numeric sort key (e.g. cheaper first for price). */
+export const RESULTS_SORT_DIRECTIONS = ["asc", "desc"] as const;
+export type ResultsSortDirection = (typeof RESULTS_SORT_DIRECTIONS)[number];
+
+export function isResultsSortDirection(v: string): v is ResultsSortDirection {
+  return (RESULTS_SORT_DIRECTIONS as readonly string[]).includes(v);
+}
+
+/** Matches pre-direction-toggle behavior per sort key (price/distance were ascending; others descending). */
+export function legacyDefaultSortDirection(orderBy: ResultsOrderBy): ResultsSortDirection {
+  return orderBy === "price" || orderBy === "distance" ? "asc" : "desc";
+}
+
 export const MAP_HOME_CARDS_MIN = 1;
 export const MAP_HOME_CARDS_MAX = 5;
 
 export function clampMapHomeCardsCount(n: number): number {
   if (!Number.isFinite(n)) return 1;
-  return Math.min(
-    MAP_HOME_CARDS_MAX,
-    Math.max(MAP_HOME_CARDS_MIN, Math.floor(n)),
-  );
+  return Math.min(MAP_HOME_CARDS_MAX, Math.max(MAP_HOME_CARDS_MIN, Math.floor(n)));
 }
 
 export type LastSearchContext = {

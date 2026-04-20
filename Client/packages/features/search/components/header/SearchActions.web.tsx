@@ -3,6 +3,7 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
 
 import { Button, CancelButton, IconButton } from "@/components/ui";
 
@@ -55,6 +56,7 @@ export default function SearchActions({
     return (
       <Box
         className={`flex w-full flex-shrink-0 items-center gap-2 ${HEADER_ROW_HEIGHT}`}
+        id={TOUR_TARGETS_MOBILE.searchRun}
       >
         <Box className="flex min-w-0 flex-1 items-center gap-2">
           <SearchFiltersDropdown
@@ -112,9 +114,7 @@ export default function SearchActions({
     );
   }
   return (
-    <Box
-      className={`flex flex-shrink-0 flex-nowrap items-center gap-3 ${HEADER_ROW_HEIGHT}`}
-    >
+    <Box className={`flex flex-shrink-0 flex-nowrap items-center gap-3 ${HEADER_ROW_HEIGHT}`}>
       <SearchFiltersDropdown
         variant="desktop"
         selectedClientId={selectedClientId}
@@ -135,11 +135,7 @@ export default function SearchActions({
             {isSearching ? t("search.searching") : t("search.search")}
           </Button>
           {isSearching && onCancelSearch ? (
-            <CancelButton
-              onClick={onCancelSearch}
-              size="sm"
-              className={btnClass}
-            >
+            <CancelButton onClick={onCancelSearch} size="sm" className={btnClass}>
               {t("common.cancel")}
             </CancelButton>
           ) : null}

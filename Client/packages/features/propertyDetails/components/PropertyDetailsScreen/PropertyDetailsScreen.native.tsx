@@ -17,10 +17,7 @@ export type PropertyDetailsScreenParams = {
   propertyId?: string;
 };
 
-function buildMinimalProperty(
-  address: string,
-  propertyId?: string,
-): PropertyDetailsStreamProperty {
+function buildMinimalProperty(address: string, propertyId?: string): PropertyDetailsStreamProperty {
   return {
     id: propertyId ?? "",
     address,
@@ -42,12 +39,8 @@ export function PropertyDetailsScreenNative() {
   const address = params?.address ?? "";
   const propertyId = params?.propertyId;
 
-  const {
-    selectedProperty,
-    isLoading,
-    fetchPropertyDetails,
-    clearSelectedProperty,
-  } = usePropertyDetails();
+  const { selectedProperty, isLoading, fetchPropertyDetails, clearSelectedProperty } =
+    usePropertyDetails();
 
   useEffect(() => {
     if (address && address.trim().length > 0) {
@@ -59,8 +52,7 @@ export function PropertyDetailsScreenNative() {
     };
   }, [address, propertyId, fetchPropertyDetails, clearSelectedProperty]);
 
-  const property =
-    selectedProperty ?? buildMinimalProperty(address, propertyId);
+  const property = selectedProperty ?? buildMinimalProperty(address, propertyId);
 
   const handleBack = useCallback(() => {
     if (navigation.canGoBack()) {

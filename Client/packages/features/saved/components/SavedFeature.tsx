@@ -1,24 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
-  DocuSignLegalNotice,
-  EmbeddedSigning,
   useDocumentActions,
   useDocumentsDataIntegration,
   useHomeComparison,
   useSavedPageDocumentHandlers,
   useSavedPageView,
-  ViewSignedDocument,
 } from "packages/features/documents";
 import { useSavedFeatureSignatureFlow } from "packages/features/saved/hooks/useSavedFeatureSignatureFlow";
 import type { SavedFeatureProps } from "packages/features/saved/types/savedFeatureProps";
 import { filterHomesBySearchTerm } from "packages/features/saved/types/savedHomeUtils";
 import { usePropertyDetails } from "packages/features/search";
-import {
-  useIsMobile,
-  useSavedPageEffects,
-  useSavedPageModals,
-} from "packages/hooks/ui";
+import { useIsMobile, useSavedPageEffects, useSavedPageModals } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import {
@@ -28,12 +21,13 @@ import {
   useUIStore,
 } from "packages/store";
 import type { SavedHome } from "packages/types";
-import { BaseModal } from "packages/ui/components/modals";
 import { dateNow } from "packages/utils/date";
+import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
 import { buildPropertyUrl } from "packages/utils/property/slug";
 
 import SavedHomesHeader from "./header/SavedHomesHeader";
 import { SavedPageLayout } from "./layout/SavedPageLayout";
+import { SavedFeatureSigningModals } from "./SavedFeatureSigningModals";
 
 export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const isMobile = useIsMobile();
@@ -41,14 +35,11 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const [refreshing, setRefreshing] = useState(false);
   const { viewType, setViewType } = useSavedPageView();
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
-  const setSelectedClientId = useAgentDashboardStore(
-    (s) => s.setSelectedClientId,
-  );
+  const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
   const [eventTypeFilter, setEventTypeFilter] = useState<
     "listed" | "price_change" | "sold" | "withdrawn" | ""
   >("");
-  const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] =
-    useState(false);
+  const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const isAgent = user?.is_agent ?? false;
   const enqueueToast = useUIStore((s) => s.enqueueToast);
@@ -73,7 +64,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       handleDownloadDocument,
       handleShareDocument,
     }),
-    [handleViewDocument, handleDownloadDocument, handleShareDocument],
+    [handleViewDocument, handleDownloadDocument, handleShareDocument]
   );
 
   const {
@@ -96,10 +87,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     dismissViewSignedAgreement,
     openViewSignedAgreement,
     onAgreementSigningComplete,
-  } = useDocumentsDataIntegration(
-    selectedClientId ?? undefined,
-    documentHandlers,
-  );
+  } = useDocumentsDataIntegration(selectedClientId ?? undefined, documentHandlers);
 
   const {
     isSendForSignatureModalOpen,
@@ -163,8 +151,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const refresh = useCallback(async () => {
     setRefreshing(true);
     if (viewType === "homes") await refreshSavedHomes();
-    else if (viewType === "documents" || viewType === "agreements")
-      await refetchDocuments();
+    else if (viewType === "documents" || viewType === "agreements") await refetchDocuments();
     setRefreshing(false);
   }, [viewType, refreshSavedHomes, refetchDocuments]);
 
@@ -184,14 +171,12 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   }, [documents, eventTypeFilter]);
 
   const documentsTabCount = useMemo(
-    () =>
-      filteredDocuments.filter((d) => d.library_kind !== "agreement").length,
-    [filteredDocuments],
+    () => filterDocumentLibraryExcludingAgreements(filteredDocuments).length,
+    [filteredDocuments]
   );
   const agreementsTabCount = useMemo(
-    () =>
-      filteredDocuments.filter((d) => d.library_kind === "agreement").length,
-    [filteredDocuments],
+    () => filteredDocuments.filter((d) => d.library_kind === "agreement").length,
+    [filteredDocuments]
   );
 
   const { navigateToPath } = useNavigation();
@@ -199,13 +184,10 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const handleUnlockHome = useCallback(
     async (home: SavedHome) => {
       const zpid = home.home_id;
-      const address =
-        typeof home.address === "string"
-          ? home.address
-          : home.description ?? "";
+      const address = typeof home.address === "string" ? home.address : (home.description ?? "");
       navigateToPath(buildPropertyUrl(zpid, address));
     },
-    [navigateToPath],
+    [navigateToPath]
   );
 
   // Render mobile header directly in parent instead of via effect
@@ -302,15 +284,9 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
         onDownloadDocument={documentListDownload}
         onShareDocument={documentListShare}
         onSendForSignature={
-          isAgent
-            ? isMobile
-              ? sendForSignatureDirect
-              : openSendForSignatureModal
-            : undefined
+          isAgent ? (isMobile ? sendForSignatureDirect : openSendForSignatureModal) : undefined
         }
-        onFormSendForSignature={
-          isAgent ? openSendForSignatureModalForForm : undefined
-        }
+        onFormSendForSignature={isAgent ? openSendForSignatureModalForForm : undefined}
         onSignNow={signNowDirect}
         onViewSignedAgreement={openViewSignedAgreement}
         sendForSignatureModal={
@@ -347,56 +323,13 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
         refresh={refresh}
         refreshing={refreshing}
       />
-      {agreementSigningSession?.kind === "embedded" ? (
-        <BaseModal
-          isOpen
-          onClose={dismissAgreementSigning}
-          title="Sign document"
-          size="full"
-          showCloseButton
-          closeOnBackdropClick={false}
-        >
-          <EmbeddedSigning
-            agreementId={agreementSigningSession.agreementId}
-            participantId={agreementSigningSession.participantId}
-            onComplete={onAgreementSigningComplete}
-            height="min(72vh, 820px)"
-            pdfViewerTitle={agreementSigningSession.pdfViewerTitle}
-          />
-        </BaseModal>
-      ) : agreementSigningSession?.kind === "sender_url" ? (
-        <BaseModal
-          isOpen
-          onClose={dismissAgreementSigning}
-          title="Sign or correct document"
-          size="full"
-          showCloseButton
-          closeOnBackdropClick={false}
-        >
-          <DocuSignLegalNotice variant="sender_url_iframe" />
-          <iframe
-            src={agreementSigningSession.url}
-            title="DocuSign signing"
-            className="border-border min-h-[72vh] w-full rounded-lg border"
-          />
-        </BaseModal>
-      ) : null}
-      {viewSignedAgreement ? (
-        <BaseModal
-          isOpen
-          onClose={dismissViewSignedAgreement}
-          title={viewSignedAgreement.title}
-          size="full"
-          showCloseButton
-        >
-          <ViewSignedDocument
-            agreementId={viewSignedAgreement.agreementId}
-            title={viewSignedAgreement.title}
-            height="min(80vh, 900px)"
-            onClose={dismissViewSignedAgreement}
-          />
-        </BaseModal>
-      ) : null}
+      <SavedFeatureSigningModals
+        agreementSigningSession={agreementSigningSession}
+        onDismissAgreementSigning={dismissAgreementSigning}
+        onAgreementSigningComplete={onAgreementSigningComplete}
+        viewSignedAgreement={viewSignedAgreement}
+        onDismissViewSignedAgreement={dismissViewSignedAgreement}
+      />
     </>
   );
 }

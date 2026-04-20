@@ -1,4 +1,5 @@
 import type { SavedHome } from "packages/types";
+import { isLikelyInternalAppListingKey } from "packages/utils/property/listingIdentifier";
 
 /**
  * Returns true if the value is an array of processed SavedHome items (each has home_id and address).
@@ -36,8 +37,25 @@ export function findSavedHomeByIdOrAddress(
  * Convert SavedHome to Property format for property details hook
  */
 export function convertSavedHomeToProperty(home: SavedHome) {
+  const zFromHome =
+    typeof home.zpid === "string" && home.zpid.trim() !== "" ? home.zpid.trim() : undefined;
+  const mlsFromHome =
+    typeof home.mls_home_id === "string" && home.mls_home_id.trim() !== ""
+      ? home.mls_home_id.trim()
+      : undefined;
+  let slipListingKey: string | undefined = zFromHome ?? mlsFromHome;
+  if (
+    !slipListingKey &&
+    typeof home.home_id === "string" &&
+    home.home_id.trim() !== "" &&
+    !isLikelyInternalAppListingKey(home.home_id)
+  ) {
+    slipListingKey = home.home_id.trim();
+  }
+
   return {
-    id: home.home_id,
+    id: slipListingKey ?? home.home_id,
+    ...(slipListingKey ? { zpid: slipListingKey } : {}),
     address: String(home.address || home.description || ""),
     price:
       typeof home.price === "string"

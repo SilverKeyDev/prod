@@ -1,0 +1,89 @@
+import React, { type RefObject } from "react";
+
+import Loading from "@ui/asset/loading/Loading";
+import { FlatList, View } from "react-native";
+
+import { Box, Text } from "packages/ui/components/primitives";
+
+import { MessagingMessageRowNative } from "@/features/agent/components/messaging/messageRow/MessagingMessageRow.native";
+import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
+import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/types";
+import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
+
+type MessagingScreenNativeMessageListHandlers = {
+  handleAcceptEventRequest: (messageId: string, payload: EventRequestPayload) => Promise<void>;
+  handleCancelEventRequest: (messageId: string) => Promise<void>;
+};
+
+type MessagingScreenNativeMessageListProps = {
+  listRef: RefObject<FlatList<ChatMessage> | null>;
+  localMessages: ChatMessage[];
+  isLoadingHistory: boolean;
+  centeredStyle: object;
+  listContentStyle: object;
+  isAgent: boolean;
+  formatTime: (date: Date) => string;
+  retryMessage: (messageId: string) => void | Promise<void>;
+  handlers: MessagingScreenNativeMessageListHandlers;
+  acceptedEventRequestIds: Set<string>;
+  acceptingEventRequestId: string | null;
+  onAgreementViewDocument: (agreementId: string, documentName: string) => void;
+  onAgreementSignNow: (agreementId: string) => void;
+  emptyState: MessagingConfig["emptyStates"]["noMessages"];
+};
+
+export function MessagingScreenNativeMessageList({
+  listRef,
+  localMessages,
+  isLoadingHistory,
+  centeredStyle,
+  listContentStyle,
+  isAgent,
+  formatTime,
+  retryMessage,
+  handlers,
+  acceptedEventRequestIds,
+  acceptingEventRequestId,
+  onAgreementViewDocument,
+  onAgreementSignNow,
+  emptyState,
+}: MessagingScreenNativeMessageListProps) {
+  if (isLoadingHistory) {
+    return (
+      <View style={centeredStyle}>
+        <Loading />
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      ref={listRef}
+      data={localMessages}
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={listContentStyle}
+      ListEmptyComponent={
+        <Box style={centeredStyle}>
+          <Text className="text-text-primary text-base font-medium">{emptyState.title}</Text>
+          <Text className="text-text-secondary mt-1 text-center text-sm">{emptyState.message}</Text>
+        </Box>
+      }
+      renderItem={({ item, index }) => (
+        <MessagingMessageRowNative
+          message={item}
+          previousMessage={index > 0 ? localMessages[index - 1] : null}
+          mode={isAgent ? "agent" : "client"}
+          formatTime={formatTime}
+          isMostRecentMessage={index === localMessages.length - 1}
+          onRetryMessage={retryMessage}
+          onAcceptEventRequest={handlers.handleAcceptEventRequest}
+          onCancelEventRequest={handlers.handleCancelEventRequest}
+          acceptedEventRequestIds={acceptedEventRequestIds}
+          acceptingEventRequestId={acceptingEventRequestId}
+          onAgreementViewDocument={onAgreementViewDocument}
+          onAgreementSignNow={onAgreementSignNow}
+        />
+      )}
+    />
+  );
+}

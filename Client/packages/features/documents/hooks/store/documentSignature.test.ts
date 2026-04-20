@@ -56,8 +56,6 @@ describe("documentSignature helpers", () => {
       status: "sent",
     });
     expect(canSendForSignature(document)).toBe(false);
-    expect(sendForSignatureDisabledReason(document)).toBe(
-      "Agreement in sent state cannot be sent",
-    );
+    expect(sendForSignatureDisabledReason(document)).toBe("Agreement in sent state cannot be sent");
   });
 });

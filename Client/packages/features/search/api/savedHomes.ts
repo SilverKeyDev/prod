@@ -6,19 +6,14 @@ import type {
 import { authApi, userApi } from "packages/config/http/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { AuthenticationError } from "packages/services/http";
-import {
-  handleAuthenticationError,
-  isAuthenticationError,
-} from "packages/services/http";
+import { handleAuthenticationError, isAuthenticationError } from "packages/services/http";
 import type { SavedHome } from "packages/types";
 import { mapHomeUniversalToSavedHome } from "packages/utils/saved";
 
 /**
  * Map arbitrary property input to AddFavoriteRequest.home payload (FavoriteHomePayload).
  */
-const mapToAddFavoriteHomePayload = (
-  input: unknown,
-): AddFavoriteRequest["home"] => {
+const mapToAddFavoriteHomePayload = (input: unknown): AddFavoriteRequest["home"] => {
   const obj = (input ?? {}) as Record<string, unknown>;
   const getString = (v: unknown, fallback = ""): string =>
     typeof v === "string" ? v : typeof v === "number" ? String(v) : fallback;
@@ -45,10 +40,7 @@ const mapToAddFavoriteHomePayload = (
       const dots = (stripped.match(/\./g) || []).length;
       if (dots > 1) {
         stripped = stripped.replace(/\./g, "");
-      } else if (
-        dots === 1 &&
-        /^\d+\.\d{3}$/.test(stripped.replace(/,/g, ""))
-      ) {
+      } else if (dots === 1 && /^\d+\.\d{3}$/.test(stripped.replace(/,/g, ""))) {
         stripped = stripped.replace(/\./g, "");
       }
       stripped = stripped.replace(/,/g, "");
@@ -66,8 +58,7 @@ const mapToAddFavoriteHomePayload = (
   const sqft = getInt(obj.sqft ?? obj.livingArea);
   const lat = getFloat(obj.lat ?? obj.latitude);
   const lng = getFloat(obj.lng ?? obj.longitude);
-  const lotSize =
-    obj.lotSize !== undefined ? getString(obj.lotSize) : undefined;
+  const lotSize = obj.lotSize !== undefined ? getString(obj.lotSize) : undefined;
   const propertyType = getString(obj.propertyType ?? obj.property_type);
   const listingStatus = getString(obj.listingStatus ?? obj.listing_status);
   const imageUrl =
@@ -149,9 +140,7 @@ export class SavedHomesService {
           Array.isArray(typedResponse.favorites)
             ? typedResponse.favorites
             : [];
-        const homeObjects: SavedHome[] = rawHomes.map(
-          mapHomeUniversalToSavedHome,
-        );
+        const homeObjects: SavedHome[] = rawHomes.map(mapHomeUniversalToSavedHome);
         return homeObjects;
       } else {
         const errorMsg =
@@ -180,9 +169,7 @@ export class SavedHomesService {
   /**
    * Save a home to favorites
    */
-  public async saveHome(
-    property: unknown,
-  ): Promise<{ success: boolean; error?: string }> {
+  public async saveHome(property: unknown): Promise<{ success: boolean; error?: string }> {
     try {
       const request: AddFavoriteRequest = {
         home: mapToAddFavoriteHomePayload(property),
@@ -228,9 +215,7 @@ export class SavedHomesService {
   /**
    * Remove a home from favorites
    */
-  public async removeSavedHome(
-    address: string,
-  ): Promise<{ success: boolean; error?: string }> {
+  public async removeSavedHome(address: string): Promise<{ success: boolean; error?: string }> {
     try {
       const request: RemoveFavoriteRequest = { address };
       const response = await userApi.removeFavoriteHome(request);

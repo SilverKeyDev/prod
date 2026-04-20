@@ -1,0 +1,15 @@
+type: object
+description: Sender-level prefill tabs (not tied to a recipient).
+properties:
+  text_fields:
+    type: array
+    maxItems: 50
+    items:
+      $ref: ./DocuSignPrefillTextTabInput.yaml
+    nullable: true
+  checkboxes:
+    type: array
+    maxItems: 50
+    items:
+      $ref: ./DocuSignPrefillCheckboxTabInput.yaml
+    nullable: true

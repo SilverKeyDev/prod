@@ -12,7 +12,7 @@ export type ProsConsStarVariant = "pro" | "con_red_flag" | "con_warning";
 
 function colorsForVariant(
   variant: ProsConsStarVariant,
-  filled: boolean,
+  filled: boolean
 ): { stroke: string; fill: string } {
   if (!filled) {
     return { stroke: color("neutral.300"), fill: "transparent" };
@@ -35,11 +35,7 @@ type ProsConsStarRowProps = {
   ariaLabelKind: "strength" | "concern";
 };
 
-export function ProsConsStarRow({
-  score,
-  variant,
-  ariaLabelKind,
-}: ProsConsStarRowProps) {
+export function ProsConsStarRow({ score, variant, ariaLabelKind }: ProsConsStarRowProps) {
   const filled = Math.max(0, Math.min(STAR_COUNT, Math.round(score)));
   const label =
     ariaLabelKind === "strength"
@@ -47,22 +43,10 @@ export function ProsConsStarRow({
       : `Concern severity, ${filled} out of ${STAR_COUNT}`;
 
   return (
-    <View
-      accessibilityLabel={label}
-      accessibilityRole="image"
-      className="flex-row gap-0.5"
-    >
+    <View accessibilityLabel={label} accessibilityRole="image" className="flex-row gap-0.5">
       {Array.from({ length: STAR_COUNT }, (_, i) => {
         const { stroke, fill } = colorsForVariant(variant, i < filled);
-        return (
-          <Icon
-            key={i}
-            name="star"
-            size={STAR_SIZE}
-            color={stroke}
-            fill={fill}
-          />
-        );
+        return <Icon key={i} name="star" size={STAR_SIZE} color={stroke} fill={fill} />;
       })}
     </View>
   );

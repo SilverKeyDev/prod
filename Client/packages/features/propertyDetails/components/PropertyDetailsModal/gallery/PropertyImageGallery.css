@@ -28,13 +28,20 @@
   backdrop-filter: blur(8px);
 }
 
-/* Button hover states */
-.yarl__button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+/* Nav/control buttons: no fill; chevrons thicken on hover */
+.yarl__button:hover,
+.yarl__button:active {
+  background-color: transparent;
 }
 
-.yarl__button:active {
-  background-color: rgba(255, 255, 255, 0.2);
+.yarl__navigation_prev svg,
+.yarl__navigation_next svg {
+  transition: stroke-width 0.15s ease-out;
+}
+
+.yarl__navigation_prev:hover svg,
+.yarl__navigation_next:hover svg {
+  stroke-width: 3;
 }
 
 /* Navigation arrows positioning and styling */

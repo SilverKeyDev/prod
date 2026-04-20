@@ -7,10 +7,7 @@ export const GRID_GAP_CLASS = "gap-0.5";
 export function getTotalPagesCount(totalImages: number): number {
   if (totalImages <= 0) return 0;
   if (totalImages <= FIRST_PAGE_IMAGE_COUNT) return 1;
-  return (
-    1 +
-    Math.ceil((totalImages - FIRST_PAGE_IMAGE_COUNT) / OTHER_PAGE_IMAGE_COUNT)
-  );
+  return 1 + Math.ceil((totalImages - FIRST_PAGE_IMAGE_COUNT) / OTHER_PAGE_IMAGE_COUNT);
 }
 
 export function getPageStartForPage(page: number): number {
@@ -20,7 +17,5 @@ export function getPageStartForPage(page: number): number {
 
 export function getPageForIndex(index: number): number {
   if (index < FIRST_PAGE_IMAGE_COUNT) return 0;
-  return (
-    1 + Math.floor((index - FIRST_PAGE_IMAGE_COUNT) / OTHER_PAGE_IMAGE_COUNT)
-  );
+  return 1 + Math.floor((index - FIRST_PAGE_IMAGE_COUNT) / OTHER_PAGE_IMAGE_COUNT);
 }

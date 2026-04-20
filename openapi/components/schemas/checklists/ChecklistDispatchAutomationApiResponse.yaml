@@ -1,0 +1,12 @@
+type: object
+required:
+  - success
+properties:
+  success:
+    type: boolean
+  error:
+    type: string
+    nullable: true
+  setting:
+    $ref: "./ChecklistDispatchAutomationSetting.yaml"
+    nullable: true

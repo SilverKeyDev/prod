@@ -3,11 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Button from "@ui/button/Button";
 
 import { useLocalization } from "packages/contexts";
-import {
-  type ChecklistForm,
-  FormsBrowser,
-  useDocuments,
-} from "packages/features/documents";
+import { type ChecklistForm, FormsBrowser, useDocuments } from "packages/features/documents";
 import { useAuthStore, useUIStore } from "packages/store";
 import { BaseModal } from "packages/ui/components/modals";
 import { Box, Text } from "packages/ui/components/primitives";
@@ -133,13 +129,14 @@ function DocumentUploadModalNativeBody({
           size="md"
           onPress={handlePickFile}
           disabled={isUploading}
+          iconName="upload"
         >
           <Text className="text-text-primary text-sm font-medium">
             {selectedFile
-              ? selectedFile.name ??
+              ? (selectedFile.name ??
                 t("documents_upload.change_file", {
                   defaultValue: "Change file",
-                })
+                }))
               : t("documents_upload.click_to_select", {
                   defaultValue: "Select file",
                 })}
@@ -161,6 +158,7 @@ function DocumentUploadModalNativeBody({
           size="md"
           onPress={onClose}
           disabled={isUploading}
+          iconName="arrow-left"
         >
           <Text className="text-text-primary text-sm font-medium">
             {t("common.cancel", { defaultValue: "Cancel" })}
@@ -171,6 +169,7 @@ function DocumentUploadModalNativeBody({
           size="md"
           onPress={handleUpload}
           disabled={!selectedFile || isUploading}
+          iconName="upload"
         >
           <Text className="text-sm font-medium text-white">
             {isUploading
@@ -202,9 +201,7 @@ export default function DocumentUploadModal({
   useEffect(() => {
     // eslint-disable-next-line silverkey/no-platform-feature-check -- Platform.OS selects UI implementation (web DOM vs native picker), not a feature flag
     if (Platform.OS === "web") {
-      void import("./DocumentUpload").then((m) =>
-        setWebUpload(() => m.default),
-      );
+      void import("./DocumentUpload").then((m) => setWebUpload(() => m.default));
     }
   }, []);
 
@@ -220,15 +217,13 @@ export default function DocumentUploadModal({
       // When a form is selected, download it and treat as uploaded
       // For Phase 1, just show success message
       // Phase 2: Actually create a document record from the form
-      alert(
-        `Form selected: ${form.title}\n\nPhase 2: This will create a document from the form.`,
-      );
+      alert(`Form selected: ${form.title}\n\nPhase 2: This will create a document from the form.`);
       if (onUploadSuccess) {
         await onUploadSuccess();
       }
       onClose();
     },
-    [onClose, onUploadSuccess],
+    [onClose, onUploadSuccess]
   );
 
   if (!isOpen) return null;
@@ -249,10 +244,7 @@ export default function DocumentUploadModal({
         showCloseButton
         closeOnBackdropClick
       >
-        <DocumentUploadModalNativeBody
-          onClose={onClose}
-          onUploadSuccess={onUploadSuccess}
-        />
+        <DocumentUploadModalNativeBody onClose={onClose} onUploadSuccess={onUploadSuccess} />
       </BaseModal>
     );
   }
@@ -307,11 +299,7 @@ export default function DocumentUploadModal({
 
       {activeTab === "forms" && isAgent && (
         <Box className="max-h-[60vh] overflow-y-auto">
-          <FormsBrowser
-            onSelectForm={handleFormSelect}
-            onClose={onClose}
-            showActions={false}
-          />
+          <FormsBrowser onSelectForm={handleFormSelect} onClose={onClose} showActions={false} />
         </Box>
       )}
     </BaseModal>

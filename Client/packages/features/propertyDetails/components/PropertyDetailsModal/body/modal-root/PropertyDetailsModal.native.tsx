@@ -13,6 +13,7 @@ export const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
   onGenerateReport,
   isLoading = false,
   toolbarButtonSize = "medium",
+  commuteSearchOverlay = null,
 }) => {
   useSavedHomesStoreIntegration();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -41,7 +42,11 @@ export const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
           currentImageIndex={currentImageIndex}
           onImageChange={setCurrentImageIndex}
         />
-        <PropertyDetailsBody property={property} isLoading={isLoading} />
+        <PropertyDetailsBody
+          property={property}
+          isLoading={isLoading}
+          commuteSearchOverlay={commuteSearchOverlay}
+        />
       </Cover>
     </>
   );

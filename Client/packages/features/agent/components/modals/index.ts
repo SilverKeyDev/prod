@@ -2,13 +2,17 @@
  * Agent modals - re-export or define modal components here.
  * Kept for alias @/features/agent/modals -> components/modals.
  */
-export type { AgentSearchContentProps } from "../AgentSearchContent";
-export { AgentSearchContent } from "../AgentSearchContent";
-export type { AgentSearchPanelProps } from "../AgentSearchPanel";
-export { AgentSearchPanel } from "../AgentSearchPanel";
-export { default as AgentSearchModal } from "./AgentSearchModal";
-export { default as CalendarEventRequestModal } from "./CalendarEventRequestModal";
-export { default as ClientSearchModal } from "./ClientSearchModal";
-export { default as ConnectionRequestsInbox } from "./ConnectionRequestsInbox";
-export { default as SelectDocumentModal } from "./SelectDocumentModal";
-export { default as SelectHomeModal } from "./SelectHomeModal";
+export type {
+  AgentSearchContentHandle,
+  AgentSearchContentProps,
+} from "../search/AgentSearchContent";
+export { AgentSearchContent } from "../search/AgentSearchContent";
+export type { AgentSearchPanelProps } from "../search/AgentSearchPanel";
+export { AgentSearchPanel } from "../search/AgentSearchPanel";
+export { default as CalendarEventRequestModal } from "./calendarEventRequest/CalendarEventRequestModal";
+export { default as ConnectionRequestsInbox } from "./inbox/ConnectionRequestsInbox";
+export { default as AgentSearchModal } from "./search/AgentSearchModal";
+export { default as ClientSearchModal } from "./search/ClientSearchModal";
+export { default as SelectDocumentModal } from "./search/SelectDocumentModal";
+export { default as SelectHomeModal } from "./search/SelectHomeModal";
+export { default as SettingsModal } from "./settings/SettingsModal";

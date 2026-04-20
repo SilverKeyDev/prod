@@ -1,0 +1,12 @@
+type: object
+required:
+  - participant_id
+properties:
+  participant_id:
+    type: string
+    description: Agreement participant id (signer); email uses server-stored value.
+  note:
+    type: string
+    maxLength: 1000
+    nullable: true
+    description: Private note included with the resend (DocuSign signer note).
