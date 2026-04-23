@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useId, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
@@ -30,6 +30,110 @@ const PANEL_Z_BY_STACK = {
   modal: "z-modal-popover",
 } as const;
 
+type PortalLayout = {
+  left: number;
+  top: number;
+  widthPx?: number;
+  /** When true, panel is centered in the viewport (see `side: "viewportCenter"`). */
+  viewportCenter?: boolean;
+};
+
+const VIEWPORT_EDGE_INSET_PX = 12;
+const MATCH_TRIGGER_MIN_WIDTH_PX = 280;
+
+function computePortalLayout(
+  triggerRef: React.RefObject<HTMLDivElement | null>,
+  side: PopoverSide,
+  gap: number,
+  options: { matchTriggerWidth: boolean; centerWidePanelMaxPx?: number }
+): PortalLayout {
+  const win = getWindow();
+  const vw = win?.innerWidth ?? 1024;
+  const pad = VIEWPORT_EDGE_INSET_PX;
+
+  if (side === "viewportCenter") {
+    let widthPx: number;
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (options.matchTriggerWidth && rect) {
+      widthPx = Math.min(
+        Math.max(Math.round(rect.width), MATCH_TRIGGER_MIN_WIDTH_PX),
+        vw - 2 * pad
+      );
+    } else if (options.centerWidePanelMaxPx != null) {
+      widthPx = Math.min(options.centerWidePanelMaxPx, vw - 2 * pad);
+    } else if (rect) {
+      widthPx = Math.min(
+        Math.max(Math.round(rect.width), MATCH_TRIGGER_MIN_WIDTH_PX),
+        vw - 2 * pad
+      );
+    } else {
+      widthPx = Math.min(400, vw - 2 * pad);
+    }
+    return { left: 0, top: 0, widthPx, viewportCenter: true };
+  }
+
+  if (!triggerRef.current) {
+    return { left: 0, top: 0 };
+  }
+  const rect = triggerRef.current.getBoundingClientRect();
+
+  const clampLeftForWidth = (left: number, widthPx: number) =>
+    Math.max(pad, Math.min(left, vw - pad - widthPx));
+
+  if (side === "bottom") {
+    let left = rect.left;
+    const top = rect.bottom + gap;
+    if (options.matchTriggerWidth) {
+      const widthPx = Math.min(
+        Math.max(Math.round(rect.width), MATCH_TRIGGER_MIN_WIDTH_PX),
+        vw - 2 * pad
+      );
+      left = clampLeftForWidth(left, widthPx);
+      return { left, top, widthPx };
+    }
+    if (options.centerWidePanelMaxPx != null) {
+      const widthPx = Math.min(options.centerWidePanelMaxPx, vw - 2 * pad);
+      left = rect.left + rect.width / 2 - widthPx / 2;
+      left = clampLeftForWidth(left, widthPx);
+      return { left, top, widthPx };
+    }
+    return { left, top };
+  }
+
+  if (side === "top") {
+    let left = rect.left;
+    const top = rect.top - gap;
+    if (options.matchTriggerWidth) {
+      const widthPx = Math.min(
+        Math.max(Math.round(rect.width), MATCH_TRIGGER_MIN_WIDTH_PX),
+        vw - 2 * pad
+      );
+      left = clampLeftForWidth(left, widthPx);
+      return { left, top, widthPx };
+    }
+    if (options.centerWidePanelMaxPx != null) {
+      const widthPx = Math.min(options.centerWidePanelMaxPx, vw - 2 * pad);
+      left = rect.left + rect.width / 2 - widthPx / 2;
+      left = clampLeftForWidth(left, widthPx);
+      return { left, top, widthPx };
+    }
+    return { left, top };
+  }
+
+  if (side === "overlap") {
+    return {
+      left: rect.left,
+      top: rect.top + rect.height / 2,
+    };
+  }
+
+  if (side === "left") {
+    return { left: rect.right, top: rect.bottom + gap };
+  }
+
+  return { left: rect.left, top: rect.bottom + gap };
+}
+
 export default function Popover({
   trigger,
   children,
@@ -40,6 +144,8 @@ export default function Popover({
   panelClassName = "",
   panelMaxHeight,
   panelMinWidth,
+  matchTriggerWidth = false,
+  centerWidePanelMaxPx,
   className = "",
   triggerWrapperClassName = "",
   panelStack = "page",
@@ -50,6 +156,7 @@ export default function Popover({
   const panelRef = useRef<HTMLDivElement>(null);
   const outsideSafeTargetsRef = useRef(new Set<HTMLElement>());
   const panelId = useId();
+  const [portalLayout, setPortalLayout] = useState<PortalLayout | null>(null);
 
   const registerOutsideClickSafeTarget = useCallback((element: HTMLElement) => {
     outsideSafeTargetsRef.current.add(element);
@@ -134,9 +241,41 @@ export default function Popover({
     };
   }, [open]);
 
+  useLayoutEffect(() => {
+    if (!open || !usePortal) {
+      setPortalLayout(null);
+      return;
+    }
+    const update = () => {
+      setPortalLayout(
+        computePortalLayout(triggerRef, side, 8, {
+          matchTriggerWidth: Boolean(matchTriggerWidth),
+          centerWidePanelMaxPx,
+        })
+      );
+    };
+    update();
+    const win = getWindow();
+    if (!win) {
+      return;
+    }
+    win.addEventListener("scroll", update, true);
+    win.addEventListener("resize", update);
+    return () => {
+      win.removeEventListener("scroll", update, true);
+      win.removeEventListener("resize", update);
+    };
+  }, [open, usePortal, side, matchTriggerWidth, centerWidePanelMaxPx]);
+
   const panelStyle: React.CSSProperties = {};
   if (panelMaxHeight) panelStyle.maxHeight = panelMaxHeight;
-  if (panelMinWidth) panelStyle.minWidth = panelMinWidth;
+  const layoutWidthPx = portalLayout?.widthPx;
+  if (layoutWidthPx != null) {
+    panelStyle.width = `${layoutWidthPx}px`;
+    panelStyle.boxSizing = "border-box";
+  } else if (panelMinWidth) {
+    panelStyle.minWidth = panelMinWidth;
+  }
 
   const panelContent = open ? (
     <Box
@@ -159,12 +298,28 @@ export default function Popover({
       </Box>
       {usePortal && open ? (
         <Portal>
-          <PanelPortal panelZ={panelZ} triggerRef={triggerRef} open={open} side={side}>
+          <PanelPortal
+            panelZ={panelZ}
+            layout={
+              portalLayout ??
+              (side === "viewportCenter"
+                ? { left: 0, top: 0, viewportCenter: true }
+                : { left: 0, top: 0 })
+            }
+            side={side}
+          >
             {panelContent}
           </PanelPortal>
         </Portal>
       ) : (
-        open && (
+        open &&
+        (side === "viewportCenter" ? (
+          <Box
+            className={`${panelZ} pointer-events-none fixed inset-0 flex items-center justify-center p-3 sm:p-4`}
+          >
+            <Box className="pointer-events-auto flex w-full justify-center">{panelContent}</Box>
+          </Box>
+        ) : (
           <Box
             className={
               side === "overlap"
@@ -176,74 +331,34 @@ export default function Popover({
           >
             {panelContent}
           </Box>
-        )
+        ))
       )}
     </Box>
   );
 }
 
-function updatePanelPosition(
-  triggerRef: React.RefObject<HTMLDivElement | null>,
-  side: PopoverSide,
-  triggerPanelGap: number,
-  setPosition: (p: { top: number; left: number }) => void
-) {
-  if (!triggerRef.current) return;
-  const rect = triggerRef.current.getBoundingClientRect();
-  switch (side) {
-    case "left":
-      setPosition({ left: rect.right, top: rect.bottom + triggerPanelGap });
-      break;
-    case "top":
-      setPosition({ left: rect.left, top: rect.top - triggerPanelGap });
-      break;
-    case "overlap":
-      setPosition({
-        left: rect.left,
-        top: rect.top + rect.height / 2,
-      });
-      break;
-    case "bottom":
-    default:
-      setPosition({ left: rect.left, top: rect.bottom + triggerPanelGap });
-      break;
-  }
-}
-
 function PanelPortal({
   panelZ,
-  triggerRef,
-  open,
+  layout,
   side,
   children,
 }: {
   panelZ: string;
-  triggerRef: React.RefObject<HTMLDivElement | null>;
-  open: boolean;
+  layout: PortalLayout;
   side: PopoverSide;
   children: React.ReactNode;
 }): React.ReactElement {
-  const [position, setPosition] = useState({ top: 0, left: 0 });
-  const triggerPanelGap = 8;
+  if (layout.viewportCenter) {
+    return (
+      <Box
+        className={`${panelZ} pointer-events-none fixed inset-0 flex items-center justify-center p-3 sm:p-4`}
+      >
+        <Box className="pointer-events-auto flex w-full justify-center">{children}</Box>
+      </Box>
+    );
+  }
 
-  useEffect(() => {
-    if (!open || !triggerRef.current) return;
-    const win = getWindow();
-    if (!win) return;
-    updatePanelPosition(triggerRef, side, triggerPanelGap, setPosition);
-
-    const onScrollOrResize = () => {
-      updatePanelPosition(triggerRef, side, triggerPanelGap, setPosition);
-    };
-    win.addEventListener("scroll", onScrollOrResize, true);
-    win.addEventListener("resize", onScrollOrResize);
-    return () => {
-      win.removeEventListener("scroll", onScrollOrResize, true);
-      win.removeEventListener("resize", onScrollOrResize);
-    };
-  }, [open, triggerRef, side]);
-
-  const transform = panelPortalTransform(side, position.left, position.top);
+  const transform = panelPortalTransform(side, layout.left, layout.top);
 
   return (
     <Box className={`${panelZ} fixed left-0 top-0`} style={{ transform }}>

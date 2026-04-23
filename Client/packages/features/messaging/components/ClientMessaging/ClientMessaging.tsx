@@ -7,6 +7,7 @@ import { useMessaging } from "packages/features/messaging/hooks/data/messaging/u
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useClientMessagingModals, useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers } from "packages/hooks/ui";
+import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 
 import { Region } from "@/components/ui";
@@ -23,6 +24,7 @@ type ClientMessagingProps = {
 };
 
 export default function ClientMessaging({ setMobileHeaderActions }: ClientMessagingProps = {}) {
+  const { navigate } = useNavigation();
   const { userProfile } = useUserData();
   const agentId = useMemo(
     () => resolvePrimaryAgentId(userProfile?.agent_id),
@@ -45,6 +47,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     setActiveConversationId,
     formatTime,
     canSendMessage,
+    acknowledgeActiveConversationAsRead,
   } = useMessaging({
     mode: "client",
     conversationSelector: userProfile?.id,
@@ -80,6 +83,21 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     isSidebarExpanded,
     setIsSidebarExpanded,
   } = useClientMessagingModals();
+
+  useEffect(() => {
+    if (!isSidebarExpanded) return;
+    acknowledgeActiveConversationAsRead();
+  }, [isSidebarExpanded, acknowledgeActiveConversationAsRead]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      acknowledgeActiveConversationAsRead();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [acknowledgeActiveConversationAsRead]);
 
   const handlers = useMessagingHandlers({
     mode: "client",
@@ -208,6 +226,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
                   isTyping={isTyping}
                   formatTime={formatTime}
                   onSearchClick={() => setShowSearchModal(true)}
+                  onBrowseAgentsClick={() => navigate("FIND_AGENTS")}
                   messagesEndRef={messagesEndRef}
                   onRetryMessage={retryMessage}
                   activeConversation={activeConversation ?? null}

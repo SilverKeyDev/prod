@@ -52,10 +52,12 @@ describe("buildAgentTodoGoogleEvent", () => {
       deadlineTime: null,
       calendarId: "primary",
     });
-    expect(event.start.date).toBe("2026-06-15");
-    expect(event.end.date).toBe("2026-06-16");
-    expect(event.start.dateTime).toBeUndefined();
-    expect(event.end.dateTime).toBeUndefined();
+    const start = event.start as { date?: string; dateTime?: string };
+    const end = event.end as { date?: string; dateTime?: string };
+    expect(start.date).toBe("2026-06-15");
+    expect(end.date).toBe("2026-06-16");
+    expect(start.dateTime).toBeUndefined();
+    expect(end.dateTime).toBeUndefined();
     expect(event.summary).toBe("Review listing");
     expect(event.description).toBe("Added from SilverKey to-dos.");
   });
@@ -97,13 +99,38 @@ describe("buildAgentTodoGoogleEvent", () => {
       deadlineTime: "14:30",
       calendarId: "primary",
     });
-    expect(event.start.date).toBeUndefined();
-    expect(event.end.date).toBeUndefined();
-    expect(event.start.dateTime).toBeDefined();
-    expect(event.end.dateTime).toBeDefined();
-    expect(event.start.timeZone).toBe("UTC");
-    const startMs = dateParseISO(event.start.dateTime!).valueOf();
-    const endMs = dateParseISO(event.end.dateTime!).valueOf();
+    const start = event.start as { date?: string; dateTime?: string; timeZone?: string };
+    const end = event.end as { date?: string; dateTime?: string };
+    expect(start.date).toBeUndefined();
+    expect(end.date).toBeUndefined();
+    expect(start.dateTime).toBeDefined();
+    expect(end.dateTime).toBeDefined();
+    expect(start.timeZone).toBe("UTC");
+    const startMs = dateParseISO(start.dateTime!).valueOf();
+    const endMs = dateParseISO(end.dateTime!).valueOf();
     expect(endMs - startMs).toBe(60 * 60 * 1000);
+  });
+
+  it("includes addGoogleMeet when set", () => {
+    const event = buildAgentTodoGoogleEvent({
+      title: "Call",
+      deadlineDate: "2026-06-15",
+      deadlineTime: "14:30",
+      calendarId: "primary",
+      addGoogleMeet: true,
+    });
+    expect(event.addGoogleMeet).toBe(true);
+  });
+
+  it("does not pass addGoogleMeet for all-day agenda events", () => {
+    const event = buildAgentTodoGoogleEvent({
+      title: "Deadline",
+      deadlineDate: "2026-06-15",
+      deadlineTime: null,
+      calendarId: "primary",
+      addGoogleMeet: true,
+    });
+    expect(event.addGoogleMeet).toBeUndefined();
+    expect((event.start as { date?: string }).date).toBeDefined();
   });
 });

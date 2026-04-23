@@ -9,9 +9,13 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { Icon } from "@ui/icons";
+
+import { useLocalization } from "packages/contexts";
 import { color, spacing } from "packages/design-tokens";
 import Button from "packages/ui/components/button/Button";
 import ClientSelector from "packages/ui/components/button/ClientSelector";
+import IconButton from "packages/ui/components/button/IconButton";
 import Dropdown from "packages/ui/components/form/dropdown";
 import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
 import { Box } from "packages/ui/components/primitives";
@@ -57,6 +61,10 @@ export type QuickEventPopoverProps = {
   onSelectedClientIdChange: (id: string | null) => void;
   isSubmitting: boolean;
   onCommit: () => void;
+  /** Dismiss without saving (close control and pointer-outside). */
+  onDismiss: () => void;
+  /** Register portaled menu roots so outside-click logic ignores time/calendar dropdowns. */
+  registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
   onEditDetails?: () => void;
   /** Profile availability: offer weekly recurrence for week-sourced quick create. */
   showWeeklyRepeatToggle?: boolean;
@@ -90,11 +98,14 @@ export function QuickEventPopover({
   onSelectedClientIdChange,
   isSubmitting,
   onCommit,
+  onDismiss,
+  registerOutsideClickSafeTarget,
   onEditDetails,
   showWeeklyRepeatToggle = false,
   repeatWeekly = false,
   onRepeatWeeklyChange,
 }: QuickEventPopoverProps) {
+  const { t } = useLocalization();
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const panelId = useId();
 
@@ -144,9 +155,21 @@ export function QuickEventPopover({
 
   return createPortal(
     <Box data-silverkey-quick-event-popover="" id={panelId} style={panelStyle}>
-      <Title size="sm" as="h2" className="sr-only">
-        Quick event
-      </Title>
+      <Box className="-mt-1 mb-1 flex items-start justify-between gap-2">
+        <Title size="sm" as="h2" className="text-text-primary pt-0.5 font-semibold">
+          Quick event
+        </Title>
+        <IconButton
+          variant="ghost"
+          size="sm"
+          label={t("feedback.close_aria")}
+          onPress={onDismiss}
+          disabled={isSubmitting}
+          className="text-text-secondary hover:text-text-primary -mr-1 shrink-0"
+        >
+          <Icon name="x" className="h-4 w-4" />
+        </IconButton>
+      </Box>
       <Box className="flex flex-col gap-3">
         <Label htmlFor={`${panelId}-title`}>Title</Label>
         <Input
@@ -177,6 +200,9 @@ export function QuickEventPopover({
           startDate={startDate}
           endDate={endDate}
           onRangeChange={onDateRangeChange}
+          registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
+          calendars={calendars}
+          weekViewOption={false}
         />
 
         {isAllDay ? (
@@ -195,6 +221,7 @@ export function QuickEventPopover({
             menuInPortal
             menuPortalStack="modal"
             menuPlacement="below"
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
             trailingSlot={
               <Box className="flex items-center gap-2">
                 <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(true)} />
@@ -213,6 +240,9 @@ export function QuickEventPopover({
             }))}
             value={selectedCalendarId}
             onChange={(id) => onCalendarChange(id)}
+            menuInPortal
+            menuPortalStack="modal"
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
           />
         ) : null}
 

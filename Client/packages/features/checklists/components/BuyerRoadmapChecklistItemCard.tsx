@@ -9,10 +9,7 @@ import {
   ChecklistStepSubmitProvider,
   useChecklistStepSubmitRegistry,
 } from "packages/features/checklists/components/ChecklistStepSubmitContext";
-import {
-  CHECKLIST_TITLES,
-  type ChecklistTab,
-} from "packages/features/checklists/types/checklists";
+import { CHECKLIST_TITLES, type ChecklistTab } from "packages/features/checklists/types/checklists";
 import {
   checklistCheckboxRowClassNames,
   toChecklistCheckboxItem,
@@ -41,7 +38,7 @@ export type BuyerRoadmapChecklistItemCardProps = {
   rowKind: BuyerRoadmapChecklistItemRowKind;
   currentTab: ChecklistTab;
   checkedIds: number[];
-  activeItemId: number | null;
+  activeItemIds: readonly number[];
   isSectionLocked: boolean;
   hideIntegrationComponents: boolean;
   getItemToggleEligibility: (
@@ -70,7 +67,7 @@ function BuyerRoadmapChecklistItemCardInner({
   rowKind,
   currentTab,
   checkedIds,
-  activeItemId,
+  activeItemIds,
   isSectionLocked,
   hideIntegrationComponents,
   getItemToggleEligibility,
@@ -100,7 +97,7 @@ function BuyerRoadmapChecklistItemCardInner({
     roadmapBlocker?.kind === "section_gate"
       ? getFirstIncompleteUnlockSection(currentTab, sectionProgress)
       : null;
-  const isActive = activeItemId != null && item.id === activeItemId;
+  const isActive = activeItemIds.includes(item.id);
   const isRoadmapActiveBlockedUi = Boolean(
     isActive && !checked && checkboxDisabled && roadmapBlocker != null
   );
@@ -227,7 +224,9 @@ function BuyerRoadmapChecklistItemCardInner({
                 aria-hidden
               />
             ) : isCurrentRow ? (
-              hasHeaderSubmit ? null : <Box className="h-6 w-6 flex-shrink-0" aria-hidden />
+              hasHeaderSubmit ? null : (
+                <Box className="h-6 w-6 flex-shrink-0" aria-hidden />
+              )
             ) : (
               <Box
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}

@@ -3,16 +3,28 @@
  * Shows categories (folders) and forms within each category.
  */
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
 import { useFormsLibrary } from "packages/features/documents/hooks/data/useFormsLibrary";
 import type { ChecklistForm } from "packages/features/documents/types/forms";
+import {
+  checklistFormToDocumentData,
+  formatFormLibraryCardDate,
+} from "packages/features/documents/utils/forms/checklistFormToDocumentData";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
 import Button from "packages/ui/components/button/Button";
-import { Icon } from "packages/ui/components/icons";
+import BaseCard from "packages/ui/components/cards/BaseCard";
+import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
+import DocumentCardHeader from "packages/ui/components/cards/document/DocumentCardHeader";
+import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
+import { PdfModal } from "packages/ui/components/modals";
+import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
 import { formatFormsLibraryCategoryLabel } from "packages/utils/documents";
+import { tryWebShareUrl } from "packages/utils/share";
 
 import { BodyText, Subtitle, Title } from "@/components/ui";
 
@@ -22,6 +34,8 @@ type FormsBrowserProps = {
   onClose?: () => void;
   showActions?: boolean; // Show download / send-for-signature controls (default: true)
   onSendForSignature?: (form: ChecklistForm) => void;
+  /** Grid layout for form cards (e.g. Saved page documents grid). */
+  formsGridClassName?: string;
 };
 
 export default function FormsBrowser({
@@ -29,40 +43,120 @@ export default function FormsBrowser({
   onClose,
   showActions = true,
   onSendForSignature,
+  formsGridClassName = "gap-responsive-md grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
 }: FormsBrowserProps) {
   const { t } = useLocalization();
   const { categories, isLoading, error } = useFormsLibrary();
+  const {
+    openPdfModal,
+    closePdfModal,
+    currentPdf,
+    currentDocumentName,
+    currentDocumentId,
+    downloadFile,
+  } = useDocumentActions();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
 
-  const handleDownload = async (form: ChecklistForm) => {
-    if (!form.download_url) {
-      log.error(LOG_CATEGORIES.ERRORS, "Form has no download URL", {
-        formId: form.id,
-      });
-      return;
+  const formById = useMemo(() => {
+    const map = new Map<string, ChecklistForm>();
+    for (const cat of categories) {
+      for (const form of cat.forms) {
+        map.set(form.id, form);
+      }
     }
+    return map;
+  }, [categories]);
 
-    setDownloadingFormId(form.id);
-    try {
-      // Open download URL in new tab (agent-only, web-only context)
-      // eslint-disable-next-line no-restricted-globals
-      window.open(form.download_url, "_blank");
+  const resolveForm = useCallback(
+    (documentId: string): ChecklistForm | undefined => formById.get(documentId),
+    [formById]
+  );
 
-      log.info(LOG_CATEGORIES.API, "Form downloaded from library", {
-        formId: form.id,
-        formKey: form.form_key,
+  const handleViewDocument = useCallback(
+    (documentId: string, documentName: string) => {
+      const form = resolveForm(documentId);
+      if (form?.download_url) {
+        // Presigned S3 URL — do not pass a library id as `reportId` or the viewer hits `/report/:id/view`.
+        openPdfModal(form.download_url, documentName, undefined);
+        return;
+      }
+      log.error(LOG_CATEGORIES.ERRORS, "Form has no view URL", { documentId });
+    },
+    [openPdfModal, resolveForm]
+  );
+
+  const handleDownloadDocument = useCallback(
+    async (documentId: string, documentName: string) => {
+      const form = resolveForm(documentId);
+      if (!form?.download_url) {
+        log.error(LOG_CATEGORIES.ERRORS, "Form has no download URL", { documentId });
+        return;
+      }
+      const safeName = `${documentName
+        .replace(/\.pdf$/i, "")
+        .replace(/[^a-z0-9]/gi, "_")
+        .toLowerCase()}.pdf`;
+      downloadFile(form.download_url, safeName);
+    },
+    [downloadFile, resolveForm]
+  );
+
+  const handleShareDocument = useCallback(
+    async (documentId: string, documentName: string) => {
+      const form = resolveForm(documentId);
+      if (!form?.download_url) {
+        return { success: false, message: "No shareable link for this form." };
+      }
+      const shareTitle =
+        documentName
+          .replace(/\.pdf$/i, "")
+          .replace(/_/g, " ")
+          .trim() || form.title;
+      const shareResult = await tryWebShareUrl({
+        title: shareTitle,
+        text: form.title,
+        url: form.download_url,
       });
-    } catch (err) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to download form", err);
-    } finally {
-      setDownloadingFormId(null);
-    }
-  };
+      if (shareResult === "shared") {
+        return { success: true, message: "Shared successfully" };
+      }
+      if (shareResult === "aborted") {
+        return { success: false, message: "Share cancelled" };
+      }
+      const copied = await secureClipboardCopy(form.download_url);
+      if (copied) {
+        return { success: true, message: "Link copied to clipboard" };
+      }
+      return { success: false, message: "Failed to copy link" };
+    },
+    [resolveForm]
+  );
+
+  const libraryActionHandlers: DocumentCardExternalActionHandlers = useMemo(
+    () => ({
+      handleViewDocument,
+      handleDownloadDocument,
+      handleShareDocument,
+      handleSendForSignature: onSendForSignature
+        ? (doc) => {
+            const form = resolveForm(doc.id);
+            if (form) onSendForSignature(form);
+          }
+        : undefined,
+      isAgent: true,
+    }),
+    [
+      handleDownloadDocument,
+      handleShareDocument,
+      handleViewDocument,
+      onSendForSignature,
+      resolveForm,
+    ]
+  );
 
   if (isLoading) {
     return (
-      <Box className="p-4">
+      <Box className="w-full py-4">
         <BodyText size="sm" muted>
           {t("forms.loading_library", { defaultValue: "Loading forms..." })}
         </BodyText>
@@ -72,7 +166,7 @@ export default function FormsBrowser({
 
   if (error) {
     return (
-      <Box className="p-4">
+      <Box className="w-full py-4">
         <BodyText size="sm" className="text-destructive">
           {t("forms.error_loading_library", {
             defaultValue: "Error loading forms. Please try again.",
@@ -84,7 +178,7 @@ export default function FormsBrowser({
 
   if (categories.length === 0) {
     return (
-      <Box className="p-4">
+      <Box className="w-full py-4">
         <BodyText size="sm" muted>
           {t("forms.no_forms_available", {
             defaultValue: "No forms available. Forms will be added by your administrator.",
@@ -97,52 +191,48 @@ export default function FormsBrowser({
   // Category list view
   if (!selectedCategory) {
     return (
-      <Box className="p-4">
-        <Box className="mb-3">
-          <Title as="h3" size="sm" className="mb-1">
-            {t("forms.select_category", { defaultValue: "Select a category" })}
-          </Title>
-          <Subtitle size="xs" className="text-text-secondary">
-            {t("forms.category_description", {
-              defaultValue: "Choose a folder to browse available forms.",
-            })}
-          </Subtitle>
-        </Box>
-
-        <Box className="flex flex-col gap-2">
-          {categories.map((category) => (
-            <Box
-              key={category.name}
-              className="border-border hover:bg-background-surface cursor-pointer rounded-md border p-3 transition-colors"
-              onClick={() => setSelectedCategory(category.name)}
-            >
-              <Box className="flex flex-row items-center justify-between">
-                <Box>
-                  <BodyText as="p" size="sm" className="text-text-primary font-medium">
-                    {formatFormsLibraryCategoryLabel(category.name)}
-                  </BodyText>
-                  <BodyText as="p" size="xs" muted>
-                    {category.forms.length}{" "}
-                    {category.forms.length === 1
-                      ? t("forms.form", { defaultValue: "form" })
-                      : t("forms.forms", { defaultValue: "forms" })}
-                  </BodyText>
-                </Box>
-                <BodyText as="span" size="xs" muted>
-                  →
+      <Box className="gap-responsive-md flex w-full flex-col">
+        {categories.map((category) => (
+          <BaseCard
+            key={category.name}
+            variant="default"
+            padding="md"
+            rounded="lg"
+            shadow="sm"
+            hover
+            cardType="searchpage"
+            scale="md"
+            width="full"
+            background="white"
+            className="cursor-pointer"
+            onClick={() => setSelectedCategory(category.name)}
+          >
+            <Box className="flex flex-row items-center justify-between gap-3">
+              <Box className="min-w-0 flex-1">
+                <Subtitle size="sm" className="text-text-primary line-clamp-2">
+                  {formatFormsLibraryCategoryLabel(category.name)}
+                </Subtitle>
+                <BodyText as="p" size="xs" muted className="mt-1">
+                  {category.forms.length}{" "}
+                  {category.forms.length === 1
+                    ? t("forms.form", { defaultValue: "form" })
+                    : t("forms.forms", { defaultValue: "forms" })}
                 </BodyText>
               </Box>
+              <BodyText as="span" size="sm" muted className="flex-shrink-0">
+                →
+              </BodyText>
             </Box>
-          ))}
-        </Box>
+          </BaseCard>
+        ))}
 
-        {onClose && (
-          <Box className="mt-4">
+        {onClose ? (
+          <Box className="mt-2">
             <Button variant="secondary" size="sm" onPress={onClose} label="Close" iconName="x">
               {t("common.close", { defaultValue: "Close" })}
             </Button>
           </Box>
-        )}
+        ) : null}
       </Box>
     );
   }
@@ -154,8 +244,8 @@ export default function FormsBrowser({
   }
 
   return (
-    <Box className="p-4">
-      <Box className="mb-3 flex flex-row items-center gap-2">
+    <Box className="w-full">
+      <Box className="mb-4 flex flex-row items-center gap-2">
         <Button
           variant="ghost"
           size="sm"
@@ -167,7 +257,7 @@ export default function FormsBrowser({
         </Button>
       </Box>
 
-      <Box className="mb-3">
+      <Box className="mb-4">
         <Title as="h3" size="sm" className="mb-1">
           {formatFormsLibraryCategoryLabel(category.name)}
         </Title>
@@ -179,17 +269,34 @@ export default function FormsBrowser({
         </Subtitle>
       </Box>
 
-      <Box className="flex flex-col gap-2">
+      <Box className={formsGridClassName}>
         {category.forms.map((form) => {
           const cardSelectable = Boolean(onSelectForm) && !showActions;
+          const doc = checklistFormToDocumentData(form);
+
+          if (showActions) {
+            return (
+              <Box key={form.id} className="group relative w-full">
+                <DocumentCard doc={doc} externalActionHandlers={libraryActionHandlers} />
+              </Box>
+            );
+          }
+
           return (
-            <Box
+            <BaseCard
               key={form.id}
+              variant="default"
+              padding="md"
+              rounded="lg"
+              shadow="sm"
+              hover={cardSelectable}
+              cardType="searchpage"
+              scale="md"
+              width="full"
+              background="white"
+              className={cardSelectable ? "cursor-pointer" : ""}
               role={cardSelectable ? "button" : undefined}
               tabIndex={cardSelectable ? 0 : undefined}
-              className={`border-border bg-background-surface flex flex-col gap-3 rounded-md border p-3 ${
-                cardSelectable ? "cursor-pointer transition-colors hover:bg-neutral-50" : ""
-              }`}
               onClick={
                 cardSelectable
                   ? () => {
@@ -216,65 +323,31 @@ export default function FormsBrowser({
                   : undefined
               }
             >
-              <Box className="min-w-0">
-                <Title as="h4" size="sm" className="mb-1">
-                  {form.title}
-                </Title>
-                {form.description ? (
-                  <BodyText as="p" size="xs" muted>
-                    {form.description}
-                  </BodyText>
-                ) : null}
-              </Box>
-
-              {showActions && (
-                <Box
-                  className="flex w-full flex-col gap-2 sm:flex-row sm:items-stretch"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    loading={downloadingFormId === form.id}
-                    onPress={() => handleDownload(form)}
-                    disabled={!form.download_url || downloadingFormId === form.id}
-                    icon={<Icon name="download" size={16} />}
-                    className="w-full sm:min-w-0 sm:flex-1"
-                    label={
-                      downloadingFormId === form.id
-                        ? t("forms.downloading", {
-                            defaultValue: "Downloading…",
-                          })
-                        : t("forms.download", { defaultValue: "Download" })
-                    }
-                  >
-                    {downloadingFormId === form.id
-                      ? t("forms.downloading", {
-                          defaultValue: "Downloading…",
-                        })
-                      : t("forms.download", { defaultValue: "Download" })}
-                  </Button>
-
-                  {onSendForSignature ? (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onPress={() => onSendForSignature(form)}
-                      icon={<Icon name="file-signature" size={16} />}
-                      className="w-full sm:min-w-0 sm:flex-1"
-                      label="Send for Signature"
-                    >
-                      {t("forms.send_for_signature", {
-                        defaultValue: "Send for Signature",
-                      })}
-                    </Button>
-                  ) : null}
-                </Box>
-              )}
-            </Box>
+              <DocumentCardHeader
+                title={form.title}
+                documentType="report"
+                uploadedDate={formatFormLibraryCardDate(form)}
+              />
+              {form.description ? (
+                <BodyText as="p" size="xs" muted className="line-clamp-3">
+                  {form.description}
+                </BodyText>
+              ) : null}
+            </BaseCard>
           );
         })}
       </Box>
+
+      {showActions && currentPdf ? (
+        <Portal>
+          <PdfModal
+            currentPdf={currentPdf}
+            currentReportAddress={currentDocumentName}
+            reportId={currentDocumentId}
+            onClose={closePdfModal}
+          />
+        </Portal>
+      ) : null}
     </Box>
   );
 }

@@ -110,6 +110,10 @@ components:
       $ref: "./components/schemas/agent/core/AgentConversationsResponse.yaml"
     AgentSearchResult:
       $ref: "./components/schemas/agent/core/AgentSearchResult.yaml"
+    RecommendedAgentResult:
+      $ref: "./components/schemas/agent/core/RecommendedAgentResult.yaml"
+    RecommendedAgentsResponse:
+      $ref: "./components/schemas/agent/core/RecommendedAgentsResponse.yaml"
     Agreement:
       $ref: "./components/schemas/agreements/agreements/Agreement.yaml"
     AgreementEvent:
@@ -168,6 +172,10 @@ components:
       $ref: "./components/schemas/preferences/ClientsPreferencesResponse.yaml"
     ClientsResponse:
       $ref: "./components/schemas/agent/clients/ClientsResponse.yaml"
+    ClientSettings:
+      $ref: "./components/schemas/user/ClientSettings.yaml"
+    ClientSettingsResponse:
+      $ref: "./components/schemas/user/ClientSettingsResponse.yaml"
     CommuteData:
       $ref: "./components/schemas/search/properties/CommuteData.yaml"
     CompareReportsRequest:
@@ -218,6 +226,8 @@ components:
       $ref: "./components/schemas/shared/dashboard/DashboardResponse.yaml"
     DeleteEventResponse:
       $ref: "./components/schemas/calendar/DeleteEventResponse.yaml"
+    DeleteMyAccountRequest:
+      $ref: "./components/schemas/user/profile/DeleteMyAccountRequest.yaml"
     DeleteReportRequest:
       $ref: "./components/schemas/agreements/documents/DeleteReportRequest.yaml"
     DeleteReportResponse:
@@ -252,6 +262,16 @@ components:
       $ref: "./components/schemas/agreements/docusign/DocuSignPrefillTextTabInput.yaml"
     DocuSignRemindersInput:
       $ref: "./components/schemas/agreements/docusign/DocuSignRemindersInput.yaml"
+    DocusignCreateTemplateMetadataInput:
+      $ref: "./components/schemas/agreements/docusign/DocusignCreateTemplateMetadataInput.yaml"
+    DocusignCreateTemplateResponse:
+      $ref: "./components/schemas/agreements/docusign/DocusignCreateTemplateResponse.yaml"
+    DocusignDeleteTemplateResponse:
+      $ref: "./components/schemas/agreements/docusign/DocusignDeleteTemplateResponse.yaml"
+    DocusignGetTemplateDetailResponse:
+      $ref: "./components/schemas/agreements/docusign/DocusignGetTemplateDetailResponse.yaml"
+    DocusignGetTemplateEditUrlResponse:
+      $ref: "./components/schemas/agreements/docusign/DocusignGetTemplateEditUrlResponse.yaml"
     DocusignListTemplatesResponse:
       $ref: "./components/schemas/agreements/docusign/DocusignListTemplatesResponse.y\
         aml"
@@ -269,6 +289,10 @@ components:
       $ref: "./components/schemas/agreements/docusign/DocusignTemplate.yaml"
     DocusignTemplateListItem:
       $ref: "./components/schemas/agreements/docusign/DocusignTemplateListItem.yaml"
+    DocusignTemplateRoleInfo:
+      $ref: "./components/schemas/agreements/docusign/DocusignTemplateRoleInfo.yaml"
+    DocusignTemplateRoleMapEntry:
+      $ref: "./components/schemas/agreements/docusign/DocusignTemplateRoleMapEntry.yaml"
     DocusignUpdateEnvelopeNotificationRequest:
       $ref: "./components/schemas/agreements/docusign/DocusignUpdateEnvelopeNotificationRequ\
         est.yaml"
@@ -574,6 +598,8 @@ components:
       $ref: "./components/schemas/user/profile/UserProfile.yaml"
     UserResponse:
       $ref: "./components/schemas/user/profile/UserResponse.yaml"
+    UserDataExportResponse:
+      $ref: "./components/schemas/user/profile/UserDataExportResponse.yaml"
     ViewingBuildRouteApiResponse:
       $ref: "./components/schemas/viewings/ViewingBuildRouteApiResponse.yaml"
     ViewingItinerary:
@@ -582,6 +608,10 @@ components:
       $ref: "./components/schemas/viewings/ViewingNavigateApiResponse.yaml"
     ViewingNavigateResponse:
       $ref: "./components/schemas/viewings/ViewingNavigateResponse.yaml"
+    ViewingRouteEndMode:
+      $ref: "./components/schemas/viewings/ViewingRouteEndMode.yaml"
+    ViewingRouteEndpoint:
+      $ref: "./components/schemas/viewings/ViewingRouteEndpoint.yaml"
     ViewingRouteLeg:
       $ref: "./components/schemas/viewings/ViewingRouteLeg.yaml"
     ViewingStop:
@@ -857,6 +887,7 @@ paths:
       description: >
         Unauthenticated read-only agent directory row for shareable profile URLs.
         Returns 404 if the user does not exist, is not an agent, or is inactive.
+        Web client public pages use path `/agent-profile/{nameSlug}/{userId}` (name slug first; `userId` is this path parameter).
       operationId: getPublicAgentProfile
       parameters:
         - name: userId
@@ -1134,6 +1165,80 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/account/delete:
+    post:
+      tags:
+        - User
+      summary: Delete the current user account
+      description: |
+        Irreversibly deletes the authenticated user and related application data.
+        Same hard-delete behavior as admin routes, but only for the signed-in user.
+      operationId: deleteMyAccount
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteMyAccountRequest"
+      responses:
+        "200":
+          description: Account deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteUserResponse"
+        "400":
+          description: Invalid body (confirm must be true)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/data-export:
+    get:
+      tags:
+        - User
+      summary: Export the current user data
+      description: |
+        Returns a JSON document with profile, client UI settings, saved homes, and
+        not-interested homes for data-portability requests.
+      operationId: exportUserData
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Export payload under `data`
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDataExportResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/user/profile-picture:
     post:
       tags:
@@ -1206,6 +1311,77 @@ paths:
                 $ref: "#/components/schemas/UpdateClosingModeResponse"
         "400":
           description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/client-settings:
+    get:
+      tags:
+        - User
+      summary: Get current user client UI settings
+      description: >-
+        Returns persisted layout, calendar view, saved tab, and optional onboarding draft
+        merged with defaults.
+      operationId: getUserClientSettings
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Client settings payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientSettingsResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags:
+        - User
+      summary: Patch current user client UI settings
+      description: Deep-merges partial JSON into stored settings; null removes a top-level key.
+      operationId: patchUserClientSettings
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientSettings"
+      responses:
+        "200":
+          description: Updated client settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientSettingsResponse"
+        "400":
+          description: Invalid body or payload too large
           content:
             application/json:
               schema:
@@ -1389,9 +1565,12 @@ paths:
         - Viewings
       summary: Optimize viewing stop order and compute driving legs
       description: >
-        Uses Google Distance Matrix (durations) for a TSP-style ordering heuristic,
-        then Google Directions for per-leg distance, duration, and encoded polylines.
-        Requires a server-side Google Maps API key.
+        Uses Google Distance Matrix (durations) for ordering, then Google Directions for
+        per-leg distance, duration, and encoded polylines. Optional start/end anchors:
+        when `start` is set, only property stops are reordered; `end_mode` chooses whether
+        the tour ends at the last listing, returns to `start`, or ends at a fixed `end`
+        location. When `start` is omitted, legacy behavior optimizes an open tour across
+        property stops only. Requires a server-side Google Maps API key.
       operationId: buildViewingRoute
       security:
         - sessionCookie: []
@@ -1573,6 +1752,59 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /api/v1/google/me/events/{event_id}:
+    get:
+      tags:
+        - Calendar
+      summary: Get a single Google Calendar event
+      description: |
+        Fetches one event by ID (e.g. to poll for `hangoutLink` when Meet provisioning is pending).
+      operationId: getGoogleEvent
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: calendarId
+          in: query
+          required: false
+          schema:
+            type: string
+            default: primary
+      responses:
+        "200":
+          description: Event retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleCalendarApiResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Missing calendar permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     patch:
       tags:
         - Calendar
@@ -2109,6 +2341,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SearchAgentsResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/recommended-agents:
+    get:
+      tags: [ Agent ]
+      summary: Recommend agents from buyer context
+      description: |
+        Returns ranked agents using v1 heuristics (service zips, licensed states, intent/specialty overlap).
+        Callers pass optional zip, state, and intent derived from preferences and active search.
+      operationId: recommendedAgents
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: zip
+          in: query
+          description: Buyer or search-area ZIP (5 digits preferred).
+          schema: { type: string }
+        - name: state
+          in: query
+          description: Two-letter US state code when known.
+          schema: { type: string, minLength: 2, maxLength: 2 }
+        - name: intent
+          in: query
+          description: Free-text summary of what the buyer is searching for (filters, property type, etc.).
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecommendedAgentsResponse"
         "401":
           description: HTTP 401
           content:
@@ -4869,6 +5147,176 @@ paths:
                 $ref: "#/components/schemas/DocusignListTemplatesResponse"
         "403":
           description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ DocuSign ]
+      summary: Create DocuSign template from PDFs and open editor
+      operationId: docusignCreateTemplate
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - metadata
+                - files
+              properties:
+                metadata:
+                  type: string
+                  description: JSON string for DocusignCreateTemplateMetadataInput (name, description, roles).
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: One or more PDF files (document order matches upload order).
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocusignCreateTemplateResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/templates/{template_id}:
+    get:
+      tags: [ DocuSign ]
+      summary: Get DocuSign template details including roles
+      operationId: docusignGetTemplateDetail
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: template_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: DocuSign template GUID
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocusignGetTemplateDetailResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [ DocuSign ]
+      summary: Delete DocuSign template
+      operationId: docusignDeleteTemplate
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: template_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: DocuSign template GUID
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocusignDeleteTemplateResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/templates/{template_id}/edit-url:
+    get:
+      tags: [ DocuSign ]
+      summary: Get DocuSign template edit view URL
+      operationId: docusignGetTemplateEditUrl
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: template_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: DocuSign template GUID
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocusignGetTemplateEditUrlResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
           content:
             application/json:
               schema:

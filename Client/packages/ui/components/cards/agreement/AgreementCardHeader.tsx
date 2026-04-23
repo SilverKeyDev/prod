@@ -4,6 +4,7 @@ import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Subtitle } from "@/components/ui";
 
+import { AGREEMENT_CONTEXTUAL_STATUS_BADGE } from "./agreementContextualStatusBadge";
 import type { ContextualAgreementStatus } from "./types";
 
 interface AgreementCardHeaderProps {
@@ -16,49 +17,6 @@ interface AgreementCardHeaderProps {
   sentToLabel?: string | null;
 }
 
-const STATUS_BADGE: Record<ContextualAgreementStatus, { label: string; className: string }> = {
-  sign_now: {
-    label: "Sign Now",
-    className: "border-yellow-400 bg-yellow-100 text-yellow-900",
-  },
-  waiting_for_signature: {
-    label: "Waiting for Signature",
-    className: "border-brown/40 bg-brown/10 text-brown",
-  },
-  waiting_for_review: {
-    label: "Waiting for Review",
-    className: "border-brown/35 bg-brown/5 text-brown",
-  },
-  draft: {
-    label: "Draft",
-    className: "bg-gray-100 text-gray-700 border-gray-300",
-  },
-  sent: {
-    label: "Sent",
-    className: "bg-blue-100 text-blue-700 border-blue-300",
-  },
-  delivered: {
-    label: "Delivered",
-    className: "bg-cyan-100 text-cyan-700 border-cyan-300",
-  },
-  signed: {
-    label: "Signed",
-    className: "bg-purple-100 text-purple-700 border-purple-300",
-  },
-  completed: {
-    label: "Completed",
-    className: "border-green-300 bg-green-100 text-green-800",
-  },
-  voided: {
-    label: "Voided",
-    className: "border-red-300 bg-red-100 text-red-800",
-  },
-  declined: {
-    label: "Declined",
-    className: "border-red-300 bg-red-100 text-red-800",
-  },
-};
-
 export default function AgreementCardHeader({
   title,
   contextualStatus,
@@ -67,7 +25,8 @@ export default function AgreementCardHeader({
   uploadedDate,
   sentToLabel,
 }: AgreementCardHeaderProps) {
-  const badge = STATUS_BADGE[contextualStatus] ?? STATUS_BADGE.draft;
+  const badge =
+    AGREEMENT_CONTEXTUAL_STATUS_BADGE[contextualStatus] ?? AGREEMENT_CONTEXTUAL_STATUS_BADGE.draft;
 
   return (
     <>

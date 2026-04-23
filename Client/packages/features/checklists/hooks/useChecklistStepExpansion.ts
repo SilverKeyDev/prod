@@ -2,27 +2,25 @@ import { useCallback, useEffect, useState } from "react";
 
 /**
  * Per-step expand/collapse for checklist rows (details + integration).
- * Keeps the active step expanded; drops checked steps from the expanded set.
+ * Keeps active step(s) expanded; drops checked steps from the expanded set.
  */
 export function useChecklistStepExpansion(
-  activeItemId: number | null,
+  activeItemIds: readonly number[],
   checkedIds: number[]
 ): {
   expandedIds: ReadonlySet<number>;
   toggleExpand: (id: number) => void;
   isExpanded: (id: number) => boolean;
 } {
-  const [expandedIds, setExpandedIds] = useState<Set<number>>(() =>
-    activeItemId != null ? new Set([activeItemId]) : new Set()
-  );
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(() => new Set(activeItemIds));
 
   useEffect(() => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
-      if (activeItemId != null) next.add(activeItemId);
+      for (const id of activeItemIds) next.add(id);
       return next;
     });
-  }, [activeItemId]);
+  }, [activeItemIds]);
 
   useEffect(() => {
     setExpandedIds((prev) => {

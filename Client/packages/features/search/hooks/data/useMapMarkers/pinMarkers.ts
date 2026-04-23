@@ -63,10 +63,7 @@ export async function createPinMarkersBatch(
       continue;
     }
 
-    const pinElement = createScorePinElement(score, {
-      listingStatus: result.listingStatus,
-      homeStatus: result.homeStatus,
-    });
+    const pinElement = createScorePinElement(score);
     pinElement.dataset.markerType = "pin";
     pinElement.dataset.listingId = result.id;
     pinElement.dataset.pinLat = String(lat);

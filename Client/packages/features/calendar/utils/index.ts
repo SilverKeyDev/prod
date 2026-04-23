@@ -27,3 +27,4 @@ export * from "./parsing/eventFiltering";
 export * from "./parsing/eventFormGooglePayload";
 export * from "./parsing/eventParsing";
 export * from "./viewing/geocodeViewingStops";
+export * from "./viewing/viewingRoutePlan";

@@ -19,12 +19,11 @@ const ChecklistStepSubmitContext = createContext<ChecklistStepSubmitContextValue
 
 export function ChecklistStepSubmitProvider({ children }: { children: ReactNode }) {
   const [registration, setRegistration] = useState<ChecklistStepSubmitRegistration | null>(null);
-  const value = useMemo(
-    () => ({ registration, setRegistration }),
-    [registration]
-  );
+  const value = useMemo(() => ({ registration, setRegistration }), [registration]);
   return (
-    <ChecklistStepSubmitContext.Provider value={value}>{children}</ChecklistStepSubmitContext.Provider>
+    <ChecklistStepSubmitContext.Provider value={value}>
+      {children}
+    </ChecklistStepSubmitContext.Provider>
   );
 }
 
@@ -37,7 +36,11 @@ export function useChecklistStepSubmitRegistry(): ChecklistStepSubmitContextValu
 /**
  * Renders the registered step submit action in the checklist item header, beside expand/collapse.
  */
-export function ChecklistStepHeaderSubmitButton({ integrationVisible }: { integrationVisible: boolean }) {
+export function ChecklistStepHeaderSubmitButton({
+  integrationVisible,
+}: {
+  integrationVisible: boolean;
+}) {
   const ctx = useChecklistStepSubmitRegistry();
   const { t } = useLocalization();
   const reg = ctx?.registration;

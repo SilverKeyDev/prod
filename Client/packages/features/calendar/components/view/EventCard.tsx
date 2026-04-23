@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { Linking } from "react-native";
 
-import { type ViewingItinerary, viewingsApi } from "packages/api/viewings";
+import { viewingsApi } from "packages/api/viewings";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
@@ -12,9 +12,15 @@ import DeleteModal from "packages/ui/components/modals/standalone/DeleteModal";
 import { Box, Text, TouchableBox } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
+import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
+import { calendarColorForEvent } from "@/features/calendar/utils/createEventModal/calendarEventColors";
 import { getEventEndDate, getEventStartDate } from "@/features/calendar/utils/parsing/eventParsing";
+import {
+  formatViewingItinerarySummaryLines,
+  itineraryCanOpenNavigation,
+} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 import { CreateEventModal } from "./CreateEventModal";
 
@@ -40,13 +46,6 @@ function formatDate(date: Date) {
   }
 }
 
-function itineraryCanOpenNavigation(itinerary: ViewingItinerary | null | undefined): boolean {
-  if (!itinerary?.stops?.length) {
-    return false;
-  }
-  return itinerary.stops.filter((s) => s.lat != null && s.lng != null).length >= 2;
-}
-
 function formatTime(date: Date) {
   try {
     return date.toLocaleTimeString("en-US", {
@@ -61,7 +60,7 @@ function formatTime(date: Date) {
 
 export function EventCard({
   event,
-  silverKeyCalendarId = null,
+  silverKeyCalendarId: _silverKeyCalendarId = null,
   refreshEvents,
   updateEvent,
   deleteEvent,
@@ -72,20 +71,6 @@ export function EventCard({
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [isOpeningNavigation, setIsOpeningNavigation] = useState(false);
-
-  // Check if event is from a SilverKey calendar (matches "SilverKey" or "SilverKey ~ [Name]")
-  const isSilverKeyEvent = useMemo(() => {
-    if (!event.calendarId) return false;
-
-    // Check by calendar ID if silverKeyCalendarId is provided
-    if (silverKeyCalendarId && event.calendarId === silverKeyCalendarId) {
-      return true;
-    }
-
-    // Check by calendar name from calendars list
-    const calendar = calendars.find((cal) => cal.id === event.calendarId);
-    return calendar?.summary?.startsWith("SilverKey") ?? false;
-  }, [event.calendarId, silverKeyCalendarId, calendars]);
 
   const handleEdit = useCallback(() => {
     setEditModalOpen(true);
@@ -118,6 +103,11 @@ export function EventCard({
   const showStartViewingNavigation = useMemo(
     () => itineraryCanOpenNavigation(event.itinerary),
     [event.itinerary]
+  );
+
+  const stripeColor = useMemo(
+    () => calendarColorForEvent(event, calendars as GoogleCalendar[]),
+    [event, calendars]
   );
 
   const handleStartViewingNavigation = useCallback(async () => {
@@ -170,8 +160,10 @@ export function EventCard({
     }
   }, [event]);
 
-  const showEditActions =
-    (isSilverKeyEvent || event.isProfileAvailabilityEvent) && updateEvent && deleteEvent;
+  /** Callers pass update/delete only when edits are allowed (e.g. omit for client calendar or view-only). */
+  const showEditActions = Boolean(updateEvent && deleteEvent);
+
+  const itineraryLines = event.itinerary ? formatViewingItinerarySummaryLines(event.itinerary) : [];
 
   const eventBody = (
     <>
@@ -184,6 +176,11 @@ export function EventCard({
       {event.location ? (
         <Text className="text-text-secondary text-left text-xs sm:text-sm">{event.location}</Text>
       ) : null}
+      {itineraryLines.length > 0 ? (
+        <Text className="text-text-secondary line-clamp-4 text-left text-xs sm:text-sm">
+          {itineraryLines.join(" · ")}
+        </Text>
+      ) : null}
       {event.description ? (
         <Text className="text-text-secondary line-clamp-2 text-left text-xs sm:text-sm">
           {event.description}
@@ -194,46 +191,48 @@ export function EventCard({
 
   return (
     <>
-      <Box className="border-border bg-background-surface mb-2 ml-2 w-full overflow-hidden rounded-xl border transition-shadow hover:shadow-md">
-        <Box className="flex flex-row items-stretch">
-          <Box className="bg-accent w-1" />
-          <Box className="flex-1 p-3 text-left">
-            <Box className="flex flex-row items-start gap-2">
-              <Box className="min-w-0 flex-1">
-                {onClick ? (
-                  <TouchableBox onPress={onClick} className="space-y-1 text-left outline-none">
-                    {eventBody}
-                  </TouchableBox>
-                ) : (
-                  <Box className="space-y-1">{eventBody}</Box>
-                )}
-              </Box>
-              {showEditActions || showStartViewingNavigation ? (
-                <Box className="flex flex-shrink-0 flex-row flex-wrap justify-end gap-2">
-                  {showStartViewingNavigation ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      loading={isOpeningNavigation}
-                      disabled={isOpeningNavigation}
-                      onPress={() => void handleStartViewingNavigation()}
-                      iconName="map-pin"
-                    >
-                      Start navigation
-                    </Button>
-                  ) : null}
-                  {showEditActions ? (
-                    <>
-                      <Button variant="outline" size="sm" onPress={handleEdit} iconName="pencil">
-                        Edit
-                      </Button>
-                      <CancelButton size="sm" onPress={handleCancel}>
-                        Cancel
-                      </CancelButton>
-                    </>
-                  ) : null}
+      <Box className="mb-2 w-full max-w-full pl-2">
+        <Box className="border-border bg-background-surface w-full overflow-hidden rounded-xl border transition-shadow hover:shadow-md">
+          <Box className="flex flex-row items-stretch">
+            <Box className="w-1 shrink-0" style={{ backgroundColor: stripeColor }} />
+            <Box className="min-w-0 flex-1 p-3 text-left">
+              <Box className="flex flex-row items-start gap-2">
+                <Box className="min-w-0 flex-1">
+                  {onClick ? (
+                    <TouchableBox onPress={onClick} className="space-y-1 text-left outline-none">
+                      {eventBody}
+                    </TouchableBox>
+                  ) : (
+                    <Box className="space-y-1">{eventBody}</Box>
+                  )}
                 </Box>
-              ) : null}
+                {showEditActions || showStartViewingNavigation ? (
+                  <Box className="flex flex-shrink-0 flex-row flex-wrap justify-end gap-2">
+                    {showStartViewingNavigation ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        loading={isOpeningNavigation}
+                        disabled={isOpeningNavigation}
+                        onPress={() => void handleStartViewingNavigation()}
+                        iconName="map-pin"
+                      >
+                        Start navigation
+                      </Button>
+                    ) : null}
+                    {showEditActions ? (
+                      <>
+                        <Button variant="outline" size="sm" onPress={handleEdit} iconName="pencil">
+                          Edit
+                        </Button>
+                        <CancelButton size="sm" onPress={handleCancel}>
+                          Cancel
+                        </CancelButton>
+                      </>
+                    ) : null}
+                  </Box>
+                ) : null}
+              </Box>
             </Box>
           </Box>
         </Box>

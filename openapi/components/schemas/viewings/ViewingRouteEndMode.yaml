@@ -1,0 +1,9 @@
+type: string
+description: >
+  How the route finishes after the last property when a start location is set.
+  Ignored when start is omitted (legacy open tour across properties only).
+enum:
+  - last_property
+  - return_to_start
+  - fixed
+default: last_property

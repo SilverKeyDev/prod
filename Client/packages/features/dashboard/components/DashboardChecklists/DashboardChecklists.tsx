@@ -57,8 +57,16 @@ export default function DashboardChecklists() {
 
   const checklistType = useMemo<ChecklistType>(() => TAB_TO_CHECKLIST_TYPE[activeTab], [activeTab]);
 
-  const { items, checkedIds, activeItemId, isLoading, error, toggleItem, refreshChecklist } =
-    useChecklistData(checklistType);
+  const {
+    items,
+    checkedIds,
+    activeItemId,
+    activeItemIds,
+    isLoading,
+    error,
+    toggleItem,
+    refreshChecklist,
+  } = useChecklistData(checklistType);
 
   const sortedItems = useMemo(() => sortTaskChecklistItems(items), [items]);
 
@@ -119,6 +127,7 @@ export default function DashboardChecklists() {
         sortedItems={sortedItems}
         checkedIds={checkedIds}
         activeItemId={activeItemId}
+        activeItemIds={activeItemIds}
         isSectionLocked={isSectionLocked}
         isLoading={isLoading}
         error={error}

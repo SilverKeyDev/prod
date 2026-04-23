@@ -32,6 +32,13 @@ class DocusignTemplate(db.Model):
     )
     is_active: Mapped[bool] = mapped_column(default=True)
 
+    # SilverKey-authored template metadata (optional)
+    created_by_user_id: Mapped[str | None] = mapped_column(
+        db.String(36), db.ForeignKey("users.id"), nullable=True
+    )
+    role_names_json: Mapped[str | None] = mapped_column(db.Text)
+    last_edit_synced_at: Mapped[datetime | None] = mapped_column(db.DateTime)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if not self.id:
@@ -41,12 +48,19 @@ class DocusignTemplate(db.Model):
         return {
             "id": self.id,
             "docusign_template_id": self.docusign_template_id,
+            # Alias for OpenAPI `DocusignTemplate.template_id` (DocuSign GUID string).
+            "template_id": self.docusign_template_id,
             "name": self.name,
             "description": self.description,
             "template_variables": self.template_variables,
             "category": self.category,
             "synced_at": self.synced_at.isoformat() if self.synced_at else None,
             "is_active": self.is_active,
+            "created_by_user_id": self.created_by_user_id,
+            "role_names_json": self.role_names_json,
+            "last_edit_synced_at": self.last_edit_synced_at.isoformat()
+            if self.last_edit_synced_at
+            else None,
         }
 
     def __repr__(self):

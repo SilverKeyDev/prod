@@ -18,6 +18,7 @@ from app.services.docusign import (
     TemplateSyncService,
     WebhookProcessor,
 )
+from app.services.docusign.envelopes import TemplateEnvelopeBuilder
 from app.services.docusign.errors import DocusignAPIError, DocusignAuthError
 from logger import LOG_CATEGORIES, get_logger
 
@@ -103,8 +104,11 @@ def send_envelope_task(
             )
             return {"success": False, "error": "Agreement not found"}
 
-        # Build envelope
-        envelope_builder = EnvelopeBuilder(agreement, signing_method, envelope_options)
+        # Build envelope (PDF revision vs DocuSign template)
+        if agreement.docusign_source_template_id:
+            envelope_builder = TemplateEnvelopeBuilder(agreement, signing_method, envelope_options)
+        else:
+            envelope_builder = EnvelopeBuilder(agreement, signing_method, envelope_options)
         envelope_definition = envelope_builder.build()
 
         # Send to DocuSign (use JWT auth)

@@ -7,6 +7,11 @@ import {
   useSavedPageDocumentHandlers,
   useSavedPageView,
 } from "packages/features/documents";
+import { useLibrarySortPreference } from "packages/features/saved/hooks/ui/useLibrarySortPreference";
+import {
+  type LibraryViewMode,
+  useLibraryViewMode,
+} from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { useSavedFeatureSignatureFlow } from "packages/features/saved/hooks/useSavedFeatureSignatureFlow";
 import type { SavedFeatureProps } from "packages/features/saved/types/savedFeatureProps";
 import { filterHomesBySearchTerm } from "packages/features/saved/types/savedHomeUtils";
@@ -40,8 +45,61 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     "listed" | "price_change" | "sold" | "withdrawn" | ""
   >("");
   const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] = useState(false);
+  const [documentsSubtab, setDocumentsSubtab] = useState<"my-documents" | "forms-library">(
+    "my-documents"
+  );
+
+  const homesLibraryView = useLibraryViewMode("homes");
+  const documentsLibraryView = useLibraryViewMode("documents");
+  const docusignLibraryView = useLibraryViewMode("docusign");
+  const { setMode: setHomesLibraryMode } = homesLibraryView;
+  const { setMode: setDocumentsLibraryMode } = documentsLibraryView;
+  const { setMode: setDocusignLibraryMode } = docusignLibraryView;
+
+  const homesLibrarySort = useLibrarySortPreference("homes");
+  const documentsLibrarySort = useLibrarySortPreference("documents");
+  const docusignLibrarySort = useLibrarySortPreference("docusign");
+
+  const librarySortKey =
+    viewType === "homes"
+      ? homesLibrarySort.value
+      : viewType === "documents"
+        ? documentsLibrarySort.value
+        : docusignLibrarySort.value;
+
+  const onLibrarySortChange = useCallback(
+    (value: string) => {
+      if (viewType === "homes") homesLibrarySort.setSort(value);
+      else if (viewType === "documents") documentsLibrarySort.setSort(value);
+      else docusignLibrarySort.setSort(value);
+    },
+    [viewType, homesLibrarySort.setSort, documentsLibrarySort.setSort, docusignLibrarySort.setSort]
+  );
+
+  const libraryViewMode: LibraryViewMode =
+    viewType === "homes"
+      ? homesLibraryView.value
+      : viewType === "documents"
+        ? documentsLibraryView.value
+        : docusignLibraryView.value;
+
+  const setLibraryViewMode = useCallback(
+    (mode: LibraryViewMode) => {
+      if (viewType === "homes") setHomesLibraryMode(mode);
+      else if (viewType === "documents") setDocumentsLibraryMode(mode);
+      else setDocusignLibraryMode(mode);
+    },
+    [viewType, setHomesLibraryMode, setDocumentsLibraryMode, setDocusignLibraryMode]
+  );
+
   const user = useAuthStore((s) => s.user);
   const isAgent = user?.is_agent ?? false;
+
+  const showLibraryViewToggle = !(
+    viewType === "documents" &&
+    isAgent &&
+    documentsSubtab === "forms-library"
+  );
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
   const homes = useSavedHomesStore((s) => s.savedHomes);
@@ -215,6 +273,11 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       onClientChange={setSelectedClientId}
       eventTypeFilter={eventTypeFilter}
       onEventTypeFilterChange={setEventTypeFilter}
+      libraryViewMode={libraryViewMode}
+      onLibraryViewModeChange={setLibraryViewMode}
+      showLibraryViewToggle={showLibraryViewToggle}
+      librarySortKey={librarySortKey}
+      onLibrarySortChange={onLibrarySortChange}
     />
   ) : null;
 
@@ -242,6 +305,10 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     agreementsTabCount,
     selectedClientId,
     eventTypeFilter,
+    libraryViewMode,
+    showLibraryViewToggle,
+    documentsSubtab,
+    librarySortKey,
   ]);
 
   const handleCompare = useCallback(() => {
@@ -260,6 +327,13 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
         eventTypeFilter={eventTypeFilter}
         setEventTypeFilter={setEventTypeFilter}
         setViewType={setViewType}
+        libraryViewMode={libraryViewMode}
+        onLibraryViewModeChange={setLibraryViewMode}
+        showLibraryViewToggle={showLibraryViewToggle}
+        librarySortKey={librarySortKey}
+        onLibrarySortChange={onLibrarySortChange}
+        documentsSubtab={documentsSubtab}
+        onDocumentsSubtabChange={setDocumentsSubtab}
         filteredHomes={filteredHomes}
         filteredDocuments={filteredDocuments}
         loading={loading}

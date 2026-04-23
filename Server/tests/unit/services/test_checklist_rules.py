@@ -75,3 +75,40 @@ def test_merge_selectable_strips():
         },
     ]
     assert merge_task_checklist_checked_ids(items, [2], frozenset()) == []
+
+
+def test_merge_search_parallel_integrations_after_preapproval():
+    """Budget / areas / criteria: unordered among themselves after item 1; block without pre-approval."""
+    items = [
+        {"id": 1, "order": 0, "label": "Pre-approval", "explanation": ""},
+        {
+            "id": 5,
+            "order": 1,
+            "label": "Budget",
+            "explanation": "",
+            "allow_unordered_check": True,
+            "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
+        },
+        {
+            "id": 4,
+            "order": 2,
+            "label": "Areas",
+            "explanation": "",
+            "allow_unordered_check": True,
+            "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
+        },
+        {
+            "id": 2,
+            "order": 3,
+            "label": "Criteria",
+            "explanation": "",
+            "allow_unordered_check": True,
+            "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
+        },
+        {"id": 3, "order": 4, "label": "Agent", "explanation": ""},
+    ]
+    assert merge_task_checklist_checked_ids(items, [5], frozenset()) == []
+    assert merge_task_checklist_checked_ids(items, [1, 5], frozenset()) == [1, 5]
+    assert merge_task_checklist_checked_ids(items, [1, 4], frozenset()) == [1, 4]
+    assert merge_task_checklist_checked_ids(items, [1, 2, 4, 5], frozenset()) == [1, 2, 4, 5]
+    assert merge_task_checklist_checked_ids(items, [1, 2, 4, 5, 3], frozenset()) == [1, 2, 3, 4, 5]

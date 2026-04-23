@@ -1,0 +1,11 @@
+type: object
+properties:
+  layout:
+    type: string
+    enum:
+      - grid
+      - list
+  sort:
+    type: string
+    description: Sort id (allowlist enforced server-side per tab).
+additionalProperties: false

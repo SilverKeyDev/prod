@@ -275,7 +275,7 @@ export function getUrgencyLevel(daysWaiting: number): "low" | "medium" | "high" 
 export function getUrgencyColor(urgency: "low" | "medium" | "high"): string {
   const colors = {
     low: "text-text-secondary",
-    medium: "text-yellow-700",
+    medium: "text-text-primary",
     high: "text-destructive",
   };
   return colors[urgency];

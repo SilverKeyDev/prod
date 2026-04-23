@@ -136,6 +136,14 @@ export function useCalendarQuickCreateSession({
     setQuickCreate(null);
   }, []);
 
+  const quickCreateOutsideSafeTargetsRef = useRef(new Set<HTMLElement>());
+  const registerQuickCreateOutsideSafeTarget = useCallback((element: HTMLElement) => {
+    quickCreateOutsideSafeTargetsRef.current.add(element);
+    return () => {
+      quickCreateOutsideSafeTargetsRef.current.delete(element);
+    };
+  }, []);
+
   const commitQuickCreate = useCallback(async () => {
     const q = quickCreateRef.current;
     if (!q || isClientView) {
@@ -160,8 +168,6 @@ export function useCalendarQuickCreateSession({
       selectedCalendarId: q.selectedCalendarId,
       defaultCalendarId,
       selectedClientId: q.selectedClientId,
-      showAgentClientPicker: isAgent,
-      agentMultiStopViewing: false,
       isPropertyViewing: false,
       viewingStops: [],
       onAddWithoutSchedule: undefined,
@@ -170,6 +176,7 @@ export function useCalendarQuickCreateSession({
         void refetchEvents();
       },
       onClose: discardQuickCreate,
+      addGoogleMeet: false,
       setIsSavingUnscheduled,
       enqueueToast,
       clampTimedEndToStartLocalDay: !q.isAllDay && q.source === "week",
@@ -180,7 +187,6 @@ export function useCalendarQuickCreateSession({
     defaultCalendarId,
     discardQuickCreate,
     enqueueToast,
-    isAgent,
     refetchEvents,
     localPersistence,
   ]);
@@ -288,7 +294,8 @@ export function useCalendarQuickCreateSession({
     isClientView,
     hourRowHeight,
     visibleEvents,
-    commitQuickCreateRef,
+    discardQuickCreate,
+    quickCreateOutsideSafeTargetsRef,
     beginQuickCreateWeek,
     beginQuickCreateMonthDay,
     setEditEvent,
@@ -319,6 +326,7 @@ export function useCalendarQuickCreateSession({
     updateQuickCreate,
     commitQuickCreate,
     discardQuickCreate,
+    registerQuickCreateOutsideSafeTarget,
     handleWeekTimeSlotDoubleClick,
     handleMonthQuickCreateDoubleTap,
     handleEditDetailsFromQuickCreate,

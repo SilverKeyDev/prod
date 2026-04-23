@@ -1,6 +1,20 @@
+import type { AgentConversation } from "packages/api";
+
 import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { CreateEventModalAddWithoutSchedulePayload } from "@/features/calendar/types/createEventModal";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
+import type { MessagingSendMessageOptions } from "@/features/messaging/hooks/data/messaging/types";
+
+/** Injected by messaging so calendar code does not subscribe to chat queries unless this flow is used. */
+export type CalendarEventRequestModalIntegration = {
+  conversations: AgentConversation[];
+  sendMessageDirect: (conversationId: string, message: string, clientId?: string) => Promise<void>;
+  onSuccess?: () => void;
+  sendCalendarEventMessage?: (
+    message: string,
+    options: MessagingSendMessageOptions & { conversationId: string }
+  ) => Promise<void>;
+};
 
 export type CreateModalPrefilledCreateSnapshot = {
   eventTitle: string;
@@ -30,4 +44,9 @@ export type UseCreateEventModalParams = {
    */
   prefilledCreateSnapshot?: CreateModalPrefilledCreateSnapshot | null;
   prefilledCreateKey?: number;
+  /**
+   * When set (create mode only), primary action sends a structured calendar request message
+   * instead of creating a Google Calendar event.
+   */
+  calendarEventRequest?: CalendarEventRequestModalIntegration;
 };

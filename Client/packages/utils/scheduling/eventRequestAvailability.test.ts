@@ -1,3 +1,6 @@
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { describe, expect, it } from "vitest";
 
 import type { BuyerAvailabilityPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
@@ -7,7 +10,12 @@ import {
   hasAnyAvailableSlotOnDate,
   hasConfiguredBuyerAvailabilitySlots,
   isEventRequestSlotAvailable,
+  isMutualUtcRangeAvailable,
+  mutualDayHasAvailableSlot,
 } from "./eventRequestAvailability";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const STEP = 30;
 
@@ -101,5 +109,48 @@ describe("eventRequestAvailability", () => {
         busyBlocks: [{ start: "2026-06-15T10:00:00.000Z", end: "2026-06-15T11:00:00.000Z" }],
       })
     ).toBe(false);
+  });
+
+  it("isMutualUtcRangeAvailable requires overlap of both profile windows", () => {
+    const a = {
+      prefs: {
+        timezone: "UTC",
+        weekly: [{ id: "w1", weekday: 1, start: "10:00", end: "12:00" }],
+      } satisfies BuyerAvailabilityPrefs,
+      busyBlocks: [] as FreebusyTimeBlock[],
+    };
+    const b = {
+      prefs: {
+        timezone: "UTC",
+        weekly: [{ id: "w2", weekday: 1, start: "11:00", end: "13:00" }],
+      } satisfies BuyerAvailabilityPrefs,
+      busyBlocks: [] as FreebusyTimeBlock[],
+    };
+    const okStart = dayjs.tz("2026-06-15 11:00", "YYYY-MM-DD HH:mm", "UTC").valueOf();
+    const okEnd = dayjs.tz("2026-06-15 11:30", "YYYY-MM-DD HH:mm", "UTC").valueOf();
+    expect(isMutualUtcRangeAvailable(okStart, okEnd, a, b)).toBe(true);
+
+    const badStart = dayjs.tz("2026-06-15 10:30", "YYYY-MM-DD HH:mm", "UTC").valueOf();
+    const badEnd = dayjs.tz("2026-06-15 11:00", "YYYY-MM-DD HH:mm", "UTC").valueOf();
+    expect(isMutualUtcRangeAvailable(badStart, badEnd, a, b)).toBe(false);
+  });
+
+  it("mutualDayHasAvailableSlot finds a step on a mutually free day", () => {
+    const party = {
+      prefs: {
+        timezone: "UTC",
+        weekly: [{ id: "w1", weekday: 1, start: "09:00", end: "17:00" }],
+      } satisfies BuyerAvailabilityPrefs,
+      busyBlocks: [] as FreebusyTimeBlock[],
+    };
+    expect(
+      mutualDayHasAvailableSlot({
+        ymd: "2026-06-15",
+        stepMinutes: 30,
+        viewerTimeZone: "UTC",
+        a: party,
+        b: party,
+      })
+    ).toBe(true);
   });
 });

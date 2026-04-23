@@ -6,4 +6,9 @@ export {
   setPendingPublicAgentConnect,
 } from "./pendingPublicAgentConnect";
 export { getAgentPublicProfileAbsoluteUrl } from "./publicUrl";
-export { buildAgentProfileUrl, generateAgentProfileSlug, parseAgentProfileUrl } from "./slug";
+export {
+  buildAgentProfileUrl,
+  generateAgentProfileSlug,
+  parseAgentProfileUrl,
+  resolveAgentProfileRouteParams,
+} from "./slug";

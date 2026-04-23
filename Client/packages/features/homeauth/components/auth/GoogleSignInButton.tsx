@@ -15,6 +15,7 @@ import { BodyText, Button } from "@/components/ui";
 interface GoogleSignInButtonProps {
   text?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 const googleIconSvg = (
@@ -41,6 +42,7 @@ const googleIconSvg = (
 export default function GoogleSignInButton({
   text = "Continue with Google",
   className = "",
+  disabled = false,
 }: GoogleSignInButtonProps) {
   const apiUrl = getEnv().isDevelopment ? "http://localhost:5000" : "https://usesilverkey.com";
   const oauthUrl = `${apiUrl}/api/v1/auth/google/start`;
@@ -78,8 +80,9 @@ export default function GoogleSignInButton({
       variant="outline"
       icon={icon}
       iconPosition="left"
-      onClick={handlePress}
-      onPress={handlePress}
+      onClick={disabled ? undefined : handlePress}
+      onPress={disabled ? undefined : handlePress}
+      disabled={disabled}
       fullWidth
       className={`border-border bg-background-surface text-text-secondary hover:bg-primary-muted active:bg-primary-muted active:opacity-90 ${className}`}
     >

@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  clampMatchScore,
-  getMatchStyle,
-  getMatchTier,
-  getMatchTierIndex,
-} from "./matchScore";
+import { clampMatchScore, getMatchStyle, getMatchTier, getMatchTierIndex } from "./matchScore";
 
 describe("getMatchStyle", () => {
   it("returns CSS var bg/fg and short label", () => {

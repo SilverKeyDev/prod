@@ -7,6 +7,7 @@
     "dev": "vite --config vite.config.js",
     "dev:force": "vite --force --config vite.config.js",
     "build": "vite build --config vite.config.js",
+    "build:analyze": "ANALYZE=1 vite build --config vite.config.js",
     "postbuild": "node ../../scripts/check-web-dist-no-native.mjs ../../dist",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
@@ -31,10 +32,12 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
+    "test:e2e:install": "playwright install",
     "test:all": "npm run test:run && npm run test:e2e",
     "graph:render": "mmdc -i documentation/graphs/searchpage-layered.mmd -o documentation/graphs/searchpage-layered.svg && mmdc -i documentation/graphs/searchpage-imports.mmd -o documentation/graphs/searchpage-imports.svg",
     "graph:render:watch": "chokidar \"documentation/graphs/*.mmd\" -c \"npm run graph:render\"",
-    "render:email": "tsx services/email/render-email.ts"
+    "render:email": "tsx services/email/render-email.ts",
+    "lighthouse:audit": "node ../../scripts/lighthouse-audit.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -83,7 +86,9 @@
     "msw": "^2.11.2",
     "postcss": "^8.4.35",
     "prettier": "^3.3.3",
+    "lighthouse": "^12.0.0",
     "prettier-plugin-tailwindcss": "^0.6.8",
+    "rollup-plugin-visualizer": "^5.12.0",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.19.1",
     "typescript": "^5.5.3",

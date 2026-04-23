@@ -2,9 +2,11 @@ import inject from "@rollup/plugin-inject";
 import react from "@vitejs/plugin-react";
 import fs from "fs";
 import path from "path";
+import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig, loadEnv } from "vite";
 
 import { buildWebViteResolve } from "./vite.config.resolve.js";
+import { seoStaticFilesPlugin } from "./vite.plugin.seo.js";
 var root = path.resolve(__dirname, "../..");
 var packages = path.join(root, "packages");
 var uiComponents = path.join(packages, "ui/components");
@@ -16,6 +18,14 @@ export default defineConfig(function (_a) {
   var mode = _a.mode;
   // .env is NOT loaded into process.env before config runs; load it so define has correct values
   var env = loadEnv(mode, root, "");
+  var publicSiteUrl = (env.VITE_PUBLIC_SITE_URL ?? process.env.VITE_PUBLIC_SITE_URL ?? "")
+    .trim()
+    .replace(/\/$/, "");
+  var googleSiteVerification = (
+    env.VITE_GOOGLE_SITE_VERIFICATION ??
+    process.env.VITE_GOOGLE_SITE_VERIFICATION ??
+    ""
+  ).trim();
   var nodeEnv = mode === "production" ? "production" : "development";
   var envVars = {
     NODE_ENV: nodeEnv,
@@ -85,11 +95,17 @@ export default defineConfig(function (_a) {
     // Ignore debug log write failures (e.g. read-only FS).
   }
   // #endregion
+  var analyze = process.env.ANALYZE === "1" || process.env.ANALYZE === "true";
   return {
     root: __dirname,
     base: "/",
     plugins: [
       react(),
+      seoStaticFilesPlugin({
+        root: root,
+        publicSiteUrl: publicSiteUrl,
+        googleSiteVerification: googleSiteVerification,
+      }),
       {
         name: "exclude-native-files",
         enforce: "pre",
@@ -199,6 +215,17 @@ export default defineConfig(function (_a) {
           return null;
         },
       },
+      ...(analyze
+        ? [
+            visualizer({
+              filename: path.join(root, "dist", "bundle-stats.html"),
+              open: false,
+              gzipSize: true,
+              brotliSize: true,
+              template: "treemap",
+            }),
+          ]
+        : []),
       inject({
         process: [shimPath, "default"],
         exclude: ["**/node_modules/**"],
@@ -312,15 +339,23 @@ export default defineConfig(function (_a) {
     },
     build: {
       target: "es2020",
-      // Enable sourcemaps for production debugging (consistent with dev behavior)
-      sourcemap: true,
+      // Production: avoid shipping public .map to clients (Lighthouse, bandwidth). Use ANALYZE=1 to debug.
+      sourcemap: mode === "production" ? false : true,
       // Enable minification for production (standard practice)
       minify: "esbuild",
       outDir: path.join(root, "dist"),
+      // dist lives under Client/ while Vite root is apps/web; clear it on production builds
+      emptyOutDir: true,
       // Single vendor chunk is ~1.3MB minified; threshold avoids noisy Rollup reporter only
       chunkSizeWarningLimit: 1600,
       // Configure code splitting for consistent behavior (Vite 8+: rolldownOptions)
       rolldownOptions: {
+        // Third-party deps (e.g. expo-modules-core uuid shim) use direct eval; @rollup/plugin-inject
+        // is intentional until Rolldown inject is wired for dev + build together.
+        checks: {
+          eval: false,
+          preferBuiltinFeature: false,
+        },
         output: {
           // Ensure consistent chunk naming and splitting
           manualChunks: function (id) {

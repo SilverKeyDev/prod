@@ -48,6 +48,12 @@ properties:
   allow_unordered_check:
     type: boolean
     nullable: true
+  parallel_step_group:
+    type: string
+    nullable: true
+    description: >-
+      When set, unchecked items sharing the same value are treated as concurrent
+      "active" steps in the UI until all are complete (e.g. parallel integrations).
   suggestedFormIds:
     type: array
     items:

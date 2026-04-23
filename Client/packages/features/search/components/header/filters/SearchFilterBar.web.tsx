@@ -28,6 +28,7 @@ export type SearchFilterBarProps = {
   onClientChange?: (clientId: string | null) => void;
   patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
   scriptsReady: boolean;
+  onAgentSyncPreferencesFetched?: (onboarding: Partial<OnboardingData>) => void;
 };
 
 export default function SearchFilterBar({
@@ -40,6 +41,7 @@ export default function SearchFilterBar({
   onClientChange,
   patchBuyerPreferenceExtensions,
   scriptsReady,
+  onAgentSyncPreferencesFetched,
 }: SearchFilterBarProps): React.ReactElement {
   const { t } = useLocalization();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -80,6 +82,7 @@ export default function SearchFilterBar({
           selectedClientId={selectedClientId}
           onClientChange={onClientChange}
           patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+          onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
         />
       </>
     );
@@ -126,6 +129,8 @@ export default function SearchFilterBar({
             saveStatus={saveStatus}
             patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
             scriptsReady={scriptsReady}
+            viewingClientId={selectedClientId ?? null}
+            onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
           />
         )}
       </Popover>

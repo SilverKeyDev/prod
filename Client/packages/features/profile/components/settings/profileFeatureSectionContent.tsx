@@ -1,5 +1,6 @@
 import React from "react";
 
+import { AccountPrivacyDataSection } from "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection";
 import { ProfileHousingEssentialsSection } from "packages/features/profile/components/profileScreen/sections/ProfileHousingEssentialsSection";
 import { ProfileHousingRangesSection } from "packages/features/profile/components/profileScreen/sections/ProfileHousingRangesSection";
 import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
@@ -27,6 +28,8 @@ export type ProfileFeatureSectionContentProps = {
   ) => void;
   scriptsReady: boolean;
   loadError: string | null;
+  /** When viewing another user’s profile, hide self-service privacy tools. */
+  agentSubject?: { userId: string; displayName: string } | null;
 };
 
 export function renderProfileFeatureSectionContent({
@@ -37,6 +40,7 @@ export function renderProfileFeatureSectionContent({
   patchBuyerPreferenceExtensions,
   scriptsReady,
   loadError,
+  agentSubject = null,
 }: ProfileFeatureSectionContentProps): React.ReactNode {
   switch (sectionId) {
     case "agent_brokerage":
@@ -134,6 +138,9 @@ export function renderProfileFeatureSectionContent({
           patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
       );
+
+    case "privacy_data":
+      return <AccountPrivacyDataSection agentSubject={agentSubject} />;
 
     default:
       return null;

@@ -19,4 +19,7 @@ export type NormalizedSavedHome = {
   lat?: number;
   lng?: number;
   _databaseId?: string;
+  /** When present from API, used for Library sort (newest / oldest). */
+  created_at?: string | null;
+  updated_at?: string | null;
 };

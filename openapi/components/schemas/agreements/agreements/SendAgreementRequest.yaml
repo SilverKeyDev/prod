@@ -22,3 +22,11 @@ properties:
     $ref: ../docusign/DocuSignEnvelopePrefillTabsInput.yaml
     nullable: true
     description: Sender-level prefill tabs (not tied to a recipient).
+  template_role_map:
+    type: array
+    items:
+      $ref: ../docusign/DocusignTemplateRoleMapEntry.yaml
+    nullable: true
+    description: >
+      Required when sending an agreement created with docusign_source_template_id: maps
+      each DocuSign template role name to an agreement participant.

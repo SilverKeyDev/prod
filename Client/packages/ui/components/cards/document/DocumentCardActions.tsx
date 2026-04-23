@@ -18,7 +18,10 @@ interface DocumentCardActionsProps {
   showDelete?: boolean;
   isFromOtherUser?: boolean;
   externalActionHandlers?: DocumentCardExternalActionHandlers;
+  /** Library list rows: actions column with equal-width rows (flex). */
+  layout?: "card" | "list";
 }
+
 function DocumentCardActionButtons({
   doc,
   onViewDocument,
@@ -29,6 +32,7 @@ function DocumentCardActionButtons({
   isAgent: _isAgent,
   showDelete,
   onDeleteClick,
+  layout = "card",
 }: {
   doc: DocumentData;
   onViewDocument: (id: string, filename: string) => void;
@@ -39,57 +43,77 @@ function DocumentCardActionButtons({
   isAgent: boolean;
   showDelete: boolean;
   onDeleteClick: () => void;
+  layout?: "card" | "list";
 }) {
   const isAgreement = doc.library_kind === "agreement";
+  const isList = layout === "list";
+  const primaryClass = isList ? "min-w-0 flex-1 justify-center px-2" : "justify-center";
+  const iconRowClass = isList
+    ? "flex w-full min-w-0 flex-row items-stretch gap-2"
+    : "flex w-full flex-row items-center gap-2";
+  const iconOutlineList =
+    "min-w-0 flex-1 border-border text-text-secondary bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-200 disabled:hover:bg-transparent";
+  const iconGhostList =
+    "min-w-0 flex-1 border border-border text-destructive bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-200 disabled:hover:bg-transparent";
 
   return (
-    <Box className="flex flex-col gap-2">
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={() => onViewDocument(doc.id, doc.filename)}
-        icon={<Icon name="eye" size={16} />}
-        fullWidth
-        className="justify-center"
-      />
-      {isAgreement && onSignNow ? (
+    <Box className={isList ? "flex w-full min-w-0 flex-col gap-2" : "flex flex-col gap-2"}>
+      <Box
+        className={
+          isList ? "flex w-full min-w-0 flex-row flex-wrap items-stretch gap-2" : "contents"
+        }
+      >
         <Button
-          variant="secondary"
+          variant="primary"
           size="sm"
-          onClick={() => onSignNow(doc)}
-          icon={<Icon name="file-signature" size={16} />}
-          fullWidth
-          className="justify-center"
-        >
-          Sign now
-        </Button>
-      ) : null}
-      {!isAgreement && onSendForSignature ? (
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => onSendForSignature(doc)}
-          icon={<Icon name="file-signature" size={16} />}
-          fullWidth
-          className="justify-center"
-        >
-          Send for Signature
-        </Button>
-      ) : null}
-      <Box className="flex w-full flex-row items-center gap-2">
+          onClick={() => onViewDocument(doc.id, doc.filename)}
+          icon={<Icon name="eye" size={16} />}
+          fullWidth={!isList}
+          className={primaryClass}
+        />
+        {isAgreement && onSignNow ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => onSignNow(doc)}
+            icon={<Icon name="file-signature" size={16} />}
+            fullWidth={!isList}
+            className={primaryClass}
+          >
+            Sign now
+          </Button>
+        ) : null}
+        {!isAgreement && onSendForSignature ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => onSendForSignature(doc)}
+            icon={<Icon name="file-signature" size={16} />}
+            fullWidth={!isList}
+            className={primaryClass}
+          >
+            Send for Signature
+          </Button>
+        ) : null}
+      </Box>
+      <Box className={iconRowClass}>
         <IconButton
           variant="outline"
           size="sm"
           onClick={() => onDownloadDocument(doc.id, doc.filename)}
           icon={<Icon name="download" size={16} />}
-          className="border-border text-text-secondary disabled:border-border disabled:text-text-disabled flex-1 bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-100 active:bg-neutral-200 disabled:hover:bg-transparent"
+          className={
+            isList
+              ? iconOutlineList
+              : "border-border text-text-secondary disabled:border-border disabled:text-text-disabled flex-1 bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-100 active:bg-neutral-200 disabled:hover:bg-transparent"
+          }
         />
         <IconButton
           variant="tertiary"
           size="sm"
           onClick={() => onShareDocument(doc.id, doc.filename)}
           icon={<Icon name="share" size={16} />}
-          className="flex-1"
+          className={isList ? "min-w-0 flex-1" : "flex-1"}
         />
         {showDelete && (
           <IconButton
@@ -97,7 +121,11 @@ function DocumentCardActionButtons({
             size="sm"
             onClick={onDeleteClick}
             icon={<Icon name="trash-2" size={16} />}
-            className="border-border text-destructive disabled:border-border disabled:text-text-disabled flex-1 border bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-100 active:bg-neutral-200 disabled:hover:bg-transparent"
+            className={
+              isList
+                ? iconGhostList
+                : "border-border text-destructive disabled:border-border disabled:text-text-disabled flex-1 border bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-100 active:bg-neutral-200 disabled:hover:bg-transparent"
+            }
           />
         )}
       </Box>
@@ -110,6 +138,7 @@ export default function DocumentCardActions({
   showDelete = false,
   isFromOtherUser = false,
   externalActionHandlers,
+  layout = "card",
 }: DocumentCardActionsProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const internal = useDocumentActions();
@@ -152,6 +181,7 @@ export default function DocumentCardActions({
         isAgent={isAgent}
         showDelete={!!(showDelete && onDelete)}
         onDeleteClick={() => setIsDeleteModalOpen(true)}
+        layout={layout}
       />
       {showInlinePdfModal ? (
         <Portal>

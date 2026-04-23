@@ -1,16 +1,17 @@
-import { forwardRef, type ReactNode, type RefObject } from "react";
+import { forwardRef, type ReactNode } from "react";
 
 import { Box } from "packages/ui/components/primitives";
 
 import { Title } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 
-import { AgentSearchContent, type AgentSearchContentHandle } from "./AgentSearchContent";
+import { AgentSearchContent } from "./AgentSearchContent";
+import type { AgentSearchContentHandle, AgentSearchContentProps } from "./AgentSearchContent.types";
 
 export type AgentSearchPanelProps = {
   onSuccess?: () => void;
   isActive?: boolean;
-  inputRef?: RefObject<HTMLInputElement | null>;
+  inputRef?: AgentSearchContentProps["inputRef"];
   className?: string;
   /** When set (e.g. modal close control), header becomes a row with space-between. */
   headerEnd?: ReactNode;

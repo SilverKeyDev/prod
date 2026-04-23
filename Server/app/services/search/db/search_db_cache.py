@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from flask import current_app
+from sqlalchemy.orm import joinedload
 
 from app import db
 from app.models import PropertyCache, UserPropertyLink
@@ -15,7 +16,8 @@ def get_cached_search_results(user_id: str) -> list[dict[str, Any]]:
     """Retrieve cached search results from PropertyCache + UserPropertyLink."""
     try:
         links = (
-            UserPropertyLink.query.filter(
+            UserPropertyLink.query.options(joinedload(UserPropertyLink.property))
+            .filter(
                 UserPropertyLink.user_id == str(user_id),
                 UserPropertyLink.current.is_(True),
             )
@@ -25,8 +27,8 @@ def get_cached_search_results(user_id: str) -> list[dict[str, Any]]:
 
         results = []
         for link in links:
-            prop = PropertyCache.query.get(link.property_id)
-            if not prop:
+            prop = link.property
+            if not prop or not isinstance(prop, PropertyCache):
                 continue
             property_dict: dict[str, Any] = {}
 

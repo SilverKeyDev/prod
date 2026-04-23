@@ -5,7 +5,11 @@
 
 import { APP_TAB_DEEP_LINK, AUTH_SCREENS } from "packages/navigation/constants";
 
-export type DeepLinkTarget = { type: "auth"; screen: string } | { type: "app"; tab: string };
+export type DeepLinkTarget =
+  | { type: "auth"; screen: string }
+  | { type: "app"; tab: string }
+  /** Authenticated root-stack screen (sibling to `Main`, e.g. FindAgents, AgentProfile). */
+  | { type: "rootStack"; screen: string; params?: Record<string, unknown> };
 
 /**
  * Resolve normalized pathname and auth status to a navigation target.
@@ -16,6 +20,9 @@ export function resolveDeepLinkTarget(
   isAuthenticated: boolean
 ): DeepLinkTarget | null {
   if (isAuthenticated) {
+    if (normalizedPathname === "/find-agents") {
+      return { type: "rootStack", screen: "FindAgents" };
+    }
     const tab =
       APP_TAB_DEEP_LINK[normalizedPathname] ??
       (normalizedPathname === "/settings" ? "Profile" : null);

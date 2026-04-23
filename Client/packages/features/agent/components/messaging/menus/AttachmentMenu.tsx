@@ -63,22 +63,15 @@ export default function AttachmentMenu({
           disabled={disabled}
           className="text-text-secondary hover:bg-background-base disabled:hover:bg-background-surface flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-all duration-200 ease-out active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm"
           label={t("agent.add_attachment")}
-          iconName="plus"
         >
           <Box
             className={`transition-transform duration-200 ease-out ${
               isOpen ? "rotate-45" : "rotate-0"
             }`}
           >
-            {isOpen ? (
-              <BodyText as="span" size="md" className="text-lg font-light leading-none">
-                +
-              </BodyText>
-            ) : (
-              <BodyText as="span" size="md" className="text-lg font-light leading-none">
-                +
-              </BodyText>
-            )}
+            <BodyText as="span" size="md" className="text-lg font-light leading-none">
+              +
+            </BodyText>
           </Box>
         </Button>
       </Card>

@@ -44,7 +44,6 @@ export type UseSearchScreenSearchExecutionParams = {
   setCurrentPage: (page: number) => void;
   setShowPropertyModals: (show: boolean) => void;
   clearDismissedMapPreviews: () => void;
-  setShowMapListingPreviewsAction: (show: boolean) => void;
 };
 
 export function useSearchScreenSearchExecution({
@@ -66,7 +65,6 @@ export function useSearchScreenSearchExecution({
   setCurrentPage,
   setShowPropertyModals,
   clearDismissedMapPreviews,
-  setShowMapListingPreviewsAction,
 }: UseSearchScreenSearchExecutionParams) {
   const searchAbortControllerRef = useRef<AbortController | null>(null);
 
@@ -75,10 +73,9 @@ export function useSearchScreenSearchExecution({
       onSearchStartClearDismissals: clearDismissedMapPreviews,
       onResultsCommittedEnablePreviews: () => {
         clearDismissedMapPreviews();
-        setShowMapListingPreviewsAction(true);
       },
     }),
-    [clearDismissedMapPreviews, setShowMapListingPreviewsAction]
+    [clearDismissedMapPreviews]
   );
 
   const { snapshot: snapshotPreSearch, restore: restorePreSearch } = usePreActionSnapshot<{

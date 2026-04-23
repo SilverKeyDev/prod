@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -16,7 +16,6 @@ import type {
 import {
   buildProgressiveChecklistRows,
   DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
-  getChecklistActiveIndex,
   getHiddenFutureItemCount,
   shouldUseProgressiveDisclosure,
 } from "packages/features/checklists/utils/progressive/buildProgressiveChecklistRows";
@@ -37,7 +36,6 @@ const sectionTitle =
   "text-responsive-sm font-semibold text-text-primary flex flex-row items-center gap-responsive-xs";
 
 const defaultDisclosure: ChecklistLayoutDisclosureState = {
-  completedOpen: false,
   futureOpen: false,
 };
 
@@ -62,6 +60,7 @@ export default function CloseLayout({
     items,
     checkedIds,
     activeItemId,
+    activeItemIds,
     isLoading: loading,
     toggleItem,
   } = useChecklistData(checklistType);
@@ -86,7 +85,7 @@ export default function CloseLayout({
     void toggleItem(id);
   };
 
-  const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemId, checkedIds);
+  const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemIds, checkedIds);
 
   const [disclosureByType, setDisclosureByType] = useState<
     Partial<Record<ChecklistType, ChecklistLayoutDisclosureState>>
@@ -107,38 +106,16 @@ export default function CloseLayout({
     [checklistType]
   );
 
-  const prevActiveIdRef = useRef<number | null | undefined>(undefined);
-  useEffect(() => {
-    if (prevActiveIdRef.current === undefined) {
-      prevActiveIdRef.current = activeItemId;
-      return;
-    }
-    const prevIdx = getChecklistActiveIndex(sortedItems, prevActiveIdRef.current as number | null);
-    const nextIdx = getChecklistActiveIndex(sortedItems, activeItemId);
-    if (nextIdx > prevIdx) {
-      setDisclosureByType((prev) => ({
-        ...prev,
-        [checklistType]: {
-          ...(prev[checklistType] ?? defaultDisclosure),
-          completedOpen: false,
-        },
-      }));
-    }
-    prevActiveIdRef.current = activeItemId;
-  }, [activeItemId, sortedItems, checklistType]);
-
   const segments = useMemo(
     () =>
       buildProgressiveChecklistRows(sortedItems, activeItemId, {
         previewUpcoming: DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
-        completedOpen: disclosure.completedOpen,
         futureOpen: disclosure.futureOpen,
+        revealedCompletedItemId: null,
       }),
-    [sortedItems, activeItemId, disclosure.completedOpen, disclosure.futureOpen]
+    [sortedItems, activeItemId, disclosure.futureOpen]
   );
 
-  const activeIndex = getChecklistActiveIndex(sortedItems, activeItemId);
-  const completedCount = activeIndex;
   const futureHidden = getHiddenFutureItemCount(
     sortedItems,
     activeItemId,
@@ -201,42 +178,25 @@ export default function CloseLayout({
             <Box className="mt-responsive-xs text-left">
               <Text className="sr-only">Checklist</Text>
               <Box className="flex flex-col gap-2 overflow-visible">
-                {useProgressive && disclosure.completedOpen && completedCount > 0 ? (
-                  <Pressable
-                    onPress={() => setTypeDisclosure({ completedOpen: false })}
-                    className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
-                    accessibilityRole="button"
-                    aria-expanded
-                  >
-                    <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
-                    <Text className="text-text-primary text-sm font-medium">
-                      {t("checklists.progressive.completed_expanded", {
-                        count: completedCount,
-                      })}
-                    </Text>
-                  </Pressable>
-                ) : null}
                 {useProgressive
                   ? segments.map((segment, segIdx) => {
                       if (segment.kind === "completed_collapsed") {
                         return (
-                          <Pressable
+                          <Box
                             key={`cc-${segIdx}`}
-                            onPress={() => setTypeDisclosure({ completedOpen: true })}
                             className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
-                            accessibilityRole="button"
-                            aria-expanded={false}
+                            accessibilityRole="text"
                           >
                             <Icon
                               name="chevron-right"
-                              className="text-text-secondary h-4 w-4 shrink-0"
+                              className="text-text-secondary h-4 w-4 shrink-0 opacity-60"
                             />
                             <Text className="text-text-primary text-sm font-medium">
                               {t("checklists.progressive.completed_collapsed", {
                                 count: segment.count,
                               })}
                             </Text>
-                          </Pressable>
+                          </Box>
                         );
                       }
                       if (segment.kind === "future_collapsed") {
@@ -273,7 +233,7 @@ export default function CloseLayout({
                             rowKind={segment.kind}
                             globalIndex={segment.globalIndex}
                             checkedById={checkedById}
-                            activeItemId={activeItemId}
+                            activeItemIds={activeItemIds}
                             roadmapTab={roadmapTab}
                             getItemToggleEligibility={getItemToggleEligibility}
                             onToggleItem={toggle}
@@ -292,7 +252,7 @@ export default function CloseLayout({
                         rowKind="flat_item"
                         globalIndex={index}
                         checkedById={checkedById}
-                        activeItemId={activeItemId}
+                        activeItemIds={activeItemIds}
                         roadmapTab={roadmapTab}
                         getItemToggleEligibility={getItemToggleEligibility}
                         onToggleItem={toggle}

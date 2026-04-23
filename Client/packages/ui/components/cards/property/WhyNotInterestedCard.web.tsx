@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { Property } from "packages/schemas/property";
+import type { Property } from "packages/types";
 import Button from "packages/ui/components/button/Button";
 import { StyledImage } from "packages/ui/components/cards/base/index.web";
 import { Textarea } from "packages/ui/components/form/FormField";

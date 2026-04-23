@@ -41,27 +41,9 @@ from app.utils.security.security import (
 )
 from app.utils.validation import validate_request, validate_response
 
+from .event_response_enrichment import enrich_events_with_db_itinerary
+
 logger = get_logger()
-
-
-def _enrich_events_with_db_itinerary(user_id: str, events: list) -> None:
-    """Attach SilverKey DB itinerary to Google event dicts when present."""
-    if not events or not isinstance(events, list):
-        return
-    ids = [e.get("id") for e in events if isinstance(e, dict) and e.get("id")]
-    if not ids:
-        return
-    rows = CalendarEvent.query.filter(
-        CalendarEvent.user_id == user_id,
-        CalendarEvent.google_event_id.in_(ids),
-    ).all()
-    by_gid = {r.google_event_id: r.itinerary for r in rows if r.google_event_id and r.itinerary}
-    for ev in events:
-        if not isinstance(ev, dict):
-            continue
-        gid = ev.get("id")
-        if gid and gid in by_gid:
-            ev["itinerary"] = by_gid[gid]
 
 
 @rate_limit(max_requests=100, window_seconds=60)
@@ -96,12 +78,55 @@ def list_events():
             logger.warning(f"Unexpected events format for user {user_id}: {type(events)}")
             events = []
 
-        _enrich_events_with_db_itinerary(user_id, events)
+        enrich_events_with_db_itinerary(user_id, events)
 
         return jsonify({"success": True, "data": {"items": events}})
 
     except Exception as e:
         return handle_google_api_error(e, user_id, "list events")
+
+
+@rate_limit(max_requests=100, window_seconds=60)
+@validate_response(GoogleCalendarApiResponse)
+def fetch_single_calendar_event(event_id: str):
+    """GET a single Google Calendar event by id (e.g. poll for Meet link)."""
+    user_id, error_response = get_authenticated_user_id()
+    if error_response:
+        return error_response
+    if user_id is None:
+        return make_response(("Unauthorized", 401))
+
+    try:
+        has_permission, perm_err = require_permission(
+            user_id, "calendar_app_created", context="get events"
+        )
+        if not has_permission:
+            return jsonify(perm_err), 403
+
+        calendar_id = request.args.get("calendarId", "primary")
+        row = CalendarEvent.query.filter_by(google_event_id=event_id).first()
+        target_user_id = None
+        if row:
+            if row.user_id != user_id and row.creator_id != user_id:
+                return jsonify(
+                    {"success": False, "error": "You do not have access to this event"}
+                ), 403
+            if row.user_id != user_id:
+                target_user_id = row.user_id
+
+        event = google_calendar_service.get_event(
+            user_id, event_id, calendar_id, target_user_id=target_user_id
+        )
+        body = {**event} if isinstance(event, dict) else dict(event)
+        if row:
+            if row.itinerary:
+                body["itinerary"] = row.itinerary
+            if row.event_type:
+                body["silverKeyEventType"] = row.event_type
+        return jsonify({"success": True, "data": body}), 200
+
+    except Exception as e:
+        return handle_google_api_error(e, user_id, "get event")
 
 
 @rate_limit(max_requests=50, window_seconds=60)
@@ -125,6 +150,8 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
         event_data = request.get_json(silent=True)
         if not event_data:
             return make_response(("Request body is required", 400))
+        add_google_meet = bool(event_data.pop("addGoogleMeet", False))
+        event_data.pop("conferenceData", None)
         if not validate_event_data(event_data):
             return make_response(("Invalid event data", 400))
 
@@ -168,6 +195,7 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
             event_type,
             primary_target,
             itinerary=itinerary_db,
+            add_google_meet=add_google_meet,
         )
 
         create_in_agent_calendars(
@@ -221,6 +249,7 @@ def update_event(event_id, data: GoogleCalendarEventCreateBody | None = None):
         event_data = request.get_json(silent=True)
         if not event_data:
             return make_response(("Request body is required", 400))
+        event_data.pop("addGoogleMeet", None)
         if not validate_event_data(event_data):
             return make_response(("Invalid event data", 400))
 
@@ -356,7 +385,7 @@ def list_client_events(client_id: str):
             logger.warning(f"Unexpected events format for client {client_id}: {type(events)}")
             events = []
 
-        _enrich_events_with_db_itinerary(client_id, events)
+        enrich_events_with_db_itinerary(client_id, events)
 
         return jsonify({"success": True, "data": {"items": events}})
 

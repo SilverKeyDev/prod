@@ -1,0 +1,18 @@
+# Gitleaks: https://github.com/gitleaks/gitleaks
+# Used by: pre-commit hook, .github/workflows/secret-scan.yml
+title = "SilverKey"
+
+[extend]
+# Built-in ruleset (gitleaks default)
+useDefault = true
+
+# Paths that are not secret material but can match heuristics (tune as needed).
+[allowlist]
+description = "Non-secret paths (examples, local tooling)"
+paths = [
+  '''^Client/apps/web/\.cursor/''',
+  '''\.cursor/debug.*\.log$''',
+  '''.*\.pem\.example$''',
+  '''^documentation/client/docusign-integration\.md$''',
+  '''^Server/app/services/docusign/docs/''',
+]

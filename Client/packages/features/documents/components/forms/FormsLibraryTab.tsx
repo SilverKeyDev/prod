@@ -13,9 +13,16 @@ import FormsBrowser from "./FormsBrowser";
 
 type FormsLibraryTabProps = {
   onSendForSignature?: (form: ChecklistForm) => void;
+  /** Horizontal padding aligned with Saved documents (e.g. `px-4 sm:px-6…`). */
+  containerClass: string;
+  formsGridClassName?: string;
 };
 
-export default function FormsLibraryTab({ onSendForSignature }: FormsLibraryTabProps) {
+export default function FormsLibraryTab({
+  onSendForSignature,
+  containerClass,
+  formsGridClassName,
+}: FormsLibraryTabProps) {
   const { t } = useLocalization();
 
   const handleSendForSignature = (form: ChecklistForm) => {
@@ -26,7 +33,7 @@ export default function FormsLibraryTab({ onSendForSignature }: FormsLibraryTabP
 
   return (
     <Box className="w-full">
-      <Box className="mb-4">
+      <Box className={`${containerClass} mb-4`}>
         <Title as="h2" size="md" className="mb-2">
           {t("forms.library_title", { defaultValue: "Forms Library" })}
         </Title>
@@ -38,10 +45,13 @@ export default function FormsLibraryTab({ onSendForSignature }: FormsLibraryTabP
         </Subtitle>
       </Box>
 
-      <FormsBrowser
-        onSendForSignature={onSendForSignature ? handleSendForSignature : undefined}
-        showActions
-      />
+      <Box className={containerClass}>
+        <FormsBrowser
+          formsGridClassName={formsGridClassName}
+          onSendForSignature={onSendForSignature ? handleSendForSignature : undefined}
+          showActions
+        />
+      </Box>
     </Box>
   );
 }

@@ -16,6 +16,8 @@ const AGENT_STEPS: ProfileStep[] = [
   { id: "agent_profile", title: "Territory" },
 ];
 
+const PRIVACY_DATA_STEP: ProfileStep = { id: "privacy_data", title: "Privacy & data" };
+
 const HOUSING_STEPS: ProfileStep[] = [
   { id: "housing_essentials", title: "Essentials" },
   { id: "housing_ranges", title: "Size" },
@@ -86,8 +88,9 @@ export const getPersonalizationSteps = (options?: GetPersonalizationStepsOptions
     ? [
         ...AGENT_STEPS,
         ...PERSONALIZATION_STEPS.filter((s) => !BUYER_HOME_SEARCH_PERSONALIZATION_IDS.has(s.id)),
+        PRIVACY_DATA_STEP,
       ]
-    : [...PERSONALIZATION_STEPS];
+    : [...PERSONALIZATION_STEPS, PRIVACY_DATA_STEP];
 
 /**
  * Onboarding steps for mobile. Excludes financial step.

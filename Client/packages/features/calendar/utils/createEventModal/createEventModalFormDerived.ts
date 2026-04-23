@@ -19,6 +19,14 @@ export function deriveCreateEventModalFormSubmitState(input: {
   isSavingUnscheduled: boolean;
   isCreatingEvent: boolean;
   isUpdatingEvent: boolean;
+  /** Messaging: calendar event request uses the same form as Add to Agenda with different submit rules. */
+  calendarEventRequest?: {
+    enabled: boolean;
+    isAgent: boolean;
+    selectedClientId: string | null;
+    hasClientRecipientConversation: boolean;
+    isSendingRequest: boolean;
+  };
 }): CreateEventModalFormDerivedSubmit {
   const rawStartForUi = input.startDate.trim();
   const rawEndForUi = input.endDate.trim();
@@ -33,26 +41,41 @@ export function deriveCreateEventModalFormSubmitState(input: {
     (input.mode === "edit" || Boolean(input.defaultCalendarId))
   );
 
+  const req = input.calendarEventRequest;
   const canSubmit =
-    input.mode === "edit"
-      ? canSubmitScheduled
-      : hasSchedule
+    req?.enabled && input.mode === "create"
+      ? Boolean(
+          input.eventTitle.trim() &&
+          hasSchedule &&
+          (input.isAllDay || (input.startTime && input.endTime)) &&
+          (req.isAgent ? Boolean(req.selectedClientId) : req.hasClientRecipientConversation)
+        )
+      : input.mode === "edit"
         ? canSubmitScheduled
-        : canSubmitUnscheduled;
+        : hasSchedule
+          ? canSubmitScheduled
+          : canSubmitUnscheduled;
 
-  const formSubmitting = input.isSubmitting || input.isSavingUnscheduled;
+  const formSubmitting =
+    input.isSubmitting ||
+    input.isSavingUnscheduled ||
+    Boolean(req?.enabled && req.isSendingRequest);
   const primaryActionLabel =
-    input.mode === "edit"
-      ? input.isUpdatingEvent
-        ? "Updating..."
-        : "Update Event"
-      : hasSchedule
-        ? input.isCreatingEvent
-          ? "Adding..."
-          : "Add"
-        : input.isSavingUnscheduled
-          ? "Adding..."
-          : "Add";
+    req?.enabled && input.mode === "create"
+      ? req.isSendingRequest
+        ? "Sending..."
+        : "Send Request"
+      : input.mode === "edit"
+        ? input.isUpdatingEvent
+          ? "Updating..."
+          : "Update Event"
+        : hasSchedule
+          ? input.isCreatingEvent
+            ? "Adding..."
+            : "Add"
+          : input.isSavingUnscheduled
+            ? "Adding..."
+            : "Add";
 
   return { hasSchedule, canSubmit, formSubmitting, primaryActionLabel };
 }

@@ -7,9 +7,11 @@ from flask import current_app, jsonify, request
 from app.schemas import AuthResponse, LoginData
 from app.services.auth.flows import handle_login
 from app.services.auth.utils import create_error_response, generate_request_id
+from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 
 
+@rate_limit(max_requests=10, window_seconds=60)
 @validate_request(LoginData)
 @validate_response(AuthResponse)
 def login(data: LoginData | None = None):

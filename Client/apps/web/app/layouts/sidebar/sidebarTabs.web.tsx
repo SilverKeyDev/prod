@@ -1,3 +1,4 @@
+import { pathFor } from "packages/navigation/router/paths";
 import type { IconName } from "packages/ui/types/icons";
 
 export type SidebarTabKey = "dashboard" | "search" | "decide" | "profile" | "agent";
@@ -83,6 +84,11 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
         to: "/messaging",
         icon: "send",
       },
+      {
+        label: "Find agents",
+        to: pathFor("FIND_AGENTS"),
+        icon: "search",
+      },
     ],
   },
 };
@@ -92,6 +98,7 @@ export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   if (pathname.startsWith("/search")) return SIDEBAR_TABS.search;
   if (pathname.startsWith("/saved") || pathname.startsWith("/compare-reports"))
     return SIDEBAR_TABS.decide;
-  if (pathname.startsWith("/messaging")) return SIDEBAR_TABS.agent;
+  if (pathname.startsWith("/messaging") || pathname.startsWith("/find-agents"))
+    return SIDEBAR_TABS.agent;
   return undefined;
 };

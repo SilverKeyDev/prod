@@ -1,12 +1,19 @@
 import { useMemo } from "react";
 
+import type { Dispatch, SetStateAction } from "react";
+
 import { useLocalization } from "packages/contexts";
 import type { DocumentData, SavedPageViewType } from "packages/features/documents";
+import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
+import {
+  sortAndFilterAgreementsForLibrary,
+  sortDocumentsForLibrary,
+  sortSavedHomesForLibrary,
+} from "packages/features/saved/utils/librarySort";
 import type { SavedHome } from "packages/types";
-import { AgreementCard } from "packages/ui/components/cards/agreement";
+import { AgreementCard, AgreementListRow } from "packages/ui/components/cards/agreement";
 import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
 import { Box } from "packages/ui/components/primitives";
-import { dateParseISO } from "packages/utils/date";
 import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
@@ -16,6 +23,10 @@ import { SavedHomeCard } from "./SavedHomeCard";
 
 type SavedHomesContentProps = {
   viewType: SavedPageViewType;
+  /** Layout for the active Library tab (homes, documents, or agreements). */
+  libraryViewMode: LibraryViewMode;
+  documentsSubtab: "my-documents" | "forms-library";
+  onDocumentsSubtabChange: Dispatch<SetStateAction<"my-documents" | "forms-library">>;
   filteredHomes: SavedHome[];
   homesLoading: boolean;
   documents: DocumentData[];
@@ -35,10 +46,15 @@ type SavedHomesContentProps = {
   noHomesYetKey?: string;
   /** Whether current user is an agent (for forms library access) */
   isAgent?: boolean;
+  /** Sort / filter for the active Library tab (homes, documents, or agreements). */
+  librarySortKey: string;
 };
 const CONTENT_PADDING = "px-4 sm:px-6 md:px-8 lg:px-12";
 export default function SavedHomesContent({
   viewType,
+  libraryViewMode,
+  documentsSubtab,
+  onDocumentsSubtabChange,
   filteredHomes,
   homesLoading,
   documents,
@@ -53,20 +69,17 @@ export default function SavedHomesContent({
   noPadding = false,
   noHomesYetKey,
   isAgent = false,
+  librarySortKey,
 }: SavedHomesContentProps) {
   const { t } = useLocalization();
   const containerClass = noPadding ? "w-full" : `w-full ${CONTENT_PADDING}`;
-  const sortedDocuments = useMemo(() => {
-    const toMs = (v: number | string) => (typeof v === "number" ? v : dateParseISO(v).valueOf());
-    return [...documents].sort((a, b) => {
-      const dateA = toMs(a.created_at ?? a.updated_at ?? 0);
-      const dateB = toMs(b.created_at ?? b.updated_at ?? 0);
-      return dateB - dateA;
-    });
-  }, [documents]);
-  const sortedDocumentsExcludingAgreements = useMemo(
-    () => filterDocumentLibraryExcludingAgreements(sortedDocuments),
-    [sortedDocuments]
+  const sortedDocumentsExcludingAgreements = useMemo(() => {
+    const base = filterDocumentLibraryExcludingAgreements(documents);
+    return sortDocumentsForLibrary(base, librarySortKey);
+  }, [documents, librarySortKey]);
+  const sortedHomes = useMemo(
+    () => sortSavedHomesForLibrary(filteredHomes, librarySortKey),
+    [filteredHomes, librarySortKey]
   );
   if (viewType === "documents") {
     return (
@@ -78,11 +91,17 @@ export default function SavedHomesContent({
         onFormSendForSignature={onFormSendForSignature}
         isAgent={isAgent}
         containerClass={containerClass}
+        documentSubtab={documentsSubtab}
+        onDocumentSubtabChange={onDocumentsSubtabChange}
+        libraryViewMode={libraryViewMode}
       />
     );
   }
   if (viewType === "agreements") {
-    const agreementDocs = sortedDocuments.filter((d) => d.library_kind === "agreement");
+    const agreementDocs = sortAndFilterAgreementsForLibrary(
+      documents.filter((d) => d.library_kind === "agreement"),
+      librarySortKey
+    );
     if (documentsLoading) {
       return (
         <Box className={`${containerClass} py-responsive-lg flex justify-center`}>
@@ -99,35 +118,57 @@ export default function SavedHomesContent({
         </Box>
       );
     }
+    const agreementsLayoutClass =
+      libraryViewMode === "list"
+        ? `${containerClass} flex flex-col gap-responsive-md`
+        : `${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`;
+
     return (
-      <Box
-        className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`}
-      >
+      <Box className={agreementsLayoutClass}>
         {agreementDocs.map((doc) => (
           <Box key={`agreement-${doc.id}`} className="group relative w-full">
-            <AgreementCard
-              doc={doc}
-              onDelete={onDocumentDelete}
-              isAgent={isAgent}
-              externalActionHandlers={
-                documentActionHandlers
-                  ? {
-                      handleViewDocument: documentActionHandlers.handleViewDocument,
-                      handleDownloadDocument: documentActionHandlers.handleDownloadDocument,
-                      handleShareDocument: documentActionHandlers.handleShareDocument,
-                      handleSignNow: documentActionHandlers.handleSignNow,
-                      handleViewSignedAgreement: documentActionHandlers.handleViewSignedAgreement,
-                    }
-                  : undefined
-              }
-            />
+            {libraryViewMode === "list" ? (
+              <AgreementListRow
+                doc={doc}
+                onDelete={onDocumentDelete}
+                isAgent={isAgent}
+                externalActionHandlers={
+                  documentActionHandlers
+                    ? {
+                        handleViewDocument: documentActionHandlers.handleViewDocument,
+                        handleDownloadDocument: documentActionHandlers.handleDownloadDocument,
+                        handleShareDocument: documentActionHandlers.handleShareDocument,
+                        handleSignNow: documentActionHandlers.handleSignNow,
+                        handleViewSignedAgreement: documentActionHandlers.handleViewSignedAgreement,
+                      }
+                    : undefined
+                }
+              />
+            ) : (
+              <AgreementCard
+                doc={doc}
+                onDelete={onDocumentDelete}
+                isAgent={isAgent}
+                externalActionHandlers={
+                  documentActionHandlers
+                    ? {
+                        handleViewDocument: documentActionHandlers.handleViewDocument,
+                        handleDownloadDocument: documentActionHandlers.handleDownloadDocument,
+                        handleShareDocument: documentActionHandlers.handleShareDocument,
+                        handleSignNow: documentActionHandlers.handleSignNow,
+                        handleViewSignedAgreement: documentActionHandlers.handleViewSignedAgreement,
+                      }
+                    : undefined
+                }
+              />
+            )}
           </Box>
         ))}
       </Box>
     );
   }
   if (viewType === "homes") {
-    if (filteredHomes.length === 0) {
+    if (sortedHomes.length === 0) {
       if (homesLoading) {
         return (
           <Box className={`${containerClass} py-responsive-lg flex justify-center`}>
@@ -143,19 +184,23 @@ export default function SavedHomesContent({
         </Box>
       );
     }
+    const homesLayoutClass =
+      libraryViewMode === "list"
+        ? `${containerClass} flex flex-col gap-responsive-md ${selectedHomesDataLength >= 1 ? "mb-36 sm:mb-40" : ""}`
+        : `${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
+            selectedHomesDataLength >= 1 ? "mb-36 sm:mb-40" : ""
+          }`;
+
     return (
-      <Box
-        className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
-          selectedHomesDataLength >= 1 ? "mb-36 sm:mb-40" : ""
-        }`}
-      >
-        {filteredHomes.map((home: SavedHome) => (
+      <Box className={homesLayoutClass}>
+        {sortedHomes.map((home: SavedHome) => (
           <Box key={home.home_id} className="w-full">
             <SavedHomeCard
               home={home}
               isSelected={selectedHomesForComparison.has(home.home_id)}
               onToggleCompare={onToggleHomeSelection}
               onUnlock={onUnlockHome}
+              layout={libraryViewMode === "list" ? "list" : "grid"}
             />
           </Box>
         ))}

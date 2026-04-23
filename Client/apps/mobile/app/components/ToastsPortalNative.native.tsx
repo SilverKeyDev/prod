@@ -4,10 +4,9 @@ import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { useUIStore } from "packages/store";
+import { toastDurationForType } from "packages/ui/components/feedback/toastDurations";
 import { Text } from "packages/ui/components/primitives";
 import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows.native";
-
-const TOAST_DURATION_MS = 3000;
 
 export function ToastsPortalNative() {
   const activeToastId = useUIStore((s) => s.activeToastId);
@@ -18,12 +17,9 @@ export function ToastsPortalNative() {
 
   useEffect(() => {
     if (!activeToast) return;
-    const timer = setTimeout(
-      () => {
-        dequeueToast(activeToast.id);
-      },
-      activeToast.type === "error" ? 5000 : TOAST_DURATION_MS
-    );
+    const timer = setTimeout(() => {
+      dequeueToast(activeToast.id);
+    }, toastDurationForType(activeToast.type));
     return () => clearTimeout(timer);
   }, [activeToast?.id, activeToast?.type, dequeueToast]);
 

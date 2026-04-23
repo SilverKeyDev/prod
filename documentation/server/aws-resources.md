@@ -317,3 +317,4 @@ Optional repository variable **`DB_URL_SECRET_ID`**: overrides the default datab
 - **Security:** `.cursor/rules/shared/security.mdc`
 - **Compliance:** `documentation/compliance/`
 - **Server overview:** `Server/ARCHITECTURE.md`
+- **Infrastructure reliability checklist (repo audit):** `documentation/server/infrastructure-reliability-gap-audit.md` — what is built vs. documentation-only vs. missing, relative to backups, Sentry/APM, uptime, staging parity, load tests, scaling, CDN, and rollback

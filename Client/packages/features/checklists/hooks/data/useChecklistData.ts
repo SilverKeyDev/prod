@@ -8,7 +8,7 @@ import {
   type TaskChecklistResponse,
   updateTaskChecklist,
 } from "packages/features/checklists/api/checklists";
-import { getActiveChecklistItemId } from "packages/features/checklists/utils/presentation/getActiveChecklistItemId";
+import { getActiveChecklistItemIds } from "packages/features/checklists/utils/presentation/getActiveChecklistItemId";
 import { mergeTaskChecklistCheckedIds } from "packages/features/checklists/utils/rules/checklistRules";
 import { useAuthStore } from "packages/store";
 
@@ -17,7 +17,10 @@ export type { ChecklistType };
 export type UseChecklistDataReturn = {
   items: TaskChecklistResponse["items"];
   checkedIds: number[];
+  /** First incomplete step id (anchor for progressive layout). */
   activeItemId: number | null;
+  /** All steps that should show as the current wave (e.g. parallel integration group). */
+  activeItemIds: readonly number[];
   isLoading: boolean;
   error: string | null;
   toggleItem: (id: number) => Promise<void>;
@@ -95,16 +98,19 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
     await refetchChecklist();
   }, [refetchChecklist]);
 
-  const activeItemId = useMemo(() => {
+  const activeItemIds = useMemo(() => {
     const items = checklistData?.items ?? [];
     const checkedIds = checklistData?.checkedIds ?? [];
-    return getActiveChecklistItemId(items, checkedIds);
+    return getActiveChecklistItemIds(items, checkedIds);
   }, [checklistData?.items, checklistData?.checkedIds]);
+
+  const activeItemId = useMemo(() => activeItemIds[0] ?? null, [activeItemIds]);
 
   return {
     items: checklistData?.items ?? [],
     checkedIds: checklistData?.checkedIds ?? [],
     activeItemId,
+    activeItemIds,
     isLoading,
     error: error?.message ?? null,
     toggleItem,

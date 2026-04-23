@@ -3,12 +3,14 @@
  * Renders within SavedHomesContent when viewType === "documents".
  */
 
-import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { DocumentData } from "packages/features/documents";
 import { FormsLibraryTab } from "packages/features/documents";
+import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
+import DocumentListRow from "packages/ui/components/cards/document/DocumentListRow";
 import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
 import { Box } from "packages/ui/components/primitives";
 import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
@@ -25,6 +27,9 @@ type DocumentsViewWithSubtabsProps = {
   onFormSendForSignature?: (form: import("packages/features/documents").ChecklistForm) => void;
   isAgent: boolean;
   containerClass: string;
+  documentSubtab: DocumentsViewSubtab;
+  onDocumentSubtabChange: Dispatch<SetStateAction<DocumentsViewSubtab>>;
+  libraryViewMode: LibraryViewMode;
 };
 
 export default function DocumentsViewWithSubtabs({
@@ -35,9 +40,11 @@ export default function DocumentsViewWithSubtabs({
   onFormSendForSignature,
   isAgent,
   containerClass,
+  documentSubtab,
+  onDocumentSubtabChange,
+  libraryViewMode,
 }: DocumentsViewWithSubtabsProps) {
   const { t } = useLocalization();
-  const [documentSubtab, setDocumentSubtab] = useState<DocumentsViewSubtab>("my-documents");
 
   // Only show Forms Library tab to agents
   const subtabItems = isAgent
@@ -64,6 +71,12 @@ export default function DocumentsViewWithSubtabs({
         },
       ];
 
+  const myDocumentsGridClass =
+    `${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`.trim();
+  const myDocumentsListClass = `${containerClass} flex flex-col gap-responsive-md`.trim();
+  const formsLibraryGridClass =
+    "gap-responsive-md grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+
   return (
     <Box className="w-full">
       {isAgent && (
@@ -71,7 +84,7 @@ export default function DocumentsViewWithSubtabs({
           <UnderlineTabs
             items={subtabItems}
             activeId={documentSubtab}
-            onChange={(id) => setDocumentSubtab(id as DocumentsViewSubtab)}
+            onChange={(id) => onDocumentSubtabChange(id as DocumentsViewSubtab)}
             size="sm"
           />
         </Box>
@@ -95,15 +108,23 @@ export default function DocumentsViewWithSubtabs({
 
           {!documentsLoading && documents.length > 0 && (
             <Box
-              className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`}
+              className={libraryViewMode === "list" ? myDocumentsListClass : myDocumentsGridClass}
             >
               {documents.map((doc) => (
                 <Box key={`doc-${doc.id}`} className="group relative w-full">
-                  <DocumentCard
-                    doc={doc}
-                    onDelete={onDocumentDelete}
-                    externalActionHandlers={documentActionHandlers}
-                  />
+                  {libraryViewMode === "list" ? (
+                    <DocumentListRow
+                      doc={doc}
+                      onDelete={onDocumentDelete}
+                      externalActionHandlers={documentActionHandlers}
+                    />
+                  ) : (
+                    <DocumentCard
+                      doc={doc}
+                      onDelete={onDocumentDelete}
+                      externalActionHandlers={documentActionHandlers}
+                    />
+                  )}
                 </Box>
               ))}
             </Box>
@@ -112,9 +133,11 @@ export default function DocumentsViewWithSubtabs({
       )}
 
       {documentSubtab === "forms-library" && isAgent && (
-        <Box className={containerClass}>
-          <FormsLibraryTab onSendForSignature={onFormSendForSignature} />
-        </Box>
+        <FormsLibraryTab
+          containerClass={containerClass}
+          formsGridClassName={formsLibraryGridClass}
+          onSendForSignature={onFormSendForSignature}
+        />
       )}
     </Box>
   );

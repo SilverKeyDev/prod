@@ -19,7 +19,10 @@ export {
 } from "./types/search/formatters/address";
 export type { AddressObject } from "./types/search/formatters/propertyDetailsFormatters";
 export { formatPrice } from "./types/search/formatters/propertyDetailsFormatters";
-export { formatAddress, getPropertyImages } from "./types/search/formatters/propertyDetailsFormatters";
+export {
+  formatAddress,
+  getPropertyImages,
+} from "./types/search/formatters/propertyDetailsFormatters";
 export { formatPropertyType } from "./types/search/formatters/propertyFormatters";
 export { SEARCH_TRANSLATIONS } from "./types/translations";
 export {

@@ -1,7 +1,8 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import { color } from "packages/design-tokens";
+import { color, spacing } from "packages/design-tokens";
+import BodyText from "packages/ui/components/text/BodyText";
 import { getMatchStyle } from "packages/utils";
 
 export type MatchPillProps = {
@@ -40,25 +41,34 @@ export function MatchPill({
   });
 
   return (
-    <span
+    <BodyText
+      as="span"
       role="status"
       aria-label={ariaLabel}
-      className={className}
+      className={`inline-flex max-w-none items-center whitespace-nowrap font-medium ${className}`}
       style={{
         backgroundColor: bg,
         color: fg,
-        padding: emphasis ? "6px 12px" : "4px 10px",
-        borderRadius: "6px",
+        paddingTop: emphasis ? spacing(1.5) : spacing(1),
+        paddingBottom: emphasis ? spacing(1.5) : spacing(1),
+        paddingLeft: emphasis ? spacing(3) : spacing(2.5),
+        paddingRight: emphasis ? spacing(3) : spacing(2.5),
+        borderRadius: spacing(1.5),
         fontSize: emphasis ? "14px" : "13px",
         fontWeight: 500,
         display: "inline-flex",
         alignItems: "center",
-        gap: "6px",
-        whiteSpace: "nowrap",
+        gap: spacing(1.5),
       }}
     >
-      <span>{rounded}</span>
-      {showLabel ? <span>· {tierLabel}</span> : null}
-    </span>
+      <BodyText as="span" className="text-inherit" style={{ color: "inherit" }}>
+        {rounded}
+      </BodyText>
+      {showLabel ? (
+        <BodyText as="span" className="text-inherit" style={{ color: "inherit" }}>
+          · {tierLabel}
+        </BodyText>
+      ) : null}
+    </BodyText>
   );
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useMediaQuery } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
@@ -17,7 +18,7 @@ import { useCalendarSwipe } from "@/features/calendar/hooks/ui/useCalendarSwipe"
 import type { CalendarViewType, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import {
   calendarDateToKey,
-  formatCalendarDayEventsTitle,
+  getCalendarDayListHeading,
 } from "@/features/calendar/utils/core/calendarDateKeys";
 import {
   calculateCalendarDateRange,
@@ -69,7 +70,27 @@ export function useCalendarScreen({
   const { permissionsLoading, hasRequiredPermissions, isPartiallyEnabled, permissions } =
     useGoogleCalendarPermissions();
 
-  const [viewMode, setViewMode] = useState<CalendarViewType>("month");
+  const { clientSettings, clientSettingsQuery, patchClientSettings } = useClientSettings();
+  const serverShell = (clientSettings?.calendar?.shell as CalendarViewType | undefined) ?? "month";
+
+  const [viewMode, setViewModeState] = useState<CalendarViewType>("month");
+  const hydratedShellRef = useRef(false);
+
+  useEffect(() => {
+    if (hydratedShellRef.current) return;
+    if (clientSettingsQuery.isLoading) return;
+    hydratedShellRef.current = true;
+    setViewModeState(serverShell);
+  }, [clientSettingsQuery.isLoading, serverShell]);
+
+  const setViewMode = useCallback(
+    (mode: CalendarViewType) => {
+      setViewModeState(mode);
+      const availability = clientSettings?.calendar?.availability ?? "week";
+      patchClientSettings({ calendar: { shell: mode, availability } });
+    },
+    [clientSettings?.calendar?.availability, patchClientSettings]
+  );
   const [focusedDate, setFocusedDate] = useState(() => dateNow().startOf("day").toDate());
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   const [weekSelectedEventId, setWeekSelectedEventId] = useState<string | null>(null);
@@ -245,6 +266,7 @@ export function useCalendarScreen({
         date: day.date,
         isCurrentMonth: day.isCurrentMonth,
         isPast: day.isPast,
+        isToday: day.isToday,
         count,
       };
     });
@@ -338,7 +360,7 @@ export function useCalendarScreen({
     selectedDayKey,
     setSelectedDayKey,
     selectedEvents,
-    formatDayEventsTitle: formatCalendarDayEventsTitle,
+    getSelectedDayListHeading: (dateKey: string) => getCalendarDayListHeading(dateKey, "events"),
     refetchEvents,
     updateEvent,
     deleteEvent,
@@ -364,6 +386,7 @@ export function useCalendarScreen({
     updateQuickCreate: quickSession.updateQuickCreate,
     commitQuickCreate: quickSession.commitQuickCreate,
     discardQuickCreate: quickSession.discardQuickCreate,
+    registerQuickCreateOutsideSafeTarget: quickSession.registerQuickCreateOutsideSafeTarget,
     handleWeekTimeSlotDoubleClick: quickSession.handleWeekTimeSlotDoubleClick,
     handleMonthQuickCreateDoubleTap: quickSession.handleMonthQuickCreateDoubleTap,
     handleEditDetailsFromQuickCreate: quickSession.handleEditDetailsFromQuickCreate,

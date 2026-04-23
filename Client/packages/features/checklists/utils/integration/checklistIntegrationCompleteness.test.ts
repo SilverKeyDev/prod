@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import type { AgentConversation } from "packages/api";
 import type { OnboardingData } from "packages/features/profile/types/onboarding";
 
 import {
   isChooseSearchAreaStepComplete,
   isDefineCriteriaStepComplete,
+  isPartnerWithAgentStepComplete,
   isSetBudgetStepComplete,
+  listConnectedAgentsForPartnerStep,
 } from "./checklistIntegrationCompleteness";
 
 const baseBudget: Partial<OnboardingData> = {
@@ -88,6 +91,33 @@ describe("isChooseSearchAreaStepComplete", () => {
         important_locations: [{ address: " 123 Main St " }],
       })
     ).toBe(true);
+  });
+});
+
+describe("isPartnerWithAgentStepComplete", () => {
+  const conv = (overrides: Partial<AgentConversation>): AgentConversation => ({
+    id: "c1",
+    agent_id: "a1",
+    client_id: "u1",
+    agent_name: "Pat Agent",
+    agent_email: "pat@example.com",
+    created_at: "2024-01-01T00:00:00.000Z",
+    updated_at: "2024-01-02T00:00:00.000Z",
+    ...overrides,
+  });
+
+  it("requires at least one conversation", () => {
+    expect(isPartnerWithAgentStepComplete([])).toBe(false);
+    expect(isPartnerWithAgentStepComplete([conv({})])).toBe(true);
+  });
+
+  it("dedupes multiple conversations with the same agent", () => {
+    const rows = [
+      conv({ id: "c1", updated_at: "2024-01-01T00:00:00.000Z" }),
+      conv({ id: "c2", updated_at: "2024-01-03T00:00:00.000Z" }),
+    ];
+    expect(listConnectedAgentsForPartnerStep(rows)).toHaveLength(1);
+    expect(listConnectedAgentsForPartnerStep(rows)[0]?.displayName).toBe("Pat Agent");
   });
 });
 

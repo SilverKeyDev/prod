@@ -51,6 +51,8 @@ export type SearchResultListingCardProps = {
    * precedence over `showNotInterested` / `CardNotInterested` in that corner.
    */
   topLeftOverlay?: ReactNode;
+  /** First card in the sidebar list: prioritize image for LCP. */
+  isLcpImage?: boolean;
 };
 
 export function SearchResultListingCard({
@@ -67,6 +69,7 @@ export function SearchResultListingCard({
   showMatchScore = true,
   bottomContent,
   topLeftOverlay,
+  isLcpImage = false,
 }: SearchResultListingCardProps): JSX.Element {
   const handleDismissMapPreviewPointerDown = useCallback((e: PointerEvent) => {
     e.stopPropagation();
@@ -114,6 +117,7 @@ export function SearchResultListingCard({
           height={activeTab === "results" ? "sm" : "responsive"}
           imageVariant="professional"
           className={activeTab === "saved" ? "rounded-t-lg" : ""}
+          isLcpImage={isLcpImage}
         />
 
         {activeTab === "results" && (
@@ -293,8 +297,6 @@ export function SearchResultListingCard({
                   score={getMatchScore(property)}
                   size="xs"
                   useColorStyling={true}
-                  listingStatus={property.listingStatus}
-                  homeStatus={property.homeStatus}
                   className="shrink-0"
                 />
               ) : null}

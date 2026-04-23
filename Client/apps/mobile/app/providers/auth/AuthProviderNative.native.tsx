@@ -15,6 +15,7 @@ import { ActivityIndicator, Linking, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { runAuthBootstrap } from "packages/features/homeauth";
+import { ClientSettingsBootstrap } from "packages/features/homeauth/components/ClientSettingsBootstrap";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { Text } from "packages/ui/components/primitives";
@@ -46,6 +47,7 @@ export function AuthProviderNative({ children }: AuthProviderNativeProps) {
   const setStoreAuthReady = useAuthStore((s) => s.setAuthReady);
   const setStoreUser = useAuthStore((s) => s.setUser);
   const setIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const authStatusRef = useRef(storeAuthStatus);
   authStatusRef.current = storeAuthStatus;
@@ -89,7 +91,12 @@ export function AuthProviderNative({ children }: AuthProviderNativeProps) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {isAuthenticated ? <ClientSettingsBootstrap /> : null}
+      {children}
+    </>
+  );
 }
 
 const styles = StyleSheet.create({

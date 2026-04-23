@@ -30,6 +30,8 @@ export function SidebarList(props: {
     isSelected: (propertyId: string) => boolean;
     onToggle: (propertyId: string) => void;
   };
+  /** Agent: bottom share dock is visible (≥1 home selected); drives top-left icon (search vs +). */
+  agentShareDockVisible?: boolean;
 }): JSX.Element {
   const {
     items,
@@ -41,6 +43,7 @@ export function SidebarList(props: {
     saveHome,
     removeSavedHome,
     agentShareBundle,
+    agentShareDockVisible = false,
   } = props;
   const SIDEBAR_INITIAL = 10;
   const SIDEBAR_PAGE_SIZE = 10;
@@ -157,7 +160,7 @@ export function SidebarList(props: {
   const itemsToRender = useIncrementalLoad ? displayItems.slice(0, visibleCount) : displayItems;
   return (
     <Box className="scrollbar-hide h-full space-y-3 overflow-y-auto pr-2">
-      {itemsToRender.map((property: SearchResult) => {
+      {itemsToRender.map((property: SearchResult, index: number) => {
         const showReasonCard = reasonCardPropertyId === property.id && activeTab === "results";
         const fullCriteriaMatch = isListingFullCriteriaMatch(property);
         return (
@@ -217,6 +220,7 @@ export function SidebarList(props: {
                 isHomeSaved={isHomeSaved}
                 saveHome={saveHome}
                 removeSavedHome={removeSavedHome}
+                isLcpImage={index === 0}
                 showNotInterested={activeTab === "results"}
                 onMarkNotInterested={() => setReasonCardPropertyId(property.id)}
                 topLeftOverlay={
@@ -228,6 +232,7 @@ export function SidebarList(props: {
                       }}
                       position="top-left"
                       size="sm"
+                      unselectedIcon={agentShareDockVisible ? "plus" : "search"}
                       ariaLabel={
                         agentShareBundle.isSelected(property.id)
                           ? t("search.agent_share_select_remove_aria")

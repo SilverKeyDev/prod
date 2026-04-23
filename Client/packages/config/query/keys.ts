@@ -80,6 +80,9 @@ export const queryKeys = {
     preferences: (preferencesSubjectUserId?: string | null) =>
       [...queryKeys.user.all, "preferences", preferencesSubjectUserId ?? "self"] as const,
     searchDisplay: () => [...queryKeys.user.all, "searchDisplay"] as const,
+    /** Scoped by authenticated user id (`self` until profile id is available). */
+    clientSettings: (userId?: string | null) =>
+      [...queryKeys.user.all, "clientSettings", userId ?? "self"] as const,
   },
 
   // Google Calendar domain
@@ -97,6 +100,21 @@ export const queryKeys = {
     all: ["scheduling"] as const,
     availability: (timeMin: string, timeMax: string, calendarIds?: string[]) =>
       [...queryKeys.scheduling.all, "availability", timeMin, timeMax, calendarIds] as const,
+    /** Agent: client Google free/busy for a window (calendar ids key for stable cache keys). */
+    clientAvailability: (
+      clientId: string,
+      timeMin: string,
+      timeMax: string,
+      calendarIdsKey: string
+    ) =>
+      [
+        ...queryKeys.scheduling.all,
+        "clientAvailability",
+        clientId,
+        timeMin,
+        timeMax,
+        calendarIdsKey,
+      ] as const,
     silverKeyCalendar: () => [...queryKeys.scheduling.all, "silverKeyCalendar"] as const,
   },
 
@@ -117,6 +135,8 @@ export const queryKeys = {
   // Agent domain
   agent: {
     all: ["agent"] as const,
+    recommendedAgents: (serializedContext: string) =>
+      [...queryKeys.agent.all, "recommended-agents", serializedContext] as const,
     clients: () => [...queryKeys.agent.all, "clients"] as const,
     conversations: () => [...queryKeys.agent.all, "conversations"] as const,
     conversation: (clientId?: string) => [...queryKeys.agent.conversations(), clientId] as const,

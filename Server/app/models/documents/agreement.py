@@ -39,6 +39,7 @@ class Agreement(db.Model):
     # DocuSign integration (nullable until sent)
     docusign_envelope_id: Mapped[str | None] = mapped_column(db.String(100), unique=True)
     docusign_status: Mapped[str | None] = mapped_column(db.String(50))  # Raw DocuSign status
+    docusign_source_template_id: Mapped[str | None] = mapped_column(db.String(100))
 
     # Metadata
     property_address: Mapped[str | None] = mapped_column(db.Text)
@@ -126,6 +127,7 @@ class Agreement(db.Model):
             "buyer_id": self.buyer_id,
             "current_revision_id": self.current_revision_id,  # derived from latest revision
             "docusign_envelope_id": self.docusign_envelope_id,
+            "docusign_source_template_id": self.docusign_source_template_id,
             "docusign_status": self.docusign_status,
             "property_address": self.property_address,
             "agreement_type": self.agreement_type,

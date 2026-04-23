@@ -285,7 +285,9 @@ If we begin selling or sharing personal information, we will:
 
 **No Third-Party Advertising Cookies:** We do not use cookies for cross-site tracking or behavioral advertising.
 
-**Cookie Preferences:** [Link to cookie preferences in Privacy Policy]
+**Cookie preferences:** We do not run third-party ad cookies. Manage browser or device storage as
+described in our [Privacy Policy](./PRIVACY_POLICY.md#cookie-preferences) (we do not offer a
+separate cookie “preference center” in the product at this time).
 
 ---
 

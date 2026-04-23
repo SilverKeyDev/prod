@@ -18,7 +18,7 @@ if _SERVER_ROOT not in sys.path:
     sys.path.insert(0, _SERVER_ROOT)
 
 from app import create_app  # noqa: E402
-from app.services.user.delete_user import delete_user_and_all_related_data  # noqa: E402
+from app.services.auth import delete_user_and_all_related_data  # noqa: E402
 
 
 def main() -> None:

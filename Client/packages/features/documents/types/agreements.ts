@@ -51,3 +51,17 @@ export type GetSenderViewUrlResponse = components["schemas"]["GetSenderViewUrlRe
 export type ListTemplatesResponse = components["schemas"]["ListTemplatesResponse"];
 export type SyncTemplatesResponse = components["schemas"]["SyncTemplatesResponse"];
 export type OAuthStartResponse = components["schemas"]["OAuthStartResponse"];
+export type DocusignCreateTemplateMetadataInput =
+  components["schemas"]["DocusignCreateTemplateMetadataInput"];
+export type DocusignCreateTemplateResponse =
+  components["schemas"]["DocusignCreateTemplateResponse"];
+export type DocusignGetTemplateDetailResponse =
+  components["schemas"]["DocusignGetTemplateDetailResponse"];
+export type DocusignGetTemplateEditUrlResponse =
+  components["schemas"]["DocusignGetTemplateEditUrlResponse"];
+export type DocusignDeleteTemplateResponse =
+  components["schemas"]["DocusignDeleteTemplateResponse"];
+export type DocusignTemplateRoleInfo = components["schemas"]["DocusignTemplateRoleInfo"];
+export type DocusignTemplateRoleMapEntry = components["schemas"]["DocusignTemplateRoleMapEntry"];
+export type CreateParticipantRequest = components["schemas"]["CreateParticipantRequest"];
+export type CreateParticipantResponse = components["schemas"]["CreateParticipantResponse"];

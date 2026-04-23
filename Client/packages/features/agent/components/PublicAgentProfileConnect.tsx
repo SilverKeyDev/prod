@@ -56,19 +56,20 @@ export function PublicAgentProfileConnect({
           type: "warning",
           message: t("profile.public.connect_toast_pending"),
         });
-        return;
+      } else {
+        enqueueToast({
+          type: "success",
+          message: t("profile.public.connect_toast_success"),
+        });
       }
-      enqueueToast({
-        type: "success",
-        message: t("profile.public.connect_toast_success"),
-      });
+      navigate("DASHBOARD", undefined, { replace: true });
     } catch (err: unknown) {
       enqueueToast({
         type: "error",
         message: connectionRequestApiErrorMessage(err, t("profile.public.connect_request_error")),
       });
     }
-  }, [agentId, createRequestAsInitiator, enqueueToast, initiatorId, initiatorIsAgent, t]);
+  }, [agentId, createRequestAsInitiator, enqueueToast, initiatorId, initiatorIsAgent, navigate, t]);
 
   const handleConnectPress = useCallback(() => {
     if (!authReady) return;

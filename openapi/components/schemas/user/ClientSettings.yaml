@@ -1,0 +1,56 @@
+type: object
+description: >-
+  User-scoped client UI settings (library layout/sort, saved tab, calendar view, optional onboarding draft).
+  Stored as a versioned JSON document; GET returns merged defaults for missing keys.
+properties:
+  v:
+    type: integer
+    description: Document version (client/schema).
+  library:
+    type: object
+    properties:
+      homes:
+        $ref: "./LibraryTabClientSettings.yaml"
+      documents:
+        $ref: "./LibraryTabClientSettings.yaml"
+      docusign:
+        $ref: "./LibraryTabClientSettings.yaml"
+    additionalProperties: false
+  saved:
+    type: object
+    properties:
+      tab:
+        type: string
+        enum:
+          - homes
+          - documents
+          - agreements
+    additionalProperties: false
+  calendar:
+    type: object
+    properties:
+      shell:
+        type: string
+        enum:
+          - week
+          - month
+        description: Main calendar shell (agent dashboard / Google-connected calendar).
+      availability:
+        type: string
+        enum:
+          - week
+          - month
+        description: Local availability calendar (profile availability editor).
+    additionalProperties: false
+  viewing_tour:
+    allOf:
+      - $ref: ./ViewingTourClientSettings.yaml
+    nullable: true
+    description: Saved tour anchors and defaults for multi-stop property viewings.
+  onboarding_draft:
+    type: object
+    nullable: true
+    description: >-
+      Partial onboarding / profile form payload for refresh recovery. Omitted when empty.
+    additionalProperties: true
+additionalProperties: true

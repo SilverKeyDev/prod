@@ -19,7 +19,7 @@ import { useConnectionRequests } from "./useConnectionRequests";
  */
 export function useResumePendingAgentPublicConnect(): void {
   const { t } = useLocalization();
-  const { getCurrentRoute } = useNavigation();
+  const { getCurrentRoute, navigate } = useNavigation();
   const authReady = useAuthStore((s) => s.authReady);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { userProfile, userProfileLoading } = useUserData();
@@ -65,6 +65,7 @@ export function useResumePendingAgentPublicConnect(): void {
             message: t("profile.public.connect_toast_success"),
           });
         }
+        navigate("DASHBOARD", undefined, { replace: true });
       } catch (err: unknown) {
         clearPendingPublicAgentConnect();
         enqueueToast({
@@ -81,6 +82,7 @@ export function useResumePendingAgentPublicConnect(): void {
     userProfile,
     userProfileLoading,
     getCurrentRoute,
+    navigate,
     createRequestAsInitiator,
     enqueueToast,
     t,

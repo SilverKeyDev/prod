@@ -74,6 +74,7 @@ export function ProfileFeatureSectionPanels({
             patchBuyerPreferenceExtensions,
             scriptsReady,
             loadError,
+            agentSubject,
           })}
         </PersonalizationSectionPanel>
       ))}

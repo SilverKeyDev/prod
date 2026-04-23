@@ -43,8 +43,12 @@ export type ProgressiveChecklistSegment =
 
 export type BuildProgressiveChecklistRowsOptions = {
   previewUpcoming: number;
-  completedOpen: boolean;
   futureOpen: boolean;
+  /**
+   * When set, this completed item is shown as a row even though the rest of
+   * completed history stays collapsed (e.g. roadmap prerequisite reveal).
+   */
+  revealedCompletedItemId?: number | null;
 };
 
 export function buildProgressiveChecklistRows(
@@ -70,10 +74,19 @@ export function buildProgressiveChecklistRows(
   const segments: ProgressiveChecklistSegment[] = [];
 
   if (completed.length > 0) {
-    if (options.completedOpen) {
-      completed.forEach((item, i) => {
-        segments.push({ kind: "completed_item", item, globalIndex: i });
-      });
+    const revealId = options.revealedCompletedItemId ?? null;
+    const revealIdx = revealId != null ? completed.findIndex((it) => it.id === revealId) : -1;
+    if (revealIdx >= 0) {
+      const before = completed.slice(0, revealIdx);
+      const revealed = completed[revealIdx]!;
+      const after = completed.slice(revealIdx + 1);
+      if (before.length > 0) {
+        segments.push({ kind: "completed_collapsed", count: before.length });
+      }
+      segments.push({ kind: "completed_item", item: revealed, globalIndex: revealIdx });
+      if (after.length > 0) {
+        segments.push({ kind: "completed_collapsed", count: after.length });
+      }
     } else {
       segments.push({ kind: "completed_collapsed", count: completed.length });
     }

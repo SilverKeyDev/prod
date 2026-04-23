@@ -39,7 +39,6 @@ export type FiltersState = {
   resultsSortDirection: ResultsSortDirection;
   userGeolocation: { lat: number; lng: number } | null;
   preferencesStrictFilter: boolean;
-  showMapListingPreviews: boolean;
   dismissedMapPreviewIds: string[];
 
   setActiveTab: (tab: ActiveTab) => void;
@@ -58,7 +57,6 @@ export type FiltersState = {
   setUserGeolocation: (coords: { lat: number; lng: number } | null) => void;
   setPreferencesStrictFilter: (strict: boolean) => void;
   applySearchDisplayFromApi: (payload: SearchDisplayPayload) => void;
-  setShowMapListingPreviews: (show: boolean) => void;
   dismissMapListingPreview: (propertyId: string) => void;
   restoreMapListingPreview: (propertyId: string) => void;
   clearDismissedMapPreviews: () => void;

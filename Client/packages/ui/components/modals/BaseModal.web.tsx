@@ -87,8 +87,12 @@ function BaseModalPanel({
 
 function BaseModalContent(p: BaseModalContentProps) {
   const { onClose, closeOnBackdropClick = true, backdropClassName = "", zIndex, ...rest } = p;
-  const handleBackdropClick = () => {
-    if (closeOnBackdropClick) onClose();
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (!closeOnBackdropClick) return;
+    // Portaled pickers (e.g. date popover above this modal) can unmount mid–double-click; the
+    // trailing click may land on the backdrop and must not dismiss the parent dialog.
+    if (e.detail > 1) return;
+    onClose();
   };
   const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
     if ((e.key === "Enter" || e.key === " ") && closeOnBackdropClick) {

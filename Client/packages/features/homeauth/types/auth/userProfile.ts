@@ -1,6 +1,5 @@
 // User profile type (app-level)
-import type { AuthMethod } from "./roles";
-import type { UserRole } from "./roles";
+import type { AuthMethod, UserRole } from "packages/features/homeauth/types/roles";
 
 export type UserProfile = {
   id: string;

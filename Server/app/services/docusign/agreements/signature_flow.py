@@ -15,9 +15,35 @@ from .agent_counter_signer import ensure_agent_counter_signer
 from .agreement_crud import get_agreement
 from .agreement_library_cleanup import delete_agreement_library_item
 from .participant_operations import sync_signer_participant
-from .send_envelope_validation import validate_send_envelope_options
+from .send_envelope_validation import (
+    validate_send_envelope_options,
+    validate_template_agreement_send,
+)
 
 logger = get_logger()
+
+
+def _autofill_single_role_template_map_if_needed(agreement, opts: dict) -> None:
+    """When DocuSign template has exactly one signer role and one signer participant, build the map."""
+    if not agreement.docusign_source_template_id or opts.get("template_role_map"):
+        return
+    try:
+        client = DocusignClient(auth_type="jwt")
+        role_names = client.get_template_role_name_set(str(agreement.docusign_source_template_id))
+    except Exception:  # noqa: S110 — optional convenience; strict validation follows
+        return
+    if len(role_names) != 1:
+        return
+    signers = [
+        p
+        for p in list(agreement.participants)  # pyright: ignore[reportArgumentType]
+        if p.role == "signer"
+    ]
+    if len(signers) != 1:
+        return
+    opts["template_role_map"] = [
+        {"participant_id": str(signers[0].id), "role_name": next(iter(role_names))}
+    ]
 
 
 @transactional
@@ -65,7 +91,8 @@ def send_for_signature(
         )
         raise AgreementStateError(f"Cannot send agreement with status: {agreement.status}")
 
-    if not agreement.current_revision_id:
+    is_template_send = bool(agreement.docusign_source_template_id)
+    if not is_template_send and not agreement.current_revision_id:
         logger.warn(
             LOG_CATEGORIES["DOCUSIGN"],
             "Cannot send agreement - no revision",
@@ -87,7 +114,8 @@ def send_for_signature(
         },
     )
 
-    if selected_participant_user_id:
+    # Template-based agreements use explicit multi-signer participants only (no legacy single-signer sync).
+    if not is_template_send and selected_participant_user_id:
         sync_signer_participant(
             agreement=agreement,
             participant_user_id=selected_participant_user_id,
@@ -96,10 +124,11 @@ def send_for_signature(
         db.session.flush()
         db.session.expire(agreement, ["participants"])
 
-    # Add agent as counter-signer (routing_order=2) for sequential signing
-    ensure_agent_counter_signer(agreement, actor_id)
-    db.session.flush()
-    db.session.expire(agreement, ["participants"])
+    # Add agent as counter-signer (routing_order=2) for sequential signing (PDF agreements only)
+    if not is_template_send:
+        ensure_agent_counter_signer(agreement, actor_id)
+        db.session.flush()
+        db.session.expire(agreement, ["participants"])
 
     if not agreement.participants:
         logger.warn(
@@ -120,18 +149,21 @@ def send_for_signature(
         )
 
     # Validate sequential signing requires a primary signer (routing_order=1)
-    # before the agent counter-signer (routing_order=2)
-    first_order_signers = [
-        p
-        for p in list(agreement.participants)  # pyright: ignore[reportArgumentType]
-        if p.role == "signer" and p.routing_order == 1
-    ]
-    if not first_order_signers:
-        raise AgreementStateError(
-            "Agreement must have at least one primary signer (routing_order=1). "
-            "Provide a participant_user_id or ensure a buyer is assigned."
-        )
+    # before the agent counter-signer (routing_order=2), for PDF-based envelopes only.
+    if not is_template_send:
+        first_order_signers = [
+            p
+            for p in list(agreement.participants)  # pyright: ignore[reportArgumentType]
+            if p.role == "signer" and p.routing_order == 1
+        ]
+        if not first_order_signers:
+            raise AgreementStateError(
+                "Agreement must have at least one primary signer (routing_order=1). "
+                "Provide a participant_user_id or ensure a buyer is assigned."
+            )
 
+    _autofill_single_role_template_map_if_needed(agreement, opts)
+    validate_template_agreement_send(agreement, opts)
     validate_send_envelope_options(agreement, opts)
 
     # RelationshipProperty resolves to collection at runtime; Pyright does not treat it as Iterable
@@ -144,6 +176,7 @@ def send_for_signature(
             "signing_method": signing_method,
             "participant_count": len(participants_list),
             "revision_id": agreement.current_revision_id,
+            "template_send": is_template_send,
         },
     )
 

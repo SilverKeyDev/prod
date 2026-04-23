@@ -1,46 +1,36 @@
 /**
  * ChecklistStepForms – agent-only forms for a checklist step (suggested_form_ids).
- * Clients receive PDFs when the agent sends a form via messaging.
+ * Uses the same document row actions as the forms library (view, DocuSign, download, share).
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo } from "react";
 
 import { useLocalization } from "packages/contexts";
-import type { ChecklistFormsCardVariant } from "packages/features/checklists/utils/rules/getFormsCardVariant";
 import {
   type ChecklistForm,
   checklistFormsApi,
   useChecklistForms,
 } from "packages/features/documents";
-import { useChecklistFormSendContext } from "packages/hooks/data";
+import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
+import { checklistFormToDocumentData } from "packages/features/documents/utils/forms/checklistFormToDocumentData";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
-import type { DocumentData } from "packages/ui/components/cards/document/types";
+import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
+import DocumentListRow from "packages/ui/components/cards/document/DocumentListRow";
+import type {
+  DocumentCardExternalActionHandlers,
+  DocumentData,
+} from "packages/ui/components/cards/document/types";
+import { PdfModal } from "packages/ui/components/modals";
+import { Portal } from "packages/ui/components/portal";
 import { Box, Text } from "packages/ui/components/primitives";
-
-import FormCard from "./FormCard";
-
-function checklistFormToSyntheticDocument(form: ChecklistForm): DocumentData {
-  return {
-    id: form.id,
-    filename: `${form.form_key}.pdf`,
-    file_path: form.s3_template_path,
-    status: "template",
-    created_at: form.deadline ?? null,
-    updated_at: null,
-    user_id: "",
-    document_type: form.category ?? "Form",
-    address: null,
-  };
-}
+import { tryWebShareUrl } from "packages/utils/share";
 
 type ChecklistStepFormsProps = {
   transactionId: string;
   section: string;
   itemId: number;
   isAgent: boolean;
-  formsCardVariant?: ChecklistFormsCardVariant;
 };
 
 export default function ChecklistStepForms({
@@ -48,124 +38,160 @@ export default function ChecklistStepForms({
   section,
   itemId,
   isAgent,
-  formsCardVariant = "default",
 }: ChecklistStepFormsProps) {
   const { t } = useLocalization();
-  const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
-  const [sendingFormId, setSendingFormId] = useState<string | null>(null);
-
-  const hubClientId = transactionId;
-  const { conversationId: conversationIdResolved } = useChecklistFormSendContext(hubClientId);
 
   const { forms, isLoading, error } = useChecklistForms(transactionId, section, itemId, isAgent);
 
-  const openDownloadUrl = useCallback((form: ChecklistForm) => {
-    if (!form.download_url) return;
-    // eslint-disable-next-line no-restricted-globals
-    window.open(form.download_url, "_blank", "noopener,noreferrer");
-  }, []);
+  const {
+    openPdfModal,
+    closePdfModal,
+    currentPdf,
+    currentDocumentName,
+    currentDocumentId,
+    downloadFile,
+  } = useDocumentActions();
 
-  const handleDownload = async (form: ChecklistForm) => {
-    if (!form.download_url) {
-      log.error(LOG_CATEGORIES.ERRORS, "Form has no download URL", {
-        formId: form.id,
-      });
-      return;
+  const formById = useMemo(() => {
+    const map = new Map<string, ChecklistForm>();
+    for (const form of forms) {
+      map.set(form.id, form);
     }
+    return map;
+  }, [forms]);
 
-    setDownloadingFormId(form.id);
-    try {
-      const response = await checklistFormsApi.downloadForm(
-        transactionId,
-        section,
-        itemId,
-        form.id
-      );
+  const resolveForm = useCallback(
+    (documentId: string): ChecklistForm | undefined => formById.get(documentId),
+    [formById]
+  );
 
-      // eslint-disable-next-line no-restricted-globals
-      window.open(response.download_url, "_blank", "noopener,noreferrer");
+  const handleViewDocument = useCallback(
+    (documentId: string, documentName: string) => {
+      const form = resolveForm(documentId);
+      if (form?.download_url) {
+        openPdfModal(form.download_url, documentName, undefined);
+        return;
+      }
+      log.error(LOG_CATEGORIES.ERRORS, "Form has no view URL", { documentId });
+    },
+    [openPdfModal, resolveForm]
+  );
 
-      log.info(LOG_CATEGORIES.API, "Form downloaded", {
-        formId: form.id,
-        formKey: form.form_key,
-      });
-    } catch (err) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to download form", err);
-      showErrorToast(
-        t("checklists.download_form_error", {
-          defaultValue: "Could not download the form. Please try again.",
-        })
-      );
-    } finally {
-      setDownloadingFormId(null);
-    }
-  };
-
-  const handleSend = useCallback(
-    async (form: ChecklistForm) => {
-      const existingId = conversationIdResolved;
-      const payload = {
-        method: "messaging" as const,
-        conversation_id: existingId ?? "new",
-        ...(existingId ? {} : { client_id: hubClientId }),
-      };
-
-      setSendingFormId(form.id);
+  const handleDownloadDocument = useCallback(
+    async (documentId: string, documentName: string) => {
+      const form = resolveForm(documentId);
+      if (!form?.download_url) {
+        log.error(LOG_CATEGORIES.ERRORS, "Form has no download URL", { documentId });
+        return;
+      }
       try {
-        const res = await checklistFormsApi.sendForm(
+        const response = await checklistFormsApi.downloadForm(
           transactionId,
           section,
           itemId,
-          form.id,
-          payload
+          form.id
         );
+        const safeName = `${documentName
+          .replace(/\.pdf$/i, "")
+          .replace(/[^a-z0-9]/gi, "_")
+          .toLowerCase()}.pdf`;
+        downloadFile(response.download_url, safeName);
+      } catch (err) {
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to download form", err);
+        showErrorToast(
+          t("checklists.download_form_error", {
+            defaultValue: "Could not download the form. Please try again.",
+          })
+        );
+      }
+    },
+    [downloadFile, itemId, resolveForm, section, t, transactionId]
+  );
+
+  const handleShareDocument = useCallback(
+    async (documentId: string, documentName: string) => {
+      const form = resolveForm(documentId);
+      if (!form?.download_url) {
+        return { success: false, message: "No shareable link for this form." };
+      }
+      const shareTitle =
+        documentName
+          .replace(/\.pdf$/i, "")
+          .replace(/_/g, " ")
+          .trim() || form.title;
+      const shareResult = await tryWebShareUrl({
+        title: shareTitle,
+        text: form.title,
+        url: form.download_url,
+      });
+      if (shareResult === "shared") {
+        return { success: true, message: "Shared successfully" };
+      }
+      if (shareResult === "aborted") {
+        return { success: false, message: "Share cancelled" };
+      }
+      const copied = await secureClipboardCopy(form.download_url);
+      if (copied) {
+        return { success: true, message: "Link copied to clipboard" };
+      }
+      return { success: false, message: "Failed to copy link" };
+    },
+    [resolveForm]
+  );
+
+  const handleSendDocusign = useCallback(
+    async (form: ChecklistForm) => {
+      try {
+        const res = await checklistFormsApi.sendForm(transactionId, section, itemId, form.id, {
+          method: "docusign",
+        });
         if (!res.success) {
           showErrorToast(
             res.error ??
-              t("checklists.send_form_error", {
-                defaultValue: "Could not send the form. Try again or open Messaging.",
+              t("checklists.send_form_docusign_error", {
+                defaultValue: "Could not send for signature. Try again.",
               })
           );
           return;
         }
         showSuccessToast(
-          t("checklists.send_form_success", {
-            defaultValue: "Form sent to your client.",
+          t("checklists.send_form_docusign_success", {
+            defaultValue: "Sent for signature.",
           })
         );
-        log.info(LOG_CATEGORIES.API, "Checklist form sent via messaging", {
+        log.info(LOG_CATEGORIES.API, "Checklist form sent via DocuSign", {
           formId: form.id,
-          messageId: res.message_id,
+          agreementId: res.agreement_id,
         });
       } catch (err) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to send checklist form", err);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to send checklist form via DocuSign", err);
         showErrorToast(
-          t("checklists.send_form_error", {
-            defaultValue: "Could not send the form. Try again or open Messaging.",
+          t("checklists.send_form_docusign_error", {
+            defaultValue: "Could not send for signature. Try again.",
           })
         );
-      } finally {
-        setSendingFormId(null);
       }
     },
-    [conversationIdResolved, hubClientId, itemId, section, t, transactionId]
+    [itemId, section, t, transactionId]
   );
 
-  const documentCardHandlers = useCallback(
-    (form: ChecklistForm) => ({
-      handleViewDocument: (_documentId: string, _documentName: string) => {
-        openDownloadUrl(form);
-      },
-      handleDownloadDocument: async (_documentId: string, _documentName: string) => {
-        openDownloadUrl(form);
-      },
-      handleShareDocument: async (_documentId: string, _documentName: string) => {
-        openDownloadUrl(form);
-        return { success: true as const, message: "" };
-      },
+  const handleSendForSignatureDoc = useCallback(
+    (doc: DocumentData) => {
+      const form = resolveForm(doc.id);
+      if (form) void handleSendDocusign(form);
+    },
+    [handleSendDocusign, resolveForm]
+  );
+
+  const listActionHandlers: DocumentCardExternalActionHandlers = useMemo(
+    () => ({
+      handleViewDocument,
+      handleDownloadDocument,
+      handleShareDocument,
+      handleSendForSignature: handleSendForSignatureDoc,
       isAgent: true,
     }),
-    [openDownloadUrl]
+    [handleDownloadDocument, handleSendForSignatureDoc, handleShareDocument, handleViewDocument]
   );
 
   if (!isAgent) {
@@ -222,37 +248,26 @@ export default function ChecklistStepForms({
       </Box>
 
       <Box className="flex flex-col gap-3">
-        {forms.map((form) =>
-          formsCardVariant === "document" ? (
-            <Box key={form.id} className="flex flex-col gap-2">
-              <DocumentCard
-                doc={checklistFormToSyntheticDocument(form)}
-                showDelete={false}
-                externalActionHandlers={documentCardHandlers(form)}
-              />
-              <FormCard
-                form={form}
-                onDownload={() => handleDownload(form)}
-                onSend={() => void handleSend(form)}
-                isDownloading={downloadingFormId === form.id}
-                isSending={sendingFormId === form.id}
-                showSendButton
-                sendOnlyRow
-              />
-            </Box>
-          ) : (
-            <FormCard
-              key={form.id}
-              form={form}
-              onDownload={() => handleDownload(form)}
-              onSend={() => void handleSend(form)}
-              isDownloading={downloadingFormId === form.id}
-              isSending={sendingFormId === form.id}
-              showSendButton
-            />
-          )
-        )}
+        {forms.map((form) => (
+          <DocumentListRow
+            key={form.id}
+            doc={checklistFormToDocumentData(form)}
+            showDelete={false}
+            externalActionHandlers={listActionHandlers}
+          />
+        ))}
       </Box>
+
+      {currentPdf ? (
+        <Portal>
+          <PdfModal
+            currentPdf={currentPdf}
+            currentReportAddress={currentDocumentName}
+            reportId={currentDocumentId}
+            onClose={closePdfModal}
+          />
+        </Portal>
+      ) : null}
     </Box>
   );
 }

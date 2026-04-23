@@ -1,0 +1,10 @@
+allOf:
+  - $ref: "../../shared/core/SuccessResponse.yaml"
+  - type: object
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        description: Machine-readable export of profile-related data for the authenticated user.
+        additionalProperties: true

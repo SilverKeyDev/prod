@@ -32,6 +32,19 @@ RELAXED_REL_PATHS = frozenset(
     {"app/routes", "app/models/user", "app/utils", "app/services", "tests/unit"}
 )
 RELAXED_ERROR_THRESHOLD = 48
+# Package roots with many siblings: warn only above this (keeps signal on small folders).
+RELAXED_WARN_REL_PATHS = frozenset(
+    {
+        "app/models/property",
+        "app/models/user",
+        "app/routes",
+        "app/routes/auth/handlers",
+        "app/services",
+        "app/services/search/home_matching/mcda/criteria",
+        "app/utils",
+    }
+)
+RELAXED_WARN_THRESHOLD = 24
 
 
 def server_root():
@@ -80,7 +93,7 @@ def main() -> int:
         count = count_direct_children(dirpath)
         rel_posix = _rel_posix(dirpath, root)
         error_cap = RELAXED_ERROR_THRESHOLD if rel_posix in RELAXED_REL_PATHS else ERROR_THRESHOLD
-        warn_cap = WARN_THRESHOLD
+        warn_cap = RELAXED_WARN_THRESHOLD if rel_posix in RELAXED_WARN_REL_PATHS else WARN_THRESHOLD
         if count < warn_cap:
             continue
         is_error = count >= error_cap

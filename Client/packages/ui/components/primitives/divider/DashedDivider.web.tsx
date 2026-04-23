@@ -5,7 +5,7 @@
 
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives/box";
 
 import {
   DASHED_DIVIDER_HORIZONTAL_CLASSES,

@@ -17,6 +17,13 @@ import {
   googleAllDayEndExclusiveToInclusiveEndYmd,
   quantizeHourMinute,
 } from "@/features/calendar/utils/parsing/eventFormGooglePayload";
+import type {
+  ViewingRouteEndMode,
+  ViewingRouteEndpoint,
+  ViewingTourAnchor,
+  ViewingTourStartSelection,
+} from "@/features/calendar/utils/viewing/viewingRoutePlan";
+import { inferViewingTourStartSelection } from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 export type UseCreateEventModalEffectsParams = {
   isOpen: boolean;
@@ -40,7 +47,10 @@ export type UseCreateEventModalEffectsParams = {
   setIsSavingUnscheduled: (v: boolean) => void;
   setViewingStops: (stops: ViewingStop[]) => void;
   setEventKindId: (id: CalendarEventKindId) => void;
-  setAgentMultiStopViewing: (v: boolean) => void;
+  viewingTourAnchors: ViewingTourAnchor[];
+  setViewingStartSelection: (v: ViewingTourStartSelection) => void;
+  setViewingEndMode: (v: ViewingRouteEndMode) => void;
+  setViewingEndFixed: (v: ViewingRouteEndpoint | null) => void;
 };
 
 /**
@@ -69,7 +79,10 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
     setIsSavingUnscheduled,
     setViewingStops,
     setEventKindId,
-    setAgentMultiStopViewing,
+    viewingTourAnchors,
+    setViewingStartSelection,
+    setViewingEndMode,
+    setViewingEndFixed,
   } = p;
 
   /** Avoid re-seeding on every `existingEvent` reference change (parent re-renders), which cleared edits on blur. */
@@ -95,14 +108,23 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
     setEventTitle(existingEvent.summary || "");
     setEventDescription(existingEvent.description || "");
     setEventLocation(existingEvent.location || "");
-    const itineraryStops = existingEvent.itinerary?.stops;
+    const itinerary = existingEvent.itinerary;
+    const itineraryStops = itinerary?.stops;
     if (itineraryStops && itineraryStops.length > 0) {
       setViewingStops(itineraryStops);
       setEventKindId("property_viewings");
-      setAgentMultiStopViewing(itineraryStops.length > 1);
+      setViewingStartSelection(
+        inferViewingTourStartSelection(itinerary?.start ?? null, viewingTourAnchors)
+      );
+      setViewingEndMode(
+        (itinerary?.end_mode as ViewingRouteEndMode | undefined) ?? "last_property"
+      );
+      setViewingEndFixed(itinerary?.end ?? null);
     } else {
       setViewingStops([]);
-      setAgentMultiStopViewing(false);
+      setViewingStartSelection({ kind: "omit" });
+      setViewingEndMode("last_property");
+      setViewingEndFixed(null);
       const matched = calendarEventKindFromSummary(existingEvent.summary || "");
       setEventKindId(matched ?? "other");
     }
@@ -160,7 +182,10 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
     setStartTime,
     setViewingStops,
     setEventKindId,
-    setAgentMultiStopViewing,
+    viewingTourAnchors,
+    setViewingStartSelection,
+    setViewingEndMode,
+    setViewingEndFixed,
   ]);
 
   useEffect(() => {
@@ -233,6 +258,9 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
       setEventDescription("");
       setEventLocation("");
       setViewingStops([]);
+      setViewingStartSelection({ kind: "omit" });
+      setViewingEndMode("last_property");
+      setViewingEndFixed(null);
       setSelectedClientId(null);
       setIsAllDay(false);
       setStartDate("");
@@ -241,7 +269,6 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
       setEndTime("10:00");
       setIsSavingUnscheduled(false);
       setEventKindId("other");
-      setAgentMultiStopViewing(false);
     }
   }, [
     isOpen,
@@ -257,6 +284,8 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
     setStartTime,
     setViewingStops,
     setEventKindId,
-    setAgentMultiStopViewing,
+    setViewingStartSelection,
+    setViewingEndMode,
+    setViewingEndFixed,
   ]);
 }

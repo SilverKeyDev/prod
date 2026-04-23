@@ -7,6 +7,8 @@ type ImportMetaEnv = {
   readonly VITE_GOOGLE_MAPS_ID: string;
   readonly VITE_GOOGLE_CLIENT_ID: string;
   readonly VITE_PLAID_CLIENT_ID: string;
+  readonly VITE_PUBLIC_SITE_URL: string;
+  readonly VITE_GOOGLE_SITE_VERIFICATION: string;
 
   // Development
   readonly DEV: boolean;

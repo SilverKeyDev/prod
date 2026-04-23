@@ -139,11 +139,14 @@ export const AUTH_CONFIG = {
     "/terms",
     "/about",
     "/contact",
+    "/agent-profile",
+    "/property",
   ],
 
   // Routes that require authentication
   PROTECTED_ROUTES: [
     "/dashboard",
+    "/find-agents",
     "/search",
     "/past-reports",
     "/compare-reports",

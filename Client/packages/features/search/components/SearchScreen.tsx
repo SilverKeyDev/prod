@@ -2,6 +2,7 @@
 import React, { useCallback, useState } from "react";
 
 import { useSearchPageData } from "packages/features/search/hooks/data/page/useSearchPageData";
+import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/search/hooks/data/useAgentSyncPreferencesWhenClientSelected";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useSearchScreenCriteriaSummary } from "packages/features/search/hooks/ui/useSearchScreenCriteriaSummary";
 import { useSearchScreenSearchExecution } from "packages/features/search/hooks/ui/useSearchScreenSearchExecution";
@@ -32,13 +33,13 @@ export function SearchScreen() {
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
   const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
+  useAgentSyncPreferencesWhenClientSelected(selectedClientId);
   const setSearchSource = useFiltersStore((s) => s.setSearchSource);
   const lastMapRegion = useFiltersStore((s) => s.lastMapRegion);
   const showCommuteOverlay = useFiltersStore((s) => s.showCommuteOverlay);
   const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);
   const preferencesStrictFilter = useFiltersStore((s) => s.preferencesStrictFilter);
   const clearDismissedMapPreviews = useFiltersStore((s) => s.clearDismissedMapPreviews);
-  const setShowMapListingPreviewsAction = useFiltersStore((s) => s.setShowMapListingPreviews);
   const authReady = useAuthStore((s) => s.authReady);
   useSearchDisplaySettings(authReady);
 
@@ -104,7 +105,6 @@ export function SearchScreen() {
     setCurrentPage,
     setShowPropertyModals,
     clearDismissedMapPreviews,
-    setShowMapListingPreviewsAction,
   });
 
   const runMapAreaSearch = useCallback(async () => {

@@ -7,6 +7,7 @@ import { QuickEventPopover } from "packages/features/calendar/components/view/Qu
 import Card from "packages/ui/components/cards/Card";
 import { Box, Text } from "packages/ui/components/primitives";
 
+import type { GoogleCalendar } from "@/features/calendar/api/types";
 import { useCalendarScreen } from "@/features/calendar/hooks/data/core/useCalendarScreen";
 
 import { CalendarMonthBody } from "./CalendarMonthBody";
@@ -92,25 +93,30 @@ export function Calendar({
     );
   }
 
-  const cellWidth = `${100 / 7}%` as const;
-  const styles = buildCalendarMonthGridStyles(cellWidth, spacing);
+  const styles = buildCalendarMonthGridStyles(spacing);
 
   const q = screen.quickCreate;
 
+  const selectedDayListHeading =
+    showSelectedDayEventList && screen.selectedDayKey !== null
+      ? screen.getSelectedDayListHeading(screen.selectedDayKey)
+      : null;
   return (
     <Card border="none" className="w-full" padding="none" hover={false}>
       <Box ref={screen.calendarShellRef} style={styles.container}>
-        {showSelectedDayEventList && screen.selectedDayKey !== null ? (
+        {showSelectedDayEventList && screen.selectedDayKey !== null && selectedDayListHeading ? (
           <Box
             style={{
-              paddingHorizontal: spacing(4),
+              paddingHorizontal: spacing(3),
               paddingTop: spacing(3),
+              marginBottom: spacing(3),
               width: "100%",
             }}
           >
             <EventList
               events={screen.selectedEvents}
-              title={screen.formatDayEventsTitle(screen.selectedDayKey)}
+              title={selectedDayListHeading.title}
+              subtitle={selectedDayListHeading.subtitle}
               emptyMessage="No events for this day"
               silverKeyCalendarId={screen.silverKeyCalendarId}
               refreshEvents={
@@ -124,6 +130,7 @@ export function Calendar({
               deleteEvent={screen.isClientView ? undefined : screen.deleteEvent}
               calendars={screen.gridCalendars}
               border="light"
+              density="compact"
             />
           </Box>
         ) : null}
@@ -150,6 +157,7 @@ export function Calendar({
                 quickCreateDraftId={screen.quickCreateDraftIdForAnchor}
                 quickCreateDayKey={screen.quickCreateDayKey}
                 isLargeScreen={screen.isLargeScreen}
+                calendars={screen.gridCalendars as GoogleCalendar[]}
               />
             ) : null}
             {screen.viewMode === "week" ? (
@@ -215,6 +223,8 @@ export function Calendar({
           }
           isSubmitting={screen.isCreatingQuickEvent}
           onCommit={() => void screen.commitQuickCreate()}
+          onDismiss={screen.discardQuickCreate}
+          registerOutsideClickSafeTarget={screen.registerQuickCreateOutsideSafeTarget}
           onEditDetails={screen.handleEditDetailsFromQuickCreate}
         />
       ) : null}

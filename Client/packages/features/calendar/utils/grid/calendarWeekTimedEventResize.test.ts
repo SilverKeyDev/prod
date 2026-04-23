@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  clampSnapTimedRangeForSameDay,
   canResizeWeekTimedEvent,
+  clampSnapTimedRangeForSameDay,
 } from "./calendarWeekTimedEventResize";
 
 describe("canResizeWeekTimedEvent", () => {

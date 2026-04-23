@@ -70,7 +70,7 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
     baseRoutes.push(
       <Route
         key="/agent-profile"
-        path="/agent-profile/:agentId/:slug?"
+        path="/agent-profile/:name/:briefSlug"
         element={<AgentProfilePage />}
         errorElement={<RouteErrorBoundary />}
       />

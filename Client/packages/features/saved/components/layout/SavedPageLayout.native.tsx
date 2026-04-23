@@ -13,9 +13,13 @@ import { SavedHomesList } from "packages/features/saved/components/layout/SavedH
 import type { SavedPageLayoutProps } from "packages/features/saved/components/layout/SavedPageLayout";
 import { SavedPageNativeCompareBar } from "packages/features/saved/components/SavedPageNativeCompareBar.native";
 import { SavedPageNativeModals } from "packages/features/saved/components/SavedPageNativeModals.native";
+import {
+  sortAndFilterAgreementsForLibrary,
+  sortDocumentsForLibrary,
+  sortSavedHomesForLibrary,
+} from "packages/features/saved/utils/librarySort";
 import type { SavedHome } from "packages/types";
 import { ScrollView } from "packages/ui/components/primitives";
-import { dateParseISO } from "packages/utils/date";
 import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
 
 type _EventTypeFilter = "listed" | "price_change" | "sold" | "withdrawn" | "";
@@ -32,6 +36,11 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     eventTypeFilter,
     setEventTypeFilter,
     setViewType,
+    libraryViewMode: _libraryViewMode,
+    onLibraryViewModeChange: _onLibraryViewModeChange,
+    showLibraryViewToggle: _showLibraryViewToggle,
+    documentsSubtab: _documentsSubtab,
+    onDocumentsSubtabChange: _onDocumentsSubtabChange,
     filteredHomes,
     filteredDocuments,
     loading,
@@ -69,6 +78,8 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     refetchDocuments: _refetchDocuments,
     refresh,
     refreshing,
+    librarySortKey,
+    onLibrarySortChange,
   } = nativeProps;
 
   const { t } = useLocalization();
@@ -79,24 +90,26 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
 
   const documentsLoadingCombined = documentsLoadingState;
 
-  const sortedDocuments = useMemo(() => {
-    const toMs = (v: number | string | null | undefined) =>
-      typeof v === "number" ? v : v ? dateParseISO(v).valueOf() : 0;
-    return [...(filteredDocuments as DocumentData[])].sort((a, b) => {
-      const dateA = toMs(a.created_at ?? a.updated_at);
-      const dateB = toMs(b.created_at ?? b.updated_at);
-      return dateB - dateA;
-    });
-  }, [filteredDocuments]);
+  const sortedDocumentsExcludingAgreements = useMemo(() => {
+    const base = filterDocumentLibraryExcludingAgreements([
+      ...(filteredDocuments as DocumentData[]),
+    ]);
+    const key = viewType === "documents" ? librarySortKey : "date_desc";
+    return sortDocumentsForLibrary(base, key);
+  }, [filteredDocuments, viewType, librarySortKey]);
 
-  const sortedDocumentsExcludingAgreements = useMemo(
-    () => filterDocumentLibraryExcludingAgreements(sortedDocuments),
-    [sortedDocuments]
-  );
+  const sortedAgreementDocuments = useMemo(() => {
+    const agreements = (filteredDocuments as DocumentData[]).filter(
+      (d) => d.library_kind === "agreement"
+    );
+    const key = viewType === "agreements" ? librarySortKey : "date_desc";
+    return sortAndFilterAgreementsForLibrary(agreements, key);
+  }, [filteredDocuments, viewType, librarySortKey]);
 
-  const sortedAgreementDocuments = useMemo(
-    () => sortedDocuments.filter((d) => d.library_kind === "agreement"),
-    [sortedDocuments]
+  const sortedHomesNative = useMemo(
+    () =>
+      sortSavedHomesForLibrary(filteredHomes, viewType === "homes" ? librarySortKey : "date_desc"),
+    [filteredHomes, viewType, librarySortKey]
   );
 
   const [isClientSelectorOpen, setIsClientSelectorOpen] = useState(false);
@@ -106,7 +119,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     void refresh();
   }, [refresh]);
 
-  const homesCount = filteredHomes.length;
+  const homesCount = sortedHomesNative.length;
   const documentsCount =
     viewType === "documents"
       ? sortedDocumentsExcludingAgreements.length
@@ -152,7 +165,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         });
 
   const showEmptyHomes =
-    isHomesView && !loading && filteredHomes.length === 0 && homes.length === 0;
+    isHomesView && !loading && sortedHomesNative.length === 0 && homes.length === 0;
   const showEmptyDocuments =
     isDocumentsView && !documentsLoadingCombined && sortedDocumentsExcludingAgreements.length === 0;
 
@@ -213,11 +226,13 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
           eventTypeFilter={eventTypeFilter}
           onEventTypeFilterChange={handleEventTypeFilterChange}
           onUploadDocument={isAgent ? () => setIsDocumentUploadModalOpen(true) : undefined}
+          librarySortKey={librarySortKey}
+          onLibrarySortChange={onLibrarySortChange}
         />
 
         {isHomesView && (
           <SavedHomesList
-            filteredHomes={filteredHomes}
+            filteredHomes={sortedHomesNative}
             selectedHomesForComparison={selectedHomesForComparison}
             loading={loading}
             showEmpty={showEmptyHomes}

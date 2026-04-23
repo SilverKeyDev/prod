@@ -5,7 +5,7 @@
 
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives/box";
 import { BLUR_INTENSITY_CLASSES } from "packages/ui/styles/variants/blurViewVariants";
 
 import type { BlurViewProps } from "./types";

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import type { SavedPageViewType } from "packages/features/documents";
-import type { SavedHomesHeaderProps } from "packages/features/saved/components/SavedHomesHeader";
+import type { SavedHomesHeaderProps } from "packages/features/saved/components/header/SavedHomesHeader";
 
 export type UseSavedPageMobileHeaderParams = {
   isAgent: boolean;

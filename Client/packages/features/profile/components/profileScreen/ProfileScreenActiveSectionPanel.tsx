@@ -1,6 +1,7 @@
 import React from "react";
 
 import { PersonalizationSectionPanel } from "packages/features/profile/components/layout";
+import { AccountPrivacyDataSection } from "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection";
 import { ProfileDemographicsSection } from "packages/features/profile/components/profileScreen/sections/ProfileDemographicsSection";
 import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/sections/ProfileFinancialSection";
 import { ProfileHousingEssentialsSection } from "packages/features/profile/components/profileScreen/sections/ProfileHousingEssentialsSection";
@@ -20,6 +21,7 @@ export type ProfileScreenActiveSectionPanelProps = {
   activeSection: string;
   effectiveEditMode: boolean;
   formData: OnboardingData;
+  /** When set, privacy self-service is hidden. */
   agentSubject?: { userId: string; displayName: string } | null;
   userProfile: { name?: string | null; profile_picture_url?: string | null } | null | undefined;
   updateField: (field: keyof OnboardingData, value: unknown) => void;
@@ -38,7 +40,7 @@ export function ProfileScreenActiveSectionPanel({
   activeSection,
   effectiveEditMode,
   formData,
-  agentSubject,
+  agentSubject = null,
   userProfile,
   updateField,
   patchBuyerPreferenceExtensions,
@@ -139,6 +141,9 @@ export function ProfileScreenActiveSectionPanel({
           updateField={updateField}
           patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
+      )}
+      {activeSection === "privacy_data" && (
+        <AccountPrivacyDataSection agentSubject={agentSubject} />
       )}
     </PersonalizationSectionPanel>
   );

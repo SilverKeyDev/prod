@@ -33,6 +33,11 @@ properties:
   location:
     type: string
     nullable: true
+  hangoutLink:
+    type: string
+    format: uri
+    nullable: true
+    description: Google Meet URL when provisioned (Calendar API `hangoutLink`).
   conferenceData:
     $ref: './GoogleConferenceData.yaml'
     nullable: true
@@ -42,6 +47,20 @@ properties:
     description: >
       App-only multi-stop viewing data; stripped before sending to Google Calendar.
       Persisted in SilverKey DB; used to build calendar description and first-stop location.
+  colorId:
+    type: string
+    nullable: true
+    description: >
+      Google Calendar event color id (1–11) when set on the event; returned by the Calendar API
+      on list/get. Optional; omitted when the event uses the calendar default color.
+  silverKeyEventType:
+    type: string
+    nullable: true
+    description: >
+      SilverKey scheduling category from the app database when this event was created in-app
+      (e.g. `property_viewing`, `meeting`, `open_house`). Not sent to Google; attached by the
+      server when listing or getting events. Used for UI coloring when the title no longer
+      matches a known template label.
 example:
   id: "evt-google-a1b2c3d4e5f6"
   summary: "Home tour — 742 Evergreen Terrace"

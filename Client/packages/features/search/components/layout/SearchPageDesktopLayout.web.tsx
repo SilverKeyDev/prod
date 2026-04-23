@@ -49,6 +49,7 @@ export type SearchPageDesktopLayoutProps = {
     isSelected: (propertyId: string) => boolean;
     onToggle: (propertyId: string) => void;
   };
+  agentShareDockVisible?: boolean;
 };
 
 export function SearchPageDesktopLayout({
@@ -89,6 +90,7 @@ export function SearchPageDesktopLayout({
   mapHomeCardsCount,
   onPreciseStreetAddressSelected,
   agentShareBundle,
+  agentShareDockVisible = false,
 }: SearchPageDesktopLayoutProps): JSX.Element {
   const handleTabChangeWithSideEffects = (tab: "results" | "saved") => {
     onTabChange(tab);
@@ -139,6 +141,7 @@ export function SearchPageDesktopLayout({
               saveHome={saveHome}
               removeSavedHome={removeSavedHome}
               agentShareBundle={agentShareBundle}
+              agentShareDockVisible={agentShareDockVisible}
             />
           </Box>
         </Box>

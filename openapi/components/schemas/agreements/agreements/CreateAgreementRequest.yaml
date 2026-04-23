@@ -16,3 +16,9 @@ properties:
   description:
     type: string
     nullable: true
+  docusign_source_template_id:
+    type: string
+    nullable: true
+    description: >
+      When set, this agreement is sent using this DocuSign template ID instead of an
+      uploaded PDF revision. Omit revisions for template-only agreements until send.

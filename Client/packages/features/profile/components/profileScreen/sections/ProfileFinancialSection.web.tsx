@@ -66,9 +66,7 @@ export function ProfileFinancialSection({
     formIsAgent: formData.is_agent,
   });
   const showAffordabilityBlock =
-    homePriceLoading !== undefined ||
-    homePriceError !== undefined ||
-    homePriceResult !== undefined;
+    homePriceLoading !== undefined || homePriceError !== undefined || homePriceResult !== undefined;
 
   const patch = useCallback(
     (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {

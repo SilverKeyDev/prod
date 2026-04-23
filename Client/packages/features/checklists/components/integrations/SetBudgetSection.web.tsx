@@ -57,9 +57,7 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
       return;
     }
     appliedRemoteSyncKeyRef.current = syncKey;
-    setFormData(
-      userPreferencesToOnboardingData(userPreferences as Record<string, unknown>)
-    );
+    setFormData(userPreferencesToOnboardingData(userPreferences as Record<string, unknown>));
   }, [userPreferences]);
 
   const calculateHomePrice = useCallback(() => {

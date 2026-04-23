@@ -10,9 +10,10 @@ import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAu
 import { applyLoginResult } from "packages/features/homeauth/utils/applyLoginResult";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import { ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 
-import { Button, Input } from "@/components/ui";
+import { BodyText, Button, Input } from "@/components/ui";
 export function LoginFeature() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -107,6 +108,27 @@ export function LoginFeature() {
         <AuthDivider />
 
         <GoogleSignInButton text="Sign in with Google" />
+        <BodyText
+          as="p"
+          size="xs"
+          className="text-text-secondary/90 text-center leading-relaxed"
+        >
+          By signing in (including with Google), you agree to our{" "}
+          <AuthLink
+            to={ROUTES.TERMS}
+            className="text-text-secondary underline-offset-2 hover:underline"
+          >
+            Terms of Service
+          </AuthLink>{" "}
+          and{" "}
+          <AuthLink
+            to={ROUTES.PRIVACY}
+            className="text-text-secondary underline-offset-2 hover:underline"
+          >
+            Privacy Policy
+          </AuthLink>
+          .
+        </BodyText>
 
         <Box className="gap-responsive-md text-responsive-sm flex items-center justify-center">
           <AuthLink to="/signup" variant="inline">

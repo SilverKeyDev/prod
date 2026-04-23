@@ -3,6 +3,7 @@ import React, { type ReactNode } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "packages/features/saved/utils/constants";
 import { useIsMobile } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
@@ -10,7 +11,10 @@ import { Box } from "packages/ui/components/primitives";
 import Card from "@/components/layout/Card.web";
 import { Button, Input } from "@/components/ui";
 
-export type ViewMode = "grid" | "list";
+import { LibrarySortSelect } from "./LibrarySortSelect";
+import { LibraryViewModeToggle } from "./LibraryViewModeToggle";
+
+export type { LibraryViewMode as ViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 export type SortBy = "date" | "address";
 type SavedLayoutProps = {
   /** Start of the toolbar row inside the card (e.g. agent client picker). */
@@ -20,8 +24,8 @@ type SavedLayoutProps = {
   searchPlaceholder?: string;
   showSearch?: boolean;
   leftContent?: React.ReactNode;
-  viewMode?: ViewMode;
-  onViewModeChange?: (mode: ViewMode) => void;
+  viewMode?: LibraryViewMode;
+  onViewModeChange?: (mode: LibraryViewMode) => void;
   showViewToggle?: boolean;
   onRefresh?: () => void;
   isRefreshing?: boolean;
@@ -34,6 +38,8 @@ type SavedLayoutProps = {
   onEventTypeFilterChange?: (
     eventType: "listed" | "price_change" | "sold" | "withdrawn" | ""
   ) => void;
+  librarySortKey?: string;
+  onLibrarySortChange?: (value: string) => void;
 };
 const SavedLayout: React.FC<SavedLayoutProps> = ({
   toolbarLeading,
@@ -50,46 +56,15 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   onViewTypeChange,
   eventTypeFilter: _eventTypeFilter = "",
   onEventTypeFilterChange: _onEventTypeFilterChange,
+  librarySortKey = "",
+  onLibrarySortChange,
 }) => {
   const { t } = useLocalization();
   const isMobile = useIsMobile();
-  const ViewToggle = showViewToggle && onViewModeChange && (
-    <Box className="hidden items-center gap-2 sm:flex">
-      <Button
-        variant={viewMode === "grid" ? "primary" : "secondary"}
-        size="sm"
-        onClick={() => onViewModeChange("grid")}
-        className={`touch-friendly rounded px-3 py-2.5 ${
-          viewMode === "grid"
-            ? "bg-primary text-white"
-            : "bg-accent-muted hover:bg-primary text-white"
-        }`}
-      >
-        <Box className="mobile-icon-xs grid grid-cols-2 gap-1">
-          <Box className="rounded-sm bg-current" />
-          <Box className="rounded-sm bg-current" />
-          <Box className="rounded-sm bg-current" />
-          <Box className="rounded-sm bg-current" />
-        </Box>
-      </Button>
-      <Button
-        variant={viewMode === "list" ? "primary" : "secondary"}
-        size="sm"
-        onClick={() => onViewModeChange("list")}
-        className={`touch-friendly rounded px-3 py-2.5 ${
-          viewMode === "list"
-            ? "bg-primary text-white"
-            : "bg-accent-muted hover:bg-primary text-white"
-        }`}
-      >
-        <Box className="mobile-icon-xs space-y-1">
-          <Box className="h-0.5 rounded-sm bg-current" />
-          <Box className="h-0.5 rounded-sm bg-current" />
-          <Box className="h-0.5 rounded-sm bg-current" />
-        </Box>
-      </Button>
-    </Box>
-  );
+  const ViewToggle =
+    showViewToggle && onViewModeChange ? (
+      <LibraryViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
+    ) : null;
   // Tab navigation for homes/documents
   const TabNavigation = viewType && onViewTypeChange && (
     <Box className="border-border mb-3 flex items-center gap-2 border-b">
@@ -187,10 +162,17 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
 
             {/* Right side: View toggle, refresh, dropdown, etc. */}
             <Box
-              className={`flex shrink-0 items-center justify-end ${
+              className={`flex shrink-0 flex-wrap items-center justify-end ${
                 viewType === "homes" && isMobile ? "gap-3" : "gap-2"
               }`}
             >
+              {viewType && onLibrarySortChange ? (
+                <LibrarySortSelect
+                  viewType={viewType}
+                  value={librarySortKey}
+                  onChange={onLibrarySortChange}
+                />
+              ) : null}
               {ViewToggle}
             </Box>
           </Box>

@@ -15,7 +15,14 @@ export { HomeHashLink } from "./link/HomeHashLink";
 export { Link } from "./link/Link";
 export { LinkPrimitiveContext } from "./link/linkPrimitiveContext";
 export { homeLandingSectionIdFromHref } from "./router/homeLandingHash";
-export { getDocumentTitle, getPageTitle } from "./router/pageTitles";
+export type { RouteSeoMeta } from "./router/pageTitles";
+export {
+  DEFAULT_APP_TITLE,
+  DEFAULT_META_DESCRIPTION,
+  getDocumentTitle,
+  getPageTitle,
+  getRouteSeoMeta,
+} from "./router/pageTitles";
 export { pathFor, ROUTES } from "./router/paths";
 export { useInRouterContext } from "./router/routerContext";
 export type {

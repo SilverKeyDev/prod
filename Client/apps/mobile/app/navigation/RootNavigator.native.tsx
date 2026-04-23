@@ -4,9 +4,13 @@ import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StyleSheet } from "react-native";
 
+import { AgentProfileScreenNative, FindAgentsScreenNative } from "packages/features/agent/native";
 import { OnboardingScreenNative } from "packages/features/homeauth/native";
 import { PropertyDetailsScreenNative } from "packages/features/propertyDetails/native";
-import type { PropertyDetailsScreenParams } from "packages/navigation/types";
+import type {
+  AgentProfileScreenParams,
+  PropertyDetailsScreenParams,
+} from "packages/navigation/types";
 import { useAuthStore } from "packages/store";
 import { getPostAuthRedirectTarget } from "packages/utils/navigation";
 
@@ -20,6 +24,8 @@ type AuthenticatedStackParamList = {
   Onboarding: undefined;
   Main: undefined;
   PropertyDetails: PropertyDetailsScreenParams;
+  FindAgents: undefined;
+  AgentProfile: AgentProfileScreenParams;
 };
 
 const AuthenticatedStack = createNativeStackNavigator<AuthenticatedStackParamList>();
@@ -86,6 +92,16 @@ function RootContent() {
       <AuthenticatedStack.Screen
         name="PropertyDetails"
         component={PropertyDetailsScreenNative}
+        options={{ headerShown: false }}
+      />
+      <AuthenticatedStack.Screen
+        name="FindAgents"
+        component={FindAgentsScreenNative}
+        options={{ headerShown: false }}
+      />
+      <AuthenticatedStack.Screen
+        name="AgentProfile"
+        component={AgentProfileScreenNative}
         options={{ headerShown: false }}
       />
     </AuthenticatedStack.Navigator>

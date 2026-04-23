@@ -25,6 +25,7 @@ function activeKeyFromPathname(pathname: string): DashboardAreaKey | null {
   }
   if (pathname.startsWith("/search")) return "search";
   if (pathname.startsWith("/messaging")) return "messaging";
+  if (pathname.startsWith("/find-agents")) return "find_agents";
   if (pathname.startsWith("/dashboard")) return "dashboard";
   if (pathname.startsWith("/saved")) return "saved";
   if (pathname.startsWith("/profile")) return "profile";
@@ -41,6 +42,7 @@ export type DashboardRouteResult = {
   isProfile: boolean;
   isSaved: boolean;
   isMessaging: boolean;
+  isFindAgents: boolean;
   isAgreementSigningComplete: boolean;
   isFullHeightRoute: boolean;
   widthPercent: number;
@@ -62,6 +64,7 @@ export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResul
   const agreementSigningCompleteMatch = useMatch(ROUTES.AGREEMENT_SIGNING_COMPLETE);
   const searchMatch = useMatch(ROUTES.SEARCH);
   const messagingMatch = useMatch(ROUTES.MESSAGING);
+  const findAgentsMatch = useMatch(ROUTES.FIND_AGENTS);
   const dashboardMatch = useMatch(ROUTES.DASHBOARD);
   const savedMatch = useMatch(ROUTES.SAVED);
   const profileMatch = useMatch(ROUTES.PROFILE);
@@ -74,13 +77,15 @@ export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResul
         ? "search"
         : messagingMatch
           ? "messaging"
-          : dashboardMatch
-            ? "dashboard"
-            : savedMatch
-              ? "saved"
-              : profileMatch
-                ? "profile"
-                : null;
+          : findAgentsMatch
+            ? "find_agents"
+            : dashboardMatch
+              ? "dashboard"
+              : savedMatch
+                ? "saved"
+                : profileMatch
+                  ? "profile"
+                  : null;
 
   const isFullHeightRoute = activeKey === "search" || activeKey === "messaging";
   const widthPercent =
@@ -97,6 +102,7 @@ export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResul
     isProfile: activeKey === "profile",
     isSaved: activeKey === "saved",
     isMessaging: activeKey === "messaging",
+    isFindAgents: activeKey === "find_agents",
     isAgreementSigningComplete: activeKey === "agreement_signing_complete",
     isFullHeightRoute,
     widthPercent,

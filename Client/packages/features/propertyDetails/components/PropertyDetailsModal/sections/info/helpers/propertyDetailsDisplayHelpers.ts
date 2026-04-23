@@ -211,13 +211,13 @@ export function getAgentFromProperty(property: unknown): {
   const imageUrl =
     slip?.imageUrl ??
     (zillowAgent
-      ? firstNonEmptyString(zillowAgent as Record<string, unknown>, [
+      ? (firstNonEmptyString(zillowAgent as Record<string, unknown>, [
           "image_url",
           "imageUrl",
           "profile_photo_url",
           "photo_url",
           "headshot_url",
-        ]) ?? imageUrlFromAgentRecord(zillowAgent as Record<string, unknown>)
+        ]) ?? imageUrlFromAgentRecord(zillowAgent as Record<string, unknown>))
       : undefined);
 
   const hasAgent = !!(displayName || businessName || formatAgentPhoneNumber(phone) || email);

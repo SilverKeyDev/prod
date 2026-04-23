@@ -6,8 +6,7 @@
 export { createGuardedSetter } from "./array";
 export { asError } from "./errorHandling";
 export { formatCompactCount, formatCompactNumber, formatNumber, formatUSD } from "./format";
-export { getMapPinColorsForScoreAndStatus } from "./format/listingStatusMapPinColors";
-export type { ScoreColors } from "./format/scoreColors";
+export { getMapPinColorsForScoreAndStatus } from "./format/mapMatchPinColors";
 export type { MatchStyle, MatchTier } from "./format/matchScore";
 export {
   clampMatchScore,
@@ -15,6 +14,7 @@ export {
   getMatchTier,
   getMatchTierIndex,
 } from "./format/matchScore";
+export type { ScoreColors } from "./format/scoreColors";
 export { getMatchScoreGradientColors, getScoreBasedColorForMap } from "./format/scoreColors";
 export { createBlob, getDocument, getFetch, getNavigator, getWindow } from "./platform";
 export type { PropertyData, RawHomeData } from "./saved";

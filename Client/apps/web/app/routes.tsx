@@ -8,10 +8,11 @@ import { useResumePendingAgentPublicConnect } from "packages/features/agent";
 import { useDataInitialization } from "packages/hooks/data/polling/useDataInitialization";
 import { useDataPolling } from "packages/hooks/data/polling/useDataPolling";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { getDocumentTitle, ROUTES } from "packages/navigation";
+import { ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 
 import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
+import { useGlobalOrganizationJsonLd, useShellSeo } from "@/app/seo/useShellSeo";
 import type { UserProfile } from "@/features/homeauth/types";
 import NotFoundPage from "@/pages/misc/NotFoundPage";
 
@@ -63,6 +64,8 @@ function AppLayout() {
   const locationOverride = useLocationOverride();
   const location = locationOverride ?? routerLocation;
   const isInitialMount = useRef(true);
+  useGlobalOrganizationJsonLd();
+  useShellSeo(location.pathname, location.search ?? "");
   // Google Maps initialization moved to SearchPage for better performance
   // Only load Maps API when user actually needs it (search/map UI)
   // Initialize data polling (including messages) for notifications
@@ -70,9 +73,6 @@ function AppLayout() {
   // Initialize data prefetch and background polling on login
   useDataInitialization();
   useResumePendingAgentPublicConnect();
-  useEffect(() => {
-    document.title = getDocumentTitle(location.pathname);
-  }, [location.pathname]);
   // Focus main content on client-side navigation (skip initial load). Defer until after paint so
   // #main-content exists; skip on full-height routes (search, messaging) so we don't steal focus from map/reels.
   useEffect(() => {

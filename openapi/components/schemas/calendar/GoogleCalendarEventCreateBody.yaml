@@ -1,3 +1,13 @@
-description: "Alias of GoogleEvent for event creation"
+description: |
+  Google Calendar event creation body: `GoogleEvent` fields plus SilverKey-only options.
+  `addGoogleMeet` is stripped server-side; Meet `conferenceData` is never taken from the client.
 allOf:
   - $ref: './GoogleEvent.yaml'
+  - type: object
+    properties:
+      addGoogleMeet:
+        type: boolean
+        default: false
+        description: >
+          When true, server requests a new Google Meet conference on insert (create only).
+          Ignored for updates. Not sent to Google Calendar API.

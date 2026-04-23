@@ -5,6 +5,8 @@ This module consolidates security-related functionality.
 Re-exports from security.py for backward compatibility.
 """
 
+from .csp import build_content_security_policy
+
 # Import everything from security.py to maintain backward compatibility
 from .security import (
     SecurityError,
@@ -19,6 +21,7 @@ from .security import (
 )
 
 __all__ = [
+    "build_content_security_policy",
     "SecurityError",
     "security_error_response",
     "auth_error_response",

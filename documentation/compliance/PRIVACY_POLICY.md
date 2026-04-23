@@ -337,26 +337,31 @@ Cookies are small text files stored on your device that help us provide and impr
 - **Purpose:** Authentication, security, session management
 - **Cannot Be Disabled:** Required for platform functionality
 
-#### Performance Cookies (Optional)
-- **Purpose:** Analytics, error tracking, service improvement
-- **Examples:** Usage statistics, feature adoption, bug reports
-- **Can Be Disabled:** Settings > Privacy > Cookie Preferences
+#### Performance and diagnostics
+- We may use first-party or strictly necessary technical data (including limited analytics or error
+  reporting tied to your session) to operate and improve the Services. We do not use a separate
+  in-product “cookie preferences” center today; you can use browser or device settings to manage
+  storage where your platform allows it. Disabling essential storage may break sign-in.
 
 #### No Advertising Cookies
 - We do NOT use cookies for third-party advertising or cross-site tracking
 - We do NOT share cookies with ad networks
 
-### Cookie Preferences
+### Cookie preferences
 
-**Manage Cookies:**
-- **In-App:** Settings > Privacy > Cookie Preferences
-- **Browser Settings:** Most browsers allow you to refuse cookies or delete existing ones
+**Manage cookies and storage**
+- **Web:** Use your browser’s settings to block or delete cookies and site data.
+- **Mobile apps:** Use OS settings for the app where available.
 
-**Note:** Disabling essential cookies may prevent you from using certain features.
+**Note:** Disabling essential cookies or storage may prevent you from staying signed in.
 
-### Do Not Track (DNT)
+### Global Privacy Control (GPC) and Do Not Track (DNT)
 
-We honor Global Privacy Control (GPC) signals for California residents (CCPA compliance). We do not currently respond to browser DNT signals (no standard implementation).
+We read the `Sec-GPC` request header on our servers. When it indicates an opt-out (`Sec-GPC: 1`), we
+treat that as a request to opt out of any sale or sharing of personal information, consistent with
+CCPA/CPRA (we do not “sell” personal information as that term is commonly defined; if our practices
+change, this policy will be updated). We do not respond to browser DNT headers (there is no
+ubiquitous standard for implementing them).
 
 ---
 
@@ -569,7 +574,7 @@ We review this policy at least annually.
 - [GDPR Compliance](./GDPR.md)
 - [CCPA Compliance](./CCPA.md)
 - [Data Retention Policy](./DATA_RETENTION.md)
-- [Cookie Policy](./COOKIE_POLICY.md) *(To be created if needed)*
+- [Cookie Policy](./COOKIE_POLICY.md)
 
 ---
 

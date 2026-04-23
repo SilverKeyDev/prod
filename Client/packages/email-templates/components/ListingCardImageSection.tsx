@@ -4,7 +4,6 @@ import React from "react";
 import { Img } from "@react-email/components";
 
 import { color } from "packages/design-tokens";
-
 import { getMatchTier } from "packages/utils/format/matchScore";
 
 import { emailColors } from "./colors";
@@ -29,8 +28,7 @@ type ListingCardImageSectionProps = {
 
 export function ListingCardImageSection({ listing }: ListingCardImageSectionProps) {
   const priceCutTop = listing.isNewListing ? "48px" : "16px";
-  const matchTier =
-    listing.score !== undefined ? getMatchTier(Math.round(listing.score)) : null;
+  const matchTier = listing.score !== undefined ? getMatchTier(Math.round(listing.score)) : null;
   const matchFill = matchTier ? color(`match.${matchTier}.bg`) : "";
   const matchText = matchTier ? color(`match.${matchTier}.fg`) : "";
 

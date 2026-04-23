@@ -5,7 +5,12 @@ import { useFeedGestureTrap } from "packages/hooks/ui";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
+import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import {
+  calendarColorForEvent,
+  hexToRgba,
+} from "@/features/calendar/utils/createEventModal/calendarEventColors";
 import {
   eventSpansMultipleLocalDays,
   getEventFirstLocalDayKey,
@@ -20,6 +25,7 @@ type DayCell = {
   date: Date;
   isCurrentMonth: boolean;
   isPast: boolean;
+  isToday: boolean;
   count: number;
 };
 
@@ -35,15 +41,61 @@ type CalendarMonthBodyProps = {
   quickCreateDraftId?: string | null;
   quickCreateDayKey?: string | null;
   isLargeScreen: boolean;
+  calendars?: GoogleCalendar[];
 };
 
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+
+const TOP_BAND = 26;
+const BOTTOM_PAD = 8;
+const CHIP_STACK = 22;
+const MORE_LINE = 16;
+
+function sortDayEvents(dayEvents: ExtendedGoogleEvent[]): ExtendedGoogleEvent[] {
+  return [...dayEvents].sort((a, b) => {
+    const aStart = a.start?.dateTime ?? a.start?.date;
+    const bStart = b.start?.dateTime ?? b.start?.date;
+    if (!aStart || !bStart) return 0;
+    return dateParseISO(aStart).valueOf() - dateParseISO(bStart).valueOf();
+  });
+}
+
+function estimateCellMinHeight(
+  d: DayCell,
+  sortedEvents: ExtendedGoogleEvent[],
+  isLargeScreen: boolean
+): number {
+  const floor = isLargeScreen ? 52 : 40;
+  if (!isLargeScreen) {
+    if (d.count === 0) {
+      return Math.max(floor, TOP_BAND + BOTTOM_PAD + 6);
+    }
+    return Math.max(floor, TOP_BAND + BOTTOM_PAD + 14);
+  }
+  const n = sortedEvents.length;
+  if (n === 0) {
+    return Math.max(floor, TOP_BAND + BOTTOM_PAD + 6);
+  }
+  const visible = Math.min(n, 3);
+  const more = n > 3 ? MORE_LINE : 0;
+  return Math.max(floor, TOP_BAND + visible * CHIP_STACK + more + BOTTOM_PAD);
+}
+
+function chunkWeeks(allDays: DayCell[]): DayCell[][] {
+  const weeks: DayCell[][] = [];
+  for (let i = 0; i < allDays.length; i += 7) {
+    weeks.push(allDays.slice(i, i + 7));
+  }
+  return weeks;
+}
 
 function MonthDayCell({
   d,
   styles,
   isLargeScreen,
   isSelected,
+  isToday,
+  isLastInRow,
   showMonthBorder,
   sortedEvents,
   visibleEventsInCell,
@@ -53,11 +105,14 @@ function MonthDayCell({
   onMonthEventPress,
   quickCreateDraftId,
   quickCreateDayKey,
+  calendars,
 }: {
   d: DayCell;
   styles: GridStyles;
   isLargeScreen: boolean;
   isSelected: boolean;
+  isToday: boolean;
+  isLastInRow: boolean;
   showMonthBorder: boolean;
   sortedEvents: ExtendedGoogleEvent[];
   visibleEventsInCell: ExtendedGoogleEvent[];
@@ -67,6 +122,7 @@ function MonthDayCell({
   onMonthEventPress?: (event: ExtendedGoogleEvent) => void;
   quickCreateDraftId?: string | null;
   quickCreateDayKey?: string | null;
+  calendars: GoogleCalendar[];
 }) {
   const { onTap } = useFeedGestureTrap({
     onSingleTap: () => onSelectDay(d.key),
@@ -78,11 +134,22 @@ function MonthDayCell({
       ? quickCreateDraftId
       : undefined;
 
+  const dayNum = (
+    <Text
+      style={{
+        ...styles.dayNumber,
+        ...(isToday ? styles.dayNumberOnTodayCircle : null),
+      }}
+    >
+      {d.date.getDate()}
+    </Text>
+  );
+
   return (
     <Box
       style={{
         ...styles.cell,
-        ...(isLargeScreen && { minHeight: 80 }),
+        ...(isLastInRow ? styles.cellLastInRow : null),
         ...((!d.isCurrentMonth || d.isPast) && styles.cellMuted),
         ...(isSelected && styles.cellSelected),
         ...(showMonthBorder && {
@@ -105,17 +172,7 @@ function MonthDayCell({
           justifyContent: "center" as const,
         }}
       >
-        <Text
-          style={{
-            ...styles.dayNumber,
-            position: "relative" as const,
-            top: spacing(0),
-            left: spacing(0),
-            ...(isSelected && styles.dayNumberSelected),
-          }}
-        >
-          {d.date.getDate()}
-        </Text>
+        {isToday ? <Box style={styles.dayNumberCircle}>{dayNum}</Box> : dayNum}
       </Pressable>
 
       <Pressable
@@ -156,8 +213,13 @@ function MonthDayCell({
                 label = ev.summary || "Untitled";
               }
 
+              const eventColor = isContinuation
+                ? color("neutral.500")
+                : calendarColorForEvent(ev, calendars);
+
               const chipStyle = {
                 ...styles.eventChip,
+                ...(!isContinuation ? { backgroundColor: hexToRgba(eventColor, 0.18) } : null),
                 ...(isMultiDay && !isContinuation ? styles.eventChipMultiDay : null),
                 ...(isContinuation ? styles.eventChipMultiDayContinuation : null),
               };
@@ -186,6 +248,7 @@ function MonthDayCell({
                   }}
                   style={chipStyle}
                 >
+                  <Box style={{ ...styles.eventChipDot, backgroundColor: eventColor }} />
                   <Text style={styles.eventChipText} numberOfLines={1}>
                     {label}
                   </Text>
@@ -222,7 +285,10 @@ export function CalendarMonthBody({
   quickCreateDraftId,
   quickCreateDayKey,
   isLargeScreen,
+  calendars = [],
 }: CalendarMonthBodyProps) {
+  const weeks = chunkWeeks(days);
+
   return (
     <>
       <Box style={styles.weekHeader}>
@@ -233,42 +299,51 @@ export function CalendarMonthBody({
         ))}
       </Box>
 
-      <Box style={styles.grid}>
-        {days.map((d, index) => {
-          const rowIndex = Math.floor(index / 7);
-          const firstDayOfRow = days[rowIndex * 7];
-          const showMonthBorder = rowIndex >= 1 && firstDayOfRow.date.getDate() === 1;
+      {weeks.map((weekDays, rowIndex) => {
+        const firstDayOfRow = weekDays[0];
+        const showMonthBorder = rowIndex >= 1 && firstDayOfRow.date.getDate() === 1;
 
-          const isSelected = d.key === selectedDayKey;
-          const dayEvents = eventsByDay.get(d.key) ?? [];
-          const sortedEvents = [...dayEvents].sort((a, b) => {
-            const aStart = a.start?.dateTime ?? a.start?.date;
-            const bStart = b.start?.dateTime ?? b.start?.date;
-            if (!aStart || !bStart) return 0;
-            return dateParseISO(aStart).valueOf() - dateParseISO(bStart).valueOf();
-          });
-          const visibleEventsInCell = isLargeScreen ? sortedEvents.slice(0, 3) : [];
+        const rowMinHeight = Math.max(
+          ...weekDays.map((d) => {
+            const dayEvents = eventsByDay.get(d.key) ?? [];
+            return estimateCellMinHeight(d, sortDayEvents(dayEvents), isLargeScreen);
+          })
+        );
 
-          return (
-            <MonthDayCell
-              key={d.key}
-              d={d}
-              styles={styles}
-              isLargeScreen={isLargeScreen}
-              isSelected={isSelected}
-              showMonthBorder={showMonthBorder}
-              sortedEvents={sortedEvents}
-              visibleEventsInCell={visibleEventsInCell}
-              onSelectDay={onSelectDay}
-              onDayNumberPress={onDayNumberPress}
-              onDayDoubleTap={onDayDoubleTap}
-              onMonthEventPress={onMonthEventPress}
-              quickCreateDraftId={quickCreateDraftId}
-              quickCreateDayKey={quickCreateDayKey}
-            />
-          );
-        })}
-      </Box>
+        return (
+          <Box key={`week-${rowIndex}`} style={{ ...styles.weekRow, minHeight: rowMinHeight }}>
+            {weekDays.map((d, colIndex) => {
+              const isSelected = d.key === selectedDayKey;
+              const isToday = d.isToday;
+              const dayEvents = eventsByDay.get(d.key) ?? [];
+              const sortedEvents = sortDayEvents(dayEvents);
+              const visibleEventsInCell = isLargeScreen ? sortedEvents.slice(0, 3) : [];
+
+              return (
+                <MonthDayCell
+                  key={d.key}
+                  d={d}
+                  styles={styles}
+                  isLargeScreen={isLargeScreen}
+                  isSelected={isSelected}
+                  isToday={isToday}
+                  isLastInRow={colIndex === weekDays.length - 1}
+                  showMonthBorder={showMonthBorder}
+                  sortedEvents={sortedEvents}
+                  visibleEventsInCell={visibleEventsInCell}
+                  onSelectDay={onSelectDay}
+                  onDayNumberPress={onDayNumberPress}
+                  onDayDoubleTap={onDayDoubleTap}
+                  onMonthEventPress={onMonthEventPress}
+                  quickCreateDraftId={quickCreateDraftId}
+                  quickCreateDayKey={quickCreateDayKey}
+                  calendars={calendars}
+                />
+              );
+            })}
+          </Box>
+        );
+      })}
     </>
   );
 }

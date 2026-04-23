@@ -135,6 +135,15 @@ export function mapHomeUniversalToSavedHome(home: unknown, index: number): Saved
     return `home_${index}_${Date.now()}`;
   })();
 
+  const createdAt =
+    typeof homeData.created_at === "string" && homeData.created_at.trim() !== ""
+      ? homeData.created_at
+      : null;
+  const updatedAt =
+    typeof homeData.updated_at === "string" && homeData.updated_at.trim() !== ""
+      ? homeData.updated_at
+      : null;
+
   return {
     home_id: resolvedHomeId,
     ...(zpidRaw !== "" ? { zpid: zpidRaw } : {}),
@@ -186,5 +195,7 @@ export function mapHomeUniversalToSavedHome(home: unknown, index: number): Saved
     lat,
     lng,
     _databaseId: homeData.id,
+    ...(createdAt != null ? { created_at: createdAt } : {}),
+    ...(updatedAt != null ? { updated_at: updatedAt } : {}),
   };
 }

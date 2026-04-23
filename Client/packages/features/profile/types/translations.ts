@@ -17,7 +17,7 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
 
   "profile.agent.public_profile_link_label": "Your public profile link",
   "profile.agent.public_link_hint":
-    "Share this link with clients so they can view your public profile.",
+    "Share this link with clients so they can view your public profile and connect with you on SilverKey.",
   "profile.agent.copy_link": "Copy link",
   "profile.agent.share": "Share",
   "profile.agent.share_sheet_title": "{{name}} — SilverKey",

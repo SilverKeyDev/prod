@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 
 import type { SavedPageViewType } from "./useSavedPageView";
 
@@ -10,11 +12,29 @@ type UseSavedPageViewReturn = {
 /**
  * React Native implementation of useSavedPageView.
  *
- * Keeps the same API as the web hook but relies purely on local state
- * instead of URL/search-param synchronization.
+ * Persists the active Saved tab via `/api/v1/user/client-settings` (saved.tab).
  */
 export function useSavedPageView(): UseSavedPageViewReturn {
-  const [viewType, setViewType] = useState<SavedPageViewType>("homes");
+  const { clientSettings, patchClientSettings } = useClientSettings();
+  const [viewType, setViewTypeState] = useState<SavedPageViewType>("homes");
+
+  useEffect(() => {
+    const tab = clientSettings?.saved?.tab;
+    if (tab === "homes" || tab === "documents" || tab === "agreements") {
+      setViewTypeState(tab);
+    }
+  }, [clientSettings?.saved?.tab]);
+
+  const setViewType = useCallback(
+    (action: React.SetStateAction<SavedPageViewType>) => {
+      setViewTypeState((prev) => {
+        const next = typeof action === "function" ? action(prev) : action;
+        patchClientSettings({ saved: { tab: next } });
+        return next;
+      });
+    },
+    [patchClientSettings]
+  );
 
   return { viewType, setViewType };
 }

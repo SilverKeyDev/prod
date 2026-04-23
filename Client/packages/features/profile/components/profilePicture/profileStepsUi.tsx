@@ -38,6 +38,8 @@ const iconNameForStepId = (id: ProfileStepId): IconName | undefined => {
       return "map-pin";
     case "search_property":
       return "settings-2";
+    case "privacy_data":
+      return "shield";
     case "financial":
       return "building";
     default:

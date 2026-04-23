@@ -16,6 +16,7 @@ const DashboardPage = lazy(() => import("@/pages/workspace/DashboardPage"));
 const AgreementSigningCompletePage = lazy(
   () => import("@/pages/workspace/AgreementSigningCompletePage")
 );
+const FindAgentsPage = lazy(() => import("@/pages/misc/FindAgentsPage"));
 
 type DashboardContentProps = {
   setMobileHeaderActions: React.Dispatch<React.SetStateAction<ReactNode | null>>;
@@ -36,9 +37,13 @@ export function DashboardContent({
   const isMobile = useIsMobile();
 
   const { activeKey, isSearch, isMessaging, widthPercent } = route;
-  const contentTopMargin = route.isDashboard || route.isProfile;
+  const contentTopMargin = route.isDashboard || route.isProfile || route.isFindAgents;
   const contentBottomMargin =
-    route.isDashboard || route.isProfile || route.isSaved || route.isAgreementSigningComplete;
+    route.isDashboard ||
+    route.isProfile ||
+    route.isSaved ||
+    route.isFindAgents ||
+    route.isAgreementSigningComplete;
 
   const searchHeightClass =
     isSearch && isMobile
@@ -56,6 +61,7 @@ export function DashboardContent({
         } ${contentBottomMargin ? "pb-4 sm:pb-6 md:pb-8" : ""}`;
 
   const fullWidth = isSearch || isMessaging;
+  // isFindAgents uses standard max-width content (not full-bleed like search/messaging)
   const style = fullWidth
     ? ({ "--max-width-desktop": "100" } as React.CSSProperties & {
         "--max-width-desktop": string;
@@ -96,6 +102,12 @@ export function DashboardContent({
       <Suspense fallback={LoadingFallback}>
         <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
       </Suspense>
+    ) : activeKey === "find_agents" ? (
+      <PageErrorBoundary key="find-agents" pageLabel="Find agents">
+        <Suspense fallback={LoadingFallback}>
+          <FindAgentsPage setMobileHeaderActions={setMobileHeaderActions} />
+        </Suspense>
+      </PageErrorBoundary>
     ) : activeKey === "agreement_signing_complete" ? (
       <PageErrorBoundary key="agreement-signing-complete" pageLabel="Signing">
         <Suspense fallback={LoadingFallback}>

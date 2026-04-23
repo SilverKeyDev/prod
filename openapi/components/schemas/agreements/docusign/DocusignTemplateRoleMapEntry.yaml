@@ -1,0 +1,11 @@
+type: object
+required:
+  - participant_id
+  - role_name
+properties:
+  participant_id:
+    type: string
+    description: Agreement participant id (UUID).
+  role_name:
+    type: string
+    description: DocuSign template role name this participant fills.

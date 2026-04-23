@@ -5,12 +5,15 @@ import {
   formatLotSize,
   formatStructuredAddress,
 } from "packages/utils/format/property/addressFormatting";
+import {
+  formatPrice,
+  formatPropertyType,
+} from "packages/utils/format/property/propertyDetailsDisplayFormatters";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
 
 import type { PropertyComponentProps } from "./types";
-import { formatPrice, formatPropertyType } from "./utils";
 
 export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }) => {
   const propertyPrice = property.price;

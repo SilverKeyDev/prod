@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { color, spacing } from "packages/design-tokens";
 import { Box } from "packages/ui/components/primitives";
@@ -18,6 +18,38 @@ import {
   type CalendarTimeGridScrollViewRef,
   setCalendarTimeGridScrollY,
 } from "./calendarTimeGridScroll";
+
+/**
+ * Hour grid sits inside a vertical ScrollView; the scrollbar narrows the scrollport's
+ * client width. Fixed rows above the scroll (all-day, day headers) must use that same
+ * width or `fr`/percentage columns will not line up with the grid below.
+ */
+function useTimeGridScrollportClientWidth(
+  scrollRef: React.RefObject<CalendarTimeGridScrollViewRef | null>
+): number | undefined {
+  const [w, setW] = useState<number | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !(el instanceof HTMLElement)) {
+      return;
+    }
+    const measure = () => {
+      setW(el.clientWidth);
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+    };
+  }, [scrollRef]);
+
+  return w;
+}
 
 export type CalendarTimeGridProps = {
   dayDates: Date[];
@@ -56,6 +88,12 @@ export function CalendarTimeGrid({
   onWeekTimedResizeCommit,
 }: CalendarTimeGridProps) {
   const scrollRef = useRef<CalendarTimeGridScrollViewRef | null>(null);
+  const timeGridScrollportClientWidth = useTimeGridScrollportClientWidth(scrollRef);
+  /** Matches hour grid inner width (scrollport minus vertical scrollbar). */
+  const fixedRowsWidthStyle =
+    timeGridScrollportClientWidth !== undefined
+      ? ({ width: timeGridScrollportClientWidth, alignSelf: "flex-start" } as const)
+      : undefined;
   const [hourRowHeight, setHourRowHeight] = useState(48);
   const [nowMinutes, setNowMinutes] = useState(() => {
     const n = dateNow();
@@ -107,6 +145,9 @@ export function CalendarTimeGrid({
     >
       <Box
         style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "stretch",
           width: "100%",
           overflow: "hidden",
           backgroundColor: color("neutral.50"),
@@ -115,21 +156,23 @@ export function CalendarTimeGrid({
           borderRadius: spacing(1),
         }}
       >
-        <CalendarTimeGridAllDaySection
-          dayDates={dayDates}
-          events={events}
-          calendars={calendars}
-          gridTemplateColumns={gridColumns}
-        />
+        <Box style={fixedRowsWidthStyle}>
+          <CalendarTimeGridAllDaySection
+            dayDates={dayDates}
+            events={events}
+            calendars={calendars}
+            gridTemplateColumns={gridColumns}
+          />
+        </Box>
         <Box
           style={{
+            ...fixedRowsWidthStyle,
             display: "grid",
             gridTemplateColumns: gridColumns,
-            width: "100%",
+            width: fixedRowsWidthStyle?.width ?? "100%",
             borderBottomWidth: 1,
             borderColor: color("neutral.200"),
             backgroundColor: color("neutral.100"),
-            scrollbarGutter: "stable",
           }}
         >
           <Box

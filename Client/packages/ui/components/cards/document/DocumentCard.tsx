@@ -1,4 +1,7 @@
-import { formatDate, formatFilenameToAddress } from "packages/features/search/types/search/formatters/address";
+import {
+  formatDate,
+  formatFilenameToAddress,
+} from "packages/features/search/types/search/formatters/address";
 import { useAuthStore } from "packages/store";
 
 import BaseCard from "@/components/cards/BaseCard";

@@ -64,6 +64,7 @@ def register_crud_routes(bp):
                 agreement_type=request_data["agreement_type"],
                 property_address=request_data.get("property_address"),
                 description=request_data.get("description"),
+                docusign_source_template_id=request_data.get("docusign_source_template_id"),
             )
             log.info(
                 LOG_CATEGORIES["DOCUSIGN"],

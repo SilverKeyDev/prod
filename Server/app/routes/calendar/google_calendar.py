@@ -17,6 +17,7 @@ from .handlers.calendars import (
 from .handlers.events import (
     create_event,
     delete_event,
+    fetch_single_calendar_event,
     list_client_events,
     list_events,
     update_event,
@@ -60,6 +61,7 @@ google_calendar_bp.route("/me/silverkey-calendar", methods=["GET", "POST"])(
 # Event endpoints
 google_calendar_bp.route("/me/events", methods=["GET"])(list_events)
 google_calendar_bp.route("/me/events", methods=["POST"])(create_event)
+google_calendar_bp.route("/me/events/<event_id>", methods=["GET"])(fetch_single_calendar_event)
 google_calendar_bp.route("/me/events/<event_id>", methods=["PATCH"])(update_event)
 google_calendar_bp.route("/me/events/<event_id>", methods=["DELETE"])(delete_event)
 

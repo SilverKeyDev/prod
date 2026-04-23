@@ -121,8 +121,13 @@ def add_participant(
     if not participant_user:
         raise AgreementStateError(f"User {user_id} not found")
 
-    # Validate actor can't be a signer
-    if actor_id and user_id == actor_id and role == "signer":
+    # Validate actor can't be a signer (except template flows where agent maps a DocuSign role to themselves)
+    if (
+        actor_id
+        and user_id == actor_id
+        and role == "signer"
+        and not agreement.docusign_source_template_id
+    ):
         raise AgreementStateError("Agent cannot be a signer on their own agreement")
 
     # Auto-assign routing order if not specified

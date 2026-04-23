@@ -25,6 +25,28 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "saved.select_client_button": "Select client",
   "saved.select_client_modal_title": "Select client",
 
+  "saved.library_view_card": "Card view",
+  "saved.library_view_list": "List view",
+
+  "saved.library_sort_label": "Sort",
+  "saved.library_sort_homes_newest": "Newest added",
+  "saved.library_sort_homes_oldest": "Oldest added",
+  "saved.library_sort_homes_price_low": "Price: low to high",
+  "saved.library_sort_homes_price_high": "Price: high to low",
+  "saved.library_sort_homes_address": "Address (A–Z)",
+  "saved.library_sort_docs_newest": "Newest added",
+  "saved.library_sort_docs_oldest": "Oldest added",
+  "saved.library_sort_docs_name": "Name (A–Z)",
+  "saved.library_sort_docusign_newest": "Newest activity",
+  "saved.library_sort_docusign_oldest": "Oldest activity",
+  "saved.library_sort_docusign_stage_draft": "Draft only",
+  "saved.library_sort_docusign_stage_sent": "Sent only",
+  "saved.library_sort_docusign_stage_delivered": "Delivered only",
+  "saved.library_sort_docusign_stage_signed": "Signed only",
+  "saved.library_sort_docusign_stage_completed": "Completed only",
+  "saved.library_sort_docusign_stage_voided": "Voided only",
+  "saved.library_sort_docusign_stage_declined": "Declined only",
+
   // Saved homes list items and comparison
   "saved.address_fallback": "Unknown address",
   "saved.price_fallback": "Price not available",

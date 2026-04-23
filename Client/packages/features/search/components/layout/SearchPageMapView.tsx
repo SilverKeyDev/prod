@@ -56,6 +56,7 @@ export type SearchPageMapViewProps = {
     isSelected: (propertyId: string) => boolean;
     onToggle: (propertyId: string) => void;
   };
+  agentShareDockVisible?: boolean;
 };
 
 export function SearchPageMapView({
@@ -98,6 +99,7 @@ export function SearchPageMapView({
   mapHomeCardsCount,
   onPreciseStreetAddressSelected,
   agentShareBundle,
+  agentShareDockVisible = false,
 }: SearchPageMapViewProps): JSX.Element {
   const mode = useSearchViewStore((s) => s.mode);
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
@@ -186,6 +188,7 @@ export function SearchPageMapView({
         mapHomeCardsCount={mapHomeCardsCount}
         onPreciseStreetAddressSelected={onPreciseStreetAddressSelected}
         agentShareBundle={agentShareBundle}
+        agentShareDockVisible={agentShareDockVisible}
       />
     </MotionView>
   );

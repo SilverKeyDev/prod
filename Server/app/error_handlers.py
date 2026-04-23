@@ -1,5 +1,6 @@
 """Flask error handlers and response security headers."""
 
+import os
 import traceback
 from datetime import datetime, timezone
 
@@ -19,7 +20,15 @@ from app.services.docusign.errors import (
     RevisionNotFoundError,
     TemplateNotFoundError,
 )
+from app.utils.security.csp import build_content_security_policy
 from app.utils.security.secure_errors import SecureErrorHandler
+
+_IS_PROD_FLASK = os.getenv("FLASK_ENV") == "production"
+
+
+def _response_is_html(response) -> bool:
+    ct = response.headers.get("Content-Type") or response.content_type or ""
+    return "text/html" in ct.split(";", 1)[0].strip().lower()
 
 
 def register_after_request_headers(app):
@@ -52,8 +61,11 @@ def register_after_request_headers(app):
                 response.headers["X-Frame-Options"] = "SAMEORIGIN"
             response.headers["X-XSS-Protection"] = "1; mode=block"
             response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            if _IS_PROD_FLASK:
+                response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
             response.headers["X-Request-ID"] = str(g.request_id)
+            if _response_is_html(response) and not is_pdf_viewer:
+                response.headers["Content-Security-Policy"] = build_content_security_policy()
         return response
 
 

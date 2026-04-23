@@ -1,4 +1,40 @@
+import type { AgentConversation } from "packages/api";
 import type { OnboardingData } from "packages/features/profile/types/onboarding";
+
+export type ConnectedAgentSummary = {
+  agentId: string;
+  displayName: string;
+  email: string | null;
+  profilePictureUrl: string | null;
+};
+
+/** One row per connected agent (deduped by `agent_id`), sorted by display name. */
+export function listConnectedAgentsForPartnerStep(
+  conversations: AgentConversation[]
+): ConnectedAgentSummary[] {
+  const byAgent = new Map<string, AgentConversation>();
+  for (const c of conversations) {
+    const prev = byAgent.get(c.agent_id);
+    if (!prev || c.updated_at > prev.updated_at) {
+      byAgent.set(c.agent_id, c);
+    }
+  }
+  return [...byAgent.values()]
+    .sort((a, b) =>
+      (a.agent_name ?? "").localeCompare(b.agent_name ?? "", undefined, { sensitivity: "base" })
+    )
+    .map((c) => ({
+      agentId: c.agent_id,
+      displayName: c.agent_name?.trim() || "Agent",
+      email: c.agent_email ?? null,
+      profilePictureUrl: c.agent_profile_picture ?? null,
+    }));
+}
+
+/** Buyer roadmap step: at least one established agent–client connection (messaging graph). */
+export function isPartnerWithAgentStepComplete(conversations: AgentConversation[]): boolean {
+  return listConnectedAgentsForPartnerStep(conversations).length >= 1;
+}
 
 function isPositiveNumber(n: unknown): n is number {
   return typeof n === "number" && !Number.isNaN(n) && n > 0;
@@ -15,10 +51,7 @@ function isOkWithHoa(formData: Partial<OnboardingData>): boolean {
 
 /** Budget + financing fields shown in the checklist Set a budget step. */
 export function isSetBudgetStepComplete(formData: Partial<OnboardingData>): boolean {
-  if (
-    !isPositiveNumber(formData.home_budget_min) ||
-    !isPositiveNumber(formData.home_budget_max)
-  ) {
+  if (!isPositiveNumber(formData.home_budget_min) || !isPositiveNumber(formData.home_budget_max)) {
     return false;
   }
   if (formData.home_budget_min > formData.home_budget_max) {

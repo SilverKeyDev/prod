@@ -8,4 +8,25 @@ properties:
     items:
       $ref: ./ViewingStop.yaml
     minItems: 2
-    description: Unordered stops; each must include lat and lng for routing. Server may reject very large lists (provider waypoint limits).
+    description: Property stops; order preserved when optimize_order is false.
+  start:
+    allOf:
+      - $ref: ./ViewingRouteEndpoint.yaml
+    nullable: true
+    description: >
+      Optional starting location (e.g. home or current position). When set, the route
+      begins here and only property stops are reordered. When omitted, legacy behavior
+      optimizes across property stops only (open tour, best first listing).
+  end:
+    allOf:
+      - $ref: ./ViewingRouteEndpoint.yaml
+    nullable: true
+    description: Required when end_mode is fixed; ignored for last_property and return_to_start.
+  end_mode:
+    $ref: ./ViewingRouteEndMode.yaml
+  optimize_order:
+    type: boolean
+    default: true
+    description: >
+      When true, reorder property stops to reduce driving time (subject to start/end_mode).
+      When false, visit properties in request order between anchors.

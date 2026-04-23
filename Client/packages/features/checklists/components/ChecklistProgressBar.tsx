@@ -37,8 +37,8 @@ export function ChecklistProgressBar({
 
   const trackClassName =
     variant === "closePage"
-      ? "bg-bg-card-muted-30 h-1 w-full overflow-hidden rounded lg:h-2"
-      : "bg-card-muted-30 h-1 w-full overflow-hidden rounded";
+      ? "bg-neutral-200 h-1 w-full overflow-hidden rounded dark:bg-neutral-600 lg:h-2"
+      : "bg-neutral-200 h-1 w-full overflow-hidden rounded dark:bg-neutral-600";
 
   const safePercent = clampPercent(percent);
 

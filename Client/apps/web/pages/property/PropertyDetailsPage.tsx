@@ -1,20 +1,39 @@
 import { useCallback, useEffect, useMemo } from "react";
 
-import { useNavigation, useRouteParams } from "packages/navigation";
-import { buildPropertyUrl, generatePropertySlug } from "packages/utils/property";
+import {
+  getDocumentTitle,
+  getRouteSeoMeta,
+  useNavigation,
+  useRouteParams,
+} from "packages/navigation";
+import { DEFAULT_APP_TITLE } from "packages/navigation/router/pageTitles";
+import {
+  buildPropertyUrl,
+  generatePropertySlug,
+  researchListingZpid,
+} from "packages/utils/property";
 
+import { applySocialMetaTags } from "@/app/seo/documentMeta";
+import { setJsonLdScript } from "@/app/seo/jsonLd";
+import { getSiteOrigin } from "@/app/seo/siteOrigin";
 import { BodyText, Button, Title } from "@/components/ui";
 import { Box } from "@/components/ui";
 import { PropertyDetailsModal } from "@/features/propertyDetails";
 import type { Property } from "@/features/search";
 import { usePropertyDetails } from "@/features/search";
 
+function parseListingPriceUsd(price: string): number | undefined {
+  const n = Number(String(price).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
 export default function PropertyDetailsPage() {
+  const { navigateToPath, navigate, getCurrentRoute } = useNavigation();
+  const { pathname, search } = getCurrentRoute();
   const { zpid, slug } = useRouteParams<{
     zpid: string;
     slug?: string;
   }>();
-  const { navigateToPath, navigate } = useNavigation();
   const { selectedProperty, isLoading, error, fetchPropertyDetails, clearSelectedProperty } =
     usePropertyDetails();
 
@@ -68,6 +87,59 @@ export default function PropertyDetailsPage() {
       }
     }
   }, [selectedProperty, isLoading, zpid, slug, navigateToPath]);
+
+  useEffect(() => {
+    if (!selectedProperty?.address || !zpid) {
+      setJsonLdScript("seo-property-listing", null);
+      document.title = getDocumentTitle(pathname);
+      return;
+    }
+    const origin = getSiteOrigin() || (typeof window !== "undefined" ? window.location.origin : "");
+    const listingZpid = researchListingZpid(selectedProperty) ?? zpid;
+    const path = buildPropertyUrl(listingZpid, selectedProperty.address);
+    const pageUrl = origin ? `${origin}${path}` : "";
+    const images = selectedProperty.images;
+    const primaryImage = Array.isArray(images) && typeof images[0] === "string" ? images[0] : "";
+    const imageUrl =
+      primaryImage && /^https?:\/\//i.test(primaryImage)
+        ? primaryImage
+        : origin
+          ? `${origin}/og-default.png`
+          : "/og-default.png";
+    const priceAmount = parseListingPriceUsd(selectedProperty.price ?? "");
+    const offer =
+      priceAmount !== undefined
+        ? { "@type": "Offer" as const, price: priceAmount, priceCurrency: "USD" }
+        : undefined;
+    setJsonLdScript("seo-property-listing", {
+      "@context": "https://schema.org",
+      "@type": "RealEstateListing",
+      name: selectedProperty.address,
+      url: pageUrl || undefined,
+      image: imageUrl,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: selectedProperty.address,
+      },
+      ...(offer ? { offers: offer } : {}),
+    });
+    const title = `${selectedProperty.address} – ${DEFAULT_APP_TITLE}`;
+    document.title = title;
+    const desc = getRouteSeoMeta(pathname).description;
+    const shareUrl = origin ? `${origin}${pathname}${search}` : "";
+    if (shareUrl) {
+      applySocialMetaTags({
+        title,
+        description: desc,
+        imageUrl,
+        pageUrl: shareUrl,
+      });
+    }
+    return () => {
+      setJsonLdScript("seo-property-listing", null);
+      document.title = getDocumentTitle(pathname);
+    };
+  }, [selectedProperty, zpid, pathname, search]);
 
   const handleClose = useCallback(() => {
     navigate("SEARCH");

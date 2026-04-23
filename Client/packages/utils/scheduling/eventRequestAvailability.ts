@@ -240,3 +240,81 @@ export function hasAnyAvailableSlotOnDate(p: {
   }
   return false;
 }
+
+export type AvailabilityParty = {
+  prefs: BuyerAvailabilityPrefs | undefined;
+  busyBlocks: FreebusyTimeBlock[];
+};
+
+/**
+ * Absolute UTC interval vs one person's profile availability + Google busy blocks.
+ * When no weekly/one-off slots are configured, only busy blocks restrict the range.
+ */
+export function isUtcRangeAvailableForPerson(
+  slotStartMs: number,
+  slotEndMs: number,
+  prefs: BuyerAvailabilityPrefs | undefined,
+  busyBlocks: FreebusyTimeBlock[]
+): boolean {
+  if (slotOverlapsBusy(slotStartMs, slotEndMs, busyBlocks)) {
+    return false;
+  }
+  if (!hasConfiguredBuyerAvailabilitySlots(prefs)) {
+    return true;
+  }
+  const zone = resolvedAvailabilityZone(prefs);
+  let zoneOk = true;
+  try {
+    dayjs.tz("2020-01-01", zone);
+  } catch {
+    zoneOk = false;
+  }
+  const effectiveZone = zoneOk ? zone : "UTC";
+  const ymd = dayjs(slotStartMs).tz(effectiveZone).format("YYYY-MM-DD");
+  const allowed = allowedIntervalsMsForYmd(prefs, ymd);
+  if (allowed.length === 0) {
+    return false;
+  }
+  return slotInsideAllowedProfileWindow(slotStartMs, slotEndMs, allowed);
+}
+
+/** Both parties must be free (profile rules + calendars). */
+export function isMutualUtcRangeAvailable(
+  slotStartMs: number,
+  slotEndMs: number,
+  a: AvailabilityParty,
+  b: AvailabilityParty
+): boolean {
+  return (
+    isUtcRangeAvailableForPerson(slotStartMs, slotEndMs, a.prefs, a.busyBlocks) &&
+    isUtcRangeAvailableForPerson(slotStartMs, slotEndMs, b.prefs, b.busyBlocks)
+  );
+}
+
+/**
+ * Whether any step-sized slot on this calendar day (in the viewer's timezone) works for both parties.
+ */
+export function mutualDayHasAvailableSlot(p: {
+  ymd: string;
+  stepMinutes: number;
+  viewerTimeZone: string;
+  a: AvailabilityParty;
+  b: AvailabilityParty;
+}): boolean {
+  for (let total = 0; total < 24 * 60; total += p.stepMinutes) {
+    const hour24 = Math.floor(total / 60);
+    const minute = total % 60;
+    const hm = `${String(hour24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+    const slotStart = dayjs.tz(`${p.ymd} ${hm}`, "YYYY-MM-DD HH:mm", p.viewerTimeZone);
+    if (!slotStart.isValid()) {
+      continue;
+    }
+    const slotEnd = slotStart.add(p.stepMinutes, "minute");
+    const s = slotStart.valueOf();
+    const e = slotEnd.valueOf();
+    if (isMutualUtcRangeAvailable(s, e, p.a, p.b)) {
+      return true;
+    }
+  }
+  return false;
+}

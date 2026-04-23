@@ -12,6 +12,8 @@ export type CardCompareCheckboxProps = {
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   ariaLabel?: string;
+  /** Icon when not selected. Default `plus` (compare / add). Use `search` when the affordance is “find / add from search” until a bottom dock is open. */
+  unselectedIcon?: "plus" | "search";
 };
 /** Same sizing as CardHeartSave for consistent overlay buttons across all breakpoints */
 const TOGGLE_SIZE: Record<NonNullable<CardCompareCheckboxProps["size"]>, string> = {
@@ -39,6 +41,7 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
   size = "md",
   className = "",
   ariaLabel,
+  unselectedIcon = "plus",
 }) => {
   const sizeConfig = getCardBubbleSizeClasses(size);
   const toggleClass = TOGGLE_SIZE[size];
@@ -55,6 +58,8 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
   // Check if this is being used as an inline button (no position specified or position is not absolute)
   const isInlineButton =
     !position || className.includes("border") || className.includes("rounded-md");
+  const unselectedGlyph = unselectedIcon === "search" ? "search" : "plus";
+
   if (isInlineButton) {
     return (
       <Button
@@ -65,7 +70,6 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
         className={`${baseButtonClasses} ${stateClasses} ${toggleClass} ${className}`}
         label={ariaLabel ?? (isSelected ? "Remove from comparison" : "Add to comparison")}
         title={isSelected ? "Remove from comparison" : "Add to comparison"}
-        iconName="trash-2"
       >
         {isSelected ? (
           <Icon
@@ -74,7 +78,7 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
           />
         ) : (
           <Icon
-            name="plus"
+            name={unselectedGlyph}
             className={`${iconSizeClass} transition-all duration-200 group-hover:brightness-90`}
           />
         )}
@@ -91,7 +95,6 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
         className={`${baseButtonClasses} ${stateClasses} ${toggleClass}`}
         label={ariaLabel ?? (isSelected ? "Remove from comparison" : "Add to comparison")}
         title={isSelected ? "Remove from comparison" : "Add to comparison"}
-        iconName="trash-2"
       >
         {isSelected ? (
           <Icon
@@ -100,7 +103,7 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
           />
         ) : (
           <Icon
-            name="plus"
+            name={unselectedGlyph}
             className={`${iconSizeClass} transition-all duration-200 group-hover:scale-110 group-hover:brightness-90`}
           />
         )}

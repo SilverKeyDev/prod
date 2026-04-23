@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { Property } from "packages/schemas/property";
 import { useUIStore } from "packages/store";
+import type { Property } from "packages/types";
 import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 

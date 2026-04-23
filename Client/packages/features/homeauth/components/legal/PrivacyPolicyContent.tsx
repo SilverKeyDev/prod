@@ -121,8 +121,10 @@ export function PrivacyPolicyContent({
         <Paragraph>
           Depending on where you live, you may have rights to access, correct, delete, or restrict
           certain processing of your personal data, or to object to processing or request
-          portability. To exercise these rights, contact us using the email below. We may need to
-          verify your request before responding.
+          portability. Where available in the product, you can download a copy of your data or
+          delete your account from Settings (Profile) under <Bold>Privacy &amp; data</Bold>. You can
+          also contact us using the email below; we may need to verify your request before
+          responding.
         </Paragraph>
       </Section>
 

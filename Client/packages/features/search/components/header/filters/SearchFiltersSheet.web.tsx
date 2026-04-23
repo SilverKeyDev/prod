@@ -20,6 +20,7 @@ export type SearchFiltersSheetProps = {
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
   patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
+  onAgentSyncPreferencesFetched?: (onboarding: Partial<OnboardingData>) => void;
 };
 
 export default function SearchFiltersSheet({
@@ -30,7 +31,9 @@ export default function SearchFiltersSheet({
   updateFormData,
   saveStatus = "idle",
   scriptsReady,
+  selectedClientId,
   patchBuyerPreferenceExtensions,
+  onAgentSyncPreferencesFetched,
 }: SearchFiltersSheetProps): React.ReactElement {
   const { t } = useLocalization();
   const handleApply = () => {
@@ -84,6 +87,8 @@ export default function SearchFiltersSheet({
                   saveStatus={saveStatus}
                   patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
                   scriptsReady={scriptsReady}
+                  viewingClientId={selectedClientId ?? null}
+                  onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
                 />
               </Box>
 

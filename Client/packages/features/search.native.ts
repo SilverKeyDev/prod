@@ -22,7 +22,10 @@ export {
 } from "./search/types/search/formatters/address";
 export type { AddressObject } from "./search/types/search/formatters/propertyDetailsFormatters";
 export { formatPrice } from "./search/types/search/formatters/propertyDetailsFormatters";
-export { formatAddress, getPropertyImages } from "./search/types/search/formatters/propertyDetailsFormatters";
+export {
+  formatAddress,
+  getPropertyImages,
+} from "./search/types/search/formatters/propertyDetailsFormatters";
 export { formatPropertyType } from "./search/types/search/formatters/propertyFormatters";
 export { SEARCH_TRANSLATIONS } from "./search/types/translations";
 export { useSavedHomesStoreIntegration } from "packages/hooks/store";

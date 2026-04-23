@@ -40,4 +40,49 @@ describe("deriveCreateEventModalFormSubmitState", () => {
     });
     expect(r.canSubmit).toBe(false);
   });
+
+  it("messaging calendar request requires schedule and recipient", () => {
+    const base = {
+      mode: "create" as const,
+      eventTitle: "Showing",
+      startDate: "2026-05-01",
+      endDate: "2026-05-01",
+      startTime: "09:00",
+      endTime: "10:00",
+      isAllDay: false,
+      defaultCalendarId: "cal",
+      isSubmitting: false,
+      isSavingUnscheduled: false,
+      isCreatingEvent: false,
+      isUpdatingEvent: false,
+      calendarEventRequest: {
+        enabled: true,
+        isAgent: true,
+        selectedClientId: null as string | null,
+        hasClientRecipientConversation: true,
+        isSendingRequest: false,
+      },
+    };
+    expect(deriveCreateEventModalFormSubmitState(base).canSubmit).toBe(false);
+    expect(
+      deriveCreateEventModalFormSubmitState({
+        ...base,
+        calendarEventRequest: {
+          ...base.calendarEventRequest,
+          selectedClientId: "c1",
+        },
+      }).canSubmit
+    ).toBe(true);
+    expect(
+      deriveCreateEventModalFormSubmitState({
+        ...base,
+        calendarEventRequest: {
+          ...base.calendarEventRequest,
+          isAgent: false,
+          selectedClientId: null,
+          hasClientRecipientConversation: false,
+        },
+      }).canSubmit
+    ).toBe(false);
+  });
 });

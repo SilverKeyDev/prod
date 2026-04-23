@@ -11,7 +11,7 @@ import {
   useCalendarEventRequestForm,
   type UseCalendarEventRequestFormParams,
 } from "@/features/agent/hooks/data/useCalendarEventRequestForm";
-import { ViewingStopList } from "@/features/calendar/components/viewings/ViewingStopList";
+import { ViewingRoutePlanEditor } from "@/features/calendar/components/viewings/ViewingRoutePlanEditor";
 import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { CALENDAR_EVENT_KINDS } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 
@@ -48,6 +48,13 @@ export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCore
     isPropertyViewing,
     viewingStops,
     setViewingStops,
+    viewingStartSelection,
+    setViewingStartSelection,
+    viewingEndMode,
+    setViewingEndMode,
+    viewingEndFixed,
+    setViewingEndFixed,
+    viewingTourAnchors,
     eventRequestDateOptions,
     eventRequestTimeOptions,
   } = useCalendarEventRequestForm(props);
@@ -162,7 +169,19 @@ export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCore
       </Box>
 
       {isPropertyViewing ? (
-        <ViewingStopList stops={viewingStops} onStopsChange={setViewingStops} />
+        <ViewingRoutePlanEditor
+          viewingStops={viewingStops}
+          onViewingStopsChange={setViewingStops}
+          startSelection={viewingStartSelection}
+          onStartSelectionChange={setViewingStartSelection}
+          endMode={viewingEndMode}
+          onEndModeChange={setViewingEndMode}
+          endFixed={viewingEndFixed}
+          onEndFixedChange={setViewingEndFixed}
+          savedAnchors={viewingTourAnchors}
+          scriptsReady={false}
+          loadError={null}
+        />
       ) : (
         <>
           <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">

@@ -64,8 +64,8 @@ export { default as SectionCard } from "./layout/SectionCard";
 export { default as Popover } from "./popover/Popover";
 
 // Match score
-export { MatchPill } from "./match";
 export type { MatchPillProps } from "./match";
+export { MatchPill } from "./match";
 
 // Card components
 export { default as BaseCard } from "./cards/BaseCard";

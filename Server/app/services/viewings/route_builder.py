@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from itertools import permutations
 from typing import Any
 
 import httpx
@@ -15,10 +16,12 @@ from app.utils.security.app_logging import get_logger
 logger = get_logger()
 
 # Google Directions allows up to 25 intermediate waypoints (origin + dest + 25 mids → 27 stops).
-MAX_STOPS = 27
+MAX_PATH_NODES = 27
 DISTANCE_MATRIX_URL = "https://maps.googleapis.com/maps/api/distancematrix/json"
 DIRECTIONS_URL = "https://maps.googleapis.com/maps/api/directions/json"
 GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
+
+BRUTE_FORCE_MIDDLE_MAX = 8
 
 
 def _geocode_address(
@@ -128,6 +131,111 @@ def _open_tsp_order(matrix: list[list[float]]) -> list[int]:
     return best_order
 
 
+def _middle_perm_cost(
+    matrix: list[list[float]],
+    m: int,
+    perm: tuple[int, ...],
+    end_mode: str,
+) -> float:
+    """Total driving time for start at index 0, visiting middles in perm order."""
+    # Extended coords: [S] + M (len m+1), or [S] + M + [E] (len m+2) when end_mode == fixed
+    cost = 0.0
+    first_mid_ext = perm[0] + 1
+    cost += matrix[0][first_mid_ext]
+    for t in range(m - 1):
+        a = perm[t] + 1
+        b = perm[t + 1] + 1
+        cost += matrix[a][b]
+    last_mid_ext = perm[-1] + 1
+    if end_mode == "return_to_start":
+        cost += matrix[last_mid_ext][0]
+    elif end_mode == "fixed":
+        e_idx = m + 1
+        cost += matrix[last_mid_ext][e_idx]
+    return cost
+
+
+def _nearest_neighbor_middle_order(
+    matrix: list[list[float]],
+    m: int,
+    _end_mode: str,
+) -> list[int]:
+    """Greedy nearest neighbor from S (index 0) through all middle nodes."""
+    unvisited = set(range(m))
+    order_m: list[int] = []
+    current_ext = 0
+    while unvisited:
+        nxt_k = min(
+            unvisited,
+            key=lambda k, c=current_ext: matrix[c][k + 1],
+        )
+        order_m.append(nxt_k)
+        unvisited.remove(nxt_k)
+        current_ext = nxt_k + 1
+    return order_m
+
+
+def _best_middle_visit_order(
+    matrix: list[list[float]],
+    m: int,
+    end_mode: str,
+) -> list[int]:
+    if m <= 1:
+        return list(range(m))
+    if m <= BRUTE_FORCE_MIDDLE_MAX:
+        best: tuple[int, ...] | None = None
+        best_cost = float("inf")
+        for perm in permutations(range(m)):
+            c = _middle_perm_cost(matrix, m, perm, end_mode)
+            if c < best_cost:
+                best_cost = c
+                best = perm
+        return list(best) if best is not None else list(range(m))
+    return _nearest_neighbor_middle_order(matrix, m, end_mode)
+
+
+def _normalize_endpoint(ep: Any) -> dict[str, Any] | None:
+    if ep is None:
+        return None
+    if hasattr(ep, "model_dump"):
+        d = ep.model_dump(mode="json")
+    elif isinstance(ep, dict):
+        d = dict(ep)
+    else:
+        return None
+    if not any(d.get(k) is not None for k in ("address", "lat", "lng")):
+        return None
+    return d
+
+
+def _enrich_route_endpoint(
+    ep: dict[str, Any],
+    api_key: str,
+    client: httpx.Client,
+    default_label: str,
+) -> dict[str, Any]:
+    out = dict(ep)
+    addr = out.get("address")
+    if isinstance(addr, str):
+        addr = addr.strip()
+        out["address"] = addr if addr else None
+    pair = _lat_lng_pair(out)
+    if pair is None and out.get("address"):
+        geo = _geocode_address(str(out["address"]), api_key, client)
+        if geo:
+            out["lat"], out["lng"] = geo[0], geo[1]
+            pair = geo
+    if pair is None:
+        raise ValueError("Start/end location must include geocodable address or lat/lng")
+    if not out.get("label"):
+        out["label"] = default_label
+    if not out.get("address"):
+        out["address"] = f"{pair[0]:.5f}, {pair[1]:.5f}"
+    out["listing_id"] = None
+    out["notes"] = out.get("notes")
+    return out
+
+
 def _leg_polyline_and_metrics(
     coords: list[tuple[float, float]],
     api_key: str,
@@ -186,17 +294,125 @@ def _leg_polyline_and_metrics(
         return [], str(e)
 
 
-def build_viewing_route(stops: list[dict[str, Any]]) -> dict[str, Any]:
-    """
-    Order stops with open-TSP on driving durations, then fill legs via Directions.
+def _normalize_end_mode(raw: Any) -> str:
+    if raw is None:
+        return "last_property"
+    if hasattr(raw, "value"):
+        return str(raw.value)
+    s = str(raw)
+    if s in ("last_property", "return_to_start", "fixed"):
+        return s
+    return "last_property"
 
-    Returns a dict matching ViewingItinerary (stops, ordered, legs).
+
+def _max_property_stops_for_path(*, has_start: bool, end_mode: str) -> int:
+    if not has_start:
+        return MAX_PATH_NODES
+    if end_mode in ("return_to_start", "fixed"):
+        return MAX_PATH_NODES - 2
+    return MAX_PATH_NODES - 1
+
+
+def _endpoint_persist_dict(row: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not row:
+        return None
+    return {
+        "label": row.get("label"),
+        "address": row.get("address"),
+        "lat": row.get("lat"),
+        "lng": row.get("lng"),
+    }
+
+
+def _viewing_stop_persist_dict(s: dict[str, Any]) -> dict[str, Any]:
+    addr = s.get("address")
+    if not isinstance(addr, str):
+        addr = str(addr) if addr is not None else ""
+    return {
+        "label": s.get("label"),
+        "address": addr,
+        "lat": s.get("lat"),
+        "lng": s.get("lng"),
+        "notes": s.get("notes"),
+        "listing_id": s.get("listing_id"),
+    }
+
+
+def itinerary_path_coordinates(itinerary: dict[str, Any]) -> list[tuple[float, float]]:
     """
-    if len(stops) < 2:
-        raise ValueError("At least two stops are required")
-    if len(stops) > MAX_STOPS:
+    Build ordered lat/lng nodes for driving directions from a persisted ViewingItinerary.
+    Supports legacy rows where anchors were only present in `stops`.
+    """
+    end_mode = _normalize_end_mode(itinerary.get("end_mode"))
+    raw_stops = itinerary.get("stops") or []
+    stops: list[dict[str, Any]] = [s for s in raw_stops if isinstance(s, dict)]
+    start = itinerary.get("start")
+    end = itinerary.get("end")
+    coords: list[tuple[float, float]] = []
+
+    if isinstance(start, dict) and _normalize_endpoint(start):
+        pair = _lat_lng_pair(start)
+        if pair:
+            coords.append(pair)
+        for s in stops:
+            pair = _lat_lng_pair(s)
+            if pair:
+                coords.append(pair)
+        if end_mode == "return_to_start":
+            pair = _lat_lng_pair(start)
+            if pair:
+                coords.append(pair)
+        elif end_mode == "fixed" and isinstance(end, dict):
+            pair = _lat_lng_pair(end)
+            if pair:
+                coords.append(pair)
+        return coords
+
+    # Legacy / no explicit start: treat `stops` as the full ordered path.
+    for s in stops:
+        pair = _lat_lng_pair(s)
+        if pair:
+            coords.append(pair)
+    return coords
+
+
+def build_viewing_route(request: dict[str, Any]) -> dict[str, Any]:
+    """
+    Order stops using driving durations, then fill legs via Directions.
+
+    Request keys:
+      - stops (required): property stops (ViewingStop-shaped dicts)
+      - start (optional): anchor; when set, only property order is optimized
+      - end (optional): required when end_mode is fixed
+      - end_mode (optional): last_property | return_to_start | fixed
+      - optimize_order (optional, default True)
+
+    Returns a dict matching ViewingItinerary (property-only stops, anchors, legs, end_mode).
+    """
+    stops = request.get("stops")
+    if not isinstance(stops, list):
+        raise ValueError("stops must be a list")
+
+    start_ep = _normalize_endpoint(request.get("start"))
+    end_ep = _normalize_endpoint(request.get("end"))
+    end_mode = _normalize_end_mode(request.get("end_mode"))
+
+    if len(stops) < 1:
+        raise ValueError("At least one property stop is required")
+    if len(stops) < 2 and not start_ep:
+        raise ValueError("At least two property stops are required without a start anchor")
+    optimize_order = request.get("optimize_order")
+    if optimize_order is None:
+        optimize_order = True
+
+    if start_ep and end_mode == "fixed" and not end_ep:
+        raise ValueError("end is required when end_mode is fixed")
+
+    max_props = _max_property_stops_for_path(has_start=bool(start_ep), end_mode=end_mode)
+    if len(stops) > max_props:
         raise ValueError(
-            f"At most {MAX_STOPS} stops per route (maps provider waypoint limit). "
+            f"At most {max_props} property stops for this route configuration "
+            f"(maps provider limit {MAX_PATH_NODES} total path nodes). "
             "Split into multiple events if you need more."
         )
 
@@ -205,9 +421,9 @@ def build_viewing_route(stops: list[dict[str, Any]]) -> dict[str, Any]:
         raise RuntimeError("GOOGLE_MAPS_SERVER_KEY is not configured")
 
     with httpx.Client() as client:
-        enriched: list[dict[str, Any]] = []
+        enriched_props: list[dict[str, Any]] = []
         for s in stops:
-            s_copy = dict(s)
+            s_copy = dict(s) if isinstance(s, dict) else {}
             pair = _lat_lng_pair(s_copy)
             if pair is None and s_copy.get("address"):
                 geo = _geocode_address(str(s_copy["address"]), api_key, client)
@@ -216,24 +432,68 @@ def build_viewing_route(stops: list[dict[str, Any]]) -> dict[str, Any]:
                     pair = geo
             if pair is None:
                 raise ValueError("Each stop must be geocodable (address or lat/lng)")
-            enriched.append(s_copy)
-        stops = enriched
+            enriched_props.append(s_copy)
 
-        coords = [_lat_lng_pair(s) for s in stops]
-        assert all(c is not None for c in coords)
-        coords_typed = [c for c in coords if c is not None]
+        prop_coords = [_lat_lng_pair(s) for s in enriched_props]
+        assert all(c is not None for c in prop_coords)
+        prop_coords_typed = [c for c in prop_coords if c is not None]
 
-        matrix = _duration_matrix_seconds(coords_typed, api_key, client)
-        order_idx = _open_tsp_order(matrix)
-        ordered_coords = [coords_typed[i] for i in order_idx]
-        ordered_stops = [dict(stops[i]) for i in order_idx]
+        start_row: dict[str, Any] | None = None
+        end_row: dict[str, Any] | None = None
+        if start_ep:
+            start_row = _enrich_route_endpoint(start_ep, api_key, client, "Start")
+        if end_mode == "fixed" and end_ep:
+            end_row = _enrich_route_endpoint(end_ep, api_key, client, "End")
 
-        legs, err = _leg_polyline_and_metrics(ordered_coords, api_key, client)
-        if err or len(legs) != len(ordered_coords) - 1:
+        ordered_props = enriched_props
+        ordered_prop_coords = prop_coords_typed
+        route_ordered = bool(optimize_order)
+
+        if not start_ep:
+            if optimize_order:
+                matrix = _duration_matrix_seconds(prop_coords_typed, api_key, client)
+                order_idx = _open_tsp_order(matrix)
+                ordered_prop_coords = [prop_coords_typed[i] for i in order_idx]
+                ordered_props = [dict(enriched_props[i]) for i in order_idx]
+            else:
+                route_ordered = False
+            full_coords = ordered_prop_coords
+        else:
+            assert start_row is not None
+            s_coord = (_lat_lng_pair(start_row) or (0.0, 0.0))
+            m = len(prop_coords_typed)
+
+            if optimize_order:
+                if end_mode == "fixed" and end_row is not None:
+                    ext_coords = [s_coord] + prop_coords_typed + [
+                        _lat_lng_pair(end_row) or (0.0, 0.0)
+                    ]
+                else:
+                    ext_coords = [s_coord] + prop_coords_typed
+                matrix_full = _duration_matrix_seconds(ext_coords, api_key, client)
+                mid_order = _best_middle_visit_order(matrix_full, m, end_mode)
+                ordered_prop_coords = [prop_coords_typed[i] for i in mid_order]
+                ordered_props = [dict(enriched_props[i]) for i in mid_order]
+            else:
+                route_ordered = False
+
+            full_coords = [s_coord] + ordered_prop_coords
+            if end_mode == "return_to_start":
+                full_coords = full_coords + [s_coord]
+            elif end_mode == "fixed" and end_row is not None:
+                e_coord = _lat_lng_pair(end_row) or (0.0, 0.0)
+                full_coords = full_coords + [e_coord]
+
+        legs, err = _leg_polyline_and_metrics(full_coords, api_key, client)
+        if err or len(legs) != len(full_coords) - 1:
+            if len(full_coords) >= 2:
+                matrix_fb = _duration_matrix_seconds(full_coords, api_key, client)
+            else:
+                matrix_fb = []
             legs = []
-            for i in range(len(ordered_coords) - 1):
-                a, b = ordered_coords[i], ordered_coords[i + 1]
-                sec = int(matrix[order_idx[i]][order_idx[i + 1]])
+            for i in range(len(full_coords) - 1):
+                a, b = full_coords[i], full_coords[i + 1]
+                sec = int(matrix_fb[i][i + 1]) if matrix_fb else int(_fallback_duration(a, b))
                 meters = int(haversine_meters(a[0], a[1], b[0], b[1]))
                 legs.append(
                     {
@@ -243,25 +503,28 @@ def build_viewing_route(stops: list[dict[str, Any]]) -> dict[str, Any]:
                     }
                 )
 
+        persist_start = _endpoint_persist_dict(start_row) if start_row else None
+        persist_end: dict[str, Any] | None = None
+        if end_mode == "fixed" and end_row is not None:
+            persist_end = _endpoint_persist_dict(end_row)
+
+        property_stops_out = [_viewing_stop_persist_dict(s) for s in ordered_props]
+
         return {
-            "stops": ordered_stops,
-            "ordered": True,
+            "stops": property_stops_out,
+            "ordered": route_ordered,
             "legs": legs,
+            "start": persist_start,
+            "end": persist_end,
+            "end_mode": end_mode,
         }
 
 
 def build_google_maps_navigate_url(itinerary: dict[str, Any]) -> str:
     """https://www.google.com/maps/dir/... with origin, destination, waypoints."""
-    stops = itinerary.get("stops") or []
-    coords: list[tuple[float, float]] = []
-    for s in stops:
-        if not isinstance(s, dict):
-            continue
-        pair = _lat_lng_pair(s)
-        if pair:
-            coords.append(pair)
+    coords = itinerary_path_coordinates(itinerary)
     if len(coords) < 2:
-        raise ValueError("Itinerary needs at least two stops with coordinates")
+        raise ValueError("Itinerary needs at least two nodes with coordinates")
 
     origin = f"{coords[0][0]},{coords[0][1]}"
     destination = f"{coords[-1][0]},{coords[-1][1]}"

@@ -11,6 +11,7 @@ import { useSearchPageData } from "packages/features/search/hooks/data/page/useS
 import { useSearchPageHandlers } from "packages/features/search/hooks/data/page/useSearchPageHandlers";
 import { useSearchPageMap } from "packages/features/search/hooks/data/page/useSearchPageMap";
 import type { Property } from "packages/features/search/hooks/data/property/usePropertyDetails";
+import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/search/hooks/data/useAgentSyncPreferencesWhenClientSelected";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useSearchViewIntegration } from "packages/features/search/hooks/store/useSearchViewIntegration";
 import { useAgentSearchShareSelection } from "packages/features/search/hooks/ui/useAgentSearchShareSelection";
@@ -57,6 +58,7 @@ export function useSearchFeatureController({
   const searchAbortControllerRef = useRef<AbortController | null>(null);
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
   const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
+  useAgentSyncPreferencesWhenClientSelected(selectedClientId);
   const setSearchSource = useFiltersStore((s) => s.setSearchSource);
   const showCommuteOverlay = useFiltersStore((s) => s.showCommuteOverlay);
   const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);

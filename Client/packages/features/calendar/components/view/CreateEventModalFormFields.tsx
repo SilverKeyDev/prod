@@ -6,22 +6,31 @@ import Dropdown from "packages/ui/components/form/dropdown";
 import { Textarea } from "packages/ui/components/form/FormField";
 import { GooglePlacesAutocompleteField } from "packages/ui/components/form/GooglePlacesAutocompleteField";
 import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
+import { Icon } from "packages/ui/components/icons";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Input } from "@/components/ui";
 import Label from "@/components/ui/text/Label.web";
 import { CalendarStyleDateRangePicker } from "@/features/calendar/components/eventForm/CalendarStyleDateRangePicker";
 import { EventFormTimeRange } from "@/features/calendar/components/eventForm/EventFormTimeRange";
+import { ViewingRoutePlanEditor } from "@/features/calendar/components/viewings/ViewingRoutePlanEditor";
 import {
   type ViewingStop,
   ViewingStopList,
 } from "@/features/calendar/components/viewings/ViewingStopList";
+import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
 import type { Calendar } from "@/features/calendar/types/calendar";
 import type { CalendarEventKindOptionSlice } from "@/features/calendar/utils/createEventModal/calendarEventKindOptions";
 import {
   CALENDAR_EVENT_KINDS,
   type CalendarEventKindId,
 } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
+import type {
+  ViewingRouteEndMode,
+  ViewingRouteEndpoint,
+  ViewingTourAnchor,
+  ViewingTourStartSelection,
+} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 export type CreateEventModalFormFieldsProps = {
   mode: "create" | "edit";
@@ -33,9 +42,6 @@ export type CreateEventModalFormFieldsProps = {
   onEventKindIdChange: (id: CalendarEventKindId) => void;
   kindOptionSlice: CalendarEventKindOptionSlice;
   checklistProgressLoading?: boolean;
-  showAgentMultiStopViewingToggle?: boolean;
-  agentMultiStopViewing?: boolean;
-  onAgentMultiStopViewingChange?: (next: boolean) => void;
   eventTitle: string;
   onEventTitleChange: (e: ChangeEvent<HTMLInputElement>) => void;
   isAllDay: boolean;
@@ -50,12 +56,26 @@ export type CreateEventModalFormFieldsProps = {
   isPropertyViewing?: boolean;
   viewingStops?: ViewingStop[];
   onViewingStopsChange?: (next: ViewingStop[]) => void;
+  viewingStartSelection?: ViewingTourStartSelection;
+  onViewingStartSelectionChange?: (next: ViewingTourStartSelection) => void;
+  viewingEndMode?: ViewingRouteEndMode;
+  onViewingEndModeChange?: (next: ViewingRouteEndMode) => void;
+  viewingEndFixed?: ViewingRouteEndpoint | null;
+  onViewingEndFixedChange?: (next: ViewingRouteEndpoint | null) => void;
+  viewingTourAnchors?: ViewingTourAnchor[];
   eventLocation: string;
   onEventLocationChange: (value: string) => void;
   locationScriptsReady: boolean;
   loadError: string | null;
   eventDescription: string;
   onEventDescriptionChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+  addGoogleMeet: boolean;
+  onAddGoogleMeetChange: (next: boolean) => void;
+  showGoogleMeetOption: boolean;
+  mutualSchedule: CreateEventMutualAvailability | null;
+  /** Create flow: week double-click already set times — omit manual time row. */
+  createTimesChosenViaWeekSlot?: boolean;
+  onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
 };
 
 export function CreateEventModalFormFields({
@@ -68,9 +88,6 @@ export function CreateEventModalFormFields({
   onEventKindIdChange,
   kindOptionSlice,
   checklistProgressLoading = false,
-  showAgentMultiStopViewingToggle = false,
-  agentMultiStopViewing = false,
-  onAgentMultiStopViewingChange,
   eventTitle,
   onEventTitleChange,
   isAllDay,
@@ -85,17 +102,33 @@ export function CreateEventModalFormFields({
   isPropertyViewing = false,
   viewingStops = [],
   onViewingStopsChange,
+  viewingStartSelection = { kind: "omit" },
+  onViewingStartSelectionChange,
+  viewingEndMode = "last_property",
+  onViewingEndModeChange,
+  viewingEndFixed = null,
+  onViewingEndFixedChange,
+  viewingTourAnchors = [],
   eventLocation,
   onEventLocationChange,
   locationScriptsReady,
   loadError,
   eventDescription,
   onEventDescriptionChange,
+  addGoogleMeet,
+  onAddGoogleMeetChange,
+  showGoogleMeetOption,
+  mutualSchedule,
+  createTimesChosenViaWeekSlot = false,
+  onCalendarTimedSlotPick,
 }: CreateEventModalFormFieldsProps) {
   const hasAnyScheduleDate = Boolean(
     (startDate?.trim() ?? "").length > 0 || (endDate?.trim() ?? "").length > 0
   );
   const scheduleDetailsVisible = mode === "edit" || hasAnyScheduleDate;
+  const showTimeRangeInCreateFlow =
+    mode === "create" && !isAllDay && hasAnyScheduleDate && !createTimesChosenViaWeekSlot;
+  const showTimedRangeRow = mode === "edit" || showTimeRangeInCreateFlow;
   const showCustomTitle = eventKindId === "other";
 
   const kindDropdownOptions = kindOptionSlice.allowedKindIds.map((id) => ({
@@ -127,22 +160,6 @@ export function CreateEventModalFormFields({
         menuPortalStack="modal"
         menuPlacement="below"
       />
-
-      {mode === "create" && showAgentMultiStopViewingToggle && onAgentMultiStopViewingChange ? (
-        <Box className="flex items-start gap-3">
-          <OliveCheckbox
-            checked={agentMultiStopViewing}
-            onToggle={() => onAgentMultiStopViewingChange(!agentMultiStopViewing)}
-          />
-          <Box className="min-w-0 flex-1">
-            <Label className="mb-0 block">Multiple property viewing stops</Label>
-            <BodyText as="p" size="xs" className="text-text-secondary mt-1">
-              Add one address per stop. The fastest driving order is computed when you save. Leave
-              off for a single location.
-            </BodyText>
-          </Box>
-        </Box>
-      ) : null}
 
       {showCustomTitle ? (
         <Box>
@@ -183,6 +200,28 @@ export function CreateEventModalFormFields({
         />
       ) : null}
 
+      {mutualSchedule?.mutualUiEnabled ? (
+        <Box className="space-y-2">
+          {!mutualSchedule.hintsReady ? (
+            <BodyText as="p" size="xs" className="text-text-secondary">
+              Loading shared availability…
+            </BodyText>
+          ) : null}
+          {mutualSchedule.hintsReady && mutualSchedule.otherPartyHasNoAvailabilityPrefs ? (
+            <BodyText as="p" size="xs" className="text-text-secondary">
+              {mutualSchedule.otherPartyLabel} has not set availability hours in their profile.
+              Google Calendar busy times still apply.
+            </BodyText>
+          ) : null}
+          {mutualSchedule.hintsReady && mutualSchedule.buyerCannotLoadAgentGoogleBusy ? (
+            <BodyText as="p" size="xs" className="text-text-secondary">
+              Your agent&apos;s Google calendar isn&apos;t shown here; only your calendar and both
+              people&apos;s availability hours are used to find mutual times.
+            </BodyText>
+          ) : null}
+        </Box>
+      ) : null}
+
       <Box>
         <CalendarStyleDateRangePicker
           id="event-date-range"
@@ -197,6 +236,22 @@ export function CreateEventModalFormFields({
           endDate={endDate}
           onRangeChange={onDateRangeChange}
           onClear={mode === "create" ? () => onDateRangeChange("", "") : undefined}
+          mutualAvailabilityEnabled={Boolean(mutualSchedule?.mutualUiEnabled)}
+          mutualAvailabilityHintsReady={Boolean(mutualSchedule?.hintsReady)}
+          mutualDayKeys={mutualSchedule?.mutualDayKeys}
+          mutualAvailabilityPopoverHint={
+            mutualSchedule?.mutualUiEnabled && mutualSchedule.hintsReady
+              ? mutualSchedule.isTwoParty
+                ? "Green: at least one time that day works for both of you (profile hours + linked Google calendars)."
+                : "Green: at least one time that day fits your profile hours and Google calendar."
+              : undefined
+          }
+          calendars={calendars}
+          initialLayout={mode === "create" ? "week" : "grid"}
+          weekTimeSelectionEnabled={mode === "create" && !isAllDay}
+          onTimedSlotPick={({ startTime, endTime }) => {
+            onCalendarTimedSlotPick({ startTime, endTime });
+          }}
         />
       </Box>
 
@@ -214,7 +269,7 @@ export function CreateEventModalFormFields({
             </Button>
             <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(!isAllDay)} />
           </Box>
-        ) : (
+        ) : showTimedRangeRow ? (
           <EventFormTimeRange
             startDate={startDate}
             endDate={endDate}
@@ -225,6 +280,16 @@ export function CreateEventModalFormFields({
             menuPlacement="overlap"
             menuInPortal
             menuPortalStack="modal"
+            mutualTimeRange={
+              mutualSchedule?.mutualUiEnabled
+                ? {
+                    hintsReady: mutualSchedule.hintsReady,
+                    enabled: true,
+                    viewerTimeZone: mutualSchedule.viewerTimeZone,
+                    isMutualUtcRange: mutualSchedule.isMutualUtcRange,
+                  }
+                : undefined
+            }
             trailingSlot={
               <Box className="flex shrink-0 items-center gap-2">
                 <Button
@@ -240,11 +305,60 @@ export function CreateEventModalFormFields({
               </Box>
             }
           />
+        ) : (
+          <Box className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-text-primary h-auto min-h-0 px-0 py-0 font-medium"
+              onClick={() => onIsAllDayChange(true)}
+            >
+              All day
+            </Button>
+            <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(true)} />
+          </Box>
         )
       ) : null}
 
+      {mode === "create" && showGoogleMeetOption ? (
+        <Box className="flex items-center gap-2">
+          <Icon name="video" className="text-text-secondary h-4 w-4 shrink-0" aria-hidden />
+          <OliveCheckbox
+            checked={addGoogleMeet}
+            onToggle={() => onAddGoogleMeetChange(!addGoogleMeet)}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-text-primary h-auto justify-start px-0 py-0 text-left text-sm font-normal"
+            onClick={() => onAddGoogleMeetChange(!addGoogleMeet)}
+          >
+            Add Google Meet video conferencing
+          </Button>
+        </Box>
+      ) : null}
+
       <Box>
-        {isPropertyViewing && onViewingStopsChange ? (
+        {isPropertyViewing &&
+        onViewingStopsChange &&
+        onViewingStartSelectionChange &&
+        onViewingEndModeChange &&
+        onViewingEndFixedChange ? (
+          <ViewingRoutePlanEditor
+            viewingStops={viewingStops}
+            onViewingStopsChange={onViewingStopsChange}
+            startSelection={viewingStartSelection}
+            onStartSelectionChange={onViewingStartSelectionChange}
+            endMode={viewingEndMode}
+            onEndModeChange={onViewingEndModeChange}
+            endFixed={viewingEndFixed}
+            onEndFixedChange={onViewingEndFixedChange}
+            savedAnchors={viewingTourAnchors}
+            scriptsReady={locationScriptsReady}
+            loadError={loadError}
+          />
+        ) : isPropertyViewing && onViewingStopsChange ? (
           <ViewingStopList
             stops={viewingStops}
             onStopsChange={onViewingStopsChange}

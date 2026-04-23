@@ -38,7 +38,7 @@ export function useDocusignTemplates(): UseDocusignTemplatesReturn {
     error,
     refetch: refetchTemplates,
   } = useQuery({
-    queryKey: queryKeys.docusign.templatesList(),
+    queryKey: queryKeys.docusign.templates(),
     queryFn: async () => {
       try {
         const response = await docusignApi.listTemplates();

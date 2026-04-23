@@ -1,0 +1,28 @@
+type: object
+description: >
+  Saved viewing-route anchors (e.g. office, home) for quick start selection on property tours.
+properties:
+  anchors:
+    type: array
+    description: Named locations the user can pick as a tour start (or fixed end).
+    items:
+      type: object
+      required:
+        - id
+        - label
+        - endpoint
+      properties:
+        id:
+          type: string
+          description: Client-generated stable id (e.g. UUID).
+        label:
+          type: string
+          description: Display name (e.g. "Midtown office").
+        endpoint:
+          $ref: ../viewings/ViewingRouteEndpoint.yaml
+      additionalProperties: false
+  default_start_anchor_id:
+    type: string
+    nullable: true
+    description: When set, new property-viewing events default start to this anchor id.
+additionalProperties: false

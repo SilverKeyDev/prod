@@ -8,7 +8,8 @@ export type ProfileSectionId =
   | "financial"
   | "agent_brokerage"
   | "agent_licensing"
-  | "agent_profile";
+  | "agent_profile"
+  | "privacy_data";
 
 export type ProfileSectionCompletionStatus = "empty" | "needs_attention" | "complete";
 

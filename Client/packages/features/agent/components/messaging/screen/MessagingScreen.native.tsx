@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { CommonActions, useFocusEffect, useNavigation } from "@react-navigation/native";
 import Loading from "@ui/asset/loading/Loading";
 import { FlatList, KeyboardAvoidingView, Platform, View } from "react-native";
 
+import { useLocalization } from "packages/contexts";
 import { messagingScreenNativeStyles } from "packages/features/agent/components/messaging/screenNative/MessagingScreen.native.styles";
 import { MessagingScreenNativeComposer } from "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeComposer.native";
 import { MessagingScreenNativeHeader } from "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeHeader.native";
@@ -28,6 +30,8 @@ import { getMessagingConfig } from "./messagingConfig";
 const styles = messagingScreenNativeStyles;
 
 export function MessagingScreenNative() {
+  const navigation = useNavigation();
+  const { t } = useLocalization();
   const authReady = useAuthStore((s) => s.authReady);
   const isAgent = useIsAgent();
   const { userProfile } = useUserData();
@@ -122,6 +126,7 @@ export function MessagingScreenNative() {
     canSendMessage,
     refreshChats,
     refreshActiveConversationHistory,
+    acknowledgeActiveConversationAsRead,
   } = messaging;
 
   const config = useMemo(() => getMessagingConfig(isAgent ? "agent" : "client"), [isAgent]);
@@ -176,6 +181,12 @@ export function MessagingScreenNative() {
 
   const handlers = isAgent ? agentHandlers : clientHandlers;
   const acceptedEventRequestIds = useMemo(() => new Set<string>(), []);
+
+  useFocusEffect(
+    useCallback(() => {
+      acknowledgeActiveConversationAsRead();
+    }, [acknowledgeActiveConversationAsRead])
+  );
 
   useEffect(() => {
     if (localMessages.length > 0) {
@@ -239,6 +250,10 @@ export function MessagingScreenNative() {
         message={config.emptyStates.noAgent.message}
         actionLabel={config.emptyStates.noAgent.actionLabel}
         onAction={() => setShowSearchModal(true)}
+        secondaryActionLabel={t("agent.discovery_browse_full")}
+        onSecondaryAction={() =>
+          navigation.dispatch(CommonActions.navigate({ name: "FindAgents" }))
+        }
         centeredStyle={styles.centered}
       />
     );

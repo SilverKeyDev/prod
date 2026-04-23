@@ -48,6 +48,7 @@ export default function AgentMessaging({
     refreshChats,
     formatTime,
     canSendMessage,
+    acknowledgeActiveConversationAsRead,
   } = useMessaging({
     mode: "agent",
     conversationSelector: selectedClientId,
@@ -73,6 +74,21 @@ export default function AgentMessaging({
     isSidebarExpanded,
     setIsSidebarExpanded,
   } = useMessagingModals("agent");
+
+  useEffect(() => {
+    if (!isSidebarExpanded) return;
+    acknowledgeActiveConversationAsRead();
+  }, [isSidebarExpanded, acknowledgeActiveConversationAsRead]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      acknowledgeActiveConversationAsRead();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [acknowledgeActiveConversationAsRead]);
 
   const { requests: pendingConnectionRequests } = useConnectionRequests();
   const pendingConnectionRequestCount = pendingConnectionRequests.length;

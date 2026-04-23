@@ -1,4 +1,7 @@
-import { formatDate, formatFilenameToAddress } from "packages/features/search/types/search/formatters/address";
+import {
+  formatDate,
+  formatFilenameToAddress,
+} from "packages/features/search/types/search/formatters/address";
 import { useAuthStore } from "packages/store";
 import { getContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";
 
@@ -13,16 +16,21 @@ export type { AgreementCardProps, AgreementData } from "./types";
 
 /**
  * Compute the left-border accent colour based on contextual status.
+ * Gold: your turn — light olive: finished — gray: waiting / pipeline — red: voided / declined.
  */
 function getAccentBorder(status: ContextualAgreementStatus): string {
   switch (status) {
     case "sign_now":
-      return "border-l-4 border-l-yellow-500";
+      return "border-l-4 border-l-gold";
+    case "completed":
+    case "signed":
+      return "border-l-4 border-l-olive-muted";
     case "waiting_for_signature":
     case "waiting_for_review":
-      return "border-l-4 border-l-brown";
-    case "completed":
-      return "border-l-4 border-l-green-600";
+    case "draft":
+    case "sent":
+    case "delivered":
+      return "border-l-4 border-l-gray-300";
     case "voided":
     case "declined":
       return "border-l-4 border-l-red-500";

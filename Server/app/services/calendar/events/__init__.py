@@ -11,6 +11,7 @@ from .google_event_datetime import (
 from .operations import (
     create_event,
     delete_event,
+    get_event,
     list_events,
     update_event,
 )
@@ -18,6 +19,7 @@ from .operations import (
 __all__ = [
     "list_events",
     "create_event",
+    "get_event",
     "update_event",
     "delete_event",
     "parse_google_datetime",

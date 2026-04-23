@@ -79,10 +79,13 @@ export default function ProfileFeature({
           }),
     [agentSubject, isAgent, authUser, userProfile]
   );
-  const STEPS = useMemo(
-    () => getPersonalizationStepsUi(isAgentForProfileUi),
-    [isAgentForProfileUi]
-  );
+  const STEPS = useMemo(() => {
+    const base = getPersonalizationStepsUi(isAgentForProfileUi);
+    if (agentSubject != null) {
+      return base.filter((s) => s.id !== "privacy_data");
+    }
+    return base;
+  }, [isAgentForProfileUi, agentSubject]);
   const sectionIds = useMemo(() => STEPS.map((s) => s.id), [STEPS]);
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});

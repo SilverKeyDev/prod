@@ -31,6 +31,12 @@ class CalendarEvent(db.Model):
     # Multi-stop viewing itinerary (app-only; not synced from Google)
     itinerary: Mapped[dict[str, Any] | None] = mapped_column(db.JSON)
 
+    # Google Meet (optional; from Calendar API hangoutLink / provisioning)
+    meet_url: Mapped[str | None] = mapped_column(db.Text)
+    conference_status: Mapped[str | None] = mapped_column(
+        db.String(32)
+    )  # pending | success | failure
+
     # Event type/category
     event_type: Mapped[str | None] = mapped_column(
         db.String(100)
@@ -123,6 +129,8 @@ class CalendarEvent(db.Model):
             "description": self.description,
             "location": self.location,
             "itinerary": self.itinerary,
+            "meet_url": self.meet_url,
+            "conference_status": self.conference_status,
             "event_type": self.event_type,
             "creator_id": self.creator_id,
             "target_user_id": self.target_user_id,

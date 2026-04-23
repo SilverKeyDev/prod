@@ -21,10 +21,16 @@ from .handlers import (
     update_not_interested_home,
     upload_profile_picture,
 )
+from .handlers.client_settings import get_client_settings, patch_client_settings
+from .handlers.user_privacy import delete_my_account, export_user_data
 
 user_bp = Blueprint("user", __name__, url_prefix="/api/v1/user")
 
 user_bp.route("/profile", methods=["GET"])(get_user_profile)
+user_bp.route("/account/delete", methods=["POST"])(delete_my_account)
+user_bp.route("/data-export", methods=["GET"])(export_user_data)
+user_bp.route("/client-settings", methods=["GET"])(get_client_settings)
+user_bp.route("/client-settings", methods=["PATCH"])(patch_client_settings)
 user_bp.route("/profile-picture", methods=["POST"])(upload_profile_picture)
 user_bp.route("/closing-mode", methods=["PUT"])(update_closing_mode)
 user_bp.route("/timeline", methods=["GET"])(get_timeline_checklist)

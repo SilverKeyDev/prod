@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from "react";
 
-import { getEnv } from "packages/config/env";
 import { useLocalization } from "packages/contexts";
 import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,
@@ -64,10 +63,6 @@ export default function SearchDisplayDropdown({
   const setResultsSortDirection = useFiltersStore((s) => s.setResultsSortDirection);
   const preferencesStrictFilter = useFiltersStore((s) => s.preferencesStrictFilter);
   const setPreferencesStrictFilter = useFiltersStore((s) => s.setPreferencesStrictFilter);
-  const hasSearched = useFiltersStore((s) => s.hasSearched);
-  const showMapListingPreviews = useFiltersStore((s) => s.showMapListingPreviews);
-  const setShowMapListingPreviews = useFiltersStore((s) => s.setShowMapListingPreviews);
-  const isDev = getEnv().isDevelopment;
 
   const handleCommute = useCallback(
     (checked: boolean) => {
@@ -102,13 +97,6 @@ export default function SearchDisplayDropdown({
     [setPreferencesStrictFilter, patchSearchDisplay]
   );
 
-  const handleMapListingPreviews = useCallback(
-    (checked: boolean) => {
-      setShowMapListingPreviews(checked);
-    },
-    [setShowMapListingPreviews]
-  );
-
   const orderOptions = RESULTS_ORDER_BY_OPTIONS.map((value) => ({
     value,
     label: ORDER_LABELS[value],
@@ -135,56 +123,6 @@ export default function SearchDisplayDropdown({
 
   const renderPanel = (registerOutsideClickSafeTarget: (element: HTMLElement) => () => void) => (
     <Box className="flex flex-col gap-4">
-      <Box className="flex flex-col gap-1.5">
-        <Box className="flex flex-row items-center justify-between gap-3">
-          <BodyText as="span" size="sm" className="text-text-primary shrink-0">
-            {SEARCH_TRANSLATIONS["search.show_commute_area"] ?? "Show commute area"}
-          </BodyText>
-          <OliveCheckbox
-            checked={showCommuteOverlay}
-            onToggle={() => handleCommute(!showCommuteOverlay)}
-          />
-        </Box>
-        <Subtitle size="xs" muted className="pl-0 pr-10">
-          {SEARCH_TRANSLATIONS["search.show_commute_area_hint"] ??
-            "For searches from your profile (important locations). Shows drive-time areas when on, or a simple bounds around those places when off. Map-only searches use the place or area you picked instead."}
-        </Subtitle>
-      </Box>
-      <Box className="flex flex-col gap-1.5">
-        <Box className="flex flex-row items-center justify-between gap-3">
-          <BodyText as="span" size="sm" className="text-text-primary shrink-0">
-            {SEARCH_TRANSLATIONS["search.strict_preferences"] ?? "Match all preferences strictly"}
-          </BodyText>
-          <OliveCheckbox
-            checked={preferencesStrictFilter}
-            onToggle={() => handleStrictPreferences(!preferencesStrictFilter)}
-          />
-        </Box>
-        <Subtitle size="xs" muted className="pl-0 pr-10">
-          {SEARCH_TRANSLATIONS["search.strict_preferences_hint"] ??
-            "When off, we only apply every preference filter when there are more than 100 homes in the search area."}
-        </Subtitle>
-      </Box>
-      {isDev ? (
-        <Box className="flex flex-col gap-1.5">
-          <Box className="flex flex-row items-center justify-between gap-3">
-            <BodyText as="span" size="sm" className="text-text-primary shrink-0">
-              {SEARCH_TRANSLATIONS["search.show_map_listing_previews"] ??
-                "Show listing previews on map (dev)"}
-            </BodyText>
-            <OliveCheckbox
-              checked={showMapListingPreviews}
-              onToggle={
-                hasSearched ? () => handleMapListingPreviews(!showMapListingPreviews) : undefined
-              }
-            />
-          </Box>
-          <Subtitle size="xs" muted className="pl-0 pr-10">
-            {SEARCH_TRANSLATIONS["search.show_map_listing_previews_hint"] ??
-              "Floating home cards on the map. Run a search first."}
-          </Subtitle>
-        </Box>
-      ) : null}
       <Box className="flex min-w-0 flex-row items-stretch gap-2">
         <Box className="min-w-0 flex-1">
           <Dropdown<ResultsOrderBy>
@@ -218,6 +156,36 @@ export default function SearchDisplayDropdown({
             onChange={handleSortDirection}
           />
         </Box>
+      </Box>
+      <Box className="flex flex-col gap-1.5">
+        <Box className="flex flex-row items-center justify-between gap-3">
+          <BodyText as="span" size="sm" className="text-text-primary shrink-0">
+            {SEARCH_TRANSLATIONS["search.show_commute_area"] ?? "Show commute area"}
+          </BodyText>
+          <OliveCheckbox
+            checked={showCommuteOverlay}
+            onToggle={() => handleCommute(!showCommuteOverlay)}
+          />
+        </Box>
+        <Subtitle size="xs" muted className="pl-0 pr-10">
+          {SEARCH_TRANSLATIONS["search.show_commute_area_hint"] ??
+            "For searches from your profile (important locations). Shows drive-time areas when on, or a simple bounds around those places when off. Map-only searches use the place or area you picked instead."}
+        </Subtitle>
+      </Box>
+      <Box className="flex flex-col gap-1.5">
+        <Box className="flex flex-row items-center justify-between gap-3">
+          <BodyText as="span" size="sm" className="text-text-primary shrink-0">
+            {SEARCH_TRANSLATIONS["search.strict_preferences"] ?? "Match all preferences strictly"}
+          </BodyText>
+          <OliveCheckbox
+            checked={preferencesStrictFilter}
+            onToggle={() => handleStrictPreferences(!preferencesStrictFilter)}
+          />
+        </Box>
+        <Subtitle size="xs" muted className="pl-0 pr-10">
+          {SEARCH_TRANSLATIONS["search.strict_preferences_hint"] ??
+            "When off, we only apply every preference filter when there are more than 100 homes in the search area."}
+        </Subtitle>
       </Box>
     </Box>
   );

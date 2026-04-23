@@ -22,7 +22,7 @@ export { default as ChecklistLayout } from "./components/ChecklistLayout";
 export { ChecklistProgressBar } from "./components/ChecklistProgressBar";
 export { default as ChecklistStepForms } from "./components/ChecklistStepForms";
 export { default as CloseLayout } from "./components/CloseLayout";
-export { default as ChooseAreasSection } from "./components/integrations/ChooseAreasSection"; // eslint-disable-line import/no-unresolved -- Platform-specific: .web.tsx | .native.tsx
+export { default as ChooseAreasSection } from "./components/integrations/ChooseAreasSection";
 export { default as FindingHome } from "./components/integrations/FindingHome";
 export { default as HomeConcierge } from "./components/integrations/HomeConcierge";
 export { default as ReviewComparablesSection } from "./components/integrations/ReviewComparablesSection";
@@ -52,17 +52,13 @@ export {
 } from "./utils/presentation/checklistCheckboxPresentation";
 export {
   type ChecklistItemToggleEligibility,
-  type RoadmapChecklistBlockerKind,
   evaluateChecklistCondition,
   getChecklistItemToggleEligibility,
   getRoadmapChecklistItemBlockerKind,
   mergeTaskChecklistCheckedIds,
+  type RoadmapChecklistBlockerKind,
 } from "./utils/rules/checklistRules";
 export { CHECKLIST_TYPE_TO_TAB } from "./utils/rules/checklistTypeTab";
-export {
-  type ChecklistFormsCardVariant,
-  getFormsCardVariant,
-} from "./utils/rules/getFormsCardVariant";
 export {
   getFirstIncompleteUnlockSection,
   SECTION_CONFIG,

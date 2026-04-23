@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { handleSubmit, type PreferencesSubmitResult } from "packages/features/profile";
+import type { PreferencesSubmitResult } from "packages/features/profile/types/submitHandler";
+import { handleSubmit } from "packages/features/profile/utils/onboarding/submitHandler";
 
-const { removeItemMock } = vi.hoisted(() => ({
+const { removeItemMock, patchClientSettingsMock } = vi.hoisted(() => ({
   removeItemMock: vi.fn(),
+  patchClientSettingsMock: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 vi.mock("packages/utils/storage/platformStorage", async (importOriginal) => {
@@ -19,9 +21,17 @@ vi.mock("packages/utils/storage/platformStorage", async (importOriginal) => {
   };
 });
 
+vi.mock("packages/features/homeauth/api/clientSettings", () => ({
+  clientSettingsApi: {
+    get: vi.fn(),
+    patch: patchClientSettingsMock,
+  },
+}));
+
 describe("onboarding submission validation bypass", () => {
   beforeEach(() => {
     removeItemMock.mockReset();
+    patchClientSettingsMock.mockClear();
   });
 
   it("submits even when validation would fail if skipValidation is true", async () => {
@@ -55,5 +65,6 @@ describe("onboarding submission validation bypass", () => {
     expect(setLoading).toHaveBeenNthCalledWith(1, true);
     expect(setLoading).toHaveBeenLastCalledWith(false);
     expect(removeItemMock).toHaveBeenCalledWith("onboardingDraft");
+    expect(patchClientSettingsMock).toHaveBeenCalledWith({ onboarding_draft: null });
   });
 });

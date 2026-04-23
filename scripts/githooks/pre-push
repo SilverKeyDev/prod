@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Resilient wrapper: run pre-commit on push when available; otherwise warn and allow.
+# Enable for this clone: git config core.hooksPath scripts/githooks
+set -u
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$REPO_ROOT" || exit 0
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-push --hook-dir "$HERE" -- "$@")
+
+for py in "$REPO_ROOT/Server/.venv/bin/python3" "$REPO_ROOT/Server/.venv/bin/python"; do
+  if [ -x "$py" ] && "$py" -m pre_commit version >/dev/null 2>&1; then
+    exec "$py" -m pre_commit "${ARGS[@]}"
+  fi
+done
+
+if command -v pre-commit >/dev/null 2>&1; then
+  exec pre-commit "${ARGS[@]}"
+fi
+
+if python3 -m pre_commit version >/dev/null 2>&1; then
+  exec python3 -m pre_commit "${ARGS[@]}"
+fi
+
+echo "warning: pre-commit not found; skipping push hooks. To enable: cd Server && python3 -m venv .venv && .venv/bin/pip install pre-commit && .venv/bin/pre-commit install --hook-type pre-push" >&2
+exit 0

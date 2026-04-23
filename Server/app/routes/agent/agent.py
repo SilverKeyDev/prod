@@ -17,6 +17,7 @@ from .handlers import (
     get_todos,
     mark_chat_as_read,
     respond_to_connection_request_endpoint,
+    recommended_agents_endpoint,
     search_agents_endpoint,
     search_clients_endpoint,
     send_message,
@@ -41,6 +42,7 @@ agent_bp.route("/chats/<conversation_id>/read", methods=["POST"])(mark_chat_as_r
 
 # Search
 agent_bp.route("/search-agents", methods=["GET"])(search_agents_endpoint)
+agent_bp.route("/recommended-agents", methods=["GET"])(recommended_agents_endpoint)
 agent_bp.route("/search-clients", methods=["GET"])(search_clients_endpoint)
 
 # Connection requests

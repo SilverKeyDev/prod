@@ -17,13 +17,16 @@ export const CHECKLISTS_TRANSLATIONS: Record<string, string> = {
   "checklists.error_loading_forms": "Error loading forms. Please try again.",
   "checklists.no_forms_for_step": "No forms are required for this step.",
   "checklists.forms_for_step": "Forms for this step",
-  "checklists.forms_description_agent": "Download forms or send them to your client in Messaging.",
+  "checklists.forms_description_agent":
+    "View, download, share, or send for signature using the actions on each form.",
   "checklists.forms_description_client": "Download and complete the forms below for this step.",
   "checklists.send_form_to_client": "Send to client",
   "checklists.sending_form": "Sending...",
   "checklists.download_form_error": "Could not download the form. Please try again.",
   "checklists.send_form_error": "Could not send the form. Try again or open Messaging.",
   "checklists.send_form_success": "Form sent to your client.",
+  "checklists.send_form_docusign_success": "Sent for signature.",
+  "checklists.send_form_docusign_error": "Could not send for signature. Try again.",
   "checklists.due_label": "Due",
   "checklists.buyer_journey.title": "Your Roadmap ",
   "checklists.buyer_journey.progress": "{{completed}} of {{total}} tasks complete",
@@ -58,4 +61,11 @@ export const CHECKLISTS_TRANSLATIONS: Record<string, string> = {
   "checklists.roadmap.finish_previous_phases": "Finish an earlier phase first ›",
   "checklists.roadmap.complete_via_step": "Complete this step using the form below.",
   "checklists.roadmap.signature_pending": "Completes when agreements are signed.",
+  "checklists.partner_agent.intro":
+    "Search for an agent to send a connection request. After they accept, they appear under Connected agents and you can submit this step.",
+  "checklists.partner_agent.connected_section_title": "Connected agents",
+  "checklists.partner_agent.empty_state":
+    "When an agent accepts your connection request, they will appear here. Then you can submit this step.",
+  "checklists.partner_agent.incomplete_warning":
+    "Connect with at least one agent (accepted request) before submitting.",
 };

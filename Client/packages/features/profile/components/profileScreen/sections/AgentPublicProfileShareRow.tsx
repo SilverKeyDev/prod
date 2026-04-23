@@ -67,7 +67,7 @@ export function AgentPublicProfileShareRow({
   );
 
   const actionsRow = (
-    <Box className="flex w-full shrink-0 flex-col gap-2 xs:flex-row xs:flex-wrap sm:w-auto sm:flex-nowrap sm:justify-end">
+    <Box className="xs:flex-row xs:flex-wrap flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
       <Button
         variant="ghost"
         size="sm"
@@ -95,9 +95,9 @@ export function AgentPublicProfileShareRow({
 
   if (variant === "card") {
     return (
-      <Box className="border-border flex flex-col gap-4 rounded-xl border bg-background-surface p-4 sm:p-5">
+      <Box className="border-border bg-background-surface flex flex-col gap-4 rounded-xl border p-4 sm:p-5">
         <Box className="flex flex-col gap-1">
-          <Title size="sm" as="h3" className="font-sans text-text-primary">
+          <Title size="sm" as="h3" className="text-text-primary font-sans">
             {t("profile.agent.public_profile_link_label")}
           </Title>
           <Subtitle size="xs" muted>
@@ -116,7 +116,7 @@ export function AgentPublicProfileShareRow({
     <Box className="border-border w-full border-b pb-6">
       <Box className="flex flex-col gap-3">
         <Box className="flex flex-col gap-1">
-          <Title size="sm" as="h2" className="font-sans text-text-primary">
+          <Title size="sm" as="h2" className="text-text-primary font-sans">
             {t("profile.agent.public_profile_link_label")}
           </Title>
           <Subtitle size="xs" muted>

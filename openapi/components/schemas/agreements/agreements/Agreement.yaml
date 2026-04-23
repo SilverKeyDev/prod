@@ -42,6 +42,10 @@ properties:
     type: string
     nullable: true
     description: Current DocuSign envelope UUID used for API callbacks and deep links.
+  docusign_source_template_id:
+    type: string
+    nullable: true
+    description: When set, envelope is created from this DocuSign template instead of PDF revisions.
   docusign_status:
     type: string
     nullable: true

@@ -3,6 +3,7 @@
  */
 
 import { log } from "packages/services/security/secureLogger";
+import type { SavedHome } from "packages/types";
 import { asError } from "packages/utils";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
@@ -89,7 +90,7 @@ export class NegotiationService {
     saveToSessionStorage(this.localStorageKeys.strategy, null);
     saveToSessionStorage(this.localStorageKeys.comps, null);
 
-    this.storeBridge?.setSelectedHome(home as import("../schemas").SavedHome);
+    this.storeBridge?.setSelectedHome(home as SavedHome);
     this.storeBridge?.setStrategyData(null);
     this.storeBridge?.setCompsData(null);
     this.storeBridge?.setStrategyTextContent("");

@@ -1,5 +1,6 @@
 import React from "react";
 
+import { AccountPrivacyDataSection } from "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection";
 import { ProfileHousingEssentialsSection } from "packages/features/profile/components/profileScreen/sections/ProfileHousingEssentialsSection";
 import { ProfileHousingRangesSection } from "packages/features/profile/components/profileScreen/sections/ProfileHousingRangesSection";
 import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
@@ -133,6 +134,9 @@ export function SettingsSectionContent({
           patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
       );
+
+    case "privacy_data":
+      return <AccountPrivacyDataSection />;
 
     default:
       return null;

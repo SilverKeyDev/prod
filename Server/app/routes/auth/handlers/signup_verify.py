@@ -9,9 +9,11 @@ from app.services.auth.utils import (
     generate_request_id,
     mask_email,
 )
+from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 
 
+@rate_limit(max_requests=10, window_seconds=60)
 @validate_request(SignupData)
 @validate_response(AuthResponse)
 def signup(data: SignupData | None = None):
@@ -38,6 +40,7 @@ def signup(data: SignupData | None = None):
     return jsonify(response_data), status_code
 
 
+@rate_limit(max_requests=10, window_seconds=60)
 @validate_request(VerifyData)
 @validate_response(AuthResponse)
 def verify(data: VerifyData | None = None):
@@ -86,6 +89,7 @@ def verify(data: VerifyData | None = None):
     return resp, status_code
 
 
+@rate_limit(max_requests=5, window_seconds=60)
 @validate_request(ResendCodeData)
 @validate_response(SuccessResponse)
 def resend_code(data: ResendCodeData | None = None):

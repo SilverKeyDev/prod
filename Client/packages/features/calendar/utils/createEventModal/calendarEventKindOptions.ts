@@ -56,6 +56,7 @@ export function getCalendarEventKindOptionSlice(input: {
         "phone_consultation",
         "meeting",
         "open_house",
+        "property_viewings",
         "other",
       ]),
       defaultKindId: "agent_consultation",

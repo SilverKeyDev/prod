@@ -13,9 +13,11 @@ from app.services.auth.utils import (
     generate_request_id,
     mask_email,
 )
+from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 
 
+@rate_limit(max_requests=10, window_seconds=60)
 @validate_request(ResetPasswordData)
 @validate_response(AuthResponse)
 def reset_password(data: ResetPasswordData | None = None):

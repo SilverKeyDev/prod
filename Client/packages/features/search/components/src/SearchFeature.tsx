@@ -118,6 +118,7 @@ export function SearchFeature({
                   }
                 : undefined
             }
+            agentShareDockVisible={c.isAgent && c.agentShareSelection.selectedIds.size > 0}
           />
         </Box>
         <Box

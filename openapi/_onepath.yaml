@@ -47,6 +47,10 @@ components:
       $ref: ./components/schemas/agent/core/AgentConversationsResponse.yaml
     AgentSearchResult:
       $ref: ./components/schemas/agent/core/AgentSearchResult.yaml
+    RecommendedAgentResult:
+      $ref: ./components/schemas/agent/core/RecommendedAgentResult.yaml
+    RecommendedAgentsResponse:
+      $ref: ./components/schemas/agent/core/RecommendedAgentsResponse.yaml
     Agreement:
       $ref: ./components/schemas/agreements/agreements/Agreement.yaml
     AgreementEvent:
@@ -103,6 +107,10 @@ components:
       $ref: ./components/schemas/preferences/ClientsPreferencesResponse.yaml
     ClientsResponse:
       $ref: ./components/schemas/agent/clients/ClientsResponse.yaml
+    ClientSettings:
+      $ref: ./components/schemas/user/ClientSettings.yaml
+    ClientSettingsResponse:
+      $ref: ./components/schemas/user/ClientSettingsResponse.yaml
     CommuteData:
       $ref: ./components/schemas/search/properties/CommuteData.yaml
     CompareReportsRequest:

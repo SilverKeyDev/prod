@@ -2,7 +2,6 @@ import React, { useCallback } from "react";
 
 import { Modal, Pressable, StyleSheet, Switch } from "react-native";
 
-import { getEnv } from "packages/config/env";
 import { color } from "packages/design-tokens";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useFiltersStore } from "packages/features/search/store/filters.slice";
@@ -45,10 +44,6 @@ export function SearchDisplaySheetNative({
   const setResultsSortDirection = useFiltersStore((s) => s.setResultsSortDirection);
   const preferencesStrictFilter = useFiltersStore((s) => s.preferencesStrictFilter);
   const setPreferencesStrictFilter = useFiltersStore((s) => s.setPreferencesStrictFilter);
-  const hasSearched = useFiltersStore((s) => s.hasSearched);
-  const showMapListingPreviews = useFiltersStore((s) => s.showMapListingPreviews);
-  const setShowMapListingPreviews = useFiltersStore((s) => s.setShowMapListingPreviews);
-  const isDev = getEnv().isDevelopment;
 
   const onCommute = useCallback(
     (v: boolean) => {
@@ -74,49 +69,7 @@ export function SearchDisplaySheetNative({
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
           <Text className="text-text-primary mb-3 text-lg font-semibold">{title}</Text>
           <ScrollView>
-            <Box style={styles.row}>
-              <Text className="text-text-primary flex-1 text-sm">
-                {SEARCH_TRANSLATIONS["search.show_commute_area"] ?? "Show commute area"}
-              </Text>
-              <Switch value={showCommuteOverlay} onValueChange={onCommute} />
-            </Box>
-            <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
-              {SEARCH_TRANSLATIONS["search.show_commute_area_hint"] ??
-                "For searches from your profile (important locations). Shows drive-time areas when on, or a simple bounds around those places when off. Map-only searches use the place or area you picked instead."}
-            </Text>
-            <Box style={styles.row}>
-              <Text className="text-text-primary flex-1 pr-2 text-sm">
-                {SEARCH_TRANSLATIONS["search.strict_preferences"] ??
-                  "Match all preferences strictly"}
-              </Text>
-              <Switch value={preferencesStrictFilter} onValueChange={onStrictPreferences} />
-            </Box>
-            <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
-              {SEARCH_TRANSLATIONS["search.strict_preferences_hint"] ??
-                "When off, we only apply every preference filter when there are more than 100 homes in the search area."}
-            </Text>
-            {isDev ? (
-              <>
-                <Box style={styles.row}>
-                  <Text className="text-text-primary flex-1 pr-2 text-sm">
-                    {SEARCH_TRANSLATIONS["search.show_map_listing_previews"] ??
-                      "Show listing previews on map (dev)"}
-                  </Text>
-                  <Switch
-                    value={showMapListingPreviews}
-                    disabled={!hasSearched}
-                    onValueChange={(v) => {
-                      if (hasSearched) setShowMapListingPreviews(v);
-                    }}
-                  />
-                </Box>
-                <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
-                  {SEARCH_TRANSLATIONS["search.show_map_listing_previews_hint"] ??
-                    "Floating home cards on the map. Run a search first."}
-                </Text>
-              </>
-            ) : null}
-            <Text className="text-text-secondary mt-4 text-xs font-medium uppercase">
+            <Text className="text-text-secondary text-xs font-medium uppercase">
               {SEARCH_TRANSLATIONS["search.display_order_by"] ?? "Order by"}
             </Text>
             <Box className="mt-2 gap-1">
@@ -141,7 +94,7 @@ export function SearchDisplaySheetNative({
                 </Pressable>
               ))}
             </Box>
-            <Text className="text-text-secondary mt-4 text-xs font-medium uppercase">
+            <Text className="text-text-secondary mt-6 text-xs font-medium uppercase">
               {SEARCH_TRANSLATIONS["search.display_sort_direction"] ?? "Sort direction"}
             </Text>
             <Box className="mt-2 flex-row flex-wrap gap-2">
@@ -170,6 +123,27 @@ export function SearchDisplaySheetNative({
                 </Pressable>
               ))}
             </Box>
+            <Box style={[styles.row, styles.sectionTop]}>
+              <Text className="text-text-primary flex-1 text-sm">
+                {SEARCH_TRANSLATIONS["search.show_commute_area"] ?? "Show commute area"}
+              </Text>
+              <Switch value={showCommuteOverlay} onValueChange={onCommute} />
+            </Box>
+            <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
+              {SEARCH_TRANSLATIONS["search.show_commute_area_hint"] ??
+                "For searches from your profile (important locations). Shows drive-time areas when on, or a simple bounds around those places when off. Map-only searches use the place or area you picked instead."}
+            </Text>
+            <Box style={styles.row}>
+              <Text className="text-text-primary flex-1 pr-2 text-sm">
+                {SEARCH_TRANSLATIONS["search.strict_preferences"] ??
+                  "Match all preferences strictly"}
+              </Text>
+              <Switch value={preferencesStrictFilter} onValueChange={onStrictPreferences} />
+            </Box>
+            <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
+              {SEARCH_TRANSLATIONS["search.strict_preferences_hint"] ??
+                "When off, we only apply every preference filter when there are more than 100 homes in the search area."}
+            </Text>
           </ScrollView>
           <Pressable onPress={onClose} style={styles.done}>
             <Text className="text-primary text-center text-sm font-semibold">Done</Text>
@@ -198,6 +172,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 8,
+  },
+  sectionTop: {
+    marginTop: 20,
   },
   chip: {
     paddingHorizontal: 14,

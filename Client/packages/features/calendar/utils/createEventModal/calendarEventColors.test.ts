@@ -41,6 +41,45 @@ describe("calendarColorForEvent", () => {
     };
     expect(calendarColorForEvent(ev, cals)).toBe(calendarBg);
   });
+
+  it("prefers Google Calendar colorId when set", () => {
+    const cals: GoogleCalendar[] = [];
+    const ev: ExtendedGoogleEvent = {
+      id: "e1",
+      summary: CALENDAR_EVENT_KINDS.agent_consultation.label,
+      start: { dateTime: "2026-06-01T10:00:00Z" },
+      end: { dateTime: "2026-06-01T11:00:00Z" },
+      colorId: "9",
+    };
+    expect(calendarColorForEvent(ev, cals)).toBe("#3f51b5");
+  });
+
+  it("uses silverKeyEventType when the title no longer matches a kind label", () => {
+    const cals: GoogleCalendar[] = [];
+    const ev: ExtendedGoogleEvent = {
+      id: "e1",
+      summary: "Lunch with buyer",
+      start: { dateTime: "2026-06-01T10:00:00Z" },
+      end: { dateTime: "2026-06-01T11:00:00Z" },
+      silverKeyEventType: "property_viewing",
+    };
+    expect(calendarColorForEvent(ev, cals)).toBe(
+      color(CALENDAR_EVENT_KINDS.property_viewings.uiColorPath)
+    );
+  });
+
+  it("infers type color from free-text title when there is no DB hint", () => {
+    const cals: GoogleCalendar[] = [];
+    const ev: ExtendedGoogleEvent = {
+      id: "e1",
+      summary: "Showing — 123 Main St",
+      start: { dateTime: "2026-06-01T10:00:00Z" },
+      end: { dateTime: "2026-06-01T11:00:00Z" },
+    };
+    expect(calendarColorForEvent(ev, cals)).toBe(
+      color(CALENDAR_EVENT_KINDS.property_viewings.uiColorPath)
+    );
+  });
 });
 
 describe("hexToRgba", () => {

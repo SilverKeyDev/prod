@@ -47,7 +47,6 @@ describe("buildProgressiveChecklistRows", () => {
     const items = [item(1), item(2), item(3), item(4), item(5), item(6)];
     const rows = buildProgressiveChecklistRows(items, 1, {
       previewUpcoming: preview,
-      completedOpen: false,
       futureOpen: false,
     });
     expect(rows.length).toBe(6);
@@ -60,7 +59,6 @@ describe("buildProgressiveChecklistRows", () => {
     const activeIndex = 4;
     const rows = buildProgressiveChecklistRows(items, activeId, {
       previewUpcoming: preview,
-      completedOpen: false,
       futureOpen: false,
     });
 
@@ -73,24 +71,23 @@ describe("buildProgressiveChecklistRows", () => {
     expect(rows.length).toBe(6);
   });
 
-  it("expands completed items when completedOpen is true", () => {
+  it("shows one revealed completed row while keeping the rest collapsed", () => {
     const items = Array.from({ length: 10 }, (_, i) => item(i + 1));
     const rows = buildProgressiveChecklistRows(items, 4, {
       previewUpcoming: preview,
-      completedOpen: true,
       futureOpen: false,
+      revealedCompletedItemId: 2,
     });
-    expect(rows[0]?.kind).toBe("completed_item");
-    expect(rows[1]?.kind).toBe("completed_item");
-    expect(rows[2]?.kind).toBe("completed_item");
-    expect(rows[3]?.kind).toBe("current");
+    expect(rows[0]).toEqual({ kind: "completed_collapsed", count: 1 });
+    expect(rows[1]).toMatchObject({ kind: "completed_item", item: items[1] });
+    expect(rows[2]).toEqual({ kind: "completed_collapsed", count: 1 });
+    expect(rows[3]).toMatchObject({ kind: "current", item: items[3] });
   });
 
   it("handles all complete (active null)", () => {
     const items = [item(1), item(2), item(3), item(4), item(5), item(6), item(7)];
     const rows = buildProgressiveChecklistRows(items, null, {
       previewUpcoming: preview,
-      completedOpen: false,
       futureOpen: false,
     });
     expect(rows).toEqual([{ kind: "completed_collapsed", count: 7 }]);
@@ -100,7 +97,6 @@ describe("buildProgressiveChecklistRows", () => {
     const items = Array.from({ length: 10 }, (_, i) => item(i + 1));
     const rows = buildProgressiveChecklistRows(items, 7, {
       previewUpcoming: preview,
-      completedOpen: false,
       futureOpen: false,
     });
     const kinds = rows.map((r) => r.kind);

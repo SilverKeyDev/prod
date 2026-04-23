@@ -56,6 +56,7 @@ def create_agreement(
         status="draft",
         description=kwargs.get("description"),
         property_address=kwargs.get("property_address"),
+        docusign_source_template_id=kwargs.get("docusign_source_template_id"),
     )
 
     db.session.add(agreement)

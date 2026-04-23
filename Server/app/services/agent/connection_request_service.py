@@ -4,12 +4,150 @@ Service functions for managing agent-client connection requests
 
 import json
 import logging
+import re
 from datetime import datetime, timezone
 
 from ... import db
-from ...models import AgentConnectionRequest, AgentConnections, User
+from ...models import AgentConnectionRequest, AgentConnections, User, UserAgentProfile
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_json_str_list(raw: str | None) -> list[str]:
+    if not raw or not str(raw).strip():
+        return []
+    try:
+        data = json.loads(raw)
+        if isinstance(data, list):
+            return [str(x).strip() for x in data if x is not None and str(x).strip()]
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return []
+
+
+def _normalize_zip(z: str | None) -> str | None:
+    if not z:
+        return None
+    digits = "".join(c for c in str(z).strip() if c.isdigit())
+    if len(digits) >= 5:
+        return digits[:5]
+    return None
+
+
+def _normalize_state(s: str | None) -> str | None:
+    if not s or len(s.strip()) != 2:
+        return None
+    return s.strip().upper()
+
+
+def _tokenize(text: str | None) -> set[str]:
+    if not text or not str(text).strip():
+        return set()
+    return {t for t in re.split(r"[^\w]+", str(text).lower()) if len(t) > 1}
+
+
+def _agent_row_base(agent: User) -> dict:
+    created = agent.created_at
+    if created is not None and created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+    return {
+        "id": agent.id,
+        "name": agent.name,
+        "email": agent.email,
+        "phone": agent.phone,
+        "created_at": created.isoformat() if created else None,
+    }
+
+
+def recommend_agents(
+    zip_code: str | None,
+    state: str | None,
+    intent: str | None,
+    limit: int = 20,
+) -> list[dict]:
+    """
+    Rank agents using v1 heuristics: primary_service_zips, licensed_states, specialties/bio vs intent.
+
+    When zip, state, and intent are all empty, returns recent agents with relevance_score 0 (fallback).
+    """
+    try:
+        limit = max(1, min(int(limit), 100))
+        zip_norm = _normalize_zip(zip_code)
+        state_norm = _normalize_state(state)
+        intent_clean = intent.strip() if intent else ""
+        intent_tokens = _tokenize(intent_clean)
+        has_signals = bool(zip_norm or state_norm or intent_tokens)
+
+        rows = (
+            db.session.query(User, UserAgentProfile)
+            .outerjoin(UserAgentProfile, User.id == UserAgentProfile.user_id)
+            .filter(User.is_agent.is_(True))
+            .all()
+        )
+
+        scored: list[tuple[float, datetime | None, dict]] = []
+        for agent, profile in rows:
+            score = 0.0
+            reasons: list[str] = []
+
+            if zip_norm and profile and profile.primary_service_zips:
+                zips_raw = _parse_json_str_list(profile.primary_service_zips)
+                zips_n = {z for z in (_normalize_zip(x) for x in zips_raw) if z}
+                if zip_norm in zips_n:
+                    score += 5.0
+                    reasons.append("zip")
+
+            if state_norm and profile and profile.licensed_states:
+                states_raw = _parse_json_str_list(profile.licensed_states)
+                states_u = {s.strip().upper() for s in states_raw if s and len(s.strip()) >= 2}
+                if state_norm in states_u:
+                    score += 3.0
+                    reasons.append("state")
+
+            if intent_tokens and profile:
+                specs = _parse_json_str_list(profile.specialties)
+                bio = profile.agent_bio or ""
+                corpus_tokens = _tokenize(" ".join(specs) + " " + bio)
+                overlap = intent_tokens & corpus_tokens
+                if overlap:
+                    score += float(min(5, len(overlap)))
+                    reasons.append("specialty")
+
+            row = {**_agent_row_base(agent), "relevance_score": score, "match_reasons": reasons or None}
+            created = agent.created_at
+            scored.append((score, created, row))
+
+        def _sort_ts(dt: datetime | None) -> datetime:
+            if dt is None:
+                return datetime(1970, 1, 1, tzinfo=timezone.utc)
+            if dt.tzinfo is None:
+                return dt.replace(tzinfo=timezone.utc)
+            return dt
+
+        scored.sort(key=lambda t: (t[0], _sort_ts(t[1])), reverse=True)
+        if has_signals:
+            out = [t[2] for t in scored[:limit]]
+            return out
+
+        # Fallback: no signals from client — recent agents, neutral score
+        recent = (
+            User.query.filter(User.is_agent.is_(True))
+            .order_by(User.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                **_agent_row_base(a),
+                "relevance_score": 0.0,
+                "match_reasons": None,
+            }
+            for a in recent
+        ]
+
+    except Exception as e:
+        logger.error(f"Error recommending agents: {e}", exc_info=True)
+        raise
 
 
 def search_agents(query: str, limit: int = 20) -> list[dict]:

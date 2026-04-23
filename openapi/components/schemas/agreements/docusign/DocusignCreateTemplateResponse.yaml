@@ -1,0 +1,16 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      id:
+        type: string
+        description: SilverKey row id for the cached template record.
+        nullable: true
+      template_id:
+        type: string
+        description: DocuSign template GUID (envelope template id).
+        nullable: true
+      edit_url:
+        type: string
+        description: URL to open DocuSign template editor (place fields).
+        nullable: true

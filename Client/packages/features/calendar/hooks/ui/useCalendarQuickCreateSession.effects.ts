@@ -1,5 +1,6 @@
 import {
   type Dispatch,
+  type MutableRefObject,
   type RefObject,
   type SetStateAction,
   useEffect,
@@ -24,7 +25,8 @@ export function useCalendarQuickCreateOutsidePointer(
   isClientView: boolean,
   hourRowHeight: number,
   visibleEvents: ExtendedGoogleEvent[],
-  commitQuickCreateRef: RefObject<() => Promise<void>>,
+  discardQuickCreate: () => void,
+  outsideSafeTargetsRef: MutableRefObject<Set<HTMLElement>>,
   beginQuickCreateWeek: (date: Date, minutesFromMidnight: number) => void,
   beginQuickCreateMonthDay: (date: Date) => void,
   setEditEvent: Dispatch<SetStateAction<ExtendedGoogleEvent | null>>,
@@ -39,7 +41,7 @@ export function useCalendarQuickCreateOutsidePointer(
       return;
     }
 
-    const onPointerDown = async (e: PointerEvent) => {
+    const onPointerDown = (e: PointerEvent) => {
       const target = e.target;
       if (!(target instanceof Node)) {
         return;
@@ -48,14 +50,19 @@ export function useCalendarQuickCreateOutsidePointer(
         return;
       }
 
+      for (const el of outsideSafeTargetsRef.current) {
+        if (el.contains(target)) {
+          return;
+        }
+      }
+
       const hit = classifyQuickCreatePointerTarget(target);
       if (hit.kind === "popover") {
         return;
       }
 
       const totalGridHeight = CAL_TIME_GRID_HOURS * hourRowHeight;
-
-      await commitQuickCreateRef.current?.();
+      const draftId = quickCreate.draftId;
 
       if (hit.kind === "week-empty") {
         const rect = hit.column.getBoundingClientRect();
@@ -75,16 +82,29 @@ export function useCalendarQuickCreateOutsidePointer(
       }
 
       if (hit.kind === "week-event") {
+        if (hit.id === draftId) {
+          discardQuickCreate();
+          return;
+        }
+        discardQuickCreate();
         onWeekGridEventSelect?.(hit.id);
         return;
       }
 
       if (hit.kind === "month-event") {
         const ev = visibleEvents.find((x) => x.id === hit.id);
+        if (ev?.isOptimisticCalendarDraft) {
+          discardQuickCreate();
+          return;
+        }
+        discardQuickCreate();
         if (ev && !ev.isOptimisticCalendarDraft) {
           setEditEvent(ev);
         }
+        return;
       }
+
+      discardQuickCreate();
     };
 
     doc.addEventListener("pointerdown", onPointerDown, true);
@@ -96,7 +116,8 @@ export function useCalendarQuickCreateOutsidePointer(
     beginQuickCreateWeek,
     beginQuickCreateMonthDay,
     visibleEvents,
-    commitQuickCreateRef,
+    discardQuickCreate,
+    outsideSafeTargetsRef,
     setEditEvent,
     onWeekGridEventSelect,
   ]);

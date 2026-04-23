@@ -6,6 +6,7 @@ from .client_service import get_agent_clients, get_client_info
 from .connection_request_service import (
     create_connection_request,
     get_connection_requests,
+    recommend_agents,
     respond_to_connection_request,
     search_agents,
     search_clients,
@@ -42,6 +43,7 @@ __all__ = [
     "get_unread_count",
     "mark_messages_as_read",
     "get_notification_counter",
+    "recommend_agents",
     "search_agents",
     "search_clients",
     "get_connection_requests",

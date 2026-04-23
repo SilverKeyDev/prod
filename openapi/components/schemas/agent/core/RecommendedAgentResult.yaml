@@ -1,0 +1,17 @@
+allOf:
+  - $ref: ./AgentSearchResult.yaml
+  - type: object
+    required:
+      - relevance_score
+    properties:
+      relevance_score:
+        type: number
+        description: |
+          Deterministic v1 relevance score (zip/state/intent heuristics). Higher is better;
+          clients may use for ordering only.
+      match_reasons:
+        type: array
+        items:
+          type: string
+        nullable: true
+        description: Short human-readable reasons for the score (e.g. zip, state, specialty).

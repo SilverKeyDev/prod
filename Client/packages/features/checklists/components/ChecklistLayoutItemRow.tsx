@@ -32,7 +32,7 @@ export type ChecklistLayoutItemRowProps = {
   rowKind: ChecklistLayoutItemRowKind;
   globalIndex: number;
   checkedById: Record<number, boolean>;
-  activeItemId: number | null;
+  activeItemIds: readonly number[];
   roadmapTab: ChecklistTab;
   getItemToggleEligibility: (
     section: ChecklistTab,
@@ -51,7 +51,7 @@ function ChecklistLayoutItemRowInner({
   rowKind,
   globalIndex,
   checkedById,
-  activeItemId,
+  activeItemIds,
   roadmapTab,
   getItemToggleEligibility,
   onToggleItem,
@@ -64,7 +64,7 @@ function ChecklistLayoutItemRowInner({
   const { canCheck, canUncheck, canMarkChecked } = getItemToggleEligibility(roadmapTab, item.id);
   const checkboxDisabled = (!rowChecked && !canCheck) || (rowChecked && !canUncheck);
 
-  const isActive = activeItemId != null && item.id === activeItemId;
+  const isActive = activeItemIds.includes(item.id);
   const shouldShowIntegration = (item as { component_key?: string }).component_key != null;
   const expanded = isExpanded(item.id);
   const isCurrentRow = rowKind === "current";
@@ -108,7 +108,9 @@ function ChecklistLayoutItemRowInner({
         <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-1">
           <ChecklistStepHeaderSubmitButton integrationVisible={showIntegrationBlock} />
           {isCurrentRow ? (
-            hasHeaderSubmit ? null : <Box className="h-6 w-6 flex-shrink-0" aria-hidden />
+            hasHeaderSubmit ? null : (
+              <Box className="h-6 w-6 flex-shrink-0" aria-hidden />
+            )
           ) : (
             <IconButton
               variant="ghost"

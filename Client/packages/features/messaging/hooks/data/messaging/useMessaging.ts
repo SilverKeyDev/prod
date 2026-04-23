@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type { AgentConversation } from "packages/api";
+import { agentApi } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import { isSameMessagingUserId } from "packages/features/messaging/utils/userIdMatch";
@@ -184,6 +185,18 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     lastMessageAtRef,
   ]);
 
+  const acknowledgeActiveConversationAsRead = useCallback(() => {
+    if (!activeConversationId) return;
+    markConversationRead(activeConversationId);
+    void agentApi.markMessagesAsRead(activeConversationId).catch((err) => {
+      log.error(LOG_CATEGORIES.MESSAGES, "Failed to mark messages as read", err);
+    });
+    if (localMessages.length > 0) {
+      const latest = localMessages[localMessages.length - 1];
+      updateLastReadTimestamp(activeConversationId, latest.timestamp.getTime());
+    }
+  }, [activeConversationId, localMessages, markConversationRead, updateLastReadTimestamp]);
+
   return {
     localMessages,
     activeConversationId,
@@ -202,5 +215,6 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     refreshChats,
     formatTime,
     canSendMessage,
+    acknowledgeActiveConversationAsRead,
   };
 }

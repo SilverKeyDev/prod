@@ -33,6 +33,11 @@ export function TermsOfServiceContent(props: LegalLayoutPrimitives) {
       </Section>
 
       <Section title="3. Eligibility and accounts">
+        <Paragraph>
+          You must be at least 18 years old, or the age of majority in your jurisdiction if that is
+          higher, to create an account. The Services are not directed to children under 13, and you
+          may not use the Services if you are a child under 13.
+        </Paragraph>
         <Paragraph>To use the Services, you agree that you will:</Paragraph>
         <List>
           <ListItem>Provide accurate registration information and keep it up to date.</ListItem>

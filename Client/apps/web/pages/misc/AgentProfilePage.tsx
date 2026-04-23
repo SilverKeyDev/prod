@@ -5,22 +5,35 @@ import { PublicAgentProfileConnect } from "packages/features/agent";
 import { AgentPublicProfileView } from "packages/features/profile";
 import { usePublicAgentProfile } from "packages/hooks/data/integrations/usePublicAgentProfile";
 import { useUserData } from "packages/hooks/data/user/useUserData";
-import { useNavigation, useRouteParams } from "packages/navigation";
+import { getRouteSeoMeta, useNavigation, useRouteParams } from "packages/navigation";
 import { DEFAULT_APP_TITLE } from "packages/navigation/router/pageTitles";
 import { useAuthStore } from "packages/store";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
-import { buildAgentProfileUrl, generateAgentProfileSlug } from "packages/utils/agent";
+import {
+  buildAgentProfileUrl,
+  generateAgentProfileSlug,
+  resolveAgentProfileRouteParams,
+} from "packages/utils/agent";
 
+import { applySocialMetaTags } from "@/app/seo/documentMeta";
+import { setJsonLdScript } from "@/app/seo/jsonLd";
+import { getSiteOrigin } from "@/app/seo/siteOrigin";
 import { BodyText, Button, Title } from "@/components/ui";
 import { Box } from "@/components/ui";
 
 export default function AgentProfilePage() {
   const { t } = useLocalization();
-  const { agentId, slug } = useRouteParams<{
-    agentId: string;
-    slug?: string;
+  const { briefSlug, name: nameSegment } = useRouteParams<{
+    name: string;
+    briefSlug: string;
   }>();
-  const { navigate, navigateToPath } = useNavigation();
+  const { agentUserId, legacyUuidFirst } = useMemo(
+    () => resolveAgentProfileRouteParams(nameSegment, briefSlug),
+    [briefSlug, nameSegment]
+  );
+  const agentId = agentUserId ?? undefined;
+  const { navigate, navigateToPath, getCurrentRoute } = useNavigation();
+  const { pathname, search } = getCurrentRoute();
   const authUser = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { userProfile } = useUserData();
@@ -28,28 +41,62 @@ export default function AgentProfilePage() {
   const isOwnProfile = Boolean(viewerId && agentId && viewerId === agentId.trim());
   const { data: agent, isLoading, isError, error, isFetched } = usePublicAgentProfile(agentId);
 
-  const canonicalSlug = useMemo(() => {
+  const canonicalNameSlug = useMemo(() => {
     if (!agent?.name) return null;
     return generateAgentProfileSlug(agent.name);
   }, [agent?.name]);
 
   useEffect(() => {
-    if (!agent?.name || !agentId || !canonicalSlug) return;
-    if (slug && slug !== canonicalSlug) {
+    if (!agent?.name || !agentId || !canonicalNameSlug) return;
+    const pathName = nameSegment?.trim();
+    if (legacyUuidFirst || (pathName && pathName !== canonicalNameSlug)) {
       navigateToPath(buildAgentProfileUrl(agentId, agent.name), {
         replace: true,
       });
     }
-  }, [agent, agentId, slug, canonicalSlug, navigateToPath]);
+  }, [agent, agentId, canonicalNameSlug, legacyUuidFirst, nameSegment, navigateToPath]);
 
   useEffect(() => {
-    if (agent?.name?.trim()) {
-      document.title = `${agent.name.trim()} – ${DEFAULT_APP_TITLE}`;
+    if (!agent?.name?.trim()) {
+      setJsonLdScript("seo-agent-person", null);
+      return;
     }
+    const title = `${agent.name.trim()} – ${DEFAULT_APP_TITLE}`;
+    document.title = title;
+    const origin = getSiteOrigin() || (typeof window !== "undefined" ? window.location.origin : "");
+    const pageUrl = origin ? `${origin}${pathname}${search}` : "";
+    const fallbackDesc = getRouteSeoMeta(pathname).description;
+    const desc =
+      (agent.agent_bio ?? "").trim().slice(0, 160) || agent.brokerage_name?.trim() || fallbackDesc;
+    const rawImage = agent.profile_picture_url ?? agent.professional_headshot_url ?? "";
+    const imageUrl =
+      rawImage && /^https?:\/\//i.test(rawImage)
+        ? rawImage
+        : origin
+          ? `${origin}/og-default.png`
+          : "/og-default.png";
+    if (pageUrl) {
+      applySocialMetaTags({ title, description: desc, imageUrl, pageUrl });
+    }
+    const sameAs =
+      agent.social_links &&
+      Object.values(agent.social_links).filter((u): u is string => typeof u === "string");
+    setJsonLdScript("seo-agent-person", {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: agent.name.trim(),
+      url: pageUrl || undefined,
+      image: imageUrl,
+      jobTitle: "Real Estate Agent",
+      worksFor: agent.brokerage_name
+        ? { "@type": "Organization", name: agent.brokerage_name }
+        : undefined,
+      sameAs: sameAs && sameAs.length ? sameAs : undefined,
+    });
     return () => {
-      document.title = DEFAULT_APP_TITLE;
+      setJsonLdScript("seo-agent-person", null);
     };
-  }, [agent?.name]);
+  }, [agent, pathname, search]);
 
   if (!agentId?.trim()) {
     return (

@@ -28,7 +28,13 @@ function formatPrice(value: string | number | null | undefined): string {
  * Native saved home card: image with overlay (compare + heart),
  * address, price, beds/baths. Pressing the card navigates to property details.
  */
-export function SavedHomeCard({ home, isSelected, onToggleCompare, onUnlock }: SavedHomeCardProps) {
+export function SavedHomeCard({
+  home,
+  isSelected,
+  onToggleCompare,
+  onUnlock,
+  layout: _layout = "grid",
+}: SavedHomeCardProps) {
   const addressRaw =
     typeof home.address === "string" || typeof home.address === "number"
       ? home.address.toString()

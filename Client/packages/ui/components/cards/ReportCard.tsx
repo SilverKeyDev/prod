@@ -3,9 +3,12 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { formatDate, formatFilenameToAddress } from "packages/features/search/types/search/formatters/address";
+import {
+  formatDate,
+  formatFilenameToAddress,
+} from "packages/features/search/types/search/formatters/address";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { Report } from "packages/schemas";
+import type { Report } from "packages/types";
 import StatusBadge from "packages/ui/components/asset/StatusBadge";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";

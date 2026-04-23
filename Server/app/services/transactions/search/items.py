@@ -24,6 +24,9 @@ SEARCH_ITEMS = [
         "resource": None,
         "component_key": "set_budget",
         "completion_requires_submit": True,
+        "allow_unordered_check": True,
+        "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
+        "parallel_step_group": "search_parallel_integrations",
     },
     {
         "id": 4,
@@ -37,6 +40,9 @@ SEARCH_ITEMS = [
         "resource": None,
         "component_key": "choose_areas",
         "completion_requires_submit": True,
+        "allow_unordered_check": True,
+        "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
+        "parallel_step_group": "search_parallel_integrations",
     },
     {
         "id": 2,
@@ -50,6 +56,9 @@ SEARCH_ITEMS = [
         "resource": None,
         "component_key": "define_criteria",
         "completion_requires_submit": True,
+        "allow_unordered_check": True,
+        "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
+        "parallel_step_group": "search_parallel_integrations",
     },
     {
         "id": 3,

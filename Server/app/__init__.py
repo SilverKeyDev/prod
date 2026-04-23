@@ -7,6 +7,8 @@ os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 os.environ.setdefault("NUMEXPR_MAX_THREADS", "14")
 
+_HEALTHZ_IS_PRODUCTION = os.getenv("FLASK_ENV") == "production"
+
 # Optional on macOS to avoid fork shenanigans in dev
 try:
     import multiprocessing as mp
@@ -15,7 +17,8 @@ try:
 except Exception:
     pass
 
-from flask import Flask, g, jsonify, request, send_from_directory
+from flask import Flask, g, jsonify, make_response, request, send_from_directory
+from flask_compress import Compress  # pyright: ignore[reportMissingImports]
 from flask_cors import CORS
 from flask_executor import Executor
 from flask_login import LoginManager
@@ -34,6 +37,12 @@ from .extensions import db
 login_manager = LoginManager()
 ma = Marshmallow()
 executor = Executor()
+compress = Compress()
+
+# HTTP caching for Vite `dist` (hashed /assets are immutable; `index.html` must stay fresh for deploys)
+_CACHE_VITE_ASSETS = "public, max-age=31536000, immutable"
+_CACHE_SPA_INDEX = "no-cache, no-store, must-revalidate"
+_CACHE_DIST_UNHASHED = "public, max-age=86400"
 
 
 def create_app(config=None):
@@ -69,11 +78,18 @@ def create_app(config=None):
     login_manager.init_app(app)
     ma.init_app(app)
     executor.init_app(app)
+    compress.init_app(app)
     Migrate(app, db)
 
     # Initialize database within app context
     with app.app_context():
-        from .models import ChatHistory, Document, PropertyCache, User  # noqa: F401
+        from .models import (  # noqa: F401
+            ChatHistory,
+            Document,
+            PropertyCache,
+            User,
+            UserClientSettings,
+        )
 
         db.create_all()
 
@@ -204,7 +220,11 @@ def create_app(config=None):
     # Serve /assets/* out of the Vite dist directory with correct MIME types.
     @app.route("/assets/<path:filename>", methods=["GET", "HEAD"])
     def serve_assets(filename):
-        return send_from_directory(os.path.join(static_dir, "assets"), filename)
+        out = make_response(
+            send_from_directory(os.path.join(static_dir, "assets"), filename)
+        )
+        out.headers["Cache-Control"] = _CACHE_VITE_ASSETS
+        return out
 
     # Common top-level files Vite may emit (optional but nice to have)
     @app.route("/robots.txt", methods=["GET", "HEAD"])
@@ -213,8 +233,10 @@ def create_app(config=None):
     @app.route("/favicon.ico", methods=["GET", "HEAD"])
     def top_level_static():
         # Will 404 naturally if not present—browser handles that fine.
-        path = request.path.lstrip("/")
-        return send_from_directory(static_dir, path)
+        p = request.path.lstrip("/")
+        out = make_response(send_from_directory(static_dir, p))
+        out.headers["Cache-Control"] = _CACHE_DIST_UNHASHED
+        return out
 
     # Health check endpoint with DB connectivity test
     @app.route("/healthz", methods=["GET", "HEAD"])
@@ -226,8 +248,11 @@ def create_app(config=None):
                 conn.execute(text("SELECT 1"))
             return jsonify({"status": "ok", "database": "connected"}), 200
         except Exception as e:
-            app.logger.error(f"Health check failed: {str(e)}")
-            return jsonify({"status": "error", "database": "disconnected", "error": str(e)}), 503
+            app.logger.error(f"Health check failed: {str(e)}", exc_info=True)
+            body = {"status": "error", "database": "disconnected"}
+            if not _HEALTHZ_IS_PRODUCTION:
+                body["error"] = str(e)
+            return jsonify(body), 503
 
     # Request/Response logging middleware
     @app.before_request
@@ -246,6 +271,8 @@ def create_app(config=None):
             request_id = f"req_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
         g.start_time = time.time()
         g.request_id = request_id
+        # Global Privacy Control (CCPA/CPRA): opt-out of sale or sharing when the browser sends it.
+        g.gpc_opt_out = request.headers.get("Sec-GPC", "").strip() == "1"
         if request.endpoint and "auth" in request.endpoint:
             try:
                 if request.is_json:
@@ -274,7 +301,9 @@ def create_app(config=None):
     def favicon():
         favicon_path = os.path.join(static_dir, "favicon.ico")
         if os.path.exists(favicon_path):
-            return send_from_directory(static_dir, "favicon.ico")
+            out = make_response(send_from_directory(static_dir, "favicon.ico"))
+            out.headers["Cache-Control"] = _CACHE_DIST_UNHASHED
+            return out
         return ("", 204)
 
     # --- SPA catch-all route (MUST be registered last) ---
@@ -291,11 +320,20 @@ def create_app(config=None):
             if os.path.commonpath([static_dir, requested_file]) == static_dir and os.path.isfile(
                 requested_file
             ):
-                return send_from_directory(static_dir, path)
+                out = make_response(send_from_directory(static_dir, path))
+                base = os.path.basename(path) or path
+                out.headers["Cache-Control"] = (
+                    _CACHE_SPA_INDEX
+                    if base == "index.html"
+                    else _CACHE_DIST_UNHASHED
+                )
+                return out
         except (ValueError, OSError):
             pass  # fall through to SPA index
 
         # SPA routing: return index.html for client-side routes (e.g., /login, /dashboard)
-        return send_from_directory(static_dir, "index.html")
+        out = make_response(send_from_directory(static_dir, "index.html"))
+        out.headers["Cache-Control"] = _CACHE_SPA_INDEX
+        return out
 
     return app

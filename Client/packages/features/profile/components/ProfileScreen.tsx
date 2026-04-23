@@ -87,10 +87,13 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
           }),
     [agentSubject, isAgent, authUser, userProfile]
   );
-  const STEPS = useMemo(
-    () => getPersonalizationStepsUi(isAgentForProfileUi),
-    [isAgentForProfileUi]
-  );
+  const STEPS = useMemo(() => {
+    const base = getPersonalizationStepsUi(isAgentForProfileUi);
+    if (agentSubject != null) {
+      return base.filter((s) => s.id !== "privacy_data");
+    }
+    return base;
+  }, [isAgentForProfileUi, agentSubject]);
   const [activeSection, setActiveSection] = useState<string>(STEPS[0]?.id ?? "demographics");
   const hasInitializedFormRef = useRef(false);
 

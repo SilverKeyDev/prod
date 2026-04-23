@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { usePreferencesSubmit } from "packages/features/homeauth/hooks/data/usePreferencesSubmit";
+import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { showErrorToast } from "packages/hooks/ui";
 
 import type { ProfileStep } from "@/features/profile/utils";
 import {
   handleSubmit as handleSubmitUtil,
+  mergeOnboardingServerAndDraft,
   nextPreferencesVersion,
   type OnboardingData,
 } from "@/features/profile/utils";
@@ -26,12 +28,14 @@ export type UseOnboardingFormCoreOptions = {
  */
 export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
   const { getSteps, onSubmitSuccess, navigate } = options;
+  const { clientSettings, clientSettingsQuery, patchClientSettings } = useClientSettings();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>(() => {
     const draft = getOnboardingDraftFromStorage();
     return draft ?? { important_locations: [] };
   });
   const skipNextPersistRef = useRef(true);
+  const hydratedServerDraftRef = useRef(false);
   const steps = useMemo(() => getSteps(formData), [getSteps, formData]);
   const submitPreferences = usePreferencesSubmit();
 
@@ -56,12 +60,24 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
   );
 
   useEffect(() => {
+    if (hydratedServerDraftRef.current) return;
+    if (clientSettingsQuery.isLoading) return;
+    hydratedServerDraftRef.current = true;
+    const raw = clientSettings?.onboarding_draft;
+    if (!raw || typeof raw !== "object") return;
+    setFormData((prev) => mergeOnboardingServerAndDraft(raw as OnboardingData, prev));
+  }, [clientSettings?.onboarding_draft, clientSettingsQuery.isLoading]);
+
+  useEffect(() => {
     if (skipNextPersistRef.current) {
       skipNextPersistRef.current = false;
       return;
     }
     persistOnboardingDraft(formData);
-  }, [formData]);
+    patchClientSettings({
+      onboarding_draft: formData as unknown as Record<string, unknown>,
+    });
+  }, [formData, patchClientSettings]);
 
   const nextStep = useCallback(() => {
     if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1);

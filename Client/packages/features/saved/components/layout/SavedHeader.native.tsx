@@ -5,14 +5,16 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
+import type { SavedPageViewType } from "packages/features/documents";
+import { LibrarySortControlNative } from "packages/features/saved/components/header/LibrarySortControl.native";
 import { Box, Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 
 type EventTypeFilter = "listed" | "price_change" | "sold" | "withdrawn" | "";
 
 interface SavedHeaderProps {
-  viewType: "homes" | "documents" | "agreements";
-  setViewType: (viewType: "homes" | "documents" | "agreements") => void;
+  viewType: SavedPageViewType;
+  setViewType: (viewType: SavedPageViewType) => void;
   summaryCountText: string;
   isAgent: boolean;
   selectedClientName: string | null;
@@ -21,6 +23,8 @@ interface SavedHeaderProps {
   eventTypeFilter?: EventTypeFilter;
   onEventTypeFilterChange: (filter: EventTypeFilter) => void;
   onUploadDocument?: () => void;
+  librarySortKey: string;
+  onLibrarySortChange: (value: string) => void;
 }
 
 export function SavedHeader({
@@ -34,6 +38,8 @@ export function SavedHeader({
   eventTypeFilter,
   onEventTypeFilterChange,
   onUploadDocument,
+  librarySortKey,
+  onLibrarySortChange,
 }: SavedHeaderProps) {
   const { t } = useLocalization();
   const _isHomesView = viewType === "homes";
@@ -183,6 +189,14 @@ export function SavedHeader({
               ))}
             </Box>
           )}
+        </Box>
+
+        <Box className="px-2 pb-2">
+          <LibrarySortControlNative
+            viewType={viewType}
+            value={librarySortKey}
+            onChange={onLibrarySortChange}
+          />
         </Box>
       </Box>
 

@@ -73,7 +73,10 @@ export function UnderlineTabs({
       }`;
   const paddingWithFlex = compact ? sizeStyles.paddingCompact : sizeStyles.paddingDefault;
   /** `flex-1` on every tab forces equal widths; strip it when distributing extra space to the journey tab. */
-  const buttonLayoutClass = paddingWithFlex.replace(/\bflex-1\b/g, "").replace(/\s{2,}/g, " ").trim();
+  const buttonLayoutClass = paddingWithFlex
+    .replace(/\bflex-1\b/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
   return (
     <Row className={className ? `${containerClass} ${className}` : containerClass}>
@@ -120,11 +123,11 @@ export function UnderlineTabs({
               )}
               {item.label}
               {isJourneyPhase ? (
-                <Box className="inline-flex shrink-0 flex-row items-center gap-0.5 rounded-full bg-gold-muted py-0.5 pl-1.5 pr-1.5">
-                  <Box className="h-1 w-1 shrink-0 rounded-full bg-gold" aria-hidden />
+                <Box className="bg-gold-muted inline-flex shrink-0 flex-row items-center gap-0.5 rounded-full py-0.5 pl-1.5 pr-1.5">
+                  <Box className="bg-gold h-1 w-1 shrink-0 rounded-full" aria-hidden />
                   <Text
                     as="span"
-                    className="text-xs font-medium leading-none tracking-tight text-gold"
+                    className="text-gold text-xs font-medium leading-none tracking-tight"
                   >
                     {t("common.you_are_here")}
                   </Text>

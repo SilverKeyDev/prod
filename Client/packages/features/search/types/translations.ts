@@ -31,6 +31,14 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.sale_type_pending": "Pending",
   "search.sale_type_sold": "Sold",
   "search.more": "Preferences",
+  "search.agent_sync_preferences_label": "Match my preferences to a client",
+  "search.agent_sync_preferences_hint":
+    "You can’t edit your client’s saved preferences. This copies their saved preferences to your account so your search profile matches theirs.",
+  "search.agent_filter_edits_save_to_your_profile":
+    "You’re viewing this client’s preferences. Edits here save to your profile only—we never change your client’s saved preferences.",
+  "search.agent_sync_preferences_success": "Your preferences now match {{name}}’s.",
+  "search.agent_sync_preferences_error": "Couldn’t copy preferences. Try again.",
+  "search.agent_sync_preferences_client_fallback": "your client",
   "search.search_tab": "Results",
   "search.saved_tab": "Saved",
   "search.close_filters": "Close filters",
@@ -83,9 +91,6 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.display_sort_direction": "Sort direction",
   "search.sort_low_to_high": "Low to high",
   "search.sort_high_to_low": "High to low",
-  "search.show_map_listing_previews": "Show listing previews on map (dev)",
-  "search.show_map_listing_previews_hint":
-    "Floating home cards on the map. Run a search first; tap X on a card to hide just that preview.",
   "search.dismiss_map_listing_preview": "Hide this listing preview on the map",
   "search.strict_preferences": "Match all preferences strictly",
   "search.strict_preferences_hint":

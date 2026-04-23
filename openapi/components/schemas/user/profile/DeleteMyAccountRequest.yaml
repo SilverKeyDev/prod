@@ -1,0 +1,8 @@
+type: object
+required:
+  - confirm
+properties:
+  confirm:
+    type: boolean
+    enum: [true]
+    description: Must be true to confirm irreversible account deletion.

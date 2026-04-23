@@ -7,6 +7,8 @@ export type ToggleProps = {
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: string;
+  /** Associate with a `<Label htmlFor={id}>` for accessibility (WCAG / eslint jsx-a11y). */
+  id?: string;
   disabled?: boolean;
   className?: string;
   size?: "sm" | "md" | "lg";
@@ -22,6 +24,7 @@ const Toggle: React.FC<ToggleProps> = ({
   checked,
   onChange,
   label,
+  id,
   disabled,
   className = "",
   size = "md",
@@ -29,6 +32,7 @@ const Toggle: React.FC<ToggleProps> = ({
   const sizes = sizeClasses[size];
   return (
     <Button
+      id={id}
       type="button"
       variant="ghost"
       role="switch"

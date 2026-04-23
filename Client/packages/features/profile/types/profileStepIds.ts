@@ -14,6 +14,7 @@ export const PROFILE_STEP_IDS = [
   "agent_brokerage",
   "agent_licensing",
   "agent_profile",
+  "privacy_data",
 ] as const;
 
 export type ProfileStepId = (typeof PROFILE_STEP_IDS)[number];

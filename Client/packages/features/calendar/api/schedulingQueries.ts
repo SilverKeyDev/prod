@@ -4,6 +4,7 @@
 
 import { googleCalendarApi, type GoogleEvent } from "packages/config/http/api";
 
+import { getClientAvailability } from "@/features/calendar/api/scheduling";
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type {
   FreebusyRequest,
@@ -37,6 +38,22 @@ export async function queryAvailability(
     throw new Error(response.error || "Failed to query availability");
   }
 
+  return getBusyBlocksFromResponse(response.data.calendars);
+}
+
+/**
+ * Client Google Calendar free/busy as merged busy blocks (agent-only API).
+ */
+export async function queryClientAvailabilityAsBlocks(
+  clientId: string,
+  timeMin: string,
+  timeMax: string,
+  calendarIds?: string[]
+): Promise<FreebusyTimeBlock[]> {
+  const response = await getClientAvailability(clientId, timeMin, timeMax, calendarIds);
+  if (!response.success || !response.data) {
+    throw new Error(response.error || "Failed to query client availability");
+  }
   return getBusyBlocksFromResponse(response.data.calendars);
 }
 

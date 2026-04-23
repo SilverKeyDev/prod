@@ -229,6 +229,8 @@ export const getProfileSectionCompletion = (
     agent_brokerage: statusFor(br.any, br.complete),
     agent_licensing: statusFor(lic.any, lic.complete),
     agent_profile: statusFor(prof.any, prof.complete),
+    // Informational / legal tools — not a preferences form; keep neutral in tab affordances.
+    privacy_data: "empty",
   };
 };
 

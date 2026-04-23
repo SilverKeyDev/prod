@@ -6,12 +6,18 @@ import ClientSelector from "packages/ui/components/button/ClientSelector";
 import { Box } from "packages/ui/components/primitives";
 
 import BaseModal from "@/components/modals/BaseModal";
-import { CloseButton, Title } from "@/components/ui";
 import Label from "@/components/ui/text/Label.web";
 import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
+import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
 import type { Calendar } from "@/features/calendar/types/calendar";
 import type { CalendarEventKindOptionSlice } from "@/features/calendar/utils/createEventModal/calendarEventKindOptions";
 import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
+import type {
+  ViewingRouteEndMode,
+  ViewingRouteEndpoint,
+  ViewingTourAnchor,
+  ViewingTourStartSelection,
+} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 import { CreateEventModalFormFields } from "./CreateEventModalFormFields";
 
@@ -19,6 +25,8 @@ export type CreateEventModalFormProps = {
   isOpen: boolean;
   onClose: () => void;
   mode: "create" | "edit";
+  /** When set, replaces the default "Add to Agenda" / "Edit Event" modal title. */
+  modalTitle?: string;
   calendars: Calendar[];
   selectedCalendarId: string;
   onCalendarChange: (id: string) => void;
@@ -31,10 +39,6 @@ export type CreateEventModalFormProps = {
   eventTitle: string;
   onEventTitleChange: (e: ChangeEvent<HTMLInputElement>) => void;
   showAgentClientPicker?: boolean;
-  /** When true, show a control to add multiple property stops (itinerary). */
-  showAgentMultiStopViewingToggle?: boolean;
-  agentMultiStopViewing?: boolean;
-  onAgentMultiStopViewingChange?: (next: boolean) => void;
   selectedClientId: string | null;
   onSelectedClientIdChange: (id: string | null) => void;
   isAllDay: boolean;
@@ -49,6 +53,13 @@ export type CreateEventModalFormProps = {
   isPropertyViewing?: boolean;
   viewingStops?: ViewingStop[];
   onViewingStopsChange?: (next: ViewingStop[]) => void;
+  viewingStartSelection?: ViewingTourStartSelection;
+  onViewingStartSelectionChange?: (next: ViewingTourStartSelection) => void;
+  viewingEndMode?: ViewingRouteEndMode;
+  onViewingEndModeChange?: (next: ViewingRouteEndMode) => void;
+  viewingEndFixed?: ViewingRouteEndpoint | null;
+  onViewingEndFixedChange?: (next: ViewingRouteEndpoint | null) => void;
+  viewingTourAnchors?: ViewingTourAnchor[];
   eventLocation: string;
   onEventLocationChange: (value: string) => void;
   locationScriptsReady: boolean;
@@ -59,12 +70,19 @@ export type CreateEventModalFormProps = {
   isSubmitting: boolean;
   primaryActionLabel: string;
   onSubmit: () => void;
+  addGoogleMeet: boolean;
+  onAddGoogleMeetChange: (next: boolean) => void;
+  showGoogleMeetOption: boolean;
+  mutualSchedule: CreateEventMutualAvailability | null;
+  createTimesChosenViaWeekSlot: boolean;
+  onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
 };
 
 export function CreateEventModalForm({
   isOpen,
   onClose,
   mode,
+  modalTitle,
   calendars,
   selectedCalendarId,
   onCalendarChange,
@@ -76,9 +94,6 @@ export function CreateEventModalForm({
   eventTitle,
   onEventTitleChange,
   showAgentClientPicker = false,
-  showAgentMultiStopViewingToggle = false,
-  agentMultiStopViewing = false,
-  onAgentMultiStopViewingChange,
   selectedClientId,
   onSelectedClientIdChange,
   isAllDay,
@@ -93,6 +108,13 @@ export function CreateEventModalForm({
   isPropertyViewing = false,
   viewingStops = [],
   onViewingStopsChange,
+  viewingStartSelection = { kind: "omit" },
+  onViewingStartSelectionChange,
+  viewingEndMode = "last_property",
+  onViewingEndModeChange,
+  viewingEndFixed = null,
+  onViewingEndFixedChange,
+  viewingTourAnchors = [],
   eventLocation,
   onEventLocationChange,
   locationScriptsReady,
@@ -103,17 +125,23 @@ export function CreateEventModalForm({
   isSubmitting,
   primaryActionLabel,
   onSubmit,
+  addGoogleMeet,
+  onAddGoogleMeetChange,
+  showGoogleMeetOption,
+  mutualSchedule,
+  createTimesChosenViaWeekSlot,
+  onCalendarTimedSlotPick,
 }: CreateEventModalFormProps) {
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} size="md">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="md"
+      title={modalTitle ?? (mode === "edit" ? "Edit Event" : "Add to Agenda")}
+      showCloseButton
+      showHeaderBorder
+    >
       <Box className="space-y-4">
-        <Box className="border-border flex items-center justify-between border-b pb-3">
-          <Title size="md" as="h2">
-            {mode === "edit" ? "Edit Event" : "Add to Agenda"}
-          </Title>
-          <CloseButton onClick={onClose} size="overlay" className="ml-2" />
-        </Box>
-
         {mode === "create" && showAgentClientPicker ? (
           <Box>
             <Label className="mb-2 block">Client</Label>
@@ -135,9 +163,6 @@ export function CreateEventModalForm({
           onEventKindIdChange={onEventKindIdChange}
           kindOptionSlice={kindOptionSlice}
           checklistProgressLoading={checklistProgressLoading}
-          showAgentMultiStopViewingToggle={showAgentMultiStopViewingToggle}
-          agentMultiStopViewing={agentMultiStopViewing}
-          onAgentMultiStopViewingChange={onAgentMultiStopViewingChange}
           eventTitle={eventTitle}
           onEventTitleChange={onEventTitleChange}
           isAllDay={isAllDay}
@@ -152,12 +177,25 @@ export function CreateEventModalForm({
           isPropertyViewing={isPropertyViewing}
           viewingStops={viewingStops}
           onViewingStopsChange={onViewingStopsChange}
+          viewingStartSelection={viewingStartSelection}
+          onViewingStartSelectionChange={onViewingStartSelectionChange}
+          viewingEndMode={viewingEndMode}
+          onViewingEndModeChange={onViewingEndModeChange}
+          viewingEndFixed={viewingEndFixed}
+          onViewingEndFixedChange={onViewingEndFixedChange}
+          viewingTourAnchors={viewingTourAnchors}
           eventLocation={eventLocation}
           onEventLocationChange={onEventLocationChange}
           locationScriptsReady={locationScriptsReady}
           loadError={loadError}
           eventDescription={eventDescription}
           onEventDescriptionChange={onEventDescriptionChange}
+          addGoogleMeet={addGoogleMeet}
+          onAddGoogleMeetChange={onAddGoogleMeetChange}
+          showGoogleMeetOption={showGoogleMeetOption}
+          mutualSchedule={mutualSchedule}
+          createTimesChosenViaWeekSlot={createTimesChosenViaWeekSlot}
+          onCalendarTimedSlotPick={onCalendarTimedSlotPick}
         />
 
         <Box className="flex gap-3 pt-2">

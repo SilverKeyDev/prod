@@ -96,7 +96,6 @@ export function useSearchPageData() {
   const resultsSortDirection = useFiltersStore((s) => s.resultsSortDirection);
   const userGeolocation = useFiltersStore((s) => s.userGeolocation);
   const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);
-  const setShowMapListingPreviews = useFiltersStore((s) => s.setShowMapListingPreviews);
   const clearDismissedMapPreviews = useFiltersStore((s) => s.clearDismissedMapPreviews);
   const { userPreferences } = useUserPreferences({
     preferencesSubjectUserId: agentViewClientId,
@@ -207,7 +206,6 @@ export function useSearchPageData() {
       setHasSearched(true);
       setShowPropertyModals(true);
       clearDismissedMapPreviews();
-      setShowMapListingPreviews(true);
     }
   }, [
     searchResults.length,
@@ -215,7 +213,6 @@ export function useSearchPageData() {
     setHasSearched,
     setShowPropertyModals,
     clearDismissedMapPreviews,
-    setShowMapListingPreviews,
   ]);
 
   useEffect(() => {

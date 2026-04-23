@@ -45,24 +45,36 @@ export type ViewingDurationEstimate = {
 
 /**
  * Rough schedule length: (avg minutes × stops) + driving from Directions legs when the route is built.
- * Returns null when fewer than two addressed stops.
+ * Returns null when there is no routable configuration (need 2+ properties, or 1+ property with a start anchor).
  */
 export function estimateViewingItineraryMinutes(input: {
   stops: ViewingStopLike[];
   legs?: ViewingLegLike[] | null;
   minutesPerProperty?: number;
+  /** When true, a single addressed stop plus route legs is valid (e.g. office → one listing). */
+  includeStartAnchor?: boolean;
+  /**
+   * Full-path driving legs including anchor segments; when omitted, defaults to `stopCount - 1`
+   * (property-only chain). Set from route preview when anchors are used.
+   */
+  expectedDrivingLegCount?: number | null;
 }): ViewingDurationEstimate | null {
   const minutesPerProperty = input.minutesPerProperty ?? DEFAULT_VIEWING_MINUTES_PER_PROPERTY;
   const stopCount = countAddressedStops(input.stops);
-  if (stopCount < 2) {
+  if (stopCount < 1) {
+    return null;
+  }
+  if (stopCount < 2 && !input.includeStartAnchor) {
     return null;
   }
 
   const onSiteMinutes = stopCount * minutesPerProperty;
   const { minutes: drivingMinutes, complete: legsSumOk } = sumLegDriveMinutes(input.legs);
-  const expectedLegs = stopCount - 1;
+  const defaultExpectedLegs = stopCount >= 2 ? stopCount - 1 : input.includeStartAnchor ? 1 : 0;
+  const expectedLegs =
+    input.expectedDrivingLegCount != null ? input.expectedDrivingLegCount : defaultExpectedLegs;
   const legCount = input.legs?.length ?? 0;
-  const drivingKnown = legsSumOk && legCount === expectedLegs;
+  const drivingKnown = expectedLegs <= 0 ? false : legsSumOk && legCount === expectedLegs;
 
   const totalMinutes = drivingKnown ? onSiteMinutes + drivingMinutes : onSiteMinutes;
 

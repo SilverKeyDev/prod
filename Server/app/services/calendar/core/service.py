@@ -28,6 +28,7 @@ from ..calendars.sharing import (
 from ..events.operations import (
     create_event,
     delete_event,
+    get_event,
     list_events,
     update_event,
 )
@@ -201,11 +202,34 @@ class GoogleCalendarService:
         event_data: dict[str, Any],
         calendar_id: str = "primary",
         target_user_id: str | None = None,
+        *,
+        add_google_meet: bool = False,
     ) -> dict[str, Any]:
         """Create a new event in user's or target user's calendar."""
         return create_event(
             user_id,
             event_data,
+            calendar_id,
+            self.client_id,
+            self.client_secret,
+            self.token_endpoint,
+            self.scopes,
+            self._resolve_calendar_id,
+            target_user_id,
+            add_google_meet=add_google_meet,
+        )
+
+    def get_event(
+        self,
+        user_id: str,
+        event_id: str,
+        calendar_id: str = "primary",
+        target_user_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Fetch a single calendar event by id."""
+        return get_event(
+            user_id,
+            event_id,
             calendar_id,
             self.client_id,
             self.client_secret,

@@ -192,10 +192,25 @@ export const userApi = {
     }>("/api/v1/user/closing-mode", { is_closing_mode: isClosingMode }),
 
   /**
-   * Delete user account - Note: Backend endpoint not implemented yet
+   * Irreversibly delete the current user's account and related data.
    */
-  deleteAccount: (): Promise<UserResponse> => {
-    log.warn(LOG_CATEGORIES.API, "User account deletion endpoint not implemented on backend");
-    return Promise.reject(new Error("Account deletion not available"));
-  },
+  deleteAccount: (): Promise<{
+    success: boolean;
+    deleted_user_id?: string | null;
+    error?: string | null;
+    message?: string | null;
+  }> => apiPost("/api/v1/user/account/delete", { confirm: true }),
+
+  /**
+   * Download a machine-readable export of account-related data (portability request).
+   */
+  exportUserData: (): Promise<Record<string, unknown>> =>
+    apiGet<{ success: boolean; data?: Record<string, unknown> }>("/api/v1/user/data-export").then(
+      (res) => {
+        if (!res.success || res.data == null) {
+          throw new Error("Data export failed");
+        }
+        return res.data;
+      }
+    ),
 };

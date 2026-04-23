@@ -146,6 +146,10 @@ def build_recipient_from_participant(
         "recipientId": str(participant.id),  # Use our participant ID
         "routingOrder": str(participant.routing_order),
     }
+    # Let signers add fields (text, date, signature, etc.) during the signing ceremony,
+    # not only complete pre-placed tags. DocuSign string booleans per API.
+    if participant.role == "signer":
+        recipient["recipientSuppliesTabs"] = "true"
     tabs = build_tabs_for_recipient(
         participant,
         extra_text_tabs=extra_text,

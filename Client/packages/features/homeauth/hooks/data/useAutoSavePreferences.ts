@@ -65,7 +65,10 @@ export function useAutoSavePreferences({
         const formIl = data.important_locations;
         const payloadIl = payload.important_locations;
         log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "autoSave.performSave.payload", {
-          formHasImportantLocationsKey: Object.prototype.hasOwnProperty.call(data, "important_locations"),
+          formHasImportantLocationsKey: Object.prototype.hasOwnProperty.call(
+            data,
+            "important_locations"
+          ),
           formImportantLocationsLen: Array.isArray(formIl) ? formIl.length : null,
           payloadHasImportantLocationsKey: Object.prototype.hasOwnProperty.call(
             payload,

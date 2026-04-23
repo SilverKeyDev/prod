@@ -1,4 +1,5 @@
 import type { SavedPageViewType } from "packages/features/documents";
+import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { Box } from "packages/ui/components/primitives";
 
 import { ClientSelector } from "@/components/ui";
@@ -22,6 +23,11 @@ export type SavedHomesHeaderProps = {
   onEventTypeFilterChange?: (
     eventType: "listed" | "price_change" | "sold" | "withdrawn" | ""
   ) => void;
+  libraryViewMode: LibraryViewMode;
+  onLibraryViewModeChange: (mode: LibraryViewMode) => void;
+  showLibraryViewToggle: boolean;
+  librarySortKey: string;
+  onLibrarySortChange: (value: string) => void;
 };
 
 export default function SavedHomesHeader({
@@ -40,6 +46,11 @@ export default function SavedHomesHeader({
   onClientChange,
   eventTypeFilter = "",
   onEventTypeFilterChange,
+  libraryViewMode,
+  onLibraryViewModeChange,
+  showLibraryViewToggle,
+  librarySortKey,
+  onLibrarySortChange,
 }: SavedHomesHeaderProps) {
   const searchPlaceholder =
     viewType === "homes"
@@ -88,6 +99,11 @@ export default function SavedHomesHeader({
           onViewTypeChange={onViewTypeChange}
           eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
           onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
+          viewMode={libraryViewMode}
+          onViewModeChange={onLibraryViewModeChange}
+          showViewToggle={showLibraryViewToggle}
+          librarySortKey={librarySortKey}
+          onLibrarySortChange={onLibrarySortChange}
         />
       </Box>
     );
@@ -110,6 +126,11 @@ export default function SavedHomesHeader({
       onViewTypeChange={onViewTypeChange}
       eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
       onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
+      viewMode={libraryViewMode}
+      onViewModeChange={onLibraryViewModeChange}
+      showViewToggle={showLibraryViewToggle}
+      librarySortKey={librarySortKey}
+      onLibrarySortChange={onLibrarySortChange}
     />
   );
 }

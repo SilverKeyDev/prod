@@ -1,16 +1,9 @@
+import { getMapPinColorsForScoreAndStatus } from "packages/utils/format/mapMatchPinColors";
 import { getMatchTierIndex } from "packages/utils/format/matchScore";
-import { getMapPinColorsForScoreAndStatus } from "packages/utils/format/listingStatusMapPinColors";
 import { getDocument } from "packages/utils/platform";
 
 const BASE_PIN_SIZE_PX = 28;
 const MATCH_TIER_COUNT = 5;
-
-export type ScorePinElementOptions = {
-  /** Listing status from search/API (e.g. For Sale, Pending). */
-  listingStatus?: string;
-  /** Alternate status field when present (e.g. Zillow homeStatus). */
-  homeStatus?: string;
-};
 
 /** Scale factor by match tier only: 0.8x (poor) … 2.0x (excellent), five steps. */
 function getScorePinScale(score: number): number {
@@ -21,23 +14,15 @@ function getScorePinScale(score: number): number {
 
 /**
  * Creates a single DOM element for use as AdvancedMarkerElement content:
- * a compact map pin colored by match score for active listings; pending, sold,
- * rent, and off-market use distinct colors.
+ * compact map pin colored by match tier (same as MatchPill).
  *
  * Higher score buckets produce larger pins (up to 2x); lower buckets
  * produce smaller pins (down to 0.8x). Color and size are both bucketed.
  */
-export function createScorePinElement(
-  score: number,
-  options?: ScorePinElementOptions
-): HTMLElement {
+export function createScorePinElement(score: number): HTMLElement {
   const doc = getDocument();
   if (!doc) throw new Error("Document not available");
-  const { fillColor, strokeColor } = getMapPinColorsForScoreAndStatus(
-    score,
-    options?.listingStatus,
-    options?.homeStatus
-  );
+  const { fillColor, strokeColor } = getMapPinColorsForScoreAndStatus(score);
 
   const scale = getScorePinScale(score);
   const size = Math.round(BASE_PIN_SIZE_PX * scale);

@@ -15,10 +15,7 @@ import {
   CAL_TIME_GRID_HOUR_LABEL_OFFSET_ABOVE_LINE,
   CAL_TIME_GRID_HOURS,
 } from "./calendarTimeGridConstants";
-import {
-  calendarTimeGridToYmd,
-  formatCalendarHourLabel,
-} from "./calendarTimeGridFormat";
+import { calendarTimeGridToYmd, formatCalendarHourLabel } from "./calendarTimeGridFormat";
 import { CalendarWeekTimedEventBlock } from "./CalendarWeekTimedEventBlock";
 
 const HOUR_GRID_ROW = 1;
@@ -212,6 +209,9 @@ export function CalendarTimeGridHourScrollContent({
                 data-calendar-week-time-column=""
                 data-calendar-week-ymd={ymd}
                 onPointerDown={(e) => {
+                  if (onWeekTimeSlotDoubleClick) {
+                    e.stopPropagation();
+                  }
                   if (onWeekTimeColumnBackgroundPress && e.target === e.currentTarget) {
                     onWeekTimeColumnBackgroundPress();
                   }
@@ -220,6 +220,7 @@ export function CalendarTimeGridHourScrollContent({
                   onWeekTimeSlotDoubleClick
                     ? (e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         const el = e.currentTarget as unknown as HTMLElement;
                         const rect = el.getBoundingClientRect();
                         const y = e.clientY - rect.top;

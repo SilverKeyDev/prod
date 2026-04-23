@@ -14,7 +14,7 @@ import type {
 import type { GoogleEvent } from "packages/features/calendar/types/googleEvent";
 import {
   calendarDateToKey,
-  formatCalendarDayEventsTitle,
+  getCalendarDayListHeading,
 } from "packages/features/calendar/utils/core/calendarDateKeys";
 import {
   calculateCalendarDateRange,
@@ -31,6 +31,7 @@ import {
   deleteAvailabilityByEventId,
   updateAvailabilityFromEditedEvent,
 } from "packages/features/profile/utils/availability/profileAvailabilityMutations";
+import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useMediaQuery } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
@@ -51,7 +52,28 @@ export function useLocalAvailabilityCalendarScreen({
   patchBuyerPreferenceExtensions,
   showSelectedDayEventList = true,
 }: UseLocalAvailabilityCalendarScreenParams) {
-  const [viewMode, setViewMode] = useState<CalendarViewType>("week");
+  const { clientSettings, clientSettingsQuery, patchClientSettings } = useClientSettings();
+  const serverAvailability =
+    (clientSettings?.calendar?.availability as CalendarViewType | undefined) ?? "week";
+
+  const [viewMode, setViewModeState] = useState<CalendarViewType>("week");
+  const hydratedAvailabilityRef = useRef(false);
+
+  useEffect(() => {
+    if (hydratedAvailabilityRef.current) return;
+    if (clientSettingsQuery.isLoading) return;
+    hydratedAvailabilityRef.current = true;
+    setViewModeState(serverAvailability);
+  }, [clientSettingsQuery.isLoading, serverAvailability]);
+
+  const setViewMode = useCallback(
+    (mode: CalendarViewType) => {
+      setViewModeState(mode);
+      const shell = clientSettings?.calendar?.shell ?? "month";
+      patchClientSettings({ calendar: { shell, availability: mode } });
+    },
+    [clientSettings?.calendar?.shell, patchClientSettings]
+  );
   const [focusedDate, setFocusedDate] = useState(() => dateNow().startOf("day").toDate());
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   const [weekSelectedEventId, setWeekSelectedEventId] = useState<string | null>(null);
@@ -152,6 +174,7 @@ export function useLocalAvailabilityCalendarScreen({
         date: day.date,
         isCurrentMonth: day.isCurrentMonth,
         isPast: day.isPast,
+        isToday: day.isToday,
         count,
       };
     });
@@ -316,7 +339,8 @@ export function useLocalAvailabilityCalendarScreen({
     selectedDayKey,
     setSelectedDayKey,
     selectedEvents,
-    formatDayEventsTitle: formatCalendarDayEventsTitle,
+    getSelectedDayListHeading: (dateKey: string) =>
+      getCalendarDayListHeading(dateKey, "availability"),
     refetchEvents,
     updateEvent,
     deleteEvent,
@@ -342,6 +366,7 @@ export function useLocalAvailabilityCalendarScreen({
     updateQuickCreate: quickSession.updateQuickCreate,
     commitQuickCreate: quickSession.commitQuickCreate,
     discardQuickCreate: quickSession.discardQuickCreate,
+    registerQuickCreateOutsideSafeTarget: quickSession.registerQuickCreateOutsideSafeTarget,
     handleWeekTimeSlotDoubleClick: quickSession.handleWeekTimeSlotDoubleClick,
     handleMonthQuickCreateDoubleTap: quickSession.handleMonthQuickCreateDoubleTap,
     handleEditDetailsFromQuickCreate: quickSession.handleEditDetailsFromQuickCreate,

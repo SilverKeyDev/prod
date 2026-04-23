@@ -146,6 +146,7 @@ export const AUTH_CONFIG = {
   // Routes that require authentication
   PROTECTED_ROUTES: [
     "/dashboard",
+    "/find-agents",
     "/search",
     "/past-reports",
     "/compare-reports",

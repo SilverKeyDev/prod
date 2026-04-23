@@ -29,13 +29,23 @@ describe("sumLegDriveMinutes", () => {
 });
 
 describe("estimateViewingItineraryMinutes", () => {
-  it("returns null for fewer than two addressed stops", () => {
+  it("returns null for fewer than two addressed stops without a start anchor", () => {
     expect(estimateViewingItineraryMinutes({ stops: [{ address: "A" }] })).toBeNull();
     expect(
       estimateViewingItineraryMinutes({
         stops: [{ address: "" }, { address: "  " }],
       })
     ).toBeNull();
+  });
+
+  it("allows one addressed stop when a start anchor is included in the route", () => {
+    const est = estimateViewingItineraryMinutes({
+      stops: [{ address: "A" }],
+      includeStartAnchor: true,
+    });
+    expect(est).not.toBeNull();
+    expect(est!.stopCount).toBe(1);
+    expect(est!.drivingKnown).toBe(false);
   });
 
   it("uses on-site only until driving is known", () => {

@@ -1,5 +1,5 @@
 /** Shown under the title on Privacy, Terms, and Contact pages. */
-export const LEGAL_PAGES_LAST_UPDATED = "Last updated: April 1, 2026";
+export const LEGAL_PAGES_LAST_UPDATED = "Last updated: April 22, 2026";
 
 /** Public-facing contact and policy inboxes (adjust per environment as needed). */
 export const STATIC_LEGAL_CONTACT = {

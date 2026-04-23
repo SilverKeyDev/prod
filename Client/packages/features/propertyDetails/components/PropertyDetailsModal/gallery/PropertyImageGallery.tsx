@@ -268,23 +268,17 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
               type="button"
               variant="cancel"
               onClick={prevImage}
-              className="group bg-transparent text-white absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border-0 p-2.5 shadow-none transition hover:!bg-transparent active:!bg-transparent"
+              className="group absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border-0 bg-transparent p-3 text-white shadow-none transition hover:!bg-transparent active:!bg-transparent"
             >
-              <Icon
-                name="chevron-left"
-                className="h-10 w-10 text-white stroke-2 transition-[stroke-width] duration-150 ease-out group-hover:stroke-[3]"
-              />
+              <Icon name="chevron-left" className="h-10 w-10 stroke-2 text-white" />
             </Button>
             <Button
               type="button"
               variant="cancel"
               onClick={nextImage}
-              className="group bg-transparent text-white absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border-0 p-2.5 shadow-none transition hover:!bg-transparent active:!bg-transparent"
+              className="group absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border-0 bg-transparent p-3 text-white shadow-none transition hover:!bg-transparent active:!bg-transparent"
             >
-              <Icon
-                name="chevron-right"
-                className="h-10 w-10 text-white stroke-2 transition-[stroke-width] duration-150 ease-out group-hover:stroke-[3]"
-              />
+              <Icon name="chevron-right" className="h-10 w-10 stroke-2 text-white" />
             </Button>
           </>
         )}

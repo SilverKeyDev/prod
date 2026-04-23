@@ -49,6 +49,10 @@ components:
       $ref: './components/schemas/agent/core/AgentConversationsResponse.yaml'
     AgentSearchResult:
       $ref: './components/schemas/agent/core/AgentSearchResult.yaml'
+    RecommendedAgentResult:
+      $ref: './components/schemas/agent/core/RecommendedAgentResult.yaml'
+    RecommendedAgentsResponse:
+      $ref: './components/schemas/agent/core/RecommendedAgentsResponse.yaml'
     Agreement:
       $ref: './components/schemas/agreements/agreements/Agreement.yaml'
     AgreementEvent:
@@ -105,6 +109,10 @@ components:
       $ref: './components/schemas/preferences/ClientsPreferencesResponse.yaml'
     ClientsResponse:
       $ref: './components/schemas/agent/clients/ClientsResponse.yaml'
+    ClientSettings:
+      $ref: './components/schemas/user/ClientSettings.yaml'
+    ClientSettingsResponse:
+      $ref: './components/schemas/user/ClientSettingsResponse.yaml'
     CommuteData:
       $ref: './components/schemas/search/properties/CommuteData.yaml'
     CompareReportsRequest:
@@ -179,6 +187,16 @@ components:
       $ref: './components/schemas/agreements/docusign/DocuSignPrefillTextTabInput.yaml'
     DocuSignRemindersInput:
       $ref: './components/schemas/agreements/docusign/DocuSignRemindersInput.yaml'
+    DocusignCreateTemplateMetadataInput:
+      $ref: './components/schemas/agreements/docusign/DocusignCreateTemplateMetadataInput.yaml'
+    DocusignCreateTemplateResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignCreateTemplateResponse.yaml'
+    DocusignDeleteTemplateResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignDeleteTemplateResponse.yaml'
+    DocusignGetTemplateDetailResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignGetTemplateDetailResponse.yaml'
+    DocusignGetTemplateEditUrlResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignGetTemplateEditUrlResponse.yaml'
     DocusignListTemplatesResponse:
       $ref: './components/schemas/agreements/docusign/DocusignListTemplatesResponse.yaml'
     DocusignOAuthStartResponse:
@@ -193,6 +211,10 @@ components:
       $ref: './components/schemas/agreements/docusign/DocusignTemplate.yaml'
     DocusignTemplateListItem:
       $ref: './components/schemas/agreements/docusign/DocusignTemplateListItem.yaml'
+    DocusignTemplateRoleInfo:
+      $ref: './components/schemas/agreements/docusign/DocusignTemplateRoleInfo.yaml'
+    DocusignTemplateRoleMapEntry:
+      $ref: './components/schemas/agreements/docusign/DocusignTemplateRoleMapEntry.yaml'
     DocusignUpdateEnvelopeNotificationRequest:
       $ref: './components/schemas/agreements/docusign/DocusignUpdateEnvelopeNotificationRequest.yaml'
     DocusignUpdateEnvelopeNotificationResponse:

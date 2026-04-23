@@ -173,6 +173,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                       type="button"
                       variant="ghost"
                       size="sm"
+                      contentAlign="start"
                       onClick={() => setSelectedClientId(client.id)}
                       className="flex h-auto min-h-0 w-full items-start justify-start gap-3 py-0 text-left"
                     >

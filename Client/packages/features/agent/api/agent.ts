@@ -32,6 +32,8 @@ export type AgentSearchResult = components["schemas"]["AgentSearchResult"];
 export type ClientSearchResult = components["schemas"]["ClientSearchResult"];
 export type AgentConnectionRequest = components["schemas"]["AgentConnectionRequest"];
 export type SearchAgentsResponse = components["schemas"]["SearchAgentsResponse"];
+export type RecommendedAgentsResponse = components["schemas"]["RecommendedAgentsResponse"];
+export type RecommendedAgentResult = components["schemas"]["RecommendedAgentResult"];
 export type SearchClientsResponse = components["schemas"]["SearchClientsResponse"];
 export type ConnectionRequestsResponse = components["schemas"]["ConnectionRequestsResponse"];
 export type CreateConnectionRequestRequest =
@@ -142,6 +144,26 @@ export const agentApi = {
     const params = new URLSearchParams({ q: query });
     if (limit) params.append("limit", limit.toString());
     return apiGet<SearchAgentsResponse>(`/api/v1/agent/search-agents?${params.toString()}`);
+  },
+
+  /**
+   * Recommend agents from optional buyer/search context (zip, state, intent).
+   */
+  recommendedAgents: (args: {
+    zip?: string;
+    state?: string;
+    intent?: string;
+    limit?: number;
+  }): Promise<RecommendedAgentsResponse> => {
+    const params = new URLSearchParams();
+    if (args.zip?.trim()) params.set("zip", args.zip.trim());
+    if (args.state?.trim()) params.set("state", args.state.trim().toUpperCase());
+    if (args.intent?.trim()) params.set("intent", args.intent.trim());
+    if (args.limit != null) params.set("limit", String(args.limit));
+    const qs = params.toString();
+    return apiGet<RecommendedAgentsResponse>(
+      `/api/v1/agent/recommended-agents${qs ? `?${qs}` : ""}`
+    );
   },
 
   /**

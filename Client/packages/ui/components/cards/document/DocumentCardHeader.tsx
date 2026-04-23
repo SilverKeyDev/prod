@@ -36,7 +36,7 @@ interface DocumentCardHeaderProps {
 /**
  * Maps document type to appropriate icon name.
  */
-function getDocumentIconName(documentType: string | null): IconName {
+export function getDocumentIconName(documentType: string | null): IconName {
   switch (documentType) {
     case "contract":
       return "file-signature";

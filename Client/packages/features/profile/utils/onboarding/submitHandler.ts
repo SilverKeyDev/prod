@@ -1,3 +1,4 @@
+import { clientSettingsApi } from "packages/features/homeauth/api/clientSettings";
 import type { OnboardingData } from "packages/features/profile/types/onboarding";
 import type { SubmitHandlerParams } from "packages/features/profile/types/submitHandler";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -52,7 +53,7 @@ export const handleSubmit = async ({
     }
   }
 
-   setLoading(true);
+  setLoading(true);
   try {
     const payload = formDataToPreferencesPayload(formData);
     const payloadIl = payload.important_locations;
@@ -77,6 +78,9 @@ export const handleSubmit = async ({
 
     if (result.success) {
       getLocalStorage().removeItem("onboardingDraft");
+      void clientSettingsApi.patch({ onboarding_draft: null }).catch(() => {
+        /* best-effort clear of server draft */
+      });
       onSuccess?.();
       if (onSuccessNavigate) {
         onSuccessNavigate();

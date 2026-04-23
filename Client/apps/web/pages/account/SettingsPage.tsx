@@ -26,6 +26,7 @@ import {
   convertStepsToNavItems,
   getPersonalizationStepsUi,
 } from "@/features/profile/components/profilePicture/profileStepsUi";
+import { AccountPrivacyDataSection } from "@/features/profile/components/profileScreen/sections/AccountPrivacyDataSection";
 import { ProfileHousingEssentialsSection } from "@/features/profile/components/profileScreen/sections/ProfileHousingEssentialsSection";
 import { ProfileHousingRangesSection } from "@/features/profile/components/profileScreen/sections/ProfileHousingRangesSection";
 import { ProfileSearchPropertySection } from "@/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
@@ -357,6 +358,9 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
             patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
           />
         );
+
+      case "privacy_data":
+        return <AccountPrivacyDataSection />;
 
       default:
         return null;

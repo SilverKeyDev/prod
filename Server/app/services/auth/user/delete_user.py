@@ -6,7 +6,7 @@ transactions where this user is a party (affects the counterparty's records).
 
 Usage (Flask shell):
 
-    from app.services.user.delete_user import delete_user_and_all_related_data
+    from app.services.auth.user.delete_user import delete_user_and_all_related_data
     delete_user_and_all_related_data("uuid-here")
 """
 

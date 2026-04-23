@@ -77,11 +77,15 @@ export function DashboardScreen() {
     }
   };
 
+  const googleCalendarAgendaMeetEligible =
+    (isAgent && useCalendarEventForTodo) || (!isAgent && Boolean(defaultCalendarId));
+
   const handleMobileAgendaSubmit = async (payload: {
     title: string;
     description: string | null;
     deadlineDate: string | null;
     deadlineTime: string | null;
+    addGoogleMeet?: boolean;
   }) => {
     if (isAgent) {
       try {
@@ -123,6 +127,7 @@ export function DashboardScreen() {
           description: payload.description,
           deadlineDate: payload.deadlineDate.trim(),
           deadlineTime: payload.deadlineTime,
+          addGoogleMeet: payload.addGoogleMeet,
         },
         {
           calendarId: defaultCalendarId,
@@ -137,7 +142,10 @@ export function DashboardScreen() {
 
   const showMobileAdd = isAgent || useCalendarEventForTodo || !isAgent;
   const headerActions = showMobileAdd ? (
-    <MobileAgendaAddButton onSubmitTodo={handleMobileAgendaSubmit} />
+    <MobileAgendaAddButton
+      onSubmitTodo={handleMobileAgendaSubmit}
+      googleCalendarCreateEligible={googleCalendarAgendaMeetEligible}
+    />
   ) : undefined;
 
   const allAlerts = useMemo(() => generateMockAlerts(clients), [clients, generateMockAlerts]);

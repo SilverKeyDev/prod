@@ -11,6 +11,10 @@ type ImportMetaEnv = {
   readonly VITE_GOOGLE_MAPS_ID: string;
   readonly VITE_GOOGLE_CLIENT_ID: string;
   readonly VITE_PLAID_CLIENT_ID: string;
+  /** Public web origin, no trailing slash (e.g. https://app.example.com). Used for SEO canonicals and sitemap. */
+  readonly VITE_PUBLIC_SITE_URL: string;
+  /** Google Search Console HTML tag verification content token (optional). */
+  readonly VITE_GOOGLE_SITE_VERIFICATION: string;
 
   // Development
   readonly DEV: boolean;

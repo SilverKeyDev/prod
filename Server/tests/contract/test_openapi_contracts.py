@@ -6,6 +6,7 @@ Catches schema drift before client/server type regeneration diverges from runtim
 
 from __future__ import annotations
 
+import json
 from unittest.mock import Mock, patch
 
 import pytest
@@ -18,6 +19,8 @@ from app.schemas.generated import (
     ErrorResponse,
     FavoriteHomesResponse,
     LoginData,
+    RecommendedAgentsResponse,
+    RecommendedAgentResult,
     SavedHome,
     SearchAgentsResponse,
     UserResponse,
@@ -137,6 +140,62 @@ class TestOpenAPIContracts:
         response = client.get("/api/v1/agent/search-agents?q=ab")
         assert response.status_code == 401
         ErrorResponse.model_validate(response.get_json())
+
+    def test_recommended_agents_empty_matches_schema(
+        self, authenticated_client: FlaskClient
+    ) -> None:
+        response = authenticated_client.get("/api/v1/agent/recommended-agents")
+        assert response.status_code == 200
+        RecommendedAgentsResponse.model_validate(response.get_json())
+
+    def test_recommended_agents_unauthorized_matches_error_schema(self, client: FlaskClient) -> None:
+        response = client.get("/api/v1/agent/recommended-agents")
+        assert response.status_code == 401
+        ErrorResponse.model_validate(response.get_json())
+
+    def test_recommended_agents_row_matches_schema(self, app, authenticated_client: FlaskClient) -> None:
+        from app import db
+        from app.models import User, UserAgentProfile
+
+        with app.app_context():
+            agent = User(
+                email="rec-agent@example.com",
+                name="Rec Agent",
+                is_active=True,
+                is_agent=True,
+                cognito_id="rec-agent-cognito",
+            )
+            db.session.add(agent)
+            db.session.flush()
+            prof = UserAgentProfile(
+                user_id=agent.id,
+                primary_service_zips=json.dumps(["90210"]),
+                licensed_states=json.dumps(["CA"]),
+                specialties=json.dumps(["condo"]),
+                agent_bio="Works with first-time buyers",
+            )
+            db.session.add(prof)
+            db.session.commit()
+            aid = agent.id
+        try:
+            response = authenticated_client.get(
+                "/api/v1/agent/recommended-agents?zip=90210&state=CA&intent=condo%20buyer"
+            )
+            assert response.status_code == 200
+            body = response.get_json()
+            RecommendedAgentsResponse.model_validate(body)
+            agents = body.get("agents") or []
+            assert len(agents) >= 1
+            RecommendedAgentResult.model_validate(agents[0])
+        finally:
+            with app.app_context():
+                prof_row = db.session.get(UserAgentProfile, aid)
+                if prof_row is not None:
+                    db.session.delete(prof_row)
+                user_row = db.session.get(User, aid)
+                if user_row is not None:
+                    db.session.delete(user_row)
+                db.session.commit()
 
     def test_required_user_fields_on_profile(self, authenticated_client: FlaskClient) -> None:
         response = authenticated_client.get("/api/v1/user/profile")

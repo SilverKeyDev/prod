@@ -17,6 +17,10 @@ function navigateToResolvedTarget(pathname: string, isAuthenticated: boolean): v
     rootNavigationRef.navigate("Main", { screen: target.tab } as never);
     return;
   }
+  if (target.type === "rootStack") {
+    rootNavigationRef.navigate(target.screen as never, (target.params ?? undefined) as never);
+    return;
+  }
   rootNavigationRef.navigate(target.screen as never);
 }
 

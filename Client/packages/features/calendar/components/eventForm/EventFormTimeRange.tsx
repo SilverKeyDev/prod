@@ -1,5 +1,8 @@
 import { useCallback, useMemo } from "react";
 
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import type { ReactNode } from "react";
 
 import Dropdown from "packages/ui/components/form/dropdown";
@@ -11,6 +14,9 @@ import {
   CREATE_EVENT_TIME_STEP_MINUTES,
   parseHourMinute24,
 } from "@/features/calendar/utils/parsing/eventFormGooglePayload";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 function hhmmToMinutes(s: string): number {
   const p = parseHourMinute24(s);
@@ -53,11 +59,26 @@ export type EventFormTimeRangeProps = {
   /** Use `"modal"` when used inside a dialog so portaled menus stack above the modal. @default "page" */
   menuPortalStack?: "page" | "modal";
   /**
+   * When time dropdowns use `menuInPortal`, register the portaled list root so parent
+   * document-level outside-click handlers (e.g. quick event popover) ignore those clicks.
+   */
+  registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
+  /**
    * Optional control rendered in the same grid row as the time triggers (e.g. “All day”),
    * vertically centered with the dropdown buttons.
    */
   trailingSlot?: ReactNode;
+  /** When set, menu rows are tinted for mutual free/busy + profile availability (create flow). */
+  mutualTimeRange?: {
+    hintsReady: boolean;
+    enabled: boolean;
+    viewerTimeZone: string;
+    isMutualUtcRange: (startMs: number, endMs: number) => boolean;
+  };
 };
+
+const MUTUAL_ROW = "bg-emerald-500/12";
+const NOT_MUTUAL_ROW = "opacity-55";
 
 export function EventFormTimeRange({
   startDate,
@@ -70,13 +91,35 @@ export function EventFormTimeRange({
   menuPlacement = "below",
   menuInPortal = false,
   menuPortalStack = "page",
+  registerOutsideClickSafeTarget,
   trailingSlot,
+  mutualTimeRange,
 }: EventFormTimeRangeProps) {
   const options = useMemo(() => buildTimeOptions(stepMinutes), [stepMinutes]);
-  const dropdownOptions = useMemo(
+  const baseDropdownOptions = useMemo(
     () => options.map((o) => ({ value: o.value, label: o.label })),
     [options]
   );
+
+  const startDropdownOptions = useMemo(() => {
+    const m = mutualTimeRange;
+    const ymd = startDate?.trim() ?? "";
+    if (!m?.enabled || !m.hintsReady || !ymd) {
+      return baseDropdownOptions;
+    }
+    return baseDropdownOptions.map((o) => {
+      const slotStart = dayjs.tz(`${ymd} ${o.value}`, "YYYY-MM-DD HH:mm", m.viewerTimeZone);
+      if (!slotStart.isValid()) {
+        return { ...o };
+      }
+      const slotEnd = slotStart.add(stepMinutes, "minute");
+      const ok = m.isMutualUtcRange(slotStart.valueOf(), slotEnd.valueOf());
+      return {
+        ...o,
+        menuRowClassName: ok ? MUTUAL_ROW : NOT_MUTUAL_ROW,
+      };
+    });
+  }, [baseDropdownOptions, mutualTimeRange, startDate, stepMinutes]);
 
   const handleStartChange = useCallback(
     (v: string) => {
@@ -89,13 +132,39 @@ export function EventFormTimeRange({
     [startDate, endDate, endTime, onStartTimeChange, onEndTimeChange, stepMinutes]
   );
 
-  const endOptions = useMemo(() => {
+  const endOptionsFiltered = useMemo(() => {
     if (startDate !== endDate) {
-      return dropdownOptions;
+      return baseDropdownOptions;
     }
     const startM = hhmmToMinutes(startTime);
-    return dropdownOptions.filter((o) => hhmmToMinutes(o.value) > startM);
-  }, [dropdownOptions, startDate, endDate, startTime]);
+    return baseDropdownOptions.filter((o) => hhmmToMinutes(o.value) > startM);
+  }, [baseDropdownOptions, startDate, endDate, startTime]);
+
+  const endDropdownOptions = useMemo(() => {
+    const m = mutualTimeRange;
+    const lo = startDate?.trim() ?? "";
+    const hi = endDate?.trim() ?? "";
+    if (!m?.enabled || !m.hintsReady || lo !== hi || !lo) {
+      return endOptionsFiltered;
+    }
+    const startMs = dayjs.tz(`${lo} ${startTime}`, "YYYY-MM-DD HH:mm", m.viewerTimeZone);
+    if (!startMs.isValid()) {
+      return endOptionsFiltered;
+    }
+    return endOptionsFiltered.map((o) => {
+      const endMs = dayjs.tz(`${lo} ${o.value}`, "YYYY-MM-DD HH:mm", m.viewerTimeZone);
+      if (!endMs.isValid()) {
+        return { ...o };
+      }
+      const ok =
+        endMs.valueOf() > startMs.valueOf() &&
+        m.isMutualUtcRange(startMs.valueOf(), endMs.valueOf());
+      return {
+        ...o,
+        menuRowClassName: ok ? MUTUAL_ROW : NOT_MUTUAL_ROW,
+      };
+    });
+  }, [endOptionsFiltered, mutualTimeRange, startDate, endDate, startTime]);
 
   if (trailingSlot) {
     return (
@@ -111,34 +180,34 @@ export function EventFormTimeRange({
           <Dropdown<string>
             label="Start time"
             hideLabel
-            options={dropdownOptions}
+            options={startDropdownOptions}
             value={startTime || undefined}
             onChange={handleStartChange}
             placeholder="Select start time"
-            searchable
             variant="compact"
             size="md"
             required
             menuPlacement={menuPlacement}
             menuInPortal={menuInPortal}
             menuPortalStack={menuPortalStack}
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
           />
         </Box>
         <Box className="col-start-2 row-start-2 min-w-0">
           <Dropdown<string>
             label="End time"
             hideLabel
-            options={endOptions.length > 0 ? endOptions : dropdownOptions}
+            options={endDropdownOptions.length > 0 ? endDropdownOptions : startDropdownOptions}
             value={endTime || undefined}
             onChange={onEndTimeChange}
             placeholder="Select end time"
-            searchable
             variant="compact"
             size="md"
             required
             menuPlacement={menuPlacement}
             menuInPortal={menuInPortal}
             menuPortalStack={menuPortalStack}
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
           />
         </Box>
         <Box className="col-start-3 row-start-2 flex items-center self-center">{trailingSlot}</Box>
@@ -150,31 +219,31 @@ export function EventFormTimeRange({
     <Box className="grid grid-cols-2 gap-3">
       <Dropdown<string>
         label="Start time"
-        options={dropdownOptions}
+        options={startDropdownOptions}
         value={startTime || undefined}
         onChange={handleStartChange}
         placeholder="Select start time"
-        searchable
         variant="compact"
         size="md"
         required
         menuPlacement={menuPlacement}
         menuInPortal={menuInPortal}
         menuPortalStack={menuPortalStack}
+        registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
       />
       <Dropdown<string>
         label="End time"
-        options={endOptions.length > 0 ? endOptions : dropdownOptions}
+        options={endDropdownOptions.length > 0 ? endDropdownOptions : startDropdownOptions}
         value={endTime || undefined}
         onChange={onEndTimeChange}
         placeholder="Select end time"
-        searchable
         variant="compact"
         size="md"
         required
         menuPlacement={menuPlacement}
         menuInPortal={menuInPortal}
         menuPortalStack={menuPortalStack}
+        registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
       />
     </Box>
   );

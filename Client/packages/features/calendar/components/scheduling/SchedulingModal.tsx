@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
+import type { ScheduleEventRequest } from "packages/schemas/scheduling";
 import { useGoogleCalendarStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
@@ -8,7 +9,6 @@ import { dateNow } from "packages/utils/date";
 import { BodyText, Button, CancelButton, Title } from "@/components/ui";
 import { useScheduling } from "@/features/calendar/hooks/data/core/useScheduling";
 import { useGoogleCalendarOAuth } from "@/features/calendar/hooks/data/google/useGoogleCalendarOAuth";
-import type { ScheduleEventRequest } from "@/packages/schemas/scheduling";
 
 import { SchedulingForm } from "./SchedulingForm";
 import { TimeSlotPicker } from "./TimeSlotPicker";

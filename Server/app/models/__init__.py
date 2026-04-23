@@ -51,6 +51,7 @@ from .user import (
     UserIntegration,
     UserIntentAttribute,
     UserRole,
+    UserClientSettings,
     UserSearchDisplaySettings,
     UserSearchIntent,
 )
@@ -79,6 +80,7 @@ __all__ = [
     "UserAdmin",
     "UserDemographics",
     "UserFinancials",
+    "UserClientSettings",
     "UserSearchDisplaySettings",
     "UserSearchIntent",
     "UserIntentAttribute",

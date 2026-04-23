@@ -57,20 +57,22 @@ export function TodoAgendaRow({
 
   if (isSigning && agreementId && todo.completed) {
     return (
-      <Box className="border-border bg-background-surface mb-2 ml-2 w-full overflow-hidden rounded-xl border shadow-sm">
-        <Box className="flex flex-row items-stretch">
-          <Box className="bg-primary w-1.5" />
-          <Box className="flex flex-1 flex-row items-center gap-3 p-3 sm:p-4">
-            <Box className="border-border-card-subtle bg-primary-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
-              <Icon name="check" size={18} className="text-primary" />
-            </Box>
-            <Box className="flex min-w-0 flex-1 flex-col gap-1">
-              <Text className="text-text-primary text-left text-sm font-semibold leading-snug">
-                {todo.title}
-              </Text>
-              <Text className="text-text-secondary text-left text-xs leading-relaxed">
-                Signed{signedLine ? ` · ${signedLine}` : ""} · DocuSign
-              </Text>
+      <Box className="mb-2 w-full max-w-full pl-2">
+        <Box className="border-border bg-background-surface w-full overflow-hidden rounded-xl border shadow-sm">
+          <Box className="flex flex-row items-stretch">
+            <Box className="bg-primary w-1.5" />
+            <Box className="flex min-w-0 flex-1 flex-row items-center gap-3 p-3 sm:p-4">
+              <Box className="border-border-card-subtle bg-primary-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+                <Icon name="check" size={18} className="text-primary" />
+              </Box>
+              <Box className="flex min-w-0 flex-1 flex-col gap-1">
+                <Text className="text-text-primary text-left text-sm font-semibold leading-snug">
+                  {todo.title}
+                </Text>
+                <Text className="text-text-secondary text-left text-xs leading-relaxed">
+                  Signed{signedLine ? ` · ${signedLine}` : ""} · DocuSign
+                </Text>
+              </Box>
             </Box>
           </Box>
         </Box>
@@ -80,10 +82,10 @@ export function TodoAgendaRow({
 
   if (isSigning && agreementId) {
     const body = (
-      <Box className="border-border bg-background-surface hover:border-border-card-strong mb-2 ml-2 w-full overflow-hidden rounded-xl border shadow-sm transition-shadow duration-200 hover:shadow-md">
+      <Box className="border-border bg-background-surface hover:border-border-card-strong w-full overflow-hidden rounded-xl border shadow-sm transition-shadow duration-200 hover:shadow-md">
         <Box className="flex flex-row items-stretch">
           <Box className="bg-accent w-1.5" />
-          <Box className="flex flex-1 flex-row items-center gap-3 p-3 sm:p-4">
+          <Box className="flex min-w-0 flex-1 flex-row items-center gap-3 p-3 sm:p-4">
             <Box className="border-border-card-subtle bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
               <Icon name="file-signature" size={18} className="text-primary" />
             </Box>
@@ -109,51 +111,55 @@ export function TodoAgendaRow({
 
     if (onSigningPress) {
       return (
-        <Pressable
-          onPress={() => onSigningPress(agreementId)}
-          accessibilityRole="button"
-          label={`Sign agreement: ${todo.title}`}
-          className="min-h-touch focus-visible:ring-primary w-full rounded-xl border-0 bg-transparent p-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-        >
-          {body}
-        </Pressable>
+        <Box className="mb-2 w-full max-w-full pl-2">
+          <Pressable
+            onPress={() => onSigningPress(agreementId)}
+            accessibilityRole="button"
+            label={`Sign agreement: ${todo.title}`}
+            className="min-h-touch focus-visible:ring-primary w-full rounded-xl border-0 bg-transparent p-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          >
+            {body}
+          </Pressable>
+        </Box>
       );
     }
 
-    return body;
+    return <Box className="mb-2 w-full max-w-full pl-2">{body}</Box>;
   }
 
   return (
-    <Box className="border-border bg-background-surface mb-2 ml-2 w-full overflow-hidden rounded-xl border">
-      <Box className="flex flex-row items-stretch">
-        <Box className="bg-primary w-1" />
-        <Box className="flex flex-1 flex-row items-start gap-2 p-3">
-          <Pressable
-            onPress={() => (canEditComplete ? onToggleComplete(todo.id) : undefined)}
-            disabled={!canEditComplete}
-            className={`mt-0.5 h-6 w-6 flex-shrink-0 items-center justify-center rounded border-2 ${
-              todo.completed
-                ? "border-primary bg-primary"
-                : canEditComplete
-                  ? "border-border active:border-neutral-400"
-                  : "border-border"
-            }`}
-          >
-            {todo.completed ? <Text className="text-xs font-semibold text-white">✓</Text> : null}
-          </Pressable>
-          <Box className="min-w-0 flex-1 space-y-1">
-            <Text
-              className={`text-left text-sm font-semibold ${
-                todo.completed ? "text-text-disabled line-through" : "text-text-primary"
+    <Box className="mb-2 w-full max-w-full pl-2">
+      <Box className="border-border bg-background-surface w-full overflow-hidden rounded-xl border">
+        <Box className="flex flex-row items-stretch">
+          <Box className="bg-primary w-1" />
+          <Box className="flex min-w-0 flex-1 flex-row items-start gap-2 p-3">
+            <Pressable
+              onPress={() => (canEditComplete ? onToggleComplete(todo.id) : undefined)}
+              disabled={!canEditComplete}
+              className={`mt-0.5 h-6 w-6 flex-shrink-0 items-center justify-center rounded border-2 ${
+                todo.completed
+                  ? "border-primary bg-primary"
+                  : canEditComplete
+                    ? "border-border active:border-neutral-400"
+                    : "border-border"
               }`}
             >
-              {todo.title}
-            </Text>
-            {dueLine ? (
-              <Box className="flex flex-row flex-wrap items-center gap-2">
-                <Text className="text-text-secondary text-left text-xs">{dueLine}</Text>
-              </Box>
-            ) : null}
+              {todo.completed ? <Text className="text-xs font-semibold text-white">✓</Text> : null}
+            </Pressable>
+            <Box className="min-w-0 flex-1 space-y-1">
+              <Text
+                className={`text-left text-sm font-semibold ${
+                  todo.completed ? "text-text-disabled line-through" : "text-text-primary"
+                }`}
+              >
+                {todo.title}
+              </Text>
+              {dueLine ? (
+                <Box className="flex flex-row flex-wrap items-center gap-2">
+                  <Text className="text-text-secondary text-left text-xs">{dueLine}</Text>
+                </Box>
+              ) : null}
+            </Box>
           </Box>
         </Box>
       </Box>

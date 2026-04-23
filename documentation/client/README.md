@@ -14,6 +14,7 @@ Docs for the SilverKey frontend: TypeScript/React (web) and React Native (mobile
 | [react-vs-react-native-packages.md](./react-vs-react-native-packages.md) | React (web) vs React Native: extensions (`.web` / `.native`), APIs, enforcement. |
 | [shared-ui-package.md](./shared-ui-package.md) | Option 2: shared `packages/ui` for cross-platform primitives (doc only). |
 | [thin-app-architecture.md](./thin-app-architecture.md) | Thin App (Fat Packages): apps as composition layer only; what lives in apps vs packages. |
+| [qa/](./qa/) | E2E QA runbooks, cross-browser matrix, error/email/payment checklists; Playwright in `Client/apps/web/e2e/`. **Start with [qa/END_TO_END_QA_RUNBOOK.md](./qa/END_TO_END_QA_RUNBOOK.md).** |
 | [apps-folder-contents.md](./apps-folder-contents.md) | What lives in apps/web and apps/mobile only: bootstrapper, provider tree, router, and thin pages/screens (orchestrator-only). |
 | [mobile-app-structure.md](./mobile-app-structure.md) | Full breakdown of the React Native mobile app: structure and purpose of each file under `Client/apps/mobile/`. |
 | [web-mobile-parity-gotchas.md](./web-mobile-parity-gotchas.md) | Three gotchas: stale app (API/schema versioning), React version dictator, deep linking. |

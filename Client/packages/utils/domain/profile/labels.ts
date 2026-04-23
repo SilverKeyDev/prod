@@ -21,6 +21,8 @@ export const SECTION_TITLES = {
   SEARCH_PREFS_CONDITION: "Condition and listing status",
   SEARCH_PREFS_UTILITIES: "Utilities and systems",
   SEARCH_PREFS_NEIGHBORHOOD: "Neighborhood",
+  /** Privacy, data export, and account deletion (profile / settings). */
+  PRIVACY_DATA: "Privacy & data",
   /** Combined physical + condition + utilities step title. */
   SEARCH_PROPERTY_STEP: "Features",
   /** When you are generally available for tours and meetings (saved with preferences; not your Google Calendar). */

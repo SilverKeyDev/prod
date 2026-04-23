@@ -53,6 +53,8 @@ export type UseMessagingReturn = {
   refreshChats: () => Promise<void>;
   formatTime: (date: Date) => string;
   canSendMessage: boolean;
+  /** Call when the user is viewing the active thread (e.g. tab focused) so read state syncs without re-selecting the conversation. */
+  acknowledgeActiveConversationAsRead: () => void;
 };
 
 export type ApiMessageForMapping = {

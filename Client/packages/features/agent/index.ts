@@ -1,3 +1,5 @@
+export { AgentDiscoveryView } from "./components/agentDiscovery/AgentDiscoveryView";
+export type { AgentDiscoveryViewProps } from "./components/agentDiscovery/agentDiscoveryView.types";
 export { default as AgentFeature } from "./components/AgentFeature";
 export { default as AgentMessaging } from "./components/messaging/AgentMessaging";
 export { default as ClientMessaging } from "./components/messaging/ClientMessaging";

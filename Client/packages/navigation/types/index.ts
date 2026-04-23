@@ -1,2 +1,2 @@
+export * from "./navigationTypes";
 export * from "./stackParams";
-export * from "./types";

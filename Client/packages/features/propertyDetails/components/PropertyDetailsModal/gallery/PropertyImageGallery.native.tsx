@@ -51,6 +51,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   if (propertyImages.length === 0) return null;
 
   const mainImageUri = propertyImages[currentImageIndex];
+  const navIconColor = color("background-surface");
 
   return (
     <Box className="bg-primary-muted">
@@ -70,7 +71,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                 <Icon
                   name="chevron-left"
                   size={24}
-                  color="#ffffff"
+                  color={navIconColor}
                   strokeWidth={pressed ? 3 : 2}
                 />
               )}
@@ -85,7 +86,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                 <Icon
                   name="chevron-right"
                   size={24}
-                  color="#ffffff"
+                  color={navIconColor}
                   strokeWidth={pressed ? 3 : 2}
                 />
               )}

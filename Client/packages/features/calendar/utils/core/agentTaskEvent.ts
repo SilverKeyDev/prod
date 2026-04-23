@@ -1,6 +1,6 @@
 import { dayjs } from "packages/utils/date";
 
-import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
+import type { GoogleCalendarEventCreateBody } from "@/features/calendar/types/googleEvent";
 import { inclusiveRangeToGoogleAllDayDates } from "@/features/calendar/utils/parsing/eventFormGooglePayload";
 
 const HH_MM_REGEX = /^(\d{1,2}):(\d{2})$/;
@@ -49,7 +49,9 @@ export function buildAgentTodoGoogleEvent(params: {
   calendarId: string;
   /** Optional user-facing notes; appended above the SilverKey footer in the event body */
   description?: string | null;
-}): GoogleEvent {
+  /** Optional Google Meet on create (timed calendar insert only). */
+  addGoogleMeet?: boolean;
+}): GoogleCalendarEventCreateBody {
   const trimmed = params.title.trim();
   const parsedDeadline = dayjs(params.deadlineDate.trim(), "YYYY-MM-DD", true);
   if (!parsedDeadline.isValid()) {
@@ -66,7 +68,7 @@ export function buildAgentTodoGoogleEvent(params: {
     const start = day.hour(timeParts.hour).minute(timeParts.minute).second(0).millisecond(0);
     const end = start.add(1, "hour");
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return {
+    const body: GoogleCalendarEventCreateBody = {
       summary: trimmed,
       description,
       start: {
@@ -79,15 +81,20 @@ export function buildAgentTodoGoogleEvent(params: {
       },
       calendarId: params.calendarId,
     };
+    if (params.addGoogleMeet) {
+      body.addGoogleMeet = true;
+    }
+    return body;
   }
 
   const ymd = day.format("YYYY-MM-DD");
   const { startDate, endDateExclusive } = inclusiveRangeToGoogleAllDayDates(ymd, ymd);
-  return {
+  const body: GoogleCalendarEventCreateBody = {
     summary: trimmed,
     description,
     start: { date: startDate },
     end: { date: endDateExclusive },
     calendarId: params.calendarId,
   };
+  return body;
 }

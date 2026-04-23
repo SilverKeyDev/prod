@@ -44,4 +44,5 @@ export type SendFormResponse = {
   error?: string;
   message?: string;
   message_id?: string;
+  agreement_id?: string;
 };

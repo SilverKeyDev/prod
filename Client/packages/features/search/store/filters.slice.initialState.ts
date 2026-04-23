@@ -23,7 +23,6 @@ type FiltersStateFields = Omit<
   | "setUserGeolocation"
   | "setPreferencesStrictFilter"
   | "applySearchDisplayFromApi"
-  | "setShowMapListingPreviews"
   | "dismissMapListingPreview"
   | "restoreMapListingPreview"
   | "clearDismissedMapPreviews"
@@ -48,7 +47,6 @@ export function filtersSliceInitialState(): FiltersStateFields {
     resultsSortDirection: legacyDefaultSortDirection(DEFAULT_RESULTS_ORDER_BY),
     userGeolocation: null,
     preferencesStrictFilter: false,
-    showMapListingPreviews: false,
     dismissedMapPreviewIds: [],
   };
 }

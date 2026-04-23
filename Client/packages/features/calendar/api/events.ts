@@ -14,6 +14,24 @@ import type {
   GoogleEventListResponse,
 } from "./types";
 
+export async function getEvent(
+  eventId: string,
+  calendarId?: string
+): Promise<GoogleCalendarApiResponse<GoogleEventCreateResponse>> {
+  const queryParams = new URLSearchParams();
+  if (calendarId) {
+    queryParams.append("calendarId", calendarId);
+  }
+  const suffix = queryParams.toString() ? `?${queryParams.toString()}` : "";
+  return wrapGoogleCalendarError(
+    () =>
+      apiGet<GoogleCalendarApiResponse<GoogleEventCreateResponse>>(
+        `/api/v1/google/me/events/${encodeURIComponent(eventId)}${suffix}`
+      ),
+    "Failed to get event"
+  );
+}
+
 export async function listEvents(params?: {
   calendarId?: string;
   timeMin?: string;

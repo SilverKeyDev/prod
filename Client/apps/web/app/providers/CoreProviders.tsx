@@ -11,11 +11,11 @@ export function CoreProviders({ children }: { children: ReactNode }) {
   return (
     <ErrorProvider>
       <ThemeProviderWeb>
-        <AuthProvider>
-          <QueryProvider>
+        <QueryProvider>
+          <AuthProvider>
             <LocalizationProvider>{children}</LocalizationProvider>
-          </QueryProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </QueryProvider>
       </ThemeProviderWeb>
     </ErrorProvider>
   );

@@ -1,5 +1,8 @@
 type: object
-description: Ordered viewing stops with optional computed route legs.
+description: >
+  Ordered property viewing stops with optional route anchors and computed legs.
+  `stops` are property/showing stops only; `start` and `end` (when used) are logistics
+  anchors and are not duplicated inside `stops`.
 required:
   - stops
 properties:
@@ -8,14 +11,32 @@ properties:
     items:
       $ref: ./ViewingStop.yaml
     minItems: 1
-    description: Ordered list of stops (reordered after Build Route when ordered is true).
+    description: >
+      Property stops only, in visit order after route optimization when `ordered` is true.
   ordered:
     type: boolean
-    description: True when stops were optimized via the route service.
+    description: True when property stop order was optimized via the route service.
     default: false
   legs:
     type: array
     nullable: true
     items:
       $ref: ./ViewingRouteLeg.yaml
-    description: Per-leg metrics and polylines; length should be len(stops)-1 when complete.
+    description: >
+      Per-leg metrics and polylines for the full driving path (includes legs from/to anchors).
+      When present and complete, length equals the number of nodes in the expanded path minus one
+      (nodes: optional start, each property stop in order, optional return or fixed end).
+  start:
+    allOf:
+      - $ref: ./ViewingRouteEndpoint.yaml
+    nullable: true
+    description: Optional meet-up / departure anchor (not listed in `stops`).
+  end:
+    allOf:
+      - $ref: ./ViewingRouteEndpoint.yaml
+    nullable: true
+    description: Required when `end_mode` is `fixed`; ignored otherwise.
+  end_mode:
+    $ref: ./ViewingRouteEndMode.yaml
+    description: >
+      How the tour ends after the last property. Omitted or `last_property` for legacy itineraries.

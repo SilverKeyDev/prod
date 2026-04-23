@@ -39,6 +39,5 @@ export type CloseLayoutProps = {
 };
 
 export type ChecklistLayoutDisclosureState = {
-  completedOpen: boolean;
   futureOpen: boolean;
 };

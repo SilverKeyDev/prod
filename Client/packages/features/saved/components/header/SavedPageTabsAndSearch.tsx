@@ -3,12 +3,16 @@ import type { ReactNode } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
+import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "packages/features/saved/utils/constants";
 import { Box } from "packages/ui/components/primitives";
 import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
 
 import Card from "@/components/layout/Card.web";
 import { IconButton, Input } from "@/components/ui";
+
+import { LibrarySortSelect } from "./LibrarySortSelect";
+import { LibraryViewModeToggle } from "./LibraryViewModeToggle";
 
 type SavedPageTabsAndSearchProps = {
   /** Renders at the start of the toolbar row (e.g. agent client picker). */
@@ -24,6 +28,11 @@ type SavedPageTabsAndSearchProps = {
   ) => void;
   rightText?: string;
   onUploadClick?: () => void;
+  libraryViewMode: LibraryViewMode;
+  onLibraryViewModeChange: (mode: LibraryViewMode) => void;
+  showLibraryViewToggle: boolean;
+  librarySortKey: string;
+  onLibrarySortChange: (value: string) => void;
 };
 function SavedPageTabNav({
   viewType,
@@ -61,6 +70,11 @@ export default function SavedPageTabsAndSearch({
   onEventTypeFilterChange: _onEventTypeFilterChange,
   rightText,
   onUploadClick,
+  libraryViewMode,
+  onLibraryViewModeChange,
+  showLibraryViewToggle,
+  librarySortKey,
+  onLibrarySortChange,
 }: SavedPageTabsAndSearchProps) {
   return (
     <Box className="mb-6 w-full">
@@ -70,8 +84,8 @@ export default function SavedPageTabsAndSearch({
           {toolbarLeading ? (
             <Box className="flex w-full shrink-0 items-center sm:w-auto">{toolbarLeading}</Box>
           ) : null}
-          {/* Search input */}
-          <Box className="flex w-full min-w-0 flex-1 items-center justify-center gap-3 sm:w-auto sm:justify-start">
+          {/* Search + count */}
+          <Box className="flex w-full min-w-0 flex-1 flex-wrap items-center gap-3 sm:min-w-48">
             <Box className="relative min-w-48 flex-1">
               <Icon
                 name="search"
@@ -86,37 +100,34 @@ export default function SavedPageTabsAndSearch({
               />
             </Box>
 
-            {/* Event type filter - only show when viewing documents */}
-            {/* {viewType === "documents" && onEventTypeFilterChange && (
-      <Box className="w-full sm:w-auto min-w-[150px]">
-        <Dropdown
-          options={eventTypeOptions}
-          value={eventTypeFilter}
-          onChange={(value) =>
-            onEventTypeFilterChange(value as "listed" | "price_change" | "sold" | "withdrawn" | "")
-          }
-          placeholder="Filter by activity type..."
-          variant="mobile"
-        />
-      </Box>
-    )} */}
-
-            {rightText && (
-              <Box className="text-text-secondary mr-2 whitespace-nowrap text-sm">{rightText}</Box>
-            )}
+            {rightText ? (
+              <Box className="text-text-secondary whitespace-nowrap text-sm">{rightText}</Box>
+            ) : null}
           </Box>
 
-          {/* Upload button - only show when viewing documents */}
-          {viewType === "documents" && onUploadClick && (
-            <IconButton
-              variant="ghost"
-              size="sm"
-              onClick={onUploadClick}
-              label="Upload"
-              icon={<Icon name="plus" className="h-4 w-4" />}
-              className="!text-text-primary hover:bg-transparent focus:ring-black/10 active:bg-transparent"
+          {/* Sort, view toggle + upload */}
+          <Box className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            <LibrarySortSelect
+              viewType={viewType}
+              value={librarySortKey}
+              onChange={onLibrarySortChange}
             />
-          )}
+            <LibraryViewModeToggle
+              viewMode={libraryViewMode}
+              onViewModeChange={onLibraryViewModeChange}
+              visible={showLibraryViewToggle}
+            />
+            {viewType === "documents" && onUploadClick ? (
+              <IconButton
+                variant="ghost"
+                size="sm"
+                onClick={onUploadClick}
+                label="Upload"
+                icon={<Icon name="plus" className="h-4 w-4" />}
+                className="!text-text-primary hover:bg-transparent focus:ring-black/10 active:bg-transparent"
+              />
+            ) : null}
+          </Box>
         </Box>
       </Card>
     </Box>

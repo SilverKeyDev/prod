@@ -91,7 +91,11 @@ export function LoginScreenNative() {
 
       <AuthDivider />
 
-      <GoogleSignInButton text="Sign up with Google" />
+      <GoogleSignInButton text="Sign in with Google" />
+      <Text style={styles.oauthLegal}>
+        By signing in (including with Google), you agree to our Terms and Privacy Policy. Open the
+        links from the home screen footer to read them.
+      </Text>
 
       <View style={styles.links}>
         <AuthLink to="/signup">
@@ -141,5 +145,13 @@ const styles = StyleSheet.create({
   inlineLink: {
     fontSize: 14,
     color: color("neutral.600"),
+  },
+  oauthLegal: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: color("neutral.600"),
+    textAlign: "center",
+    marginBottom: 16,
+    paddingHorizontal: 8,
   },
 });

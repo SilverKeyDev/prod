@@ -2,7 +2,7 @@
  * Map auth API response to UserProfile for use in auth store and UI
  */
 
-import type { AuthResponse } from "packages/config/http/api/auth/auth";
+import type { AuthResponse } from "packages/features/homeauth/api/types";
 
 import type { UserProfile } from "@/features/homeauth/types";
 

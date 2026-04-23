@@ -9,6 +9,12 @@ export type PropertyDetailsScreenParams = {
   propertyId?: string;
 };
 
+/** Params for native full-screen public agent profile (matches web `/agent-profile/...`). */
+export type AgentProfileScreenParams = {
+  agentUserId: string;
+  displayName?: string;
+};
+
 /**
  * Result of resolving post-auth redirect path.
  * Native navigator uses this to call rootNavigationRef.navigate accordingly.

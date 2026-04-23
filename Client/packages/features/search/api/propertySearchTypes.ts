@@ -6,7 +6,7 @@ export type LatLng = {
   lng: number;
 };
 
-/** Optional hooks for dev map listing preview lifecycle (clear dismissals on new search, enable previews when results land). */
+/** Optional hooks for map listing preview lifecycle (clear dismissals on new search / when results land). */
 export type MapPreviewSearchLifecycleHooks = {
   onSearchStartClearDismissals?: () => void;
   onResultsCommittedEnablePreviews?: () => void;

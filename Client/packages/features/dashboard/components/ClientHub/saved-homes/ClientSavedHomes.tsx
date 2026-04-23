@@ -6,6 +6,8 @@ import {
   SavedHomesContent,
   SavedPageModals,
 } from "packages/features/saved";
+import { useLibrarySortPreference } from "packages/features/saved/hooks/ui/useLibrarySortPreference";
+import { useLibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { usePropertyDetails } from "packages/features/search";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { useSavedPageModals } from "packages/hooks/ui";
@@ -20,6 +22,11 @@ type ClientSavedHomesProps = {
 
 export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesProps) {
   const [refreshing, setRefreshing] = useState(false);
+  const [documentsSubtab, setDocumentsSubtab] = useState<"my-documents" | "forms-library">(
+    "my-documents"
+  );
+  const { value: libraryViewMode } = useLibraryViewMode("homes");
+  const { value: librarySortKey } = useLibrarySortPreference("homes");
 
   const targetRaw = userId || clientId || "";
   const targetScopedId = targetRaw.trim() !== "" ? targetRaw : undefined;
@@ -104,6 +111,9 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
       >
         <SavedHomesContent
           viewType="homes"
+          libraryViewMode={libraryViewMode}
+          documentsSubtab={documentsSubtab}
+          onDocumentsSubtabChange={setDocumentsSubtab}
           filteredHomes={homes}
           homesLoading={savedHomesLoading}
           documents={[]}
@@ -116,6 +126,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
           onDocumentDelete={() => {}}
           selectedHomesDataLength={selectedHomesData.length}
           noHomesYetKey="dashboard.liked_homes_empty"
+          librarySortKey={librarySortKey}
         />
       </ScrollView>
 

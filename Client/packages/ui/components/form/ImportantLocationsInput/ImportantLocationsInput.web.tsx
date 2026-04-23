@@ -230,7 +230,7 @@ function ImportantLocationsInputAutocomplete({
                     onClick={() => handleRemoveLocation(index)}
                     title="Remove location"
                     label="Remove location"
-                    className="text-destructive hover:text-destructive-hover active:text-destructive-hover touch-manipulation min-h-11 min-w-11"
+                    className="text-destructive hover:text-destructive-hover active:text-destructive-hover min-h-11 min-w-11 touch-manipulation"
                   />
                 </Box>
               )}

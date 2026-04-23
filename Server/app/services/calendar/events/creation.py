@@ -20,6 +20,23 @@ from .google_event_datetime import extract_event_datetimes
 logger = get_logger()
 
 
+def meet_fields_from_google_response(
+    google_event: dict, meet_requested: bool
+) -> tuple[str | None, str | None]:
+    """Derive persisted meet_url and conference_status from a Google Calendar event payload."""
+    hangout = google_event.get("hangoutLink")
+    if hangout:
+        return str(hangout), "success"
+    if not meet_requested:
+        return None, None
+    cd = google_event.get("conferenceData") or {}
+    cr = cd.get("createRequest") or {}
+    status_code = (cr.get("status") or {}).get("statusCode")
+    if status_code == "pending":
+        return None, "pending"
+    return None, "failure"
+
+
 def resolve_create_event_target(user_id, event_data, current_user):
     """
     Compute primary calendar target and whether to duplicate in agent calendar(s).
@@ -62,7 +79,14 @@ def resolve_create_event_target(user_id, event_data, current_user):
 
 
 def create_primary_event_and_db(
-    user_id, event_data, calendar_id, event_type, primary_target, itinerary=None
+    user_id,
+    event_data,
+    calendar_id,
+    event_type,
+    primary_target,
+    itinerary=None,
+    *,
+    add_google_meet: bool = False,
 ):
     """Create event in Google and CalendarEvent in DB. Returns (google_event, calendar_event)."""
     google_event = google_calendar_service.create_event(
@@ -70,7 +94,10 @@ def create_primary_event_and_db(
         event_data.copy(),
         calendar_id,
         target_user_id=primary_target if primary_target != user_id else None,
+        add_google_meet=add_google_meet,
     )
+
+    meet_url, conference_status = meet_fields_from_google_response(google_event, add_google_meet)
 
     start_datetime, end_datetime, timezone_str = extract_event_datetimes(google_event)
 
@@ -110,6 +137,8 @@ def create_primary_event_and_db(
         last_synced_at=datetime.now(timezone.utc),
         sync_source="google",
         itinerary=itinerary,
+        meet_url=meet_url,
+        conference_status=conference_status,
     )
     calendar_event.calculate_duration()
     db.session.add(calendar_event)

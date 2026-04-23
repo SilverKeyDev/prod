@@ -12,7 +12,11 @@ export type ChecklistStepSubmitBarProps = {
   busy?: boolean;
 };
 
-function ChecklistStepSubmitButton({ disabled, onSubmit, busy = false }: ChecklistStepSubmitBarProps) {
+function ChecklistStepSubmitButton({
+  disabled,
+  onSubmit,
+  busy = false,
+}: ChecklistStepSubmitBarProps) {
   const { t } = useLocalization();
   const submitLabel = t("checklists.step.submit", { defaultValue: "Submit" });
   return (

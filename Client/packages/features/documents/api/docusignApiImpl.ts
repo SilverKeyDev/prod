@@ -4,7 +4,14 @@
 import type {
   CreateAgreementRequest,
   CreateAgreementResponse,
+  CreateParticipantRequest,
+  CreateParticipantResponse,
   CreateRevisionResponse,
+  DocusignCreateTemplateMetadataInput,
+  DocusignCreateTemplateResponse,
+  DocusignDeleteTemplateResponse,
+  DocusignGetTemplateDetailResponse,
+  DocusignGetTemplateEditUrlResponse,
   DocusignResendRecipientRequest,
   DocusignResendRecipientResponse,
   DocusignRevisionUploadBody,
@@ -24,7 +31,13 @@ import type {
   VoidAgreementResponse,
 } from "packages/features/documents/types/docusign";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { apiGet, apiPost, apiPut, apiUpload } from "packages/services/http/compatibility";
+import {
+  apiDelete,
+  apiGet,
+  apiPost,
+  apiPut,
+  apiUpload,
+} from "packages/services/http/compatibility";
 
 function resolveRevisionUploadFileName(fileName?: string): string {
   const name = fileName?.trim();
@@ -197,6 +210,43 @@ export const docusignApi = {
   listTemplates: (): Promise<ListTemplatesResponse> => {
     log.debug(LOG_CATEGORIES.DOCUSIGN, "Fetching DocuSign templates");
     return apiGet<ListTemplatesResponse>("/api/v1/docusign/templates");
+  },
+
+  createTemplate: (params: {
+    metadata: DocusignCreateTemplateMetadataInput;
+    files: File[];
+  }): Promise<DocusignCreateTemplateResponse> => {
+    const formData = new FormData();
+    formData.append("metadata", JSON.stringify(params.metadata));
+    for (const file of params.files) {
+      formData.append("files", file);
+    }
+    return apiUpload<DocusignCreateTemplateResponse>("/api/v1/docusign/templates", formData);
+  },
+
+  getTemplateDetail: (templateId: string): Promise<DocusignGetTemplateDetailResponse> => {
+    const id = encodeURIComponent(templateId);
+    return apiGet<DocusignGetTemplateDetailResponse>(`/api/v1/docusign/templates/${id}`);
+  },
+
+  deleteTemplate: (templateId: string): Promise<DocusignDeleteTemplateResponse> => {
+    const id = encodeURIComponent(templateId);
+    return apiDelete<DocusignDeleteTemplateResponse>(`/api/v1/docusign/templates/${id}`);
+  },
+
+  getTemplateEditUrl: (templateId: string): Promise<DocusignGetTemplateEditUrlResponse> => {
+    const id = encodeURIComponent(templateId);
+    return apiGet<DocusignGetTemplateEditUrlResponse>(`/api/v1/docusign/templates/${id}/edit-url`);
+  },
+
+  addAgreementParticipant: (
+    agreementId: string,
+    body: CreateParticipantRequest
+  ): Promise<CreateParticipantResponse> => {
+    return apiPost<CreateParticipantResponse>(
+      `/api/v1/docusign/agreements/${agreementId}/participants`,
+      body
+    );
   },
 
   syncTemplates: (): Promise<SyncTemplatesResponse> => {

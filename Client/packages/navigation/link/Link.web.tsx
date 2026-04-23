@@ -5,7 +5,7 @@
 import type { ReactNode } from "react";
 import { Link as RouterLink } from "react-router-dom";
 
-import type { LinkProps as AdapterLinkProps } from "./types";
+import type { LinkProps as AdapterLinkProps } from "packages/navigation/types/navigationTypes";
 
 export type LinkProps = AdapterLinkProps & {
   children?: ReactNode;

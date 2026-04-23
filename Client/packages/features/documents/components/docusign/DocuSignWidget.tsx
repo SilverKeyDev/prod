@@ -1,14 +1,23 @@
 import { useMemo, useState } from "react";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Clock, ExternalLink, FileSignature } from "lucide-react";
 
+import { queryKeys } from "packages/config/query/keys";
 import { useLocalization } from "packages/contexts";
+import { docusignApi } from "packages/features/documents/api/docusign";
 import { AgreementDetailModal } from "packages/features/documents/components/agreement/AgreementDetailModal";
 import { AgreementStatusBadge } from "packages/features/documents/components/agreement/AgreementStatusBadge";
 import { CreateAgreementModal } from "packages/features/documents/components/agreement/CreateAgreementModal";
+import { DocusignTemplateWizardModal } from "packages/features/documents/components/docusign/DocusignTemplateWizardModal";
+import { DocusignUseTemplateModal } from "packages/features/documents/components/docusign/DocusignUseTemplateModal";
+import { DocuSignWidgetSavedTemplatesSection } from "packages/features/documents/components/docusign/DocuSignWidgetSavedTemplatesSection";
 import { useDocusignAgreements } from "packages/features/documents/hooks/data/docusign/useDocusignAgreements";
+import { useDocusignTemplates } from "packages/features/documents/hooks/data/docusign/useDocusignTemplates";
+import type { DocusignTemplate } from "packages/features/documents/types/docusign";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/Button";
+import { Icon } from "packages/ui/components/icons";
 import { Box } from "packages/ui/components/primitives";
 import { dateNow, dateParseISO } from "packages/utils/date";
 import { getWindow } from "packages/utils/platform";
@@ -21,44 +30,40 @@ import {
   getUrgencyLevel,
 } from "@/features/documents/utils/docusignHelpers";
 
-/**
- * DocuSignWidget Component
- *
- * Dashboard widget for managing DocuSign agreements. Displays:
- * - Summary statistics (pending, completed this week, voided this month)
- * - Pending signatures requiring attention (with urgency indicators)
- * - Recent agreements (last 5 by updated date)
- * - Quick actions (create new, view all)
- *
- * The widget uses a two-column layout on desktop (lg breakpoint):
- * - Left column: Pending signatures sorted by urgency
- * - Right column: Recent agreements sorted by date
- *
- * Clicking an agreement opens a detail modal with full information.
- *
- * @component
- *
- * @example
- * ```tsx
- * // Add to dashboard
- * import { DocuSignWidget } from 'packages/features/documents';
- *
- * function Dashboard() {
- *   return (
- *     <Box className="dashboard-grid">
- *       <DocuSignWidget />
- *       {/* other widgets *\/}
- *     </Box>
- *   );
- * }
- * ```
- */
+/** Cached template row from GET /docusign/templates (may include legacy `docusign_template_id`). */
+type ListDocusignTemplate = DocusignTemplate & { docusign_template_id?: string };
+
+/** Dashboard DocuSign agreements widget: templates, stats, pending and recent lists. */
 export default function DocuSignWidget() {
   const { t } = useLocalization();
+  const qc = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isTemplateWizardOpen, setIsTemplateWizardOpen] = useState(false);
+  const [useTemplateCtx, setUseTemplateCtx] = useState<{
+    docusignTemplateId: string;
+    name: string;
+  } | null>(null);
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
 
   const { agreements, isLoading, error } = useDocusignAgreements();
+  const { templates: savedTemplates } = useDocusignTemplates();
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: (templateId: string) => docusignApi.deleteTemplate(templateId),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: queryKeys.docusign.templates() });
+    },
+  });
+
+  const openEditorMutation = useMutation({
+    mutationFn: (templateId: string) => docusignApi.getTemplateEditUrl(templateId),
+    onSuccess: (res) => {
+      if (res.success && res.edit_url) {
+        const w = getWindow();
+        if (w) w.open(res.edit_url, "_blank", "noopener,noreferrer");
+      }
+    },
+  });
 
   // Filter for pending signatures (sent, delivered, or partially signed)
   // Sorted by urgency (days waiting, descending)
@@ -148,21 +153,40 @@ export default function DocuSignWidget() {
               })}
             </Title>
           </Box>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsCreateModalOpen(true)}
-            iconName="plus"
-          >
-            {t("docusign.widget_create", { defaultValue: "Create" })}
-          </Button>
+          <Box className="flex flex-shrink-0 gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsTemplateWizardOpen(true)}
+              iconName="file-text"
+            >
+              {t("docusign.widget_template", { defaultValue: "Template" })}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setIsCreateModalOpen(true)}
+              iconName="plus"
+            >
+              {t("docusign.widget_create", { defaultValue: "Create" })}
+            </Button>
+          </Box>
         </Box>
+
+        <DocuSignWidgetSavedTemplatesSection
+          savedTemplates={savedTemplates as ListDocusignTemplate[]}
+          onUseTemplate={(tid, name) => setUseTemplateCtx({ docusignTemplateId: tid, name })}
+          onEditTemplate={(tid) => void openEditorMutation.mutateAsync(tid)}
+          onDeleteTemplate={(tid) => void deleteTemplateMutation.mutateAsync(tid)}
+          isEditPending={openEditorMutation.isPending}
+          isDeletePending={deleteTemplateMutation.isPending}
+        />
 
         {/* Summary Statistics - Three-card overview */}
         <Box className="mb-6 grid grid-cols-3 gap-3">
           {/* Pending signatures - requires action */}
-          <Box className="border-border-card-subtle rounded-lg border bg-yellow-50 p-3 text-center">
-            <Box className="text-2xl font-bold text-yellow-800">{stats.totalPending}</Box>
+          <Box className="border-border-card-subtle bg-accent-muted rounded-lg border p-3 text-center">
+            <Box className="text-text-primary text-2xl font-bold">{stats.totalPending}</Box>
             <BodyText size="xs" muted>
               {t("docusign.widget_stat_pending", { defaultValue: "Pending" })}
             </BodyText>
@@ -179,8 +203,8 @@ export default function DocuSignWidget() {
           </Box>
 
           {/* Voided this month - tracking cancelled agreements */}
-          <Box className="border-border-card-subtle rounded-lg border bg-rose-50 p-3 text-center">
-            <Box className="text-2xl font-bold text-rose-800">{stats.voidedThisMonth}</Box>
+          <Box className="border-border-card-subtle bg-background-surface rounded-lg border p-3 text-center">
+            <Box className="text-destructive text-2xl font-bold">{stats.voidedThisMonth}</Box>
             <BodyText size="xs" muted>
               {t("docusign.widget_stat_voided", { defaultValue: "Voided" })}
             </BodyText>
@@ -218,7 +242,7 @@ export default function DocuSignWidget() {
                       key={agreement.id}
                       role="button"
                       tabIndex={0}
-                      className="border-border hover:bg-accent-muted cursor-pointer rounded-lg border p-3 transition-colors"
+                      className="border-border bg-background-surface hover:border-border-card-strong focus-visible:ring-primary w-full cursor-pointer overflow-hidden rounded-xl border shadow-sm transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                       onClick={() => setSelectedAgreementId(agreement.id)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
@@ -227,31 +251,44 @@ export default function DocuSignWidget() {
                         }
                       }}
                     >
-                      <Box className="mb-1 flex items-start justify-between gap-2">
-                        <BodyText
-                          as="p"
-                          size="sm"
-                          className="text-text-primary flex-1 truncate font-medium"
-                        >
-                          {agreement.title}
-                        </BodyText>
-                        <AgreementStatusBadge
-                          status={agreement.status}
-                          size="sm"
-                          showIcon={false}
-                        />
-                      </Box>
-                      {agreement.buyer_name && (
-                        <BodyText as="p" size="xs" muted className="mb-1">
-                          {agreement.buyer_name}
-                        </BodyText>
-                      )}
-                      {/* Urgency indicator - color changes based on days waiting */}
-                      <Box className="flex items-center gap-1 text-xs">
-                        <Clock className={`h-3 w-3 ${urgencyColor}`} />
-                        <BodyText as="span" size="xs" className={urgencyColor}>
-                          {daysWaiting} {daysWaiting === 1 ? "day" : "days"} waiting
-                        </BodyText>
+                      <Box className="flex flex-row items-stretch">
+                        <Box className="bg-accent w-1.5" />
+                        <Box className="flex flex-1 flex-row items-start gap-3 p-3 sm:p-4">
+                          <Box className="border-border-card-subtle bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+                            <Icon name="file-signature" size={18} className="text-primary" />
+                          </Box>
+                          <Box className="flex min-w-0 flex-1 flex-col gap-1.5">
+                            <Box className="flex items-start justify-between gap-2">
+                              <BodyText
+                                as="p"
+                                size="sm"
+                                className="text-text-primary font-semibold leading-snug"
+                              >
+                                {agreement.title}
+                              </BodyText>
+                              <AgreementStatusBadge
+                                status={agreement.status}
+                                size="sm"
+                                showIcon={false}
+                              />
+                            </Box>
+                            {agreement.buyer_name ? (
+                              <BodyText as="p" size="xs" muted>
+                                {agreement.buyer_name}
+                              </BodyText>
+                            ) : null}
+                            <Box className="flex items-center gap-1">
+                              <Clock className={`h-3 w-3 shrink-0 ${urgencyColor}`} />
+                              <BodyText
+                                as="span"
+                                size="xs"
+                                className={`leading-relaxed ${urgencyColor}`}
+                              >
+                                {daysWaiting} {daysWaiting === 1 ? "day" : "days"} waiting
+                              </BodyText>
+                            </Box>
+                          </Box>
+                        </Box>
                       </Box>
                     </Box>
                   );
@@ -284,7 +321,7 @@ export default function DocuSignWidget() {
                     key={agreement.id}
                     role="button"
                     tabIndex={0}
-                    className="border-border hover:bg-accent-muted cursor-pointer rounded-lg border p-3 transition-colors"
+                    className="border-border bg-background-surface hover:border-border-card-strong focus-visible:ring-primary w-full cursor-pointer overflow-hidden rounded-xl border shadow-sm transition-shadow duration-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                     onClick={() => setSelectedAgreementId(agreement.id)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
@@ -293,24 +330,38 @@ export default function DocuSignWidget() {
                       }
                     }}
                   >
-                    <Box className="mb-1 flex items-start justify-between gap-2">
-                      <BodyText
-                        as="p"
-                        size="sm"
-                        className="text-text-primary flex-1 truncate font-medium"
-                      >
-                        {agreement.title}
-                      </BodyText>
-                      <AgreementStatusBadge status={agreement.status} size="sm" showIcon={false} />
+                    <Box className="flex flex-row items-stretch">
+                      <Box className="bg-accent w-1.5" />
+                      <Box className="flex flex-1 flex-row items-start gap-3 p-3 sm:p-4">
+                        <Box className="border-border-card-subtle bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+                          <Icon name="file-text" size={18} className="text-primary" />
+                        </Box>
+                        <Box className="flex min-w-0 flex-1 flex-col gap-1.5">
+                          <Box className="flex items-start justify-between gap-2">
+                            <BodyText
+                              as="p"
+                              size="sm"
+                              className="text-text-primary font-semibold leading-snug"
+                            >
+                              {agreement.title}
+                            </BodyText>
+                            <AgreementStatusBadge
+                              status={agreement.status}
+                              size="sm"
+                              showIcon={false}
+                            />
+                          </Box>
+                          {agreement.buyer_name ? (
+                            <BodyText as="p" size="xs" muted>
+                              {agreement.buyer_name}
+                            </BodyText>
+                          ) : null}
+                          <BodyText as="p" size="xs" muted className="leading-relaxed">
+                            {formatAgreementDate(agreement.updated_at || agreement.created_at)}
+                          </BodyText>
+                        </Box>
+                      </Box>
                     </Box>
-                    {agreement.buyer_name && (
-                      <BodyText as="p" size="xs" muted className="mb-1">
-                        {agreement.buyer_name}
-                      </BodyText>
-                    )}
-                    <BodyText as="p" size="xs" muted>
-                      {formatAgreementDate(agreement.updated_at || agreement.created_at)}
-                    </BodyText>
                   </Box>
                 ))}
               </Box>
@@ -346,6 +397,18 @@ export default function DocuSignWidget() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
+      <DocusignTemplateWizardModal
+        isOpen={isTemplateWizardOpen}
+        onClose={() => setIsTemplateWizardOpen(false)}
+      />
+      {useTemplateCtx ? (
+        <DocusignUseTemplateModal
+          isOpen
+          onClose={() => setUseTemplateCtx(null)}
+          docusignTemplateId={useTemplateCtx.docusignTemplateId}
+          templateDisplayName={useTemplateCtx.name}
+        />
+      ) : null}
       <AgreementDetailModal
         agreementId={selectedAgreementId}
         isOpen={!!selectedAgreementId}

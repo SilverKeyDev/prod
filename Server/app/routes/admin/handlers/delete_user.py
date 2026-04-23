@@ -3,7 +3,7 @@
 from flask import request
 
 from app.schemas import DeleteUserRequest, DeleteUserResponse
-from app.services.user.delete_user import delete_user_and_all_related_data
+from app.services.auth import delete_user_and_all_related_data
 from app.utils.admin import user_has_admin_role
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,

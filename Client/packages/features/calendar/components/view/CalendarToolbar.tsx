@@ -2,21 +2,15 @@ import type React from "react";
 
 import { color, spacing } from "packages/design-tokens";
 import IconButton from "packages/ui/components/button/IconButton";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/primitives";
 
 import type { CalendarViewType } from "@/features/calendar/types/calendar";
 
-const VIEW_MODES: CalendarViewType[] = ["week", "month"];
+import { CalendarViewModeToggle } from "./CalendarViewModeToggle";
 
-function viewModeLabel(mode: CalendarViewType): string {
-  switch (mode) {
-    case "week":
-      return "Week";
-    case "month":
-    default:
-      return "Month";
-  }
-}
+/** Outline IconButtons default to primary fill on hover — keep a static surface for prev/next. */
+const TRAVERSE_ICON_BUTTON_CLASSNAME =
+  "text-neutral-800 hover:!bg-background-surface hover:!text-neutral-800 active:!bg-background-surface active:!text-neutral-800 disabled:hover:!bg-background-surface";
 
 export type CalendarToolbarProps = {
   sectionTitle?: string;
@@ -28,6 +22,8 @@ export type CalendarToolbarProps = {
   disabledPrev?: boolean;
   disabledNext?: boolean;
   children?: React.ReactNode;
+  /** When false, hides the Week/Month segmented control (e.g. week-only embedded pickers). @default true */
+  showViewModeToggle?: boolean;
 };
 
 export function CalendarToolbar({
@@ -40,13 +36,16 @@ export function CalendarToolbar({
   disabledPrev = false,
   disabledNext = false,
   children,
+  showViewModeToggle = true,
 }: CalendarToolbarProps) {
+  const prevLabel = viewMode === "week" ? "Previous week" : "Previous month";
+  const nextLabel = viewMode === "week" ? "Next week" : "Next month";
   return (
     <Box style={styles.wrapper}>
       <Box style={styles.headerRow}>
         <Box style={styles.leftCluster}>
           {sectionTitle ? <Text style={styles.sectionTitle}>{sectionTitle}</Text> : null}
-          <Text style={styles.monthLabel}>{toolbarLabel}</Text>
+          <Text style={styles.toolbarDateRange}>{toolbarLabel}</Text>
         </Box>
 
         <Box style={styles.rightCluster}>
@@ -55,47 +54,24 @@ export function CalendarToolbar({
             variant="outline"
             size="md"
             rounded="lg"
-            label="Previous"
+            label={prevLabel}
             onPress={onPrev}
             disabled={disabledPrev}
-            className="text-neutral-800"
+            className={TRAVERSE_ICON_BUTTON_CLASSNAME}
           />
           <IconButton
             iconName="chevron-right"
             variant="outline"
             size="md"
             rounded="lg"
-            label="Next"
+            label={nextLabel}
             onPress={onNext}
             disabled={disabledNext}
-            className="text-neutral-800"
+            className={TRAVERSE_ICON_BUTTON_CLASSNAME}
           />
-          <Box style={styles.segmentedTrack}>
-            {VIEW_MODES.map((mode, idx) => {
-              const selected = mode === viewMode;
-              const isLast = idx === VIEW_MODES.length - 1;
-              return (
-                <Pressable
-                  key={mode}
-                  onPress={() => onViewModeChange(mode)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  label={`${viewModeLabel(mode)} view`}
-                  style={[
-                    styles.segment,
-                    !isLast ? styles.segmentWithDivider : null,
-                    selected ? styles.segmentSelected : null,
-                  ]}
-                >
-                  <Text
-                    style={[styles.segmentLabel, selected ? styles.segmentLabelSelected : null]}
-                  >
-                    {viewModeLabel(mode)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </Box>
+          {showViewModeToggle ? (
+            <CalendarViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
+          ) : null}
         </Box>
       </Box>
 
@@ -138,42 +114,6 @@ const styles = {
     justifyContent: "flex-end" as const,
     gap: spacing(2),
   },
-  segmentedTrack: {
-    display: "flex" as const,
-    flexDirection: "row" as const,
-    alignItems: "stretch" as const,
-    marginLeft: spacing(1),
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: color("neutral.200"),
-    backgroundColor: color("neutral.100"),
-    overflow: "hidden" as const,
-  },
-  segment: {
-    flex: 1,
-    minWidth: 56,
-    paddingVertical: spacing(1.5),
-    paddingHorizontal: spacing(2),
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
-    backgroundColor: "transparent",
-  },
-  segmentWithDivider: {
-    borderRightWidth: 1,
-    borderRightColor: color("neutral.200"),
-  },
-  segmentSelected: {
-    backgroundColor: color("brand.accent"),
-    borderRightColor: color("brand.accent"),
-  },
-  segmentLabel: {
-    fontSize: 12,
-    fontWeight: "600" as const,
-    color: color("neutral.700"),
-  },
-  segmentLabelSelected: {
-    color: color("neutral.50"),
-  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600" as const,
@@ -181,13 +121,15 @@ const styles = {
     margin: 0,
     padding: 0,
   },
-  monthLabel: {
+  /** Primary toolbar label: visible date range. */
+  toolbarDateRange: {
     fontSize: 20,
     fontWeight: "800" as const,
     color: color("neutral.900"),
     letterSpacing: -0.5,
     margin: 0,
     padding: 0,
+    marginLeft: spacing(2),
   },
   calendarWrapper: {
     borderRadius: 12,

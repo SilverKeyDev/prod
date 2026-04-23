@@ -114,7 +114,7 @@ Each feature gets a blueprint:
 # app/routes/user/handlers.py
 from flask import Blueprint, request, jsonify
 from app.utils.common_patterns import require_authenticated_user
-from app.services.user import user_service
+from app.dtos.user import UserDTO
 
 user_bp = Blueprint('user', __name__, url_prefix='/api/v1/user')
 
@@ -122,7 +122,7 @@ user_bp = Blueprint('user', __name__, url_prefix='/api/v1/user')
 @require_authenticated_user
 def get_profile(user):
     """Get authenticated user's profile"""
-    profile = user_service.get_profile(user.id)
+    profile = UserDTO.to_response(user, include_roles=True)
     return jsonify({'success': True, 'data': profile})
 ```
 
@@ -173,7 +173,7 @@ except ValueError as e:
 Services contain business logic and orchestration:
 
 ```python
-# app/services/user/profile_service.py
+# app/services/example/profile_service.py
 from app import db
 from app.models import User, UserDemographics, UserFinancials
 
@@ -522,13 +522,13 @@ See: `.cursor/rules/shared/logging.mdc`
 **Location:** `Server/tests/`
 
 ```python
-# tests/test_user_service.py
+# tests/test_user_dto.py
 import pytest
-from app.services.user import user_service
+from app.dtos.user import UserDTO
 
-def test_get_profile(test_user):
-    profile = user_service.get_profile(test_user.id)
-    assert profile['user']['email'] == test_user.email
+def test_user_dto_response(test_user):
+    profile = UserDTO.to_response(test_user, include_roles=True)
+    assert profile['email'] == test_user.email
 ```
 
 **Run:** `pytest`

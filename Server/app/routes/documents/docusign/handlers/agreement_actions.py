@@ -31,7 +31,7 @@ log = get_logger()
 
 
 def _envelope_options_from_send_payload(payload: dict) -> dict | None:
-    keys = ("envelope_notification", "tab_prefill", "envelope_prefill_tabs")
+    keys = ("envelope_notification", "tab_prefill", "envelope_prefill_tabs", "template_role_map")
     out = {k: payload[k] for k in keys if k in payload and payload[k] is not None}
     return out or None
 

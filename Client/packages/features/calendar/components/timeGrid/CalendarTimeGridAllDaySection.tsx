@@ -110,7 +110,6 @@ export function CalendarTimeGridAllDaySection({
         borderColor: color("neutral.200"),
         backgroundColor: color("neutral.100"),
         paddingBottom: spacing(1),
-        scrollbarGutter: "stable",
       }}
     >
       <Box
@@ -140,7 +139,6 @@ export function CalendarTimeGridAllDaySection({
             gridColumn: "2 / -1",
             minWidth: spacing(0),
             maxHeight: scrollMaxHeight,
-            scrollbarGutter: "stable",
           }}
         >
           {columnBody}

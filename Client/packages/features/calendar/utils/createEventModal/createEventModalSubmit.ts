@@ -1,4 +1,5 @@
 import type { ViewingItinerary } from "packages/api/viewings";
+import type { GoogleEventCreateResponse } from "packages/features/calendar/api/types";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
@@ -12,8 +13,23 @@ import {
   buildCreateEventGoogleStartEnd,
   CREATE_EVENT_TIME_STEP_MINUTES,
 } from "@/features/calendar/utils/parsing/eventFormGooglePayload";
+import type {
+  ViewingRouteEndMode,
+  ViewingRouteEndpoint,
+  ViewingTourAnchor,
+  ViewingTourStartSelection,
+} from "@/features/calendar/utils/viewing/viewingRoutePlan";
+import {
+  buildViewingItineraryDraftFromForm,
+  primaryLocationLabelFromItinerary,
+} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 import { detectEventTypeFromTitle } from "./createEventModalDetectEventType";
+import {
+  copyTextToClipboard,
+  isGoogleMeetProvisioningPending,
+  pollGoogleMeetHangoutLink,
+} from "./googleMeetAfterCreate";
 
 export type RunCreateEventModalSubmitParams = {
   mode: "create" | "edit";
@@ -30,10 +46,12 @@ export type RunCreateEventModalSubmitParams = {
   selectedCalendarId: string;
   defaultCalendarId?: string | null;
   selectedClientId: string | null;
-  showAgentClientPicker: boolean;
-  agentMultiStopViewing: boolean;
   isPropertyViewing: boolean;
   viewingStops: ViewingStop[];
+  viewingStartSelection: ViewingTourStartSelection;
+  viewingTourAnchors: ViewingTourAnchor[];
+  viewingEndMode: ViewingRouteEndMode;
+  viewingEndFixed: ViewingRouteEndpoint | null;
   existingEvent?: ExtendedGoogleEvent;
   onAddWithoutSchedule?: (payload: CreateEventModalAddWithoutSchedulePayload) => Promise<void>;
   createEvent: (body: GoogleCalendarEventCreateBody) => Promise<unknown>;
@@ -41,9 +59,14 @@ export type RunCreateEventModalSubmitParams = {
   onEventCreated?: () => void;
   onClose: () => void;
   setIsSavingUnscheduled: (next: boolean) => void;
-  enqueueToast: (toast: { type: "error" | "success"; message: string }) => void;
+  enqueueToast: (toast: {
+    type: "error" | "success" | "info" | "warning";
+    message: string;
+  }) => void;
   /** Forwarded to `buildCreateEventGoogleStartEnd` for timed events (e.g. quick-create). */
   clampTimedEndToStartLocalDay?: boolean;
+  /** Create flow only: optional Google Meet on the calendar insert. */
+  addGoogleMeet?: boolean;
 };
 
 export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitParams): Promise<void> {
@@ -153,10 +176,7 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
 
   try {
     const titleHint = detectEventTypeFromTitle(p.eventTitle.trim());
-    const eventType =
-      p.showAgentClientPicker && p.agentMultiStopViewing
-        ? "property_viewing"
-        : (p.explicitEventType ?? titleHint);
+    const eventType = p.explicitEventType ?? titleHint;
     const eventData: GoogleCalendarEventCreateBody = {
       summary: p.eventTitle.trim(),
       description: p.eventDescription.trim() || undefined,
@@ -168,23 +188,28 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
     };
 
     if (p.isPropertyViewing) {
-      const nonEmptyStops = p.viewingStops.filter((s) => s.address.trim());
-      if (nonEmptyStops.length > 0) {
-        const itineraryPayload: ViewingItinerary = {
-          stops: nonEmptyStops,
-          ordered: false,
-          legs: null,
-        };
-        eventData.itinerary = itineraryPayload;
-        const first = itineraryPayload.stops[0];
-        if (first) {
-          eventData.location = (first.label ?? first.address) as string;
+      const itineraryPayload = buildViewingItineraryDraftFromForm({
+        stops: p.viewingStops,
+        startSelection: p.viewingStartSelection,
+        anchors: p.viewingTourAnchors,
+        endMode: p.viewingEndMode,
+        endFixed: p.viewingEndFixed,
+      });
+      if (itineraryPayload) {
+        eventData.itinerary = itineraryPayload as ViewingItinerary;
+        const loc = primaryLocationLabelFromItinerary(itineraryPayload);
+        if (loc) {
+          eventData.location = loc;
         }
       }
     }
 
     if (p.mode === "create" && p.selectedClientId) {
       eventData.target_user_id = p.selectedClientId;
+    }
+
+    if (p.mode === "create" && p.addGoogleMeet) {
+      eventData.addGoogleMeet = true;
     }
 
     if (p.mode === "edit" && p.existingEvent?.id && p.updateEvent) {
@@ -194,11 +219,46 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
         message: "Event updated successfully",
       });
     } else {
-      await p.createEvent(eventData);
-      p.enqueueToast({
-        type: "success",
-        message: "Added to calendar",
-      });
+      const created = (await p.createEvent(eventData)) as GoogleEventCreateResponse;
+      const wantsMeetFlow =
+        p.mode === "create" && Boolean(p.addGoogleMeet) && Boolean(calendarIdForCreate);
+
+      if (wantsMeetFlow) {
+        let meetLink =
+          typeof created.hangoutLink === "string" && created.hangoutLink.length > 0
+            ? created.hangoutLink
+            : null;
+        if (!meetLink && created.id && isGoogleMeetProvisioningPending(created)) {
+          p.enqueueToast({
+            type: "info",
+            message: "Meet link generating…",
+          });
+          meetLink = await pollGoogleMeetHangoutLink(created.id, calendarIdForCreate);
+        }
+        p.enqueueToast({
+          type: "success",
+          message: "Added to calendar",
+        });
+        if (meetLink) {
+          const copied = await copyTextToClipboard(meetLink);
+          if (copied) {
+            p.enqueueToast({
+              type: "info",
+              message: "Meet link copied to clipboard.",
+            });
+          }
+        } else {
+          p.enqueueToast({
+            type: "error",
+            message: "Couldn't add Meet; you can add a link manually.",
+          });
+        }
+      } else {
+        p.enqueueToast({
+          type: "success",
+          message: "Added to calendar",
+        });
+      }
     }
 
     p.onEventCreated?.();

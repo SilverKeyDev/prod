@@ -1,16 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import {
   CHECKLIST_TITLES,
+  ChecklistProgressBar,
   type ChecklistTab,
   useChecklistProgress,
 } from "packages/features/checklists";
+import { type ChecklistType, getTaskChecklist } from "packages/features/checklists/api/checklists";
 import { useIsAgent } from "packages/features/homeauth";
 import { ProfileFeature, ProfileScreen } from "packages/features/profile";
 import { useNavigation } from "packages/navigation";
+import { useAuthStore } from "packages/store";
 import ClientSelector from "packages/ui/components/button/ClientSelector";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
@@ -42,6 +46,16 @@ type ClientHubTab =
   | "agenda"
   | "docusign";
 
+/** Matches roadmap sub-tabs / `useChecklistData` types — prefetch so switching phases does not wait. */
+const CLIENT_HUB_PREFETCH_CHECKLIST_TYPES: readonly ChecklistType[] = [
+  "search",
+  "offer",
+  "escrow",
+  "insurance",
+  "financing",
+  "closing",
+];
+
 function formatRelativeDate(dateString: string) {
   const now = Date.now();
   const date = dateParseISO(dateString).valueOf();
@@ -59,6 +73,9 @@ function formatRelativeDate(dateString: string) {
 export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   const { t } = useLocalization();
   const { navigateToPath, goBack } = useNavigation();
+  const queryClient = useQueryClient();
+  const authReady = useAuthStore((s) => s.authReady);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isAgent = useIsAgent();
   const { clients, isLoading } = useAgentClients();
   const { enhanceClientWithDealInfo } = useAgentDashboardMockData();
@@ -68,6 +85,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
     currentSection,
     isSectionUnlocked,
     isLoading: checklistProgressLoading,
+    overallProgress,
   } = useChecklistProgress();
   const [checklistTab, setChecklistTab] = useState<ChecklistTab>(currentSection);
 
@@ -76,6 +94,18 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
       setChecklistTab(currentSection);
     }
   }, [activeTab, currentSection]);
+
+  useEffect(() => {
+    if (!clientId || !authReady || !isAuthenticated) return;
+    void Promise.all(
+      CLIENT_HUB_PREFETCH_CHECKLIST_TYPES.map((type) =>
+        queryClient.prefetchQuery({
+          queryKey: ["checklists", type],
+          queryFn: () => getTaskChecklist(type),
+        })
+      )
+    );
+  }, [authReady, clientId, isAuthenticated, queryClient]);
 
   const client = useMemo(() => clients.find((c) => c.id === clientId), [clients, clientId]);
 
@@ -150,18 +180,15 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
     );
   }
 
-  const isLikedHomesTab = activeTab === "liked-homes";
-  const isProfileTab = activeTab === "profile";
-
   const headerCard = (
     <Box className="mb-4 px-4 pt-6">
       <Card border="light" className="bg-background-base" padding="sm" hover={false}>
-        <Box className="flex flex-row items-center justify-between gap-2">
+        <Box className="flex flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <Pressable
             onPress={() => {
               navigateToPath("/dashboard");
             }}
-            className="mr-2 shrink-0"
+            className="shrink-0"
           >
             <Text className="text-text-secondary text-sm font-medium">← Back</Text>
           </Pressable>
@@ -186,6 +213,24 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
               ) : null}
             </Box>
           </Box>
+
+          <Box className="ml-auto flex w-full min-w-0 max-w-[35rem] shrink-0 flex-col items-end gap-1 sm:w-auto sm:min-w-[25rem]">
+            <BodyText size="sm" className="text-text-secondary text-right" as="p">
+              {checklistProgressLoading
+                ? t("checklists.loading")
+                : t("checklists.buyer_journey.progress", {
+                    completed: overallProgress.completed,
+                    total: overallProgress.total,
+                  })}
+            </BodyText>
+            <Box className="w-full">
+              <ChecklistProgressBar
+                loading={checklistProgressLoading}
+                percent={overallProgress.percent}
+                variant="dashboard"
+              />
+            </Box>
+          </Box>
         </Box>
 
         <Box className="mt-3">
@@ -199,40 +244,20 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
     </Box>
   );
 
-  if (isLikedHomesTab) {
-    return (
-      <Box className="bg-background-base flex-1">
-        {headerCard}
-        <Box className="min-h-0 flex-1 px-4">
-          <ClientSavedHomes userId={clientId} />
-        </Box>
-      </Box>
-    );
-  }
-
-  if (isProfileTab) {
-    return (
-      <Box className="bg-background-base flex-1">
-        {headerCard}
-        <Box className="min-h-0 min-w-0 flex-1 px-4 pb-4">
-          {isWeb ? (
-            <ProfileFeature agentSubject={agentSubject} />
-          ) : (
-            <ProfileScreen agentSubject={agentSubject} />
-          )}
-        </Box>
-      </Box>
-    );
-  }
+  const isSecondaryScrollTab =
+    activeTab === "documents" ||
+    activeTab === "docusign" ||
+    activeTab === "agenda" ||
+    activeTab === "calendar";
 
   return (
     <Box className="bg-background-base flex-1">
       {headerCard}
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
-      >
-        {activeTab === "roadmap" ? (
+      <Box className="min-h-0 flex-1">
+        <ScrollView
+          className={activeTab === "roadmap" ? "flex-1" : "hidden"}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        >
           <Card border="light" className="bg-background-base" padding="sm" hover={false}>
             <Box className="mb-2 px-1">
               <BodyText size="sm" className="text-text-secondary" as="p">
@@ -281,20 +306,38 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
               onTabChange={setChecklistTab}
             />
           </Card>
-        ) : activeTab === "documents" ? (
-          <Box className="mt-1">
+        </ScrollView>
+
+        <ScrollView
+          className={isSecondaryScrollTab ? "flex-1" : "hidden"}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        >
+          <Box className={activeTab === "documents" ? "mt-1" : "hidden"}>
             <ClientDocuments userId={clientId} />
           </Box>
-        ) : activeTab === "docusign" ? (
-          <ClientHubAgreements clientId={clientId} />
-        ) : activeTab === "agenda" ? (
-          <ClientHubAgenda clientId={clientId} />
-        ) : activeTab === "calendar" ? (
-          <Box className="mt-1">
+          <Box className={activeTab === "docusign" ? "" : "hidden"}>
+            <ClientHubAgreements clientId={clientId} />
+          </Box>
+          <Box className={activeTab === "agenda" ? "mt-1" : "hidden"}>
+            <ClientHubAgenda clientId={clientId} />
+          </Box>
+          <Box className={activeTab === "calendar" ? "mt-1" : "hidden"}>
             <ClientCalendar userId={clientId} />
           </Box>
-        ) : null}
-      </ScrollView>
+        </ScrollView>
+
+        <Box className={activeTab === "liked-homes" ? "min-h-0 flex-1 px-4" : "hidden"}>
+          <ClientSavedHomes userId={clientId} />
+        </Box>
+
+        <Box className={activeTab === "profile" ? "min-h-0 min-w-0 flex-1 px-4 pb-4" : "hidden"}>
+          {isWeb ? (
+            <ProfileFeature agentSubject={agentSubject} />
+          ) : (
+            <ProfileScreen agentSubject={agentSubject} />
+          )}
+        </Box>
+      </Box>
     </Box>
   );
 }

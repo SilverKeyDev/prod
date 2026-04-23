@@ -1,0 +1,37 @@
+# Payments and subscriptions
+
+## Product gate (required first)
+
+**Confirm with product** which of the following are **live in production (or staging)** before writing E2E cases:
+
+- Stripe Checkout or hosted payment page
+- Customer billing portal
+- Webhooks (subscription created/updated/deleted, invoice paid/failed)
+- In-app gating on `has_subscription` or equivalent
+
+The client includes **billing** query key scaffolding (`Client/packages/config/query/keys.ts`); the database has a **subscriptions** model with Stripe column names in migrations. Server routes and UI may be partial — **do not assume** a full card flow without verification.
+
+## When payments are live — manual E2E
+
+| Step | What to verify |
+|------|----------------|
+| Subscribe | Test mode card success; user sees success state; DB/webhook state matches. |
+| Decline | Stripe [test cards](https://docs.stripe.com/testing#declined-payments) for decline; UI shows a **clear, non-technical** error; no stuck spinner. |
+| 3D Secure / SCA | If applicable in your region, use Stripe’s test 3DS flows. |
+| Cancel / refund | Per product policy; subscription row and app entitlements update. |
+| Portal | “Manage subscription” opens Stripe Customer Portal; return URL works. |
+| Emails | Receipt/invoice email arrives and is not in spam (see [EMAIL_DELIVERABILITY.md](./EMAIL_DELIVERABILITY.md)). |
+
+## Automation
+
+- Default Playwright suite does **not** hit real Stripe. Add a dedicated `e2e/billing*.spec.ts` when checkout URLs and test keys are available in CI secrets, or use **Stripe’s test clock** in a staging-only job.
+- Webhook tests belong in **server** integration tests with signing secret; not duplicated here unless E2E hits a deployed staging stack.
+
+## Evidence
+
+Store Stripe Dashboard event IDs, invoice IDs, and screenshots of app state for at least one success and one failure path.
+
+## Related
+
+- [ERROR_STATES.md](./ERROR_STATES.md) — payment failure and API errors
+- [END_TO_END_QA_RUNBOOK.md](./END_TO_END_QA_RUNBOOK.md)

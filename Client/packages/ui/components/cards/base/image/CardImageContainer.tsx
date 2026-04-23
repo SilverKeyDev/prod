@@ -17,6 +17,8 @@ type CardImageContainerProps = {
   className?: string;
   /** Children to overlay on the image */
   children?: React.ReactNode;
+  /** First visible result card: improves LCP on search. */
+  isLcpImage?: boolean;
 };
 /**
  * Reusable card image container with consistent styling and responsive heights
@@ -28,6 +30,7 @@ export default function CardImageContainer({
   imageVariant = "professional",
   className = "",
   children,
+  isLcpImage = false,
 }: CardImageContainerProps) {
   const placeholder = "/placeholders/dummy-photo.svg";
   const getHeightClass = () => {
@@ -52,6 +55,8 @@ export default function CardImageContainer({
         variant={imageVariant || "professional"}
         placeholder={placeholder}
         className="h-full w-full"
+        loading={isLcpImage ? "eager" : "lazy"}
+        fetchPriority={isLcpImage ? "high" : "auto"}
       />
       {children && <Box className="absolute inset-0">{children}</Box>}
     </Box>

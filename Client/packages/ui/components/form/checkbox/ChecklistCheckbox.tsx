@@ -123,7 +123,7 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
           <Icon name="info" className="text-gold h-3 w-3 opacity-90 lg:h-3.5 lg:w-3.5" />
         ) : null}
       </Box>
-      <Box className="flex-1 min-w-0 text-left">
+      <Box className="min-w-0 flex-1 text-left">
         <Label
           htmlFor={`item-${item.id}`}
           className="!flex max-w-full flex-wrap items-baseline gap-x-2.5 gap-y-0.5 text-left"
@@ -143,7 +143,7 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
               as="span"
               className={
                 roadmapBlockerInlineVariant === "integration_hint"
-                  ? "text-rose-muted text-xs italic font-normal"
+                  ? "text-rose-muted text-xs font-normal italic"
                   : "text-rose-muted text-responsive-sm font-normal"
               }
             >

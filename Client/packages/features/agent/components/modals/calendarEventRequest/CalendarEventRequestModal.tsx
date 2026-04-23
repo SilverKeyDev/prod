@@ -1,12 +1,10 @@
-import { Icon } from "@ui/icons";
+import { useMemo } from "react";
 
-import { Box } from "packages/ui/components/primitives";
-
-import BaseModal from "@/components/modals/BaseModal";
-import { Title } from "@/components/ui";
 import type { UseCalendarEventRequestFormParams } from "@/features/agent/hooks/data/useCalendarEventRequestForm";
-
-import { CalendarEventRequestFormCore } from "./CalendarEventRequestFormCore.web";
+import { CreateEventModalForm } from "@/features/calendar/components/view/CreateEventModalForm";
+import { useCreateEventModal } from "@/features/calendar/hooks/data/createEvent/useCreateEventModal";
+import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
+import { useAgentChats } from "@/features/messaging/hooks/data/useAgentChats";
 
 export type CalendarEventRequestModalProps = UseCalendarEventRequestFormParams & {
   isOpen: boolean;
@@ -18,25 +16,23 @@ export default function CalendarEventRequestModal({
   onSuccess,
   sendCalendarEventMessage,
 }: CalendarEventRequestModalProps) {
-  return (
-    <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      headerContent={
-        <Box className="flex items-center gap-2">
-          <Icon name="calendar" className="text-text-primary h-5 w-5 flex-shrink-0" />
-          <Title as="h3" size="lg" className="text-text-primary truncate font-medium sm:text-lg">
-            Request Calendar Event
-          </Title>
-        </Box>
-      }
-      size="md"
-    >
-      <CalendarEventRequestFormCore
-        onClose={onClose}
-        onSuccess={onSuccess}
-        sendCalendarEventMessage={sendCalendarEventMessage}
-      />
-    </BaseModal>
-  );
+  const { calendars } = useGoogleCalendarStoreIntegration();
+  const scopedCalendars = useMemo(() => calendars ?? [], [calendars]);
+  const defaultCalendarId = useMemo(() => scopedCalendars[0]?.id ?? "primary", [scopedCalendars]);
+  const { conversations, sendMessage: sendMessageDirect } = useAgentChats();
+
+  const { formProps } = useCreateEventModal({
+    isOpen,
+    onClose,
+    calendars: scopedCalendars,
+    defaultCalendarId,
+    calendarEventRequest: {
+      conversations,
+      sendMessageDirect,
+      onSuccess,
+      sendCalendarEventMessage,
+    },
+  });
+
+  return <CreateEventModalForm {...formProps} modalTitle="Request Calendar Event" />;
 }

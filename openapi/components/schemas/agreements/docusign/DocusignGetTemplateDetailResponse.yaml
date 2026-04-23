@@ -1,0 +1,18 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      template_id:
+        type: string
+        nullable: true
+      name:
+        type: string
+        nullable: true
+      description:
+        type: string
+        nullable: true
+      roles:
+        type: array
+        items:
+          $ref: './DocusignTemplateRoleInfo.yaml'
+        nullable: true

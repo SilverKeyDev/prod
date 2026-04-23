@@ -1,14 +1,8 @@
-import {
-  forwardRef,
-  type RefObject,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
+import { useLocalization } from "packages/contexts";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAuthStore, useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
@@ -22,20 +16,13 @@ import { useAgentSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 
-export type AgentSearchContentHandle = {
-  /** Sends a connection request for the currently selected agent. Returns true if sent successfully. */
-  submitSelectedRequest: () => Promise<boolean>;
-};
+import type { AgentSearchContentHandle, AgentSearchContentProps } from "./AgentSearchContent.types";
 
-export type AgentSearchContentProps = {
-  /** Called after a connection request is sent successfully (e.g. close modal). */
-  onSuccess?: () => void;
-  /** When false, search is not run (e.g. modal closed). Default true. */
-  isActive?: boolean;
-  /** Optional ref for the search input (e.g. for modal focus). */
-  inputRef?: RefObject<HTMLInputElement | null>;
-  className?: string;
-};
+export type {
+  AgentSearchContentHandle,
+  AgentSearchContentProps,
+  AgentSearchPrimaryAction,
+} from "./AgentSearchContent.types";
 
 export const AgentSearchContent = forwardRef<AgentSearchContentHandle, AgentSearchContentProps>(
   function AgentSearchContent(
@@ -44,9 +31,13 @@ export const AgentSearchContent = forwardRef<AgentSearchContentHandle, AgentSear
       isActive = true,
       inputRef: inputRefProp,
       className = "",
+      primaryAction = "connectionRequest",
+      onOpenAgentProfile,
+      connectButtonLabel = "Connect",
     },
     ref
   ) {
+    const { t } = useLocalization();
     const config = getMessagingConfig("client").searchModal;
     const [searchQuery, setSearchQuery] = useState("");
     const [message, setMessage] = useState("");
@@ -137,7 +128,11 @@ export const AgentSearchContent = forwardRef<AgentSearchContentHandle, AgentSear
 
         {/* Results */}
         <Box className="max-h-96 overflow-y-auto p-4">
-          {searchQuery.length < 2 ? null : isLoading ? (
+          {searchQuery.length > 0 && searchQuery.length < 2 ? (
+            <Box className="text-text-secondary py-4 text-left text-sm">
+              {t("agent.discovery_search_min_chars")}
+            </Box>
+          ) : searchQuery.length < 2 ? null : isLoading ? (
             <Box className="flex justify-start py-8">
               <KeyTurnLoader message={config.searchingMessage} />
             </Box>
@@ -218,11 +213,49 @@ export const AgentSearchContent = forwardRef<AgentSearchContentHandle, AgentSear
                         </Button>
                       </Box>
                     </Box>
+                  ) : primaryAction === "openProfile" && onOpenAgentProfile ? (
+                    <Box className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        contentAlign="start"
+                        onClick={() => onOpenAgentProfile(agent)}
+                        className="flex h-auto min-h-0 flex-1 items-start justify-start gap-3 py-0 text-left"
+                      >
+                        <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+                          <Icon name="user" className="h-5 w-5 text-black" />
+                        </Box>
+                        <Box className="min-w-0 flex-1">
+                          <Title as="h3" size="sm" className="font-medium text-black">
+                            {agent.name}
+                          </Title>
+                          <BodyText as="p" size="sm" className="text-text-secondary truncate">
+                            {agent.email}
+                          </BodyText>
+                          {agent.phone && (
+                            <BodyText as="p" size="xs" className="text-text-disabled">
+                              {agent.phone}
+                            </BodyText>
+                          )}
+                        </Box>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedAgentId(agent.id)}
+                        className="border-border shrink-0 self-start"
+                      >
+                        {connectButtonLabel}
+                      </Button>
+                    </Box>
                   ) : (
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
+                      contentAlign="start"
                       onClick={() => setSelectedAgentId(agent.id)}
                       className="flex h-auto min-h-0 w-full items-start justify-start gap-3 py-0 text-left"
                     >

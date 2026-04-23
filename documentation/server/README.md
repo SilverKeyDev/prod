@@ -9,6 +9,7 @@ Docs for the SilverKey backend (Python/Flask). Add server-specific long-form doc
 - **[API Conventions](api-conventions.md)** - Route patterns, request/response format, validation, pagination
 - **[User Preferences](user-preferences.md)** - Preferences schema, write/read pipeline, usage in search
 - **[AWS Resources](aws-resources.md)** - AWS services, IAM, monitoring, deployment, cost optimization
+- **[Infrastructure reliability gap audit](infrastructure-reliability-gap-audit.md)** - Checklist of backups, monitoring, staging, CDN, load testing, and what is verifiable from this repo
 
 ## Related in repo
 

@@ -28,6 +28,8 @@ interface AgreementCardActionsProps {
   deleteModalTitle?: string;
   deleteModalMessage?: string;
   externalActionHandlers?: AgreementCardExternalActionHandlers;
+  /** Library list rows: actions column with equal-width rows (flex). */
+  layout?: "card" | "list";
 }
 
 export default function AgreementCardActions({
@@ -40,7 +42,9 @@ export default function AgreementCardActions({
   deleteModalTitle,
   deleteModalMessage,
   externalActionHandlers,
+  layout = "card",
 }: AgreementCardActionsProps) {
+  const isList = layout === "list";
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const internal = useDocumentActions();
 
@@ -80,64 +84,81 @@ export default function AgreementCardActions({
         ? "This removes the agreement from Saved for you and your client. If the envelope is still in progress, we cancel it in DocuSign when DocuSign allows; completed agreements are removed from Saved only."
         : "Are you sure you want to remove this agreement from your library? This will not delete the agreement from DocuSign.");
 
+  const primaryBtnClass = isList ? "min-w-0 flex-1 justify-center px-2" : "justify-center";
+  const iconRowClass = isList
+    ? "flex w-full min-w-0 flex-row items-stretch gap-2"
+    : "flex w-full flex-row items-center gap-2";
+  const iconBtnBaseList =
+    "min-w-0 flex-1 border-border text-text-secondary bg-transparent hover:bg-neutral-100 active:bg-neutral-200";
+  const iconBtnShareClass = isList ? `min-w-0 flex-1` : "flex-1";
+  const iconBtnDeleteClass = isList
+    ? "min-w-0 flex-1 border border-border text-destructive bg-transparent hover:bg-neutral-100 active:bg-neutral-200"
+    : "border-border text-destructive flex-1 border bg-transparent hover:bg-neutral-100 active:bg-neutral-200";
+
   return (
     <>
-      <Box className="flex flex-col gap-2">
+      <Box className={isList ? "flex w-full min-w-0 flex-col gap-2" : "flex flex-col gap-2"}>
         {/* Primary CTA: embedded signing only when contextual status is sign_now; otherwise view PDF only */}
-        {showSignCta && handleSignNow ? (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => handleSignNow(doc)}
-            icon={<Icon name="pen-tool" size={16} />}
-            fullWidth
-            className="justify-center"
-          >
-            Sign now
-          </Button>
-        ) : showViewSigned ? (
-          <Button
-            variant="success"
-            size="sm"
-            onClick={() =>
-              handleViewSignedAgreement
-                ? handleViewSignedAgreement(doc)
-                : handleViewDocument(doc.id, doc.filename)
-            }
-            icon={<Icon name="check-circle" size={16} />}
-            fullWidth
-            className="justify-center"
-          >
-            View signed document
-          </Button>
-        ) : (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => handleViewDocument(doc.id, doc.filename)}
-            icon={<Icon name="eye" size={16} />}
-            fullWidth
-            className="justify-center"
-          >
-            View document
-          </Button>
-        )}
+        <Box className={isList ? "flex w-full min-w-0 flex-row items-stretch gap-2" : "contents"}>
+          {showSignCta && handleSignNow ? (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => handleSignNow(doc)}
+              icon={<Icon name="pen-tool" size={16} />}
+              fullWidth={!isList}
+              className={primaryBtnClass}
+            >
+              Sign now
+            </Button>
+          ) : showViewSigned ? (
+            <Button
+              variant="success"
+              size="sm"
+              onClick={() =>
+                handleViewSignedAgreement
+                  ? handleViewSignedAgreement(doc)
+                  : handleViewDocument(doc.id, doc.filename)
+              }
+              icon={<Icon name="check-circle" size={16} />}
+              fullWidth={!isList}
+              className={primaryBtnClass}
+            >
+              View signed document
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => handleViewDocument(doc.id, doc.filename)}
+              icon={<Icon name="eye" size={16} />}
+              fullWidth={!isList}
+              className={primaryBtnClass}
+            >
+              View document
+            </Button>
+          )}
+        </Box>
 
         {/* Secondary actions */}
-        <Box className="flex w-full flex-row items-center gap-2">
+        <Box className={iconRowClass}>
           <IconButton
             variant="outline"
             size="sm"
             onClick={() => handleDownloadDocument(doc.id, doc.filename)}
             icon={<Icon name="download" size={16} />}
-            className="border-border text-text-secondary flex-1 bg-transparent hover:bg-neutral-100 active:bg-neutral-200"
+            className={
+              isList
+                ? iconBtnBaseList
+                : "border-border text-text-secondary flex-1 bg-transparent hover:bg-neutral-100 active:bg-neutral-200"
+            }
           />
           <IconButton
             variant="tertiary"
             size="sm"
             onClick={() => handleShareDocument(doc.id, doc.filename)}
             icon={<Icon name="share" size={16} />}
-            className="flex-1"
+            className={iconBtnShareClass}
           />
           {showDelete && onDelete && (
             <IconButton
@@ -145,7 +166,7 @@ export default function AgreementCardActions({
               size="sm"
               onClick={() => setIsDeleteModalOpen(true)}
               icon={<Icon name="trash-2" size={16} />}
-              className="border-border text-destructive flex-1 border bg-transparent hover:bg-neutral-100 active:bg-neutral-200"
+              className={iconBtnDeleteClass}
             />
           )}
         </Box>

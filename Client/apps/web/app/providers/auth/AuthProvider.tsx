@@ -8,6 +8,7 @@ import { type ReactNode, useEffect, useRef } from "react";
 
 import { useLocation } from "react-router-dom";
 
+import { ClientSettingsBootstrap } from "packages/features/homeauth/components/ClientSettingsBootstrap";
 import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const setStoreAuthReady = useAuthStore((s) => s.setAuthReady);
   const setStoreUser = useAuthStore((s) => s.setUser);
   const setIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const authStatusRef = useRef(storeAuthStatus);
   authStatusRef.current = storeAuthStatus;
@@ -86,7 +88,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {isAuthenticated ? <ClientSettingsBootstrap /> : null}
+      {children}
+    </>
+  );
 }
 
 export default AuthProvider;

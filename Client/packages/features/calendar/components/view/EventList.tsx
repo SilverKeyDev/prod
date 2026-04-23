@@ -1,6 +1,6 @@
 import React, { type ReactNode, useMemo } from "react";
 
-import { color } from "packages/design-tokens";
+import { color, spacing } from "packages/design-tokens";
 import type { CardBorderVariant } from "packages/ui/components/cards/Card";
 import Card from "packages/ui/components/cards/Card";
 import { Box, ScrollView, Text } from "packages/ui/components/primitives";
@@ -15,7 +15,11 @@ import { EventCard } from "./EventCard";
 type EventListProps = {
   events: ExtendedGoogleEvent[];
   title?: string;
+  /** Secondary line under title (e.g. full date when title is "Today's schedule"). */
+  subtitle?: string;
   emptyMessage?: string;
+  /** Shown below the list when non-empty (e.g. "No other events today"). */
+  footerHint?: string;
   headerActions?: ReactNode;
   onEventClick?: (event: ExtendedGoogleEvent) => void;
   /** When true, render list only (no ScrollView) for embedding in another scroll/list. */
@@ -27,18 +31,38 @@ type EventListProps = {
   calendars?: Calendar[];
   /** Card border variant. Default charcoal; use "light" for upcoming-events style. */
   border?: CardBorderVariant;
+  /** Tighter padding and header spacing for embedded calendar day panel. */
+  density?: "default" | "compact";
 };
 
 const titleStyle = {
   fontSize: 18,
   fontWeight: "800" as const,
   color: color("neutral.900"),
-  marginBottom: 12,
   textAlign: "left" as const,
 };
 
+const subtitleStyle = {
+  fontSize: 13,
+  fontWeight: "500" as const,
+  color: color("neutral.500"),
+  textAlign: "left" as const,
+};
+
+const footerHintStyle = {
+  fontSize: 13,
+  color: color("neutral.500"),
+  textAlign: "left" as const,
+  marginTop: 10,
+};
+
 const emptyStyle = {
-  paddingVertical: 12,
+  paddingVertical: 8,
+  alignItems: "flex-start" as const,
+};
+
+const emptyStyleCompact = {
+  paddingVertical: 6,
   alignItems: "flex-start" as const,
 };
 
@@ -61,7 +85,9 @@ const sepStyle = {
 export function EventList({
   events,
   title = "Upcoming Events",
+  subtitle,
   emptyMessage = "No upcoming events",
+  footerHint,
   headerActions,
   onEventClick,
   embedInListHeader = false,
@@ -71,6 +97,7 @@ export function EventList({
   deleteEvent,
   calendars = [],
   border = "charcoal",
+  density = "default",
 }: EventListProps) {
   const sortedEvents = useMemo(() => {
     return [...events].sort((a, b) => {
@@ -85,9 +112,12 @@ export function EventList({
     });
   }, [events]);
 
+  const emptyBoxStyle = density === "compact" ? emptyStyleCompact : emptyStyle;
+  const titleMarginBottom = density === "compact" ? spacing(0.5) : spacing(1);
+
   const listContent =
     sortedEvents.length === 0 ? (
-      <Box style={emptyStyle}>
+      <Box style={emptyBoxStyle}>
         <Text style={emptyTextStyle}>{emptyMessage}</Text>
       </Box>
     ) : embedInListHeader ? (
@@ -126,12 +156,30 @@ export function EventList({
       </ScrollView>
     );
 
+  const cardPadding = density === "compact" ? "sm" : "md";
+  const headerBoxClass =
+    density === "compact"
+      ? "mb-2 flex flex-row flex-wrap items-center gap-2"
+      : "mb-3 flex flex-row flex-wrap items-center gap-2";
+
   return (
-    <Card border={border} className="w-full text-left" padding="md" hover={false}>
-      {title || headerActions ? (
-        <Box className="mb-3 flex flex-row flex-wrap items-center gap-2">
-          {title ? (
-            <Text style={{ ...titleStyle, flex: 1 }}>{title}</Text>
+    <Card border={border} className="w-full text-left" padding={cardPadding} hover={false}>
+      {title || subtitle || headerActions ? (
+        <Box className={headerBoxClass}>
+          {title || subtitle ? (
+            <Box className="min-w-0 flex-1">
+              {title ? (
+                <Text
+                  style={{
+                    ...titleStyle,
+                    marginBottom: subtitle ? spacing(0.5) : titleMarginBottom,
+                  }}
+                >
+                  {title}
+                </Text>
+              ) : null}
+              {subtitle ? <Text style={subtitleStyle}>{subtitle}</Text> : null}
+            </Box>
           ) : (
             <Box className="flex-1" />
           )}
@@ -139,6 +187,9 @@ export function EventList({
         </Box>
       ) : null}
       {listContent}
+      {footerHint && sortedEvents.length > 0 ? (
+        <Text style={footerHintStyle}>{footerHint}</Text>
+      ) : null}
     </Card>
   );
 }

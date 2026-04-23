@@ -147,18 +147,25 @@
     "reason": "RN empty state layout."
   },
   {
+    "id": "agent-search-content",
+    "description": "Agent search / connection-request UI shared by discovery and modals.",
+    "webPath": "packages/features/agent/components/search/AgentSearchContent.tsx",
+    "nativePath": "packages/features/agent/components/search/AgentSearchContent.native.tsx",
+    "reason": "Web uses DOM Input, Label, Textarea, and Button with contentAlign; native uses RN Input, TouchableBox row targets, and Loading instead of KeyTurnLoader."
+  },
+  {
+    "id": "agent-discovery-view",
+    "description": "Agent discovery page combining recommendations and search.",
+    "webPath": "packages/features/agent/components/agentDiscovery/AgentDiscoveryView.tsx",
+    "nativePath": "packages/features/agent/components/agentDiscovery/AgentDiscoveryView.native.tsx",
+    "reason": "Web opens public profiles via router paths; native dispatches React Navigation to AgentProfile and uses TouchableBox for recommendation rows."
+  },
+  {
     "id": "calendar-event-request-modal",
     "description": "Calendar event request modal with RN presentation.",
     "webPath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestModal.tsx",
     "nativePath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestModal.native.tsx",
     "reason": "RN modal presentation."
-  },
-  {
-    "id": "calendar-event-request-form-core",
-    "description": "Calendar event request form body: web DOM vs RN ScrollView/TextInput.",
-    "webPath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestFormCore.web.tsx",
-    "nativePath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestFormCore.native.tsx",
-    "reason": "Web uses shared Input/Textarea; native uses RN TextInput and ScrollView layout."
   },
   {
     "id": "event-request-date-dropdown",
@@ -798,10 +805,38 @@
     "reason": "Web relies on DOM-based AddressInput and Google Places autocomplete. Native has no equivalent widget in shared packages; manual TextInput per stop until a shared RN address field exists."
   },
   {
+    "id": "viewing-route-plan-editor",
+    "description": "Viewing anchors + property stops + debounced route preview.",
+    "webPath": "packages/features/calendar/components/viewings/ViewingRoutePlanEditor.tsx",
+    "nativePath": "packages/features/calendar/components/viewings/ViewingRoutePlanEditor.native.tsx",
+    "reason": "Web uses @/components/ui Title, lucide Icon, and DOM-safe debouncing for /viewings/route preview. Native uses Text headings, omits web-only icons in dropdown rows, and clearTimeout without window."
+  },
+  {
+    "id": "calendar-event-request-form-core",
+    "description": "Agent “request calendar event” body: web uses CreateEventModalForm; native uses an inline RN form.",
+    "webPath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestModal.tsx",
+    "nativePath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestFormCore.native.tsx",
+    "reason": "Web flow reuses CreateEventModalForm inside CalendarEventRequestModal. Native messaging embeds CalendarEventRequestFormCore with ScrollView, RN TextInputs, and mobile Dropdown."
+  },
+  {
     "id": "external-anchor",
     "description": "External links (mailto, tel, http(s)) in shared UI.",
     "webPath": "packages/ui/components/accessibility/ExternalAnchor.web.tsx",
     "nativePath": "packages/ui/components/accessibility/ExternalAnchor.native.tsx",
     "reason": "Web uses a semantic anchor with target/rel for http(s). Native has no DOM anchor; opens URLs via Linking.openURL and Pressable."
+  },
+  {
+    "id": "safe-area-edges-view",
+    "description": "Safe-area padding wrapper for notched devices on native; web is a no-op div.",
+    "webPath": "packages/ui/components/primitives/safeArea/SafeAreaEdgesView.web.tsx",
+    "nativePath": "packages/ui/components/primitives/safeArea/SafeAreaEdgesView.native.tsx",
+    "reason": "Native applies padding from react-native-safe-area-context insets; web has no system insets in shared packages."
+  },
+  {
+    "id": "platform-screen-dimensions",
+    "description": "Screen size helper: browser viewport on web vs React Native Dimensions API.",
+    "webPath": "packages/utils/platform/dimensions.web.ts",
+    "nativePath": "packages/utils/platform/dimensions.native.ts",
+    "reason": "Web reads viewport via platform adapter; native uses react-native Dimensions.get('window')."
   }
 ]

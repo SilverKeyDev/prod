@@ -1,0 +1,8 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      edit_url:
+        type: string
+        description: URL to open DocuSign template editor.
+        nullable: true

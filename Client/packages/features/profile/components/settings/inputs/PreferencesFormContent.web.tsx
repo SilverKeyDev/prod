@@ -1,17 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
-import {
-  HousingSection,
-  LocationSection,
-} from "packages/features/profile/components/sections/index.web";
+import HousingSection from "packages/features/profile/components/sections/housing/HousingSection";
+import LocationSection from "packages/features/profile/components/sections/LocationSection";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useGoogleMaps } from "packages/hooks/data";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useResponsive } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
+import Box from "packages/ui/components/primitives/box/Box";
 import { getWindow } from "packages/utils/platform";
 
 import type { OnboardingData } from "@/features/profile/utils";
@@ -22,6 +20,12 @@ import PreferencesSaveStatusRow from "./PreferencesSaveStatusRow";
 export type PreferencesFormContentRef = {
   formData: Partial<OnboardingData>;
 };
+
+/** Imperative actions for parents (e.g. search filters) to replace form state without field-by-field updates. */
+export type PreferencesFormActionsRef = {
+  replaceFormData: (next: Partial<OnboardingData>) => void;
+};
+
 type PreferencesFormContentProps = {
   /** Optional ref for parent to read current form state (e.g. on close for dirty check) */
   formContentRef?: React.MutableRefObject<PreferencesFormContentRef | null>;
@@ -41,8 +45,13 @@ type PreferencesFormContentProps = {
     ) => void;
     scriptsReady: boolean;
   }) => React.ReactNode;
-  /** When an agent views a client in search, load that user's preferences into the form. */
+  /**
+   * When set, loads that user's preferences for display/editing in the form.
+   * Saves still go to the authenticated user only (`POST /preferences`); agents cannot persist changes to the client's account.
+   */
   preferencesSubjectUserId?: string | null;
+  /** When set, parent can call `replaceFormData` to apply a full preferences snapshot (e.g. agent sync preview). */
+  preferencesFormActionsRef?: React.MutableRefObject<PreferencesFormActionsRef | null>;
 };
 export default function PreferencesFormContent({
   formContentRef,
@@ -51,6 +60,7 @@ export default function PreferencesFormContent({
   onPreferencesSaved,
   renderContent,
   preferencesSubjectUserId,
+  preferencesFormActionsRef,
 }: PreferencesFormContentProps): React.ReactElement {
   const hasReportedInitialRef = useRef(false);
   const appliedRemoteSyncKeyRef = useRef<string | null>(null);
@@ -92,7 +102,24 @@ export default function PreferencesFormContent({
   useEffect(() => {
     hasReportedInitialRef.current = false;
     appliedRemoteSyncKeyRef.current = null;
+    // Avoid showing the previous subject's preferences while the new GET is in flight.
+    setFormData({});
   }, [preferencesSubjectUserId]);
+
+  useEffect(() => {
+    if (!preferencesFormActionsRef) {
+      return;
+    }
+    preferencesFormActionsRef.current = {
+      replaceFormData: (next: Partial<OnboardingData>) => {
+        setFormData(next);
+        appliedRemoteSyncKeyRef.current = null;
+      },
+    };
+    return () => {
+      preferencesFormActionsRef.current = null;
+    };
+  }, [preferencesFormActionsRef]);
 
   useEffect(() => {
     if (!userPreferences) return;
@@ -135,7 +162,9 @@ export default function PreferencesFormContent({
         ? userProfile.name.trim()
         : undefined;
     if (!nameFromProfile) return;
-    setFormData((prev) => (prev.name === nameFromProfile ? prev : { ...prev, name: nameFromProfile }));
+    setFormData((prev) =>
+      prev.name === nameFromProfile ? prev : { ...prev, name: nameFromProfile }
+    );
   }, [userProfile]);
   useEffect(() => {
     if (formContentRef) {
@@ -156,9 +185,13 @@ export default function PreferencesFormContent({
         const nextLocations = Array.isArray(value)
           ? (value as NonNullable<OnboardingData["important_locations"]>)
           : [];
-        log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "preferencesFormContent.updateImportantLocations", {
-          nextLen: nextLocations.length,
-        });
+        log.info(
+          LOG_CATEGORIES.PROFILE_PREFERENCES,
+          "preferencesFormContent.updateImportantLocations",
+          {
+            nextLen: nextLocations.length,
+          }
+        );
         updateFormDataWithAutoSave(formData, setFormData, field, nextLocations);
         return;
       }

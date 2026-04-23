@@ -1,0 +1,7 @@
+allOf:
+  - $ref: "../shared/core/SuccessResponse.yaml"
+  - type: object
+    properties:
+      client_settings:
+        $ref: "./ClientSettings.yaml"
+        nullable: true

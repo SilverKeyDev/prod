@@ -1,5 +1,6 @@
 /**
- * Screen dimensions - platform-resolved. Web uses dimensions.web; native uses dimensions.native.
+ * Screen dimensions — platform file (.web / .native) selected by bundler.
+ * This barrel resolves "./dimensions.web" for TypeScript and madge.
  */
 
 export { getScreenDimensions, type ScreenDimensions } from "./dimensions.web";

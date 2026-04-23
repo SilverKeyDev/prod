@@ -43,8 +43,8 @@ def post_build_route(data: BuildRouteRequest | None = None):
         ), 400
 
     try:
-        stops_payload = [s.model_dump(mode="json") for s in data.stops]
-        raw = build_viewing_route(stops_payload)
+        payload = data.model_dump(mode="json")
+        raw = build_viewing_route(payload)
         itinerary = ViewingItinerary.model_validate(raw)
         body = ViewingBuildRouteApiResponse(success=True, data=itinerary, error=None)
         return jsonify(body.model_dump(mode="json")), 200

@@ -7,7 +7,6 @@ import {
   ChecklistStepForms,
   type ChecklistTab,
   type ChecklistType,
-  getFormsCardVariant,
   sortTaskChecklistItems,
   useChecklistData,
   useChecklistProgress,
@@ -57,8 +56,16 @@ export default function ClientChecklists({
 
   const { currentSection, isSectionUnlocked, getItemToggleEligibility, sectionProgress } =
     useChecklistProgress();
-  const { items, checkedIds, activeItemId, isLoading, error, toggleItem, refreshChecklist } =
-    useChecklistData(checklistType);
+  const {
+    items,
+    checkedIds,
+    activeItemId,
+    activeItemIds,
+    isLoading,
+    error,
+    toggleItem,
+    refreshChecklist,
+  } = useChecklistData(checklistType);
 
   const sortedItems = useMemo(() => sortTaskChecklistItems(items), [items]);
 
@@ -127,6 +134,7 @@ export default function ClientChecklists({
         sortedItems={sortedItems}
         checkedIds={checkedIds}
         activeItemId={activeItemId}
+        activeItemIds={activeItemIds}
         isSectionLocked={isSectionLocked}
         isLoading={isLoading}
         error={error}
@@ -147,13 +155,12 @@ export default function ClientChecklists({
         renderItemAgentFooter={
           isAgent
             ? (item) =>
-                activeItemId != null && item.id === activeItemId ? (
+                activeItemIds.includes(item.id) ? (
                   <ChecklistStepForms
                     transactionId={userId}
                     section={checklistType}
                     itemId={item.id}
                     isAgent
-                    formsCardVariant={getFormsCardVariant(item)}
                   />
                 ) : null
             : undefined

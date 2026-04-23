@@ -32,7 +32,6 @@ export function buildFiltersSliceActions(
   | "setUserGeolocation"
   | "setPreferencesStrictFilter"
   | "applySearchDisplayFromApi"
-  | "setShowMapListingPreviews"
   | "dismissMapListingPreview"
   | "restoreMapListingPreview"
   | "clearDismissedMapPreviews"
@@ -83,7 +82,6 @@ export function buildFiltersSliceActions(
         }
         return updates;
       }),
-    setShowMapListingPreviews: (show) => set({ showMapListingPreviews: show }),
     dismissMapListingPreview: (propertyId) =>
       set((state) =>
         state.dismissedMapPreviewIds.includes(propertyId)

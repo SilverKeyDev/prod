@@ -141,6 +141,7 @@ class AgreementDTO:
             description=agreement.description,
             envelope_id=agreement.docusign_envelope_id,
             docusign_envelope_id=agreement.docusign_envelope_id,
+            docusign_source_template_id=agreement.docusign_source_template_id,
             docusign_status=agreement.docusign_status,
             created_at=created_at,
             updated_at=updated_at,

@@ -21,6 +21,7 @@ _CONTRACT_TESTED_PATHS: frozenset[str] = frozenset(
         "/api/v1/user/profile",
         "/api/v1/user/favorite-homes",
         "/api/v1/agent/search-agents",
+        "/api/v1/agent/recommended-agents",
         "/api/v1/auth/login",
     }
 )

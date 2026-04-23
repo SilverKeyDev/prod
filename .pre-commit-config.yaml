@@ -1,9 +1,23 @@
 # Pre-commit hooks for SilverKey
-# Install: pip install pre-commit && pre-commit install
-# Resilient hook (skips if pre-commit missing): git config core.hooksPath scripts/githooks
+#
+# Hooks run on push, not on commit (faster commits; avoids blocking local work).
+# Install:
+#   pip install pre-commit
+#   pre-commit install --hook-type pre-push
+# Optional: pre-commit uninstall  # drop legacy commit hook if you had pre-commit install
+#
+# Resilient hooks (skip if pre-commit missing): git config core.hooksPath scripts/githooks
 # Run manually: pre-commit run --all-files
 
+default_stages: [pre-push]
+
 repos:
+  # Secret scanning (install gitleaks: https://github.com/gitleaks/gitleaks#installing)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
   # Python: Ruff (linting + formatting)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.9

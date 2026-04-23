@@ -62,7 +62,7 @@ describe("getCalendarEventKindOptionSlice", () => {
     });
     expect(s.defaultKindId).toBe("agent_consultation");
     expect(s.allowedKindIds).toContain("other");
-    expect(s.allowedKindIds).not.toContain("property_viewings");
+    expect(s.allowedKindIds).toContain("property_viewings");
   });
 
   it("defaults to property viewings after broker agreement", () => {

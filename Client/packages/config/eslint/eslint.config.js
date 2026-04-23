@@ -137,6 +137,7 @@ export default tseslint.config(
             "packages/config/env.ts",
             "vite.config",
             "vitest.config",
+            "playwright.config",
             "postcss.config",
             "tailwind.config",
             ".config.js",
@@ -185,6 +186,11 @@ export default tseslint.config(
       "silverkey/folder-max-items": "off",
       "silverkey/max-lines-hard": "off",
     },
+  },
+  {
+    files: ["apps/web/playwright.config.ts"],
+    plugins: { silverkey },
+    rules: { "silverkey/folder-max-items": "off" },
   },
 
   // ESLint plugin rule files live in a flat folder; suppress folder count noise per path

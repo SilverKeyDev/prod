@@ -301,3 +301,54 @@ class DocusignClient:
             template_id,
             self._handle_api_exception,
         )
+
+    @retry(**retry_config)
+    def create_template_from_pdfs(
+        self,
+        *,
+        name: str,
+        description: str | None,
+        pdf_files: list[tuple[str, bytes]],
+        role_names: list[str],
+    ) -> dict[str, Any]:
+        """Create a DocuSign envelope template (multi-document)."""
+        return template_ops.create_template_from_pdfs(
+            self.api_client,
+            cast(str, self.account_id),
+            self._handle_api_exception,
+            name=name,
+            description=description,
+            pdf_files=pdf_files,
+            role_names=role_names,
+        )
+
+    @retry(**retry_config)
+    def delete_docusign_template(self, template_id: str) -> None:
+        """Permanently delete a template in DocuSign."""
+        return template_ops.delete_template(
+            self.api_client,
+            cast(str, self.account_id),
+            template_id,
+            self._handle_api_exception,
+        )
+
+    @retry(**retry_config)
+    def create_template_edit_view(self, template_id: str, return_url: str) -> str:
+        """URL for DocuSign template editor."""
+        return template_ops.create_template_edit_view(
+            self.api_client,
+            cast(str, self.account_id),
+            template_id,
+            return_url,
+            self._handle_api_exception,
+        )
+
+    @retry(**retry_config)
+    def get_template_role_name_set(self, template_id: str) -> set[str]:
+        """Role names defined on the template (for send validation)."""
+        return template_ops.get_template_role_name_set(
+            self.api_client,
+            cast(str, self.account_id),
+            template_id,
+            self._handle_api_exception,
+        )

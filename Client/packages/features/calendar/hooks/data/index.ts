@@ -8,7 +8,10 @@ export { useClientEvents } from "./core/useClientEvents";
 export type { UseUpcomingEventsDataParams } from "./core/useUpcomingEventsData";
 export { useUpcomingEventsData } from "./core/useUpcomingEventsData";
 export { useCreateEventModal } from "./createEvent/useCreateEventModal";
-export type { UseCreateEventModalParams } from "./createEvent/useCreateEventModal.types";
+export type {
+  CalendarEventRequestModalIntegration,
+  UseCreateEventModalParams,
+} from "./createEvent/useCreateEventModal.types";
 export type { UseCalendarOAuthCallbackParams } from "./google/useCalendarOAuthCallback";
 export { useCalendarOAuthCallback } from "./google/useCalendarOAuthCallback";
 export type { UseGoogleCalendarPermissionsReturn } from "./google/useGoogleCalendarPermissions";

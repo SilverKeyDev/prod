@@ -5,7 +5,7 @@
 
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives/box";
 
 import { UNIVERSAL_GRADIENT_VARIANT_CLASSES } from "./gradientVariants";
 import type { UniversalGradientProps } from "./types";

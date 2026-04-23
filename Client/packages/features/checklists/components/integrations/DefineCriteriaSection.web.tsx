@@ -4,11 +4,11 @@ import { useLocalization } from "packages/contexts";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/ChecklistStepSubmitFooter";
 import type { ChecklistIntegrationComponentProps } from "packages/features/checklists/types/componentRegistry";
 import { isDefineCriteriaStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
-import { HousingSection } from "packages/features/profile/components/sections/index.web";
+import HousingSection from "packages/features/profile/components/sections/housing/HousingSection";
 import { useResponsive } from "packages/hooks/ui";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
+import Box from "packages/ui/components/primitives/box/Box";
 
 import PreferencesFormContent from "@/features/profile/components/settings/inputs/PreferencesFormContent.web";
 import PreferencesSaveStatusRow from "@/features/profile/components/settings/inputs/PreferencesSaveStatusRow";

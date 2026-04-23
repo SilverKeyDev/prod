@@ -7,11 +7,13 @@ import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
 import AuthDivider from "packages/features/homeauth/components/core/Divider";
 import AuthLink from "packages/features/homeauth/components/core/Link";
 import type { FieldKey, SignupFormData } from "packages/hooks/data/auth/useSignupAutofill";
+import { ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 
 import { PasswordValidation } from "@/components/feedback";
-import { Button, FieldShell, Input, PhoneInput } from "@/components/ui";
+import { BodyText, Button, FieldShell, Input, PhoneInput } from "@/components/ui";
+import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
 const BarePhoneTextInput = React.forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement>
@@ -58,6 +60,8 @@ export type SignupFormFieldsProps = {
   isSignupLoading: boolean;
   /** When true (e.g. on onboarding page), the name input is hidden. */
   onboarding?: boolean;
+  acceptedTerms: boolean;
+  onAcceptedTermsChange: (value: boolean) => void;
 };
 export default function SignupFormFields({
   formData,
@@ -69,6 +73,8 @@ export default function SignupFormFields({
   onSubmit: _onSubmit,
   isSignupLoading,
   onboarding = false,
+  acceptedTerms,
+  onAcceptedTermsChange,
 }: SignupFormFieldsProps) {
   return (
     <>
@@ -186,20 +192,48 @@ export default function SignupFormFields({
         />
       </Box>
 
+      <Box className="flex items-start gap-2.5 text-left">
+        <Box className="pt-0.5">
+          <OliveCheckbox
+            checked={acceptedTerms}
+            onToggle={() => {
+              onAcceptedTermsChange(!acceptedTerms);
+            }}
+          />
+        </Box>
+        <BodyText as="div" size="sm" className="text-text-secondary">
+          I agree to the{" "}
+          <AuthLink
+            to={ROUTES.TERMS}
+            className="text-text-primary underline-offset-2 hover:underline"
+          >
+            Terms of Service
+          </AuthLink>{" "}
+          and{" "}
+          <AuthLink
+            to={ROUTES.PRIVACY}
+            className="text-text-primary underline-offset-2 hover:underline"
+          >
+            Privacy Policy
+          </AuthLink>
+          . Continued use of the Services constitutes acceptance for Google sign-in as well.
+        </BodyText>
+      </Box>
+
       <Button
         type="submit"
         variant="primary"
         size="md"
         fullWidth
         loading={isSignupLoading}
-        disabled={isSignupLoading}
+        disabled={isSignupLoading || !acceptedTerms}
       >
         Create account
       </Button>
 
       <AuthDivider />
 
-      <GoogleSignInButton text="Sign up with Google" />
+      <GoogleSignInButton text="Sign up with Google" disabled={!acceptedTerms} />
 
       <Box className="text-signup-mid text-center">
         Already have an account?

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type PopoverSide = "left" | "bottom" | "top" | "overlap";
+export type PopoverSide = "left" | "bottom" | "top" | "overlap" | "viewportCenter";
 
 /**
  * Shared props for Popover across web and native.
@@ -26,7 +26,7 @@ export type PopoverProps = {
   onOpenChange?: (open: boolean) => void;
   /** Render panel in a portal (default true on web; ignored on native - always uses Modal) */
   usePortal?: boolean;
-  /** Where the panel opens relative to the trigger: "left" = to the left, "top" = above, "bottom" = below (default), "overlap" = vertically centered on the trigger (e.g. inside a modal). Ignored on native. */
+  /** Where the panel opens: "bottom" (default), "top", "left", "overlap" (on trigger), or "viewportCenter" (fixed, centered in the window — avoids clipping in nested modals). Ignored on native. */
   side?: PopoverSide;
   /** Optional class for the panel container (web: className; native: mapped to style) */
   panelClassName?: string;
@@ -34,6 +34,17 @@ export type PopoverProps = {
   panelMaxHeight?: string;
   /** Optional min width for panel (e.g. "320px") */
   panelMinWidth?: string;
+  /**
+   * Web + portaled `side` bottom/top: set panel width from the trigger width (min 280px), clamped
+   * to the viewport — aligns dropdowns with fields (e.g. date picker in a modal).
+   */
+  matchTriggerWidth?: boolean;
+  /**
+   * Web + portaled `side` bottom/top: panel width is `min(maxPx, viewport − inset)` and horizontally
+   * centered under the trigger, clamped — for wide panels (e.g. week calendar) without hugging the
+   * left edge of the field only.
+   */
+  centerWidePanelMaxPx?: number;
   /** Optional class for the root wrapper (e.g. "w-full min-w-0") */
   className?: string;
   /** Optional class for the trigger wrapper (e.g. "w-full flex flex-row" so trigger can stretch) */

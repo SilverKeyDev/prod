@@ -39,6 +39,8 @@ from .tokens import (
 # User management
 from .user import (
     SecurityException,
+    build_user_data_export,
+    delete_user_and_all_related_data,
     find_or_create_user_by_cognito,
     get_current_user,
     require_auth,
@@ -74,6 +76,8 @@ __all__ = [
     "handle_refresh_token",
     "ensure_cognito_account_for_user",
     # User management
+    "build_user_data_export",
+    "delete_user_and_all_related_data",
     "find_or_create_user_by_cognito",
     "get_current_user",
     "require_auth",

@@ -6,11 +6,11 @@ import MapView, { Marker, Polygon, PROVIDER_GOOGLE } from "react-native-maps";
 import { color } from "packages/design-tokens";
 import { MapControlsNative } from "packages/features/search/components/map/MapControls.native";
 import { useSearchPageMapContainerNative } from "packages/features/search/hooks/ui/useSearchPageMapContainerNative";
-import type { SearchResult } from "packages/features/search/types";
+import { getMatchScore, type SearchResult } from "packages/features/search/types";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
-import { getNativeMapPinColorHex } from "packages/utils/format/listingStatusMapPinColors";
+import { getNativeMapPinColorHex } from "packages/utils/format/mapMatchPinColors";
 
 import { searchPageMapContainerNativeStyles as styles } from "./searchPageMapContainerNative.styles";
 
@@ -148,10 +148,9 @@ export function SearchPageMapContainerNative({
                 title={property.address}
                 pinColor={getNativeMapPinColorHex({
                   isFocused: focusedIds.has(property.id),
-                  listingStatus: property.listingStatus,
-                  homeStatus: property.homeStatus,
+                  score: getMatchScore(property),
                   focusedColor: color("olive.DEFAULT"),
-                  activeUnfocusedColor: color("neutral.500"),
+                  fallbackUnfocusedColor: color("neutral.500"),
                 })}
                 zIndex={homeMarkerZ}
                 onPress={() => handleMarkerPress(property.id)}

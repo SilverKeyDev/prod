@@ -43,6 +43,7 @@ export const googleCalendarApi = {
   addCalendarAcl: calendars.addCalendarAcl,
   getOrCreateSilverKeyCalendar: calendars.getOrCreateSilverKeyCalendar,
   listEvents: events.listEvents,
+  getEvent: events.getEvent,
   createEvent: events.createEvent,
   updateEvent: events.updateEvent,
   deleteEvent: events.deleteEvent,

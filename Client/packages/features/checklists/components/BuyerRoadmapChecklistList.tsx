@@ -1,4 +1,4 @@
-import React, { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -6,10 +6,7 @@ import { useLocalization } from "packages/contexts";
 import type { ChecklistType, TaskChecklistItem } from "packages/features/checklists/api/checklists";
 import ChecklistDispatchAutomationModal from "packages/features/checklists/components/ChecklistDispatchAutomationModal";
 import { useChecklistStepExpansion } from "packages/features/checklists/hooks/useChecklistStepExpansion";
-import {
-  CHECKLIST_TITLES,
-  type ChecklistTab,
-} from "packages/features/checklists/types/checklists";
+import { CHECKLIST_TITLES, type ChecklistTab } from "packages/features/checklists/types/checklists";
 import {
   buildProgressiveChecklistRows,
   DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
@@ -33,6 +30,8 @@ export type BuyerRoadmapChecklistListProps = {
   sortedItems: TaskChecklistItem[];
   checkedIds: number[];
   activeItemId: number | null;
+  /** Highlight/expand all ids in a parallel group (see `parallel_step_group` on items). */
+  activeItemIds: readonly number[];
   isSectionLocked: boolean;
   isLoading: boolean;
   error: string | null;
@@ -64,10 +63,9 @@ export type BuyerRoadmapChecklistListProps = {
   onRoadmapTabNavigate?: (tab: ChecklistTab) => void;
 };
 
-type TabDisclosure = { completedOpen: boolean; futureOpen: boolean };
+type TabDisclosure = { futureOpen: boolean };
 
 const defaultTabDisclosure: TabDisclosure = {
-  completedOpen: false,
   futureOpen: false,
 };
 
@@ -76,6 +74,7 @@ export function BuyerRoadmapChecklistList({
   sortedItems,
   checkedIds,
   activeItemId,
+  activeItemIds,
   isSectionLocked,
   isLoading,
   error,
@@ -93,11 +92,13 @@ export function BuyerRoadmapChecklistList({
 }: BuyerRoadmapChecklistListProps) {
   const { t } = useLocalization();
   const [dispatchModalItemId, setDispatchModalItemId] = useState<number | null>(null);
-  const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemId, checkedIds);
+  const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemIds, checkedIds);
 
   const [disclosureByTab, setDisclosureByTab] = useState<
     Partial<Record<ChecklistTab, TabDisclosure>>
   >({});
+
+  const [revealedCompletedItemId, setRevealedCompletedItemId] = useState<number | null>(null);
 
   const disclosure = disclosureByTab[currentTab] ?? defaultTabDisclosure;
 
@@ -111,38 +112,31 @@ export function BuyerRoadmapChecklistList({
     [currentTab]
   );
 
-  const prevActiveIdRef = useRef<number | null | undefined>(undefined);
   useEffect(() => {
-    if (prevActiveIdRef.current === undefined) {
-      prevActiveIdRef.current = activeItemId;
-      return;
+    setRevealedCompletedItemId(null);
+  }, [currentTab]);
+
+  useEffect(() => {
+    if (revealedCompletedItemId == null) return;
+    const activeIndex = getChecklistActiveIndex(sortedItems, activeItemId);
+    const inCompletedPrefix = sortedItems
+      .slice(0, activeIndex)
+      .some((i) => i.id === revealedCompletedItemId);
+    if (!inCompletedPrefix) {
+      setRevealedCompletedItemId(null);
     }
-    const prevIdx = getChecklistActiveIndex(sortedItems, prevActiveIdRef.current as number | null);
-    const nextIdx = getChecklistActiveIndex(sortedItems, activeItemId);
-    if (nextIdx > prevIdx) {
-      setDisclosureByTab((prev) => ({
-        ...prev,
-        [currentTab]: {
-          ...(prev[currentTab] ?? defaultTabDisclosure),
-          completedOpen: false,
-        },
-      }));
-    }
-    prevActiveIdRef.current = activeItemId;
-  }, [activeItemId, sortedItems, currentTab]);
+  }, [activeItemId, sortedItems, revealedCompletedItemId]);
 
   const segments = useMemo(
     () =>
       buildProgressiveChecklistRows(sortedItems, activeItemId, {
         previewUpcoming: DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
-        completedOpen: disclosure.completedOpen,
         futureOpen: disclosure.futureOpen,
+        revealedCompletedItemId,
       }),
-    [sortedItems, activeItemId, disclosure.completedOpen, disclosure.futureOpen]
+    [sortedItems, activeItemId, disclosure.futureOpen, revealedCompletedItemId]
   );
 
-  const activeIndex = getChecklistActiveIndex(sortedItems, activeItemId);
-  const completedCount = activeIndex;
   const futureHidden = getHiddenFutureItemCount(
     sortedItems,
     activeItemId,
@@ -164,8 +158,8 @@ export function BuyerRoadmapChecklistList({
       const idx = sortedItems.findIndex((i) => i.id === itemId);
       if (idx < 0) return;
       if (useProgressive) {
-        if (idx < activeIndex && !disclosure.completedOpen) {
-          setTabDisclosure({ completedOpen: true });
+        if (idx < activeIndex) {
+          setRevealedCompletedItemId(itemId);
         }
         const preview = DEFAULT_CHECKLIST_PREVIEW_UPCOMING;
         const firstHiddenFutureIndex = activeIndex + 1 + preview;
@@ -179,7 +173,6 @@ export function BuyerRoadmapChecklistList({
       sortedItems,
       activeItemId,
       useProgressive,
-      disclosure.completedOpen,
       disclosure.futureOpen,
       futureHidden,
       setTabDisclosure,
@@ -195,7 +188,7 @@ export function BuyerRoadmapChecklistList({
   const cardProps = {
     currentTab,
     checkedIds,
-    activeItemId,
+    activeItemIds,
     isSectionLocked,
     hideIntegrationComponents,
     getItemToggleEligibility,
@@ -264,42 +257,25 @@ export function BuyerRoadmapChecklistList({
                 <Icon name="chevron-right" className="text-gold h-4 w-4 shrink-0 opacity-90" />
               </Pressable>
             ) : null}
-            {useProgressive && disclosure.completedOpen && completedCount > 0 ? (
-              <Pressable
-                onPress={() => setTabDisclosure({ completedOpen: false })}
-                className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                accessibilityRole="button"
-                aria-expanded
-              >
-                <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
-                <Text className="text-text-primary text-sm font-medium">
-                  {t("checklists.progressive.completed_expanded", {
-                    count: completedCount,
-                  })}
-                </Text>
-              </Pressable>
-            ) : null}
             {useProgressive
               ? segments.map((segment, segIdx) => {
                   if (segment.kind === "completed_collapsed") {
                     return (
-                      <Pressable
+                      <Box
                         key={`cc-${segIdx}`}
-                        onPress={() => setTabDisclosure({ completedOpen: true })}
                         className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                        accessibilityRole="button"
-                        aria-expanded={false}
+                        accessibilityRole="text"
                       >
                         <Icon
                           name="chevron-right"
-                          className="text-text-secondary h-4 w-4 shrink-0"
+                          className="text-text-secondary h-4 w-4 shrink-0 opacity-60"
                         />
                         <Text className="text-text-primary text-sm font-medium">
                           {t("checklists.progressive.completed_collapsed", {
                             count: segment.count,
                           })}
                         </Text>
-                      </Pressable>
+                      </Box>
                     );
                   }
                   if (segment.kind === "future_collapsed") {

@@ -8,6 +8,7 @@
 ## Table of Contents
 
 1. [Authentication Architecture](#1-authentication-architecture)
+   - [1.4 CSRF, cookies, and the JSON API](#14-csrf-cookies-and-the-json-api)
 2. [Token Handling Practices](#2-token-handling-practices)
 3. [PII Protection Mechanisms](#3-pii-protection-mechanisms)
 4. [Input Validation Patterns](#4-input-validation-patterns)
@@ -134,6 +135,18 @@ export const AUTH_CONFIG = {
 - Warns user 5 minutes before session expiry
 - Automatically logs out on timeout
 - Provides "Stay Logged In" option to extend session
+
+### 1.4 CSRF, cookies, and the JSON API
+
+**Why Flask-WTF `CSRFProtect` is not enabled globally:** `Server/app/extensions.py` defines `CSRFProtect` for optional use, but the Flask app does not call `csrf.init_app()`. The JSON API is consumed by the SPA and native clients with **`Authorization: Bearer ...`** in many flows, while the browser can also send **`HttpOnly` `session` / `refresh_token` cookies** (`Server/app/services/auth/utils/cookies.py`) to the same site.
+
+**Defenses in use:**
+
+- **SameSite=Lax** on auth cookies: cross-site top-level navigations (typical third-party CSRF via form POST) do not include cookies on cross-site requests in modern browsers, which materially reduces classic cookie-forging CSRF against same-site APIs.
+- **CORS allowlist** (`Server/app/__init__.py`): untrusted web origins cannot call the API with credentials in the browser.
+- **OAuth flows** (Google, DocuSign, Calendar) use a **cryptographic `state` parameter** and/or `OAuthState` database records, which is the correct CSRF defense for redirect-based OAuth (see sections 1.2, 6, and 7).
+
+**If you enable global Flask-WTF CSRF in the future:** you must plumb a CSRF token into the SPA (for example a meta tag and `X-CSRFToken` on state-changing requests — the client already has optional support in `Client/packages/services/http/client/requestHelpers.ts`) and `exempt` machine-only webhooks. Treat that as a dedicated change with full regression tests.
 
 ---
 
@@ -1140,6 +1153,16 @@ response_headers = {
 
 **Purpose:** Allow PDF to be embedded only in same-origin frames
 
+#### Content-Security-Policy (Web SPA)
+
+**Location:** `Server/app/utils/security/csp.py` (built string), applied to **`text/html`** responses in `Server/app/error_handlers.py` (`Content-Security-Policy` header).
+
+**Purpose:** Reduce XSS impact by restricting script, connect, frame, and other sources for the main HTML document. The policy allowlists the production app origin, local dev API ports, `*.amazonaws.com`, Google Maps / Fonts hosts, Plaid, DocuSign, and `https:` images for listing media.
+
+**Configuration:** optional env `CSP_CONNECT_SRC_EXTRA` — comma-separated extra origins merged into `connect-src` (staging APIs, new vendors).
+
+**Note:** Tighten or extend this string when you add new third-party scripts or embeds; a broken CSP will surface as browser console violations.
+
 ---
 
 ## 7. OAuth Integration Security
@@ -1303,6 +1326,12 @@ def search_properties(user):
   "retry_after": 60
 }
 ```
+
+### 8.4 Authentication Endpoints (Credential Stuffing)
+
+**Location:** `Server/app/routes/auth/handlers/` (login, signup, verify, resend, forgot/reset password, refresh token)
+
+Stricter per-IP limits apply than the default 60/minute: e.g. login and signup are capped at **10 requests per 60 seconds**, **resend** and **forgot-password** at **5 per 60 seconds**, **refresh** at **30 per 60 seconds**. Limits are in-process; scale-out deployments should add edge/WAF or Redis-backed limits (see [§8.1](#81-rate-limiting-decorator)).
 
 ---
 

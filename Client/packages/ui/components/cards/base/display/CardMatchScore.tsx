@@ -2,8 +2,6 @@ import { useLocalization } from "packages/contexts";
 import { MatchPill } from "packages/ui/components/match/MatchPill";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
-import { categorizeListingStatusForMap } from "packages/utils/format/listingStatusMapPinColors";
-import { getMapPinColorsForScoreAndStatus } from "packages/utils";
 
 type CardMatchScoreProps = {
   /** Match score (0-100) */
@@ -12,11 +10,8 @@ type CardMatchScoreProps = {
   maxScore?: number;
   /** Size variant */
   size?: "xs" | "sm" | "md";
-  /** Use color-based styling */
+  /** Use tiered match pill (score + label) */
   useColorStyling?: boolean;
-  /** Same as map pins via `getMapPinColorsForScoreAndStatus` — tier pill for active/unknown, status hex otherwise. */
-  listingStatus?: string;
-  homeStatus?: string;
   /** Additional className */
   className?: string;
 };
@@ -29,8 +24,6 @@ export default function CardMatchScore({
   maxScore = 100,
   size = "sm",
   useColorStyling = false,
-  listingStatus,
-  homeStatus,
   className = "",
 }: CardMatchScoreProps) {
   const { t } = useLocalization();
@@ -63,40 +56,18 @@ export default function CardMatchScore({
   };
 
   const sizeClasses = getSizeClasses();
-  const colors = useColorStyling
-    ? getMapPinColorsForScoreAndStatus(safeScore, listingStatus, homeStatus)
-    : null;
 
-  const category = categorizeListingStatusForMap(listingStatus ?? homeStatus);
-  const useTierPill =
-    useColorStyling && colors && (category === "active" || category === "unknown");
+  const valueNode = useColorStyling ? (
+    <MatchPill score={displayPercent} className={`font-medium ${sizeClasses.text}`} />
+  ) : (
+    <BodyText as="span" className={`font-medium ${sizeClasses.text} whitespace-nowrap`}>
+      {t("house.match_score_value", {
+        percent: displayPercent,
+      })}
+    </BodyText>
+  );
 
-  const valueNode =
-    useTierPill ? (
-      <MatchPill score={displayPercent} className={`font-medium ${sizeClasses.text}`} />
-    ) : useColorStyling && colors ? (
-      <Box
-        className={`font-medium ${sizeClasses.text} whitespace-nowrap rounded px-2 py-1`}
-        style={{
-          backgroundColor: colors.fillColor,
-          color: colors.textColor,
-        }}
-      >
-        <BodyText as="span" style={{ color: "inherit" }}>
-          {t("house.match_score_value", {
-            percent: displayPercent,
-          })}
-        </BodyText>
-      </Box>
-    ) : (
-      <BodyText as="span" className={`font-medium ${sizeClasses.text} whitespace-nowrap`}>
-        {t("house.match_score_value", {
-          percent: displayPercent,
-        })}
-      </BodyText>
-    );
-
-  if (useColorStyling && colors) {
+  if (useColorStyling) {
     return (
       <Box className={`gap-responsive-xs flex flex-shrink-0 items-center ${className}`}>
         {valueNode}

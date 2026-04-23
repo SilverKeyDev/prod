@@ -2,7 +2,14 @@ import type { ChangeEvent } from "react";
 
 import type { CreateEventModalFormProps } from "@/features/calendar/components/view/CreateEventModalForm";
 import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
+import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
 import type { Calendar } from "@/features/calendar/types/calendar";
+import type {
+  ViewingRouteEndMode,
+  ViewingRouteEndpoint,
+  ViewingTourAnchor,
+  ViewingTourStartSelection,
+} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 import type { CalendarEventKindOptionSlice } from "./calendarEventKindOptions";
 import type { CalendarEventKindId } from "./calendarEventKinds";
@@ -21,8 +28,6 @@ export type BuildCreateEventModalFormPropsInput = {
   eventTitle: string;
   setEventTitle: (v: string) => void;
   showAgentClientPicker: boolean;
-  agentMultiStopViewing: boolean;
-  setAgentMultiStopViewing: (v: boolean) => void;
   selectedClientId: string | null;
   setSelectedClientId: (id: string | null) => void;
   isAllDay: boolean;
@@ -37,6 +42,13 @@ export type BuildCreateEventModalFormPropsInput = {
   isPropertyViewing: boolean;
   viewingStops: ViewingStop[];
   setViewingStops: (v: ViewingStop[]) => void;
+  viewingStartSelection: ViewingTourStartSelection;
+  setViewingStartSelection: (v: ViewingTourStartSelection) => void;
+  viewingEndMode: ViewingRouteEndMode;
+  setViewingEndMode: (v: ViewingRouteEndMode) => void;
+  viewingEndFixed: ViewingRouteEndpoint | null;
+  setViewingEndFixed: (v: ViewingRouteEndpoint | null) => void;
+  viewingTourAnchors: ViewingTourAnchor[];
   eventLocation: string;
   handleEventLocationChange: (value: string) => void;
   locationScriptsReady: boolean;
@@ -47,6 +59,13 @@ export type BuildCreateEventModalFormPropsInput = {
   formSubmitting: boolean;
   primaryActionLabel: string;
   handleSubmit: () => void | Promise<void>;
+  addGoogleMeet: boolean;
+  setAddGoogleMeet: (next: boolean) => void;
+  showGoogleMeetOption: boolean;
+  mutualSchedule: CreateEventMutualAvailability | null;
+  /** Create: times came from week double-click — hide manual time row. */
+  createTimesChosenViaWeekSlot: boolean;
+  onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
 };
 
 export function buildCreateEventModalFormProps(
@@ -66,8 +85,6 @@ export function buildCreateEventModalFormProps(
     eventTitle,
     setEventTitle,
     showAgentClientPicker,
-    agentMultiStopViewing,
-    setAgentMultiStopViewing,
     selectedClientId,
     setSelectedClientId,
     isAllDay,
@@ -82,6 +99,13 @@ export function buildCreateEventModalFormProps(
     isPropertyViewing,
     viewingStops,
     setViewingStops,
+    viewingStartSelection,
+    setViewingStartSelection,
+    viewingEndMode,
+    setViewingEndMode,
+    viewingEndFixed,
+    setViewingEndFixed,
+    viewingTourAnchors,
     eventLocation,
     handleEventLocationChange,
     locationScriptsReady,
@@ -92,6 +116,12 @@ export function buildCreateEventModalFormProps(
     formSubmitting,
     primaryActionLabel,
     handleSubmit,
+    addGoogleMeet,
+    setAddGoogleMeet,
+    showGoogleMeetOption,
+    mutualSchedule,
+    createTimesChosenViaWeekSlot,
+    onCalendarTimedSlotPick,
   } = input;
 
   return {
@@ -109,9 +139,6 @@ export function buildCreateEventModalFormProps(
     eventTitle,
     onEventTitleChange: (e: ChangeEvent<HTMLInputElement>) => setEventTitle(e.target.value),
     showAgentClientPicker,
-    showAgentMultiStopViewingToggle: showAgentClientPicker && eventKindId === "property_viewings",
-    agentMultiStopViewing,
-    onAgentMultiStopViewingChange: setAgentMultiStopViewing,
     selectedClientId,
     onSelectedClientIdChange: setSelectedClientId,
     isAllDay,
@@ -126,6 +153,13 @@ export function buildCreateEventModalFormProps(
     isPropertyViewing,
     viewingStops,
     onViewingStopsChange: setViewingStops,
+    viewingStartSelection,
+    onViewingStartSelectionChange: setViewingStartSelection,
+    viewingEndMode,
+    onViewingEndModeChange: setViewingEndMode,
+    viewingEndFixed,
+    onViewingEndFixedChange: setViewingEndFixed,
+    viewingTourAnchors,
     eventLocation,
     onEventLocationChange: handleEventLocationChange,
     locationScriptsReady,
@@ -139,5 +173,11 @@ export function buildCreateEventModalFormProps(
     onSubmit: () => {
       void handleSubmit();
     },
+    addGoogleMeet,
+    onAddGoogleMeetChange: setAddGoogleMeet,
+    showGoogleMeetOption,
+    mutualSchedule,
+    createTimesChosenViaWeekSlot,
+    onCalendarTimedSlotPick,
   };
 }

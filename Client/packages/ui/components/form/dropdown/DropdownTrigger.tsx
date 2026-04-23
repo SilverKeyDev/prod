@@ -45,15 +45,20 @@ export function DropdownTrigger<T>({
       className={`${buttonClasses} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
     >
       <Box className="flex w-full min-w-0 flex-row items-center justify-between gap-2">
-        <BodyText
-          as="span"
-          ref={measureRef}
-          className={`min-w-0 flex-1 whitespace-normal break-words text-left text-xs leading-snug sm:text-sm md:text-base ${
-            selectedOption ? "text-gray-600" : "!text-gray-400"
-          }`}
-        >
-          {displayLabel}
-        </BodyText>
+        <Box className="flex min-w-0 flex-1 items-center gap-2">
+          {selectedOption?.icon ? (
+            <Box className="flex shrink-0 items-center">{selectedOption.icon}</Box>
+          ) : null}
+          <BodyText
+            as="span"
+            ref={measureRef}
+            className={`min-w-0 flex-1 whitespace-normal break-words text-left text-xs leading-snug sm:text-sm md:text-base ${
+              selectedOption ? "text-gray-600" : "!text-gray-400"
+            }`}
+          >
+            {displayLabel}
+          </BodyText>
+        </Box>
 
         <Box className="flex shrink-0 items-center justify-end gap-1">
           {clearable && selectedOption && !disabled && (

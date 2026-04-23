@@ -7,9 +7,11 @@ from flask import current_app, jsonify, make_response
 from app.schemas.generated import SuccessResponse
 from app.services.auth.flows import handle_refresh_token
 from app.services.auth.utils import clear_auth_cookies, create_error_response, generate_request_id
+from app.utils.security import rate_limit
 from app.utils.validation import validate_response
 
 
+@rate_limit(max_requests=30, window_seconds=60)
 def refresh_token():
     """Refresh access token using refresh token from HttpOnly cookie"""
     request_id = generate_request_id("refresh_token")

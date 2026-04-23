@@ -36,25 +36,30 @@ export function LocalAvailabilityCalendar({
     showSelectedDayEventList,
   });
 
-  const cellWidth = `${100 / 7}%` as const;
-  const styles = buildCalendarMonthGridStyles(cellWidth, spacing);
+  const styles = buildCalendarMonthGridStyles(spacing);
 
   const q = screen.quickCreate;
 
+  const selectedDayListHeading =
+    showSelectedDayEventList && screen.selectedDayKey !== null
+      ? screen.getSelectedDayListHeading(screen.selectedDayKey)
+      : null;
   return (
     <Card border="none" className="w-full" padding="none" hover={false}>
       <Box ref={screen.calendarShellRef} style={styles.container}>
-        {showSelectedDayEventList && screen.selectedDayKey !== null ? (
+        {showSelectedDayEventList && screen.selectedDayKey !== null && selectedDayListHeading ? (
           <Box
             style={{
-              paddingHorizontal: spacing(4),
+              paddingHorizontal: spacing(3),
               paddingTop: spacing(3),
+              marginBottom: spacing(3),
               width: "100%",
             }}
           >
             <EventList
               events={screen.selectedEvents}
-              title={screen.formatDayEventsTitle(screen.selectedDayKey)}
+              title={selectedDayListHeading.title}
+              subtitle={selectedDayListHeading.subtitle}
               emptyMessage="No availability for this day"
               silverKeyCalendarId={screen.silverKeyCalendarId}
               refreshEvents={screen.refetchEvents}
@@ -62,6 +67,7 @@ export function LocalAvailabilityCalendar({
               deleteEvent={isInteractionEnabled ? screen.deleteEvent : undefined}
               calendars={screen.gridCalendars}
               border="light"
+              density="compact"
             />
           </Box>
         ) : null}
@@ -163,6 +169,8 @@ export function LocalAvailabilityCalendar({
           }
           isSubmitting={screen.isCreatingQuickEvent}
           onCommit={() => void screen.commitQuickCreate()}
+          onDismiss={screen.discardQuickCreate}
+          registerOutsideClickSafeTarget={screen.registerQuickCreateOutsideSafeTarget}
           showWeeklyRepeatToggle={q.source === "week"}
           repeatWeekly={q.repeatWeekly ?? false}
           onRepeatWeeklyChange={(next) => screen.updateQuickCreate({ repeatWeekly: next })}

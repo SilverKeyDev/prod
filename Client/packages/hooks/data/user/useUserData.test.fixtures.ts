@@ -1,4 +1,4 @@
-import type { UserPreferences, UserProfile } from "packages/schemas";
+import type { UserPreferences, UserProfile } from "packages/types";
 
 export const userProfileFull: UserProfile = {
   id: "user-123",

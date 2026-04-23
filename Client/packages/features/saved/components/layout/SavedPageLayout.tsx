@@ -1,8 +1,11 @@
+import type { Dispatch, SetStateAction } from "react";
+
 import type { DocumentData } from "packages/features/documents";
 import SavedPageTabsAndSearch from "packages/features/saved/components/header/SavedPageTabsAndSearch";
 import SavedHomesContent from "packages/features/saved/components/SavedHomesContent";
 import SavedPageModals from "packages/features/saved/components/SavedPageModals";
 import DocumentUploadModal from "packages/features/saved/components/upload/DocumentUploadModal";
+import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import type { Property } from "packages/features/search";
 import type { SavedHome, SearchResult } from "packages/types";
 import Input from "packages/ui/components/form/Input.web";
@@ -38,6 +41,13 @@ export type SavedPageLayoutProps = {
   eventTypeFilter: EventTypeFilter;
   setEventTypeFilter: (v: EventTypeFilter) => void;
   setViewType: (v: SavedPageViewType) => void;
+  libraryViewMode: LibraryViewMode;
+  onLibraryViewModeChange: (mode: LibraryViewMode) => void;
+  showLibraryViewToggle: boolean;
+  librarySortKey: string;
+  onLibrarySortChange: (value: string) => void;
+  documentsSubtab: "my-documents" | "forms-library";
+  onDocumentsSubtabChange: Dispatch<SetStateAction<"my-documents" | "forms-library">>;
   filteredHomes: SavedHome[];
   filteredDocuments: DocumentData[];
   loading: boolean;
@@ -94,6 +104,13 @@ export function SavedPageLayout({
   eventTypeFilter,
   setEventTypeFilter,
   setViewType,
+  libraryViewMode,
+  onLibraryViewModeChange,
+  showLibraryViewToggle,
+  librarySortKey,
+  onLibrarySortChange,
+  documentsSubtab,
+  onDocumentsSubtabChange,
   filteredHomes,
   filteredDocuments,
   loading,
@@ -188,11 +205,20 @@ export function SavedPageLayout({
                         : ""
                 }
                 onUploadClick={() => setIsDocumentUploadModalOpen(true)}
+                libraryViewMode={libraryViewMode}
+                onLibraryViewModeChange={onLibraryViewModeChange}
+                showLibraryViewToggle={showLibraryViewToggle}
+                librarySortKey={librarySortKey}
+                onLibrarySortChange={onLibrarySortChange}
               />
             </Box>
           )}
           <SavedHomesContent
             viewType={viewType}
+            libraryViewMode={libraryViewMode}
+            documentsSubtab={documentsSubtab}
+            onDocumentsSubtabChange={onDocumentsSubtabChange}
+            librarySortKey={librarySortKey}
             filteredHomes={filteredHomes}
             homesLoading={loading}
             documents={filteredDocuments}
