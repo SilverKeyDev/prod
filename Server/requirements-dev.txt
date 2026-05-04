@@ -15,4 +15,4 @@ types-requests>=2.31.0
 types-urllib3>=1.26.25
 
 # For generating Pydantic models from OpenAPI
-datamodel-code-generator==0.25.0
+datamodel-code-generator==0.56.1

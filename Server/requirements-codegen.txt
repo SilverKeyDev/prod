@@ -1,0 +1,4 @@
+# Pinned versions for scripts/generate-pydantic-models.sh and OpenAPI CI.
+# Keep in sync with .github/workflows/openapi-sync.yml (verify-server-schemas).
+datamodel-code-generator==0.56.1
+ruff==0.15.12

@@ -69,8 +69,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install datamodel-code-generator
-        run: pip install datamodel-code-generator
+      - name: Install schema codegen tools
+        run: pip install -r Server/requirements-codegen.txt
 
       - name: Regenerate server schemas
         working-directory: Server

@@ -7,7 +7,8 @@ if [ -d ".venv" ]; then
 fi
 
 # Install generators + Ruff (Ruff applies UP007: Optional/Union -> X | Y after codegen)
-pip install datamodel-code-generator ruff
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+pip install -r "${SCRIPT_DIR}/../requirements-codegen.txt"
 
 # Generate Pydantic models from OpenAPI using Python module
 # Note: Removed --use-union-operator from codegen; Ruff post-process matches pyproject UP rules.
