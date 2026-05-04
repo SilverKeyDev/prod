@@ -288,4 +288,4 @@ def delete_event(
         raise
 
 
-from .operations_list_events import list_events  # noqa: E402
+from .operations_list_events import list_events  # noqa: E402, F401

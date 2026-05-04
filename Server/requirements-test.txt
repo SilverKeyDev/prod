@@ -6,6 +6,9 @@
 # CPU-only PyTorch is installed separately in .github/workflows/test-callable.yml
 # before this file (see pip install --index-url .../whl/cpu).
 
+# Flask extensions imported at app package load (app/__init__.py); keep in sync with requirements-ci.txt.
+flask-compress==1.15
+
 numpy>=1.26.0,<3
 pandas>=2.0.0,<3
 matplotlib>=3.8.0,<4
