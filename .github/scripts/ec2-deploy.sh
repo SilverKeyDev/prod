@@ -117,22 +117,20 @@ if ! timeout 60s bash -c 'until docker inspect --format="{{.State.Health.Status}
 fi
 
 # Merge app secrets from AWS Secrets Manager (EC2 instance role or host credentials).
-# Reads Server/config/.env.example once from the image (secret names + required keys for validation).
-# Secret ids come from "# From secret: …" lines. If none, fall back to list-secrets (Server/secrets.sh).
+# Lists every secret in REGION (paginated), same as Server/secrets.sh — not only "# From secret:" names in .env.example.
+# Reads Server/config/.env.example from the image for required-key validation only.
 resolve_deploy_secret_ids() {
-  local ex_path="$1"
   local tmp
   tmp="$(mktemp)"
-  if [ -n "${ex_path:-}" ] && [ -s "$ex_path" ] && secret_names_from_env_example_stream <"$ex_path" >"$tmp"; then
-    :
+  if ! list_secretsmanager_secret_names | sort -u >"$tmp"; then
+    echo "ERROR: secretsmanager list-secrets failed (check IAM secretsmanager:ListSecrets and region)." >&2
+    rm -f "$tmp"
+    exit 1
   fi
   if [ ! -s "$tmp" ]; then
-    echo "Warning: No \"# From secret:\" entries in config/.env.example (or file empty); listing all Secrets Manager secrets in $REGION" >&2
-    if ! list_secretsmanager_secret_names | sort -u >"$tmp"; then
-      echo "ERROR: secretsmanager list-secrets failed and no .env.example secret list available." >&2
-      rm -f "$tmp"
-      exit 1
-    fi
+    echo "ERROR: No secrets found in region $REGION." >&2
+    rm -f "$tmp"
+    exit 1
   fi
   if ! grep -Fxq "$DB_SECRET_NAME" "$tmp" 2>/dev/null; then
     { printf '%s\n' "$DB_SECRET_NAME"; cat "$tmp"; } >"${tmp}.out"
@@ -145,12 +143,12 @@ resolve_deploy_secret_ids() {
 DEPLOY_ENV_EXAMPLE="$(mktemp)"
 if ! sudo docker run --rm --entrypoint cat "$IMAGE" /app/Server/config/.env.example >"$DEPLOY_ENV_EXAMPLE" 2>/dev/null \
   || [ ! -s "$DEPLOY_ENV_EXAMPLE" ]; then
-  echo "ERROR: Could not read /app/Server/config/.env.example from $IMAGE (needed for secret ids and env validation)."
+  echo "ERROR: Could not read /app/Server/config/.env.example from $IMAGE (needed for required-key env validation)."
   rm -f "$DEPLOY_ENV_EXAMPLE"
   exit 1
 fi
 
-mapfile -t SECRET_IDS < <(resolve_deploy_secret_ids "$DEPLOY_ENV_EXAMPLE")
+mapfile -t SECRET_IDS < <(resolve_deploy_secret_ids)
 
 # Build env as ubuntu (merge writes need a writable file), then copy to a root-owned path for sudo docker --env-file.
 ENV_BUILD=$(mktemp)
