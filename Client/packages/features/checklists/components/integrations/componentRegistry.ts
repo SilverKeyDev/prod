@@ -8,9 +8,9 @@ import { isChecklistComponentKey } from "packages/features/checklists/types/comp
 
 import ChooseAreasSection from "./ChooseAreasSection";
 import DefineCriteriaSection from "./DefineCriteriaSection";
-import FindingHome from "./FindingHome";
+import FindingHome from "./findingHome/FindingHome";
 import HomeConcierge from "./HomeConcierge";
-import PartnerAgentSection from "./PartnerAgentSection";
+import PartnerAgentSection from "./partnerAgent/PartnerAgentSection";
 import ReviewComparablesSection from "./ReviewComparablesSection";
 import SetBudgetSection from "./SetBudgetSection";
 

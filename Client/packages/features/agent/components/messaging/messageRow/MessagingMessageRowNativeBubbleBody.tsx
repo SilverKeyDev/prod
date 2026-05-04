@@ -1,5 +1,10 @@
 import React from "react";
 
+import {
+  mergeSharedHomeForDisplay,
+  type SharedAttachmentSnapshotV1,
+  type SharedChecklistFormSnapshot,
+} from "packages/features/messaging";
 import AgreementEventCard from "packages/features/messaging/components/cards/AgreementEventCard";
 import type {
   ChatMessage,
@@ -7,11 +12,6 @@ import type {
 } from "packages/features/messaging/hooks/data/messaging/types";
 import type { AgreementEventPayload } from "packages/features/messaging/utils/agreementEventPayload";
 import type { EventRequestPayload } from "packages/features/messaging/utils/eventRequestPayload";
-import {
-  mergeSharedHomeForDisplay,
-  type SharedAttachmentSnapshotV1,
-  type SharedChecklistFormSnapshot,
-} from "packages/features/messaging/utils/sharedAttachmentSnapshot";
 import type { SavedHome } from "packages/types/domain/savedHome";
 import type { DocumentData } from "packages/ui/components/cards/document/types";
 import type { HomeDescription } from "packages/ui/components/cards/HomeCard";

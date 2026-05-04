@@ -1,3 +1,5 @@
+import { type Dayjs,dayjs } from "packages/utils/date";
+
 import type { CalendarViewType } from "@/features/calendar/types/calendar";
 import { getVisibleDateRange } from "@/features/calendar/utils/core/date";
 
@@ -5,18 +7,18 @@ import { getVisibleDateRange } from "@/features/calendar/utils/core/date";
  * Formats the visible grid range with month and day for both endpoints
  * (e.g. "Apr 6 – Apr 12, 2026", "Apr 27 – May 24, 2026").
  */
-export function formatToolbarDateRange(start: Date, end: Date): string {
-  const startNorm = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-  const endNorm = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+export function formatToolbarDateRange(start: Dayjs, end: Dayjs): string {
+  const startNorm = start.startOf("day");
+  const endNorm = end.startOf("day");
 
-  const sm = startNorm.toLocaleDateString("en-US", { month: "short" });
-  const sd = startNorm.getDate();
-  const em = endNorm.toLocaleDateString("en-US", { month: "short" });
-  const ed = endNorm.getDate();
-  const sy = startNorm.getFullYear();
-  const ey = endNorm.getFullYear();
+  const sm = startNorm.format("MMM");
+  const sd = String(startNorm.date());
+  const em = endNorm.format("MMM");
+  const ed = String(endNorm.date());
+  const sy = startNorm.year();
+  const ey = endNorm.year();
 
-  if (startNorm.getTime() === endNorm.getTime()) {
+  if (startNorm.valueOf() === endNorm.valueOf()) {
     return `${sm} ${sd}, ${sy}`;
   }
 
@@ -32,5 +34,5 @@ export function formatToolbarDateRange(start: Date, end: Date): string {
  */
 export function formatCalendarToolbarLabel(focusedDate: Date, viewMode: CalendarViewType): string {
   const { start, end } = getVisibleDateRange(focusedDate, viewMode);
-  return formatToolbarDateRange(start, end);
+  return formatToolbarDateRange(dayjs(start), dayjs(end));
 }

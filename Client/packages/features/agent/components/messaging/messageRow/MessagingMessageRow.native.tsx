@@ -4,20 +4,20 @@ import { View } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { useDocumentsData, useFormsLibrary } from "packages/features/documents";
+import {
+  getDateDividerText,
+  isAgreementMessagingAttachmentUnavailable,
+  mergeBundleChecklistFormsForDisplay,
+  mergeBundleDocumentsForDisplay,
+  mergeBundleHomesForDisplay,
+  parseAgreementEventPayload,
+  parseEventRequestPayload,
+  parseSharedAttachmentSnapshot,
+} from "packages/features/messaging";
 import type {
   ChatMessage,
   EventRequestStatus,
 } from "packages/features/messaging/hooks/data/messaging/types";
-import { parseAgreementEventPayload } from "packages/features/messaging/utils/agreementEventPayload";
-import { parseEventRequestPayload } from "packages/features/messaging/utils/eventRequestPayload";
-import { getDateDividerText } from "packages/features/messaging/utils/messageDateUtils";
-import { isAgreementMessagingAttachmentUnavailable } from "packages/features/messaging/utils/messagingAttachmentAvailability";
-import {
-  mergeBundleChecklistFormsForDisplay,
-  mergeBundleDocumentsForDisplay,
-  mergeBundleHomesForDisplay,
-  parseSharedAttachmentSnapshot,
-} from "packages/features/messaging/utils/sharedAttachmentSnapshot";
 import { useSavedHomesData } from "packages/features/search";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";

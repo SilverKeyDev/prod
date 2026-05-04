@@ -9,6 +9,7 @@ import { useClientMessagingModals, useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers } from "packages/hooks/ui";
 import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
+import { getDocument } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
@@ -90,13 +91,14 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
   }, [isSidebarExpanded, acknowledgeActiveConversationAsRead]);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    const doc = getDocument();
+    if (!doc) return;
     const onVisibilityChange = () => {
-      if (document.visibilityState !== "visible") return;
+      if (doc.visibilityState !== "visible") return;
       acknowledgeActiveConversationAsRead();
     };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+    doc.addEventListener("visibilitychange", onVisibilityChange);
+    return () => doc.removeEventListener("visibilitychange", onVisibilityChange);
   }, [acknowledgeActiveConversationAsRead]);
 
   const handlers = useMessagingHandlers({

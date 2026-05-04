@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useIsAgent } from "packages/hooks/store";
-import { log, LOG_CATEGORIES } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useAuthStore, useGoogleMapsStore, useUIStore } from "packages/store";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
@@ -14,13 +13,8 @@ import { useCreateEventMutualAvailability } from "@/features/calendar/hooks/data
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 import { useCreateEventModalEffects } from "@/features/calendar/hooks/ui/useCreateEventModalEffects";
 import { buildCreateEventModalFormProps } from "@/features/calendar/utils/createEventModal/buildCreateEventModalFormProps";
-import {
-  explicitEventTypeForCalendarKind,
-  getCalendarEventKind,
-} from "@/features/calendar/utils/createEventModal/calendarEventKinds";
-import { defaultCreateEventTimedRange } from "@/features/calendar/utils/createEventModal/createEventModalDefaults";
+import { getCalendarEventKind } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { deriveCreateEventModalFormSubmitState } from "@/features/calendar/utils/createEventModal/createEventModalFormDerived";
-import { runCreateEventModalSubmit } from "@/features/calendar/utils/createEventModal/createEventModalSubmit";
 import { defaultGoogleMeetForCreate } from "@/features/calendar/utils/createEventModal/defaultGoogleMeetForCreate";
 import { showGoogleMeetToggleForCreate } from "@/features/calendar/utils/createEventModal/googleMeetCreateEligibility";
 import type {
@@ -33,12 +27,12 @@ import {
   viewingEndpointHasRoutingInput,
   viewingTourStartToEndpoint,
 } from "@/features/calendar/utils/viewing/viewingRoutePlan";
-import { buildEventRequestPayloadFromCreateFormState } from "@/features/messaging/utils/buildEventRequestPayloadFromCreateFormState";
-import { buildEventRequestMessage } from "@/features/messaging/utils/eventRequestPayload";
 
 import type { UseCreateEventModalParams } from "./useCreateEventModal.types";
 import { useCreateEventModalChecklists } from "./useCreateEventModalChecklists";
+import { useCreateEventModalDateHandlers } from "./useCreateEventModalDateHandlers";
 import { useCreateEventModalPrefillAndKindState } from "./useCreateEventModalPrefillAndKindState";
+import { useCreateEventModalSubmitFlow } from "./useCreateEventModalSubmitFlow";
 
 export type { UseCreateEventModalParams } from "./useCreateEventModal.types";
 
@@ -258,52 +252,16 @@ export function useCreateEventModal({
     setViewingEndFixed,
   });
 
-  const onDateRangeChange = useCallback(
-    (lo: string, hi: string) => {
-      setStartDate(lo);
-      setEndDate(hi);
-
-      if (mode === "edit") {
-        return;
-      }
-
-      setCreateTimesChosenViaWeekSlot(false);
-
-      const rawStart = lo.trim();
-      const rawEnd = hi.trim();
-      const scheduleStart = rawStart || rawEnd;
-      const scheduleEnd = rawEnd || rawStart || scheduleStart;
-      if (!scheduleStart || !scheduleEnd) {
-        return;
-      }
-
-      setIsAllDay(scheduleStart !== scheduleEnd);
-    },
-    [mode]
-  );
-
-  const onCalendarTimedSlotPick = useCallback(
-    (payload: { startTime: string; endTime: string }) => {
-      setStartTime(payload.startTime);
-      setEndTime(payload.endTime);
-      if (mode === "create") {
-        setCreateTimesChosenViaWeekSlot(true);
-      }
-    },
-    [mode]
-  );
-
-  const onIsAllDayChange = useCallback((next: boolean) => {
-    setIsAllDay(next);
-    if (!next) {
-      const { startTime: st, endTime: et } = defaultCreateEventTimedRange();
-      setStartTime(st);
-      setEndTime(et);
-      setCreateTimesChosenViaWeekSlot(false);
-    }
-  }, []);
-
-  const explicitEventType = explicitEventTypeForCalendarKind(eventKindId);
+  const { onDateRangeChange, onCalendarTimedSlotPick, onIsAllDayChange } =
+    useCreateEventModalDateHandlers(
+      mode,
+      setStartDate,
+      setEndDate,
+      setIsAllDay,
+      setStartTime,
+      setEndTime,
+      setCreateTimesChosenViaWeekSlot
+    );
 
   const showGoogleMeetOption = useMemo(
     () =>
@@ -327,105 +285,7 @@ export function useCreateEventModal({
   });
   const mutualScheduleForForm = mode === "create" ? mutualScheduleFull : null;
 
-  const handleSubmit = useCallback(async () => {
-    if (isCalendarEventRequestFlow && calendarEventRequest) {
-      setIsSendingCalendarRequest(true);
-      try {
-        const built = buildEventRequestPayloadFromCreateFormState({
-          eventTitle,
-          eventDescription,
-          eventLocation,
-          startDate,
-          endDate,
-          startTime,
-          endTime,
-          isAllDay,
-          isPropertyViewing,
-          viewingStops,
-          viewingStartSelection,
-          viewingTourAnchors,
-          viewingEndMode,
-          viewingEndFixed,
-        });
-        if ("error" in built) {
-          enqueueToast({ type: "error", message: built.error });
-          return;
-        }
-        const message = buildEventRequestMessage(built.payload);
-        const { conversations, sendMessageDirect, sendCalendarEventMessage, onSuccess } =
-          calendarEventRequest;
-
-        let conversationId: string | null = null;
-        if (isAgent) {
-          if (!selectedClientId) {
-            return;
-          }
-          const conv = conversations.find((c) => c.client_id === selectedClientId);
-          conversationId = conv?.id ?? "new";
-        } else {
-          const clientConv = conversations[0];
-          if (!clientConv) {
-            enqueueToast({
-              type: "error",
-              message: "No conversation found. Open messaging first.",
-            });
-            return;
-          }
-          conversationId = clientConv.id;
-        }
-
-        const clientIdToPass =
-          isAgent && conversationId === "new" ? (selectedClientId ?? undefined) : undefined;
-
-        if (sendCalendarEventMessage) {
-          await sendCalendarEventMessage(message, {
-            conversationId,
-            clientIdForAgent: clientIdToPass,
-          });
-        } else {
-          await sendMessageDirect(conversationId, message, clientIdToPass);
-        }
-        onSuccess?.();
-        onClose();
-      } catch (error) {
-        log.error(LOG_CATEGORIES.CALENDAR, "Error sending calendar event request", error);
-      } finally {
-        setIsSendingCalendarRequest(false);
-      }
-      return;
-    }
-
-    await runCreateEventModalSubmit({
-      mode,
-      eventTitle,
-      explicitEventType,
-      eventDescription,
-      eventLocation,
-      startDate,
-      endDate,
-      startTime,
-      endTime,
-      isAllDay,
-      selectedCalendarId,
-      defaultCalendarId,
-      selectedClientId,
-      isPropertyViewing,
-      viewingStops,
-      viewingStartSelection,
-      viewingTourAnchors,
-      viewingEndMode,
-      viewingEndFixed,
-      existingEvent,
-      onAddWithoutSchedule,
-      createEvent,
-      updateEvent,
-      onEventCreated,
-      onClose,
-      setIsSavingUnscheduled,
-      enqueueToast,
-      addGoogleMeet: showGoogleMeetOption ? addGoogleMeet : false,
-    });
-  }, [
+  const { handleSubmit } = useCreateEventModalSubmitFlow({
     isCalendarEventRequestFlow,
     calendarEventRequest,
     eventTitle,
@@ -445,7 +305,7 @@ export function useCreateEventModal({
     isAgent,
     selectedClientId,
     mode,
-    explicitEventType,
+    eventKindId,
     selectedCalendarId,
     defaultCalendarId,
     existingEvent,
@@ -457,7 +317,9 @@ export function useCreateEventModal({
     enqueueToast,
     addGoogleMeet,
     showGoogleMeetOption,
-  ]);
+    setIsSendingCalendarRequest,
+    setIsSavingUnscheduled,
+  });
 
   const { canSubmit, formSubmitting, primaryActionLabel } = deriveCreateEventModalFormSubmitState({
     mode,

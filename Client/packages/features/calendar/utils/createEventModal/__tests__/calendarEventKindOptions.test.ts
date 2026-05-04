@@ -8,7 +8,7 @@ import {
 import {
   getCalendarEventKindOptionSlice,
   resolveBuyerJourneyPhase,
-} from "./calendarEventKindOptions";
+} from "@/features/calendar/utils/createEventModal/calendarEventKindOptions";
 
 describe("resolveBuyerJourneyPhase", () => {
   it("early search when buyer-broker not checked", () => {

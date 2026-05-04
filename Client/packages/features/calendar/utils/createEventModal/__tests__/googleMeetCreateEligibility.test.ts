@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { showGoogleMeetToggleForCreate } from "./googleMeetCreateEligibility";
+import { showGoogleMeetToggleForCreate } from "@/features/calendar/utils/createEventModal/googleMeetCreateEligibility";
 
 describe("showGoogleMeetToggleForCreate", () => {
   it("is false when no schedule (unscheduled / bare agenda path)", () => {

@@ -4,12 +4,12 @@ import { Linking } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import type { DocumentData } from "packages/features/documents";
-import { isChecklistFormMessagingAttachmentUnavailable } from "packages/features/messaging/utils/messagingAttachmentAvailability";
 import {
+  isChecklistFormMessagingAttachmentUnavailable,
   mergeSharedDocumentForDisplay,
   parseSharedAttachmentSnapshot,
   type SharedChecklistFormSnapshot,
-} from "packages/features/messaging/utils/sharedAttachmentSnapshot";
+} from "packages/features/messaging";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
 export type ChecklistFormAvailabilityOptions = {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveCreateEventModalFormSubmitState } from "./createEventModalFormDerived";
+import { deriveCreateEventModalFormSubmitState } from "@/features/calendar/utils/createEventModal/createEventModalFormDerived";
 
 describe("deriveCreateEventModalFormSubmitState", () => {
   it("create mode without schedule allows unscheduled submit when handler exists", () => {

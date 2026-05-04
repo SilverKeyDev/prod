@@ -214,7 +214,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
             </Box>
           </Box>
 
-          <Box className="ml-auto flex w-full min-w-0 max-w-[35rem] shrink-0 flex-col items-end gap-1 sm:w-auto sm:min-w-[25rem]">
+          <Box className="ml-auto flex w-full min-w-0 max-w-xl shrink-0 flex-col items-end gap-1 sm:w-auto sm:min-w-96">
             <BodyText size="sm" className="text-text-secondary text-right" as="p">
               {checklistProgressLoading
                 ? t("checklists.loading")

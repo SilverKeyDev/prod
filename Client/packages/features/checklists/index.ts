@@ -23,7 +23,7 @@ export { ChecklistProgressBar } from "./components/ChecklistProgressBar";
 export { default as ChecklistStepForms } from "./components/ChecklistStepForms";
 export { default as CloseLayout } from "./components/CloseLayout";
 export { default as ChooseAreasSection } from "./components/integrations/ChooseAreasSection";
-export { default as FindingHome } from "./components/integrations/FindingHome";
+export { default as FindingHome } from "./components/integrations/findingHome/FindingHome";
 export { default as HomeConcierge } from "./components/integrations/HomeConcierge";
 export { default as ReviewComparablesSection } from "./components/integrations/ReviewComparablesSection";
 export { default as ClosingMovingIn } from "./components/subheaders/ClosingMovingIn";

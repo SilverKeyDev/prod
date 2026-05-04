@@ -2,9 +2,10 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
-import type { IconName } from "packages/ui/types/icons";
 
 import { BodyText, Subtitle } from "@/components/ui";
+
+import { getDocumentIconName } from "./documentCardHeaderIcon";
 interface DocumentCardHeaderProps {
   /**
    * Document title to display
@@ -32,22 +33,6 @@ interface DocumentCardHeaderProps {
    * Whether the document was uploaded by someone other than the current user
    */
   isFromOtherUser?: boolean;
-}
-/**
- * Maps document type to appropriate icon name.
- */
-export function getDocumentIconName(documentType: string | null): IconName {
-  switch (documentType) {
-    case "contract":
-      return "file-signature";
-    case "inspection":
-      return "clipboard-check";
-    case "financial":
-      return "receipt";
-    case "report":
-    default:
-      return "file-text";
-  }
 }
 /**
  * Document card header component displaying icon, title, and upload date.

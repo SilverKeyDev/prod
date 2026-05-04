@@ -13,7 +13,7 @@ import { BodyText } from "@/components/ui";
 import { extractReportTitleFromPath } from "@/features/documents/utils/nameScrub";
 
 import DocumentCardActions from "./DocumentCardActions";
-import { getDocumentIconName } from "./DocumentCardHeader";
+import { getDocumentIconName } from "./documentCardHeaderIcon";
 import type { DocumentCardProps } from "./types";
 
 /**

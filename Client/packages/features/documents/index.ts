@@ -43,6 +43,7 @@ export type {
   SendFormRequest,
   SendFormResponse,
 } from "./types/forms";
+export { checklistFormToDocumentData } from "./utils/forms/checklistFormToDocumentData";
 
 // DocuSign hooks (data)
 export type {

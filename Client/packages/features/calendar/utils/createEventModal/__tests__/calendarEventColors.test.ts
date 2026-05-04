@@ -4,9 +4,8 @@ import { color } from "packages/design-tokens";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
-
-import { calendarColorForEvent, hexToRgba } from "./calendarEventColors";
-import { CALENDAR_EVENT_KINDS } from "./calendarEventKinds";
+import { calendarColorForEvent, hexToRgba } from "@/features/calendar/utils/createEventModal/calendarEventColors";
+import { CALENDAR_EVENT_KINDS } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 
 describe("calendarColorForEvent", () => {
   it("uses event kind palette when summary matches a known type label", () => {
@@ -51,7 +50,10 @@ describe("calendarColorForEvent", () => {
       end: { dateTime: "2026-06-01T11:00:00Z" },
       colorId: "9",
     };
-    expect(calendarColorForEvent(ev, cals)).toBe("#3f51b5");
+    expect(calendarColorForEvent(ev, cals)).toBe(
+      // eslint-disable-next-line silverkey/no-literal-hex-colors -- Google Calendar colorId 9 reference hex
+      "#3f51b5"
+    );
   });
 
   it("uses silverKeyEventType when the title no longer matches a kind label", () => {

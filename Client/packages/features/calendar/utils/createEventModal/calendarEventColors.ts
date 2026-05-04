@@ -12,7 +12,8 @@ import {
 
 const HEX = /^#?([0-9a-fA-F]{6})$/;
 
-/** Google Calendar API default event colors (colorId 1–11). */
+/** Google Calendar API default event colors (colorId 1–11); hex values match Google's palette. */
+/* eslint-disable silverkey/no-literal-hex-colors -- external Google Calendar colorId reference */
 const GOOGLE_CALENDAR_EVENT_COLOR_ID_HEX: Record<string, string> = {
   "1": "#7986cb",
   "2": "#33b679",
@@ -26,6 +27,7 @@ const GOOGLE_CALENDAR_EVENT_COLOR_ID_HEX: Record<string, string> = {
   "10": "#0b8043",
   "11": "#d50000",
 };
+/* eslint-enable silverkey/no-literal-hex-colors */
 
 /** Maps SilverKey create payload `eventType` / DB `event_type` to design-token paths. */
 const SILVER_KEY_BACKEND_EVENT_TYPE_TO_COLOR_PATH: Record<string, string> = {

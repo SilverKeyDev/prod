@@ -4,7 +4,7 @@
  */
 export { default as ChooseAreasSection } from "./ChooseAreasSection";
 export { default as DefineCriteriaSection } from "./DefineCriteriaSection";
-export { default as FindingHome } from "./FindingHome";
+export { default as FindingHome } from "./findingHome/FindingHome";
 export { default as HomeConcierge } from "./HomeConcierge";
 export { default as ReviewComparablesSection } from "./ReviewComparablesSection";
 export { default as SetBudgetSection } from "./SetBudgetSection";

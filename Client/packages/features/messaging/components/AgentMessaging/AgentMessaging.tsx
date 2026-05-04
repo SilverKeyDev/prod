@@ -11,6 +11,7 @@ import { useMessaging } from "packages/features/messaging/hooks/data/messaging/u
 import { useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
+import { getDocument } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
@@ -81,13 +82,14 @@ export default function AgentMessaging({
   }, [isSidebarExpanded, acknowledgeActiveConversationAsRead]);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    const doc = getDocument();
+    if (!doc) return;
     const onVisibilityChange = () => {
-      if (document.visibilityState !== "visible") return;
+      if (doc.visibilityState !== "visible") return;
       acknowledgeActiveConversationAsRead();
     };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+    doc.addEventListener("visibilitychange", onVisibilityChange);
+    return () => doc.removeEventListener("visibilitychange", onVisibilityChange);
   }, [acknowledgeActiveConversationAsRead]);
 
   const { requests: pendingConnectionRequests } = useConnectionRequests();

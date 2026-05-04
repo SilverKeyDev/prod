@@ -9,10 +9,10 @@ import { useLocalization } from "packages/contexts";
 import {
   type ChecklistForm,
   checklistFormsApi,
+  checklistFormToDocumentData,
   useChecklistForms,
 } from "packages/features/documents";
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
-import { checklistFormToDocumentData } from "packages/features/documents/utils/forms/checklistFormToDocumentData";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
