@@ -18,6 +18,7 @@ import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations
 import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
 
 import {
   BodyText,
@@ -192,6 +193,44 @@ export default function SearchDisplayDropdown({
 
   if (variant === "mobile") {
     return (
+      <Box id={TOUR_TARGETS_MOBILE.displayControl} className="inline-flex shrink-0">
+        <Popover
+          open={open}
+          onOpenChange={setOpen}
+          usePortal
+          side="left"
+          panelClassName={panelClass}
+          panelMaxHeight={SEARCH_HEADER_PANEL_MAX_HEIGHT}
+          panelMinWidth="320px"
+          trigger={({ open: isActive, onToggle }) => (
+            <Button
+              type="button"
+              onClick={onToggle}
+              variant={isActive ? "outline" : "cancel"}
+              size="sm"
+              rounded="lg"
+              className={`touch-friendly shrink-0 ${buttonBase}`}
+              aria-expanded={isActive}
+              aria-haspopup="true"
+              iconName="grid-3x3"
+            >
+              <Box className="flex w-full items-center justify-between gap-2">
+                <BodyText as="span" size="sm" className="text-inherit">
+                  {displayLabel}
+                </BodyText>
+                <DropdownChevron open={isActive} className="h-4 w-4" />
+              </Box>
+            </Button>
+          )}
+        >
+          {({ registerOutsideClickSafeTarget }) => renderPanel(registerOutsideClickSafeTarget)}
+        </Popover>
+      </Box>
+    );
+  }
+
+  return (
+    <Box id={TOUR_TARGETS_DESKTOP.displayControl} className="inline-flex shrink-0">
       <Popover
         open={open}
         onOpenChange={setOpen}
@@ -204,12 +243,13 @@ export default function SearchDisplayDropdown({
           <Button
             type="button"
             onClick={onToggle}
-            variant={isActive ? "outline" : "cancel"}
+            variant={isActive ? "outline" : "secondary"}
             size="sm"
             rounded="lg"
-            className={`touch-friendly shrink-0 ${buttonBase}`}
+            className={buttonBase}
             aria-expanded={isActive}
             aria-haspopup="true"
+            iconName="grid-3x3"
           >
             <Box className="flex w-full items-center justify-between gap-2">
               <BodyText as="span" size="sm" className="text-inherit">
@@ -222,39 +262,6 @@ export default function SearchDisplayDropdown({
       >
         {({ registerOutsideClickSafeTarget }) => renderPanel(registerOutsideClickSafeTarget)}
       </Popover>
-    );
-  }
-
-  return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-      usePortal
-      side="left"
-      panelClassName={panelClass}
-      panelMaxHeight={SEARCH_HEADER_PANEL_MAX_HEIGHT}
-      panelMinWidth="320px"
-      trigger={({ open: isActive, onToggle }) => (
-        <Button
-          type="button"
-          onClick={onToggle}
-          variant={isActive ? "outline" : "secondary"}
-          size="sm"
-          rounded="lg"
-          className={buttonBase}
-          aria-expanded={isActive}
-          aria-haspopup="true"
-        >
-          <Box className="flex w-full items-center justify-between gap-2">
-            <BodyText as="span" size="sm" className="text-inherit">
-              {displayLabel}
-            </BodyText>
-            <DropdownChevron open={isActive} className="h-4 w-4" />
-          </Box>
-        </Button>
-      )}
-    >
-      {({ registerOutsideClickSafeTarget }) => renderPanel(registerOutsideClickSafeTarget)}
-    </Popover>
+    </Box>
   );
 }

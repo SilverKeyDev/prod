@@ -39,10 +39,14 @@ def _mock_detail_success():
     }
 
 
+_stubbed: list[str] = []
+
+
 def _stub_if_missing(name: str) -> None:
     """Insert a MagicMock module stub into sys.modules if not already present."""
     if name not in sys.modules:
         sys.modules[name] = MagicMock()
+        _stubbed.append(name)
 
 
 _DEEP_STUBS = [
@@ -66,6 +70,11 @@ import importlib  # noqa: E402 (after sys.modules patching)
 
 _stream_mod = importlib.import_module("app.services.search.property.property_stream_steps")
 _cache_mod = importlib.import_module("app.services.research.property.property_research_cache")
+
+# MagicMock entries are not packages; leaving them in sys.modules breaks other tests
+# that import real app.services.search.home_matching.preprocessing.*.
+for _name in _stubbed:
+    del sys.modules[_name]
 
 
 # ---- fetch_basic_property_data ----

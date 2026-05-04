@@ -55,7 +55,6 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
     },
     enabled: authReady && isAuthenticated,
     staleTime: 30 * 1000, // 30 seconds - keep in sync with dataConfig
-    refetchOnMount: "always",
   });
 
   // Create request mutation

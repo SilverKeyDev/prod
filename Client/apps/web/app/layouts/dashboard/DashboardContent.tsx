@@ -4,11 +4,10 @@ import { useIsMobile } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import PageErrorBoundary from "@/app/error/PageErrorBoundary";
-import AgentPage from "@/pages/workspace/AgentPage";
 
-import { useDashboardRoute } from "./useDashboardRoute";
+import { DashboardRouteFallback, type DashboardRouteFallbackVariant } from "./DashboardRouteFallback";
+import { type DashboardAreaKey, useDashboardRoute } from "./useDashboardRoute";
 
-// Lazy-load heavy routes; `AgentPage` is static to avoid a separate dev-server fetch for messaging.
 const SearchPage = lazy(() => import("@/pages/property/SearchPage"));
 const SavedHomes = lazy(() => import("@/pages/property/SavedPage"));
 const ProfilePage = lazy(() => import("@/pages/account/ProfilePage"));
@@ -17,6 +16,7 @@ const AgreementSigningCompletePage = lazy(
   () => import("@/pages/workspace/AgreementSigningCompletePage")
 );
 const FindAgentsPage = lazy(() => import("@/pages/misc/FindAgentsPage"));
+const AgentPage = lazy(() => import("@/pages/workspace/AgentPage"));
 
 type DashboardContentProps = {
   setMobileHeaderActions: React.Dispatch<React.SetStateAction<ReactNode | null>>;
@@ -27,6 +27,13 @@ type DashboardContentProps = {
 };
 
 const MOBILE_SIDE_PX = "px-4";
+
+function suspenseFallbackVariant(activeKey: DashboardAreaKey | null): DashboardRouteFallbackVariant {
+  if (activeKey === "search") return "search";
+  if (activeKey === "messaging") return "messaging";
+  if (activeKey === "dashboard") return "dashboard";
+  return "generic";
+}
 
 export function DashboardContent({
   setMobileHeaderActions,
@@ -61,7 +68,6 @@ export function DashboardContent({
         } ${contentBottomMargin ? "pb-4 sm:pb-6 md:pb-8" : ""}`;
 
   const fullWidth = isSearch || isMessaging;
-  // isFindAgents uses standard max-width content (not full-bleed like search/messaging)
   const style = fullWidth
     ? ({ "--max-width-desktop": "100" } as React.CSSProperties & {
         "--max-width-desktop": string;
@@ -70,56 +76,54 @@ export function DashboardContent({
         "--max-width-desktop": `${widthPercent}`,
       } as React.CSSProperties & { "--max-width-desktop": string });
 
-  // Loading fallback for lazy-loaded components
-  const LoadingFallback = (
-    <Box className="flex min-h-[200px] items-center justify-center text-sm text-text-secondary">
-      Loading…
-    </Box>
-  );
+  const fbVariant = suspenseFallbackVariant(activeKey);
+  const loadingFallback = <DashboardRouteFallback variant={fbVariant} />;
 
   const content =
     activeKey === "search" ? (
       <PageErrorBoundary key="search" pageLabel="Search">
-        <Suspense fallback={LoadingFallback}>
+        <Suspense fallback={loadingFallback}>
           <SearchPage setMobileHeaderActions={setMobileHeaderActions} searchRef={searchPageRef} />
         </Suspense>
       </PageErrorBoundary>
     ) : activeKey === "profile" ? (
-      <Suspense fallback={LoadingFallback}>
+      <Suspense fallback={loadingFallback}>
         <ProfilePage setMobileHeaderActions={setMobileHeaderActions} />
       </Suspense>
     ) : activeKey === "saved" ? (
       <PageErrorBoundary key="saved" pageLabel="Saved">
-        <Suspense fallback={LoadingFallback}>
+        <Suspense fallback={loadingFallback}>
           <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
         </Suspense>
       </PageErrorBoundary>
     ) : activeKey === "messaging" ? (
       <PageErrorBoundary key="messaging" pageLabel="Messaging">
-        <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
+        <Suspense fallback={loadingFallback}>
+          <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
+        </Suspense>
       </PageErrorBoundary>
     ) : activeKey === "dashboard" ? (
-      <Suspense fallback={LoadingFallback}>
+      <Suspense fallback={loadingFallback}>
         <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
       </Suspense>
     ) : activeKey === "find_agents" ? (
       <PageErrorBoundary key="find-agents" pageLabel="Find agents">
-        <Suspense fallback={LoadingFallback}>
+        <Suspense fallback={loadingFallback}>
           <FindAgentsPage setMobileHeaderActions={setMobileHeaderActions} />
         </Suspense>
       </PageErrorBoundary>
     ) : activeKey === "agreement_signing_complete" ? (
       <PageErrorBoundary key="agreement-signing-complete" pageLabel="Signing">
-        <Suspense fallback={LoadingFallback}>
+        <Suspense fallback={loadingFallback}>
           <AgreementSigningCompletePage />
         </Suspense>
       </PageErrorBoundary>
     ) : null;
 
-  // When activeKey is null (e.g. brief match lag), show placeholder so main area is never blank.
-  const displayContent = content ?? LoadingFallback;
+  const displayContent = content ?? (
+    <DashboardRouteFallback variant={suspenseFallbackVariant(activeKey)} />
+  );
 
-  // Key by pathname so content remounts when navigating (e.g. from search to saved), avoiding stale UI.
   return (
     <Box
       key={route.pathname}

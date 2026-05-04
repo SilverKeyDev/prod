@@ -70,6 +70,8 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
   const handleToggle = () => {
     if (!disabled) onToggle();
   };
+  /** Completed steps may be non-interactive (cannot uncheck) but should still look checked, not "locked" gray. */
+  const checkedReadOnly = checked && disabled;
   const hasExplanation = Boolean(item.explanation?.trim());
   const hasBullets = Boolean(item.bullets && item.bullets.length > 0);
   const hasTip = Boolean(item.tip?.trim());
@@ -88,6 +90,7 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
         onChange={handleToggle}
         label={ariaLabel}
         disabled={disabled}
+        aria-readonly={checkedReadOnly ? true : undefined}
       />
       {/* visible square checkbox */}
       <Box
@@ -98,17 +101,19 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
         className={`mt-0.5 flex h-5 w-5 flex-shrink-0 flex-row items-center justify-center rounded border lg:h-6 lg:w-6 ${
           showInfoCue
             ? "border-border bg-background-surface pointer-events-none"
-            : `${HOVER_BG_CLASSES} ${
-                disabled
-                  ? "border-border bg-disabled cursor-not-allowed"
-                  : checked
-                    ? "border-primary bg-primary cursor-pointer"
-                    : "border-border-input cursor-pointer"
-              }`
+            : checkedReadOnly
+              ? "border-primary bg-primary pointer-events-none cursor-default"
+              : `${HOVER_BG_CLASSES} ${
+                  disabled
+                    ? "border-border bg-disabled cursor-not-allowed"
+                    : checked
+                      ? "border-primary bg-primary cursor-pointer"
+                      : "border-border-input cursor-pointer"
+                }`
         }`}
-        onClick={showInfoCue ? undefined : handleToggle}
+        onClick={showInfoCue || checkedReadOnly ? undefined : handleToggle}
         onKeyDown={(e) => {
-          if (disabled || showInfoCue) return;
+          if (disabled || showInfoCue || checkedReadOnly) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onToggle();

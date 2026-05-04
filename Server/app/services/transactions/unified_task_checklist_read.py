@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from app import db
 from app.models import TransactionTask
+from app.services.transactions.checklist_constants import TASK_CATEGORIES
 from app.services.transactions.checklist_rules import merge_task_checklist_checked_ids
 from app.services.transactions.checklist_signature_completion import (
     apply_signature_based_checked_ids,
@@ -13,8 +14,6 @@ from app.services.transactions.retrieval import (
     get_series_metadata,
     normalize_checklist_items_for_api,
 )
-
-TASK_CATEGORIES = frozenset({"search", "offer", "escrow", "financing", "closing", "insurance"})
 
 
 def replace_checked_ids_for_user(user_id: str, category: str, ids: list[int]) -> None:

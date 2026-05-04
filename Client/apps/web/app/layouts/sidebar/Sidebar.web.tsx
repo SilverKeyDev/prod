@@ -6,6 +6,7 @@ import { useIsAgent } from "packages/hooks/store";
 import { useViewStore, type ViewState } from "packages/store";
 import { useNotificationStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
+import { SIDEBAR_CHROME_SHELL } from "packages/ui/components/sidebar/sidebarTheme";
 
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
 import type { UserProfile } from "@/features/homeauth/types";
@@ -68,7 +69,7 @@ export default function Sidebar({
   const navigation = getNavigation(_isAgent, hasAgent, isMobile);
   return (
     <Box
-      className={`safe-top fixed left-0 top-0 z-sidebar h-full bg-background-sidebar text-white transition-all duration-300 ease-in-out ${
+      className={`safe-top fixed left-0 top-0 z-sidebar h-full ${SIDEBAR_CHROME_SHELL} transition-all duration-300 ease-in-out ${
         expanded ? "w-52 px-4" : "w-16 px-2"
       } `}
     >

@@ -44,6 +44,7 @@ from .user import (
     UserAdmin,
     UserAgentProfile,
     UserCalendarConnection,
+    UserClientSettings,
     UserCommunicationPrefs,
     UserDemographics,
     UserFinancials,
@@ -51,7 +52,6 @@ from .user import (
     UserIntegration,
     UserIntentAttribute,
     UserRole,
-    UserClientSettings,
     UserSearchDisplaySettings,
     UserSearchIntent,
 )

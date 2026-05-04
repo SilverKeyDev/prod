@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -11,6 +11,14 @@ import MiniLogo from "packages/ui/components/asset/MiniLogo";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, KeyTurnLoader, Title } from "@/components/ui";
+import {
+  agentClientKindTranslationKey,
+  pipelineStageTranslationKey,
+} from "@/features/agent/utils/agentClientListLabels";
+import {
+  type AgentClientSortMode,
+  sortAgentClients,
+} from "@/features/agent/utils/agentClientListSort";
 type ClientManagementProps = {
   clients: AgentClient[];
   isLoading: boolean;
@@ -26,9 +34,17 @@ export default function ClientManagement({
   const { t } = useLocalization();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [clientSort, setClientSort] = useState<AgentClientSortMode>("recent");
   const { conversations } = useAgentChats();
   // Create a map of client_id -> conversation for quick lookup
-  const conversationMap = new Map(conversations.map((conv) => [conv.client_id, conv]));
+  const conversationMap = useMemo(
+    () => new Map(conversations.map((conv) => [conv.client_id, conv])),
+    [conversations]
+  );
+  const sortedClients = useMemo(
+    () => sortAgentClients(clients, clientSort, conversationMap),
+    [clients, clientSort, conversationMap]
+  );
   return (
     <aside
       className={`${
@@ -69,6 +85,28 @@ export default function ClientManagement({
             )}
           </Box>
         </Box>
+        {clients.length > 0 && !isLoading ? (
+          <Box className="mt-2 flex gap-1 px-1">
+            {(
+              [
+                ["recent", "agent.sort_clients_recent"],
+                ["name", "agent.sort_clients_name"],
+                ["stage", "agent.sort_clients_stage"],
+              ] as const
+            ).map(([value, labelKey]) => (
+              <Button
+                key={value}
+                type="button"
+                variant={clientSort === value ? "secondary" : "ghost"}
+                className="flex-1 px-2 py-1.5 text-xs"
+                label={t(labelKey)}
+                onClick={() => setClientSort(value)}
+              >
+                {t(labelKey)}
+              </Button>
+            ))}
+          </Box>
+        ) : null}
       </Box>
 
       {/* Scrollable Client List */}
@@ -90,11 +128,14 @@ export default function ClientManagement({
             </BodyText>
           </Box>
         ) : (
-          clients.map((client) => {
+          sortedClients.map((client) => {
             const conversation = conversationMap.get(client.id);
             const messagePreview = conversation?.last_message
               ? getMessagePreview({ content: conversation.last_message })
               : null;
+            const kindLabel = t(agentClientKindTranslationKey(client.client_kind));
+            const stageLabel = t(pipelineStageTranslationKey(client.pipeline_stage));
+            const typeStageLine = `${kindLabel} · ${stageLabel}`;
             return (
               <Box
                 key={client.id}
@@ -123,6 +164,12 @@ export default function ClientManagement({
                     <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                       {client.name}
                     </Title>
+                    <BodyText
+                      as="p"
+                      className="mb-0.5 truncate text-xs font-medium text-neutral-700"
+                    >
+                      {typeStageLine}
+                    </BodyText>
                     {messagePreview ? (
                       <BodyText as="p" className="truncate text-xs text-neutral-600">
                         {messagePreview}

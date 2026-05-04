@@ -18,7 +18,6 @@ from app.utils.security.security import (
 )
 
 from ..core.credentials import load_credentials
-from .operations_list_events import list_events
 
 logger = get_logger()
 
@@ -287,3 +286,6 @@ def delete_event(
             f"Error deleting event {event_id} for user {user_id}: {error_msg}", exc_info=True
         )
         raise
+
+
+from .operations_list_events import list_events  # noqa: E402

@@ -4,16 +4,11 @@
  */
 
 export const TOUR_TARGETS_DESKTOP = {
-  searchLocation: "tour-d-search-location",
-  searchRun: "tour-d-search-run",
-  resultsTabs: "tour-d-results-tabs",
-  resultsList: "tour-d-results-list",
-  mapArea: "tour-d-map-area",
+  preferencesControl: "tour-d-preferences",
+  displayControl: "tour-d-display",
 } as const;
 
 export const TOUR_TARGETS_MOBILE = {
-  searchRun: "tour-m-search-run",
-  resultsTabs: "tour-m-results-tabs",
-  resultsList: "tour-m-results-list",
-  mapArea: "tour-m-map-area",
+  preferencesControl: "tour-m-preferences",
+  displayControl: "tour-m-display",
 } as const;

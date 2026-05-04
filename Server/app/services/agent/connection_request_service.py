@@ -2,27 +2,16 @@
 Service functions for managing agent-client connection requests
 """
 
-import json
 import logging
 import re
 from datetime import datetime, timezone
 
 from ... import db
 from ...models import AgentConnectionRequest, AgentConnections, User, UserAgentProfile
+from ...utils.json_string_list_parse import parse_json_or_csv_string_list
+from .client_service import append_unique_agent_id_for_client, append_unique_client_id
 
 logger = logging.getLogger(__name__)
-
-
-def _parse_json_str_list(raw: str | None) -> list[str]:
-    if not raw or not str(raw).strip():
-        return []
-    try:
-        data = json.loads(raw)
-        if isinstance(data, list):
-            return [str(x).strip() for x in data if x is not None and str(x).strip()]
-    except (json.JSONDecodeError, TypeError):
-        pass
-    return []
 
 
 def _normalize_zip(z: str | None) -> str | None:
@@ -46,16 +35,26 @@ def _tokenize(text: str | None) -> set[str]:
     return {t for t in re.split(r"[^\w]+", str(text).lower()) if len(t) > 1}
 
 
-def _agent_row_base(agent: User) -> dict:
+def _agent_row_base(agent: User, profile: UserAgentProfile | None = None) -> dict:
     created = agent.created_at
     if created is not None and created.tzinfo is None:
         created = created.replace(tzinfo=timezone.utc)
+    headshot = profile.professional_headshot_url if profile else None
+    headshot_t = headshot.strip() if headshot and str(headshot).strip() else None
+    user_pic = agent.profile_picture
+    user_pic_t = user_pic.strip() if user_pic and str(user_pic).strip() else None
+    profile_picture = headshot_t or user_pic_t
+    description = None
+    if profile and profile.agent_bio and str(profile.agent_bio).strip():
+        description = str(profile.agent_bio).strip()
     return {
         "id": agent.id,
         "name": agent.name,
         "email": agent.email,
         "phone": agent.phone,
         "created_at": created.isoformat() if created else None,
+        "profile_picture": profile_picture,
+        "description": description,
     }
 
 
@@ -64,6 +63,7 @@ def recommend_agents(
     state: str | None,
     intent: str | None,
     limit: int = 20,
+    exclude_agent_ids: set[str] | None = None,
 ) -> list[dict]:
     """
     Rank agents using v1 heuristics: primary_service_zips, licensed_states, specialties/bio vs intent.
@@ -91,21 +91,21 @@ def recommend_agents(
             reasons: list[str] = []
 
             if zip_norm and profile and profile.primary_service_zips:
-                zips_raw = _parse_json_str_list(profile.primary_service_zips)
+                zips_raw = parse_json_or_csv_string_list(profile.primary_service_zips)
                 zips_n = {z for z in (_normalize_zip(x) for x in zips_raw) if z}
                 if zip_norm in zips_n:
                     score += 5.0
                     reasons.append("zip")
 
             if state_norm and profile and profile.licensed_states:
-                states_raw = _parse_json_str_list(profile.licensed_states)
+                states_raw = parse_json_or_csv_string_list(profile.licensed_states)
                 states_u = {s.strip().upper() for s in states_raw if s and len(s.strip()) >= 2}
                 if state_norm in states_u:
                     score += 3.0
                     reasons.append("state")
 
             if intent_tokens and profile:
-                specs = _parse_json_str_list(profile.specialties)
+                specs = parse_json_or_csv_string_list(profile.specialties)
                 bio = profile.agent_bio or ""
                 corpus_tokens = _tokenize(" ".join(specs) + " " + bio)
                 overlap = intent_tokens & corpus_tokens
@@ -113,7 +113,11 @@ def recommend_agents(
                     score += float(min(5, len(overlap)))
                     reasons.append("specialty")
 
-            row = {**_agent_row_base(agent), "relevance_score": score, "match_reasons": reasons or None}
+            row = {
+                **_agent_row_base(agent, profile),
+                "relevance_score": score,
+                "match_reasons": reasons or None,
+            }
             created = agent.created_at
             scored.append((score, created, row))
 
@@ -125,25 +129,27 @@ def recommend_agents(
             return dt
 
         scored.sort(key=lambda t: (t[0], _sort_ts(t[1])), reverse=True)
+        excluded = exclude_agent_ids or set()
         if has_signals:
-            out = [t[2] for t in scored[:limit]]
-            return out
+            out_rows = [t[2] for t in scored if t[2]["id"] not in excluded][:limit]
+            return out_rows
 
         # Fallback: no signals from client — recent agents, neutral score
-        recent = (
-            User.query.filter(User.is_agent.is_(True))
-            .order_by(User.created_at.desc())
-            .limit(limit)
-            .all()
-        )
-        return [
-            {
-                **_agent_row_base(a),
-                "relevance_score": 0.0,
-                "match_reasons": None,
-            }
-            for a in recent
-        ]
+        q = User.query.filter(User.is_agent.is_(True))
+        if excluded:
+            q = q.filter(~User.id.in_(list(excluded)))
+        recent = q.order_by(User.created_at.desc()).limit(limit).all()
+        result = []
+        for a in recent:
+            prof = db.session.get(UserAgentProfile, a.id)
+            result.append(
+                {
+                    **_agent_row_base(a, prof),
+                    "relevance_score": 0.0,
+                    "match_reasons": None,
+                }
+            )
+        return result
 
     except Exception as e:
         logger.error(f"Error recommending agents: {e}", exc_info=True)
@@ -177,18 +183,7 @@ def search_agents(query: str, limit: int = 20) -> list[dict]:
 
         result = []
         for agent in agents:
-            created = agent.created_at
-            if created is not None and created.tzinfo is None:
-                created = created.replace(tzinfo=timezone.utc)
-            result.append(
-                {
-                    "id": agent.id,
-                    "name": agent.name,
-                    "email": agent.email,
-                    "phone": agent.phone,
-                    "created_at": created.isoformat() if created else None,
-                }
-            )
+            result.append(_agent_row_base(agent))
 
         return result
 
@@ -399,48 +394,10 @@ def respond_to_connection_request(
             agent = User.query.filter_by(id=request.agent_id).first()
             client = User.query.filter_by(id=request.client_id).first()
 
-            if agent and agent.client_ids:
-                try:
-                    client_ids = (
-                        json.loads(agent.client_ids)
-                        if isinstance(agent.client_ids, str)
-                        else agent.client_ids
-                    )
-                    if not isinstance(client_ids, list):
-                        client_ids = [client_ids] if client_ids else []
-                    if request.client_id not in client_ids:
-                        client_ids.append(request.client_id)
-                        agent.client_ids = json.dumps(client_ids)
-                except Exception:
-                    # Fall back to comma-separated
-                    client_ids = agent.client_ids.split(",") if agent.client_ids else []
-                    if request.client_id not in client_ids:
-                        client_ids.append(request.client_id)
-                        agent.client_ids = ",".join(client_ids)
-            elif agent:
-                agent.client_ids = json.dumps([request.client_id])
-
+            if agent:
+                append_unique_client_id(agent, request.client_id)
             if client:
-                if client.agent_id:
-                    try:
-                        agent_ids = (
-                            json.loads(client.agent_id)
-                            if isinstance(client.agent_id, str)
-                            else client.agent_id
-                        )
-                        if not isinstance(agent_ids, list):
-                            agent_ids = [agent_ids] if agent_ids else []
-                        if request.agent_id not in agent_ids:
-                            agent_ids.append(request.agent_id)
-                            client.agent_id = json.dumps(agent_ids)
-                    except Exception:
-                        # Fall back to comma-separated
-                        agent_ids = client.agent_id.split(",") if client.agent_id else []
-                        if request.agent_id not in agent_ids:
-                            agent_ids.append(request.agent_id)
-                            client.agent_id = ",".join(agent_ids)
-                else:
-                    client.agent_id = json.dumps([request.agent_id])
+                append_unique_agent_id_for_client(client, request.agent_id)
 
             # Set up calendar sharing between agent and client
             try:

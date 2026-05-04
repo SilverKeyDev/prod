@@ -33,6 +33,8 @@ export default function AgentDashboard({ setMobileHeaderActions }: AgentDashboar
           phone: null,
           profile_picture: conv.client_profile_picture ?? null,
           created_at: conv.created_at ?? null,
+          client_kind: "unknown",
+          pipeline_stage: "search",
         });
       }
     }

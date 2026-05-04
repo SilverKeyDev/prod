@@ -71,6 +71,23 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.role_buyer": "Buyer",
   "agent.role_agent": "Agent",
 
+  "agent.sort_clients_recent": "Recent",
+  "agent.sort_clients_name": "A–Z",
+  "agent.sort_clients_stage": "Stage",
+
+  "agent.client_kind.buyer": "Buyer",
+  "agent.client_kind.seller": "Seller",
+  "agent.client_kind.investor": "Investor",
+  "agent.client_kind.unknown": "Client",
+
+  "agent.pipeline_stage.search": "Search",
+  "agent.pipeline_stage.offer": "Offer",
+  "agent.pipeline_stage.escrow": "Escrow",
+  "agent.pipeline_stage.financing": "Financing",
+  "agent.pipeline_stage.closing": "Closing",
+  "agent.pipeline_stage.insurance": "Insurance",
+  "agent.pipeline_stage.unknown": "—",
+
   "client_selector.me": "Me",
   "client_selector.select_client": "Select Client",
   "client_selector.loading_clients": "Loading clients...",

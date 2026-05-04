@@ -26,6 +26,16 @@ properties:
     format: date-time
     nullable: true
     description: ISO 8601 timestamp of agent user creation when returned by search.
+  profile_picture:
+    type: string
+    nullable: true
+    description: |
+      Public profile image URL when available (professional headshot from agent profile,
+      otherwise the user account profile picture).
+  description:
+    type: string
+    nullable: true
+    description: Short public bio or summary for directory cards (e.g. agent_bio).
 example:
   id: "b2c3d4e5-f6a7-8901-bcde-f23456789012"
   name: "Taylor Agent"

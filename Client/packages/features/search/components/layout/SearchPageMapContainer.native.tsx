@@ -11,6 +11,7 @@ import { Loading } from "packages/ui/components/asset/loading/Loading";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { getNativeMapPinColorHex } from "packages/utils/format/mapMatchPinColors";
+import { getIsochroneUnionFillNativeRgba } from "packages/utils/maps/isochroneUnionStyle";
 
 import { searchPageMapContainerNativeStyles as styles } from "./searchPageMapContainerNative.styles";
 
@@ -128,7 +129,7 @@ export function SearchPageMapContainerNative({
                 coordinates={isochronePolygons.main}
                 strokeColor={color("olive.DEFAULT")}
                 strokeWidth={2}
-                fillColor="rgba(163, 177, 138, 0.15)"
+                fillColor={getIsochroneUnionFillNativeRgba()}
                 zIndex={polygonUnionZ}
               />
             ) : null}

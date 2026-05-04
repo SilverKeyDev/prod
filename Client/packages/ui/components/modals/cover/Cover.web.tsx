@@ -90,7 +90,7 @@ function CoverPanel({
                 <Title
                   as="h3"
                   size="sm"
-                  className="text-text-primary truncate font-medium sm:text-lg"
+                  className="text-text-primary truncate font-semibold leading-snug"
                 >
                   {title}
                 </Title>

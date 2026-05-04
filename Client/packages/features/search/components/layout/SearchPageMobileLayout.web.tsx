@@ -6,7 +6,6 @@ import type { SearchResult } from "packages/features/search/types";
 import type { SavedHome } from "packages/features/search/types/property";
 import IconButton from "packages/ui/components/button/IconButton";
 import { Box } from "packages/ui/components/primitives";
-import { TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
 
 import { SearchPageMapContainer } from "./SearchPageMapContainer.web";
 
@@ -96,10 +95,7 @@ export function SearchPageMobileLayout({
   return (
     <Box className="flex h-full flex-col md:hidden">
       <Box className="border-border bg-background-surface flex-shrink-0 border-b">
-        <Box
-          className="border-border flex items-center justify-center border-b"
-          id={TOUR_TARGETS_MOBILE.resultsTabs}
-        >
+        <Box className="border-border flex items-center justify-center border-b">
           <Tabs
             active={activeTab}
             onChange={handleTabChangeWithSideEffects}
@@ -132,7 +128,6 @@ export function SearchPageMobileLayout({
           className={`overflow-hidden transition-all duration-300 ease-in-out ${
             isCarouselCollapsed ? "max-h-0" : "max-h-[45vh]"
           }`}
-          id={TOUR_TARGETS_MOBILE.resultsList}
         >
           <Box className="py-3">
             <PropertyCarousel
@@ -151,7 +146,7 @@ export function SearchPageMobileLayout({
         </Box>
       </Box>
 
-      <Box className="relative flex-1" id={TOUR_TARGETS_MOBILE.mapArea}>
+      <Box className="relative flex-1">
         <SearchPageMapContainer
           mapRef={mobileMapRef}
           isLoading={isLoading}

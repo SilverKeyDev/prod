@@ -4,7 +4,6 @@ import { SidebarList } from "packages/features/search/components/list/SidebarLis
 import { Tabs } from "packages/features/search/components/list/Tabs.web";
 import type { SearchResult } from "packages/features/search/types";
 import { Box } from "packages/ui/components/primitives";
-import { TOUR_TARGETS_DESKTOP } from "packages/utils/tour/tourTargets";
 
 import { SearchPageMapContainer } from "./SearchPageMapContainer.web";
 
@@ -117,9 +116,9 @@ export function SearchPageDesktopLayout({
 
   return (
     <Box className="gap-responsive-md hidden h-full md:flex">
-      <Box className="flex w-64 flex-shrink-0 flex-col">
-        <Box className="border-border bg-background-surface flex h-full flex-col rounded-tr-lg border p-4">
-          <Box id={TOUR_TARGETS_DESKTOP.resultsTabs}>
+      <Box className="flex h-full w-64 flex-shrink-0 flex-col overflow-hidden rounded-tr-lg border border-border">
+        <Box className="bg-sidebar shrink-0 px-4 pt-4 text-sidebar-foreground">
+          <Box>
             <Tabs
               active={activeTab}
               onChange={handleTabChangeWithSideEffects}
@@ -129,8 +128,10 @@ export function SearchPageDesktopLayout({
               }}
             />
           </Box>
+        </Box>
 
-          <Box className="flex-1 overflow-hidden" id={TOUR_TARGETS_DESKTOP.resultsList}>
+        <Box className="border-border bg-background-surface flex min-h-0 flex-1 flex-col border-t p-4">
+          <Box className="flex-1 overflow-hidden">
             <SidebarList
               items={activeTab === "results" ? filteredSearchResults : savedHomes}
               selectedId={selectedPropertyId}
@@ -168,10 +169,7 @@ export function SearchPageDesktopLayout({
           </Box>
         </Box>
 
-        <Box
-          className="border-border bg-background-surface relative flex-1 overflow-hidden rounded-tl-lg border"
-          id={TOUR_TARGETS_DESKTOP.mapArea}
-        >
+        <Box className="border-border bg-background-surface relative flex-1 overflow-hidden rounded-tl-lg border">
           <SearchPageMapContainer
             mapRef={desktopMapRef}
             isLoading={isLoading}

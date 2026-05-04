@@ -8,6 +8,7 @@ import {
 } from "packages/features/search/components/header/searchHeaderConstants";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
@@ -60,17 +61,19 @@ export default function SearchFilterBar({
   if (variant === "mobile") {
     return (
       <>
-        <Button
-          variant="cancel"
-          size="sm"
-          iconName="sliders-horizontal"
-          onClick={() => setSheetOpen(true)}
-          className={`touch-friendly shrink-0 ${HEADER_ROW_HEIGHT}`}
-          aria-expanded={sheetOpen}
-          aria-haspopup="dialog"
-        >
-          {t("search.filters")}
-        </Button>
+        <Box id={TOUR_TARGETS_MOBILE.preferencesControl} className="inline-flex shrink-0">
+          <Button
+            variant="cancel"
+            size="sm"
+            iconName="sliders-horizontal"
+            onClick={() => setSheetOpen(true)}
+            className={`touch-friendly shrink-0 ${HEADER_ROW_HEIGHT}`}
+            aria-expanded={sheetOpen}
+            aria-haspopup="dialog"
+          >
+            {t("search.filters")}
+          </Button>
+        </Box>
         <SearchFiltersSheet
           open={sheetOpen}
           onClose={() => setSheetOpen(false)}
@@ -89,7 +92,10 @@ export default function SearchFilterBar({
   }
 
   return (
-    <Box className={`flex min-w-0 flex-nowrap items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
+    <Box
+      id={TOUR_TARGETS_DESKTOP.preferencesControl}
+      className={`flex min-w-0 flex-nowrap items-center gap-2 ${HEADER_ROW_HEIGHT}`}
+    >
       <Popover
         open={popoverOpen}
         onOpenChange={(open) => {

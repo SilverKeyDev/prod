@@ -12,6 +12,7 @@ from unittest.mock import Mock, patch
 import pytest
 from flask.testing import FlaskClient
 
+from app.models import User
 from app.schemas.generated import (
     AgentSearchResult,
     AgreementStatus,
@@ -19,8 +20,8 @@ from app.schemas.generated import (
     ErrorResponse,
     FavoriteHomesResponse,
     LoginData,
-    RecommendedAgentsResponse,
     RecommendedAgentResult,
+    RecommendedAgentsResponse,
     SavedHome,
     SearchAgentsResponse,
     UserResponse,
@@ -148,12 +149,16 @@ class TestOpenAPIContracts:
         assert response.status_code == 200
         RecommendedAgentsResponse.model_validate(response.get_json())
 
-    def test_recommended_agents_unauthorized_matches_error_schema(self, client: FlaskClient) -> None:
+    def test_recommended_agents_unauthorized_matches_error_schema(
+        self, client: FlaskClient
+    ) -> None:
         response = client.get("/api/v1/agent/recommended-agents")
         assert response.status_code == 401
         ErrorResponse.model_validate(response.get_json())
 
-    def test_recommended_agents_row_matches_schema(self, app, authenticated_client: FlaskClient) -> None:
+    def test_recommended_agents_row_matches_schema(
+        self, app, authenticated_client: FlaskClient
+    ) -> None:
         from app import db
         from app.models import User, UserAgentProfile
 
@@ -189,6 +194,57 @@ class TestOpenAPIContracts:
             RecommendedAgentResult.model_validate(agents[0])
         finally:
             with app.app_context():
+                prof_row = db.session.get(UserAgentProfile, aid)
+                if prof_row is not None:
+                    db.session.delete(prof_row)
+                user_row = db.session.get(User, aid)
+                if user_row is not None:
+                    db.session.delete(user_row)
+                db.session.commit()
+
+    def test_recommended_agents_excludes_connected_agent(
+        self, app, authenticated_client: FlaskClient, contract_user: User
+    ) -> None:
+        from app import db
+        from app.models import AgentConnections, User, UserAgentProfile
+
+        with app.app_context():
+            agent = User(
+                email="connected-rec-agent@example.com",
+                name="Connected Rec Agent",
+                is_active=True,
+                is_agent=True,
+                cognito_id="connected-rec-cognito",
+            )
+            db.session.add(agent)
+            db.session.flush()
+            prof = UserAgentProfile(
+                user_id=agent.id,
+                primary_service_zips=json.dumps(["90210"]),
+                licensed_states=json.dumps(["CA"]),
+                specialties=json.dumps(["condo"]),
+                agent_bio="Already your agent",
+            )
+            db.session.add(prof)
+            conn = AgentConnections(agent_id=agent.id, client_id=contract_user.id)
+            db.session.add(conn)
+            db.session.commit()
+            aid = agent.id
+            cid = conn.id
+        try:
+            response = authenticated_client.get(
+                "/api/v1/agent/recommended-agents?zip=90210&state=CA&intent=condo%20buyer"
+            )
+            assert response.status_code == 200
+            body = response.get_json()
+            RecommendedAgentsResponse.model_validate(body)
+            agents = body.get("agents") or []
+            assert all(row.get("id") != aid for row in agents)
+        finally:
+            with app.app_context():
+                conn_row = db.session.get(AgentConnections, cid)
+                if conn_row is not None:
+                    db.session.delete(conn_row)
                 prof_row = db.session.get(UserAgentProfile, aid)
                 if prof_row is not None:
                     db.session.delete(prof_row)

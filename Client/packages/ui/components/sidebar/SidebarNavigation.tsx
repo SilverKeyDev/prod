@@ -7,6 +7,11 @@ import { spacing } from "packages/design-tokens";
 import { useResponsive } from "packages/hooks/ui";
 import type { NavItem } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
+import {
+  getInsetNavItemClasses,
+  getInsetNavItemIconClasses,
+  getInsetNavItemLabelClasses,
+} from "packages/ui/components/sidebar/sidebarTheme";
 
 type SidebarNavigationProps = {
   items: NavItem[];
@@ -106,21 +111,16 @@ export default function SidebarNavigation({
                     contentAlign="start"
                     onClick={() => onItemClick(item.key)}
                     disabled={item.disabled}
-                    className={`group flex min-h-9 w-full items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
-                      isActive
-                        ? "!bg-neutral-100 !text-neutral-800 hover:!bg-neutral-100 hover:font-semibold hover:!text-neutral-800 active:!bg-neutral-100 active:font-semibold active:!text-neutral-800"
-                        : "text-neutral-700 hover:!bg-neutral-100 hover:text-neutral-800 active:!bg-neutral-100 active:text-neutral-800"
-                    } ${item.disabled ? "bg-disabled text-text-disabled cursor-not-allowed" : ""}`}
+                    className={`${getInsetNavItemClasses({
+                      active: isActive,
+                      disabled: item.disabled,
+                    })}`}
                     title={!isLargeScreen ? item.label : undefined}
                     icon={
                       IconComponent ? (
                         <IconComponent
                           size={20}
-                          className={`size-5 flex-shrink-0 transition-colors ${
-                            isActive
-                              ? "!text-neutral-800 group-hover:!text-neutral-800"
-                              : "text-neutral-600 group-hover:text-neutral-800"
-                          }`}
+                          className={getInsetNavItemIconClasses(isActive)}
                         />
                       ) : undefined
                     }
@@ -128,11 +128,7 @@ export default function SidebarNavigation({
                     {isLargeScreen && (
                       <BodyText
                         as="span"
-                        className={`text-left text-sm font-medium transition-colors ${
-                          isActive
-                            ? "!text-neutral-800 group-hover:!font-semibold group-hover:!text-neutral-800"
-                            : "text-neutral-600 group-hover:text-neutral-800"
-                        }`}
+                        className={getInsetNavItemLabelClasses(isActive)}
                       >
                         {item.label}
                       </BodyText>

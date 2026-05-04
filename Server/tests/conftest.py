@@ -15,6 +15,7 @@ from flask_sqlalchemy import SQLAlchemy
 # Set test environment before importing app
 os.environ["TESTING"] = "true"
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ.setdefault("JWT_SIGNING_SECRET", "test-jwt-signing-secret-not-for-production")
 
 
 @pytest.fixture
@@ -69,7 +70,8 @@ _COGNITO_IMPORT_PATHS = (
     "app.services.auth.flows.verification.AWS_COGNITO_service",
     "app.services.auth.flows.refresh_handlers.AWS_COGNITO_service",
     "app.services.auth.flows.password_reset.AWS_COGNITO_service",
-    "app.routes.auth.handlers.password.AWS_COGNITO_service",
+    "app.routes.auth.handlers.password.forgot.AWS_COGNITO_service",
+    "app.routes.auth.handlers.password.reset.AWS_COGNITO_service",
 )
 
 
@@ -216,7 +218,9 @@ def mock_google_calendar():
     build_patch_targets = (
         "googleapiclient.discovery.build",
         "app.services.calendar.events.operations.build",
-        "app.services.calendar.calendars.management.build",
+        "app.services.calendar.events.operations_list_events.build",
+        "app.services.calendar.calendars.calendar_create.build",
+        "app.services.calendar.calendars.silverkey_calendar.build",
         "app.services.calendar.calendars.sharing.build",
         "app.services.calendar.calendars.resolution.build",
         "app.services.calendar.availability.freebusy.build",

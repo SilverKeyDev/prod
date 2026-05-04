@@ -1,10 +1,9 @@
 import { useCallback } from "react";
 
-import { Icon } from "@ui/icons";
-
 import { useLocalization } from "packages/contexts";
 import { useNavigation } from "packages/navigation";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import { ProfileAvatar } from "packages/ui/components/avatar";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 import { buildAgentProfileUrl } from "packages/utils/agent";
@@ -26,7 +25,7 @@ export function AgentDiscoveryView({
   className = "",
 }: AgentDiscoveryViewProps) {
   const { t } = useLocalization();
-  const { navigateToPath } = useNavigation();
+  const { getCurrentRoute, navigateToPath } = useNavigation();
   const discoveryContext = useAgentDiscoveryContext();
   const { recommendedAgents, isLoading, error, refetch } = useRecommendedAgents(
     discoveryContext,
@@ -40,9 +39,11 @@ export function AgentDiscoveryView({
         return;
       }
       const name = agent.name?.trim() || "Agent";
-      navigateToPath(buildAgentProfileUrl(agent.id, name));
+      const { pathname, search } = getCurrentRoute();
+      const returnTo = `${pathname}${search}`;
+      navigateToPath(buildAgentProfileUrl(agent.id, name), { state: { returnTo } });
     },
-    [navigateToPath, onOpenAgentProfileProp]
+    [getCurrentRoute, navigateToPath, onOpenAgentProfileProp]
   );
 
   const renderRecommendedRow = (agent: RecommendedAgentResult) => (
@@ -58,15 +59,19 @@ export function AgentDiscoveryView({
         onClick={() => openProfile(agent)}
         className="flex h-auto min-h-0 flex-1 items-start justify-start gap-3 py-0 text-left"
       >
-        <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-          <Icon name="user" className="h-5 w-5 text-black" />
+        <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full">
+          <ProfileAvatar
+            imageUrl={agent.profile_picture}
+            label={agent.name?.trim() || "Agent"}
+            imageClassName="h-full w-full object-cover"
+          />
         </Box>
         <Box className="min-w-0 flex-1">
           <Title as="h3" size="sm" className="font-medium text-black">
             {agent.name}
           </Title>
-          <BodyText as="p" size="sm" className="text-text-secondary truncate">
-            {agent.email}
+          <BodyText as="p" size="sm" className="text-text-secondary line-clamp-2">
+            {agent.description?.trim() || agent.email}
           </BodyText>
           {agent.match_reasons?.length ? (
             <BodyText as="p" size="xs" className="text-text-disabled mt-1">

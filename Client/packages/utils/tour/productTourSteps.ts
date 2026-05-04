@@ -32,47 +32,20 @@ export function getSearchProductTourSteps(
   if (layout === "desktop") {
     return [
       {
-        element: sel(d.searchLocation),
+        element: sel(d.preferencesControl),
         popover: {
-          title: tourCopy("search.product_tour.desktop.search_location_title"),
-          description: tourCopy("search.product_tour.desktop.search_location_description"),
+          title: tourCopy("search.product_tour.desktop.preferences_title"),
+          description: tourCopy("search.product_tour.desktop.preferences_description"),
           side: "bottom",
           align: "start",
         },
       },
       {
-        element: sel(d.searchRun),
+        element: sel(d.displayControl),
         popover: {
-          title: tourCopy("search.product_tour.desktop.run_search_title"),
-          description: tourCopy("search.product_tour.desktop.run_search_description"),
+          title: tourCopy("search.product_tour.desktop.display_title"),
+          description: tourCopy("search.product_tour.desktop.display_description"),
           side: "bottom",
-          align: "center",
-        },
-      },
-      {
-        element: sel(d.resultsTabs),
-        popover: {
-          title: tourCopy("search.product_tour.desktop.results_tabs_title"),
-          description: tourCopy("search.product_tour.desktop.results_tabs_description"),
-          side: "right",
-          align: "start",
-        },
-      },
-      {
-        element: sel(d.resultsList),
-        popover: {
-          title: tourCopy("search.product_tour.desktop.listing_cards_title"),
-          description: tourCopy("search.product_tour.desktop.listing_cards_description"),
-          side: "right",
-          align: "start",
-        },
-      },
-      {
-        element: sel(d.mapArea),
-        popover: {
-          title: tourCopy("search.product_tour.desktop.map_title"),
-          description: tourCopy("search.product_tour.desktop.map_description"),
-          side: "left",
           align: "start",
         },
       },
@@ -81,38 +54,20 @@ export function getSearchProductTourSteps(
 
   return [
     {
-      element: sel(m.searchRun),
+      element: sel(m.preferencesControl),
       popover: {
-        title: tourCopy("search.product_tour.mobile.search_title"),
-        description: tourCopy("search.product_tour.mobile.search_description"),
-        side: "bottom",
-        align: "center",
-      },
-    },
-    {
-      element: sel(m.resultsTabs),
-      popover: {
-        title: tourCopy("search.product_tour.mobile.results_tabs_title"),
-        description: tourCopy("search.product_tour.mobile.results_tabs_description"),
+        title: tourCopy("search.product_tour.mobile.preferences_title"),
+        description: tourCopy("search.product_tour.mobile.preferences_description"),
         side: "bottom",
         align: "start",
       },
     },
     {
-      element: sel(m.resultsList),
+      element: sel(m.displayControl),
       popover: {
-        title: tourCopy("search.product_tour.mobile.carousel_title"),
-        description: tourCopy("search.product_tour.mobile.carousel_description"),
+        title: tourCopy("search.product_tour.mobile.display_title"),
+        description: tourCopy("search.product_tour.mobile.display_description"),
         side: "bottom",
-        align: "start",
-      },
-    },
-    {
-      element: sel(m.mapArea),
-      popover: {
-        title: tourCopy("search.product_tour.mobile.map_title"),
-        description: tourCopy("search.product_tour.mobile.map_description"),
-        side: "top",
         align: "start",
       },
     },

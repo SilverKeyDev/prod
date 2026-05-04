@@ -58,6 +58,29 @@ function applyLocks(
   }
 }
 
+function completionTypeRaw(item: TaskChecklistItem): string {
+  const raw =
+    (item as { completionType?: string; completion_type?: string }).completionType ??
+    (item as { completion_type?: string }).completion_type ??
+    "";
+  return String(raw);
+}
+
+/** Re-add ids already stored as checked; users cannot remove progress via PUT (prune steps may still fix invalid sets). */
+function applyPersistedCheckedIds(
+  checked: Set<number>,
+  sortedItems: TaskChecklistItem[],
+  oldChecked: ReadonlySet<number>
+): void {
+  const byId = new Map(sortedItems.map((it) => [it.id, it]));
+  for (const iid of oldChecked) {
+    const item = byId.get(iid);
+    if (item == null) continue;
+    if (completionTypeRaw(item) === "signature_based") continue;
+    checked.add(iid);
+  }
+}
+
 function pruneSequential(checked: Set<number>, sortedItems: TaskChecklistItem[]): void {
   for (;;) {
     let changed = false;
@@ -119,6 +142,7 @@ export function mergeTaskChecklistCheckedIds(
   for (let n = 0; n < maxIter; n++) {
     const before = signature(checked);
     applyAutoComplete(checked, sortedItems);
+    applyPersistedCheckedIds(checked, sortedItems, oldChecked);
     applyLocks(checked, sortedItems, oldChecked);
     pruneSequential(checked, sortedItems);
     pruneSelectable(checked, sortedItems);
@@ -145,6 +169,7 @@ export function passesSequentialForCheck(
 export type ChecklistItemToggleEligibility = {
   /** User may check the box to mark the step complete (false when `completionRequiresSubmit`). */
   canCheck: boolean;
+  /** Always false: completed steps cannot be cleared from the checklist UI. */
   canUncheck: boolean;
   /**
    * Unchecked step may be marked complete (checkbox or integration submit) when sequential
@@ -186,9 +211,8 @@ export function getChecklistItemToggleEligibility(
   const submitOnly = item.completionRequiresSubmit === true;
   const canCheck = canMarkChecked && !submitOnly;
 
-  const lockActive =
-    item.lock_uncheck_when != null && evaluateChecklistCondition(item.lock_uncheck_when, checked);
-  const canUncheck = isChecked && !lockActive;
+  /** Checked steps cannot be cleared from the UI; server merge also re-adds stored ids (see sticky merge). */
+  const canUncheck = false;
 
   return { canCheck, canUncheck, canMarkChecked };
 }

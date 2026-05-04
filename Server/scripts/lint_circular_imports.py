@@ -27,7 +27,7 @@ def main() -> int:
     if not os.environ.get("DATABASE_URL"):
         os.environ["DATABASE_URL"] = "sqlite:///:memory:"
     if not os.environ.get("AWS_SECRET_ACCESS_KEY"):
-        os.environ["AWS_SECRET_ACCESS_KEY"] = "lint-placeholder-not-a-real-secret"
+        os.environ["AWS_SECRET_ACCESS_KEY"] = "placeholder"
 
     try:
         from app import create_app  # noqa: F401

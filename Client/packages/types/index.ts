@@ -12,6 +12,10 @@
  * Shared types barrel - re-exports from feature packages and generated schema.
  */
 
+export type {
+  ExtendedGoogleEvent,
+  ProfileAvailabilityEventMeta,
+} from "./calendar/extendedGoogleEvent";
 export type { PropertyDetailsStreamProperty } from "./domain/propertyDetailsStream";
 export type { SavedHome, SavedHomeRecord } from "./domain/savedHome";
 export type { GoogleCalendar, GoogleEvent } from "./integrations/googleCalendar";

@@ -163,7 +163,7 @@ export class NegotiationService {
         });
       }
 
-      log.info("NEGOTIATION_SERVICE", "Data saved to localStorage successfully");
+      log.info("NEGOTIATION_SERVICE", "Negotiation data saved to sessionStorage");
     } catch (err: unknown) {
       this.currentAbortController = null;
 

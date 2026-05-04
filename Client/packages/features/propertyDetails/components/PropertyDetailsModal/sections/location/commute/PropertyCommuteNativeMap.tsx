@@ -15,6 +15,7 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 import { buildGoogleStreetViewUrl } from "packages/utils/maps/googleMapsLinks";
+import { getIsochroneUnionFillNativeRgba } from "packages/utils/maps/isochroneUnionStyle";
 import {
   getGoogleMapIdForNative,
   getUseGoogleMapsProvider,
@@ -129,7 +130,7 @@ export function PropertyCommuteNativeMap({
                   coordinates={isochronePolygons.main}
                   strokeColor={color("olive.DEFAULT")}
                   strokeWidth={2}
-                  fillColor="rgba(163, 177, 138, 0.15)"
+                  fillColor={getIsochroneUnionFillNativeRgba()}
                   zIndex={COMMUTE_NATIVE_POLYGON_UNION_Z}
                 />
               ) : null}

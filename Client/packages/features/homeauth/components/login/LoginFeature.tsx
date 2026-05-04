@@ -108,11 +108,7 @@ export function LoginFeature() {
         <AuthDivider />
 
         <GoogleSignInButton text="Sign in with Google" />
-        <BodyText
-          as="p"
-          size="xs"
-          className="text-text-secondary/90 text-center leading-relaxed"
-        >
+        <BodyText as="p" size="xs" className="text-text-secondary/90 text-center leading-relaxed">
           By signing in (including with Google), you agree to our{" "}
           <AuthLink
             to={ROUTES.TERMS}

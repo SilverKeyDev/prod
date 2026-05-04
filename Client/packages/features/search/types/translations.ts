@@ -108,32 +108,19 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.agent_share_homes_selected": "{{count}} homes selected to share",
 
   /** Product tour (driver.js): keyed copy for future locale bundles — see `packages/utils/tour/productTourSteps`. */
-  "search.product_tour.desktop.search_location_title": "Search location",
-  "search.product_tour.desktop.search_location_description":
-    "Enter a city, neighborhood, or ZIP. The map focuses here before you run a search.",
-  "search.product_tour.desktop.run_search_title": "Run search",
-  "search.product_tour.desktop.run_search_description":
-    "Tap Search to load homes for this area using your preferences and filters.",
-  "search.product_tour.desktop.results_tabs_title": "Results and saved",
-  "search.product_tour.desktop.results_tabs_description":
-    "Switch between fresh results from your search and homes you have saved.",
-  "search.product_tour.desktop.listing_cards_title": "Listing cards",
-  "search.product_tour.desktop.listing_cards_description":
-    "Browse matches here. Select a home to see details and the map selection.",
-  "search.product_tour.desktop.map_title": "Map",
-  "search.product_tour.desktop.map_description":
-    "Explore geographically. Zoom and pan to refine what you are looking at.",
+  "search.product_tour.desktop.preferences_title": "Preferences",
+  "search.product_tour.desktop.preferences_description":
+    "Open Preferences for budgets, beds and baths, commute and important locations, and the other fields that shape your matches. Changes save to your profile.",
 
-  "search.product_tour.mobile.search_title": "Search",
-  "search.product_tour.mobile.search_description":
-    "Use filters, then Search to load homes. Cancel stops an in-progress search.",
-  "search.product_tour.mobile.results_tabs_title": "Results and saved",
-  "search.product_tour.mobile.results_tabs_description":
-    "Toggle between search results and your saved homes.",
-  "search.product_tour.mobile.carousel_title": "Carousel",
-  "search.product_tour.mobile.carousel_description":
-    "Swipe through listings. Expand or collapse this strip as needed.",
-  "search.product_tour.mobile.map_title": "Map",
-  "search.product_tour.mobile.map_description":
-    "View homes on the map and pinch or zoom to explore the area.",
+  "search.product_tour.desktop.display_title": "Display",
+  "search.product_tour.desktop.display_description":
+    "Open Display to change how results are ordered and sorted, toggle show commute area on the map, and turn match all preferences strictly on or off.",
+
+  "search.product_tour.mobile.preferences_title": "Filters",
+  "search.product_tour.mobile.preferences_description":
+    "Open Filters for the same preference controls as on desktop—budget, home details, commute and locations, and more. They stay in sync with your profile.",
+
+  "search.product_tour.mobile.display_title": "Display",
+  "search.product_tour.mobile.display_description":
+    "Open Display for order by, sort direction, show commute area, and match all preferences strictly—the same options as on larger screens.",
 };

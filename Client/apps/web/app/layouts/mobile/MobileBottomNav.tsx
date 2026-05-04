@@ -11,6 +11,7 @@ import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
 import { NotificationBadge } from "packages/ui/components/primitives/index.web";
 
+import { prefetchDashboardShellRoute } from "@/app/layouts/dashboard/dashboardRoutePrefetch";
 import { SIDEBAR_TABS, type SidebarTabKey } from "@/app/layouts/sidebar/sidebarTabs.web";
 import type { UserProfile } from "@/features/homeauth/types";
 
@@ -22,10 +23,10 @@ const BOTTOM_NAV_KEYS: SidebarTabKey[] = ["dashboard", "search", "decide", "agen
 const navItems = BOTTOM_NAV_KEYS.map((k) => SIDEBAR_TABS[k]);
 
 const BAR_CLASS =
-  "fixed inset-x-0 bottom-0 z-dock flex w-full min-h-[4rem] flex-col border-t border-border bg-background-sidebar shadow-lg md:hidden";
+  "fixed inset-x-0 bottom-0 z-dock flex w-full min-h-[4rem] flex-col border-t border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg md:hidden";
 function linkClass(active: boolean): string {
   return `flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-200 ${
-    active ? "text-white" : "text-white/80 active:text-white/95"
+    active ? "text-sidebar-foreground" : "text-sidebar-muted-foreground active:text-sidebar-foreground/95"
   }`;
 }
 function iconClass(active: boolean): string {
@@ -74,6 +75,9 @@ function BottomNavItems({
             aria-label={item.name}
             aria-current={active ? "page" : undefined}
             onNavigateClick={onSearchNavigateClick}
+            onMouseEnter={() => prefetchDashboardShellRoute(item.href)}
+            onFocus={() => prefetchDashboardShellRoute(item.href)}
+            onTouchStart={() => prefetchDashboardShellRoute(item.href)}
           >
             {content}
           </SearchNavLink>
@@ -84,6 +88,9 @@ function BottomNavItems({
             className={linkClass(active)}
             aria-label={item.name}
             aria-current={active ? "page" : undefined}
+            onMouseEnter={() => prefetchDashboardShellRoute(item.href)}
+            onFocus={() => prefetchDashboardShellRoute(item.href)}
+            onTouchStart={() => prefetchDashboardShellRoute(item.href)}
             onClick={() => {
               const navId = genNavId();
               log.info(LOG_CATEGORIES.ROUTING, "[NAV] MobileBottomNav click", {

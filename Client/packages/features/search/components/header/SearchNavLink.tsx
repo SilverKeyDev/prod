@@ -1,3 +1,5 @@
+import type { ComponentProps } from "react";
+
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useSearchViewStore } from "packages/store";
@@ -21,7 +23,10 @@ type SearchNavLinkProps = {
   onClick?: () => void;
   /** Called before navigation log with same navId for correlating downstream logs (e.g. MobileBottomNav). */
   onNavigateClick?: (navId: string) => void;
-};
+} & Pick<
+  ComponentProps<typeof AccessibleLink>,
+  "onMouseEnter" | "onFocus" | "onTouchStart"
+>;
 
 /**
  * Link for Search tab - uses standard navigation semantics while logging route context.
@@ -34,6 +39,9 @@ export function SearchNavLink({
   "aria-current": ariaCurrent,
   onClick: onLinkClick,
   onNavigateClick,
+  onMouseEnter,
+  onFocus,
+  onTouchStart,
 }: SearchNavLinkProps) {
   const { getCurrentRoute } = useNavigation();
   const route = getCurrentRoute();
@@ -62,6 +70,9 @@ export function SearchNavLink({
       title={title}
       label={label}
       aria-current={ariaCurrent}
+      onMouseEnter={onMouseEnter}
+      onFocus={onFocus}
+      onTouchStart={onTouchStart}
     >
       {children}
     </AccessibleLink>

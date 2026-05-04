@@ -3,7 +3,6 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
-import { TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
 
 import { Button, CancelButton, IconButton } from "@/components/ui";
 
@@ -54,10 +53,7 @@ export default function SearchActions({
   const btnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
   if (variant === "mobile") {
     return (
-      <Box
-        className={`flex w-full flex-shrink-0 items-center gap-2 ${HEADER_ROW_HEIGHT}`}
-        id={TOUR_TARGETS_MOBILE.searchRun}
-      >
+      <Box className={`flex w-full flex-shrink-0 items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
         <Box className="flex min-w-0 flex-1 items-center gap-2">
           <SearchFiltersDropdown
             variant="mobile"

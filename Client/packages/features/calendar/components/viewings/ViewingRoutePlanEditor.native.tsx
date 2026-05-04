@@ -246,7 +246,13 @@ export function ViewingRoutePlanEditor({
           <Button
             type="button"
             size="sm"
-            variant={endMode === "last_property" ? "secondary" : "outline"}
+            variant="ghost"
+            iconName="flag"
+            className={
+              endMode === "last_property"
+                ? "border border-neutral-400 bg-neutral-100"
+                : "border border-transparent text-text-secondary"
+            }
             onPress={() => onEndModeChange("last_property")}
           >
             Last property
@@ -254,7 +260,13 @@ export function ViewingRoutePlanEditor({
           <Button
             type="button"
             size="sm"
-            variant={endMode === "return_to_start" ? "secondary" : "outline"}
+            variant="ghost"
+            iconName="refresh-cw"
+            className={
+              endMode === "return_to_start"
+                ? "border border-olive bg-olive-muted [&_*]:text-olive"
+                : "border border-transparent text-text-secondary"
+            }
             onPress={() => onEndModeChange("return_to_start")}
             disabled={!viewingEndpointHasRoutingInput(startEndpoint)}
           >
@@ -263,7 +275,13 @@ export function ViewingRoutePlanEditor({
           <Button
             type="button"
             size="sm"
-            variant={endMode === "fixed" ? "secondary" : "outline"}
+            variant="ghost"
+            iconName="map-pin"
+            className={
+              endMode === "fixed"
+                ? "border border-gold bg-gold-muted [&_*]:text-gold"
+                : "border border-transparent text-text-secondary"
+            }
             onPress={() => onEndModeChange("fixed")}
           >
             Fixed location

@@ -12,9 +12,9 @@ from .operations import (
     create_event,
     delete_event,
     get_event,
-    list_events,
     update_event,
 )
+from .operations_list_events import list_events
 
 __all__ = [
     "list_events",

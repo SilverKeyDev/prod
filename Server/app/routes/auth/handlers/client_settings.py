@@ -9,13 +9,13 @@ from flask import current_app, jsonify, request
 from app import db
 from app.models.user.user_client_settings import UserClientSettings
 from app.schemas import ClientSettingsResponse
+from app.services.auth import SecurityException, get_current_user
 from app.services.client_settings import (
     assert_settings_size,
     default_settings,
     merge_and_sanitize,
     sanitize_settings,
 )
-from app.services.auth import SecurityException, get_current_user
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.security.security import security_error_response
 from app.utils.validation import validate_response

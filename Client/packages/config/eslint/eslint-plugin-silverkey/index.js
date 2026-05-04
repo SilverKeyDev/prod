@@ -33,5 +33,6 @@ module.exports = {
     "primitives-justification": require("./rules/platform/primitives-justification"),
     "variants-justification": require("./rules/platform/variants-justification"),
     "layouts-justification": require("./rules/platform/layouts-justification"),
+    "no-cross-feature-utils-imports": require("./rules/architecture/no-cross-feature-utils-imports"),
   },
 };

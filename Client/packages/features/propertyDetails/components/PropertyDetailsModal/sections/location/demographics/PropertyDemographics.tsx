@@ -10,62 +10,30 @@ import {
 } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/neighborhood/propertyNeighborhoodHelpers";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
+import { buildPropertyDemographicsViewModel } from "packages/features/propertyDetails/utils/propertyDemographicsModel";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
-import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
-import { stripSectionRatingField } from "packages/utils/propertyDetails";
 
 type PropertyDemographicsProps = PropertyComponentProps & {
   analysisContent?: unknown;
 };
 
 export const PropertyDemographics: React.FC<PropertyDemographicsProps> = ({ analysisContent }) => {
-  const neighborhoodOverview = analysisContent as Record<string, unknown> | undefined;
+  const vm = buildPropertyDemographicsViewModel(analysisContent);
+  if (!vm) return null;
 
-  const ageDistribution = neighborhoodOverview?.age_distribution as
-    | Record<string, string>
-    | undefined;
-  const raceDistribution = neighborhoodOverview?.race_distribution as
-    | Record<string, string>
-    | undefined;
-  const incomeDistribution = neighborhoodOverview?.income_distribution as
-    | Record<string, string>
-    | undefined;
-  const educationDistribution = neighborhoodOverview?.education_distribution as
-    | Record<string, string>
-    | undefined;
-
-  const hasAgeDistribution = ageDistribution && Object.keys(ageDistribution).length > 0;
-  const hasRaceDistribution = raceDistribution && Object.keys(raceDistribution).length > 0;
-  const hasIncomeDistribution = incomeDistribution && Object.keys(incomeDistribution).length > 0;
-  const hasEducationDistribution =
-    educationDistribution && Object.keys(educationDistribution).length > 0;
-
-  // Extract section rating if present
-  const demographicsContent = neighborhoodOverview ? { ...neighborhoodOverview } : undefined;
-  if (demographicsContent) {
-    delete demographicsContent.age_distribution;
-    delete demographicsContent.race_distribution;
-    delete demographicsContent.income_distribution;
-    delete demographicsContent.education_distribution;
-  }
-  const { rating: demographicsSectionRating } = stripSectionRatingField(
-    demographicsContent ?? null
-  );
-
-  if (
-    !hasAgeDistribution &&
-    !hasRaceDistribution &&
-    !hasIncomeDistribution &&
-    !hasEducationDistribution &&
-    demographicsSectionRating === null
-  ) {
-    return null;
-  }
-
-  const sectionLabel =
-    DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "demographics")
-      ?.label || "Demographics";
+  const {
+    ageDistribution,
+    raceDistribution,
+    incomeDistribution,
+    educationDistribution,
+    hasAgeDistribution,
+    hasRaceDistribution,
+    hasIncomeDistribution,
+    hasEducationDistribution,
+    demographicsSectionRating,
+    sectionLabel,
+  } = vm;
 
   return (
     <Box className="p-6">

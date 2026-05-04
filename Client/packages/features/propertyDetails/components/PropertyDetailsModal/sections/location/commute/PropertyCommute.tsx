@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
@@ -7,7 +7,7 @@ import { SectionTintWrapper } from "packages/features/propertyDetails/components
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import { usePropertyCommuteLocationMap } from "packages/hooks/data/property/usePropertyCommuteLocationMap";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { usePropertyCommuteMapUnavailableLog } from "packages/hooks/data/property/usePropertyCommuteMapUnavailableLog";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
@@ -16,10 +16,7 @@ import {
   unwrapPropertyAnalysisSection,
 } from "packages/utils/propertyDetails";
 import { commuteDestinationsForMap } from "packages/utils/propertyDetails/location/commuteMapDestinations";
-import {
-  getListingCoords,
-  getListingCoordsUnavailableDiagnostics,
-} from "packages/utils/propertyDetails/location/listingCoords";
+import { getListingCoords } from "packages/utils/propertyDetails/location/listingCoords";
 
 import { CommuteAnalysisContent } from "./propertyCommuteRender";
 
@@ -73,33 +70,12 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
     commute != null && (commute.commute_time != null || commute.commute_distance != null);
 
   const listingCoords = useMemo(() => getListingCoords(property), [property]);
-  const loggedCommuteMapUnavailableKeyRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!commute || !hasTravelTimes || listingCoords) {
-      if (!commute || !hasTravelTimes) {
-        loggedCommuteMapUnavailableKeyRef.current = null;
-      }
-      return;
-    }
-    const diagnostics = getListingCoordsUnavailableDiagnostics(property);
-    if (!diagnostics) return;
-    const listingId = typeof property.id === "string" ? property.id : undefined;
-    const dedupeKey = `commute:${listingId ?? ""}:${diagnostics.reason}:${
-      diagnostics.parsedLat
-    }:${diagnostics.parsedLng}:${diagnostics.fields.lat}:${
-      diagnostics.fields.latitude
-    }:${diagnostics.fields.lng}:${diagnostics.fields.longitude}`;
-    if (loggedCommuteMapUnavailableKeyRef.current === dedupeKey) return;
-    loggedCommuteMapUnavailableKeyRef.current = dedupeKey;
-    log.info(
-      LOG_CATEGORIES.PROPERTY_DETAILS,
-      "Property commute map unavailable (no listing coords)",
-      {
-        listingId,
-        ...diagnostics,
-      }
-    );
-  }, [commute, hasTravelTimes, listingCoords, property]);
+  usePropertyCommuteMapUnavailableLog({
+    commute,
+    hasTravelTimes,
+    listingCoords,
+    property,
+  });
   const commuteMapDestinations = useMemo(
     () => commuteDestinationsForMap(commute?.travel_times ?? []),
     [commute?.travel_times]

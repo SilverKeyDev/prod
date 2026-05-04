@@ -73,7 +73,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       else if (viewType === "documents") documentsLibrarySort.setSort(value);
       else docusignLibrarySort.setSort(value);
     },
-    [viewType, homesLibrarySort.setSort, documentsLibrarySort.setSort, docusignLibrarySort.setSort]
+    [viewType, homesLibrarySort, documentsLibrarySort, docusignLibrarySort]
   );
 
   const libraryViewMode: LibraryViewMode =

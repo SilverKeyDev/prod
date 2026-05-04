@@ -1,12 +1,12 @@
 import { useCallback } from "react";
 
 import { useNavigation } from "@react-navigation/native";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
-import { Text } from "packages/ui/components/primitives";
+import { ScrollView, Text } from "packages/ui/components/primitives";
 
 import { AgentDiscoveryView } from "./AgentDiscoveryView.native";
 

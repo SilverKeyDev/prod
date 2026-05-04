@@ -4,6 +4,13 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Box, Row, Text } from "packages/ui/components/primitives";
+import {
+  SIDEBAR_TAB_ACTIVE_TEXT,
+  SIDEBAR_TAB_ACTIVE_UNDERLINE,
+  SIDEBAR_TAB_INACTIVE_TEXT,
+  SIDEBAR_TAB_LOCKED_TEXT,
+  SIDEBAR_TAB_ROW_BORDER,
+} from "packages/ui/components/sidebar/sidebarTheme";
 import BodyText from "packages/ui/components/text/BodyText";
 import { HOVER_BG_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 
@@ -65,11 +72,11 @@ export function UnderlineTabs({
   const isSidebar = variant === "sidebar";
   const sizeStyles = UNDERLINE_TAB_SIZE_STYLES[tabSize];
   const containerClass = compact
-    ? `flex flex-row items-center justify-center rounded-none border-b ${
-        isSidebar ? "border-white/20" : "border-border"
+    ? `flex flex-row items-center justify-center rounded-none ${
+        isSidebar ? SIDEBAR_TAB_ROW_BORDER : "border-b border-border"
       }`
-    : `flex flex-row flex-shrink-0 rounded-none border-b ${
-        isSidebar ? "border-white/20" : "border-border"
+    : `flex flex-row flex-shrink-0 rounded-none ${
+        isSidebar ? SIDEBAR_TAB_ROW_BORDER : "border-b border-border"
       }`;
   const paddingWithFlex = compact ? sizeStyles.paddingCompact : sizeStyles.paddingDefault;
   /** `flex-1` on every tab forces equal widths; strip it when distributing extra space to the journey tab. */
@@ -104,10 +111,10 @@ export function UnderlineTabs({
             className={`relative ${buttonLayoutClass} ${flexClass} ${textSizeClass} ${fontWeightClass} ${HOVER_BG_CLASSES} focus:outline-none focus:ring-0 ${
               isSidebar
                 ? isLocked
-                  ? "text-white/50 opacity-75 hover:text-white/70 active:opacity-90"
+                  ? SIDEBAR_TAB_LOCKED_TEXT
                   : isActive
-                    ? "text-white"
-                    : "text-white/80 hover:text-white active:text-white"
+                    ? SIDEBAR_TAB_ACTIVE_TEXT
+                    : SIDEBAR_TAB_INACTIVE_TEXT
                 : isLocked
                   ? "text-neutral-400 opacity-75 hover:text-neutral-500 active:text-neutral-600 active:opacity-90"
                   : isActive
@@ -138,7 +145,7 @@ export function UnderlineTabs({
               <BodyText
                 as="span"
                 className={`${
-                  isSidebar ? "bg-white" : underlineColor
+                  isSidebar ? SIDEBAR_TAB_ACTIVE_UNDERLINE : underlineColor
                 } absolute bottom-0 left-2 right-2 h-0.5 rounded-none`}
                 aria-hidden
               />

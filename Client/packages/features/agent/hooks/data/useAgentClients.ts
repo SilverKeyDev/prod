@@ -53,7 +53,7 @@ export function useAgentClients(): UseAgentClientsReturn {
       return queryClient.getQueryData<AgentClient[]>(queryKeys.agent.clients());
     },
     staleTime: 30 * 1000, // 30 seconds - keep in sync with dataConfig.agentClients
-    refetchOnMount: "always",
+    // Default refetchOnMount: refetch only when stale so returning to Messaging stays instant.
     // Don't retry on client errors (4xx), but retry once on server errors (5xx)
     retry: (failureCount, error) => {
       // Check HttpError status directly

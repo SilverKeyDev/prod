@@ -2,10 +2,10 @@
 import { useCallback } from "react";
 
 import { CommonActions, useNavigation } from "@react-navigation/native";
-import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
+import { ProfileAvatar } from "packages/ui/components/avatar";
 import Button from "packages/ui/components/button/Button";
 import { Box, Text, TouchableBox } from "packages/ui/components/primitives";
 
@@ -83,13 +83,17 @@ export function AgentDiscoveryView({
                   label={agent.name}
                   className="flex-row items-start gap-3 rounded-lg py-0 active:bg-neutral-50"
                 >
-                  <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                    <Icon name="user" className="h-5 w-5 text-black" />
+                  <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full">
+                    <ProfileAvatar
+                      imageUrl={agent.profile_picture}
+                      label={agent.name?.trim() || "Agent"}
+                      imageClassName="h-full w-full"
+                    />
                   </Box>
                   <Box className="min-w-0 flex-1">
                     <Text className="font-medium text-black">{agent.name}</Text>
-                    <Text className="text-text-secondary text-sm" numberOfLines={1}>
-                      {agent.email}
+                    <Text className="text-text-secondary text-sm" numberOfLines={2}>
+                      {agent.description?.trim() || agent.email}
                     </Text>
                     {agent.match_reasons?.length ? (
                       <Text className="text-text-disabled mt-1 text-xs">

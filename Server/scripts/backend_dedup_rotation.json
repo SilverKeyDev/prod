@@ -1,0 +1,59 @@
+{
+  "description": "Ordered domain slices for backend duplication audits (weekly/biweekly explore runs). Process top-to-bottom, then restart.",
+  "optional_hints": {
+    "pylint_similarities": [
+      "pip install pylint",
+      "cd Server && PYTHONPATH=. pylint app --disable=all --enable=similarities --min-similarity-lines=8"
+    ]
+  },
+  "slices": [
+    {
+      "id": "agent",
+      "path_globs": ["Server/app/services/agent/**/*.py", "Server/app/routes/agent/**/*.py"]
+    },
+    {
+      "id": "transactions",
+      "path_globs": ["Server/app/services/transactions/**/*.py", "Server/app/routes/transactions/**/*.py"]
+    },
+    {
+      "id": "calendar",
+      "path_globs": ["Server/app/services/calendar/**/*.py", "Server/app/routes/calendar/**/*.py"]
+    },
+    {
+      "id": "search",
+      "path_globs": ["Server/app/services/search/**/*.py", "Server/app/routes/search/**/*.py"]
+    },
+    {
+      "id": "documents_docusign",
+      "path_globs": ["Server/app/services/documents/**/*.py", "Server/app/services/docusign/**/*.py", "Server/app/routes/documents/**/*.py"]
+    },
+    {
+      "id": "auth",
+      "path_globs": ["Server/app/services/auth/**/*.py", "Server/app/routes/auth/**/*.py"]
+    },
+    {
+      "id": "viewings",
+      "path_globs": ["Server/app/services/viewings/**/*.py", "Server/app/routes/viewings/**/*.py"]
+    },
+    {
+      "id": "messaging_chatbot",
+      "path_globs": ["Server/app/services/chatbot/**/*.py", "Server/app/routes/feed/**/*.py"]
+    },
+    {
+      "id": "email_public_offer",
+      "path_globs": ["Server/app/services/email/**/*.py", "Server/app/services/public_agent_profile.py", "Server/app/routes/offer.py", "Server/app/routes/public/**/*.py"]
+    },
+    {
+      "id": "research_aggregation",
+      "path_globs": ["Server/app/services/research/**/*.py", "Server/app/services/aggregation/**/*.py"]
+    },
+    {
+      "id": "maps_tasks_forms_admin",
+      "path_globs": ["Server/app/routes/maps.py", "Server/app/routes/tasks.py", "Server/app/routes/forms/**/*.py", "Server/app/routes/admin/**/*.py", "Server/app/services/plaid/**/*.py"]
+    },
+    {
+      "id": "models_utils_residual",
+      "path_globs": ["Server/app/models/**/*.py", "Server/app/utils/**/*.py"]
+    }
+  ]
+}

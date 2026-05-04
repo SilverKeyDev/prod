@@ -90,6 +90,37 @@ def _apply_locks(
             checked.add(iid)
 
 
+def _completion_type_raw(item: dict[str, Any]) -> str:
+    ct = item.get("completionType") or item.get("completion_type") or ""
+    return str(ct)
+
+
+def _apply_persisted_checked_ids(
+    checked: set[int],
+    sorted_items: list[dict[str, Any]],
+    old_checked: set[int],
+) -> None:
+    """
+    Re-add checklist ids already stored for the user. Clients cannot remove completed
+    steps via PUT; signature_based truth still comes from apply_signature_based_checked_ids.
+    Prune steps may still discard checks that violate ordering/selectable rules.
+    """
+    id_to_item: dict[int, dict[str, Any]] = {}
+    for item in sorted_items:
+        try:
+            iid = int(item["id"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        id_to_item[iid] = item
+    for iid in old_checked:
+        item = id_to_item.get(iid)
+        if item is None:
+            continue
+        if _completion_type_raw(item) == "signature_based":
+            continue
+        checked.add(iid)
+
+
 def _prune_sequential(checked: set[int], sorted_items: list[dict[str, Any]]) -> None:
     changed = True
     while changed:
@@ -169,6 +200,7 @@ def merge_task_checklist_checked_ids(
     for _ in range(len(sorted_items) * 6 + 12):
         before = frozenset(checked)
         _apply_auto_complete(checked, sorted_items)
+        _apply_persisted_checked_ids(checked, sorted_items, old_checked)
         _apply_locks(checked, sorted_items, old_checked)
         _prune_sequential(checked, sorted_items)
         _prune_selectable(checked, sorted_items)

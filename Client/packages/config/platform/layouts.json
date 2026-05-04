@@ -288,6 +288,30 @@
     "category": "navigation"
   },
   {
+    "id": "find-agents-screen-layout",
+    "description": "Find agents: dashboard-embedded web page vs native full-screen stack with SafeAreaView",
+    "webPath": "apps/web/pages/misc/FindAgentsPage.tsx",
+    "nativePath": "packages/features/agent/components/agentDiscovery/FindAgentsScreen.native.tsx",
+    "reason": "Web renders discovery inside dashboard content width. Native uses stack navigation, SafeAreaView, and RN Pressable/ScrollView shell around AgentDiscoveryView.native.",
+    "category": "layout"
+  },
+  {
+    "id": "agent-profile-in-app-layout",
+    "description": "Agent profile: web marketing-style page vs native stack screen",
+    "webPath": "apps/web/pages/misc/AgentProfilePage.tsx",
+    "nativePath": "packages/features/agent/components/agentProfile/AgentProfileScreen.native.tsx",
+    "reason": "Web uses page layout with URL-based slug routing. Native reads stack params and uses RN-only structure for in-app profile from messaging.",
+    "category": "layout"
+  },
+  {
+    "id": "account-privacy-data-section-layout",
+    "description": "Privacy & data section: web modal + file download vs native mailto/links",
+    "webPath": "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection.web.tsx",
+    "nativePath": "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection.native.tsx",
+    "reason": "Web uses BaseModal and programmatic JSON download. Native uses simpler RN layout and Linking without DOM or download APIs.",
+    "category": "layout"
+  },
+  {
     "id": "card-layout",
     "description": "Card component layout",
     "webPath": "packages/ui/components/layout/Card.web.tsx",

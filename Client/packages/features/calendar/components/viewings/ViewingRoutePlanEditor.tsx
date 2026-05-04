@@ -282,7 +282,14 @@ export function ViewingRoutePlanEditor({
             <Button
               type="button"
               size="sm"
-              variant={endMode === "last_property" ? "secondary" : "outline"}
+              variant="ghost"
+              contentAlign="start"
+              iconName="flag"
+              className={
+                endMode === "last_property"
+                  ? "border border-neutral-400 bg-neutral-100 hover:bg-neutral-200/90"
+                  : "border border-transparent text-text-secondary hover:bg-neutral-100 hover:text-text-primary"
+              }
               onClick={() => onEndModeChange("last_property")}
             >
               Last property
@@ -290,7 +297,14 @@ export function ViewingRoutePlanEditor({
             <Button
               type="button"
               size="sm"
-              variant={endMode === "return_to_start" ? "secondary" : "outline"}
+              variant="ghost"
+              contentAlign="start"
+              iconName="refresh-cw"
+              className={
+                endMode === "return_to_start"
+                  ? "border border-olive bg-olive-muted [&_*]:text-olive hover:bg-olive-muted/90"
+                  : "border border-transparent text-text-secondary hover:bg-olive/10 hover:text-olive"
+              }
               onClick={() => onEndModeChange("return_to_start")}
               disabled={!viewingEndpointHasRoutingInput(startEndpoint)}
             >
@@ -299,7 +313,14 @@ export function ViewingRoutePlanEditor({
             <Button
               type="button"
               size="sm"
-              variant={endMode === "fixed" ? "secondary" : "outline"}
+              variant="ghost"
+              contentAlign="start"
+              iconName="map-pin"
+              className={
+                endMode === "fixed"
+                  ? "border border-gold bg-gold-muted [&_*]:text-gold hover:bg-gold-muted/90"
+                  : "border border-transparent text-text-secondary hover:bg-gold-muted/70 hover:text-gold"
+              }
               onClick={() => onEndModeChange("fixed")}
             >
               Fixed location

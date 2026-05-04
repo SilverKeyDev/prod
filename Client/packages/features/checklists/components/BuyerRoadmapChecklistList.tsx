@@ -12,7 +12,6 @@ import {
   DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
   getChecklistActiveIndex,
   getHiddenFutureItemCount,
-  shouldUseProgressiveDisclosure,
 } from "packages/features/checklists/utils/progressive/buildProgressiveChecklistRows";
 import {
   type ChecklistItemToggleEligibility,
@@ -133,6 +132,7 @@ export function BuyerRoadmapChecklistList({
         previewUpcoming: DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
         futureOpen: disclosure.futureOpen,
         revealedCompletedItemId,
+        useProgressiveStructure: true,
       }),
     [sortedItems, activeItemId, disclosure.futureOpen, revealedCompletedItemId]
   );
@@ -144,7 +144,6 @@ export function BuyerRoadmapChecklistList({
   );
 
   const itemCount = sortedItems.length;
-  const useProgressive = shouldUseProgressiveDisclosure(itemCount);
 
   const getRoadmapItemBlocker = useCallback(
     (itemId: number) =>
@@ -157,27 +156,17 @@ export function BuyerRoadmapChecklistList({
       const activeIndex = getChecklistActiveIndex(sortedItems, activeItemId);
       const idx = sortedItems.findIndex((i) => i.id === itemId);
       if (idx < 0) return;
-      if (useProgressive) {
-        if (idx < activeIndex) {
-          setRevealedCompletedItemId(itemId);
-        }
-        const preview = DEFAULT_CHECKLIST_PREVIEW_UPCOMING;
-        const firstHiddenFutureIndex = activeIndex + 1 + preview;
-        if (idx >= firstHiddenFutureIndex && futureHidden > 0 && !disclosure.futureOpen) {
-          setTabDisclosure({ futureOpen: true });
-        }
+      if (idx < activeIndex) {
+        setRevealedCompletedItemId(itemId);
+      }
+      const preview = DEFAULT_CHECKLIST_PREVIEW_UPCOMING;
+      const firstHiddenFutureIndex = activeIndex + 1 + preview;
+      if (idx >= firstHiddenFutureIndex && futureHidden > 0 && !disclosure.futureOpen) {
+        setTabDisclosure({ futureOpen: true });
       }
       toggleExpand(itemId);
     },
-    [
-      sortedItems,
-      activeItemId,
-      useProgressive,
-      disclosure.futureOpen,
-      futureHidden,
-      setTabDisclosure,
-      toggleExpand,
-    ]
+    [sortedItems, activeItemId, disclosure.futureOpen, futureHidden, setTabDisclosure, toggleExpand]
   );
 
   const sectionGateTarget = useMemo(
@@ -257,8 +246,7 @@ export function BuyerRoadmapChecklistList({
                 <Icon name="chevron-right" className="text-gold h-4 w-4 shrink-0 opacity-90" />
               </Pressable>
             ) : null}
-            {useProgressive
-              ? segments.map((segment, segIdx) => {
+            {segments.map((segment, segIdx) => {
                   if (segment.kind === "completed_collapsed") {
                     return (
                       <Box
@@ -315,16 +303,8 @@ export function BuyerRoadmapChecklistList({
                     );
                   }
                   return null;
-                })
-              : sortedItems.map((item) => (
-                  <BuyerRoadmapChecklistItemCard
-                    key={`flat_item-${item.id}`}
-                    {...cardProps}
-                    item={item}
-                    rowKind="flat_item"
-                  />
-                ))}
-            {useProgressive && disclosure.futureOpen && futureHidden > 0 ? (
+                })}
+            {disclosure.futureOpen && futureHidden > 0 ? (
               <Pressable
                 onPress={() => setTabDisclosure({ futureOpen: false })}
                 className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"

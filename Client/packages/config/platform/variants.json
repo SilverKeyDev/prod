@@ -838,5 +838,26 @@
     "webPath": "packages/utils/platform/dimensions.web.ts",
     "nativePath": "packages/utils/platform/dimensions.native.ts",
     "reason": "Web reads viewport via platform adapter; native uses react-native Dimensions.get('window')."
+  },
+  {
+    "id": "find-agents-screen",
+    "description": "Agent discovery: web dashboard page vs native root-stack screen.",
+    "webPath": "apps/web/pages/misc/FindAgentsPage.tsx",
+    "nativePath": "packages/features/agent/components/agentDiscovery/FindAgentsScreen.native.tsx",
+    "reason": "Web embeds discovery in the dashboard layout with lazy-loaded page. Native registers a full-screen stack screen with react-navigation and SafeAreaView."
+  },
+  {
+    "id": "agent-profile-in-app-screen",
+    "description": "In-app agent profile from messaging/discovery: web route vs native stack params.",
+    "webPath": "apps/web/pages/misc/AgentProfilePage.tsx",
+    "nativePath": "packages/features/agent/components/agentProfile/AgentProfileScreen.native.tsx",
+    "reason": "Web uses URL-driven AgentProfilePage and public profile hooks. Native uses stack route params (agentUserId) and RN layout without the web dashboard chrome."
+  },
+  {
+    "id": "account-privacy-data-section",
+    "description": "Account privacy & data export: DOM download on web vs Linking on native.",
+    "webPath": "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection.web.tsx",
+    "nativePath": "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection.native.tsx",
+    "reason": "Web triggers JSON download via document/window APIs and modals. Native uses React Native Linking and has no DOM download path."
   }
 ]

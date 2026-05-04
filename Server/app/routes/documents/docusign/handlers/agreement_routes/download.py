@@ -91,12 +91,9 @@ def register_download_routes(bp):
                     404,
                 )
 
-            # Generate pre-signed URL (valid for 1 hour)
+            # Pre-signed TTL comes from S3_PRESIGNED_URL_EXPIRATION / config (default 1 hour).
             s3_service = S3Service()
-            download_url = s3_service.generate_presigned_url(
-                document_path,
-                expiration=3600,  # 1 hour
-            )
+            download_url = s3_service.generate_presigned_url(document_path)
 
             log.info(
                 LOG_CATEGORIES["DOCUSIGN"],

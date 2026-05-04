@@ -29,9 +29,9 @@ from ..events.operations import (
     create_event,
     delete_event,
     get_event,
-    list_events,
     update_event,
 )
+from ..events.operations_list_events import list_events
 from .oauth_facade import CalendarOAuthFacade
 from .revoke import revoke_calendar_access
 

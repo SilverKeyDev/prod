@@ -2,8 +2,8 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
-import type { ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
 import type { BuyerAvailabilityPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { ExtendedGoogleEvent } from "packages/types/calendar/extendedGoogleEvent";
 import { parseHourMinute24 } from "packages/utils/calendar/eventFormGooglePayload";
 
 import {

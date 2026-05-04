@@ -56,6 +56,26 @@ def test_merge_lock_readds():
     assert merge_task_checklist_checked_ids(items, [1], frozenset({1, 2})) == [1, 2]
 
 
+def test_merge_persists_previously_checked_without_lock_uncheck_when():
+    items = [
+        {
+            "id": 1,
+            "order": 0,
+            "label": "A",
+            "explanation": "",
+            "allow_unordered_check": True,
+        },
+        {
+            "id": 2,
+            "order": 1,
+            "label": "B",
+            "explanation": "",
+            "allow_unordered_check": True,
+        },
+    ]
+    assert merge_task_checklist_checked_ids(items, [1], frozenset({1, 2})) == [1, 2]
+
+
 def test_merge_selectable_strips():
     items = [
         {

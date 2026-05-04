@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -8,19 +8,34 @@ import UnifiedMessagingHeader from "packages/features/messaging/components/Clien
 import { getMessagePreview } from "packages/features/messaging/utils/messagePreview";
 import { ProfileAvatar } from "packages/ui/components";
 import { Box } from "packages/ui/components/primitives";
+import {
+  SIDEBAR_AVATAR_WRAP,
+  SIDEBAR_INSET_BODY_MUTED,
+  SIDEBAR_INSET_EMPTY_ICON,
+  SIDEBAR_INSET_EMPTY_ICON_WRAP,
+  sidebarInsetListRowClass,
+} from "packages/ui/components/sidebar/sidebarTheme";
 import { dateParseISO } from "packages/utils/date";
 
-import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
+import { BodyText, Button, KeyTurnLoader, Title } from "@/components/ui";
 import {
   getMessagingConfig,
   type MessagingMode,
 } from "@/features/agent/components/messaging/screen/messagingConfig";
 import { ConnectionRequestsInbox } from "@/features/agent/components/modals/inbox/ConnectionRequestsInbox";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
+import {
+  agentClientKindTranslationKey,
+  pipelineStageTranslationKey,
+} from "@/features/agent/utils/agentClientListLabels";
+import {
+  type AgentClientSortMode,
+  sortAgentClients,
+} from "@/features/agent/utils/agentClientListSort";
 
 function MessagingSidebarAvatar({ name, imageUrl }: { name: string; imageUrl?: string | null }) {
   return (
-    <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100">
+    <Box className={SIDEBAR_AVATAR_WRAP}>
       <ProfileAvatar imageUrl={imageUrl} label={name} imageClassName="h-full w-full object-cover" />
     </Box>
   );
@@ -75,7 +90,15 @@ export default function UnifiedMessagingSidebar({
   const config = getMessagingConfig(mode);
   const { requests: pendingConnectionRequests } = useConnectionRequests();
   const pendingConnectionRequestCount = pendingConnectionRequests.length;
-  const conversationMap = new Map(conversations.map((conv) => [conv.client_id, conv]));
+  const conversationMap = useMemo(
+    () => new Map(conversations.map((conv) => [conv.client_id, conv])),
+    [conversations]
+  );
+  const [agentClientSort, setAgentClientSort] = useState<AgentClientSortMode>("recent");
+  const sortedAgentClients = useMemo(
+    () => sortAgentClients(clients, agentClientSort, conversationMap),
+    [clients, agentClientSort, conversationMap]
+  );
 
   const sortedClientConversations = useMemo(
     () => [...clientConversations].sort(compareConversationsByRecency),
@@ -106,10 +129,10 @@ export default function UnifiedMessagingSidebar({
         return (
           <Box className="flex h-full items-center justify-center p-3">
             <Box className="text-center">
-              <Box className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
-                <Icon name="message-circle" className="h-6 w-6 text-neutral-400" />
+              <Box className={SIDEBAR_INSET_EMPTY_ICON_WRAP}>
+                <Icon name="message-circle" className={SIDEBAR_INSET_EMPTY_ICON} />
               </Box>
-              <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
+              <BodyText as="p" size="sm" className={`mb-4 ${SIDEBAR_INSET_BODY_MUTED}`}>
                 {config.sidebar.emptyMessage}
               </BodyText>
             </Box>
@@ -141,9 +164,7 @@ export default function UnifiedMessagingSidebar({
                     handleConversationClick();
                   }
                 }}
-                className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${
-                  activeConversationId === conv.id ? "border-l-olive bg-olive/10 border-l-4" : ""
-                }`}
+                className={sidebarInsetListRowClass(activeConversationId === conv.id)}
               >
                 <Box className="flex items-center gap-3">
                   <MessagingSidebarAvatar
@@ -151,19 +172,19 @@ export default function UnifiedMessagingSidebar({
                     imageUrl={conv.agent_profile_picture}
                   />
                   <Box className="min-w-0 flex-1">
-                    <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
+                    <Title as="h3" size="sm" className="mb-1 truncate font-medium text-text-primary">
                       {displayName}
                     </Title>
                     {messagePreview ? (
-                      <BodyText as="p" className="truncate text-xs text-neutral-600">
+                      <BodyText as="p" className="truncate text-xs text-text-secondary">
                         {messagePreview}
                       </BodyText>
                     ) : conv.agent_email ? (
-                      <BodyText as="p" className="truncate text-xs text-neutral-600">
+                      <BodyText as="p" className="truncate text-xs text-text-secondary">
                         {conv.agent_email}
                       </BodyText>
                     ) : (
-                      <BodyText as="p" className="truncate text-xs text-neutral-600">
+                      <BodyText as="p" className="truncate text-xs text-text-secondary">
                         {t("agent.role_agent")}
                       </BodyText>
                     )}
@@ -189,10 +210,10 @@ export default function UnifiedMessagingSidebar({
       return (
         <Box className="flex h-full items-center justify-center p-3">
           <Box className="text-center">
-            <Box className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
-              <Icon name="message-circle" className="h-6 w-6 text-neutral-400" />
+            <Box className={SIDEBAR_INSET_EMPTY_ICON_WRAP}>
+              <Icon name="message-circle" className={SIDEBAR_INSET_EMPTY_ICON} />
             </Box>
-            <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
+            <BodyText as="p" size="sm" className={`mb-4 ${SIDEBAR_INSET_BODY_MUTED}`}>
               {config.sidebar.emptyMessage}
             </BodyText>
           </Box>
@@ -201,11 +222,14 @@ export default function UnifiedMessagingSidebar({
     }
     return (
       <>
-        {clients.map((client) => {
+        {sortedAgentClients.map((client) => {
           const conversation = conversationMap.get(client.id);
           const messagePreview = conversation?.last_message
             ? getMessagePreview({ content: conversation.last_message })
             : null;
+          const kindLabel = t(agentClientKindTranslationKey(client.client_kind));
+          const stageLabel = t(pipelineStageTranslationKey(client.pipeline_stage));
+          const typeStageLine = `${kindLabel} · ${stageLabel}`;
           const handleClientClick = () => {
             if (onClientSelect) {
               onClientSelect(client.id);
@@ -224,9 +248,7 @@ export default function UnifiedMessagingSidebar({
                   handleClientClick();
                 }
               }}
-              className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${
-                selectedClientId === client.id ? "border-l-olive bg-olive/10 border-l-4" : ""
-              }`}
+              className={sidebarInsetListRowClass(selectedClientId === client.id)}
             >
               <Box className="flex items-center gap-3">
                 <MessagingSidebarAvatar
@@ -234,20 +256,23 @@ export default function UnifiedMessagingSidebar({
                   imageUrl={client.profile_picture ?? conversation?.client_profile_picture}
                 />
                 <Box className="min-w-0 flex-1">
-                  <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
+                  <Title as="h3" size="sm" className="mb-1 truncate font-medium text-text-primary">
                     {client.name}
                   </Title>
+                  <BodyText as="p" className="mb-0.5 truncate text-xs font-medium text-text-primary">
+                    {typeStageLine}
+                  </BodyText>
                   {messagePreview ? (
-                    <BodyText as="p" className="truncate text-xs text-neutral-600">
+                    <BodyText as="p" className="truncate text-xs text-text-secondary">
                       {messagePreview}
                     </BodyText>
                   ) : (
-                    <BodyText as="p" className="truncate text-xs text-neutral-600">
-                      {t("agent.role_buyer")}
+                    <BodyText as="p" className="truncate text-xs text-text-secondary">
+                      {client.email}
                     </BodyText>
                   )}
                   {client.phone && !messagePreview && (
-                    <BodyText as="p" className="truncate text-xs text-neutral-500">
+                    <BodyText as="p" className="truncate text-xs text-text-secondary">
                       {client.phone}
                     </BodyText>
                   )}
@@ -295,6 +320,31 @@ export default function UnifiedMessagingSidebar({
             isSidebarExpanded ? "rounded-t-xl" : ""
           } xl:rounded-tl-xl xl:rounded-tr-none`}
         />
+
+        {mode === "agent" && !showInbox && !isLoadingClients && clients.length > 0 ? (
+          <Box className="border-border bg-background-surface flex-shrink-0 border-b border-r px-2 py-2">
+            <Box className="flex gap-1">
+              {(
+                [
+                  ["recent", "agent.sort_clients_recent"],
+                  ["name", "agent.sort_clients_name"],
+                  ["stage", "agent.sort_clients_stage"],
+                ] as const
+              ).map(([value, labelKey]) => (
+                <Button
+                  key={value}
+                  type="button"
+                  variant={agentClientSort === value ? "secondary" : "ghost"}
+                  className="flex-1 px-2 py-1.5 text-xs"
+                  label={t(labelKey)}
+                  onClick={() => setAgentClientSort(value)}
+                >
+                  {t(labelKey)}
+                </Button>
+              ))}
+            </Box>
+          </Box>
+        ) : null}
 
         <Box
           className={`border-border bg-background-surface flex-1 overflow-y-auto border-r ${

@@ -62,7 +62,9 @@ def register_after_request_headers(app):
             response.headers["X-XSS-Protection"] = "1; mode=block"
             response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
             if _IS_PROD_FLASK:
-                response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+                response.headers["Strict-Transport-Security"] = (
+                    "max-age=31536000; includeSubDomains"
+                )
             response.headers["X-Request-ID"] = str(g.request_id)
             if _response_is_html(response) and not is_pdf_viewer:
                 response.headers["Content-Security-Policy"] = build_content_security_policy()

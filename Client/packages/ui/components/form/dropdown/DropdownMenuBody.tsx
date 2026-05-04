@@ -93,7 +93,7 @@ export function DropdownMenuBody<T>({
                 </BodyText>
                 <BodyText
                   as="span"
-                  className="relative z-10 flex items-center text-xs sm:text-sm md:text-base"
+                  className="relative z-10 flex min-w-0 items-center gap-2 text-xs sm:text-sm md:text-base"
                 >
                   {option.icon}
                   {option.label}

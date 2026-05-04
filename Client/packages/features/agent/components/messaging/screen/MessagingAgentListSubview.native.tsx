@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 
 import { FlatList, View } from "react-native";
 
@@ -9,8 +9,18 @@ import { Pressable } from "packages/ui/components/primitives";
 import { Loading } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
+import { SIDEBAR_INSET_LIST_ROW_FLAT_NATIVE } from "packages/ui/components/sidebar/sidebarTheme";
 
 import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
+import {
+  agentClientKindTranslationKey,
+  pipelineStageTranslationKey,
+} from "@/features/agent/utils/agentClientListLabels";
+import {
+  type AgentClientSortConversation,
+  type AgentClientSortMode,
+  sortAgentClients,
+} from "@/features/agent/utils/agentClientListSort";
 
 type MessagingAgentListSubviewProps = {
   config: MessagingConfig;
@@ -24,7 +34,7 @@ type MessagingAgentListSubviewProps = {
   setSelectedClientId: (id: string) => void;
   inboxMode: "conversations" | "requests";
   setInboxMode: (mode: "conversations" | "requests") => void;
-  conversationMap: Map<string, { last_message?: string }>;
+  conversationMap: Map<string, AgentClientSortConversation>;
   listContentStyle: {
     padding: number;
     paddingBottom: number;
@@ -57,6 +67,12 @@ export function MessagingAgentListSubview({
   containerStyle,
 }: MessagingAgentListSubviewProps) {
   const { t } = useLocalization();
+  const [clientSort, setClientSort] = useState<AgentClientSortMode>("recent");
+  const sortedClients = useMemo(
+    () => sortAgentClients(clients, clientSort, conversationMap),
+    [clients, clientSort, conversationMap]
+  );
+
   if (isLoadingClients) {
     return (
       <View style={centeredStyle}>
@@ -77,7 +93,7 @@ export function MessagingAgentListSubview({
 
   return (
     <View style={containerStyle}>
-      <Box className="border-border bg-background-base border-b px-4 py-3">
+      <Box className="border-border bg-background-surface border-b px-4 py-3">
         <Box className="mb-2 flex-row items-center justify-between">
           <Text className="text-text-primary text-base font-semibold">{config.sidebar.title}</Text>
           <Pressable
@@ -123,31 +139,71 @@ export function MessagingAgentListSubview({
         </Box>
       </Box>
       {inboxMode === "conversations" ? (
-        <FlatList
-          data={clients}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
-            const conversation = conversationMap.get(item.id);
-            const messagePreview = conversation?.last_message
-              ? getMessagePreview({ content: conversation.last_message })
-              : null;
-            return (
+        <>
+          <Box className="border-border flex-row gap-1 border-b px-3 py-2">
+            {(
+              [
+                ["recent", "agent.sort_clients_recent"],
+                ["name", "agent.sort_clients_name"],
+                ["stage", "agent.sort_clients_stage"],
+              ] as const
+            ).map(([value, labelKey]) => (
               <Pressable
-                onPress={() => setSelectedClientId(item.id)}
-                className="border-border border-b px-4 py-4"
+                key={value}
+                onPress={() => setClientSort(value)}
+                className={`flex-1 items-center rounded-md px-2 py-1.5 ${
+                  clientSort === value ? "bg-background-surface" : "bg-transparent"
+                }`}
               >
-                <Text className="text-text-primary font-medium">
-                  {item.name ?? item.email ?? "Client"}
+                <Text
+                  className={
+                    clientSort === value
+                      ? "text-text-primary text-xs font-semibold"
+                      : "text-text-secondary text-xs font-medium"
+                  }
+                  numberOfLines={1}
+                >
+                  {t(labelKey)}
                 </Text>
-                {messagePreview && (
-                  <Text className="text-text-secondary mt-1 text-sm" numberOfLines={1}>
-                    {messagePreview}
-                  </Text>
-                )}
               </Pressable>
-            );
-          }}
-        />
+            ))}
+          </Box>
+          <FlatList
+            data={sortedClients}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              const conversation = conversationMap.get(item.id);
+              const messagePreview = conversation?.last_message
+                ? getMessagePreview({ content: conversation.last_message })
+                : null;
+              const kindLabel = t(agentClientKindTranslationKey(item.client_kind));
+              const stageLabel = t(pipelineStageTranslationKey(item.pipeline_stage));
+              const typeStageLine = `${kindLabel} · ${stageLabel}`;
+              return (
+                <Pressable
+                  onPress={() => setSelectedClientId(item.id)}
+                  className={SIDEBAR_INSET_LIST_ROW_FLAT_NATIVE}
+                >
+                  <Text className="text-text-primary font-medium">
+                    {item.name ?? item.email ?? "Client"}
+                  </Text>
+                  <Text className="text-text-primary mt-0.5 text-xs font-medium" numberOfLines={1}>
+                    {typeStageLine}
+                  </Text>
+                  {messagePreview ? (
+                    <Text className="text-text-secondary mt-1 text-sm" numberOfLines={1}>
+                      {messagePreview}
+                    </Text>
+                  ) : (
+                    <Text className="text-text-secondary mt-1 text-sm" numberOfLines={1}>
+                      {item.email}
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            }}
+          />
+        </>
       ) : isLoadingRequests ? (
         <View style={centeredStyle}>
           <Loading />

@@ -172,6 +172,16 @@ export default tseslint.config(
           ],
         },
       ],
+      // Utility consolidation: warn on value imports from another feature's utils/ (see .cursor/skills/utility-deduplication-subagents/SKILL shrink allowlist as code moves).
+      "silverkey/no-cross-feature-utils-imports": [
+        "warn",
+        {
+          allowImportPrefixes: [
+            "packages/features/calendar/utils",
+            "packages/features/homeauth/utils",
+          ],
+        },
+      ],
     },
   },
 

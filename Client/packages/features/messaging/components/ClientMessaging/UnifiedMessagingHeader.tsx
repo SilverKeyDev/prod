@@ -1,6 +1,14 @@
 import { useLocalization } from "packages/contexts";
 import MiniLogo from "packages/ui/components/asset/MiniLogo";
 import { Box } from "packages/ui/components/primitives";
+import {
+  SIDEBAR_INSET_HEADER_SHELL,
+  sidebarInsetHeaderCollapseButtonClass,
+  sidebarInsetHeaderGhostButtonClass,
+  sidebarInsetHeaderIconButtonClass,
+  sidebarInsetHeaderMenuToggleClass,
+  sidebarInsetHeaderTitleClass,
+} from "packages/ui/components/sidebar/sidebarTheme";
 
 import { BodyText, Button, Title } from "@/components/ui";
 export type HeaderMode =
@@ -40,11 +48,11 @@ function ConnectionRequestsHeaderButton({
         variant="ghost"
         size="sm"
         onClick={onClick}
-        className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
+        className={sidebarInsetHeaderGhostButtonClass()}
         label={label}
         iconName="inbox"
       >
-        <BodyText as="span" size="sm" className="text-neutral-600">
+        <BodyText as="span" size="sm" className="text-text-secondary">
           {label}
         </BodyText>
       </Button>
@@ -82,19 +90,19 @@ function HeaderLeftContent({
               variant="ghost"
               size="sm"
               onClick={onBackClick}
-              className="flex items-center justify-center rounded-lg p-1.5 text-neutral-700 transition hover:bg-neutral-100"
+              className={sidebarInsetHeaderIconButtonClass()}
               label={t("agent.back_to_inbox")}
               iconName="arrow-left"
             />
           )}
-          <Title as="h2" size="sm" className="font-medium text-neutral-800">
+          <Title as="h2" size="sm" className={sidebarInsetHeaderTitleClass()}>
             {t("agent.connection_requests")}
           </Title>
         </Box>
       );
     case "inbox":
       return (
-        <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
+        <Title as="h2" size="lg" className={`flex items-center gap-2 ${sidebarInsetHeaderTitleClass()}`}>
           <MiniLogo size="sm" />
           {t("agent.inbox")}
         </Title>
@@ -102,7 +110,7 @@ function HeaderLeftContent({
     case "clients":
       return (
         <Box className="flex items-center gap-2">
-          <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
+          <Title as="h2" size="lg" className={`flex items-center gap-2 ${sidebarInsetHeaderTitleClass()}`}>
             <MiniLogo size="sm" />
             {t("agent.clients")}
           </Title>
@@ -111,7 +119,7 @@ function HeaderLeftContent({
     case "agents":
       return (
         <Box className="flex items-center gap-2">
-          <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
+          <Title as="h2" size="lg" className={`flex items-center gap-2 ${sidebarInsetHeaderTitleClass()}`}>
             <MiniLogo size="sm" />
             {t("agent.messaging_sidebar_agents")}
           </Title>
@@ -126,14 +134,14 @@ function HeaderLeftContent({
               variant="ghost"
               size="sm"
               onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-              className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 hover:bg-neutral-100 focus:outline-none xl:hidden"
+              className={sidebarInsetHeaderMenuToggleClass()}
               label={isSidebarExpanded ? t("agent.close_sidebar") : t("agent.open_sidebar")}
               aria-expanded={isSidebarExpanded}
               iconName={isSidebarExpanded ? "arrow-left" : "menu"}
             />
           )}
           {mode === "chat" && agentName && (
-            <Title as="h2" size="lg" className="font-medium text-neutral-800">
+            <Title as="h2" size="lg" className={sidebarInsetHeaderTitleClass()}>
               {agentName}
             </Title>
           )}
@@ -165,7 +173,7 @@ function HeaderRightContent({
         variant="ghost"
         size="sm"
         onClick={() => setIsSidebarExpanded(false)}
-        className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-3 py-2 text-neutral-700 transition hover:bg-neutral-200 xl:hidden"
+        className={sidebarInsetHeaderCollapseButtonClass()}
         label={t("agent.collapse_sidebar")}
         aria-expanded={isSidebarExpanded}
         iconName="chevron-left"
@@ -202,7 +210,7 @@ function HeaderRightContent({
               variant="ghost"
               size="sm"
               onClick={onSearchClick}
-              className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
+              className={sidebarInsetHeaderGhostButtonClass()}
               label={t("agent.search_for_clients")}
               title={t("agent.search_for_clients")}
               iconName="plus"
@@ -226,7 +234,7 @@ function HeaderRightContent({
               variant="ghost"
               size="sm"
               onClick={onSearchClick}
-              className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
+              className={sidebarInsetHeaderGhostButtonClass()}
               label={t("agent.search_for_agent")}
               title={t("agent.search_agent_to_start_messaging")}
               iconName="plus"
@@ -242,7 +250,7 @@ function HeaderRightContent({
             <Title
               as="h3"
               size="sm"
-              className={`font-medium text-neutral-800 transition-opacity duration-300 ease-in-out ${
+              className={`${sidebarInsetHeaderTitleClass()} transition-opacity duration-300 ease-in-out ${
                 isSidebarExpanded ? "opacity-0" : "opacity-100"
               }`}
             >
@@ -266,12 +274,12 @@ function HeaderRightContent({
               variant="ghost"
               size="sm"
               onClick={onSearchClick}
-              className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
+              className={sidebarInsetHeaderGhostButtonClass()}
               label={t("agent.search_agent_to_start_messaging")}
               title={t("agent.search_agent_to_start_messaging")}
               iconName="search"
             >
-              <BodyText as="span" size="sm" className="text-neutral-600">
+              <BodyText as="span" size="sm" className="text-text-secondary">
                 {t("agent.search_for_agent")}
               </BodyText>
             </Button>
@@ -294,10 +302,8 @@ export default function UnifiedMessagingHeader({
   selectedClientName,
   agentName,
 }: UnifiedMessagingHeaderProps) {
-  const baseClasses =
-    "flex w-full items-center justify-between border-b border-border bg-background-surface p-3 h-14";
   return (
-    <Box className={`${baseClasses} ${className}`}>
+    <Box className={`${SIDEBAR_INSET_HEADER_SHELL} ${className}`}>
       <HeaderLeftContent
         mode={mode}
         isSidebarExpanded={isSidebarExpanded}

@@ -3,6 +3,12 @@ import { Icon } from "@ui/icons";
 import type { AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
+import {
+  SIDEBAR_INSET_BODY_MUTED,
+  SIDEBAR_INSET_EMPTY_ICON,
+  SIDEBAR_INSET_EMPTY_ICON_WRAP,
+  sidebarInsetListRowClass,
+} from "packages/ui/components/sidebar/sidebarTheme";
 
 import { BodyText, Title } from "@/components/ui";
 import { ConnectionRequestsInbox } from "@/features/agent/components/modals/inbox/ConnectionRequestsInbox";
@@ -38,7 +44,7 @@ export default function ClientMessagingSidebar({
       {/* Backdrop for mobile - only show when sidebar is expanded on mobile */}
       {isSidebarExpanded && (
         <Box
-          className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ease-in-out xl:hidden"
+          className="fixed inset-0 z-40 bg-overlay-backdrop transition-opacity duration-300 ease-in-out xl:hidden"
           onClick={() => setIsSidebarExpanded(false)}
           aria-hidden="true"
         />
@@ -81,8 +87,10 @@ export default function ClientMessagingSidebar({
           ) : !agentId ? (
             <Box className="flex h-full items-center justify-center p-3">
               <Box className="text-center">
-                <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-neutral-400" />
-                <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
+                <Box className={SIDEBAR_INSET_EMPTY_ICON_WRAP}>
+                  <Icon name="message-circle" className={SIDEBAR_INSET_EMPTY_ICON} />
+                </Box>
+                <BodyText as="p" size="sm" className={`mb-4 ${SIDEBAR_INSET_BODY_MUTED}`}>
                   {t("agent.search_agent_to_start_messaging")}
                 </BodyText>
               </Box>
@@ -106,19 +114,15 @@ export default function ClientMessagingSidebar({
                   setIsSidebarExpanded(false);
                 }
               }}
-              className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${
-                activeConversationId === activeConversation?.id
-                  ? "bg-olive/10 border-l-olive border-l-4"
-                  : ""
-              }`}
+              className={sidebarInsetListRowClass(activeConversationId === activeConversation?.id)}
             >
               <Box className="flex items-start justify-between">
                 <Box className="min-w-0 flex-1">
-                  <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
+                  <Title as="h3" size="sm" className="mb-1 truncate font-medium text-text-primary">
                     {t("agent.your_agent")}
                   </Title>
                   {localMessages.length > 0 && (
-                    <BodyText as="p" className="truncate text-xs text-neutral-600">
+                    <BodyText as="p" className="truncate text-xs text-text-secondary">
                       {getMessagePreview(
                         localMessages[localMessages.length - 1] ?? {
                           content: "",

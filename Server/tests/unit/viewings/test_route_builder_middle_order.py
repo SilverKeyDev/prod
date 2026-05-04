@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from app.services.viewings.route_builder import _best_middle_visit_order, _middle_perm_cost
+from app.services.viewings.route_builder_support import (
+    _best_middle_visit_order,
+    _middle_perm_cost,
+)
 
 
 def test_middle_perm_cost_open_end() -> None:

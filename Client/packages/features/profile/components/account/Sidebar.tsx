@@ -7,6 +7,11 @@ import { getPersonalizationNavItems } from "packages/features/profile/components
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { useResponsive } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
+import {
+  getInsetNavItemClasses,
+  getInsetNavItemIconClasses,
+  getInsetNavItemLabelClasses,
+} from "packages/ui/components/sidebar/sidebarTheme";
 import type { IconName } from "packages/ui/types/icons";
 
 import Card from "@/components/layout/Card.web";
@@ -108,33 +113,23 @@ export default function PersonalizationSidebar({
               size="sm"
               contentAlign="start"
               onClick={() => onScrollToSection(step.key)}
-              className={`group flex min-h-9 w-full items-center justify-start gap-3 rounded-lg px-3 py-2 transition-colors ${
-                currentActiveSection === step.key
-                  ? "bg-neutral-100 text-neutral-800"
-                  : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-800"
-              }`}
+              className={getInsetNavItemClasses({
+                active: currentActiveSection === step.key,
+              })}
               title={!isLargeScreen ? step.label : undefined}
             >
               {stepIconName && (
                 <Icon
                   name={stepIconName}
                   size={20}
-                  className={`flex-shrink-0 transition-colors ${
-                    currentActiveSection === step.key
-                      ? "text-neutral-800"
-                      : "text-neutral-600 group-hover:text-neutral-800"
-                  }`}
+                  className={getInsetNavItemIconClasses(currentActiveSection === step.key)}
                 />
               )}
               {isLargeScreen && (
                 <BodyText
                   as="span"
                   size="sm"
-                  className={`text-left font-medium transition-colors ${
-                    currentActiveSection === step.key
-                      ? "text-neutral-800"
-                      : "text-neutral-600 group-hover:text-neutral-800"
-                  }`}
+                  className={getInsetNavItemLabelClasses(currentActiveSection === step.key)}
                 >
                   {step.label}
                 </BodyText>

@@ -53,6 +53,18 @@ describe("buildProgressiveChecklistRows", () => {
     expect(rows.every((r) => r.kind === "flat_item")).toBe(true);
   });
 
+  it("uses segmented rows when useProgressiveStructure is true even under threshold", () => {
+    const items = [item(1), item(2), item(3), item(4)];
+    const rows = buildProgressiveChecklistRows(items, 3, {
+      previewUpcoming: preview,
+      futureOpen: false,
+      useProgressiveStructure: true,
+    });
+    expect(rows[0]).toEqual({ kind: "completed_collapsed", count: 2 });
+    expect(rows[1]).toMatchObject({ kind: "current", item: items[2] });
+    expect(rows[2]).toMatchObject({ kind: "upcoming", item: items[3] });
+  });
+
   it("splits completed, current, preview, and hidden future for long lists", () => {
     const items = Array.from({ length: 12 }, (_, i) => item(i + 1));
     const activeId = 5;

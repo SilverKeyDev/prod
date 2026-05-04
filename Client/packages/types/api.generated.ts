@@ -2494,7 +2494,9 @@ export interface components {
      *       "email": "jordan.client@example.com",
      *       "phone": "+15551112222",
      *       "profile_picture": "profiles/c3d4e5f6-a7b8-9012-cdef-345678901234.jpg",
-     *       "created_at": "2025-08-01T16:45:00.000Z"
+     *       "created_at": "2025-08-01T16:45:00.000Z",
+     *       "client_kind": "buyer",
+     *       "pipeline_stage": "search"
      *     }
      */
     AgentClient: {
@@ -2513,6 +2515,25 @@ export interface components {
       profile_picture?: string | null;
       /** @description ISO 8601 timestamp when the client relationship or row was created. */
       created_at?: string | null;
+      /**
+       * @description Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/investor role is set.
+       * @enum {string|null}
+       */
+      client_kind?: "buyer" | "seller" | "investor" | "unknown" | null;
+      /**
+       * @description Checklist area with the most recent completed task activity for this client (preview only).
+       *     `search` when there are no completed checklist tasks yet or activity cannot be determined.
+       * @enum {string|null}
+       */
+      pipeline_stage?:
+        | "search"
+        | "offer"
+        | "escrow"
+        | "financing"
+        | "closing"
+        | "insurance"
+        | "unknown"
+        | null;
     };
     AgentClientsResponse: components["schemas"]["SuccessResponse"] & {
       clients?: components["schemas"]["AgentClient"][] | null;
@@ -2577,6 +2598,13 @@ export interface components {
        * @description ISO 8601 timestamp of agent user creation when returned by search.
        */
       created_at?: string | null;
+      /**
+       * @description Public profile image URL when available (professional headshot from agent profile,
+       *     otherwise the user account profile picture).
+       */
+      profile_picture?: string | null;
+      /** @description Short public bio or summary for directory cards (e.g. agent_bio). */
+      description?: string | null;
     };
     RecommendedAgentResult: components["schemas"]["AgentSearchResult"] & {
       /**

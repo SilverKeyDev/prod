@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
@@ -9,8 +9,14 @@ import { Box } from "packages/ui/components/primitives";
 
 import { KeyTurnLoader } from "@/components/ui";
 
-import ClientMessaging from "./messaging/ClientMessaging";
-import AgentDashboard from "./workspace/AgentDashboard";
+const ClientMessaging = lazy(() => import("./messaging/ClientMessaging"));
+const AgentDashboard = lazy(() => import("./workspace/AgentDashboard"));
+
+const messagingBranchFallback = (
+  <Box className="flex min-h-48 flex-1 items-center justify-center p-4">
+    <Box className="h-10 w-10 animate-pulse rounded-full bg-muted/60" aria-hidden />
+  </Box>
+);
 
 type AgentFeatureProps = {
   setMobileHeaderActions?: Dispatch<SetStateAction<ReactNode | null>>;
@@ -51,12 +57,18 @@ export default function AgentFeature({ setMobileHeaderActions }: AgentFeaturePro
   if (isAgent) {
     return (
       <Box className="h-full w-full">
-        <AgentDashboard setMobileHeaderActions={setMobileHeaderActions} />
+        <Suspense fallback={messagingBranchFallback}>
+          <AgentDashboard setMobileHeaderActions={setMobileHeaderActions} />
+        </Suspense>
       </Box>
     );
   }
   if (isOnMessagingPath) {
-    return <ClientMessaging setMobileHeaderActions={setMobileHeaderActions} />;
+    return (
+      <Suspense fallback={messagingBranchFallback}>
+        <ClientMessaging setMobileHeaderActions={setMobileHeaderActions} />
+      </Suspense>
+    );
   }
   return (
     <Box className="py-responsive-lg flex justify-center">

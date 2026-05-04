@@ -35,6 +35,7 @@ export function Tabs(props: {
       onChange={(id) => onChange(id as "results" | "saved")}
       compact={compact}
       className={compact ? "" : "mb-4"}
+      variant="sidebar"
     />
   );
 }

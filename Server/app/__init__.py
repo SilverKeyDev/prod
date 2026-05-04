@@ -220,9 +220,7 @@ def create_app(config=None):
     # Serve /assets/* out of the Vite dist directory with correct MIME types.
     @app.route("/assets/<path:filename>", methods=["GET", "HEAD"])
     def serve_assets(filename):
-        out = make_response(
-            send_from_directory(os.path.join(static_dir, "assets"), filename)
-        )
+        out = make_response(send_from_directory(os.path.join(static_dir, "assets"), filename))
         out.headers["Cache-Control"] = _CACHE_VITE_ASSETS
         return out
 
@@ -323,9 +321,7 @@ def create_app(config=None):
                 out = make_response(send_from_directory(static_dir, path))
                 base = os.path.basename(path) or path
                 out.headers["Cache-Control"] = (
-                    _CACHE_SPA_INDEX
-                    if base == "index.html"
-                    else _CACHE_DIST_UNHASHED
+                    _CACHE_SPA_INDEX if base == "index.html" else _CACHE_DIST_UNHASHED
                 )
                 return out
         except (ValueError, OSError):

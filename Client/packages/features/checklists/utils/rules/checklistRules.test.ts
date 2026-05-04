@@ -96,6 +96,27 @@ describe("mergeTaskChecklistCheckedIds", () => {
     expect(merged).toEqual([1, 2]);
   });
 
+  it("re-adds previously checked ids without lock_uncheck_when", () => {
+    const items: TaskChecklistItem[] = [
+      item({
+        id: 1,
+        order: 0,
+        label: "A",
+        explanation: "",
+        allow_unordered_check: true,
+      }),
+      item({
+        id: 2,
+        order: 1,
+        label: "B",
+        explanation: "",
+        allow_unordered_check: true,
+      }),
+    ];
+    const merged = mergeTaskChecklistCheckedIds(items, [1], new Set([1, 2]));
+    expect(merged).toEqual([1, 2]);
+  });
+
   it("strips manual check when selectable_when fails", () => {
     const items: TaskChecklistItem[] = [
       item({
@@ -170,9 +191,9 @@ describe("getChecklistItemToggleEligibility", () => {
     expect(e.canCheck).toBe(false);
   });
 
-  it("allows uncheck when lock condition does not hold", () => {
+  it("never allows uncheck once a step is checked", () => {
     const e = getChecklistItemToggleEligibility(items, [2], 2, true);
-    expect(e.canUncheck).toBe(true);
+    expect(e.canUncheck).toBe(false);
   });
 
   it("signature_based disables all manual toggle paths", () => {

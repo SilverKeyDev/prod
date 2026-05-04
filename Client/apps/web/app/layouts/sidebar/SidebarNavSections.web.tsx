@@ -8,13 +8,17 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link } from "packages/navigation";
 import WhiteLogo from "packages/ui/components/asset/WhiteLogo";
 import { Box } from "packages/ui/components/primitives";
+import {
+  getChromeNavButtonStyles,
+  getChromeNavSubItemStyles,
+} from "packages/ui/components/sidebar/sidebarTheme";
 
+import { prefetchDashboardShellRoute } from "@/app/layouts/dashboard/dashboardRoutePrefetch";
 import ConfirmationDialog from "@/components/modals/dialogs/ConfirmationDialog.web";
 import { BodyText, NotificationBadge } from "@/components/ui";
 import type { UserProfile } from "@/features/homeauth/types";
 
 import { type NavCategory, type SidebarNavItem } from "./sidebarNav.web";
-import { getButtonStyles, getSubItemStyles } from "./sidebarNavStyles.web";
 
 /** Primary nav labels: inactive at sm; active one step up (base) so the gap is smaller than former xs→sm + icon jump. */
 const sidebarNavLabelInactive = "text-sm font-medium";
@@ -41,7 +45,7 @@ function SidebarNavSingleLink({
 }: SidebarNavSingleLinkProps) {
   const location = useLocation();
   const itemIconName = firstItem.icon;
-  const buttonClass = `${getButtonStyles(isActive)} ${!expanded ? "justify-center" : ""}`;
+  const buttonClass = `${getChromeNavButtonStyles(isActive)} ${!expanded ? "justify-center" : ""}`;
   const titleAttr = !expanded ? firstItem?.name : "";
   const iconEl = (
     <Box className="relative inline-flex items-center">
@@ -64,6 +68,9 @@ function SidebarNavSingleLink({
         title={titleAttr}
         onClick={() => onLinkClick?.()}
         aria-current={isActive ? "page" : undefined}
+        onMouseEnter={() => prefetchDashboardShellRoute("/search")}
+        onFocus={() => prefetchDashboardShellRoute("/search")}
+        onTouchStart={() => prefetchDashboardShellRoute("/search")}
       >
         {iconEl}
         {expanded && (
@@ -91,6 +98,9 @@ function SidebarNavSingleLink({
       className={buttonClass}
       title={titleAttr}
       onClick={handleClick}
+      onMouseEnter={() => prefetchDashboardShellRoute(to)}
+      onFocus={() => prefetchDashboardShellRoute(to)}
+      onTouchStart={() => prefetchDashboardShellRoute(to)}
       aria-label={firstItem?.name}
       aria-current={isActive ? "page" : undefined}
     >
@@ -164,7 +174,7 @@ function SidebarNavCategory({
       <button
         onClick={handleCategoryHeaderClick}
         type="button"
-        className={`${getButtonStyles(isCategoryActive(category.items))} group relative ${
+        className={`${getChromeNavButtonStyles(isCategoryActive(category.items))} group relative ${
           !expanded ? "justify-center" : "justify-between"
         } cursor-pointer`}
         title={!expanded ? category.name : ""}
@@ -175,14 +185,14 @@ function SidebarNavCategory({
           <Box
             className={`${
               !expanded && openCategories[categoryKey]
-                ? "flex h-8 w-8 items-center justify-center rounded-full bg-white/20"
+                ? "flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-foreground/20"
                 : ""
             }`}
           >
             <Icon
               name={category.icon}
               className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""} ${
-                !expanded && openCategories[categoryKey] ? "text-white" : ""
+                !expanded && openCategories[categoryKey] ? "text-sidebar-foreground" : ""
               }`}
             />
           </Box>
@@ -197,7 +207,7 @@ function SidebarNavCategory({
           )}
         </Box>
         {!expanded && openCategories[categoryKey] && (
-          <Box className="absolute right-1 top-1 h-2 w-2 rounded-full bg-white"></Box>
+          <Box className="absolute right-1 top-1 h-2 w-2 rounded-full bg-sidebar-foreground"></Box>
         )}
         {expanded &&
           (openCategories[categoryKey] ? (
@@ -218,7 +228,10 @@ function SidebarNavCategory({
               key={item.name}
               to={item.href}
               onClick={() => onLinkClick?.()}
-              className={`${getSubItemStyles(isActive(item.href))} ${
+              onMouseEnter={() => prefetchDashboardShellRoute(item.href)}
+              onFocus={() => prefetchDashboardShellRoute(item.href)}
+              onTouchStart={() => prefetchDashboardShellRoute(item.href)}
+              className={`${getChromeNavSubItemStyles(isActive(item.href))} ${
                 !expanded ? "justify-center py-2" : "py-2"
               }`}
               aria-label={item.name}
@@ -253,16 +266,16 @@ export function SidebarHeader({
 }) {
   return (
     <Box className="flex flex-shrink-0 items-center justify-between py-2">
-      <Box className="flex items-center text-white">
+      <Box className="flex items-center text-sidebar-foreground">
         {expanded && (
           <Box className="flex flex-shrink-0 py-4">
             {isLoading ? (
               <Box className="animate-pulse space-y-3">
                 <Box className="flex items-center space-x-4">
-                  <Box className="h-6 w-6 rounded-full bg-white/40"></Box>
+                  <Box className="h-6 w-6 rounded-full bg-sidebar-foreground/40"></Box>
                   <Box className="flex-1 space-y-2">
-                    <Box className="h-4 w-3/4 rounded bg-white/40"></Box>
-                    <Box className="h-3 w-1/2 rounded bg-white/40"></Box>
+                    <Box className="h-4 w-3/4 rounded bg-sidebar-foreground/40"></Box>
+                    <Box className="h-3 w-1/2 rounded bg-sidebar-foreground/40"></Box>
                   </Box>
                 </Box>
               </Box>
@@ -273,7 +286,7 @@ export function SidebarHeader({
                   <BodyText
                     size="xs"
                     as="span"
-                    className="line-clamp-1 text-[11px] text-white/80 sm:text-xs"
+                    className="line-clamp-1 text-[11px] text-sidebar-muted-foreground sm:text-xs"
                   >
                     {displayUser?.email ?? "No email"}
                   </BodyText>
@@ -300,16 +313,18 @@ export function SidebarFooter({
   onCancelLogout: () => void;
 }) {
   return (
-    <Box className="flex-shrink-0 border-t border-white/30 py-4">
+    <Box className="flex-shrink-0 border-t border-sidebar-border py-4">
       <button
         onClick={onLogoutClick}
-        className={`${getButtonStyles(false).replace(
-          "text-white/80",
-          "text-white"
+        className={`${getChromeNavButtonStyles(false).replace(
+          "text-sidebar-muted-foreground",
+          "text-sidebar-foreground"
         )} cursor-pointer justify-center py-3`}
       >
         <Icon name="log-out" className={`h-6 w-6 ${expanded ? "mr-3" : ""}`} />
-        {expanded && <span className={`${sidebarNavLabelInactive} text-white`}>Logout</span>}
+        {expanded && (
+          <span className={`${sidebarNavLabelInactive} text-sidebar-foreground`}>Logout</span>
+        )}
       </button>
       <ConfirmationDialog
         isOpen={showLogoutConfirm}

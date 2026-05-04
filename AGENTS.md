@@ -22,6 +22,16 @@ Use this file as the **first stop** for automated assistants working in this rep
 - Documentation index: `documentation/server/README.md`.
 - OpenAPI is the contract: `.cursor/rules/shared/openapi-workflow.mdc`.
 
+### Backend consolidation / refactor PR checklist
+
+Before merging moves that consolidate helpers or reshuffle imports under `Server/app`:
+
+1. **Circular imports:** from repo root, `python3 Server/scripts/lint_circular_imports.py` must exit `0`.
+2. **Automated tests:** run targeted `pytest` for touched packages (for example `pytest Server/tests/unit/services/...`).
+3. **API contract:** if HTTP routes or request/response shapes change, update OpenAPI sources and regenerate or align `Client/packages/types/api.generated.ts`; run contract tests such as `Server/tests/contract/test_openapi_contracts.py` where applicable.
+
+Domain rotation prompts for duplication audits reference `Server/scripts/backend_dedup_rotation.json`.
+
 ## Checks (Client)
 
 From `Client/`: `pnpm typecheck`, `pnpm lint`, `pnpm lint:cycles`, `pnpm format:check`, tests as configured in `Client/package.json`.

@@ -2,7 +2,10 @@
  * Calendar type definitions
  */
 
-import type { GoogleEvent } from "./googleEvent";
+export type {
+  ExtendedGoogleEvent,
+  ProfileAvailabilityEventMeta,
+} from "packages/types/calendar/extendedGoogleEvent";
 
 export interface DateRange {
   timeMin: string;
@@ -23,25 +26,6 @@ export interface CalendarGridDay {
   isToday: boolean;
   isPast: boolean;
   isFirstOfMonth: boolean;
-}
-
-/**
- * Extended GoogleEvent with optional client event marker
- * Used when merging client events with Google Calendar events
- */
-export type ProfileAvailabilityEventMeta =
-  | { kind: "weekly"; ruleId: string; date: string }
-  | { kind: "oneOff"; oneOffId: string };
-
-export interface ExtendedGoogleEvent extends GoogleEvent {
-  isClientEvent?: boolean;
-  /** Injected when listing events from a calendar (see useGoogleEventsHelpers). */
-  calendarId?: string;
-  /** True for in-grid optimistic draft before API create completes. */
-  isOptimisticCalendarDraft?: boolean;
-  /** Synthetic profile availability block (not from Google Calendar). */
-  isProfileAvailabilityEvent?: boolean;
-  availabilityMeta?: ProfileAvailabilityEventMeta;
 }
 
 /**

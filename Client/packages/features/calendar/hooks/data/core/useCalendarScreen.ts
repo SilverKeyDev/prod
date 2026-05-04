@@ -299,7 +299,7 @@ export function useCalendarScreen({
         setSelectedDayKey(calendarDateToKey(start));
       }
     },
-    [showSelectedDayEventList]
+    [showSelectedDayEventList, setViewMode]
   );
 
   const handleDayHeaderPress = useCallback(

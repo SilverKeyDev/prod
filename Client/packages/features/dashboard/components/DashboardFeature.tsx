@@ -1,18 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
-import {
-  type AgendaTodoDTO,
-  Calendar,
-  CreateEventModal,
-  UpcomingEvents,
-} from "packages/features/calendar";
-import {
-  DocuSignLegalNotice,
-  EmbeddedSigning,
-  useDocumentsDataIntegration,
-} from "packages/features/documents";
+import { type AgendaTodoDTO, UpcomingEvents } from "packages/features/calendar";
+import { useDocumentsDataIntegration } from "packages/features/documents";
 import { useIsAgent } from "packages/features/homeauth";
 import { submitAgentAgendaTodo } from "packages/hooks/data/agenda/agentAgendaTodoSubmit";
 import {
@@ -24,7 +15,6 @@ import { useNavigation } from "packages/navigation";
 import { useUIStore } from "packages/store";
 import type { UIState } from "packages/store/ui.slice";
 import Button from "packages/ui/components/button/Button";
-import { BaseModal } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
@@ -35,6 +25,13 @@ import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/sto
 import ClientHubScreen from "./ClientHub/ClientHubScreen";
 import ClientList from "./ClientList/ClientList";
 import DashboardChecklists from "./DashboardChecklists/DashboardChecklists";
+
+const DashboardAgreementSigningModals = lazy(() => import("./DashboardAgreementSigningModals"));
+const DashboardCalendarPanel = lazy(() => import("./DashboardCalendarPanel"));
+
+const dashboardCalendarSkeleton = (
+  <Box className="h-56 w-full animate-pulse rounded-xl bg-muted/50 md:h-72" />
+);
 
 type DashboardFeatureProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
@@ -168,15 +165,14 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
 
         {!isAgent ? <DashboardChecklists /> : null}
 
-        <Calendar />
-
-        {showAddButton ? (
-          <CreateEventModal
-            isOpen={createEventModalOpen}
-            onClose={() => setCreateEventModalOpen(false)}
-            calendars={scopedCalendars}
+        <Suspense fallback={dashboardCalendarSkeleton}>
+          <DashboardCalendarPanel
+            showAddButton={showAddButton}
+            createEventModalOpen={createEventModalOpen}
+            setCreateEventModalOpen={setCreateEventModalOpen}
+            scopedCalendars={scopedCalendars}
             defaultCalendarId={defaultCalendarId}
-            onEventCreated={() => void refreshEvents()}
+            refreshEvents={refreshEvents}
             onAddWithoutSchedule={async (payload) => {
               try {
                 await submitAgentAgendaTodo(
@@ -200,41 +196,16 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
               }
             }}
           />
-        ) : null}
+        </Suspense>
       </Box>
-      {agreementSigningSession?.kind === "embedded" ? (
-        <BaseModal
-          isOpen
-          onClose={dismissAgreementSigning}
-          title="Sign document"
-          size="full"
-          showCloseButton
-          closeOnBackdropClick={false}
-        >
-          <EmbeddedSigning
-            agreementId={agreementSigningSession.agreementId}
-            participantId={agreementSigningSession.participantId}
-            onComplete={onAgreementSigningComplete}
-            height="min(72vh, 820px)"
-            pdfViewerTitle={agreementSigningSession.pdfViewerTitle}
+      {agreementSigningSession ? (
+        <Suspense fallback={null}>
+          <DashboardAgreementSigningModals
+            agreementSigningSession={agreementSigningSession}
+            dismissAgreementSigning={dismissAgreementSigning}
+            onAgreementSigningComplete={onAgreementSigningComplete}
           />
-        </BaseModal>
-      ) : agreementSigningSession?.kind === "sender_url" ? (
-        <BaseModal
-          isOpen
-          onClose={dismissAgreementSigning}
-          title="Sign or correct document"
-          size="full"
-          showCloseButton
-          closeOnBackdropClick={false}
-        >
-          <DocuSignLegalNotice variant="sender_url_iframe" />
-          <iframe
-            src={agreementSigningSession.url}
-            title="DocuSign signing"
-            className="border-border min-h-[72vh] w-full rounded-lg border"
-          />
-        </BaseModal>
+        </Suspense>
       ) : null}
     </>
   );

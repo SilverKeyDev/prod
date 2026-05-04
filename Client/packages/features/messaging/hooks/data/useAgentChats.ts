@@ -107,7 +107,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       return cachedConversations ?? previousValue;
     },
     staleTime: 30 * 1000, // 30 seconds - conversations change frequently
-    refetchOnMount: "always",
+    // Default refetchOnMount: refetch when stale so tab switches use cache within staleTime.
     refetchOnWindowFocus: true,
   });
 

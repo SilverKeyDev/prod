@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { PublicAgentProfileConnect } from "packages/features/agent";
@@ -18,8 +18,13 @@ import {
 import { applySocialMetaTags } from "@/app/seo/documentMeta";
 import { setJsonLdScript } from "@/app/seo/jsonLd";
 import { getSiteOrigin } from "@/app/seo/siteOrigin";
-import { BodyText, Button, Title } from "@/components/ui";
+import { BodyText, Button, IconButton, Title } from "@/components/ui";
 import { Box } from "@/components/ui";
+
+function isSafeInternalReturnTo(value: string): boolean {
+  if (!value.startsWith("/") || value.startsWith("//")) return false;
+  return !value.includes("://");
+}
 
 export default function AgentProfilePage() {
   const { t } = useLocalization();
@@ -32,7 +37,7 @@ export default function AgentProfilePage() {
     [briefSlug, nameSegment]
   );
   const agentId = agentUserId ?? undefined;
-  const { navigate, navigateToPath, getCurrentRoute } = useNavigation();
+  const { getCurrentRoute, goBack, navigate, navigateToPath } = useNavigation();
   const { pathname, search } = getCurrentRoute();
   const authUser = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -50,11 +55,54 @@ export default function AgentProfilePage() {
     if (!agent?.name || !agentId || !canonicalNameSlug) return;
     const pathName = nameSegment?.trim();
     if (legacyUuidFirst || (pathName && pathName !== canonicalNameSlug)) {
+      const { state } = getCurrentRoute();
       navigateToPath(buildAgentProfileUrl(agentId, agent.name), {
         replace: true,
+        state,
       });
     }
-  }, [agent, agentId, canonicalNameSlug, legacyUuidFirst, nameSegment, navigateToPath]);
+  }, [
+    agent,
+    agentId,
+    canonicalNameSlug,
+    getCurrentRoute,
+    legacyUuidFirst,
+    nameSegment,
+    navigateToPath,
+  ]);
+
+  const handleBack = useCallback(() => {
+    const { state } = getCurrentRoute();
+    const returnTo =
+      typeof state === "object" &&
+      state !== null &&
+      "returnTo" in state &&
+      typeof (state as { returnTo: unknown }).returnTo === "string"
+        ? (state as { returnTo: string }).returnTo
+        : undefined;
+    if (returnTo && isSafeInternalReturnTo(returnTo)) {
+      navigateToPath(returnTo);
+      return;
+    }
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      goBack();
+    } else {
+      navigate("FIND_AGENTS");
+    }
+  }, [getCurrentRoute, goBack, navigate, navigateToPath]);
+
+  const backToolbar = (
+    <Box className="mx-auto w-full max-w-2xl px-4 pt-4 sm:px-6 sm:pt-5">
+      <IconButton
+        variant="ghost"
+        size="sm"
+        iconName="chevron-left"
+        onClick={handleBack}
+        label={t("common.back", { defaultValue: "Back" })}
+        className="-ml-1 text-text-secondary hover:text-text-primary"
+      />
+    </Box>
+  );
 
   useEffect(() => {
     if (!agent?.name?.trim()) {
@@ -100,17 +148,20 @@ export default function AgentProfilePage() {
 
   if (!agentId?.trim()) {
     return (
-      <Box className="flex h-full min-h-[50vh] items-center justify-center p-6">
-        <Box className="text-center">
-          <Title size="lg" className="mb-4">
-            {t("profile.public.agent_not_found_title")}
-          </Title>
-          <BodyText size="md" muted className="mb-6">
-            {t("profile.public.invalid_link_body")}
-          </BodyText>
-          <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
-            {t("profile.public.back_home")}
-          </Button>
+      <Box className="flex h-full min-h-[50vh] flex-col">
+        {backToolbar}
+        <Box className="flex flex-1 flex-col items-center justify-center p-6">
+          <Box className="text-center">
+            <Title size="lg" className="mb-4">
+              {t("profile.public.agent_not_found_title")}
+            </Title>
+            <BodyText size="md" muted className="mb-6">
+              {t("profile.public.invalid_link_body")}
+            </BodyText>
+            <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
+              {t("profile.public.back_home")}
+            </Button>
+          </Box>
         </Box>
       </Box>
     );
@@ -118,25 +169,31 @@ export default function AgentProfilePage() {
 
   if (isLoading) {
     return (
-      <Box className="flex min-h-[50vh] flex-col items-center justify-center gap-4 p-6">
-        <Loading message={t("profile.public.loading")} />
+      <Box className="flex min-h-[50vh] flex-col">
+        {backToolbar}
+        <Box className="flex flex-1 flex-col items-center justify-center gap-4 p-6">
+          <Loading message={t("profile.public.loading")} />
+        </Box>
       </Box>
     );
   }
 
   if (isError) {
     return (
-      <Box className="flex h-full min-h-[50vh] items-center justify-center p-6">
-        <Box className="text-center">
-          <Title size="lg" className="mb-4">
-            {t("profile.public.load_error_title")}
-          </Title>
-          <BodyText size="md" muted className="mb-6">
-            {error instanceof Error ? error.message : t("profile.public.generic_error")}
-          </BodyText>
-          <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
-            {t("profile.public.back_home")}
-          </Button>
+      <Box className="flex h-full min-h-[50vh] flex-col">
+        {backToolbar}
+        <Box className="flex flex-1 flex-col items-center justify-center p-6">
+          <Box className="text-center">
+            <Title size="lg" className="mb-4">
+              {t("profile.public.load_error_title")}
+            </Title>
+            <BodyText size="md" muted className="mb-6">
+              {error instanceof Error ? error.message : t("profile.public.generic_error")}
+            </BodyText>
+            <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
+              {t("profile.public.back_home")}
+            </Button>
+          </Box>
         </Box>
       </Box>
     );
@@ -144,30 +201,36 @@ export default function AgentProfilePage() {
 
   if (isFetched && agent === null) {
     return (
-      <Box className="flex h-full min-h-[50vh] items-center justify-center p-6">
-        <Box className="text-center">
-          <Title size="lg" className="mb-4">
-            {t("profile.public.agent_not_found_title")}
-          </Title>
-          <BodyText size="md" muted className="mb-6">
-            {t("profile.public.unavailable_body")}
-          </BodyText>
-          <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
-            {t("profile.public.back_home")}
-          </Button>
+      <Box className="flex h-full min-h-[50vh] flex-col">
+        {backToolbar}
+        <Box className="flex flex-1 flex-col items-center justify-center p-6">
+          <Box className="text-center">
+            <Title size="lg" className="mb-4">
+              {t("profile.public.agent_not_found_title")}
+            </Title>
+            <BodyText size="md" muted className="mb-6">
+              {t("profile.public.unavailable_body")}
+            </BodyText>
+            <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
+              {t("profile.public.back_home")}
+            </Button>
+          </Box>
         </Box>
       </Box>
     );
   }
 
   if (!agent) {
-    return null;
+    return <Box className="min-h-[20vh]">{backToolbar}</Box>;
   }
 
   return (
-    <AgentPublicProfileView
-      agent={agent}
-      heroActions={<PublicAgentProfileConnect agentId={agent.id} isOwnProfile={isOwnProfile} />}
-    />
+    <>
+      {backToolbar}
+      <AgentPublicProfileView
+        agent={agent}
+        heroActions={<PublicAgentProfileConnect agentId={agent.id} isOwnProfile={isOwnProfile} />}
+      />
+    </>
   );
 }

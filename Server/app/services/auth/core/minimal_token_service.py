@@ -28,8 +28,8 @@ class MinimalTokenService:
     # Clock skew handling - conservative leeway for verification
     _SKEW_SECONDS = 60  # 60 seconds leeway for verification
 
-    # Env var names
-    _ENV_HS_SECRET = "MINIMAL_TOKEN_HS_SECRET"  # use a dedicated secret for HS256
+    # Env var names (HS256 access tokens — independent of AWS credential rotation)
+    _ENV_HS_SECRET = "JWT_SIGNING_SECRET"
     _ENV_RS_PRIV = "AUTH_RS256_PRIVATE_KEY_PEM"
     _ENV_JWKS_KID = "AUTH_JWKS_KID"
     _ENV_ISSUER = "AUTH_ISSUER"  # optional override for ID token issuer
@@ -46,15 +46,14 @@ class MinimalTokenService:
     # ---- Internal loaders -----------------------------------------------------
 
     def _get_hs_secret(self) -> str:
-        """Lazy-load HS256 secret key from a **dedicated** environment variable."""
+        """Lazy-load HS256 secret from JWT_SIGNING_SECRET (not AWS credentials)."""
         if self._hs_secret is None:
-            secret = os.getenv(self._ENV_HS_SECRET)
-            if not secret:
-                # Fallback to AWS_SECRET_ACCESS_KEY for backward compatibility
-                secret = os.getenv("AWS_SECRET_ACCESS_KEY")
+            raw = os.getenv(self._ENV_HS_SECRET)
+            secret = raw.strip() if raw else ""
             if not secret:
                 raise RuntimeError(
-                    f"Minimal token HS256 secret required: set {self._ENV_HS_SECRET} or AWS_SECRET_ACCESS_KEY. "
+                    f"Minimal token HS256 secret required: set {self._ENV_HS_SECRET} "
+                    "(a long random value used only for signing these JWTs; rotate independently of AWS keys). "
                     "Do not use a hardcoded secret in production."
                 )
             # Do not log or preview secret material

@@ -49,6 +49,12 @@ export type BuildProgressiveChecklistRowsOptions = {
    * completed history stays collapsed (e.g. roadmap prerequisite reveal).
    */
   revealedCompletedItemId?: number | null;
+  /**
+   * When true, use segmented rows (collapsed completed prefix, current, preview upcoming, etc.)
+   * even if the list is short. Used by the buyer roadmap so prior steps in a phase do not
+   * each consume a full card when the phase has few items.
+   */
+  useProgressiveStructure?: boolean;
 };
 
 export function buildProgressiveChecklistRows(
@@ -56,7 +62,10 @@ export function buildProgressiveChecklistRows(
   activeItemId: number | null,
   options: BuildProgressiveChecklistRowsOptions
 ): ProgressiveChecklistSegment[] {
-  if (!shouldUseProgressiveDisclosure(sortedItems.length)) {
+  const useRowSegments =
+    options.useProgressiveStructure === true ||
+    shouldUseProgressiveDisclosure(sortedItems.length);
+  if (!useRowSegments) {
     return sortedItems.map((item, globalIndex) => ({
       kind: "flat_item" as const,
       item,

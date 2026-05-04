@@ -45,6 +45,7 @@ export type IconName =
   | "footprints"
   | "git-compare"
   | "graduation-cap"
+  | "grip-vertical"
   | "grid-3x3"
   | "handshake"
   | "heart"

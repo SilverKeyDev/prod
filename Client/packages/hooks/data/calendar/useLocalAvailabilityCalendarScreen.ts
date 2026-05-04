@@ -207,7 +207,7 @@ export function useLocalAvailabilityCalendarScreen({
         setSelectedDayKey(calendarDateToKey(start));
       }
     },
-    [showSelectedDayEventList]
+    [showSelectedDayEventList, setViewMode]
   );
 
   const handleDayHeaderPress = useCallback(

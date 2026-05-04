@@ -16,7 +16,8 @@ function formatSectionRatingDisplay(rating: number): string {
 }
 
 /**
- * Section score (0–10) shown as a pill; uses tiered match tokens via `getMatchScoreGradientColors` (same as map pins / match chips).
+ * Section score (0–10) shown as a pill; uses tiered match UI tokens via `getMatchScoreGradientColors`
+ * (map listing pins use `match.mapPin.*` via `getMapPinColorsForScoreAndStatus` instead).
  */
 export function PropertySectionRatingBadge({
   rating,

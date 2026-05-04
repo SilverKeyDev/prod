@@ -1,12 +1,11 @@
-import { type RefObject, useId } from "react";
+import { type RefObject } from "react";
 
 import { Icon } from "@ui/icons";
 
 import Button from "packages/ui/components/button/Button";
-import Toggle from "packages/ui/components/form/Toggle";
+import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
-import Label from "packages/ui/components/text/Label";
 import { dayjs } from "packages/utils/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
@@ -87,33 +86,28 @@ export function CalendarStyleDateRangePickerPopoverBody({
   rangeHi,
   handleDayClick,
 }: CalendarStyleDateRangePickerPopoverBodyProps) {
-  const rangeModeToggleId = useId();
+  const handleRangeModeToggle = () => {
+    const next = !rangeMode;
+    setRangeMode(next);
+    if (!next) {
+      setPendingStart(null);
+    }
+  };
   return (
     <Box ref={popoverPanelContentRef} className="min-w-0">
       <Box className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <Label
-          htmlFor={rangeModeToggleId}
-          variant="medium"
-          size="sm"
-          color="black"
-          className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 [&_button]:cursor-pointer"
-        >
-          <BodyText as="span" size="sm" className="text-text-primary shrink-0 font-medium">
-            Date range
-          </BodyText>
-          <Toggle
-            id={rangeModeToggleId}
-            checked={rangeMode}
-            onChange={(next) => {
-              setRangeMode(next);
-              if (!next) {
-                setPendingStart(null);
-              }
-            }}
+        <Box className="flex min-w-0 flex-1 items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
             size="sm"
-            className="shrink-0"
-          />
-        </Label>
+            className="text-text-primary h-auto min-h-0 px-0 py-0 font-medium"
+            onPress={handleRangeModeToggle}
+          >
+            Date range
+          </Button>
+          <OliveCheckbox checked={rangeMode} onToggle={handleRangeModeToggle} />
+        </Box>
         <Button type="button" variant="ghost" size="sm" onPress={onClose} iconName="x">
           Close
         </Button>

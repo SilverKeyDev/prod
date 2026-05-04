@@ -3,8 +3,6 @@ import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations
 import { useGoogleMaps } from "packages/hooks/data";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
-import { TOUR_TARGETS_DESKTOP } from "packages/utils/tour/tourTargets";
-
 import { Button, CancelButton } from "@/components/ui";
 
 import {
@@ -62,7 +60,7 @@ export default function SearchHeader({
       className={`mb-responsive-md mb-6 mt-6 flex w-full min-w-0 flex-shrink-0 flex-row flex-nowrap items-center gap-3 pr-8 ${HEADER_ROW_HEIGHT}`}
     >
       <Box className="flex min-w-0 flex-1 flex-row flex-nowrap items-center gap-2">
-        <Box className="min-w-0 flex-1" id={TOUR_TARGETS_DESKTOP.searchLocation}>
+        <Box className="min-w-0 flex-1">
           <SearchLocationBarWeb
             scriptsReady={scriptsReady}
             fitMapToBounds={fitMapToBounds}
@@ -73,7 +71,7 @@ export default function SearchHeader({
             }
           />
         </Box>
-        <Box className="shrink-0" id={TOUR_TARGETS_DESKTOP.searchRun}>
+        <Box className="shrink-0">
           <Button
             variant="tertiary"
             size="sm"

@@ -1,16 +1,23 @@
 /**
- * Map pin colors from match score only: tiered tokens via `getMatchScoreGradientColors`
- * (same thresholds as MatchPill / cards).
+ * Map pin colors from match score: dedicated `match.mapPin.*` tokens (higher chroma for basemaps).
+ * Tier thresholds match `getMatchStyle` / MatchPill; UI pills still use `getMatchScoreGradientColors`.
  */
 import { color } from "packages/design-tokens";
 
 import { getMatchStyle } from "./matchScore";
 import type { ScoreColors } from "./scoreColors";
-import { getMatchScoreGradientColors } from "./scoreColors";
 
-/** Map pin / SVG helpers: score → fill/stroke/text (same as MatchPill tiers). */
+/** Map pin / SVG helpers: explicit hex fills for AdvancedMarker SVG content. */
 export function getMapPinColorsForScoreAndStatus(score: number): ScoreColors {
-  return getMatchScoreGradientColors(score);
+  const { tier } = getMatchStyle(score);
+  const fillHex = color(`match.mapPin.${tier}.bg`);
+  const strokeHex = color(`match.mapPin.${tier}.stroke`);
+  const textHex = color(`match.${tier}.fg`);
+  return {
+    fillColor: fillHex || "#A64A3E",
+    strokeColor: strokeHex || fillHex || "#5C2822",
+    textColor: textHex || "#2D2D2A",
+  };
 }
 
 export type NativeMapPinColorParams = {
@@ -34,5 +41,6 @@ export function getNativeMapPinColorHex(params: NativeMapPinColorParams): string
   const score =
     typeof params.score === "number" && Number.isFinite(params.score) ? params.score : 0;
   const tier = getMatchStyle(score).tier;
-  return color(`match.${tier}.bg`) ?? params.fallbackUnfocusedColor;
+  const fill = color(`match.mapPin.${tier}.bg`);
+  return fill || params.fallbackUnfocusedColor;
 }

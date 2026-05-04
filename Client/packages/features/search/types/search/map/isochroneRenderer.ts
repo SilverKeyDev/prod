@@ -4,6 +4,7 @@
 
 import { color } from "packages/design-tokens";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { getIsochroneUnionFillForGoogleMaps } from "packages/utils/maps/isochroneUnionStyle";
 
 import {
   searchMapPolygonIndividualZIndex,
@@ -157,13 +158,14 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
       return convertedRing;
     });
 
+    const unionFill = getIsochroneUnionFillForGoogleMaps();
     const polygon = new google.maps.Polygon({
       paths,
       strokeColor: color("olive.DEFAULT"), // Match the app's green theme
       strokeOpacity: 0.8,
       strokeWeight: 2,
-      fillColor: color("olive.DEFAULT"),
-      fillOpacity: 0.15,
+      fillColor: unionFill.fillColor,
+      fillOpacity: unionFill.fillOpacity,
       clickable: false,
       zIndex: searchMapPolygonUnionZIndex(),
     });
