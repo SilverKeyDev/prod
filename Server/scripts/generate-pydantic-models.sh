@@ -20,7 +20,8 @@ python -m datamodel_code_generator \
   --use-schema-description \
   --target-python-version 3.10 \
   --collapse-root-models \
-  --use-default
+  --use-default \
+  --disable-timestamp
 
 ruff check app/schemas/generated.py --fix --unsafe-fixes --quiet
 ruff format app/schemas/generated.py --quiet
