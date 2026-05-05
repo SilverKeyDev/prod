@@ -11,7 +11,6 @@ import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.nat
 import {
   effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
-  IS_AGENT_OPTIONS,
   type OnboardingData,
   WHY_JOINING_SILVERKEY_OPTIONS,
 } from "@/features/profile/utils";
@@ -26,7 +25,7 @@ const HAS_BUYERS_AGENT_OPTIONS = [
   { value: "no", label: "No" },
 ];
 
-/** Mobile onboarding demographics. Agent/buyer choice appears only here; immutable after onboarding. */
+/** Mobile onboarding demographics. Role picker runs first; immutable after onboarding. */
 export function DemographicsStep({ formData, updateFormData }: DemographicsStepProps) {
   const authIsAgent = useIsAgent();
   const showBuyerFacingDemographics = !effectiveIsAgentForOptionalBuyerUi({
@@ -49,33 +48,6 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
   return (
     <Box className="gap-5">
       <Text className="text-text-primary text-lg font-semibold">About You</Text>
-
-      <Box>
-        <Text className="text-text-secondary mb-2 text-sm font-medium">
-          {FIELD_LABELS.IS_AGENT}
-        </Text>
-        <Box className="flex flex-row gap-3">
-          {IS_AGENT_OPTIONS.map((opt) => (
-            <Pressable
-              key={opt.value}
-              onPress={() => updateFormData("is_agent", opt.value)}
-              className={`flex-1 rounded-lg border-2 px-4 py-3 ${
-                formData.is_agent === opt.value
-                  ? "border-primary bg-primary"
-                  : "border-border bg-background-surface"
-              }`}
-            >
-              <Text
-                className={`text-center text-base font-medium ${
-                  formData.is_agent === opt.value ? "text-primary" : "text-text-secondary"
-                }`}
-              >
-                {opt.label}
-              </Text>
-            </Pressable>
-          ))}
-        </Box>
-      </Box>
 
       <Box>
         <Text className="text-text-secondary mb-2 text-sm font-medium">{FIELD_LABELS.AGE}</Text>

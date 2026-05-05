@@ -7,7 +7,6 @@ import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useOnboardingForm } from "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm";
 import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
-/* Agent sections shared with profile for onboarding; consistent agent form with web. */
 import {
   AgentBrokerageSection,
   AgentLicensingSection,
@@ -16,11 +15,13 @@ import {
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
+import { isOnboardingStepComplete } from "packages/features/profile/utils";
 
 import { DemographicsStep } from "./DemographicsStep.native";
 import { HousingStepEssentials } from "./housing/HousingStepEssentials.native";
 import { HousingStepRanges } from "./housing/HousingStepRanges.native";
 import { LocationStep } from "./LocationStep.native";
+import { OnboardingRoleStep } from "./OnboardingRoleStep.native";
 
 export type OnboardingScreenNativeProps = {
   /** Called when user completes onboarding successfully (e.g. update store and re-render root). */
@@ -46,10 +47,15 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
 
   const step = steps[currentStep];
   const isLastStep = currentStep === steps.length - 1;
+  const roleStepNeedsSelection =
+    Boolean(step?.id === "onboarding_role") &&
+    !isOnboardingStepComplete(formData, "onboarding_role");
 
   const renderStepContent = () => {
     if (!step) return null;
     switch (step.id) {
+      case "onboarding_role":
+        return <OnboardingRoleStep formData={formData} updateFormData={updateFormData} />;
       case "demographics":
         return <DemographicsStep formData={formData} updateFormData={updateFormData} />;
       case "agent_brokerage":
@@ -153,28 +159,46 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       </ScrollView>
 
       <View style={styles.footer}>
-        {currentStep > 0 ? (
-          <Pressable onPress={prevStep} style={styles.backButton}>
-            <Text className="text-text-secondary text-base font-medium">Back</Text>
-          </Pressable>
-        ) : (
-          <View style={styles.backPlaceholder} />
-        )}
-        <Pressable
-          onPress={isLastStep ? handleSubmit : nextStep}
-          disabled={loading}
-          accessibilityRole="button"
-          accessibilityState={{ busy: loading }}
-          style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
-        >
-          {loading ? (
-            <KeyTurnLoader message="" />
-          ) : (
-            <Text className="text-base font-semibold text-white">
-              {isLastStep ? "Done" : "Continue"}
+        {!isLastStep && step?.id !== "demographics" && step?.id !== "onboarding_role" ? (
+          <Pressable
+            onPress={handleSubmit}
+            disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel="Skip for now"
+            accessibilityState={{ disabled: loading }}
+            style={styles.skipForNowRow}
+          >
+            <Text
+              className={`text-center text-base ${loading ? "text-text-muted" : "text-text-secondary underline"}`}
+            >
+              Skip for now
             </Text>
+          </Pressable>
+        ) : null}
+        <View style={styles.footerRow}>
+          {currentStep > 0 ? (
+            <Pressable onPress={prevStep} style={styles.backButton}>
+              <Text className="text-text-secondary text-base font-medium">Back</Text>
+            </Pressable>
+          ) : (
+            <View style={styles.backPlaceholder} />
           )}
-        </Pressable>
+          <Pressable
+            onPress={isLastStep ? handleSubmit : nextStep}
+            disabled={loading || roleStepNeedsSelection}
+            accessibilityRole="button"
+            accessibilityState={{ busy: loading, disabled: loading || roleStepNeedsSelection }}
+            style={[styles.primaryButton, (loading || roleStepNeedsSelection) && styles.primaryButtonDisabled]}
+          >
+            {loading ? (
+              <KeyTurnLoader message="" />
+            ) : (
+              <Text className="text-base font-semibold text-white">
+                {isLastStep ? "Done" : "Continue"}
+              </Text>
+            )}
+          </Pressable>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -208,15 +232,23 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: "column",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 8,
     paddingBottom: 24,
     backgroundColor: color("neutral.100"),
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: color("neutral.200"),
+  },
+  skipForNowRow: {
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
   },
   backButton: {
     paddingVertical: 12,

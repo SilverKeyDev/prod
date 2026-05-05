@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { AlertCircle, ExternalLink } from "lucide-react-native";
+import { AlertCircle } from "lucide-react-native";
 import { Linking, StyleSheet } from "react-native";
 import Pdf from "react-native-pdf";
 
@@ -188,10 +188,9 @@ export default function ViewSignedDocument({
             size="sm"
             onPress={handleOpenExternal}
             style={styles.actionButton}
-            iconName="map-pin"
+            iconName="external-link"
           >
-            <ExternalLink size={16} color={color("neutral.900")} />
-            <BodyText size="sm">Open in browser</BodyText>
+            Open in browser
           </Button>
           {onClose && (
             <Button variant="secondary" size="sm" onPress={onClose} iconName="x">
@@ -217,7 +216,7 @@ export default function ViewSignedDocument({
             size="sm"
             onPress={handleOpenExternal}
             style={styles.button}
-            iconName="map-pin"
+            iconName="external-link"
           >
             Open in External Viewer
           </Button>

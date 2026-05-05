@@ -55,6 +55,11 @@ export type UseMessagingReturn = {
   canSendMessage: boolean;
   /** Call when the user is viewing the active thread (e.g. tab focused) so read state syncs without re-selecting the conversation. */
   acknowledgeActiveConversationAsRead: () => void;
+  /** True when the server indicates older messages exist beyond the loaded window. */
+  hasMoreOlder: boolean;
+  isLoadingOlder: boolean;
+  /** Load the next page of older messages (scroll-up). */
+  loadOlderMessages: () => Promise<void>;
 };
 
 export type ApiMessageForMapping = {

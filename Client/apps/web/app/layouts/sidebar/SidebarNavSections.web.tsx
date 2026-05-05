@@ -13,7 +13,6 @@ import {
   getChromeNavSubItemStyles,
 } from "packages/ui/components/sidebar/sidebarTheme";
 
-import { prefetchDashboardShellRoute } from "@/app/layouts/dashboard/dashboardRoutePrefetch";
 import ConfirmationDialog from "@/components/modals/dialogs/ConfirmationDialog.web";
 import { BodyText, NotificationBadge } from "@/components/ui";
 import type { UserProfile } from "@/features/homeauth/types";
@@ -33,6 +32,7 @@ type SidebarNavSingleLinkProps = {
   unreadCount: number;
   isLoaded: boolean;
   onLinkClick?: () => void;
+  onPrefetchHref: (href: string) => void;
 };
 function SidebarNavSingleLink({
   categoryKey,
@@ -42,6 +42,7 @@ function SidebarNavSingleLink({
   unreadCount,
   isLoaded,
   onLinkClick,
+  onPrefetchHref,
 }: SidebarNavSingleLinkProps) {
   const location = useLocation();
   const itemIconName = firstItem.icon;
@@ -68,9 +69,9 @@ function SidebarNavSingleLink({
         title={titleAttr}
         onClick={() => onLinkClick?.()}
         aria-current={isActive ? "page" : undefined}
-        onMouseEnter={() => prefetchDashboardShellRoute("/search")}
-        onFocus={() => prefetchDashboardShellRoute("/search")}
-        onTouchStart={() => prefetchDashboardShellRoute("/search")}
+        onMouseEnter={() => onPrefetchHref("/search")}
+        onFocus={() => onPrefetchHref("/search")}
+        onTouchStart={() => onPrefetchHref("/search")}
       >
         {iconEl}
         {expanded && (
@@ -98,9 +99,9 @@ function SidebarNavSingleLink({
       className={buttonClass}
       title={titleAttr}
       onClick={handleClick}
-      onMouseEnter={() => prefetchDashboardShellRoute(to)}
-      onFocus={() => prefetchDashboardShellRoute(to)}
-      onTouchStart={() => prefetchDashboardShellRoute(to)}
+      onMouseEnter={() => onPrefetchHref(to)}
+      onFocus={() => onPrefetchHref(to)}
+      onTouchStart={() => onPrefetchHref(to)}
       aria-label={firstItem?.name}
       aria-current={isActive ? "page" : undefined}
     >
@@ -124,6 +125,7 @@ type SidebarNavCategoryProps = {
   onLinkClick?: () => void;
   unreadCount: number;
   isLoaded: boolean;
+  onPrefetchHref: (href: string) => void;
 };
 function SidebarNavCategory({
   categoryKey,
@@ -136,6 +138,7 @@ function SidebarNavCategory({
   onLinkClick,
   unreadCount,
   isLoaded,
+  onPrefetchHref,
 }: SidebarNavCategoryProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -151,6 +154,7 @@ function SidebarNavCategory({
         unreadCount={unreadCount}
         isLoaded={isLoaded}
         onLinkClick={onLinkClick}
+        onPrefetchHref={onPrefetchHref}
       />
     );
   }
@@ -228,9 +232,9 @@ function SidebarNavCategory({
               key={item.name}
               to={item.href}
               onClick={() => onLinkClick?.()}
-              onMouseEnter={() => prefetchDashboardShellRoute(item.href)}
-              onFocus={() => prefetchDashboardShellRoute(item.href)}
-              onTouchStart={() => prefetchDashboardShellRoute(item.href)}
+              onMouseEnter={() => onPrefetchHref(item.href)}
+              onFocus={() => onPrefetchHref(item.href)}
+              onTouchStart={() => onPrefetchHref(item.href)}
               className={`${getChromeNavSubItemStyles(isActive(item.href))} ${
                 !expanded ? "justify-center py-2" : "py-2"
               }`}
@@ -347,6 +351,7 @@ type SidebarNavProps = {
   onLinkClick?: () => void;
   unreadCount: number;
   isLoaded: boolean;
+  onPrefetchHref: (href: string) => void;
 };
 export function SidebarNav({
   navigation,
@@ -358,6 +363,7 @@ export function SidebarNav({
   onLinkClick,
   unreadCount,
   isLoaded,
+  onPrefetchHref,
 }: SidebarNavProps) {
   return (
     <nav className="mt-4 pb-4" aria-label="Primary navigation">
@@ -374,6 +380,7 @@ export function SidebarNav({
             onLinkClick={onLinkClick}
             unreadCount={unreadCount}
             isLoaded={isLoaded}
+            onPrefetchHref={onPrefetchHref}
           />
         </Box>
       ))}

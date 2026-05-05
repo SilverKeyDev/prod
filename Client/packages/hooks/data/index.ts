@@ -10,6 +10,7 @@ export {
 export { useChecklistFormSendContext } from "./integrations/useChecklistFormSendContext";
 export {
   type PublicAgentProfile,
+  type UsePublicAgentProfileArgs,
   usePublicAgentProfile,
 } from "./integrations/usePublicAgentProfile";
 export { useSearchRefreshIntegration } from "./integrations/useSearchRefreshIntegration";

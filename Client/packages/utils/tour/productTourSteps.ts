@@ -5,6 +5,8 @@ import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "./tourTargets";
 export type SearchProductTourLayout = "desktop" | "mobile";
 
 export type SearchProductTourStep = {
+  /** Stable id for localStorage (layout + control). */
+  stepId: string;
   element: string;
   popover: {
     title: string;
@@ -32,6 +34,7 @@ export function getSearchProductTourSteps(
   if (layout === "desktop") {
     return [
       {
+        stepId: "search.desktop.preferences",
         element: sel(d.preferencesControl),
         popover: {
           title: tourCopy("search.product_tour.desktop.preferences_title"),
@@ -41,6 +44,7 @@ export function getSearchProductTourSteps(
         },
       },
       {
+        stepId: "search.desktop.display",
         element: sel(d.displayControl),
         popover: {
           title: tourCopy("search.product_tour.desktop.display_title"),
@@ -54,6 +58,7 @@ export function getSearchProductTourSteps(
 
   return [
     {
+      stepId: "search.mobile.preferences",
       element: sel(m.preferencesControl),
       popover: {
         title: tourCopy("search.product_tour.mobile.preferences_title"),
@@ -63,6 +68,7 @@ export function getSearchProductTourSteps(
       },
     },
     {
+      stepId: "search.mobile.display",
       element: sel(m.displayControl),
       popover: {
         title: tourCopy("search.product_tour.mobile.display_title"),
@@ -72,4 +78,12 @@ export function getSearchProductTourSteps(
       },
     },
   ];
+}
+
+/** Drop steps whose targets are not in the DOM (SSR, feature flags, layout). */
+export function filterSearchProductTourStepsForDom(
+  steps: SearchProductTourStep[]
+): SearchProductTourStep[] {
+  if (typeof document === "undefined") return [];
+  return steps.filter((step) => document.querySelector(step.element) != null);
 }

@@ -9,11 +9,10 @@ export type PropertyDetailsScreenParams = {
   propertyId?: string;
 };
 
-/** Params for native full-screen public agent profile (matches web `/agent-profile/...`). */
-export type AgentProfileScreenParams = {
-  agentUserId: string;
-  displayName?: string;
-};
+/** Params for native full-screen public agent profile (matches web `/agent-profile/...` and `/a/...`). */
+export type AgentProfileScreenParams =
+  | { agentUserId: string; displayName?: string }
+  | { publicProfileSlug: string };
 
 /**
  * Result of resolving post-auth redirect path.

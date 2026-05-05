@@ -4,6 +4,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { queryKeys } from "packages/config/query/keys";
 import { checklistFormsApi } from "packages/features/documents/api/checklistForms";
 import type { ChecklistForm } from "packages/features/documents/types/forms";
 
@@ -39,7 +40,7 @@ export type UseFormsLibraryResult = {
  */
 export const useFormsLibrary = (enabled = true): UseFormsLibraryResult => {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["forms-library"],
+    queryKey: queryKeys.formsLibrary.list(),
     queryFn: () => checklistFormsApi.listFormsLibrary(),
     enabled,
     staleTime: 10 * 60 * 1000, // Forms library is relatively static, cache for 10 minutes

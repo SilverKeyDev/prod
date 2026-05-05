@@ -1,5 +1,6 @@
 import type { ProfileStep } from "packages/features/profile/types/onboarding";
 import { BUYER_PERSONALIZATION_SECTION_IDS } from "packages/features/profile/types/profileStepIds";
+import { SECTION_TITLES } from "packages/utils/domain/profile/labels";
 import type {
   GetOnboardingStepsOptions,
   GetPersonalizationStepsOptions,
@@ -9,6 +10,11 @@ export type {
   GetOnboardingStepsOptions,
   GetPersonalizationStepsOptions,
 } from "packages/features/profile/types/stepsOptions";
+
+const ONBOARDING_ROLE_STEP: ProfileStep = {
+  id: "onboarding_role",
+  title: SECTION_TITLES.ONBOARDING_ROLE,
+};
 
 const AGENT_STEPS: ProfileStep[] = [
   { id: "agent_brokerage", title: "Brokerage" },
@@ -57,14 +63,19 @@ function orderStepsWithFinancialLast(steps: ProfileStep[]): ProfileStep[] {
 
 /**
  * Buyer: full flow with financial last when present.
- * Agent: demographics then professional (brokerage / licensing / territory) only — no buyer home-search steps.
+ * Agent: onboarding role picker, demographics then professional (brokerage / licensing / territory) only —
+ * no buyer home-search steps.
  */
 function getProfileFlowSteps(isAgent: boolean): ProfileStep[] {
   if (isAgent) {
     const demographics = ALL_STEPS.find((s) => s.id === "demographics");
-    return [...(demographics ? [demographics] : []), ...AGENT_STEPS];
+    return [
+      ONBOARDING_ROLE_STEP,
+      ...(demographics ? [demographics] : []),
+      ...AGENT_STEPS,
+    ];
   }
-  return orderStepsWithFinancialLast(ALL_STEPS);
+  return [ONBOARDING_ROLE_STEP, ...orderStepsWithFinancialLast(ALL_STEPS)];
 }
 
 function getOnboardingStepsBase(options?: GetOnboardingStepsOptions): ProfileStep[] {

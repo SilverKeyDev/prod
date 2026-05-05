@@ -6,6 +6,7 @@ import {
   getAgentFromProperty,
   getMlsListingId,
   getPropertyBasicFields,
+  hasRenderableListingPrice,
 } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import Card from "packages/ui/components/cards/Card";
@@ -14,9 +15,12 @@ import { formatStructuredAddress } from "packages/utils/format/property/addressF
 import { formatPrice } from "packages/utils/format/property/propertyDetailsDisplayFormatters";
 
 import { PropertyDetailsList } from "./PropertyDetailsList";
+
+const ADDRESS_UNAVAILABLE = "Address not available";
+
 function formatPropertyAddress(property: unknown): string {
   const addr = (property as { address?: unknown }).address;
-  if (!addr) return "Address not available";
+  if (!addr) return ADDRESS_UNAVAILABLE;
   if (typeof addr === "string") return addr;
   if (
     typeof addr === "object" &&
@@ -38,25 +42,44 @@ function formatPropertyAddress(property: unknown): string {
   try {
     return JSON.stringify(addr);
   } catch {
-    return "Address not available";
+    return ADDRESS_UNAVAILABLE;
   }
 }
 
-export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }) => {
+export const PropertyBasicInfo: React.FC<PropertyComponentProps & { isLoading?: boolean }> = ({
+  property,
+  isLoading = false,
+}) => {
   const fields = getPropertyBasicFields(property as unknown as Record<string, unknown>);
   const agent = getAgentFromProperty(property);
   const mlsListingId = getMlsListingId(property);
   const addressDisplay = formatPropertyAddress(property);
+  const showPriceSkeleton = isLoading && !hasRenderableListingPrice(fields.price);
+  const showAddressSkeleton = isLoading && addressDisplay === ADDRESS_UNAVAILABLE;
 
   return (
     <Box className="p-6">
       <Box className="mb-6 flex items-start justify-between">
         <Box className="flex-1">
           <Box className="text-text-primary mb-2 text-2xl font-bold sm:text-3xl md:text-4xl">
-            {asReactNode(formatPrice(fields.price))}
+            {showPriceSkeleton ? (
+              <Box
+                className="bg-background-surface h-9 w-40 max-w-[90%] animate-pulse rounded-md"
+                aria-hidden
+              />
+            ) : (
+              asReactNode(formatPrice(fields.price))
+            )}
           </Box>
           <Box className="text-text-secondary text-sm sm:text-base md:text-lg">
-            {addressDisplay}
+            {showAddressSkeleton ? (
+              <Box className="space-y-2" aria-hidden>
+                <Box className="bg-background-surface h-4 w-64 max-w-[95%] animate-pulse rounded" />
+                <Box className="bg-background-surface h-4 w-48 max-w-[80%] animate-pulse rounded" />
+              </Box>
+            ) : (
+              addressDisplay
+            )}
           </Box>
         </Box>
         <Box className="flex items-center gap-2 sm:gap-4">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { ReactNode } from "react";
+import type { ReactNode, UIEvent } from "react";
 
 import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
@@ -9,7 +9,7 @@ import { useClientMessagingModals, useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers } from "packages/hooks/ui";
 import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
-import { getDocument } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
@@ -49,6 +49,9 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     formatTime,
     canSendMessage,
     acknowledgeActiveConversationAsRead,
+    hasMoreOlder,
+    isLoadingOlder,
+    loadOlderMessages,
   } = useMessaging({
     mode: "client",
     conversationSelector: userProfile?.id,
@@ -121,6 +124,22 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     localMessages,
     activeConversationId,
     isLoadingHistory
+  );
+
+  const loadOlderGuardRef = useRef(false);
+  const handleMessageListScroll = useCallback(
+    (e: UIEvent<HTMLDivElement>) => {
+      if (!hasMoreOlder || isLoadingOlder) return;
+      if (e.currentTarget.scrollTop > 120) return;
+      if (loadOlderGuardRef.current) return;
+      loadOlderGuardRef.current = true;
+      void loadOlderMessages().finally(() => {
+        getWindow()?.setTimeout(() => {
+          loadOlderGuardRef.current = false;
+        }, 400);
+      });
+    },
+    [hasMoreOlder, isLoadingOlder, loadOlderMessages]
   );
 
   const messageRef = useRef(message);
@@ -219,6 +238,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
               <Region
                 label="Message list"
                 className="scrollbar-hide min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
+                onScroll={handleMessageListScroll}
               >
                 <UnifiedMessagesList
                   mode="client"
@@ -236,6 +256,8 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
                   onCancelEventRequest={handlers.handleCancelEventRequest}
                   acceptedEventRequestIds={new Set()}
                   acceptingEventRequestId={acceptingEventRequestId}
+                  isLoadingOlder={isLoadingOlder}
+                  hasMoreOlder={hasMoreOlder}
                 />
               </Region>
             </Box>

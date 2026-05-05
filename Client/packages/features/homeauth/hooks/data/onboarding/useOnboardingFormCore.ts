@@ -19,6 +19,8 @@ export type UseOnboardingFormCoreOptions = {
   getSteps: (formData: OnboardingData) => ProfileStep[];
   /** When provided, called on successful submit instead of navigate (e.g. React Native). */
   onSubmitSuccess?: () => void;
+  /** Runs after prefs save succeeds, before navigate / onSubmitSuccess (e.g. update auth store on web). */
+  afterPreferencesSuccess?: () => void;
   /** When provided (web), used to navigate after submit. */
   navigate?: (path: string) => void;
 };
@@ -27,7 +29,7 @@ export type UseOnboardingFormCoreOptions = {
  * Shared onboarding form state and submit logic. Platform wrappers pass getSteps(formData), validate, and navigation.
  */
 export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
-  const { getSteps, onSubmitSuccess, navigate } = options;
+  const { getSteps, onSubmitSuccess, afterPreferencesSuccess, navigate } = options;
   const { clientSettings, clientSettingsQuery, patchClientSettings } = useClientSettings();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>(() => {
@@ -101,11 +103,12 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
       submitPreferences,
       setLoading,
       navigate,
+      onSuccess: afterPreferencesSuccess,
       onSuccessNavigate: onSubmitSuccess,
       skipValidation: true,
       onShowError: showErrorToast,
     });
-  }, [formData, submitPreferences, navigate, onSubmitSuccess]);
+  }, [formData, submitPreferences, navigate, onSubmitSuccess, afterPreferencesSuccess]);
 
   return {
     steps,

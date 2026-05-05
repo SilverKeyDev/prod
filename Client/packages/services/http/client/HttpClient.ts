@@ -2,7 +2,7 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { dateNow } from "packages/utils/date";
 import { getDocument, getFetch } from "packages/utils/platform";
 
-import { handle401Unauthorized, handleAuthenticationError, isAuthEndpoint } from "./auth";
+import { handleAuthenticationError, isAuthEndpoint, recoverSessionAfter401 } from "./auth";
 import { AuthenticationError, HttpError } from "./errors";
 import { normalizeUrl, sleep } from "./httpRequestHeaders";
 import { logApiRequest, logApiResponse } from "./logging";
@@ -162,13 +162,19 @@ export class HttpClient {
       const doc = getDocument();
       const allCookies = getCookieNames(doc);
 
-      const response = await getFetch()(url, {
+      let response = await getFetch()(url, {
         ...requestOptions,
         signal,
       });
 
-      if (response.status === 401 && !isAuthEndpoint(url)) {
-        handle401Unauthorized(url);
+      if (response.status === 401 && !isAuthEndpoint(url) && !signal?.aborted) {
+        const recovered = await recoverSessionAfter401();
+        if (recovered) {
+          response = await getFetch()(url, {
+            ...requestOptions,
+            signal,
+          });
+        }
       }
 
       const contentType = response.headers.get("content-type") ?? "";

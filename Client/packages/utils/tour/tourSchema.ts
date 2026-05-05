@@ -4,3 +4,8 @@ export const TOUR_SCHEMA_VERSION = 2;
 export function productTourStorageKey(): string {
   return `silverkey.productTour.v${TOUR_SCHEMA_VERSION}.completed`;
 }
+
+/** Per spotlight / step; survives partial completion and re-login on the same device. */
+export function searchProductTourStepStorageKey(stepId: string): string {
+  return `silverkey.productTour.v${TOUR_SCHEMA_VERSION}.step.${stepId}`;
+}

@@ -63,6 +63,11 @@ const ROUTE_SEO_DEFS: RouteSeoDef[] = [
     description: "Contact SilverKey support and inquiries.",
   },
   {
+    pattern: /^\/a\//,
+    title: "Agent profile",
+    description: "View a SilverKey agent profile, bio, and contact options.",
+  },
+  {
     pattern: /^\/agent-profile\//,
     title: "Agent profile",
     description: "View a SilverKey agent profile, bio, and contact options.",

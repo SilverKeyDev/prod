@@ -4,6 +4,7 @@
  */
 
 export const PROFILE_STEP_IDS = [
+  "onboarding_role",
   "demographics",
   "availability",
   "housing_essentials",

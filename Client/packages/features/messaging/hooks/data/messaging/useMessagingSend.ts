@@ -13,6 +13,7 @@ import {
 import type { SavedHome } from "packages/types/domain/savedHome";
 import type { DocumentData } from "packages/ui/components/cards/document/types";
 
+import type { GetChatHistoryRef } from "./useMessagingHistory.effect";
 import type { ChatMessage, MessagingSendMessageOptions, UseMessagingConfig } from "./types";
 import {
   executeRetryMessage,
@@ -34,9 +35,7 @@ export type UseMessagingSendParams = {
   ) => Promise<void>;
   refreshChats: () => Promise<void>;
   setLocalMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  getChatHistoryRef: React.MutableRefObject<
-    (conversationId: string) => Promise<{ messages: unknown[] }>
-  >;
+  getChatHistoryRef: React.MutableRefObject<GetChatHistoryRef>;
   loadedHistoryIdsRef: React.MutableRefObject<Set<string>>;
 };
 

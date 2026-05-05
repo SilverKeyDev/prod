@@ -8,6 +8,7 @@ export {
 export { getAgentPublicProfileAbsoluteUrl } from "./publicUrl";
 export {
   buildAgentProfileUrl,
+  buildShortPublicProfilePath,
   generateAgentProfileSlug,
   parseAgentProfileUrl,
   resolveAgentProfileRouteParams,

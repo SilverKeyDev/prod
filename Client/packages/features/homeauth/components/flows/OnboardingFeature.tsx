@@ -3,8 +3,9 @@ import { LOGO } from "packages/ui/components/asset";
 import { Box, Image } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
-import { BodyText, NavigationButtons, Title } from "@/components/ui";
+import { BodyText, NavigationButtons, SkipButton, Title } from "@/components/ui";
 import OnboardingHeader from "@/features/profile/components/onboard/Header";
+import OnboardingRoleStep from "@/features/profile/components/onboard/OnboardingRoleStep.web";
 import { ProfileHousingEssentialsSection } from "@/features/profile/components/profileScreen/sections/ProfileHousingEssentialsSection";
 import { ProfileHousingRangesSection } from "@/features/profile/components/profileScreen/sections/ProfileHousingRangesSection";
 import { ProfileSearchPropertySection } from "@/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
@@ -16,6 +17,7 @@ import {
   DemographicsSection,
   LocationSection,
 } from "@/features/profile/components/sections/index.web";
+import { isOnboardingStepComplete } from "@/features/profile/utils";
 
 export function OnboardingFeature() {
   const {
@@ -31,15 +33,29 @@ export function OnboardingFeature() {
     scriptsReady,
     loadError,
     handleSubmit,
-    showSkipOnNext,
   } = useOnboardingForm();
+
+  const currentStepId = steps[currentStep]?.id ?? "";
+  const showSkipForNow =
+    currentStep < steps.length - 1 &&
+    currentStepId !== "" &&
+    currentStepId !== "demographics" &&
+    currentStepId !== "onboarding_role";
+
+  const roleStepNeedsSelection =
+    currentStepId === "onboarding_role" &&
+    !isOnboardingStepComplete(formData, "onboarding_role");
 
   const renderStepContent = () => {
     const step = steps[currentStep];
 
-    switch (step.id) {
+    switch (step?.id ?? "") {
+      case "onboarding_role":
+        return (
+          <OnboardingRoleStep formData={formData} updateFormData={updateFormData} />
+        );
+
       case "demographics":
-        // Agent choice shown only during onboarding; immutable after that
         return (
           <DemographicsSection
             formData={formData}
@@ -48,6 +64,7 @@ export function OnboardingFeature() {
             wrapInCard={false}
             hideProfilePictureWhenOnboarding={true}
             hideNameWhenOnboarding={true}
+            showAgentChoice={false}
           />
         );
 
@@ -173,16 +190,20 @@ export function OnboardingFeature() {
                 onNext={nextStep}
                 onSubmit={handleSubmit}
                 loading={loading}
+                disableNext={roleStepNeedsSelection}
                 layout="centered"
                 size="md"
-                nextText={showSkipOnNext ? "Skip" : "Next"}
-                nextButtonVariant={showSkipOnNext ? "secondary" : "primary"}
-                nextButtonClassName={
-                  showSkipOnNext
-                    ? "w-30 font-bold sm:w-36 md:w-40 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                    : undefined
-                }
               />
+              {showSkipForNow ? (
+                <Box className="mt-6 flex justify-center">
+                  <SkipButton
+                    onSkip={handleSubmit}
+                    skipText="Skip for now"
+                    disabled={loading}
+                    size="md"
+                  />
+                </Box>
+              ) : null}
             </Box>
           </Card>
         </Box>

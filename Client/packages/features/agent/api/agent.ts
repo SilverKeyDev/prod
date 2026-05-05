@@ -72,10 +72,31 @@ export const agentApi = {
   },
 
   /**
-   * Get chat history for a specific conversation
+   * Get chat history for a specific conversation (supports pagination query params).
    */
-  getChatHistory: (conversationId: string): Promise<AgentChatHistoryResponse> =>
-    apiGet<AgentChatHistoryResponse>(`/api/v1/agent/chats/${conversationId}/history`),
+  getChatHistory: (
+    conversationId: string,
+    params?: {
+      limit?: number;
+      before_timestamp?: string;
+      before_message_id?: string;
+      after_timestamp?: string;
+      after_message_id?: string;
+    }
+  ): Promise<AgentChatHistoryResponse> => {
+    const sp = new URLSearchParams();
+    if (params?.limit != null) sp.set("limit", String(params.limit));
+    if (params?.before_timestamp) sp.set("before_timestamp", params.before_timestamp);
+    if (params?.before_message_id) sp.set("before_message_id", params.before_message_id);
+    if (params?.after_timestamp) sp.set("after_timestamp", params.after_timestamp);
+    if (params?.after_message_id) sp.set("after_message_id", params.after_message_id);
+    const qs = sp.toString();
+    const path =
+      qs.length > 0
+        ? `/api/v1/agent/chats/${conversationId}/history?${qs}`
+        : `/api/v1/agent/chats/${conversationId}/history`;
+    return apiGet<AgentChatHistoryResponse>(path);
+  },
 
   /**
    * Send a message in a conversation

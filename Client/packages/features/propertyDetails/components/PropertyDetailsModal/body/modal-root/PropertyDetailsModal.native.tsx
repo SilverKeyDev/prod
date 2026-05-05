@@ -41,6 +41,7 @@ export const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
           property={property}
           currentImageIndex={currentImageIndex}
           onImageChange={setCurrentImageIndex}
+          isLoading={isLoading}
         />
         <PropertyDetailsBody
           property={property}

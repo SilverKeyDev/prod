@@ -4,8 +4,16 @@ import type { StateStorage } from "zustand/middleware";
 import type { KeyValueStorage } from "packages/utils/storage/platformStorage";
 import { getLocalStorage, setPlatformStorage } from "packages/utils/storage/platformStorage";
 
-import { isProductTourCompleted, markProductTourCompleted } from "./productTourStorage";
-import { productTourStorageKey } from "./tourSchema";
+import {
+  hasIncompleteSearchProductTourSteps,
+  isProductTourCompleted,
+  isSearchProductTourStepCompleted,
+  markProductTourCompleted,
+  markSearchProductTourStepCompleted,
+} from "./productTourStorage";
+import { productTourStorageKey, searchProductTourStepStorageKey } from "./tourSchema";
+
+const SAMPLE_STEP = "search.desktop.preferences";
 
 function createMemoryLocal(): KeyValueStorage {
   const map = new Map<string, string>();
@@ -47,12 +55,30 @@ describe("productTourStorage", () => {
 
   it("uses a versioned storage key", () => {
     expect(productTourStorageKey()).toMatch(/silverkey\.productTour\.v\d+\.completed/);
+    expect(searchProductTourStepStorageKey(SAMPLE_STEP)).toMatch(
+      /silverkey\.productTour\.v\d+\.step\.search\.desktop\.preferences/
+    );
   });
 
-  it("round-trips completed flag", () => {
+  it("round-trips legacy completed flag", () => {
     expect(isProductTourCompleted()).toBe(false);
     markProductTourCompleted();
     expect(getLocalStorage().getItem(productTourStorageKey())).toBe("1");
     expect(isProductTourCompleted()).toBe(true);
+    expect(isSearchProductTourStepCompleted(SAMPLE_STEP)).toBe(true);
+    expect(hasIncompleteSearchProductTourSteps("desktop")).toBe(false);
+  });
+
+  it("tracks each spotlight independently and sets legacy after both desktop steps", () => {
+    const d1 = "search.desktop.preferences";
+    const d2 = "search.desktop.display";
+    expect(isSearchProductTourStepCompleted(d1)).toBe(false);
+    markSearchProductTourStepCompleted(d1);
+    expect(isSearchProductTourStepCompleted(d1)).toBe(true);
+    expect(isProductTourCompleted()).toBe(false);
+    expect(hasIncompleteSearchProductTourSteps("desktop")).toBe(true);
+    markSearchProductTourStepCompleted(d2);
+    expect(isProductTourCompleted()).toBe(true);
+    expect(hasIncompleteSearchProductTourSteps("desktop")).toBe(false);
   });
 });

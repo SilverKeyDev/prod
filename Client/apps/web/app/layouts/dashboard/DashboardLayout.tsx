@@ -77,6 +77,27 @@ export default function DashboardLayout({
     triggerSearch: () => Promise<void>;
   } | null>(null);
 
+  /** DocuSign redirects the *signing iframe* here after finishing — must not mount full dashboard chrome or the entire app appears nested inside the modal iframe. */
+  if (route.isAgreementSigningComplete) {
+    return (
+      <SearchRefreshProvider>
+        <Box className="flex min-h-screen min-w-0 bg-background-base">
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="relative z-0 ml-0 flex min-h-screen min-w-0 flex-1 flex-col"
+          >
+            <DashboardContent
+              setMobileHeaderActions={setMobileHeaderActions}
+              searchPageRef={searchPageRef}
+              maxWidth={maxWidth}
+            />
+          </main>
+        </Box>
+      </SearchRefreshProvider>
+    );
+  }
+
   return (
     <SearchRefreshProvider>
       <Box

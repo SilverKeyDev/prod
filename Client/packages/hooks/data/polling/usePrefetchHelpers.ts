@@ -3,11 +3,14 @@ import type { QueryClient } from "@tanstack/react-query";
 import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import type { AgentConversation } from "packages/features/agent/api/agent";
+import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { RouteConfig } from "packages/services/data/dataConfig";
-import { getInitialLoadRoutes } from "packages/services/data/dataConfig";
+import { coreUserRoutes } from "packages/services/data/dataRoutes/coreUserRoutes";
+import { getInitialLoadRoutes, type RouteConfig } from "packages/services/data/dataConfig";
 import type { GoogleCalendar, UserProfile } from "packages/types";
 import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
+
+import { LIBRARY_PREFETCH_ROUTE_KEYS, prefetchFormsLibrary } from "./libraryRouteDataPrefetch";
 
 export interface PrefetchRouteParams {
   routeConfig: RouteConfig;
@@ -140,13 +143,17 @@ export async function prefetchChatHistory(
     await queryClient.prefetchQuery({
       queryKey: queryKeys.agent.history(conversationId),
       queryFn: async () => {
-        const response = await agentApi.getChatHistory(conversationId);
+        const response = await agentApi.getChatHistory(conversationId, {
+          limit: INITIAL_CHAT_HISTORY_LIMIT,
+        });
         if (!response.success) {
           throw new Error(response.error ?? "Failed to fetch chat history");
         }
         return {
           messages: response.messages ?? [],
           conversation: response.conversation,
+          has_more_older: response.has_more_older,
+          has_more_newer: response.has_more_newer,
         };
       },
       staleTime: 3 * 60 * 1000,
@@ -187,7 +194,8 @@ export interface PrefetchAllParams {
 
 /**
  * Prefetches all initial data for a user
- * Executes all route prefetches in parallel, then prefetches chat histories
+ * Runs Library-critical routes first, then remaining routes (plus agent forms library)
+ * in parallel, then prefetches chat histories.
  */
 export async function prefetchAllInitialData(params: PrefetchAllParams): Promise<void> {
   const { user, queryClient } = params;
@@ -201,25 +209,47 @@ export async function prefetchAllInitialData(params: PrefetchAllParams): Promise
   prefetchRemoteImage(user.profile_picture_url);
 
   const routes = getInitialLoadRoutes(user);
+  const tierARoutes = routes.filter((r) => LIBRARY_PREFETCH_ROUTE_KEYS.has(r.key));
+  const tierBRoutes = routes.filter((r) => !LIBRARY_PREFETCH_ROUTE_KEYS.has(r.key));
+
   log.debug(LOG_CATEGORIES.API, "Routes to prefetch", {
     routeCount: routes.length,
+    tierACount: tierARoutes.length,
+    tierBCount: tierBRoutes.length,
     routeKeys: routes.map((r) => r.key),
   });
 
-  // Execute all prefetches in parallel
-  const prefetchPromises = routes.map((routeConfig) =>
-    prefetchRoute({ routeConfig, userProfile: user, queryClient })
-  );
-
   try {
-    const results = await Promise.allSettled(prefetchPromises);
-    const succeeded = results.filter((r) => r.status === "fulfilled").length;
-    const failed = results.filter((r) => r.status === "rejected").length;
+    const tierAResults = await Promise.allSettled(
+      tierARoutes.map((routeConfig) => prefetchRoute({ routeConfig, userProfile: user, queryClient }))
+    );
+    const tierASucceeded = tierAResults.filter((r) => r.status === "fulfilled").length;
+    const tierAFailed = tierAResults.filter((r) => r.status === "rejected").length;
+    log.info(LOG_CATEGORIES.API, "Initial tier A prefetch completed (Library-critical)", {
+      total: tierARoutes.length,
+      succeeded: tierASucceeded,
+      failed: tierAFailed,
+    });
 
-    log.info(LOG_CATEGORIES.API, "Initial route prefetch completed", {
-      total: routes.length,
-      succeeded,
-      failed,
+    const tierBPromises: Promise<void>[] = tierBRoutes.map((routeConfig) =>
+      prefetchRoute({ routeConfig, userProfile: user, queryClient })
+    );
+    if (!isAgent) {
+      tierBPromises.push(
+        prefetchRoute({ routeConfig: coreUserRoutes.searchResults, userProfile: user, queryClient })
+      );
+    }
+    if (isAgent) {
+      tierBPromises.push(prefetchFormsLibrary(queryClient));
+    }
+
+    const tierBResults = await Promise.allSettled(tierBPromises);
+    const tierBSucceeded = tierBResults.filter((r) => r.status === "fulfilled").length;
+    const tierBFailed = tierBResults.filter((r) => r.status === "rejected").length;
+    log.info(LOG_CATEGORIES.API, "Initial tier B prefetch completed", {
+      total: tierBPromises.length,
+      succeeded: tierBSucceeded,
+      failed: tierBFailed,
     });
 
     // After conversations are loaded, prefetch chat history for each conversation

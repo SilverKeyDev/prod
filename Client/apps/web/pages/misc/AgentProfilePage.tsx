@@ -11,6 +11,7 @@ import { useAuthStore } from "packages/store";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
 import {
   buildAgentProfileUrl,
+  buildShortPublicProfilePath,
   generateAgentProfileSlug,
   resolveAgentProfileRouteParams,
 } from "packages/utils/agent";
@@ -28,23 +29,40 @@ function isSafeInternalReturnTo(value: string): boolean {
 
 export default function AgentProfilePage() {
   const { t } = useLocalization();
-  const { briefSlug, name: nameSegment } = useRouteParams<{
-    name: string;
-    briefSlug: string;
+  const { publicSlug, briefSlug, name: nameSegment } = useRouteParams<{
+    publicSlug?: string;
+    name?: string;
+    briefSlug?: string;
   }>();
-  const { agentUserId, legacyUuidFirst } = useMemo(
-    () => resolveAgentProfileRouteParams(nameSegment, briefSlug),
-    [briefSlug, nameSegment]
+  const routeSlug = publicSlug?.trim() ?? "";
+
+  const { agentUserId, legacyUuidFirst } = useMemo(() => {
+    if (routeSlug) {
+      return { agentUserId: null, legacyUuidFirst: false };
+    }
+    return resolveAgentProfileRouteParams(nameSegment, briefSlug);
+  }, [routeSlug, nameSegment, briefSlug]);
+
+  const profileQueryUserId = agentUserId ?? undefined;
+
+  const { data: agent, isLoading, isError, error, isFetched } = usePublicAgentProfile(
+    routeSlug ? { publicProfileSlug: routeSlug } : { userId: profileQueryUserId }
   );
-  const agentId = agentUserId ?? undefined;
+
+  const agentId = useMemo(
+    () => (routeSlug ? agent?.id?.trim() : profileQueryUserId?.trim()) ?? "",
+    [routeSlug, agent?.id, profileQueryUserId]
+  );
+
+  const hasLookup = Boolean(routeSlug) || Boolean(profileQueryUserId?.trim());
+
   const { getCurrentRoute, goBack, navigate, navigateToPath } = useNavigation();
   const { pathname, search } = getCurrentRoute();
   const authUser = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { userProfile } = useUserData();
   const viewerId = isAuthenticated ? (userProfile?.id ?? authUser?.id ?? null) : null;
-  const isOwnProfile = Boolean(viewerId && agentId && viewerId === agentId.trim());
-  const { data: agent, isLoading, isError, error, isFetched } = usePublicAgentProfile(agentId);
+  const isOwnProfile = Boolean(viewerId && agent?.id && viewerId === agent.id.trim());
 
   const canonicalNameSlug = useMemo(() => {
     if (!agent?.name) return null;
@@ -52,11 +70,22 @@ export default function AgentProfilePage() {
   }, [agent?.name]);
 
   useEffect(() => {
-    if (!agent?.name || !agentId || !canonicalNameSlug) return;
+    if (!agent?.name || !agent.id) return;
+    const shortSlug = agent.public_profile_slug?.trim();
+    const { state } = getCurrentRoute();
+
+    if (shortSlug) {
+      const target = buildShortPublicProfilePath(shortSlug);
+      if (pathname !== target) {
+        navigateToPath(target, { replace: true, state });
+      }
+      return;
+    }
+
+    if (!canonicalNameSlug || !agentId) return;
     const pathName = nameSegment?.trim();
     if (legacyUuidFirst || (pathName && pathName !== canonicalNameSlug)) {
-      const { state } = getCurrentRoute();
-      navigateToPath(buildAgentProfileUrl(agentId, agent.name), {
+      navigateToPath(buildAgentProfileUrl(agent.id, agent.name), {
         replace: true,
         state,
       });
@@ -69,6 +98,7 @@ export default function AgentProfilePage() {
     legacyUuidFirst,
     nameSegment,
     navigateToPath,
+    pathname,
   ]);
 
   const handleBack = useCallback(() => {
@@ -146,7 +176,7 @@ export default function AgentProfilePage() {
     };
   }, [agent, pathname, search]);
 
-  if (!agentId?.trim()) {
+  if (!hasLookup) {
     return (
       <Box className="flex h-full min-h-[50vh] flex-col">
         {backToolbar}

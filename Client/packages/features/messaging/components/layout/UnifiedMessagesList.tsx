@@ -16,6 +16,8 @@ import {
   propertyDetailsPathFromListing,
   type ResearchListingKeyInput,
 } from "packages/utils/property";
+import Loading from "@ui/asset/loading/Loading";
+import { Box } from "packages/ui/components/primitives";
 
 import {
   getMessagingConfig,
@@ -50,6 +52,8 @@ type UnifiedMessagesListProps = {
   onCancelEventRequest?: (messageId: string) => Promise<void>;
   acceptedEventRequestIds?: Set<string>;
   acceptingEventRequestId?: string | null;
+  hasMoreOlder?: boolean;
+  isLoadingOlder?: boolean;
 };
 
 export default function UnifiedMessagesList({
@@ -69,6 +73,8 @@ export default function UnifiedMessagesList({
   onCancelEventRequest,
   acceptedEventRequestIds = new Set(),
   acceptingEventRequestId = null,
+  hasMoreOlder: _hasMoreOlder = false,
+  isLoadingOlder = false,
 }: UnifiedMessagesListProps) {
   const { t } = useLocalization();
   const config = getMessagingConfig(mode);
@@ -200,6 +206,11 @@ export default function UnifiedMessagesList({
 
   return (
     <>
+      {isLoadingOlder ? (
+        <Box className="flex justify-center py-2">
+          <Loading />
+        </Box>
+      ) : null}
       {localMessages.map((msg, index) => (
         <UnifiedMessageThreadRow
           key={msg.id}

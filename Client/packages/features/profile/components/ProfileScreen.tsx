@@ -163,26 +163,8 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
   }, [showValidationWarning, validationResult]);
 
   useEffect(() => {
-    void refreshUserPreferences();
-  }, [refreshUserPreferences]);
-
-  useEffect(() => {
-    if (agentSubject != null) return;
-    if (!userPreferences) return;
-    if (hasInitializedFormRef.current) return;
-    hasInitializedFormRef.current = true;
-    const data = userPreferencesToOnboardingData(
-      userPreferences as Record<string, unknown>,
-      profileForSync
-    );
-    setFormData(data);
-    setOriginalData(data);
-  }, [agentSubject, userPreferences, profileForSync]);
-
-  useEffect(() => {
-    if (agentSubject == null) return;
-    if (hasInitializedFormRef.current) return;
     if (preferencesLoading) return;
+    if (hasInitializedFormRef.current) return;
     hasInitializedFormRef.current = true;
     const data = userPreferencesToOnboardingData(
       userPreferences ? (userPreferences as Record<string, unknown>) : null,
@@ -190,7 +172,7 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
     );
     setFormData(data);
     setOriginalData(data);
-  }, [agentSubject, preferencesLoading, userPreferences, profileForSync]);
+  }, [preferencesLoading, userPreferences, profileForSync]);
 
   useEffect(() => {
     if (agentSubject != null) return;
@@ -256,18 +238,18 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
     });
   }, [formData, submitPreferences, refreshUserPreferences]);
 
-  if (preferencesLoading) {
-    return (
-      <Box className="flex-1 items-center justify-center p-6">
-        <Loading />
-      </Box>
-    );
-  }
-
   if (preferencesError) {
     return (
       <Box className="flex-1 items-center justify-center p-6">
         <Text className="text-text-secondary">{preferencesError}</Text>
+      </Box>
+    );
+  }
+
+  if (preferencesLoading && userPreferences === undefined) {
+    return (
+      <Box className="flex-1 items-center justify-center p-6">
+        <Loading />
       </Box>
     );
   }
@@ -285,6 +267,7 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
             <AgentPublicProfileShareRow
               agentId={agentPublicProfileUserId}
               displayName={agentPublicProfileDisplayName}
+              publicProfileSlug={formData.public_profile_slug}
             />
           ) : null}
           {agentSubject == null ? (

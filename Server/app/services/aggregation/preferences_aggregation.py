@@ -199,6 +199,7 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
 
     # Agent profile (only when user.is_agent is True)
     if getattr(user, "is_agent", False):
+        out["public_profile_slug"] = getattr(user, "public_profile_slug", None)
         agent = (
             getattr(user, "user_agent_profile", None)
             or UserAgentProfile.query.filter_by(user_id=user_id).first()

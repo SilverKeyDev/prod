@@ -915,6 +915,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/public/agent-profile/slug/{publicProfileSlug}:
+    get:
+      tags:
+        - Public
+      summary: Get public agent profile by short slug
+      description: >
+        Same payload as `getPublicAgentProfile`, keyed by `users.public_profile_slug` (used for `/a/{slug}` links).
+        Returns 404 if the slug is invalid, taken by a non-agent, or unknown.
+      operationId: getPublicAgentProfileBySlug
+      parameters:
+        - name: publicProfileSlug
+          in: path
+          required: true
+          description: Value of `PublicAgentProfile.public_profile_slug` / `users.public_profile_slug`.
+          schema:
+            type: string
+            maxLength: 64
+      responses:
+        "200":
+          description: Public agent profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicAgentProfileResponse"
+        "404":
+          description: Not found or not a public agent profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/search/properties-by-polygon:
     post:
       tags:
@@ -2160,6 +2196,31 @@ paths:
         - name: conversationId
           in: path
           required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          required: false
+          description: Max messages to return for this page (capped server-side)
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - name: before_timestamp
+          in: query
+          required: false
+          description: ISO 8601 timestamp; with before_message_id, fetch messages strictly older than this cursor
+          schema: { type: string }
+        - name: before_message_id
+          in: query
+          required: false
+          description: Message id; with before_timestamp, exclusive cursor for older pages
+          schema: { type: string }
+        - name: after_timestamp
+          in: query
+          required: false
+          description: ISO 8601 timestamp; with after_message_id, fetch messages strictly newer than this cursor
+          schema: { type: string }
+        - name: after_message_id
+          in: query
+          required: false
+          description: Message id; with after_timestamp, exclusive cursor for newer messages (sync)
           schema: { type: string }
       responses:
         "200":

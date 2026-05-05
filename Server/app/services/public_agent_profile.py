@@ -129,6 +129,8 @@ def build_public_agent_profile(user_id: str) -> PublicAgentProfile | None:
     license_numbers = None
     license_expiration_dates = None
 
+    public_profile_slug = getattr(user, "public_profile_slug", None) or None
+
     if agent_row is not None:
         agent_bio = agent_row.agent_bio
         brokerage_name = agent_row.brokerage_name
@@ -157,6 +159,7 @@ def build_public_agent_profile(user_id: str) -> PublicAgentProfile | None:
         phone=user.phone,
         mls_id=user.mls_id,
         brokerage=user.brokerage,
+        public_profile_slug=public_profile_slug,
         profile_picture_url=profile_url,
         agent_bio=agent_bio,
         brokerage_name=brokerage_name,

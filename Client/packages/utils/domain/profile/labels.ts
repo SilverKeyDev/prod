@@ -27,6 +27,8 @@ export const SECTION_TITLES = {
   SEARCH_PROPERTY_STEP: "Features",
   /** When you are generally available for tours and meetings (saved with preferences; not your Google Calendar). */
   AVAILABILITY: "Availability",
+  /** First onboarding step: buyer / seller / investor / agent. */
+  ONBOARDING_ROLE: "Who I am",
   COMMUNICATION_PREFERENCES: "Communication",
   AGENT_PROFESSIONAL_INFO: "Professional Info",
   AGENT_BROKERAGE: "Brokerage",
@@ -47,6 +49,13 @@ export const FIELD_LABELS = {
   // Demographics
   NAME: "Name",
   IS_AGENT: "Are you a real estate agent?",
+  ONBOARDING_ROLE_HEADLINE: "I am a…",
+  ONBOARDING_ROLE_SUBTITLE:
+    "Choose the option that best describes you. We use this only to personalize your experience—details can live in your profile later.",
+  ONBOARDING_ROLE_BUYER: "Buyer",
+  ONBOARDING_ROLE_SELLER: "Seller",
+  ONBOARDING_ROLE_INVESTOR: "Investor",
+  ONBOARDING_ROLE_AGENT: "Real estate agent",
   AGE: "Age",
   WHY_JOINING_SILVERKEY: "Why are you joining SilverKey?",
   GENDER: "Gender",

@@ -33,6 +33,8 @@ class User(db.Model):
     client_ids: Mapped[str | None] = mapped_column(db.Text)  # array of ids of clients
     mls_id: Mapped[str | None] = mapped_column(db.String(100))
     brokerage: Mapped[str | None] = mapped_column(db.String(200))
+    #: Unique slug for short public profile URLs (`/a/{slug}`); agents only.
+    public_profile_slug: Mapped[str | None] = mapped_column(db.String(64), unique=True)
 
     # Buyer specific (deprecated when Phase 4: move to user_roles / user_tasks)
     agent_id: Mapped[str | None] = mapped_column(db.Text)  # array of ids of agents for buyer

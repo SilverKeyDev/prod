@@ -108,7 +108,7 @@ module.exports = {
       minWidth: { touch: "44px", "touch-lg": "48px", button: "44px" },
       maxWidth: { mobile: "100vw", "touch-target": "44px" },
       aspectRatio: { "mobile-card": "16 / 9", "mobile-hero": "4 / 3" },
-      // Stacking: base content < header < sidebar/dock < dropdowns < toasts < sheet overlays < modals < modal-popover < skip
+      // Stacking: base content < header < sidebar/dock < dropdowns < toasts < sheet overlays < modals < modal-popover-underlay < modal-popover < skip
       zIndex: {
         header: "100",
         sidebar: "200",
@@ -120,6 +120,8 @@ module.exports = {
         overlay: "9000",
         /** Dialogs and full-screen modal stacks */
         modal: "10000",
+        /** Full-screen hit target between z-modal and modal-popover so stray picks/double-clicks do not reach the modal backdrop */
+        "modal-popover-underlay": "10015",
         /** Portaled pickers/menus opened from inside a modal (must sit above z-modal) */
         "modal-popover": "10020",
         /** Skip link when focused - above modals for keyboard escape hatch */

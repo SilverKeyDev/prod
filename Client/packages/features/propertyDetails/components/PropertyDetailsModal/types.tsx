@@ -52,4 +52,6 @@ export type PropertyImageGalleryProps = PropertyComponentProps & {
   layout?: PropertyImageGalleryLayout;
   /** When set with layout modalSidebar, renders agent beside scrollable thumbs on md+ only. */
   sidebarListingAgent?: SidebarListingAgent | null;
+  /** Show placeholder when images have not arrived yet (streaming). */
+  isLoading?: boolean;
 };

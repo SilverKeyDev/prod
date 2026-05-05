@@ -3,12 +3,10 @@ import { useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
-import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 
-import { searchApi } from "@/features/search/api/search";
+import { fetchCachedPolygonSearchResults } from "@/features/search/api/fetchCachedPolygonSearchResults";
 import type { SearchResult } from "@/features/search/types";
-import { transformSearchResponse } from "@/features/search/utils/transform/searchTransform";
 
 /** Stable empty array to avoid new reference on every render when data is undefined */
 const EMPTY_SEARCH_RESULTS: SearchResult[] = [];
@@ -52,48 +50,7 @@ export function useSearchResultsData(
     refetch: refetchCachedResults,
   } = useQuery({
     queryKey: queryKeys.search.results(),
-    queryFn: async () => {
-      try {
-        log.debug(LOG_CATEGORIES.POLYGON_SEARCH, "Fetching search results from database");
-        const response = await searchApi.searchByPolygon({
-          perBucketPages: 20,
-          onlyCached: true, // Return stored results from DB (HomeUniversal), don't trigger new search
-        });
-
-        if (!response.success) {
-          log.warn(LOG_CATEGORIES.POLYGON_SEARCH, "Search API returned unsuccessful response", {
-            error: response.error,
-          });
-          return [] as SearchResult[];
-        }
-
-        const rawLen = Array.isArray(response.properties) ? response.properties.length : 0;
-        log.info(
-          LOG_CATEGORIES.POLYGON_SEARCH,
-          "onlyCached DB load: API response before transform",
-          {
-            propertiesCount: rawLen,
-            totalCount: response.total_count,
-            metaCached: response.meta?.cached,
-          }
-        );
-
-        const transformedResults = transformSearchResponse(response);
-
-        if (transformedResults.length > 0) {
-          log.info(LOG_CATEGORIES.POLYGON_SEARCH, "Loaded search results from database", {
-            count: transformedResults.length,
-          });
-        } else {
-          log.info(LOG_CATEGORIES.POLYGON_SEARCH, "No search results in database, returned empty");
-        }
-
-        return transformedResults;
-      } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch search results from database", error);
-        return [] as SearchResult[];
-      }
-    },
+    queryFn: () => fetchCachedPolygonSearchResults({ verboseLog: true }),
     enabled: shouldLoadData,
     staleTime: Infinity, // Never stale - cached results stay until new search or explicit refetch
     // Keep results while navigating away from Search so back-navigation still shows homes + map context

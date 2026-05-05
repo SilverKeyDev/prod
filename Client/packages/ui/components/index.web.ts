@@ -19,7 +19,7 @@ export { default as DropdownChevron } from "./button/DropdownChevron";
 export { default as HeartSave } from "./button/HeartSave";
 export { default as IconButton } from "./button/IconButton";
 export { default as NavigationButton } from "./button/NavigationButton";
-export { default as NavigationButtons } from "./button/NavigationButtons";
+export { default as NavigationButtons, SkipButton } from "./button/NavigationButtons";
 export { default as NotInterested } from "./button/NotInterested";
 
 // Accessibility components

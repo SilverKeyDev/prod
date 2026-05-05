@@ -127,6 +127,9 @@ export function MessagingScreenNative() {
     refreshChats,
     refreshActiveConversationHistory,
     acknowledgeActiveConversationAsRead,
+    hasMoreOlder,
+    isLoadingOlder,
+    loadOlderMessages,
   } = messaging;
 
   const config = useMemo(() => getMessagingConfig(isAgent ? "agent" : "client"), [isAgent]);
@@ -188,11 +191,32 @@ export function MessagingScreenNative() {
     }, [acknowledgeActiveConversationAsRead])
   );
 
+  const prevListLenRef = useRef(0);
+  const prevFirstMessageIdRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
-    if (localMessages.length > 0) {
+    const len = localMessages.length;
+    const firstId = localMessages[0]?.id;
+    const prevLen = prevListLenRef.current;
+    const prevFirst = prevFirstMessageIdRef.current;
+
+    const isPrepend =
+      len > prevLen &&
+      prevLen > 0 &&
+      firstId !== undefined &&
+      prevFirst !== undefined &&
+      firstId !== prevFirst;
+
+    prevListLenRef.current = len;
+    prevFirstMessageIdRef.current = firstId;
+
+    if (isPrepend) {
+      return;
+    }
+    if (len > 0) {
       listRef.current?.scrollToEnd({ animated: true });
     }
-  }, [localMessages.length]);
+  }, [localMessages]);
 
   const conversationMap = useMemo(
     () => new Map(conversations.map((conv) => [conv.client_id, conv])),
@@ -291,6 +315,9 @@ export function MessagingScreenNative() {
         onAgreementViewDocument={handleMessagingAgreementView}
         onAgreementSignNow={handleMessagingAgreementSignNow}
         emptyState={config.emptyStates.noMessages}
+        hasMoreOlder={hasMoreOlder}
+        isLoadingOlder={isLoadingOlder}
+        onLoadOlder={loadOlderMessages}
       />
 
       <MessagingScreenNativeComposer

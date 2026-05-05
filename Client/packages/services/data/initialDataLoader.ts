@@ -3,6 +3,7 @@ import { QueryClient } from "@tanstack/react-query";
 import type { AgentConversation, GoogleCalendar } from "packages/config/http/api";
 import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
+import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { UserProfile } from "packages/types";
 import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
@@ -240,13 +241,17 @@ export class InitialDataLoader {
       await this.queryClient.prefetchQuery({
         queryKey: queryKeys.agent.history(conversationId),
         queryFn: async () => {
-          const response = await agentApi.getChatHistory(conversationId);
+          const response = await agentApi.getChatHistory(conversationId, {
+            limit: INITIAL_CHAT_HISTORY_LIMIT,
+          });
           if (!response.success) {
             throw new Error(response.error ?? "Failed to fetch chat history");
           }
           return {
             messages: response.messages ?? [],
             conversation: response.conversation,
+            has_more_older: response.has_more_older,
+            has_more_newer: response.has_more_newer,
           };
         },
         staleTime: 3 * 60 * 1000, // 3 minutes - same as conversations

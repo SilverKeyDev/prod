@@ -141,7 +141,7 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
             ref={sectionRefs?.overview as React.RefObject<HTMLDivElement> | undefined}
             data-section-id="overview"
           >
-            <PropertyListingHeader property={property} />
+            <PropertyListingHeader property={property} isLoading={isLoading} />
             <PropertyListingQuickStats property={property} />
             <PropertyFeatures
               key="propertyFeatures"

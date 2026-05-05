@@ -44,10 +44,9 @@ export default function ProfileFeature({
   const navigation = useNavigation();
   useProfileDocSignOAuthReturn(navigation);
   const { userProfile } = useUserData();
-  const { userPreferences, refreshUserPreferences, preferencesLoading, preferencesError } =
-    useUserPreferences(
-      agentSubject != null ? { preferencesSubjectUserId: agentSubject.userId } : undefined
-    );
+  const { userPreferences, preferencesLoading, preferencesError } = useUserPreferences(
+    agentSubject != null ? { preferencesSubjectUserId: agentSubject.userId } : undefined
+  );
   const submitPreferences = usePreferencesSubmit();
   const isAgent = useIsAgent();
   const authUser = useAuthStore((s) => s.user);
@@ -90,7 +89,6 @@ export default function ProfileFeature({
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
   const [isEditMode, setIsEditMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [activeSection, setActiveSection] = useState(STEPS[0]?.id ?? "");
   const { scriptsReady, loadError } = useGoogleMapsPlacesReady();
@@ -108,41 +106,9 @@ export default function ProfileFeature({
     };
   }, [setMobileHeaderActions]);
 
-  const loadUserPreferencesFromContext = useCallback(() => {
-    try {
-      setIsLoading(true);
-
-      if (userPreferences) {
-        const normalized = userPreferencesToOnboardingData(
-          userPreferences as Record<string, unknown>,
-          profileForSync
-        );
-        setFormData(normalized);
-        setOriginalData(normalized);
-      }
-    } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userPreferences, profileForSync]);
-
   useEffect(() => {
-    void refreshUserPreferences();
-  }, [refreshUserPreferences]);
-
-  useEffect(() => {
-    if (agentSubject != null) return;
-    if (!userPreferences) return;
-    if (hasInitializedFormRef.current) return;
-    hasInitializedFormRef.current = true;
-    void loadUserPreferencesFromContext();
-  }, [agentSubject, userPreferences, loadUserPreferencesFromContext]);
-
-  useEffect(() => {
-    if (agentSubject == null) return;
-    if (hasInitializedFormRef.current) return;
     if (preferencesLoading) return;
+    if (hasInitializedFormRef.current) return;
     hasInitializedFormRef.current = true;
     const normalized = userPreferencesToOnboardingData(
       userPreferences ? (userPreferences as Record<string, unknown>) : null,
@@ -150,8 +116,7 @@ export default function ProfileFeature({
     );
     setFormData(normalized);
     setOriginalData(normalized);
-    setIsLoading(false);
-  }, [agentSubject, preferencesLoading, userPreferences, profileForSync]);
+  }, [preferencesLoading, userPreferences, profileForSync]);
 
   useEffect(() => {
     if (agentSubject != null) return;
@@ -262,15 +227,24 @@ export default function ProfileFeature({
     scrollToPersonalizationSection(sectionId);
   };
 
-  if (agentSubject != null && preferencesError) {
+  if (preferencesError) {
     return (
-      <Box className="flex flex-1 items-center justify-center p-6">
+      <Box
+        className={
+          agentSubject != null
+            ? "flex flex-1 items-center justify-center p-6"
+            : "bg-background-base flex min-h-screen items-center justify-center p-6"
+        }
+      >
         <Text className="text-text-secondary text-sm">{preferencesError}</Text>
       </Box>
     );
   }
 
-  const showPrefsLoading = agentSubject != null ? preferencesLoading : isLoading;
+  const showPrefsLoading =
+    agentSubject != null
+      ? preferencesLoading
+      : preferencesLoading && userPreferences === undefined;
 
   if (showPrefsLoading) {
     return (
@@ -293,6 +267,7 @@ export default function ProfileFeature({
       showAgentPublicProfileShare={showAgentPublicProfileShare}
       agentPublicProfileUserId={agentPublicProfileUserId}
       agentPublicProfileDisplayName={agentPublicProfileDisplayName}
+      agentPublicProfileSlug={formData.public_profile_slug}
       steps={STEPS}
       formData={formData}
       isEditMode={isEditMode}

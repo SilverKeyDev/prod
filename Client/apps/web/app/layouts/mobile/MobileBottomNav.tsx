@@ -11,7 +11,7 @@ import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
 import { NotificationBadge } from "packages/ui/components/primitives/index.web";
 
-import { prefetchDashboardShellRoute } from "@/app/layouts/dashboard/dashboardRoutePrefetch";
+import { useDashboardShellRoutePrefetch } from "@/app/layouts/dashboard/useDashboardShellRoutePrefetch.web";
 import { SIDEBAR_TABS, type SidebarTabKey } from "@/app/layouts/sidebar/sidebarTabs.web";
 import type { UserProfile } from "@/features/homeauth/types";
 
@@ -43,6 +43,7 @@ type BottomNavItemsProps = {
   isLoaded: boolean;
   pathname: string;
   onSearchNavigateClick?: (navId: string) => void;
+  onPrefetchHref: (href: string) => void;
 };
 
 function BottomNavItems({
@@ -52,6 +53,7 @@ function BottomNavItems({
   isLoaded,
   pathname,
   onSearchNavigateClick,
+  onPrefetchHref,
 }: BottomNavItemsProps) {
   return (
     <>
@@ -75,9 +77,9 @@ function BottomNavItems({
             aria-label={item.name}
             aria-current={active ? "page" : undefined}
             onNavigateClick={onSearchNavigateClick}
-            onMouseEnter={() => prefetchDashboardShellRoute(item.href)}
-            onFocus={() => prefetchDashboardShellRoute(item.href)}
-            onTouchStart={() => prefetchDashboardShellRoute(item.href)}
+            onMouseEnter={() => onPrefetchHref(item.href)}
+            onFocus={() => onPrefetchHref(item.href)}
+            onTouchStart={() => onPrefetchHref(item.href)}
           >
             {content}
           </SearchNavLink>
@@ -88,9 +90,9 @@ function BottomNavItems({
             className={linkClass(active)}
             aria-label={item.name}
             aria-current={active ? "page" : undefined}
-            onMouseEnter={() => prefetchDashboardShellRoute(item.href)}
-            onFocus={() => prefetchDashboardShellRoute(item.href)}
-            onTouchStart={() => prefetchDashboardShellRoute(item.href)}
+            onMouseEnter={() => onPrefetchHref(item.href)}
+            onFocus={() => onPrefetchHref(item.href)}
+            onTouchStart={() => onPrefetchHref(item.href)}
             onClick={() => {
               const navId = genNavId();
               log.info(LOG_CATEGORIES.ROUTING, "[NAV] MobileBottomNav click", {
@@ -119,6 +121,7 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const isLoaded = useNotificationStore((s) => s.isLoaded);
   const [mounted, setMounted] = useState(false);
+  const prefetchHref = useDashboardShellRoutePrefetch();
 
   useEffect(() => setMounted(true), []);
 
@@ -154,6 +157,7 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
             isLoaded={isLoaded}
             pathname={location.pathname}
             onSearchNavigateClick={handleSearchNavigateClick}
+            onPrefetchHref={prefetchHref}
           />
         </Box>
       </Box>

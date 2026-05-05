@@ -19,6 +19,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   property,
   currentImageIndex,
   onImageChange,
+  isLoading = false,
 }) => {
   const { t } = useLocalization();
   const propertyImages = getPropertyImages(property);
@@ -48,7 +49,18 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
     setShowFullGallery(false);
   }, []);
 
-  if (propertyImages.length === 0) return null;
+  if (propertyImages.length === 0) {
+    if (isLoading) {
+      return (
+        <Box className="bg-primary-muted">
+          <Box style={styles.mainImageWrap}>
+            <Box className="h-full w-full animate-pulse bg-neutral-200 dark:bg-neutral-700" />
+          </Box>
+        </Box>
+      );
+    }
+    return null;
+  }
 
   const mainImageUri = propertyImages[currentImageIndex];
   const navIconColor = color("background-surface");

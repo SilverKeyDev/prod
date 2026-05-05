@@ -1,7 +1,10 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 
+import { useQueryClient } from "@tanstack/react-query";
+
+import { prefetchLibraryRouteQueryData } from "packages/hooks/data/polling/libraryRouteDataPrefetch";
 import { useSavedHomesStoreIntegration } from "packages/hooks/store";
-import { useAgentDashboardStore } from "packages/store";
+import { useAgentDashboardStore, useAuthStore } from "packages/store";
 
 import { useReportsStoreIntegration } from "@/features/documents/hooks/store/useReportsStoreIntegration";
 
@@ -13,15 +16,27 @@ function SavedHomesShellIntegration() {
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
   const clientId = selectedClientId ?? undefined;
   useSavedHomesStoreIntegration(clientId);
+
+  const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
+
+  useEffect(() => {
+    if (!user || !selectedClientId) return;
+    void prefetchLibraryRouteQueryData(queryClient, user, selectedClientId, {
+      includeFormsLibrary: false,
+    });
+  }, [queryClient, user, selectedClientId]);
+
   return null;
 }
 
 /**
  * Full auth shell providers for standard and specialized routes
  *
- * Note: Data is now prefetched on login via useDataInitialization hook.
- * These store integrations sync React Query cache to Zustand stores for components
- * that access data via store selectors. They do not trigger data fetching.
+ * Note: Data is prefetched on login via useDataInitialization hook.
+ * Store integrations sync React Query cache to Zustand where needed.
+ * SavedHomesShellIntegration additionally prefetches favorites + document library when
+ * an agent selects a client (`selectedClientId`) so Library avoids a cold fetch.
  */
 export function AuthShellProviders({ children }: { children: ReactNode }) {
   // Sync reports data from React Query cache to Zustand store

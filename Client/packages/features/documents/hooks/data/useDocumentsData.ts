@@ -45,6 +45,43 @@ export type UseDocumentsDataReturn = {
   refetchDocuments: () => Promise<unknown>;
 };
 
+/** Shared with login prefetch — must stay in sync with useQuery below. */
+export async function fetchDocumentLibraryQuery(clientId?: string): Promise<DocumentData[]> {
+  try {
+    const response = await reportApi.getDocumentLibrary(clientId);
+    if (!response.success) {
+      const errorMessage = response.error ?? "Failed to fetch document library";
+      log.error(LOG_CATEGORIES.API, "Failed to fetch document library", {
+        error: errorMessage,
+      });
+      throw new Error(errorMessage);
+    }
+    const items = response.items ?? [];
+    return items.map((row) => ({
+      id: row.id,
+      filename: row.filename,
+      file_path: row.file_path,
+      status: row.status,
+      created_at: row.created_at ?? null,
+      updated_at: row.updated_at ?? null,
+      user_id: row.user_id,
+      document_type: row.document_type ?? null,
+      address: row.address ?? null,
+      event_type: row.event_type ?? null,
+      library_item_id: row.library_item_id,
+      library_kind: row.library_kind,
+      agreement_type: row.agreement_type ?? null,
+      agent_id: ((row as Record<string, unknown>).agent_id as string | null) ?? null,
+      buyer_id: ((row as Record<string, unknown>).buyer_id as string | null) ?? null,
+      participants:
+        ((row as Record<string, unknown>).participants as AgreementParticipantData[] | null) ?? null,
+    }));
+  } catch (err) {
+    log.error(LOG_CATEGORIES.ERRORS, "Error fetching documents", err);
+    throw err;
+  }
+}
+
 /**
  * Hook for managing documents data with React Query
  * Follows the same pattern as useChecklistData and useSavedHomesData
@@ -64,42 +101,7 @@ export function useDocumentsData(clientId?: string): UseDocumentsDataReturn {
     refetch: refetchDocuments,
   } = useQuery({
     queryKey: queryKeys.documents.list(undefined, clientId),
-    queryFn: async () => {
-      try {
-        const response = await reportApi.getDocumentLibrary(clientId);
-        if (!response.success) {
-          const errorMessage = response.error ?? "Failed to fetch document library";
-          log.error(LOG_CATEGORIES.API, "Failed to fetch document library", {
-            error: errorMessage,
-          });
-          throw new Error(errorMessage);
-        }
-        const items = response.items ?? [];
-        return items.map((row) => ({
-          id: row.id,
-          filename: row.filename,
-          file_path: row.file_path,
-          status: row.status,
-          created_at: row.created_at ?? null,
-          updated_at: row.updated_at ?? null,
-          user_id: row.user_id,
-          document_type: row.document_type ?? null,
-          address: row.address ?? null,
-          event_type: row.event_type ?? null,
-          library_item_id: row.library_item_id,
-          library_kind: row.library_kind,
-          agreement_type: row.agreement_type ?? null,
-          agent_id: ((row as Record<string, unknown>).agent_id as string | null) ?? null,
-          buyer_id: ((row as Record<string, unknown>).buyer_id as string | null) ?? null,
-          participants:
-            ((row as Record<string, unknown>).participants as AgreementParticipantData[] | null) ??
-            null,
-        }));
-      } catch (err) {
-        log.error(LOG_CATEGORIES.ERRORS, "Error fetching documents", err);
-        throw err;
-      }
-    },
+    queryFn: () => fetchDocumentLibraryQuery(clientId),
     enabled: shouldLoadData,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnMount: false,

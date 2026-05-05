@@ -1,5 +1,7 @@
+import { useCallback, useEffect, useRef } from "react";
+
 import { StyleSheet } from "react-native";
-import WebView from "react-native-webview";
+import WebView, { type WebViewNavigation } from "react-native-webview";
 
 import { useEmbeddedSigningUrlQuery } from "packages/features/documents/hooks/data/docusign/useEmbeddedSigningUrlQuery";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -79,7 +81,23 @@ export default function EmbeddedSigning({
   } = useEmbeddedSigningUrlQuery(agreementId, participantId);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
+  const completionHandledRef = useRef(false);
+
+  useEffect(() => {
+    completionHandledRef.current = false;
+  }, [agreementId, participantId]);
+
   const showPdfFallback = !isPending && (isError || !signingUrl);
+
+  const notifySigningCompleteOnce = useCallback(() => {
+    if (completionHandledRef.current) return;
+    completionHandledRef.current = true;
+    enqueueToast({
+      type: "success",
+      message: "Document signed successfully!",
+    });
+    onComplete?.();
+  }, [enqueueToast, onComplete]);
 
   // Handle messages from DocuSign WebView
   const handleMessage = (event: { nativeEvent: { data: string } }) => {
@@ -89,13 +107,7 @@ export default function EmbeddedSigning({
 
       // Handle string messages
       if (data === "signing_complete") {
-        enqueueToast({
-          type: "success",
-          message: "Document signed successfully!",
-        });
-        if (onComplete) {
-          onComplete();
-        }
+        notifySigningCompleteOnce();
         return;
       }
 
@@ -103,13 +115,7 @@ export default function EmbeddedSigning({
       try {
         const parsedData = JSON.parse(data);
         if (parsedData.event === "signing_complete" || parsedData === "signing_complete") {
-          enqueueToast({
-            type: "success",
-            message: "Document signed successfully!",
-          });
-          if (onComplete) {
-            onComplete();
-          }
+          notifySigningCompleteOnce();
         }
       } catch {
         // Not JSON, ignore
@@ -118,6 +124,23 @@ export default function EmbeddedSigning({
       log.error(LOG_CATEGORIES.ERRORS, "Error handling WebView message", err);
     }
   };
+
+  const handleNavigationStateChange = useCallback(
+    (navState: WebViewNavigation) => {
+      if (completionHandledRef.current) return;
+      try {
+        const url = new URL(navState.url);
+        const match = url.pathname.match(/^\/agreements\/([^/]+)\/complete\/?$/);
+        if (!match || match[1] !== agreementId) return;
+        const ev = url.searchParams.get("event");
+        if (ev === "cancel" || ev === "decline") return;
+        notifySigningCompleteOnce();
+      } catch {
+        /* invalid URL */
+      }
+    },
+    [agreementId, notifySigningCompleteOnce]
+  );
 
   // Loading state while fetching signing URL
   if (isPending) {
@@ -146,6 +169,7 @@ export default function EmbeddedSigning({
       <WebView
         source={{ uri: signingUrl }}
         onMessage={handleMessage}
+        onNavigationStateChange={handleNavigationStateChange}
         style={styles.webview}
         javaScriptEnabled={true}
         domStorageEnabled={true}

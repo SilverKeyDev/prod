@@ -6,6 +6,7 @@ from typing import Any
 
 from app import db
 from app.models import User, UserAgentProfile
+from app.services.public_profile_slug import ensure_public_profile_slug
 
 from .preferences_write.agent_profile import write_agent_profile_from_payload
 from .preferences_write.demographics import (
@@ -64,6 +65,7 @@ def write_preferences_from_payload(
         # Remove agent profile when user is no longer an agent
         UserAgentProfile.query.filter_by(user_id=user_id).delete()
 
+    ensure_public_profile_slug(u)
     u.has_preferences = True
     db.session.commit()
     from app.services.aggregation.preferences_aggregation import get_preferences_dict_optional

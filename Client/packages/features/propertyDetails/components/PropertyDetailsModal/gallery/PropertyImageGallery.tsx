@@ -38,6 +38,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   currentImageIndex,
   onImageChange,
   layout = "default",
+  isLoading = false,
 }) => {
   const { t } = useLocalization();
   const propertyImages = getPropertyImages(property);
@@ -170,7 +171,19 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
 
   const lightboxPortalRoot = useMemo(() => getDocument()?.body ?? null, []);
 
-  if (propertyImages.length === 0) return null;
+  if (propertyImages.length === 0) {
+    if (isLoading) {
+      return (
+        <Box ref={galleryRootRef} className="relative w-full">
+          <Box
+            className="bg-background-surface aspect-[4/3] w-full max-w-none animate-pulse rounded-sm"
+            aria-hidden
+          />
+        </Box>
+      );
+    }
+    return null;
+  }
 
   return (
     <Box ref={galleryRootRef} className="relative w-full">

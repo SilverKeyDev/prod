@@ -71,6 +71,8 @@ const sharedTailwindPreset = {
         toast: "8000",
         overlay: "9000",
         modal: "10000",
+        /** Full-screen hit target between z-modal and modal-popover so stray picks/double-clicks do not reach the modal backdrop */
+        "modal-popover-underlay": "10015",
         /** Portaled pickers/menus opened from inside a modal (must sit above z-modal) */
         "modal-popover": "10020",
         /** Skip link when focused - above modals for keyboard escape hatch */

@@ -35,6 +35,8 @@ export const ROUTES = {
   PROPERTY_DETAILS: "/property-details",
   PROPERTY: "/property/:zpid/:slug?",
   AGENT_PROFILE: "/agent-profile/:name/:briefSlug",
+  /** Short public agent profile (`/a/{public_profile_slug}`). */
+  AGENT_PROFILE_SHORT: "/a/:publicSlug",
 
   // Legacy redirects
   APP: "/app/*",

@@ -13,17 +13,34 @@ import { useAuthStore } from "packages/store";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
 import { ScrollView, Text } from "packages/ui/components/primitives";
 
+function isSlugParams(
+  p: AgentProfileScreenParams | undefined
+): p is { publicProfileSlug: string } {
+  return Boolean(p && "publicProfileSlug" in p && (p as { publicProfileSlug?: string }).publicProfileSlug);
+}
+
 export function AgentProfileScreenNative() {
   const { t } = useLocalization();
   const navigation = useNavigation();
   const route = useRoute();
-  const { agentUserId } = route.params as AgentProfileScreenParams;
-  const trimmedId = agentUserId?.trim() ?? "";
-  const { data: agent, isLoading, isFetched } = usePublicAgentProfile(trimmedId || undefined);
+  const params = route.params as AgentProfileScreenParams | undefined;
+
+  const slugLookup = isSlugParams(params) ? params.publicProfileSlug.trim().toLowerCase() : "";
+  const trimmedId =
+    params && "agentUserId" in params ? (params.agentUserId?.trim() ?? "") : "";
+
+  const { data: agent, isLoading, isFetched } = usePublicAgentProfile(
+    slugLookup
+      ? { publicProfileSlug: slugLookup }
+      : { userId: trimmedId || undefined }
+  );
+
+  const hasLookup = Boolean(slugLookup) || Boolean(trimmedId);
+
   const { userProfile } = useUserData();
   const authUser = useAuthStore((s) => s.user);
   const viewerId = userProfile?.id ?? authUser?.id ?? null;
-  const isOwnProfile = Boolean(viewerId && trimmedId && viewerId === trimmedId);
+  const isOwnProfile = Boolean(viewerId && agent?.id && viewerId === agent.id.trim());
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -32,7 +49,7 @@ export function AgentProfileScreenNative() {
           <Text className="text-text-primary text-base font-medium">{t("common.back")}</Text>
         </Pressable>
       </View>
-      {!trimmedId ? (
+      {!hasLookup ? (
         <View style={styles.center}>
           <Text className="text-text-secondary text-sm">
             {t("profile.public.unavailable_body")}

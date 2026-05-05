@@ -145,6 +145,10 @@ export default function PropertyDetailsPage() {
     navigate("SEARCH");
   }, [navigate]);
 
+  const propertyToShow = selectedProperty ?? propertyFromUrl;
+  const detailsLoading =
+    isLoading || (propertyFromUrl != null && selectedProperty == null);
+
   // Handle invalid zpid
   if (!zpid) {
     return (
@@ -187,9 +191,9 @@ export default function PropertyDetailsPage() {
   // The modal handles its own loading state and will show the property when available
   return (
     <PropertyDetailsModal
-      property={selectedProperty}
+      property={propertyToShow}
       onClose={handleClose}
-      isLoading={isLoading}
+      isLoading={detailsLoading}
       toolbarButtonSize="medium"
     />
   );

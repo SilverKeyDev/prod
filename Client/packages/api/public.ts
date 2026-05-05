@@ -15,4 +15,14 @@ export const publicApi = {
       includeAuth: false,
     });
   },
+  getAgentProfileBySlug: async (
+    publicProfileSlug: string,
+    options?: { signal?: AbortSignal }
+  ): Promise<PublicAgentProfileResponse> => {
+    const encoded = encodeURIComponent(publicProfileSlug.trim().toLowerCase());
+    return apiGet<PublicAgentProfileResponse>(`/api/v1/public/agent-profile/slug/${encoded}`, {
+      signal: options?.signal,
+      includeAuth: false,
+    });
+  },
 };

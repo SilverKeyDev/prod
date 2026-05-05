@@ -1,4 +1,4 @@
-import React, { type RefObject } from "react";
+import { useCallback, useRef, type RefObject } from "react";
 
 import Loading from "@ui/asset/loading/Loading";
 import { FlatList, View } from "react-native";
@@ -30,6 +30,9 @@ type MessagingScreenNativeMessageListProps = {
   onAgreementViewDocument: (agreementId: string, documentName: string) => void;
   onAgreementSignNow: (agreementId: string) => void;
   emptyState: MessagingConfig["emptyStates"]["noMessages"];
+  hasMoreOlder: boolean;
+  isLoadingOlder: boolean;
+  onLoadOlder: () => Promise<void>;
 };
 
 export function MessagingScreenNativeMessageList({
@@ -47,7 +50,22 @@ export function MessagingScreenNativeMessageList({
   onAgreementViewDocument,
   onAgreementSignNow,
   emptyState,
+  hasMoreOlder,
+  isLoadingOlder,
+  onLoadOlder,
 }: MessagingScreenNativeMessageListProps) {
+  const loadOlderGuardRef = useRef(false);
+
+  const handleStartReached = useCallback(() => {
+    if (!hasMoreOlder || isLoadingOlder || loadOlderGuardRef.current) return;
+    loadOlderGuardRef.current = true;
+    void onLoadOlder().finally(() => {
+      setTimeout(() => {
+        loadOlderGuardRef.current = false;
+      }, 400);
+    });
+  }, [hasMoreOlder, isLoadingOlder, onLoadOlder]);
+
   if (isLoadingHistory) {
     return (
       <View style={centeredStyle}>
@@ -62,6 +80,19 @@ export function MessagingScreenNativeMessageList({
       data={localMessages}
       keyExtractor={(item) => item.id}
       contentContainerStyle={listContentStyle}
+      ListHeaderComponent={
+        isLoadingOlder ? (
+          <Box className="items-center py-2">
+            <Loading />
+          </Box>
+        ) : null
+      }
+      maintainVisibleContentPosition={{
+        minIndexForVisible: 0,
+        autoscrollToTopThreshold: 48,
+      }}
+      onStartReached={handleStartReached}
+      onStartReachedThreshold={0.15}
       ListEmptyComponent={
         <Box style={centeredStyle}>
           <Text className="text-text-primary text-base font-medium">{emptyState.title}</Text>

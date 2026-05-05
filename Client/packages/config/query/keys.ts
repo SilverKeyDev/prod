@@ -64,6 +64,8 @@ export const queryKeys = {
   public: {
     all: ["public"] as const,
     agentProfile: (userId: string) => [...queryKeys.public.all, "agentProfile", userId] as const,
+    agentProfileBySlug: (slug: string) =>
+      [...queryKeys.public.all, "agentProfileBySlug", slug] as const,
   },
 
   // Map initialization domain
@@ -166,6 +168,11 @@ export const queryKeys = {
     embeddedSigningUrl: (agreementId: string, participantId: string) =>
       [...queryKeys.docusign.agreement(agreementId), "embeddedSigningUrl", participantId] as const,
     templates: () => [...queryKeys.docusign.all, "templates"] as const,
+  },
+
+  /** Agent checklist forms library (Saved → Forms Library). Cache key historically `["forms-library"]`. */
+  formsLibrary: {
+    list: () => ["forms-library"] as const,
   },
 } as const;
 

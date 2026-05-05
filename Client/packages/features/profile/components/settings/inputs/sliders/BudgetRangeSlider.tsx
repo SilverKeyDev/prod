@@ -83,14 +83,18 @@ export default function BudgetRangeSlider({
 
   const isBudgetVariant = variant === "budget";
   const trackHeight = isBudgetVariant ? spacing(2.5) : spacing(2);
+  const maxLabel =
+    maxValue >= tickValues[tickValues.length - 1]
+      ? `${formattedValue(maxValue)}+`
+      : formattedValue(maxValue);
   const valueBlock = (
-    <Box className="flex flex-row items-center justify-center gap-2">
-      <Text className="text-text-primary text-sm font-medium">{formattedValue(minValue)}</Text>
-      <Text className="text-text-disabled text-sm">, </Text>
-      <Text className="text-text-primary text-sm font-medium">
-        {maxValue >= tickValues[tickValues.length - 1]
-          ? `${formattedValue(maxValue)}+`
-          : formattedValue(maxValue)}
+    <Box className="flex min-h-5 w-full flex-row items-center gap-2">
+      <Text className="tabular-nums flex-1 min-w-0 text-center whitespace-nowrap text-sm font-medium text-text-primary">
+        {formattedValue(minValue)}
+      </Text>
+      <Text className="text-text-disabled flex-shrink-0 text-sm leading-5">–</Text>
+      <Text className="tabular-nums flex-1 min-w-0 text-center whitespace-nowrap text-sm font-medium text-text-primary">
+        {maxLabel}
       </Text>
     </Box>
   );

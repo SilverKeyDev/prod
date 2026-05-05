@@ -117,7 +117,7 @@ export function SearchPageDesktopLayout({
   return (
     <Box className="gap-responsive-md hidden h-full md:flex">
       <Box className="flex h-full w-64 flex-shrink-0 flex-col overflow-hidden rounded-tr-lg border border-border">
-        <Box className="bg-sidebar shrink-0 px-4 pt-4 text-sidebar-foreground">
+        <Box className="bg-background-surface shrink-0 px-4 pt-4">
           <Box>
             <Tabs
               active={activeTab}

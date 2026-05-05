@@ -1,8 +1,7 @@
 import { preferencesApi, searchApi, userApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
+import { fetchCachedPolygonSearchResults } from "packages/features/search/api/fetchCachedPolygonSearchResults";
 import type { RouteConfig } from "packages/services/data/dataRouteTypes";
-
-import { transformSearchResponse } from "@/features/search/utils/transform/searchTransform";
 
 export const coreUserRoutes = {
   userProfile: {
@@ -97,22 +96,7 @@ export const coreUserRoutes = {
   searchResults: {
     key: "searchResults",
     queryKey: () => queryKeys.search.results(),
-    queryFn: async () => {
-      try {
-        const response = await searchApi.searchByPolygon({
-          perBucketPages: 20,
-          onlyCached: true,
-        });
-
-        if (!response.success) {
-          return [];
-        }
-
-        return transformSearchResponse(response);
-      } catch {
-        return [];
-      }
-    },
+    queryFn: async (_user) => fetchCachedPolygonSearchResults(),
     shouldPoll: false,
     staleTime: Number.POSITIVE_INFINITY,
     userType: "all",

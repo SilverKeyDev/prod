@@ -18,6 +18,8 @@ export type ProfileFeatureSectionPanelsProps = {
   showAgentPublicProfileShare: boolean;
   agentPublicProfileUserId: string;
   agentPublicProfileDisplayName: string | null;
+  /** From preferences; enables `/a/{slug}` in the share row. */
+  agentPublicProfileSlug?: string | null;
   steps: readonly Step[];
   formData: OnboardingData;
   isEditMode: boolean;
@@ -37,6 +39,7 @@ export function ProfileFeatureSectionPanels({
   showAgentPublicProfileShare,
   agentPublicProfileUserId,
   agentPublicProfileDisplayName,
+  agentPublicProfileSlug,
   steps,
   formData,
   isEditMode,
@@ -57,6 +60,7 @@ export function ProfileFeatureSectionPanels({
         <AgentPublicProfileShareRow
           agentId={agentPublicProfileUserId}
           displayName={agentPublicProfileDisplayName}
+          publicProfileSlug={agentPublicProfileSlug}
         />
       ) : null}
       {steps.map((step) => (

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { ReactNode } from "react";
+import type { ReactNode, UIEvent } from "react";
 
 import type { AgentClient } from "packages/api";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
@@ -11,7 +11,7 @@ import { useMessaging } from "packages/features/messaging/hooks/data/messaging/u
 import { useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
-import { getDocument } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
@@ -50,6 +50,9 @@ export default function AgentMessaging({
     formatTime,
     canSendMessage,
     acknowledgeActiveConversationAsRead,
+    hasMoreOlder,
+    isLoadingOlder,
+    loadOlderMessages,
   } = useMessaging({
     mode: "agent",
     conversationSelector: selectedClientId,
@@ -114,6 +117,22 @@ export default function AgentMessaging({
     localMessages,
     activeConversationId,
     isLoadingHistory
+  );
+
+  const loadOlderGuardRef = useRef(false);
+  const handleMessageListScroll = useCallback(
+    (e: UIEvent<HTMLDivElement>) => {
+      if (!hasMoreOlder || isLoadingOlder) return;
+      if (e.currentTarget.scrollTop > 120) return;
+      if (loadOlderGuardRef.current) return;
+      loadOlderGuardRef.current = true;
+      void loadOlderMessages().finally(() => {
+        getWindow()?.setTimeout(() => {
+          loadOlderGuardRef.current = false;
+        }, 400);
+      });
+    },
+    [hasMoreOlder, isLoadingOlder, loadOlderMessages]
   );
   const config = getMessagingConfig("agent");
 
@@ -212,6 +231,7 @@ export default function AgentMessaging({
               <Region
                 label="Message list"
                 className="scrollbar-hide min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
+                onScroll={handleMessageListScroll}
               >
                 <UnifiedMessagesList
                   mode="agent"
@@ -228,6 +248,8 @@ export default function AgentMessaging({
                   onCancelEventRequest={handlers.handleCancelEventRequest}
                   acceptedEventRequestIds={new Set()}
                   acceptingEventRequestId={acceptingEventRequestId}
+                  isLoadingOlder={isLoadingOlder}
+                  hasMoreOlder={hasMoreOlder}
                 />
               </Region>
             </Box>

@@ -2,10 +2,26 @@
  * Helpers for useMessaging send/retry to keep the main hook under max-lines-per-function.
  */
 
+import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats";
 import { dateNow } from "packages/utils/date";
 
 import { mapApiMessagesToChatMessages } from "./helpers";
 import type { ChatMessage } from "./types";
+import type { GetChatHistoryRef } from "./useMessagingHistory.effect";
+
+function mergeOlderLocalsWithTail(
+  prev: ChatMessage[],
+  excludeMessageId: string,
+  mergedTail: ChatMessage[]
+): ChatMessage[] {
+  const prevRelevant = prev.filter((m) => m.id !== excludeMessageId);
+  if (mergedTail.length === 0) return prevRelevant;
+  const oldestTailTs = mergedTail[0].timestamp.getTime();
+  const olderKept = prevRelevant.filter((m) => m.timestamp.getTime() < oldestTailTs);
+  const tailIds = new Set(mergedTail.map((m) => m.id));
+  const olderKeptDeduped = olderKept.filter((m) => !tailIds.has(m.id));
+  return [...olderKeptDeduped, ...mergedTail];
+}
 
 export type SendResolveConversationIdParams = {
   mode: "client" | "agent";
@@ -97,7 +113,7 @@ export type ExecuteSendMessageParams = {
   sendMessageApi: SendMessageApiFn;
   refreshChats: () => Promise<void>;
   setLocalMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  getChatHistoryRef: React.MutableRefObject<(id: string) => Promise<{ messages: unknown[] }>>;
+  getChatHistoryRef: React.MutableRefObject<GetChatHistoryRef>;
   loadedHistoryIdsRef: React.MutableRefObject<Set<string>>;
 };
 
@@ -136,17 +152,20 @@ export async function executeSendMessage(params: ExecuteSendMessageParams): Prom
     );
     await refreshChats();
     if (conversationId !== "new") {
-      const data = await getChatHistoryRef.current(conversationId);
-      const messages = mapApiMessagesToChatMessages(data.messages ?? []);
+      const data = await getChatHistoryRef.current(conversationId, {
+        limit: INITIAL_CHAT_HISTORY_LIMIT,
+      });
+      const serverTail = mapApiMessagesToChatMessages(data.messages ?? []);
       setLocalMessages((prev) => {
         const tempMessage = prev.find((msg) => msg.id === tempMessageId);
-        return mergeServerMessagesPreservingTimestamp(
-          messages,
+        const mergedTail = mergeServerMessagesPreservingTimestamp(
+          serverTail,
           tempMessageId,
           userMessage,
           tempMessage?.timestamp,
           messageRole
         );
+        return mergeOlderLocalsWithTail(prev, tempMessageId, mergedTail);
       });
     } else {
       loadedHistoryIdsRef.current.clear();
@@ -170,7 +189,7 @@ export type ExecuteSendSharedAttachmentParams = {
   sendMessageApi: SendMessageApiFn;
   refreshChats: () => Promise<void>;
   setLocalMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  getChatHistoryRef: React.MutableRefObject<(id: string) => Promise<{ messages: unknown[] }>>;
+  getChatHistoryRef: React.MutableRefObject<GetChatHistoryRef>;
   loadedHistoryIdsRef: React.MutableRefObject<Set<string>>;
 };
 
@@ -219,17 +238,20 @@ export async function executeSendSharedAttachment(
     );
     await refreshChats();
     if (conversationId !== "new") {
-      const data = await getChatHistoryRef.current(conversationId);
-      const messages = mapApiMessagesToChatMessages(data.messages ?? []);
+      const data = await getChatHistoryRef.current(conversationId, {
+        limit: INITIAL_CHAT_HISTORY_LIMIT,
+      });
+      const serverTail = mapApiMessagesToChatMessages(data.messages ?? []);
       setLocalMessages((prev) => {
         const tempMessage = prev.find((msg) => msg.id === tempMessageId);
-        return mergeServerMessagesPreservingSharedSend(
-          messages,
+        const mergedTail = mergeServerMessagesPreservingSharedSend(
+          serverTail,
           tempMessage?.timestamp,
           sharedHomeId,
           sharedDocumentId,
           messageRole
         );
+        return mergeOlderLocalsWithTail(prev, tempMessageId, mergedTail);
       });
     } else {
       loadedHistoryIdsRef.current.clear();
@@ -253,7 +275,7 @@ export type ExecuteRetryMessageParams = {
   sendMessageApi: SendMessageApiFn;
   refreshChats: () => Promise<void>;
   setLocalMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  getChatHistoryRef: React.MutableRefObject<(id: string) => Promise<{ messages: unknown[] }>>;
+  getChatHistoryRef: React.MutableRefObject<GetChatHistoryRef>;
   loadedHistoryIdsRef: React.MutableRefObject<Set<string>>;
 };
 
@@ -301,27 +323,33 @@ export async function executeRetryMessage(params: ExecuteRetryMessageParams): Pr
     );
     await refreshChats();
     if (conversationId !== "new") {
-      const data = await getChatHistoryRef.current(conversationId);
-      const messages = mapApiMessagesToChatMessages(data.messages ?? []);
+      const data = await getChatHistoryRef.current(conversationId, {
+        limit: INITIAL_CHAT_HISTORY_LIMIT,
+      });
+      const serverTail = mapApiMessagesToChatMessages(data.messages ?? []);
       setLocalMessages((prev) => {
         const failed = prev.find((msg) => msg.id === messageId);
-        if (!failed?.timestamp) return messages;
-        if (failed.shared_home_id || failed.shared_document_id) {
-          return mergeServerMessagesPreservingSharedSend(
-            messages,
+        let mergedTail: ChatMessage[];
+        if (!failed?.timestamp) {
+          mergedTail = serverTail;
+        } else if (failed.shared_home_id || failed.shared_document_id) {
+          mergedTail = mergeServerMessagesPreservingSharedSend(
+            serverTail,
             failed.timestamp,
             failed.shared_home_id ?? undefined,
             failed.shared_document_id ?? undefined,
             messageRole
           );
+        } else {
+          mergedTail = mergeServerMessagesPreservingTimestamp(
+            serverTail,
+            messageId,
+            content,
+            failed.timestamp,
+            messageRole
+          );
         }
-        return mergeServerMessagesPreservingTimestamp(
-          messages,
-          messageId,
-          content,
-          failed.timestamp,
-          messageRole
-        );
+        return mergeOlderLocalsWithTail(prev, messageId, mergedTail);
       });
     } else {
       loadedHistoryIdsRef.current.clear();

@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useGoogleMaps } from "packages/hooks/data";
 import { useResponsive } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import { useAuthStore } from "packages/store";
 
 import { getOnboardingStepsUi } from "@/features/profile/components/profilePicture/profileStepsUi";
-import { isOnboardingStepComplete } from "@/features/profile/utils";
 
 import { useOnboardingAffordability } from "./useOnboardingAffordability";
 import { getScriptsReady } from "./useOnboardingForm.helpers";
@@ -19,6 +19,7 @@ export type UseOnboardingFormOptions = {
 
 export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
   const { navigateToPath } = useNavigation();
+  const setUser = useAuthStore((s) => s.setUser);
   const { isMdUp } = useResponsive();
   const [scriptsReadyState, setScriptsReadyState] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -26,6 +27,10 @@ export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
   const core = useOnboardingFormCore({
     getSteps: (formData) => getOnboardingStepsUi(formData),
     navigate: (path: string) => navigateToPath(path),
+    afterPreferencesSuccess: () => {
+      const current = useAuthStore.getState().user;
+      if (current) setUser({ ...current, has_preferences: true });
+    },
   });
 
   const {
@@ -37,13 +42,6 @@ export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
   } = useOnboardingAffordability(core.formData, core.currentStep, core.steps);
 
   const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
-
-  const currentStepId = core.steps[core.currentStep]?.id ?? "";
-  const isCurrentStepComplete = useMemo(
-    () => isOnboardingStepComplete(core.formData, currentStepId),
-    [core.formData, currentStepId]
-  );
-  const showSkipOnNext = currentStepId !== "demographics" && !isCurrentStepComplete;
 
   useEffect(() => {
     if (googleMapsError) {
@@ -66,6 +64,5 @@ export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
     isAffordabilityCollapsed,
     setIsAffordabilityCollapsed,
     isDesktop: isMdUp,
-    showSkipOnNext,
   };
 }

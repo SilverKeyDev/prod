@@ -170,7 +170,9 @@ export function formDataToPreferencesPayload(formData: OnboardingData): Record<s
       if (key.startsWith("agent_")) delete payload[key];
     }
   }
+  delete payload.public_profile_slug;
   delete payload.agent_professional_headshot_url;
+  delete payload.primary_onboarding_role;
   return payload;
 }
 
@@ -300,5 +302,6 @@ export function userPreferencesToOnboardingData(
     agent_primary_service_zips: toStringArray(get("agent_primary_service_zips")),
     agent_specialties: toStringArray(get("agent_specialties")),
     agent_social_links: toRecordString(get("agent_social_links")),
+    public_profile_slug: toString(get("public_profile_slug")),
   };
 }

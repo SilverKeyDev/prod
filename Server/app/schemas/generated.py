@@ -2172,6 +2172,10 @@ class PublicAgentProfile(BaseModel):
         description="Parsed JSON array from user_agent_profiles.mls_affiliations (list of objects).",
     )
     social_links: dict[str, str] | None = None
+    public_profile_slug: str | None = Field(
+        None,
+        description="Unique slug for the short public profile URL path `/a/{public_profile_slug}`. Omitted or null only for legacy rows before backfill; clients should fall back to the long id-based URL.\n",
+    )
 
 
 class PublicAgentProfileResponse(SuccessResponse):
@@ -3579,6 +3583,14 @@ class AddAgentResponse(SuccessResponse):
 class AgentChatHistoryResponse(SuccessResponse):
     messages: list[AgentChatMessage] | None = None
     conversation: AgentConversation | None = None
+    has_more_older: bool | None = Field(
+        None,
+        description="Whether more messages exist before the oldest message in this page",
+    )
+    has_more_newer: bool | None = Field(
+        None,
+        description="Whether more messages exist after the newest message in this page",
+    )
 
 
 class Agreement(BaseModel):

@@ -87,16 +87,27 @@ export class AgentService {
      Get Chat History
      ========================= */
 
-  async getChatHistory(conversationId: string): Promise<{
+  async getChatHistory(
+    conversationId: string,
+    params?: {
+      limit?: number;
+      before_timestamp?: string;
+      before_message_id?: string;
+      after_timestamp?: string;
+      after_message_id?: string;
+    }
+  ): Promise<{
     messages: AgentChatMessage[];
     conversation?: AgentConversation;
+    has_more_older?: boolean;
+    has_more_newer?: boolean;
   }> {
     log.debug(LOG_CATEGORIES.API, "Starting getChatHistory", {
       conversationId,
     });
 
     try {
-      const response = await agentApi.getChatHistory(conversationId);
+      const response = await agentApi.getChatHistory(conversationId, params);
       if (!response.success) {
         throw new Error(response.error ?? "Failed to fetch chat history");
       }
@@ -109,6 +120,8 @@ export class AgentService {
       return {
         messages,
         conversation: response.conversation,
+        has_more_older: response.has_more_older,
+        has_more_newer: response.has_more_newer,
       };
     } catch (e: unknown) {
       if (!isAbortError(e)) {

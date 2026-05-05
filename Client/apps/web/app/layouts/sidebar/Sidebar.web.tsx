@@ -8,6 +8,7 @@ import { useNotificationStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 import { SIDEBAR_CHROME_SHELL } from "packages/ui/components/sidebar/sidebarTheme";
 
+import { useDashboardShellRoutePrefetch } from "@/app/layouts/dashboard/useDashboardShellRoutePrefetch.web";
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
 import type { UserProfile } from "@/features/homeauth/types";
 import { useUserData } from "@/features/profile/hooks/data/useUserData";
@@ -67,6 +68,7 @@ export default function Sidebar({
   const toggleCategory = (category: string) => toggleCategoryInStore(category);
   const isCategoryActive = (items: SidebarNavItem[]) => items.some((item) => isActive(item.href));
   const navigation = getNavigation(_isAgent, hasAgent, isMobile);
+  const prefetchHref = useDashboardShellRoutePrefetch();
   return (
     <Box
       className={`safe-top fixed left-0 top-0 z-sidebar h-full ${SIDEBAR_CHROME_SHELL} transition-all duration-300 ease-in-out ${
@@ -89,6 +91,7 @@ export default function Sidebar({
             onLinkClick={onLinkClick}
             unreadCount={unreadCount}
             isLoaded={isLoaded}
+            onPrefetchHref={prefetchHref}
           />
         </Box>
         <SidebarFooter

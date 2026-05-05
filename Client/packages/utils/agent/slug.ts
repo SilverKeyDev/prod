@@ -1,7 +1,8 @@
 /**
  * URL-safe slug and path helpers for public agent profile share links.
  *
- * Web routes use `/agent-profile/{nameSlug}/{userId}` (name segment first, then agent user id).
+ * Web routes use `/agent-profile/{nameSlug}/{userId}` (name segment first, then agent user id),
+ * or the short form `/a/{publicProfileSlug}` when `users.public_profile_slug` is set.
  * Legacy URLs used `/agent-profile/{userId}/{nameSlug}`; {@link resolveAgentProfileRouteParams} maps both.
  */
 
@@ -17,7 +18,23 @@ export function generateAgentProfileSlug(displayName: string): string {
     .trim();
 }
 
-export function buildAgentProfileUrl(agentId: string, displayName: string): string {
+export function buildShortPublicProfilePath(publicProfileSlug: string): string {
+  const s = publicProfileSlug.trim().toLowerCase();
+  if (!s) {
+    throw new Error("publicProfileSlug is required for short profile path");
+  }
+  return `/a/${encodeURIComponent(s)}`;
+}
+
+export function buildAgentProfileUrl(
+  agentId: string,
+  displayName: string,
+  publicProfileSlug?: string | null
+): string {
+  const slug = publicProfileSlug?.trim();
+  if (slug) {
+    return buildShortPublicProfilePath(slug);
+  }
   const id = agentId.trim();
   if (!id) {
     throw new Error("agentId is required to build agent profile URL");

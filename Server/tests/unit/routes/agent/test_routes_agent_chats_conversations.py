@@ -171,7 +171,7 @@ class TestAgentChatsRoutesConversations:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
+        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -195,7 +195,8 @@ class TestAgentChatsRoutesConversations:
                                 "created_at": "2024-01-01T10:00:00Z",
                             }
                         ],
-                        "has_more": False,
+                        "has_more_older": False,
+                        "has_more_newer": False,
                     }
 
                     response = client.get(
@@ -208,6 +209,86 @@ class TestAgentChatsRoutesConversations:
                     assert data["success"] is True
                     assert "messages" in data
                     assert len(data["messages"]) == 1
+                    mock_get_history.assert_called_once()
+                    call_kw = mock_get_history.call_args.kwargs
+                    assert call_kw.get("limit") is None
+                    assert call_kw.get("before_timestamp") is None
+
+    def test_get_chat_history_forwards_pagination_params(self, client, db_session):
+        """GET history passes limit and before_* to get_conversation_history."""
+        agent = User(
+            id="agent-123",
+            cognito_id="cognito-agent-1",
+            email="agent@example.com",
+            name="Test Agent",
+            is_agent=True,
+        )
+        db_session.session.add(agent)
+        db_session.session.commit()
+
+        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+            mock_get_user.return_value = agent
+
+            with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
+                mock_get_conv.return_value = {
+                    "id": "conv-1",
+                    "agent_id": "agent-123",
+                    "client_id": "client-1",
+                }
+
+                with patch(
+                    "app.routes.agent.handlers.chats.get_conversation_history"
+                ) as mock_get_history:
+                    mock_get_history.return_value = {
+                        "messages": [],
+                        "has_more_older": False,
+                        "has_more_newer": False,
+                    }
+
+                    response = client.get(
+                        "/api/v1/agent/chats/conv-1/history?limit=10"
+                        "&before_timestamp=2024-01-01T10:00:00Z&before_message_id=msg-old",
+                        headers={"Authorization": f"Bearer {MOCK_JWT_TOKEN}"},
+                    )
+
+                    assert response.status_code == 200
+                    mock_get_history.assert_called_once()
+                    kwargs = mock_get_history.call_args.kwargs
+                    assert kwargs["limit"] == 10
+                    assert kwargs["before_message_id"] == "msg-old"
+                    assert kwargs["before_timestamp"] is not None
+
+    def test_get_chat_history_invalid_timestamp(self, client, db_session):
+        """GET history returns 400 for malformed before_timestamp."""
+        agent = User(
+            id="agent-123",
+            cognito_id="cognito-agent-1",
+            email="agent@example.com",
+            name="Test Agent",
+            is_agent=True,
+        )
+        db_session.session.add(agent)
+        db_session.session.commit()
+
+        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+            mock_get_user.return_value = agent
+
+            with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
+                mock_get_conv.return_value = {
+                    "id": "conv-1",
+                    "agent_id": "agent-123",
+                    "client_id": "client-1",
+                }
+
+                response = client.get(
+                    "/api/v1/agent/chats/conv-1/history?before_timestamp=not-a-date"
+                    "&before_message_id=msg-1",
+                    headers={"Authorization": f"Bearer {MOCK_JWT_TOKEN}"},
+                )
+
+                assert response.status_code == 400
+                data = response.get_json()
+                assert data["success"] is False
 
     def test_get_chat_history_not_found(self, client, db_session):
         """Test GET /api/v1/agent/chats/<id>/history with non-existent conversation"""
@@ -221,7 +302,7 @@ class TestAgentChatsRoutesConversations:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
+        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -246,7 +327,7 @@ class TestAgentChatsRoutesConversations:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
+        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -276,7 +357,7 @@ class TestAgentChatsRoutesConversations:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
+        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -317,7 +398,7 @@ class TestAgentChatsRoutesConversations:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
+        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             response = client.post(
@@ -340,7 +421,7 @@ class TestAgentChatsRoutesConversations:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
+        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             response = client.post(
@@ -368,7 +449,7 @@ class TestAgentChatsRoutesConversations:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.services.auth.user.current_user.get_current_user") as mock_get_user:
+        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:

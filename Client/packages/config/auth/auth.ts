@@ -140,6 +140,7 @@ export const AUTH_CONFIG = {
     "/about",
     "/contact",
     "/agent-profile",
+    "/a",
     "/property",
   ],
 

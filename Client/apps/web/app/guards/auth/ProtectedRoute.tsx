@@ -4,6 +4,8 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { ROUTES } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 
+import { AuthBootstrapFallback } from "./AuthBootstrapFallback";
+
 /**
  * ProtectedRoute component that wraps routes requiring authentication
  * Waits for auth bootstrap to complete, then makes single routing decision
@@ -18,7 +20,7 @@ export const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
 
   // Wait for bootstrap to complete - prevents early redirects and flicker
   if (!authReady || authStatus === "checking") {
-    return null; // Could render a full-page skeleton here
+    return <AuthBootstrapFallback />;
   }
 
   // Once ready, redirect unauthenticated users to login

@@ -80,6 +80,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
               currentImageIndex={currentImageIndex}
               onImageChange={setCurrentImageIndex}
               layout="modalSidebar"
+              isLoading={isLoading}
             />
           </Box>
           <Box className="w-full min-w-0 flex-1">

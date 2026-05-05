@@ -137,7 +137,8 @@ export const SkipButton: React.FC<{
   onSkip: () => void;
   skipText?: string;
   size?: "sm" | "md" | "lg";
-}> = ({ onSkip, skipText = "Skip onboarding for now", size = "md" }) => {
+  disabled?: boolean;
+}> = ({ onSkip, skipText = "Skip onboarding for now", size = "md", disabled = false }) => {
   // Size variants matching NavigationButton
   const sizeStyles = {
     sm: {
@@ -161,7 +162,7 @@ export const SkipButton: React.FC<{
     // Base link-like styling matching NavigationButton
     "inline-flex items-center justify-center font-medium transition-all duration-200",
     "text-gray-600 hover:text-gray-800 hover:underline",
-    "cursor-pointer touch-friendly",
+    disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer touch-friendly",
     // Size styles
     currentSizeStyles.text,
     currentSizeStyles.spacing,
@@ -174,6 +175,7 @@ export const SkipButton: React.FC<{
       variant="ghost"
       size={size}
       onClick={onSkip}
+      disabled={disabled}
       icon={<Icon name="chevron-right" className={currentSizeStyles.icon} />}
       iconPosition="right"
       className={buttonClasses}

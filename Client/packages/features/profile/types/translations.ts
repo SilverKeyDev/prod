@@ -19,6 +19,7 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.agent.public_link_hint":
     "Share this link with clients so they can view your public profile and connect with you on SilverKey.",
   "profile.agent.copy_link": "Copy link",
+  "profile.agent.open_link": "Open link",
   "profile.agent.share": "Share",
   "profile.agent.share_sheet_title": "{{name}} — SilverKey",
   "profile.agent.share_sheet_text": "View my public agent profile on SilverKey.",
@@ -48,7 +49,7 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.public.connect_cta": "Connect",
   "profile.public.connect_modal_title": "Sign in to connect",
   "profile.public.connect_modal_body":
-    "Create an account or sign in to send a connection request to this agent. We will connect you automatically after you are signed in.",
+    "Create an account or sign in to send a connection request to this agent.\n\nWe will connect you automatically after you are signed in.",
   "profile.public.connect_sign_in": "Sign in",
   "profile.public.connect_create_account": "Create an account",
   "profile.public.connect_toast_success": "Connection request sent",

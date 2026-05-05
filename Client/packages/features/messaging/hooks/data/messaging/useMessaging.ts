@@ -9,7 +9,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { AgentConversation } from "packages/api";
 import { agentApi } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
-import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import {
+  INITIAL_CHAT_HISTORY_LIMIT,
+  useAgentChats,
+} from "packages/features/messaging/hooks/data/useAgentChats";
 import { isSameMessagingUserId } from "packages/features/messaging/utils/userIdMatch";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNotificationStore } from "packages/store";
@@ -77,6 +80,10 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     localMessages,
     setLocalMessages,
     isLoadingHistory,
+    hasMoreOlder,
+    setHasMoreOlder,
+    isLoadingOlder,
+    loadOlderMessages,
     loadedHistoryIdsRef,
     getChatHistoryRef,
     lastKnownMessageTimestampRef,
@@ -162,27 +169,48 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
   const refreshActiveConversationHistory = useCallback(async () => {
     if (!activeConversationId) return;
     try {
-      queryClient.removeQueries({
-        queryKey: queryKeys.agent.history(activeConversationId),
-      });
-      const data = await getChatHistoryRef.current(activeConversationId);
-      const messages = mapApiMessagesToChatMessages(data.messages ?? []);
-      setLocalMessages(messages);
-      if (messages.length > 0) {
-        const last = messages[messages.length - 1];
-        lastKnownMessageTimestampRef.current = last.timestamp.getTime();
-        lastMessageAtRef.current = last.timestamp.getTime();
+      const msgs = localMessages;
+      if (msgs.length === 0) {
+        queryClient.removeQueries({
+          queryKey: queryKeys.agent.history(activeConversationId),
+        });
+        const data = await getChatHistoryRef.current(activeConversationId, {
+          limit: INITIAL_CHAT_HISTORY_LIMIT,
+        });
+        const messages = mapApiMessagesToChatMessages(data.messages ?? []);
+        setLocalMessages(messages);
+        setHasMoreOlder(data.has_more_older ?? false);
+        return;
       }
+      const latest = msgs[msgs.length - 1];
+      const data = await getChatHistoryRef.current(activeConversationId, {
+        afterTimestamp: latest.timestamp.toISOString(),
+        afterMessageId: latest.id,
+        limit: 50,
+      });
+      const incoming = mapApiMessagesToChatMessages(data.messages ?? []);
+      setLocalMessages((prev) => {
+        const ids = new Set(prev.map((m) => m.id));
+        const toAdd = incoming.filter((m) => !ids.has(m.id));
+        if (toAdd.length === 0) return prev;
+        const next = [...prev, ...toAdd];
+        const newest = next[next.length - 1];
+        lastKnownMessageTimestampRef.current = newest.timestamp.getTime();
+        lastMessageAtRef.current = newest.timestamp.getTime();
+        return next;
+      });
     } catch (err) {
       log.error(LOG_CATEGORIES.API, "Refresh conversation history failed", err);
     }
   }, [
     activeConversationId,
+    localMessages,
     setLocalMessages,
     queryClient,
     getChatHistoryRef,
     lastKnownMessageTimestampRef,
     lastMessageAtRef,
+    setHasMoreOlder,
   ]);
 
   const acknowledgeActiveConversationAsRead = useCallback(() => {
@@ -216,5 +244,8 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     formatTime,
     canSendMessage,
     acknowledgeActiveConversationAsRead,
+    hasMoreOlder,
+    isLoadingOlder,
+    loadOlderMessages,
   };
 }

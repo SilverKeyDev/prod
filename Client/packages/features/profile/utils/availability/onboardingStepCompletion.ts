@@ -20,6 +20,10 @@ export function isOnboardingStepComplete(formData: OnboardingData, stepId: strin
   switch (stepId) {
     case "demographics":
       return true; // Not used for skip; About You has no skip option.
+    case "onboarding_role": {
+      const raw = formData.is_agent;
+      return typeof raw === "string" && raw.trim() !== "";
+    }
     case "availability":
       return true;
     case "housing_essentials": {

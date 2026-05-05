@@ -10,3 +10,9 @@ allOf:
       conversation:
         $ref: './AgentConversation.yaml'
         nullable: true
+      has_more_older:
+        type: boolean
+        description: Whether more messages exist before the oldest message in this page
+      has_more_newer:
+        type: boolean
+        description: Whether more messages exist after the newest message in this page

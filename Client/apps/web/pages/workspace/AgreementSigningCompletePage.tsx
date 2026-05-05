@@ -1,7 +1,9 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
+import { AGREEMENT_SIGNING_COMPLETE_POSTMESSAGE_SOURCE } from "packages/features/documents/utils/agreementSigningPostMessage";
 import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
+import { getWindow } from "packages/utils/platform";
 
 import { BodyText, Button, Title } from "@/components/ui";
 
@@ -12,6 +14,24 @@ import { BodyText, Button, Title } from "@/components/ui";
 export default function AgreementSigningCompletePage() {
   const { getSearchParams, navigateToPath } = useNavigation();
   const event = getSearchParams().get("event");
+
+  useEffect(() => {
+    const win = getWindow();
+    if (!win || win.parent === win) return;
+
+    const successLike =
+      event === "signing_complete" || event === null || event === "";
+
+    if (!successLike) return;
+
+    win.parent.postMessage(
+      {
+        event: "signing_complete",
+        source: AGREEMENT_SIGNING_COMPLETE_POSTMESSAGE_SOURCE,
+      },
+      win.location.origin
+    );
+  }, [event]);
   const headline = useMemo(() => {
     if (event === "signing_complete" || event === null || event === "") {
       return "Signing complete";

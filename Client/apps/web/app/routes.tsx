@@ -12,6 +12,7 @@ import { ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 
 import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
+import { useIdleAuthenticatedRouteChunkPrefetch } from "@/app/layouts/dashboard/useIdleAuthenticatedRouteChunkPrefetch";
 import { useGlobalOrganizationJsonLd, useShellSeo } from "@/app/seo/useShellSeo";
 import type { UserProfile } from "@/features/homeauth/types";
 import NotFoundPage from "@/pages/misc/NotFoundPage";
@@ -72,6 +73,7 @@ function AppLayout() {
   useDataPolling();
   // Initialize data prefetch and background polling on login
   useDataInitialization();
+  useIdleAuthenticatedRouteChunkPrefetch(location.pathname);
   useResumePendingAgentPublicConnect();
   // Focus main content on client-side navigation (skip initial load). Defer until after paint so
   // #main-content exists; skip on full-height routes (search, messaging) so we don't steal focus from map/reels.

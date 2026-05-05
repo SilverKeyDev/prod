@@ -2,6 +2,7 @@
 
 import json
 import logging
+from datetime import datetime
 
 from flask import jsonify, request
 from jose.exceptions import ExpiredSignatureError, JWTError
@@ -38,6 +39,15 @@ from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, log
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_optional_iso_timestamp(value: str | None) -> datetime | None:
+    if not value or not value.strip():
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as e:
+        raise ValueError("Invalid before_timestamp or after_timestamp format") from e
 
 
 @rate_limit(max_requests=200, window_seconds=60)
@@ -108,7 +118,26 @@ def get_chat_history(conversation_id):
         if not user.id:
             logger.error("User ID is None in get_chat_history")
             return jsonify({"success": False, "error": "Invalid user session"}), 401
-        history = get_conversation_history(conversation_id, user_id=str(user.id))
+        limit_raw = request.args.get("limit", type=int)
+        before_message_id = (request.args.get("before_message_id") or "").strip() or None
+        after_message_id = (request.args.get("after_message_id") or "").strip() or None
+        try:
+            before_timestamp = _parse_optional_iso_timestamp(request.args.get("before_timestamp"))
+            after_timestamp = _parse_optional_iso_timestamp(request.args.get("after_timestamp"))
+        except ValueError as e:
+            return jsonify({"success": False, "error": str(e)}), 400
+        try:
+            history = get_conversation_history(
+                conversation_id,
+                user_id=str(user.id),
+                limit=limit_raw,
+                before_timestamp=before_timestamp,
+                before_message_id=before_message_id,
+                after_timestamp=after_timestamp,
+                after_message_id=after_message_id,
+            )
+        except ValueError as e:
+            return jsonify({"success": False, "error": str(e)}), 400
         return jsonify({"success": True, **history})
     except (SecurityException, ExpiredSignatureError, JWTError):
         return jsonify({"success": False, "error": "Authentication required"}), 401

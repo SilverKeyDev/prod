@@ -8,6 +8,8 @@ export type OnboardingData = {
   preferences_version?: string;
 
   // Demographics
+  /** Draft-only: first-screen role selection; stripped from preferences API payload. */
+  primary_onboarding_role?: "buyer" | "seller" | "investor" | "agent";
   name?: string;
   is_agent?: string;
   pets?: string;
@@ -89,6 +91,8 @@ export type OnboardingData = {
   agent_primary_service_zips?: string[];
   agent_specialties?: string[];
   agent_social_links?: Record<string, string>;
+  /** Server-assigned unique slug for `/a/{slug}`; read-only in forms (not submitted). */
+  public_profile_slug?: string;
 };
 
 export type ValidationResult = {

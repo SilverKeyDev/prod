@@ -8,6 +8,11 @@ export function prefetchDashboardShellRoute(href: string): void {
 
   if (path.startsWith("/search")) {
     void import("@/pages/property/SearchPage");
+    if (typeof window !== "undefined") {
+      void import("packages/features/search/utils/googleMaps").then(({ googleMapsService }) => {
+        void googleMapsService.getInstance().loadGoogleMapsScript();
+      });
+    }
     return;
   }
   if (path.startsWith("/messaging")) {

@@ -11,13 +11,13 @@ import {
   PRODUCT_TOUR_QUERY,
   PRODUCT_TOUR_QUERY_VALUE_START,
 } from "packages/utils/tour/productTourQuery";
-import { isProductTourCompleted } from "packages/utils/tour/productTourStorage";
+import { hasIncompleteSearchProductTourSteps } from "packages/utils/tour/productTourStorage";
 
 import { startSearchProductTour } from "@/app/tour/searchProductTourDriver";
 
 /**
  * Starts the Search product tour once the user is authenticated on /search.
- * Autostart: desktop only, first visit (storage). Manual: ?productTour=1 from Settings.
+ * Autostart: desktop only, while any desktop spotlight is still unseen (localStorage). Manual: ?productTour=1 from Settings.
  */
 export function SearchProductTourMount(): null {
   const { pathname } = useLocation();
@@ -39,7 +39,7 @@ export function SearchProductTourMount(): null {
     const params = new URLSearchParams(w.location.search);
     const force = params.get(PRODUCT_TOUR_QUERY) === PRODUCT_TOUR_QUERY_VALUE_START;
 
-    const shouldAutoStart = isDesktop && !isProductTourCompleted();
+    const shouldAutoStart = isDesktop && hasIncompleteSearchProductTourSteps("desktop");
     if (!force && !shouldAutoStart) return;
 
     if (!force && !isDesktop) return;
@@ -62,7 +62,7 @@ export function SearchProductTourMount(): null {
           );
         }
 
-        const d = startSearchProductTour({ layout });
+        const d = startSearchProductTour({ layout, includeCompletedSteps: force });
         if (!d) return;
         driverRef.current = d;
       });

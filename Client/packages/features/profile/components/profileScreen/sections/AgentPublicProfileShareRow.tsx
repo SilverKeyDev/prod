@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { Linking } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { showErrorToast, showSuccessToast, useSecureClipboardCopy } from "packages/hooks/ui";
@@ -12,6 +13,8 @@ import { tryWebShareUrl } from "packages/utils/share";
 export type AgentPublicProfileShareRowProps = {
   agentId: string;
   displayName: string | null | undefined;
+  /** When set (loaded from preferences or public profile), share link uses `/a/{slug}`. */
+  publicProfileSlug?: string | null;
   /** `header`: page header strip (border-b). `card`: contained panel. */
   variant?: "header" | "card";
 };
@@ -19,15 +22,24 @@ export type AgentPublicProfileShareRowProps = {
 export function AgentPublicProfileShareRow({
   agentId,
   displayName,
+  publicProfileSlug,
   variant = "header",
 }: AgentPublicProfileShareRowProps) {
   const { t } = useLocalization();
   const copyToClipboard = useSecureClipboardCopy();
 
   const publicUrl = useMemo(
-    () => getAgentPublicProfileAbsoluteUrl(agentId, displayName ?? ""),
-    [agentId, displayName]
+    () => getAgentPublicProfileAbsoluteUrl(agentId, displayName ?? "", publicProfileSlug),
+    [agentId, displayName, publicProfileSlug]
   );
+
+  const handleOpenLink = useCallback(() => {
+    if (typeof window !== "undefined" && typeof window.open === "function") {
+      window.open(publicUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+    void Linking.openURL(publicUrl);
+  }, [publicUrl]);
 
   const handleCopy = useCallback(async () => {
     const ok = await copyToClipboard(publicUrl);
@@ -53,6 +65,7 @@ export function AgentPublicProfileShareRow({
   }, [handleCopy, publicUrl, shareDisplayName, t]);
 
   const copyLabel = t("profile.agent.copy_link");
+  const openLinkLabel = t("profile.agent.open_link");
   const shareLabel = t("profile.agent.share");
 
   const urlBoxClassName =
@@ -68,6 +81,17 @@ export function AgentPublicProfileShareRow({
 
   const actionsRow = (
     <Box className="xs:flex-row xs:flex-wrap flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
+      <Button
+        variant="primary"
+        size="sm"
+        iconName="external-link"
+        onPress={handleOpenLink}
+        label={openLinkLabel}
+        hideTextBelow="sm"
+        className="min-h-11 justify-center sm:min-w-0"
+      >
+        {openLinkLabel}
+      </Button>
       <Button
         variant="ghost"
         size="sm"

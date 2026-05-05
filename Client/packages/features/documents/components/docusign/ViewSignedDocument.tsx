@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { AlertCircle, Download, ExternalLink } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 import { docusignApi } from "packages/features/documents/api/docusign";
 import { useUIStore } from "packages/store";
@@ -171,20 +171,11 @@ export default function ViewSignedDocument({
             variant="outline"
             size="sm"
             onClick={handleOpenExternal}
-            className="gap-2"
-            iconName="map-pin"
+            iconName="external-link"
           >
-            <ExternalLink className="h-4 w-4" />
             Open in New Tab
           </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleDownload}
-            className="gap-2"
-            iconName="download"
-          >
-            <Download className="h-4 w-4" />
+          <Button variant="primary" size="sm" onClick={handleDownload} iconName="download">
             Download
           </Button>
           {onClose && (

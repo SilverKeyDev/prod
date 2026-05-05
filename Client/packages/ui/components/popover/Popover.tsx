@@ -298,6 +298,9 @@ export default function Popover({
       </Box>
       {usePortal && open ? (
         <Portal>
+          {panelStack === "modal" ? (
+            <Box aria-hidden className="z-modal-popover-underlay fixed inset-0 bg-transparent" />
+          ) : null}
           <PanelPortal
             panelZ={panelZ}
             layout={

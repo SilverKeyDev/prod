@@ -232,6 +232,14 @@ export function getAgentFromProperty(property: unknown): {
   };
 }
 
+/** True when `price` parses to a positive finite listing amount (for display / loading gates). */
+export function hasRenderableListingPrice(price: unknown): boolean {
+  if (price === null || price === undefined || price === "") return false;
+  const numPrice =
+    typeof price === "string" ? parseFloat(price.replace(/[^0-9.-]+/g, "")) : Number(price);
+  return Number.isFinite(numPrice) && numPrice > 0;
+}
+
 /** Extract basic display fields from property to reduce branching in components. */
 export function getPropertyBasicFields(property: Record<string, unknown>): {
   price: number | string | undefined;

@@ -2,6 +2,7 @@ import { agentRoutes } from "packages/services/data/dataRoutes/agentRoutes";
 import { calendarRoutes } from "packages/services/data/dataRoutes/calendarRoutes";
 import { checklistRoutes } from "packages/services/data/dataRoutes/checklistRoutes";
 import { coreUserRoutes } from "packages/services/data/dataRoutes/coreUserRoutes";
+import { documentRoutes } from "packages/services/data/dataRoutes/documentRoutes";
 import { messagingRoutes } from "packages/services/data/dataRoutes/messagingRoutes";
 import type { RouteConfig } from "packages/services/data/dataRouteTypes";
 import type { UserProfile } from "packages/types";
@@ -18,6 +19,7 @@ export const DATA_ROUTES = {
   ...messagingRoutes,
   ...calendarRoutes,
   ...checklistRoutes,
+  ...documentRoutes,
 } as const;
 
 /**

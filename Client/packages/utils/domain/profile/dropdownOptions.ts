@@ -1,5 +1,14 @@
 import type { DropdownOption } from "packages/features/profile/types/onboarding";
 
+import { FIELD_LABELS } from "./labels";
+
+export const ONBOARDING_ROLE_OPTIONS: DropdownOption[] = [
+  { value: "buyer", label: FIELD_LABELS.ONBOARDING_ROLE_BUYER },
+  { value: "seller", label: FIELD_LABELS.ONBOARDING_ROLE_SELLER },
+  { value: "investor", label: FIELD_LABELS.ONBOARDING_ROLE_INVESTOR },
+  { value: "agent", label: FIELD_LABELS.ONBOARDING_ROLE_AGENT },
+];
+
 export const IS_AGENT_OPTIONS: DropdownOption[] = [
   { value: "yes", label: "Yes" },
   { value: "no", label: "No" },

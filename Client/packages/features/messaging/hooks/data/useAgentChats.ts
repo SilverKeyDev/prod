@@ -11,6 +11,25 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { useNotificationStore } from "packages/store";
 
+export const INITIAL_CHAT_HISTORY_LIMIT = 5;
+export const OLDER_CHAT_HISTORY_PAGE_SIZE = 10;
+export const SYNC_NEWER_CHAT_LIMIT = 50;
+
+export type AgentChatHistoryCacheEntry = {
+  messages: AgentChatMessage[];
+  conversation?: AgentConversation;
+  has_more_older?: boolean;
+  has_more_newer?: boolean;
+};
+
+export type GetAgentChatHistoryOptions = {
+  limit?: number;
+  beforeTimestamp?: string;
+  beforeMessageId?: string;
+  afterTimestamp?: string;
+  afterMessageId?: string;
+};
+
 export type UseAgentChatsReturn = {
   conversations: AgentConversation[];
   isLoading: boolean;
@@ -23,10 +42,10 @@ export type UseAgentChatsReturn = {
     sharedHomeId?: string,
     sharedDocumentId?: string
   ) => Promise<void>;
-  getChatHistory: (conversationId: string) => Promise<{
-    messages: AgentChatMessage[];
-    conversation?: AgentConversation;
-  }>;
+  getChatHistory: (
+    conversationId: string,
+    options?: GetAgentChatHistoryOptions
+  ) => Promise<AgentChatHistoryCacheEntry>;
   isSendingMessage: boolean;
   lastFetchedAt: number | null;
 };
@@ -194,20 +213,12 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       return response;
     },
     onSuccess: (_data, variables) => {
-      // Invalidate conversations so list and last_message_at update
       void queryClient.invalidateQueries({
         queryKey: queryKeys.agent.conversations(),
       });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.agent.all,
       });
-      // Remove this conversation's history cache so the next load fetches fresh
-      // (ensures chat rerenders with the new message for text, home, document, event)
-      if (variables.conversationId !== "new") {
-        void queryClient.removeQueries({
-          queryKey: queryKeys.agent.history(variables.conversationId),
-        });
-      }
     },
     onError: (error) => {
       log.error(LOG_CATEGORIES.ERRORS, "Send message failed", error);
@@ -215,28 +226,21 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     },
   });
 
-  // Get chat history mutation (caches results in React Query)
-  const getChatHistoryMutation = useMutation({
-    mutationFn: async (conversationId: string) => {
-      const response = await agentApi.getChatHistory(conversationId);
+  const fetchTailHistory = useCallback(
+    async (conversationId: string, limit: number): Promise<AgentChatHistoryCacheEntry> => {
+      const response = await agentApi.getChatHistory(conversationId, { limit });
       if (!response.success) {
         throw new Error(response.error ?? "Failed to fetch chat history");
       }
-      const result = {
+      return {
         messages: response.messages ?? [],
         conversation: response.conversation,
+        has_more_older: response.has_more_older,
+        has_more_newer: response.has_more_newer,
       };
-      queryClient.setQueryData(queryKeys.agent.history(conversationId), result);
-      return result;
     },
-    onError: (error, conversationId) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Get chat history failed", {
-        error,
-        conversationId,
-      });
-      showErrorToast("Failed to load messages. Please try again.");
-    },
-  });
+    []
+  );
 
   const refreshChats = useCallback(async () => {
     await refetchChats();
@@ -262,43 +266,60 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
   );
 
   const getChatHistory = useCallback(
-    async (conversationId: string) => {
-      const historyKey = queryKeys.agent.history(conversationId);
+    async (
+      conversationId: string,
+      options?: GetAgentChatHistoryOptions
+    ): Promise<AgentChatHistoryCacheEntry> => {
+      const hasCursor = !!(options?.beforeTimestamp || options?.afterTimestamp);
 
-      // Check cache first
-      const cached = queryClient.getQueryData<{
-        messages: AgentChatMessage[];
-        conversation?: AgentConversation;
-      }>(historyKey);
+      if (hasCursor) {
+        const response = await agentApi.getChatHistory(conversationId, {
+          limit: options?.limit,
+          before_timestamp: options?.beforeTimestamp,
+          before_message_id: options?.beforeMessageId,
+          after_timestamp: options?.afterTimestamp,
+          after_message_id: options?.afterMessageId,
+        });
+        if (!response.success) {
+          throw new Error(response.error ?? "Failed to fetch chat history");
+        }
+        return {
+          messages: response.messages ?? [],
+          conversation: response.conversation,
+          has_more_older: response.has_more_older,
+          has_more_newer: response.has_more_newer,
+        };
+      }
+
+      const tailLimit = options?.limit ?? INITIAL_CHAT_HISTORY_LIMIT;
+      const historyKey = queryKeys.agent.history(conversationId);
+      const cached = queryClient.getQueryData<AgentChatHistoryCacheEntry>(historyKey);
 
       if (cached) {
-        // Return cached data immediately
-        // Only fetch in background if cache is stale (using fetchQuery which respects staleTime)
         void queryClient
           .fetchQuery({
             queryKey: historyKey,
-            queryFn: async () => {
-              const response = await agentApi.getChatHistory(conversationId);
-              if (!response.success) {
-                throw new Error(response.error ?? "Failed to fetch chat history");
-              }
-              return {
-                messages: response.messages ?? [],
-                conversation: response.conversation,
-              };
-            },
-            staleTime: 3 * 60 * 1000, // 3 minutes - same as conversations
+            queryFn: () => fetchTailHistory(conversationId, tailLimit),
+            staleTime: 3 * 60 * 1000,
           })
-          .catch(() => {
-            // Silently fail - we already have cached data
-          });
+          .catch(() => {});
         return cached;
       }
 
-      // No cache, fetch and cache it
-      return await getChatHistoryMutation.mutateAsync(conversationId);
+      try {
+        const result = await fetchTailHistory(conversationId, tailLimit);
+        queryClient.setQueryData(historyKey, result);
+        return result;
+      } catch (error) {
+        log.error(LOG_CATEGORIES.ERRORS, "Get chat history failed", {
+          error,
+          conversationId,
+        });
+        showErrorToast("Failed to load messages. Please try again.");
+        throw error;
+      }
     },
-    [getChatHistoryMutation, queryClient]
+    [fetchTailHistory, queryClient]
   );
 
   // Fetch notification counter (unread messages + pending requests)

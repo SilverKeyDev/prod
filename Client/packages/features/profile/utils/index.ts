@@ -3,6 +3,7 @@ export * from "./agentPublicProfile";
 export * from "./availability/onboardingStepCompletion";
 export * from "./financials/payingCashFinancials";
 export * from "./financials/propertyTax";
+export * from "./onboarding/onboardingRoleSelection";
 export * from "./onboarding/fieldContract";
 export * from "./onboarding/housingOptions";
 export * from "./onboarding/preferencesUtils";

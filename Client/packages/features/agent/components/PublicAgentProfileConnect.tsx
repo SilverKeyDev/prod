@@ -123,12 +123,16 @@ export function PublicAgentProfileConnect({
         title={t("profile.public.connect_modal_title")}
         size="sm"
         showCloseButton
+        showHeaderBorder
       >
-        <Box className="gap-4">
-          <BodyText size="sm" className="text-text-secondary">
+        <Box className="flex flex-col gap-6">
+          <BodyText
+            size="sm"
+            className="whitespace-pre-line text-text-secondary leading-relaxed"
+          >
             {t("profile.public.connect_modal_body")}
           </BodyText>
-          <Box className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Box className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
             <Button
               variant="primary"
               size="md"
@@ -139,7 +143,7 @@ export function PublicAgentProfileConnect({
               {t("profile.public.connect_sign_in")}
             </Button>
             <Button
-              variant="secondary"
+              variant="outline"
               size="md"
               className="min-h-11 w-full sm:flex-1"
               onPress={handleCreateAccount}

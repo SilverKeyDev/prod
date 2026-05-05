@@ -4,31 +4,38 @@
 
 import type { QueryClient } from "@tanstack/react-query";
 
-import type { AgentChatMessage, AgentConversation } from "packages/api";
 import { agentApi } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
+import {
+  INITIAL_CHAT_HISTORY_LIMIT,
+  SYNC_NEWER_CHAT_LIMIT,
+  type AgentChatHistoryCacheEntry,
+  type GetAgentChatHistoryOptions,
+} from "packages/features/messaging/hooks/data/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import { mapApiMessagesToChatMessages } from "./helpers";
 import type { ChatMessage } from "./types";
 
+export type GetChatHistoryRef = (
+  conversationId: string,
+  options?: GetAgentChatHistoryOptions
+) => Promise<AgentChatHistoryCacheEntry>;
+
 export type HistoryEffectRefs = {
   loadedHistoryIdsRef: React.MutableRefObject<Set<string>>;
-  getChatHistoryRef: React.MutableRefObject<
-    (conversationId: string) => Promise<{
-      messages: AgentChatMessage[];
-      conversation?: AgentConversation;
-    }>
-  >;
+  getChatHistoryRef: React.MutableRefObject<GetChatHistoryRef>;
   lastKnownMessageTimestampRef: React.MutableRefObject<number>;
   lastConversationIdRef: React.MutableRefObject<string>;
   lastMessageAtRef: React.MutableRefObject<number>;
   isLoadingRef: React.MutableRefObject<boolean>;
+  localMessagesRef: React.MutableRefObject<ChatMessage[]>;
 };
 
 export type HistoryEffectSetters = {
   setLocalMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   setIsLoadingHistory: (v: boolean) => void;
+  setHasMoreOlder: (v: boolean) => void;
   markConversationRead: (conversationId: string) => void;
   updateLastReadTimestamp: (conversationId: string, timestamp: number) => void;
 };
@@ -56,8 +63,13 @@ export function runHistoryEffect(
   refs: HistoryEffectRefs,
   setters: HistoryEffectSetters
 ): (() => void) | void {
-  const { setLocalMessages, setIsLoadingHistory, markConversationRead, updateLastReadTimestamp } =
-    setters;
+  const {
+    setLocalMessages,
+    setIsLoadingHistory,
+    setHasMoreOlder,
+    markConversationRead,
+    updateLastReadTimestamp,
+  } = setters;
   const {
     loadedHistoryIdsRef,
     getChatHistoryRef,
@@ -65,10 +77,12 @@ export function runHistoryEffect(
     lastConversationIdRef,
     lastMessageAtRef,
     isLoadingRef,
+    localMessagesRef,
   } = refs;
 
   if (!activeConversationId) {
     setLocalMessages([]);
+    setHasMoreOlder(false);
     lastKnownMessageTimestampRef.current = 0;
     lastConversationIdRef.current = "";
     lastMessageAtRef.current = 0;
@@ -77,10 +91,9 @@ export function runHistoryEffect(
   }
   if (isLoadingRef.current) return;
 
-  const cachedHistory = queryClient.getQueryData<{
-    messages: AgentChatMessage[];
-    conversation?: AgentConversation;
-  }>(queryKeys.agent.history(activeConversationId));
+  const cachedHistory = queryClient.getQueryData<AgentChatHistoryCacheEntry>(
+    queryKeys.agent.history(activeConversationId)
+  );
 
   const currentLastMessageAt = currentConversationLastMessageAt;
   const conversationChanged = lastConversationIdRef.current !== activeConversationId;
@@ -93,14 +106,67 @@ export function runHistoryEffect(
     !loadedHistoryIdsRef.current.has(activeConversationId) ||
     (messageTimestampChanged && hasNewMessages);
 
+  const syncNewerOnly =
+    !conversationChanged &&
+    loadedHistoryIdsRef.current.has(activeConversationId) &&
+    messageTimestampChanged &&
+    hasNewMessages;
+
+  if (syncNewerOnly) {
+    void (async () => {
+      const msgs = localMessagesRef.current;
+      if (msgs.length === 0) {
+        lastKnownMessageTimestampRef.current = currentLastMessageAt;
+        lastMessageAtRef.current = currentLastMessageAt;
+        return;
+      }
+      const latest = msgs[msgs.length - 1];
+      try {
+        const data = await getChatHistoryRef.current(activeConversationId, {
+          afterTimestamp: latest.timestamp.toISOString(),
+          afterMessageId: latest.id,
+          limit: SYNC_NEWER_CHAT_LIMIT,
+        });
+        if (lastConversationIdRef.current !== activeConversationId) return;
+        const incoming = mapApiMessagesToChatMessages(data.messages ?? []);
+        const ids = new Set(msgs.map((m) => m.id));
+        const toAdd = incoming.filter((m) => !ids.has(m.id));
+        if (toAdd.length === 0) {
+          lastKnownMessageTimestampRef.current = currentLastMessageAt;
+          lastMessageAtRef.current = currentLastMessageAt;
+          return;
+        }
+        const merged = [...msgs, ...toAdd];
+        setLocalMessages(merged);
+        markReadAndUpdateTimestamp(
+          activeConversationId,
+          merged,
+          markConversationRead,
+          updateLastReadTimestamp
+        );
+        lastKnownMessageTimestampRef.current = currentLastMessageAt;
+        lastMessageAtRef.current = currentLastMessageAt;
+      } catch {
+        // Cursor / network errors: leave local state; user can refresh
+      }
+    })();
+    return;
+  }
+
   if (cachedHistory && isInitialLoad) {
     const cachedMessages = mapApiMessagesToChatMessages(cachedHistory.messages ?? []);
     setLocalMessages(cachedMessages);
+    setHasMoreOlder(cachedHistory.has_more_older ?? false);
     loadedHistoryIdsRef.current.add(activeConversationId);
     if (cachedMessages.length > 0) {
       const latest = cachedMessages[cachedMessages.length - 1];
-      lastKnownMessageTimestampRef.current = latest.timestamp.getTime();
-      lastMessageAtRef.current = latest.timestamp.getTime();
+      const latestTs = latest.timestamp.getTime();
+      lastKnownMessageTimestampRef.current = latestTs;
+      lastMessageAtRef.current =
+        currentLastMessageAt > 0 ? Math.max(currentLastMessageAt, latestTs) : latestTs;
+    } else if (currentLastMessageAt > 0) {
+      lastKnownMessageTimestampRef.current = currentLastMessageAt;
+      lastMessageAtRef.current = currentLastMessageAt;
     }
     markReadAndUpdateTimestamp(
       activeConversationId,
@@ -109,18 +175,14 @@ export function runHistoryEffect(
       updateLastReadTimestamp
     );
     lastConversationIdRef.current = activeConversationId;
-    void getChatHistoryRef
-      .current(activeConversationId)
-      .then((data) => {
-        if (lastConversationIdRef.current === activeConversationId) {
-          const messages = mapApiMessagesToChatMessages(data.messages ?? []);
-          setLocalMessages(messages);
-          if (messages.length > 0) {
-            const latest = messages[messages.length - 1];
-            lastKnownMessageTimestampRef.current = latest.timestamp.getTime();
-            lastMessageAtRef.current = latest.timestamp.getTime();
-          }
-        }
+    void queryClient
+      .fetchQuery({
+        queryKey: queryKeys.agent.history(activeConversationId),
+        queryFn: () =>
+          getChatHistoryRef.current(activeConversationId, {
+            limit: INITIAL_CHAT_HISTORY_LIMIT,
+          }),
+        staleTime: 3 * 60 * 1000,
       })
       .catch(() => {});
     return;
@@ -137,10 +199,6 @@ export function runHistoryEffect(
   }
 
   lastConversationIdRef.current = activeConversationId;
-  if (currentLastMessageAt > 0) {
-    lastMessageAtRef.current = currentLastMessageAt;
-    lastKnownMessageTimestampRef.current = currentLastMessageAt;
-  }
   queryClient.removeQueries({
     queryKey: queryKeys.agent.history(activeConversationId),
   });
@@ -150,14 +208,26 @@ export function runHistoryEffect(
   const loadHistory = async () => {
     if (isInitialLoad && !cachedHistory) setIsLoadingHistory(true);
     try {
-      const data = await getChatHistoryRef.current(activeConversationId);
+      const data = await getChatHistoryRef.current(activeConversationId, {
+        limit: INITIAL_CHAT_HISTORY_LIMIT,
+      });
       if (!cancelled) {
         loadedHistoryIdsRef.current.add(activeConversationId);
         const messages = mapApiMessagesToChatMessages(data.messages ?? []);
         setLocalMessages(messages);
+        setHasMoreOlder(data.has_more_older ?? false);
         if (messages.length > 0) {
           const latest = messages[messages.length - 1];
           lastKnownMessageTimestampRef.current = latest.timestamp.getTime();
+        }
+        if (currentLastMessageAt > 0) {
+          lastMessageAtRef.current = currentLastMessageAt;
+          lastKnownMessageTimestampRef.current = Math.max(
+            lastKnownMessageTimestampRef.current,
+            currentLastMessageAt
+          );
+        } else if (messages.length > 0) {
+          const latest = messages[messages.length - 1];
           lastMessageAtRef.current = latest.timestamp.getTime();
         }
         markReadAndUpdateTimestamp(
@@ -168,7 +238,7 @@ export function runHistoryEffect(
         );
       }
     } catch {
-      // Error handled by query
+      // Error surfaced by toast in getChatHistory (tail fetch)
     } finally {
       if (!cancelled) {
         if (isInitialLoad && !cachedHistory) setIsLoadingHistory(false);

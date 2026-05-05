@@ -1,31 +1,18 @@
 import { getMapPinColorsForScoreAndStatus } from "packages/utils/format/mapMatchPinColors";
-import { getMatchTierIndex } from "packages/utils/format/matchScore";
 import { getDocument } from "packages/utils/platform";
 
-const BASE_PIN_SIZE_PX = 28;
-const MATCH_TIER_COUNT = 5;
-
-/** Scale factor by match tier only: 0.8x (poor) … 2.0x (excellent), five steps. */
-function getScorePinScale(score: number): number {
-  const i = getMatchTierIndex(score);
-  const t = i / Math.max(1, MATCH_TIER_COUNT - 1);
-  return 0.8 + t * 1.2;
-}
+const PIN_SIZE_PX = 28;
 
 /**
  * Creates a single DOM element for use as AdvancedMarkerElement content:
  * compact map pin colored by match tier (same as MatchPill).
- *
- * Higher score buckets produce larger pins (up to 2x); lower buckets
- * produce smaller pins (down to 0.8x). Color and size are both bucketed.
  */
 export function createScorePinElement(score: number): HTMLElement {
   const doc = getDocument();
   if (!doc) throw new Error("Document not available");
   const { fillColor, strokeColor } = getMapPinColorsForScoreAndStatus(score);
 
-  const scale = getScorePinScale(score);
-  const size = Math.round(BASE_PIN_SIZE_PX * scale);
+  const size = PIN_SIZE_PX;
 
   const wrapper = doc.createElement("div");
   wrapper.className = "property-score-pin";

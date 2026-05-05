@@ -165,6 +165,10 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
           data={properties}
           keyExtractor={(item) => item.id}
           renderItem={renderPropertyItem}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={5}
+          removeClippedSubviews
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <Box style={styles.emptyContainer}>

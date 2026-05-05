@@ -5,9 +5,7 @@ import { getLocalStorage } from "packages/utils/storage/platformStorage";
 import type { AuthenticationError } from "./errors";
 import { createHttpRequestId } from "./requestId";
 
-let verifyingPromise: Promise<{ success?: boolean } | null> | null = null;
-let lastAuthEventAt = 0;
-const AUTH_COOLDOWN_MS = 3000;
+let verifyingPromise: Promise<boolean> | null = null;
 
 export function isAuthEndpoint(url: string): boolean {
   return /\/api\/v1\/(auth\/(verify|login|logout|refresh-token)|user\/profile)/.test(url);
@@ -25,16 +23,7 @@ export function getAuthBC(): BroadcastChannel | null {
   return authBroadcastChannel;
 }
 
-/**
- * Minimal 401 handler using raw fetch to avoid importing config/api (which would
- * create a circular dependency: http → config/api/auth → handlers → http).
- */
-export function handle401Unauthorized(_url: string): void {
-  const now = Date.now();
-  if (verifyingPromise || now - lastAuthEventAt <= AUTH_COOLDOWN_MS) return;
-  lastAuthEventAt = now;
-
-  const correlationId = createHttpRequestId();
+async function executeRefreshRecoveryChain(correlationId: string): Promise<boolean> {
   const opts: RequestInit = {
     credentials: "include",
     method: "POST",
@@ -47,23 +36,54 @@ export function handle401Unauthorized(_url: string): void {
   };
 
   const doFetch = getFetch();
-  verifyingPromise = doFetch("/api/v1/auth/refresh-token", opts)
-    .then((r) => (r.ok ? r.json() : { success: false }))
-    .then((refreshResult: { success?: boolean }) =>
-      refreshResult.success === true
-        ? doFetch("/api/v1/user/profile", getOpts).then((r) =>
-            r.ok ? r.json() : { success: false }
-          )
-        : Promise.resolve({ success: false })
-    )
-    .then((v: { success?: boolean }) => v ?? { success: false })
-    .catch(() => null)
-    .finally(() => {
-      verifyingPromise = null;
-    });
+  try {
+    const refreshRes = await doFetch("/api/v1/auth/refresh-token", opts);
+    const refreshResult: { success?: boolean } = refreshRes.ok
+      ? await refreshRes.json()
+      : { success: false };
 
-  void void verifyingPromise.then((v) => {
-    if (!v?.success) {
+    if (refreshResult.success !== true) {
+      log.warn(LOG_CATEGORIES.AUTH, "401 recovery: refresh-token did not succeed", {
+        correlationId,
+      });
+      return false;
+    }
+
+    const profileRes = await doFetch("/api/v1/user/profile", getOpts);
+    const profileJson: { success?: boolean } = profileRes.ok
+      ? await profileRes.json()
+      : { success: false };
+
+    const recovered = profileJson.success === true;
+    if (!recovered) {
+      log.warn(LOG_CATEGORIES.AUTH, "401 recovery: profile verification failed after refresh", {
+        correlationId,
+      });
+    }
+    return recovered;
+  } catch {
+    log.warn(LOG_CATEGORIES.AUTH, "401 recovery: refresh chain threw", { correlationId });
+    return false;
+  }
+}
+
+/**
+ * Cookie/session recovery after a 401 using raw fetch (no config/api cycle).
+ *
+ * IMPORTANT: callers must await this and retry their request once on `true`.
+ * Previous fire-and-forget behavior caused harmless 401 races (burst of requests after
+ * onboarding/navigation) to throw AuthenticationError immediately and redirect to `/login`.
+ */
+export async function recoverSessionAfter401(): Promise<boolean> {
+  if (verifyingPromise !== null) {
+    return verifyingPromise;
+  }
+
+  const correlationId = createHttpRequestId();
+
+  verifyingPromise = (async () => {
+    const ok = await executeRefreshRecoveryChain(correlationId);
+    if (!ok) {
       log.warn(LOG_CATEGORIES.AUTH, "401 recovery refresh chain failed; broadcasting logout", {
         correlationId,
       });
@@ -73,7 +93,17 @@ export function handle401Unauthorized(_url: string): void {
         /* ignore */
       }
     }
+    return ok;
+  })().finally(() => {
+    verifyingPromise = null;
   });
+
+  return verifyingPromise;
+}
+
+/** @deprecated Use recoverSessionAfter401 (awaited + retry pattern). */
+export function handle401Unauthorized(_url: string): void {
+  void recoverSessionAfter401();
 }
 
 export function handleAuthenticationError(error: AuthenticationError): void {

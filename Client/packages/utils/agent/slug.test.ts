@@ -17,6 +17,10 @@ describe("buildAgentProfileUrl", () => {
   it("uses name slug then brief segment (agent id)", () => {
     expect(buildAgentProfileUrl("uuid-1", "Jane Agent")).toBe("/agent-profile/jane-agent/uuid-1");
   });
+
+  it("uses short /a path when a public slug is provided", () => {
+    expect(buildAgentProfileUrl("uuid-1", "Jane Agent", "jane-agent")).toBe("/a/jane-agent");
+  });
 });
 
 describe("parseAgentProfileUrl", () => {

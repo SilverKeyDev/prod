@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useEmbeddedSigningUrlQuery } from "packages/features/documents/hooks/data/docusign/useEmbeddedSigningUrlQuery";
+import { AGREEMENT_SIGNING_COMPLETE_POSTMESSAGE_SOURCE } from "packages/features/documents/utils/agreementSigningPostMessage";
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
 import { Box } from "packages/ui/components/primitives";
@@ -86,31 +87,54 @@ export default function EmbeddedSigning({
   } = useEmbeddedSigningUrlQuery(agreementId, participantId);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
+  const completionHandledRef = useRef(false);
+
+  useEffect(() => {
+    completionHandledRef.current = false;
+  }, [agreementId, participantId]);
+
   const showPdfFallback = !isPending && (isError || !signingUrl);
 
   // Listen for DocuSign completion event via postMessage
   // DocuSign iframe sends this event when signing is complete
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Security: Verify origin is from DocuSign domain
-      if (event.origin.includes("docusign")) {
-        // DocuSign sends completion event in various formats
-        if (event.data === "signing_complete" || event.data?.event === "signing_complete") {
-          enqueueToast({
-            type: "success",
-            message: "Document signed successfully!",
-          });
-          if (onComplete) {
-            onComplete();
-          }
-        }
-      }
+      const win = getWindow();
+      if (!win) return;
+
+      const data = event.data;
+      const isSigningComplete =
+        data === "signing_complete" ||
+        (typeof data === "object" &&
+          data !== null &&
+          "event" in data &&
+          (data as { event: unknown }).event === "signing_complete");
+
+      if (!isSigningComplete) return;
+
+      const fromDocusign = typeof event.origin === "string" && event.origin.includes("docusign");
+      const fromOurReturnPage =
+        event.origin === win.location.origin &&
+        typeof data === "object" &&
+        data !== null &&
+        (data as { source?: string }).source === AGREEMENT_SIGNING_COMPLETE_POSTMESSAGE_SOURCE;
+
+      if (!fromDocusign && !fromOurReturnPage) return;
+
+      if (completionHandledRef.current) return;
+      completionHandledRef.current = true;
+
+      enqueueToast({
+        type: "success",
+        message: "Document signed successfully!",
+      });
+      onComplete?.();
     };
 
-    const win = getWindow();
-    if (win) win.addEventListener("message", handleMessage);
+    const w = getWindow();
+    if (w) w.addEventListener("message", handleMessage);
     return () => {
-      if (win) win.removeEventListener("message", handleMessage);
+      if (w) w.removeEventListener("message", handleMessage);
     };
   }, [onComplete, enqueueToast]);
 

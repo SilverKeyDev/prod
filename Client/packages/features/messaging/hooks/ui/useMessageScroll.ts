@@ -4,6 +4,20 @@ import { getWindow } from "packages/utils/platform";
 
 import { setScrollToBottomInstant } from "./messageScrollHelpers";
 
+function getFirstMessageId(messages: unknown[]): string | undefined {
+  const first = messages[0];
+  if (
+    first &&
+    typeof first === "object" &&
+    first !== null &&
+    "id" in first &&
+    typeof (first as { id: unknown }).id === "string"
+  ) {
+    return (first as { id: string }).id;
+  }
+  return undefined;
+}
+
 /**
  * Hook to handle auto-scrolling to bottom when messages change.
  * Works for both client and agent messaging components.
@@ -20,6 +34,7 @@ export function useMessageScroll(
   const previousMessageCountRef = useRef(0);
   const previousConversationIdRef = useRef<string | undefined>(undefined);
   const previousLoadingStateRef = useRef<boolean | undefined>(undefined);
+  const previousFirstMessageIdRef = useRef<string | undefined>(undefined);
 
   // Find the scrollable container parent
   useEffect(() => {
@@ -62,6 +77,33 @@ export function useMessageScroll(
     const currentMessageCount = messages.length;
     const previousCount = previousMessageCountRef.current;
     const conversationChanged = previousConversationIdRef.current !== conversationId;
+    const currentFirstId = getFirstMessageId(messages);
+    const previousFirstId = previousFirstMessageIdRef.current;
+
+    const isPrepend =
+      !conversationChanged &&
+      currentMessageCount > previousCount &&
+      previousCount > 0 &&
+      currentFirstId !== undefined &&
+      previousFirstId !== undefined &&
+      currentFirstId !== previousFirstId;
+
+    if (isPrepend && scrollContainerRef.current) {
+      const el = scrollContainerRef.current;
+      const prevScrollHeight = el.scrollHeight;
+      const prevScrollTop = el.scrollTop;
+      requestAnimationFrame(() => {
+        const next = scrollContainerRef.current;
+        if (!next) return;
+        const delta = next.scrollHeight - prevScrollHeight;
+        next.scrollTop = prevScrollTop + delta;
+      });
+      previousMessageCountRef.current = currentMessageCount;
+      previousFirstMessageIdRef.current = currentFirstId;
+      return;
+    }
+
+    previousFirstMessageIdRef.current = currentFirstId;
 
     // Reset initial load flag when conversation changes or messages are cleared
     if (conversationChanged || currentMessageCount === 0) {

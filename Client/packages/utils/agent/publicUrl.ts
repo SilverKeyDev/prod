@@ -8,8 +8,12 @@ const DEFAULT_SHAREABLE_WEB_ORIGIN = "https://usesilverkey.com";
 /**
  * Absolute HTTPS URL for the public agent profile page (web: current origin; native: default prod host).
  */
-export function getAgentPublicProfileAbsoluteUrl(agentId: string, displayName: string): string {
-  const path = buildAgentProfileUrl(agentId, displayName);
+export function getAgentPublicProfileAbsoluteUrl(
+  agentId: string,
+  displayName: string,
+  publicProfileSlug?: string | null
+): string {
+  const path = buildAgentProfileUrl(agentId, displayName, publicProfileSlug);
   const origin = getWindow()?.location?.origin;
   if (origin) {
     return `${origin}${path}`;

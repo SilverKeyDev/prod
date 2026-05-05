@@ -4,6 +4,7 @@ import { useLocalization } from "packages/contexts";
 import {
   formatListingStatusLabel,
   getMlsListingId,
+  hasRenderableListingPrice,
 } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { StatChip } from "packages/features/propertyDetails/components/visualizations";
@@ -50,10 +51,15 @@ function parsePositiveNumber(value: number | string | undefined): number | null 
   return n;
 }
 
-type PropertySummaryProps = PropertyComponentProps;
+type PropertySummaryProps = PropertyComponentProps & {
+  isLoading?: boolean;
+};
 
 /** Price, status, and address — listing “header” without quick stats. */
-export const PropertyListingHeader: React.FC<PropertySummaryProps> = ({ property }) => {
+export const PropertyListingHeader: React.FC<PropertySummaryProps> = ({
+  property,
+  isLoading = false,
+}) => {
   const { t } = useLocalization();
   const propertyRecord = property as unknown as Record<string, unknown>;
   const listingStatusCombined =
@@ -77,6 +83,8 @@ export const PropertyListingHeader: React.FC<PropertySummaryProps> = ({ property
     defaultValue: "Address not available",
   });
   const displayAddress = getDisplayAddress(addr, notAvailable);
+  const showPriceSkeleton = isLoading && !hasRenderableListingPrice(propertyPrice);
+  const showAddressSkeleton = isLoading && displayAddress === notAvailable;
 
   const listPriceLabel = t("property_details.list_price_label", {
     defaultValue: "List price",
@@ -96,7 +104,14 @@ export const PropertyListingHeader: React.FC<PropertySummaryProps> = ({ property
           {listPriceLabel}
         </BodyText>
         <Title as="h2" size="xl" className="text-text-primary mb-2 font-bold">
-          {formatPrice(propertyPrice)}
+          {showPriceSkeleton ? (
+            <Box
+              className="bg-background-surface h-9 w-40 max-w-[90%] animate-pulse rounded-md"
+              aria-hidden
+            />
+          ) : (
+            formatPrice(propertyPrice)
+          )}
         </Title>
         {(listingStatusLabel || mlsListingId || previousListPrice || daysOnMarket != null) && (
           <Box className="mb-3 flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-4">
@@ -140,9 +155,16 @@ export const PropertyListingHeader: React.FC<PropertySummaryProps> = ({ property
             ) : null}
           </Box>
         )}
-        <BodyText as="p" size="sm" className="text-text-secondary">
-          {displayAddress}
-        </BodyText>
+        {showAddressSkeleton ? (
+          <Box className="mt-1 space-y-2" aria-hidden>
+            <Box className="bg-background-surface h-4 w-64 max-w-[95%] animate-pulse rounded" />
+            <Box className="bg-background-surface h-4 w-48 max-w-[80%] animate-pulse rounded" />
+          </Box>
+        ) : (
+          <BodyText as="p" size="sm" className="text-text-secondary">
+            {displayAddress}
+          </BodyText>
+        )}
       </Box>
     </Box>
   );

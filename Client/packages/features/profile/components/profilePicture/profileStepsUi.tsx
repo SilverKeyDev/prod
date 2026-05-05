@@ -20,6 +20,8 @@ type StepWithIcon = ProfileStep & {
 
 const iconNameForStepId = (id: ProfileStepId): IconName | undefined => {
   switch (id) {
+    case "onboarding_role":
+      return "users";
     case "demographics":
       return "user";
     case "availability":

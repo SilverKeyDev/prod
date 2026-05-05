@@ -142,6 +142,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/agent-profile/slug/{publicProfileSlug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get public agent profile by short slug
+         * @description Same payload as `getPublicAgentProfile`, keyed by `users.public_profile_slug` (used for `/a/{slug}` links). Returns 404 if the slug is invalid, taken by a non-agent, or unknown.
+         */
+        get: operations["getPublicAgentProfileBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/search/properties-by-polygon": {
         parameters: {
             query?: never;
@@ -2470,6 +2490,10 @@ export interface components {
         AgentChatHistoryResponse: components["schemas"]["SuccessResponse"] & {
             messages?: components["schemas"]["AgentChatMessage"][] | null;
             conversation?: components["schemas"]["AgentConversation"];
+            /** @description Whether more messages exist before the oldest message in this page */
+            has_more_older?: boolean;
+            /** @description Whether more messages exist after the newest message in this page */
+            has_more_newer?: boolean;
         };
         AgentChatMessage: {
             id: string;
@@ -4239,6 +4263,8 @@ export interface components {
             social_links?: {
                 [key: string]: string;
             } | null;
+            /** @description Unique slug for the short public profile URL path `/a/{public_profile_slug}`. Omitted or null only for legacy rows before backfill; clients should fall back to the long id-based URL. */
+            public_profile_slug?: string | null;
         };
         PublicAgentProfileResponse: components["schemas"]["SuccessResponse"] & {
             /** @description Public agent profile; only returned when the user exists and is an active agent. */
@@ -6099,6 +6125,47 @@ export interface operations {
             };
         };
     };
+    getPublicAgentProfileBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Value of `PublicAgentProfile.public_profile_slug` / `users.public_profile_slug`. */
+                publicProfileSlug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public agent profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicAgentProfileResponse"];
+                };
+            };
+            /** @description Not found or not a public agent profile */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     searchPropertiesByPolygon: {
         parameters: {
             query?: never;
@@ -7569,7 +7636,18 @@ export interface operations {
     };
     getAgentChatHistory: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Max messages to return for this page (capped server-side) */
+                limit?: number;
+                /** @description ISO 8601 timestamp; with before_message_id, fetch messages strictly older than this cursor */
+                before_timestamp?: string;
+                /** @description Message id; with before_timestamp, exclusive cursor for older pages */
+                before_message_id?: string;
+                /** @description ISO 8601 timestamp; with after_message_id, fetch messages strictly newer than this cursor */
+                after_timestamp?: string;
+                /** @description Message id; with after_timestamp, exclusive cursor for newer messages (sync) */
+                after_message_id?: string;
+            };
             header?: never;
             path: {
                 conversationId: string;
