@@ -16,6 +16,9 @@ from flask_sqlalchemy import SQLAlchemy
 os.environ["TESTING"] = "true"
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 os.environ.setdefault("JWT_SIGNING_SECRET", "test-jwt-signing-secret-not-for-production")
+# verification.py reads Cognito env at import time; CI does not inject real pool/client IDs.
+os.environ.setdefault("AWS_COGNITO_USER_POOL_ID", "us-east-2_pytestStubPoolId")
+os.environ.setdefault("AWS_COGNITO_CLIENT_ID", "pytest-stub-cognito-client-id")
 
 
 @pytest.fixture
