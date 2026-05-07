@@ -7,8 +7,16 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import { asError } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
+import {
+  SUPPORTED_SERVICE_AREA_GOOGLE_LOCATION_RESTRICTION,
+  SUPPORTED_SERVICE_AREA_STATE_SHORT,
+} from "packages/utils/search/locations/serviceAreaAvailability";
 
-import type { GoogleSuggestion, SlipstreamSuggestion, Suggestion } from "./searchLocationBarTypes";
+import type {
+  GoogleSuggestion,
+  SlipstreamSuggestion,
+  Suggestion,
+} from "./searchLocationBarTypes";
 
 type Params = {
   trimmedInput: string;
@@ -39,16 +47,22 @@ export function useSearchLocationBarSuggestionEffects({
       void (async () => {
         try {
           const resp = await searchApi.getAreaSuggestions(
-            { keyword: trimmedInput, limit: 6 },
-            { signal: ac.signal }
+            {
+              keyword: trimmedInput,
+              state: SUPPORTED_SERVICE_AREA_STATE_SHORT,
+              limit: 6,
+            },
+            { signal: ac.signal },
           );
           if (ac.signal.aborted) return;
           if (resp.success && resp.areas) {
-            const slipstreamItems: SlipstreamSuggestion[] = resp.areas.map((area) => ({
-              kind: "slipstream" as const,
-              area,
-              description: area.label || area.name,
-            }));
+            const slipstreamItems: SlipstreamSuggestion[] = resp.areas.map(
+              (area) => ({
+                kind: "slipstream" as const,
+                area,
+                description: area.label || area.name,
+              }),
+            );
             setSuggestions((prev) => {
               const googleItems = prev.filter((s) => s.kind === "google");
               return [...slipstreamItems, ...googleItems];
@@ -56,7 +70,11 @@ export function useSearchLocationBarSuggestionEffects({
           }
         } catch (err: unknown) {
           if (ac.signal.aborted) return;
-          log.warn(LOG_CATEGORIES.ERRORS, "Slipstream area suggestion error", err);
+          log.warn(
+            LOG_CATEGORIES.ERRORS,
+            "Slipstream area suggestion error",
+            err,
+          );
         }
       })();
     }, 300);
@@ -68,7 +86,12 @@ export function useSearchLocationBarSuggestionEffects({
   }, [trimmedInput, hasSelected, setSuggestions]);
 
   useEffect(() => {
-    if (!scriptsReady || trimmedInput.length < 3 || hasSelected || !looksLikeAddress) {
+    if (
+      !scriptsReady ||
+      trimmedInput.length < 3 ||
+      hasSelected ||
+      !looksLikeAddress
+    ) {
       setSuggestions((prev) => prev.filter((s) => s.kind === "slipstream"));
       return;
     }
@@ -79,19 +102,24 @@ export function useSearchLocationBarSuggestionEffects({
         if (!googleMapsWindow?.google?.maps?.places) {
           return;
         }
-        const sessionToken = new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
+        const sessionToken =
+          new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
         const request = {
           input: localValue,
           sessionToken,
           includedRegionCodes: ["US"],
+          locationRestriction:
+            SUPPORTED_SERVICE_AREA_GOOGLE_LOCATION_RESTRICTION,
         };
         const { suggestions: fetched } =
           await googleMapsWindow.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request
+            request,
           );
         const built: GoogleSuggestion[] = (
           fetched as Array<{
-            placePrediction: import("./searchLocationBarTypes").GooglePlacePrediction | null;
+            placePrediction:
+              | import("./searchLocationBarTypes").GooglePlacePrediction
+              | null;
           }>
         ).flatMap((s) => {
           const prediction = s.placePrediction;
@@ -110,10 +138,21 @@ export function useSearchLocationBarSuggestionEffects({
         });
       } catch (err: unknown) {
         const error = asError(err);
-        log.error(LOG_CATEGORIES.ERRORS, "Search location autocomplete error", error);
+        log.error(
+          LOG_CATEGORIES.ERRORS,
+          "Search location autocomplete error",
+          error,
+        );
       }
     };
     const debounceTimer = setTimeout(() => void fetchSuggestions(), 400);
     return () => clearTimeout(debounceTimer);
-  }, [localValue, trimmedInput, scriptsReady, hasSelected, looksLikeAddress, setSuggestions]);
+  }, [
+    localValue,
+    trimmedInput,
+    scriptsReady,
+    hasSelected,
+    looksLikeAddress,
+    setSuggestions,
+  ]);
 }

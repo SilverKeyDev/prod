@@ -13,16 +13,35 @@
  */
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { apiGet, apiPost, buildApiUrl, isAbortError } from "packages/services/http/compatibility";
+import {
+  apiGet,
+  apiPost,
+  buildApiUrl,
+  HttpError,
+  isAbortError,
+} from "packages/services/http/compatibility";
 import type { components } from "packages/types/api.generated";
 import type { AreaBoundaryResponse, AreaSuggestionsResponse } from "packages/types/domain/api";
+import type { SearchByPolygonRequest, SearchByPolygonResponse } from "packages/types/domain/api";
 
 // UI type (not API contract - keep local)
 export type GetIsochroneOptions = {
   preferencesUserId?: string | null;
   signal?: AbortSignal;
 };
-import type { SearchByPolygonRequest, SearchByPolygonResponse } from "packages/types/domain/api";
+
+/** Backend returns 400 + JSON when preferences have no usable commute locations (expected). */
+function isIsochroneMissingCommuteHttpError(error: unknown): error is HttpError {
+  if (!(error instanceof HttpError)) return false;
+  if (error.status !== 400) return false;
+  const b = error.parsedBody;
+  if (!b || typeof b !== "object") return false;
+  const rec = b as { success?: boolean; error?: string };
+  return (
+    rec.success === false &&
+    (rec.error === "NO_LOCATIONS" || rec.error === "NO_VALID_LOCATIONS")
+  );
+}
 
 /** Log-safe summary of polygon search request (no addresses / PII). */
 function summarizePolygonSearchRequestForLog(req: SearchByPolygonRequest) {
@@ -136,25 +155,35 @@ export const searchApi = {
   /**
    * Generate isochrone polygon data based on user preferences
    */
-  getIsochrone: (options?: GetIsochroneOptions): Promise<IsochroneResponse> => {
+  getIsochrone: async (options?: GetIsochroneOptions): Promise<IsochroneResponse> => {
     const uid = options?.preferencesUserId;
     const url = buildApiUrl(
       "/api/v1/search/isochrone",
       uid != null && uid !== "" ? { preferences_user_id: uid } : {}
     );
-    return apiGet<IsochroneResponse>(url, {
-      timeout: 300000, // 5 minutes for isochrone generation
-      signal: options?.signal,
-    })
-      .then((resp) => {
-        return resp;
-      })
-      .catch((error) => {
-        if (!isAbortError(error)) {
-          log.error(LOG_CATEGORIES.ERRORS, "Isochrone API error", error);
-        }
-        throw error;
+    try {
+      return await apiGet<IsochroneResponse>(url, {
+        timeout: 300000, // 5 minutes for isochrone generation
+        signal: options?.signal,
       });
+    } catch (error) {
+      if (isAbortError(error)) {
+        throw error;
+      }
+      if (isIsochroneMissingCommuteHttpError(error)) {
+        const body = error.parsedBody as { error?: string; message?: string };
+        log.warn(LOG_CATEGORIES.SEARCH, "Isochrone skipped: no commute locations in preferences", {
+          error: body.error,
+        });
+        return {
+          success: false,
+          error: body.error ?? "NO_LOCATIONS",
+          message: body.message ?? null,
+        } as unknown as IsochroneResponse;
+      }
+      log.error(LOG_CATEGORIES.ERRORS, "Isochrone API error", error);
+      throw error;
+    }
   },
 
   /**

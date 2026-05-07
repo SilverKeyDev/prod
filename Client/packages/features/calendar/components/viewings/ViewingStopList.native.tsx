@@ -66,11 +66,7 @@ export function ViewingStopList({ stops, onStopsChange }: ViewingStopListProps) 
     onStopsChange(data.map((r) => r.stop));
   };
 
-  const renderItem = ({
-    item,
-    drag,
-    getIndex,
-  }: RenderItemParams<StopRow>) => {
+  const renderItem = ({ item, drag, getIndex }: RenderItemParams<StopRow>) => {
     const index = getIndex() ?? 0;
     const { stop } = item;
 

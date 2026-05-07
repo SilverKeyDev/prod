@@ -10,7 +10,7 @@ type DashboardRouteFallbackProps = {
 
 function PulseBar({ className }: { className?: string }) {
   return (
-    <Box className={`animate-pulse rounded-md bg-muted/60 dark:bg-muted/40 ${className ?? ""}`} />
+    <Box className={`bg-muted/60 dark:bg-muted/40 animate-pulse rounded-md ${className ?? ""}`} />
   );
 }
 
@@ -24,9 +24,9 @@ export function DashboardRouteFallback({ variant }: DashboardRouteFallbackProps)
           <PulseBar className="h-12 w-full" />
           <PulseBar className="h-12 w-full" />
         </Box>
-        <Box className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 rounded-lg border border-border-base bg-background-elevated/40 p-4">
+        <Box className="border-border-base bg-background-elevated/40 flex min-h-0 min-w-0 flex-1 flex-col gap-4 rounded-lg border p-4">
           <PulseBar className="h-10 w-48" />
-          <PulseBar className="min-h-[120px] flex-1 w-full" />
+          <PulseBar className="min-h-[120px] w-full flex-1" />
           <PulseBar className="h-14 w-full max-w-3xl self-center" />
         </Box>
       </Box>
@@ -37,7 +37,7 @@ export function DashboardRouteFallback({ variant }: DashboardRouteFallbackProps)
     return (
       <Box className="flex min-h-[200px] w-full flex-1 flex-col gap-3 p-4 md:p-6">
         <PulseBar className="h-12 w-full max-w-xl" />
-        <PulseBar className="min-h-[280px] flex-1 w-full rounded-lg" />
+        <PulseBar className="min-h-[280px] w-full flex-1 rounded-lg" />
       </Box>
     );
   }

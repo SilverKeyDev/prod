@@ -3,8 +3,8 @@ export {
   clearPendingPublicAgentConnect,
   getPendingPublicAgentConnectMeta,
   isLikelyUserUuid,
-  PENDING_PUBLIC_AGENT_CONNECT_KEY,
   peekPendingPublicAgentConnect,
+  PENDING_PUBLIC_AGENT_CONNECT_KEY,
   setPendingPublicAgentConnect,
 } from "./pendingPublicAgentConnect";
 export { getAgentPublicProfileAbsoluteUrl } from "./publicUrl";

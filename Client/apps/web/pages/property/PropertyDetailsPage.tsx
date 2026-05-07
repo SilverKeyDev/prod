@@ -146,8 +146,7 @@ export default function PropertyDetailsPage() {
   }, [navigate]);
 
   const propertyToShow = selectedProperty ?? propertyFromUrl;
-  const detailsLoading =
-    isLoading || (propertyFromUrl != null && selectedProperty == null);
+  const detailsLoading = isLoading || (propertyFromUrl != null && selectedProperty == null);
 
   // Handle invalid zpid
   if (!zpid) {

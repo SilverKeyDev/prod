@@ -1,8 +1,8 @@
+import type { SearchResult } from "packages/features/search/types/result";
+import { transformSearchResponse } from "packages/features/search/utils/transform/searchTransform";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import { searchApi } from "./search";
-import type { SearchResult } from "../types";
-import { transformSearchResponse } from "../utils/transform/searchTransform";
 
 export type FetchCachedPolygonSearchResultsOptions = {
   /** Verbose polygon_search / error logs (e.g. hook); route prefetch stays quiet on success. */

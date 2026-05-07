@@ -1,4 +1,4 @@
-import { type Dayjs,dayjs } from "packages/utils/date";
+import { type Dayjs, dayjs } from "packages/utils/date";
 
 import type { CalendarViewType } from "@/features/calendar/types/calendar";
 import { getVisibleDateRange } from "@/features/calendar/utils/core/date";

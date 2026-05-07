@@ -6,6 +6,8 @@ import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { formatCompactNumber, formatNumber } from "packages/utils";
 
+import { RangeSliderTrackRoot, TickMappedRangeSliderChrome } from "./TickMappedRangeSliderFrame";
+import { getRangeSliderThumbClass, RANGE_SLIDER_HIT_HEIGHT } from "./tickMappedRangeSliderShared";
 import { useSliderTickMapping } from "./useSliderTickMapping";
 
 type BudgetRangeSliderProps = {
@@ -25,11 +27,6 @@ type BudgetRangeSliderProps = {
   /** 'budget' = slightly larger track and green fill; 'default' = current gold accent. */
   variant?: "default" | "budget";
 };
-
-/** Hit area height must be at least thumb size (1.25rem) so the full thumb is clickable. */
-const SLIDER_HIT_HEIGHT = spacing(6); /* 1.5rem = 24px */
-const THUMB_CLASS_BASE =
-  "sk-range-slider-thumb pointer-events-none absolute h-full w-full touch-manipulation appearance-none rounded-lg bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto";
 
 export default function BudgetRangeSlider({
   tickValues,
@@ -88,84 +85,77 @@ export default function BudgetRangeSlider({
       ? `${formattedValue(maxValue)}+`
       : formattedValue(maxValue);
   const valueBlock = (
-    <Box className="flex min-h-5 w-full flex-row items-center gap-2">
-      <Text className="tabular-nums flex-1 min-w-0 text-center whitespace-nowrap text-sm font-medium text-text-primary">
+    <Box className="flex min-h-5 w-full flex-row flex-wrap items-center justify-start gap-2">
+      <Text className="text-text-primary whitespace-nowrap text-sm font-medium tabular-nums">
         {formattedValue(minValue)}
       </Text>
       <Text className="text-text-disabled flex-shrink-0 text-sm leading-5">–</Text>
-      <Text className="tabular-nums flex-1 min-w-0 text-center whitespace-nowrap text-sm font-medium text-text-primary">
+      <Text className="text-text-primary whitespace-nowrap text-sm font-medium tabular-nums">
         {maxLabel}
       </Text>
     </Box>
   );
 
-  const thumbClass = `${THUMB_CLASS_BASE} ${
-    disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-  }`;
+  const thumbClass = getRangeSliderThumbClass(disabled);
 
   return (
-    <Box className={`flex w-full flex-col items-center ${className}`}>
-      <Box className="mx-auto w-full max-w-xl px-2">
-        <Box className="flex flex-col items-center gap-2">
-          {showTextHeader ? valueBlock : null}
-          <Box
-            className="sk-range-slider-root relative w-full justify-center"
-            style={{ height: SLIDER_HIT_HEIGHT }}
-          >
-            <Box
-              className={
-                isBudgetVariant
-                  ? "sk-range-track-dual sk-range-track-dual--budget"
-                  : "sk-range-track-dual sk-range-track-dual--default"
-              }
-              style={{
-                height: trackHeight,
-                ["--sk-range-min" as string]: String(minSliderValue),
-                ["--sk-range-max" as string]: String(maxSliderValue),
-              }}
-            />
-            {/* Wrappers use pointer-events-none so thumbs still receive events; activeThumb raises that slider so overlapping thumbs stay usable. */}
-            <Box
-              className="pointer-events-none absolute inset-x-0 top-0"
-              style={{
-                height: SLIDER_HIT_HEIGHT,
-                zIndex: activeThumb === "min" ? 5 : 4,
-              }}
-            >
-              <RangeInput
-                min={0}
-                max={100}
-                step={0.5}
-                value={minSliderValue}
-                onChange={disabled ? undefined : handleMinSliderChange}
-                disabled={disabled}
-                label="Minimum value"
-                transparentTrack
-                className={thumbClass}
-              />
-            </Box>
-            <Box
-              className="pointer-events-none absolute inset-x-0 top-0"
-              style={{
-                height: SLIDER_HIT_HEIGHT,
-                zIndex: activeThumb === "max" ? 5 : 4,
-              }}
-            >
-              <RangeInput
-                min={0}
-                max={100}
-                step={0.5}
-                value={maxSliderValue}
-                onChange={disabled ? undefined : handleMaxSliderChange}
-                disabled={disabled}
-                label="Maximum value"
-                transparentTrack
-                className={thumbClass}
-              />
-            </Box>
-          </Box>
+    <TickMappedRangeSliderChrome
+      className={className}
+      header={showTextHeader ? valueBlock : undefined}
+    >
+      <RangeSliderTrackRoot>
+        <Box
+          className={
+            isBudgetVariant
+              ? "sk-range-track-dual sk-range-track-dual--budget"
+              : "sk-range-track-dual sk-range-track-dual--default"
+          }
+          style={{
+            height: trackHeight,
+            ["--sk-range-min" as string]: String(minSliderValue),
+            ["--sk-range-max" as string]: String(maxSliderValue),
+          }}
+        />
+        {/* Wrappers use pointer-events-none so thumbs still receive events; activeThumb raises that slider so overlapping thumbs stay usable. */}
+        <Box
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{
+            height: RANGE_SLIDER_HIT_HEIGHT,
+            zIndex: activeThumb === "min" ? 5 : 4,
+          }}
+        >
+          <RangeInput
+            min={0}
+            max={100}
+            step={0.5}
+            value={minSliderValue}
+            onChange={disabled ? undefined : handleMinSliderChange}
+            disabled={disabled}
+            label="Minimum value"
+            transparentTrack
+            className={thumbClass}
+          />
         </Box>
-      </Box>
-    </Box>
+        <Box
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{
+            height: RANGE_SLIDER_HIT_HEIGHT,
+            zIndex: activeThumb === "max" ? 5 : 4,
+          }}
+        >
+          <RangeInput
+            min={0}
+            max={100}
+            step={0.5}
+            value={maxSliderValue}
+            onChange={disabled ? undefined : handleMaxSliderChange}
+            disabled={disabled}
+            label="Maximum value"
+            transparentTrack
+            className={thumbClass}
+          />
+        </Box>
+      </RangeSliderTrackRoot>
+    </TickMappedRangeSliderChrome>
   );
 }

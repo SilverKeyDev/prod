@@ -19,8 +19,7 @@ export default function AgreementSigningCompletePage() {
     const win = getWindow();
     if (!win || win.parent === win) return;
 
-    const successLike =
-      event === "signing_complete" || event === null || event === "";
+    const successLike = event === "signing_complete" || event === null || event === "";
 
     if (!successLike) return;
 

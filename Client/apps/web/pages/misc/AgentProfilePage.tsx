@@ -29,7 +29,11 @@ function isSafeInternalReturnTo(value: string): boolean {
 
 export default function AgentProfilePage() {
   const { t } = useLocalization();
-  const { publicSlug, briefSlug, name: nameSegment } = useRouteParams<{
+  const {
+    publicSlug,
+    briefSlug,
+    name: nameSegment,
+  } = useRouteParams<{
     publicSlug?: string;
     name?: string;
     briefSlug?: string;
@@ -45,7 +49,13 @@ export default function AgentProfilePage() {
 
   const profileQueryUserId = agentUserId ?? undefined;
 
-  const { data: agent, isLoading, isError, error, isFetched } = usePublicAgentProfile(
+  const {
+    data: agent,
+    isLoading,
+    isError,
+    error,
+    isFetched,
+  } = usePublicAgentProfile(
     routeSlug ? { publicProfileSlug: routeSlug } : { userId: profileQueryUserId }
   );
 

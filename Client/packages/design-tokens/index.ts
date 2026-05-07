@@ -9,3 +9,4 @@ export { breakpoint, color, spacingToken as spacing, spacingToken } from "./help
 export type { BreakpointName, ColorPath, ShadowToken, ShadowTokenName } from "./tokens";
 export { colors, themeSpacing } from "./tokens";
 export { breakpoints, fontFamily, fontSize, shadowTokens, spacing as spacingMap } from "./tokens";
+export { type ZLayerName, Z_LAYERS } from "./tokens";

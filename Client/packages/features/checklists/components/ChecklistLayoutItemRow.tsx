@@ -11,9 +11,9 @@ import type { ChecklistTab } from "packages/features/checklists/types/checklists
 import { checklistCheckboxRowClassNames } from "packages/features/checklists/utils/presentation/checklistCheckboxPresentation";
 import type { ChecklistItemToggleEligibility } from "packages/features/checklists/utils/rules/checklistRules";
 import ChecklistCheckbox from "packages/ui/components/form/ChecklistCheckbox";
+import { ConfirmationDialog } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
 import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/primitives/divider/dividerStyles";
-import { ConfirmationDialog } from "packages/ui/components/modals";
 
 import { IconButton } from "@/components/ui";
 
@@ -49,7 +49,7 @@ export type ChecklistLayoutItemRowProps = {
 
 function ChecklistLayoutItemRowInner({
   item,
-  rowKind,
+  rowKind: _rowKind,
   globalIndex,
   checkedById,
   activeItemIds,
@@ -119,50 +119,50 @@ function ChecklistLayoutItemRowInner({
         onConfirm={handleConfirm}
         onCancel={handleCancelConfirm}
       />
-    <Box
-      className={`w-full rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY} ${
-        isActive
-          ? "ring-gold relative z-10 overflow-visible shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1"
-          : ""
-      }`}
-    >
-      <Box className="flex flex-row items-start gap-2">
-        <Box className="min-w-0 flex-1">
-          <ChecklistCheckbox
-            item={checklistItem}
-            checked={rowChecked}
-            onToggle={handleCheckboxToggle}
-            itemLabelClass={itemLabel}
-            itemExplanationClass={itemExplanation}
-            checkboxContainerClass={checkboxContainer}
-            number={globalIndex + 1}
-            showDetails={showDetails}
-          />
-        </Box>
-        <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-1">
-          <ChecklistStepHeaderSubmitButton integrationVisible={showIntegrationBlock} />
-          {hasHeaderSubmit ? null : (
-            <IconButton
-              variant="ghost"
-              size="sm"
-              iconName={expanded ? "chevron-down" : "chevron-right"}
-              label={expanded ? "Collapse step" : "Expand step"}
-              onPress={() => toggleExpand(item.id)}
-              className="text-text-secondary hover:text-text-primary flex h-6 w-6 flex-shrink-0"
+      <Box
+        className={`w-full rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY} ${
+          isActive
+            ? "ring-gold relative z-10 overflow-visible shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1"
+            : ""
+        }`}
+      >
+        <Box className="flex flex-row items-start gap-2">
+          <Box className="min-w-0 flex-1">
+            <ChecklistCheckbox
+              item={checklistItem}
+              checked={rowChecked}
+              onToggle={handleCheckboxToggle}
+              itemLabelClass={itemLabel}
+              itemExplanationClass={itemExplanation}
+              checkboxContainerClass={checkboxContainer}
+              number={globalIndex + 1}
+              showDetails={showDetails}
             />
-          )}
+          </Box>
+          <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-2">
+            <ChecklistStepHeaderSubmitButton integrationVisible={showIntegrationBlock} />
+            {hasHeaderSubmit ? null : (
+              <IconButton
+                variant="ghost"
+                size="sm"
+                iconName={expanded ? "chevron-down" : "chevron-right"}
+                label={expanded ? "Collapse step" : "Expand step"}
+                onPress={() => toggleExpand(item.id)}
+                className="text-text-secondary hover:text-text-primary flex h-6 w-6 flex-shrink-0"
+              />
+            )}
+          </Box>
         </Box>
+        {showIntegrationBlock ? (
+          <ChecklistIntegrationSlot
+            componentKey={(item as { component_key?: string }).component_key}
+            isCurrent={true}
+            onComplete={() => {
+              if (canMarkChecked) void commitToggleItem(item.id);
+            }}
+          />
+        ) : null}
       </Box>
-      {showIntegrationBlock ? (
-        <ChecklistIntegrationSlot
-          componentKey={(item as { component_key?: string }).component_key}
-          isCurrent={true}
-          onComplete={() => {
-            if (canMarkChecked) void commitToggleItem(item.id);
-          }}
-        />
-      ) : null}
-    </Box>
     </>
   );
 }

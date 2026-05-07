@@ -22,10 +22,7 @@ function stepIdForDriveStep(
   return sourcedSteps.find((s) => s.element === el)?.stepId;
 }
 
-function markStepIfKnown(
-  step: DriveStep | undefined,
-  sourcedSteps: SearchProductTourStep[]
-): void {
+function markStepIfKnown(step: DriveStep | undefined, sourcedSteps: SearchProductTourStep[]): void {
   const id = stepIdForDriveStep(step, sourcedSteps);
   if (id) markSearchProductTourStepCompleted(id);
 }

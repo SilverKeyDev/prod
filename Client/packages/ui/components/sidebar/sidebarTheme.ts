@@ -43,9 +43,7 @@ export function sidebarInsetHeaderCollapseButtonClass(): string {
 export function sidebarInsetListRowClass(selected: boolean): string {
   const base =
     "border-border group cursor-pointer border-b p-3 transition-colors hover:bg-primary-muted/70";
-  return selected
-    ? `${base} border-l-olive bg-olive/10 border-l-4 hover:bg-olive/15`
-    : base;
+  return selected ? `${base} border-l-olive bg-olive/10 border-l-4 hover:bg-olive/15` : base;
 }
 
 /** Native flat list row: token-aligned inset list surface + touch feedback */
@@ -92,7 +90,10 @@ export type SidebarInsetNavOptions = {
 /**
  * Ghost nav rows on light surfaces (settings / personalization sidebars).
  */
-export function getInsetNavItemClasses({ active, disabled = false }: SidebarInsetNavOptions): string {
+export function getInsetNavItemClasses({
+  active,
+  disabled = false,
+}: SidebarInsetNavOptions): string {
   const base =
     "group flex min-h-9 w-full items-center gap-3 rounded-lg px-3 py-2 transition-colors";
   if (disabled) {

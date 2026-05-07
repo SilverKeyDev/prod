@@ -108,8 +108,6 @@ export function Calendar({
           <Box
             style={{
               paddingHorizontal: spacing(3),
-              paddingTop: spacing(3),
-              marginBottom: spacing(3),
               width: "100%",
             }}
           >

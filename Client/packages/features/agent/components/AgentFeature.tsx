@@ -14,7 +14,7 @@ const AgentDashboard = lazy(() => import("./workspace/AgentDashboard"));
 
 const messagingBranchFallback = (
   <Box className="flex min-h-48 flex-1 items-center justify-center p-4">
-    <Box className="h-10 w-10 animate-pulse rounded-full bg-muted/60" aria-hidden />
+    <Box className="bg-muted/60 h-10 w-10 animate-pulse rounded-full" aria-hidden />
   </Box>
 );
 

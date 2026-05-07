@@ -138,7 +138,7 @@ export default function DashboardLayout({
         <main
           id="main-content"
           tabIndex={-1}
-          className={`max-md:pb-mobile-nav relative z-0 ml-0 min-w-0 flex-1 transition-all duration-200 md:ml-0 ${
+          className={`relative z-0 ml-0 min-w-0 flex-1 transition-all duration-200 max-md:pb-mobile-nav md:ml-0 ${
             isFullHeightRoute ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
           }`}
         >

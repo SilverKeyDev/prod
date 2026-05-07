@@ -1,10 +1,10 @@
 import type { ProfileStep } from "packages/features/profile/types/onboarding";
 import { BUYER_PERSONALIZATION_SECTION_IDS } from "packages/features/profile/types/profileStepIds";
-import { SECTION_TITLES } from "packages/utils/domain/profile/labels";
 import type {
   GetOnboardingStepsOptions,
   GetPersonalizationStepsOptions,
 } from "packages/features/profile/types/stepsOptions";
+import { SECTION_TITLES } from "packages/utils/domain/profile/labels";
 
 export type {
   GetOnboardingStepsOptions,
@@ -69,11 +69,7 @@ function orderStepsWithAvailabilityLast(steps: ProfileStep[]): ProfileStep[] {
 function getProfileFlowSteps(isAgent: boolean): ProfileStep[] {
   if (isAgent) {
     const demographics = ALL_STEPS.find((s) => s.id === "demographics");
-    return [
-      ONBOARDING_ROLE_STEP,
-      ...(demographics ? [demographics] : []),
-      ...AGENT_STEPS,
-    ];
+    return [ONBOARDING_ROLE_STEP, ...(demographics ? [demographics] : []), ...AGENT_STEPS];
   }
   return [ONBOARDING_ROLE_STEP, ...orderStepsWithAvailabilityLast(ALL_STEPS)];
 }

@@ -26,7 +26,9 @@ const BAR_CLASS =
   "fixed inset-x-0 bottom-0 z-dock flex w-full min-h-[4rem] flex-col border-t border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg md:hidden";
 function linkClass(active: boolean): string {
   return `flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-200 ${
-    active ? "text-sidebar-foreground" : "text-sidebar-muted-foreground active:text-sidebar-foreground/95"
+    active
+      ? "text-sidebar-foreground"
+      : "text-sidebar-muted-foreground active:text-sidebar-foreground/95"
   }`;
 }
 function iconClass(active: boolean): string {

@@ -1,56 +1,35 @@
-import React, { useCallback } from "react";
+import React from "react";
 
 import {
   ProfileSectionBody,
   ProfileSectionCallout,
-  useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
 import { SearchPrefsPriceFinancing } from "packages/features/profile/components/profileScreen/searchPreferences/SearchPrefsPriceFinancing";
-import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
-import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
 import { ProfileCheckbox } from "packages/features/profile/components/settings/inputs/ProfileCheckbox";
 import BudgetSlider from "packages/features/profile/components/settings/inputs/sliders/BudgetSlider";
 import PriceRangeSlider from "packages/features/profile/components/settings/inputs/sliders/PriceRangeSlider";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
-import type { OnboardingData } from "packages/features/profile/utils";
+import type { ProfileFinancialSectionProps } from "packages/features/profile/hooks";
+import {
+  getCreditScoreOptionLabel,
+  useProfileFinancialSectionModel,
+} from "packages/features/profile/hooks";
 import {
   AGENT_OPTIONAL_BUYER_FINANCIAL_HINT,
   CREDIT_SCORE_OPTIONS,
-  effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
-  PROFILE_NOT_SPECIFIED_LABEL,
   SECTION_TITLES,
   setPayingCash,
 } from "packages/features/profile/utils";
-import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Input } from "packages/ui/components/form/Input";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
-import type { HomePriceResult } from "packages/utils/affordability";
 
 import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue";
 
-function getOptionLabel(
-  options: readonly { value: string; label: string }[],
-  value?: string
-): string {
-  if (!value) return PROFILE_NOT_SPECIFIED_LABEL;
-  return options.find((opt) => opt.value === value)?.label ?? PROFILE_NOT_SPECIFIED_LABEL;
-}
-
-type ProfileFinancialSectionProps = {
-  formData: OnboardingData;
-  isEditMode: boolean;
-  updateField: (field: keyof OnboardingData, value: unknown) => void;
-  patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
-  /** When provided, the affordability estimate block is shown (e.g. in checklist Set budget). */
-  homePriceResult?: HomePriceResult | null;
-  homePriceLoading?: boolean;
-  homePriceError?: string | null;
-};
+export type { ProfileFinancialSectionProps };
 
 export function ProfileFinancialSection({
   formData,
@@ -61,32 +40,20 @@ export function ProfileFinancialSection({
   homePriceLoading,
   homePriceError,
 }: ProfileFinancialSectionProps) {
-  const showSectionTitle = useShowPersonalizationSectionBodyTitle();
-  const authIsAgent = useIsAgent();
-  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
-    authIsAgent,
-    formIsAgent: formData.is_agent,
+  const {
+    showSectionTitle,
+    showAgentOptionalBuyerCallout,
+    showAffordabilityBlock,
+    patch,
+    budgetSummary,
+    ext,
+  } = useProfileFinancialSectionModel({
+    formData,
+    patchBuyerPreferenceExtensions,
+    homePriceResult,
+    homePriceLoading,
+    homePriceError,
   });
-  const showAffordabilityBlock =
-    homePriceLoading !== undefined || homePriceError !== undefined || homePriceResult !== undefined;
-
-  const patch = useCallback(
-    (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {
-      patchBuyerPreferenceExtensions(fn);
-    },
-    [patchBuyerPreferenceExtensions]
-  );
-
-  const minB = formData.home_budget_min;
-  const maxB = formData.home_budget_max;
-  const budgetSummary =
-    minB != null || maxB != null
-      ? `${minB != null ? `$${Math.round(minB).toLocaleString()}` : "—"} – ${
-          maxB != null ? `$${Math.round(maxB).toLocaleString()}` : "—"
-        }`
-      : PROFILE_NOT_SPECIFIED_LABEL;
-
-  const ext = withBuyerExtV1(formData.buyerPreferenceExtensions);
   return (
     <ProfileSectionBody>
       {showSectionTitle && <Title size="md">{SECTION_TITLES.FINANCIAL_PROFILE}</Title>}
@@ -172,8 +139,8 @@ export function ProfileFinancialSection({
               </BodyText>
               {isEditMode ? (
                 <PriceRangeSlider
-                  tickValues={[100000, 250000, 500000, 1000000, 2000000, 5000000]}
-                  value={formData.down_payment ?? 100000}
+                  tickValues={[0, 100000, 250000, 500000, 1000000, 2000000, 5000000]}
+                  value={formData.down_payment ?? 0}
                   onChange={(v) => {
                     updateField("down_payment", Math.round(v / 5000) * 5000);
                   }}
@@ -183,7 +150,9 @@ export function ProfileFinancialSection({
               ) : (
                 <ProfileReadOnlyValue
                   value={
-                    formData.down_payment ? `$${formData.down_payment.toLocaleString()}` : undefined
+                    formData.down_payment != null
+                      ? `$${formData.down_payment.toLocaleString()}`
+                      : undefined
                   }
                 />
               )}
@@ -237,7 +206,10 @@ export function ProfileFinancialSection({
                 </Box>
               ) : (
                 <ProfileReadOnlyValue
-                  value={getOptionLabel(CREDIT_SCORE_OPTIONS, formData.credit_score_range)}
+                  value={getCreditScoreOptionLabel(
+                    CREDIT_SCORE_OPTIONS,
+                    formData.credit_score_range
+                  )}
                 />
               )}
             </Box>

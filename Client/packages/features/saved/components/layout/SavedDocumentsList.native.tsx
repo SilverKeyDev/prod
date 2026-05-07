@@ -73,9 +73,7 @@ export function SavedDocumentsList({
               className="min-w-[30%] flex-1"
               iconName="save"
             >
-              <Text className="text-sm font-medium">
-                {t("saved.view_document")}
-              </Text>
+              <Text className="text-sm font-medium">{t("saved.view_document")}</Text>
             </Button>
           )}
           {onDownloadDocument && (
@@ -86,9 +84,7 @@ export function SavedDocumentsList({
               className="min-w-[30%] flex-1"
               iconName="download"
             >
-              <Text className="text-sm font-medium">
-                {t("saved.download_document")}
-              </Text>
+              <Text className="text-sm font-medium">{t("saved.download_document")}</Text>
             </Button>
           )}
           {onShareDocument && (
@@ -99,9 +95,7 @@ export function SavedDocumentsList({
               className="min-w-[30%] flex-1"
               iconName="share"
             >
-              <Text className="text-sm font-medium">
-                {t("saved.share_document")}
-              </Text>
+              <Text className="text-sm font-medium">{t("saved.share_document")}</Text>
             </Button>
           )}
           {onSendForSignature && isAgent && doc.library_kind !== "agreement" && (
@@ -138,9 +132,7 @@ export function SavedDocumentsList({
             className="min-w-[30%] flex-1"
             iconName="trash-2"
           >
-            <Text className="text-sm font-medium text-red-700">
-              {t("saved.delete_document")}
-            </Text>
+            <Text className="text-sm font-medium text-red-700">{t("saved.delete_document")}</Text>
           </Button>
         </Box>
       </Box>

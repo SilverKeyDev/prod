@@ -12,7 +12,7 @@ import {
   useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
 import { SECTION_TITLES } from "packages/features/profile/utils";
-import { showErrorToast } from "packages/hooks/ui/toast";
+import { showErrorToast, showSuccessToast } from "packages/hooks/ui/toast";
 import { ROUTES } from "packages/navigation";
 import { useNavigation } from "packages/navigation/hooks/useNavigation";
 import BaseModal from "packages/ui/components/modals/BaseModal";
@@ -69,6 +69,7 @@ export function AccountPrivacyDataSection({ agentSubject = null }: AccountPrivac
       setConfirmOpen(false);
       await authApi.logout();
       navigateToPath(ROUTES.HOME, { replace: true });
+      showSuccessToast("Your account has been deleted.");
     } catch {
       showErrorToast("Could not delete your account. Contact support if this persists.");
     } finally {
@@ -165,7 +166,7 @@ export function AccountPrivacyDataSection({ agentSubject = null }: AccountPrivac
         </ProfileSectionGroup>
 
         <ProfileSectionGroup title="Danger zone" titleClassName="text-text-primary font-semibold">
-          <Box className="flex flex-col gap-4 rounded-xl border border-dashed border-destructive/35 bg-background-base p-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6 sm:p-5">
+          <Box className="border-destructive/35 bg-background-base flex flex-col gap-4 rounded-xl border border-dashed p-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6 sm:p-5">
             <Box className="flex min-w-0 flex-1 gap-4">
               <Box className="bg-destructive/10 text-destructive shrink-0 self-start rounded-lg p-3">
                 <Icon name="trash-2" className="h-6 w-6 shrink-0" aria-hidden />
@@ -187,7 +188,7 @@ export function AccountPrivacyDataSection({ agentSubject = null }: AccountPrivac
                 onPress={() => {
                   setConfirmOpen(true);
                 }}
-                className="border-destructive text-destructive hover:bg-destructive/10 border-2 font-semibold w-full"
+                className="border-destructive text-destructive hover:bg-destructive/10 w-full border-2 font-semibold"
               >
                 Delete…
               </Button>

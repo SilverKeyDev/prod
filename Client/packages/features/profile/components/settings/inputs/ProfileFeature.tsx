@@ -242,9 +242,7 @@ export default function ProfileFeature({
   }
 
   const showPrefsLoading =
-    agentSubject != null
-      ? preferencesLoading
-      : preferencesLoading && userPreferences === undefined;
+    agentSubject != null ? preferencesLoading : preferencesLoading && userPreferences === undefined;
 
   if (showPrefsLoading) {
     return (

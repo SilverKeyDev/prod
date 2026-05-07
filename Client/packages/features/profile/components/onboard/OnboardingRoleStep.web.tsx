@@ -1,5 +1,6 @@
 import React from "react";
 
+import { Button } from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Title } from "@/components/ui";
@@ -7,9 +8,9 @@ import {
   applyOnboardingRoleSelection,
   FIELD_LABELS,
   ONBOARDING_ROLE_OPTIONS,
-  primaryOnboardingRoleFromForm,
   type OnboardingData,
   type PrimaryOnboardingRole,
+  primaryOnboardingRoleFromForm,
 } from "@/features/profile/utils";
 
 type OnboardingRoleStepProps = {
@@ -17,10 +18,7 @@ type OnboardingRoleStepProps = {
   updateFormData: (field: keyof OnboardingData, value: unknown) => void;
 };
 
-export default function OnboardingRoleStep({
-  formData,
-  updateFormData,
-}: OnboardingRoleStepProps) {
+export default function OnboardingRoleStep({ formData, updateFormData }: OnboardingRoleStepProps) {
   const selected = primaryOnboardingRoleFromForm(formData);
 
   const onPick = (role: PrimaryOnboardingRole) => {
@@ -41,19 +39,21 @@ export default function OnboardingRoleStep({
           const role = opt.value as PrimaryOnboardingRole;
           const isSelected = selected === role;
           return (
-            <button
+            <Button
               key={opt.value}
               type="button"
-              onClick={() => onPick(role)}
-              aria-pressed={isSelected}
-              className={`min-h-[72px] rounded-2xl border-2 px-4 py-4 text-center text-base font-semibold tracking-tight transition-colors sm:min-h-[88px] ${
+              variant="outline"
+              onPress={() => onPick(role)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              className={`min-h-20 justify-center rounded-2xl border-2 px-4 py-4 text-center text-base font-semibold tracking-tight transition-colors sm:min-h-24 ${
                 isSelected
-                  ? "border-primary bg-primary/10 text-text-primary shadow-sm ring-2 ring-primary/30 ring-offset-2 ring-offset-background-base"
+                  ? "border-primary bg-primary/10 text-text-primary ring-primary/30 ring-offset-background-base shadow-sm ring-2 ring-offset-2"
                   : "border-border text-text-secondary bg-background-base hover:border-accent-muted hover:bg-accent-muted"
               }`}
             >
               {opt.label}
-            </button>
+            </Button>
           );
         })}
       </Box>

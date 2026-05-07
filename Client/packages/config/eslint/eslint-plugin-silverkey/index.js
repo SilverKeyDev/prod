@@ -20,6 +20,7 @@ module.exports = {
     "require-ui-alias": require("./rules/ui/require-ui-alias"),
     "no-literal-hex-colors": require("./rules/ui/no-literal-hex-colors"),
     "no-raw-spacing": require("./rules/ui/no-raw-spacing"),
+    "no-raw-zindex": require("./rules/ui/no-raw-zindex"),
     "no-direct-accessibility-props": require("./rules/ui/no-direct-accessibility-props"),
     "no-platform-feature-check": require("./rules/ui/no-platform-feature-check"),
     "no-direct-platform-libraries": require("./rules/ui/no-direct-platform-libraries"),

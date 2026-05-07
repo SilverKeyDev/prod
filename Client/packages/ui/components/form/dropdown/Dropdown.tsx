@@ -4,6 +4,7 @@ import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
 
 import { useLocalization } from "packages/contexts";
+import { usePopoverContext } from "packages/ui/components/popover/PopoverContext";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
 import { getDocument } from "packages/utils/platform";
@@ -45,13 +46,15 @@ export type DropdownProps<T = unknown> = {
   /** Omit trigger border (e.g. nested in a popover). Errors still show a destructive rim. */
   noBorder?: boolean;
   /**
-   * When true, the options list renders in a document body portal with fixed positioning so it is not
-   * clipped by scrollable ancestors (e.g. search header Popovers with overflow-y-auto).
+   * When true (default), the options list renders in a document body portal with fixed positioning
+   * so it is not clipped by scrollable ancestors (e.g. search header Popovers with overflow-y-auto).
+   * Set to `false` only when intentional inline rendering is required (rare).
    */
   menuInPortal?: boolean;
   /**
    * When the menu is portaled, register its root element so ancestor overlays (e.g. Popover outside-click)
-   * still treat clicks on the menu as inside.
+   * still treat clicks on the menu as inside. Auto-wired via `PopoverContext` when the dropdown is
+   * rendered inside a `Popover`; pass explicitly only for non-Popover overlays (e.g. custom modals).
    */
   registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
   /**
@@ -66,7 +69,8 @@ export type DropdownProps<T = unknown> = {
   hideLabel?: boolean;
   /**
    * Stacking context for the portaled menu. Use `"modal"` when the trigger is inside a dialog (`z-modal`)
-   * so the list renders above the modal surface (`z-modal-popover`).
+   * so the list renders above the modal surface (`z-modal-popover`). Auto-mirrored from a surrounding
+   * `Popover`'s `panelStack` via `PopoverContext` when not explicitly provided.
    * @default "page"
    */
   menuPortalStack?: "page" | "modal";
@@ -94,14 +98,17 @@ function Dropdown<T = unknown>({
   dropdownClassName = "",
   onClear,
   noBorder = false,
-  menuInPortal = false,
+  menuInPortal = true,
   registerOutsideClickSafeTarget,
   menuPlacement = "below",
   hideLabel = false,
-  menuPortalStack = "page",
+  menuPortalStack,
   maxVisibleOptions = 5,
 }: DropdownProps<T>) {
   const { t } = useLocalization();
+  const popoverCtx = usePopoverContext();
+  const effectiveSafeTarget = registerOutsideClickSafeTarget ?? popoverCtx?.registerOutsideClickSafeTarget;
+  const effectivePortalStack = menuPortalStack ?? popoverCtx?.panelStack ?? "page";
   const clampedVisibleOptions = Math.max(
     1,
     Math.min(MAX_VISIBLE_OPTIONS_CAP, Math.floor(maxVisibleOptions))
@@ -160,7 +167,7 @@ function Dropdown<T = unknown>({
 
   const { menuSurfaceClasses, portalMenuClasses } = buildDropdownMenuClasses(
     dropdownClassName,
-    menuPortalStack
+    effectivePortalStack
   );
 
   const inlineDropdownClasses = buildInlineDropdownClasses(menuPlacement, menuSurfaceClasses);
@@ -173,7 +180,7 @@ function Dropdown<T = unknown>({
     menuPlacement,
     desiredMenuHeightPx,
     filteredOptionsLength: filteredOptions.length,
-    registerOutsideClickSafeTarget,
+    registerOutsideClickSafeTarget: effectiveSafeTarget,
   });
 
   const handleOptionSelect = (option: DropdownOption<T>) => {

@@ -6,9 +6,9 @@ import {
   applyOnboardingRoleSelection,
   FIELD_LABELS,
   ONBOARDING_ROLE_OPTIONS,
-  primaryOnboardingRoleFromForm,
   type OnboardingData,
   type PrimaryOnboardingRole,
+  primaryOnboardingRoleFromForm,
 } from "@/features/profile/utils";
 
 type OnboardingRoleStepProps = {
@@ -29,7 +29,9 @@ export function OnboardingRoleStep({ formData, updateFormData }: OnboardingRoleS
       <Text className="text-text-primary text-lg font-semibold">
         {FIELD_LABELS.ONBOARDING_ROLE_HEADLINE}
       </Text>
-      <Text className="text-text-secondary text-sm leading-snug">{FIELD_LABELS.ONBOARDING_ROLE_SUBTITLE}</Text>
+      <Text className="text-text-secondary text-sm leading-snug">
+        {FIELD_LABELS.ONBOARDING_ROLE_SUBTITLE}
+      </Text>
 
       <Box className="-mx-0.5 flex flex-row flex-wrap gap-3">
         {ONBOARDING_ROLE_OPTIONS.map((opt) => {
@@ -41,7 +43,7 @@ export function OnboardingRoleStep({ formData, updateFormData }: OnboardingRoleS
               onPress={() => onPick(role)}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
-              className={`min-h-[76px] w-[48%] flex-grow basis-[44%] rounded-2xl border-2 px-3 py-4 ${
+              className={`min-h-20 w-[48%] flex-grow basis-[44%] rounded-2xl border-2 px-3 py-4 ${
                 isSelected ? "border-primary bg-primary/10" : "border-border bg-background-surface"
               }`}
             >

@@ -16,9 +16,7 @@ import {
 import {
   buildViewingItineraryDraftFromForm,
   emptyViewingRouteEndpoint,
-  viewingEndpointHasRoutingInput,
   type ViewingTourStartSelection,
-  viewingTourStartToEndpoint,
 } from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 import type { ViewingRoutePlanEditorProps } from "./viewingRoutePlanEditor.types";
@@ -65,11 +63,6 @@ export function ViewingRoutePlanEditor({
         endFixed,
       }),
     [viewingStops, startSelection, savedAnchors, endMode, endFixed]
-  );
-
-  const startEndpoint = useMemo(
-    () => viewingTourStartToEndpoint(startSelection, savedAnchors),
-    [startSelection, savedAnchors]
   );
 
   const canCallRoute = useMemo(() => {
@@ -251,7 +244,7 @@ export function ViewingRoutePlanEditor({
             className={
               endMode === "last_property"
                 ? "border border-neutral-400 bg-neutral-100"
-                : "border border-transparent text-text-secondary"
+                : "text-text-secondary border border-transparent"
             }
             onPress={() => onEndModeChange("last_property")}
           >
@@ -264,11 +257,10 @@ export function ViewingRoutePlanEditor({
             iconName="refresh-cw"
             className={
               endMode === "return_to_start"
-                ? "border border-olive bg-olive-muted [&_*]:text-olive"
-                : "border border-transparent text-text-secondary"
+                ? "border border-neutral-400 bg-neutral-100"
+                : "text-text-secondary border border-transparent"
             }
             onPress={() => onEndModeChange("return_to_start")}
-            disabled={!viewingEndpointHasRoutingInput(startEndpoint)}
           >
             Return to start
           </Button>
@@ -279,8 +271,8 @@ export function ViewingRoutePlanEditor({
             iconName="map-pin"
             className={
               endMode === "fixed"
-                ? "border border-gold bg-gold-muted [&_*]:text-gold"
-                : "border border-transparent text-text-secondary"
+                ? "border border-neutral-400 bg-neutral-100"
+                : "text-text-secondary border border-transparent"
             }
             onPress={() => onEndModeChange("fixed")}
           >

@@ -29,9 +29,7 @@ function isUtilsModulePath(importPath) {
 }
 
 function isAllowedByPrefixes(importPath, allowImportPrefixes) {
-  return allowImportPrefixes.some(
-    (p) => importPath === p || importPath.startsWith(`${p}/`),
-  );
+  return allowImportPrefixes.some((p) => importPath === p || importPath.startsWith(`${p}/`));
 }
 
 module.exports = {

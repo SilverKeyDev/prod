@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 
+import Loading from "@ui/asset/loading/Loading";
+
 import type { AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
 import {
@@ -12,12 +14,11 @@ import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { showErrorToast } from "packages/hooks/ui";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
+import { Box } from "packages/ui/components/primitives";
 import {
   propertyDetailsPathFromListing,
   type ResearchListingKeyInput,
 } from "packages/utils/property";
-import Loading from "@ui/asset/loading/Loading";
-import { Box } from "packages/ui/components/primitives";
 
 import {
   getMessagingConfig,

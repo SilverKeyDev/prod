@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { breakpoints, fontFamily, fontSize, spacingMap } from "../../design-tokens";
+import { breakpoints, fontFamily, fontSize, spacingMap, Z_LAYERS } from "../../design-tokens";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -62,22 +62,11 @@ const sharedTailwindPreset = {
         "mobile-card": "16 / 9",
         "mobile-hero": "4 / 3",
       },
-      zIndex: {
-        header: "100",
-        sidebar: "200",
-        dock: "300",
-        /** Menus, selects, autocomplete, portaled popovers - above layout chrome and map markers (~1000) */
-        dropdown: "5000",
-        toast: "8000",
-        overlay: "9000",
-        modal: "10000",
-        /** Full-screen hit target between z-modal and modal-popover so stray picks/double-clicks do not reach the modal backdrop */
-        "modal-popover-underlay": "10015",
-        /** Portaled pickers/menus opened from inside a modal (must sit above z-modal) */
-        "modal-popover": "10020",
-        /** Skip link when focused - above modals for keyboard escape hatch */
-        skip: "10050",
-      },
+      // Derived from Z_LAYERS in packages/design-tokens — single source of truth.
+      // Tailwind requires string values; native code imports Z_LAYERS directly for numbers.
+      zIndex: Object.fromEntries(
+        Object.entries(Z_LAYERS).map(([key, value]) => [key, String(value)]),
+      ),
     },
   },
   plugins: [],

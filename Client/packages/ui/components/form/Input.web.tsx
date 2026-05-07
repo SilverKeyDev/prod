@@ -7,8 +7,10 @@ import Label from "@ui/text/Label.web";
 
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
-import { INPUT_AUTOFILL_CLASS_NAME } from "packages/ui/styles/variants/inputVariants";
-import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
+import {
+  getWebInputControlClasses,
+  WEB_FORM_INPUT_ICON_CLASSES,
+} from "packages/ui/styles/variants/inputVariants";
 export type InputProps = {
   variant?: "default" | "mobile" | "compact" | "search";
   size?: "sm" | "md" | "lg";
@@ -61,54 +63,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         setInternalType(showPassword ? "text" : "password");
       }
     }, [showPassword, showPasswordToggle, type]);
-    // Base styles - using exact onboarding styling via InputStyles (placeholder matches dropdown empty state)
-    const baseStyles =
-      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input placeholder:text-text-secondary " +
-      INPUT_AUTOFILL_CLASS_NAME;
-    // Variant styles - using exact onboarding styling
-    const variantStyles = {
-      default:
-        "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
-      mobile:
-        "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
-      compact:
-        "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
-      search:
-        "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
-    };
-    // Size styles - using exact onboarding sizing
-    const sizeStyles = {
-      sm: "h-9 px-3",
-      md: "h-12 px-4",
-      lg: "h-14 px-5",
-    };
-    // Error styles
-    const errorStyles = error
-      ? "border-neutral-600 focus:border-neutral-700 focus:ring-neutral-400"
-      : "";
-    // Disabled styles - already included in base styles
-    const disabledStyles = "";
-    // Combine all styles with shared text styles
-    const inputClasses = [
-      baseStyles,
-      variantStyles[variant],
-      sizeStyles[size],
-      getSharedInputTextStyles(),
-      errorStyles,
-      disabledStyles,
-      leftIcon ? "has-left-icon" : "",
-      (rightIcon ?? (clearable || showPasswordToggle)) ? "has-right-icon" : "",
+    const hasRightIcons = Boolean(rightIcon ?? (clearable || showPasswordToggle));
+    const inputClasses = getWebInputControlClasses({
+      variant,
+      size,
+      error,
+      hasLeftIcon: Boolean(leftIcon),
+      hasRightIcons,
       className,
-    ]
-      .filter(Boolean)
-      .join(" ");
-    // Container classes for positioning icons
+    });
     const containerClasses = "relative";
-    // Icon positioning classes
-    const iconClasses = {
-      left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
-      right: "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
-    };
+    const iconClasses = WEB_FORM_INPUT_ICON_CLASSES;
     return (
       <Box className="w-full">
         {/* Label */}

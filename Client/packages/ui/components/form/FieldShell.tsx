@@ -4,6 +4,10 @@ import Label from "@ui/text/Label.web";
 import type { ReactNode } from "react";
 
 import { Box } from "packages/ui/components/primitives";
+import {
+  getWebFieldShellClasses,
+  WEB_FORM_FIELD_SHELL_ICON_CLASSES,
+} from "packages/ui/styles/variants/inputVariants";
 
 type FieldShellProps = {
   id?: string;
@@ -38,56 +42,16 @@ export default function FieldShell({
   variant = "mobile",
   size = "md",
 }: FieldShellProps) {
-  // Base styles - enhanced for nested component support
-  const baseStyles =
-    "w-full border rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input group";
-
-  // Variant styles - enhanced for nested component hover support
-  const variantStyles = {
-    default:
-      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
-    mobile:
-      "mobile-input border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly autofill-parent",
-    compact:
-      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
-    search:
-      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
-  };
-
-  // Size styles - copied exactly from Input.tsx
-  const sizeStyles = {
-    sm: "h-9 px-3",
-    md: "h-12 px-4",
-    lg: "h-14 px-5",
-  };
-
-  // Error styles - copied exactly from Input.tsx
-  const errorStyles = error
-    ? "border-neutral-600 focus-within:border-neutral-700 focus-within:ring-neutral-400"
-    : "";
-
-  // Container classes - copied exactly from Input.tsx
+  const iconClasses = WEB_FORM_FIELD_SHELL_ICON_CLASSES;
   const containerClasses = "relative";
-
-  // Icon positioning classes - always visible, matches Input.tsx behavior with proper z-index
-  const iconClasses = {
-    left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary z-1 pointer-events-none",
-    right:
-      "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary z-1 pointer-events-none",
-  };
-
-  // Combine all styles exactly like Input.tsx
-  const fieldClasses = [
-    baseStyles,
-    variantStyles[variant],
-    sizeStyles[size],
-    errorStyles,
-    leftIcon ? "has-left-icon" : "",
-    rightIcon ? "has-right-icon" : "",
+  const fieldClasses = getWebFieldShellClasses({
+    variant,
+    size,
+    error,
+    leftIcon: Boolean(leftIcon),
+    rightIcon: Boolean(rightIcon),
     fieldClassName,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  });
 
   return (
     <Box className={cx("w-full space-y-1.5", className)}>

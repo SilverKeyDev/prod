@@ -36,11 +36,11 @@ const DashboardAgreementSigningModals = lazy(() => import("./DashboardAgreementS
 const DashboardCalendarPanel = lazy(() => import("./DashboardCalendarPanel"));
 
 const dashboardCalendarSkeleton = (
-  <Box className="h-56 w-full animate-pulse rounded-xl bg-muted/50 md:h-72" />
+  <Box className="bg-muted/50 h-56 w-full animate-pulse rounded-xl md:h-72" />
 );
 
 const dashboardSectionSkeleton = (
-  <Box className="h-40 w-full animate-pulse rounded-xl bg-muted/50 md:h-56" />
+  <Box className="bg-muted/50 h-40 w-full animate-pulse rounded-xl md:h-56" />
 );
 
 type DashboardFeatureProps = {

@@ -21,7 +21,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({
   return (
     <>
       <header
-        className={`bg-background fixed left-0 right-0 top-0 z-40 flex items-center overflow-hidden md:hidden ${
+        className={`bg-background fixed left-0 right-0 top-0 z-header flex items-center overflow-hidden md:hidden ${
           fullWidth || noPadding ? "px-0" : "px-4"
         }`}
         style={{ minHeight: MOBILE_TOP_BAR_HEIGHT_PX }}

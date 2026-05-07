@@ -66,8 +66,7 @@ export function buildProgressiveChecklistRows(
   options: BuildProgressiveChecklistRowsOptions
 ): ProgressiveChecklistSegment[] {
   const useRowSegments =
-    options.useProgressiveStructure === true ||
-    shouldUseProgressiveDisclosure(sortedItems.length);
+    options.useProgressiveStructure === true || shouldUseProgressiveDisclosure(sortedItems.length);
   if (!useRowSegments) {
     return sortedItems.map((item, globalIndex) => ({
       kind: "flat_item" as const,

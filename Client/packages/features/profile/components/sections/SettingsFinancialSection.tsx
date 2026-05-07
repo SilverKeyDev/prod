@@ -174,8 +174,8 @@ export function SettingsFinancialSection({
                 title: <Label>Down Payment</Label>,
                 content: isEditMode ? (
                   <PriceRangeSlider
-                    tickValues={[100000, 250000, 500000, 1000000, 2000000, 5000000]}
-                    value={formData.down_payment ?? 100000}
+                    tickValues={[0, 100000, 250000, 500000, 1000000, 2000000, 5000000]}
+                    value={formData.down_payment ?? 0}
                     onChange={(value) => {
                       const roundedValue = Math.round(value / 5000) * 5000;
                       updateFormData("down_payment", roundedValue);
@@ -186,10 +186,10 @@ export function SettingsFinancialSection({
                 ) : (
                   <Box
                     className={`mobile-input bg-background-base text-left ${
-                      formData.down_payment ? "text-text-primary" : "text-text-secondary"
+                      formData.down_payment != null ? "text-text-primary" : "text-text-secondary"
                     }`}
                   >
-                    {formData.down_payment
+                    {formData.down_payment != null
                       ? `$${formData.down_payment.toLocaleString()}`
                       : PROFILE_NOT_SPECIFIED_LABEL}
                   </Box>

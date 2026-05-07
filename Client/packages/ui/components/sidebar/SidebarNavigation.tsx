@@ -118,18 +118,12 @@ export default function SidebarNavigation({
                     title={!isLargeScreen ? item.label : undefined}
                     icon={
                       IconComponent ? (
-                        <IconComponent
-                          size={20}
-                          className={getInsetNavItemIconClasses(isActive)}
-                        />
+                        <IconComponent size={20} className={getInsetNavItemIconClasses(isActive)} />
                       ) : undefined
                     }
                   >
                     {isLargeScreen && (
-                      <BodyText
-                        as="span"
-                        className={getInsetNavItemLabelClasses(isActive)}
-                      >
+                      <BodyText as="span" className={getInsetNavItemLabelClasses(isActive)}>
                         {item.label}
                       </BodyText>
                     )}

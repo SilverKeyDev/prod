@@ -153,10 +153,7 @@ export function PublicAgentProfileConnect({
               </BodyText>
             </Box>
           ) : (
-            <BodyText
-              size="sm"
-              className="whitespace-pre-line text-text-secondary leading-relaxed"
-            >
+            <BodyText size="sm" className="text-text-secondary whitespace-pre-line leading-relaxed">
               {modalBody}
             </BodyText>
           )}

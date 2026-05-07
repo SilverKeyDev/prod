@@ -2,7 +2,7 @@ import { Box, Text } from "packages/ui/components/primitives";
 
 function PulseBar({ className }: { className?: string }) {
   return (
-    <Box className={`animate-pulse rounded-md bg-muted/60 dark:bg-muted/40 ${className ?? ""}`} />
+    <Box className={`bg-muted/60 dark:bg-muted/40 animate-pulse rounded-md ${className ?? ""}`} />
   );
 }
 

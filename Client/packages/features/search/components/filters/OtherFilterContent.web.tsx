@@ -32,9 +32,9 @@ export type OtherFilterContentProps = {
   onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
   /** Borderless dropdown triggers (e.g. search header popover). */
   noBorder?: boolean;
-  /** Render dropdown menus in a portal so they are not clipped inside scrollable panels. */
+  /** Render dropdown menus in a portal so they are not clipped inside scrollable panels. Defaults to Dropdown's own default (true). */
   menuInPortal?: boolean;
-  /** When using menuInPortal inside a Popover, forward registration so outside-click does not close the popover. */
+  /** When using menuInPortal inside a Popover, forward registration so outside-click does not close the popover. Auto-wired by `Dropdown` via `PopoverContext` when omitted. */
   registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
 };
 
@@ -44,7 +44,7 @@ export default function OtherFilterContent({
   hideHousingType = false,
   onSearchFilterOverridesPatch,
   noBorder = false,
-  menuInPortal = false,
+  menuInPortal,
   registerOutsideClickSafeTarget,
 }: OtherFilterContentProps): React.ReactElement {
   return (

@@ -6,6 +6,8 @@ import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { formatNumber } from "packages/utils";
 
+import { RangeSliderTrackRoot, TickMappedRangeSliderChrome } from "./TickMappedRangeSliderFrame";
+import { getRangeSliderThumbClass, RANGE_SLIDER_HIT_HEIGHT } from "./tickMappedRangeSliderShared";
 import { useSliderTickMapping } from "./useSliderTickMapping";
 
 type PriceRangeSliderProps = {
@@ -17,12 +19,6 @@ type PriceRangeSliderProps = {
   className?: string;
   disabled?: boolean;
 };
-
-/** Hit area height must be at least thumb size (1.25rem) so the full thumb is clickable. */
-const SLIDER_HIT_HEIGHT = spacing(6); /* 1.5rem = 24px */
-
-const THUMB_CLASS_BASE =
-  "sk-range-slider-thumb pointer-events-none absolute h-full w-full touch-manipulation appearance-none rounded-lg bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto";
 
 export default function PriceRangeSlider({
   tickValues,
@@ -46,55 +42,45 @@ export default function PriceRangeSlider({
 
   const trackHeight = spacing(2);
   const valueBlock = (
-    <Box className="flex flex-row items-center justify-center">
+    <Box className="flex min-h-5 w-full flex-row flex-wrap items-center justify-start">
       <Text className="text-text-primary text-sm font-medium">{formattedValue(value)}</Text>
     </Box>
   );
 
-  const thumbClass = `${THUMB_CLASS_BASE} ${
-    disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-  }`;
+  const thumbClass = getRangeSliderThumbClass(disabled);
 
   return (
-    <Box className={`w-full items-center ${className}`}>
-      <Box className="w-full max-w-xl px-2">
-        <Box className="flex flex-col items-center gap-2">
-          {valueBlock}
-          <Box
-            className="sk-range-slider-root relative w-full justify-center"
-            style={{ height: SLIDER_HIT_HEIGHT }}
-          >
-            <Box
-              className="sk-range-track-single"
-              style={{
-                height: trackHeight,
-                ["--sk-range-val" as string]: String(sliderValue),
-              }}
-            />
-            <Box
-              className="absolute"
-              style={{
-                left: spacing(0),
-                right: spacing(0),
-                height: SLIDER_HIT_HEIGHT,
-                zIndex: 3,
-              }}
-            >
-              <RangeInput
-                min={0}
-                max={100}
-                step={0.5}
-                value={sliderValue}
-                onChange={disabled ? undefined : handleSliderChange}
-                disabled={disabled}
-                label="Price"
-                transparentTrack
-                className={thumbClass}
-              />
-            </Box>
-          </Box>
+    <TickMappedRangeSliderChrome className={className} header={valueBlock}>
+      <RangeSliderTrackRoot>
+        <Box
+          className="sk-range-track-single"
+          style={{
+            height: trackHeight,
+            ["--sk-range-val" as string]: String(sliderValue),
+          }}
+        />
+        <Box
+          className="absolute"
+          style={{
+            left: spacing(0),
+            right: spacing(0),
+            height: RANGE_SLIDER_HIT_HEIGHT,
+            zIndex: 3,
+          }}
+        >
+          <RangeInput
+            min={0}
+            max={100}
+            step={0.5}
+            value={sliderValue}
+            onChange={disabled ? undefined : handleSliderChange}
+            disabled={disabled}
+            label="Price"
+            transparentTrack
+            className={thumbClass}
+          />
         </Box>
-      </Box>
-    </Box>
+      </RangeSliderTrackRoot>
+    </TickMappedRangeSliderChrome>
   );
 }

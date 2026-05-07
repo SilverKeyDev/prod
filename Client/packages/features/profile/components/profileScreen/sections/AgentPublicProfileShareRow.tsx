@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+
 import { Linking } from "react-native";
 
 import { useLocalization } from "packages/contexts";
@@ -8,6 +9,7 @@ import { Box, Text } from "packages/ui/components/primitives";
 import Subtitle from "packages/ui/components/text/Subtitle";
 import Title from "packages/ui/components/text/Title";
 import { getAgentPublicProfileAbsoluteUrl } from "packages/utils/agent";
+import { getWindow } from "packages/utils/platform";
 import { tryWebShareUrl } from "packages/utils/share";
 
 export type AgentPublicProfileShareRowProps = {
@@ -34,8 +36,9 @@ export function AgentPublicProfileShareRow({
   );
 
   const handleOpenLink = useCallback(() => {
-    if (typeof window !== "undefined" && typeof window.open === "function") {
-      window.open(publicUrl, "_blank", "noopener,noreferrer");
+    const w = getWindow();
+    if (w && typeof w.open === "function") {
+      w.open(publicUrl, "_blank", "noopener,noreferrer");
       return;
     }
     void Linking.openURL(publicUrl);

@@ -45,22 +45,17 @@ export function OnboardingFeature() {
     0,
     progressStepEntries.findIndex(({ index }) => index === currentStep)
   );
-  const showSkipForNow =
-    currentStep < steps.length - 1 &&
-    currentStepId !== "";
+  const showSkipForNow = currentStep < steps.length - 1 && currentStepId !== "";
 
   const roleStepNeedsSelection =
-    currentStepId === "onboarding_role" &&
-    !isOnboardingStepComplete(formData, "onboarding_role");
+    currentStepId === "onboarding_role" && !isOnboardingStepComplete(formData, "onboarding_role");
 
   const renderStepContent = () => {
     const step = steps[currentStep];
 
     switch (step?.id ?? "") {
       case "onboarding_role":
-        return (
-          <OnboardingRoleStep formData={formData} updateFormData={updateFormData} />
-        );
+        return <OnboardingRoleStep formData={formData} updateFormData={updateFormData} />;
 
       case "demographics":
         return (

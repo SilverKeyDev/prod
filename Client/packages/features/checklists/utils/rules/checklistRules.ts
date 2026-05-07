@@ -219,7 +219,16 @@ export function getChecklistItemToggleEligibility(
 
 /** UX hint for buyer roadmap rows that cannot be checked yet (replaces lock icon + dead-end copy). */
 export type RoadmapChecklistBlockerKind =
-  | { kind: "prerequisite_item"; blockerItemId: number; blockerLabel: string }
+  | {
+      kind: "prerequisite_item";
+      blockerItemId: number;
+      blockerLabel: string;
+      /**
+       * When false, the row stays tappable/handoff but does not repeat the blocker step title inline
+       * (used for `selectable_when` gates like Search parallel steps until pre-approval).
+       */
+      showInlinePrerequisiteLabel: boolean;
+    }
   | { kind: "section_gate" }
   | { kind: "submit_via_integration" }
   | { kind: "signature_pending" };
@@ -296,6 +305,7 @@ export function getRoadmapChecklistItemBlockerKind(
               kind: "prerequisite_item",
               blockerItemId: prev.id,
               blockerLabel: prev.label,
+              showInlinePrerequisiteLabel: true,
             };
           }
         }
@@ -304,7 +314,12 @@ export function getRoadmapChecklistItemBlockerKind(
     if (!selOk && item.selectable_when != null) {
       const dep = firstUnsatisfiedSelectableDependency(sortedItems, checked, item.selectable_when);
       if (dep != null) {
-        return { kind: "prerequisite_item", blockerItemId: dep.id, blockerLabel: dep.label };
+        return {
+          kind: "prerequisite_item",
+          blockerItemId: dep.id,
+          blockerLabel: dep.label,
+          showInlinePrerequisiteLabel: false,
+        };
       }
     }
     return { kind: "signature_pending" };

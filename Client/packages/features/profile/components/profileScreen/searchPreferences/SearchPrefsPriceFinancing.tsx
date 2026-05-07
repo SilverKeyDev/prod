@@ -1,14 +1,9 @@
 import React from "react";
 
 import type { BuyerPriceFinancing } from "packages/features/profile/types/buyerPreferenceExtensions";
-import {
-  FIELD_LABELS,
-  PROFILE_NOT_SPECIFIED_LABEL,
-  SECTION_TITLES,
-} from "packages/features/profile/utils";
+import { FIELD_LABELS, PROFILE_NOT_SPECIFIED_LABEL } from "packages/features/profile/utils";
 import { Input } from "packages/ui/components/form/Input";
 import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import Label from "@/features/profile/components/settings/inputs/Label";
@@ -93,12 +88,5 @@ export function SearchPrefsPriceFinancing({
     });
   }
 
-  return (
-    <Box className="gap-4">
-      <Title size="sm" as="h3" className="mb-3 text-base">
-        {SECTION_TITLES.SEARCH_PREFS_PRICE_FINANCING}
-      </Title>
-      <AlignedRow breakIntoRows="sm" gap="lg" justify="start" items={items} />
-    </Box>
-  );
+  return <AlignedRow breakIntoRows="sm" gap="lg" justify="start" items={items} />;
 }

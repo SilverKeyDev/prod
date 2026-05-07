@@ -859,5 +859,12 @@
     "webPath": "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection.web.tsx",
     "nativePath": "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection.native.tsx",
     "reason": "Web triggers JSON download via document/window APIs and modals. Native uses React Native Linking and has no DOM download path."
+  },
+  {
+    "id": "feedback-toast",
+    "description": "Toast notifications: web Tailwind shell vs React Native layout and shadows.",
+    "webPath": "packages/ui/components/feedback/Toast.tsx",
+    "nativePath": "packages/ui/components/feedback/Toast.native.tsx",
+    "reason": "Web uses fixed positioning and Tailwind with IconButton. Native uses RN shadow tokens, NativeWind on primitives, and Metro resolves .native.tsx for mobile."
   }
 ]

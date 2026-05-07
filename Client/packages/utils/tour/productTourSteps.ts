@@ -1,4 +1,5 @@
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { getDocument } from "packages/utils/platform";
 
 import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "./tourTargets";
 
@@ -84,6 +85,7 @@ export function getSearchProductTourSteps(
 export function filterSearchProductTourStepsForDom(
   steps: SearchProductTourStep[]
 ): SearchProductTourStep[] {
-  if (typeof document === "undefined") return [];
-  return steps.filter((step) => document.querySelector(step.element) != null);
+  const doc = getDocument();
+  if (!doc) return steps;
+  return steps.filter((step) => doc.querySelector(step.element) != null);
 }

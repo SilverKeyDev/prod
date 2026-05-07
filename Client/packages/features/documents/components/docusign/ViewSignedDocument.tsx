@@ -167,12 +167,7 @@ export default function ViewSignedDocument({
       <Box className="mb-4 flex items-center justify-between">
         <Title size="md">{title}</Title>
         <Box className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleOpenExternal}
-            iconName="external-link"
-          >
+          <Button variant="outline" size="sm" onClick={handleOpenExternal} iconName="external-link">
             Open in New Tab
           </Button>
           <Button variant="primary" size="sm" onClick={handleDownload} iconName="download">

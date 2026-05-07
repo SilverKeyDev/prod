@@ -44,7 +44,7 @@ export default function ClientMessagingSidebar({
       {/* Backdrop for mobile - only show when sidebar is expanded on mobile */}
       {isSidebarExpanded && (
         <Box
-          className="fixed inset-0 z-40 bg-overlay-backdrop transition-opacity duration-300 ease-in-out xl:hidden"
+          className="bg-overlay-backdrop fixed inset-0 z-40 transition-opacity duration-300 ease-in-out xl:hidden"
           onClick={() => setIsSidebarExpanded(false)}
           aria-hidden="true"
         />
@@ -118,11 +118,11 @@ export default function ClientMessagingSidebar({
             >
               <Box className="flex items-start justify-between">
                 <Box className="min-w-0 flex-1">
-                  <Title as="h3" size="sm" className="mb-1 truncate font-medium text-text-primary">
+                  <Title as="h3" size="sm" className="text-text-primary mb-1 truncate font-medium">
                     {t("agent.your_agent")}
                   </Title>
                   {localMessages.length > 0 && (
-                    <BodyText as="p" className="truncate text-xs text-text-secondary">
+                    <BodyText as="p" className="text-text-secondary truncate text-xs">
                       {getMessagePreview(
                         localMessages[localMessages.length - 1] ?? {
                           content: "",

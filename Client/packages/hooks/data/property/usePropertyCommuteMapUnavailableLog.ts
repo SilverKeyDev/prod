@@ -4,9 +4,11 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import type { ListingCoordsInput } from "packages/utils/propertyDetails/location/listingCoords";
 import { getListingCoordsUnavailableDiagnostics } from "packages/utils/propertyDetails/location/listingCoords";
 
-type CommuteLike = {
-  travel_times?: unknown;
-} | null
+type CommuteLike =
+  | {
+      travel_times?: unknown;
+    }
+  | null
   | undefined;
 
 /**
@@ -39,9 +41,13 @@ export function usePropertyCommuteMapUnavailableLog(params: {
     }`;
     if (loggedCommuteMapUnavailableKeyRef.current === dedupeKey) return;
     loggedCommuteMapUnavailableKeyRef.current = dedupeKey;
-    log.info(LOG_CATEGORIES.PROPERTY_DETAILS, "Property commute map unavailable (no listing coords)", {
-      listingId,
-      ...diagnostics,
-    });
+    log.info(
+      LOG_CATEGORIES.PROPERTY_DETAILS,
+      "Property commute map unavailable (no listing coords)",
+      {
+        listingId,
+        ...diagnostics,
+      }
+    );
   }, [commute, hasTravelTimes, listingCoords, property]);
 }

@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { color, spacing } from "packages/design-tokens";
+import { color, spacing, Z_LAYERS } from "packages/design-tokens";
 import Button from "packages/ui/components/button/Button";
 import ClientSelector from "packages/ui/components/button/ClientSelector";
 import IconButton from "packages/ui/components/button/IconButton";
@@ -144,7 +144,7 @@ export function QuickEventPopover({
     width: 320,
     maxHeight: "min(420px, 85vh)",
     overflowY: "auto",
-    zIndex: 60,
+    zIndex: Z_LAYERS.dropdown,
     backgroundColor: color("neutral.50"),
     borderWidth: 1,
     borderColor: color("neutral.200"),

@@ -1,4 +1,5 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import type { ReactNode } from "react";
 
 import { useLocalization } from "packages/contexts";
@@ -9,8 +10,8 @@ import {
   CHECKLIST_TITLES,
   type ChecklistTab,
   type ChecklistType,
-  type TaskChecklistItem,
   sortTaskChecklistItems,
+  type TaskChecklistItem,
   useChecklistData,
   useChecklistProgress,
 } from "packages/features/checklists";
@@ -24,9 +25,7 @@ import BodyText from "packages/ui/components/text/BodyText";
 
 import DashboardChecklistsHeader from "./DashboardChecklistsHeader";
 
-const DashboardAgreementSigningModals = lazy(
-  () => import("../DashboardAgreementSigningModals")
-);
+const DashboardAgreementSigningModals = lazy(() => import("../DashboardAgreementSigningModals"));
 
 const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
   search: "search",

@@ -55,8 +55,7 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
     "Create an account or sign in to send a connection request to this agent.\n\nWe will connect you automatically after you are signed in.",
   "profile.public.connect_modal_body_with_agent":
     "Sign in or create an account and we'll connect you with {{agentName}} automatically.",
-  "profile.public.connect_banner":
-    "After signing in, you'll be connected with {{agentName}}.",
+  "profile.public.connect_banner": "After signing in, you'll be connected with {{agentName}}.",
   "profile.public.connect_sign_in": "Sign in",
   "profile.public.connect_create_account": "Create an account",
   "profile.public.connect_toast_success": "Connection request sent",

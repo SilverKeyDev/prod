@@ -51,7 +51,9 @@ export function buildPropertyDemographicsViewModel(
     delete demographicsContent.income_distribution;
     delete demographicsContent.education_distribution;
   }
-  const { rating: demographicsSectionRating } = stripSectionRatingField(demographicsContent ?? null);
+  const { rating: demographicsSectionRating } = stripSectionRatingField(
+    demographicsContent ?? null
+  );
 
   if (
     !hasAgeDistribution &&

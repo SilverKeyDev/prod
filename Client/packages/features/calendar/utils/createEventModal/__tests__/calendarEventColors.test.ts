@@ -4,7 +4,10 @@ import { color } from "packages/design-tokens";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
-import { calendarColorForEvent, hexToRgba } from "@/features/calendar/utils/createEventModal/calendarEventColors";
+import {
+  calendarColorForEvent,
+  hexToRgba,
+} from "@/features/calendar/utils/createEventModal/calendarEventColors";
 import { CALENDAR_EVENT_KINDS } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 
 describe("calendarColorForEvent", () => {

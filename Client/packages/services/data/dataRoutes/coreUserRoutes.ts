@@ -1,9 +1,7 @@
 import { preferencesApi, searchApi, userApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { fetchCachedPolygonSearchResults } from "packages/features/search/api/fetchCachedPolygonSearchResults";
-import { log, LOG_CATEGORIES } from "packages/logger";
 import type { RouteConfig } from "packages/services/data/dataRouteTypes";
-import { HttpError } from "packages/services/http/compatibility";
 
 export const coreUserRoutes = {
   userProfile: {
@@ -80,11 +78,8 @@ export const coreUserRoutes = {
       if (!user?.has_preferences) {
         return null;
       }
-      try {
-        const response = await searchApi.getIsochrone();
-        if (!response.success || !response.data) {
-          throw new Error(response.error ?? "Failed to fetch isochrone data");
-        }
+      const response = await searchApi.getIsochrone();
+      if (response.success && response.data) {
         return {
           ...response.data,
           center: {
@@ -92,16 +87,18 @@ export const coreUserRoutes = {
             lng: response.data.center.lon,
           },
         };
-      } catch (error) {
-        if (error instanceof HttpError && error.status === 400) {
-          // Missing or incomplete commute inputs should not break bootstrap prefetch.
-          log.debug(LOG_CATEGORIES.API, "Skipping isochrone prefetch: incomplete commute inputs", {
-            hasPreferences: user.has_preferences,
-          });
-          return null;
-        }
-        throw error;
       }
+      const failed = response as unknown as {
+        success?: boolean;
+        error?: string | null;
+      };
+      if (
+        failed.success === false &&
+        (failed.error === "NO_LOCATIONS" || failed.error === "NO_VALID_LOCATIONS")
+      ) {
+        return null;
+      }
+      throw new Error(failed.error ?? "Failed to fetch isochrone data");
     },
     shouldPoll: false,
     staleTime: 5 * 60 * 1000,

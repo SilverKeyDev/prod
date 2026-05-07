@@ -151,6 +151,18 @@ export function silverkeyComponentsAndFeatures(silverkey) {
             allowedPaths: ["**/*.native.*"],
           },
         ],
+        "silverkey/no-raw-zindex": [
+          "warn",
+          {
+            includePaths: ["packages/ui/", "packages/features/", "apps/web/", "apps/mobile/"],
+            allowedPaths: [
+              "packages/design-tokens/tokens/zLayers",
+              "packages/config/tailwind/",
+              "mapOverlayLayerOrder",
+              "propertyCommuteNative.constants",
+            ],
+          },
+        ],
       },
     },
     {

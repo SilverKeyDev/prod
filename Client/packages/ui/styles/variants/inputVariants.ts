@@ -152,3 +152,121 @@ export function getInputClasses(options: GetInputClassesOptions = {}): string {
     .filter(Boolean)
     .join(" ");
 }
+
+/** Legacy web `h-*` + padding sizes for `Input.web` and `FieldShell` (not min-heights). */
+export const WEB_FORM_SIZE_STYLES_LEGACY: Record<InputSize, string> = {
+  sm: "h-9 px-3",
+  md: "h-12 px-4",
+  lg: "h-14 px-5",
+};
+
+/** `Input.web` — `focus:` on the control. */
+export const WEB_FORM_VARIANT_STYLES_INPUT_FOCUS: Record<InputVariant, string> = {
+  default:
+    "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+  mobile:
+    "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
+  compact:
+    "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+  search:
+    "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+};
+
+/** `FieldShell` — `focus-within:` on the wrapper. */
+export const WEB_FORM_VARIANT_STYLES_SHELL_FOCUS_WITHIN: Record<InputVariant, string> = {
+  default:
+    "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
+  mobile:
+    "mobile-input border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly autofill-parent",
+  compact:
+    "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
+  search:
+    "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
+};
+
+const WEB_INPUT_CONTROL_BASE =
+  "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input placeholder:text-text-secondary " +
+  INPUT_AUTOFILL_CLASS_NAME;
+
+const WEB_FIELD_SHELL_BASE =
+  "w-full border rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input group";
+
+export interface GetWebInputControlClassesOptions {
+  variant?: InputVariant;
+  size?: InputSize;
+  error?: string | boolean;
+  hasLeftIcon?: boolean;
+  hasRightIcons?: boolean;
+  className?: string;
+}
+
+/** Composed classes for `packages/ui/components/form/Input.web` (`<input>` / `customInput`). */
+export function getWebInputControlClasses(options: GetWebInputControlClassesOptions = {}): string {
+  const {
+    variant = "default",
+    size = "md",
+    error,
+    hasLeftIcon = false,
+    hasRightIcons = false,
+    className = "",
+  } = options;
+  const err = Boolean(error);
+  return [
+    WEB_INPUT_CONTROL_BASE,
+    WEB_FORM_VARIANT_STYLES_INPUT_FOCUS[variant],
+    WEB_FORM_SIZE_STYLES_LEGACY[size],
+    getSharedInputTextStyles(),
+    err ? "border-neutral-600 focus:border-neutral-700 focus:ring-neutral-400" : "",
+    hasLeftIcon ? "has-left-icon" : "",
+    hasRightIcons ? "has-right-icon" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export interface GetWebFieldShellClassesOptions {
+  variant?: InputVariant;
+  size?: InputSize;
+  error?: string | boolean;
+  leftIcon?: boolean;
+  rightIcon?: boolean;
+  fieldClassName?: string;
+}
+
+/** Composed classes for `FieldShell` outer field bar (nested inputs + PhoneInput). */
+export function getWebFieldShellClasses(options: GetWebFieldShellClassesOptions = {}): string {
+  const {
+    variant = "mobile",
+    size = "md",
+    error,
+    leftIcon = false,
+    rightIcon = false,
+    fieldClassName = "",
+  } = options;
+  const err = Boolean(error);
+  return [
+    WEB_FIELD_SHELL_BASE,
+    WEB_FORM_VARIANT_STYLES_SHELL_FOCUS_WITHIN[variant],
+    WEB_FORM_SIZE_STYLES_LEGACY[size],
+    err ? "border-neutral-600 focus-within:border-neutral-700 focus-within:ring-neutral-400" : "",
+    leftIcon ? "has-left-icon" : "",
+    rightIcon ? "has-right-icon" : "",
+    fieldClassName,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/** Legacy web `Input.web` icon offsets (interactive icons — no `pointer-events-none`). */
+export const WEB_FORM_INPUT_ICON_CLASSES = {
+  left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
+  right: "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
+} as const;
+
+/** `FieldShell` icons sit above the field with `pointer-events-none`. */
+export const WEB_FORM_FIELD_SHELL_ICON_CLASSES = {
+  left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary z-1 pointer-events-none",
+  right:
+    "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary z-1 pointer-events-none",
+} as const;

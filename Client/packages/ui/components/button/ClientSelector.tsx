@@ -71,7 +71,7 @@ export default function ClientSelector({
           <Box
             role="button"
             tabIndex={0}
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-dropdown"
             onClick={() => setIsOpen(false)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -83,7 +83,7 @@ export default function ClientSelector({
 
           {/* Dropdown */}
           <Box
-            className={`border-border bg-background-surface absolute left-0 z-20 w-60 min-w-56 rounded-md border py-1 shadow-lg ${
+            className={`border-border bg-background-surface absolute left-0 z-dropdown w-60 min-w-56 rounded-md border py-1 shadow-lg ${
               menuPlacement === "above" ? "bottom-full mb-2" : "top-full mt-2"
             }`}
           >

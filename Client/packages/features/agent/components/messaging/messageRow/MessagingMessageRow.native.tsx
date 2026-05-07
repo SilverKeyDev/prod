@@ -94,11 +94,7 @@ function MessagingMessageRowNativeStatusFooter({
   const { t } = useLocalization();
   if (!isCurrentUserMessage || !message.status) return null;
 
-  const statusLabel = getMessagingNativeOutboundStatusLabel(
-    message.status,
-    shouldShowDelivered,
-    t
-  );
+  const statusLabel = getMessagingNativeOutboundStatusLabel(message.status, shouldShowDelivered, t);
 
   return (
     <View style={[styles.statusRow, isCurrentUserMessage ? styles.statusRowEnd : undefined]}>

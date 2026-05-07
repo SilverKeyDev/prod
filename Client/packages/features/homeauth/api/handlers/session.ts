@@ -154,7 +154,8 @@ export async function refreshTokenHandler(): Promise<AuthResponse> {
     const err = error as Error;
     const hadNoSession = cookieCountBefore === 0;
     const errorMessage = err?.message || "Unknown error";
-    const expectedLoggedOutFailure = hadNoSession || isExpectedLoggedOutRefreshFailure(errorMessage);
+    const expectedLoggedOutFailure =
+      hadNoSession || isExpectedLoggedOutRefreshFailure(errorMessage);
     const logPayload = {
       requestId,
       error: errorMessage,

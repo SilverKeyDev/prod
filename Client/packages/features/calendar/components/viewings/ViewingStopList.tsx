@@ -63,14 +63,9 @@ function SortableStopRow({
   onRemove,
   onPatch,
 }: SortableStopRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -82,7 +77,7 @@ function SortableStopRow({
     <Box
       ref={setNodeRef}
       style={style}
-      className={`border-border space-y-2 rounded-lg border p-3 ${isDragging ? "shadow-md opacity-95 ring-2 ring-neutral-300" : ""}`}
+      className={`border-border space-y-2 rounded-lg border p-3 ${isDragging ? "opacity-95 shadow-md ring-2 ring-neutral-300" : ""}`}
     >
       <Box className="flex flex-wrap items-center gap-2">
         <Pressable

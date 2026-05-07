@@ -31,10 +31,7 @@ export function applyOnboardingRoleSelection(
       break;
     case "seller":
       updateFormData("is_agent", "no");
-      updateFormData("why_joining_silverkey", [
-        WHY_JOIN_FOR_ROLE.buyer,
-        WHY_JOIN_FOR_ROLE.seller,
-      ]);
+      updateFormData("why_joining_silverkey", [WHY_JOIN_FOR_ROLE.buyer, WHY_JOIN_FOR_ROLE.seller]);
       break;
     case "investor":
       updateFormData("is_agent", "no");

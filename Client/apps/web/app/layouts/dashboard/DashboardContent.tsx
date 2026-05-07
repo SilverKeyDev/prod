@@ -5,7 +5,10 @@ import { Box } from "packages/ui/components/primitives";
 
 import PageErrorBoundary from "@/app/error/PageErrorBoundary";
 
-import { DashboardRouteFallback, type DashboardRouteFallbackVariant } from "./DashboardRouteFallback";
+import {
+  DashboardRouteFallback,
+  type DashboardRouteFallbackVariant,
+} from "./DashboardRouteFallback";
 import { type DashboardAreaKey, useDashboardRoute } from "./useDashboardRoute";
 
 const SearchPage = lazy(() => import("@/pages/property/SearchPage"));
@@ -28,7 +31,9 @@ type DashboardContentProps = {
 
 const MOBILE_SIDE_PX = "px-4";
 
-function suspenseFallbackVariant(activeKey: DashboardAreaKey | null): DashboardRouteFallbackVariant {
+function suspenseFallbackVariant(
+  activeKey: DashboardAreaKey | null
+): DashboardRouteFallbackVariant {
   if (activeKey === "search") return "search";
   if (activeKey === "messaging") return "messaging";
   if (activeKey === "dashboard") return "dashboard";

@@ -48,11 +48,7 @@ export function AccountPrivacyDataSection({ agentSubject = null }: AccountPrivac
           <Box className="border-border bg-background-base flex flex-col gap-4 rounded-xl border p-4">
             <Box className="flex flex-row gap-3">
               <Box className="bg-primary-muted rounded-lg p-3" accessible={false}>
-                <Icon
-                  name="download"
-                  className="h-6 w-6 shrink-0"
-                  color={tokenColor("primary")}
-                />
+                <Icon name="download" className="h-6 w-6 shrink-0" color={tokenColor("primary")} />
               </Box>
               <BodyText size="sm" muted className="flex-1 leading-relaxed">
                 Open Settings → Privacy &amp; data, then Download to save a structured copy of your
@@ -88,7 +84,7 @@ export function AccountPrivacyDataSection({ agentSubject = null }: AccountPrivac
               onPress={() => {
                 void Linking.openURL(`mailto:${STATIC_LEGAL_CONTACT.privacyEmail}`);
               }}
-              className="h-auto min-h-0 justify-start px-0 py-1 text-base font-semibold text-brand-accent underline"
+              className="text-brand-accent h-auto min-h-0 justify-start px-0 py-1 text-base font-semibold underline"
             >
               {STATIC_LEGAL_CONTACT.privacyEmail}
             </Button>

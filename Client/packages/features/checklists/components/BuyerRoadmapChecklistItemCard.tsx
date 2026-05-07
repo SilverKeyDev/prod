@@ -111,7 +111,7 @@ function BuyerRoadmapChecklistItemCardInner({
   const blockerInlineText = useMemo(() => {
     if (!isRoadmapActiveBlockedUi || roadmapBlocker == null) return null;
     if (roadmapBlocker.kind === "prerequisite_item") {
-      return roadmapBlocker.blockerLabel;
+      return roadmapBlocker.showInlinePrerequisiteLabel ? roadmapBlocker.blockerLabel : null;
     }
     if (roadmapBlocker.kind === "section_gate") {
       if (sectionGateTarget == null) {
@@ -206,7 +206,7 @@ function BuyerRoadmapChecklistItemCardInner({
               checkboxContainerClass={checklistCheckboxRowClassNames.checkboxContainer}
             />
           </Box>
-          <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-1">
+          <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-2">
             {showDispatchGear ? (
               <Box
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}

@@ -7,10 +7,10 @@ import type { QueryClient } from "@tanstack/react-query";
 import { agentApi } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
 import {
-  INITIAL_CHAT_HISTORY_LIMIT,
-  SYNC_NEWER_CHAT_LIMIT,
   type AgentChatHistoryCacheEntry,
   type GetAgentChatHistoryOptions,
+  INITIAL_CHAT_HISTORY_LIMIT,
+  SYNC_NEWER_CHAT_LIMIT,
 } from "packages/features/messaging/hooks/data/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
 

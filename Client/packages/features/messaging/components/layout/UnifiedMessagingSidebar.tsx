@@ -172,19 +172,23 @@ export default function UnifiedMessagingSidebar({
                     imageUrl={conv.agent_profile_picture}
                   />
                   <Box className="min-w-0 flex-1">
-                    <Title as="h3" size="sm" className="mb-1 truncate font-medium text-text-primary">
+                    <Title
+                      as="h3"
+                      size="sm"
+                      className="text-text-primary mb-1 truncate font-medium"
+                    >
                       {displayName}
                     </Title>
                     {messagePreview ? (
-                      <BodyText as="p" className="truncate text-xs text-text-secondary">
+                      <BodyText as="p" className="text-text-secondary truncate text-xs">
                         {messagePreview}
                       </BodyText>
                     ) : conv.agent_email ? (
-                      <BodyText as="p" className="truncate text-xs text-text-secondary">
+                      <BodyText as="p" className="text-text-secondary truncate text-xs">
                         {conv.agent_email}
                       </BodyText>
                     ) : (
-                      <BodyText as="p" className="truncate text-xs text-text-secondary">
+                      <BodyText as="p" className="text-text-secondary truncate text-xs">
                         {t("agent.role_agent")}
                       </BodyText>
                     )}
@@ -256,23 +260,26 @@ export default function UnifiedMessagingSidebar({
                   imageUrl={client.profile_picture ?? conversation?.client_profile_picture}
                 />
                 <Box className="min-w-0 flex-1">
-                  <Title as="h3" size="sm" className="mb-1 truncate font-medium text-text-primary">
+                  <Title as="h3" size="sm" className="text-text-primary mb-1 truncate font-medium">
                     {client.name}
                   </Title>
-                  <BodyText as="p" className="mb-0.5 truncate text-xs font-medium text-text-primary">
+                  <BodyText
+                    as="p"
+                    className="text-text-primary mb-0.5 truncate text-xs font-medium"
+                  >
                     {typeStageLine}
                   </BodyText>
                   {messagePreview ? (
-                    <BodyText as="p" className="truncate text-xs text-text-secondary">
+                    <BodyText as="p" className="text-text-secondary truncate text-xs">
                       {messagePreview}
                     </BodyText>
                   ) : (
-                    <BodyText as="p" className="truncate text-xs text-text-secondary">
+                    <BodyText as="p" className="text-text-secondary truncate text-xs">
                       {client.email}
                     </BodyText>
                   )}
                   {client.phone && !messagePreview && (
-                    <BodyText as="p" className="truncate text-xs text-text-secondary">
+                    <BodyText as="p" className="text-text-secondary truncate text-xs">
                       {client.phone}
                     </BodyText>
                   )}

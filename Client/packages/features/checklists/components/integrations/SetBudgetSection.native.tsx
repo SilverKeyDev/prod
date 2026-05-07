@@ -47,10 +47,6 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
   return (
     <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
-        <BodyText size="sm" className="text-text-secondary">
-          Set your budget range, income, and down payment on the web app (or update profile
-          finances). Submit here once your saved preferences meet the checklist.
-        </BodyText>
         <ChecklistStepSubmitFooter disabled={!stepComplete} onSubmit={handleSubmit} />
       </Box>
     </Card>

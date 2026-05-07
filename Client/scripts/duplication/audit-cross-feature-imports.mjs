@@ -12,8 +12,7 @@ import path from "node:path";
 const CLIENT_ROOT = path.resolve(import.meta.dirname, "../..");
 const FEATURES_ROOT = path.join(CLIENT_ROOT, "packages", "features");
 
-const IMPORT_RE =
-  /from\s+["'](packages\/features\/([^/'"]+)(?:\/[^'"]*)?)["']/g;
+const IMPORT_RE = /from\s+["'](packages\/features\/([^/'"]+)(?:\/[^'"]*)?)["']/g;
 
 function featureDirFromFile(absPath) {
   const rel = path.relative(FEATURES_ROOT, absPath);

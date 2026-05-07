@@ -107,7 +107,10 @@ export function FeedActionStack({
           </BodyText>
         </Box>
       </FeedActionButton>
-      <FeedActionButton onClick={handleToggleMute} label={userHasUnmuted ? t("feed.mute") : t("feed.unmute")}>
+      <FeedActionButton
+        onClick={handleToggleMute}
+        label={userHasUnmuted ? t("feed.mute") : t("feed.unmute")}
+      >
         {userHasUnmuted ? (
           <Icon name="volume-2" className="h-8 w-8 shrink-0 text-white" />
         ) : (

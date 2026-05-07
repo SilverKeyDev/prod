@@ -1,12 +1,8 @@
 import { useEffect } from "react";
 
-import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
-
-import { color } from "packages/design-tokens";
 import { useUIStore } from "packages/store";
+import { ToastNative } from "packages/ui/components/feedback/Toast.native";
 import { toastDurationForType } from "packages/ui/components/feedback/toastDurations";
-import { Text } from "packages/ui/components/primitives";
-import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows.native";
 
 export function ToastsPortalNative() {
   const activeToastId = useUIStore((s) => s.activeToastId);
@@ -25,80 +21,11 @@ export function ToastsPortalNative() {
 
   if (!activeToast) return null;
 
-  const onClose = () => dequeueToast(activeToast.id);
-  const isError = activeToast.type === "error";
-
   return (
-    <View style={styles.container} pointerEvents="box-none">
-      <View style={[styles.toast, isError ? styles.toastError : styles.toastSuccess]}>
-        <Text
-          style={[styles.message, isError ? styles.messageError : styles.messageSuccess]}
-          numberOfLines={2}
-        >
-          {activeToast.message}
-        </Text>
-        <TouchableOpacity
-          onPress={onClose}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={styles.close}
-        >
-          <Text style={styles.closeText}>×</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <ToastNative
+      variant={activeToast.type}
+      message={activeToast.message}
+      onClose={() => dequeueToast(activeToast.id)}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    bottom: 24,
-    left: 16,
-    right: 16,
-    alignItems: "center",
-  },
-  toast: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    minHeight: 44,
-    maxWidth: "100%",
-
-    ...(Platform.OS === "web"
-      ? { boxShadow: "0px 2px 4px rgba(0,0,0,0.15)" }
-      : {
-          shadowColor: "#000",
-          shadowOffset: SHADOW_OFFSET_ELEVATED,
-          shadowOpacity: 0.15,
-          shadowRadius: 4,
-          elevation: 4,
-        }),
-  },
-  toastSuccess: {
-    backgroundColor: color("primary"),
-  },
-  toastError: {
-    backgroundColor: color("destructive"),
-  },
-  message: {
-    flex: 1,
-    fontSize: 14,
-  },
-  messageSuccess: {
-    color: color("background-surface"),
-  },
-  messageError: {
-    color: color("background-surface"),
-  },
-  close: {
-    marginLeft: 8,
-    padding: 4,
-  },
-  closeText: {
-    fontSize: 20,
-    color: color("background-surface"),
-    fontWeight: "300",
-  },
-});

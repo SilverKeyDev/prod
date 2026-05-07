@@ -114,8 +114,7 @@ function LegacyPropertyBasicInfoDetailsCard({
           <Box className="flex justify-between">
             {t("property_details.price_per_sqft")}
             {(() => {
-              if (typeof propertyPricePerSquareFoot === "string")
-                return propertyPricePerSquareFoot;
+              if (typeof propertyPricePerSquareFoot === "string") return propertyPricePerSquareFoot;
               if (typeof propertyPricePerSquareFoot === "number")
                 return String(propertyPricePerSquareFoot);
               return "";

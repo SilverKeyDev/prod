@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useGoogleMaps } from "packages/hooks/data";
 import { useResponsive } from "packages/hooks/ui";
@@ -20,6 +20,9 @@ export type UseOnboardingFormOptions = {
 export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
   const { navigateToPath } = useNavigation();
   const setUser = useAuthStore((s) => s.setUser);
+  const user = useAuthStore((s) => s.user);
+  const userRef = useRef(user);
+  userRef.current = user;
   const { isMdUp } = useResponsive();
   const [scriptsReadyState, setScriptsReadyState] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -28,7 +31,7 @@ export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
     getSteps: (formData) => getOnboardingStepsUi(formData),
     navigate: (path: string) => navigateToPath(path),
     afterPreferencesSuccess: () => {
-      const current = useAuthStore.getState().user;
+      const current = userRef.current;
       if (current) setUser({ ...current, has_preferences: true });
     },
   });

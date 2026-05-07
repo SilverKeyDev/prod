@@ -98,7 +98,10 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
         )}
         <IconButton
           icon={
-            <Icon name="x" className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
+            <Icon
+              name="x"
+              className="h-6 w-6 transition-transform duration-200 group-hover:scale-110"
+            />
           }
           onClick={onClose}
           title={closeLabel}

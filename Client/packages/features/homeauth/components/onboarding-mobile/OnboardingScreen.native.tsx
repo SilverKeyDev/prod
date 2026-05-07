@@ -12,10 +12,10 @@ import {
   AgentLicensingSection,
   AgentProfileServiceSection,
 } from "packages/features/profile/components/sections";
+import { isOnboardingStepComplete } from "packages/features/profile/utils";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
-import { isOnboardingStepComplete } from "packages/features/profile/utils";
 
 import { DemographicsStep } from "./DemographicsStep.native";
 import { HousingStepEssentials } from "./housing/HousingStepEssentials.native";
@@ -174,7 +174,7 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
             onPress={handleSubmit}
             disabled={loading}
             accessibilityRole="button"
-            accessibilityLabel="Skip for now"
+            label="Skip for now"
             accessibilityState={{ disabled: loading }}
             style={styles.skipForNowRow}
           >
@@ -198,7 +198,10 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
             disabled={loading || roleStepNeedsSelection}
             accessibilityRole="button"
             accessibilityState={{ busy: loading, disabled: loading || roleStepNeedsSelection }}
-            style={[styles.primaryButton, (loading || roleStepNeedsSelection) && styles.primaryButtonDisabled]}
+            style={[
+              styles.primaryButton,
+              (loading || roleStepNeedsSelection) && styles.primaryButtonDisabled,
+            ]}
           >
             {loading ? (
               <KeyTurnLoader message="" />

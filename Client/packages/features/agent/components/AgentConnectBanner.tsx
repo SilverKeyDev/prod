@@ -19,8 +19,8 @@ export function AgentConnectBanner() {
   if (!meta?.name) return null;
 
   return (
-    <Box className="flex items-center gap-3 rounded-lg border border-brand-accent/20 bg-brand-accent/5 px-4 py-3">
-      <Box className="h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-brand-accent/20">
+    <Box className="border-brand-accent/20 bg-brand-accent/5 flex items-center gap-3 rounded-lg border px-4 py-3">
+      <Box className="ring-brand-accent/20 h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1">
         <ProfileAvatar
           imageUrl={meta.photoUrl}
           label={meta.name}

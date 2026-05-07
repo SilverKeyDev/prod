@@ -150,11 +150,6 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
   return (
     <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
-        <BodyText size="sm" className="text-text-secondary">
-          Set your budget range and HOA preference; if you are not paying with cash, add income,
-          down payment, zip, and credit band so affordability matches your situation. Your
-          preferences are saved automatically.
-        </BodyText>
 
         <ProfileFinancialSection
           formData={formData as OnboardingData}

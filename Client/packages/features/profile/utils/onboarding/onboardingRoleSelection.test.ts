@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { OnboardingData } from "packages/features/profile/types/onboarding";
+
 import {
   applyOnboardingRoleSelection,
   primaryOnboardingRoleFromForm,

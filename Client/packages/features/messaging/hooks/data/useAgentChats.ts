@@ -213,7 +213,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       }
       return response;
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (_data, _variables) => {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.agent.conversations(),
       });

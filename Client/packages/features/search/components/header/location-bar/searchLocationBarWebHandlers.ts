@@ -5,8 +5,14 @@ import {
   boundsToViewportPolygon,
   centroidOfViewportRing,
 } from "packages/features/search/utils/map/mapViewport";
+import { warnUnsupportedServiceArea } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { hasProperty, isFunction, isObject } from "packages/utils";
+import {
+  isSupportedServiceAreaAddressComponents,
+  isSupportedServiceAreaCoordinates,
+  SUPPORTED_SERVICE_AREA_STATE_SHORT,
+} from "packages/utils/search/locations/serviceAreaAvailability";
 import {
   type GooglePlaceAddressComponentLike,
   isGooglePlacePreciseStreetAddress,
@@ -27,7 +33,7 @@ export async function selectSlipstreamSuggestionForLocationBar(
   suggestion: SlipstreamSuggestion,
   deps: SearchLocationBarMapDeps & {
     setIsLoadingBoundary: (v: boolean) => void;
-  }
+  },
 ): Promise<void> {
   const {
     fitMapToBounds,
@@ -48,10 +54,14 @@ export async function selectSlipstreamSuggestionForLocationBar(
   try {
     const resp = await searchApi.getAreaBoundary({ id: suggestion.area.id });
     if (!resp.success || !resp.viewport_ring || resp.viewport_ring.length < 3) {
-      log.warn(LOG_CATEGORIES.SEARCH, "Area boundary unavailable, falling back", {
-        areaId: suggestion.area.id,
-        label: suggestion.area.label,
-      });
+      log.warn(
+        LOG_CATEGORIES.SEARCH,
+        "Area boundary unavailable, falling back",
+        {
+          areaId: suggestion.area.id,
+          label: suggestion.area.label,
+        },
+      );
       setIsLoadingBoundary(false);
       return;
     }
@@ -59,10 +69,26 @@ export async function selectSlipstreamSuggestionForLocationBar(
     const ring = resp.viewport_ring as Array<{ lat: number; lng: number }>;
     const apiCenter = resp.area?.center;
     const center: { lat: number; lng: number } =
-      apiCenter && typeof apiCenter.lat === "number" && typeof apiCenter.lng === "number"
+      apiCenter &&
+      typeof apiCenter.lat === "number" &&
+      typeof apiCenter.lng === "number"
         ? { lat: apiCenter.lat, lng: apiCenter.lng }
         : centroidOfViewportRing(ring);
     const label = resp.area?.label ?? suggestion.description;
+
+    if (!isSupportedServiceAreaCoordinates(center)) {
+      log.warn(
+        LOG_CATEGORIES.SEARCH,
+        "Blocked Slipstream area outside supported service area",
+        {
+          areaId: suggestion.area.id,
+          label,
+        },
+      );
+      warnUnsupportedServiceArea();
+      setIsLoadingBoundary(false);
+      return;
+    }
 
     const bounds = boundsFromViewportRing(ring);
     if (bounds) {
@@ -95,14 +121,19 @@ export async function selectSlipstreamSuggestionForLocationBar(
 export async function resolveAreaViaSlipstreamForLocationBar(
   placeName: string,
   state: string | undefined,
-  deps: SearchLocationBarMapDeps
+  deps: SearchLocationBarMapDeps,
 ): Promise<boolean> {
-  const { fitMapToBounds, setSearchAnchor, setLocationPlaceViewportFromBar, setLocalValue } = deps;
+  const {
+    fitMapToBounds,
+    setSearchAnchor,
+    setLocationPlaceViewportFromBar,
+    setLocalValue,
+  } = deps;
 
   try {
     const resp = await searchApi.getAreaSuggestions({
       keyword: placeName,
-      state,
+      state: state ?? SUPPORTED_SERVICE_AREA_STATE_SHORT,
       limit: 1,
     });
     if (!resp.success || !resp.areas || resp.areas.length === 0) return false;
@@ -123,10 +154,26 @@ export async function resolveAreaViaSlipstreamForLocationBar(
     }>;
     const apiCenter = boundaryResp.area?.center;
     const center: { lat: number; lng: number } =
-      apiCenter && typeof apiCenter.lat === "number" && typeof apiCenter.lng === "number"
+      apiCenter &&
+      typeof apiCenter.lat === "number" &&
+      typeof apiCenter.lng === "number"
         ? { lat: apiCenter.lat, lng: apiCenter.lng }
         : centroidOfViewportRing(ring);
     const label = boundaryResp.area?.label ?? placeName;
+
+    if (!isSupportedServiceAreaCoordinates(center)) {
+      log.warn(
+        LOG_CATEGORIES.SEARCH,
+        "Blocked resolved area outside supported service area",
+        {
+          placeName,
+          areaId: topArea.id,
+          label,
+        },
+      );
+      warnUnsupportedServiceArea();
+      return false;
+    }
 
     setLocalValue(label);
 
@@ -141,13 +188,17 @@ export async function resolveAreaViaSlipstreamForLocationBar(
       overlay: buildIsochroneOverlayFromViewportRing(ring, center, label),
     });
 
-    log.info(LOG_CATEGORIES.SEARCH, "Google place resolved via Slipstream boundary", {
-      placeName,
-      areaId: topArea.id,
-      label,
-      geoType: topArea.geoType,
-      ringPoints: ring.length,
-    });
+    log.info(
+      LOG_CATEGORIES.SEARCH,
+      "Google place resolved via Slipstream boundary",
+      {
+        placeName,
+        areaId: topArea.id,
+        label,
+        geoType: topArea.geoType,
+        ringPoints: ring.length,
+      },
+    );
     return true;
   } catch (err: unknown) {
     log.warn(LOG_CATEGORIES.ERRORS, "Slipstream boundary fallback failed", err);
@@ -158,12 +209,14 @@ export async function resolveAreaViaSlipstreamForLocationBar(
 export type GoogleSelectDeps = SearchLocationBarMapDeps & {
   setIsLoadingBoundary: (v: boolean) => void;
   clearLocationPlaceSearchArea: () => void;
-  onPreciseStreetAddressSelected?: (payload: PreciseStreetAddressPayload) => void;
+  onPreciseStreetAddressSelected?: (
+    payload: PreciseStreetAddressPayload,
+  ) => void;
 };
 
 export async function selectGoogleSuggestionForLocationBar(
   suggestion: GoogleSuggestion,
-  deps: GoogleSelectDeps
+  deps: GoogleSelectDeps,
 ): Promise<boolean> {
   const {
     fitMapToBounds,
@@ -180,29 +233,49 @@ export async function selectGoogleSuggestionForLocationBar(
 
   setHasSelected(true);
   let skipViewportSubmit = false;
-  const placePrediction = suggestion.placePrediction as unknown as Record<string, unknown>;
+  const placePrediction = suggestion.placePrediction as unknown as Record<
+    string,
+    unknown
+  >;
   const place =
     placePrediction &&
     typeof placePrediction === "object" &&
     "toPlace" in placePrediction &&
     typeof placePrediction.toPlace === "function"
-      ? (placePrediction as { toPlace: () => google.maps.places.Place }).toPlace()
+      ? (
+          placePrediction as { toPlace: () => google.maps.places.Place }
+        ).toPlace()
       : null;
 
-  if (isObject(place) && hasProperty(place, "fetchFields") && isFunction(place.fetchFields)) {
+  if (
+    isObject(place) &&
+    hasProperty(place, "fetchFields") &&
+    isFunction(place.fetchFields)
+  ) {
     try {
       await place.fetchFields({
-        fields: ["formattedAddress", "viewport", "location", "types", "addressComponents", "id"],
+        fields: [
+          "formattedAddress",
+          "viewport",
+          "location",
+          "types",
+          "addressComponents",
+          "id",
+        ],
       });
     } catch (error) {
-      log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields for search bar", error);
+      log.warn(
+        LOG_CATEGORIES.ERRORS,
+        "Error fetching place fields for search bar",
+        error,
+      );
     }
 
     const formatted =
-      hasProperty(place, "formattedAddress") && typeof place.formattedAddress === "string"
+      hasProperty(place, "formattedAddress") &&
+      typeof place.formattedAddress === "string"
         ? place.formattedAddress
         : suggestion.description;
-    setLocalValue(formatted);
 
     const placeRecord = place as Record<string, unknown>;
     const typesRaw = placeRecord.types;
@@ -214,6 +287,22 @@ export async function selectGoogleSuggestionForLocationBar(
       ? (componentsRaw as GooglePlaceAddressComponentLike[])
       : undefined;
 
+    if (!isSupportedServiceAreaAddressComponents(addressComponents)) {
+      log.warn(
+        LOG_CATEGORIES.SEARCH,
+        "Blocked Google place outside supported service area",
+        {
+          formatted,
+        },
+      );
+      warnUnsupportedServiceArea();
+      clearLocationPlaceSearchArea();
+      setSuggestions([]);
+      return true;
+    }
+
+    setLocalValue(formatted);
+
     const isPreciseAddress = isGooglePlacePreciseStreetAddress({
       types,
       addressComponents,
@@ -222,17 +311,21 @@ export async function selectGoogleSuggestionForLocationBar(
     if (!isPreciseAddress) {
       setIsLoadingBoundary(true);
       const stateComponent = addressComponents?.find((c) =>
-        (c.types ?? []).includes("administrative_area_level_1")
+        (c.types ?? []).includes("administrative_area_level_1"),
       );
       const stateAbbr = stateComponent?.shortText ?? stateComponent?.short_name;
-      const cityComponent = addressComponents?.find((c) => (c.types ?? []).includes("locality"));
+      const cityComponent = addressComponents?.find((c) =>
+        (c.types ?? []).includes("locality"),
+      );
       const searchName =
-        cityComponent?.longText ?? cityComponent?.long_name ?? suggestion.description;
+        cityComponent?.longText ??
+        cityComponent?.long_name ??
+        suggestion.description;
 
       const resolved = await resolveAreaViaSlipstreamForLocationBar(
         searchName,
-        stateAbbr ?? undefined,
-        deps
+        stateAbbr ?? SUPPORTED_SERVICE_AREA_STATE_SHORT,
+        deps,
       );
       setIsLoadingBoundary(false);
 
@@ -247,7 +340,7 @@ export async function selectGoogleSuggestionForLocationBar(
         {
           searchName,
           state: stateAbbr,
-        }
+        },
       );
     }
 
@@ -274,7 +367,9 @@ export async function selectGoogleSuggestionForLocationBar(
         setSearchAnchor({ lat, lng });
         if (isPreciseAddress && onPreciseStreetAddressSelected) {
           const placeId =
-            hasProperty(place, "id") && typeof place.id === "string" ? place.id : undefined;
+            hasProperty(place, "id") && typeof place.id === "string"
+              ? place.id
+              : undefined;
           onPreciseStreetAddressSelected({
             formattedAddress: formatted,
             lat,

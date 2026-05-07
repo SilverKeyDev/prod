@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 
+import { Z_LAYERS } from "packages/design-tokens";
 import CloseButton from "packages/ui/components/button/CloseButton";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
@@ -122,7 +123,7 @@ function BaseModalContent(p: BaseModalContentProps) {
 }
 
 const BaseModal: React.FC<BaseModalProps> = (props) => {
-  const { isOpen, onClose, closeOnEscape = true, zIndex = 10000 } = props;
+  const { isOpen, onClose, closeOnEscape = true, zIndex = Z_LAYERS.modal } = props;
 
   useEffect(() => {
     if (!isOpen || !closeOnEscape) return;

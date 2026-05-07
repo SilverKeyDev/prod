@@ -5,8 +5,8 @@ import { queryKeys } from "packages/config/query/keys";
 import type { AgentConversation } from "packages/features/agent/api/agent";
 import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { coreUserRoutes } from "packages/services/data/dataRoutes/coreUserRoutes";
 import { getInitialLoadRoutes, type RouteConfig } from "packages/services/data/dataConfig";
+import { coreUserRoutes } from "packages/services/data/dataRoutes/coreUserRoutes";
 import type { GoogleCalendar, UserProfile } from "packages/types";
 import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
 
@@ -221,7 +221,9 @@ export async function prefetchAllInitialData(params: PrefetchAllParams): Promise
 
   try {
     const tierAResults = await Promise.allSettled(
-      tierARoutes.map((routeConfig) => prefetchRoute({ routeConfig, userProfile: user, queryClient }))
+      tierARoutes.map((routeConfig) =>
+        prefetchRoute({ routeConfig, userProfile: user, queryClient })
+      )
     );
     const tierASucceeded = tierAResults.filter((r) => r.status === "fulfilled").length;
     const tierAFailed = tierAResults.filter((r) => r.status === "rejected").length;

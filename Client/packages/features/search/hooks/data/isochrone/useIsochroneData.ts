@@ -37,7 +37,7 @@ export function useIsochroneData(options?: UseIsochroneDataOptions): UseIsochron
 
   const shouldAutoFetch = authAllowsFetch && !skipInitialFetch;
 
-  const fetchIsochroneFromApi = useCallback(async (): Promise<IsochroneData> => {
+  const fetchIsochroneFromApi = useCallback(async (): Promise<IsochroneData | null> => {
     const response = await searchApi.getIsochrone({
       preferencesUserId: subjectId ?? undefined,
     });
@@ -50,7 +50,18 @@ export function useIsochroneData(options?: UseIsochroneDataOptions): UseIsochron
         },
       } as IsochroneData;
     }
-    throw new Error(response.error ?? "Failed to fetch isochrone data");
+    const fail = response as {
+      success?: boolean;
+      error?: string | null;
+      message?: string | null;
+    };
+    if (
+      fail.success === false &&
+      (fail.error === "NO_LOCATIONS" || fail.error === "NO_VALID_LOCATIONS")
+    ) {
+      return null;
+    }
+    throw new Error(fail.message ?? fail.error ?? "Failed to fetch isochrone data");
   }, [subjectId]);
 
   const {
@@ -58,7 +69,7 @@ export function useIsochroneData(options?: UseIsochroneDataOptions): UseIsochron
     isLoading,
     error,
     refetch: refetchIsochrone,
-  } = useQuery({
+  } = useQuery<IsochroneData | null>({
     queryKey: queryKeys.search.isochrone(subjectId),
     queryFn: fetchIsochroneFromApi,
     enabled: shouldAutoFetch, // Auto-fetch when authenticated (unless agent blank-slate)

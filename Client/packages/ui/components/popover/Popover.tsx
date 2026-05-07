@@ -5,6 +5,7 @@ import { Box } from "packages/ui/components/primitives";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import type { PopoverProps, PopoverSide } from "./Popover.types";
+import { PopoverContextProvider } from "./PopoverContext";
 import { usePopoverState } from "./usePopoverState";
 
 function panelPortalTransform(side: PopoverSide, left: number, top: number): string {
@@ -287,7 +288,12 @@ export default function Popover({
       className={`border-border bg-background-surface ${panelZ} overflow-y-auto rounded-lg border shadow-lg ${panelClassName}`}
       style={panelStyle}
     >
-      {children({ onClose, panelId, registerOutsideClickSafeTarget })}
+      <PopoverContextProvider
+        registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
+        panelStack={panelStack}
+      >
+        {children({ onClose, panelId, registerOutsideClickSafeTarget })}
+      </PopoverContextProvider>
     </Box>
   ) : null;
 

@@ -23,10 +23,7 @@ type SearchNavLinkProps = {
   onClick?: () => void;
   /** Called before navigation log with same navId for correlating downstream logs (e.g. MobileBottomNav). */
   onNavigateClick?: (navId: string) => void;
-} & Pick<
-  ComponentProps<typeof AccessibleLink>,
-  "onMouseEnter" | "onFocus" | "onTouchStart"
->;
+} & Pick<ComponentProps<typeof AccessibleLink>, "onMouseEnter" | "onFocus" | "onTouchStart">;
 
 /**
  * Link for Search tab - uses standard navigation semantics while logging route context.

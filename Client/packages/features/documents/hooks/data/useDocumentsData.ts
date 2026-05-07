@@ -74,7 +74,8 @@ export async function fetchDocumentLibraryQuery(clientId?: string): Promise<Docu
       agent_id: ((row as Record<string, unknown>).agent_id as string | null) ?? null,
       buyer_id: ((row as Record<string, unknown>).buyer_id as string | null) ?? null,
       participants:
-        ((row as Record<string, unknown>).participants as AgreementParticipantData[] | null) ?? null,
+        ((row as Record<string, unknown>).participants as AgreementParticipantData[] | null) ??
+        null,
     }));
   } catch (err) {
     log.error(LOG_CATEGORIES.ERRORS, "Error fetching documents", err);

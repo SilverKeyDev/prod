@@ -102,7 +102,11 @@ function HeaderLeftContent({
       );
     case "inbox":
       return (
-        <Title as="h2" size="lg" className={`flex items-center gap-2 ${sidebarInsetHeaderTitleClass()}`}>
+        <Title
+          as="h2"
+          size="lg"
+          className={`flex items-center gap-2 ${sidebarInsetHeaderTitleClass()}`}
+        >
           <MiniLogo size="sm" />
           {t("agent.inbox")}
         </Title>
@@ -110,7 +114,11 @@ function HeaderLeftContent({
     case "clients":
       return (
         <Box className="flex items-center gap-2">
-          <Title as="h2" size="lg" className={`flex items-center gap-2 ${sidebarInsetHeaderTitleClass()}`}>
+          <Title
+            as="h2"
+            size="lg"
+            className={`flex items-center gap-2 ${sidebarInsetHeaderTitleClass()}`}
+          >
             <MiniLogo size="sm" />
             {t("agent.clients")}
           </Title>
@@ -119,7 +127,11 @@ function HeaderLeftContent({
     case "agents":
       return (
         <Box className="flex items-center gap-2">
-          <Title as="h2" size="lg" className={`flex items-center gap-2 ${sidebarInsetHeaderTitleClass()}`}>
+          <Title
+            as="h2"
+            size="lg"
+            className={`flex items-center gap-2 ${sidebarInsetHeaderTitleClass()}`}
+          >
             <MiniLogo size="sm" />
             {t("agent.messaging_sidebar_agents")}
           </Title>

@@ -125,8 +125,8 @@ export default function OnboardingFinancialSection({
                 {FIELD_LABELS.DOWN_PAYMENT}
               </Label>
               <PriceRangeSlider
-                tickValues={[100000, 250000, 500000, 1000000, 2000000, 5000000]}
-                value={formData.down_payment ?? 100000}
+                tickValues={[0, 100000, 250000, 500000, 1000000, 2000000, 5000000]}
+                value={formData.down_payment ?? 0}
                 onChange={(value) => {
                   const roundedValue = Math.round(value / 5000) * 5000;
                   updateFormData("down_payment", roundedValue);

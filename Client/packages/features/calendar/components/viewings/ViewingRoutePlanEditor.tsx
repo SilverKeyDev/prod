@@ -288,7 +288,7 @@ export function ViewingRoutePlanEditor({
               className={
                 endMode === "last_property"
                   ? "border border-neutral-400 bg-neutral-100 hover:bg-neutral-200/90"
-                  : "border border-transparent text-text-secondary hover:bg-neutral-100 hover:text-text-primary"
+                  : "text-text-secondary hover:text-text-primary border border-transparent hover:bg-neutral-100"
               }
               onClick={() => onEndModeChange("last_property")}
             >
@@ -302,11 +302,10 @@ export function ViewingRoutePlanEditor({
               iconName="refresh-cw"
               className={
                 endMode === "return_to_start"
-                  ? "border border-olive bg-olive-muted [&_*]:text-olive hover:bg-olive-muted/90"
-                  : "border border-transparent text-text-secondary hover:bg-olive/10 hover:text-olive"
+                  ? "border border-neutral-400 bg-neutral-100 hover:bg-neutral-200/90"
+                  : "text-text-secondary hover:text-text-primary border border-transparent hover:bg-neutral-100"
               }
               onClick={() => onEndModeChange("return_to_start")}
-              disabled={!viewingEndpointHasRoutingInput(startEndpoint)}
             >
               Return to start
             </Button>
@@ -318,8 +317,8 @@ export function ViewingRoutePlanEditor({
               iconName="map-pin"
               className={
                 endMode === "fixed"
-                  ? "border border-gold bg-gold-muted [&_*]:text-gold hover:bg-gold-muted/90"
-                  : "border border-transparent text-text-secondary hover:bg-gold-muted/70 hover:text-gold"
+                  ? "border border-neutral-400 bg-neutral-100 hover:bg-neutral-200/90"
+                  : "text-text-secondary hover:text-text-primary border border-transparent hover:bg-neutral-100"
               }
               onClick={() => onEndModeChange("fixed")}
             >
