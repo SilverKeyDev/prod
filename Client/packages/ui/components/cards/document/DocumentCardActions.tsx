@@ -6,6 +6,7 @@ import { Icon } from "@ui/icons";
 import PdfModal from "@ui/modals/PdfModal";
 import DeleteModal from "@ui/modals/standalone/DeleteModal";
 
+import { useLocalization } from "packages/contexts";
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
@@ -45,6 +46,7 @@ function DocumentCardActionButtons({
   onDeleteClick: () => void;
   layout?: "card" | "list";
 }) {
+  const { t } = useLocalization();
   const isAgreement = doc.library_kind === "agreement";
   const isList = layout === "list";
   const primaryClass = isList ? "min-w-0 flex-1 justify-center px-2" : "justify-center";
@@ -92,7 +94,7 @@ function DocumentCardActionButtons({
             fullWidth={!isList}
             className={primaryClass}
           >
-            Send for Signature
+            {t("forms.send_for_signature")}
           </Button>
         ) : null}
       </Box>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 
 import type { TaskChecklistItem } from "packages/features/checklists/api/checklists";
 import {
@@ -13,6 +13,7 @@ import type { ChecklistItemToggleEligibility } from "packages/features/checklist
 import ChecklistCheckbox from "packages/ui/components/form/ChecklistCheckbox";
 import { Box } from "packages/ui/components/primitives";
 import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/primitives/divider/dividerStyles";
+import { ConfirmationDialog } from "packages/ui/components/modals";
 
 import { IconButton } from "@/components/ui";
 
@@ -64,12 +65,36 @@ function ChecklistLayoutItemRowInner({
   const { canCheck, canUncheck, canMarkChecked } = getItemToggleEligibility(roadmapTab, item.id);
   const checkboxDisabled = (!rowChecked && !canCheck) || (rowChecked && !canUncheck);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleCheckboxToggle = useCallback(() => {
+    if (checkboxDisabled) {
+      setConfirmOpen(true);
+    } else {
+      onToggleItem(item.id);
+    }
+  }, [checkboxDisabled, item.id, onToggleItem]);
+
+  const handleConfirm = useCallback(() => {
+    setConfirmOpen(false);
+    void commitToggleItem(item.id);
+  }, [commitToggleItem, item.id]);
+
+  const handleCancelConfirm = useCallback(() => {
+    setConfirmOpen(false);
+  }, []);
+
+  const confirmTitle = rowChecked ? "Uncheck this step?" : "Mark as complete?";
+  const confirmMessage = rowChecked
+    ? "The system indicates this step should remain completed. You can still uncheck it if needed."
+    : "The system indicates you haven't completed the required steps or materials for this item. You can still mark it complete.";
+  const confirmText = rowChecked ? "Uncheck anyway" : "Mark complete";
+
   const isActive = activeItemIds.includes(item.id);
   const shouldShowIntegration = (item as { component_key?: string }).component_key != null;
   const expanded = isExpanded(item.id);
-  const isCurrentRow = rowKind === "current";
-  const showDetails = isCurrentRow ? true : expanded;
-  const showIntegrationBlock = shouldShowIntegration && (isCurrentRow || expanded);
+  const showDetails = expanded;
+  const showIntegrationBlock = shouldShowIntegration && expanded;
 
   const checklistItem: ChecklistCloseLayoutCheckboxItem = {
     id: item.id,
@@ -84,6 +109,16 @@ function ChecklistLayoutItemRowInner({
   const hasHeaderSubmit = Boolean(submitRegistry?.registration);
 
   return (
+    <>
+      <ConfirmationDialog
+        isOpen={confirmOpen}
+        title={confirmTitle}
+        message={confirmMessage}
+        confirmText={confirmText}
+        cancelText="Cancel"
+        onConfirm={handleConfirm}
+        onCancel={handleCancelConfirm}
+      />
     <Box
       className={`w-full rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY} ${
         isActive
@@ -96,22 +131,17 @@ function ChecklistLayoutItemRowInner({
           <ChecklistCheckbox
             item={checklistItem}
             checked={rowChecked}
-            onToggle={() => onToggleItem(item.id)}
+            onToggle={handleCheckboxToggle}
             itemLabelClass={itemLabel}
             itemExplanationClass={itemExplanation}
             checkboxContainerClass={checkboxContainer}
             number={globalIndex + 1}
             showDetails={showDetails}
-            disabled={checkboxDisabled}
           />
         </Box>
         <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-1">
           <ChecklistStepHeaderSubmitButton integrationVisible={showIntegrationBlock} />
-          {isCurrentRow ? (
-            hasHeaderSubmit ? null : (
-              <Box className="h-6 w-6 flex-shrink-0" aria-hidden />
-            )
-          ) : (
+          {hasHeaderSubmit ? null : (
             <IconButton
               variant="ghost"
               size="sm"
@@ -133,6 +163,7 @@ function ChecklistLayoutItemRowInner({
         />
       ) : null}
     </Box>
+    </>
   );
 }
 

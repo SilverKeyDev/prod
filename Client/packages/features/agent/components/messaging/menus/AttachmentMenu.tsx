@@ -95,7 +95,7 @@ export default function AttachmentMenu({
               {onSelectForm && (
                 <AttachmentMenuItem
                   iconName="file-text"
-                  title={t("agent.share_form", { defaultValue: "Share Form" })}
+                  title={t("agent.share_form")}
                   onClick={closeAnd(onSelectForm)}
                 />
               )}

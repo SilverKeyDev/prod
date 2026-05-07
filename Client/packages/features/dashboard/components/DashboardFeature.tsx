@@ -2,7 +2,11 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react
 
 import { useQueryClient } from "@tanstack/react-query";
 
-import { type AgendaTodoDTO, UpcomingEvents } from "packages/features/calendar";
+// Deep imports (not via "packages/features/calendar" barrel) so the dashboard
+// chunk does not pay the cost of loading Calendar/CalendarConnectionPrompt/
+// EventRequestCard/CreateEventModal/etc. just to render UpcomingEvents.
+import { UpcomingEvents } from "packages/features/calendar/components/agenda/UpcomingEvents";
+import type { AgendaTodoDTO } from "packages/features/calendar/types/agenda";
 import { useDocumentsDataIntegration } from "packages/features/documents";
 import { useIsAgent } from "packages/features/homeauth";
 import { submitAgentAgendaTodo } from "packages/hooks/data/agenda/agentAgendaTodoSubmit";
@@ -23,14 +27,20 @@ import { useCalendarOAuthCallback } from "@/features/calendar/hooks/data";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
 
 import ClientHubScreen from "./ClientHub/ClientHubScreen";
-import ClientList from "./ClientList/ClientList";
-import DashboardChecklists from "./DashboardChecklists/DashboardChecklists";
 
+// Lazy-loaded so the dashboard shell (upcoming events) can render before the
+// agent-only client list / client-only checklists chunks finish loading.
+const ClientList = lazy(() => import("./ClientList/ClientList"));
+const DashboardChecklists = lazy(() => import("./DashboardChecklists/DashboardChecklists"));
 const DashboardAgreementSigningModals = lazy(() => import("./DashboardAgreementSigningModals"));
 const DashboardCalendarPanel = lazy(() => import("./DashboardCalendarPanel"));
 
 const dashboardCalendarSkeleton = (
   <Box className="h-56 w-full animate-pulse rounded-xl bg-muted/50 md:h-72" />
+);
+
+const dashboardSectionSkeleton = (
+  <Box className="h-40 w-full animate-pulse rounded-xl bg-muted/50 md:h-56" />
 );
 
 type DashboardFeatureProps = {
@@ -161,9 +171,17 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
           headerActions={headerActions}
         />
 
-        {isAgent ? <ClientList onClientClick={handleClientClick} /> : null}
+        {isAgent ? (
+          <Suspense fallback={dashboardSectionSkeleton}>
+            <ClientList onClientClick={handleClientClick} />
+          </Suspense>
+        ) : null}
 
-        {!isAgent ? <DashboardChecklists /> : null}
+        {!isAgent ? (
+          <Suspense fallback={dashboardSectionSkeleton}>
+            <DashboardChecklists />
+          </Suspense>
+        ) : null}
 
         <Suspense fallback={dashboardCalendarSkeleton}>
           <DashboardCalendarPanel

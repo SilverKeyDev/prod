@@ -361,7 +361,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
 
   return {
     user,
-    isAuthenticated: !!user && !!accessToken,
+    isAuthenticated: !!accessToken,
     isLoading,
     error,
     needsVerification,

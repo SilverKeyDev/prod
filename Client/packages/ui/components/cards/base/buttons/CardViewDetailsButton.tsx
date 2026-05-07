@@ -42,7 +42,7 @@ function CardViewDetailsButton({
   className = "",
 }: CardViewDetailsButtonProps) {
   const { t } = useLocalization();
-  const text = textProp ?? t("common.unlock");
+  const text = textProp ?? t("common.view_details");
   const [isUnlocking, setIsUnlocking] = useState(false);
   // Size variants using utilities.css classes
   const sizeStyles = {

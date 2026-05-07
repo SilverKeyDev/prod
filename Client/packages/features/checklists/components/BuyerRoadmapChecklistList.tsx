@@ -52,6 +52,11 @@ export type BuyerRoadmapChecklistListProps = {
     item: TaskChecklistItem,
     ctx: ChecklistItemToggleEligibility
   ) => ReactNode;
+  /**
+   * Footer for all users below the row (e.g. signing cards via TodoAgendaRow).
+   * Called for each item; return null to skip.
+   */
+  renderItemFooter?: (item: TaskChecklistItem) => ReactNode;
   /** When set with checklistCategory, agents see automation settings on eligible steps. */
   hubClientUserId?: string | null;
   checklistCategory?: ChecklistType | null;
@@ -62,10 +67,11 @@ export type BuyerRoadmapChecklistListProps = {
   onRoadmapTabNavigate?: (tab: ChecklistTab) => void;
 };
 
-type TabDisclosure = { futureOpen: boolean };
+type TabDisclosure = { futureOpen: boolean; completedOpen: boolean };
 
 const defaultTabDisclosure: TabDisclosure = {
   futureOpen: false,
+  completedOpen: false,
 };
 
 export function BuyerRoadmapChecklistList({
@@ -83,6 +89,7 @@ export function BuyerRoadmapChecklistList({
   hideIntegrationComponents = false,
   subtitle,
   renderItemAgentFooter,
+  renderItemFooter,
   hubClientUserId = null,
   checklistCategory = null,
   isAgent = false,
@@ -131,10 +138,11 @@ export function BuyerRoadmapChecklistList({
       buildProgressiveChecklistRows(sortedItems, activeItemId, {
         previewUpcoming: DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
         futureOpen: disclosure.futureOpen,
+        completedOpen: disclosure.completedOpen,
         revealedCompletedItemId,
         useProgressiveStructure: true,
       }),
-    [sortedItems, activeItemId, disclosure.futureOpen, revealedCompletedItemId]
+    [sortedItems, activeItemId, disclosure.futureOpen, disclosure.completedOpen, revealedCompletedItemId]
   );
 
   const futureHidden = getHiddenFutureItemCount(
@@ -189,6 +197,7 @@ export function BuyerRoadmapChecklistList({
     isAgent,
     onOpenDispatchModal: setDispatchModalItemId,
     renderItemAgentFooter,
+    renderItemFooter,
     getRoadmapItemBlocker,
     sectionProgress,
     onRoadmapTabNavigate,
@@ -249,21 +258,44 @@ export function BuyerRoadmapChecklistList({
             {segments.map((segment, segIdx) => {
                   if (segment.kind === "completed_collapsed") {
                     return (
-                      <Box
+                      <Pressable
                         key={`cc-${segIdx}`}
+                        onPress={() => setTabDisclosure({ completedOpen: true })}
                         className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                        accessibilityRole="text"
+                        accessibilityRole="button"
+                        aria-expanded={false}
                       >
                         <Icon
                           name="chevron-right"
-                          className="text-text-secondary h-4 w-4 shrink-0 opacity-60"
+                          className="text-text-secondary h-4 w-4 shrink-0"
                         />
                         <Text className="text-text-primary text-sm font-medium">
                           {t("checklists.progressive.completed_collapsed", {
                             count: segment.count,
                           })}
                         </Text>
-                      </Box>
+                      </Pressable>
+                    );
+                  }
+                  if (segment.kind === "completed_expanded_header") {
+                    return (
+                      <Pressable
+                        key={`ceh-${segIdx}`}
+                        onPress={() => setTabDisclosure({ completedOpen: false })}
+                        className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
+                        accessibilityRole="button"
+                        aria-expanded
+                      >
+                        <Icon
+                          name="chevron-down"
+                          className="text-text-secondary h-4 w-4 shrink-0"
+                        />
+                        <Text className="text-text-primary text-sm font-medium">
+                          {t("checklists.progressive.completed_collapsed", {
+                            count: segment.count,
+                          })}
+                        </Text>
+                      </Pressable>
                     );
                   }
                   if (segment.kind === "future_collapsed") {

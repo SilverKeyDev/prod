@@ -28,6 +28,19 @@ describe("applyOnboardingRoleSelection", () => {
     expect(patches.is_agent).toBe("no");
     expect(patches.why_joining_silverkey).toEqual([WHY_JOIN_FOR_ROLE.buyer]);
   });
+
+  it("maps seller to is_agent no and both buying + selling intents", () => {
+    const patches: Record<string, unknown> = {};
+    applyOnboardingRoleSelection("seller", (k, v) => {
+      patches[String(k)] = v;
+    });
+    expect(patches.primary_onboarding_role).toBe("seller");
+    expect(patches.is_agent).toBe("no");
+    expect(patches.why_joining_silverkey).toEqual([
+      WHY_JOIN_FOR_ROLE.buyer,
+      WHY_JOIN_FOR_ROLE.seller,
+    ]);
+  });
 });
 
 describe("primaryOnboardingRoleFromForm", () => {
@@ -51,6 +64,15 @@ describe("primaryOnboardingRoleFromForm", () => {
         why_joining_silverkey: ["buying_house"],
       })
     ).toBe("buyer");
+  });
+
+  it("infers seller when buyer and seller intents both exist", () => {
+    expect(
+      primaryOnboardingRoleFromForm({
+        is_agent: "no",
+        why_joining_silverkey: [WHY_JOIN_FOR_ROLE.buyer, WHY_JOIN_FOR_ROLE.seller],
+      })
+    ).toBe("seller");
   });
 });
 

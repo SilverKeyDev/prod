@@ -1,5 +1,7 @@
+import { startTransition } from "react";
+
 import { QueryClientProvider } from "@tanstack/react-query";
-import { createRoot, Root } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 
 import { queryClient } from "packages/config/query/queryClient";
 import { LocalizationProvider } from "packages/contexts";
@@ -10,7 +12,14 @@ import MapPropertyCard, { type MapPropertyCardProps } from "./MapPropertyCard";
 // Store React roots to manage them properly
 const rootMap = new WeakMap<HTMLElement, Root>();
 
-// Helper function to render MapPropertyCard into a DOM element
+// Helper function to render MapPropertyCard into a DOM element.
+// Uses startTransition so React treats each marker render as a non-urgent update
+// and can yield to the browser between markers. This prevents the main-thread
+// blocking (~900–1800 ms violations) that occurred when flushSync was used to
+// render all markers synchronously in sequence.
+// Note: Google Maps may later wrap the container with `content-visibility: auto`,
+// which can produce a "Rendering in subtree hidden by content-visibility" console
+// warning. That warning is cosmetic and does not affect correctness or rendering.
 export const renderMapPropertyCard = (
   container: HTMLElement,
   props: MapPropertyCardProps,
@@ -19,7 +28,6 @@ export const renderMapPropertyCard = (
   // Clean up existing root if it exists
   const existingRoot = rootMap.get(container);
   if (existingRoot) {
-    // Use immediate unmount for render function since we're replacing content
     try {
       existingRoot.unmount();
     } catch (error) {
@@ -36,16 +44,18 @@ export const renderMapPropertyCard = (
   const root = createRoot(container);
   rootMap.set(container, root);
 
-  // Render the component with the callback and a unique key to force proper updates
-  // Include external contextKey (e.g., activeTab) to remount once per context change
+  // Render the component with the callback and a unique key to force proper updates.
+  // Include external contextKey (e.g., activeTab) to remount once per context change.
   const componentKey = `${props.property.id}-${props.isSaved ? "saved" : "unsaved"}-${props.showScore ? "scored" : "unscored"}-${props.contextKey ?? ""}`;
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <LocalizationProvider>
-        <MapPropertyCard key={componentKey} {...props} onCardRendered={onCardRendered} />
-      </LocalizationProvider>
-    </QueryClientProvider>
-  );
+  startTransition(() => {
+    root.render(
+      <QueryClientProvider client={queryClient}>
+        <LocalizationProvider>
+          <MapPropertyCard key={componentKey} {...props} onCardRendered={onCardRendered} />
+        </LocalizationProvider>
+      </QueryClientProvider>
+    );
+  });
 };
 
 // Helper function to clean up React root for a container

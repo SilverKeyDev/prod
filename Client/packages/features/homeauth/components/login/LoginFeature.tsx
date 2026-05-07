@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 import { Icon } from "@ui/icons";
 
+import { AgentConnectBanner } from "packages/features/agent";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
 import AuthDivider from "packages/features/homeauth/components/core/Divider";
 import AuthLink from "packages/features/homeauth/components/core/Link";
@@ -63,6 +64,7 @@ export function LoginFeature() {
       showHeader={false}
       error={error ?? undefined}
     >
+      <AgentConnectBanner />
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="card space-y-responsive-md">
         <Input

@@ -39,7 +39,24 @@ function applySessionResult(
   storage: AuthBootstrapStorage
 ): void {
   const { setStoreUser, setIsAuthenticated, setStoreAuthStatus } = setters;
-  if (sessionResult.success && sessionResult.user) {
+  if (sessionResult.success) {
+    if (!sessionResult.user) {
+      // Keep authenticated state when server confirms session but omits user payload.
+      // Downstream hooks/components must handle missing profile data gracefully.
+      secureLogger.warn(
+        "🔍 FRONTEND_AUTH_BOOTSTRAP_MISSING_USER",
+        "Session is valid but user payload is missing",
+        {
+          requestId,
+          currentPath,
+        }
+      );
+      setStoreUser(null);
+      setIsAuthenticated(true);
+      setStoreAuthStatus("authenticated");
+      return;
+    }
+
     const user = sessionResult.user;
     if ("created_at" in user && "is_active" in user) {
       secureLogger.info(

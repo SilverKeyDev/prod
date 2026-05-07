@@ -142,7 +142,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
                 />
               }
               className="text-text-secondary hover:text-text-primary shrink-0 touch-manipulation"
-              label={t("common.back", { defaultValue: "Back" })}
+              label={t("common.back")}
             />
             {displayAddress ? (
               <Text
@@ -194,7 +194,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
                 <Icon name="share" className="text-text-secondary h-4 w-4 shrink-0 sm:h-4 sm:w-4" />
               }
               className="text-text-secondary hover:text-accent shrink-0 touch-manipulation"
-              label={t("common.share_aria", { defaultValue: "Share" })}
+              label={t("common.share_aria")}
             />
             <ConnectedCardHeartSave
               property={normalizePropertyForFavorites(property)}

@@ -1,17 +1,19 @@
+import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
 /** Shared translation strings (common, form, validation, feedback, house). Used by LocalizationContext. */
 export const SHARED_TRANSLATIONS: Record<string, string> = {
-  "common.save": "Save",
+  "common.save": ACTION_LABELS.SAVE,
   "common.cancel": "Cancel",
   "common.loading": "Loading...",
   "common.error": "An error occurred",
   "common.delete": "Delete",
-  "common.view": "View",
-  "common.unlock": "View",
+  "common.view": ACTION_LABELS.VIEW,
+  "common.view_details": ACTION_LABELS.VIEW_DETAILS,
+  "common.remove": ACTION_LABELS.REMOVE,
   "common.skip": "Skip",
   "common.edit": "Edit",
   "common.saving": "Saving...",
   "common.space": " ",
-  "common.share_aria": "Share",
+  "common.share_aria": ACTION_LABELS.SHARE,
   "common.mb": "MB",
   "common.saved": "Saved",
   "common.back": "Back",

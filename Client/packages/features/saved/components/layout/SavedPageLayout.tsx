@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 
+import { useLocalization } from "packages/contexts";
 import type { DocumentData } from "packages/features/documents";
 import SavedPageTabsAndSearch from "packages/features/saved/components/header/SavedPageTabsAndSearch";
 import SavedHomesContent from "packages/features/saved/components/SavedHomesContent";
@@ -149,6 +150,7 @@ export function SavedPageLayout({
   onViewSignedAgreement,
   sendForSignatureModal,
 }: SavedPageLayoutProps) {
+  const { t } = useLocalization();
   return (
     <Box>
       <PdfModal
@@ -272,7 +274,7 @@ export function SavedPageLayout({
           <BaseModal
             isOpen={sendForSignatureModal.isOpen}
             onClose={sendForSignatureModal.onClose}
-            title="Send for Signature"
+            title={t("forms.send_for_signature")}
             size="md"
             showCloseButton
             closeOnBackdropClick={!sendForSignatureModal.isSubmitting}
@@ -308,7 +310,7 @@ export function SavedPageLayout({
                   disabled={sendForSignatureModal.isSubmitting}
                   iconName="arrow-left"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button
                   variant="primary"
@@ -322,7 +324,7 @@ export function SavedPageLayout({
                   }
                   iconName="send"
                 >
-                  {sendForSignatureModal.isSubmitting ? "Sending..." : "Send"}
+                  {sendForSignatureModal.isSubmitting ? t("agent.sending") : t("agent.send")}
                 </Button>
               </Box>
             </Box>

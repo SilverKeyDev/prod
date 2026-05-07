@@ -12,7 +12,6 @@ import {
   effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   type OnboardingData,
-  WHY_JOINING_SILVERKEY_OPTIONS,
 } from "@/features/profile/utils";
 
 type DemographicsStepProps = {
@@ -32,15 +31,6 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
     authIsAgent,
     formIsAgent: formData.is_agent,
   });
-  const toggleWhyJoining = (value: string) => {
-    const current = Array.isArray(formData.why_joining_silverkey)
-      ? formData.why_joining_silverkey
-      : [];
-    const exists = current.includes(value);
-    const next = exists ? current.filter((v) => v !== value) : [...current, value];
-    updateFormData("why_joining_silverkey", next);
-  };
-
   const toggleLookingForAgent = () => {
     updateFormData("looking_for_buyers_agent", !formData.looking_for_buyers_agent);
   };
@@ -56,7 +46,7 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
           onValueChange={(v) => updateFormData("age", v ? parseInt(v, 10) : undefined)}
           placeholder="Enter your age"
           keyboardType="number-pad"
-          className={MOBILE_TEXT_INPUT_CLASS}
+          className={`${MOBILE_TEXT_INPUT_CLASS} w-full`}
         />
       </Box>
 
@@ -75,39 +65,6 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
 
       {showBuyerFacingDemographics && (
         <>
-          <Box>
-            <Text className="text-text-secondary mb-2 text-sm font-medium">
-              {FIELD_LABELS.WHY_JOINING_SILVERKEY}
-            </Text>
-            <Text className="text-text-secondary mb-3 text-xs">
-              Choose all that apply. We use this only to route onboarding and set defaults.
-            </Text>
-            <Box className="flex flex-row flex-wrap gap-2">
-              {WHY_JOINING_SILVERKEY_OPTIONS.map((option) => {
-                const selected =
-                  Array.isArray(formData.why_joining_silverkey) &&
-                  formData.why_joining_silverkey.includes(option.value);
-                return (
-                  <Pressable
-                    key={option.value}
-                    onPress={() => toggleWhyJoining(option.value)}
-                    className={`rounded-full border px-4 py-2 ${
-                      selected ? "border-primary bg-primary" : "border-border bg-background-surface"
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-medium ${
-                        selected ? "text-primary" : "text-text-secondary"
-                      }`}
-                    >
-                      {option.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </Box>
-          </Box>
-
           <Box className="gap-3">
             <Box>
               <Text className="text-text-secondary mb-2 text-sm font-medium">

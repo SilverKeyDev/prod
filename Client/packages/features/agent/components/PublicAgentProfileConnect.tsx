@@ -4,6 +4,7 @@ import { useLocalization } from "packages/contexts";
 import { useUserData } from "packages/hooks/data/user/useUserData";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore, useUIStore } from "packages/store";
+import { ProfileAvatar } from "packages/ui/components/avatar/ProfileAvatar";
 import Button from "packages/ui/components/button/Button";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
@@ -17,14 +18,20 @@ export type PublicAgentProfileConnectProps = {
   agentId: string;
   /** When the signed-in viewer is the agent who owns this public profile. */
   isOwnProfile: boolean;
+  /** Display name of the agent — used in the modal and stored as pending intent metadata. */
+  agentName?: string;
+  /** Profile photo URL for the agent — shown in the modal and stored as pending intent metadata. */
+  agentPhotoUrl?: string;
 };
 
 export function PublicAgentProfileConnect({
   agentId,
   isOwnProfile,
+  agentName,
+  agentPhotoUrl,
 }: PublicAgentProfileConnectProps) {
   const { t } = useLocalization();
-  const { navigate, getCurrentRoute } = useNavigation();
+  const { navigate } = useNavigation();
   const authReady = useAuthStore((s) => s.authReady);
   const authUser = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -81,26 +88,32 @@ export function PublicAgentProfileConnect({
   }, [authReady, isAuthenticated, sendConnectRequest]);
 
   const handleSignIn = useCallback(() => {
-    setPendingPublicAgentConnect(agentId);
-    const { pathname, search } = getCurrentRoute();
-    const returnPath = `${pathname}${search ?? ""}`;
+    setPendingPublicAgentConnect(agentId, { name: agentName, photoUrl: agentPhotoUrl });
     setAuthModalOpen(false);
-    navigate("LOGIN", undefined, {
-      state: { from: { pathname: returnPath } },
-    });
-  }, [agentId, getCurrentRoute, navigate]);
+    // Navigate directly to login with no return path — the resume hook will handle
+    // sending the connection request after auth and navigate to DASHBOARD cleanly.
+    navigate("LOGIN");
+  }, [agentId, agentName, agentPhotoUrl, navigate]);
 
   const handleCreateAccount = useCallback(() => {
-    setPendingPublicAgentConnect(agentId);
+    setPendingPublicAgentConnect(agentId, { name: agentName, photoUrl: agentPhotoUrl });
     setAuthModalOpen(false);
     navigate("SIGNUP");
-  }, [agentId, navigate]);
+  }, [agentId, agentName, agentPhotoUrl, navigate]);
 
   if (isOwnProfile) {
     return null;
   }
 
   const connectDisabled = !authReady || (isAuthenticated && !initiatorId) || isCreatingRequest;
+
+  const modalTitle = agentName
+    ? t("profile.public.connect_modal_title_with_agent", { agentName })
+    : t("profile.public.connect_modal_title");
+
+  const modalBody = agentName
+    ? t("profile.public.connect_modal_body_with_agent", { agentName })
+    : t("profile.public.connect_modal_body");
 
   return (
     <>
@@ -120,18 +133,33 @@ export function PublicAgentProfileConnect({
       <BaseModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
-        title={t("profile.public.connect_modal_title")}
+        title={modalTitle}
         size="sm"
         showCloseButton
         showHeaderBorder
       >
         <Box className="flex flex-col gap-6">
-          <BodyText
-            size="sm"
-            className="whitespace-pre-line text-text-secondary leading-relaxed"
-          >
-            {t("profile.public.connect_modal_body")}
-          </BodyText>
+          {agentName ? (
+            <Box className="flex items-center gap-3">
+              <Box className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                <ProfileAvatar
+                  imageUrl={agentPhotoUrl}
+                  label={agentName}
+                  imageClassName="h-full w-full object-cover"
+                />
+              </Box>
+              <BodyText size="sm" className="text-text-secondary leading-relaxed">
+                {modalBody}
+              </BodyText>
+            </Box>
+          ) : (
+            <BodyText
+              size="sm"
+              className="whitespace-pre-line text-text-secondary leading-relaxed"
+            >
+              {modalBody}
+            </BodyText>
+          )}
           <Box className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
             <Button
               variant="primary"

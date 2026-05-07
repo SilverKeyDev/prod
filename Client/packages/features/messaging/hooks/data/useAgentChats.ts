@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -60,6 +60,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
   const authReady = useAuthStore((s) => s.authReady);
   const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
   const setTotalUnreadCount = useNotificationStore((s) => s.setTotalUnreadCount);
+  const lastConvUnreadSyncRef = useRef<string>("");
 
   // Check cache first when enabled becomes true (cache-first strategy)
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
@@ -337,9 +338,23 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     refetchOnMount: false,
   });
 
-  // Sync unread counts from conversations to notification store
+  // Sync unread counts from conversations to notification store.
+  //
+  // We compute a fingerprint of (id, count) pairs first and bail out when it
+  // matches the last sync. Without this guard, every refetch (every 8s on
+  // /messaging) called `setUnreadCount` N times, and even when each call was
+  // idempotent the per-instance work added up. With this guard the entire
+  // effect short-circuits when nothing actually changed.
   useEffect(() => {
     const convs = conversationsResponse ?? [];
+    let signature = "";
+    for (const conv of convs) {
+      if (conv.unread_count !== undefined) {
+        signature += `${conv.id}:${conv.unread_count}|`;
+      }
+    }
+    if (signature === lastConvUnreadSyncRef.current) return;
+    lastConvUnreadSyncRef.current = signature;
     for (const conv of convs) {
       if (conv.unread_count !== undefined) {
         setUnreadCount(conv.id, conv.unread_count);

@@ -90,14 +90,27 @@ export async function runCheckForNewMessages(params: RunCheckForNewMessagesParam
 
     queryClient.setQueryData(queryKey, conversations);
 
-    // Invalidate client-specific conversation queries so they refetch with their own filter,
-    // rather than overwriting them with the full unfiltered list.
-    const queryCache = queryClient.getQueryCache();
-    const allQueries = queryCache.getAll();
-    for (const query of allQueries) {
-      const k = query.queryKey;
-      if (Array.isArray(k) && k.length > 2 && k[0] === "agent" && k[1] === "conversations") {
-        void queryClient.invalidateQueries({ queryKey: k });
+    // Only invalidate client-specific conversation queries when the underlying
+    // conversation list actually changed; otherwise every poll tick fires N
+    // refetches and N rerender cascades for no reason.
+    const conversationsChanged =
+      previousConversations.length !== conversations.length ||
+      conversations.some((conv) => {
+        const prev = previousConversations.find((p) => p.id === conv.id);
+        return (
+          !prev ||
+          prev.last_message_at !== conv.last_message_at ||
+          prev.unread_count !== conv.unread_count
+        );
+      });
+    if (conversationsChanged) {
+      const queryCache = queryClient.getQueryCache();
+      const allQueries = queryCache.getAll();
+      for (const query of allQueries) {
+        const k = query.queryKey;
+        if (Array.isArray(k) && k.length > 2 && k[0] === "agent" && k[1] === "conversations") {
+          void queryClient.invalidateQueries({ queryKey: k });
+        }
       }
     }
 
@@ -235,6 +248,11 @@ export function setupSyncNotificationEffect(
 
   syncNotificationCounter();
 
+  // The query cache subscription below already pushes updates as soon as
+  // notification-counter changes, so we don't need a 2s wall-clock setInterval
+  // calling setTotalUnreadCount unconditionally — that was firing every 2s and
+  // (combined with non-idempotent store setters) causing every notification
+  // subscriber to re-render on a 2s cadence.
   const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
     if (
       event?.type === "updated" &&
@@ -249,10 +267,7 @@ export function setupSyncNotificationEffect(
     }
   });
 
-  const intervalId = setInterval(syncNotificationCounter, 2000);
-
   return () => {
     unsubscribe();
-    clearInterval(intervalId);
   };
 }

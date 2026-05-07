@@ -1,4 +1,6 @@
 /** Saved feature translation strings (saved, why_not, modals.not_interested, modals.share_home). */
+import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+
 export const SAVED_TRANSLATIONS: Record<string, string> = {
   // Saved tab labels and loading states
   "saved.tab_homes": "Homes",
@@ -53,12 +55,12 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "saved.bedrooms_label": "{{count}} bed",
   "saved.bathrooms_label": "{{count}} bath",
   "saved.sqft_label": "{{value}} sqft",
-  "saved.view_details_button": "View details",
+  "saved.view_details_button": ACTION_LABELS.VIEW_DETAILS,
   "saved.unknown_address": "Address unknown",
   "saved.selected_for_comparison": "Selected for comparison",
   "saved.add_to_compare": "Add to compare",
   "saved.remove_from_compare": "Remove from compare",
-  "saved.unlock_home": "View",
+  "saved.unlock_home": ACTION_LABELS.VIEW_DETAILS,
   "saved.negotiate": "Negotiate",
   "saved.compare_bar_title": "Compare selected homes",
   "saved.compare_bar_subtitle": "{{count}} selected",
@@ -68,9 +70,9 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "saved.compare_modal_empty": "Select at least two homes to compare.",
 
   // Saved documents
-  "saved.view_document": "View",
+  "saved.view_document": ACTION_LABELS.VIEW,
   "saved.download_document": "Download",
-  "saved.share_document": "Share",
+  "saved.share_document": ACTION_LABELS.SHARE,
   "saved.delete_document": "Delete",
   "saved.upload_document": "Upload document",
 
@@ -123,5 +125,5 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "modals.share_home.message_optional": "Message (optional)",
   "modals.share_home.sharing": "Sharing...",
   "modals.share_home.copy_link": "Copy Property Link",
-  "modals.share_home.share": "Share",
+  "modals.share_home.share": ACTION_LABELS.SHARE,
 };

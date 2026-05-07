@@ -31,7 +31,10 @@ export function applyOnboardingRoleSelection(
       break;
     case "seller":
       updateFormData("is_agent", "no");
-      updateFormData("why_joining_silverkey", [WHY_JOIN_FOR_ROLE.seller]);
+      updateFormData("why_joining_silverkey", [
+        WHY_JOIN_FOR_ROLE.buyer,
+        WHY_JOIN_FOR_ROLE.seller,
+      ]);
       break;
     case "investor":
       updateFormData("is_agent", "no");
@@ -58,8 +61,9 @@ export function primaryOnboardingRoleFromForm(
   if (isAgent) return "agent";
   const w = formData.why_joining_silverkey;
   if (!Array.isArray(w)) return undefined;
-  if (w.includes(WHY_JOIN_FOR_ROLE.buyer)) return "buyer";
+  // Seller defaults include both buying_house and selling_house; prefer seller when both exist.
   if (w.includes(WHY_JOIN_FOR_ROLE.seller)) return "seller";
+  if (w.includes(WHY_JOIN_FOR_ROLE.buyer)) return "buyer";
   if (w.includes(WHY_JOIN_FOR_ROLE.investor)) return "investor";
   return undefined;
 }

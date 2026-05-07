@@ -7,6 +7,7 @@ import { CHECKLISTS_TRANSLATIONS } from "packages/features/checklists/types/tran
 import { COMPARE_TRANSLATIONS } from "packages/features/compare/types/translations";
 import { DASHBOARD_TRANSLATIONS } from "packages/features/dashboard/types/translations";
 import { DOCUMENTS_TRANSLATIONS } from "packages/features/documents/types/translations";
+import { FEED_TRANSLATIONS } from "packages/features/feed/types/translations";
 import { AUTH_TRANSLATIONS } from "packages/features/homeauth/types/translations";
 import { NEGOTIATE_TRANSLATIONS } from "packages/features/negotiate/types/translations";
 import { PROFILE_TRANSLATIONS } from "packages/features/profile/types/translations";
@@ -23,6 +24,7 @@ export const TRANSLATIONS: Record<string, string> = {
   ...PROPERTY_DETAILS_TRANSLATIONS,
   ...SAVED_TRANSLATIONS,
   ...DOCUMENTS_TRANSLATIONS,
+  ...FEED_TRANSLATIONS,
   ...COMPARE_TRANSLATIONS,
   ...NEGOTIATE_TRANSLATIONS,
   ...DASHBOARD_TRANSLATIONS,

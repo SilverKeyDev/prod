@@ -1,4 +1,9 @@
 /** Documents feature translation strings (documents, documents_upload, secure_upload, reports, pdf, forms). */
+import {
+  ACTION_LABELS,
+  DOCUMENT_ACTION_LABELS,
+} from "packages/utils/domain/actionLabels";
+
 export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "documents.header": "Documents",
   "documents.uploaded": "Uploaded {{date}}",
@@ -46,14 +51,13 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "pdf.viewer_title": "PDF Viewer",
   "pdf.viewer_title_mobile": "Property report",
   "pdf.load_failed": "Couldn't load the report",
-  "pdf.open_report": "Open",
-  "pdf.view_report": "View report",
+  "pdf.open_report": ACTION_LABELS.OPEN,
+  "pdf.view_report": ACTION_LABELS.VIEW_REPORT,
   "pdf.try_again": "Try again",
-  "pdf.share_report": "Share report",
+  "pdf.share_report": DOCUMENT_ACTION_LABELS.SHARE_REPORT,
   "pdf.fallback_unavailable": "This report isn't available to view right now.",
-  "pdf.mobile_message":
-    'Mobile browsers may not display PDFs in this viewer. Please use the "Open in New Tab" button above to view the PDF.',
-  "pdf.open_in_new_tab": "Open PDF in New Tab",
+  "pdf.mobile_message": `Mobile browsers may not display PDFs in this viewer. Please use the "${DOCUMENT_ACTION_LABELS.OPEN_PDF_NEW_TAB}" button above to view the PDF.`,
+  "pdf.open_in_new_tab": DOCUMENT_ACTION_LABELS.OPEN_PDF_NEW_TAB,
 
   "forms.library_title": "Forms Library",
   "forms.library_description":
@@ -67,7 +71,7 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "forms.forms_available": "forms available",
   "forms.download": "Download",
   "forms.downloading": "Downloading…",
-  "forms.send_for_signature": "Send for Signature",
+  "forms.send_for_signature": ACTION_LABELS.SEND_FOR_SIGNATURE,
 
   "documents.revision_download_unavailable": "Download is not available for this revision.",
 
@@ -124,8 +128,8 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "docusign.detail_not_found": "Agreement not found.",
   "docusign.detail_awaiting_send_buyer":
     "Your agent has not sent this agreement for signing yet. You will be able to sign once it has been sent.",
-  "docusign.detail_send_button": "Send Agreement",
-  "docusign.detail_send_sending": "Sending…",
+  "docusign.detail_send_button": ACTION_LABELS.SEND_AGREEMENT,
+  "docusign.detail_send_sending": ACTION_LABELS.SENDING_PROGRESS,
   "docusign.detail_sign_now": "Sign Now",
   "docusign.detail_back": "Back",
   "docusign.detail_close": "Close",
@@ -143,7 +147,7 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
     "Resend the signing email using the address on file. An optional private note is included with the resend only.",
   "docusign.detail_resend_note": "Private note (optional)",
   "docusign.detail_resend_button": "Resend email",
-  "docusign.detail_resend_sending": "Sending…",
+  "docusign.detail_resend_sending": ACTION_LABELS.SENDING_PROGRESS,
   "docusign.detail_notification_section": "DocuSign reminder settings",
   "docusign.detail_notification_help":
     "Update reminder and expiration behavior for this envelope after it has been sent.",

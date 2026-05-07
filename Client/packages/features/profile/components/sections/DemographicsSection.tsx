@@ -39,6 +39,8 @@ type DemographicsSectionProps = {
    * Default true for onboarding flows.
    */
   showAgentChoice?: boolean;
+  /** When false, hides the "Why are you joining SilverKey?" field. Default true. */
+  showWhyJoiningQuestion?: boolean;
 };
 
 const HAS_BUYERS_AGENT_OPTIONS = [
@@ -61,6 +63,7 @@ export default function DemographicsSection({
   hideProfilePictureWhenOnboarding = false,
   hideNameWhenOnboarding = false,
   showAgentChoice = true,
+  showWhyJoiningQuestion = true,
 }: DemographicsSectionProps) {
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
   const authIsAgent = useIsAgent();
@@ -124,7 +127,7 @@ export default function DemographicsSection({
                     placeholder="Enter your age"
                     min={18}
                     max={100}
-                    className="mt-2"
+                    className="mt-2 w-full"
                   />
                 ) : (
                   <Box
@@ -184,6 +187,7 @@ export default function DemographicsSection({
                         placeholder="Enter your age"
                         min={18}
                         max={100}
+                        className="w-full"
                       />
                     ) : (
                       <Box
@@ -202,15 +206,16 @@ export default function DemographicsSection({
 
         {showBuyerFacingDemographics ? (
           <>
-            {/* Why are you joining SilverKey? (multiselect tags) */}
-            <ProfileFullWidthField label={<Label>{FIELD_LABELS.WHY_JOINING_SILVERKEY}</Label>}>
-              <OptionTagInput
-                options={WHY_JOINING_SILVERKEY_OPTIONS}
-                value={(formData.why_joining_silverkey as string[]) ?? []}
-                onChange={(value: string[]) => updateFormData("why_joining_silverkey", value)}
-                isEditMode={isEditMode}
-              />
-            </ProfileFullWidthField>
+            {showWhyJoiningQuestion ? (
+              <ProfileFullWidthField label={<Label>{FIELD_LABELS.WHY_JOINING_SILVERKEY}</Label>}>
+                <OptionTagInput
+                  options={WHY_JOINING_SILVERKEY_OPTIONS}
+                  value={(formData.why_joining_silverkey as string[]) ?? []}
+                  onChange={(value: string[]) => updateFormData("why_joining_silverkey", value)}
+                  isEditMode={isEditMode}
+                />
+              </ProfileFullWidthField>
+            ) : null}
 
             {/* Buyer's Agent Section */}
             <AlignedRow

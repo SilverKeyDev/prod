@@ -68,12 +68,13 @@ function resolveMessagingBubbleSurfaceStyle(
 
 function getMessagingNativeOutboundStatusLabel(
   status: NonNullable<ChatMessage["status"]>,
-  shouldShowDelivered: boolean
+  shouldShowDelivered: boolean,
+  t: (key: string) => string
 ): string {
-  if (status === "sending") return "Sending...";
-  if (shouldShowDelivered) return "Delivered";
+  if (status === "sending") return t("agent.sending");
+  if (shouldShowDelivered) return t("agent.delivered");
   if (status === "delivered") return "";
-  if (status === "failed") return "Failed to send";
+  if (status === "failed") return t("agent.failed_to_send");
   return "";
 }
 
@@ -90,15 +91,20 @@ function MessagingMessageRowNativeStatusFooter({
   onRetryMessage,
   shouldShowDelivered,
 }: MessagingMessageRowNativeStatusFooterProps) {
+  const { t } = useLocalization();
   if (!isCurrentUserMessage || !message.status) return null;
 
-  const statusLabel = getMessagingNativeOutboundStatusLabel(message.status, shouldShowDelivered);
+  const statusLabel = getMessagingNativeOutboundStatusLabel(
+    message.status,
+    shouldShowDelivered,
+    t
+  );
 
   return (
     <View style={[styles.statusRow, isCurrentUserMessage ? styles.statusRowEnd : undefined]}>
       {message.status === "failed" && onRetryMessage ? (
         <Pressable onPress={() => onRetryMessage(message.id)}>
-          <Text className="text-xs font-medium text-red-500">Retry</Text>
+          <Text className="text-xs font-medium text-red-500">{t("agent.retry")}</Text>
         </Pressable>
       ) : null}
       <Text

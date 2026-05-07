@@ -56,6 +56,12 @@ export type BuyerRoadmapChecklistItemCardProps = {
     item: TaskChecklistItem,
     ctx: ChecklistItemToggleEligibility
   ) => ReactNode;
+  /**
+   * Rendered below the integration slot for all users (not agent-only).
+   * Use this to display signing cards or other step-level content (e.g. TodoAgendaRow).
+   * Return null to skip.
+   */
+  renderItemFooter?: (item: TaskChecklistItem) => ReactNode;
   getRoadmapItemBlocker: (itemId: number) => RoadmapChecklistBlockerKind | null;
   sectionProgress: Record<ChecklistTab, { isComplete: boolean }>;
   onRoadmapTabNavigate?: (tab: ChecklistTab) => void;
@@ -79,6 +85,7 @@ function BuyerRoadmapChecklistItemCardInner({
   isAgent,
   onOpenDispatchModal,
   renderItemAgentFooter,
+  renderItemFooter,
   getRoadmapItemBlocker,
   sectionProgress,
   onRoadmapTabNavigate,
@@ -153,6 +160,7 @@ function BuyerRoadmapChecklistItemCardInner({
   }, [roadmapHandoff, roadmapBlocker, blockerInlineText, checkboxItem.label, sectionGateTarget, t]);
   const agentFooter =
     renderItemAgentFooter?.(item, { canCheck, canUncheck, canMarkChecked }) ?? null;
+  const itemFooter = renderItemFooter?.(item) ?? null;
   const showDispatchGear =
     Boolean(isAgent && hubClientUserId && checklistCategory) &&
     item.dispatchAutomationAvailable === true;
@@ -257,6 +265,7 @@ function BuyerRoadmapChecklistItemCardInner({
         </Box>
       ) : null}
       {agentFooter != null ? <Box className="mt-3 px-4 pb-3">{agentFooter}</Box> : null}
+      {itemFooter != null ? <Box className="mt-2 px-4 pb-3">{itemFooter}</Box> : null}
     </>
   );
 

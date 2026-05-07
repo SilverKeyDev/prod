@@ -37,6 +37,7 @@ const sectionTitle =
 
 const defaultDisclosure: ChecklistLayoutDisclosureState = {
   futureOpen: false,
+  completedOpen: false,
 };
 
 export default function CloseLayout({
@@ -111,9 +112,10 @@ export default function CloseLayout({
       buildProgressiveChecklistRows(sortedItems, activeItemId, {
         previewUpcoming: DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
         futureOpen: disclosure.futureOpen,
+        completedOpen: disclosure.completedOpen,
         revealedCompletedItemId: null,
       }),
-    [sortedItems, activeItemId, disclosure.futureOpen]
+    [sortedItems, activeItemId, disclosure.futureOpen, disclosure.completedOpen]
   );
 
   const futureHidden = getHiddenFutureItemCount(
@@ -182,21 +184,44 @@ export default function CloseLayout({
                   ? segments.map((segment, segIdx) => {
                       if (segment.kind === "completed_collapsed") {
                         return (
-                          <Box
+                          <Pressable
                             key={`cc-${segIdx}`}
+                            onPress={() => setTypeDisclosure({ completedOpen: true })}
                             className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
-                            accessibilityRole="text"
+                            accessibilityRole="button"
+                            aria-expanded={false}
                           >
                             <Icon
                               name="chevron-right"
-                              className="text-text-secondary h-4 w-4 shrink-0 opacity-60"
+                              className="text-text-secondary h-4 w-4 shrink-0"
                             />
                             <Text className="text-text-primary text-sm font-medium">
                               {t("checklists.progressive.completed_collapsed", {
                                 count: segment.count,
                               })}
                             </Text>
-                          </Box>
+                          </Pressable>
+                        );
+                      }
+                      if (segment.kind === "completed_expanded_header") {
+                        return (
+                          <Pressable
+                            key={`ceh-${segIdx}`}
+                            onPress={() => setTypeDisclosure({ completedOpen: false })}
+                            className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
+                            accessibilityRole="button"
+                            aria-expanded
+                          >
+                            <Icon
+                              name="chevron-down"
+                              className="text-text-secondary h-4 w-4 shrink-0"
+                            />
+                            <Text className="text-text-primary text-sm font-medium">
+                              {t("checklists.progressive.completed_collapsed", {
+                                count: segment.count,
+                              })}
+                            </Text>
+                          </Pressable>
                         );
                       }
                       if (segment.kind === "future_collapsed") {

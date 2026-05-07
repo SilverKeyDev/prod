@@ -10,7 +10,7 @@ export function prefetchDashboardShellRoute(href: string): void {
     void import("@/pages/property/SearchPage");
     if (typeof window !== "undefined") {
       void import("packages/features/search/utils/googleMaps").then(({ googleMapsService }) => {
-        void googleMapsService.getInstance().loadGoogleMapsScript();
+        void googleMapsService.loadGoogleMapsScript();
       });
     }
     return;

@@ -8,6 +8,7 @@ import { color } from "packages/design-tokens";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
+import { ARIA_LABELS } from "packages/utils/domain/actionLabels";
 
 /** Minimal property shape for presentational heart (no feature dependency). Must match HeartSave.tsx. */
 export type CardHeartSavePropertyLike = {
@@ -69,7 +70,8 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
     }
   };
 
-  const label = ariaLabel ?? (isSaved ? "Remove from saved homes" : "Save to favorites");
+  const label =
+    ariaLabel ?? (isSaved ? ARIA_LABELS.HEART_REMOVE_SAVED_HOME : ARIA_LABELS.HEART_SAVE);
 
   return (
     <Pressable

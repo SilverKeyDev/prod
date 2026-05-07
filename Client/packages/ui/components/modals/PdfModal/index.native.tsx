@@ -26,10 +26,7 @@ const PdfModalNative: React.FC<PdfModalProps> = ({
   const isOpen = !!currentPdf;
   // Keep default copy platform-neutral: no "Open in browser" or "coming soon"
   const title =
-    currentReportAddress ??
-    t("pdf.viewer_title_mobile", {
-      defaultValue: "Property report",
-    });
+    currentReportAddress ?? t("pdf.viewer_title_mobile");
 
   const handleOpen = () => {
     if (!currentPdf) return;
@@ -71,18 +68,18 @@ const PdfModalNative: React.FC<PdfModalProps> = ({
                 <View style={styles.loadingOverlay}>
                   <ActivityIndicator size="small" color={color("neutral.800")} />
                   <Text style={styles.loadingText}>
-                    {t("pdf.loading", { defaultValue: "Loading PDF..." })}
+                    {t("pdf.loading")}
                   </Text>
                 </View>
               )}
               {hasError && (
                 <View style={styles.errorContainer}>
                   <Text style={styles.errorText}>
-                    {t("pdf.load_failed", { defaultValue: "Couldn't load the report." })}
+                    {t("pdf.load_failed")}
                   </Text>
                   <Button variant="primary" size="sm" onPress={handleOpen}>
                     <Text style={styles.primaryLabel}>
-                      {t("pdf.try_again", { defaultValue: "Try again" })}
+                      {t("pdf.try_again")}
                     </Text>
                   </Button>
                 </View>
@@ -91,21 +88,19 @@ const PdfModalNative: React.FC<PdfModalProps> = ({
             <View style={styles.actions}>
               <Button variant="secondary" size="sm" onPress={handleOpen} iconName="flag">
                 <Text style={styles.secondaryLabel}>
-                  {t("pdf.open_report", { defaultValue: "Open" })}
+                  {t("pdf.open_report")}
                 </Text>
               </Button>
               <Button variant="secondary" size="sm" onPress={handleShare} iconName="share">
                 <Text style={styles.secondaryLabel}>
-                  {t("pdf.share_report", { defaultValue: "Share report" })}
+                  {t("pdf.share_report")}
                 </Text>
               </Button>
             </View>
           </>
         ) : (
           <Text style={styles.description}>
-            {t("pdf.fallback_unavailable", {
-              defaultValue: "This report isn't available to view right now.",
-            })}
+            {t("pdf.fallback_unavailable")}
           </Text>
         )}
       </View>

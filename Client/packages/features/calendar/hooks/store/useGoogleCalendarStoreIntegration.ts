@@ -56,18 +56,26 @@ export function useGoogleCalendarStoreIntegration() {
     await revokeMutation.mutateAsync();
   }, [revokeMutation]);
 
+  // Anchor to start-of-today so multiple call sites of this hook (e.g.
+  // DashboardFeature + UpcomingEvents + Calendar shell) share the same React
+  // Query key. Previously each instance picked its own `now.toISOString()`,
+  // which caused N parallel identical Google Calendar fetches and N separate
+  // useSyncCalendarToStore loops writing to the same Zustand slice.
   const eventParams = useMemo(() => {
-    const now = dateNow();
-    const sevenDaysFromNow = now.add(7, "day");
+    const todayStart = dateNow().startOf("day");
+    const sevenDaysFromNow = todayStart.add(7, "day");
     return {
       calendarId: "primary",
-      timeMin: now.toISOString(),
+      timeMin: todayStart.toISOString(),
       timeMax: sevenDaysFromNow.toISOString(),
     };
   }, []);
 
   const { events, eventsLoading, eventsError, refreshEvents, createEvent, isCreatingEvent } =
-    useGoogleEvents(eventParams);
+    useGoogleEvents({
+      ...eventParams,
+      enabled: isConnected,
+    });
 
   const setIsConnected = useGoogleCalendarStore((s) => s.setIsConnected);
   const setCalendars = useGoogleCalendarStore((s) => s.setCalendars);

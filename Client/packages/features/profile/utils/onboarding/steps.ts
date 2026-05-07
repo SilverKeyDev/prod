@@ -37,10 +37,10 @@ const BUYER_LOCATION_AND_SEARCH_STEPS: ProfileStep[] = [
 
 const ALL_STEPS: ProfileStep[] = [
   { id: "demographics", title: "About" },
-  { id: "availability", title: "Availability" },
   ...HOUSING_STEPS,
   ...BUYER_LOCATION_AND_SEARCH_STEPS,
   { id: "financial", title: "Finance" },
+  { id: "availability", title: "Availability" },
 ];
 
 const PERSONALIZATION_STEPS: ProfileStep[] = [
@@ -55,14 +55,14 @@ const PERSONALIZATION_STEPS: ProfileStep[] = [
 
 const BUYER_HOME_SEARCH_PERSONALIZATION_IDS = new Set<string>(BUYER_PERSONALIZATION_SECTION_IDS);
 
-function orderStepsWithFinancialLast(steps: ProfileStep[]): ProfileStep[] {
-  const financial = steps.find((step) => step.id === "financial");
-  const others = steps.filter((step) => step.id !== "financial");
-  return [...others, ...(financial ? [financial] : [])];
+function orderStepsWithAvailabilityLast(steps: ProfileStep[]): ProfileStep[] {
+  const availability = steps.find((step) => step.id === "availability");
+  const others = steps.filter((step) => step.id !== "availability");
+  return [...others, ...(availability ? [availability] : [])];
 }
 
 /**
- * Buyer: full flow with financial last when present.
+ * Buyer: full flow with availability last when present.
  * Agent: onboarding role picker, demographics then professional (brokerage / licensing / territory) only —
  * no buyer home-search steps.
  */
@@ -75,7 +75,7 @@ function getProfileFlowSteps(isAgent: boolean): ProfileStep[] {
       ...AGENT_STEPS,
     ];
   }
-  return [ONBOARDING_ROLE_STEP, ...orderStepsWithFinancialLast(ALL_STEPS)];
+  return [ONBOARDING_ROLE_STEP, ...orderStepsWithAvailabilityLast(ALL_STEPS)];
 }
 
 function getOnboardingStepsBase(options?: GetOnboardingStepsOptions): ProfileStep[] {

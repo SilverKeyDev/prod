@@ -16,9 +16,11 @@ declare global {
 }
 
 /**
- * After login, prefetch the dashboard lazy chunk during idle time so cold navigation
- * (bookmark, tap without prior hover) avoids extra JS latency. Runs once per
- * authenticated session; ref resets on logout.
+ * After login, prefetch the dashboard + messaging lazy chunks during idle time
+ * so cold navigation (bookmark, tap without prior hover) avoids extra JS
+ * latency. These two routes pull the heaviest feature trees (calendar,
+ * messaging) and are noticeably slower than search/profile/library otherwise.
+ * Runs once per authenticated session; ref resets on logout.
  */
 export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
   const authReady = useAuthStore((s) => s.authReady);
@@ -39,9 +41,6 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
     if (pathname === ROUTES.ONBOARDING) {
       return;
     }
-    if (pathname.startsWith("/dashboard")) {
-      return;
-    }
     if (didPrefetchRef.current) {
       return;
     }
@@ -53,7 +52,13 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
         return;
       }
       didPrefetchRef.current = true;
-      prefetchDashboardShellRoute("/dashboard");
+      // Prewarm both heavy chunks; skip the one we're already on.
+      if (!pathname.startsWith("/dashboard")) {
+        prefetchDashboardShellRoute("/dashboard");
+      }
+      if (!pathname.startsWith("/messaging")) {
+        prefetchDashboardShellRoute("/messaging");
+      }
     };
 
     let idleHandle: number | undefined;

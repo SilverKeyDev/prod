@@ -1,4 +1,6 @@
 /** Profile feature translation strings. */
+import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+
 export const PROFILE_TRANSLATIONS: Record<string, string> = {
   // Favorite homes dropdown (shared UI; list from profile)
   "favorite_homes.placeholder": "Select a saved home…",
@@ -13,14 +15,14 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.account.cancel": "Cancel",
   "profile.account.saving_save": "Saving...",
   "profile.sections.not_specified": "Not specified",
-  "profile.account.save": "Save",
+  "profile.account.save": ACTION_LABELS.SAVE,
 
   "profile.agent.public_profile_link_label": "Your public profile link",
   "profile.agent.public_link_hint":
     "Share this link with clients so they can view your public profile and connect with you on SilverKey.",
   "profile.agent.copy_link": "Copy link",
   "profile.agent.open_link": "Open link",
-  "profile.agent.share": "Share",
+  "profile.agent.share": ACTION_LABELS.SHARE,
   "profile.agent.share_sheet_title": "{{name}} — SilverKey",
   "profile.agent.share_sheet_text": "View my public agent profile on SilverKey.",
   "profile.agent.link_copied": "Link copied to clipboard",
@@ -48,8 +50,13 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
 
   "profile.public.connect_cta": "Connect",
   "profile.public.connect_modal_title": "Sign in to connect",
+  "profile.public.connect_modal_title_with_agent": "Connect with {{agentName}}",
   "profile.public.connect_modal_body":
     "Create an account or sign in to send a connection request to this agent.\n\nWe will connect you automatically after you are signed in.",
+  "profile.public.connect_modal_body_with_agent":
+    "Sign in or create an account and we'll connect you with {{agentName}} automatically.",
+  "profile.public.connect_banner":
+    "After signing in, you'll be connected with {{agentName}}.",
   "profile.public.connect_sign_in": "Sign in",
   "profile.public.connect_create_account": "Create an account",
   "profile.public.connect_toast_success": "Connection request sent",

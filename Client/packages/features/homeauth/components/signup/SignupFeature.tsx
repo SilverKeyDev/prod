@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+import { AgentConnectBanner } from "packages/features/agent";
 import AuthPageLayout from "packages/features/homeauth/components/core/PageLayout";
 import { useSignup } from "packages/features/homeauth/hooks/data/useAuthActions";
 import {
@@ -126,6 +127,7 @@ export function SignupFeature(_props: SignupFeatureProps) {
       showHeader={false}
       variant="wide"
     >
+      <AgentConnectBanner />
       <style>{SIGNUP_PHONE_AUTOFILL_STYLES}</style>
       <form
         onSubmit={handleSubmit}

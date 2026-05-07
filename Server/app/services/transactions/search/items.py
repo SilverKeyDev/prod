@@ -2,19 +2,8 @@
 
 SEARCH_ITEMS = [
     {
-        "id": 1,
-        "order": 0,
-        "label": "Get pre-approved for a mortgage",
-        "explanation": "Secure a pre-approval letter from a lender to know your exact budget and prove you are a serious buyer.",
-        "bullets": [
-            "Gather your financial documents like W-2s, pay stubs, and bank statements.",
-            "Compare rates from multiple lenders to find the best terms.",
-        ],
-        "resource": None,
-    },
-    {
         "id": 5,
-        "order": 1,
+        "order": 0,
         "label": "Set a budget",
         "explanation": "Set your budget range, income, and down payment so search results match what you can afford.",
         "bullets": [
@@ -30,7 +19,7 @@ SEARCH_ITEMS = [
     },
     {
         "id": 4,
-        "order": 2,
+        "order": 1,
         "label": "Choose search area",
         "explanation": "Add work, family, or other important locations and set your commute range. The map shows your search area (isochrones) based on these locations.",
         "bullets": [
@@ -46,7 +35,7 @@ SEARCH_ITEMS = [
     },
     {
         "id": 2,
-        "order": 3,
+        "order": 2,
         "label": "Define your criteria and prioritize needs vs. wants",
         "explanation": "Create a clear list of what you must have in a home versus what would be nice to have.",
         "bullets": [
@@ -59,6 +48,17 @@ SEARCH_ITEMS = [
         "allow_unordered_check": True,
         "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
         "parallel_step_group": "search_parallel_integrations",
+    },
+    {
+        "id": 1,
+        "order": 3,
+        "label": "Get pre-approved for a mortgage",
+        "explanation": "Secure a pre-approval letter from a lender to know your exact budget and prove you are a serious buyer.",
+        "bullets": [
+            "Gather your financial documents like W-2s, pay stubs, and bank statements.",
+            "Compare rates from multiple lenders to find the best terms.",
+        ],
+        "resource": None,
     },
     {
         "id": 3,

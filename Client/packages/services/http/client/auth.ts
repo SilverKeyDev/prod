@@ -1,8 +1,10 @@
+import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { getFetch, getWindow } from "packages/utils/platform";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 import type { AuthenticationError } from "./errors";
+import { normalizeUrl } from "./httpRequestHeaders";
 import { createHttpRequestId } from "./requestId";
 
 let verifyingPromise: Promise<boolean> | null = null;
@@ -36,8 +38,11 @@ async function executeRefreshRecoveryChain(correlationId: string): Promise<boole
   };
 
   const doFetch = getFetch();
+  const configuredBase = normalizeUrl(getEnv().apiBaseUrl.replace(/\/+$/, ""));
+  const withBase = (path: string): string =>
+    path.startsWith("http") || configuredBase === "" ? path : `${configuredBase}${path}`;
   try {
-    const refreshRes = await doFetch("/api/v1/auth/refresh-token", opts);
+    const refreshRes = await doFetch(withBase("/api/v1/auth/refresh-token"), opts);
     const refreshResult: { success?: boolean } = refreshRes.ok
       ? await refreshRes.json()
       : { success: false };
@@ -49,7 +54,7 @@ async function executeRefreshRecoveryChain(correlationId: string): Promise<boole
       return false;
     }
 
-    const profileRes = await doFetch("/api/v1/user/profile", getOpts);
+    const profileRes = await doFetch(withBase("/api/v1/user/profile"), getOpts);
     const profileJson: { success?: boolean } = profileRes.ok
       ? await profileRes.json()
       : { success: false };

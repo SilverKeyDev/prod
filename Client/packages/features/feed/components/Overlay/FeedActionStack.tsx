@@ -1,5 +1,6 @@
 import { Icon } from "@ui/icons";
 
+import { useLocalization } from "packages/contexts";
 import { useSecureClipboardCopy } from "packages/hooks/ui";
 import { ROUTES } from "packages/navigation";
 import { useFeedStore } from "packages/store";
@@ -54,6 +55,7 @@ export function FeedActionStack({
   onSave,
   onMore,
 }: FeedActionStackProps) {
+  const { t } = useLocalization();
   const copyToClipboard = useSecureClipboardCopy();
   const shareUrl = getPropertyShareUrl(item);
   const userHasUnmuted = useFeedStore((s) => s.userHasUnmuted);
@@ -78,7 +80,7 @@ export function FeedActionStack({
   const displayLikes = Math.max(0, displayStats.likes + (isLiked ? 1 : 0));
   return (
     <Box className="flex flex-col items-center gap-4">
-      <FeedActionButton onClick={onLike} label="Like">
+      <FeedActionButton onClick={onLike} label={t("feed.like")}>
         <Box className="flex flex-col items-center gap-1">
           <Icon
             name="heart"
@@ -89,7 +91,7 @@ export function FeedActionStack({
           </BodyText>
         </Box>
       </FeedActionButton>
-      <FeedActionButton onClick={onComment} label="Comment">
+      <FeedActionButton onClick={onComment} label={t("feed.comment")}>
         <Box className="flex flex-col items-center gap-1">
           <Icon name="message-circle" className="h-8 w-8 shrink-0 text-white" />
           <BodyText as="span" size="xs" className="text-white">
@@ -97,7 +99,7 @@ export function FeedActionStack({
           </BodyText>
         </Box>
       </FeedActionButton>
-      <FeedActionButton onClick={handleShare} label="Share">
+      <FeedActionButton onClick={handleShare} label={t("feed.share")}>
         <Box className="flex flex-col items-center gap-1">
           <Icon name="share" className="h-8 w-8 shrink-0 text-white" />
           <BodyText as="span" size="xs" className="text-white">
@@ -105,17 +107,17 @@ export function FeedActionStack({
           </BodyText>
         </Box>
       </FeedActionButton>
-      <FeedActionButton onClick={handleToggleMute} label={userHasUnmuted ? "Mute" : "Unmute"}>
+      <FeedActionButton onClick={handleToggleMute} label={userHasUnmuted ? t("feed.mute") : t("feed.unmute")}>
         {userHasUnmuted ? (
           <Icon name="volume-2" className="h-8 w-8 shrink-0 text-white" />
         ) : (
           <Icon name="volume-x" className="h-8 w-8 shrink-0 text-white" />
         )}
       </FeedActionButton>
-      <FeedActionButton onClick={onSave} label="Save">
+      <FeedActionButton onClick={onSave} label={t("feed.save")}>
         <Icon name="bookmark" className="h-8 w-8 shrink-0 text-white" />
       </FeedActionButton>
-      <FeedActionButton onClick={onMore} label="More">
+      <FeedActionButton onClick={onMore} label={t("feed.more")}>
         <Icon name="more-horizontal" className="h-8 w-8 shrink-0 text-white" />
       </FeedActionButton>
     </Box>

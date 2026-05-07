@@ -15,6 +15,7 @@ export {
   getMessagingConfig,
 } from "./components/messaging/screen/messagingConfig";
 export * from "./components/modals";
+export { AgentConnectBanner } from "./components/AgentConnectBanner";
 export { PublicAgentProfileConnect } from "./components/PublicAgentProfileConnect";
 export { default as AgentDashboard } from "./components/workspace/AgentDashboard";
 export { useAgentClients } from "./hooks/data/useAgentClients";

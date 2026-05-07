@@ -74,7 +74,7 @@ export function SavedDocumentsList({
               iconName="save"
             >
               <Text className="text-sm font-medium">
-                {t("saved.view_document", { defaultValue: "View" })}
+                {t("saved.view_document")}
               </Text>
             </Button>
           )}
@@ -87,7 +87,7 @@ export function SavedDocumentsList({
               iconName="download"
             >
               <Text className="text-sm font-medium">
-                {t("saved.download_document", { defaultValue: "Download" })}
+                {t("saved.download_document")}
               </Text>
             </Button>
           )}
@@ -100,7 +100,7 @@ export function SavedDocumentsList({
               iconName="share"
             >
               <Text className="text-sm font-medium">
-                {t("saved.share_document", { defaultValue: "Share" })}
+                {t("saved.share_document")}
               </Text>
             </Button>
           )}
@@ -112,7 +112,7 @@ export function SavedDocumentsList({
               className="min-w-[30%] flex-1"
               iconName="send"
             >
-              <Text className="text-sm font-medium">Send for signature</Text>
+              <Text className="text-sm font-medium">{t("forms.send_for_signature")}</Text>
             </Button>
           )}
           {onSignNow &&
@@ -139,7 +139,7 @@ export function SavedDocumentsList({
             iconName="trash-2"
           >
             <Text className="text-sm font-medium text-red-700">
-              {t("saved.delete_document", { defaultValue: "Delete" })}
+              {t("saved.delete_document")}
             </Text>
           </Button>
         </Box>

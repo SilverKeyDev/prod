@@ -45,6 +45,7 @@ from app.models import (
     User,
     UserAgentProfile,
     UserCalendarConnection,
+    UserClientSettings,
     UserCommunicationPrefs,
     UserDemographics,
     UserFinancials,
@@ -247,6 +248,11 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
         ChatHistory.query.filter(
             or_(ChatHistory.user_id == uid, ChatHistory.sender_id == uid)
         ).delete(synchronize_session=False)
+
+        # user_client_settings.user_id is the primary key, so SQLAlchemy cannot
+        # null it out via the backref when the User row is deleted. Delete it
+        # explicitly before removing the User.
+        UserClientSettings.query.filter_by(user_id=uid).delete(synchronize_session=False)
 
         _remove_deleted_user_from_peer_legacy_fields(uid)
 

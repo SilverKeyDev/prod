@@ -9,6 +9,7 @@ import { useUIStore } from "packages/store";
 import { Box, Pressable } from "packages/ui/components/primitives";
 import { ICON_TRANSFORM_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 import { dateNow } from "packages/utils/date";
+import { ARIA_LABELS } from "packages/utils/domain/actionLabels";
 import { isWeb } from "packages/utils/platform";
 
 import IconButton from "./IconButton";
@@ -113,7 +114,8 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
     void handlePress();
   };
 
-  const label = ariaLabel ?? (isSaved ? "Remove from saved homes" : "Save to favorites");
+  const label =
+    ariaLabel ?? (isSaved ? ARIA_LABELS.HEART_REMOVE_SAVED_HOME : ARIA_LABELS.HEART_SAVE);
 
   // Native: simplified overlay only (Pressable with shadow style)
   if (!isWeb) {

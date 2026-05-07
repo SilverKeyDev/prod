@@ -1,10 +1,12 @@
 /** Negotiate feature translation strings (negotiation, negotiate). */
+import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+
 export const NEGOTIATE_TRANSLATIONS: Record<string, string> = {
   "negotiation.title": "Negotiate",
-  "negotiation.send": "Send",
+  "negotiation.send": ACTION_LABELS.SEND,
   "negotiate.home_selector.placeholder": "Select a home...",
   "negotiate.home_selector.generate": "Generate",
-  "negotiate.strategy.share": "Share",
+  "negotiate.strategy.share": ACTION_LABELS.SHARE,
   "negotiate.loading.analyzing": "Analyzing property and market data...",
   "negotiate.loading.description":
     "Our AI is reviewing recent sales, market trends, and property details to craft your negotiation strategy.",

@@ -3,7 +3,10 @@ import { useMemo } from "react";
 import type { ReactNode } from "react";
 
 import type { AgentClient } from "packages/api";
-import { useAgentChats } from "packages/features/messaging";
+// Deep import (not via "packages/features/messaging" barrel) so loading the
+// agent dashboard does not pay the cost of evaluating every messaging
+// component (AgentMessaging, ClientMessaging, modals, list, sidebar, …).
+import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 
 import AgentMessaging from "@/features/agent/components/messaging/AgentMessaging";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";

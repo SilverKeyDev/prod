@@ -52,11 +52,18 @@ const initialState = (): Pick<
 const baseCreator: import("zustand").StateCreator<NotificationState> = (set) => ({
   ...initialState(),
 
+  // All setters below are idempotent: when nothing changes they return the
+  // current `state` reference so Zustand's `Object.is(nextState, state)` check
+  // skips notifying subscribers. This prevents N store updates per polling tick
+  // from cascading into N×subscribers re-renders (see useDataPollingHelpers and
+  // useAgentChats which call these in tight per-conversation loops).
   setUnreadCount: (conversationId: string, count: number) =>
     set((state: NotificationState) => {
+      const safe = Math.max(0, count);
+      if (state.unreadByConversation[conversationId] === safe) return state;
       const newUnreadByConversation = {
         ...state.unreadByConversation,
-        [conversationId]: Math.max(0, count),
+        [conversationId]: safe,
       };
       const newUnreadCount = Object.values(newUnreadByConversation).reduce(
         (sum, val) => sum + val,
@@ -69,13 +76,26 @@ const baseCreator: import("zustand").StateCreator<NotificationState> = (set) => 
     }),
 
   setTotalUnreadCount: (count: number) =>
-    set({
-      unreadCount: typeof count === "number" && !isNaN(count) && count >= 0 ? count : 0,
-      isLoaded: true, // Mark as loaded when we receive data from API
+    set((state: NotificationState) => {
+      const safe = typeof count === "number" && !isNaN(count) && count >= 0 ? count : 0;
+      if (state.unreadCount === safe && state.isLoaded) return state;
+      return { unreadCount: safe, isLoaded: true };
     }),
 
   markConversationRead: (conversationId: string) =>
     set((state: NotificationState) => {
+      const hadUnread = state.unreadByConversation[conversationId] !== undefined;
+      if (!hadUnread) {
+        // Already read; only refresh lastReadTimestamp.
+        const now = Date.now();
+        if (state.lastReadTimestamp[conversationId] === now) return state;
+        return {
+          lastReadTimestamp: {
+            ...state.lastReadTimestamp,
+            [conversationId]: now,
+          },
+        };
+      }
       const newUnreadByConversation = {
         ...state.unreadByConversation,
       };
@@ -112,27 +132,30 @@ const baseCreator: import("zustand").StateCreator<NotificationState> = (set) => 
     }),
 
   updateLastReadTimestamp: (conversationId: string, timestamp: number) =>
-    set((state: NotificationState) => ({
-      lastReadTimestamp: {
-        ...state.lastReadTimestamp,
-        [conversationId]: timestamp,
-      },
-    })),
+    set((state: NotificationState) => {
+      if (state.lastReadTimestamp[conversationId] === timestamp) return state;
+      return {
+        lastReadTimestamp: {
+          ...state.lastReadTimestamp,
+          [conversationId]: timestamp,
+        },
+      };
+    }),
 
   updateLastSeenMessageTimestamp: (conversationId: string, timestamp: number) =>
-    set((state: NotificationState) => ({
-      lastSeenMessageTimestamp: {
-        ...state.lastSeenMessageTimestamp,
-        [conversationId]: timestamp,
-      },
-    })),
+    set((state: NotificationState) => {
+      if (state.lastSeenMessageTimestamp[conversationId] === timestamp) return state;
+      return {
+        lastSeenMessageTimestamp: {
+          ...state.lastSeenMessageTimestamp,
+          [conversationId]: timestamp,
+        },
+      };
+    }),
 
   setActiveConversationId: (conversationId: string | null) =>
     set((state: NotificationState) => {
-      // Mark previous conversation as read when switching away
-      if (state.activeConversationId && state.activeConversationId !== conversationId) {
-        // Don't mark as read here - let the component handle it when loading messages
-      }
+      if (state.activeConversationId === conversationId) return state;
       return { activeConversationId: conversationId };
     }),
 
@@ -142,88 +165,14 @@ const baseCreator: import("zustand").StateCreator<NotificationState> = (set) => 
   reset: () => {},
 });
 
-const withReset = withResettable<NotificationState>(baseCreator, (set) => ({
-  ...initialState(),
-  setUnreadCount: (conversationId: string, count: number) =>
-    set((state: NotificationState) => {
-      const newUnreadByConversation = {
-        ...state.unreadByConversation,
-        [conversationId]: Math.max(0, count),
-      };
-      const newUnreadCount = Object.values(newUnreadByConversation).reduce(
-        (sum, val) => sum + val,
-        0
-      );
-      return {
-        unreadByConversation: newUnreadByConversation,
-        unreadCount: newUnreadCount,
-      };
-    }),
-  setTotalUnreadCount: (count: number) =>
-    set({
-      unreadCount: Math.max(0, count),
-      isLoaded: true, // Mark as loaded when we receive data from API
-    }),
-  markConversationRead: (conversationId: string) =>
-    set((state: NotificationState) => {
-      const newUnreadByConversation = {
-        ...state.unreadByConversation,
-      };
-      delete newUnreadByConversation[conversationId];
-      const newUnreadCount = Object.values(newUnreadByConversation).reduce(
-        (sum, val) => sum + val,
-        0
-      );
-      return {
-        unreadByConversation: newUnreadByConversation,
-        unreadCount: newUnreadCount,
-        lastReadTimestamp: {
-          ...state.lastReadTimestamp,
-          [conversationId]: Date.now(),
-        },
-      };
-    }),
-  incrementUnreadCount: (conversationId: string) =>
-    set((state: NotificationState) => {
-      const currentCount = state.unreadByConversation[conversationId] ?? 0;
-      const newUnreadByConversation = {
-        ...state.unreadByConversation,
-        [conversationId]: currentCount + 1,
-      };
-      const newUnreadCount = Object.values(newUnreadByConversation).reduce(
-        (sum, val) => sum + val,
-        0
-      );
-      return {
-        unreadByConversation: newUnreadByConversation,
-        unreadCount: newUnreadCount,
-      };
-    }),
-  updateLastReadTimestamp: (conversationId: string, timestamp: number) =>
-    set((state: NotificationState) => ({
-      lastReadTimestamp: {
-        ...state.lastReadTimestamp,
-        [conversationId]: timestamp,
-      },
-    })),
-  updateLastSeenMessageTimestamp: (conversationId: string, timestamp: number) =>
-    set((state: NotificationState) => ({
-      lastSeenMessageTimestamp: {
-        ...state.lastSeenMessageTimestamp,
-        [conversationId]: timestamp,
-      },
-    })),
-  setActiveConversationId: (conversationId: string | null) =>
-    set((state: NotificationState) => {
-      // Mark previous conversation as read when switching away
-      if (state.activeConversationId && state.activeConversationId !== conversationId) {
-        // Don't mark as read here - let the component handle it when loading messages
-      }
-      return { activeConversationId: conversationId };
-    }),
-  resetNotifications: () => set(initialState()),
-  reset: () => {},
-})) as unknown as import("zustand").StateCreator<NotificationState>;
+// `withResettable` shallow-merges the initial state back when reset() is
+// called, which would overwrite the live setter functions with stale ones.
+// Reuse `baseCreator` (idempotent setters) here so reset() preserves the same
+// behavior the rest of the app already depends on.
+const withReset = withResettable<NotificationState>(
+  baseCreator,
+  baseCreator
+) as unknown as import("zustand").StateCreator<NotificationState>;
 
 const withPersist = persistSafe<NotificationState>(withReset, {
   name: "notifications-store",

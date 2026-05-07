@@ -49,5 +49,12 @@ class UserSearchDisplaySettings(db.Model):
     )
 
     user = db.relationship(
-        "User", backref=db.backref("user_search_display", uselist=False, lazy="select")
+        "User",
+        backref=db.backref(
+            "user_search_display",
+            uselist=False,
+            lazy="select",
+            cascade="all, delete-orphan",
+            single_parent=True,
+        ),
     )

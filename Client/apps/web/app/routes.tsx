@@ -4,7 +4,10 @@ import type { Location } from "react-router-dom";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
 import { authUtils } from "packages/config/auth/auth";
-import { useResumePendingAgentPublicConnect } from "packages/features/agent";
+// Deep import (not via "packages/features/agent" barrel) so the eagerly-loaded
+// app shell does not pay the cost of evaluating the entire agent feature
+// (AgentDashboard, AgentMessaging, ClientMessaging, modals, …) on first load.
+import { useResumePendingAgentPublicConnect } from "packages/features/agent/hooks/data/useResumePendingAgentPublicConnect";
 import { useDataInitialization } from "packages/hooks/data/polling/useDataInitialization";
 import { useDataPolling } from "packages/hooks/data/polling/useDataPolling";
 import { log, LOG_CATEGORIES } from "packages/logger";

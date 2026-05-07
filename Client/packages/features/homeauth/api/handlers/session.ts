@@ -11,6 +11,16 @@ const apiRequestOptions = {
   useCors: false,
 } as unknown as import("../../../../services/http/compatibility").ApiRequestOptions;
 
+function isExpectedLoggedOutRefreshFailure(errorMessage: string): boolean {
+  const normalized = errorMessage.toUpperCase();
+  return (
+    normalized.includes("401") ||
+    normalized.includes("UNAUTHORIZED") ||
+    normalized.includes("REFRESH_TOKEN_MISSING") ||
+    normalized.includes("NO VALID SESSION")
+  );
+}
+
 export async function verifySessionHandler(): Promise<AuthResponse> {
   const requestId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -143,12 +153,14 @@ export async function refreshTokenHandler(): Promise<AuthResponse> {
   } catch (error: unknown) {
     const err = error as Error;
     const hadNoSession = cookieCountBefore === 0;
+    const errorMessage = err?.message || "Unknown error";
+    const expectedLoggedOutFailure = hadNoSession || isExpectedLoggedOutRefreshFailure(errorMessage);
     const logPayload = {
       requestId,
-      error: err?.message || "Unknown error",
+      error: errorMessage,
       errorType: err?.constructor?.name || "Unknown",
     };
-    if (hadNoSession) {
+    if (expectedLoggedOutFailure) {
       log.debug(LOG_CATEGORIES.AUTH, "Token refresh: no session (expected)", logPayload);
     } else {
       log.error(LOG_CATEGORIES.AUTH, "Token refresh request failed with exception", logPayload);

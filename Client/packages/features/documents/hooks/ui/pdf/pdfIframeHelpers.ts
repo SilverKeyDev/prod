@@ -1,5 +1,6 @@
 import { color } from "packages/design-tokens";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { DOCUMENT_ACTION_LABELS } from "packages/utils/domain/actionLabels";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 export function inspectIframeContentAfterLoad(
@@ -132,7 +133,7 @@ export function injectPdfErrorUI(iframe: HTMLIFrameElement, currentPdf: string |
   const downloadBg = color("foreground");
   const downloadBgHover = color("foreground-muted");
   downloadLink.style.cssText = `display: inline-flex; flex-direction: row; align-items: center; background: ${downloadBg}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s;`;
-  downloadLink.textContent = "Download PDF";
+  downloadLink.textContent = DOCUMENT_ACTION_LABELS.DOWNLOAD_PDF;
   downloadLink.onmouseover = () => (downloadLink.style.background = downloadBgHover);
   downloadLink.onmouseout = () => (downloadLink.style.background = downloadBg);
 
@@ -140,7 +141,7 @@ export function injectPdfErrorUI(iframe: HTMLIFrameElement, currentPdf: string |
   const openTabBgHover = color("neutral.600");
   const openTabButton = doc.createElement("button");
   openTabButton.style.cssText = `background: ${openTabBg}; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background 0.2s;`;
-  openTabButton.textContent = "Open in New Tab";
+  openTabButton.textContent = DOCUMENT_ACTION_LABELS.OPEN_PDF_NEW_TAB;
   const win = getWindow();
   openTabButton.onclick = () => {
     if (win) win.open(currentPdf, "_blank", "noopener,noreferrer");

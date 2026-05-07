@@ -1,6 +1,7 @@
 /** Calendar feature barrel. Other features must import from here, not from calendar internals. */
 export { Calendar, CalendarConnectionPrompt, EventRequestCard, UpcomingEvents } from "./components";
 export { CreateEventModal } from "./components/view/CreateEventModal";
+export { TodoAgendaRow } from "./components/view/TodoAgendaRow";
 export type { AgendaTodoDTO } from "./types/agenda";
 export type { CreateEventModalAddWithoutSchedulePayload } from "./types/createEventModal";
 export type { GoogleCalendarEventCreateBody, GoogleEvent } from "./types/googleEvent";

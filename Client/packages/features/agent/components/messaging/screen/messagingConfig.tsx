@@ -1,4 +1,5 @@
 import type { IconName } from "packages/ui/types/icons";
+import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
 
 export type MessagingMode = "client" | "agent";
 export type MessageRole = "user" | "agent";
@@ -109,7 +110,7 @@ export const CLIENT_MESSAGING_CONFIG: MessagingConfig = {
     title: "Search for an Agent",
     searchPlaceholder: "Search by name...",
     noResultsMessage: "No agents found matching",
-    sendButtonLabel: "Send Request",
+    sendButtonLabel: ACTION_LABELS.SEND_REQUEST,
     searchingMessage: "Searching agents...",
   },
   emptyStates: {
@@ -168,7 +169,7 @@ export const AGENT_MESSAGING_CONFIG: MessagingConfig = {
     title: "Search for a Client",
     searchPlaceholder: "Search by name or email...",
     noResultsMessage: "No clients found matching",
-    sendButtonLabel: "Send Request",
+    sendButtonLabel: ACTION_LABELS.SEND_REQUEST,
     searchingMessage: "Searching clients...",
   },
   emptyStates: {

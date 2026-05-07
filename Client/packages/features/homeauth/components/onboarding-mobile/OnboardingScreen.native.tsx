@@ -47,6 +47,14 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
 
   const step = steps[currentStep];
   const isLastStep = currentStep === steps.length - 1;
+  const isRoleIntroPage = step?.id === "onboarding_role";
+  const progressStepEntries = steps
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => item.id !== "onboarding_role");
+  const progressCurrentStepNumber = Math.max(
+    1,
+    progressStepEntries.findIndex(({ index }) => index === currentStep) + 1
+  );
   const roleStepNeedsSelection =
     Boolean(step?.id === "onboarding_role") &&
     !isOnboardingStepComplete(formData, "onboarding_role");
@@ -126,28 +134,30 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       behavior={useIOSKeyboardAvoiding ? "padding" : undefined}
       keyboardVerticalOffset={useIOSKeyboardAvoiding ? 64 : 0}
     >
-      <View style={styles.progressRow}>
-        <Text className="text-text-secondary text-sm">
-          Step {currentStep + 1} of {steps.length}
-        </Text>
-        <Box className="mt-2 flex flex-row items-center justify-center gap-2">
-          {steps.map((s, index) => {
-            const isActive = index === currentStep;
-            return (
-              <Pressable
-                key={s.id}
-                onPress={() => goToStep(index)}
-                style={[
-                  styles.stepPill,
-                  isActive ? styles.stepPillActive : styles.stepPillInactive,
-                ]}
-              >
-                <Text className="text-xs font-medium">{s.title}</Text>
-              </Pressable>
-            );
-          })}
-        </Box>
-      </View>
+      {!isRoleIntroPage ? (
+        <View style={styles.progressRow}>
+          <Text className="text-text-secondary text-sm">
+            Step {progressCurrentStepNumber} of {progressStepEntries.length}
+          </Text>
+          <Box className="mt-2 flex flex-row items-center justify-center gap-2">
+            {progressStepEntries.map(({ item, index }) => {
+              const isActive = index === currentStep;
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => goToStep(index)}
+                  style={[
+                    styles.stepPill,
+                    isActive ? styles.stepPillActive : styles.stepPillInactive,
+                  ]}
+                >
+                  <Text className="text-xs font-medium">{item.title}</Text>
+                </Pressable>
+              );
+            })}
+          </Box>
+        </View>
+      ) : null}
 
       <ScrollView
         style={styles.scroll}

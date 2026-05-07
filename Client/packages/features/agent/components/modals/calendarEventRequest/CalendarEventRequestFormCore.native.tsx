@@ -2,6 +2,7 @@ import React from "react";
 
 import { StyleSheet, TextInput } from "react-native";
 
+import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import Button from "packages/ui/components/button/Button";
 import Dropdown from "packages/ui/components/form/dropdown";
@@ -21,6 +22,7 @@ import { EventRequestTimeDropdown } from "./EventRequestTimeDropdown.native";
 export type CalendarEventRequestFormCoreProps = UseCalendarEventRequestFormParams;
 
 export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCoreProps) {
+  const { t } = useLocalization();
   const {
     isAgent,
     clients,
@@ -219,7 +221,7 @@ export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCore
           disabled={isSending}
           iconName="arrow-left"
         >
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button
           variant="primary"
@@ -229,7 +231,7 @@ export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCore
           disabled={!canSend || isSending}
           iconName="send"
         >
-          {isSending ? "Sending..." : "Send Request"}
+          {isSending ? t("agent.sending") : t("agent.send_request")}
         </Button>
       </Box>
     </ScrollView>

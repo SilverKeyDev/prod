@@ -5,6 +5,7 @@ import IconButton from "@ui/button/IconButton";
 import { Icon } from "@ui/icons";
 import { Modal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 
+import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { Text } from "packages/ui/components/primitives";
 
@@ -33,6 +34,7 @@ export function ReelsMoreSheet({
   onCopyLink,
   onSave,
 }: ReelsMoreSheetProps) {
+  const { t } = useLocalization();
   const { height } = useWindowDimensions();
   const panelHeight = Math.max(240, Math.floor(height * 0.5));
 
@@ -57,7 +59,7 @@ export function ReelsMoreSheet({
             <View style={styles.handle} />
             <View style={styles.headerRow}>
               <View style={styles.headerSpacer} />
-              <Text className="text-text-primary text-base font-semibold">More</Text>
+              <Text className="text-text-primary text-base font-semibold">{t("feed.more")}</Text>
               <View style={styles.headerSpacerRight}>
                 <IconButton
                   variant="ghost"
@@ -115,7 +117,9 @@ export function ReelsMoreSheet({
               contentAlign="start"
             >
               <View style={styles.row}>
-                <Text className="text-text-primary text-sm">{isSaved ? "Unsave" : "Save"}</Text>
+                <Text className="text-text-primary text-sm">
+                  {isSaved ? t("feed.remove_saved") : t("feed.save")}
+                </Text>
               </View>
             </Button>
           </View>

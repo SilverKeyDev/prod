@@ -1,4 +1,6 @@
 /** Property details feature translation strings. */
+import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+
 export const PROPERTY_DETAILS_TRANSLATIONS: Record<string, string> = {
   "property_details.sq_ft_label": "Sq Ft",
   "property_details.bedrooms": "Bedrooms",
@@ -184,7 +186,7 @@ export const PROPERTY_DETAILS_TRANSLATIONS: Record<string, string> = {
   "property_details.tab_location": "Location",
   "property_details.tab_match": "Match",
   "property_details.tab_analysis": "Analysis",
-  "property_details.messaging_share_button": "Share in Messages",
+  "property_details.messaging_share_button": ACTION_LABELS.SHARE_IN_MESSAGES,
   "property_details.messaging_recipient_placeholder": "Recipient",
   "property_details.messaging_share_success": "Sent in Messages",
   "property_details.messaging_share_error": "Could not send message",

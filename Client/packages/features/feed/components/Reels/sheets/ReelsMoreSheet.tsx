@@ -1,5 +1,6 @@
 import { Icon } from "@ui/icons";
 
+import { useLocalization } from "packages/contexts";
 import { Transition } from "packages/ui/components/adapters/headless";
 import { Box } from "packages/ui/components/primitives";
 
@@ -28,6 +29,7 @@ export function ReelsMoreSheet({
   onCopyLink,
   onSave,
 }: ReelsMoreSheetProps) {
+  const { t } = useLocalization();
   const handleNotInterested = () => {
     onNotInterested?.();
     onClose();
@@ -79,7 +81,7 @@ export function ReelsMoreSheet({
                 <Box className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-3">
                   <Box className="w-9 shrink-0" aria-hidden />
                   <Title size="sm" as="h2" className="flex-1 text-center">
-                    More
+                    {t("feed.more")}
                   </Title>
                   <Box className="flex w-9 shrink-0 flex-row justify-end">
                     <CloseButton onClick={onClose} size="sm" label="Close more options" />
@@ -132,12 +134,12 @@ export function ReelsMoreSheet({
                     size="md"
                     className={ACTION_ROW_CLASS}
                     onClick={handleSave}
-                    label={isSaved ? "Unsave" : "Save"}
+                    label={isSaved ? t("feed.remove_saved") : t("feed.save")}
                     iconName="bookmark"
                     contentAlign="start"
                   >
                     <BodyText as="span" size="sm">
-                      {isSaved ? "Unsave" : "Save"}
+                      {isSaved ? t("feed.remove_saved") : t("feed.save")}
                     </BodyText>
                   </Button>
                 </Box>

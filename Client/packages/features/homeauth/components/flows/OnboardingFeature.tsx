@@ -36,11 +36,18 @@ export function OnboardingFeature() {
   } = useOnboardingForm();
 
   const currentStepId = steps[currentStep]?.id ?? "";
+  const isRoleIntroPage = currentStepId === "onboarding_role";
+  const progressStepEntries = steps
+    .map((step, index) => ({ step, index }))
+    .filter(({ step }) => step.id !== "onboarding_role");
+  const progressSteps = progressStepEntries.map(({ step }) => step);
+  const progressCurrentIndex = Math.max(
+    0,
+    progressStepEntries.findIndex(({ index }) => index === currentStep)
+  );
   const showSkipForNow =
     currentStep < steps.length - 1 &&
-    currentStepId !== "" &&
-    currentStepId !== "demographics" &&
-    currentStepId !== "onboarding_role";
+    currentStepId !== "";
 
   const roleStepNeedsSelection =
     currentStepId === "onboarding_role" &&
@@ -65,6 +72,7 @@ export function OnboardingFeature() {
             hideProfilePictureWhenOnboarding={true}
             hideNameWhenOnboarding={true}
             showAgentChoice={false}
+            showWhyJoiningQuestion={false}
           />
         );
 
@@ -170,11 +178,30 @@ export function OnboardingFeature() {
           <Box className="flex items-center">
             <Image src={LOGO} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
           </Box>
-          <Box className="flex items-center gap-4" />
+          <Box className="flex items-center gap-4">
+            {showSkipForNow ? (
+              <SkipButton
+                onSkip={handleSubmit}
+                skipText="Skip for now"
+                disabled={loading}
+                size="sm"
+              />
+            ) : null}
+          </Box>
         </Box>
 
-        {/* Progress Bar */}
-        <OnboardingHeader steps={steps} currentStep={currentStep} onStepClick={goToStep} />
+        {/* Role intro is a standalone first page outside normal onboarding progress. */}
+        {!isRoleIntroPage ? (
+          <OnboardingHeader
+            steps={progressSteps}
+            currentStep={progressCurrentIndex}
+            onStepClick={(progressStepIndex) => {
+              const target = progressStepEntries[progressStepIndex];
+              if (!target) return;
+              goToStep(target.index);
+            }}
+          />
+        ) : null}
 
         {/* Step Content */}
         <Box className="bg-background-surface mt-4 rounded-2xl shadow-sm">
