@@ -3,6 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import Button from "packages/ui/components/button/Button";
 import { Box, Row, Text } from "packages/ui/components/primitives";
 import {
   SIDEBAR_TAB_ACTIVE_TEXT,
@@ -11,10 +12,7 @@ import {
   SIDEBAR_TAB_LOCKED_TEXT,
   SIDEBAR_TAB_ROW_BORDER,
 } from "packages/ui/components/sidebar/sidebarTheme";
-import BodyText from "packages/ui/components/text/BodyText";
 import { HOVER_BG_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
-
-import { Button } from "@/components/ui";
 
 import {
   UNDERLINE_TAB_SIZE_STYLES,
@@ -107,6 +105,9 @@ export function UnderlineTabs({
             variant="ghost"
             size={underlineTabsButtonSize(tabSize)}
             rounded="none"
+            label={typeof item.label === "string" ? item.label : item.id}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
             onClick={() => onChange(item.id)}
             className={`relative ${buttonLayoutClass} ${flexClass} ${textSizeClass} ${fontWeightClass} ${HOVER_BG_CLASSES} focus:outline-none focus:ring-0 ${
               isSidebar
@@ -141,15 +142,14 @@ export function UnderlineTabs({
                 </Box>
               ) : null}
             </Box>
-            {isActive && (
-              <BodyText
-                as="span"
+            {isActive ? (
+              <Box
                 className={`${
                   isSidebar ? SIDEBAR_TAB_ACTIVE_UNDERLINE : underlineColor
                 } absolute bottom-0 left-2 right-2 h-0.5 rounded-none`}
                 aria-hidden
               />
-            )}
+            ) : null}
           </Button>
         );
       })}

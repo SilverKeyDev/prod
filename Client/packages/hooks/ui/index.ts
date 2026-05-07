@@ -2,6 +2,9 @@
 export { useMediaQuery } from "./responsive";
 export { type ResponsiveState, useIsMobile, useResponsive } from "./responsive";
 
+// Perf
+export { useFirstRenderCommitTimer } from "./perf/useFirstRenderCommitTimer";
+
 // Feed
 export { useFeedGestureTrap } from "../../features/feed/hooks/ui";
 export { useFeedAxisLock } from "../../features/feed/hooks/ui";

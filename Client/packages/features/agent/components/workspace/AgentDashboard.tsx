@@ -7,6 +7,8 @@ import type { AgentClient } from "packages/api";
 // agent dashboard does not pay the cost of evaluating every messaging
 // component (AgentMessaging, ClientMessaging, modals, list, sidebar, …).
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import { useFirstRenderCommitTimer } from "packages/hooks/ui";
+import { LOG_CATEGORIES } from "packages/logger";
 
 import AgentMessaging from "@/features/agent/components/messaging/AgentMessaging";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
@@ -17,6 +19,7 @@ type AgentDashboardProps = {
 };
 
 export default function AgentDashboard({ setMobileHeaderActions }: AgentDashboardProps = {}) {
+  useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "AgentDashboard");
   const { clients, isLoading } = useAgentClients();
   const { conversations } = useAgentChats();
 

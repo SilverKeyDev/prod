@@ -73,8 +73,8 @@
     "id": "underline-tabs",
     "description": "Unified underline tabs component matching search Results/Saved styling.",
     "webPath": "packages/ui/components/tabs/UnderlineTabs.tsx",
-    "nativePath": "packages/ui/components/tabs/UnderlineTabs.native.tsx",
-    "reason": "Web uses DOM Button and HTML elements. Native uses React Native Pressable and View for touch targets and layout."
+    "nativePath": "packages/ui/components/tabs/UnderlineTabs.tsx",
+    "reason": "Single shared implementation: cross-platform Button (Pressable) and layout primitives so native matches web."
   },
   {
     "id": "messaging-message-row",

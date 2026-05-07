@@ -298,22 +298,12 @@ export default function UnifiedMessagingSidebar({
   };
   return (
     <>
-      {isSidebarExpanded && (
-        <Box
-          className="bg-overlay-backdrop absolute inset-0 z-40 transition-opacity duration-300 ease-in-out xl:hidden"
-          onClick={() => setIsSidebarExpanded(false)}
-          aria-hidden="true"
-        />
-      )}
-
       <aside
         className={`${
           isSidebarExpanded
-            ? "z-sidebar absolute bottom-0 left-0 top-0 flex h-full w-80 translate-x-0 xl:relative xl:z-0"
-            : "hidden -translate-x-full xl:flex xl:translate-x-0"
-        } flex-col transition-transform duration-300 ease-in-out xl:w-80 ${
-          isSidebarExpanded ? "rounded-xl shadow-xl xl:rounded-l-xl xl:shadow-none" : ""
-        }`}
+            ? "z-sidebar absolute inset-0 flex xl:relative xl:z-0 xl:inset-auto xl:w-80"
+            : "hidden xl:flex xl:w-80"
+        } flex-col transition-transform duration-300 ease-in-out xl:rounded-l-xl`}
       >
         <UnifiedMessagingHeader
           mode={getHeaderMode()}
@@ -323,9 +313,7 @@ export default function UnifiedMessagingSidebar({
           onBackClick={() => setShowInbox(false)}
           onSearchClick={onSearchClick}
           pendingConnectionRequestCount={pendingConnectionRequestCount}
-          className={`${
-            isSidebarExpanded ? "rounded-t-xl" : ""
-          } xl:rounded-tl-xl xl:rounded-tr-none`}
+          className="xl:rounded-tl-xl xl:rounded-tr-none"
         />
 
         {mode === "agent" && !showInbox && !isLoadingClients && clients.length > 0 ? (
@@ -354,9 +342,7 @@ export default function UnifiedMessagingSidebar({
         ) : null}
 
         <Box
-          className={`border-border bg-background-surface flex-1 overflow-y-auto border-r ${
-            isSidebarExpanded ? "rounded-b-xl" : ""
-          } xl:rounded-bl-xl xl:rounded-br-none`}
+          className="border-border bg-background-surface flex-1 overflow-y-auto border-r xl:rounded-bl-xl xl:rounded-br-none"
         >
           {renderSidebarContent()}
         </Box>

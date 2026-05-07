@@ -1,36 +1,52 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ReactNode, UIEvent } from "react";
 
 import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
+import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/UnifiedMessagesListEmptyStates";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
-import { useClientMessagingModals, useMessageScroll } from "packages/hooks/ui";
-import { useMessagingHandlers } from "packages/hooks/ui";
+import {
+  useClientMessagingModals,
+  useFirstRenderCommitTimer,
+  useMediaQuery,
+  useMessageScroll,
+  useMessagingHandlers,
+} from "packages/hooks/ui";
+import { LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
+import { screenUp } from "packages/ui/types/screens";
+import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import UnifiedMessageInput from "@/features/messaging/components/layout/UnifiedMessageInput";
-import UnifiedMessagesList from "@/features/messaging/components/layout/UnifiedMessagesList";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
 import { isSameMessagingUserId, resolvePrimaryAgentId } from "@/features/messaging/utils";
 
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
+
+const UnifiedMessagesList = lazy(
+  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:UnifiedMessagesList(client)", () =>
+    import("packages/features/messaging/components/layout/UnifiedMessagesList")
+  )
+);
 
 type ClientMessagingProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
 };
 
 export default function ClientMessaging({ setMobileHeaderActions }: ClientMessagingProps = {}) {
+  useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "ClientMessaging");
   const { navigate } = useNavigation();
   const { userProfile } = useUserData();
   const agentId = useMemo(
     () => resolvePrimaryAgentId(userProfile?.agent_id),
     [userProfile?.agent_id]
   );
+  const showFindAgentInMessagingHeader = userProfile?.is_agent !== true;
 
   const {
     localMessages,
@@ -159,6 +175,9 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     return "chat";
   }, [showInbox, isChatsLoading, clientConversations.length]);
 
+  const isXlUp = useMediaQuery(screenUp("xl"));
+  const suppressDetailHeaderDuplicateActions = isXlUp && headerMode === "no-agent";
+
   const handleSendMessage = useCallback(async () => {
     const msg = messageRef.current.trim();
     if (!msg) return;
@@ -169,9 +188,18 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
   const headerContentKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (!setMobileHeaderActions) return;
+
+    // When sidebar is expanded on mobile, the sidebar's own internal header takes over.
+    // Clear the mobile shell header to avoid duplicate controls.
+    if (isSidebarExpanded) {
+      headerContentKeyRef.current = null;
+      setMobileHeaderActions(null);
+      return;
+    }
+
     const contentKey = `${headerMode}-${isSidebarExpanded}-${
       activeConversation?.agent_name ?? ""
-    }-${pendingConnectionRequestCount}`;
+    }-${pendingConnectionRequestCount}-${showFindAgentInMessagingHeader ? 1 : 0}`;
     if (headerContentKeyRef.current === contentKey) return;
     headerContentKeyRef.current = contentKey;
     setMobileHeaderActions(
@@ -179,11 +207,14 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
         mode={headerMode}
         isSidebarExpanded={isSidebarExpanded}
         setIsSidebarExpanded={setIsSidebarExpanded}
-        onSearchClick={() => setShowSearchModal(true)}
+        onSearchClick={
+          showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined
+        }
         onInboxClick={() => setShowInbox(true)}
         onBackClick={() => setShowInbox(false)}
         pendingConnectionRequestCount={pendingConnectionRequestCount}
         agentName={activeConversation?.agent_name}
+        suppressListColumnActionDuplicates={false}
       />
     );
     return () => {
@@ -201,6 +232,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     activeConversation?.agent_name,
     isChatsLoading,
     clientConversations.length,
+    showFindAgentInMessagingHeader,
   ]);
 
   return (
@@ -216,7 +248,9 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
           setActiveConversationId={setActiveConversationId}
           clientConversations={clientConversations}
           isLoadingClientConversations={isChatsLoading}
-          onSearchClick={() => setShowSearchModal(true)}
+          onSearchClick={
+            showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined
+          }
         />
         <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">
           <Box className="flex min-h-0 flex-1 flex-col">
@@ -226,11 +260,14 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
                   mode={getHeaderMode()}
                   isSidebarExpanded={isSidebarExpanded}
                   setIsSidebarExpanded={setIsSidebarExpanded}
-                  onSearchClick={() => setShowSearchModal(true)}
+                  onSearchClick={
+                    showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined
+                  }
                   onInboxClick={() => setShowInbox(true)}
                   onBackClick={() => setShowInbox(false)}
                   pendingConnectionRequestCount={pendingConnectionRequestCount}
                   agentName={activeConversation?.agent_name}
+                  suppressListColumnActionDuplicates={suppressDetailHeaderDuplicateActions}
                 />
               </Box>
             )}
@@ -240,25 +277,27 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
                 className="scrollbar-hide min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
                 onScroll={handleMessageListScroll}
               >
-                <UnifiedMessagesList
-                  mode="client"
-                  canSendMessage={canSendMessage}
-                  isLoadingHistory={isLoadingHistory}
-                  localMessages={localMessages}
-                  isTyping={isTyping}
-                  formatTime={formatTime}
-                  onSearchClick={() => setShowSearchModal(true)}
-                  onBrowseAgentsClick={() => navigate("FIND_AGENTS")}
-                  messagesEndRef={messagesEndRef}
-                  onRetryMessage={retryMessage}
-                  activeConversation={activeConversation ?? null}
-                  onAcceptEventRequest={handlers.handleAcceptEventRequest}
-                  onCancelEventRequest={handlers.handleCancelEventRequest}
-                  acceptedEventRequestIds={new Set()}
-                  acceptingEventRequestId={acceptingEventRequestId}
-                  isLoadingOlder={isLoadingOlder}
-                  hasMoreOlder={hasMoreOlder}
-                />
+                <Suspense fallback={<UnifiedMessagesListLoadingHistory />}>
+                  <UnifiedMessagesList
+                    mode="client"
+                    canSendMessage={canSendMessage}
+                    isLoadingHistory={isLoadingHistory}
+                    localMessages={localMessages}
+                    isTyping={isTyping}
+                    formatTime={formatTime}
+                    onSearchClick={() => setShowSearchModal(true)}
+                    onBrowseAgentsClick={() => navigate("FIND_AGENTS")}
+                    messagesEndRef={messagesEndRef}
+                    onRetryMessage={retryMessage}
+                    activeConversation={activeConversation ?? null}
+                    onAcceptEventRequest={handlers.handleAcceptEventRequest}
+                    onCancelEventRequest={handlers.handleCancelEventRequest}
+                    acceptedEventRequestIds={new Set()}
+                    acceptingEventRequestId={acceptingEventRequestId}
+                    isLoadingOlder={isLoadingOlder}
+                    hasMoreOlder={hasMoreOlder}
+                  />
+                </Suspense>
               </Region>
             </Box>
             <UnifiedMessageInput

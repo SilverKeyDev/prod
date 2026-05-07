@@ -11,6 +11,7 @@ import { Box, Text } from "packages/ui/components/primitives";
 import {
   BUTTON_LOADING_FRAME_CLASSES,
   BUTTON_LOADING_VARIANT_OVERRIDES,
+  BUTTON_ROUNDED_CLASSES,
 } from "packages/ui/styles/variants/buttonVariants";
 
 import type { ButtonProps, ButtonVariant } from "./Button";
@@ -78,6 +79,9 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       disabled,
       className = "",
       label,
+      rounded = "lg",
+      accessibilityRole,
+      accessibilityState,
       onPress,
       onClick,
       ...props
@@ -125,7 +129,12 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       </Box>
     );
 
-    const pressableProps = pickPressableProps(props);
+    const roundedClass = BUTTON_ROUNDED_CLASSES[rounded];
+    const pressableProps = {
+      ...pickPressableProps(props),
+      ...(accessibilityRole != null ? { accessibilityRole } : {}),
+      ...(accessibilityState != null ? { accessibilityState } : {}),
+    };
     const priorA11yState =
       pressableProps.accessibilityState &&
       typeof pressableProps.accessibilityState === "object" &&
@@ -140,7 +149,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         onPress={handlePress}
         disabled={disabled ?? loading}
         accessibilityLabel={label}
-        className={`flex-row items-center justify-center rounded-lg ${variantClass} ${sizeClass} ${
+        className={`flex-row items-center justify-center ${roundedClass} ${variantClass} ${sizeClass} ${
           loading
             ? `${BUTTON_LOADING_FRAME_CLASSES} ${BUTTON_LOADING_VARIANT_OVERRIDES[effectiveVariant]}`
             : ""

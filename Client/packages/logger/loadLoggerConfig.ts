@@ -22,6 +22,9 @@ export function loadLoggerConfigFromBundled(): LoggerConfig {
     mapRendering: false,
     propertyDetails: false,
     profilePreferences: false,
+    dashboard: false,
+    messages: false,
+    routing: false,
     logLevel: "DEBUG",
   };
 

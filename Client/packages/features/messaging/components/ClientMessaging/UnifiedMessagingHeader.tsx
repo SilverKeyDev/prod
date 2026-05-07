@@ -16,6 +16,8 @@ export type HeaderMode =
   | "connection-requests"
   | "chat"
   | "no-agent"
+  /** Agent inbox: no client selected — same chrome as buyer empty state, but client-search actions. */
+  | "no-client"
   | "clients"
   | "agents";
 type UnifiedMessagingHeaderProps = {
@@ -31,6 +33,11 @@ type UnifiedMessagingHeaderProps = {
   chatTitle?: string;
   selectedClientName?: string;
   agentName?: string;
+  /**
+   * Master–detail: the list column header (sidebar) already shows Requests + add/search at `xl`.
+   * Set on the **detail** column header so those controls are not duplicated beside the persistent sidebar.
+   */
+  suppressListColumnActionDuplicates?: boolean;
 };
 
 function ConnectionRequestsHeaderButton({
@@ -139,6 +146,7 @@ function HeaderLeftContent({
       );
     case "chat":
     case "no-agent":
+    case "no-client":
       return (
         <Box className="flex items-center gap-2">
           {setIsSidebarExpanded && (
@@ -169,6 +177,7 @@ function HeaderRightContent({
   onInboxClick,
   selectedClientName,
   pendingConnectionRequestCount = 0,
+  suppressListColumnActionDuplicates = false,
 }: {
   mode: HeaderMode;
   isSidebarExpanded?: boolean;
@@ -177,6 +186,7 @@ function HeaderRightContent({
   onInboxClick?: () => void;
   selectedClientName?: string;
   pendingConnectionRequestCount?: number;
+  suppressListColumnActionDuplicates?: boolean;
 }) {
   const { t } = useLocalization();
   const collapseBtn =
@@ -208,6 +218,33 @@ function HeaderRightContent({
         </Box>
       );
     case "clients":
+      return (
+        <Box className="flex items-center gap-2">
+          {onInboxClick ? (
+            <ConnectionRequestsHeaderButton
+              onClick={onInboxClick}
+              label={t("agent.requests")}
+              pendingCount={pendingConnectionRequestCount}
+            />
+          ) : null}
+          {onSearchClick && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSearchClick}
+              className={sidebarInsetHeaderGhostButtonClass()}
+              label={t("agent.search_for_clients")}
+              title={t("agent.search_for_clients")}
+              iconName="plus"
+            />
+          )}
+          {collapseBtn}
+        </Box>
+      );
+    case "no-client":
+      if (suppressListColumnActionDuplicates) {
+        return <Box className="flex items-center gap-2">{collapseBtn}</Box>;
+      }
       return (
         <Box className="flex items-center gap-2">
           {onInboxClick ? (
@@ -272,6 +309,9 @@ function HeaderRightContent({
         </Box>
       );
     case "no-agent":
+      if (suppressListColumnActionDuplicates) {
+        return <Box className="flex items-center gap-2">{collapseBtn}</Box>;
+      }
       return (
         <Box className="flex items-center gap-2">
           {onInboxClick ? (
@@ -313,6 +353,7 @@ export default function UnifiedMessagingHeader({
   chatTitle: _chatTitle,
   selectedClientName,
   agentName,
+  suppressListColumnActionDuplicates = false,
 }: UnifiedMessagingHeaderProps) {
   return (
     <Box className={`${SIDEBAR_INSET_HEADER_SHELL} ${className}`}>
@@ -331,6 +372,7 @@ export default function UnifiedMessagingHeader({
         onInboxClick={onInboxClick}
         selectedClientName={selectedClientName}
         pendingConnectionRequestCount={pendingConnectionRequestCount}
+        suppressListColumnActionDuplicates={suppressListColumnActionDuplicates}
       />
     </Box>
   );

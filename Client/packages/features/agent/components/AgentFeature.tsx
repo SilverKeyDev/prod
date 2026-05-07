@@ -3,14 +3,25 @@ import { lazy, Suspense, useEffect } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 import { useIsAgent } from "packages/features/homeauth";
+import { useFirstRenderCommitTimer } from "packages/hooks/ui";
+import { LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
+import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 
 import { KeyTurnLoader } from "@/components/ui";
 
-const ClientMessaging = lazy(() => import("./messaging/ClientMessaging"));
-const AgentDashboard = lazy(() => import("./workspace/AgentDashboard"));
+const ClientMessaging = lazy(
+  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:ClientMessaging", () =>
+    import("./messaging/ClientMessaging")
+  )
+);
+const AgentDashboard = lazy(
+  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:AgentDashboard", () =>
+    import("./workspace/AgentDashboard")
+  )
+);
 
 const messagingBranchFallback = (
   <Box className="flex min-h-48 flex-1 items-center justify-center p-4">
@@ -23,6 +34,7 @@ type AgentFeatureProps = {
 };
 
 export default function AgentFeature({ setMobileHeaderActions }: AgentFeatureProps = {}) {
+  useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "AgentFeature");
   const authReady = useAuthStore((s) => s.authReady);
   const isAgent = useIsAgent();
   const { navigateToPath, getCurrentRoute } = useNavigation();

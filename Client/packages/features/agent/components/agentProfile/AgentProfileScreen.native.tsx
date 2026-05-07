@@ -1,5 +1,5 @@
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { Pressable, StyleSheet, View } from "react-native";
+import { useRoute } from "@react-navigation/native";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useLocalization } from "packages/contexts";
@@ -21,7 +21,6 @@ function isSlugParams(p: AgentProfileScreenParams | undefined): p is { publicPro
 
 export function AgentProfileScreenNative() {
   const { t } = useLocalization();
-  const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as AgentProfileScreenParams | undefined;
 
@@ -45,11 +44,6 @@ export function AgentProfileScreenNative() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-      <View style={styles.toolbar}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.back}>
-          <Text className="text-text-primary text-base font-medium">{t("common.back")}</Text>
-        </Pressable>
-      </View>
       {!hasLookup ? (
         <View style={styles.center}>
           <Text className="text-text-secondary text-sm">
@@ -85,13 +79,6 @@ export function AgentProfileScreenNative() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: color("neutral.50") },
-  toolbar: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: color("neutral.200"),
-  },
-  back: { alignSelf: "flex-start", paddingVertical: 4 },
   center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24 },
   scroll: { paddingBottom: 32 },
 });

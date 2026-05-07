@@ -1,7 +1,12 @@
-import { lazy, type ReactNode, Suspense } from "react";
+import { lazy, type ReactNode, Suspense, useEffect } from "react";
 
 import { useIsMobile } from "packages/hooks/ui";
+import { log, LOG_CATEGORIES, type LogCategory } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
+import {
+  shellRouteNavigateStart,
+  traceLazyImport,
+} from "packages/utils/perf/shellRouteLoadTiming";
 
 import PageErrorBoundary from "@/app/error/PageErrorBoundary";
 
@@ -11,15 +16,31 @@ import {
 } from "./DashboardRouteFallback";
 import { type DashboardAreaKey, useDashboardRoute } from "./useDashboardRoute";
 
-const SearchPage = lazy(() => import("@/pages/property/SearchPage"));
-const SavedHomes = lazy(() => import("@/pages/property/SavedPage"));
-const ProfilePage = lazy(() => import("@/pages/account/ProfilePage"));
-const DashboardPage = lazy(() => import("@/pages/workspace/DashboardPage"));
-const AgreementSigningCompletePage = lazy(
-  () => import("@/pages/workspace/AgreementSigningCompletePage")
+const SearchPage = lazy(
+  traceLazyImport(LOG_CATEGORIES.ROUTING, "lazy:SearchPage", () => import("@/pages/property/SearchPage"))
 );
-const FindAgentsPage = lazy(() => import("@/pages/misc/FindAgentsPage"));
-const AgentPage = lazy(() => import("@/pages/workspace/AgentPage"));
+const SavedHomes = lazy(
+  traceLazyImport(LOG_CATEGORIES.ROUTING, "lazy:SavedPage", () => import("@/pages/property/SavedPage"))
+);
+const ProfilePage = lazy(
+  traceLazyImport(LOG_CATEGORIES.ROUTING, "lazy:ProfilePage", () => import("@/pages/account/ProfilePage"))
+);
+const DashboardPage = lazy(
+  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:DashboardPage", () =>
+    import("@/pages/workspace/DashboardPage")
+  )
+);
+const AgreementSigningCompletePage = lazy(
+  traceLazyImport(LOG_CATEGORIES.ROUTING, "lazy:AgreementSigningCompletePage", () =>
+    import("@/pages/workspace/AgreementSigningCompletePage")
+  )
+);
+const FindAgentsPage = lazy(
+  traceLazyImport(LOG_CATEGORIES.ROUTING, "lazy:FindAgentsPage", () => import("@/pages/misc/FindAgentsPage"))
+);
+const AgentPage = lazy(
+  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:AgentPage", () => import("@/pages/workspace/AgentPage"))
+);
 
 type DashboardContentProps = {
   setMobileHeaderActions: React.Dispatch<React.SetStateAction<ReactNode | null>>;
@@ -38,6 +59,27 @@ function suspenseFallbackVariant(
   if (activeKey === "messaging") return "messaging";
   if (activeKey === "dashboard") return "dashboard";
   return "generic";
+}
+
+function logCategoryForSuspenseVariant(variant: DashboardRouteFallbackVariant): LogCategory {
+  if (variant === "messaging") return LOG_CATEGORIES.MESSAGES;
+  if (variant === "dashboard") return LOG_CATEGORIES.DASHBOARD;
+  return LOG_CATEGORIES.ROUTING;
+}
+
+function ReportingSuspenseFallback({ variant }: { variant: DashboardRouteFallbackVariant }) {
+  useEffect(() => {
+    const tVisible = performance.now();
+    const cat = logCategoryForSuspenseVariant(variant);
+    log.info(cat, "[PERF] Suspense fallback visible (lazy chunk loading)", { variant });
+    return () => {
+      log.info(cat, "[PERF] Suspense fallback hidden (chunk resolved or navigated away)", {
+        variant,
+        visibleMs: Math.round((performance.now() - tVisible) * 100) / 100,
+      });
+    };
+  }, [variant]);
+  return <DashboardRouteFallback variant={variant} />;
 }
 
 export function DashboardContent({
@@ -82,7 +124,15 @@ export function DashboardContent({
       } as React.CSSProperties & { "--max-width-desktop": string });
 
   const fbVariant = suspenseFallbackVariant(activeKey);
-  const loadingFallback = <DashboardRouteFallback variant={fbVariant} />;
+  const loadingFallback = <ReportingSuspenseFallback variant={fbVariant} />;
+
+  useEffect(() => {
+    if (activeKey === "dashboard") {
+      shellRouteNavigateStart("dashboard", route.pathname);
+    } else if (activeKey === "messaging") {
+      shellRouteNavigateStart("messaging", route.pathname);
+    }
+  }, [activeKey, route.pathname]);
 
   const content =
     activeKey === "search" ? (

@@ -107,6 +107,9 @@ export type ButtonProps = {
   tabIndex?: number;
   /** Accessibility label (alias for label; forwarded when label not set). */
   "aria-label"?: string;
+  /** Forwarded to Pressable (native) / implicit on web. */
+  accessibilityRole?: string;
+  accessibilityState?: Record<string, boolean | undefined>;
 };
 
 // ----- Design decisions (locked) -----

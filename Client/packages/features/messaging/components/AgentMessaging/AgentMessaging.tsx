@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 import type { ReactNode, UIEvent } from "react";
 
@@ -6,17 +6,23 @@ import type { AgentClient } from "packages/api";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
 import UnifiedMessageInput from "packages/features/messaging/components/layout/UnifiedMessageInput";
-import UnifiedMessagesList from "packages/features/messaging/components/layout/UnifiedMessagesList";
+import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/UnifiedMessagesListEmptyStates";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
+import { useMediaQuery } from "packages/hooks/ui";
 import { useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
+import { screenUp } from "packages/ui/types/screens";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
+
+const UnifiedMessagesList = lazy(() =>
+  import("packages/features/messaging/components/layout/UnifiedMessagesList")
+);
 
 type AgentMessagingProps = {
   clients?: AgentClient[];
@@ -135,6 +141,8 @@ export default function AgentMessaging({
     [hasMoreOlder, isLoadingOlder, loadOlderMessages]
   );
   const config = getMessagingConfig("agent");
+  const isXlUp = useMediaQuery(screenUp("xl"));
+  const suppressDetailHeaderDuplicateActions = isXlUp && !showInbox && !selectedClientId;
 
   const handleSendMessage = useCallback(async () => {
     if (!message.trim() || !selectedClientId) return;
@@ -145,13 +153,22 @@ export default function AgentMessaging({
 
   const getHeaderMode = useCallback(() => {
     if (showInbox) return "connection-requests";
-    if (!selectedClientId) return "no-agent";
+    if (!selectedClientId) return "no-client";
     return "chat";
   }, [showInbox, selectedClientId]);
 
   const headerContentKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (!setMobileHeaderActions) return;
+
+    // When sidebar is expanded on mobile, the sidebar's own internal header takes over.
+    // Clear the mobile shell header to avoid duplicate controls.
+    if (isSidebarExpanded) {
+      headerContentKeyRef.current = null;
+      setMobileHeaderActions(null);
+      return;
+    }
+
     const headerMode = getHeaderMode();
     const chatTitle = selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle;
     const contentKey = `${headerMode}-${isSidebarExpanded}-${
@@ -170,6 +187,7 @@ export default function AgentMessaging({
         onInboxClick={() => setShowInbox(true)}
         onBackClick={() => setShowInbox(false)}
         pendingConnectionRequestCount={pendingConnectionRequestCount}
+        suppressListColumnActionDuplicates={false}
       />
     );
     return () => {
@@ -224,6 +242,7 @@ export default function AgentMessaging({
                   onInboxClick={() => setShowInbox(true)}
                   onBackClick={() => setShowInbox(false)}
                   pendingConnectionRequestCount={pendingConnectionRequestCount}
+                  suppressListColumnActionDuplicates={suppressDetailHeaderDuplicateActions}
                 />
               </Box>
             )}
@@ -233,24 +252,26 @@ export default function AgentMessaging({
                 className="scrollbar-hide min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
                 onScroll={handleMessageListScroll}
               >
-                <UnifiedMessagesList
-                  mode="agent"
-                  canSendMessage={canSendMessage}
-                  isLoadingHistory={isLoadingHistory}
-                  localMessages={localMessages}
-                  isTyping={isTyping}
-                  formatTime={formatTime}
-                  messagesEndRef={messagesEndRef}
-                  selectedClientName={selectedClient?.name}
-                  onRetryMessage={retryMessage}
-                  activeConversation={activeConversation ?? null}
-                  onAcceptEventRequest={handlers.handleAcceptEventRequest}
-                  onCancelEventRequest={handlers.handleCancelEventRequest}
-                  acceptedEventRequestIds={new Set()}
-                  acceptingEventRequestId={acceptingEventRequestId}
-                  isLoadingOlder={isLoadingOlder}
-                  hasMoreOlder={hasMoreOlder}
-                />
+                <Suspense fallback={<UnifiedMessagesListLoadingHistory />}>
+                  <UnifiedMessagesList
+                    mode="agent"
+                    canSendMessage={canSendMessage}
+                    isLoadingHistory={isLoadingHistory}
+                    localMessages={localMessages}
+                    isTyping={isTyping}
+                    formatTime={formatTime}
+                    messagesEndRef={messagesEndRef}
+                    selectedClientName={selectedClient?.name}
+                    onRetryMessage={retryMessage}
+                    activeConversation={activeConversation ?? null}
+                    onAcceptEventRequest={handlers.handleAcceptEventRequest}
+                    onCancelEventRequest={handlers.handleCancelEventRequest}
+                    acceptedEventRequestIds={new Set()}
+                    acceptingEventRequestId={acceptingEventRequestId}
+                    isLoadingOlder={isLoadingOlder}
+                    hasMoreOlder={hasMoreOlder}
+                  />
+                </Suspense>
               </Region>
             </Box>
             <UnifiedMessageInput

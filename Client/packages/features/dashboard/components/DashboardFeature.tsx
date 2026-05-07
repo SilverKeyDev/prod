@@ -14,12 +14,14 @@ import {
   useCompletedSigningTodos,
   useSigningTodos,
 } from "packages/hooks/data/agenda/useSigningTodos";
+import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useUIStore } from "packages/store";
 import type { UIState } from "packages/store/ui.slice";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
+import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
 import type { TodoItem } from "@/features/agent/types/agent";
@@ -30,10 +32,26 @@ import ClientHubScreen from "./ClientHub/ClientHubScreen";
 
 // Lazy-loaded so the dashboard shell (upcoming events) can render before the
 // agent-only client list / client-only checklists chunks finish loading.
-const ClientList = lazy(() => import("./ClientList/ClientList"));
-const DashboardChecklists = lazy(() => import("./DashboardChecklists/DashboardChecklists"));
-const DashboardAgreementSigningModals = lazy(() => import("./DashboardAgreementSigningModals"));
-const DashboardCalendarPanel = lazy(() => import("./DashboardCalendarPanel"));
+const ClientList = lazy(
+  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:ClientList", () =>
+    import("./ClientList/ClientList")
+  )
+);
+const DashboardChecklists = lazy(
+  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:DashboardChecklists", () =>
+    import("./DashboardChecklists/DashboardChecklists")
+  )
+);
+const DashboardAgreementSigningModals = lazy(
+  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:DashboardAgreementSigningModals", () =>
+    import("./DashboardAgreementSigningModals")
+  )
+);
+const DashboardCalendarPanel = lazy(
+  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:DashboardCalendarPanel", () =>
+    import("./DashboardCalendarPanel")
+  )
+);
 
 const dashboardCalendarSkeleton = (
   <Box className="bg-muted/50 h-56 w-full animate-pulse rounded-xl md:h-72" />
@@ -57,6 +75,7 @@ function mapTodosToAgendaDTO(todos: TodoItem[]): AgendaTodoDTO[] {
 }
 
 export function DashboardFeature({ setMobileHeaderActions }: DashboardFeatureProps) {
+  useFirstRenderCommitTimer(LOG_CATEGORIES.DASHBOARD, "DashboardFeature");
   const { navigateToPath, getCurrentRoute } = useNavigation();
   const isAgent = useIsAgent();
   const queryClient = useQueryClient();
