@@ -8,7 +8,6 @@ import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
 
 import { userPreferencesToOnboardingData } from "@/features/profile/utils";
 

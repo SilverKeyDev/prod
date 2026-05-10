@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Button } from "packages/ui/components/button/Button";
+import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Title } from "@/components/ui";

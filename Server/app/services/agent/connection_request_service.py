@@ -3,59 +3,20 @@ Service functions for managing agent-client connection requests
 """
 
 import logging
-import re
 from datetime import datetime, timezone
 
 from ... import db
 from ...models import AgentConnectionRequest, AgentConnections, User, UserAgentProfile
 from ...utils.json_string_list_parse import parse_json_or_csv_string_list
 from .client_service import append_unique_agent_id_for_client, append_unique_client_id
+from .connection_request_helpers import (
+    agent_row_base,
+    normalize_state,
+    normalize_zip,
+    tokenize,
+)
 
 logger = logging.getLogger(__name__)
-
-
-def _normalize_zip(z: str | None) -> str | None:
-    if not z:
-        return None
-    digits = "".join(c for c in str(z).strip() if c.isdigit())
-    if len(digits) >= 5:
-        return digits[:5]
-    return None
-
-
-def _normalize_state(s: str | None) -> str | None:
-    if not s or len(s.strip()) != 2:
-        return None
-    return s.strip().upper()
-
-
-def _tokenize(text: str | None) -> set[str]:
-    if not text or not str(text).strip():
-        return set()
-    return {t for t in re.split(r"[^\w]+", str(text).lower()) if len(t) > 1}
-
-
-def _agent_row_base(agent: User, profile: UserAgentProfile | None = None) -> dict:
-    created = agent.created_at
-    if created is not None and created.tzinfo is None:
-        created = created.replace(tzinfo=timezone.utc)
-    headshot = profile.professional_headshot_url if profile else None
-    headshot_t = headshot.strip() if headshot and str(headshot).strip() else None
-    user_pic = agent.profile_picture
-    user_pic_t = user_pic.strip() if user_pic and str(user_pic).strip() else None
-    profile_picture = headshot_t or user_pic_t
-    description = None
-    if profile and profile.agent_bio and str(profile.agent_bio).strip():
-        description = str(profile.agent_bio).strip()
-    return {
-        "id": agent.id,
-        "name": agent.name,
-        "email": agent.email,
-        "phone": agent.phone,
-        "created_at": created.isoformat() if created else None,
-        "profile_picture": profile_picture,
-        "description": description,
-    }
 
 
 def recommend_agents(
@@ -72,10 +33,10 @@ def recommend_agents(
     """
     try:
         limit = max(1, min(int(limit), 100))
-        zip_norm = _normalize_zip(zip_code)
-        state_norm = _normalize_state(state)
+        zip_norm = normalize_zip(zip_code)
+        state_norm = normalize_state(state)
         intent_clean = intent.strip() if intent else ""
-        intent_tokens = _tokenize(intent_clean)
+        intent_tokens = tokenize(intent_clean)
         has_signals = bool(zip_norm or state_norm or intent_tokens)
 
         rows = (
@@ -92,7 +53,7 @@ def recommend_agents(
 
             if zip_norm and profile and profile.primary_service_zips:
                 zips_raw = parse_json_or_csv_string_list(profile.primary_service_zips)
-                zips_n = {z for z in (_normalize_zip(x) for x in zips_raw) if z}
+                zips_n = {z for z in (normalize_zip(x) for x in zips_raw) if z}
                 if zip_norm in zips_n:
                     score += 5.0
                     reasons.append("zip")
@@ -107,14 +68,14 @@ def recommend_agents(
             if intent_tokens and profile:
                 specs = parse_json_or_csv_string_list(profile.specialties)
                 bio = profile.agent_bio or ""
-                corpus_tokens = _tokenize(" ".join(specs) + " " + bio)
+                corpus_tokens = tokenize(" ".join(specs) + " " + bio)
                 overlap = intent_tokens & corpus_tokens
                 if overlap:
                     score += float(min(5, len(overlap)))
                     reasons.append("specialty")
 
             row = {
-                **_agent_row_base(agent, profile),
+                **agent_row_base(agent, profile),
                 "relevance_score": score,
                 "match_reasons": reasons or None,
             }
@@ -144,7 +105,7 @@ def recommend_agents(
             prof = db.session.get(UserAgentProfile, a.id)
             result.append(
                 {
-                    **_agent_row_base(a, prof),
+                    **agent_row_base(a, prof),
                     "relevance_score": 0.0,
                     "match_reasons": None,
                 }
@@ -183,7 +144,7 @@ def search_agents(query: str, limit: int = 20) -> list[dict]:
 
         result = []
         for agent in agents:
-            result.append(_agent_row_base(agent))
+            result.append(agent_row_base(agent))
 
         return result
 

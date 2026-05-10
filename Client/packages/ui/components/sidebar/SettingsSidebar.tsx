@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 import type { ReactNode } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { useResponsive } from "packages/hooks/ui";
 import type { NavItem } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 
@@ -31,6 +32,7 @@ export default function SettingsSidebar({
   footerContent,
 }: SettingsSidebarProps) {
   const { t } = useLocalization();
+  const { isMdDown } = useResponsive();
   const headerContent = !isEditMode ? (
     <Button
       onClick={onEdit}
@@ -73,7 +75,7 @@ export default function SettingsSidebar({
       items={items}
       activeItem={activeSection}
       onItemClick={onScrollToSection}
-      headerContent={headerContent}
+      headerContent={isMdDown ? undefined : headerContent}
       footerContent={footerContent}
     />
   );

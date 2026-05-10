@@ -24,6 +24,7 @@ properties:
         enum:
           - homes
           - documents
+          - forms-library
           - agreements
     additionalProperties: false
   calendar:

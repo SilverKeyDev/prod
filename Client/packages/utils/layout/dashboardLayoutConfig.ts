@@ -47,7 +47,8 @@ export const PATH_WIDTH_PERCENT: Record<PathPrefix, number> = {
   search: 100,
   dashboard: 90,
   profile: 90,
-  saved: 90,
+  /** Full main-area width — library toolbar is dense (tabs, search, sort, toggles). */
+  saved: 100,
   messaging: 100,
   find_agents: 90,
 };

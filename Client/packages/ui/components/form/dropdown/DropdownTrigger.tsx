@@ -43,6 +43,15 @@ export function DropdownTrigger<T>({
       disabled={disabled}
       aria-label={triggerA11yLabel}
       className={`${buttonClasses} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
+      icon={
+        <Icon
+          name="chevron-down"
+          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+            isOpen ? "rotate-180 transform" : ""
+          }`}
+        />
+      }
+      iconPosition="right"
     >
       <Box className="flex w-full min-w-0 flex-row items-center justify-between gap-2">
         <Box className="flex min-w-0 flex-1 items-center gap-2">
@@ -67,19 +76,12 @@ export function DropdownTrigger<T>({
               variant="ghost"
               size="sm"
               onClick={handleClear}
+              iconName="x"
+              label={t("form.clear_aria")}
               className="cursor-pointer rounded p-1 transition-colors hover:bg-gray-100"
               tabIndex={-1}
-              aria-label={t("form.clear_aria")}
-            >
-              {t("form.clear_aria")}
-            </Button>
+            />
           )}
-          <Icon
-            name="chevron-down"
-            className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
-              isOpen ? "rotate-180 transform" : ""
-            }`}
-          />
         </Box>
       </Box>
     </Button>

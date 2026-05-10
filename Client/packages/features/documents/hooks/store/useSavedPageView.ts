@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useNavigation } from "packages/navigation";
 
-export type SavedPageViewType = "homes" | "documents" | "agreements";
+export type SavedPageViewType = "homes" | "documents" | "forms-library" | "agreements";
 
 type UseSavedPageViewReturn = {
   viewType: SavedPageViewType;
@@ -22,16 +22,23 @@ type UseSavedPageViewReturn = {
  *
  * When the URL does not specify `saved`, the last persisted tab from the server is used.
  */
+function savedTabFromParam(raw: string | null): SavedPageViewType | null {
+  if (raw === "homes" || raw === "documents" || raw === "forms-library" || raw === "agreements") {
+    return raw;
+  }
+  return null;
+}
+
 function getViewTypeFromSearch(search: string): SavedPageViewType {
   const params = new URLSearchParams(search);
   const p = params.get("saved") ?? params.get("view");
-  return p === "homes" || p === "documents" || p === "agreements" ? p : "homes";
+  return savedTabFromParam(p) ?? "homes";
 }
 
 function hasSavedInSearch(search: string): boolean {
   const params = new URLSearchParams(search);
   const p = params.get("saved") ?? params.get("view");
-  return p === "homes" || p === "documents" || p === "agreements";
+  return savedTabFromParam(p) != null;
 }
 
 export function useSavedPageView(): UseSavedPageViewReturn {
@@ -45,7 +52,7 @@ export function useSavedPageView(): UseSavedPageViewReturn {
   useEffect(() => {
     if (hasSavedInSearch(route.search)) return;
     const tab = clientSettings?.saved?.tab;
-    if (tab === "homes" || tab === "documents" || tab === "agreements") {
+    if (tab === "homes" || tab === "documents" || tab === "forms-library" || tab === "agreements") {
       setViewTypeState(tab);
     }
   }, [clientSettings?.saved?.tab, route.search]);

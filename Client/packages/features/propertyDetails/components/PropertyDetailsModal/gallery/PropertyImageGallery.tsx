@@ -189,7 +189,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
     <Box ref={galleryRootRef} className="relative w-full">
       {isModalSidebar ? (
         <Box
-          className={`sticky top-0 z-20 transition-all duration-300 ${
+          className={`z-sidebar sticky top-0 transition-all duration-300 ${
             isGridInView ? "h-0 overflow-hidden opacity-0" : "h-auto opacity-100"
           }`}
         >
@@ -281,7 +281,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
               type="button"
               variant="cancel"
               onClick={prevImage}
-              className="group absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border-0 bg-transparent p-3 text-white shadow-none transition hover:!bg-transparent active:!bg-transparent"
+              className="z-header group absolute left-0 top-1/2 -translate-y-1/2 rounded-full border-0 bg-transparent p-3 text-white shadow-none transition hover:!bg-transparent active:!bg-transparent"
             >
               <Icon name="chevron-left" className="h-10 w-10 stroke-2 text-white" />
             </Button>
@@ -289,7 +289,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
               type="button"
               variant="cancel"
               onClick={nextImage}
-              className="group absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border-0 bg-transparent p-3 text-white shadow-none transition hover:!bg-transparent active:!bg-transparent"
+              className="z-header group absolute right-0 top-1/2 -translate-y-1/2 rounded-full border-0 bg-transparent p-3 text-white shadow-none transition hover:!bg-transparent active:!bg-transparent"
             >
               <Icon name="chevron-right" className="h-10 w-10 stroke-2 text-white" />
             </Button>

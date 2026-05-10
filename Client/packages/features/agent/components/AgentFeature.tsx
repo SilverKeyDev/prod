@@ -13,13 +13,17 @@ import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 import { KeyTurnLoader } from "@/components/ui";
 
 const ClientMessaging = lazy(
-  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:ClientMessaging", () =>
-    import("./messaging/ClientMessaging")
+  traceLazyImport(
+    LOG_CATEGORIES.MESSAGES,
+    "lazy:ClientMessaging",
+    () => import("./messaging/ClientMessaging")
   )
 );
 const AgentDashboard = lazy(
-  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:AgentDashboard", () =>
-    import("./workspace/AgentDashboard")
+  traceLazyImport(
+    LOG_CATEGORIES.MESSAGES,
+    "lazy:AgentDashboard",
+    () => import("./workspace/AgentDashboard")
   )
 );
 

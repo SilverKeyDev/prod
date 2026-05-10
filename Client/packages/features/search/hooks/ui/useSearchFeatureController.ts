@@ -296,6 +296,9 @@ export function useSearchFeatureController({
   const { isCompactHeader, headerProps } = useSearchMobileHeaderActions({
     isSearching,
     onSearch: handleSearchUpdated,
+    onLocationSearchSubmit: handleLocationSearchSubmit,
+    fitMapToBounds: map.fitMapToBounds,
+    onPreciseStreetAddressSelected: handlePreciseStreetAddressSelected,
     onCancelSearch: handleCancelSearch,
     hasLocations,
     selectedClientId,

@@ -1,6 +1,6 @@
 """Unit tests for checklist rule merge (parity with client)."""
 
-from app.services.transactions.checklist_rules import (
+from app.services.transactions.checklist_support.checklist_rules import (
     evaluate_checklist_condition,
     merge_task_checklist_checked_ids,
 )

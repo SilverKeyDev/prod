@@ -582,6 +582,10 @@ components:
       $ref: "./components/schemas/user/todos/UpdateTodoRequest.yaml"
     UpdateTodoResponse:
       $ref: "./components/schemas/user/todos/UpdateTodoResponse.yaml"
+    UpdateUserSystemRolesRequest:
+      $ref: "./components/schemas/admin/UpdateUserSystemRolesRequest.yaml"
+    UpdateUserSystemRolesResponse:
+      $ref: "./components/schemas/admin/UpdateUserSystemRolesResponse.yaml"
     UploadedDocumentRecord:
       $ref: "./components/schemas/agreements/documents/UploadedDocumentRecord.yaml"
     UploadResponse:
@@ -600,6 +604,8 @@ components:
       $ref: "./components/schemas/user/profile/UserResponse.yaml"
     UserDataExportResponse:
       $ref: "./components/schemas/user/profile/UserDataExportResponse.yaml"
+    ValidationStatsApiResponse:
+      $ref: "./components/schemas/admin/ValidationStatsApiResponse.yaml"
     ViewingBuildRouteApiResponse:
       $ref: "./components/schemas/viewings/ViewingBuildRouteApiResponse.yaml"
     ViewingItinerary:
@@ -5107,10 +5113,79 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/users/roles:
+    post:
+      tags: [ Admin ]
+      summary: Grant or revoke SilverKey gate roles for a user (super_admin only)
+      operationId: adminUpdateUserSystemRoles
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserSystemRolesRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateUserSystemRolesResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Target user not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/validation-stats:
+    get:
+      tags: [ Admin ]
+      summary: OpenAPI validation failure statistics snapshot (placeholder data until log aggregation lands)
+      operationId: adminGetValidationStats
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          description: Rolling window length in days (passed through to aggregator; placeholder ignores beyond documentation).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 90
+            default: 7
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationStatsApiResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/users/delete:
     post:
       tags: [ Admin ]
-      summary: Hard-delete a user (admin)
+      summary: Hard-delete a user (super_admin only)
       operationId: adminDeleteUser
       security:
         - sessionCookie: []

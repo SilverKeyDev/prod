@@ -149,7 +149,7 @@ export function SearchPageDesktopLayout({
       </Box>
 
       <Box className="flex flex-1 flex-col">
-        <Box className="hidden w-full flex-shrink-0 md:block">
+        <Box className="z-dropdown relative hidden w-full flex-shrink-0 md:block">
           <Box className="mb-4 flex w-full items-center justify-between">
             <SearchHeader
               onSearchProperties={onSearchProperties}

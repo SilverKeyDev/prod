@@ -1,20 +1,22 @@
 import { Icon } from "@ui/icons";
 import type { ReactNode } from "react";
 
-import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "packages/features/saved/utils/constants";
 import { Box } from "packages/ui/components/primitives";
-import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
 
 import Card from "@/components/layout/Card.web";
-import { IconButton, Input } from "@/components/ui";
+import { BodyText, IconButton, Input } from "@/components/ui";
 
 import { LibrarySortSelect } from "./LibrarySortSelect";
 import { LibraryViewModeToggle } from "./LibraryViewModeToggle";
+import { SavedPageViewUnderlineTabs } from "./SavedPageViewUnderlineTabs";
 
 type SavedPageTabsAndSearchProps = {
+  isAgent: boolean;
+  /** When false, hides the shared Saved search field (e.g. Forms Library uses internal browsing). */
+  toolbarShowSearch?: boolean;
   /** Renders at the start of the toolbar row (e.g. agent client picker). */
   toolbarLeading?: ReactNode;
   searchTerm: string;
@@ -34,32 +36,9 @@ type SavedPageTabsAndSearchProps = {
   librarySortKey: string;
   onLibrarySortChange: (value: string) => void;
 };
-function SavedPageTabNav({
-  viewType,
-  onViewTypeChange,
-}: {
-  viewType: SavedPageViewType;
-  onViewTypeChange: (type: SavedPageViewType) => void;
-}) {
-  const { t } = useLocalization();
-  return (
-    <UnderlineTabs
-      items={[
-        { id: "homes", label: t("saved.tab_homes") },
-        { id: "documents", label: t("saved.tab_documents") },
-        {
-          id: "agreements",
-          label: t("saved.tab_agreements", { defaultValue: "DocuSign" }),
-        },
-      ]}
-      activeId={viewType}
-      onChange={(id) => onViewTypeChange(id as SavedPageViewType)}
-      size="md"
-      className="mb-3"
-    />
-  );
-}
 export default function SavedPageTabsAndSearch({
+  isAgent,
+  toolbarShowSearch = true,
   toolbarLeading,
   searchTerm,
   onSearchChange,
@@ -76,57 +55,87 @@ export default function SavedPageTabsAndSearch({
   librarySortKey,
   onLibrarySortChange,
 }: SavedPageTabsAndSearchProps) {
+  const controlCluster = (
+    <Box className="flex min-w-0 flex-wrap items-center justify-end gap-2 sm:flex-nowrap sm:justify-end">
+      <LibrarySortSelect
+        viewType={viewType}
+        value={librarySortKey}
+        onChange={onLibrarySortChange}
+      />
+      <LibraryViewModeToggle
+        viewMode={libraryViewMode}
+        onViewModeChange={onLibraryViewModeChange}
+        visible={showLibraryViewToggle}
+      />
+      {viewType === "documents" && onUploadClick ? (
+        <IconButton
+          variant="ghost"
+          size="sm"
+          onClick={onUploadClick}
+          label="Upload"
+          icon={<Icon name="plus" className="h-4 w-4" />}
+          className="!text-text-primary hover:bg-transparent focus:ring-black/10 active:bg-transparent"
+        />
+      ) : null}
+    </Box>
+  );
+
   return (
     <Box className="mb-6 w-full">
-      <SavedPageTabNav viewType={viewType} onViewTypeChange={onViewTypeChange} />
-      <Card border="light" padding="none" className="w-full p-3">
-        <Box className="flex flex-wrap items-center justify-between gap-3">
+      <SavedPageViewUnderlineTabs
+        isAgent={isAgent}
+        viewType={viewType}
+        onViewTypeChange={onViewTypeChange}
+      />
+      <Card border="light" padding="none" className="w-full p-3 sm:p-4">
+        {/*
+          Below lg: stack (client, search + meta, controls) so controls stay on one baseline.
+          lg+: single row.
+        */}
+        <Box className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
           {toolbarLeading ? (
-            <Box className="flex w-full shrink-0 items-center sm:w-auto">{toolbarLeading}</Box>
+            <Box className="flex w-full shrink-0 items-center lg:w-auto">{toolbarLeading}</Box>
           ) : null}
-          {/* Search + count */}
-          <Box className="flex w-full min-w-0 flex-1 flex-wrap items-center gap-3 sm:min-w-48">
-            <Box className="relative min-w-48 flex-1">
-              <Icon
-                name="search"
-                className="mobile-icon-xs text-text-disabled absolute left-3 top-1/2 -translate-y-1/2"
-              />
-              <Input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className={SAVED_PAGE_SEARCH_INPUT_CLASS}
-                placeholder={searchPlaceholder}
-              />
+
+          {toolbarShowSearch ? (
+            <Box className="flex w-full min-w-0 flex-1 flex-col gap-1.5">
+              <Box className="relative w-full min-w-0">
+                <Icon
+                  name="search"
+                  className="mobile-icon-xs text-text-disabled pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+                />
+                <Input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  className={SAVED_PAGE_SEARCH_INPUT_CLASS}
+                  placeholder={searchPlaceholder}
+                />
+              </Box>
+              {rightText ? (
+                <BodyText as="p" size="xs" className="text-text-secondary lg:hidden">
+                  {rightText}
+                </BodyText>
+              ) : null}
             </Box>
+          ) : null}
 
-            {rightText ? (
-              <Box className="text-text-secondary whitespace-nowrap text-sm">{rightText}</Box>
+          <Box className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end lg:w-auto lg:shrink-0 lg:flex-row lg:items-center lg:justify-end lg:gap-3">
+            {!toolbarShowSearch && rightText ? (
+              <BodyText as="p" size="xs" className="text-text-secondary lg:hidden">
+                {rightText}
+              </BodyText>
             ) : null}
-          </Box>
-
-          {/* Sort, view toggle + upload */}
-          <Box className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-            <LibrarySortSelect
-              viewType={viewType}
-              value={librarySortKey}
-              onChange={onLibrarySortChange}
-            />
-            <LibraryViewModeToggle
-              viewMode={libraryViewMode}
-              onViewModeChange={onLibraryViewModeChange}
-              visible={showLibraryViewToggle}
-            />
-            {viewType === "documents" && onUploadClick ? (
-              <IconButton
-                variant="ghost"
-                size="sm"
-                onClick={onUploadClick}
-                label="Upload"
-                icon={<Icon name="plus" className="h-4 w-4" />}
-                className="!text-text-primary hover:bg-transparent focus:ring-black/10 active:bg-transparent"
-              />
+            {toolbarShowSearch && rightText ? (
+              <BodyText
+                as="p"
+                size="xs"
+                className="text-text-secondary hidden shrink-0 whitespace-nowrap lg:block"
+              >
+                {rightText}
+              </BodyText>
             ) : null}
+            {controlCluster}
           </Box>
         </Box>
       </Card>

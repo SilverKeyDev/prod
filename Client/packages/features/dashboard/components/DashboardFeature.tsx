@@ -33,23 +33,31 @@ import ClientHubScreen from "./ClientHub/ClientHubScreen";
 // Lazy-loaded so the dashboard shell (upcoming events) can render before the
 // agent-only client list / client-only checklists chunks finish loading.
 const ClientList = lazy(
-  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:ClientList", () =>
-    import("./ClientList/ClientList")
+  traceLazyImport(
+    LOG_CATEGORIES.DASHBOARD,
+    "lazy:ClientList",
+    () => import("./ClientList/ClientList")
   )
 );
 const DashboardChecklists = lazy(
-  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:DashboardChecklists", () =>
-    import("./DashboardChecklists/DashboardChecklists")
+  traceLazyImport(
+    LOG_CATEGORIES.DASHBOARD,
+    "lazy:DashboardChecklists",
+    () => import("./DashboardChecklists/DashboardChecklists")
   )
 );
 const DashboardAgreementSigningModals = lazy(
-  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:DashboardAgreementSigningModals", () =>
-    import("./DashboardAgreementSigningModals")
+  traceLazyImport(
+    LOG_CATEGORIES.DASHBOARD,
+    "lazy:DashboardAgreementSigningModals",
+    () => import("./DashboardAgreementSigningModals")
   )
 );
 const DashboardCalendarPanel = lazy(
-  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:DashboardCalendarPanel", () =>
-    import("./DashboardCalendarPanel")
+  traceLazyImport(
+    LOG_CATEGORIES.DASHBOARD,
+    "lazy:DashboardCalendarPanel",
+    () => import("./DashboardCalendarPanel")
   )
 );
 

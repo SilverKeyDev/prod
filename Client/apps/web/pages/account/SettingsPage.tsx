@@ -15,6 +15,7 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { useGoogleMapsStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 import SettingsSidebar from "packages/ui/components/sidebar/SettingsSidebar";
+import { TwoColumnInsetPageLayout } from "packages/ui/components/sidebar/TwoColumnInsetPageLayout";
 import { getActiveSettingsSectionId } from "packages/utils/web/settingsActiveSectionFromScroll";
 
 // Google Maps types
@@ -368,34 +369,27 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
   };
 
   return (
-    <Box className="min-h-screen bg-background-base">
-      <Box className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
-        <Box className="flex flex-row gap-6 lg:gap-8">
-          {/* Sidebar - Always visible */}
-          <SettingsSidebar
-            items={convertStepsToNavItems(STEPS)}
-            activeSection={activeSection}
-            isEditMode={isEditMode}
-            isSaving={isSaving}
-            onEdit={() => setIsEditMode(true)}
-            onSave={handleSaveChanges}
-            onCancel={handleCancel}
-            onScrollToSection={scrollToSection}
-          />
-
-          {/* Content area: use Box with region role to avoid duplicate main landmark (top-level main is in DashboardLayout). */}
-          <Box
-            role="region"
-            className={`w-full flex-1 space-y-8 ${!isUltraSmallScreen ? "lg:ml-0" : ""}`}
-          >
-            {STEPS.map((step) => (
-              <section id={step.id} key={step.id}>
-                {renderSectionContent(step.id)}
-              </section>
-            ))}
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+    <TwoColumnInsetPageLayout
+      maxWidthClassName="max-w-7xl"
+      regionClassName={`w-full flex-1 space-y-8 ${!isUltraSmallScreen ? "lg:ml-0" : ""}`}
+      sidebar={
+        <SettingsSidebar
+          items={convertStepsToNavItems(STEPS)}
+          activeSection={activeSection}
+          isEditMode={isEditMode}
+          isSaving={isSaving}
+          onEdit={() => setIsEditMode(true)}
+          onSave={handleSaveChanges}
+          onCancel={handleCancel}
+          onScrollToSection={scrollToSection}
+        />
+      }
+    >
+      {STEPS.map((step) => (
+        <section id={step.id} key={step.id}>
+          {renderSectionContent(step.id)}
+        </section>
+      ))}
+    </TwoColumnInsetPageLayout>
   );
 }

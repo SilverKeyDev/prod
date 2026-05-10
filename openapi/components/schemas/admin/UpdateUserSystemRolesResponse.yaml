@@ -1,0 +1,15 @@
+allOf:
+  - $ref: "../shared/core/SuccessResponse.yaml"
+  - type: object
+    required:
+      - user_id
+      - gate_roles
+    properties:
+      user_id:
+        type: string
+        description: Updated user ID.
+      gate_roles:
+        type: array
+        description: Remaining SilverKey gate roles (`admin`, `super_admin`) for this user after the change.
+        items:
+          type: string

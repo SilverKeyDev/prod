@@ -3,9 +3,11 @@ import React from "react";
 import { Icon } from "@ui/icons";
 import {
   KeyboardAvoidingView,
+  type NativeSyntheticEvent,
   Platform,
   StyleSheet,
   TextInput,
+  type TextInputContentSizeChangeEventData,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -32,6 +34,12 @@ export type UnifiedMessageInputProps = {
   onAttachmentDocument?: () => void;
 };
 
+/** Match send / attachment touch targets (44×44). */
+const INPUT_MIN_HEIGHT = 44;
+const INPUT_MAX_HEIGHT = 120;
+/** Sum of `textInput` paddingVertical (8 + 8) so content measurement matches outer height. */
+const INPUT_VERTICAL_PADDING_TOTAL = 16;
+
 const styles = StyleSheet.create({
   container: {
     borderTopWidth: 1,
@@ -54,12 +62,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: color("background-surface"),
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 44,
-    maxHeight: 120,
+    paddingVertical: 8,
     fontSize: 16, // Prevent iOS zoom
     lineHeight: 20,
-    textAlignVertical: "top", // Android
+    textAlignVertical: "top", // Android; multi-line
   },
   textInputFocused: {
     borderColor: color("olive.DEFAULT"),
@@ -103,6 +109,7 @@ export default function UnifiedMessageInputNative({
   onAttachmentDocument,
 }: UnifiedMessageInputProps) {
   const [isFocused, setIsFocused] = React.useState(false);
+  const [inputHeight, setInputHeight] = React.useState(INPUT_MIN_HEIGHT);
   const config = getMessagingConfig(mode);
   const finalPlaceholder =
     placeholder ||
@@ -113,6 +120,24 @@ export default function UnifiedMessageInputNative({
   const hasAttachments = Boolean(onAttachmentHome || onAttachmentCalendar || onAttachmentDocument);
 
   const canSend = message.trim() && !isTyping && !disabled;
+
+  React.useEffect(() => {
+    if (message.length === 0) {
+      setInputHeight(INPUT_MIN_HEIGHT);
+    }
+  }, [message]);
+
+  const handleContentSizeChange = React.useCallback(
+    (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+      const contentH = e.nativeEvent.contentSize.height;
+      const next = Math.min(
+        INPUT_MAX_HEIGHT,
+        Math.max(INPUT_MIN_HEIGHT, Math.ceil(contentH + INPUT_VERTICAL_PADDING_TOTAL))
+      );
+      setInputHeight((prev) => (prev === next ? prev : next));
+    },
+    []
+  );
 
   /* eslint-disable silverkey/no-platform-feature-check -- KeyboardAvoidingView API requires platform-specific behavior, not feature gating */
   return (
@@ -144,7 +169,15 @@ export default function UnifiedMessageInputNative({
               editable={!isTyping && !disabled}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              style={[styles.textInput, isFocused && styles.textInputFocused]}
+              onContentSizeChange={handleContentSizeChange}
+              scrollEnabled={inputHeight >= INPUT_MAX_HEIGHT}
+              underlineColorAndroid="transparent"
+              style={[
+                styles.textInput,
+                { height: inputHeight, maxHeight: INPUT_MAX_HEIGHT },
+                Platform.OS === "android" ? { includeFontPadding: false } : null,
+                isFocused && styles.textInputFocused,
+              ]}
               returnKeyType="send"
               onSubmitEditing={() => {
                 if (canSend) {

@@ -1,0 +1,10 @@
+allOf:
+  - $ref: "../shared/core/SuccessResponse.yaml"
+  - type: object
+    required:
+      - data
+    properties:
+      data:
+        type: object
+        description: Aggregate validation-stats payload from the API (structured log snapshot; may evolve).
+        additionalProperties: true

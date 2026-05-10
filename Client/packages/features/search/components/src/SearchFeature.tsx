@@ -47,7 +47,7 @@ export function SearchFeature({
   return (
     <Box className="relative h-full">
       {c.searchViewMode === "reels" && (
-        <Box className="absolute right-4 top-4 z-30 flex items-center md:flex">
+        <Box className="z-dock absolute right-4 top-4 flex items-center md:flex">
           <IconButton
             variant="ghost"
             size="md"
@@ -62,7 +62,7 @@ export function SearchFeature({
       <Box className="relative h-full">
         <Box
           className={`absolute inset-0 h-full ${
-            c.searchViewMode === "map" ? "z-10" : "pointer-events-none invisible z-0"
+            c.searchViewMode === "map" ? "z-header" : "pointer-events-none invisible z-0"
           }`}
           aria-hidden={c.searchViewMode !== "map"}
         >
@@ -123,7 +123,7 @@ export function SearchFeature({
         </Box>
         <Box
           className={`absolute inset-0 h-full ${
-            c.searchViewMode === "reels" ? "z-10" : "pointer-events-none invisible z-0"
+            c.searchViewMode === "reels" ? "z-header" : "pointer-events-none invisible z-0"
           }`}
           aria-hidden={c.searchViewMode !== "reels"}
         >

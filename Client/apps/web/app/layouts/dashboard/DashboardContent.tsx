@@ -3,10 +3,7 @@ import { lazy, type ReactNode, Suspense, useEffect } from "react";
 import { useIsMobile } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES, type LogCategory } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
-import {
-  shellRouteNavigateStart,
-  traceLazyImport,
-} from "packages/utils/perf/shellRouteLoadTiming";
+import { shellRouteNavigateStart, traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 
 import PageErrorBoundary from "@/app/error/PageErrorBoundary";
 
@@ -17,29 +14,53 @@ import {
 import { type DashboardAreaKey, useDashboardRoute } from "./useDashboardRoute";
 
 const SearchPage = lazy(
-  traceLazyImport(LOG_CATEGORIES.ROUTING, "lazy:SearchPage", () => import("@/pages/property/SearchPage"))
+  traceLazyImport(
+    LOG_CATEGORIES.ROUTING,
+    "lazy:SearchPage",
+    () => import("@/pages/property/SearchPage")
+  )
 );
 const SavedHomes = lazy(
-  traceLazyImport(LOG_CATEGORIES.ROUTING, "lazy:SavedPage", () => import("@/pages/property/SavedPage"))
+  traceLazyImport(
+    LOG_CATEGORIES.ROUTING,
+    "lazy:SavedPage",
+    () => import("@/pages/property/SavedPage")
+  )
 );
 const ProfilePage = lazy(
-  traceLazyImport(LOG_CATEGORIES.ROUTING, "lazy:ProfilePage", () => import("@/pages/account/ProfilePage"))
+  traceLazyImport(
+    LOG_CATEGORIES.ROUTING,
+    "lazy:ProfilePage",
+    () => import("@/pages/account/ProfilePage")
+  )
 );
 const DashboardPage = lazy(
-  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:DashboardPage", () =>
-    import("@/pages/workspace/DashboardPage")
+  traceLazyImport(
+    LOG_CATEGORIES.DASHBOARD,
+    "lazy:DashboardPage",
+    () => import("@/pages/workspace/DashboardPage")
   )
 );
 const AgreementSigningCompletePage = lazy(
-  traceLazyImport(LOG_CATEGORIES.ROUTING, "lazy:AgreementSigningCompletePage", () =>
-    import("@/pages/workspace/AgreementSigningCompletePage")
+  traceLazyImport(
+    LOG_CATEGORIES.ROUTING,
+    "lazy:AgreementSigningCompletePage",
+    () => import("@/pages/workspace/AgreementSigningCompletePage")
   )
 );
 const FindAgentsPage = lazy(
-  traceLazyImport(LOG_CATEGORIES.ROUTING, "lazy:FindAgentsPage", () => import("@/pages/misc/FindAgentsPage"))
+  traceLazyImport(
+    LOG_CATEGORIES.ROUTING,
+    "lazy:FindAgentsPage",
+    () => import("@/pages/misc/FindAgentsPage")
+  )
 );
 const AgentPage = lazy(
-  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:AgentPage", () => import("@/pages/workspace/AgentPage"))
+  traceLazyImport(
+    LOG_CATEGORIES.MESSAGES,
+    "lazy:AgentPage",
+    () => import("@/pages/workspace/AgentPage")
+  )
 );
 
 type DashboardContentProps = {

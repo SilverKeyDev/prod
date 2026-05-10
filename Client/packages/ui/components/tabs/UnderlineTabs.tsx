@@ -49,6 +49,12 @@ export type UnderlineTabsProps = {
   underlineColor?: string;
   /** When "sidebar", uses white text and white underline for sidebar-gray backgrounds. */
   variant?: "default" | "sidebar";
+  /**
+   * When true, the tab row scrolls horizontally only if tabs cannot fit; tabs otherwise split the
+   * allotted width evenly (`flex-1` / `basis-0`).
+   * Ignored when {@link phaseIndicatorId} is set (journey layout keeps weighted flex).
+   */
+  scrollable?: boolean;
 };
 
 /**
@@ -65,17 +71,24 @@ export function UnderlineTabs({
   className = "",
   underlineColor = "bg-gold",
   variant = "default",
+  scrollable = false,
 }: UnderlineTabsProps): JSX.Element {
   const { t } = useLocalization();
   const isSidebar = variant === "sidebar";
   const sizeStyles = UNDERLINE_TAB_SIZE_STYLES[tabSize];
+  const scrollableRow =
+    scrollable && phaseIndicatorId == null
+      ? "max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain"
+      : "";
+  /** Full-width row so equal `flex-1` tabs divide the allotted space; `min-w-0` allows shrinking in nested flex/grid. */
+  const widthClass = "w-full min-w-0";
   const containerClass = compact
-    ? `flex flex-row items-center justify-center rounded-none ${
+    ? `flex flex-row items-stretch rounded-none ${widthClass} ${
         isSidebar ? SIDEBAR_TAB_ROW_BORDER : "border-b border-border"
-      }`
-    : `flex flex-row flex-shrink-0 rounded-none ${
+      } ${scrollableRow}`.trim()
+    : `flex flex-row flex-shrink-0 flex-nowrap rounded-none ${widthClass} ${
         isSidebar ? SIDEBAR_TAB_ROW_BORDER : "border-b border-border"
-      }`;
+      } ${scrollableRow}`.trim();
   const paddingWithFlex = compact ? sizeStyles.paddingCompact : sizeStyles.paddingDefault;
   /** `flex-1` on every tab forces equal widths; strip it when distributing extra space to the journey tab. */
   const buttonLayoutClass = paddingWithFlex
@@ -95,9 +108,9 @@ export function UnderlineTabs({
         const flexClass =
           phaseIndicatorId != null
             ? isJourneyPhase
-              ? "min-w-0 flex-[1.55] sm:flex-[1.65]"
-              : "min-w-0 flex-1"
-            : "min-w-0 flex-1";
+              ? "min-w-0 flex-[1.55] basis-0 sm:flex-[1.65]"
+              : "min-w-0 flex-1 basis-0"
+            : "min-w-0 flex-1 basis-0";
         return (
           <Button
             key={item.id}

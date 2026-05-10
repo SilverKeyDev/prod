@@ -2,7 +2,7 @@ import { useLocalization } from "packages/contexts";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { useGoogleMaps } from "packages/hooks/data";
 import { Box } from "packages/ui/components/primitives";
-import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { Button, CancelButton } from "@/components/ui";
 
@@ -51,14 +51,14 @@ export default function SearchHeader({
 }: SearchHeaderProps) {
   const { isLoaded: scriptsReady } = useGoogleMaps();
   const { t } = useLocalization();
-  const btnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
+  const btnClass = `shrink-0 ${HEADER_ROW_CONTROL_HEIGHT}`;
   const handleSearchClick = () => {
     void onSearchProperties();
   };
 
   return (
     <Box
-      className={`mb-responsive-md mb-6 mt-6 flex w-full min-w-0 flex-shrink-0 flex-row flex-nowrap items-center gap-3 pr-8 ${HEADER_ROW_HEIGHT}`}
+      className={`z-dropdown mb-responsive-md relative mb-6 mt-6 flex w-full min-w-0 flex-shrink-0 flex-row flex-nowrap items-center gap-3 pr-8 ${HEADER_ROW_HEIGHT}`}
     >
       <Box className="flex min-w-0 flex-1 flex-row flex-nowrap items-center gap-2">
         <Box className="min-w-0 flex-1">
@@ -80,6 +80,8 @@ export default function SearchHeader({
             onClick={handleSearchClick}
             disabled={isSearching}
             iconName={!isSearching ? "search" : undefined}
+            truncateLabel={false}
+            label={isSearching ? t("search.searching") : t("search.search")}
             className={btnClass}
           >
             {isSearching ? t("search.searching") : t("search.search")}

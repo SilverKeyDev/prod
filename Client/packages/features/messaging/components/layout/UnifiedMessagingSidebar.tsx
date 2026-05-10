@@ -301,7 +301,7 @@ export default function UnifiedMessagingSidebar({
       <aside
         className={`${
           isSidebarExpanded
-            ? "z-sidebar absolute inset-0 flex xl:relative xl:z-0 xl:inset-auto xl:w-80"
+            ? "z-sidebar absolute inset-0 flex xl:relative xl:inset-auto xl:z-0 xl:w-80"
             : "hidden xl:flex xl:w-80"
         } flex-col transition-transform duration-300 ease-in-out xl:rounded-l-xl`}
       >
@@ -341,9 +341,7 @@ export default function UnifiedMessagingSidebar({
           </Box>
         ) : null}
 
-        <Box
-          className="border-border bg-background-surface flex-1 overflow-y-auto border-r xl:rounded-bl-xl xl:rounded-br-none"
-        >
+        <Box className="border-border bg-background-surface flex-1 overflow-y-auto border-r xl:rounded-bl-xl xl:rounded-br-none">
           {renderSidebarContent()}
         </Box>
       </aside>

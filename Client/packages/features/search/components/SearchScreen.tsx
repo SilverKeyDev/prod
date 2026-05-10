@@ -20,7 +20,7 @@ import {
   useSearchContextStore,
   useSearchViewStore,
 } from "packages/store";
-import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 
 import { SearchScreenBody } from "./SearchScreenBody";
 
@@ -80,7 +80,6 @@ export function SearchScreen() {
   const setLocationSearchOverlayData = useSearchContextStore((s) => s.setLocationSearchOverlayData);
 
   const [filtersSheetOpen, setFiltersSheetOpen] = useState(false);
-  const [displaySheetOpen, setDisplaySheetOpen] = useState(false);
 
   const {
     runSearch,
@@ -149,7 +148,7 @@ export function SearchScreen() {
     Array.isArray(userPreferences?.important_locations) &&
     (userPreferences?.important_locations?.length ?? 0) > 0;
 
-  const headerBtnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
+  const headerBtnClass = `shrink-0 ${HEADER_ROW_CONTROL_HEIGHT}`;
 
   const handleSearchPress = useCallback(() => {
     if (isSearching) {
@@ -174,8 +173,6 @@ export function SearchScreen() {
       setSelectedClientId={setSelectedClientId}
       filtersSheetOpen={filtersSheetOpen}
       setFiltersSheetOpen={setFiltersSheetOpen}
-      displaySheetOpen={displaySheetOpen}
-      setDisplaySheetOpen={setDisplaySheetOpen}
       headerBtnClass={headerBtnClass}
       criteriaSummary={criteriaSummary}
       isSearching={isSearching}

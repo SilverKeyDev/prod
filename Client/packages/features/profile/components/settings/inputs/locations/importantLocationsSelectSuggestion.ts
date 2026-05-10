@@ -20,24 +20,16 @@ export async function applyImportantLocationSuggestionSelection(
     setIsSpecificAddress: (v: boolean) => void;
     setSuggestions: (v: Suggestion[]) => void;
     setHighlightedIndex: (v: number) => void;
-  },
+  }
 ): Promise<ImportantLocationSuggestionSelectionResult> {
-  const {
-    setLocationAddress,
-    setIsSpecificAddress,
-    setSuggestions,
-    setHighlightedIndex,
-  } = setters;
+  const { setLocationAddress, setIsSpecificAddress, setSuggestions, setHighlightedIndex } = setters;
   let result: ImportantLocationSuggestionSelectionResult = {
     isSupportedServiceArea: false,
     isSpecificAddress: false,
   };
 
   const suggestionData = suggestion as Record<string, unknown>;
-  const placePrediction = suggestionData.placePrediction as Record<
-    string,
-    unknown
-  >;
+  const placePrediction = suggestionData.placePrediction as Record<string, unknown>;
   const place =
     placePrediction &&
     typeof placePrediction === "object" &&
@@ -49,34 +41,21 @@ export async function applyImportantLocationSuggestionSelection(
           }
         ).toPlace()
       : null;
-  if (
-    isObject(place) &&
-    hasProperty(place, "fetchFields") &&
-    isFunction(place.fetchFields)
-  ) {
+  if (isObject(place) && hasProperty(place, "fetchFields") && isFunction(place.fetchFields)) {
     try {
       const fetchFieldsMethod = place.fetchFields;
       if (typeof fetchFieldsMethod === "function") {
         await fetchFieldsMethod.call(place, {
-          fields: [
-            "displayName",
-            "formattedAddress",
-            "types",
-            "addressComponents",
-          ],
+          fields: ["displayName", "formattedAddress", "types", "addressComponents"],
         });
       }
     } catch (error) {
       log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields", error);
     }
 
-    const placeTypes =
-      hasProperty(place, "types") && Array.isArray(place.types)
-        ? place.types
-        : [];
+    const placeTypes = hasProperty(place, "types") && Array.isArray(place.types) ? place.types : [];
     const addressComponents =
-      hasProperty(place, "addressComponents") &&
-      Array.isArray(place.addressComponents)
+      hasProperty(place, "addressComponents") && Array.isArray(place.addressComponents)
         ? (place.addressComponents as GooglePlaceAddressComponentLike[])
         : [];
 
@@ -84,8 +63,7 @@ export async function applyImportantLocationSuggestionSelection(
       types: placeTypes as string[],
       addressComponents,
     });
-    const isSupportedServiceArea =
-      isSupportedServiceAreaAddressComponents(addressComponents);
+    const isSupportedServiceArea = isSupportedServiceAreaAddressComponents(addressComponents);
     result = {
       isSupportedServiceArea,
       isSpecificAddress: isPrecise,

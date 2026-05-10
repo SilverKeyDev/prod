@@ -16,6 +16,7 @@ import {
 import {
   buildViewingItineraryDraftFromForm,
   emptyViewingRouteEndpoint,
+  viewingEndpointHasRoutingInput,
   type ViewingTourStartSelection,
 } from "@/features/calendar/utils/viewing/viewingRoutePlan";
 

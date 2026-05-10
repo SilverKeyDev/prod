@@ -112,17 +112,11 @@ export function LoginFeature() {
         <GoogleSignInButton text="Sign in with Google" />
         <BodyText as="p" size="xs" className="text-text-secondary/90 text-center leading-relaxed">
           By signing in (including with Google), you agree to our{" "}
-          <AuthLink
-            to={ROUTES.TERMS}
-            className="text-text-secondary underline-offset-2 hover:underline"
-          >
+          <AuthLink to={ROUTES.TERMS} variant="inline" className="text-text-secondary">
             Terms of Service
           </AuthLink>{" "}
           and{" "}
-          <AuthLink
-            to={ROUTES.PRIVACY}
-            className="text-text-secondary underline-offset-2 hover:underline"
-          >
+          <AuthLink to={ROUTES.PRIVACY} variant="inline" className="text-text-secondary">
             Privacy Policy
           </AuthLink>
           .

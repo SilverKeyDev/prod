@@ -107,7 +107,8 @@ function Dropdown<T = unknown>({
 }: DropdownProps<T>) {
   const { t } = useLocalization();
   const popoverCtx = usePopoverContext();
-  const effectiveSafeTarget = registerOutsideClickSafeTarget ?? popoverCtx?.registerOutsideClickSafeTarget;
+  const effectiveSafeTarget =
+    registerOutsideClickSafeTarget ?? popoverCtx?.registerOutsideClickSafeTarget;
   const effectivePortalStack = menuPortalStack ?? popoverCtx?.panelStack ?? "page";
   const clampedVisibleOptions = Math.max(
     1,

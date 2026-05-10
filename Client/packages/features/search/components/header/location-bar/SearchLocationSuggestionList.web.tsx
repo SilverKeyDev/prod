@@ -36,16 +36,22 @@ export function SearchLocationSuggestionList({
   const hasSuggestions = slipstreamSuggestions.length > 0 || googleSuggestions.length > 0;
   if (!hasSuggestions && !showCurrentLocation) return null;
 
+  const rowButtonClass =
+    "w-full !justify-start rounded-none px-3 py-2.5 text-left font-normal hover:bg-neutral-50/90";
+
   return (
-    <ul className="border-border bg-background-surface z-dropdown absolute left-0 right-0 top-full mt-1 max-h-80 overflow-y-auto rounded-md border shadow-md">
+    <ul
+      className="bg-background-surface/95 z-dropdown absolute left-0 right-0 top-full mt-1 max-h-80 divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200 py-1 shadow-lg backdrop-blur-sm"
+      role="listbox"
+    >
       {showCurrentLocation && onSelectCurrentLocation ? (
-        <li className="border-border border-b">
+        <li>
           <Button
             variant="ghost"
             size="sm"
             onClick={onSelectCurrentLocation}
             disabled={isLocating}
-            className="w-full !justify-start px-3 py-2.5 text-left"
+            className={rowButtonClass}
             iconName="target"
             contentAlign="start"
           >
@@ -61,18 +67,18 @@ export function SearchLocationSuggestionList({
       ) : null}
       {slipstreamSuggestions.length > 0 ? (
         <>
-          <li className="border-border border-b px-3 py-1.5">
-            <BodyText size="xs" muted className="uppercase tracking-wide">
-              Neighborhoods &amp; Areas
+          <li className="pointer-events-none px-3 py-2">
+            <BodyText size="xs" muted className="font-medium">
+              Neighborhoods &amp; areas
             </BodyText>
           </li>
           {slipstreamSuggestions.map((s) => (
-            <li key={`ss-${s.area.id}`} className="border-border border-b last:border-b-0">
+            <li key={`ss-${s.area.id}`}>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onSelectSlipstream(s)}
-                className="w-full !justify-start px-3 py-2 text-left"
+                className={rowButtonClass}
               >
                 <Box className="flex w-full items-center gap-2 text-left">
                   <Icon
@@ -98,19 +104,19 @@ export function SearchLocationSuggestionList({
       {googleSuggestions.length > 0 ? (
         <>
           {slipstreamSuggestions.length > 0 ? (
-            <li className="border-border border-b px-3 py-1.5">
-              <BodyText size="xs" muted className="uppercase tracking-wide">
+            <li className="pointer-events-none px-3 py-2">
+              <BodyText size="xs" muted className="font-medium">
                 Addresses
               </BodyText>
             </li>
           ) : null}
           {googleSuggestions.map((s, idx) => (
-            <li key={`gp-${idx}`} className="border-border border-b last:border-b-0">
+            <li key={`gp-${idx}`}>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onSelectGoogle(s)}
-                className="w-full !justify-start px-3 py-2 text-left"
+                className={rowButtonClass}
               >
                 <Box className="flex w-full items-center gap-2 text-left">
                   <Icon name="map-pin" className="text-text-secondary h-4 w-4 shrink-0" />

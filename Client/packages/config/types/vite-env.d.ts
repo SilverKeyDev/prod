@@ -15,6 +15,8 @@ type ImportMetaEnv = {
   readonly VITE_PUBLIC_SITE_URL: string;
   /** Google Search Console HTML tag verification content token (optional). */
   readonly VITE_GOOGLE_SITE_VERIFICATION: string;
+  /** When `"true"`, registers the `/admin` route in the web app. */
+  readonly VITE_ENABLE_ADMIN_PANEL?: string;
 
   // Development
   readonly DEV: boolean;

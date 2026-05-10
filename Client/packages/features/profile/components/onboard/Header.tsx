@@ -240,7 +240,7 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                             type="button"
                             title={step.title}
                             aria-current={isActive ? "step" : undefined}
-                            className={`xs:h-6 xs:w-6 relative z-10 flex h-5 w-5 items-center justify-center rounded-full sm:h-7 sm:w-7 md:h-8 md:w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12 2xl:h-14 2xl:w-14 ${
+                            className={`xs:h-6 xs:w-6 z-header relative flex h-5 w-5 items-center justify-center rounded-full sm:h-7 sm:w-7 md:h-8 md:w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12 2xl:h-14 2xl:w-14 ${
                               isCompleted
                                 ? "bg-primary text-white"
                                 : isActive

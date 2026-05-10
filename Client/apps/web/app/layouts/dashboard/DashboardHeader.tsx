@@ -3,7 +3,10 @@ import type { ReactNode } from "react";
 import { useSearchViewStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 
-import MobileTopBar from "@/app/layouts/mobile/MobileTopBar";
+import MobileTopBar, {
+  MOBILE_TOP_BAR_COMPACT_HEIGHT_PX,
+  MOBILE_TOP_BAR_LIBRARY_HEIGHT_PX,
+} from "@/app/layouts/mobile/MobileTopBar";
 
 import { useDashboardRoute } from "./useDashboardRoute";
 
@@ -74,9 +77,22 @@ export function DashboardHeader({
     <>
       {showMobileTopBar && (
         <Box className={`md:hidden ${fullWidthLayout ? "w-full" : "mx-auto max-w-[95vw]"}`}>
-          <MobileTopBar fullWidth={route.isMessaging} noPadding={noPadding}>
+          <MobileTopBar
+            fullWidth={route.isMessaging || route.isSearch}
+            noPadding={noPadding}
+            blurBackground={route.isProfile}
+            barHeightPx={
+              route.isMessaging
+                ? MOBILE_TOP_BAR_COMPACT_HEIGHT_PX
+                : route.isSaved
+                  ? MOBILE_TOP_BAR_LIBRARY_HEIGHT_PX
+                  : undefined
+            }
+          >
             {route.isMessaging ? (
               mobileHeaderContent
+            ) : route.isSearch ? (
+              <Box className="box-border w-full min-w-0 px-3">{mobileHeaderContent}</Box>
             ) : (
               <Box className="flex w-full items-center justify-center">
                 {mobileHeaderContent ?? null}

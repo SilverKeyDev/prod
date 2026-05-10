@@ -1,0 +1,25 @@
+type: object
+required:
+  - user_id
+  - grant
+  - revoke
+properties:
+  user_id:
+    type: string
+    description: Target user UUID (users.id).
+  grant:
+    type: array
+    description: Gate roles to ensure exist for this user (`admin`, `super_admin`).
+    items:
+      type: string
+      enum:
+        - admin
+        - super_admin
+  revoke:
+    type: array
+    description: Gate roles to remove for this user.
+    items:
+      type: string
+      enum:
+        - admin
+        - super_admin

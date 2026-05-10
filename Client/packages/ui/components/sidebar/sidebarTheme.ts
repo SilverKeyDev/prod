@@ -85,6 +85,11 @@ export function getChromeNavSubItemStyles(isActive: boolean): string {
 export type SidebarInsetNavOptions = {
   active: boolean;
   disabled?: boolean;
+  /**
+   * Narrow icon-only rail (no label): drop `gap-3` and horizontal padding so flex gap / padding
+   * does not push the icon off center; use with `Button` `contentAlign="center"`.
+   */
+  iconOnly?: boolean;
 };
 
 /**
@@ -93,9 +98,10 @@ export type SidebarInsetNavOptions = {
 export function getInsetNavItemClasses({
   active,
   disabled = false,
+  iconOnly = false,
 }: SidebarInsetNavOptions): string {
-  const base =
-    "group flex min-h-9 w-full items-center gap-3 rounded-lg px-3 py-2 transition-colors";
+  const gapAndPadding = iconOnly ? "gap-0 justify-center px-0" : "gap-3 px-3";
+  const base = `group flex min-h-9 w-full items-center ${gapAndPadding} rounded-lg py-2 transition-colors`;
   if (disabled) {
     return `${base} cursor-not-allowed bg-disabled text-text-disabled`;
   }

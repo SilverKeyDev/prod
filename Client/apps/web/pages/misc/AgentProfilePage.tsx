@@ -230,9 +230,7 @@ export default function AgentProfilePage() {
           agentId={agent.id}
           isOwnProfile={isOwnProfile}
           agentName={agent.name ?? undefined}
-          agentPhotoUrl={
-            agent.profile_picture_url ?? agent.professional_headshot_url ?? undefined
-          }
+          agentPhotoUrl={agent.profile_picture_url ?? agent.professional_headshot_url ?? undefined}
         />
       }
     />

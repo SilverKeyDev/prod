@@ -6,7 +6,7 @@ import BodyText from "@ui/text/BodyText";
 import { useLocalization } from "packages/contexts";
 import { useIsAgent } from "packages/hooks/store";
 import { Box } from "packages/ui/components/primitives";
-import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 
@@ -46,7 +46,7 @@ export default function ClientSelector({
         variant="outline"
         contentAlign="start"
         onClick={() => setIsOpen(!isOpen)}
-        className={`focus:border-input-variant-focus-border border-border bg-background-surface text-text-primary hover:bg-accent-muted flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-neutral-400 ${HEADER_ROW_HEIGHT}`}
+        className={`focus:border-input-variant-focus-border border-border bg-background-surface text-text-primary hover:bg-accent-muted flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-neutral-400 ${HEADER_ROW_CONTROL_HEIGHT}`}
         icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
       >
         <>
@@ -71,7 +71,7 @@ export default function ClientSelector({
           <Box
             role="button"
             tabIndex={0}
-            className="fixed inset-0 z-dropdown"
+            className="z-dropdown fixed inset-0"
             onClick={() => setIsOpen(false)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -83,7 +83,7 @@ export default function ClientSelector({
 
           {/* Dropdown */}
           <Box
-            className={`border-border bg-background-surface absolute left-0 z-dropdown w-60 min-w-56 rounded-md border py-1 shadow-lg ${
+            className={`border-border bg-background-surface z-dropdown absolute left-0 w-60 min-w-56 rounded-md border py-1 shadow-lg ${
               menuPlacement === "above" ? "bottom-full mb-2" : "top-full mt-2"
             }`}
           >

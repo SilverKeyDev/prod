@@ -31,7 +31,7 @@ function TableHeader({
     <thead className="bg-card-muted-30">
       <tr>
         <th
-          className="bg-card-muted-30 text-text-primary sticky left-0 z-10 px-1 py-1 text-left font-semibold sm:px-2 sm:py-2 md:px-4 md:py-3"
+          className="bg-card-muted-30 text-text-primary z-header sticky left-0 px-1 py-1 text-left font-semibold sm:px-2 sm:py-2 md:px-4 md:py-3"
           style={{ width: "25%" }}
         >
           {comparisonLabel}

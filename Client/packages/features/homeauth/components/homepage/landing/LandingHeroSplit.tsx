@@ -22,7 +22,7 @@ export function LandingHeroSplit() {
         <Box className="pointer-events-none absolute inset-0 z-0 opacity-[0.35]">
           <RippleBackground overlay />
         </Box>
-        <Box className="relative z-10 mx-auto flex w-full max-w-xl flex-col gap-6 lg:mx-0">
+        <Box className="z-header relative mx-auto flex w-full max-w-xl flex-col gap-6 lg:mx-0">
           <BodyText
             as="p"
             size="sm"

@@ -94,7 +94,7 @@ export function SharedHomeBundleCard({
             label="Previous property"
             disabled={!canGoPrev}
             onPress={() => emblaApi?.scrollPrev()}
-            className="border-border bg-background-base/95 absolute left-1 top-1/2 z-10 -translate-y-1/2 shadow-sm"
+            className="border-border bg-background-base/95 z-header absolute left-1 top-1/2 -translate-y-1/2 shadow-sm"
           />
           <IconButton
             iconName="chevron-right"
@@ -104,7 +104,7 @@ export function SharedHomeBundleCard({
             label="Next property"
             disabled={!canGoNext}
             onPress={() => emblaApi?.scrollNext()}
-            className="border-border bg-background-base/95 absolute right-1 top-1/2 z-10 -translate-y-1/2 shadow-sm"
+            className="border-border bg-background-base/95 z-header absolute right-1 top-1/2 -translate-y-1/2 shadow-sm"
           />
         </>
       ) : null}

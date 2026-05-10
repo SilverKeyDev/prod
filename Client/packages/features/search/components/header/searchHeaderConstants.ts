@@ -1,4 +1,4 @@
-import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 /**
  * Single source of truth for search header bar height (44px). Re-exports HEADER_ROW_HEIGHT from packages/ui.
@@ -6,6 +6,9 @@ import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
  * must use this constant and must not exceed 44px. Do not add responsive min-heights or content that grows the row.
  */
 export const SEARCH_HEADER_ROW_HEIGHT = HEADER_ROW_HEIGHT;
+
+/** Button / IconButton shells in the search header — see {@link HEADER_ROW_CONTROL_HEIGHT}. */
+export const SEARCH_HEADER_CONTROL_HEIGHT = HEADER_ROW_CONTROL_HEIGHT;
 
 /** Max height for search header popover/panel content (e.g. filters, locations). */
 export const SEARCH_HEADER_PANEL_MAX_HEIGHT = "85vh";

@@ -124,7 +124,7 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
     const content = loading ? (
       <>
         <RippleBackground overlay />
-        <Box className="relative z-10 items-center justify-center">
+        <Box className="z-header relative items-center justify-center">
           {/* <KeyTurnLoader message="" /> */}
         </Box>
       </>

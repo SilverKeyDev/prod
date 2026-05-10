@@ -53,12 +53,12 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
         />
 
         {/* Dialog */}
-        <Box className="space-responsive-lg relative z-50 mx-auto w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all">
+        <Box className="space-responsive-lg z-modal relative mx-auto w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all">
           {/* Close button */}
           <CloseButton
             onClick={onClose}
             size="sm"
-            className="touch-friendly absolute right-4 top-4 z-10 text-gray-400 hover:text-gray-500"
+            className="touch-friendly z-header absolute right-4 top-4 text-gray-400 hover:text-gray-500"
           />
 
           {/* Warning Icon */}

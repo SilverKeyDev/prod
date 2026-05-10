@@ -49,12 +49,12 @@ export function SearchPageMapContainer({
     <Box className={containerClassName}>
       {isLoading && (
         <Box
-          className={`absolute inset-0 z-20 flex h-full w-full items-center justify-center overflow-hidden ${loadingOverlayClassName}`}
+          className={`z-dropdown absolute inset-0 flex h-full w-full items-center justify-center overflow-hidden ${loadingOverlayClassName}`}
         >
           <Box className="absolute inset-0 z-0">
             <RippleBackground />
           </Box>
-          <Box className="relative z-10 flex flex-col items-center gap-4">
+          <Box className="z-dropdown relative flex flex-col items-center gap-4">
             {showLoadingWrapper ? (
               <Box className="bg-background-surface rounded-full px-6 py-3 shadow-md">
                 <KeyTurnLoader message={loadingMessage} variant={loadingVariant} />

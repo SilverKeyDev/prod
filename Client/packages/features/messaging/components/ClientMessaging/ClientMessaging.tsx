@@ -29,8 +29,10 @@ import { isSameMessagingUserId, resolvePrimaryAgentId } from "@/features/messagi
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
 
 const UnifiedMessagesList = lazy(
-  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:UnifiedMessagesList(client)", () =>
-    import("packages/features/messaging/components/layout/UnifiedMessagesList")
+  traceLazyImport(
+    LOG_CATEGORIES.MESSAGES,
+    "lazy:UnifiedMessagesList(client)",
+    () => import("packages/features/messaging/components/layout/UnifiedMessagesList")
   )
 );
 
@@ -207,9 +209,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
         mode={headerMode}
         isSidebarExpanded={isSidebarExpanded}
         setIsSidebarExpanded={setIsSidebarExpanded}
-        onSearchClick={
-          showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined
-        }
+        onSearchClick={showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined}
         onInboxClick={() => setShowInbox(true)}
         onBackClick={() => setShowInbox(false)}
         pendingConnectionRequestCount={pendingConnectionRequestCount}

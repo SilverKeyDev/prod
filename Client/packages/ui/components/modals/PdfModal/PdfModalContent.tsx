@@ -34,7 +34,7 @@ export const PdfModalContent: React.FC<PdfModalContentProps> = ({
   return (
     <Box className="relative flex-1 overflow-hidden" style={getPdfViewerStyles()}>
       {isMobile && (
-        <Box className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/95 p-6 text-center sm:hidden">
+        <Box className="z-header absolute inset-0 flex flex-col items-center justify-center bg-white/95 p-6 text-center sm:hidden">
           <Box className="mb-4">
             <svg
               className="text-primary mx-auto h-16 w-16"

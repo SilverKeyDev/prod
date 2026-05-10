@@ -80,6 +80,13 @@ export type BuildViewingItineraryDraftInput = {
   endFixed: ViewingRouteEndpoint | null;
 };
 
+/** True when at least one stop has a non-empty address (required for a property viewing tour). */
+export function viewingStopsHaveAtLeastOneAddress(
+  stops: Array<Pick<ViewingStop, "address">>
+): boolean {
+  return stops.some((s) => (s.address ?? "").trim().length > 0);
+}
+
 /** Build itinerary payload sent to the server before route resolution. */
 export function buildViewingItineraryDraftFromForm(
   input: BuildViewingItineraryDraftInput

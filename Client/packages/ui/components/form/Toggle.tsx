@@ -1,7 +1,8 @@
 import React from "react";
 
-import Button from "@ui/button/Button";
 import BodyText from "@ui/text/BodyText";
+
+import { Pressable } from "packages/ui/components/primitives";
 
 export type ToggleProps = {
   checked: boolean;
@@ -31,14 +32,13 @@ const Toggle: React.FC<ToggleProps> = ({
 }) => {
   const sizes = sizeClasses[size];
   return (
-    <Button
+    <Pressable
       id={id}
       type="button"
-      variant="ghost"
       role="switch"
       aria-checked={checked}
       disabled={disabled}
-      onClick={() => !disabled && onChange(!checked)}
+      onPress={() => !disabled && onChange(!checked)}
       className={`touch-friendly inline-flex items-center ${sizes.track} focus:ring-accent-muted rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 ${
         checked ? "border-primary bg-primary" : "border-border bg-neutral-200"
       } ${disabled ? "bg-disabled text-text-disabled cursor-not-allowed" : "cursor-pointer"} ${className}`}
@@ -54,7 +54,7 @@ const Toggle: React.FC<ToggleProps> = ({
           {label}
         </BodyText>
       )}
-    </Button>
+    </Pressable>
   );
 };
 

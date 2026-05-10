@@ -28,6 +28,8 @@ export function LibrarySortControlNative({
     return match ? t(match.labelKey) : t(options[0]?.labelKey ?? "saved.library_sort_label");
   }, [options, t, value]);
 
+  if (options.length === 0) return null;
+
   return (
     <>
       <Button

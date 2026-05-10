@@ -119,7 +119,7 @@ export const AgentSearchContent = forwardRef<AgentSearchContentHandle, AgentSear
           <Box className="relative">
             <Icon
               name="search"
-              className="text-text-disabled pointer-events-none absolute left-3 top-1/2 z-10 h-5 w-5 -translate-y-1/2"
+              className="text-text-disabled z-header pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2"
             />
             <Input
               ref={inputRef}

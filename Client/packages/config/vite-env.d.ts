@@ -9,6 +9,8 @@ type ImportMetaEnv = {
   readonly VITE_PLAID_CLIENT_ID: string;
   readonly VITE_PUBLIC_SITE_URL: string;
   readonly VITE_GOOGLE_SITE_VERIFICATION: string;
+  /** When `"true"`, registers the `/admin` route in the web app. */
+  readonly VITE_ENABLE_ADMIN_PANEL?: string;
 
   // Development
   readonly DEV: boolean;

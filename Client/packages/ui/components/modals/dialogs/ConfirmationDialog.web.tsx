@@ -42,7 +42,7 @@ function ConfirmationDialogContent({
           }}
         />
         <Box
-          className="space-responsive-lg relative z-50 mx-auto w-full max-w-sm transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
+          className="space-responsive-lg z-modal relative mx-auto w-full max-w-sm transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
           style={{ maxWidth: spacing(80) }}
         >
           <CloseButton
@@ -70,7 +70,7 @@ function ConfirmationDialogContent({
               size="md"
               onClick={onConfirm}
               className="w-full sm:w-auto"
-              icon={confirmIcon ?? (showLogoutIcon ? <Icon name="log-out" /> : undefined)}
+              icon={confirmIcon ?? <Icon name={showLogoutIcon ? "log-out" : "check"} />}
             >
               {confirmText}
             </Button>

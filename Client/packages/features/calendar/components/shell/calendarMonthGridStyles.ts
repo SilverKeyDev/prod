@@ -70,10 +70,15 @@ export function buildCalendarMonthGridStyles(spacingFn: SpacingFn) {
       color: color("neutral.50"),
     },
     dayNumberCircle: {
-      minWidth: spacingFn(7),
-      minHeight: spacingFn(7),
-      paddingHorizontal: spacingFn(1.5),
+      width: spacingFn(7),
+      height: spacingFn(7),
       borderRadius: 9999,
+      /**
+       * display: "flex" must be explicit here. Box.web.tsx only auto-injects
+       * display:"flex" when flexDirection or flexWrap is present; without it,
+       * alignItems/justifyContent are no-ops on web and the number is not centred.
+       */
+      display: "flex" as const,
       alignItems: "center" as const,
       justifyContent: "center" as const,
       backgroundColor: color("brand.accent"),

@@ -11,6 +11,9 @@ import AdminPage from "@/pages/workspace/AdminPage";
 import { createProtectedRoute } from "./RouteConfig";
 import { ROUTE_CONFIGS } from "./routeConfigExports";
 
+/** Admin UI route is omitted from the build unless explicitly enabled (reduces exposed surface). */
+const ADMIN_PANEL_ENABLED = import.meta.env.VITE_ENABLE_ADMIN_PANEL === "true";
+
 function SettingsRedirect() {
   const location = useLocation();
   const newPath = `/profile${location.pathname.replace(/^\/settings/, "")}`;
@@ -53,9 +56,10 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
       )),
     ];
 
-    // Admin route: always registered so /admin is reachable; access is enforced by AuthGuard + AdminGuard + step-up on the page.
-    // Use VITE_ENABLE_ADMIN_PANEL=false in production .env to optionally hide the route at build time if desired.
-    baseRoutes.push(<Route key="/admin" path="/admin" element={<AdminPage />} />);
+    // Register only when VITE_ENABLE_ADMIN_PANEL=true (see Client/.env.example). Server-side admin APIs remain authoritative.
+    if (ADMIN_PANEL_ENABLED) {
+      baseRoutes.push(<Route key="/admin" path="/admin" element={<AdminPage />} />);
+    }
 
     // Property details route: public route for shareable property URLs
     baseRoutes.push(

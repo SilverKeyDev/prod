@@ -124,6 +124,13 @@ for i in $(seq 1 60); do
   sleep 1
 done
 
+if [[ -x "${SCRIPT_DIR}/open-localhost-chrome.sh" ]]; then
+  log "Opening Chrome tabs for app root and /admin (if not already open)..."
+  VITE_PORT="${VITE_PORT}" "${SCRIPT_DIR}/open-localhost-chrome.sh" || warn "open-localhost-chrome.sh exited non-zero (Chrome may be unavailable)"
+else
+  warn "open-localhost-chrome.sh missing or not executable at ${SCRIPT_DIR}/open-localhost-chrome.sh"
+fi
+
 # Terminal 3: iOS (Metro + simulator) - commented out for now
 # DEBUG_NATIVEWIND=1 for NativeWind debug logs; STYLING_VERIFY=1 for content-scan preflight
 # IOS_ENV=""

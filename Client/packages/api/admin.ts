@@ -34,6 +34,14 @@ export type DeleteUserByIdResult = Required<
   Pick<components["schemas"]["DeleteUserResponse"], "deleted_user_id">
 >;
 
+export type UpdateUserSystemRolesRequest = components["schemas"]["UpdateUserSystemRolesRequest"];
+export type UpdateUserSystemRolesResponse = components["schemas"]["UpdateUserSystemRolesResponse"];
+export type ValidationStatsApiResponseSchema = components["schemas"]["ValidationStatsApiResponse"];
+
+export type UpdateUserSystemRolesResult = Required<
+  Pick<components["schemas"]["UpdateUserSystemRolesResponse"], "user_id" | "gate_roles">
+>;
+
 type GetLoggerConfigResponse = components["schemas"]["GetLoggerConfigResponse"];
 type UpdateLoggerConfigRequest = components["schemas"]["UpdateLoggerConfigRequest"];
 type UpdateLoggerConfigResponse = GetLoggerConfigResponse;

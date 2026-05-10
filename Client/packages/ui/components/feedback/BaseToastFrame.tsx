@@ -1,4 +1,3 @@
-import { Icon } from "@ui/icons";
 import type { ReactNode } from "react";
 
 import IconButton from "packages/ui/components/button/IconButton";
@@ -42,9 +41,8 @@ export default function BaseToastFrame({
             label={closeLabel}
             onClick={onClose}
             className={CLOSE_ICON_BUTTON_CLASS}
-          >
-            <Icon name="x" className="mobile-icon-sm" />
-          </IconButton>
+            iconName="x"
+          />
         </Box>
       </Box>
     </Box>

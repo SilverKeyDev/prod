@@ -86,7 +86,7 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
     );
   }
   return (
-    <Box className={`absolute ${POSITION_MAP[position]} z-10 ${className}`}>
+    <Box className={`absolute ${POSITION_MAP[position]} z-header ${className}`}>
       <Button
         type="button"
         variant="ghost"

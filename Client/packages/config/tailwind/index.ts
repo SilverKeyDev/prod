@@ -65,7 +65,7 @@ const sharedTailwindPreset = {
       // Derived from Z_LAYERS in packages/design-tokens — single source of truth.
       // Tailwind requires string values; native code imports Z_LAYERS directly for numbers.
       zIndex: Object.fromEntries(
-        Object.entries(Z_LAYERS).map(([key, value]) => [key, String(value)]),
+        Object.entries(Z_LAYERS).map(([key, value]) => [key, String(value)])
       ),
     },
   },

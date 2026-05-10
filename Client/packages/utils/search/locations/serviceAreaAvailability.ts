@@ -26,16 +26,14 @@ function componentText(component: GooglePlaceAddressComponentLike): string[] {
     component.longText,
     component.short_name,
     component.long_name,
-  ].flatMap((value) =>
-    typeof value === "string" ? [value.trim().toLowerCase()] : [],
-  );
+  ].flatMap((value) => (typeof value === "string" ? [value.trim().toLowerCase()] : []));
 }
 
 export function isSupportedServiceAreaAddressComponents(
-  addressComponents: readonly GooglePlaceAddressComponentLike[] | undefined,
+  addressComponents: readonly GooglePlaceAddressComponentLike[] | undefined
 ): boolean {
   const stateComponent = addressComponents?.find((component) =>
-    (component.types ?? []).includes("administrative_area_level_1"),
+    (component.types ?? []).includes("administrative_area_level_1")
   );
 
   if (!stateComponent) {
@@ -49,10 +47,7 @@ export function isSupportedServiceAreaAddressComponents(
   );
 }
 
-export function isSupportedServiceAreaCoordinates(params: {
-  lat: number;
-  lng: number;
-}): boolean {
+export function isSupportedServiceAreaCoordinates(params: { lat: number; lng: number }): boolean {
   const { lat, lng } = params;
   return (
     lat >= SUPPORTED_SERVICE_AREA_BOUNDS.south &&

@@ -27,7 +27,7 @@ export function MapControls(props: {
   return (
     <>
       {/* Zoom Controls */}
-      <Box className="absolute bottom-[calc(3rem+4rem+env(safe-area-inset-bottom))] left-8 z-10 flex flex-row gap-1 md:bottom-12">
+      <Box className="z-dropdown absolute bottom-[calc(3rem+4rem+env(safe-area-inset-bottom))] left-8 flex flex-row gap-1 md:bottom-12">
         <Button
           type="button"
           onClick={onZoomOut}
@@ -54,7 +54,7 @@ export function MapControls(props: {
 
       {/* Property Navigation Controls (aligned and same size as zoom) */}
       {showNavigation && (
-        <Box className="absolute bottom-[calc(3rem+4rem+env(safe-area-inset-bottom))] right-8 z-10 flex flex-row gap-1 md:bottom-12">
+        <Box className="z-dropdown absolute bottom-[calc(3rem+4rem+env(safe-area-inset-bottom))] right-8 flex flex-row gap-1 md:bottom-12">
           <Button
             type="button"
             onClick={onPrev}

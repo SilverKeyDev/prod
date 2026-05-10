@@ -1,12 +1,11 @@
 import React, { useMemo } from "react";
 
 import Button from "@ui/button/Button";
-import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { color } from "packages/design-tokens";
 import type { SavedPageViewType } from "packages/features/documents";
 import { LibrarySortControlNative } from "packages/features/saved/components/header/LibrarySortControl.native";
+import { SavedPageViewUnderlineTabs } from "packages/features/saved/components/header/SavedPageViewUnderlineTabs";
 import { Box, Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 
@@ -42,7 +41,6 @@ export function SavedHeader({
   onLibrarySortChange,
 }: SavedHeaderProps) {
   const { t } = useLocalization();
-  const _isHomesView = viewType === "homes";
 
   const eventTypeFilterOptions: Array<{
     value: EventTypeFilter;
@@ -77,7 +75,7 @@ export function SavedHeader({
 
   return (
     <>
-      {/* Toolbar: checklists-style tabs + client + event filter */}
+      {/* Toolbar: saved view tabs + client + event filter */}
       <Box className="border-border bg-background-surface mb-3 rounded-lg border border-b">
         <Box className="px-2 pt-2">
           <Box className="items-center">
@@ -87,73 +85,13 @@ export function SavedHeader({
           </Box>
         </Box>
 
-        {/* Tabs bar (checklists-style: icon + label, gold underline) */}
-        <Box className="mt-3 flex-row items-center justify-center">
-          {[
-            {
-              id: "homes" as const,
-              label: t("saved.tab_homes", { defaultValue: "Homes" }),
-              icon: (props: { size?: number; color?: string }) => (
-                <Icon name="home" size={props.size ?? 16} color={props.color ?? color("navy")} />
-              ),
-            },
-            {
-              id: "documents" as const,
-              label: t("saved.tab_documents", { defaultValue: "Documents" }),
-              icon: (props: { size?: number; color?: string }) => (
-                <Icon
-                  name="file-text"
-                  size={props.size ?? 16}
-                  color={props.color ?? color("navy")}
-                />
-              ),
-            },
-            {
-              id: "agreements" as const,
-              label: t("saved.tab_agreements", { defaultValue: "DocuSign" }),
-              icon: (props: { size?: number; color?: string }) => (
-                <Icon
-                  name="file-signature"
-                  size={props.size ?? 16}
-                  color={props.color ?? color("navy")}
-                />
-              ),
-            },
-          ].map((tab, index, arr) => {
-            const isFirst = index === 0;
-            const isLast = index === arr.length - 1;
-            const isActive = tab.id === viewType;
-            return (
-              <Box key={tab.id} className="min-w-0 flex-1 flex-row items-center">
-                <Button
-                  variant="ghost"
-                  onPress={() => setViewType(tab.id)}
-                  className={`relative flex-1 items-center justify-center py-2 ${
-                    isActive ? "font-semibold" : "rounded-lg font-medium"
-                  }`}
-                >
-                  <Box className="flex-row items-center justify-center gap-1.5">
-                    <tab.icon size={16} color={color("navy")} />
-                    <BodyText as="span" size="md" className="text-text-primary" numberOfLines={1}>
-                      {tab.label}
-                    </BodyText>
-                  </Box>
-                  {isActive && (
-                    <Box
-                      className={`bg-accent absolute bottom-0 h-0.5 ${
-                        isFirst
-                          ? "left-2 right-2 rounded-l-full"
-                          : isLast
-                            ? "left-2 right-2 rounded-r-full"
-                            : "left-2 right-2 rounded-full"
-                      }`}
-                    />
-                  )}
-                </Button>
-                {index < 1 ? <Box className="bg-border h-4 w-px flex-shrink-0" /> : null}
-              </Box>
-            );
-          })}
+        <Box className="mt-3 w-full px-2">
+          <SavedPageViewUnderlineTabs
+            isAgent={isAgent}
+            viewType={viewType}
+            onViewTypeChange={setViewType}
+            className="mb-0 w-full"
+          />
         </Box>
 
         {/* Client selector + event filter row */}

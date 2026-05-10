@@ -9,7 +9,6 @@ import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations
 import { Box, Text } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
-import { SearchDisplaySheetNative } from "./header/display/SearchDisplaySheet.native";
 import { SearchFiltersSheet } from "./header/filters/SearchFiltersSheet";
 import { SearchPageMapView } from "./layout/SearchPageMapView";
 
@@ -20,8 +19,6 @@ export type SearchScreenBodyProps = {
   setSelectedClientId: (id: string | null) => void;
   filtersSheetOpen: boolean;
   setFiltersSheetOpen: (open: boolean) => void;
-  displaySheetOpen: boolean;
-  setDisplaySheetOpen: (open: boolean) => void;
   headerBtnClass: string;
   criteriaSummary: string;
   isSearching: boolean;
@@ -60,8 +57,6 @@ export function SearchScreenBody({
   setSelectedClientId,
   filtersSheetOpen,
   setFiltersSheetOpen,
-  displaySheetOpen,
-  setDisplaySheetOpen,
   headerBtnClass,
   criteriaSummary,
   isSearching,
@@ -100,19 +95,12 @@ export function SearchScreenBody({
             variant="cancel"
             size="sm"
             iconName="sliders-horizontal"
+            hideTextBelow="sm"
+            label={SEARCH_TRANSLATIONS["search.filters"] ?? "Filters"}
             onPress={() => setFiltersSheetOpen(true)}
             className={headerBtnClass}
           >
             {SEARCH_TRANSLATIONS["search.filters"] ?? "Filters"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            iconName="grid-3x3"
-            onPress={() => setDisplaySheetOpen(true)}
-            className={headerBtnClass}
-          >
-            {SEARCH_TRANSLATIONS["search.display"] ?? "Display"}
           </Button>
           <Button
             variant="tertiary"
@@ -120,7 +108,13 @@ export function SearchScreenBody({
             iconName={isSearching ? undefined : "search"}
             loading={isSearching}
             onPress={handleSearchPress}
-            className={headerBtnClass}
+            truncateLabel={false}
+            label={
+              isSearching
+                ? (SEARCH_TRANSLATIONS["search.searching"] ?? "Searching...")
+                : (SEARCH_TRANSLATIONS["search.search"] ?? "Search")
+            }
+            className={`min-w-[min(28vw,8.5rem)] flex-1 basis-0 ${headerBtnClass}`}
           >
             {isSearching
               ? (SEARCH_TRANSLATIONS["search.searching"] ?? "Searching...")
@@ -142,6 +136,12 @@ export function SearchScreenBody({
               size="sm"
               iconName={mode === "map" ? "video" : "map"}
               onPress={toggleMode}
+              truncateLabel={false}
+              label={
+                mode === "map"
+                  ? (SEARCH_TRANSLATIONS["search.reels"] ?? "Reels")
+                  : (SEARCH_TRANSLATIONS["search.map"] ?? "Map")
+              }
               className={headerBtnClass}
             >
               {mode === "map"
@@ -166,6 +166,8 @@ export function SearchScreenBody({
             onPress={() => void runMapAreaSearch()}
             loading={isSearching}
             disabled={isSearching}
+            truncateLabel={false}
+            label={SEARCH_TRANSLATIONS["search.search"] ?? "Search"}
             className={headerBtnClass}
             iconName="search"
           >
@@ -180,11 +182,6 @@ export function SearchScreenBody({
         selectedClientId={selectedClientId}
         onClientChange={setSelectedClientId}
       />
-      <SearchDisplaySheetNative
-        open={displaySheetOpen}
-        onClose={() => setDisplaySheetOpen(false)}
-      />
-
       {mode === "map" ? (
         <SearchPageMapView
           activeTab={activeTab}

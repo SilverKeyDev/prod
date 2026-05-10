@@ -189,7 +189,7 @@ export function SidebarList(props: {
           >
             {/* Loading overlay */}
             {isLoading && (
-              <Box className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/90 backdrop-blur-sm">
+              <Box className="z-header absolute inset-0 flex items-center justify-center rounded-lg bg-white/90 backdrop-blur-sm">
                 <KeyTurnLoader message="Loading details..." />
               </Box>
             )}

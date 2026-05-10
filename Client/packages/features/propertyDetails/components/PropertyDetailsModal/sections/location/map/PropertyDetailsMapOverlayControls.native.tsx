@@ -3,7 +3,7 @@ import React from "react";
 import { View, type ViewStyle } from "react-native";
 
 import { useLocalization } from "packages/contexts";
-import { color } from "packages/design-tokens";
+import { color, Z_LAYERS } from "packages/design-tokens";
 import Button from "packages/ui/components/button/Button";
 
 import type { PropertyDetailsMapOverlayControlsProps } from "./PropertyDetailsMapOverlayControls.types";
@@ -12,7 +12,7 @@ const mapControlsOverlayStyle: ViewStyle = {
   position: "absolute",
   top: 8,
   right: 8,
-  zIndex: 20,
+  zIndex: Z_LAYERS.dropdown,
   alignItems: "flex-end",
   gap: 8,
 };

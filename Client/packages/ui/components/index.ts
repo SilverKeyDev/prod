@@ -58,6 +58,9 @@ export { default as NavigationButton } from "./button/NavigationButton";
 export { default as NavigationButtons, SkipButton } from "./button/NavigationButtons";
 export { default as NotInterested } from "./button/NotInterested";
 
+// Sidebar / inset two-column layouts
+export { TwoColumnInsetPageLayout } from "./sidebar/TwoColumnInsetPageLayout";
+
 // Layout components
 export { default as AlignedRow } from "./layout/AlignedRow";
 export { default as SectionCard } from "./layout/SectionCard";

@@ -1,8 +1,11 @@
+import containerQueries from "@tailwindcss/container-queries";
+
 import sharedTailwindPreset from "../../packages/config/tailwind";
 
 /** @type {import('tailwindcss').Config} */
 export default {
   presets: [sharedTailwindPreset],
+  plugins: [containerQueries],
   content: [
     "./index.html",
     "./app/**/*.{js,ts,jsx,tsx}",
@@ -15,5 +18,4 @@ export default {
     "../../packages/contexts/**/*.{js,ts,jsx,tsx}",
     "../../packages/email-templates/**/*.{js,ts,jsx,tsx}",
   ],
-  plugins: [],
 };

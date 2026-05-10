@@ -29,53 +29,51 @@ export function CalendarViewModeToggle({
 }: CalendarViewModeToggleProps) {
   return (
     <Box
-      style={toggleStyles.viewToggleTabList}
+      style={toggleStyles.segmentedTrack}
       accessibilityRole="tablist"
       // Tablist group name — Box has no unified `label` prop in primitives.
       // eslint-disable-next-line silverkey/no-direct-accessibility-props -- tablist container
       accessibilityLabel="Calendar view"
     >
-      <Box style={toggleStyles.segmentedTrack}>
-        {VIEW_MODES.map((mode) => {
-          const selected = mode === viewMode;
-          return (
-            <Pressable
-              key={mode}
-              onPress={() => onViewModeChange(mode)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected }}
-              label={`${viewModeLabel(mode)} calendar`}
-              style={[toggleStyles.segment, selected ? toggleStyles.segmentSelected : null]}
+      {VIEW_MODES.map((mode) => {
+        const selected = mode === viewMode;
+        return (
+          <Pressable
+            key={mode}
+            onPress={() => onViewModeChange(mode)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
+            label={`${viewModeLabel(mode)} calendar`}
+            style={[toggleStyles.segment, selected ? toggleStyles.segmentSelected : null]}
+          >
+            <Text
+              style={[
+                toggleStyles.segmentLabel,
+                selected ? toggleStyles.segmentLabelSelected : toggleStyles.segmentLabelMuted,
+              ]}
             >
-              <Text
-                style={[
-                  toggleStyles.segmentLabel,
-                  selected ? toggleStyles.segmentLabelSelected : toggleStyles.segmentLabelMuted,
-                ]}
-              >
-                {viewModeLabel(mode)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </Box>
+              {viewModeLabel(mode)}
+            </Text>
+          </Pressable>
+        );
+      })}
     </Box>
   );
 }
 
 const toggleStyles = {
-  viewToggleTabList: {
-    marginLeft: spacing(2),
-    marginRight: spacing(2),
-  },
   segmentedTrack: {
     display: "flex" as const,
     flexDirection: "row" as const,
-    alignItems: "stretch" as const,
+    alignItems: "center" as const,
     flexShrink: 0,
     gap: spacing(1),
-    padding: spacing(1),
-    minHeight: 44,
+    padding: spacing(0.5),
+    /** Match `IconButton` size `md`: Tailwind `min-h-9` (36px) inclusive of border. */
+    height: spacing(9),
+    minHeight: spacing(9),
+    maxHeight: spacing(9),
+    boxSizing: "border-box" as const,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: color("neutral.200"),
@@ -83,9 +81,9 @@ const toggleStyles = {
   },
   segment: {
     flex: 1,
-    minWidth: 88,
-    paddingVertical: spacing(2),
-    paddingHorizontal: spacing(3),
+    minWidth: 72,
+    paddingVertical: spacing(1),
+    paddingHorizontal: spacing(2),
     alignItems: "center" as const,
     justifyContent: "center" as const,
     borderRadius: 8,

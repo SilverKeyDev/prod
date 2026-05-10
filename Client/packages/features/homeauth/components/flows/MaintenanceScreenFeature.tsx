@@ -13,7 +13,7 @@ export function MaintenanceScreenFeature() {
         <Box className="absolute inset-0 z-0">
           <RippleBackground />
         </Box>
-        <Box className="relative z-10 w-full max-w-xs text-center sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
+        <Box className="z-header relative w-full max-w-xs text-center sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
           <Box className="bg-background-surface rounded-lg p-6 shadow-lg sm:rounded-xl sm:p-8 md:p-10 lg:p-12">
             <Box className="mb-4 flex items-center justify-center gap-2 sm:mb-6 sm:gap-3">
               <Title size="xl" as="h1" className="text-primary">

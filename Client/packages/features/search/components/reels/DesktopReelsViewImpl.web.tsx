@@ -59,7 +59,7 @@ export function DesktopReelsView({
         }}
         aria-hidden
       />
-      <Box className="relative z-10 flex h-full w-full max-w-[80vw] shrink-0 items-center justify-center">
+      <Box className="z-header relative flex h-full w-full max-w-[80vw] shrink-0 items-center justify-center">
         <ReelsView
           filteredSearchResults={filteredSearchResults}
           onRunSearch={onRunSearch}

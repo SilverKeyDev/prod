@@ -5,6 +5,7 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   // Saved tab labels and loading states
   "saved.tab_homes": "Homes",
   "saved.tab_documents": "Documents",
+  "saved.tab_forms_library": "Forms Library",
   "saved.tab_agreements": "DocuSign",
   "saved.loading_agreements": "Loading agreements...",
   "saved.no_agreements_yet": "No DocuSign agreements yet.",

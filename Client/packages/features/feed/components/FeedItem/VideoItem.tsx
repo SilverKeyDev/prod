@@ -325,7 +325,7 @@ export function VideoItem({
       style={{ scrollSnapAlign: "start" }}
     >
       {isLoading && (
-        <Box className="absolute inset-0 z-10">
+        <Box className="z-header absolute inset-0">
           <FeedItemSkeleton thumbnailUrl={item.thumbnailUrl} />
         </Box>
       )}

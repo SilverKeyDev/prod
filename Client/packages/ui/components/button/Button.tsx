@@ -6,7 +6,13 @@ import { Icon } from "@ui/icons";
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
-import { Box, Pressable, Row, Text } from "packages/ui/components/primitives";
+import { renderButtonLabelSlot } from "packages/ui/components/button/buttonLabelSlot";
+import {
+  renderButtonEdgeRightRow,
+  renderButtonLoadingSlot,
+  renderButtonStandardRow,
+} from "packages/ui/components/button/buttonRowContent";
+import { Box, Pressable } from "packages/ui/components/primitives";
 import { BUTTON_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 import { buttonNativeSizes } from "packages/ui/styles/variants/buttonSizes";
 import {
@@ -23,6 +29,9 @@ import {
 } from "packages/ui/styles/variants/buttonVariants";
 import type { IconName } from "packages/ui/types/icons";
 import { isNative } from "packages/utils/platform";
+
+/** Web container-query breakpoint: show text beside icon when button inline-size ≥ 11rem. */
+const BUTTON_WEB_ICON_COLLAPSE_SHOW_LABEL_AT = "@[11rem]";
 
 /**
  * Variants: primary (CTA), secondary (neutral), tertiary (gold), outline, ghost, danger, success.
@@ -64,7 +73,9 @@ export type ButtonProps = {
   loading?: boolean;
   /** Icon element (e.g. Lucide icon). Rendered left of text by default. */
   icon?: React.ReactNode;
-  /** Icon by name (platform-resolved). When both icon and iconName are set, icon takes precedence. */
+  /** Icon by name (platform-resolved). When both icon and iconName are set, icon takes precedence.
+   *  Prefer passing iconName or icon whenever children include visible action text so the button can
+   *  collapse to icon-only inside narrow layouts (web container queries). */
   iconName?: IconName;
   /** Icon position relative to text. Default "left". */
   iconPosition?: "left" | "right";
@@ -84,6 +95,18 @@ export type ButtonProps = {
    * Example: hideTextBelow="md" will hide text on screens narrower than md (768px).
    */
   hideTextBelow?: "sm" | "md" | "lg" | "xl" | "2xl";
+
+  /**
+   * When false, string labels use nowrap without ellipsis so the button can grow with flex layout.
+   * Default true (truncate long labels inside constrained widths).
+   */
+  truncateLabel?: boolean;
+
+  /**
+   * Web only: when false, keeps the visible label beside the icon even when the button is narrower
+   * than the icon+label container breakpoint (disables @container collapse). Default true.
+   */
+  collapseIconWhenNarrow?: boolean;
 
   /**
    * Unified accessibility label. Maps to aria-label (web) and accessibilityLabel (RN).
@@ -141,6 +164,18 @@ function renderIcon(
   ) as React.ReactNode;
 }
 
+function shouldCollapseIconLabelRowOnWeb(args: {
+  collapseIconWhenNarrow: boolean;
+  hideTextBelow: ButtonProps["hideTextBelow"];
+  loading: boolean;
+  resolvedIcon: React.ReactNode;
+  children: React.ReactNode;
+}): boolean {
+  if (!args.collapseIconWhenNarrow || args.loading || !args.resolvedIcon) return false;
+  if (args.hideTextBelow) return false;
+  return args.children != null && args.children !== false;
+}
+
 const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
   (
     {
@@ -158,6 +193,8 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       children,
       disabled,
       hideTextBelow,
+      truncateLabel = true,
+      collapseIconWhenNarrow = true,
       label,
       type = "button",
       onClick,
@@ -180,6 +217,32 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 
     const resolvedIcon =
       icon ?? (iconName ? <Icon name={iconName} className={iconClassName} /> : null);
+
+    /** Web-only: when cramped, hide label and keep icon (container queries). */
+    const containerCollapse =
+      !isNative &&
+      shouldCollapseIconLabelRowOnWeb({
+        collapseIconWhenNarrow,
+        hideTextBelow,
+        loading,
+        resolvedIcon,
+        children,
+      });
+
+    const derivedAccessibleLabel =
+      ariaLabel ?? label ?? (typeof children === "string" ? children : undefined);
+
+    if (
+      getEnv().isDevelopment &&
+      containerCollapse &&
+      typeof children !== "string" &&
+      derivedAccessibleLabel == null
+    ) {
+      log.warn(
+        LOG_CATEGORIES.ERRORS,
+        "[Button] Icon collapse uses JSX children — provide label or aria-label for accessibility when the label hides at narrow widths."
+      );
+    }
 
     // Unified press handler: prefer onPress (cross-platform), fallback to onClick (web legacy)
     const handlePress = onPress ?? onClick;
@@ -217,6 +280,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       loading
         ? `${BUTTON_LOADING_FRAME_CLASSES} ${BUTTON_LOADING_VARIANT_OVERRIDES[effectiveVariant]}`
         : "",
+      containerCollapse ? "@container" : "",
       "touch-friendly",
       "",
       className,
@@ -239,93 +303,51 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         ? "inline-flex w-full flex-row items-center justify-start gap-2 text-left font-medium leading-none"
         : "inline-flex w-full flex-row items-center justify-center gap-2 text-center font-medium leading-none";
 
-    const loaderBox = (
-      <Box className={`h-8 w-8 shrink-0 items-center justify-center ${textColorClass}`.trim()}>
-        {/* <KeyTurnLoader message="" /> */}
-      </Box>
-    );
+    const textContent = renderButtonLabelSlot({
+      children,
+      containerCollapse,
+      contentAlign,
+      textVisibilityClass,
+      contentInnerLayoutClass,
+      collapseShowLabelAt: BUTTON_WEB_ICON_COLLAPSE_SHOW_LABEL_AT,
+      textColorClass,
+      textSizeClass,
+      truncateLabel,
+    });
 
-    const textContent =
-      children != null ? (
-        typeof children === "string" ? (
-          <Text
-            className={[contentInnerLayoutClass, textVisibilityClass, textColorClass, textSizeClass]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            {children}
-          </Text>
-        ) : (
-          <Box
-            className={[contentInnerLayoutClass, textVisibilityClass, textColorClass, textSizeClass]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            {children}
-          </Box>
-        )
-      ) : null;
-
-    if (getEnv().isDevelopment && hideTextBelow && !label) {
+    if (getEnv().isDevelopment && hideTextBelow && !label && !ariaLabel) {
       log.warn(
         LOG_CATEGORIES.ERRORS,
-        "[Button] hideTextBelow is set but label (aria-label) is missing. Provide label for accessibility when text is hidden."
+        "[Button] hideTextBelow is set but label or aria-label is missing. Provide label for accessibility when text is hidden."
       );
     }
 
-    const loadingOnlyContent = (
+    const content = loading ? (
       <>
         <RippleBackground overlay />
-        <Row className="relative z-10 items-center justify-center gap-2">{loaderBox}</Row>
+        {renderButtonLoadingSlot(textColorClass)}
       </>
-    );
-
-    const content = loading ? (
-      loadingOnlyContent
     ) : isEdgeRight ? (
-      <>
-        <Box className={`min-w-0 flex-1 items-center justify-start gap-2 ${textColorClass}`.trim()}>
-          {iconLeft && renderIcon(resolvedIcon, size, textColorClass)}
-          {textContent}
-        </Box>
-        {iconRight && (
-          <Box className={`shrink-0 items-center ${textColorClass}`.trim()}>
-            {renderIcon(resolvedIcon, size, textColorClass)}
-          </Box>
-        )}
-      </>
+      renderButtonEdgeRightRow({
+        iconLeft,
+        iconRight,
+        resolvedIcon,
+        textContent,
+        size,
+        textColorClass,
+        renderIcon,
+      })
     ) : (
-      <Row
-        className={
-          contentAlign === "start"
-            ? "w-full items-center justify-start gap-2"
-            : "items-center justify-center gap-2"
-        }
-      >
-        {iconLeft && (
-          <Box
-            className={
-              contentAlign === "start"
-                ? "shrink-0 items-center justify-center"
-                : "items-center justify-center"
-            }
-          >
-            {renderIcon(resolvedIcon, size, textColorClass)}
-          </Box>
-        )}
-        {textContent}
-        {iconRight && (
-          <Box
-            className={
-              contentAlign === "start"
-                ? "shrink-0 items-center justify-center"
-                : "items-center justify-center"
-            }
-          >
-            {renderIcon(resolvedIcon, size, textColorClass)}
-          </Box>
-        )}
-      </Row>
+      renderButtonStandardRow({
+        iconLeft,
+        iconRight,
+        resolvedIcon,
+        textContent,
+        contentAlign,
+        size,
+        textColorClass,
+        renderIcon,
+      })
     );
 
     const pressableProps = pickPressableProps(props);
@@ -348,9 +370,9 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         className={buttonClasses}
         disabled={disabled ?? loading}
         onPress={handlePress}
-        aria-label={ariaLabel ?? label}
-        accessibilityLabel={ariaLabel ?? label}
-        title={title ?? label}
+        aria-label={derivedAccessibleLabel}
+        accessibilityLabel={derivedAccessibleLabel}
+        title={title ?? derivedAccessibleLabel}
         style={mergedStyle}
         id={id}
         role={role}

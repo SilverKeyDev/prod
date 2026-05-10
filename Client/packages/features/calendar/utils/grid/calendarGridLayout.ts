@@ -16,7 +16,7 @@ export type PlacedTimedEventSlice = TimedEventSlice & {
   laneCount: number;
 };
 
-function isAllDayEvent(event: GoogleEvent): boolean {
+export function isAllDayGoogleEvent(event: GoogleEvent): boolean {
   return Boolean(event.start?.date && !event.start?.dateTime);
 }
 
@@ -32,7 +32,7 @@ export function minutesSinceMidnight(value: number | Date): number {
  * Timed intervals intersecting `dayKey` (YYYY-MM-DD), clipped to that local calendar day.
  */
 export function timedEventSlicesForDay(event: GoogleEvent, dayKey: string): TimedEventSlice | null {
-  if (isAllDayEvent(event)) return null;
+  if (isAllDayGoogleEvent(event)) return null;
   const startStr = event.start?.dateTime;
   const endStr = event.end?.dateTime;
   if (!startStr || !endStr) return null;
@@ -86,7 +86,7 @@ export function partitionCalendarEventsForDay(
   const timedSlices: TimedEventSlice[] = [];
 
   for (const ev of events) {
-    if (isAllDayEvent(ev)) {
+    if (isAllDayGoogleEvent(ev)) {
       if (getEventLocalDayKeys(ev).includes(dayKey)) {
         allDay.push(ev);
       }

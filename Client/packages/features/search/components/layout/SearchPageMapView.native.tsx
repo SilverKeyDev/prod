@@ -105,31 +105,7 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
 
   return (
     <Box style={styles.container}>
-      <Box style={styles.mapContainer}>
-        <SearchPageMapContainerNative
-          isLoading={isLoading}
-          loadingMessage={
-            searchStage ??
-            SEARCH_TRANSLATIONS["search.searching_properties"] ??
-            "Searching properties..."
-          }
-          page={currentPage}
-          total={total}
-          perPage={perPage}
-          onPrev={() => setCurrentPage(Math.max(0, currentPage - 1))}
-          onNext={() => setCurrentPage(Math.min(maxCardStart, currentPage + 1))}
-          onZoomIn={mapZoomIn}
-          onZoomOut={mapZoomOut}
-          disabled={!hasSearched}
-          isSearching={isSearching}
-          properties={properties}
-          onMarkerSelect={handleMarkerSelect}
-          isochroneData={isochroneData}
-          showCommuteOverlay={showCommuteOverlay}
-        />
-      </Box>
-
-      <Box className="bg-background-surface">
+      <Box style={styles.resultsPanel} className="bg-background-surface">
         <Box style={styles.tabContainer}>
           <Pressable
             onPress={() => handleTabPress("results")}
@@ -183,12 +159,39 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
           }
         />
       </Box>
+
+      <Box style={styles.mapContainer}>
+        <SearchPageMapContainerNative
+          isLoading={isLoading}
+          loadingMessage={
+            searchStage ??
+            SEARCH_TRANSLATIONS["search.searching_properties"] ??
+            "Searching properties..."
+          }
+          page={currentPage}
+          total={total}
+          perPage={perPage}
+          onPrev={() => setCurrentPage(Math.max(0, currentPage - 1))}
+          onNext={() => setCurrentPage(Math.min(maxCardStart, currentPage + 1))}
+          onZoomIn={mapZoomIn}
+          onZoomOut={mapZoomOut}
+          disabled={!hasSearched}
+          isSearching={isSearching}
+          properties={properties}
+          onMarkerSelect={handleMarkerSelect}
+          isochroneData={isochroneData}
+          showCommuteOverlay={showCommuteOverlay}
+        />
+      </Box>
     </Box>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  resultsPanel: {
     flex: 1,
   },
   mapContainer: {

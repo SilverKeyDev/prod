@@ -10,7 +10,7 @@ from app.services.transactions.checklist_dispatch_automation import (
     format_checklist_dispatch_note,
     resolve_agent_id_for_buyer,
 )
-from app.services.transactions.checklist_rules import sort_task_checklist_items
+from app.services.transactions.checklist_support.checklist_rules import sort_task_checklist_items
 from logger import LOG_CATEGORIES, get_logger
 
 logger = get_logger()

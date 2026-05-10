@@ -59,21 +59,27 @@ export default function SavedHomesHeader({
         ? "Search agreements..."
         : viewType === "documents"
           ? "Search documents..."
-          : "Filter by address";
+          : viewType === "forms-library"
+            ? ""
+            : "Filter by address";
 
   const refreshTitle =
     viewType === "homes"
       ? "Refresh saved homes"
       : viewType === "agreements"
         ? "Refresh agreements"
-        : "Refresh documents";
+        : viewType === "forms-library"
+          ? "Refresh"
+          : "Refresh documents";
 
   const rightText =
     viewType === "homes"
       ? `${homesCount} saved`
       : viewType === "documents"
         ? `${documentsCount} documents`
-        : "";
+        : viewType === "agreements"
+          ? `${documentsCount} agreements`
+          : "";
 
   const clientToolbar = isAgent ? (
     <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
@@ -84,11 +90,12 @@ export default function SavedHomesHeader({
       <Box className="flex w-full flex-col justify-center gap-1.5" key={viewType}>
         <SavedLayout
           key={`saved-layout-${viewType}`}
+          isAgent={isAgent}
           toolbarLeading={clientToolbar}
           searchTerm={searchTerm}
           onSearchChange={onSearchChange}
           searchPlaceholder={searchPlaceholder}
-          showSearch={true}
+          showSearch={false}
           leftContent={null}
           onRefresh={onRefresh}
           isRefreshing={isRefreshing}
@@ -111,11 +118,12 @@ export default function SavedHomesHeader({
 
   return (
     <SavedLayout
+      isAgent={isAgent}
       toolbarLeading={clientToolbar}
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       searchPlaceholder={searchPlaceholder}
-      showSearch={true}
+      showSearch={viewType !== "forms-library"}
       leftContent={null}
       onRefresh={onRefresh}
       isRefreshing={isRefreshing}

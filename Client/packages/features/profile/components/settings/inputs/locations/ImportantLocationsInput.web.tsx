@@ -39,18 +39,14 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   const [commuteTime, setCommuteTime] = useState<string>("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
-  const [hasSupportedLocationSelection, setHasSupportedLocationSelection] =
-    useState(false);
+  const [hasSupportedLocationSelection, setHasSupportedLocationSelection] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [autocompleteError, setAutocompleteError] = useState<string | null>(
-    null,
-  );
+  const [autocompleteError, setAutocompleteError] = useState<string | null>(null);
   const [isSpecificAddress, setIsSpecificAddress] = useState(false);
   const addressInputRef = useRef<HTMLInputElement>(null);
   const suggestionsListId = "important-locations-suggestions";
   const isFormVisible = isAddingLocation || editingIndex !== null;
-  const editingLocation =
-    editingIndex !== null ? locations[editingIndex] : null;
+  const editingLocation = editingIndex !== null ? locations[editingIndex] : null;
 
   // Fetch autocomplete suggestions as the user types
   useEffect(() => {
@@ -68,18 +64,16 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
           setSuggestions([]);
           return;
         }
-        const sessionToken =
-          new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
+        const sessionToken = new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
         const request = {
           input: locationAddress,
           sessionToken,
           includedRegionCodes: ["US"],
-          locationRestriction:
-            SUPPORTED_SERVICE_AREA_GOOGLE_LOCATION_RESTRICTION,
+          locationRestriction: SUPPORTED_SERVICE_AREA_GOOGLE_LOCATION_RESTRICTION,
         };
         const { suggestions: fetched } =
           await googleMapsWindow.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request,
+            request
           );
         const built: Suggestion[] = (
           fetched as Array<{
@@ -100,9 +94,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
         const error = asError(err);
         log.error(LOG_CATEGORIES.ERRORS, "Autocomplete fetch error", error);
         setSuggestions([]);
-        setAutocompleteError(
-          "Address search unavailable. You can type an address manually.",
-        );
+        setAutocompleteError("Address search unavailable. You can type an address manually.");
       }
     };
     const t = setTimeout(fetchSuggestions, 500);
@@ -136,14 +128,10 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
     if (suggestions.length === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setHighlightedIndex((prev) =>
-        prev < suggestions.length - 1 ? prev + 1 : 0,
-      );
+      setHighlightedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setHighlightedIndex((prev) =>
-        prev > 0 ? prev - 1 : suggestions.length - 1,
-      );
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
     } else if (
       e.key === "Enter" &&
       highlightedIndex >= 0 &&
@@ -174,11 +162,8 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
     setHasSupportedLocationSelection(true);
   };
   const parseCommuteTolerance = (): number | undefined => {
-    const parsed =
-      commuteTime.trim() === "" ? undefined : parseInt(commuteTime.trim(), 10);
-    return parsed !== undefined && !isNaN(parsed) && parsed >= 0
-      ? parsed
-      : undefined;
+    const parsed = commuteTime.trim() === "" ? undefined : parseInt(commuteTime.trim(), 10);
+    return parsed !== undefined && !isNaN(parsed) && parsed >= 0 ? parsed : undefined;
   };
   const handleAddLocation = () => {
     if (locationAddress.trim()) {
@@ -205,7 +190,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
         commute_tolerance: parseCommuteTolerance(),
       };
       const updatedLocations = locations.map((loc, i) =>
-        i === editingIndex ? updatedLocation : loc,
+        i === editingIndex ? updatedLocation : loc
       );
       onChange(updatedLocations);
       handleCancel();
@@ -214,35 +199,25 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   const handleEditLocation = (index: number) => {
     const loc = locations[index];
     setLocationAddress(loc.address);
-    setCommuteTime(
-      loc.commute_tolerance !== undefined ? String(loc.commute_tolerance) : "",
-    );
+    setCommuteTime(loc.commute_tolerance !== undefined ? String(loc.commute_tolerance) : "");
     setEditingIndex(index);
     setIsAddingLocation(false);
     setHasSelected(false);
     setHasSupportedLocationSelection(false);
   };
   const handleRemoveLocation = (index: number) => {
-    log.info(
-      LOG_CATEGORIES.PROFILE_PREFERENCES,
-      "importantLocationsInput.remove",
-      {
-        index,
-        countBefore: locations.length,
-        editingIndex,
-      },
-    );
+    log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "importantLocationsInput.remove", {
+      index,
+      countBefore: locations.length,
+      editingIndex,
+    });
     if (editingIndex === index) {
       handleCancel();
     }
     const updatedLocations = locations.filter((_, i) => i !== index);
-    log.info(
-      LOG_CATEGORIES.PROFILE_PREFERENCES,
-      "importantLocationsInput.remove.filtered",
-      {
-        countAfter: updatedLocations.length,
-      },
-    );
+    log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "importantLocationsInput.remove.filtered", {
+      countAfter: updatedLocations.length,
+    });
     onChange(updatedLocations);
   };
   const handleCancel = () => {
@@ -273,25 +248,15 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
             <Box
               key={index}
               className={`border-border bg-accent-muted flex items-center justify-between rounded-lg border p-3 ${
-                editingIndex === index
-                  ? "ring-brand-accent ring-2 ring-offset-2"
-                  : ""
+                editingIndex === index ? "ring-brand-accent ring-2 ring-offset-2" : ""
               }`}
             >
               <Box className="min-w-0 flex-1 space-y-1">
-                <BodyText
-                  as="span"
-                  size="sm"
-                  className="text-text-primary block break-words"
-                >
+                <BodyText as="span" size="sm" className="text-text-primary block break-words">
                   {location.address}
                 </BodyText>
                 {location.commute_tolerance != null && (
-                  <BodyText
-                    as="span"
-                    size="xs"
-                    className="text-text-secondary block"
-                  >
+                  <BodyText as="span" size="xs" className="text-text-secondary block">
                     {location.commute_tolerance} min max
                   </BodyText>
                 )}
@@ -340,11 +305,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
           ) : (
             <Box className={`space-y-3 ${LOCATION_INPUT_CONTAINER}`}>
               {editingIndex !== null && editingLocation && (
-                <BodyText
-                  as="p"
-                  size="sm"
-                  className="text-text-secondary font-medium"
-                >
+                <BodyText as="p" size="sm" className="text-text-secondary font-medium">
                   Editing: {editingLocation.address}
                 </BodyText>
               )}
@@ -390,8 +351,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                   or if editing an existing location that already has commute_tolerance set */}
               {locationAddress.trim() &&
                 (!isSpecificAddress ||
-                  (editingIndex !== null &&
-                    editingLocation?.commute_tolerance != null)) && (
+                  (editingIndex !== null && editingLocation?.commute_tolerance != null)) && (
                   <Input
                     label="Max Commute Time (minutes)"
                     type="number"
@@ -418,11 +378,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                   size="md"
                   onClick={handleFormSubmit}
                   disabled={!locationAddress.trim()}
-                  title={
-                    !locationAddress.trim()
-                      ? "Enter an address to save"
-                      : undefined
-                  }
+                  title={!locationAddress.trim() ? "Enter an address to save" : undefined}
                   iconName="save"
                 >
                   {editingIndex !== null ? "Save" : "Add Location"}

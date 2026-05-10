@@ -134,7 +134,7 @@ export function AppRoot() {
     <View style={styles.root}>
       <ErrorBoundaryNative onGoHome={onGoHome} onError={onRootError}>
         <SafeAreaProvider style={styles.flex1}>
-          <SafeAreaView style={styles.flex1} edges={["top"]}>
+          <SafeAreaView style={[styles.flex1, styles.safeArea]} edges={["top"]}>
             <KeyboardProviderRefSafe keyboardProvider={keyboardProvider}>
               <CoreProvidersNative onGoHome={onGoHome}>{appContent}</CoreProvidersNative>
             </KeyboardProviderRefSafe>
@@ -152,6 +152,10 @@ const styles = StyleSheet.create({
   },
   flex1: {
     flex: 1,
+  },
+  /** Match main screens so the top inset is not a different color than the first header (e.g. messaging). */
+  safeArea: {
+    backgroundColor: color("background-base"),
   },
   loading: {
     flex: 1,

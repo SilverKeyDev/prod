@@ -1,5 +1,9 @@
 """Shared admin authorization utilities."""
 
+# Admin HTTP handlers: only ``admin`` and ``super_admin`` in ``user_roles``.
+# Legacy ``user_admin.is_admin`` is not consulted here — run
+# ``scripts/misc/reconcile_user_admin_roles.py`` to copy flag holders into ``user_roles``, then rely on roles only.
+
 
 def _role_names_for_user(user) -> list[str]:
     rel = getattr(user, "user_roles", None)
@@ -9,14 +13,11 @@ def _role_names_for_user(user) -> list[str]:
 
 
 def user_has_admin_role(user) -> bool:
-    """
-    True if the user may invoke admin-only HTTP handlers.
-
-    Aligns with the web AdminGuard: ``admin``, ``super_admin``, or ``manager``
-    in ``user_roles``, or ``user_admin.is_admin`` when that row exists.
-    """
+    """True if the user may invoke admin-only HTTP handlers (admin or super_admin role only)."""
     roles = _role_names_for_user(user)
-    if any(r in roles for r in ("admin", "super_admin", "manager")):
-        return True
-    user_admin = getattr(user, "user_admin", None)
-    return bool(user_admin and getattr(user_admin, "is_admin", False))
+    return any(r in roles for r in ("admin", "super_admin"))
+
+
+def user_has_super_admin_role(user) -> bool:
+    """True if the actor may invoke super_admin-only operations (grant gate roles, hard-delete, etc.)."""
+    return "super_admin" in _role_names_for_user(user)

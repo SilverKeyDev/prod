@@ -1,6 +1,7 @@
 import React from "react";
 
 import Button from "@ui/button/Button";
+import { Icon } from "@ui/icons";
 
 type ActionButtonProps = {
   onClick: () => void;
@@ -33,7 +34,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     size="md"
     onClick={onClick}
     disabled={disabled}
-    icon={icon}
+    icon={icon ?? <Icon name="more-horizontal" />}
     iconPosition="left"
     className={`${colorClasses} ${className}`.trim() || undefined}
     hideTextBelow={hideTextOnMobile ? "md" : undefined}

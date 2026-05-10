@@ -25,6 +25,7 @@ import type {
 } from "@/features/calendar/utils/viewing/viewingRoutePlan";
 import {
   viewingEndpointHasRoutingInput,
+  viewingStopsHaveAtLeastOneAddress,
   viewingTourStartToEndpoint,
 } from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
@@ -136,6 +137,11 @@ export function useCreateEventModal({
     });
 
   const kindDef = useMemo(() => getCalendarEventKind(eventKindId), [eventKindId]);
+
+  const hasViewingTourPropertyAddresses = useMemo(
+    () => viewingStopsHaveAtLeastOneAddress(viewingStops),
+    [viewingStops]
+  );
 
   const useViewingStopList = useMemo(() => {
     if (mode === "edit") {
@@ -331,6 +337,8 @@ export function useCreateEventModal({
     isAllDay,
     defaultCalendarId,
     onAddWithoutSchedule: isCalendarEventRequestFlow ? undefined : onAddWithoutSchedule,
+    isPropertyViewing,
+    hasViewingTourPropertyAddresses,
     isSubmitting,
     isSavingUnscheduled,
     isCreatingEvent,

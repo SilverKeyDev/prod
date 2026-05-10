@@ -20,8 +20,8 @@ import { getMessagingConfig } from "@/features/agent/components/messaging/screen
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
 
-const UnifiedMessagesList = lazy(() =>
-  import("packages/features/messaging/components/layout/UnifiedMessagesList")
+const UnifiedMessagesList = lazy(
+  () => import("packages/features/messaging/components/layout/UnifiedMessagesList")
 );
 
 type AgentMessagingProps = {

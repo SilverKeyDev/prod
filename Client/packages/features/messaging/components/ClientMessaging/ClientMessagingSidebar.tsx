@@ -44,7 +44,7 @@ export default function ClientMessagingSidebar({
       {/* Backdrop for mobile - only show when sidebar is expanded on mobile */}
       {isSidebarExpanded && (
         <Box
-          className="bg-overlay-backdrop fixed inset-0 z-40 transition-opacity duration-300 ease-in-out xl:hidden"
+          className="bg-overlay-backdrop z-dropdown fixed inset-0 transition-opacity duration-300 ease-in-out xl:hidden"
           onClick={() => setIsSidebarExpanded(false)}
           aria-hidden="true"
         />

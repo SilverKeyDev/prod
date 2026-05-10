@@ -86,7 +86,7 @@ export function SearchResultListingCard({
   /** AdvancedMarkerElement content must not contain focusable nodes (button, tabindex≥0). */
   const mapDismissOverlay =
     isOnMap && onDismissMapPreview ? (
-      <Box className="absolute left-2 top-2 z-10">
+      <Box className="z-header absolute left-2 top-2">
         <Box
           className={`group relative inline-flex cursor-pointer flex-row items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/30 active:scale-95 ${OVERLAY_MARKER_CIRCLE_CLASSES} text-white hover:text-white`}
           aria-hidden

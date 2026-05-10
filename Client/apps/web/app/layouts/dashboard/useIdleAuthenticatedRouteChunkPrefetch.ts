@@ -52,9 +52,13 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
         return;
       }
       didPrefetchRef.current = true;
-      log.info(LOG_CATEGORIES.ROUTING, "[PERF] Idle authenticated route chunk prefetch batch starting", {
-        pathname,
-      });
+      log.info(
+        LOG_CATEGORIES.ROUTING,
+        "[PERF] Idle authenticated route chunk prefetch batch starting",
+        {
+          pathname,
+        }
+      );
       // Prewarm both heavy chunks; skip the one we're already on.
       if (!pathname.startsWith("/dashboard")) {
         prefetchDashboardShellRoute("/dashboard");
@@ -64,7 +68,11 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
       } else {
         // Cold load or refresh on /messaging: outer route prefetch is skipped above; still
         // prewarm AgentPage + the correct AgentFeature lazy branch in parallel with other work.
-        traceDynamicImport(LOG_CATEGORIES.MESSAGES, "idlePrefetch:AgentPage", import("@/pages/workspace/AgentPage"));
+        traceDynamicImport(
+          LOG_CATEGORIES.MESSAGES,
+          "idlePrefetch:AgentPage",
+          import("@/pages/workspace/AgentPage")
+        );
         const branch = user.is_agent === true ? "agent" : "client";
         prefetchAgentMessagingFeatureChunks(branch);
       }

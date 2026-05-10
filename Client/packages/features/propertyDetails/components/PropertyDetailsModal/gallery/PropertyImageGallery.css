@@ -7,8 +7,8 @@
 
 /* Override lightbox colors to match SilverKey design tokens */
 .yarl__root {
-  --yarl__color_backdrop: rgba(0, 0, 0, 0.95);
-  --yarl__color_button: #ffffff;
+  --yarl__color_backdrop: rgb(0 0 0 / 95%);
+  --yarl__color_button: #fff;
   --yarl__color_button_active: var(--brand-accent); /* olive */
 }
 
@@ -24,7 +24,7 @@
 
 /* Ensure thumbnails container has proper styling */
 .yarl__thumbnails_container {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgb(0 0 0 / 50%);
   backdrop-filter: blur(8px);
 }
 
@@ -47,12 +47,12 @@
 /* Navigation arrows positioning and styling */
 .yarl__navigation_prev,
 .yarl__navigation_next {
-  padding: 12px;
+  padding: 0.75rem;
 }
 
 /* Zoom controls positioning */
 .yarl__toolbar {
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 /* Ensure images are properly centered */
@@ -64,8 +64,8 @@
 .yarl__counter {
   font-size: 14px;
   font-weight: 500;
-  padding: 6px 12px;
+  padding: 0.375rem 0.75rem;
   border-radius: 9999px;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgb(0 0 0 / 60%);
   backdrop-filter: blur(4px);
 }

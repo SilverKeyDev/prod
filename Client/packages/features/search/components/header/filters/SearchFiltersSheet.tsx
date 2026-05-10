@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 
+import { SearchDisplaySectionNative } from "packages/features/search/components/header/display/SearchDisplaySection.native";
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { usePreferencesSubmit, useUserPreferences } from "packages/hooks/data/user/useUserData";
@@ -13,6 +14,8 @@ export type SearchFiltersSheetProps = {
   open: boolean;
   onClose: () => void;
   onApply: () => void;
+  selectedClientId?: string | null;
+  onClientChange?: (clientId: string | null) => void;
 };
 
 function preferencesToFormData(
@@ -33,6 +36,8 @@ export function SearchFiltersSheet({
   open,
   onClose,
   onApply,
+  selectedClientId,
+  onClientChange,
 }: SearchFiltersSheetProps): React.ReactElement {
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const submitPreferences = usePreferencesSubmit();
@@ -121,6 +126,9 @@ export function SearchFiltersSheet({
         onSearchFilterOverridesPatch={(patch) =>
           setSearchFilterOverrides((prev) => ({ ...prev, ...patch }))
         }
+        selectedClientId={selectedClientId}
+        onClientChange={onClientChange}
+        trailingSlot={<SearchDisplaySectionNative />}
       />
     </BaseModal>
   );

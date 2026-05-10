@@ -1,5 +1,8 @@
 const path = require("path");
 
+/** Tailwind arbitrary value with raw px anywhere in brackets, e.g. w-[37px], min-h-[40px] */
+const ARBITRARY_PX_BRACKET_RE = /\[[^\]]*\d+px[^\]]*\]/g;
+
 /** Tailwind arbitrary spacing that looks like raw px or number: p-[13px], m-[8], gap-[13px], etc. */
 const ARBITRARY_SPACING_RE = /[\w-]-\[\s*(\d+)(px|rem|em)?\s*\]/g;
 /** Style property keys that represent spacing */
@@ -61,19 +64,43 @@ function checkStyleObject(context, node) {
   }
 }
 
+function bracketPxIsAllowed(inner) {
+  const s = inner.slice(1, -1).trim();
+  if (s.includes("var(--")) return true;
+  if (s.includes("calc(")) return true;
+  if (/\b(min|max|clamp)\(/.test(s)) return true;
+  return false;
+}
+
+function checkArbitraryPxBrackets(context, val, reportNode) {
+  ARBITRARY_PX_BRACKET_RE.lastIndex = 0;
+  let m;
+  while ((m = ARBITRARY_PX_BRACKET_RE.exec(val)) !== null) {
+    if (bracketPxIsAllowed(m[0])) continue;
+    context.report({
+      node: reportNode,
+      messageId: "rawSpacingArbitraryPxBracket",
+    });
+    return;
+  }
+}
+
 function checkClassNameLiteral(context, node) {
   if (node.type !== "Literal" || typeof node.value !== "string") return;
   const val = node.value;
   let match;
+  let reported = false;
   ARBITRARY_SPACING_RE.lastIndex = 0;
   while ((match = ARBITRARY_SPACING_RE.exec(val)) !== null) {
     const num = parseInt(match[1], 10);
     const unit = match[2] || "";
     if (unit === "px" || unit === "" || (unit === "rem" && num > 0 && num < 100)) {
       context.report({ node, messageId: "rawSpacingArbitrary" });
+      reported = true;
       break;
     }
   }
+  if (!reported) checkArbitraryPxBrackets(context, val, node);
 }
 
 function checkClassNameTemplateLiteral(context, node) {
@@ -82,14 +109,17 @@ function checkClassNameTemplateLiteral(context, node) {
     const cooked = quasi.value?.cooked;
     if (typeof cooked !== "string") return;
     let match;
+    let reported = false;
     ARBITRARY_SPACING_RE.lastIndex = 0;
     while ((match = ARBITRARY_SPACING_RE.exec(cooked)) !== null) {
       const unit = match[2] || "";
       if (unit === "px" || unit === "") {
         context.report({ node: quasi, messageId: "rawSpacingArbitrary" });
-        break;
+        reported = true;
+        return;
       }
     }
+    if (!reported) checkArbitraryPxBrackets(context, cooked, quasi);
   });
 }
 
@@ -121,6 +151,8 @@ module.exports = {
         "Do not use raw numeric/pixel spacing in style objects. Use spacing() from packages/design-tokens or Tailwind classes (e.g. p-2, gap-4).",
       rawSpacingArbitrary:
         "Do not use arbitrary raw spacing in className (e.g. p-[13px]). Use Tailwind token classes (p-2, gap-4) or spacing() from packages/design-tokens.",
+      rawSpacingArbitraryPxBracket:
+        "Do not use arbitrary Tailwind values with raw px in brackets (e.g. w-[37px]). Use design tokens, theme scale, or spacing() from packages/design-tokens.",
     },
   },
 

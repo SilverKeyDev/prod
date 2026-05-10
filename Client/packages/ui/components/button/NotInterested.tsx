@@ -161,7 +161,7 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
       ) : (
         // Original card overlay styling
         <>
-          <Box className={`absolute ${POSITION_MAP[position]} z-10`}>
+          <Box className={`absolute ${POSITION_MAP[position]} z-header`}>
             <IconButton
               variant="ghost"
               icon={

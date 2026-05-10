@@ -83,7 +83,7 @@ export function AgentPublicProfileShareRow({
   );
 
   const actionsRow = (
-    <Box className="xs:flex-row xs:flex-wrap flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
+    <Box className="flex w-full shrink-0 flex-row flex-wrap gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
       <Button
         variant="primary"
         size="sm"

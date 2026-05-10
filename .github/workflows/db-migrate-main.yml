@@ -1,0 +1,59 @@
+name: DB migrate (main)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: prod-db-migrate
+  cancel-in-progress: false
+
+env:
+  REGION: us-east-2
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Load DB_URL_SECRET_ID from repository variables
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/variables/DB_URL_SECRET_ID"
+          tmp="$(mktemp)"
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$api")"
+          if [ "$code" = "200" ]; then
+            value="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("value") or "")' < "$tmp")"
+            printf '%s\n' "DB_URL_SECRET_ID=${value}" >> "$GITHUB_ENV"
+          else
+            echo "DB_URL_SECRET_ID=" >> "$GITHUB_ENV"
+          fi
+          rm -f "$tmp"
+
+      - name: Run Alembic upgrade (Docker backend stage)
+        run: |
+          set -euo pipefail
+          chmod +x .github/scripts/gh-db-upgrade.sh
+          .github/scripts/gh-db-upgrade.sh

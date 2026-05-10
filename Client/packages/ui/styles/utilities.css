@@ -5,18 +5,23 @@
   .text-responsive-xs {
     @apply text-xs sm:text-sm md:text-base;
   }
+
   .text-responsive-sm {
     @apply text-sm sm:text-base md:text-lg;
   }
+
   .text-responsive-base {
     @apply text-sm sm:text-base md:text-lg lg:text-xl;
   }
+
   .text-responsive-lg {
     @apply text-base sm:text-lg md:text-xl lg:text-2xl;
   }
+
   .text-responsive-xl {
     @apply text-lg sm:text-xl md:text-2xl lg:text-3xl;
   }
+
   .text-responsive-2xl {
     @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
   }
@@ -25,12 +30,15 @@
   .heading-responsive-sm {
     @apply text-lg font-semibold sm:text-xl md:text-2xl;
   }
+
   .heading-responsive-md {
     @apply text-xl font-semibold sm:text-2xl md:text-3xl;
   }
+
   .heading-responsive-lg {
     @apply text-2xl font-bold sm:text-3xl md:text-4xl;
   }
+
   .heading-responsive-xl {
     @apply text-3xl font-bold sm:text-4xl md:text-5xl;
   }
@@ -39,15 +47,19 @@
   .space-responsive-xs {
     @apply p-1 sm:p-2 md:p-3 lg:p-4;
   }
+
   .space-responsive-sm {
     @apply p-2 sm:p-3 md:p-4 lg:p-6;
   }
+
   .space-responsive-md {
     @apply p-3 sm:p-4 md:p-6 lg:p-8;
   }
+
   .space-responsive-lg {
     @apply p-4 sm:p-6 md:p-8 lg:p-12;
   }
+
   .space-responsive-xl {
     @apply p-6 sm:p-8 md:p-12 lg:p-16;
   }
@@ -55,9 +67,11 @@
   .space-x-responsive-sm {
     @apply space-x-2 sm:space-x-3 md:space-x-4;
   }
+
   .space-x-responsive-md {
     @apply space-x-3 sm:space-x-4 md:space-x-6;
   }
+
   .space-x-responsive-lg {
     @apply space-x-4 sm:space-x-6 md:space-x-8;
   }
@@ -65,12 +79,15 @@
   .space-y-responsive-xs {
     @apply space-y-1 sm:space-y-2 md:space-y-3;
   }
+
   .space-y-responsive-sm {
     @apply space-y-2 sm:space-y-3 md:space-y-4;
   }
+
   .space-y-responsive-md {
     @apply space-y-3 sm:space-y-4 md:space-y-6;
   }
+
   .space-y-responsive-lg {
     @apply space-y-4 sm:space-y-6 md:space-y-8;
   }
@@ -78,12 +95,15 @@
   .gap-responsive-xs {
     @apply gap-1 sm:gap-2 md:gap-3;
   }
+
   .gap-responsive-sm {
     @apply gap-2 sm:gap-3 md:gap-4;
   }
+
   .gap-responsive-md {
     @apply gap-3 sm:gap-4 md:gap-6;
   }
+
   .gap-responsive-lg {
     @apply gap-4 sm:gap-6 md:gap-8;
   }
@@ -92,12 +112,15 @@
   .px-responsive-xs {
     @apply px-1 sm:px-2 md:px-3 lg:px-4;
   }
+
   .px-responsive-sm {
     @apply px-2 sm:px-3 md:px-4 lg:px-6;
   }
+
   .px-responsive-md {
     @apply px-3 sm:px-4 md:px-6 lg:px-8;
   }
+
   .px-responsive-lg {
     @apply px-4 sm:px-6 md:px-8 lg:px-12;
   }
@@ -105,12 +128,15 @@
   .py-responsive-xs {
     @apply py-1 sm:py-1.5 md:py-2 lg:py-2.5;
   }
+
   .py-responsive-sm {
     @apply py-2 sm:py-3 md:py-4 lg:py-6;
   }
+
   .py-responsive-md {
     @apply py-3 sm:py-4 md:py-6 lg:py-8;
   }
+
   .py-responsive-lg {
     @apply py-4 sm:py-6 md:py-8 lg:py-12;
   }
@@ -118,9 +144,11 @@
   .mx-responsive-sm {
     @apply mx-2 sm:mx-3 md:mx-4 lg:mx-6;
   }
+
   .mx-responsive-md {
     @apply mx-3 sm:mx-4 md:mx-6 lg:mx-8;
   }
+
   .mx-responsive-lg {
     @apply mx-4 sm:mx-6 md:mx-8 lg:mx-12;
   }
@@ -128,9 +156,11 @@
   .my-responsive-sm {
     @apply my-2 sm:my-3 md:my-4 lg:my-6;
   }
+
   .my-responsive-md {
     @apply my-3 sm:my-4 md:my-6 lg:my-8;
   }
+
   .my-responsive-lg {
     @apply my-4 sm:my-6 md:my-8 lg:my-12;
   }
@@ -139,12 +169,15 @@
   .grid-responsive-1 {
     @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5;
   }
+
   .grid-responsive-2 {
     @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6;
   }
+
   .grid-responsive-3 {
     @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
   }
+
   .grid-responsive-auto {
     @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6;
   }
@@ -153,9 +186,11 @@
   .flex-responsive {
     @apply flex flex-col sm:flex-row;
   }
+
   .flex-responsive-reverse {
     @apply flex flex-col-reverse sm:flex-row;
   }
+
   .flex-responsive-center {
     @apply flex flex-col items-center justify-center sm:flex-row sm:justify-between;
   }
@@ -164,12 +199,15 @@
   .mobile-icon-xs {
     @apply h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4;
   }
+
   .mobile-icon-sm {
     @apply h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5;
   }
+
   .mobile-icon-md {
     @apply h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6;
   }
+
   .mobile-icon-lg {
     @apply h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7;
   }
@@ -209,18 +247,23 @@
     .header-match-2xl {
       max-width: calc(42rem + 2 * theme("spacing.6"));
     }
+
     .header-match-3xl {
       max-width: calc(48rem + 2 * theme("spacing.6"));
     }
+
     .header-match-4xl {
       max-width: calc(56rem + 2 * theme("spacing.6"));
     }
+
     .header-match-5xl {
       max-width: calc(64rem + 2 * theme("spacing.6"));
     }
+
     .header-match-6xl {
       max-width: calc(72rem + 2 * theme("spacing.6"));
     }
+
     .header-match-7xl {
       max-width: calc(80rem + 2 * theme("spacing.6"));
     }
@@ -230,22 +273,28 @@
     .header-match-2xl {
       max-width: calc(42rem + 2 * theme("spacing.8"));
     }
+
     .header-match-3xl {
       max-width: calc(48rem + 2 * theme("spacing.8"));
     }
+
     .header-match-4xl {
       max-width: calc(56rem + 2 * theme("spacing.8"));
     }
+
     .header-match-5xl {
       max-width: calc(64rem + 2 * theme("spacing.8"));
     }
+
     .header-match-6xl {
       max-width: calc(72rem + 2 * theme("spacing.8"));
     }
+
     .header-match-7xl {
       max-width: calc(80rem + 2 * theme("spacing.8"));
     }
   }
+
   /* Safe area insets for mobile devices with notches - with fallbacks */
   .safe-top {
     padding-top: 0; /* Fallback */
@@ -260,7 +309,7 @@
   /* Fallback for when Safari returns 0 for safe-area-inset-bottom when toolbar hides */
   .safe-bottom-fallback {
     padding-bottom: 0; /* Fallback */
-    padding-bottom: max(env(safe-area-inset-bottom), 20px);
+    padding-bottom: max(env(safe-area-inset-bottom), 1.25rem);
   }
 
   .safe-left {
@@ -378,6 +427,7 @@
   /* Mobile-first utilities - removed duplicate .mobile-card (kept in components.css) */
 
   /* Standardized Card System */
+
   /* Base card styles */
   .card-base {
     @apply rounded-lg border bg-white shadow-sm transition hover:shadow-md;
@@ -584,7 +634,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(240, 240, 240, 0.15);
+    background: rgb(240 240 240 / 15%);
     mix-blend-mode: soft-light;
     pointer-events: none;
     border-radius: inherit;
@@ -598,7 +648,9 @@
     content: "";
     position: absolute;
     inset: 0;
+
     @apply bg-neutral-100;
+
     mix-blend-mode: soft-light;
     pointer-events: none;
     border-radius: inherit;
@@ -607,17 +659,20 @@
   /* Muted Card System */
   .muted-card {
     @apply border-border border bg-neutral-50 shadow-sm;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+    box-shadow: 0 2px 8px rgb(0 0 0 / 4%);
   }
 
   .muted-card:hover {
     @apply border-border shadow-md;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+    box-shadow: 0 4px 12px rgb(0 0 0 / 6%);
   }
 
   /* Muted Button System */
   .muted-button {
     @apply border-border border bg-neutral-100 text-neutral-700;
+
     transition: all 0.2s ease;
   }
 
@@ -627,6 +682,7 @@
 
   .muted-button-primary {
     @apply bg-primary border border-transparent text-white;
+
     transition: all 0.2s ease;
   }
 
@@ -639,15 +695,15 @@
   .autofill-muted:-webkit-autofill:hover,
   .autofill-muted:-webkit-autofill:focus,
   .autofill-muted:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px hsl(35, 35%, 88%) inset !important;
-    -webkit-text-fill-color: hsl(25, 22%, 35%) !important;
-    caret-color: hsl(25, 22%, 35%) !important;
+    box-shadow: 0 0 0 30px hsl(35deg 35% 88%) inset !important;
+    -webkit-text-fill-color: hsl(25deg 22% 35%) !important;
+    caret-color: hsl(25deg 22% 35%) !important;
   }
 
   /* Firefox autofill */
   .autofill-muted:-moz-autofill {
-    background-color: hsl(35, 35%, 88%) !important;
-    color: hsl(25, 22%, 35%) !important;
+    background-color: hsl(35deg 35% 88%) !important;
+    color: hsl(25deg 22% 35%) !important;
   }
 
   /* Gold Autofill Styling for Auth Pages */
@@ -655,15 +711,15 @@
   .autofill-gold:-webkit-autofill:hover,
   .autofill-gold:-webkit-autofill:focus,
   .autofill-gold:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px hsl(42, 45%, 92%) inset !important;
-    -webkit-text-fill-color: hsl(25, 25%, 30%) !important;
-    caret-color: hsl(25, 25%, 30%) !important;
+    box-shadow: 0 0 0 30px hsl(42deg 45% 92%) inset !important;
+    -webkit-text-fill-color: hsl(25deg 25% 30%) !important;
+    caret-color: hsl(25deg 25% 30%) !important;
     transition: background-color 5000s ease-in-out 0s;
   }
 
   /* Firefox gold autofill */
   .autofill-gold:-moz-autofill {
-    background-color: hsl(42, 45%, 92%) !important;
-    color: hsl(25, 25%, 30%) !important;
+    background-color: hsl(42deg 45% 92%) !important;
+    color: hsl(25deg 25% 30%) !important;
   }
 }

@@ -24,7 +24,7 @@ export type CalendarTimeGridHourScrollContentProps = {
   dayDates: Date[];
   events: ExtendedGoogleEvent[];
   calendars: GoogleCalendar[];
-  /** Must match all-day + day header rows (CSS grid-template-columns). */
+  /** Must match week header + hour grid gutter/day columns (CSS grid-template-columns). */
   gridTemplateColumns: string;
   hourRowHeight: number;
   nowMinutes: number;

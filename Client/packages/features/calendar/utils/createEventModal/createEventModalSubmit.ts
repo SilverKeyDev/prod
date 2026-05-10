@@ -22,6 +22,7 @@ import type {
 import {
   buildViewingItineraryDraftFromForm,
   primaryLocationLabelFromItinerary,
+  viewingStopsHaveAtLeastOneAddress,
 } from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 import { detectEventTypeFromTitle } from "./createEventModalDetectEventType";
@@ -74,6 +75,14 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
     p.enqueueToast({
       type: "error",
       message: "Please enter a title",
+    });
+    return;
+  }
+
+  if (p.isPropertyViewing && !viewingStopsHaveAtLeastOneAddress(p.viewingStops)) {
+    p.enqueueToast({
+      type: "error",
+      message: "Add at least one property address for the viewing tour.",
     });
     return;
   }

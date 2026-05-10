@@ -126,12 +126,15 @@ export function buildEventRequestPayloadFromCreateFormState(
       endMode: input.viewingEndMode,
       endFixed: input.viewingEndFixed,
     });
-    if (itineraryPayload) {
-      payload.itinerary = itineraryPayload as ViewingItinerary;
-      const loc = primaryLocationLabelFromItinerary(itineraryPayload);
-      if (loc) {
-        payload.location = loc;
-      }
+    if (!itineraryPayload) {
+      return {
+        error: "Add at least one property address for the viewing tour.",
+      };
+    }
+    payload.itinerary = itineraryPayload as ViewingItinerary;
+    const loc = primaryLocationLabelFromItinerary(itineraryPayload);
+    if (loc) {
+      payload.location = loc;
     }
   }
 

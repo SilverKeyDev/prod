@@ -17,7 +17,7 @@ describe("serviceAreaAvailability", () => {
           longText: "Georgia",
           shortText: SUPPORTED_SERVICE_AREA_STATE_SHORT,
         },
-      ]),
+      ])
     ).toBe(true);
   });
 
@@ -30,33 +30,27 @@ describe("serviceAreaAvailability", () => {
           longText: "New York",
           shortText: "NY",
         },
-      ]),
+      ])
     ).toBe(false);
   });
 
   it("rejects Google address components without a state", () => {
     expect(
-      isSupportedServiceAreaAddressComponents([
-        { types: ["country"], longText: "United States" },
-      ]),
+      isSupportedServiceAreaAddressComponents([{ types: ["country"], longText: "United States" }])
     ).toBe(false);
   });
 
   it("accepts coordinates inside the temporary Georgia bounding box", () => {
-    expect(
-      isSupportedServiceAreaCoordinates({ lat: 33.749, lng: -84.388 }),
-    ).toBe(true);
+    expect(isSupportedServiceAreaCoordinates({ lat: 33.749, lng: -84.388 })).toBe(true);
   });
 
   it("rejects coordinates outside the temporary Georgia bounding box", () => {
-    expect(
-      isSupportedServiceAreaCoordinates({ lat: 40.7128, lng: -74.006 }),
-    ).toBe(false);
+    expect(isSupportedServiceAreaCoordinates({ lat: 40.7128, lng: -74.006 })).toBe(false);
   });
 
   it("exposes warning copy for blocked locations", () => {
     expect(SUPPORTED_SERVICE_AREA_WARNING).toBe(
-      "SilverKey is only available in Georgia areas right now.",
+      "SilverKey is only available in Georgia areas right now."
     );
   });
 });

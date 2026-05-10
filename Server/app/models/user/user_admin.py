@@ -1,4 +1,8 @@
-"""One-to-one admin flag per user (separate from user_roles)."""
+"""Legacy one-to-one row per user; ``is_admin`` is not used for authorization.
+
+Use ``user_roles`` with role ``admin`` or ``super_admin``. Backfill from legacy rows via
+``scripts/misc/reconcile_user_admin_roles.py``. The column remains until a later migration removes it.
+"""
 
 from sqlalchemy.orm import Mapped, mapped_column
 

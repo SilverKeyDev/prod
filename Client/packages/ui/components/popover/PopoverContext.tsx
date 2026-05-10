@@ -21,7 +21,7 @@ export function PopoverContextProvider({
 }: PopoverContextValue & { children: ReactNode }) {
   const value = useMemo(
     () => ({ registerOutsideClickSafeTarget, panelStack }),
-    [registerOutsideClickSafeTarget, panelStack],
+    [registerOutsideClickSafeTarget, panelStack]
   );
   return <PopoverContext.Provider value={value}>{children}</PopoverContext.Provider>;
 }

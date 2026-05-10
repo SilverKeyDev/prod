@@ -85,4 +85,52 @@ describe("deriveCreateEventModalFormSubmitState", () => {
       }).canSubmit
     ).toBe(false);
   });
+
+  it("property viewings require at least one property address", () => {
+    const base = {
+      mode: "create" as const,
+      eventTitle: "Property viewings",
+      startDate: "2026-05-01",
+      endDate: "2026-05-01",
+      startTime: "09:00",
+      endTime: "10:00",
+      isAllDay: false,
+      defaultCalendarId: "cal",
+      onAddWithoutSchedule: async () => {},
+      isSubmitting: false,
+      isSavingUnscheduled: false,
+      isCreatingEvent: false,
+      isUpdatingEvent: false,
+      isPropertyViewing: true,
+      hasViewingTourPropertyAddresses: false,
+    };
+    expect(deriveCreateEventModalFormSubmitState(base).canSubmit).toBe(false);
+    expect(
+      deriveCreateEventModalFormSubmitState({
+        ...base,
+        hasViewingTourPropertyAddresses: true,
+      }).canSubmit
+    ).toBe(true);
+  });
+
+  it("unscheduled create is blocked for property viewings without addresses", () => {
+    const r = deriveCreateEventModalFormSubmitState({
+      mode: "create",
+      eventTitle: "Property viewings",
+      startDate: "",
+      endDate: "",
+      startTime: "09:00",
+      endTime: "10:00",
+      isAllDay: false,
+      defaultCalendarId: "cal",
+      onAddWithoutSchedule: async () => {},
+      isSubmitting: false,
+      isSavingUnscheduled: false,
+      isCreatingEvent: false,
+      isUpdatingEvent: false,
+      isPropertyViewing: true,
+      hasViewingTourPropertyAddresses: false,
+    });
+    expect(r.canSubmit).toBe(false);
+  });
 });

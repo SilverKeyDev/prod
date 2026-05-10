@@ -15,20 +15,19 @@ import { useEventRequestScheduleAvailability } from "packages/hooks/data/calenda
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useIsAgent } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { useAuthStore } from "packages/store";
+import { type UIState, useAuthStore, useUIStore } from "packages/store";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
-import type {
-  ViewingRouteEndMode,
-  ViewingRouteEndpoint,
-  ViewingTourAnchor,
-  ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 import {
   buildViewingItineraryDraftFromForm,
   primaryLocationLabelFromItinerary,
   viewingEndpointHasRoutingInput,
+  type ViewingRouteEndMode,
+  type ViewingRouteEndpoint,
+  viewingStopsHaveAtLeastOneAddress,
+  type ViewingTourAnchor,
+  type ViewingTourStartSelection,
   viewingTourStartToEndpoint,
 } from "@/features/calendar/utils/viewing/viewingRoutePlan";
 import type { MessagingSendMessageOptions } from "@/features/messaging/hooks/data/messaging/types";
@@ -53,6 +52,7 @@ export function useCalendarEventRequestForm({
 }: UseCalendarEventRequestFormParams) {
   const isAgent = useIsAgent();
   const authUserId = useAuthStore((s) => s.user?.id ?? null);
+  const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const { clients, isLoading: isLoadingClients } = useAgentClients();
   const { clientSettings } = useClientSettings();
   const viewingTourAnchors: ViewingTourAnchor[] = useMemo(
@@ -217,7 +217,8 @@ export function useCalendarEventRequestForm({
     eventTitle.trim() &&
     eventDate &&
     eventTime &&
-    (isAgent ? selectedClientId !== null : clientConversation !== null)
+    (isAgent ? selectedClientId !== null : clientConversation !== null) &&
+    (!isPropertyViewing || viewingStopsHaveAtLeastOneAddress(viewingStops))
   );
 
   const resetForm = useCallback(() => {
@@ -237,6 +238,13 @@ export function useCalendarEventRequestForm({
 
   const handleSend = useCallback(async () => {
     if (!eventTitle.trim() || !eventDate || !eventTime) {
+      return;
+    }
+    if (isPropertyViewing && !viewingStopsHaveAtLeastOneAddress(viewingStops)) {
+      enqueueToast({
+        type: "error",
+        message: "Add at least one property address for the viewing tour.",
+      });
       return;
     }
     let conversationId: string | null = null;
@@ -274,12 +282,17 @@ export function useCalendarEventRequestForm({
         endMode: viewingEndMode,
         endFixed: viewingEndFixed,
       });
-      if (it) {
-        payload.itinerary = it as ViewingItinerary;
-        const loc = primaryLocationLabelFromItinerary(it);
-        if (loc) {
-          payload.location = loc;
-        }
+      if (!it) {
+        enqueueToast({
+          type: "error",
+          message: "Add at least one property address for the viewing tour.",
+        });
+        return;
+      }
+      payload.itinerary = it as ViewingItinerary;
+      const loc = primaryLocationLabelFromItinerary(it);
+      if (loc) {
+        payload.location = loc;
       }
     }
     const message = buildEventRequestMessage(payload);
@@ -304,6 +317,7 @@ export function useCalendarEventRequestForm({
     }
   }, [
     clientConversation,
+    enqueueToast,
     eventDate,
     eventDescription,
     eventLocation,

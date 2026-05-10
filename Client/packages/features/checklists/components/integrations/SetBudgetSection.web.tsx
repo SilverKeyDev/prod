@@ -13,7 +13,6 @@ import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
 import { calculateAffordableHomePrice, type HomePriceResult } from "packages/utils/affordability";
 
 import { userPreferencesToOnboardingData } from "@/features/profile/utils";
@@ -150,7 +149,6 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
   return (
     <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
-
         <ProfileFinancialSection
           formData={formData as OnboardingData}
           isEditMode={true}

@@ -76,7 +76,7 @@ const reportTitleStyleList = {
 };
 function ReportCardDate({ report }: { report: Report }) {
   return (
-    <Box className="absolute left-3 top-3 z-10">
+    <Box className="z-header absolute left-3 top-3">
       <BodyText
         as="p"
         size="xs"
@@ -306,7 +306,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
       padding="md"
     >
       <ReportCardDate report={report} />
-      <Box className="absolute right-3 top-3 z-10 hidden sm:block">
+      <Box className="z-header absolute right-3 top-3 hidden sm:block">
         <StatusBadge text={statusText} variant={getStatusVariant(report.status)} size="sm" />
       </Box>
 

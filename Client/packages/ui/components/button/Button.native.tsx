@@ -78,12 +78,14 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       children,
       disabled,
       className = "",
+      truncateLabel = true,
       label,
       rounded = "lg",
       accessibilityRole,
       accessibilityState,
       onPress,
       onClick,
+      collapseIconWhenNarrow: _omitCollapseIconWhenNarrow,
       ...props
     },
     ref
@@ -102,21 +104,23 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
     const content = loading ? (
       <>
         <RippleBackground overlay />
-        <Box className="relative z-10 flex-row items-center justify-center gap-2">
+        <Box className="z-header relative flex-row items-center justify-center gap-2">
           <Box className="items-center justify-center">{/* <KeyTurnLoader message="" /> */}</Box>
         </Box>
       </>
     ) : (
-      <Box className="flex-row items-center justify-center gap-2">
+      <Box className="min-w-0 flex-row items-center justify-center gap-2 overflow-hidden">
         {resolvedIcon && iconPosition === "left" && (
           <Box className="items-center justify-center">{resolvedIcon}</Box>
         )}
         {children != null &&
           (typeof children === "string" ? (
             <Text
-              className={`font-medium leading-none ${textColorClass} ${
+              className={`font-medium leading-none ${truncateLabel ? "min-w-0 shrink truncate" : "shrink-0 whitespace-nowrap"} ${textColorClass} ${
                 size === "sm" ? "text-sm" : size === "lg" ? "text-base" : "text-sm"
               }`}
+              numberOfLines={1}
+              ellipsizeMode={truncateLabel ? "tail" : "clip"}
             >
               {children}
             </Text>
@@ -149,7 +153,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         onPress={handlePress}
         disabled={disabled ?? loading}
         accessibilityLabel={label}
-        className={`flex-row items-center justify-center ${roundedClass} ${variantClass} ${sizeClass} ${
+        className={`min-w-0 flex-row items-center justify-center overflow-hidden ${roundedClass} ${variantClass} ${sizeClass} ${
           loading
             ? `${BUTTON_LOADING_FRAME_CLASSES} ${BUTTON_LOADING_VARIANT_OVERRIDES[effectiveVariant]}`
             : ""

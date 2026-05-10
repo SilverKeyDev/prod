@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from app import db
 from app.models import TransactionTask
-from app.services.transactions.checklist_constants import TASK_CATEGORIES
-from app.services.transactions.checklist_rules import merge_task_checklist_checked_ids
 from app.services.transactions.checklist_signature_completion import (
     apply_signature_based_checked_ids,
+)
+from app.services.transactions.checklist_support.checklist_constants import TASK_CATEGORIES
+from app.services.transactions.checklist_support.checklist_rules import (
+    merge_task_checklist_checked_ids,
 )
 from app.services.transactions.retrieval import (
     get_checklist_definition,

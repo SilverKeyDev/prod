@@ -7,10 +7,12 @@ from flask import Blueprint, current_app, jsonify, request
 from app.schemas import TaskChecklistApiResponse, UpdateTaskChecklistRequest
 from app.utils.validation import validate_request, validate_response
 
-from ..services.transactions.checklist_rules import merge_task_checklist_checked_ids
 from ..services.transactions.checklist_signature_completion import (
     apply_signature_based_checked_ids,
     run_signature_step_auto_send,
+)
+from ..services.transactions.checklist_support.checklist_rules import (
+    merge_task_checklist_checked_ids,
 )
 from ..services.transactions.retrieval import (
     get_checklist_definition,

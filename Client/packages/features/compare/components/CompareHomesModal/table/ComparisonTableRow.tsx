@@ -72,7 +72,7 @@ export function ComparisonTableRow({
       }`}
     >
       <td
-        className={`sticky left-0 z-10 ${stickyBgClass} backdrop-blur ${labelCellClass}`}
+        className={`z-header sticky left-0 ${stickyBgClass} backdrop-blur ${labelCellClass}`}
         style={{ width: "25%" }}
       >
         {isSectionHeader ? (

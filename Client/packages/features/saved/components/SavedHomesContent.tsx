@@ -1,9 +1,8 @@
 import { useMemo } from "react";
 
-import type { Dispatch, SetStateAction } from "react";
-
 import { useLocalization } from "packages/contexts";
 import type { DocumentData, SavedPageViewType } from "packages/features/documents";
+import { FormsLibraryTab } from "packages/features/documents";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import {
   sortAndFilterAgreementsForLibrary,
@@ -23,10 +22,8 @@ import { SavedHomeCard } from "./SavedHomeCard";
 
 type SavedHomesContentProps = {
   viewType: SavedPageViewType;
-  /** Layout for the active Library tab (homes, documents, or agreements). */
+  /** Layout for the active Library tab (homes, documents, agreements, or forms-library grid alignment). */
   libraryViewMode: LibraryViewMode;
-  documentsSubtab: "my-documents" | "forms-library";
-  onDocumentsSubtabChange: Dispatch<SetStateAction<"my-documents" | "forms-library">>;
   filteredHomes: SavedHome[];
   homesLoading: boolean;
   documents: DocumentData[];
@@ -53,8 +50,6 @@ const CONTENT_PADDING = "px-4 sm:px-6 md:px-8 lg:px-12";
 export default function SavedHomesContent({
   viewType,
   libraryViewMode,
-  documentsSubtab,
-  onDocumentsSubtabChange,
   filteredHomes,
   homesLoading,
   documents,
@@ -81,6 +76,21 @@ export default function SavedHomesContent({
     () => sortSavedHomesForLibrary(filteredHomes, librarySortKey),
     [filteredHomes, librarySortKey]
   );
+
+  const formsLibraryGridClass =
+    "gap-responsive-md grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+
+  if (viewType === "forms-library") {
+    if (!isAgent) return null;
+    return (
+      <FormsLibraryTab
+        containerClass={containerClass}
+        formsGridClassName={formsLibraryGridClass}
+        onSendForSignature={onFormSendForSignature}
+      />
+    );
+  }
+
   if (viewType === "documents") {
     return (
       <DocumentsViewWithSubtabs
@@ -88,11 +98,7 @@ export default function SavedHomesContent({
         documentsLoading={documentsLoading}
         onDocumentDelete={onDocumentDelete}
         documentActionHandlers={documentActionHandlers}
-        onFormSendForSignature={onFormSendForSignature}
-        isAgent={isAgent}
         containerClass={containerClass}
-        documentSubtab={documentsSubtab}
-        onDocumentSubtabChange={onDocumentsSubtabChange}
         libraryViewMode={libraryViewMode}
       />
     );

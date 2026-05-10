@@ -21,9 +21,10 @@ export function AdminGuard({ children }: AdminGuardProps) {
     return null;
   }
 
-  // Use profile from API (includes roles from backend user_roles); fall back to auth user
+  // Use profile from API (includes roles from backend user_roles); fall back to auth user.
+  // Admin panel: only admin + super_admin ("manager" is for team-level product permissions, not SilverKey system admin).
   const roles = userProfile?.roles ?? user?.roles ?? [];
-  const hasAdminRole = roles.includes("admin") || roles.includes("manager");
+  const hasAdminRole = roles.includes("admin");
   const hasSuperAdminRole = roles.includes("super_admin");
 
   let effectiveRole: UserRole | null = null;
@@ -34,7 +35,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
   }
 
   // Check if user has admin role and proper permissions
-  // To grant admin access, add a role to user_roles table via Flask shell or admin API:
+  // To grant admin access, add role admin or super_admin in user_roles (not user_admin.is_admin):
   //   from app.models import User, UserRole; from app import db
   //   u = User.query.filter_by(email="your@email.com").first()
   //   if u and not any(r.role == "admin" for r in u.user_roles):

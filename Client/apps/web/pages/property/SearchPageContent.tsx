@@ -108,7 +108,7 @@ export function SearchPageContent({
   return (
     <Box className="relative h-full">
       {searchViewMode === "reels" && (
-        <Box className="absolute right-4 top-4 z-30 flex items-center md:flex">
+        <Box className="absolute right-4 top-4 z-dock flex items-center md:flex">
           <IconButton
             variant="ghost"
             size="md"
@@ -122,7 +122,7 @@ export function SearchPageContent({
       <Box className="relative h-full">
         <Box
           className={`absolute inset-0 h-full ${
-            searchViewMode === "map" ? "z-10" : "pointer-events-none invisible z-0"
+            searchViewMode === "map" ? "z-header" : "pointer-events-none invisible z-0"
           }`}
           aria-hidden={searchViewMode !== "map"}
         >
@@ -169,7 +169,7 @@ export function SearchPageContent({
         </Box>
         <Box
           className={`absolute inset-0 h-full ${
-            searchViewMode === "reels" ? "z-10" : "pointer-events-none invisible z-0"
+            searchViewMode === "reels" ? "z-header" : "pointer-events-none invisible z-0"
           }`}
           aria-hidden={searchViewMode !== "reels"}
         >

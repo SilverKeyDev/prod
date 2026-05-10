@@ -108,12 +108,13 @@ export default function SidebarNavigation({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    contentAlign="start"
+                    contentAlign={isLargeScreen ? "start" : "center"}
                     onClick={() => onItemClick(item.key)}
                     disabled={item.disabled}
                     className={`${getInsetNavItemClasses({
                       active: isActive,
                       disabled: item.disabled,
+                      iconOnly: !isLargeScreen,
                     })}`}
                     title={!isLargeScreen ? item.label : undefined}
                     icon={
@@ -122,11 +123,11 @@ export default function SidebarNavigation({
                       ) : undefined
                     }
                   >
-                    {isLargeScreen && (
+                    {isLargeScreen ? (
                       <BodyText as="span" className={getInsetNavItemLabelClasses(isActive)}>
                         {item.label}
                       </BodyText>
-                    )}
+                    ) : null}
                   </Button>
                 );
               })}

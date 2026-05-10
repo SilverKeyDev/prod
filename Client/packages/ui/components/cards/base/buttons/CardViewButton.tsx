@@ -1,7 +1,5 @@
 import React from "react";
 
-import { Icon } from "@ui/icons";
-
 import Button from "packages/ui/components/button/Button";
 import type { IconName } from "packages/ui/types/icons";
 export type CardViewButtonProps = {
@@ -67,9 +65,8 @@ const CardViewButton: React.FC<CardViewButtonProps> = ({
   ]
     .filter(Boolean)
     .join(" ");
-  const iconClasses = `${currentSizeStyles.icon} ${text ? "mr-1" : ""}`;
-  const iconName: IconName | null =
-    iconType === "external" ? "external-link" : iconType === "eye" ? "eye" : null;
+  const resolvedIconName: IconName =
+    iconType === "external" ? "external-link" : iconType === "eye" ? "eye" : "more-horizontal";
   return (
     <Button
       type="button"
@@ -79,11 +76,9 @@ const CardViewButton: React.FC<CardViewButtonProps> = ({
       loading={loading}
       className={buttonClasses}
       title={text}
+      iconName={resolvedIconName}
     >
-      <>
-        {iconName && <Icon name={iconName} className={iconClasses} />}
-        {text && text}
-      </>
+      {text}
     </Button>
   );
 };

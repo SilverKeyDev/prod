@@ -21,6 +21,8 @@ export function LibrarySortSelect({ viewType, value, onChange }: LibrarySortSele
     label: t(o.labelKey),
   }));
 
+  if (options.length === 0) return null;
+
   return (
     <Box className="flex min-w-0 shrink-0 items-center gap-2">
       <BodyText

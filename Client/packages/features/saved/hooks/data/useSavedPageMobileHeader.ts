@@ -51,7 +51,9 @@ export function useSavedPageMobileHeader(
       ? loading
       : viewType === "documents" || viewType === "agreements"
         ? documentsLoadingState
-        : loading;
+        : viewType === "forms-library"
+          ? false
+          : loading;
 
   return useMemo<SavedHomesHeaderProps>(
     () => ({

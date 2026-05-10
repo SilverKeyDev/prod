@@ -9,20 +9,18 @@ import { getWindow } from "packages/utils/platform";
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 
-import { CalendarTimeGridAllDaySection } from "./CalendarTimeGridAllDaySection";
 import { CAL_TIME_GRID_HOURS, calTimeGridTemplateColumns } from "./calendarTimeGridConstants";
-import { CalendarTimeGridDayHeader } from "./CalendarTimeGridDayHeader";
-import { calendarTimeGridToYmd } from "./calendarTimeGridFormat";
 import { CalendarTimeGridHourScrollContent } from "./CalendarTimeGridHourScrollContent";
 import {
   type CalendarTimeGridScrollViewRef,
   setCalendarTimeGridScrollY,
 } from "./calendarTimeGridScroll";
+import { CalendarTimeGridWeekHeader } from "./CalendarTimeGridWeekHeader";
 
 /**
  * Hour grid sits inside a vertical ScrollView; the scrollbar narrows the scrollport's
- * client width. Fixed rows above the scroll (all-day, day headers) must use that same
- * width or `fr`/percentage columns will not line up with the grid below.
+ * client width. Fixed rows above the scroll (week header with day strips and all-day lane)
+ * must use that same width or `fr`/percentage columns will not line up with the grid below.
  */
 function useTimeGridScrollportClientWidth(
   scrollRef: React.RefObject<CalendarTimeGridScrollViewRef | null>
@@ -157,50 +155,15 @@ export function CalendarTimeGrid({
         }}
       >
         <Box style={fixedRowsWidthStyle}>
-          <CalendarTimeGridAllDaySection
+          <CalendarTimeGridWeekHeader
             dayDates={dayDates}
             events={events}
             calendars={calendars}
             gridTemplateColumns={gridColumns}
+            showWeekendTint={showWeekendTint}
+            onDayHeaderPress={onDayHeaderPress}
+            onDayHeaderDoubleTap={onDayHeaderDoubleTap}
           />
-        </Box>
-        <Box
-          style={{
-            ...fixedRowsWidthStyle,
-            display: "grid",
-            gridTemplateColumns: gridColumns,
-            width: fixedRowsWidthStyle?.width ?? "100%",
-            borderBottomWidth: 1,
-            borderColor: color("neutral.200"),
-            backgroundColor: color("neutral.100"),
-          }}
-        >
-          <Box
-            style={{
-              minWidth: spacing(0),
-              borderRightWidth: 1,
-              borderRightColor: color("neutral.200"),
-            }}
-          />
-          {dayDates.map((d, idx) => {
-            const isToday = dayjs(d).isSame(today, "day");
-            const wk = d.getDay();
-            const weekend =
-              showWeekendTint && (wk === 0 || wk === 6)
-                ? { backgroundColor: "rgba(0,0,0,0.04)" }
-                : null;
-            return (
-              <CalendarTimeGridDayHeader
-                key={calendarTimeGridToYmd(d)}
-                date={d}
-                isToday={isToday}
-                weekendStyle={weekend}
-                showColumnDividerRight={idx < dayDates.length - 1}
-                onPress={onDayHeaderPress}
-                onDoubleTap={onDayHeaderDoubleTap}
-              />
-            );
-          })}
         </Box>
 
         <ScrollView

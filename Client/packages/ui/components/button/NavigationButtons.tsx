@@ -103,7 +103,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           onClick={onSubmit}
           disabled={loading ?? disableNext}
           loading={loading}
-          icon={!loading ? <Icon name="check" /> : undefined}
+          iconName="check"
           iconPosition="right"
           className="w-30 font-bold sm:w-36 md:w-40"
         >

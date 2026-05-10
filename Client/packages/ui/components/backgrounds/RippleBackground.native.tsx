@@ -6,7 +6,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 import type { LayoutChangeEvent } from "react-native";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
 
 import { color } from "packages/design-tokens";
@@ -75,7 +75,7 @@ function useDriftedParticles(base: Point[], tick: number): Point[] {
 }
 
 function RippleFullScreen() {
-  const { width, height } = Dimensions.get("window");
+  const { width, height } = useWindowDimensions();
   const [tick, setTick] = useState(0);
   const baseParticles = useBaseParticles(width, height, PARTICLE_COUNT_FULL);
   const particles = useDriftedParticles(baseParticles, tick);

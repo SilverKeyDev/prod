@@ -56,42 +56,42 @@ function ErrorFallbackContent({
   onGoHome,
 }: ErrorFallbackContentProps) {
   return (
-    <Box className="px-responsive-lg py-responsive-lg flex min-h-screen items-center justify-center bg-background-base">
+    <Box className="flex min-h-[100dvh] min-w-0 items-center justify-center overflow-y-auto overflow-x-hidden overscroll-y-contain bg-background-base pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pl-[calc(1rem+env(safe-area-inset-left,0px))] pr-[calc(1rem+env(safe-area-inset-right,0px))] pt-[calc(1rem+env(safe-area-inset-top,0px))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:pl-[calc(1.5rem+env(safe-area-inset-left,0px))] sm:pr-[calc(1.5rem+env(safe-area-inset-right,0px))] sm:pt-[calc(1.5rem+env(safe-area-inset-top,0px))] md:pb-[calc(2rem+env(safe-area-inset-bottom,0px))] md:pl-[calc(2rem+env(safe-area-inset-left,0px))] md:pr-[calc(2rem+env(safe-area-inset-right,0px))] md:pt-[calc(2rem+env(safe-area-inset-top,0px))] lg:pb-[calc(3rem+env(safe-area-inset-bottom,0px))] lg:pl-[calc(3rem+env(safe-area-inset-left,0px))] lg:pr-[calc(3rem+env(safe-area-inset-right,0px))] lg:pt-[calc(3rem+env(safe-area-inset-top,0px))]">
       <Card
         border="none"
-        className="w-full max-w-2xl border-l-4 border-l-destructive shadow-lg"
+        className="w-full min-w-0 max-w-2xl border-l-4 border-l-destructive shadow-lg"
         padding="lg"
       >
         <Box className="text-center">
-          <Box className="mb-responsive-md flex justify-center">
-            <Box className="p-responsive-sm rounded-full border-2 border-border bg-background-surface">
-              <Icon name="alert-triangle" className="mobile-icon-lg text-destructive" />
-            </Box>
-          </Box>
-
-          <Title size="xl" as="h1" className="mb-responsive-xs text-text-primary">
+          <Title size="lg" as="h1" className="mb-responsive-xs text-text-primary">
             Something went wrong
           </Title>
 
-          <BodyText size="sm" muted className="mb-responsive-md">
+          <BodyText size="sm" muted className="mb-responsive-md text-balance break-words">
             We're sorry, but something unexpected happened. Our team has been notified and we're
             working to resolve this issue.
           </BodyText>
 
-          <Box className="gap-responsive-xs mb-responsive-md flex flex-col sm:flex-row">
+          <Box className="gap-responsive-xs mb-responsive-md flex w-full min-w-0 flex-row">
             <Button
               variant="primary"
               onClick={onRetry}
-              icon={<Icon name="refresh-cw" className="mobile-icon-xs" />}
-              className="flex-1"
+              contentAlign="start"
+              collapseIconWhenNarrow={false}
+              icon={<Icon name="refresh-cw" className="mobile-icon-xs flex-shrink-0" />}
+              className="min-w-0 flex-1 touch-manipulation"
+              label="Try Again"
             >
               Try Again
             </Button>
             <Button
               variant="outline"
               onClick={onGoHome}
-              icon={<Icon name="home" className="mobile-icon-xs" />}
-              className="flex-1"
+              contentAlign="start"
+              collapseIconWhenNarrow={false}
+              icon={<Icon name="home" className="mobile-icon-xs flex-shrink-0" />}
+              className="min-w-0 flex-1 touch-manipulation"
+              label="Go Home"
             >
               Go Home
             </Button>
@@ -130,13 +130,13 @@ function ErrorDetailsSection({
   onToggleDetails: () => void;
 }) {
   return (
-    <Box className="text-left">
+    <Box className="min-w-0 text-left">
       <Button
         variant="ghost"
         size="sm"
+        contentAlign="start"
         onClick={onToggleDetails}
-        className="mb-responsive-xs text-destructive hover:text-destructive-hover"
-        iconName="alert-circle"
+        className="mb-responsive-xs w-full text-destructive hover:text-destructive-hover sm:w-auto"
       >
         {showDetails ? "Hide" : "Show"} Error Details
       </Button>
@@ -185,38 +185,43 @@ function ErrorFeedbackSection({
 }) {
   return (
     <Card border="light" className="border-border bg-primary-muted" padding="md">
-      <Box className="space-responsive-xs flex items-start">
-        <Icon name="message-square" className="mobile-icon-sm mt-0.5 flex-shrink-0 text-primary" />
-        <Box className="flex-1">
-          <Title size="sm" as="h3" className="mb-responsive-xs text-text-primary">
+      <Box className="min-w-0 text-left">
+        <Box className="mb-responsive-xs gap-responsive-xs flex min-w-0 flex-row items-center">
+          <Icon name="message-square" className="mobile-icon-sm flex-shrink-0 text-primary" />
+          <Title size="sm" as="h3" className="mb-0 flex-1 text-text-primary">
             Help us improve
           </Title>
-          {!feedbackSubmitted ? (
-            <Box>
-              <Textarea
-                value={feedbackMessage}
-                onChange={(e) => onFeedbackMessageChange(e.target.value)}
-                placeholder="What were you doing before this error? (optional)"
-                className="p-responsive-xs text-responsive-xs focus:border-input-variant-focus-border w-full resize-none rounded-lg border border-border bg-background-surface font-sans focus:ring-2 focus:ring-neutral-300"
-                rows={3}
-              />
+        </Box>
+        {!feedbackSubmitted ? (
+          <Box>
+            <Textarea
+              value={feedbackMessage}
+              onChange={(e) => onFeedbackMessageChange(e.target.value)}
+              placeholder="What were you doing before this error? (optional)"
+              className="p-responsive-xs text-responsive-xs focus:border-input-variant-focus-border w-full resize-none rounded-lg border border-border bg-background-surface font-sans focus:ring-2 focus:ring-neutral-300"
+              rows={3}
+            />
+            <Box className="mt-responsive-sm flex w-full justify-end">
               <Button
                 variant="primary"
                 size="sm"
                 onClick={onFeedbackSubmit}
-                className="mt-responsive-xs"
+                contentAlign="start"
+                collapseIconWhenNarrow={false}
                 disabled={!feedbackMessage.trim()}
                 iconName="send"
+                className="min-h-touch shrink-0"
+                label="Send Feedback"
               >
                 Send Feedback
               </Button>
             </Box>
-          ) : (
-            <BodyText size="xs" className="text-primary">
-              Thank you for your feedback! This helps us fix the issue.
-            </BodyText>
-          )}
-        </Box>
+          </Box>
+        ) : (
+          <BodyText size="xs" className="text-primary">
+            Thank you for your feedback! This helps us fix the issue.
+          </BodyText>
+        )}
       </Box>
     </Card>
   );

@@ -147,10 +147,14 @@ export function silverkeyComponentsAndFeatures(silverkey) {
         "silverkey/no-raw-spacing": [
           "warn",
           {
-            includePaths: ["packages/ui/", "packages/features/"],
+            includePaths: ["packages/ui/", "packages/features/", "apps/web/"],
             allowedPaths: ["**/*.native.*"],
           },
         ],
+        "silverkey/no-legacy-viewport-units": ["warn", { includeOnlyMobileNative: true }],
+        "silverkey/prefer-use-window-dimensions": "warn",
+        // Heuristic flags many bounded lists (dropdowns, chip rows, image thumbs); re-enable when refined.
+        "silverkey/no-scrollview-children-map": "off",
         "silverkey/no-raw-zindex": [
           "warn",
           {

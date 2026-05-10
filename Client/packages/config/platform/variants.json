@@ -379,10 +379,10 @@
   },
   {
     "id": "search-display-sheet",
-    "description": "Search display settings UI: popover on web, bottom sheet on native.",
+    "description": "Search display settings: desktop web uses Popover dropdown; mobile web embeds panel in filters sheet; native embeds SearchDisplaySection in filters modal.",
     "webPath": "packages/features/search/components/header/display/SearchDisplayDropdown.web.tsx",
-    "nativePath": "packages/features/search/components/header/display/SearchDisplaySheet.native.tsx",
-    "reason": "Web uses Headless UI Popover with shared controls; native uses React Native Modal bottom sheet, Pressable chips, and RN Switch."
+    "nativePath": "packages/features/search/components/header/display/SearchDisplaySection.native.tsx",
+    "reason": "Web desktop uses Headless UI Popover with SearchDisplayPanelWeb; mobile surfaces merge display into filters; native uses RN controls inside filters sheet."
   },
   {
     "id": "reels-view",

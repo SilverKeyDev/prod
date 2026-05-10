@@ -1,6 +1,17 @@
 /* Mobile-specific styles and overrides */
 
 @layer utilities {
+  /* Small-viewport: keep embedded media from overflowing; desktop web uses unscoped defaults in components. */
+  @media screen and (max-width: 767.98px) {
+    img,
+    video,
+    iframe,
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+
   /* Mobile input zoom prevention - only apply to inputs without responsive text classes */
   input[type="text"]:not([class*="text-"]),
   input[type="email"]:not([class*="text-"]),
@@ -15,6 +26,7 @@
   }
 
   /* For inputs WITH responsive text classes, allow Tailwind classes to work naturally */
+
   /* Remove !important override to let responsive classes function properly */
 
   /* Specific smaller inputs that can safely use smaller fonts without zoom */
@@ -68,6 +80,7 @@
         4rem + max(env(safe-area-inset-bottom, 0), 4px) + max(env(safe-area-inset-bottom, 0), 4px)
       );
     }
+
     .bottom-reserved {
       bottom: var(--mobile-bottom-reserved);
     }
@@ -235,11 +248,13 @@
   /* Mobile scrolling */
   .mobile-scroll {
     @apply overflow-x-auto;
+
     -webkit-overflow-scrolling: touch;
   }
 
   .mobile-scroll-snap {
     @apply mobile-scroll;
+
     scroll-snap-type: x mandatory;
   }
 
@@ -273,9 +288,11 @@
   .mobile-button-primary {
     @apply btn-mobile-primary;
   }
+
   .mobile-button-secondary {
     @apply btn-mobile-secondary;
   }
+
   .mobile-button-outline {
     @apply btn-mobile-outline;
   }
@@ -328,14 +345,9 @@
 
     .mobile-safe-area {
       /* Fallbacks for older browsers */
-      padding-top: 0;
-      padding-bottom: 0;
-      padding-left: 0;
-      padding-right: 0;
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
+
       /* Modern safe area insets */
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      padding-left: env(safe-area-inset-left);
       padding-right: env(safe-area-inset-right);
     }
   }
@@ -356,7 +368,7 @@
   }
 
   /* High DPI display optimizations */
-  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  @media (min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
     .mobile-image {
       image-rendering: -webkit-optimize-contrast;
     }
@@ -369,34 +381,39 @@
       font-size: 1.5rem;
       line-height: 2rem;
     }
+
     h2:not([class*="text-"]) {
       font-size: 1.25rem;
       line-height: 1.75rem;
     }
+
     h3:not([class*="text-"]) {
       font-size: 1.125rem;
       line-height: 1.75rem;
     }
+
     h4:not([class*="text-"]) {
       font-size: 1rem;
       line-height: 1.5rem;
     }
+
     h5:not([class*="text-"]) {
       font-size: 0.875rem;
       line-height: 1.25rem;
     }
+
     h6:not([class*="text-"]) {
       font-size: 0.75rem;
       line-height: 1rem;
     }
 
     /* Only scale buttons without responsive classes */
-    button:not([class*="text-"]):not(input):not(.mobile-input):not(.input-field) {
+    button:not([class*="text-"], input, .mobile-input, .input-field) {
       font-size: 0.75rem;
     }
 
     /* Only scale labels without responsive classes */
-    label:not([class*="text-"]):not(.input-label) {
+    label:not([class*="text-"], .input-label) {
       font-size: 0.75rem;
     }
 
@@ -417,9 +434,11 @@
     table:not([class*="text-"]) {
       font-size: 0.75rem;
     }
+
     th:not([class*="text-"]) {
       font-size: 0.75rem;
     }
+
     td:not([class*="text-"]) {
       font-size: 0.75rem;
     }

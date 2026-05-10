@@ -28,6 +28,7 @@
   box-sizing: border-box !important;
   overflow: visible !important; /* allow inner shadows, etc. */
   position: relative !important;
+
   /* transform controlled by library for navigation animations */
 }
 
@@ -81,6 +82,7 @@
   left: 0.5rem !important;
   right: auto !important;
 }
+
 .sk-carousel-clip .carousel .control-arrow.control-next,
 .sk-carousel-clip .carousel button[aria-label*="next"] {
   right: 0.5rem !important;

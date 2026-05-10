@@ -18,7 +18,7 @@ export function PropertyDetailsMapOverlayControls({
   const { t } = useLocalization();
 
   return (
-    <Box className="pointer-events-none absolute inset-0 z-20 flex flex-col items-end gap-2 p-2">
+    <Box className="z-dropdown pointer-events-none absolute inset-0 flex flex-col items-end gap-2 p-2">
       <Box className="border-border-card-subtle bg-background-surface/95 pointer-events-auto flex gap-1 rounded-lg border p-1 shadow-sm">
         <Button
           variant={!satelliteMode ? "primary" : "outline"}

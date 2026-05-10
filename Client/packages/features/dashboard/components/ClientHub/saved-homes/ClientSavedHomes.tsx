@@ -22,9 +22,6 @@ type ClientSavedHomesProps = {
 
 export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesProps) {
   const [refreshing, setRefreshing] = useState(false);
-  const [documentsSubtab, setDocumentsSubtab] = useState<"my-documents" | "forms-library">(
-    "my-documents"
-  );
   const { value: libraryViewMode } = useLibraryViewMode("homes");
   const { value: librarySortKey } = useLibrarySortPreference("homes");
 
@@ -112,8 +109,6 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
         <SavedHomesContent
           viewType="homes"
           libraryViewMode={libraryViewMode}
-          documentsSubtab={documentsSubtab}
-          onDocumentsSubtabChange={setDocumentsSubtab}
           filteredHomes={homes}
           homesLoading={savedHomesLoading}
           documents={[]}

@@ -4,11 +4,11 @@ import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
-import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
 
-const chipBase = `inline-flex touch-friendly shrink-0 items-center gap-1.5 rounded-lg px-4 text-left text-sm font-medium transition-colors min-w-0 overflow-hidden ${HEADER_ROW_HEIGHT}`;
+const chipBase = `inline-flex touch-friendly shrink-0 items-center gap-1.5 rounded-lg px-4 text-left text-sm font-medium transition-colors min-w-0 overflow-hidden ${HEADER_ROW_CONTROL_HEIGHT}`;
 
 export type SearchFilterChipProps = {
   /** Short label (e.g. "Price") */

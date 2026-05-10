@@ -133,7 +133,7 @@ export function MessagingSharedHomeBundleNative({
           {showNav ? (
             <>
               <Box
-                className="absolute bottom-0 left-0 top-0 z-10 justify-center pl-1"
+                className="z-header absolute bottom-0 left-0 top-0 justify-center pl-1"
                 style={{ pointerEvents: "box-none" }}
               >
                 <IconButton
@@ -147,7 +147,7 @@ export function MessagingSharedHomeBundleNative({
                 />
               </Box>
               <Box
-                className="absolute bottom-0 right-0 top-0 z-10 justify-center pr-1"
+                className="z-header absolute bottom-0 right-0 top-0 justify-center pr-1"
                 style={{ pointerEvents: "box-none" }}
               >
                 <IconButton

@@ -97,10 +97,10 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
       onTouchCancel={() => handleTouchEnd(containerRef)}
     >
       <Box className="relative flex h-full w-full max-w-md flex-row items-center justify-center md:max-w-md">
-        <Box className="pointer-events-none absolute inset-0 z-10" aria-hidden />
+        <Box className="z-header pointer-events-none absolute inset-0" aria-hidden />
         {showHeartBurst && (
           <Box
-            className="pointer-events-none absolute inset-0 z-10 flex flex-row items-center justify-center"
+            className="z-header pointer-events-none absolute inset-0 flex flex-row items-center justify-center"
             aria-hidden
           >
             <Icon
@@ -124,7 +124,7 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
             onVideoPlayingChange={(playing) => onReportVideoPlaying?.(index, playing)}
           />
         </Box>
-        <Box className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex min-h-28 flex-row items-end justify-between gap-2 px-2 pb-3 max-md:[bottom:var(--mobile-bottom-reserved)] md:pb-4">
+        <Box className="z-header pointer-events-none absolute bottom-0 left-0 right-0 flex min-h-28 flex-row items-end justify-between gap-2 px-2 pb-3 max-md:[bottom:var(--mobile-bottom-reserved)] md:pb-4">
           <Box className="pointer-events-auto min-w-0 flex-1 overflow-hidden">
             <BottomInfo item={item} embedded />
           </Box>

@@ -44,21 +44,12 @@ export function ImportantLocationSuggestionsList({
             size="sm"
             onClick={() => onSelect(suggestion)}
             className={`w-full cursor-pointer !justify-start px-3 py-2 text-sm [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start ${
-              highlightedIndex === index
-                ? "bg-primary-muted"
-                : "hover:bg-primary-muted"
+              highlightedIndex === index ? "bg-primary-muted" : "hover:bg-primary-muted"
             }`}
           >
             <Box className="flex w-full items-center justify-start gap-2 text-left">
-              <Icon
-                name="map-pin"
-                className="h-4 w-4 shrink-0 text-neutral-500"
-              />
-              <BodyText
-                as="span"
-                size="sm"
-                className="min-w-0 flex-1 text-left"
-              >
+              <Icon name="map-pin" className="h-4 w-4 shrink-0 text-neutral-500" />
+              <BodyText as="span" size="sm" className="min-w-0 flex-1 text-left">
                 {suggestion.description}
               </BodyText>
             </Box>

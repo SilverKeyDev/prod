@@ -2,7 +2,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
-import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { Button, CancelButton, IconButton } from "@/components/ui";
 
@@ -29,6 +29,11 @@ type SearchActionsProps = {
   onClientChange?: (clientId: string | null) => void;
   /** Desktop: only Filters / Display / Reels — Search+Cancel rendered beside the location bar */
   desktopToolsOnly?: boolean;
+  /**
+   * Mobile: when true with `variant="mobile"`, render Search + Filters + Reels (+ Cancel when searching)
+   * as a tight cluster for beside `SearchLocationBarWeb`; order is Search, Filter, Reels after the bar.
+   */
+  mobileToolbarCluster?: boolean;
 };
 export default function SearchActions({
   onSearchProperties,
@@ -43,6 +48,7 @@ export default function SearchActions({
   selectedClientId,
   onClientChange,
   desktopToolsOnly = false,
+  mobileToolbarCluster = false,
 }: SearchActionsProps) {
   const { t } = useLocalization();
   const showReels = showReelsButton && onToggleMode != null;
@@ -50,38 +56,31 @@ export default function SearchActions({
   const handleSearchClick = () => {
     void onSearchProperties?.();
   };
-  const btnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
+  const btnClass = `shrink-0 ${HEADER_ROW_CONTROL_HEIGHT}`;
   if (variant === "mobile") {
-    return (
-      <Box className={`flex w-full flex-shrink-0 items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
-        <Box className="flex min-w-0 flex-1 items-center gap-2">
-          <SearchFiltersDropdown
-            variant="mobile"
-            selectedClientId={selectedClientId}
-            onClientChange={onClientChange}
-          />
-          <SearchDisplayDropdown variant="mobile" />
-          <Button
-            variant="tertiary"
-            size="sm"
-            loading={isSearching}
-            onClick={handleSearchClick}
-            disabled={isSearching}
-            iconName={!isSearching ? "search" : undefined}
-            className={`touch-friendly min-w-min flex-1 px-4 ${HEADER_ROW_HEIGHT}`}
-          >
-            {isSearching ? t("search.searching") : t("search.search")}
-          </Button>
-          {isSearching && onCancelSearch && (
-            <CancelButton
-              onClick={onCancelSearch}
-              size="sm"
-              className={`touch-friendly ${btnClass}`}
-            >
-              {t("common.cancel")}
-            </CancelButton>
-          )}
-        </Box>
+    const searchButtonClass = mobileToolbarCluster
+      ? `touch-friendly max-w-[32vw] shrink-0 px-2 sm:max-w-none sm:px-3 ${HEADER_ROW_CONTROL_HEIGHT}`
+      : `touch-friendly min-w-[min(28vw,8.5rem)] flex-1 basis-0 px-4 ${HEADER_ROW_CONTROL_HEIGHT}`;
+
+    const filtersBlock = (
+      <Box className="flex shrink-0">
+        <SearchFiltersDropdown
+          variant="mobile"
+          selectedClientId={selectedClientId}
+          onClientChange={onClientChange}
+        />
+      </Box>
+    );
+
+    const cancelButton =
+      isSearching && onCancelSearch ? (
+        <CancelButton onClick={onCancelSearch} size="sm" className={`touch-friendly ${btnClass}`}>
+          {t("common.cancel")}
+        </CancelButton>
+      ) : null;
+
+    const reelsAndMap = (
+      <>
         {showReels && (
           <IconButton
             variant="toolbar"
@@ -106,6 +105,55 @@ export default function SearchActions({
             {t("search.map")}
           </Button>
         )}
+      </>
+    );
+
+    const searchButtonEl = (
+      <Button
+        variant="tertiary"
+        size="sm"
+        loading={isSearching}
+        onClick={handleSearchClick}
+        disabled={isSearching}
+        iconName={!isSearching ? "search" : undefined}
+        truncateLabel={false}
+        label={isSearching ? t("search.searching") : t("search.search")}
+        className={searchButtonClass}
+        {...(mobileToolbarCluster ? { hideTextBelow: "sm" as const } : {})}
+      >
+        {isSearching ? t("search.searching") : t("search.search")}
+      </Button>
+    );
+
+    const cluster = mobileToolbarCluster ? (
+      <>
+        {searchButtonEl}
+        {cancelButton}
+        {filtersBlock}
+        {reelsAndMap}
+      </>
+    ) : (
+      <>
+        {filtersBlock}
+        {searchButtonEl}
+        {cancelButton}
+        {reelsAndMap}
+      </>
+    );
+
+    if (mobileToolbarCluster) {
+      return (
+        <Box
+          className={`flex shrink-0 flex-nowrap items-center gap-1.5 sm:gap-2 ${HEADER_ROW_HEIGHT}`}
+        >
+          {cluster}
+        </Box>
+      );
+    }
+
+    return (
+      <Box className={`flex w-full flex-shrink-0 items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
+        <Box className="flex min-w-0 flex-1 items-center gap-2">{cluster}</Box>
       </Box>
     );
   }
@@ -116,7 +164,7 @@ export default function SearchActions({
         selectedClientId={selectedClientId}
         onClientChange={onClientChange}
       />
-      <SearchDisplayDropdown variant="desktop" />
+      <SearchDisplayDropdown />
       {!desktopToolsOnly ? (
         <>
           <Button
@@ -126,6 +174,8 @@ export default function SearchActions({
             onClick={handleSearchClick}
             disabled={isSearching}
             iconName={!isSearching ? "search" : undefined}
+            truncateLabel={false}
+            label={isSearching ? t("search.searching") : t("search.search")}
             className={btnClass}
           >
             {isSearching ? t("search.searching") : t("search.search")}

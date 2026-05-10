@@ -18,10 +18,21 @@ def _iso_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+_PROFILE_SENSITIVE_KEYS = frozenset(
+    {
+        "cognito_id",
+        "google_id",
+        "profile_picture",  # raw S3 key; profile_picture_url (presigned) is retained
+    }
+)
+
+
 def build_user_data_export(user: User) -> dict[str, Any]:
     """Return a JSON-serializable dict for API responses (not wrapped in success envelope)."""
     uid = str(user.id)
     profile = UserDTO.to_response(user, include_roles=True, presign_profile_pic=True)
+    for key in _PROFILE_SENSITIVE_KEYS:
+        profile.pop(key, None)
 
     row = UserClientSettings.query.filter_by(user_id=uid).first()
     if row is None:

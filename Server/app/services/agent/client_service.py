@@ -8,7 +8,7 @@ from collections import defaultdict
 from sqlalchemy import func
 
 from app import db
-from app.services.transactions.checklist_constants import (
+from app.services.transactions.checklist_support.checklist_constants import (
     PIPELINE_RANK,
     TASK_CATEGORIES,
 )

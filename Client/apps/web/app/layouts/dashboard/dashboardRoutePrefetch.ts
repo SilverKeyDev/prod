@@ -11,7 +11,11 @@ export function prefetchDashboardShellRoute(href: string): void {
   const path = raw.startsWith("/") ? raw : `/${raw}`;
 
   if (path.startsWith("/search")) {
-    traceDynamicImport(LOG_CATEGORIES.ROUTING, "prefetch:SearchPage", import("@/pages/property/SearchPage"));
+    traceDynamicImport(
+      LOG_CATEGORIES.ROUTING,
+      "prefetch:SearchPage",
+      import("@/pages/property/SearchPage")
+    );
     if (typeof window !== "undefined") {
       void import("packages/features/search/utils/googleMaps").then(({ googleMapsService }) => {
         void googleMapsService.loadGoogleMapsScript();
@@ -20,26 +24,46 @@ export function prefetchDashboardShellRoute(href: string): void {
     return;
   }
   if (path.startsWith("/messaging")) {
-    traceDynamicImport(LOG_CATEGORIES.MESSAGES, "prefetch:AgentPage", import("@/pages/workspace/AgentPage"));
+    traceDynamicImport(
+      LOG_CATEGORIES.MESSAGES,
+      "prefetch:AgentPage",
+      import("@/pages/workspace/AgentPage")
+    );
     // AgentFeature lazy-loads ClientMessaging / AgentDashboard; prewarm in parallel with AgentPage
     // so first navigation avoids a sequential chunk waterfall.
     prefetchAgentMessagingFeatureChunks("all");
     return;
   }
   if (path.startsWith("/find-agents")) {
-    traceDynamicImport(LOG_CATEGORIES.ROUTING, "prefetch:FindAgentsPage", import("@/pages/misc/FindAgentsPage"));
+    traceDynamicImport(
+      LOG_CATEGORIES.ROUTING,
+      "prefetch:FindAgentsPage",
+      import("@/pages/misc/FindAgentsPage")
+    );
     return;
   }
   if (path.startsWith("/dashboard")) {
-    traceDynamicImport(LOG_CATEGORIES.DASHBOARD, "prefetch:DashboardPage", import("@/pages/workspace/DashboardPage"));
+    traceDynamicImport(
+      LOG_CATEGORIES.DASHBOARD,
+      "prefetch:DashboardPage",
+      import("@/pages/workspace/DashboardPage")
+    );
     return;
   }
   if (path.startsWith("/saved") || path.startsWith("/compare-reports")) {
-    traceDynamicImport(LOG_CATEGORIES.ROUTING, "prefetch:SavedPage", import("@/pages/property/SavedPage"));
+    traceDynamicImport(
+      LOG_CATEGORIES.ROUTING,
+      "prefetch:SavedPage",
+      import("@/pages/property/SavedPage")
+    );
     return;
   }
   if (path.startsWith("/profile")) {
-    traceDynamicImport(LOG_CATEGORIES.ROUTING, "prefetch:ProfilePage", import("@/pages/account/ProfilePage"));
+    traceDynamicImport(
+      LOG_CATEGORIES.ROUTING,
+      "prefetch:ProfilePage",
+      import("@/pages/account/ProfilePage")
+    );
     return;
   }
   if (/^\/agreements\/[^/]+\/complete\/?$/.test(path)) {

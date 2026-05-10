@@ -755,6 +755,7 @@ class ClientsResponse(BaseModel):
 class Tab(Enum):
     homes = "homes"
     documents = "documents"
+    forms_library = "forms-library"
     agreements = "agreements"
 
 
@@ -2968,6 +2969,33 @@ class UpdateTodoResponse(SuccessResponse):
     todo: TodoItem | None = None
 
 
+class GrantEnum(Enum):
+    admin = "admin"
+    super_admin = "super_admin"
+
+
+class RevokeEnum(Enum):
+    admin = "admin"
+    super_admin = "super_admin"
+
+
+class UpdateUserSystemRolesRequest(BaseModel):
+    user_id: str = Field(..., description="Target user UUID (users.id).")
+    grant: list[GrantEnum] = Field(
+        ...,
+        description="Gate roles to ensure exist for this user (`admin`, `super_admin`).",
+    )
+    revoke: list[RevokeEnum] = Field(..., description="Gate roles to remove for this user.")
+
+
+class UpdateUserSystemRolesResponse(SuccessResponse):
+    user_id: str = Field(..., description="Updated user ID.")
+    gate_roles: list[str] = Field(
+        ...,
+        description="Remaining SilverKey gate roles (`admin`, `super_admin`) for this user after the change.",
+    )
+
+
 class UploadResponse(SuccessResponse):
     file_id: str | None = None
     file_url: AnyUrl | None = None
@@ -2981,6 +3009,13 @@ class UserDataExportResponse(SuccessResponse):
     data: dict[str, Any] = Field(
         ...,
         description="Machine-readable export of profile-related data for the authenticated user.",
+    )
+
+
+class ValidationStatsApiResponse(SuccessResponse):
+    data: dict[str, Any] = Field(
+        ...,
+        description="Aggregate validation-stats payload from the API (structured log snapshot; may evolve).",
     )
 
 

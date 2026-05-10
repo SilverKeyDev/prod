@@ -40,38 +40,65 @@ export function CalendarToolbar({
 }: CalendarToolbarProps) {
   const prevLabel = viewMode === "week" ? "Previous week" : "Previous month";
   const nextLabel = viewMode === "week" ? "Next week" : "Next month";
+  const headerGridClassName = showViewModeToggle
+    ? "grid w-full grid-cols-1 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-x-2 sm:gap-y-0"
+    : "grid w-full grid-cols-1 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:gap-x-2 sm:gap-y-0";
+
+  const navAndToggle = (
+    <>
+      <Box style={styles.traverseCluster}>
+        <IconButton
+          iconName="chevron-left"
+          variant="outline"
+          size="md"
+          rounded="lg"
+          label={prevLabel}
+          onPress={onPrev}
+          disabled={disabledPrev}
+          className={TRAVERSE_ICON_BUTTON_CLASSNAME}
+        />
+        <IconButton
+          iconName="chevron-right"
+          variant="outline"
+          size="md"
+          rounded="lg"
+          label={nextLabel}
+          onPress={onNext}
+          disabled={disabledNext}
+          className={TRAVERSE_ICON_BUTTON_CLASSNAME}
+        />
+      </Box>
+      {showViewModeToggle ? (
+        <CalendarViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
+      ) : null}
+    </>
+  );
+
   return (
     <Box style={styles.wrapper}>
-      <Box style={styles.headerRow}>
-        <Box style={styles.leftCluster}>
-          {sectionTitle ? <Text style={styles.sectionTitle}>{sectionTitle}</Text> : null}
-          <Text style={styles.toolbarDateRange}>{toolbarLabel}</Text>
+      {/*
+       * Mobile: date row, then nav + Week|Month (space-between).
+       * sm+ with toggle: 1fr | auto | 1fr — controls left, date centered.
+       * Padding uses CSS-compatible keys so web `Box` (div) applies insets (RN shorthands do not).
+       */}
+      <Box style={styles.headerSection} className={headerGridClassName}>
+        <Box className="min-w-0 sm:col-start-2 sm:row-start-1 sm:justify-self-center">
+          <Box style={styles.dateCluster} className="min-w-0">
+            {sectionTitle ? <Text style={styles.sectionTitle}>{sectionTitle}</Text> : null}
+            <Text style={styles.toolbarDateRange} className="text-base sm:text-xl">
+              {toolbarLabel}
+            </Text>
+          </Box>
         </Box>
 
-        <Box style={styles.rightCluster}>
-          <IconButton
-            iconName="chevron-left"
-            variant="outline"
-            size="md"
-            rounded="lg"
-            label={prevLabel}
-            onPress={onPrev}
-            disabled={disabledPrev}
-            className={TRAVERSE_ICON_BUTTON_CLASSNAME}
-          />
-          <IconButton
-            iconName="chevron-right"
-            variant="outline"
-            size="md"
-            rounded="lg"
-            label={nextLabel}
-            onPress={onNext}
-            disabled={disabledNext}
-            className={TRAVERSE_ICON_BUTTON_CLASSNAME}
-          />
-          {showViewModeToggle ? (
-            <CalendarViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
-          ) : null}
+        <Box
+          className={
+            showViewModeToggle
+              ? "flex w-full flex-row items-center justify-between gap-3 sm:col-start-1 sm:row-start-1 sm:w-auto sm:justify-end"
+              : "flex w-full flex-row items-center justify-start gap-3 sm:col-start-1 sm:row-start-1 sm:w-auto"
+          }
+        >
+          {navAndToggle}
         </Box>
       </Box>
 
@@ -87,31 +114,28 @@ const styles = {
     flexDirection: "column" as const,
     gap: spacing(3),
   },
-  headerRow: {
-    display: "flex" as const,
-    flexDirection: "row" as const,
-    flexWrap: "wrap" as const,
-    alignItems: "center" as const,
-    justifyContent: "space-between" as const,
-    gap: spacing(2),
+  /**
+   * Only static (non-layout) properties live here. Flex direction and alignment
+   * are controlled via Tailwind className so responsive breakpoints work correctly
+   * (inline styles would override Tailwind's responsive classes).
+   */
+  /** Inset nav + toggle + date range from the card edges (works on web and native). */
+  headerSection: {
     paddingTop: spacing(3),
-    paddingHorizontal: spacing(3),
+    paddingLeft: spacing(3),
+    paddingRight: spacing(3),
   },
-  leftCluster: {
+  dateCluster: {
     display: "flex" as const,
     flexDirection: "row" as const,
     flexWrap: "wrap" as const,
     alignItems: "center" as const,
     gap: spacing(2),
-    minWidth: 0,
-    flex: 1,
   },
-  rightCluster: {
+  traverseCluster: {
     display: "flex" as const,
     flexDirection: "row" as const,
-    flexWrap: "wrap" as const,
     alignItems: "center" as const,
-    justifyContent: "flex-end" as const,
     gap: spacing(2),
   },
   sectionTitle: {
@@ -121,15 +145,17 @@ const styles = {
     margin: 0,
     padding: 0,
   },
-  /** Primary toolbar label: visible date range. */
+  /**
+   * Primary toolbar label: visible date range.
+   * fontSize is intentionally omitted — responsive sizing is applied via
+   * Tailwind className (text-base on mobile, sm:text-xl on larger screens).
+   */
   toolbarDateRange: {
-    fontSize: 20,
     fontWeight: "800" as const,
     color: color("neutral.900"),
     letterSpacing: -0.5,
     margin: 0,
     padding: 0,
-    marginLeft: spacing(2),
   },
   calendarWrapper: {
     borderRadius: 12,

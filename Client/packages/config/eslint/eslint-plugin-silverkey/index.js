@@ -34,6 +34,9 @@ module.exports = {
     "primitives-justification": require("./rules/platform/primitives-justification"),
     "variants-justification": require("./rules/platform/variants-justification"),
     "layouts-justification": require("./rules/platform/layouts-justification"),
+    "prefer-use-window-dimensions": require("./rules/platform/prefer-use-window-dimensions"),
+    "no-scrollview-children-map": require("./rules/platform/no-scrollview-children-map"),
+    "no-legacy-viewport-units": require("./rules/ui/no-legacy-viewport-units"),
     "no-cross-feature-utils-imports": require("./rules/architecture/no-cross-feature-utils-imports"),
   },
 };

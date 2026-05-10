@@ -1,4 +1,4 @@
-import { type RefObject,useCallback, useRef } from "react";
+import { type RefObject, useCallback, useRef } from "react";
 
 import Loading from "@ui/asset/loading/Loading";
 import { FlatList, View } from "react-native";

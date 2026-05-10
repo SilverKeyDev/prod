@@ -10,4 +10,4 @@ export {
 } from "./shadows";
 export { spacing, spacingScale, themeSpacing } from "./spacing";
 export { fontFamily, fontSize } from "./typography";
-export { type ZLayerName, Z_LAYERS } from "./zLayers";
+export { Z_LAYERS, type ZLayerName } from "./zLayers";

@@ -203,17 +203,11 @@ export default function SignupFormFields({
         </Box>
         <BodyText as="div" size="sm" className="text-text-secondary">
           I agree to the{" "}
-          <AuthLink
-            to={ROUTES.TERMS}
-            className="text-text-primary underline-offset-2 hover:underline"
-          >
+          <AuthLink to={ROUTES.TERMS} variant="inline" className="text-text-primary">
             Terms of Service
           </AuthLink>{" "}
           and{" "}
-          <AuthLink
-            to={ROUTES.PRIVACY}
-            className="text-text-primary underline-offset-2 hover:underline"
-          >
+          <AuthLink to={ROUTES.PRIVACY} variant="inline" className="text-text-primary">
             Privacy Policy
           </AuthLink>
           . Continued use of the Services constitutes acceptance for Google sign-in as well.
@@ -236,9 +230,10 @@ export default function SignupFormFields({
       <GoogleSignInButton text="Sign up with Google" disabled={!acceptedTerms} />
 
       <Box className="text-signup-mid text-center">
-        Already have an account?
+        Already have an account?{" "}
         <AuthLink
           to="/login"
+          variant="inline"
           className="text-text-secondary hover:text-text-secondary underline-offset-4 transition-colors hover:underline"
         >
           Sign in

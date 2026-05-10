@@ -218,7 +218,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
   } ${OVERLAY_MARKER_CIRCLE_CLASSES} ${className}`;
 
   return (
-    <Box className={`absolute ${POSITION_MAP[position]} z-10`}>
+    <Box className={`absolute ${POSITION_MAP[position]} z-header`}>
       {nonFocusableMapMarkerSurface ? (
         <Box
           className={`${overlaySurfaceClassName} cursor-pointer`}

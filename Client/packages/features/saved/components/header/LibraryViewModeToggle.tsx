@@ -27,7 +27,7 @@ export function LibraryViewModeToggle({
   }
 
   return (
-    <Box className="hidden items-center gap-2 sm:flex">
+    <Box className="flex shrink-0 items-center gap-1.5 sm:gap-2">
       <Button
         type="button"
         variant={viewMode === "grid" ? "primary" : "secondary"}

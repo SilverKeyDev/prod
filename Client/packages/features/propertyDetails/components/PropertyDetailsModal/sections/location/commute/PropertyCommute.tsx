@@ -190,7 +190,7 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
                     <Box ref={setMapHost} className="absolute inset-0" />
                     <Box
                       ref={setStreetViewHost}
-                      className="absolute inset-0 z-10 h-full w-full"
+                      className="z-dropdown absolute inset-0 h-full w-full"
                       aria-hidden
                     />
                   </Box>

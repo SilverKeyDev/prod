@@ -7,7 +7,7 @@ import {
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
 import { Box } from "packages/ui/components/primitives";
-import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
@@ -16,7 +16,7 @@ import SearchPreferencesContent from "@/features/search/components/filters/Searc
 
 import SearchFiltersSheet from "./SearchFiltersSheet.web";
 
-const buttonBase = `inline-flex items-center gap-1.5 rounded-lg px-4 text-sm font-medium transition-colors whitespace-nowrap shrink-0 justify-between ${HEADER_ROW_HEIGHT}`;
+const buttonBase = `inline-flex items-center gap-1.5 rounded-lg px-4 text-sm font-medium transition-colors whitespace-nowrap shrink-0 justify-between ${HEADER_ROW_CONTROL_HEIGHT}`;
 const panelClass = `${SEARCH_HEADER_PANEL_CLASS_DEFAULT} overflow-x-hidden w-[min(90vw,520px)]`;
 
 export type SearchFilterBarProps = {
@@ -61,13 +61,15 @@ export default function SearchFilterBar({
   if (variant === "mobile") {
     return (
       <>
-        <Box id={TOUR_TARGETS_MOBILE.preferencesControl} className="inline-flex shrink-0">
+        <Box id={TOUR_TARGETS_MOBILE.preferencesControl} className="inline-flex min-w-0 shrink">
           <Button
             variant="cancel"
             size="sm"
             iconName="sliders-horizontal"
+            hideTextBelow="sm"
+            label={t("search.filters")}
             onClick={() => setSheetOpen(true)}
-            className={`touch-friendly shrink-0 ${HEADER_ROW_HEIGHT}`}
+            className={`touch-friendly shrink-0 ${HEADER_ROW_CONTROL_HEIGHT}`}
             aria-expanded={sheetOpen}
             aria-haspopup="dialog"
           >
@@ -118,6 +120,7 @@ export default function SearchFilterBar({
             aria-expanded={isActive}
             aria-haspopup="true"
             iconName="search"
+            label={t("search.more")}
           >
             <Box className="flex w-full items-center justify-between gap-2">
               <BodyText as="span" size="sm" className="text-inherit">
@@ -128,16 +131,31 @@ export default function SearchFilterBar({
           </Button>
         )}
       >
-        {() => (
-          <SearchPreferencesContent
-            formData={formData}
-            updateFormData={updateFormData}
-            saveStatus={saveStatus}
-            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
-            scriptsReady={scriptsReady}
-            viewingClientId={selectedClientId ?? null}
-            onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
-          />
+        {({ onClose }) => (
+          <>
+            <SearchPreferencesContent
+              formData={formData}
+              updateFormData={updateFormData}
+              saveStatus={saveStatus}
+              patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+              scriptsReady={scriptsReady}
+              viewingClientId={selectedClientId ?? null}
+              onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
+            />
+            <Box className="border-border bg-background-surface z-dropdown sticky bottom-0 -mx-4 -mb-4 mt-4 border-t px-4 py-3">
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                fullWidth
+                onClick={onClose}
+                className="touch-friendly"
+                iconName="search"
+              >
+                {t("search.apply")}
+              </Button>
+            </Box>
+          </>
         )}
       </Popover>
     </Box>

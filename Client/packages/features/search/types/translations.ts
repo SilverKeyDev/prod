@@ -36,10 +36,8 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
     "You can’t edit your client’s saved preferences. This copies their saved preferences to your account so your search profile matches theirs.",
   "search.agent_filter_edits_save_to_your_profile":
     "You’re viewing this client’s preferences. Edits here save to your profile only—we never change your client’s saved preferences.",
-  "search.agent_sync_preferences_success":
-    "Your preferences now match {{name}}’s.",
-  "search.agent_sync_preferences_error":
-    "Couldn’t copy preferences. Try again.",
+  "search.agent_sync_preferences_success": "Your preferences now match {{name}}’s.",
+  "search.agent_sync_preferences_error": "Couldn’t copy preferences. Try again.",
   "search.agent_sync_preferences_client_fallback": "your client",
   "search.search_tab": "Results",
   "search.saved_tab": "Saved",
@@ -63,11 +61,9 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.locating": "Finding your location...",
   "search.location_unavailable":
     "Unable to determine your location. Please allow location access and try again.",
-  "search.service_area_unavailable":
-    "SilverKey is only available in Georgia areas right now.",
+  "search.service_area_unavailable": "SilverKey is only available in Georgia areas right now.",
   "search.no_properties_yet": "No properties yet",
-  "search.tap_search_to_find":
-    "Tap Search to find homes that match your preferences",
+  "search.tap_search_to_find": "Tap Search to find homes that match your preferences",
   "search.no_results_try_adjusting":
     "No homes match your search yet. Try adjusting your preferences.",
   "search.empty_results_strict_preferences":
@@ -76,13 +72,11 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
     "We couldn’t build a search area from your locations. Add or fix important locations in Filters, then try again.",
   "search.viewport_search_area_invalid":
     "This map area couldn’t be searched. Zoom or move the map and try again.",
-  "search.map_not_ready":
-    "The map is still loading. Wait a moment, then search again.",
+  "search.map_not_ready": "The map is still loading. Wait a moment, then search again.",
   "search.map_missing": "The map isn’t ready yet. Try again in a moment.",
   "search.search_failed_generic":
     "Something went wrong and we couldn’t finish the search. Try again.",
-  "search.run_search_to_see_homes":
-    "Run a search to see homes that match your profile.",
+  "search.run_search_to_see_homes": "Run a search to see homes that match your profile.",
   "search.price_range": "Price range",
   "search.filters_beds_baths_range": "Beds and baths",
   "search.must_have_features": "Must-have features",

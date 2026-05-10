@@ -117,6 +117,7 @@ export function sortAndFilterAgreementsForLibrary(
 export type LibrarySortOption = { value: string; labelKey: string };
 
 export function librarySortOptionsForView(viewType: SavedPageViewType): LibrarySortOption[] {
+  if (viewType === "forms-library") return [];
   if (viewType === "homes") {
     return [
       { value: "date_desc", labelKey: "saved.library_sort_homes_newest" },

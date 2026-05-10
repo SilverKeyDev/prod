@@ -52,7 +52,7 @@ export function SearchPageMapContainerNative({
   onNext,
   onZoomIn,
   onZoomOut,
-  disabled,
+  disabled: _disabled,
   isSearching,
   properties,
   onMarkerSelect,
@@ -169,7 +169,6 @@ export function SearchPageMapContainerNative({
           onNext={onNext}
           onZoomIn={zoomIn}
           onZoomOut={zoomOut}
-          disabled={disabled}
         />
       )}
     </Box>

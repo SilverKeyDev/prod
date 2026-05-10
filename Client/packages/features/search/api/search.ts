@@ -38,8 +38,7 @@ function isIsochroneMissingCommuteHttpError(error: unknown): error is HttpError 
   if (!b || typeof b !== "object") return false;
   const rec = b as { success?: boolean; error?: string };
   return (
-    rec.success === false &&
-    (rec.error === "NO_LOCATIONS" || rec.error === "NO_VALID_LOCATIONS")
+    rec.success === false && (rec.error === "NO_LOCATIONS" || rec.error === "NO_VALID_LOCATIONS")
   );
 }
 

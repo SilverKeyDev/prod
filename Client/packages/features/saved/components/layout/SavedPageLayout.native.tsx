@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalization } from "packages/contexts";
 import { useAgentClients } from "packages/features/agent";
 import type { DocumentData } from "packages/features/documents";
+import { FormsLibraryTab } from "packages/features/documents";
 import { SavedDocumentsList } from "packages/features/saved/components/layout/SavedDocumentsList.native";
 import { SavedHeader } from "packages/features/saved/components/layout/SavedHeader.native";
 import { SavedHomesList } from "packages/features/saved/components/layout/SavedHomesList.native";
@@ -39,8 +40,6 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     libraryViewMode: _libraryViewMode,
     onLibraryViewModeChange: _onLibraryViewModeChange,
     showLibraryViewToggle: _showLibraryViewToggle,
-    documentsSubtab: _documentsSubtab,
-    onDocumentsSubtabChange: _onDocumentsSubtabChange,
     filteredHomes,
     filteredDocuments,
     loading,
@@ -80,6 +79,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     refreshing,
     librarySortKey,
     onLibrarySortChange,
+    onFormSendForSignature,
   } = nativeProps;
 
   const { t } = useLocalization();
@@ -125,7 +125,9 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
       ? sortedDocumentsExcludingAgreements.length
       : viewType === "agreements"
         ? sortedAgreementDocuments.length
-        : (filteredDocuments as DocumentData[]).length;
+        : viewType === "forms-library"
+          ? 0
+          : (filteredDocuments as DocumentData[]).length;
 
   const isRefreshing = Boolean(refresh && refreshing);
 
@@ -159,10 +161,12 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
           defaultValue: "{{count}} saved",
           count: homesCount,
         })
-      : t("saved.documents_count", {
-          defaultValue: "{{count}} documents",
-          count: documentsCount,
-        });
+      : viewType === "forms-library"
+        ? t("saved.tab_forms_library")
+        : t("saved.documents_count", {
+            defaultValue: "{{count}} documents",
+            count: documentsCount,
+          });
 
   const showEmptyHomes =
     isHomesView && !loading && sortedHomesNative.length === 0 && homes.length === 0;
@@ -255,6 +259,14 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
             onDocumentDelete={onDocumentDelete}
           />
         )}
+
+        {viewType === "forms-library" && isAgent && onFormSendForSignature ? (
+          <FormsLibraryTab
+            containerClass="w-full"
+            formsGridClassName="gap-responsive-md grid w-full grid-cols-1"
+            onSendForSignature={onFormSendForSignature}
+          />
+        ) : null}
 
         {isHomesView && (
           <SavedPageNativeCompareBar

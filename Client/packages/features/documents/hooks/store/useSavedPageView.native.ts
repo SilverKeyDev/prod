@@ -20,7 +20,7 @@ export function useSavedPageView(): UseSavedPageViewReturn {
 
   useEffect(() => {
     const tab = clientSettings?.saved?.tab;
-    if (tab === "homes" || tab === "documents" || tab === "agreements") {
+    if (tab === "homes" || tab === "documents" || tab === "forms-library" || tab === "agreements") {
       setViewTypeState(tab);
     }
   }, [clientSettings?.saved?.tab]);

@@ -33,7 +33,7 @@ export default function SuccessDialog({
 
         {/* Dialog */}
         <Box
-          className="space-responsive-lg relative z-50 mx-auto w-full max-w-sm transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
+          className="space-responsive-lg z-modal relative mx-auto w-full max-w-sm transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
           style={{ maxWidth: spacing(80) }}
         >
           {/* Success Icon */}
@@ -65,7 +65,7 @@ export default function SuccessDialog({
 
           {/* Action */}
           <Box className="flex justify-center">
-            <Button type="button" variant="primary" size="md" onClick={onConfirm}>
+            <Button type="button" variant="primary" size="md" iconName="check" onClick={onConfirm}>
               {confirmText}
             </Button>
           </Box>

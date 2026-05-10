@@ -54,56 +54,50 @@ export default function PersonalizationSidebar({
         className={
           isLargeScreen
             ? "!bg-background-surface space-y-2"
-            : "!bg-background-surface space-y-2 p-3 transition-all duration-200"
+            : "!bg-background-surface flex flex-col items-center space-y-2 p-2 transition-all duration-200"
         }
         padding={isLargeScreen ? "md" : "none"}
       >
-        {/* Edit/Save Buttons - Full width on desktop, centered on mobile */}
-        <Box
-          className={`${isLargeScreen ? "mb-8" : "mb-4"} ${
-            isLargeScreen ? "w-full" : "flex justify-center"
-          }`}
-        >
-          {!isEditMode ? (
-            <Button
-              onClick={onEdit}
-              variant="primary"
-              size="md"
-              className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
-              icon={<Icon name="edit" />}
-            >
-              {isLargeScreen ? "Edit" : ""}
-            </Button>
-          ) : (
-            <Box
-              className={`flex flex-col space-y-2 ${
-                isLargeScreen ? "w-full" : "w-full items-center"
-              }`}
-            >
+        {/* Edit/Save Buttons — hidden on mobile (handled by MobileTopBar) */}
+        {isLargeScreen && (
+          <Box className="mb-8 w-full">
+            {!isEditMode ? (
               <Button
-                onClick={onSave}
-                disabled={isSaving}
+                onClick={onEdit}
                 variant="primary"
                 size="md"
-                className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
-                icon={<Icon name="save" />}
+                className="w-full focus:ring-0 focus:ring-offset-0"
+                icon={<Icon name="edit" />}
               >
-                {isLargeScreen ? (isSaving ? "Saving..." : "Save") : ""}
+                Edit
               </Button>
-              <Card border="dotted" padding="sm" className="w-full">
-                <CancelButton
-                  onClick={onCancel}
+            ) : (
+              <Box className="flex w-full flex-col space-y-2">
+                <Button
+                  onClick={onSave}
+                  disabled={isSaving}
+                  variant="primary"
                   size="md"
-                  className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
+                  className="w-full focus:ring-0 focus:ring-offset-0"
+                  icon={<Icon name="save" />}
                 >
-                  {isLargeScreen ? "Cancel" : ""}
-                </CancelButton>
-              </Card>
-            </Box>
-          )}
-        </Box>
+                  {isSaving ? "Saving..." : "Save"}
+                </Button>
+                <Card border="dotted" padding="sm" className="w-full">
+                  <CancelButton
+                    onClick={onCancel}
+                    size="md"
+                    className="w-full focus:ring-0 focus:ring-offset-0"
+                  >
+                    Cancel
+                  </CancelButton>
+                </Card>
+              </Box>
+            )}
+          </Box>
+        )}
 
-        {/* Navigation Links — left-aligned; labels shown from lg up */}
+        {/* Navigation Links — centered icons on mobile, left-aligned with labels on desktop */}
         {steps.map((step) => {
           const stepIconName = step.icon as IconName | undefined;
           return (
@@ -111,10 +105,11 @@ export default function PersonalizationSidebar({
               key={step.key}
               variant="ghost"
               size="sm"
-              contentAlign="start"
+              contentAlign={isLargeScreen ? "start" : "center"}
               onClick={() => onScrollToSection(step.key)}
               className={getInsetNavItemClasses({
                 active: currentActiveSection === step.key,
+                iconOnly: !isLargeScreen,
               })}
               title={!isLargeScreen ? step.label : undefined}
             >

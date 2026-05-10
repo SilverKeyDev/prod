@@ -8,6 +8,10 @@ export type CalendarTimeGridDayHeaderProps = {
   weekendStyle: Record<string, string> | null;
   /** When false, omit right divider (last day column). */
   showColumnDividerRight?: boolean;
+  /**
+   * When true, omit cell chrome so a parent column can own borders/background (week header stack).
+   */
+  chromeless?: boolean;
   onPress?: (d: Date) => void;
   onDoubleTap?: (d: Date) => void;
 };
@@ -17,6 +21,7 @@ export function CalendarTimeGridDayHeader({
   isToday,
   weekendStyle,
   showColumnDividerRight = true,
+  chromeless = false,
   onPress,
   onDoubleTap,
 }: CalendarTimeGridDayHeaderProps) {
@@ -28,23 +33,29 @@ export function CalendarTimeGridDayHeader({
   const abbr = date.toLocaleDateString("en-US", { weekday: "short" });
   const num = date.getDate();
 
+  const divider = chromeless || !showColumnDividerRight ? 0 : 1;
+
+  const cellBackground = chromeless
+    ? ("transparent" as const)
+    : isToday
+      ? color("olive.muted")
+      : (weekendStyle?.backgroundColor ?? color("neutral.100"));
+
   return (
     <Pressable
       onPress={onTap}
       style={{
         width: "100%",
         minWidth: spacing(0),
-        borderRightWidth: showColumnDividerRight ? 1 : 0,
+        borderRightWidth: divider,
         borderRightColor: color("neutral.200"),
         paddingHorizontal: spacing(1),
         paddingVertical: spacing(2),
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "flex-start",
-        ...weekendStyle,
-        backgroundColor: isToday
-          ? color("olive.muted")
-          : (weekendStyle?.backgroundColor ?? color("neutral.100")),
+        ...(!chromeless ? weekendStyle : null),
+        backgroundColor: cellBackground,
       }}
     >
       <Text

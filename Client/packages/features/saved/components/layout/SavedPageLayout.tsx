@@ -1,7 +1,5 @@
-import type { Dispatch, SetStateAction } from "react";
-
 import { useLocalization } from "packages/contexts";
-import type { DocumentData } from "packages/features/documents";
+import type { DocumentData, SavedPageViewType } from "packages/features/documents";
 import SavedPageTabsAndSearch from "packages/features/saved/components/header/SavedPageTabsAndSearch";
 import SavedHomesContent from "packages/features/saved/components/SavedHomesContent";
 import SavedPageModals from "packages/features/saved/components/SavedPageModals";
@@ -17,7 +15,6 @@ import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documen
 import { ClientSelector } from "@/components/ui";
 import { BodyText, Button, Label } from "@/components/ui";
 
-type SavedPageViewType = "homes" | "documents" | "agreements";
 type EventTypeFilter = "listed" | "price_change" | "sold" | "withdrawn" | "";
 
 type SendForSignatureModalState = {
@@ -47,8 +44,6 @@ export type SavedPageLayoutProps = {
   showLibraryViewToggle: boolean;
   librarySortKey: string;
   onLibrarySortChange: (value: string) => void;
-  documentsSubtab: "my-documents" | "forms-library";
-  onDocumentsSubtabChange: Dispatch<SetStateAction<"my-documents" | "forms-library">>;
   filteredHomes: SavedHome[];
   filteredDocuments: DocumentData[];
   loading: boolean;
@@ -110,8 +105,6 @@ export function SavedPageLayout({
   showLibraryViewToggle,
   librarySortKey,
   onLibrarySortChange,
-  documentsSubtab,
-  onDocumentsSubtabChange,
   filteredHomes,
   filteredDocuments,
   loading,
@@ -170,6 +163,7 @@ export function SavedPageLayout({
           {!isMobile && (
             <Box className="w-full">
               <SavedPageTabsAndSearch
+                isAgent={isAgent}
                 toolbarLeading={
                   isAgent ? (
                     <ClientSelector
@@ -178,6 +172,7 @@ export function SavedPageLayout({
                     />
                   ) : undefined
                 }
+                toolbarShowSearch={viewType !== "forms-library"}
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
                 searchPlaceholder={
@@ -187,7 +182,9 @@ export function SavedPageLayout({
                       ? "Search documents..."
                       : viewType === "agreements"
                         ? "Search agreements..."
-                        : "Filter by address"
+                        : viewType === "forms-library"
+                          ? ""
+                          : "Filter by address"
                 }
                 viewType={viewType}
                 onViewTypeChange={setViewType}
@@ -218,8 +215,6 @@ export function SavedPageLayout({
           <SavedHomesContent
             viewType={viewType}
             libraryViewMode={libraryViewMode}
-            documentsSubtab={documentsSubtab}
-            onDocumentsSubtabChange={onDocumentsSubtabChange}
             librarySortKey={librarySortKey}
             filteredHomes={filteredHomes}
             homesLoading={loading}

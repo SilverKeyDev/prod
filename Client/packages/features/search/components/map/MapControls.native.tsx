@@ -1,11 +1,10 @@
 import React from "react";
 
-import { StyleSheet } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
-import { Box, Icon } from "packages/ui/components/primitives";
+import { Icon } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
@@ -17,12 +16,9 @@ export type MapControlsNativeProps = {
   onNext: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
-  disabled?: boolean;
 };
 
 const PER_PAGE = 1;
-/** Offset above tab bar + list so controls stay visible over the map. */
-const CONTROLS_BOTTOM_OFFSET = 100;
 
 export function MapControlsNative({
   page,
@@ -32,11 +28,7 @@ export function MapControlsNative({
   onNext,
   onZoomIn,
   onZoomOut,
-  disabled = false,
 }: MapControlsNativeProps): React.ReactElement {
-  const insets = useSafeAreaInsets();
-  const bottom = insets.bottom + CONTROLS_BOTTOM_OFFSET;
-
   const showNavigation = total > perPage;
   const unfocused = page < 0;
   const currentItem = unfocused ? "—" : Math.min(page + perPage, total);
@@ -48,62 +40,63 @@ export function MapControlsNative({
     .replace("{{total}}", String(total));
 
   return (
-    <Box style={[styles.wrapper, { bottom }]} pointerEvents="box-none">
-      <Box style={styles.zoomRow}>
-        <Pressable
-          onPress={onZoomOut}
-          disabled={disabled}
-          style={[styles.controlButton, disabled && styles.controlButtonDisabled]}
-        >
-          <Icon name="minus" size={18} color={color("neutral.700")} />
-        </Pressable>
-        <Pressable
-          onPress={onZoomIn}
-          disabled={disabled}
-          style={[styles.controlButton, disabled && styles.controlButtonDisabled]}
-        >
-          <Icon name="plus" size={18} color={color("neutral.700")} />
-        </Pressable>
-      </Box>
-      {showNavigation && (
-        <Box style={styles.navRow}>
-          <Pressable
-            onPress={onPrev}
-            disabled={isPrevDisabled || disabled}
-            style={[
-              styles.controlButton,
-              (isPrevDisabled || disabled) && styles.controlButtonDisabled,
-            ]}
-          >
-            <Icon name="chevron-left" size={18} color={color("neutral.700")} />
+    // absoluteFillObject + flex column: spacer pushes controls to the bottom edge of the map
+    // container. This is reliable regardless of nested flex/overflow chains.
+    <View style={styles.fillOverlay} pointerEvents="box-none">
+      {/* Transparent spacer — passes all touches through to the map */}
+      <View style={styles.spacer} pointerEvents="none" />
+
+      {/* Controls pinned to the bottom of the map */}
+      <View style={styles.controlsRow} pointerEvents="box-none">
+        <View style={styles.zoomRow}>
+          <Pressable onPress={onZoomOut} style={styles.controlButton}>
+            <Icon name="minus" size={18} color={color("neutral.700")} />
           </Pressable>
-          <Box style={styles.pageLabel}>
-            <Text className="text-text-secondary text-xs font-medium">{pageLabel}</Text>
-          </Box>
-          <Pressable
-            onPress={onNext}
-            disabled={isNextDisabled || disabled}
-            style={[
-              styles.controlButton,
-              (isNextDisabled || disabled) && styles.controlButtonDisabled,
-            ]}
-          >
-            <Icon name="chevron-right" size={18} color={color("neutral.700")} />
+          <Pressable onPress={onZoomIn} style={styles.controlButton}>
+            <Icon name="plus" size={18} color={color("neutral.700")} />
           </Pressable>
-        </Box>
-      )}
-    </Box>
+        </View>
+
+        {showNavigation && (
+          <View style={styles.navRow}>
+            <Pressable
+              onPress={onPrev}
+              disabled={isPrevDisabled}
+              style={[styles.controlButton, isPrevDisabled && styles.controlButtonDisabled]}
+            >
+              <Icon name="chevron-left" size={18} color={color("neutral.700")} />
+            </Pressable>
+            <View style={styles.pageLabel}>
+              <Text className="text-text-secondary text-xs font-medium">{pageLabel}</Text>
+            </View>
+            <Pressable
+              onPress={onNext}
+              disabled={isNextDisabled}
+              style={[styles.controlButton, isNextDisabled && styles.controlButtonDisabled]}
+            >
+              <Icon name="chevron-right" size={18} color={color("neutral.700")} />
+            </Pressable>
+          </View>
+        )}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    position: "absolute",
-    left: 16,
-    right: 16,
+  fillOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: "column",
+  },
+  spacer: {
+    flex: 1,
+  },
+  controlsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   zoomRow: {
     flexDirection: "row",

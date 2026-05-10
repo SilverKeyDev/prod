@@ -22,6 +22,7 @@ import { ScrollView } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
+import Title from "packages/ui/components/text/Title";
 
 import { FilterChipRow } from "./FilterChipRow";
 
@@ -31,6 +32,8 @@ type SearchFiltersContentProps = {
   onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
+  /** Appended inside the scroll area (e.g. native display controls from SearchFiltersSheet) */
+  trailingSlot?: React.ReactNode;
 };
 
 const HOUSING_TYPE_LABELS: Record<string, string> = {
@@ -51,6 +54,7 @@ export function SearchFiltersContent({
   onSearchFilterOverridesPatch,
   selectedClientId,
   onClientChange,
+  trailingSlot,
 }: SearchFiltersContentProps) {
   const importantLocations = Array.isArray(formData.important_locations)
     ? formData.important_locations
@@ -308,6 +312,15 @@ export function SearchFiltersContent({
           className="mb-4"
         />
       </Box>
+
+      {trailingSlot ? (
+        <Box className="border-border mt-4 border-t pt-6">
+          <Title as="h3" size="sm" className="mb-4">
+            {SEARCH_TRANSLATIONS["search.display"] ?? "Display"}
+          </Title>
+          {trailingSlot}
+        </Box>
+      ) : null}
     </ScrollView>
   );
 }

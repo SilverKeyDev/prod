@@ -45,9 +45,6 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     "listed" | "price_change" | "sold" | "withdrawn" | ""
   >("");
   const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] = useState(false);
-  const [documentsSubtab, setDocumentsSubtab] = useState<"my-documents" | "forms-library">(
-    "my-documents"
-  );
 
   const homesLibraryView = useLibraryViewMode("homes");
   const documentsLibraryView = useLibraryViewMode("documents");
@@ -63,15 +60,16 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const librarySortKey =
     viewType === "homes"
       ? homesLibrarySort.value
-      : viewType === "documents"
+      : viewType === "documents" || viewType === "forms-library"
         ? documentsLibrarySort.value
         : docusignLibrarySort.value;
 
   const onLibrarySortChange = useCallback(
     (value: string) => {
       if (viewType === "homes") homesLibrarySort.setSort(value);
-      else if (viewType === "documents") documentsLibrarySort.setSort(value);
-      else docusignLibrarySort.setSort(value);
+      else if (viewType === "documents" || viewType === "forms-library") {
+        documentsLibrarySort.setSort(value);
+      } else docusignLibrarySort.setSort(value);
     },
     [viewType, homesLibrarySort, documentsLibrarySort, docusignLibrarySort]
   );
@@ -79,15 +77,16 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const libraryViewMode: LibraryViewMode =
     viewType === "homes"
       ? homesLibraryView.value
-      : viewType === "documents"
+      : viewType === "documents" || viewType === "forms-library"
         ? documentsLibraryView.value
         : docusignLibraryView.value;
 
   const setLibraryViewMode = useCallback(
     (mode: LibraryViewMode) => {
       if (viewType === "homes") setHomesLibraryMode(mode);
-      else if (viewType === "documents") setDocumentsLibraryMode(mode);
-      else setDocusignLibraryMode(mode);
+      else if (viewType === "documents" || viewType === "forms-library") {
+        setDocumentsLibraryMode(mode);
+      } else setDocusignLibraryMode(mode);
     },
     [viewType, setHomesLibraryMode, setDocumentsLibraryMode, setDocusignLibraryMode]
   );
@@ -95,11 +94,13 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const user = useAuthStore((s) => s.user);
   const isAgent = user?.is_agent ?? false;
 
-  const showLibraryViewToggle = !(
-    viewType === "documents" &&
-    isAgent &&
-    documentsSubtab === "forms-library"
-  );
+  useEffect(() => {
+    if (!isAgent && viewType === "forms-library") {
+      setViewType("documents");
+    }
+  }, [isAgent, viewType, setViewType]);
+
+  const showLibraryViewToggle = viewType !== "forms-library";
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
   const homes = useSavedHomesStore((s) => s.savedHomes);
@@ -260,14 +261,22 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       onViewTypeChange={setViewType}
       onRefresh={refresh}
       isRefreshing={refreshing}
-      isLoading={viewType === "homes" ? loading : documentsLoadingState}
+      isLoading={
+        viewType === "homes"
+          ? loading
+          : viewType === "forms-library"
+            ? false
+            : documentsLoadingState
+      }
       homesCount={filteredHomes.length}
       documentsCount={
         viewType === "documents"
           ? documentsTabCount
           : viewType === "agreements"
             ? agreementsTabCount
-            : filteredDocuments.length
+            : viewType === "forms-library"
+              ? 0
+              : filteredDocuments.length
       }
       selectedClientId={selectedClientId}
       onClientChange={setSelectedClientId}
@@ -307,7 +316,6 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     eventTypeFilter,
     libraryViewMode,
     showLibraryViewToggle,
-    documentsSubtab,
     librarySortKey,
   ]);
 
@@ -332,8 +340,6 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
         showLibraryViewToggle={showLibraryViewToggle}
         librarySortKey={librarySortKey}
         onLibrarySortChange={onLibrarySortChange}
-        documentsSubtab={documentsSubtab}
-        onDocumentsSubtabChange={setDocumentsSubtab}
         filteredHomes={filteredHomes}
         filteredDocuments={filteredDocuments}
         loading={loading}

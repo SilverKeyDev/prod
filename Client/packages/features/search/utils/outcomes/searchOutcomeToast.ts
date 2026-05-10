@@ -26,9 +26,7 @@ export function userFacingSearchErrorMessage(error: unknown): string {
   return msg;
 }
 
-export function warnSearchEmptyResults(options: {
-  preferencesStrictFilter: boolean;
-}): void {
+export function warnSearchEmptyResults(options: { preferencesStrictFilter: boolean }): void {
   const message = options.preferencesStrictFilter
     ? translation("search.empty_results_strict_preferences")
     : translation("search.no_results_try_adjusting");
@@ -39,9 +37,7 @@ export function warnSearchFailed(error: unknown): void {
   showWarningToast(userFacingSearchErrorMessage(error));
 }
 
-export function warnSearchAreaInvalid(
-  kind: "isochrone_api" | "geometry" | "viewport",
-): void {
+export function warnSearchAreaInvalid(kind: "isochrone_api" | "geometry" | "viewport"): void {
   if (kind === "viewport") {
     showWarningToast(translation("search.viewport_search_area_invalid"));
     return;
@@ -51,15 +47,12 @@ export function warnSearchAreaInvalid(
 
 export function warnMapNotReady(kind: "no_map" | "no_bounds"): void {
   showWarningToast(
-    kind === "no_bounds"
-      ? translation("search.map_not_ready")
-      : translation("search.map_missing"),
+    kind === "no_bounds" ? translation("search.map_not_ready") : translation("search.map_missing")
   );
 }
 
 export function warnUnsupportedServiceArea(): void {
   showWarningToast(
-    translation("search.service_area_unavailable") ||
-      SUPPORTED_SERVICE_AREA_WARNING,
+    translation("search.service_area_unavailable") || SUPPORTED_SERVICE_AREA_WARNING
   );
 }
