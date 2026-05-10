@@ -119,4 +119,38 @@ export const adminApi = {
     }
     return { deleted_user_id: response.deleted_user_id };
   },
+
+  /** Aggregate OpenAPI validation stats (nested under SuccessResponse.data on the wire). */
+  getValidationStats: async (days?: number): Promise<ValidationStatsApiResponseSchema["data"]> => {
+    const query = typeof days === "number" ? `?days=${encodeURIComponent(String(days))}` : "";
+    const response = await apiGet<ValidationStatsApiResponseSchema>(
+      `/api/v1/admin/validation-stats${query}`
+    );
+    if (!response.success || typeof response.data !== "object" || response.data === null) {
+      throw new Error(
+        typeof response.error === "string" && response.error.length > 0
+          ? response.error
+          : "Failed to load validation statistics"
+      );
+    }
+    return response.data;
+  },
+
+  /** Super_admin only — adjust `admin` / `super_admin` entries in `user_roles`. */
+  updateUserSystemRoles: async (
+    body: UpdateUserSystemRolesRequest
+  ): Promise<UpdateUserSystemRolesResult> => {
+    const response = await apiPost<UpdateUserSystemRolesResponse, UpdateUserSystemRolesRequest>(
+      "/api/v1/admin/users/roles",
+      body
+    );
+    if (
+      !response.success ||
+      typeof response.user_id !== "string" ||
+      !Array.isArray(response.gate_roles)
+    ) {
+      throw new Error(typeof response.error === "string" ? response.error : "Failed to update roles");
+    }
+    return { user_id: response.user_id, gate_roles: response.gate_roles };
+  },
 };

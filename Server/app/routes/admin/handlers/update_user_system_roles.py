@@ -86,17 +86,15 @@ def update_user_system_roles(user, data: UpdateUserSystemRolesRequest | None = N
     for role in grants:
         if role not in current:
             db.session.add(UserRole(user_id=target_id, role=role))
-            current.add(role)
 
     for role in revokes:
         db.session.execute(
             delete(UserRole).where(UserRole.user_id == target_id, UserRole.role == role)
         )
-        current.discard(role)
 
     db.session.commit()
 
-    gate_roles = sorted(current & _GATE_ROLES)
+    gate_roles = _gate_roles_for_user(target_id)
 
     log.security(
         LOG_CATEGORIES["SECURITY"],

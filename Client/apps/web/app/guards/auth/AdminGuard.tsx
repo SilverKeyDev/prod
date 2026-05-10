@@ -35,7 +35,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
   }
 
   // Check if user has admin role and proper permissions
-  // To grant admin access, add role admin or super_admin in user_roles (not user_admin.is_admin):
+  // To grant admin access, add role admin or super_admin in user_roles:
   //   from app.models import User, UserRole; from app import db
   //   u = User.query.filter_by(email="your@email.com").first()
   //   if u and not any(r.role == "admin" for r in u.user_roles):

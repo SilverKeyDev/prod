@@ -3,7 +3,6 @@
 from .google_oauth_token import GoogleOAuthToken
 from .oauth_state import OAuthState
 from .user import User
-from .user_admin import UserAdmin
 from .user_agent_profile import UserAgentProfile
 from .user_calendar_connection import UserCalendarConnection
 from .user_client_settings import UserClientSettings
@@ -22,7 +21,6 @@ __all__ = [
     "OAuthState",
     "GoogleOAuthToken",
     "UserIntegration",
-    "UserAdmin",
     "UserRole",
     "UserDemographics",
     "UserFinancials",

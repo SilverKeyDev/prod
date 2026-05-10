@@ -12,6 +12,10 @@ cd "$REPO_ROOT"
 
 SCOPE="${1:-all}"
 
+is_ci() {
+  [ "${CI:-}" = "true" ]
+}
+
 run_client() {
   CLIENT_BIN="${REPO_ROOT}/Client/node_modules/.bin"
   if [ ! -d "$CLIENT_BIN" ]; then
@@ -20,8 +24,12 @@ run_client() {
   fi
   export PATH="${CLIENT_BIN}:${PATH}"
 
-  echo "==> Client: applying fixes (format, lint --fix)..."
-  (cd Client && pnpm run fix) || true
+  if is_ci; then
+    echo "==> Client: CI mode detected; skipping auto-fix steps."
+  else
+    echo "==> Client: applying fixes (format, lint --fix)..."
+    (cd Client && pnpm run fix) || true
+  fi
 
   echo "==> Client: running linters (typecheck, lint, format:check, cycles, audit, build)..."
   (cd Client && pnpm run check)
@@ -36,8 +44,12 @@ run_server() {
     SERVER_PYTHON="${REPO_ROOT}/Server/venv/bin/python3"
   fi
 
-  echo "==> Server: applying fixes (ruff check --fix, ruff format)..."
-  (cd Server && ruff check . --fix && ruff format .)
+  if is_ci; then
+    echo "==> Server: CI mode detected; skipping auto-fix steps."
+  else
+    echo "==> Server: applying fixes (ruff check --fix, ruff format)..."
+    (cd Server && ruff check . --fix && ruff format .)
+  fi
 
   echo "==> Server: running linters (lint_*.py, ruff check, ruff format --check, pyright)..."
   for f in Server/scripts/lint_*.py; do

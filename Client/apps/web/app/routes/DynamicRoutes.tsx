@@ -6,6 +6,12 @@ import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
 import type { UserProfile } from "@/features/homeauth/types";
 import AgentProfilePage from "@/pages/misc/AgentProfilePage";
 import PropertyDetailsPage from "@/pages/property/PropertyDetailsPage";
+import AdminAnalyticsOutlet from "@/pages/workspace/admin/AdminAnalyticsOutlet";
+import AdminLoggingOutlet from "@/pages/workspace/admin/AdminLoggingOutlet";
+import AdminNotificationsOutlet from "@/pages/workspace/admin/AdminNotificationsOutlet";
+import AdminPartnersOutlet from "@/pages/workspace/admin/AdminPartnersOutlet";
+import AdminPlatformHealthOutlet from "@/pages/workspace/admin/AdminPlatformHealthOutlet";
+import AdminSuperadminOutlet from "@/pages/workspace/admin/AdminSuperadminOutlet";
 import AdminPage from "@/pages/workspace/AdminPage";
 
 import { createProtectedRoute } from "./RouteConfig";
@@ -58,7 +64,17 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
 
     // Register only when VITE_ENABLE_ADMIN_PANEL=true (see Client/.env.example). Server-side admin APIs remain authoritative.
     if (ADMIN_PANEL_ENABLED) {
-      baseRoutes.push(<Route key="/admin" path="/admin" element={<AdminPage />} />);
+      baseRoutes.push(
+        <Route key="/admin" path="/admin" element={<AdminPage />}>
+          <Route index element={<Navigate to="logging" replace />} />
+          <Route path="platform-health" element={<AdminPlatformHealthOutlet />} />
+          <Route path="analytics" element={<AdminAnalyticsOutlet />} />
+          <Route path="notifications" element={<AdminNotificationsOutlet />} />
+          <Route path="logging" element={<AdminLoggingOutlet />} />
+          <Route path="partners" element={<AdminPartnersOutlet />} />
+          <Route path="superadmin" element={<AdminSuperadminOutlet />} />
+        </Route>
+      );
     }
 
     // Property details route: public route for shareable property URLs

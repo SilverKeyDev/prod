@@ -57,7 +57,8 @@ export function AdminDeleteUserSection() {
       </Title>
       <BodyText size="sm" muted className="mb-4">
         Permanently removes the user row and related application data (documents, transactions,
-        messages, etc.). This cannot be undone. You cannot delete your own account here.
+        messages, etc.). This cannot be undone. You cannot delete your own account here. Requires a
+        super administrator account.
       </BodyText>
       <Box className="flex max-w-xl flex-col gap-4">
         <Input

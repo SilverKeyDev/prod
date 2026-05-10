@@ -3,6 +3,10 @@ name: DB migrate (main)
 on:
   push:
     branches: [main]
+    paths:
+      - 'Server/migrations/**'
+      - '.github/scripts/gh-db-upgrade.sh'
+      - '.github/workflows/db-migrate-main.yml'
   workflow_dispatch:
 
 concurrency:

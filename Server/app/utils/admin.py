@@ -1,8 +1,6 @@
 """Shared admin authorization utilities."""
 
 # Admin HTTP handlers: only ``admin`` and ``super_admin`` in ``user_roles``.
-# Legacy ``user_admin.is_admin`` is not consulted here — run
-# ``scripts/misc/reconcile_user_admin_roles.py`` to copy flag holders into ``user_roles``, then rely on roles only.
 
 
 def _role_names_for_user(user) -> list[str]:

@@ -16,7 +16,6 @@ jobs:
   client-lint:
     name: Client (all linters)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,7 +42,6 @@ jobs:
   server-lint:
     name: Server (all linters)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,9 +68,3 @@ jobs:
 
       - name: Run all server linters (root script)
         run: ./scripts/run-all-linters.sh server
-
-  openapi-validation:
-    name: OpenAPI Contract Validation
-    uses: ./.github/workflows/openapi-sync.yml
-    permissions:
-      contents: read
