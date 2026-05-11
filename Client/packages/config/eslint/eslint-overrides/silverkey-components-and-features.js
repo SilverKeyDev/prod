@@ -160,7 +160,7 @@ export function silverkeyComponentsAndFeatures(silverkey) {
           {
             includePaths: ["packages/ui/", "packages/features/", "apps/web/", "apps/mobile/"],
             allowedPaths: [
-              "packages/design-tokens/tokens/zLayers",
+              "packages/design-tokens/tokens/layout/zLayers",
               "packages/config/tailwind/",
               "mapOverlayLayerOrder",
               "propertyCommuteNative.constants",

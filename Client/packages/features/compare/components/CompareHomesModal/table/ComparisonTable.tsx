@@ -41,7 +41,7 @@ function TableHeader({
             key={home.id}
             className={`text-text-primary px-1 py-1 text-center font-semibold sm:px-2 sm:py-2 md:px-4 md:py-3 ${thClass}`}
           >
-            <Box className="flex flex-row flex-col items-center gap-1">
+            <Box className="flex flex-col items-center gap-1">
               {home.imageUrl && (
                 <Image
                   src={home.imageUrl}

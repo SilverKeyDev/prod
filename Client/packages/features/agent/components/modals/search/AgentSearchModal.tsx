@@ -21,7 +21,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
 
   if (!isOpen) return null;
   return (
-    <Box className="z-modal fixed inset-0 flex items-center justify-center bg-black/50 p-4">
+    <Box className="z-modal fixed-modal-dashboard-main flex items-center justify-center bg-black/50 p-4">
       <AgentSearchPanel
         isActive={isOpen}
         onSuccess={onClose}

@@ -32,7 +32,7 @@ import {
 
 import type { SettingsProps } from "./settingsTypes";
 
-// Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
+// Google Maps types: see `packages/features/search/utils/googleMaps` and ambient typings as needed.
 
 export default function Settings({ setMobileHeaderActions }: SettingsProps) {
   const { userProfile } = useUserData();

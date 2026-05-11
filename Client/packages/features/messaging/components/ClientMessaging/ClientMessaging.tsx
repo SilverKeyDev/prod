@@ -3,6 +3,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import type { ReactNode, UIEvent } from "react";
 
 import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
+import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/unifiedMessagesListDynamicImport";
 import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/UnifiedMessagesListEmptyStates";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
@@ -32,7 +33,7 @@ const UnifiedMessagesList = lazy(
   traceLazyImport(
     LOG_CATEGORIES.MESSAGES,
     "lazy:UnifiedMessagesList(client)",
-    () => import("packages/features/messaging/components/layout/UnifiedMessagesList")
+    loadUnifiedMessagesListModule
   )
 );
 

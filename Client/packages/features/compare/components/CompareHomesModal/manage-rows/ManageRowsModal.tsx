@@ -132,8 +132,8 @@ export function ManageRowsModal({
   };
 
   return (
-    <Box className="bg-overlay-backdrop z-modal fixed inset-0 flex flex-row items-center justify-center p-4">
-      <Box className="bg-background-surface flex min-h-0 w-full max-w-2xl flex-1 flex-row flex-col rounded-lg shadow-xl">
+    <Box className="bg-overlay-backdrop z-modal fixed-modal-dashboard-main flex flex-row items-center justify-center p-4">
+      <Box className="bg-background-surface flex min-h-0 w-full max-w-2xl flex-1 flex-col rounded-lg shadow-xl">
         <ManageRowsModalHeader onClose={() => setShowRowModal(false)} />
         <Box className="flex-1 overflow-hidden p-6">
           <ManageRowsModalActions

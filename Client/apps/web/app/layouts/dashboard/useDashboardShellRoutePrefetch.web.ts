@@ -8,17 +8,19 @@ import { useAuthStore } from "packages/store";
 import { prefetchDashboardShellRoute } from "./dashboardRoutePrefetch";
 
 /**
- * Chunk prefetch + React Query warm-up for routes that need it (e.g. Library `/saved`).
+ * Chunk prefetch + React Query warm-up for routes that need it (e.g. Library `/library`).
  */
 export function useDashboardShellRoutePrefetch(): (href: string) => void {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
 
+  const isAgent = user?.is_agent;
+
   return useCallback(
     (href: string) => {
-      prefetchDashboardShellRoute(href);
+      prefetchDashboardShellRoute(href, { isAgent });
       prefetchLibraryRouteDataIfNeeded(queryClient, user, href);
     },
-    [queryClient, user]
+    [queryClient, user, isAgent]
   );
 }

@@ -14,6 +14,7 @@ import SearchActions from "./SearchActions.web";
 
 type SearchHeaderProps = {
   onSearchProperties: () => void;
+  onPreferencesApplySearch?: () => void | Promise<void>;
   onLocationSearchSubmit: () => void | Promise<void>;
   onCancelSearch?: () => void;
   isSearching: boolean;
@@ -37,6 +38,7 @@ type SearchHeaderProps = {
 
 export default function SearchHeader({
   onSearchProperties,
+  onPreferencesApplySearch,
   onLocationSearchSubmit,
   onCancelSearch,
   isSearching,
@@ -95,6 +97,7 @@ export default function SearchHeader({
       </Box>
       <SearchActions
         onSearchProperties={onSearchProperties}
+        onPreferencesApplySearch={onPreferencesApplySearch}
         onCancelSearch={onCancelSearch}
         isSearching={isSearching}
         hasLocations={hasLocations}

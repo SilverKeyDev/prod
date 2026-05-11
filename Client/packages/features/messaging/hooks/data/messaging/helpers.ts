@@ -2,7 +2,14 @@
  * Pure helpers for messaging: map API messages to ChatMessage, format time
  */
 
-import { dateNow, dateParseISO, dayjs } from "packages/utils/date";
+import {
+  dateNow,
+  dateParseISO,
+  dayjs,
+  formatLocaleMonthDayShortEnUs,
+  formatLocaleMonthDayYearShortEnUs,
+  formatLocaleTime12HourEnUs,
+} from "packages/utils/date";
 
 import type { ApiMessageForMapping, ChatMessage } from "./types";
 
@@ -38,22 +45,11 @@ export function formatMessageTime(date: Date): string {
 
   if (diffInHours > 24) {
     const isThisYear = d.year() === now.year();
-    if (isThisYear) {
-      return d.toDate().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-    }
-    return d.toDate().toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    const asDate = d.toDate();
+    return isThisYear
+      ? formatLocaleMonthDayShortEnUs(asDate)
+      : formatLocaleMonthDayYearShortEnUs(asDate);
   }
 
-  return d.toDate().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+  return formatLocaleTime12HourEnUs(d.toDate());
 }

@@ -44,6 +44,8 @@ type PreferencesFormContentProps = {
       fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions
     ) => void;
     scriptsReady: boolean;
+    /** Persist current form to the server and await refresh (e.g. before preference-based search). */
+    flushPreferencesSave: () => Promise<void>;
   }) => React.ReactNode;
   /**
    * When set, loads that user's preferences for display/editing in the form.
@@ -73,6 +75,8 @@ export default function PreferencesFormContent({
   const { isMdUp } = useResponsive();
   const isDesktop = isMdUp;
   const [formData, setFormData] = useState<Partial<OnboardingData>>({});
+  const formDataRef = useRef(formData);
+  formDataRef.current = formData;
   const scriptsReady = (() => {
     const win = getWindow();
     return (
@@ -93,6 +97,7 @@ export default function PreferencesFormContent({
     saveStatus,
     updateFormData: updateFormDataWithAutoSave,
     autoSave,
+    flushSave,
   } = useAutoSavePreferences({
     refreshUserPreferences,
     showErrorToastOnError,
@@ -213,6 +218,11 @@ export default function PreferencesFormContent({
     },
     [autoSave]
   );
+
+  const flushPreferencesSave = useCallback(async () => {
+    await flushSave(formDataRef.current);
+  }, [flushSave]);
+
   if (renderContent) {
     return (
       <Box>
@@ -222,6 +232,7 @@ export default function PreferencesFormContent({
           saveStatus,
           patchBuyerPreferenceExtensions,
           scriptsReady,
+          flushPreferencesSave,
         })}
       </Box>
     );

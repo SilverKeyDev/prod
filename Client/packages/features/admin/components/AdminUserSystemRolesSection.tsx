@@ -7,7 +7,15 @@ import { HttpError } from "packages/services/http/client";
 import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
-import { AccessibleCheckboxInput, BodyText, Button, Input, Label, Select, Title } from "@/components/ui";
+import {
+  AccessibleCheckboxInput,
+  BodyText,
+  Button,
+  Input,
+  Label,
+  Select,
+  Title,
+} from "@/components/ui";
 
 type Intent = "unchanged" | "grant" | "revoke";
 
@@ -17,7 +25,10 @@ const INTENT_LABELS: Record<Intent, string> = {
   revoke: "Revoke",
 };
 
-function intentsToPayload(admin: Intent, sup: Intent): Pick<UpdateUserSystemRolesRequest, "grant" | "revoke"> {
+function intentsToPayload(
+  admin: Intent,
+  sup: Intent
+): Pick<UpdateUserSystemRolesRequest, "grant" | "revoke"> {
   const grant: ("admin" | "super_admin")[] = [];
   const revoke: ("admin" | "super_admin")[] = [];
 
@@ -60,7 +71,9 @@ export function AdminUserSystemRolesSection() {
 
     try {
       const result = await mutation.mutateAsync({ user_id: userId, grant, revoke });
-      setMessage(`Updated gate roles for ${result.user_id}: ${result.gate_roles.join(", ") || "(none)"}.`);
+      setMessage(
+        `Updated gate roles for ${result.user_id}: ${result.gate_roles.join(", ") || "(none)"}.`
+      );
       setAdminIntent("unchanged");
       setSuperIntent("unchanged");
       setConfirmed(false);
@@ -87,8 +100,8 @@ export function AdminUserSystemRolesSection() {
         Gate roles (database)
       </Title>
       <BodyText size="sm" muted className="mb-4 max-w-2xl">
-        Super admins can attach or detach the SilverKey workspace roles tied to the admin panel. Provide
-        the target user&apos;s primary key UUID; no roster search runs from this UI.
+        Super admins can attach or detach the SilverKey workspace roles tied to the admin panel.
+        Provide the target user&apos;s primary key UUID; no roster search runs from this UI.
       </BodyText>
 
       <Box className="flex max-w-xl flex-col gap-4">
@@ -157,7 +170,12 @@ export function AdminUserSystemRolesSection() {
           </BodyText>
         ) : null}
 
-        <Button variant="primary" size="sm" onClick={() => void handleSubmit()} disabled={mutation.isPending}>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => void handleSubmit()}
+          disabled={mutation.isPending}
+        >
           Apply role intents
         </Button>
       </Box>

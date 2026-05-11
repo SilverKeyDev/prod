@@ -273,6 +273,7 @@ export default function ProfileFeature({
       patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
       scriptsReady={scriptsReady}
       loadError={loadError}
+      showAvailabilityEditor={isAgentForProfileUi && agentSubject == null}
     />
   );
 

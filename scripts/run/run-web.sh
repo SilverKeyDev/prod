@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=run-backend.sh
 source "${SCRIPT_DIR}/run-backend.sh"
@@ -51,15 +51,11 @@ kill_port_processes() {
   local ports=(5000 5173 6379)
   for port in "${ports[@]}"; do
     log_web "Checking for processes on port $port..."
-    local pids
-    pids=$(lsof -ti:"$port" 2>/dev/null || true)
-    if [[ -n "${pids}" ]]; then
-      log_web "${RED}Killing processes on port $port: ${pids}${NC}"
-      echo "${pids}" | xargs kill -9 2>/dev/null || true
+    if dev_port_busy "$port"; then
+      log_web "${RED}Killing processes on port $port${NC}"
+      dev_kill_tcp_port "$port" || true
       sleep 1
-      local remaining
-      remaining=$(lsof -ti:"$port" 2>/dev/null || true)
-      if [[ -n "${remaining}" ]]; then
+      if dev_port_busy "$port"; then
         warn_web "Some processes on port $port may still be running"
       else
         log_web "${GREEN}✅ Port $port is now free${NC}"
@@ -74,11 +70,9 @@ kill_port_processes() {
 kill_port_processes_web_only() {
   local port=5173
   log_web "Checking for processes on port $port..."
-  local pids
-  pids=$(lsof -ti:"$port" 2>/dev/null || true)
-  if [[ -n "${pids}" ]]; then
-    log_web "${RED}Killing processes on port $port: ${pids}${NC}"
-    echo "${pids}" | xargs kill -9 2>/dev/null || true
+  if dev_port_busy "$port"; then
+    log_web "${RED}Killing processes on port $port${NC}"
+    dev_kill_tcp_port "$port" || true
     sleep 1
   else
     log_web "${GREEN}✅ Port $port is already free${NC}"

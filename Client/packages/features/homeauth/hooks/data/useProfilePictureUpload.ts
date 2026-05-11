@@ -22,6 +22,12 @@ export function useProfilePictureUpload(): UseProfilePictureUploadReturn {
       if (!res.success) {
         throw new Error(res.error ?? "Profile picture upload failed");
       }
+      const url = res.profile_picture_url ?? res.data?.profile_picture_url;
+      if (url == null) {
+        throw new Error(
+          "No image URL returned after upload. Storage or signing may be misconfigured."
+        );
+      }
       return res;
     },
     onSuccess: (res) => {

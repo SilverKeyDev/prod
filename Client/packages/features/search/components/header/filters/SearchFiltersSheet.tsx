@@ -82,7 +82,7 @@ export function SearchFiltersSheet({
         }),
       }));
       await refreshUserPreferences();
-      onApply();
+      await Promise.resolve(onApply());
       onClose();
     } catch {
       setSaving(false);

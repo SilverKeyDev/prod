@@ -165,6 +165,11 @@ export function SearchScreen() {
     void runSearch();
   }, [isSearching, hasLocations, handleCancelSearch, runSearch]);
 
+  const handleFiltersSheetApply = useCallback(async () => {
+    if (isSearching) return;
+    await runSearch();
+  }, [isSearching, runSearch]);
+
   return (
     <SearchScreenBody
       mode={mode}
@@ -179,6 +184,7 @@ export function SearchScreen() {
       handleSearchPress={handleSearchPress}
       handleCancelSearch={handleCancelSearch}
       runSearch={runSearch}
+      onFiltersSheetApply={handleFiltersSheetApply}
       runMapAreaSearch={runMapAreaSearch}
       activeTab={activeTab}
       handleTabChange={handleTabChange}

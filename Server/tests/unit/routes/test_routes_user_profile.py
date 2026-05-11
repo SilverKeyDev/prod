@@ -108,6 +108,51 @@ class TestUserProfile:
                         assert data["success"] is True
                         assert "profile_picture_url" in data
 
+    def test_upload_profile_picture_presign_failure_returns_503(
+        self, client, app: Flask, db_session
+    ):
+        """Presign failure must not return 201 success with a null URL (client cannot show avatar)."""
+        with app.app_context():
+            from app.models import User
+
+            user = User(
+                cognito_id="test-cognito-123",
+                email="testuser@example.com",
+                name="Test User",
+                is_active=True,
+            )
+            db_session.session.add(user)
+            db_session.session.commit()
+
+            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+                mock_get.return_value = user
+
+                with patch("app.services.documents.s3_service") as mock_s3:
+                    mock_s3.s3_client = Mock()
+                    mock_s3.upload_file = Mock(return_value="profile_pictures/test-123/avatar.jpg")
+                    mock_s3.generate_view_url = Mock(return_value=None)
+                    mock_s3.delete_pdf = Mock(return_value=True)
+
+                    with patch(
+                        "app.utils.security.file_security.validate_file_upload"
+                    ) as mock_validate:
+                        mock_validate.return_value = ("test.jpg", "image/jpeg")
+
+                        file_data = b"fake image data"
+                        file = (BytesIO(file_data), "test.jpg")
+
+                        response = client.post(
+                            "/api/v1/user/profile-picture",
+                            headers={"Authorization": "Bearer mock_token"},
+                            data={"file": file},
+                            content_type="multipart/form-data",
+                        )
+
+                        assert response.status_code == 503
+                        mock_s3.delete_pdf.assert_called_once_with(
+                            "profile_pictures/test-123/avatar.jpg"
+                        )
+
     def test_upload_profile_picture_no_file(self, client, app: Flask, db_session):
         """Test POST /api/v1/user/profile-picture without file"""
         with app.app_context():

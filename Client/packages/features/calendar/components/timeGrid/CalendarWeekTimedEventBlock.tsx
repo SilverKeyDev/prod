@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from "react";
 
 import { color } from "packages/design-tokens";
 import { Box, Text } from "packages/ui/components/primitives";
+import { quantizeMinutesFromMidnight } from "packages/utils/calendar/eventFormGooglePayload";
 import { getDocument } from "packages/utils/platform";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
@@ -13,7 +14,6 @@ import {
 } from "@/features/calendar/utils/createEventModal/calendarEventColors";
 import type { PlacedTimedEventSlice } from "@/features/calendar/utils/grid/calendarGridLayout";
 import { canResizeWeekTimedEvent } from "@/features/calendar/utils/grid/calendarWeekTimedEventResize";
-import { quantizeMinutesFromMidnight } from "@/features/calendar/utils/parsing/eventFormGooglePayload";
 
 import { CAL_TIME_GRID_EVENT_MIN_HEIGHT_FOR_TIME } from "./calendarTimeGridConstants";
 import { formatCalendarSliceMinutesRange } from "./calendarTimeGridFormat";

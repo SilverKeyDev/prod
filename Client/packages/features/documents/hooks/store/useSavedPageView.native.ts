@@ -16,14 +16,17 @@ type UseSavedPageViewReturn = {
  */
 export function useSavedPageView(): UseSavedPageViewReturn {
   const { clientSettings, patchClientSettings } = useClientSettings();
-  const [viewType, setViewTypeState] = useState<SavedPageViewType>("homes");
+  const [viewType, setViewTypeState] = useState<SavedPageViewType>("documents");
 
   useEffect(() => {
     const tab = clientSettings?.saved?.tab;
-    if (tab === "homes" || tab === "documents" || tab === "forms-library" || tab === "agreements") {
+    if (tab === "documents" || tab === "forms-library" || tab === "agreements") {
       setViewTypeState(tab);
+    } else if (tab === "homes") {
+      setViewTypeState("documents");
+      patchClientSettings({ saved: { tab: "documents" } });
     }
-  }, [clientSettings?.saved?.tab]);
+  }, [clientSettings?.saved?.tab, patchClientSettings]);
 
   const setViewType = useCallback(
     (action: React.SetStateAction<SavedPageViewType>) => {

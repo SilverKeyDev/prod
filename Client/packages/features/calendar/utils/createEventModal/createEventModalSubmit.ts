@@ -1,6 +1,10 @@
 import type { ViewingItinerary } from "packages/api/viewings";
 import type { GoogleEventCreateResponse } from "packages/features/calendar/api/types";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import {
+  buildCreateEventGoogleStartEnd,
+  CREATE_EVENT_TIME_STEP_MINUTES,
+} from "packages/utils/calendar/eventFormGooglePayload";
 
 import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
@@ -9,10 +13,6 @@ import type {
   GoogleCalendarEventCreateBody,
   GoogleEvent,
 } from "@/features/calendar/types/googleEvent";
-import {
-  buildCreateEventGoogleStartEnd,
-  CREATE_EVENT_TIME_STEP_MINUTES,
-} from "@/features/calendar/utils/parsing/eventFormGooglePayload";
 import type {
   ViewingRouteEndMode,
   ViewingRouteEndpoint,

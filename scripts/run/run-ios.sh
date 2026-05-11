@@ -4,8 +4,10 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=dev_ports.sh
+source "${SCRIPT_DIR}/dev_ports.sh"
 CLIENT_DIR="${PROJECT_ROOT}/Client"
 FLASK_PORT="${FLASK_PORT:-5000}"
 
@@ -30,10 +32,9 @@ log "Starting run-ios.sh | PROJECT_ROOT=$PROJECT_ROOT | CLIENT_DIR=$CLIENT_DIR |
 log "Cleaning up existing Metro and xcodebuild processes..."
 pkill -9 xcodebuild 2>/dev/null || true
 for port in 8081; do
-  pids=$(lsof -ti:"$port" 2>/dev/null || true)
-  if [[ -n "${pids}" ]]; then
-    log "Killing processes on port $port: ${pids}"
-    echo "${pids}" | xargs kill -9 2>/dev/null || true
+  if dev_port_busy "$port"; then
+    log "Killing processes on port $port"
+    dev_kill_tcp_port "$port" || true
     sleep 2
   fi
 done
@@ -112,4 +113,4 @@ fi
 log "Starting Metro (with cache clear) and iOS..."
 exec pnpm exec concurrently -n metro,ios \
   "pnpm dev:mobile:clear" \
-  "bash -c 'for i in \$(seq 1 60); do lsof -i:8081 >/dev/null 2>&1 && break; sleep 1; done; pkill -9 xcodebuild 2>/dev/null || true; pnpm --filter @silverkey/mobile exec expo run:ios'"
+  "bash -c 'for i in \$(seq 1 60); do command -v nc >/dev/null 2>&1 && nc -z 127.0.0.1 8081 && break; sleep 1; done; pkill -9 xcodebuild 2>/dev/null || true; pnpm --filter @silverkey/mobile exec expo run:ios'"

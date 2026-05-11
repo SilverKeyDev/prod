@@ -11,7 +11,7 @@ import { color } from "packages/design-tokens";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
 import { Text } from "packages/ui/components/primitives";
-import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows.native";
+import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows/shadows.native";
 import { normalizeError } from "packages/utils/errorHandling";
 
 type Props = {

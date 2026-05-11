@@ -20,8 +20,8 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest watch",
-    "lint": "eslint . --config packages/config/eslint/eslint.config.cjs --no-warn-ignored",
-    "lint:fix": "eslint . --fix --config packages/config/eslint/eslint.config.cjs --no-warn-ignored",
+    "lint": "eslint . --config packages/config/eslint/eslint.config.cjs --no-warn-ignored && pnpm stylelint",
+    "lint:fix": "eslint . --fix --config packages/config/eslint/eslint.config.cjs --no-warn-ignored && pnpm stylelint:fix",
     "lint:all": "pnpm lint",
     "stylelint": "stylelint \"packages/ui/styles/**/*.css\" \"packages/features/**/*.css\" \"apps/mobile/global.css\" \"apps/mobile/tailwind-input.css\" --config packages/config/stylelint/stylelint.config.cjs",
     "stylelint:fix": "pnpm stylelint --fix",
@@ -33,9 +33,9 @@
     "typecheck:mobile": "tsc -p apps/mobile/tsconfig.json",
     "audit": "bash scripts/npm-audit-critical.sh",
     "lint:cycles": "madge --circular --ts-config packages/config/tsconfig/tsconfig.app.json --extensions ts,tsx apps/web packages",
-    "check:concurrent": "concurrently -g -c auto -n typecheck,lint,stylelint,format,cycles \"pnpm typecheck\" \"pnpm lint\" \"pnpm stylelint\" \"pnpm format:check\" \"pnpm lint:cycles\"",
-    "fix": "pnpm format && pnpm lint:fix && pnpm stylelint:fix",
-    "check": "pnpm typecheck && pnpm lint && pnpm stylelint && pnpm format:check && pnpm lint:cycles && pnpm run audit && pnpm build:web",
+    "check:concurrent": "concurrently -g -c auto -n typecheck,lint,format,cycles \"pnpm typecheck\" \"pnpm lint\" \"pnpm format:check\" \"pnpm lint:cycles\"",
+    "fix": "pnpm format && pnpm lint:fix",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm lint:cycles && pnpm run audit && pnpm build:web",
     "check:all": "pnpm fix && pnpm check",
     "audit:native-duplication": "node scripts/duplication/audit-native-regular-dup.mjs --min-lines 40",
     "audit:native-duplication:json": "node scripts/duplication/audit-native-regular-dup.mjs --min-lines 40 --json",
@@ -143,7 +143,8 @@
       "vite@>=7.1.0 <=7.3.1": ">=7.3.2"
     },
     "patchedDependencies": {
-      "eslint-plugin-jsx-a11y@6.10.2": "patches/eslint-plugin-jsx-a11y@6.10.2.patch"
+      "eslint-plugin-jsx-a11y@6.10.2": "patches/eslint-plugin-jsx-a11y@6.10.2.patch",
+      "eslint-plugin-tailwindcss@3.18.3": "patches/eslint-plugin-tailwindcss@3.18.3.patch"
     }
   }
 }

@@ -49,11 +49,11 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     name: "Library",
     description: "Compare and pick your best options",
     icon: "library",
-    href: "/saved",
+    href: "/library",
     subSteps: [
       {
         label: "Compare Reports",
-        to: "/saved",
+        to: "/library",
         icon: "library",
       },
     ],
@@ -96,7 +96,11 @@ export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   if (pathname.startsWith("/dashboard")) return SIDEBAR_TABS.dashboard;
   if (pathname.startsWith("/profile")) return SIDEBAR_TABS.profile;
   if (pathname.startsWith("/search")) return SIDEBAR_TABS.search;
-  if (pathname.startsWith("/saved") || pathname.startsWith("/compare-reports"))
+  if (
+    pathname.startsWith("/library") ||
+    pathname.startsWith("/saved") ||
+    pathname.startsWith("/compare-reports")
+  )
     return SIDEBAR_TABS.decide;
   if (pathname.startsWith("/messaging") || pathname.startsWith("/find-agents"))
     return SIDEBAR_TABS.agent;

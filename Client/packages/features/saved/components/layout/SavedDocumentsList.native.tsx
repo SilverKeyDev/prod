@@ -7,7 +7,7 @@ import type { DocumentData } from "packages/features/documents";
 import { useAuthStore } from "packages/store";
 import { Box, Text } from "packages/ui/components/primitives";
 import { getContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";
-import { dateParseISO } from "packages/utils/date";
+import { formatOptionalDateStringEnUs } from "packages/utils/date";
 
 interface SavedDocumentsListProps {
   sortedDocuments: DocumentData[];
@@ -20,17 +20,6 @@ interface SavedDocumentsListProps {
   onSendForSignature?: (doc: DocumentData) => void;
   onSignNow?: (doc: DocumentData) => void;
   onDocumentDelete: (doc: DocumentData) => void;
-}
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) return "";
-  try {
-    const parsed = dateParseISO(value);
-    if (!parsed.isValid()) return "";
-    return parsed.toDate().toLocaleDateString();
-  } catch {
-    return "";
-  }
 }
 
 export function SavedDocumentsList({
@@ -59,7 +48,7 @@ export function SavedDocumentsList({
           {doc.address || doc.filename}
         </Text>
         <Text className="text-text-secondary mt-1 text-xs">
-          {formatDate(doc.created_at)} · {doc.document_type ?? "Document"}
+          {formatOptionalDateStringEnUs(doc.created_at)} · {doc.document_type ?? "Document"}
         </Text>
         {doc.library_kind === "agreement" ? (
           <Text className="mt-1 text-xs font-semibold text-blue-700">Status: {doc.status}</Text>

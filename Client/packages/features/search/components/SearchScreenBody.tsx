@@ -25,6 +25,7 @@ export type SearchScreenBodyProps = {
   handleSearchPress: () => void;
   handleCancelSearch: () => void;
   runSearch: () => void | Promise<void>;
+  onFiltersSheetApply: () => void | Promise<void>;
   runMapAreaSearch: () => void | Promise<void>;
   activeTab: "results" | "saved";
   handleTabChange: (tab: "results" | "saved") => void;
@@ -63,6 +64,7 @@ export function SearchScreenBody({
   handleSearchPress,
   handleCancelSearch,
   runSearch,
+  onFiltersSheetApply,
   runMapAreaSearch,
   activeTab,
   handleTabChange,
@@ -178,7 +180,7 @@ export function SearchScreenBody({
       <SearchFiltersSheet
         open={filtersSheetOpen}
         onClose={() => setFiltersSheetOpen(false)}
-        onApply={() => {}}
+        onApply={onFiltersSheetApply}
         selectedClientId={selectedClientId}
         onClientChange={setSelectedClientId}
       />

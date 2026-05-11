@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { getWindow } from "packages/utils/platform";
 
@@ -13,19 +13,18 @@ type Options = {
 export function useMediaQuery(query: string, options: Options = {}): boolean {
   const defaultValue = options.defaultValue ?? false;
 
-  const getInitial = useMemo(() => {
-    return () => {
-      const win = getWindow();
-      if (!win || !("matchMedia" in win)) return defaultValue;
-      return win.matchMedia(query).matches;
-    };
-  }, [defaultValue, query]);
-
-  const [matches, setMatches] = useState<boolean>(getInitial);
+  const [matches, setMatches] = useState(() => {
+    const win = getWindow();
+    if (!win || !("matchMedia" in win)) return defaultValue;
+    return win.matchMedia(query).matches;
+  });
 
   useEffect(() => {
     const win = getWindow();
-    if (!win || !("matchMedia" in win)) return;
+    if (!win || !("matchMedia" in win)) {
+      setMatches(defaultValue);
+      return;
+    }
 
     const media = win.matchMedia(query);
     const handler = (event: MediaQueryListEvent) => setMatches(event.matches);
@@ -35,7 +34,7 @@ export function useMediaQuery(query: string, options: Options = {}): boolean {
 
     media.addEventListener("change", handler);
     return () => media.removeEventListener("change", handler);
-  }, [query]);
+  }, [query, defaultValue]);
 
   return matches;
 }

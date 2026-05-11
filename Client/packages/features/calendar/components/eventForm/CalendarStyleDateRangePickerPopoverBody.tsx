@@ -3,6 +3,7 @@ import { type RefObject } from "react";
 import { Icon } from "@ui/icons";
 
 import Button from "packages/ui/components/button/Button";
+import { OliveCheckboxRowLabel } from "packages/ui/components/form/checkbox/OliveCheckboxRowLabel";
 import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
@@ -97,15 +98,7 @@ export function CalendarStyleDateRangePickerPopoverBody({
     <Box ref={popoverPanelContentRef} className="min-w-0">
       <Box className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <Box className="flex min-w-0 flex-1 items-center gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="text-text-primary h-auto min-h-0 px-0 py-0 font-medium"
-            onPress={handleRangeModeToggle}
-          >
-            Date range
-          </Button>
+          <OliveCheckboxRowLabel onPress={handleRangeModeToggle}>Date range</OliveCheckboxRowLabel>
           <OliveCheckbox checked={rangeMode} onToggle={handleRangeModeToggle} />
         </Box>
         <Button type="button" variant="ghost" size="sm" onPress={onClose} iconName="x">

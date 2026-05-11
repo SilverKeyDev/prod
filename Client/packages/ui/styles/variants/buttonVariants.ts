@@ -16,22 +16,22 @@ export type ButtonStyleVariant =
   | "success";
 
 const FILLED_PRIMARY =
-  "bg-primary text-white shadow-sm hover:bg-primary-hover hover:shadow active:bg-primary-hover active:shadow web:active:scale-[0.98] focus:ring-neutral-400 disabled:bg-disabled disabled:text-text-disabled disabled:shadow-none";
+  "bg-primary text-white shadow-sm hover:bg-primary-hover hover:shadow active:bg-primary-hover active:shadow web:active:scale-[0.98] focus-visible:ring-neutral-400 disabled:bg-disabled disabled:text-text-disabled disabled:shadow-none";
 const FILLED_TERTIARY =
-  "bg-accent text-white shadow-sm hover:bg-accent-hover hover:shadow active:bg-accent-hover active:shadow web:active:scale-[0.98] focus:ring-neutral-400 disabled:bg-gold-locked disabled:text-white disabled:shadow-none";
+  "bg-accent text-white shadow-sm hover:bg-accent-hover hover:shadow active:bg-accent-hover active:shadow web:active:scale-[0.98] focus-visible:ring-neutral-400 disabled:bg-gold-locked disabled:text-white disabled:shadow-none";
 const FILLED_DANGER =
-  "bg-destructive text-white shadow-sm hover:bg-destructive-hover hover:shadow active:bg-destructive-hover active:shadow focus:ring-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:shadow-none";
+  "bg-destructive text-white shadow-sm hover:bg-destructive-hover hover:shadow active:bg-destructive-hover active:shadow focus-visible:ring-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:shadow-none";
 const FILLED_SUCCESS =
-  "bg-brand-secondary text-white shadow-sm hover:bg-brand-secondary hover:shadow active:bg-brand-secondary active:shadow focus:ring-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:shadow-none";
+  "bg-brand-secondary text-white shadow-sm hover:bg-brand-secondary hover:shadow active:bg-brand-secondary active:shadow focus-visible:ring-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:shadow-none";
 
 const VARIANT_SECONDARY =
-  "bg-neutral-100 text-text-primary hover:bg-neutral-200 active:bg-neutral-300 focus:ring-neutral-400 disabled:bg-neutral-100 disabled:text-text-disabled";
+  "bg-neutral-100 text-text-primary hover:bg-neutral-200 active:bg-neutral-300 focus-visible:ring-neutral-400 disabled:bg-neutral-100 disabled:text-text-disabled";
 
 const VARIANT_OUTLINE =
-  "border border-border bg-transparent text-text-primary hover:bg-neutral-100 active:bg-neutral-200 focus:ring-neutral-400 disabled:border-border disabled:text-text-disabled";
+  "border border-border bg-transparent text-text-primary hover:bg-neutral-100 active:bg-neutral-200 focus-visible:ring-neutral-400 disabled:border-border disabled:text-text-disabled";
 
 const VARIANT_GHOST =
-  "bg-transparent text-text-primary hover:bg-neutral-100 active:bg-neutral-200 focus:ring-neutral-400 disabled:text-text-disabled";
+  "bg-transparent text-text-primary hover:bg-neutral-100 active:bg-neutral-200 focus-visible:ring-neutral-400 disabled:text-text-disabled";
 
 export const BUTTON_VARIANT_STYLES: Record<ButtonStyleVariant, string> = {
   primary: FILLED_PRIMARY,
@@ -87,7 +87,7 @@ export const BUTTON_TEXT_COLOR_CLASSES: Record<ButtonStyleVariant, string> = {
  * justify-start (contentAlign="start"), or justify-between (icon edge layout).
  */
 export const BUTTON_BASE_CLASSES =
-  "flex min-w-0 flex-row items-center gap-2 overflow-hidden font-medium leading-none focus:outline-none focus:ring-2 focus:ring-offset-2 web:active:translate-y-[0.5px]";
+  "flex min-w-0 flex-row items-center gap-2 overflow-hidden font-medium leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 web:active:translate-y-[0.5px]";
 
 export const BUTTON_ROUNDED_CLASSES: Record<"none" | "sm" | "md" | "lg" | "xl" | "full", string> = {
   none: "rounded-none",
@@ -103,6 +103,22 @@ export const BUTTON_ICON_SIZE_CLASS: Record<"sm" | "md" | "lg", string> = {
   md: "h-4 w-4 shrink-0",
   lg: "h-5 w-5 shrink-0",
 };
+
+/**
+ * Lucide `strokeWidth` paired with {@link BUTTON_ICON_SIZE_CLASS}: default vs emphasized
+ * (same visual step-up as the `lg` button icon slot vs `sm`/`md`).
+ */
+export const BUTTON_LUCIDE_ICON_STROKE_WIDTH = {
+  default: 2,
+  emphasized: 2.5,
+} as const;
+
+/** Pixel `size` for Lucide / RN icons — matches `h-*` / `w-*` in {@link BUTTON_ICON_SIZE_CLASS}. */
+export const BUTTON_ICON_LUCIDE_SIZE_PX: Record<keyof typeof BUTTON_ICON_SIZE_CLASS, number> = {
+  sm: 16,
+  md: 16,
+  lg: 20,
+} as const;
 
 /** Text size classes for button label (shared web/native) */
 export const BUTTON_TEXT_SIZE_CLASSES: Record<"sm" | "md" | "lg", string> = {

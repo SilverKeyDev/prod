@@ -13,7 +13,7 @@ export const ROUTE_CONFIGS = {
   lightweight: [ROUTES.PROFILE],
 
   standard: [
-    ROUTES.SAVED,
+    ROUTES.LIBRARY,
     ROUTES.DASHBOARD,
     ROUTES.MESSAGING,
     ROUTES.FIND_AGENTS,

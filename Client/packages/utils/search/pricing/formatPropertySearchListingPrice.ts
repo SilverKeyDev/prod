@@ -63,9 +63,17 @@ export function formatPropertySearchListingPrice(
 /**
  * User-visible price for cards (includes `$` when showing an amount; no `$` on unavailable copy).
  */
-export function displayListingPriceForCard(price: unknown): string {
+export type DisplayListingPriceForCardOptions = {
+  unavailableLabel?: string;
+};
+
+export function displayListingPriceForCard(
+  price: unknown,
+  options: DisplayListingPriceForCardOptions = {}
+): string {
+  const unavailableLabel = options.unavailableLabel ?? "Price not available";
   if (price === null || price === undefined) {
-    return "Price not available";
+    return unavailableLabel;
   }
   if (typeof price === "number" && Number.isFinite(price)) {
     return `$${price.toLocaleString()}`;
@@ -73,12 +81,12 @@ export function displayListingPriceForCard(price: unknown): string {
   if (typeof price === "string") {
     const t = price.trim();
     if (t === "" || t.toLowerCase() === "null") {
-      return "Price not available";
+      return unavailableLabel;
     }
-    if (t === "Price not available") {
+    if (t === "Price not available" || t === unavailableLabel) {
       return t;
     }
     return t.startsWith("$") ? t : `$${t}`;
   }
-  return "Price not available";
+  return unavailableLabel;
 }

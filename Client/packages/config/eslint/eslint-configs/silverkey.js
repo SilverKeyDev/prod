@@ -158,7 +158,7 @@ export default function getSilverkeyConfig({ silverkey }) {
       rules: { "silverkey/folder-max-items": "off" },
     },
     {
-      files: ["packages/ui/styles/*.{ts,tsx}"],
+      files: ["packages/ui/styles/**/*.{ts,tsx}"],
       plugins: { silverkey },
       rules: { "silverkey/folder-max-items": "off" },
     },

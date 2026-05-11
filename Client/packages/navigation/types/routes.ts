@@ -24,7 +24,7 @@ export const ROUTES = {
 
   // Protected routes
   PROFILE: "/profile/*",
-  SAVED: "/saved/*",
+  LIBRARY: "/library/*",
   DASHBOARD: "/dashboard/*",
   /** DocuSign embedded signing return URL (see Server DOCUSIGN_SIGNING_COMPLETE_PATH). */
   AGREEMENT_SIGNING_COMPLETE: "/agreements/:agreementId/complete",

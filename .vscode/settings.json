@@ -39,6 +39,8 @@
   "typescript.tsdk": "Client/node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
 
+  "tailwindCSS.experimental.configFile": "Client/apps/web/tailwind.config.ts",
+
   "css.lint.unknownAtRules": "ignore",
   "scss.lint.unknownAtRules": "ignore",
   "less.lint.unknownAtRules": "ignore",

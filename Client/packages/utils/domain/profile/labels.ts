@@ -25,7 +25,7 @@ export const SECTION_TITLES = {
   PRIVACY_DATA: "Privacy & data",
   /** Combined physical + condition + utilities step title. */
   SEARCH_PROPERTY_STEP: "Features",
-  /** When you are generally available for tours and meetings (saved with preferences; not your Google Calendar). */
+  /** Weekly availability editor (agents only; shown in profile, not onboarding). */
   AVAILABILITY: "Availability",
   /** First onboarding step: buyer / seller / investor / agent. */
   ONBOARDING_ROLE: "Who I am",
@@ -40,9 +40,9 @@ export const SECTION_TITLES = {
 export const LOCATION_SUBTITLE =
   "Locations set your exact search range. Add work, family, and notes for neighborhoods, school districts, or school ratings.";
 
-/** Availability section subtitle — weekly blocks are stored in your profile, not synced from Google Calendar. */
+/** Availability section subtitle (agents only). */
 export const AVAILABILITY_SUBTITLE =
-  "Set times you are usually available. This schedule is saved with your preferences and does not use your Google Calendar. Double-click a time in week view to add a block; use “Repeat every week” for a recurring slot.";
+  "Set times you are usually available for clients to see when they book with you. This schedule is saved with your professional profile and is separate from your Google Calendar. Double-click a time in week view to add a block; use “Repeat every week” for a recurring slot.";
 
 // Shared field labels
 export const FIELD_LABELS = {

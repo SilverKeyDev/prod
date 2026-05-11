@@ -40,66 +40,54 @@ export function CalendarToolbar({
 }: CalendarToolbarProps) {
   const prevLabel = viewMode === "week" ? "Previous week" : "Previous month";
   const nextLabel = viewMode === "week" ? "Next week" : "Next month";
-  const headerGridClassName = showViewModeToggle
-    ? "grid w-full grid-cols-1 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-x-2 sm:gap-y-0"
-    : "grid w-full grid-cols-1 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:gap-x-2 sm:gap-y-0";
-
-  const navAndToggle = (
-    <>
-      <Box style={styles.traverseCluster}>
-        <IconButton
-          iconName="chevron-left"
-          variant="outline"
-          size="md"
-          rounded="lg"
-          label={prevLabel}
-          onPress={onPrev}
-          disabled={disabledPrev}
-          className={TRAVERSE_ICON_BUTTON_CLASSNAME}
-        />
-        <IconButton
-          iconName="chevron-right"
-          variant="outline"
-          size="md"
-          rounded="lg"
-          label={nextLabel}
-          onPress={onNext}
-          disabled={disabledNext}
-          className={TRAVERSE_ICON_BUTTON_CLASSNAME}
-        />
-      </Box>
-      {showViewModeToggle ? (
-        <CalendarViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
-      ) : null}
-    </>
-  );
 
   return (
     <Box style={styles.wrapper}>
       {/*
-       * Mobile: date row, then nav + Week|Month (space-between).
-       * sm+ with toggle: 1fr | auto | 1fr — controls left, date centered.
+       * Date range + prev/next on the left; Week|Month toggle on the right (sm+).
+       * Mobile: wrap-friendly row; toggle stays end-aligned when it wraps.
        * Padding uses CSS-compatible keys so web `Box` (div) applies insets (RN shorthands do not).
        */}
-      <Box style={styles.headerSection} className={headerGridClassName}>
-        <Box className="min-w-0 sm:col-start-2 sm:row-start-1 sm:justify-self-center">
+      <Box
+        style={styles.headerSection}
+        className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <Box className="flex min-w-0 flex-row flex-wrap items-center gap-2 sm:gap-3">
           <Box style={styles.dateCluster} className="min-w-0">
             {sectionTitle ? <Text style={styles.sectionTitle}>{sectionTitle}</Text> : null}
             <Text style={styles.toolbarDateRange} className="text-base sm:text-xl">
               {toolbarLabel}
             </Text>
           </Box>
+          <Box style={styles.traverseCluster}>
+            <IconButton
+              iconName="chevron-left"
+              variant="outline"
+              size="md"
+              rounded="lg"
+              label={prevLabel}
+              onPress={onPrev}
+              disabled={disabledPrev}
+              className={TRAVERSE_ICON_BUTTON_CLASSNAME}
+            />
+            <IconButton
+              iconName="chevron-right"
+              variant="outline"
+              size="md"
+              rounded="lg"
+              label={nextLabel}
+              onPress={onNext}
+              disabled={disabledNext}
+              className={TRAVERSE_ICON_BUTTON_CLASSNAME}
+            />
+          </Box>
         </Box>
 
-        <Box
-          className={
-            showViewModeToggle
-              ? "flex w-full flex-row items-center justify-between gap-3 sm:col-start-1 sm:row-start-1 sm:w-auto sm:justify-end"
-              : "flex w-full flex-row items-center justify-start gap-3 sm:col-start-1 sm:row-start-1 sm:w-auto"
-          }
-        >
-          {navAndToggle}
-        </Box>
+        {showViewModeToggle ? (
+          <Box className="flex w-full shrink-0 flex-row items-center justify-end sm:w-auto">
+            <CalendarViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
+          </Box>
+        ) : null}
       </Box>
 
       {children ? <Box style={styles.calendarWrapper}>{children}</Box> : null}

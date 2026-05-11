@@ -1,5 +1,6 @@
 import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
+import { throwUnlessApiSuccess } from "packages/services/data/apiRouteResponse";
 import type { RouteConfig } from "packages/services/data/dataRouteTypes";
 
 export const agentRoutes = {
@@ -8,9 +9,7 @@ export const agentRoutes = {
     queryKey: () => queryKeys.agent.clients(),
     queryFn: async () => {
       const response = await agentApi.getClients();
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch clients");
-      }
+      throwUnlessApiSuccess(response, "Failed to fetch clients");
       return response.clients ?? [];
     },
     shouldPoll: true,
@@ -26,9 +25,7 @@ export const agentRoutes = {
     queryKey: () => queryKeys.agent.todos(false),
     queryFn: async () => {
       const response = await agentApi.getTodos(false);
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch todos");
-      }
+      throwUnlessApiSuccess(response, "Failed to fetch todos");
       return response.todos ?? [];
     },
     shouldPoll: true,

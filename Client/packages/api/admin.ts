@@ -149,7 +149,9 @@ export const adminApi = {
       typeof response.user_id !== "string" ||
       !Array.isArray(response.gate_roles)
     ) {
-      throw new Error(typeof response.error === "string" ? response.error : "Failed to update roles");
+      throw new Error(
+        typeof response.error === "string" ? response.error : "Failed to update roles"
+      );
     }
     return { user_id: response.user_id, gate_roles: response.gate_roles };
   },

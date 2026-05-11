@@ -1,4 +1,5 @@
-import { dateParseISO } from "packages/utils/date";
+import { formatOptionalDateStringEnUs } from "packages/utils/date";
+import { formatPrice as formatCurrencyPrice } from "packages/utils/format/currency";
 
 /**
  * Converts a known SilverKey PDF filename pattern to a readable address.
@@ -202,31 +203,17 @@ export function truncateText(text: string, maxLength: number = 50): string {
 
 /**
  * Formats a date string to "MMM D, YYYY".
- * Returns the original string if parsing fails.
+ * Returns "" if missing or unparseable.
  */
 export function formatDate(dateString: string): string {
-  if (!dateString) return "";
-  try {
-    const date = dateParseISO(dateString).toDate();
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return dateString;
-  }
+  return formatOptionalDateStringEnUs(dateString);
 }
 
 /**
  * Formats a price with currency formatting.
  */
 export function formatPrice(price: number, currency: string = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(price);
+  return formatCurrencyPrice(price, currency);
 }
 
 /**

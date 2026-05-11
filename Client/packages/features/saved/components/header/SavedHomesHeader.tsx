@@ -1,3 +1,4 @@
+import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { Box } from "packages/ui/components/primitives";
@@ -40,8 +41,8 @@ export default function SavedHomesHeader({
   onRefresh,
   isRefreshing,
   isLoading,
-  homesCount,
-  documentsCount,
+  homesCount: _homesCount,
+  documentsCount: _documentsCount,
   selectedClientId,
   onClientChange,
   eventTypeFilter = "",
@@ -52,34 +53,22 @@ export default function SavedHomesHeader({
   librarySortKey,
   onLibrarySortChange,
 }: SavedHomesHeaderProps) {
+  const { t } = useLocalization();
   const searchPlaceholder =
-    viewType === "homes"
-      ? "Search saved homes..."
-      : viewType === "agreements"
-        ? "Search agreements..."
-        : viewType === "documents"
-          ? "Search documents..."
-          : viewType === "forms-library"
-            ? ""
-            : "Filter by address";
+    viewType === "agreements"
+      ? "Search agreements..."
+      : viewType === "documents"
+        ? t("saved.search_documents_placeholder")
+        : viewType === "forms-library"
+          ? t("saved.search_forms_placeholder")
+          : "Search";
 
   const refreshTitle =
-    viewType === "homes"
-      ? "Refresh saved homes"
-      : viewType === "agreements"
-        ? "Refresh agreements"
-        : viewType === "forms-library"
-          ? "Refresh"
-          : "Refresh documents";
-
-  const rightText =
-    viewType === "homes"
-      ? `${homesCount} saved`
-      : viewType === "documents"
-        ? `${documentsCount} documents`
-        : viewType === "agreements"
-          ? `${documentsCount} agreements`
-          : "";
+    viewType === "agreements"
+      ? "Refresh agreements"
+      : viewType === "forms-library"
+        ? "Refresh"
+        : "Refresh documents";
 
   const clientToolbar = isAgent ? (
     <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
@@ -101,7 +90,6 @@ export default function SavedHomesHeader({
           isRefreshing={isRefreshing}
           isLoading={isLoading}
           refreshTitle={refreshTitle}
-          rightText={rightText}
           viewType={viewType}
           onViewTypeChange={onViewTypeChange}
           eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
@@ -123,13 +111,12 @@ export default function SavedHomesHeader({
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       searchPlaceholder={searchPlaceholder}
-      showSearch={viewType !== "forms-library"}
+      showSearch
       leftContent={null}
       onRefresh={onRefresh}
       isRefreshing={isRefreshing}
       isLoading={isLoading}
       refreshTitle={refreshTitle}
-      rightText={rightText}
       viewType={viewType}
       onViewTypeChange={onViewTypeChange}
       eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}

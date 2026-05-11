@@ -3,7 +3,7 @@
  * Shows categories (folders) and forms within each category.
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
@@ -19,11 +19,15 @@ import Button from "packages/ui/components/button/Button";
 import BaseCard from "packages/ui/components/cards/BaseCard";
 import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
 import DocumentCardHeader from "packages/ui/components/cards/document/DocumentCardHeader";
+import DocumentListRow from "packages/ui/components/cards/document/DocumentListRow";
 import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
 import { PdfModal } from "packages/ui/components/modals";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
-import { formatFormsLibraryCategoryLabel } from "packages/utils/documents";
+import {
+  formatFormsLibraryCategoryLabel,
+  sortFormCategoriesForLibrary,
+} from "packages/utils/documents";
 import { tryWebShareUrl } from "packages/utils/share";
 
 import { BodyText, Subtitle, Title } from "@/components/ui";
@@ -36,7 +40,19 @@ type FormsBrowserProps = {
   onSendForSignature?: (form: ChecklistForm) => void;
   /** Grid layout for form cards (e.g. Saved page documents grid). */
   formsGridClassName?: string;
+  /** Library toolbar search (Saved forms tab); filters categories and forms. */
+  searchTerm?: string;
+  /** Persisted sort from Library toolbar (same IDs as documents: date_desc, date_asc, name_asc). */
+  librarySortKey?: string;
+  /** Grid vs list from Library view toggle. */
+  libraryViewMode?: "grid" | "list";
 };
+
+function formMatchesSearch(form: ChecklistForm, q: string): boolean {
+  const hay =
+    `${form.title} ${form.description ?? ""} ${form.form_key} ${form.category ?? ""}`.toLowerCase();
+  return hay.includes(q);
+}
 
 export default function FormsBrowser({
   onSelectForm,
@@ -44,6 +60,9 @@ export default function FormsBrowser({
   showActions = true,
   onSendForSignature,
   formsGridClassName = "gap-responsive-md grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+  searchTerm = "",
+  librarySortKey = "date_desc",
+  libraryViewMode = "grid",
 }: FormsBrowserProps) {
   const { t } = useLocalization();
   const { categories, isLoading, error } = useFormsLibrary();
@@ -57,15 +76,39 @@ export default function FormsBrowser({
   } = useDocumentActions();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
+  const processedCategories = useMemo(() => {
+    const sorted = sortFormCategoriesForLibrary(categories, librarySortKey);
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return sorted;
+    return sorted
+      .map((cat) => {
+        const label = formatFormsLibraryCategoryLabel(cat.name).toLowerCase();
+        const categoryMatches = label.includes(q);
+        const nextForms = categoryMatches
+          ? cat.forms
+          : cat.forms.filter((f) => formMatchesSearch(f, q));
+        return { ...cat, forms: nextForms };
+      })
+      .filter((cat) => cat.forms.length > 0);
+  }, [categories, librarySortKey, searchTerm]);
+
   const formById = useMemo(() => {
     const map = new Map<string, ChecklistForm>();
-    for (const cat of categories) {
+    for (const cat of processedCategories) {
       for (const form of cat.forms) {
         map.set(form.id, form);
       }
     }
     return map;
-  }, [categories]);
+  }, [processedCategories]);
+
+  useEffect(() => {
+    if (selectedCategory == null) return;
+    const cat = processedCategories.find((c) => c.name === selectedCategory);
+    if (!cat || cat.forms.length === 0) {
+      setSelectedCategory(null);
+    }
+  }, [processedCategories, selectedCategory]);
 
   const resolveForm = useCallback(
     (documentId: string): ChecklistForm | undefined => formById.get(documentId),
@@ -176,6 +219,18 @@ export default function FormsBrowser({
     );
   }
 
+  if (processedCategories.length === 0 && categories.length > 0 && searchTerm.trim()) {
+    return (
+      <Box className="w-full py-4">
+        <BodyText size="sm" muted>
+          {t("forms.no_forms_match_search", {
+            defaultValue: "No forms match your search.",
+          })}
+        </BodyText>
+      </Box>
+    );
+  }
+
   if (categories.length === 0) {
     return (
       <Box className="w-full py-4">
@@ -190,9 +245,13 @@ export default function FormsBrowser({
 
   // Category list view
   if (!selectedCategory) {
+    const categoryLayoutClass =
+      libraryViewMode === "list"
+        ? "gap-responsive-md flex w-full flex-col"
+        : "gap-responsive-md grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
     return (
-      <Box className="gap-responsive-md flex w-full flex-col">
-        {categories.map((category) => (
+      <Box className={categoryLayoutClass}>
+        {processedCategories.map((category) => (
           <BaseCard
             key={category.name}
             variant="default"
@@ -238,7 +297,7 @@ export default function FormsBrowser({
   }
 
   // Forms list view (selected category)
-  const category = categories.find((c) => c.name === selectedCategory);
+  const category = processedCategories.find((c) => c.name === selectedCategory);
   if (!category) {
     return null;
   }
@@ -269,7 +328,11 @@ export default function FormsBrowser({
         </Subtitle>
       </Box>
 
-      <Box className={formsGridClassName}>
+      <Box
+        className={
+          libraryViewMode === "list" ? "gap-responsive-md flex w-full flex-col" : formsGridClassName
+        }
+      >
         {category.forms.map((form) => {
           const cardSelectable = Boolean(onSelectForm) && !showActions;
           const doc = checklistFormToDocumentData(form);
@@ -277,7 +340,11 @@ export default function FormsBrowser({
           if (showActions) {
             return (
               <Box key={form.id} className="group relative w-full">
-                <DocumentCard doc={doc} externalActionHandlers={libraryActionHandlers} />
+                {libraryViewMode === "list" ? (
+                  <DocumentListRow doc={doc} externalActionHandlers={libraryActionHandlers} />
+                ) : (
+                  <DocumentCard doc={doc} externalActionHandlers={libraryActionHandlers} />
+                )}
               </Box>
             );
           }

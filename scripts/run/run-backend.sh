@@ -9,6 +9,8 @@ set -euo pipefail
 # =========================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=dev_ports.sh
+source "${SCRIPT_DIR}/dev_ports.sh"
 
 # =========================
 # Colors
@@ -54,15 +56,11 @@ kill_port_processes_backend() {
   local ports=(5000 6379)
   for port in "${ports[@]}"; do
     log "Checking for processes on port $port..."
-    local pids
-    pids=$(lsof -ti:"$port" 2>/dev/null || true)
-    if [[ -n "${pids}" ]]; then
-      log "${RED}Killing processes on port $port: ${pids}${NC}"
-      echo "${pids}" | xargs kill -9 2>/dev/null || true
+    if dev_port_busy "$port"; then
+      log "${RED}Killing processes on port $port${NC}"
+      dev_kill_tcp_port "$port" || true
       sleep 1
-      local remaining
-      remaining=$(lsof -ti:"$port" 2>/dev/null || true)
-      if [[ -n "${remaining}" ]]; then
+      if dev_port_busy "$port"; then
         warn "Some processes on port $port may still be running"
       else
         log "${GREEN}✅ Port $port is now free${NC}"
@@ -161,7 +159,7 @@ start_backend() {
   # Start Redis
   log "[Backend] Starting Redis server..."
   if ! command -v redis-server >/dev/null 2>&1; then
-    err "redis-server not found in PATH. Install Redis (brew install redis) or ensure it is on PATH."
+    err "redis-server not found in PATH. Install Redis (e.g. macOS: brew install redis; Debian/Ubuntu: sudo apt install redis-server; Fedora: sudo dnf install redis) or ensure redis-server is on PATH."
     exit 1
   fi
   redis-server --daemonize no --port 6379 &

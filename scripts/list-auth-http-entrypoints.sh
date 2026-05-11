@@ -2,7 +2,7 @@
 # Lists call sites that use apiRequest (redirect-on-AuthenticationError in apiRequest catch)
 # vs lower-level httpClient/fetchJson (caller decides error handling).
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
 cd "$ROOT"
 
 HTTP_ROOTS=(Client/packages Client/apps/web Client/apps/mobile/app)

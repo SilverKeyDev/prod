@@ -3,6 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { formatAgentPhoneNumber } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import Card from "packages/ui/components/cards/Card";
 import { Image } from "packages/ui/components/primitives";
@@ -67,44 +68,7 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) =>
               <Box className="text-text-secondary mt-2 flex items-center">
                 <Icon name="phone" className="mr-1 h-4 w-4" />
 
-                {(() => {
-                  const ph = phone;
-                  if (!ph) return "Phone available";
-                  const { areacode, prefix, number } = ph;
-                  // Type-safe string conversion with proper type guards
-                  const safeStringify = (value: unknown): string => {
-                    if (typeof value === "string") return value;
-                    if (typeof value === "number") return String(value);
-                    if (value === null || value === undefined) return "";
-                    if (typeof value === "object" && value !== null) {
-                      try {
-                        return JSON.stringify(value);
-                      } catch {
-                        return "[Object]";
-                      }
-                    }
-                    try {
-                      if (typeof value === "string") return value;
-                      if (typeof value === "number") return String(value);
-                      if (typeof value === "boolean") return String(value);
-                      if (value === null || value === undefined) return "";
-                      return "[Unknown]";
-                    } catch {
-                      return "[Unknown]";
-                    }
-                  };
-                  if (areacode && prefix && number) {
-                    return `(${safeStringify(areacode)}) ${safeStringify(
-                      prefix
-                    )}-${safeStringify(number)}`;
-                  }
-                  return (
-                    (typeof areacode === "string" ? areacode : null) ??
-                    (typeof prefix === "string" ? prefix : null) ??
-                    (typeof number === "string" ? number : null) ??
-                    "Phone available"
-                  );
-                })()}
+                {formatAgentPhoneNumber(phone) || "Phone available"}
               </Box>
             )}
           </Box>

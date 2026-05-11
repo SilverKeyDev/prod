@@ -38,4 +38,29 @@ describe("userResponseSchema", () => {
     };
     expect(userResponseSchema.safeParse(raw).success).toBe(true);
   });
+
+  it("accepts Flask-null booleans (admin profile / nullable DB columns)", () => {
+    const raw = {
+      success: true,
+      data: {
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        email: "admin@example.com",
+        name: "Admin",
+        is_active: null,
+        is_agent: null,
+        is_closing_mode: null,
+        has_subscription: null,
+        has_preferences: null,
+      },
+    };
+    const parsed = userResponseSchema.safeParse(raw);
+    expect(parsed.success).toBe(true);
+    if (parsed.success && parsed.data.data) {
+      expect(parsed.data.data.is_active).toBe(false);
+      expect(parsed.data.data.is_agent).toBe(false);
+      expect(parsed.data.data.is_closing_mode).toBe(false);
+      expect(parsed.data.data.has_subscription).toBe(false);
+      expect(parsed.data.data.has_preferences).toBe(false);
+    }
+  });
 });

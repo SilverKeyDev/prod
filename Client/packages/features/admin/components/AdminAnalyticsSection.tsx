@@ -13,7 +13,11 @@ export function AdminAnalyticsSection() {
 
   const body = useMemo(() => {
     if (isLoading) {
-      return <BodyText size="sm" muted>Loading validation statistics…</BodyText>;
+      return (
+        <BodyText size="sm" muted>
+          Loading validation statistics…
+        </BodyText>
+      );
     }
     if (error) {
       return (
@@ -23,16 +27,24 @@ export function AdminAnalyticsSection() {
       );
     }
     if (!data) {
-      return <BodyText size="sm" muted>No data returned.</BodyText>;
+      return (
+        <BodyText size="sm" muted>
+          No data returned.
+        </BodyText>
+      );
     }
     try {
       return (
-        <pre className="max-h-96 overflow-auto rounded-md bg-background-muted p-3 text-xs text-text-primary whitespace-pre-wrap break-words">
+        <pre className="bg-background-muted text-text-primary max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-md p-3 text-xs">
           {JSON.stringify(data, null, 2)}
         </pre>
       );
     } catch {
-      return <BodyText size="sm" muted>Unable to render statistics payload.</BodyText>;
+      return (
+        <BodyText size="sm" muted>
+          Unable to render statistics payload.
+        </BodyText>
+      );
     }
   }, [data, error, isLoading]);
 
@@ -45,7 +57,7 @@ export function AdminAnalyticsSection() {
         OpenAPI validation stats snapshot (aggregated logging is placeholder until infra wiring;
         admins can reload after deploys).
       </BodyText>
-      <Box className="flex flex-wrap items-center gap-3 border-b border-border pb-4">
+      <Box className="border-border flex flex-wrap items-center gap-3 border-b pb-4">
         <BodyText size="xs" muted>
           Window: last {DEFAULT_STATS_DAYS} days
         </BodyText>

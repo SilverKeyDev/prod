@@ -4,8 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useFiltersQueryParams } from "packages/config/query/adapters";
 import { queryKeys } from "packages/config/query/keys";
+import { documentService } from "packages/features/documents/api/documentService";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { documentService } from "packages/services";
 import { useAuthStore } from "packages/store";
 import type { WorkflowDocument } from "packages/types";
 

@@ -11,7 +11,6 @@ export type UseSavedPageMobileHeaderParams = {
   setViewType: (view: SavedPageViewType) => void;
   refresh: () => void;
   refreshing: boolean;
-  loading: boolean;
   documentsLoadingState: boolean;
   filteredHomesLength: number;
   documentsLength: number;
@@ -36,7 +35,6 @@ export function useSavedPageMobileHeader(
     setViewType,
     refresh,
     refreshing,
-    loading,
     documentsLoadingState,
     filteredHomesLength,
     documentsLength,
@@ -47,13 +45,7 @@ export function useSavedPageMobileHeader(
   } = params;
 
   const isLoading =
-    viewType === "homes"
-      ? loading
-      : viewType === "documents" || viewType === "agreements"
-        ? documentsLoadingState
-        : viewType === "forms-library"
-          ? false
-          : loading;
+    viewType === "documents" || viewType === "agreements" ? documentsLoadingState : false;
 
   return useMemo<SavedHomesHeaderProps>(
     () => ({

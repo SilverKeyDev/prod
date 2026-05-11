@@ -1,5 +1,6 @@
 import { type GoogleCalendar, googleCalendarApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
+import { requireApiSuccessData } from "packages/services/data/apiRouteResponse";
 import type { RouteConfig } from "packages/services/data/dataRouteTypes";
 import type { UserProfile } from "packages/types";
 
@@ -28,10 +29,7 @@ export const calendarRoutes = {
         return null;
       }
       const response = await googleCalendarApi.getPermissions();
-      if (!response.success || !response.data) {
-        throw new Error(response.error || "Failed to fetch permissions");
-      }
-      return response.data;
+      return requireApiSuccessData(response, "Failed to fetch permissions");
     },
     shouldPoll: false,
     staleTime: 5 * 60 * 1000,

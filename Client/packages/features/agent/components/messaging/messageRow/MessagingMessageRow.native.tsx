@@ -189,11 +189,12 @@ export function MessagingMessageRowNative({
   const dateDividerText = getDateDividerText(message.timestamp, previousMessage?.timestamp ?? null);
 
   const agreementOnSignNow =
-    onAgreementSignNow ?? ((_agreementId: string) => void navigateToPath("/saved?view=agreements"));
+    onAgreementSignNow ??
+    ((_agreementId: string) => void navigateToPath("/library?library=agreements"));
   const agreementOnViewDocument =
     onAgreementViewDocument ??
     ((_agreementId: string, _documentName: string) =>
-      void navigateToPath("/saved?view=agreements"));
+      void navigateToPath("/library?library=agreements"));
 
   const bubbleSurfaceStyle = resolveMessagingBubbleSurfaceStyle(
     bundleSnap,

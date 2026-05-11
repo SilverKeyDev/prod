@@ -221,7 +221,7 @@ function ImportantLocationsInputAutocomplete({
                     icon={<Icon name="pencil" className="h-4 w-4" />}
                     onClick={() => handleEditLocation(index)}
                     title="Edit location"
-                    className="text-warm-stone hover:text-brown active:text-brown"
+                    className="text-text-tertiary hover:text-brown active:text-brown"
                   />
                   <IconButton
                     variant="ghost"

@@ -98,6 +98,7 @@ export function SearchFeature({
             selectedPropertyId={(c.selectedProperty as { id?: string })?.id}
             hasLocations={c.hasLocations}
             onSearchProperties={c.handleSearchUpdated}
+            onPreferencesApplySearch={c.handlePreferencesApplySearch}
             onLocationSearchSubmit={c.handleLocationSearchSubmit}
             onCancelSearch={c.handleCancelSearch}
             selectedClientId={c.selectedClientId}

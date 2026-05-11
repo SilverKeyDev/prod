@@ -1,6 +1,5 @@
 export type ProfileSectionId =
   | "demographics"
-  | "availability"
   | "housing_essentials"
   | "housing_ranges"
   | "location"
@@ -9,6 +8,7 @@ export type ProfileSectionId =
   | "agent_brokerage"
   | "agent_licensing"
   | "agent_profile"
+  | "availability"
   | "privacy_data";
 
 export type ProfileSectionCompletionStatus = "empty" | "needs_attention" | "complete";

@@ -1,9 +1,14 @@
 import React, { useMemo, useState } from "react";
 
-import type { AgentClient } from "packages/api";
-import type { ClientDealInfo, DealStage } from "packages/schemas/agent";
-import { Box, ScrollView, Text } from "packages/ui/components/primitives";
+import { Icon } from "@ui/icons";
 
+import type { AgentClient } from "packages/api";
+import { useLocalization } from "packages/contexts";
+import { ClientSearchModal } from "packages/features/agent/components/modals";
+import type { ClientDealInfo, DealStage } from "packages/schemas/agent";
+import { Box, ScrollView } from "packages/ui/components/primitives";
+
+import { BodyText, Button, Title } from "@/components/ui";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useAgentDashboardMockData } from "@/features/agent/hooks/data/useAgentDashboardMockData";
 
@@ -31,9 +36,11 @@ type ClientListProps = {
 };
 
 const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
+  const { t } = useLocalization();
   const { clients, isLoading } = useAgentClients();
   const { enhanceClientWithDealInfo } = useAgentDashboardMockData();
   const [refreshing, setRefreshing] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
 
   const enhancedClients = useMemo<ClientDealInfo[]>(() => {
     if (!clients.length) return [];
@@ -51,26 +58,46 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
 
   if (isLoading && !refreshing && !enhancedClients.length) {
     return (
-      <Box className="py-12 text-center">
-        <Text className="text-text-secondary text-sm">Loading clients...</Text>
+      <Box className="py-5 text-center">
+        <BodyText as="p" size="sm" className="text-text-secondary">
+          {t("agent.loading_clients")}
+        </BodyText>
       </Box>
     );
   }
 
   if (!enhancedClients.length) {
     return (
-      <Box className="py-12 text-center">
-        <Text className="text-text-secondary text-sm">
-          No clients yet. New clients will appear here as you start working with them.
-        </Text>
-      </Box>
+      <>
+        <Box className="flex flex-col items-center gap-3 py-5 text-center">
+          <Icon name="message-circle" className="h-12 w-12 text-neutral-400" />
+          <Box className="max-w-sm space-y-1">
+            <BodyText as="p" size="sm" className="text-neutral-600">
+              {t("agent.no_clients_yet")}
+            </BodyText>
+            <BodyText as="p" size="xs" className="text-neutral-500">
+              {t("agent.clients_appear_once_assigned")}
+            </BodyText>
+          </Box>
+          <Button
+            type="button"
+            variant="primary"
+            size="md"
+            onClick={() => setShowSearchModal(true)}
+          >
+            {t("agent.search_for_clients")}
+          </Button>
+        </Box>
+        <ClientSearchModal isOpen={showSearchModal} onClose={() => setShowSearchModal(false)} />
+      </>
     );
   }
 
   return (
     <Box className="space-y-4">
-      {/* Header */}
-      <Text className="text-text-primary text-lg font-medium">Clients</Text>
+      <Title as="h2" size="md" className="text-text-primary font-medium">
+        {t("agent.clients")}
+      </Title>
 
       {/* Client List */}
       <ScrollView refreshing={refreshing} onRefresh={handleRefresh}>

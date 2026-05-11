@@ -31,6 +31,7 @@ export type ProfileFeatureSectionPanelsProps = {
   ) => void;
   scriptsReady: boolean;
   loadError: string | null;
+  showAvailabilityEditor: boolean;
 };
 
 export function ProfileFeatureSectionPanels({
@@ -47,6 +48,7 @@ export function ProfileFeatureSectionPanels({
   patchBuyerPreferenceExtensions,
   scriptsReady,
   loadError,
+  showAvailabilityEditor,
 }: ProfileFeatureSectionPanelsProps) {
   const effectiveEditMode = agentSubject != null ? false : isEditMode;
 
@@ -79,6 +81,7 @@ export function ProfileFeatureSectionPanels({
             scriptsReady,
             loadError,
             agentSubject,
+            showAvailabilityEditor,
           })}
         </PersonalizationSectionPanel>
       ))}

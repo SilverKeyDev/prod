@@ -23,13 +23,10 @@ export default function SuccessDialog({
   if (!isOpen) return null;
 
   const dialogContent = (
-    <Box className="z-modal fixed inset-0 overflow-y-auto">
-      <Box
-        className="space-responsive-md flex min-h-screen items-center justify-center"
-        style={{ width: "100vw", height: "100vh" }}
-      >
+    <Box className="z-modal fixed-modal-dashboard-main overflow-y-auto">
+      <Box className="space-responsive-md flex min-h-screen w-full items-center justify-center">
         {/* Backdrop */}
-        <Box className="bg-overlay-backdrop fixed inset-0 transition-opacity" />
+        <Box className="bg-overlay-backdrop fixed-modal-dashboard-main transition-opacity" />
 
         {/* Dialog */}
         <Box

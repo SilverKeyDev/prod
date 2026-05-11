@@ -31,7 +31,6 @@ import {
   deleteAvailabilityByEventId,
   updateAvailabilityFromEditedEvent,
 } from "packages/features/profile/utils/availability/profileAvailabilityMutations";
-import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useMediaQuery } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
@@ -52,28 +51,8 @@ export function useLocalAvailabilityCalendarScreen({
   patchBuyerPreferenceExtensions,
   showSelectedDayEventList = true,
 }: UseLocalAvailabilityCalendarScreenParams) {
-  const { clientSettings, clientSettingsQuery, patchClientSettings } = useClientSettings();
-  const serverAvailability =
-    (clientSettings?.calendar?.availability as CalendarViewType | undefined) ?? "week";
-
-  const [viewMode, setViewModeState] = useState<CalendarViewType>("week");
-  const hydratedAvailabilityRef = useRef(false);
-
-  useEffect(() => {
-    if (hydratedAvailabilityRef.current) return;
-    if (clientSettingsQuery.isLoading) return;
-    hydratedAvailabilityRef.current = true;
-    setViewModeState(serverAvailability);
-  }, [clientSettingsQuery.isLoading, serverAvailability]);
-
-  const setViewMode = useCallback(
-    (mode: CalendarViewType) => {
-      setViewModeState(mode);
-      const shell = clientSettings?.calendar?.shell ?? "month";
-      patchClientSettings({ calendar: { shell, availability: mode } });
-    },
-    [clientSettings?.calendar?.shell, patchClientSettings]
-  );
+  /** Week/month toggle is local to this screen (agent profile availability only). */
+  const [viewMode, setViewMode] = useState<CalendarViewType>("week");
   const [focusedDate, setFocusedDate] = useState(() => dateNow().startOf("day").toDate());
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   const [weekSelectedEventId, setWeekSelectedEventId] = useState<string | null>(null);
@@ -149,6 +128,8 @@ export function useLocalAvailabilityCalendarScreen({
     onWeekGridEventSelect: setWeekSelectedEventId,
   });
 
+  const { handleWeekTimeSlotDoubleClick, handleMonthQuickCreateDoubleTap } = quickSession;
+
   const gridDisplayEvents = quickSession.gridDisplayEvents;
 
   const eventsByDay = useMemo(() => {
@@ -207,7 +188,7 @@ export function useLocalAvailabilityCalendarScreen({
         setSelectedDayKey(calendarDateToKey(start));
       }
     },
-    [showSelectedDayEventList, setViewMode]
+    [showSelectedDayEventList]
   );
 
   const handleDayHeaderPress = useCallback(
@@ -325,6 +306,24 @@ export function useLocalAvailabilityCalendarScreen({
     [updateEvent]
   );
 
+  const addAvailabilityForSelectedDay = useCallback(() => {
+    if (!selectedDayKey) {
+      return;
+    }
+    const d = dayjs(selectedDayKey).startOf("day").toDate();
+    if (!dayjs(d).isValid()) {
+      return;
+    }
+    if (viewMode === "week") {
+      void handleWeekTimeSlotDoubleClick({
+        date: d,
+        minutesFromMidnight: 9 * 60,
+      });
+    } else {
+      void handleMonthQuickCreateDoubleTap(d);
+    }
+  }, [selectedDayKey, viewMode, handleWeekTimeSlotDoubleClick, handleMonthQuickCreateDoubleTap]);
+
   return {
     isClientView: false as const,
     silverKeyCalendarId: null as string | null,
@@ -339,8 +338,7 @@ export function useLocalAvailabilityCalendarScreen({
     selectedDayKey,
     setSelectedDayKey,
     selectedEvents,
-    getSelectedDayListHeading: (dateKey: string) =>
-      getCalendarDayListHeading(dateKey, "availability"),
+    getSelectedDayListHeading: (dateKey: string) => getCalendarDayListHeading(dateKey),
     refetchEvents,
     updateEvent,
     deleteEvent,
@@ -382,5 +380,6 @@ export function useLocalAvailabilityCalendarScreen({
     weekSelectedEventId,
     setWeekSelectedEventId,
     handleWeekTimedResizeCommit,
+    addAvailabilityForSelectedDay,
   };
 }

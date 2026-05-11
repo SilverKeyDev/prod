@@ -101,13 +101,13 @@ export function AppStack() {
         }}
       />
       <Tab.Screen
-        name="Saved"
+        name="Library"
         component={SavedScreenNative}
         options={{
-          title: "Saved",
-          tabBarLabel: "Saved",
+          title: "Library",
+          tabBarLabel: "Library",
           tabBarIcon: ({ focused, color, size }) => (
-            <TabBarIcon name={TAB_ICONS.Saved} focused={focused} color={color} size={size} />
+            <TabBarIcon name={TAB_ICONS.Library} focused={focused} color={color} size={size} />
           ),
         }}
       />

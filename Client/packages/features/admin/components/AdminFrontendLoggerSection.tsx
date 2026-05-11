@@ -124,7 +124,9 @@ export function AdminFrontendLoggerSection() {
   if (!frontendConfig) {
     return (
       <Card border="light" padding="lg" className="w-full">
-        <BodyText size="sm" muted>Unable to read frontend logger config.</BodyText>
+        <BodyText size="sm" muted>
+          Unable to read frontend logger config.
+        </BodyText>
       </Card>
     );
   }
@@ -147,7 +149,7 @@ export function AdminFrontendLoggerSection() {
             <Label key={String(key)} size="sm" className="flex items-center gap-2">
               <AccessibleCheckboxInput
                 checked={Boolean(frontendConfig[key])}
-                className="h-4 w-4 rounded border-border accent-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0"
+                className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
                 label={`Toggle ${String(key)}`}
                 onChange={() => handleToggleBoolean(key)}
               />
@@ -183,7 +185,7 @@ export function AdminFrontendLoggerSection() {
                 <Label key={k} size="sm" className="flex items-center gap-2">
                   <AccessibleCheckboxInput
                     checked={Boolean(apiConfig[k])}
-                    className="h-4 w-4 rounded border-border accent-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0"
+                    className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
                     label={`Toggle API ${k}`}
                     onChange={() => handleApiToggle(k)}
                   />

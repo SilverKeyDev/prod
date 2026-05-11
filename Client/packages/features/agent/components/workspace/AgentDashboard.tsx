@@ -1,18 +1,24 @@
-import { useMemo } from "react";
+import { lazy, Suspense, useLayoutEffect } from "react";
 
 import type { ReactNode } from "react";
 
-import type { AgentClient } from "packages/api";
-// Deep import (not via "packages/features/messaging" barrel) so loading the
-// agent dashboard does not pay the cost of evaluating every messaging
-// component (AgentMessaging, ClientMessaging, modals, list, sidebar, …).
-import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { LOG_CATEGORIES } from "packages/logger";
+import { Box } from "packages/ui/components/primitives";
+import { logMessagingCheckpointSinceLatestShellMark } from "packages/utils/perf/messagingRoutePerf";
+import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 
-import AgentMessaging from "@/features/agent/components/messaging/AgentMessaging";
-import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
-import { useAgentAutoSelectClient } from "@/features/agent/hooks/ui/useAgentAutoSelectClient";
+import { loadAgentMessagingUIModule } from "./agentMessagingEntryLoad";
+
+const AgentMessagingUI = lazy(
+  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:AgentMessagingUI", loadAgentMessagingUIModule)
+);
+
+const agentMessagingShellFallback = (
+  <Box className="flex min-h-48 flex-1 items-center justify-center p-4">
+    <Box className="bg-muted/60 h-10 w-10 animate-pulse rounded-full" aria-hidden />
+  </Box>
+);
 
 type AgentDashboardProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
@@ -20,48 +26,14 @@ type AgentDashboardProps = {
 
 export default function AgentDashboard({ setMobileHeaderActions }: AgentDashboardProps = {}) {
   useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "AgentDashboard");
-  const { clients, isLoading } = useAgentClients();
-  const { conversations } = useAgentChats();
 
-  // Merge clients from useAgentClients with any clients only known from conversations.
-  // This handles the window where AgentConnections exist but client_ids hasn't synced yet.
-  const mergedClients = useMemo(() => {
-    const knownIds = new Set(clients.map((c) => c.id));
-    const extras: AgentClient[] = [];
-
-    for (const conv of conversations) {
-      if (!knownIds.has(conv.client_id)) {
-        knownIds.add(conv.client_id);
-        extras.push({
-          id: conv.client_id,
-          name: conv.client_name ?? "Client",
-          email: conv.client_email ?? "",
-          phone: null,
-          profile_picture: conv.client_profile_picture ?? null,
-          created_at: conv.created_at ?? null,
-          client_kind: "unknown",
-          pipeline_stage: "search",
-        });
-      }
-    }
-
-    return extras.length > 0 ? [...clients, ...extras] : clients;
-  }, [clients, conversations]);
-
-  const [selectedClientId, handleClientSelect] = useAgentAutoSelectClient(
-    mergedClients,
-    conversations,
-    isLoading
-  );
+  useLayoutEffect(() => {
+    logMessagingCheckpointSinceLatestShellMark("AgentDashboard:firstLayoutCommit");
+  }, []);
 
   return (
-    <AgentMessaging
-      clients={mergedClients}
-      isLoadingClients={isLoading}
-      selectedClientId={selectedClientId}
-      selectedClient={mergedClients.find((c) => c.id === selectedClientId)}
-      onClientSelect={handleClientSelect}
-      setMobileHeaderActions={setMobileHeaderActions}
-    />
+    <Suspense fallback={agentMessagingShellFallback}>
+      <AgentMessagingUI setMobileHeaderActions={setMobileHeaderActions} />
+    </Suspense>
   );
 }

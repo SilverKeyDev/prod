@@ -4,6 +4,16 @@
  */
 import { z } from "zod";
 
+/** Flask / JSON often sends null for unset booleans; Zod `.optional()` does not accept null. */
+const jsonBoolean = (defaultValue: boolean) =>
+  z.union([z.boolean(), z.null()]).transform((v): boolean => (v === null ? defaultValue : v));
+
+const jsonBooleanOptional = () =>
+  z
+    .union([z.boolean(), z.null()])
+    .optional()
+    .transform((v): boolean => v === true);
+
 export const userSchema = z.object({
   id: z.string(),
   /** Present for Cognito users; null for Google-only accounts (matches API). */
@@ -15,10 +25,10 @@ export const userSchema = z.object({
   /** `to_dict` uses isoformat or None when unset. */
   created_at: z.string().nullable().optional(),
   updated_at: z.string().nullable().optional(),
-  is_active: z.boolean(),
-  is_agent: z.boolean().optional(),
+  is_active: jsonBoolean(false),
+  is_agent: jsonBooleanOptional(),
   /** Not persisted on users row; may be absent on profile responses. */
-  is_closing_mode: z.boolean().optional(),
+  is_closing_mode: jsonBooleanOptional(),
   google_id: z.string().nullable().optional(),
   /** Stored as Text in DB - API returns a string (or null), not a JSON array. */
   client_ids: z
@@ -33,15 +43,16 @@ export const userSchema = z.object({
   brokerage: z.string().nullable().optional(),
   preferences_version: z.string().nullable().optional(),
   roles: z.array(z.string()).optional(),
-  has_subscription: z.boolean().optional(),
+  has_subscription: jsonBooleanOptional(),
   subscription: z.unknown().optional(),
-  has_preferences: z.boolean().optional(),
+  has_preferences: jsonBooleanOptional(),
   profile_picture: z.string().nullable().optional(),
   profile_picture_url: z.string().nullable().optional(),
 });
 
 export const userResponseSchema = z.object({
-  success: z.boolean(),
+  /** API may serialize absent flags as null. */
+  success: jsonBoolean(false),
   user: userSchema.optional(),
   data: userSchema.optional(),
   message: z.string().optional(),

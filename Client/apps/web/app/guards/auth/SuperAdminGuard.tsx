@@ -1,3 +1,4 @@
+import { Icon } from "@ui/icons";
 import type { ReactNode } from "react";
 
 import { authUtils, PERMISSIONS, UserRole } from "packages/config/auth/auth";
@@ -17,8 +18,19 @@ export function SuperAdminGuard({ children }: SuperAdminGuardProps) {
   const { user, authStatus } = useAuthStoreIntegration();
   const { userProfile, userProfileLoading } = useUserData();
 
-  if (authStatus === "checking" || userProfileLoading) {
-    return null;
+  if (authStatus === "checking" || (userProfileLoading && userProfile == null)) {
+    return (
+      <Box className="flex min-h-[40vh] items-center justify-center p-4">
+        <Card border="light" className="w-full max-w-sm" padding="lg">
+          <Box className="text-center">
+            <Icon name="loader-2" className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
+            <BodyText size="sm" muted>
+              Loading…
+            </BodyText>
+          </Box>
+        </Card>
+      </Box>
+    );
   }
 
   const roles = userProfile?.roles ?? user?.roles ?? [];
@@ -28,10 +40,14 @@ export function SuperAdminGuard({ children }: SuperAdminGuardProps) {
 
   if (!authorized) {
     if (user?.id) {
-      log.security(LOG_CATEGORIES.SECURITY, "[SUPERADMIN_GUARD] Unauthorized superadmin panel access", {
-        userId: user.id,
-        roles,
-      });
+      log.security(
+        LOG_CATEGORIES.SECURITY,
+        "[SUPERADMIN_GUARD] Unauthorized superadmin panel access",
+        {
+          userId: user.id,
+          roles,
+        }
+      );
     }
     return (
       <Box className="flex min-h-[40vh] items-center justify-center p-4">

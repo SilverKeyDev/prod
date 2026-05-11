@@ -28,7 +28,9 @@ export function AdminBackendLoggerSection() {
   if (isLoading) {
     return (
       <Card border="light" padding="lg" className="w-full">
-        <BodyText size="sm" muted>Loading server logger config…</BodyText>
+        <BodyText size="sm" muted>
+          Loading server logger config…
+        </BodyText>
       </Card>
     );
   }
@@ -43,9 +45,9 @@ export function AdminBackendLoggerSection() {
     );
   }
 
-  const extras = (
-    Object.keys(config) as (keyof ServerLoggerConfig & string)[]
-  ).filter((k) => typeof config[k] === "boolean" && !CORE_BOOL_KEYS.includes(k as keyof ServerLoggerConfig));
+  const extras = (Object.keys(config) as (keyof ServerLoggerConfig & string)[]).filter(
+    (k) => typeof config[k] === "boolean" && !CORE_BOOL_KEYS.includes(k as keyof ServerLoggerConfig)
+  );
 
   const toggle = (key: keyof ServerLoggerConfig) => {
     if (typeof config[key] !== "boolean") return;
@@ -71,7 +73,7 @@ export function AdminBackendLoggerSection() {
               <AccessibleCheckboxInput
                 checked={Boolean(config[key])}
                 disabled={mutation.isPending}
-                className="h-4 w-4 rounded border-border accent-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0"
+                className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
                 label={`Toggle server ${String(key)}`}
                 onChange={() => toggle(key)}
               />
@@ -85,7 +87,7 @@ export function AdminBackendLoggerSection() {
               <AccessibleCheckboxInput
                 checked={Boolean(config[key])}
                 disabled={mutation.isPending}
-                className="h-4 w-4 rounded border-border accent-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0"
+                className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
                 label={`Toggle server ${String(key)}`}
                 onChange={() => toggle(key)}
               />

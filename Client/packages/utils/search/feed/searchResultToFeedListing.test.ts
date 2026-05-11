@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_PLACEHOLDER_IMAGE } from "packages/features/feed/utils/placeholderAssets";
 import type { SearchResult } from "packages/features/search/types/result";
+import { DEFAULT_PLACEHOLDER_IMAGE } from "packages/utils/media/placeholderAssets";
 
 import { searchResultToFeedListing } from "./searchResultToFeedListing";
 

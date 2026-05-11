@@ -2,6 +2,15 @@
   "plugins": {
     "redis-development": {
       "enabled": true
+    },
+    "linear": {
+      "enabled": true
+    },
+    "slack": {
+      "enabled": true
+    },
+    "datadog": {
+      "enabled": true
     }
   }
 }

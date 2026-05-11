@@ -50,20 +50,36 @@ export type UseAgentChatsReturn = {
   lastFetchedAt: number | null;
 };
 
+export type UseAgentChatsOptions = {
+  /**
+   * When false, skips queries and side-effect syncs so a parent can own the live subscription
+   * (see `useMessaging` agent path with `agentChats`).
+   */
+  fetchEnabled?: boolean;
+};
+
 /**
  * Hook to manage agent conversations
  * Works for both agents and clients
  */
-export function useAgentChats(clientId?: string): UseAgentChatsReturn {
+export function useAgentChats(
+  clientId?: string,
+  options?: UseAgentChatsOptions
+): UseAgentChatsReturn {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
   const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
   const setTotalUnreadCount = useNotificationStore((s) => s.setTotalUnreadCount);
   const lastConvUnreadSyncRef = useRef<string>("");
+  const instanceIdRef = useRef(`uac-${Math.random().toString(36).slice(2, 9)}`);
+  const lastConversationLogFingerprintRef = useRef("");
+
+  const fetchEnabled = options?.fetchEnabled !== false;
 
   // Check cache first when enabled becomes true (cache-first strategy)
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const loadData = useMemo(() => shouldLoadData && fetchEnabled, [shouldLoadData, fetchEnabled]);
 
   // Use the same query key as dataConfig when clientId is undefined
   // This ensures cache hits for prefetched data
@@ -78,7 +94,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
 
   // Check cache first to show data immediately
   const cachedConversations = useMemo(() => {
-    if (!shouldLoadData) return undefined;
+    if (!loadData) return undefined;
     // Check cache using the same query key
     const cached = queryClient.getQueryData<AgentConversation[]>(queryKey);
     if (cached) {
@@ -102,7 +118,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       }
     }
     return undefined;
-  }, [shouldLoadData, queryClient, queryKey, clientId]);
+  }, [loadData, queryClient, queryKey, clientId]);
 
   // Fetch conversations
   const {
@@ -120,7 +136,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       }
       return response.conversations ?? [];
     },
-    enabled: shouldLoadData,
+    enabled: loadData,
     // Use placeholderData to show cached data immediately
     placeholderData: (previousValue) => {
       // Return cached data if available, otherwise previous value
@@ -132,32 +148,59 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
   });
 
   useEffect(() => {
-    if (!shouldLoadData) {
-      log.info(LOG_CATEGORIES.MESSAGES, "useAgentChats: query disabled until auth ready", {
-        authReady,
-        isAuthenticated,
-      });
+    log.debug(LOG_CATEGORIES.MESSAGES, "useAgentChats: observer", {
+      instanceId: instanceIdRef.current,
+      fetchEnabled,
+      clientId: clientId ?? null,
+    });
+    // Log subscription identity once per mount (StrictMode may double in dev).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, []);
+
+  useEffect(() => {
+    if (!loadData) {
+      if (!shouldLoadData) {
+        log.info(LOG_CATEGORIES.MESSAGES, "useAgentChats: query disabled until auth ready", {
+          authReady,
+          isAuthenticated,
+          instanceId: instanceIdRef.current,
+        });
+      }
       return;
     }
     if (error) {
       log.warn(LOG_CATEGORIES.MESSAGES, "useAgentChats: fetch failed", {
         message: error instanceof Error ? error.message : String(error),
         clientIdFilter: clientId ?? null,
+        instanceId: instanceIdRef.current,
       });
       return;
     }
     if (isLoading && conversationsResponse === undefined) {
       log.debug(LOG_CATEGORIES.MESSAGES, "useAgentChats: loading", {
         clientIdFilter: clientId ?? null,
+        instanceId: instanceIdRef.current,
       });
       return;
     }
+    const ids = (conversationsResponse ?? []).map((c) => c.id).sort();
+    const fingerprint = [
+      conversationsResponse?.length ?? 0,
+      clientId ?? "",
+      isLoading ? "1" : "0",
+      error instanceof Error ? error.message : error ? String(error) : "",
+      ids.join(","),
+    ].join("|");
+    if (fingerprint === lastConversationLogFingerprintRef.current) return;
+    lastConversationLogFingerprintRef.current = fingerprint;
     log.info(LOG_CATEGORIES.MESSAGES, "useAgentChats: conversations result", {
       count: conversationsResponse?.length ?? 0,
       clientIdFilter: clientId ?? null,
-      ids: (conversationsResponse ?? []).map((c) => c.id),
+      ids,
+      instanceId: instanceIdRef.current,
     });
   }, [
+    loadData,
     shouldLoadData,
     authReady,
     isAuthenticated,
@@ -333,7 +376,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       }
       return response.total_count;
     },
-    enabled: shouldLoadData,
+    enabled: loadData,
     staleTime: 0, // Always fetch fresh (polling handles refresh)
     refetchOnMount: false,
   });
@@ -346,6 +389,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
   // idempotent the per-instance work added up. With this guard the entire
   // effect short-circuits when nothing actually changed.
   useEffect(() => {
+    if (!loadData) return;
     const convs = conversationsResponse ?? [];
     let signature = "";
     for (const conv of convs) {
@@ -360,10 +404,11 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
         setUnreadCount(conv.id, conv.unread_count);
       }
     }
-  }, [conversationsResponse, setUnreadCount]);
+  }, [loadData, conversationsResponse, setUnreadCount]);
 
   // Sync notification counter to store (includes unread messages + pending requests)
   useEffect(() => {
+    if (!loadData) return;
     // Only set if valid number >= 0, otherwise don't update (defaults to 0)
     if (
       notificationCounter !== undefined &&
@@ -373,7 +418,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     ) {
       setTotalUnreadCount(notificationCounter);
     }
-  }, [notificationCounter, setTotalUnreadCount]);
+  }, [loadData, notificationCounter, setTotalUnreadCount]);
 
   // Return cached conversations if available, otherwise use response
   // This ensures data shows immediately even when isLoading is true

@@ -13,7 +13,6 @@ import {
   AgentBrokerageSection,
   AgentLicensingSection,
   AgentProfileServiceSection,
-  AvailabilitySection,
   DemographicsSection,
   LocationSection,
 } from "@/features/profile/components/sections/index.web";
@@ -68,15 +67,6 @@ export function OnboardingFeature() {
             hideNameWhenOnboarding={true}
             showAgentChoice={false}
             showWhyJoiningQuestion={false}
-          />
-        );
-
-      case "availability":
-        return (
-          <AvailabilitySection
-            formData={formData}
-            isEditMode={true}
-            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
           />
         );
 

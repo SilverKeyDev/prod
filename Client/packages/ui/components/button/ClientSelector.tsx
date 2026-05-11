@@ -5,6 +5,7 @@ import BodyText from "@ui/text/BodyText";
 
 import { useLocalization } from "packages/contexts";
 import { useIsAgent } from "packages/hooks/store";
+import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 
@@ -28,9 +29,11 @@ export default function ClientSelector({
   menuPlacement = "below",
 }: ClientSelectorProps) {
   const { clients, isLoading } = useAgentClients();
+  const authReady = useAuthStore((s) => s.authReady);
   const [isOpen, setIsOpen] = useState(false);
   const isAgent = useIsAgent();
   const { t } = useLocalization();
+  const isClientListLoading = !authReady || isLoading;
   // Don't show if user is not an agent
   if (!isAgent) {
     return null;
@@ -39,25 +42,25 @@ export default function ClientSelector({
     onClientChange(clientId);
     setIsOpen(false);
   };
+  const triggerLabel =
+    selectedClientId === null
+      ? hideMeOption
+        ? t("client_selector.select_client")
+        : t("client_selector.me")
+      : clients.find((c) => c.id === selectedClientId)?.name || t("client_selector.select_client");
   return (
     <Box className={`relative ${className}`}>
       <Button
         type="button"
         variant="outline"
         contentAlign="start"
+        label={triggerLabel}
         onClick={() => setIsOpen(!isOpen)}
         className={`focus:border-input-variant-focus-border border-border bg-background-surface text-text-primary hover:bg-accent-muted flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-neutral-400 ${HEADER_ROW_CONTROL_HEIGHT}`}
         icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
       >
         <>
-          <BodyText as="span">
-            {selectedClientId === null
-              ? hideMeOption
-                ? t("client_selector.select_client")
-                : t("client_selector.me")
-              : clients.find((c) => c.id === selectedClientId)?.name ||
-                t("client_selector.select_client")}
-          </BodyText>
+          <BodyText as="span">{triggerLabel}</BodyText>
           <Icon
             name="chevron-down"
             className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -112,13 +115,28 @@ export default function ClientSelector({
               ) : null}
 
               {/* Client options */}
-              {isLoading ? (
+              {isClientListLoading ? (
                 <Box className="text-text-secondary px-3 py-3 text-left text-sm">
-                  {t("client_selector.loading_clients")}
+                  {t("client_selector.loading_clients", {
+                    defaultValue: "Loading clients...",
+                  })}
                 </Box>
               ) : clients.length === 0 ? (
-                <Box className="text-text-secondary px-3 py-3 text-left text-sm">
-                  {t("client_selector.no_clients_found")}
+                <Box className="flex items-start gap-3 px-3 py-3">
+                  <Icon name="users" className="text-text-secondary mt-0.5 h-5 w-5 shrink-0" />
+                  <Box className="flex min-w-0 flex-col gap-1">
+                    <BodyText as="span" size="sm" muted className="text-left">
+                      {t("client_selector.no_clients_found", {
+                        defaultValue: "No clients found",
+                      })}
+                    </BodyText>
+                    <BodyText as="span" size="xs" muted className="text-left">
+                      {t("client_selector.no_clients_hint", {
+                        defaultValue:
+                          "Clients you work with will appear here once they are added to your workspace.",
+                      })}
+                    </BodyText>
+                  </Box>
                 </Box>
               ) : (
                 clients.map((client) => (

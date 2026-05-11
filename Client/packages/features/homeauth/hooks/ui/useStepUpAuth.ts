@@ -3,11 +3,11 @@
  * Provides easy integration for components requiring enhanced security
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { secureLogger } from "packages/services/security/secureLogger";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { getLocalStorage } from "packages/utils/storage/platformStorage";
 import { hasProperty, isObject } from "packages/utils/typeGuards";
 
 import { useLocalStorage } from "./useLocalStorage";
@@ -54,17 +54,25 @@ const SENSITIVE_ACTIONS = [
 
 type SensitiveAction = (typeof SENSITIVE_ACTIONS)[number];
 
+const EMPTY_STEP_UP_CACHE: Record<string, number> = {};
+
+/** Default step-up cache window; must match `checkStepUpRequired` (do not tie reads to in-flight modal `config`). */
+const DEFAULT_STEP_UP_CACHE_MS = 15 * 60 * 1000;
+
 export const useStepUpAuth = (): UseStepUpAuthReturn => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentAction, setCurrentAction] = useState("");
   const [currentDescription, setCurrentDescription] = useState<string | undefined>();
   const [currentConfig, setCurrentConfig] = useState<StepUpAuthConfig>({});
-  const [resolvePromise, setResolvePromise] = useState<((success: boolean) => void) | null>(null);
+  /** Must be a ref so concurrent/overlapping requests never drop a resolver (state would orphan earlier Promises). */
+  const pendingResolveRef = useRef<((success: boolean) => void) | null>(null);
+  /** Re-entrancy: same action must share one Promise or effects/guards will cancel each other and spam logs. */
+  const pendingPromiseByActionRef = useRef<Partial<Record<string, Promise<boolean>>>>({});
 
   // Use centralized localStorage hook for step-up auth cache
   const { value: stepUpCache, setValue: setStepUpCache } = useLocalStorage<Record<string, number>>(
     "stepUpAuthCache",
-    {}
+    EMPTY_STEP_UP_CACHE
   );
 
   /**
@@ -73,14 +81,10 @@ export const useStepUpAuth = (): UseStepUpAuthReturn => {
   const isRecentlyAuthenticated = useCallback(
     (action: string): boolean => {
       const authTime = stepUpCache[action];
-
       if (!authTime) return false;
-
-      const cacheTimeMs = currentConfig.cacheTimeMs ?? 15 * 60 * 1000; // Default 15 minutes
-
-      return Date.now() - authTime < cacheTimeMs;
+      return Date.now() - authTime < DEFAULT_STEP_UP_CACHE_MS;
     },
-    [stepUpCache, currentConfig.cacheTimeMs]
+    [stepUpCache]
   );
 
   /**
@@ -108,23 +112,60 @@ export const useStepUpAuth = (): UseStepUpAuthReturn => {
    */
   const requestStepUpAuth = useCallback(
     (action: string, description?: string, config: StepUpAuthConfig = {}): Promise<boolean> => {
-      return new Promise((resolve) => {
+      if (!isStepUpRequired(action)) {
+        return Promise.resolve(true);
+      }
+      const existing = pendingPromiseByActionRef.current[action];
+      if (existing) {
+        log.info(LOG_CATEGORIES.ROUTING, "[STEP_UP_AUTH] returning existing in-flight promise", {
+          action,
+        });
+        return existing;
+      }
+      const promise = new Promise<boolean>((resolve) => {
         secureLogger.security("STEP_UP_AUTH", "Step-up authentication requested", { action });
+        log.info(
+          LOG_CATEGORIES.ROUTING,
+          "[STEP_UP_AUTH] new step-up promise created (modal opening)",
+          {
+            action,
+          }
+        );
+
+        if (pendingResolveRef.current) {
+          log.info(LOG_CATEGORIES.ROUTING, "[STEP_UP_AUTH] superseding prior pending step-up", {
+            action,
+          });
+          pendingResolveRef.current(false);
+        }
+        pendingResolveRef.current = resolve;
 
         setCurrentAction(action);
         setCurrentDescription(description);
         setCurrentConfig(config);
-        setResolvePromise(() => resolve);
         setIsModalOpen(true);
+        log.info(LOG_CATEGORIES.ROUTING, "[STEP_UP_AUTH] modal state set to open", { action });
       });
+      pendingPromiseByActionRef.current[action] = promise;
+      void promise.finally(() => {
+        delete pendingPromiseByActionRef.current[action];
+      });
+      return promise;
     },
-    []
+    [isStepUpRequired]
   );
 
   /**
    * Handle successful authentication
    */
   const handleSuccess = useCallback(() => {
+    log.info(
+      LOG_CATEGORIES.ROUTING,
+      "[STEP_UP_AUTH] user confirmed step-up (before cache + resolve)",
+      {
+        action: currentAction,
+      }
+    );
     secureLogger.security("STEP_UP_AUTH", "Step-up authentication completed successfully", {
       action: currentAction,
     });
@@ -135,29 +176,28 @@ export const useStepUpAuth = (): UseStepUpAuthReturn => {
       [currentAction]: Date.now(),
     }));
 
-    if (resolvePromise) {
-      resolvePromise(true);
-      setResolvePromise(null);
-    }
+    pendingResolveRef.current?.(true);
+    pendingResolveRef.current = null;
 
     setIsModalOpen(false);
-  }, [currentAction, resolvePromise, setStepUpCache]);
+  }, [currentAction, setStepUpCache]);
 
   /**
    * Handle authentication cancellation
    */
   const handleClose = useCallback(() => {
+    log.info(LOG_CATEGORIES.ROUTING, "[STEP_UP_AUTH] user cancelled step-up (resolving false)", {
+      action: currentAction,
+    });
     secureLogger.info("STEP_UP_AUTH", "Step-up authentication cancelled", {
       action: currentAction,
     });
 
-    if (resolvePromise) {
-      resolvePromise(false);
-      setResolvePromise(null);
-    }
+    pendingResolveRef.current?.(false);
+    pendingResolveRef.current = null;
 
     setIsModalOpen(false);
-  }, [currentAction, resolvePromise]);
+  }, [currentAction]);
 
   return {
     isStepUpRequired,
@@ -206,7 +246,7 @@ export const withStepUpAuth = <T extends unknown[]>(
 export const checkStepUpRequired = (action: string): boolean => {
   if (SENSITIVE_ACTIONS.includes(action as SensitiveAction)) {
     try {
-      const cacheData = getSessionStorage().getItem("stepUpAuthCache");
+      const cacheData = getLocalStorage().getItem("stepUpAuthCache");
       const parsedCache: unknown = cacheData ? JSON.parse(cacheData) : {};
       const stepUpCache = isObject(parsedCache) ? parsedCache : {};
       const authTime =
@@ -216,9 +256,7 @@ export const checkStepUpRequired = (action: string): boolean => {
 
       if (!authTime) return true;
 
-      const cacheTimeMs = 15 * 60 * 1000; // 15 minutes default
-
-      return Date.now() - (authTime as number) >= cacheTimeMs;
+      return Date.now() - (authTime as number) >= DEFAULT_STEP_UP_CACHE_MS;
     } catch (error: unknown) {
       log.warn(LOG_CATEGORIES.AUTH, "Error reading step-up auth cache", error);
       return true; // Require auth if we can't read the cache

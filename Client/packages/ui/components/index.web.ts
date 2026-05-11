@@ -30,6 +30,8 @@ export { default as AccessibleRadioInput } from "./form/AccessibleRadioInput";
 export { default as AccessibleTextInput } from "./form/AccessibleTextInput";
 export { AutoExpandingTextarea } from "./form/AutoExpandingTextarea";
 export { default as AccessibleCheckboxInput } from "./form/checkbox/AccessibleCheckboxInput";
+export type { OliveCheckboxRowLabelProps } from "./form/checkbox/OliveCheckboxRowLabel";
+export { OliveCheckboxRowLabel } from "./form/checkbox/OliveCheckboxRowLabel";
 export { default as ChecklistCheckbox } from "./form/ChecklistCheckbox";
 export { default as DateInput } from "./form/DateInput";
 export { default as Dropdown } from "./form/dropdown";

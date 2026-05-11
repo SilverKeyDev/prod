@@ -11,7 +11,7 @@ export const PATH_PREFIXES = {
   search: "/search",
   dashboard: "/dashboard",
   profile: "/profile",
-  saved: "/saved",
+  library: "/library",
   messaging: "/messaging",
   find_agents: "/find-agents",
 } as const;
@@ -24,7 +24,7 @@ const DASHBOARD_ROUTE_ORDER: PathPrefix[] = [
   "messaging",
   "find_agents",
   "dashboard",
-  "saved",
+  "library",
   "profile",
 ];
 
@@ -33,6 +33,9 @@ const DASHBOARD_ROUTE_ORDER: PathPrefix[] = [
  * Used by pathMatches, getWidthPercent, and tests. Prefer useDashboardRoute() in UI.
  */
 export function getActiveDashboardKey(pathname: string): PathPrefix | null {
+  if (pathname === "/saved" || pathname.startsWith("/saved/")) {
+    return "library";
+  }
   for (const key of DASHBOARD_ROUTE_ORDER) {
     const prefix = PATH_PREFIXES[key];
     if (pathname === prefix || pathname.startsWith(prefix + "/")) {
@@ -47,8 +50,8 @@ export const PATH_WIDTH_PERCENT: Record<PathPrefix, number> = {
   search: 100,
   dashboard: 90,
   profile: 90,
-  /** Full main-area width — library toolbar is dense (tabs, search, sort, toggles). */
-  saved: 100,
+  /** Match dashboard/profile content width; inset comes from SavedPageLayout (see DashboardScreen `px-4`). */
+  library: 90,
   messaging: 100,
   find_agents: 90,
 };
@@ -57,7 +60,7 @@ export function pathMatches(pathname: string): {
   isSearch: boolean;
   isDashboard: boolean;
   isProfile: boolean;
-  isSaved: boolean;
+  isLibrary: boolean;
   isMessaging: boolean;
   isFullHeightRoute: boolean;
 } {
@@ -66,7 +69,7 @@ export function pathMatches(pathname: string): {
     isSearch: key === "search",
     isDashboard: key === "dashboard",
     isProfile: key === "profile",
-    isSaved: key === "saved",
+    isLibrary: key === "library",
     isMessaging: key === "messaging",
     isFullHeightRoute: key === "search" || key === "messaging",
   };

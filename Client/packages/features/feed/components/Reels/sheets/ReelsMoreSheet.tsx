@@ -72,11 +72,11 @@ export function ReelsMoreSheet({
             leaveTo="translate-y-full"
           >
             <AccessibleDialog.Panel
-              className="bg-background-surface pointer-events-auto flex min-h-0 w-full flex-[0.75] flex-row flex-col rounded-t-2xl"
+              className="bg-background-surface pointer-events-auto flex min-h-0 w-full flex-[0.75] flex-col rounded-t-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header - same pattern as Comments: drag handle + title + close */}
-              <Box className="border-border flex shrink-0 flex-row flex-col items-center border-b pt-2">
+              <Box className="border-border flex shrink-0 flex-col items-center border-b pt-2">
                 <Box className="bg-border mb-2 h-1 w-10 rounded-full" aria-hidden />
                 <Box className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-3">
                   <Box className="w-9 shrink-0" aria-hidden />

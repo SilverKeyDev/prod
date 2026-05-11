@@ -75,7 +75,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
     <Box
       className={`flex min-w-0 items-center justify-end gap-1.5 sm:gap-2 lg:justify-end ${
         condensedToolbar ? "shrink-0 flex-nowrap" : "flex-wrap sm:flex-nowrap"
-      } ${viewType === "homes" && isMobile ? "sm:gap-3" : ""}`}
+      }`}
     >
       {viewType && onLibrarySortChange ? (
         <LibrarySortSelect
@@ -98,11 +98,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
     ) : null;
 
   const legacyHideMobileAgreementsChrome =
-    showSearch &&
-    isMobile &&
-    viewType !== "homes" &&
-    viewType !== "documents" &&
-    viewType !== "forms-library";
+    showSearch && isMobile && viewType !== "documents" && viewType !== "forms-library";
 
   return (
     <Box className="mb-6 w-full">
@@ -147,17 +143,19 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
             >
               {showSearch ? (
                 <Box className="flex w-full min-w-0 flex-1 flex-col gap-1.5">
-                  <Box className="relative w-full min-w-0">
-                    <Icon
-                      name="search"
-                      className="mobile-icon-xs text-text-disabled pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-                    />
+                  <Box className="w-full min-w-0">
                     <Input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => onSearchChange(e.target.value)}
                       className={SAVED_PAGE_SEARCH_INPUT_CLASS}
                       placeholder={searchPlaceholder}
+                      leftIcon={
+                        <Icon
+                          name="search"
+                          className="text-text-secondary pointer-events-none h-4 w-4"
+                        />
+                      }
                     />
                   </Box>
                   {rightText ? (

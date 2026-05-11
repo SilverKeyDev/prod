@@ -23,6 +23,7 @@ vi.mock("./useSecureAuthEffects", () => ({
 
 vi.mock("./utils/logoutCleanup", () => ({
   clearSessionStorageForLogout: vi.fn(),
+  getOptionalSessionStorageForLogout: () => undefined,
 }));
 
 vi.mock("packages/config", async (importOriginal) => {

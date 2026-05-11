@@ -297,6 +297,7 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
           <ProfileScreenActiveSectionPanel
             currentStep={currentStep}
             activeSection={activeSection}
+            showAvailabilityEditor={isAgentForProfileUi && agentSubject == null}
             effectiveEditMode={effectiveEditMode}
             formData={formData}
             agentSubject={agentSubject}

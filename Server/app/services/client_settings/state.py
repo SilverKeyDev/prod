@@ -32,7 +32,8 @@ DOCUSIGN_SORT_ALLOWED = frozenset(
 
 LAYOUT_ALLOWED = frozenset({"grid", "list"})
 CALENDAR_VIEW_ALLOWED = frozenset({"week", "month"})
-SAVED_TAB_ALLOWED = frozenset({"homes", "documents", "agreements"})
+# Active Library route tab; must match OpenAPI ClientSettings.saved.tab / schemas Tab enum.
+SAVED_TAB_ALLOWED = frozenset({"homes", "documents", "forms-library", "agreements"})
 
 LIBRARY_SECTIONS = frozenset({"homes", "documents", "docusign"})
 
@@ -56,7 +57,7 @@ def default_settings() -> dict[str, Any]:
             "docusign": {"layout": "grid", "sort": "date_desc"},
         },
         "saved": {"tab": "homes"},
-        "calendar": {"shell": "month", "availability": "week"},
+        "calendar": {"shell": "month"},
     }
 
 
@@ -132,7 +133,6 @@ def _sanitize_calendar(raw: Any) -> dict[str, Any]:
         return dict(dflt)
     return {
         "shell": _norm_calendar_view(raw.get("shell"), dflt["shell"]),
-        "availability": _norm_calendar_view(raw.get("availability"), dflt["availability"]),
     }
 
 

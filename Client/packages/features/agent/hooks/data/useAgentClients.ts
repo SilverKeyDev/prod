@@ -10,6 +10,8 @@ import { useAuthStore } from "packages/store";
 import type { AgentClient } from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";
 
+const EMPTY_AGENT_CLIENTS: AgentClient[] = [];
+
 export type UseAgentClientsReturn = {
   clients: AgentClient[];
   isLoading: boolean;
@@ -77,7 +79,7 @@ export function useAgentClients(): UseAgentClientsReturn {
   }, [refetchClients]);
 
   return {
-    clients: clientsResponse ?? [],
+    clients: clientsResponse ?? EMPTY_AGENT_CLIENTS,
     isLoading,
     error: error?.message ?? null,
     refetch,

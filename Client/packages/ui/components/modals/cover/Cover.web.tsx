@@ -122,7 +122,7 @@ function CoverPanel({
   if (hasMaxWidth) {
     return (
       <Box
-        className="bg-background-overlay/50 fixed inset-0 flex items-center justify-center"
+        className="bg-background-overlay/50 fixed-modal-dashboard-main flex items-center justify-center"
         style={{ zIndex }}
       >
         {modalContent}

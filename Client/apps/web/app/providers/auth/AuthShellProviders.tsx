@@ -35,8 +35,8 @@ function SavedHomesShellIntegration() {
  *
  * Note: Data is prefetched on login via useDataInitialization hook.
  * Store integrations sync React Query cache to Zustand where needed.
- * SavedHomesShellIntegration additionally prefetches favorites + document library when
- * an agent selects a client (`selectedClientId`) so Library avoids a cold fetch.
+ * SavedHomesShellIntegration keeps favorites in sync via `useSavedHomesStoreIntegration` and
+ * prefetches the document library when an agent selects a client so Library avoids a cold fetch.
  */
 export function AuthShellProviders({ children }: { children: ReactNode }) {
   // Sync reports data from React Query cache to Zustand store

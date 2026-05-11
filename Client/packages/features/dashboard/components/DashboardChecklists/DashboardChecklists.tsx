@@ -147,7 +147,7 @@ export default function DashboardChecklists() {
   );
 
   return (
-    <Box className="flex w-full flex-row flex-col gap-3">
+    <Box className="flex w-full flex-col gap-3">
       <Box className="mb-2">
         <ClientSelector selectedClientId={selectedClientId} onClientChange={setSelectedClientId} />
       </Box>

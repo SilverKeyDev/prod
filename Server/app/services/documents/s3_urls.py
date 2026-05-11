@@ -99,7 +99,6 @@ def generate_view_url(
             "ResponseContentDisposition": "inline",
             "ResponseContentType": response_content_type,
             "ResponseCacheControl": "public, max-age=3600",
-            "ResponseContentEncoding": "identity",
         }
         presigned_url = s3_client.generate_presigned_url(
             operation, Params=params, ExpiresIn=expiration

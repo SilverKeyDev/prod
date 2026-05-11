@@ -14,7 +14,7 @@ export function HomePageAuthModal({
   onSignUp: () => void;
 }) {
   return (
-    <Box className="space-responsive-sm bg-overlay-backdrop z-modal fixed inset-0 flex items-center justify-center">
+    <Box className="space-responsive-sm bg-overlay-backdrop z-modal fixed-modal-dashboard-main flex items-center justify-center">
       <Box className="space-responsive-lg bg-background-surface w-full max-w-md rounded-2xl shadow">
         <Box className="mb-4 flex justify-between">
           <Box className="gap-responsive-xs flex items-center">

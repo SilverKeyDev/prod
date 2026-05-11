@@ -1,10 +1,11 @@
-import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
-import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 import {
   buildCreateEventGoogleStartEnd,
   CREATE_EVENT_TIME_STEP_MINUTES,
   quantizeMinutesFromMidnight,
-} from "@/features/calendar/utils/parsing/eventFormGooglePayload";
+} from "packages/utils/calendar/eventFormGooglePayload";
+
+import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 import {
   eventSpansMultipleLocalDays,
   getEventLocalDayKeys,

@@ -1,8 +1,8 @@
 import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useIsAgent } from "packages/hooks/store";
+import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import type { UIState } from "packages/store/ui.slice";
 import { getWindow } from "packages/utils/platform";
 
 import type { CreateModalPrefilledCreateSnapshot } from "@/features/calendar/hooks/data/createEvent/useCreateEventModal.types";

@@ -12,6 +12,14 @@ The `data/` directory contains services specifically designed for React Query in
 
 ## Files
 
+### `dataRoutes/*.ts`
+
+Route definitions for prefetch and polling (`DATA_ROUTES`). Query functions use API wrappers from `packages/config/http/api` and shared guards in `apiRouteResponse.ts`.
+
+### `apiRouteResponse.ts`
+
+`throwUnlessApiSuccess` / `requireApiSuccessData` — consistent errors for `{ success, error?, data? }` responses.
+
 ### `initialDataLoader.ts`
 
 Prefetches all page data on login. Called once after successful authentication to warm up the React Query cache.

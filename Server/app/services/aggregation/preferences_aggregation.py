@@ -109,7 +109,8 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         raw_ext = getattr(intent, "extended_buyer_preferences", None)
         ext = coerce_extension_value(raw_ext)
         if isinstance(ext, dict):
-            norm = normalize_stored_document(ext)
+            include_availability = bool(getattr(user, "is_agent", False))
+            norm = normalize_stored_document(ext, include_availability=include_availability)
             if len(norm) > 1:
                 out["extended_buyer_preferences"] = norm
 

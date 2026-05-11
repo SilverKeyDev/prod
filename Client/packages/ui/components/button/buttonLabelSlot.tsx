@@ -12,6 +12,10 @@ export type ButtonLabelSlotParams = {
   textColorClass: string;
   textSizeClass: string;
   truncateLabel: boolean;
+  /** Appended last so callers can override default label typography (e.g. tabs). */
+  labelSlotClassName?: string;
+  /** With `group` on the control: hover label emphasis (design token). Web only when passed. */
+  groupHoverLabelClassName?: string;
 };
 
 function collapseWideLayouts(showLabelAt: string): { start: string; center: string } {
@@ -84,6 +88,8 @@ export function renderButtonLabelSlot(p: ButtonLabelSlotParams): React.ReactNode
           p.textSizeClass,
           stringTruncateClasses,
           stringNowrapClasses,
+          p.labelSlotClassName,
+          p.groupHoverLabelClassName,
         ]
           .filter(Boolean)
           .join(" ")}
@@ -100,6 +106,8 @@ export function renderButtonLabelSlot(p: ButtonLabelSlotParams): React.ReactNode
         p.textColorClass,
         p.textSizeClass,
         p.containerCollapse ? "" : "min-w-0 shrink",
+        p.labelSlotClassName,
+        p.groupHoverLabelClassName,
       ]
         .filter(Boolean)
         .join(" ")}

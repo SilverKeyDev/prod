@@ -189,8 +189,8 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         onClick={handleClick}
         className={`group relative inline-flex flex-row items-center justify-center bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 active:bg-gray-100 active:opacity-90 ${
           isSaved
-            ? "text-red-500 hover:text-red-600 active:text-red-600 active:text-red-700"
-            : "text-gray-400 hover:text-red-500 active:text-red-500 active:text-red-600"
+            ? "text-red-500 hover:text-red-600 active:text-red-700"
+            : "text-gray-400 hover:text-red-500 active:text-red-600"
         } ${className}`}
       />
     );
@@ -213,8 +213,8 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
 
   const overlaySurfaceClassName = `group relative inline-flex flex-row items-center justify-center rounded-full bg-white shadow-md ring-1 ring-neutral-200 hover:bg-white hover:shadow-lg hover:ring-neutral-200 active:bg-white active:opacity-90 active:shadow-lg active:ring-neutral-200 ${
     isSaved
-      ? "text-red-500 hover:text-red-600 active:text-red-600 active:text-red-700"
-      : "text-gray-400 hover:text-red-500 active:text-red-500 active:text-red-600"
+      ? "text-red-500 hover:text-red-600 active:text-red-700"
+      : "text-gray-400 hover:text-red-500 active:text-red-600"
   } ${OVERLAY_MARKER_CIRCLE_CLASSES} ${className}`;
 
   return (

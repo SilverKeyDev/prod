@@ -68,7 +68,7 @@ export function PropertyDetailsScreenNative() {
       selectedClientId: "",
     };
     setToStorage("generateReportState", generateReportState);
-    navigation.navigate("SAVED");
+    navigation.navigate("LIBRARY");
   }, [address, navigation, propertyId, selectedProperty]);
 
   if (!address || address.trim().length === 0) {

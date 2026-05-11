@@ -35,3 +35,7 @@ Domain rotation prompts for duplication audits reference `Server/scripts/backend
 ## Checks (Client)
 
 From `Client/`: `pnpm typecheck`, `pnpm lint`, `pnpm lint:cycles`, `pnpm format:check`, tests as configured in `Client/package.json`.
+
+## Checks (repo-wide)
+
+From repo root: `./scripts/run-all-linters.sh [client|server|all]` — Client runs `Client/scripts/run-client-linters.sh` (auto-executes executable `Client/scripts/lint.d/*.sh`, then `pnpm check`); Server runs every `Server/scripts/lint_*.py` then every executable `Server/scripts/lint_*.sh` (add new linters by adding a file; no edit to this script required).

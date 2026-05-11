@@ -104,14 +104,14 @@ function BaseModalContent(p: BaseModalContentProps) {
   return (
     <Box
       {...{ [SILVERKEY_MODAL_ROOT_DATA_ATTR]: true }}
-      className="scrollbar-hide fixed inset-0 overflow-y-auto overflow-x-hidden overscroll-contain"
+      className="scrollbar-hide fixed-modal-dashboard-main overflow-y-auto overflow-x-hidden overscroll-contain"
       style={{ zIndex }}
     >
       <Box className="flex min-h-[100dvh] items-center justify-center p-2 sm:p-4 md:p-6">
         <Box
           role="button"
           tabIndex={0}
-          className={`bg-overlay-backdrop fixed inset-0 transition-opacity ${backdropClassName}`}
+          className={`bg-overlay-backdrop fixed-modal-dashboard-main transition-opacity ${backdropClassName}`}
           aria-hidden="true"
           onClick={closeOnBackdropClick ? handleBackdropClick : undefined}
           onKeyDown={closeOnBackdropClick ? handleBackdropKeyDown : undefined}

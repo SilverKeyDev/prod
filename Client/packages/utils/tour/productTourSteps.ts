@@ -1,7 +1,21 @@
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { getDocument } from "packages/utils/platform";
 
 import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "./tourTargets";
+
+const SEARCH_PRODUCT_TOUR_COPY: Record<string, string> = {
+  "search.product_tour.desktop.preferences_title": "Preferences",
+  "search.product_tour.desktop.preferences_description":
+    "Open Preferences for budgets, beds and baths, commute and important locations, and the other fields that shape your matches. Changes save to your profile.",
+  "search.product_tour.desktop.display_title": "Display",
+  "search.product_tour.desktop.display_description":
+    "Open Display to change how results are ordered and sorted, toggle show commute area on the map, and turn match all preferences strictly on or off.",
+  "search.product_tour.mobile.preferences_title": "Filters",
+  "search.product_tour.mobile.preferences_description":
+    "Open Filters for the same preference controls as on desktop: budget, home details, commute and locations, and more. They stay in sync with your profile.",
+  "search.product_tour.mobile.display_title": "Display",
+  "search.product_tour.mobile.display_description":
+    "Open Display for order by, sort direction, show commute area, and match all preferences strictly: the same options as on larger screens.",
+};
 
 export type SearchProductTourLayout = "desktop" | "mobile";
 
@@ -18,7 +32,7 @@ export type SearchProductTourStep = {
 };
 
 function tourCopy(key: string): string {
-  const text = SEARCH_TRANSLATIONS[key];
+  const text = SEARCH_PRODUCT_TOUR_COPY[key];
   return typeof text === "string" ? text : key;
 }
 

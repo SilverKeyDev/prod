@@ -12,7 +12,7 @@ export function defaultClientSettings(): ClientSettings {
       documents: { layout: "grid", sort: "date_desc" },
       docusign: { layout: "grid", sort: "date_desc" },
     },
-    saved: { tab: "homes" },
-    calendar: { shell: "month", availability: "week" },
+    saved: { tab: "documents" },
+    calendar: { shell: "month" },
   };
 }

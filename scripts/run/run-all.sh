@@ -11,8 +11,10 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=dev_ports.sh
+source "${SCRIPT_DIR}/dev_ports.sh"
 FLASK_PORT="${FLASK_PORT:-5000}"
 VITE_PORT="${VITE_PORT:-5173}"
 
@@ -35,10 +37,9 @@ err() {
 kill_dev_port_processes() {
   log "Killing existing processes on dev ports (5000, 5173, 6379)..."
   for port in 5000 5173 6379; do
-    pids=$(lsof -ti:"$port" 2>/dev/null || true)
-    if [[ -n "${pids}" ]]; then
-      log "Killing processes on port $port: ${pids}"
-      echo "${pids}" | xargs kill -9 2>/dev/null || true
+    if dev_port_busy "$port"; then
+      log "Killing processes on port $port"
+      dev_kill_tcp_port "$port" || true
       sleep 1
     fi
   done

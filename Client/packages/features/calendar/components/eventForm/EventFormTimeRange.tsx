@@ -8,12 +8,11 @@ import type { ReactNode } from "react";
 import Dropdown from "packages/ui/components/form/dropdown";
 import { Box } from "packages/ui/components/primitives";
 import Label from "packages/ui/components/text/Label.web";
-
-import { buildTimeOptions } from "@/features/calendar/utils/createEventModal/scheduleTimeOptions";
 import {
   CREATE_EVENT_TIME_STEP_MINUTES,
   parseHourMinute24,
-} from "@/features/calendar/utils/parsing/eventFormGooglePayload";
+} from "packages/utils/calendar/eventFormGooglePayload";
+import { buildTimeOptions } from "packages/utils/scheduling/eventRequestScheduleOptions";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

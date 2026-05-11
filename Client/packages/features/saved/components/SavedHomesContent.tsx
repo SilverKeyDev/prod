@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import { useLocalization } from "packages/contexts";
-import type { DocumentData, SavedPageViewType } from "packages/features/documents";
+import type { DocumentData, SavedHomesSurfaceViewType } from "packages/features/documents";
 import { FormsLibraryTab } from "packages/features/documents";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import {
@@ -21,8 +21,8 @@ import DocumentsViewWithSubtabs from "./DocumentsViewWithSubtabs";
 import { SavedHomeCard } from "./SavedHomeCard";
 
 type SavedHomesContentProps = {
-  viewType: SavedPageViewType;
-  /** Layout for the active Library tab (homes, documents, agreements, or forms-library grid alignment). */
+  viewType: SavedHomesSurfaceViewType;
+  /** Layout for the active Library tab (or embedded homes list via `viewType="homes"`). */
   libraryViewMode: LibraryViewMode;
   filteredHomes: SavedHome[];
   homesLoading: boolean;
@@ -45,6 +45,8 @@ type SavedHomesContentProps = {
   isAgent?: boolean;
   /** Sort / filter for the active Library tab (homes, documents, or agreements). */
   librarySortKey: string;
+  /** Library toolbar search (forms tab filters the forms browser). */
+  searchTerm?: string;
 };
 const CONTENT_PADDING = "px-4 sm:px-6 md:px-8 lg:px-12";
 export default function SavedHomesContent({
@@ -65,6 +67,7 @@ export default function SavedHomesContent({
   noHomesYetKey,
   isAgent = false,
   librarySortKey,
+  searchTerm = "",
 }: SavedHomesContentProps) {
   const { t } = useLocalization();
   const containerClass = noPadding ? "w-full" : `w-full ${CONTENT_PADDING}`;
@@ -87,6 +90,9 @@ export default function SavedHomesContent({
         containerClass={containerClass}
         formsGridClassName={formsLibraryGridClass}
         onSendForSignature={onFormSendForSignature}
+        searchTerm={searchTerm}
+        librarySortKey={librarySortKey}
+        libraryViewMode={libraryViewMode}
       />
     );
   }

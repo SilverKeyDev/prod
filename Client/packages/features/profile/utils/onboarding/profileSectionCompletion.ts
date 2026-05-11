@@ -6,9 +6,7 @@ import type {
 } from "packages/features/profile/types/profileSections";
 import { parseHousingTypes } from "packages/features/profile/utils/public/constants";
 
-function isAgentFormSelection(is_agent: string | undefined): boolean {
-  return is_agent === "yes" || is_agent === "am_agent";
-}
+import { isAgentFormSelection } from "./agentFormSelection";
 
 function preferenceExtensionSectionHasAny(section: unknown): boolean {
   if (section == null || typeof section !== "object" || Array.isArray(section)) return false;
@@ -26,14 +24,6 @@ function statusFor(hasAny: boolean, isComplete: boolean): ProfileSectionCompleti
   if (!hasAny) return "empty";
   if (isComplete) return "complete";
   return "needs_attention";
-}
-
-function availabilityPair(formData: OnboardingData): { any: boolean; complete: boolean } {
-  const av = formData.buyerPreferenceExtensions?.availability;
-  const hasWeekly = Array.isArray(av?.weekly) && av.weekly.length > 0;
-  const hasOneOff = Array.isArray(av?.oneOff) && av.oneOff.length > 0;
-  const hasAny = Boolean(hasWeekly || hasOneOff);
-  return { any: hasAny, complete: true };
 }
 
 function demographicsPair(formData: OnboardingData): { any: boolean; complete: boolean } {
@@ -157,6 +147,16 @@ function agentProfilePair(formData: OnboardingData): { any: boolean; complete: b
   return { any: hasAny, complete: hasAny };
 }
 
+function availabilityPair(formData: OnboardingData): { any: boolean; complete: boolean } {
+  const isAgent = isAgentFormSelection(formData.is_agent);
+  if (!isAgent) {
+    return { any: false, complete: true };
+  }
+  const extRec = formData.buyerPreferenceExtensions as Record<string, unknown> | undefined;
+  const hasAny = preferenceExtensionSectionHasAny(extRec?.availability);
+  return { any: hasAny, complete: hasAny };
+}
+
 function searchExtensionPairs(formData: OnboardingData): {
   financing: { any: boolean; complete: boolean };
   locationSchools: { any: boolean; complete: boolean };
@@ -203,7 +203,6 @@ export const getProfileSectionCompletion = (
   formData: OnboardingData
 ): ProfileSectionCompletionMap => {
   const demo = demographicsPair(formData);
-  const avail = availabilityPair(formData);
   const he = housingEssentialsPair(formData);
   const hr = housingRangesPair(formData);
   const hd = housingDetailsPair(formData);
@@ -213,6 +212,7 @@ export const getProfileSectionCompletion = (
   const br = agentBrokeragePair(formData);
   const lic = agentLicensingPair(formData);
   const prof = agentProfilePair(formData);
+  const av = availabilityPair(formData);
 
   const locationMerged = mergedComplete([loc, search.locationSchools, search.neighborhood]);
   const financialMerged = mergedComplete([fin, search.financing]);
@@ -220,7 +220,6 @@ export const getProfileSectionCompletion = (
 
   return {
     demographics: statusFor(demo.any, demo.complete),
-    availability: statusFor(avail.any, avail.complete),
     housing_essentials: statusFor(he.any, he.complete),
     housing_ranges: statusFor(hr.any, hr.complete),
     location: statusFor(locationMerged.any, locationMerged.complete),
@@ -229,6 +228,7 @@ export const getProfileSectionCompletion = (
     agent_brokerage: statusFor(br.any, br.complete),
     agent_licensing: statusFor(lic.any, lic.complete),
     agent_profile: statusFor(prof.any, prof.complete),
+    availability: statusFor(av.any, av.complete),
     // Informational / legal tools — not a preferences form; keep neutral in tab affordances.
     privacy_data: "empty",
   };

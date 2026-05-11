@@ -6,11 +6,12 @@ import { preferencesApi } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
 import { toBuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useUserData, useUserPreferences } from "packages/hooks/data/user/useUserData";
-import { useAuthStore, useGoogleCalendarStore } from "packages/store";
+import { useGoogleCalendarStore } from "packages/store";
+import { CREATE_EVENT_TIME_STEP_MINUTES } from "packages/utils/calendar/eventFormGooglePayload";
 import { dayjs } from "packages/utils/date";
 import {
   type AvailabilityParty,
-  hasConfiguredBuyerAvailabilitySlots,
+  type BuyerAvailabilityPrefs,
   isMutualUtcRangeAvailable,
   mutualDayHasAvailableSlot,
 } from "packages/utils/scheduling/eventRequestAvailability";
@@ -20,10 +21,14 @@ import {
   queryClientAvailabilityAsBlocks,
 } from "@/features/calendar/api/schedulingQueries";
 import type { FreebusyTimeBlock } from "@/features/calendar/types/scheduling";
-import { CREATE_EVENT_TIME_STEP_MINUTES } from "@/features/calendar/utils/parsing/eventFormGooglePayload";
 
 const RANGE_DAYS = 90;
 
+/**
+ * Mutual scheduling: Google free/busy for each party when connected, plus
+ * agent weekly profile windows from `extended_buyer_preferences.availability`.
+ * Buyers do not store profile hours; when booking with an agent we load the agent's prefs.
+ */
 function emptyParty(): AvailabilityParty {
   return { prefs: undefined, busyBlocks: [] };
 }
@@ -36,13 +41,11 @@ export type CreateEventMutualAvailability = {
   stepMinutes: number;
   /** Calendar days (YYYY-MM-DD) with at least one mutually free step slot. */
   mutualDayKeys: Set<string>;
-  /** True when the other participant has no weekly/one-off availability configured. */
-  otherPartyHasNoAvailabilityPrefs: boolean;
   /** Label for messages: "Client" | "Your agent" | "the other participant" */
   otherPartyLabel: string;
   /** True when buyer flow: we only have the agent's profile rules, not their Google calendar. */
   buyerCannotLoadAgentGoogleBusy: boolean;
-  /** Agent+client or buyer+assigned agent — mutual logic involves two profiles. */
+  /** Agent+client or buyer+assigned agent — mutual logic involves two parties' calendars when connected. */
   isTwoParty: boolean;
   isMutualUtcRange: (startMs: number, endMs: number) => boolean;
 };
@@ -60,31 +63,12 @@ export function useCreateEventMutualAvailability({
   selectedClientId: string | null;
   selectedCalendarId: string;
 }): CreateEventMutualAvailability {
-  const authReady = useAuthStore((s) => s.authReady);
   const isGoogleConnected = useGoogleCalendarStore((s) => s.isConnected);
   const { userProfile } = useUserData();
+  const { userPreferences, preferencesLoading: selfPrefsLoading } = useUserPreferences();
+
   const agentIdForBuyer = userProfile?.agent_id?.trim() || null;
-
-  const { userPreferences: selfPrefs, preferencesLoading: selfPrefsLoading } = useUserPreferences();
-
   const otherUserId = isAgent ? selectedClientId : agentIdForBuyer;
-
-  const otherPrefsQuery = useQuery({
-    queryKey: otherUserId
-      ? queryKeys.user.preferences(otherUserId)
-      : ([...queryKeys.user.all, "preferences", "mutualOther", "none"] as const),
-    queryFn: async () => {
-      const response = await preferencesApi.getByUserId(otherUserId!);
-      if (!response.success) {
-        throw new Error(
-          typeof response.error === "string" ? response.error : "Failed to load preferences"
-        );
-      }
-      return response.preferences ?? null;
-    },
-    enabled: Boolean(authReady && isOpen && mode === "create" && otherUserId),
-    staleTime: 5 * 60 * 1000,
-  });
 
   const range = useMemo(() => {
     const start = dayjs().startOf("day");
@@ -120,28 +104,44 @@ export function useCreateEventMutualAvailability({
     retry: false,
   });
 
+  const agentPrefsQuery = useQuery({
+    queryKey: queryKeys.user.preferences(agentIdForBuyer),
+    queryFn: async () => {
+      const response = await preferencesApi.getByUserId(agentIdForBuyer!);
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to fetch preferences");
+      }
+      return response.preferences ?? null;
+    },
+    enabled: Boolean(
+      isOpen && mode === "create" && !isAgent && agentIdForBuyer && agentIdForBuyer.length > 0
+    ),
+    staleTime: 5 * 60 * 1000,
+    refetchOnMount: false,
+  });
+
   const viewerTimeZone = useMemo(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
     []
   );
 
-  const selfAvail = useMemo(
-    () => toBuyerPreferenceExtensions(selfPrefs?.extended_buyer_preferences)?.availability,
-    [selfPrefs?.extended_buyer_preferences]
-  );
+  const selfProfileSlots: BuyerAvailabilityPrefs | undefined = useMemo(() => {
+    if (!isAgent) return undefined;
+    return toBuyerPreferenceExtensions(userPreferences?.extended_buyer_preferences)?.availability;
+  }, [isAgent, userPreferences?.extended_buyer_preferences]);
 
-  const otherAvail = useMemo(
-    () =>
-      toBuyerPreferenceExtensions(otherPrefsQuery.data?.extended_buyer_preferences)?.availability,
-    [otherPrefsQuery.data?.extended_buyer_preferences]
-  );
+  const otherProfileSlots: BuyerAvailabilityPrefs | undefined = useMemo(() => {
+    if (isAgent) return undefined;
+    return toBuyerPreferenceExtensions(agentPrefsQuery.data?.extended_buyer_preferences)
+      ?.availability;
+  }, [isAgent, agentPrefsQuery.data?.extended_buyer_preferences]);
 
   const selfParty: AvailabilityParty = useMemo(
     () => ({
-      prefs: selfAvail,
+      prefs: selfProfileSlots,
       busyBlocks: (selfBusyQuery.data ?? []) as FreebusyTimeBlock[],
     }),
-    [selfAvail, selfBusyQuery.data]
+    [selfProfileSlots, selfBusyQuery.data]
   );
 
   const otherParty: AvailabilityParty = useMemo(() => {
@@ -151,18 +151,18 @@ export function useCreateEventMutualAvailability({
     const busy: FreebusyTimeBlock[] =
       isAgent && selectedClientId ? ((clientBusyQuery.data ?? []) as FreebusyTimeBlock[]) : [];
     return {
-      prefs: otherAvail,
+      prefs: otherProfileSlots,
       busyBlocks: busy,
     };
-  }, [otherUserId, otherAvail, isAgent, selectedClientId, clientBusyQuery.data]);
+  }, [otherUserId, isAgent, selectedClientId, clientBusyQuery.data, otherProfileSlots]);
 
   const mutualTwoParty = Boolean(otherUserId);
 
   const isTwoParty = mutualTwoParty;
 
   const hintsReady =
-    !selfPrefsLoading &&
-    (!otherUserId || !otherPrefsQuery.isLoading) &&
+    (!isAgent || !selfPrefsLoading) &&
+    (!otherUserId || isAgent || !agentPrefsQuery.isLoading) &&
     (!isGoogleConnected || !selfBusyQuery.isLoading) &&
     (!isAgent || !selectedClientId || !isGoogleConnected || !clientBusyQuery.isLoading);
 
@@ -197,11 +197,6 @@ export function useCreateEventMutualAvailability({
     return (startMs: number, endMs: number) => isMutualUtcRangeAvailable(startMs, endMs, a, b);
   }, [mutualTwoParty, otherParty, selfParty]);
 
-  const otherPartyHasNoAvailabilityPrefs =
-    Boolean(otherUserId) &&
-    otherPrefsQuery.isSuccess &&
-    !hasConfiguredBuyerAvailabilitySlots(otherAvail);
-
   const otherPartyLabel = !isAgent ? "Your agent" : "Client";
 
   const buyerCannotLoadAgentGoogleBusy = Boolean(!isAgent && agentIdForBuyer);
@@ -214,7 +209,6 @@ export function useCreateEventMutualAvailability({
     viewerTimeZone,
     stepMinutes: CREATE_EVENT_TIME_STEP_MINUTES,
     mutualDayKeys,
-    otherPartyHasNoAvailabilityPrefs,
     otherPartyLabel,
     buyerCannotLoadAgentGoogleBusy,
     isTwoParty,

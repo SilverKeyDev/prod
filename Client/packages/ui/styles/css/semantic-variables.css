@@ -1,0 +1,32 @@
+/**
+ * Semantic CSS variables for marketing surfaces. Values resolve via Tailwind theme()
+ * from merged design-tokens color JSON (`tokens/color/foundation.json` + `features.json`).
+ *
+ * Hyphenated color keys (e.g. text-primary) use bracket segments: theme(colors[text-primary]),
+ * not theme(colors.text-primary) (that resolves to nested colors.text.primary).
+ */
+@layer base {
+  :root {
+    --color-brand-primary: theme(colors.brand.primary);
+    --color-brand-accent: theme(colors.brand.accent);
+    --color-brand-secondary: theme(colors.brand.secondary);
+    --color-brand-tertiary: theme(colors.brand.tertiary);
+    --color-background-base: theme(colors[background-base]);
+    --color-background-surface: theme(colors[background-surface]);
+    --color-text-primary: theme(colors[text-primary]);
+    --color-text-secondary: theme(colors[text-secondary]);
+    --color-border: theme(colors.border);
+
+    /* Match score tiers (sage → terracotta). Use with getMatchStyle() in app code. */
+    --match-excellent-bg: theme(colors.match.excellent.bg);
+    --match-excellent-fg: theme(colors.match.excellent.fg);
+    --match-strong-bg: theme(colors.match.strong.bg);
+    --match-strong-fg: theme(colors.match.strong.fg);
+    --match-fair-bg: theme(colors.match.fair.bg);
+    --match-fair-fg: theme(colors.match.fair.fg);
+    --match-weak-bg: theme(colors.match.weak.bg);
+    --match-weak-fg: theme(colors.match.weak.fg);
+    --match-poor-bg: theme(colors.match.poor.bg);
+    --match-poor-fg: theme(colors.match.poor.fg);
+  }
+}

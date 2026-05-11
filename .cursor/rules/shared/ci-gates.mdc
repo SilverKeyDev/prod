@@ -17,14 +17,14 @@ Once RN exists, drift between web and shared code starts immediately. Per-PR req
 These must run on every pull request (and push) for the Client:
 
 1. **Typecheck** — `pnpm typecheck` (e.g. `tsc -p apps/web/tsconfig.json`). No type errors.
-2. **Lint** — `pnpm lint` (ESLint including silverkey rules). No errors.
+2. **Lint** — `pnpm lint` (ESLint including silverkey rules and `eslint-plugin-tailwindcss` conflicting-class detection, then Stylelint on CSS inputs). No errors.
 3. **Cycle check** — `pnpm lint:cycles` (e.g. madge circular dependency check). No cycles in `apps/web` and `packages`.
 4. **Formatting** — `pnpm format:check` (Prettier). No unformatted files.
 5. **File size** — Enforced via ESLint rule `silverkey/max-lines-hard` (e.g. max 500 lines per file). Part of `pnpm lint`. The intent is to flag oversized files; prefer addressing **cyclomatic complexity** and real maintainability over splitting into many tiny files just to satisfy the limit (see code-organization: complexity over line count, avoid file fragmentation).
 
 ## Workflow
 
-- **Single entry point:** `scripts/run-all-linters.sh` runs all linters for a scope (`client` | `server` | `all`). Server linters are auto-discovered via `Server/scripts/lint_*.py`; Client uses `Client`’s `check:all` (add new Client linters there). New Server lint scripts need no workflow or root script change.
+- **Single entry point:** `scripts/run-all-linters.sh` runs all linters for a scope (`client` | `server` | `all`). Server: every `Server/scripts/lint_*.py` then every executable `Server/scripts/lint_*.sh` (sorted). Client: every executable `Client/scripts/lint.d/*.sh` (sorted), then `pnpm check`. New linters: add a matching file under those dirs; no workflow or root script edit required.
 - **CI:** `.github/workflows/lint.yml` runs the root script for client and server (two jobs). **Main/deploy:** `ci_web.yml` calls the lint workflow before build/deploy.
 
 ## Enforcement

@@ -33,8 +33,20 @@ function compareConversationsByRecency(a: AgentConversation, b: AgentConversatio
 }
 
 export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
-  const { mode, conversationSelector, clientIdForSending, agentId } = config;
+  const {
+    mode,
+    conversationSelector,
+    clientIdForSending,
+    agentId,
+    agentChats: agentChatsFromParent,
+  } = config;
   const queryClient = useQueryClient();
+
+  const skipInternalAgentChats = mode === "agent" && Boolean(agentChatsFromParent);
+  const internalAgentChats = useAgentChats(
+    mode === "agent" && !skipInternalAgentChats ? (conversationSelector ?? undefined) : undefined,
+    { fetchEnabled: mode === "client" || !skipInternalAgentChats }
+  );
 
   const {
     conversations,
@@ -42,7 +54,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     sendMessage: sendMessageApi,
     getChatHistory,
     refreshChats,
-  } = useAgentChats(mode === "agent" ? (conversationSelector ?? undefined) : undefined);
+  } = agentChatsFromParent ?? internalAgentChats;
 
   const markConversationRead = useNotificationStore((s) => s.markConversationRead);
   const updateLastReadTimestamp = useNotificationStore((s) => s.updateLastReadTimestamp);

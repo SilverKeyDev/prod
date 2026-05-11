@@ -1,6 +1,6 @@
 import type { FeedListing } from "packages/features/feed/types/feed";
-import { DEFAULT_PLACEHOLDER_IMAGE } from "packages/features/feed/utils/placeholderAssets";
 import type { SearchResult } from "packages/features/search/types/result";
+import { DEFAULT_PLACEHOLDER_IMAGE } from "packages/utils/media/placeholderAssets";
 
 function parseListingPriceUsd(price: SearchResult["price"]): number | undefined {
   if (typeof price === "number" && Number.isFinite(price) && price > 0) {

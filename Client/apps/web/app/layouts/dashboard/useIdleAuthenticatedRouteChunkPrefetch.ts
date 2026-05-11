@@ -8,18 +8,11 @@ import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
 
 import { prefetchDashboardShellRoute } from "@/app/layouts/dashboard/dashboardRoutePrefetch";
 
-declare global {
-  interface Window {
-    requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
-    cancelIdleCallback?: (handle: number) => void;
-  }
-}
-
 /**
- * After login, prefetch the dashboard + messaging lazy chunks during idle time
- * so cold navigation (bookmark, tap without prior hover) avoids extra JS
- * latency. These two routes pull the heaviest feature trees (calendar,
- * messaging) and are noticeably slower than search/profile/library otherwise.
+ * After login, prefetch dashboard + messaging lazy chunks soon after the first
+ * paint so cold navigation (bookmark, tap without prior hover) avoids extra JS
+ * latency. Uses double rAF (not idle-only) so work starts predictably after
+ * initial paint instead of waiting for an idle slice or a long rIC timeout.
  * Runs once per authenticated session; ref resets on logout.
  */
 export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
@@ -54,17 +47,18 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
       didPrefetchRef.current = true;
       log.info(
         LOG_CATEGORIES.ROUTING,
-        "[PERF] Idle authenticated route chunk prefetch batch starting",
+        "[PERF] Authenticated heavy route chunk prefetch batch starting",
         {
           pathname,
         }
       );
+      const shellOpts = { isAgent: user.is_agent };
       // Prewarm both heavy chunks; skip the one we're already on.
       if (!pathname.startsWith("/dashboard")) {
-        prefetchDashboardShellRoute("/dashboard");
+        prefetchDashboardShellRoute("/dashboard", shellOpts);
       }
       if (!pathname.startsWith("/messaging")) {
-        prefetchDashboardShellRoute("/messaging");
+        prefetchDashboardShellRoute("/messaging", shellOpts);
       } else {
         // Cold load or refresh on /messaging: outer route prefetch is skipped above; still
         // prewarm AgentPage + the correct AgentFeature lazy branch in parallel with other work.
@@ -78,23 +72,20 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
       }
     };
 
-    let idleHandle: number | undefined;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-    if (typeof window.requestIdleCallback === "function") {
-      idleHandle = window.requestIdleCallback(run, { timeout: 2000 });
-    } else {
-      timeoutId = window.setTimeout(run, 2000);
-    }
+    let raf1 = 0;
+    let raf2 = 0;
+    raf1 = window.requestAnimationFrame(() => {
+      raf2 = window.requestAnimationFrame(() => {
+        if (!cancelled) {
+          run();
+        }
+      });
+    });
 
     return () => {
       cancelled = true;
-      if (idleHandle !== undefined && typeof window.cancelIdleCallback === "function") {
-        window.cancelIdleCallback(idleHandle);
-      }
-      if (timeoutId !== undefined) {
-        window.clearTimeout(timeoutId);
-      }
+      window.cancelAnimationFrame(raf1);
+      window.cancelAnimationFrame(raf2);
     };
   }, [authReady, isAuthenticated, user, pathname]);
 }

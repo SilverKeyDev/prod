@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 import { useLocation } from "react-router-dom";
 
+import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useIsAgent } from "packages/hooks/store";
 import { useViewStore, type ViewState } from "packages/store";
 import { useNotificationStore } from "packages/store";
@@ -11,7 +12,6 @@ import { SIDEBAR_CHROME_SHELL } from "packages/ui/components/sidebar/sidebarThem
 import { useDashboardShellRoutePrefetch } from "@/app/layouts/dashboard/useDashboardShellRoutePrefetch.web";
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
 import type { UserProfile } from "@/features/homeauth/types";
-import { useUserData } from "@/features/profile/hooks/data/useUserData";
 
 import { getNavigation, type SidebarNavItem } from "./sidebarNav.web";
 import { SidebarFooter, SidebarHeader, SidebarNav } from "./SidebarNavSections.web";

@@ -3,7 +3,6 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { spacing } from "packages/design-tokens";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import CloseButton from "packages/ui/components/button/CloseButton";
 import { Portal } from "packages/ui/components/portal";
@@ -25,23 +24,14 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
 }) => {
   const { t } = useLocalization();
   if (!isVisible) return null;
-  const insetZero = {
-    left: spacing(0),
-    right: spacing(0),
-    top: spacing(0),
-    bottom: spacing(0),
-  };
   const dialogContent = (
-    <Box className="z-modal fixed inset-0 overflow-y-auto" style={insetZero}>
-      <Box
-        className="space-responsive-md flex min-h-screen items-center justify-center"
-        style={{ width: "100vw", height: "100vh" }}
-      >
+    <Box className="z-modal fixed-modal-dashboard-main overflow-y-auto">
+      <Box className="space-responsive-md flex min-h-screen w-full items-center justify-center">
         {/* Backdrop */}
         <Box
           role="button"
           tabIndex={0}
-          className="bg-overlay-backdrop fixed inset-0 transition-opacity"
+          className="bg-overlay-backdrop fixed-modal-dashboard-main transition-opacity"
           onClick={onClose}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -49,7 +39,6 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
               onClose();
             }
           }}
-          style={insetZero}
         />
 
         {/* Dialog */}

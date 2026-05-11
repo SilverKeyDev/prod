@@ -3,7 +3,6 @@ import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
 
 export const SAVED_TRANSLATIONS: Record<string, string> = {
   // Saved tab labels and loading states
-  "saved.tab_homes": "Homes",
   "saved.tab_documents": "Documents",
   "saved.tab_forms_library": "Forms Library",
   "saved.tab_agreements": "DocuSign",
@@ -16,9 +15,9 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "saved.no_homes_yet": "You have no saved homes yet.",
 
   // Saved list toolbar, filters, and counts
-  "saved.search_homes_placeholder": "Search saved homes…",
   "saved.search_documents_placeholder": "Search documents…",
-  "saved.homes_count": "{{count}} saved",
+  "saved.search_forms_placeholder": "Search forms…",
+  "saved.forms_count": "{{count}} forms",
   "saved.documents_count": "{{count}} documents",
   "saved.filter_all_events": "All activity",
   "saved.filter_listed": "Listed",

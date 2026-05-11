@@ -15,7 +15,7 @@ import { SavedPageViewUnderlineTabs } from "./SavedPageViewUnderlineTabs";
 
 type SavedPageTabsAndSearchProps = {
   isAgent: boolean;
-  /** When false, hides the shared Saved search field (e.g. Forms Library uses internal browsing). */
+  /** When false, hides the shared Saved search field. */
   toolbarShowSearch?: boolean;
   /** Renders at the start of the toolbar row (e.g. agent client picker). */
   toolbarLeading?: ReactNode;
@@ -99,17 +99,19 @@ export default function SavedPageTabsAndSearch({
 
           {toolbarShowSearch ? (
             <Box className="flex w-full min-w-0 flex-1 flex-col gap-1.5">
-              <Box className="relative w-full min-w-0">
-                <Icon
-                  name="search"
-                  className="mobile-icon-xs text-text-disabled pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-                />
+              <Box className="w-full min-w-0">
                 <Input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => onSearchChange(e.target.value)}
                   className={SAVED_PAGE_SEARCH_INPUT_CLASS}
                   placeholder={searchPlaceholder}
+                  leftIcon={
+                    <Icon
+                      name="search"
+                      className="text-text-secondary pointer-events-none h-4 w-4"
+                    />
+                  }
                 />
               </Box>
               {rightText ? (

@@ -1,20 +1,25 @@
 import React, { useMemo } from "react";
 
 import Button from "@ui/button/Button";
+import { Icon } from "@ui/icons";
+import { TextInput } from "react-native";
 
 import { useLocalization } from "packages/contexts";
+import { color } from "packages/design-tokens";
 import type { SavedPageViewType } from "packages/features/documents";
 import { LibrarySortControlNative } from "packages/features/saved/components/header/LibrarySortControl.native";
+import { LibraryViewModeToggle } from "packages/features/saved/components/header/LibraryViewModeToggle";
 import { SavedPageViewUnderlineTabs } from "packages/features/saved/components/header/SavedPageViewUnderlineTabs";
+import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
+import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "packages/features/saved/utils/constants";
 import { Box, Text } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { INPUT_LEFT_ICON_WRAPPER_CLASSES } from "packages/ui/styles/variants/inputVariants";
 
 type EventTypeFilter = "listed" | "price_change" | "sold" | "withdrawn" | "";
 
 interface SavedHeaderProps {
   viewType: SavedPageViewType;
   setViewType: (viewType: SavedPageViewType) => void;
-  summaryCountText: string;
   isAgent: boolean;
   selectedClientName: string | null;
   onOpenClientSelector: () => void;
@@ -24,12 +29,16 @@ interface SavedHeaderProps {
   onUploadDocument?: () => void;
   librarySortKey: string;
   onLibrarySortChange: (value: string) => void;
+  searchTerm?: string;
+  onSearchChange?: (value: string) => void;
+  libraryViewMode?: LibraryViewMode;
+  onLibraryViewModeChange?: (mode: LibraryViewMode) => void;
+  showLibraryViewToggle?: boolean;
 }
 
 export function SavedHeader({
   viewType,
   setViewType,
-  summaryCountText,
   isAgent,
   selectedClientName,
   onOpenClientSelector,
@@ -39,6 +48,11 @@ export function SavedHeader({
   onUploadDocument,
   librarySortKey,
   onLibrarySortChange,
+  searchTerm = "",
+  onSearchChange,
+  libraryViewMode = "grid",
+  onLibraryViewModeChange,
+  showLibraryViewToggle = true,
 }: SavedHeaderProps) {
   const { t } = useLocalization();
 
@@ -77,15 +91,7 @@ export function SavedHeader({
     <>
       {/* Toolbar: saved view tabs + client + event filter */}
       <Box className="border-border bg-background-surface mb-3 rounded-lg border border-b">
-        <Box className="px-2 pt-2">
-          <Box className="items-center">
-            <BodyText size="sm" className="text-text-primary" as="p">
-              {summaryCountText}
-            </BodyText>
-          </Box>
-        </Box>
-
-        <Box className="mt-3 w-full px-2">
+        <Box className="w-full px-2 pt-2">
           <SavedPageViewUnderlineTabs
             isAgent={isAgent}
             viewType={viewType}
@@ -130,12 +136,36 @@ export function SavedHeader({
         </Box>
 
         <Box className="px-2 pb-2">
-          <LibrarySortControlNative
-            viewType={viewType}
-            value={librarySortKey}
-            onChange={onLibrarySortChange}
-          />
+          <Box className="flex flex-row flex-wrap items-center justify-between gap-2">
+            <LibrarySortControlNative
+              viewType={viewType}
+              value={librarySortKey}
+              onChange={onLibrarySortChange}
+            />
+            {viewType === "forms-library" && showLibraryViewToggle && onLibraryViewModeChange ? (
+              <LibraryViewModeToggle
+                viewMode={libraryViewMode}
+                onViewModeChange={onLibraryViewModeChange}
+              />
+            ) : null}
+          </Box>
         </Box>
+        {viewType === "forms-library" && onSearchChange ? (
+          <Box className="px-2 pb-2">
+            <Box className="relative w-full">
+              <Box className={INPUT_LEFT_ICON_WRAPPER_CLASSES}>
+                <Icon name="search" className="h-4 w-4" />
+              </Box>
+              <TextInput
+                value={searchTerm}
+                onChangeText={onSearchChange}
+                placeholder={t("saved.search_forms_placeholder")}
+                className={`${SAVED_PAGE_SEARCH_INPUT_CLASS} pl-10`}
+                placeholderTextColor={color("neutral.400")}
+              />
+            </Box>
+          </Box>
+        ) : null}
       </Box>
 
       {/* Agent-only actions for documents view */}

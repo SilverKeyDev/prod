@@ -18,6 +18,14 @@ If you prefer to stay at the repo root, prefix commands with `cd Client &&`.
   - Configured via `packages/config/eslint/eslint.config.js`.
   - Uses the custom `eslint-plugin-silverkey` along with TypeScript and React-focused rules.
   - Enforces project-specific architecture, hooks, and style rules.
+  - `eslint-plugin-tailwindcss` flags contradictory Tailwind classes in the same string (requires the `eslint-plugin-tailwindcss` pnpm patch under `Client/patches/` for ESLint 9).
+
+- **Stylelint**
+  - Runs on shared CSS paths (see `pnpm stylelint` in `Client/package.json`).
+  - Invoked automatically after ESLint as part of `pnpm lint`.
+
+- **Extra Client linters (optional, auto-discovered)**
+  - Add an **executable** shell script under `Client/scripts/lint.d/` (e.g. `10_custom.sh`). Root `scripts/run-all-linters.sh client` runs `Client/scripts/run-client-linters.sh`, which executes every `lint.d/*.sh` in sorted order, then `pnpm check`.
 
 - **Prettier**
   - Used for automatic code formatting across the client codebase.
@@ -36,14 +44,15 @@ If you prefer to stay at the repo root, prefix commands with `cd Client &&`.
 
 From the `Client/` directory, you can use the following `pnpm` scripts:
 
-- **Run ESLint on the entire client workspace**
+- **Run ESLint and Stylelint on the entire client workspace**
 
   ```bash
   pnpm lint
   ```
 
-  - Runs `eslint .` using `packages/config/eslint/eslint.config.js`.
-  - This is the main command to check for code-quality and architectural issues.
+  - Runs `eslint .` using `packages/config/eslint/eslint.config.js`, then `pnpm stylelint` on the configured CSS paths.
+  - ESLint includes `tailwindcss/no-contradicting-classname` (Tailwind utilities that override each other in the same class string), matching editor Tailwind “css conflict” hints.
+  - This is the main command to check for code-quality, CSS conventions, and architectural issues.
 
 - **Run all lint checks**
 
@@ -80,14 +89,14 @@ From the `Client/` directory, you can use the following `pnpm` scripts:
   - Runs `tsc -p apps/web/tsconfig.json`.
   - Performs a full type-check without emitting compiled output.
 
-- **Run full check (lint + format + typecheck + Vite build)**
+- **Run full check (typecheck + lint + format + cycles + audit + Vite build)**
 
   ```bash
   pnpm check
   ```
 
-  - Runs `pnpm lint && pnpm format:check && pnpm typecheck && pnpm build:web`.
-  - Same as the CI lint workflow; catches Vite resolution/transform errors (e.g. bad imports) that ESLint/TypeScript may miss.
+  - Runs `pnpm typecheck && pnpm lint && pnpm format:check && pnpm lint:cycles && pnpm run audit && pnpm build:web` (see `Client/package.json`).
+  - Same spirit as the root `scripts/run-all-linters.sh client` path (`Client/scripts/run-client-linters.sh` → optional `scripts/lint.d/*.sh`, then this `pnpm check`); catches Vite resolution/transform errors (e.g. bad imports) that ESLint/TypeScript may miss.
 
 ---
 
@@ -105,4 +114,3 @@ From the `Client/` directory, you can use the following `pnpm` scripts:
   - `pnpm format:check`
 
 Because of husky + lint-staged, basic lint/format checks will also run automatically on staged files when you commit, but it’s still a good idea to run the full commands above for larger changes.
-

@@ -90,9 +90,15 @@ const ROUTE_SEO_DEFS: RouteSeoDef[] = [
     noindex: true,
   },
   {
+    pattern: /^\/library/,
+    title: "Library",
+    description: "Your library: documents and agreements on SilverKey.",
+    noindex: true,
+  },
+  {
     pattern: /^\/saved/,
-    title: "Saved",
-    description: "Your saved homes on SilverKey.",
+    title: "Library",
+    description: "Your library: documents and agreements on SilverKey.",
     noindex: true,
   },
   {

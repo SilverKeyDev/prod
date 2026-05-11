@@ -2,10 +2,6 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react
 
 import { useQueryClient } from "@tanstack/react-query";
 
-// Deep imports (not via "packages/features/calendar" barrel) so the dashboard
-// chunk does not pay the cost of loading Calendar/CalendarConnectionPrompt/
-// EventRequestCard/CreateEventModal/etc. just to render UpcomingEvents.
-import { UpcomingEvents } from "packages/features/calendar/components/agenda/UpcomingEvents";
 import type { AgendaTodoDTO } from "packages/features/calendar/types/agenda";
 import { useDocumentsDataIntegration } from "packages/features/documents";
 import { useIsAgent } from "packages/features/homeauth";
@@ -17,8 +13,8 @@ import {
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import type { UIState } from "packages/store/ui.slice";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
@@ -29,35 +25,48 @@ import { useCalendarOAuthCallback } from "@/features/calendar/hooks/data";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
 
 import ClientHubScreen from "./ClientHub/ClientHubScreen";
+import {
+  loadClientListModule,
+  loadDashboardAgreementSigningModalsModule,
+  loadDashboardCalendarPanelModule,
+  loadDashboardChecklistsModule,
+  loadUpcomingEventsModule,
+} from "./dashboardFeatureDynamicImports";
+
+// Lazy-loaded so the dashboard shell can commit before the agenda/calendar subtree
+// (EventList, modals, useUpcomingEventsData, etc.) is parsed and rendered.
+const UpcomingEventsLazy = lazy(
+  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:UpcomingEvents", () =>
+    loadUpcomingEventsModule().then((m) => ({ default: m.UpcomingEvents }))
+  )
+);
 
 // Lazy-loaded so the dashboard shell (upcoming events) can render before the
 // agent-only client list / client-only checklists chunks finish loading.
+// Loaders are memoized in dashboardFeatureDynamicImports so route prefetch hits
+// the same import() promise as React.lazy.
 const ClientList = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.DASHBOARD,
-    "lazy:ClientList",
-    () => import("./ClientList/ClientList")
-  )
+  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:ClientList", loadClientListModule)
 );
 const DashboardChecklists = lazy(
   traceLazyImport(
     LOG_CATEGORIES.DASHBOARD,
     "lazy:DashboardChecklists",
-    () => import("./DashboardChecklists/DashboardChecklists")
+    loadDashboardChecklistsModule
   )
 );
 const DashboardAgreementSigningModals = lazy(
   traceLazyImport(
     LOG_CATEGORIES.DASHBOARD,
     "lazy:DashboardAgreementSigningModals",
-    () => import("./DashboardAgreementSigningModals")
+    loadDashboardAgreementSigningModalsModule
   )
 );
 const DashboardCalendarPanel = lazy(
   traceLazyImport(
     LOG_CATEGORIES.DASHBOARD,
     "lazy:DashboardCalendarPanel",
-    () => import("./DashboardCalendarPanel")
+    loadDashboardCalendarPanelModule
   )
 );
 
@@ -189,14 +198,16 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
   return (
     <>
       <Box className="flex flex-col gap-6 sm:gap-8">
-        <UpcomingEvents
-          suppressConnectionPrompt
-          agendaTodos={agendaTodos}
-          onToggleAgendaTodo={handleToggleAgendaTodo}
-          canEditAgendaTodos={true}
-          onSigningAgendaPress={handleSigningAgendaPress}
-          headerActions={headerActions}
-        />
+        <Suspense fallback={dashboardSectionSkeleton}>
+          <UpcomingEventsLazy
+            suppressConnectionPrompt
+            agendaTodos={agendaTodos}
+            onToggleAgendaTodo={handleToggleAgendaTodo}
+            canEditAgendaTodos={true}
+            onSigningAgendaPress={handleSigningAgendaPress}
+            headerActions={headerActions}
+          />
+        </Suspense>
 
         {isAgent ? (
           <Suspense fallback={dashboardSectionSkeleton}>

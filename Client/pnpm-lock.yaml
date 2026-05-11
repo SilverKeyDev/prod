@@ -42,6 +42,9 @@ patchedDependencies:
   eslint-plugin-jsx-a11y@6.10.2:
     hash: hfzfdw7zpo2wrtir5cv4gwtho4
     path: patches/eslint-plugin-jsx-a11y@6.10.2.patch
+  eslint-plugin-tailwindcss@3.18.3:
+    hash: ojmt3qsmvj7bpq3wf7dehsgsjm
+    path: patches/eslint-plugin-tailwindcss@3.18.3.patch
 
 importers:
   .:
@@ -172,7 +175,7 @@ importers:
         version: 12.1.1(eslint@9.39.4(jiti@2.7.0))
       eslint-plugin-tailwindcss:
         specifier: ^3.18.3
-        version: 3.18.3(tailwindcss@4.2.1)
+        version: 3.18.3(patch_hash=ojmt3qsmvj7bpq3wf7dehsgsjm)(tailwindcss@4.2.1)
       expo-blur:
         specifier: ~13.0.2
         version: 13.0.3(expo@52.0.49(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@expo/metro-runtime@4.0.1(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.3.1)))(graphql@16.13.1)(react-native-webview@13.16.1(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.3.1))(react@18.3.1))(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.3.1))(react@18.3.1))
@@ -17281,7 +17284,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 2.0.0
-      vitest: 3.2.4(@types/node@22.19.15)(@vitest/ui@3.2.4)(esbuild@0.27.3)(jiti@2.7.0)(jsdom@25.0.1)(msw@2.12.10(@types/node@22.19.15)(typescript@5.9.3))(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3)
+      vitest: 3.2.4(@types/node@20.19.37)(@vitest/ui@3.2.4)(esbuild@0.27.3)(jiti@2.7.0)(jsdom@26.1.0)(msw@2.12.10(@types/node@20.19.37)(typescript@5.9.3))(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3)
 
   "@vitest/utils@3.2.4":
     dependencies:
@@ -18738,7 +18741,7 @@ snapshots:
     dependencies:
       eslint: 9.39.4(jiti@2.7.0)
 
-  eslint-plugin-tailwindcss@3.18.3(tailwindcss@4.2.1):
+  eslint-plugin-tailwindcss@3.18.3(patch_hash=ojmt3qsmvj7bpq3wf7dehsgsjm)(tailwindcss@4.2.1):
     dependencies:
       fast-glob: 3.3.3
       postcss: 8.5.8

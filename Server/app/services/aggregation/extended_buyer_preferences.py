@@ -79,6 +79,15 @@ def _importance(v: Any) -> str | None:
     return None
 
 
+def _short_str(v: Any, max_len: int = 120) -> str | None:
+    if v is None:
+        return None
+    s = str(v).strip()
+    if not s:
+        return None
+    return s[:max_len]
+
+
 def _availability_id(v: Any) -> str | None:
     s = _short_str(v, AVAILABILITY_ID_MAX_LEN)
     if not s:
@@ -119,15 +128,6 @@ def _date_ymd(v: Any) -> str | None:
     if y < 1970 or y > 2100 or mo < 1 or mo > 12 or d < 1 or d > 31:
         return None
     return s
-
-
-def _short_str(v: Any, max_len: int = 120) -> str | None:
-    if v is None:
-        return None
-    s = str(v).strip()
-    if not s:
-        return None
-    return s[:max_len]
 
 
 def sanitize_section(section: str, data: Any) -> dict[str, Any] | None:
@@ -280,10 +280,19 @@ def coerce_extension_value(raw: Any) -> dict[str, Any] | None:
     return None
 
 
-def normalize_stored_document(doc: dict[str, Any]) -> dict[str, Any]:
+def _merge_section_keys(allow_availability: bool) -> frozenset[str]:
+    if allow_availability:
+        return VALID_SECTIONS
+    return frozenset(k for k in VALID_SECTIONS if k != "availability")
+
+
+def normalize_stored_document(
+    doc: dict[str, Any], *, include_availability: bool = False
+) -> dict[str, Any]:
     """Return a v1 document with only known sections and sanitized values."""
+    keys = _merge_section_keys(include_availability)
     sections: dict[str, Any] = {}
-    for key in VALID_SECTIONS:
+    for key in keys:
         if key not in doc:
             continue
         sanitized = sanitize_section(key, doc[key])
@@ -295,27 +304,31 @@ def normalize_stored_document(doc: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def merge_extended_buyer_preferences(existing: Any, incoming: Any) -> dict[str, Any] | None:
+def merge_extended_buyer_preferences(
+    existing: Any, incoming: Any, *, allow_availability: bool = False
+) -> dict[str, Any] | None:
     """
     Deep-merge incoming sections into existing stored JSON.
     Unknown top-level keys (except v) are ignored. Empty dict for a section clears it.
+    The ``availability`` section is merged only when ``allow_availability`` is True (agents only).
     Returns None when there is nothing left to store (clears column).
     """
+    keys = _merge_section_keys(allow_availability)
     base: dict[str, dict[str, Any]] = {}
     prev = coerce_extension_value(existing)
     if isinstance(prev, dict):
-        for k in VALID_SECTIONS:
+        for k in keys:
             sub = prev.get(k)
             if isinstance(sub, dict):
                 base[k] = dict(sub)
 
     inc = coerce_extension_value(incoming)
     if not isinstance(inc, dict):
-        doc = normalize_stored_document(dict(base))
+        doc = normalize_stored_document(dict(base), include_availability=allow_availability)
         return doc if len(doc) > 1 else None
 
     for k, v in inc.items():
-        if k == "v" or k not in VALID_SECTIONS:
+        if k == "v" or k not in keys:
             continue
         if isinstance(v, dict) and len(v) == 0:
             base.pop(k, None)
@@ -332,7 +345,9 @@ def merge_extended_buyer_preferences(existing: Any, incoming: Any) -> dict[str, 
         merged = {**prev_sec, **sanitized}
         base[k] = merged
 
-    doc = normalize_stored_document({key: base[key] for key in base})
+    doc = normalize_stored_document(
+        {key: base[key] for key in base}, include_availability=allow_availability
+    )
     return doc if len(doc) > 1 else None
 
 

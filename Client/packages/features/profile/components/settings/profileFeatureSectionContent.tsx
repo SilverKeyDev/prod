@@ -30,6 +30,8 @@ export type ProfileFeatureSectionContentProps = {
   loadError: string | null;
   /** When viewing another user’s profile, hide self-service privacy tools. */
   agentSubject?: { userId: string; displayName: string } | null;
+  /** Agent-only: show weekly availability editor in profile settings. */
+  showAvailabilityEditor: boolean;
 };
 
 export function renderProfileFeatureSectionContent({
@@ -41,6 +43,7 @@ export function renderProfileFeatureSectionContent({
   scriptsReady,
   loadError,
   agentSubject = null,
+  showAvailabilityEditor,
 }: ProfileFeatureSectionContentProps): React.ReactNode {
   switch (sectionId) {
     case "agent_brokerage":
@@ -70,6 +73,16 @@ export function renderProfileFeatureSectionContent({
         />
       );
 
+    case "availability":
+      if (!showAvailabilityEditor) return null;
+      return (
+        <AvailabilitySection
+          formData={formData}
+          isEditMode={isEditMode}
+          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+        />
+      );
+
     case "demographics":
       return (
         <DemographicsSection
@@ -77,15 +90,6 @@ export function renderProfileFeatureSectionContent({
           isEditMode={isEditMode}
           updateFormData={updateFormData}
           showAgentChoice={false}
-        />
-      );
-
-    case "availability":
-      return (
-        <AvailabilitySection
-          formData={formData}
-          isEditMode={isEditMode}
-          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
       );
 

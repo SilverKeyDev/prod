@@ -9,15 +9,15 @@ export { sortCompletedAgendaTodosForDisplay } from "./utils/agenda/mergeUpcoming
 export { buildAgentTodoGoogleEvent, parseAgendaDeadlineTime } from "./utils/core/agentTaskEvent";
 export { getCalendarColorMap } from "./utils/core/calendar";
 export {
-  buildCreateEventGoogleStartEnd,
-  googleAllDayEndExclusiveToInclusiveEndYmd,
-  inclusiveRangeToGoogleAllDayDates,
-  quantizeHourMinute,
-} from "./utils/parsing/eventFormGooglePayload";
-export {
   eventSpansMultipleLocalDays,
   getEventEndDate,
   getEventFirstLocalDayKey,
   getEventLocalDayKeys,
   getEventStartDate,
 } from "./utils/parsing/eventParsing";
+export {
+  buildCreateEventGoogleStartEnd,
+  googleAllDayEndExclusiveToInclusiveEndYmd,
+  inclusiveRangeToGoogleAllDayDates,
+  quantizeHourMinute,
+} from "packages/utils/calendar/eventFormGooglePayload";

@@ -119,7 +119,7 @@ const PdfModal: React.FC<PdfModalProps> = ({
 
   return (
     <ModalPortal>
-      <Box className="space-responsive-sm z-modal fixed inset-0 flex items-center justify-center bg-black/75">
+      <Box className="space-responsive-sm z-modal fixed-modal-dashboard-main flex items-center justify-center bg-black/75">
         <Box
           ref={modalRef}
           className="viewer-container bg-background-surface flex h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-lg shadow-xl sm:h-[90vh]"

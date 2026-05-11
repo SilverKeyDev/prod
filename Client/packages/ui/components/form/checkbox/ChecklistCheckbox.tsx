@@ -137,7 +137,7 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
             {number != null ? `${number}. ` : ""}
             {item.label}
             {item.optional ? (
-              <BodyText as="span" size="xs" className="text-warm-stone font-normal">
+              <BodyText as="span" size="xs" className="text-text-tertiary font-normal">
                 {" "}
                 (optional)
               </BodyText>

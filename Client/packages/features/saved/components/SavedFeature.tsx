@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useQueryClient } from "@tanstack/react-query";
+
+import { queryKeys } from "packages/config/query/keys";
 import {
   useDocumentActions,
   useDocumentsDataIntegration,
-  useHomeComparison,
+  useFormsLibrary,
   useSavedPageDocumentHandlers,
   useSavedPageView,
 } from "packages/features/documents";
@@ -14,28 +17,21 @@ import {
 } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { useSavedFeatureSignatureFlow } from "packages/features/saved/hooks/useSavedFeatureSignatureFlow";
 import type { SavedFeatureProps } from "packages/features/saved/types/savedFeatureProps";
-import { filterHomesBySearchTerm } from "packages/features/saved/types/savedHomeUtils";
-import { usePropertyDetails } from "packages/features/search";
 import { useIsMobile, useSavedPageEffects, useSavedPageModals } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { useNavigation } from "packages/navigation";
-import {
-  useAgentDashboardStore,
-  useAuthStore,
-  useSavedHomesStore,
-  useUIStore,
-} from "packages/store";
-import type { SavedHome } from "packages/types";
+import { useAgentDashboardStore, useAuthStore, useUIStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
 import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
-import { buildPropertyUrl } from "packages/utils/property/slug";
 
 import SavedHomesHeader from "./header/SavedHomesHeader";
 import { SavedPageLayout } from "./layout/SavedPageLayout";
 import { SavedFeatureSigningModals } from "./SavedFeatureSigningModals";
 
+const EMPTY_HOME_SET = new Set<string>();
+
 export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const { viewType, setViewType } = useSavedPageView();
@@ -46,49 +42,40 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   >("");
   const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] = useState(false);
 
-  const homesLibraryView = useLibraryViewMode("homes");
   const documentsLibraryView = useLibraryViewMode("documents");
   const docusignLibraryView = useLibraryViewMode("docusign");
-  const { setMode: setHomesLibraryMode } = homesLibraryView;
   const { setMode: setDocumentsLibraryMode } = documentsLibraryView;
   const { setMode: setDocusignLibraryMode } = docusignLibraryView;
 
-  const homesLibrarySort = useLibrarySortPreference("homes");
   const documentsLibrarySort = useLibrarySortPreference("documents");
   const docusignLibrarySort = useLibrarySortPreference("docusign");
 
   const librarySortKey =
-    viewType === "homes"
-      ? homesLibrarySort.value
-      : viewType === "documents" || viewType === "forms-library"
-        ? documentsLibrarySort.value
-        : docusignLibrarySort.value;
+    viewType === "documents" || viewType === "forms-library"
+      ? documentsLibrarySort.value
+      : docusignLibrarySort.value;
 
   const onLibrarySortChange = useCallback(
     (value: string) => {
-      if (viewType === "homes") homesLibrarySort.setSort(value);
-      else if (viewType === "documents" || viewType === "forms-library") {
+      if (viewType === "documents" || viewType === "forms-library") {
         documentsLibrarySort.setSort(value);
       } else docusignLibrarySort.setSort(value);
     },
-    [viewType, homesLibrarySort, documentsLibrarySort, docusignLibrarySort]
+    [viewType, documentsLibrarySort, docusignLibrarySort]
   );
 
   const libraryViewMode: LibraryViewMode =
-    viewType === "homes"
-      ? homesLibraryView.value
-      : viewType === "documents" || viewType === "forms-library"
-        ? documentsLibraryView.value
-        : docusignLibraryView.value;
+    viewType === "documents" || viewType === "forms-library"
+      ? documentsLibraryView.value
+      : docusignLibraryView.value;
 
   const setLibraryViewMode = useCallback(
     (mode: LibraryViewMode) => {
-      if (viewType === "homes") setHomesLibraryMode(mode);
-      else if (viewType === "documents" || viewType === "forms-library") {
+      if (viewType === "documents" || viewType === "forms-library") {
         setDocumentsLibraryMode(mode);
       } else setDocusignLibraryMode(mode);
     },
-    [viewType, setHomesLibraryMode, setDocumentsLibraryMode, setDocusignLibraryMode]
+    [viewType, setDocumentsLibraryMode, setDocusignLibraryMode]
   );
 
   const user = useAuthStore((s) => s.user);
@@ -100,13 +87,15 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     }
   }, [isAgent, viewType, setViewType]);
 
-  const showLibraryViewToggle = viewType !== "forms-library";
+  const { categories: formsLibraryCategories } = useFormsLibrary(isAgent);
+  const formsLibraryTotalCount = useMemo(
+    () => formsLibraryCategories.reduce((sum, c) => sum + c.forms.length, 0),
+    [formsLibraryCategories]
+  );
+
+  const showLibraryViewToggle = true;
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
-  const homes = useSavedHomesStore((s) => s.savedHomes);
-  const loading = useSavedHomesStore((s) => s.savedHomesLoading);
-  const error = useSavedHomesStore((s) => s.savedHomesError);
-  const refreshSavedHomes = useSavedHomesStore((s) => s.refreshSavedHomes);
   const {
     currentPdf,
     currentDocumentId,
@@ -170,18 +159,6 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   });
 
   const {
-    selectedProperty,
-    clearSelectedProperty,
-    isLoading: isLoadingPropertyDetails,
-  } = usePropertyDetails();
-  const {
-    selectedHomesForComparison,
-    selectedHomesData,
-    handleToggleHomeSelection,
-    handleRemoveFromComparison,
-    handleClearComparison,
-  } = useHomeComparison(homes);
-  const {
     isCompareModalOpen,
     setIsCompareModalOpen,
     isNegotiationModalOpen,
@@ -198,7 +175,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
 
   useEffect(() => {
     if (currentPdf) {
-      log.debug(LOG_CATEGORIES.PAGES, "SavedPage currentPdf updated", {
+      log.debug(LOG_CATEGORIES.PAGES, "Library currentPdf updated", {
         currentPdf,
         currentDocumentId,
         currentDocumentName,
@@ -209,21 +186,19 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
-    if (viewType === "homes") await refreshSavedHomes();
-    else if (viewType === "documents" || viewType === "agreements") await refetchDocuments();
+    if (viewType === "documents" || viewType === "agreements") await refetchDocuments();
+    else if (viewType === "forms-library") {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.formsLibrary.list() });
+    }
     setRefreshing(false);
-  }, [viewType, refreshSavedHomes, refetchDocuments]);
+  }, [viewType, refetchDocuments, queryClient]);
 
   const documentsErrorForEffects: string | null =
     documentsErrorState != null ? String(documentsErrorState) : null;
   useSavedPageEffects({
-    viewType,
-    refreshSavedHomes,
-    error,
     documentsError: documentsErrorForEffects,
   });
 
-  const filteredHomes = filterHomesBySearchTerm(homes, searchTerm);
   const filteredDocuments = useMemo(() => {
     if (eventTypeFilter === "") return documents;
     return documents.filter((doc) => doc.event_type === eventTypeFilter);
@@ -238,19 +213,9 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     [filteredDocuments]
   );
 
-  const { navigateToPath } = useNavigation();
+  const noopAsync = useCallback(async () => {}, []);
+  const noop = useCallback(() => {}, []);
 
-  const handleUnlockHome = useCallback(
-    async (home: SavedHome) => {
-      const zpid = home.home_id;
-      const address = typeof home.address === "string" ? home.address : (home.description ?? "");
-      navigateToPath(buildPropertyUrl(zpid, address));
-    },
-    [navigateToPath]
-  );
-
-  // Render mobile header directly in parent instead of via effect
-  // This avoids the infinite loop caused by effect → state update → re-render → effect
   const mobileHeader = isMobile ? (
     <SavedHomesHeader
       isMobile={true}
@@ -261,21 +226,15 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       onViewTypeChange={setViewType}
       onRefresh={refresh}
       isRefreshing={refreshing}
-      isLoading={
-        viewType === "homes"
-          ? loading
-          : viewType === "forms-library"
-            ? false
-            : documentsLoadingState
-      }
-      homesCount={filteredHomes.length}
+      isLoading={viewType === "forms-library" ? false : documentsLoadingState}
+      homesCount={0}
       documentsCount={
         viewType === "documents"
           ? documentsTabCount
           : viewType === "agreements"
             ? agreementsTabCount
             : viewType === "forms-library"
-              ? 0
+              ? formsLibraryTotalCount
               : filteredDocuments.length
       }
       selectedClientId={selectedClientId}
@@ -290,38 +249,29 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     />
   ) : null;
 
-  // Set mobile header once on mount and when it changes, but avoid effect loop
   useEffect(() => {
     setMobileHeaderActions?.(mobileHeader);
     return () => {
       setMobileHeaderActions?.(null);
     };
-    // Only depend on whether we have a header to set, not the header itself
-    // This breaks the loop since mobileHeader JSX creates new objects
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isMobile,
     setMobileHeaderActions,
-    // Depend on primitive values that determine if header should update
     isAgent,
     searchTerm,
     viewType,
     refreshing,
-    loading,
     documentsLoadingState,
-    filteredHomes.length,
     documentsTabCount,
     agreementsTabCount,
+    formsLibraryTotalCount,
     selectedClientId,
     eventTypeFilter,
     libraryViewMode,
     showLibraryViewToggle,
     librarySortKey,
   ]);
-
-  const handleCompare = useCallback(() => {
-    if (selectedHomesData.length >= 2) setIsCompareModalOpen(true);
-  }, [selectedHomesData.length, setIsCompareModalOpen]);
 
   return (
     <>
@@ -340,14 +290,15 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
         showLibraryViewToggle={showLibraryViewToggle}
         librarySortKey={librarySortKey}
         onLibrarySortChange={onLibrarySortChange}
-        filteredHomes={filteredHomes}
+        formsLibraryTotalCount={formsLibraryTotalCount}
+        filteredHomes={[]}
         filteredDocuments={filteredDocuments}
-        loading={loading}
+        loading={false}
         documentsLoadingState={documentsLoadingState}
-        selectedHomesForComparison={selectedHomesForComparison}
-        selectedHomesData={selectedHomesData}
-        selectedProperty={selectedProperty}
-        isLoadingPropertyDetails={isLoadingPropertyDetails}
+        selectedHomesForComparison={EMPTY_HOME_SET}
+        selectedHomesData={[]}
+        selectedProperty={null}
+        isLoadingPropertyDetails={false}
         isCompareModalOpen={isCompareModalOpen}
         setIsCompareModalOpen={setIsCompareModalOpen}
         isNegotiationModalOpen={isNegotiationModalOpen}
@@ -355,7 +306,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
         isDocumentUploadModalOpen={isDocumentUploadModalOpen}
         setIsDocumentUploadModalOpen={setIsDocumentUploadModalOpen}
         isAgent={isAgent}
-        homes={homes}
+        homes={[]}
         currentPdf={currentPdf}
         currentDocumentId={currentDocumentId}
         currentDocumentName={currentDocumentName}
@@ -389,16 +340,16 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
               }
             : undefined
         }
-        onToggleHomeSelection={handleToggleHomeSelection}
-        onUnlockHome={handleUnlockHome}
+        onToggleHomeSelection={noop}
+        onUnlockHome={noopAsync}
         onDocumentDelete={(doc) => {
           void handleDocumentDelete(doc);
         }}
-        onRemoveFromComparison={handleRemoveFromComparison}
+        onRemoveFromComparison={noop}
         onCloseNegotiation={handleCloseNegotiation}
-        onCompare={handleCompare}
-        onClearComparison={handleClearComparison}
-        clearSelectedProperty={clearSelectedProperty}
+        onCompare={noop}
+        onClearComparison={noop}
+        clearSelectedProperty={noop}
         refetchDocuments={refetchDocuments}
         refresh={refresh}
         refreshing={refreshing}

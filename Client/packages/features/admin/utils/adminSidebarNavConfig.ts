@@ -10,8 +10,7 @@ export const ADMIN_ROUTE_SEGMENTS = {
   superadmin: "superadmin",
 } as const;
 
-export type AdminRouteSegment =
-  (typeof ADMIN_ROUTE_SEGMENTS)[keyof typeof ADMIN_ROUTE_SEGMENTS];
+export type AdminRouteSegment = (typeof ADMIN_ROUTE_SEGMENTS)[keyof typeof ADMIN_ROUTE_SEGMENTS];
 
 export const ADMIN_BASE_PATH = "/admin";
 

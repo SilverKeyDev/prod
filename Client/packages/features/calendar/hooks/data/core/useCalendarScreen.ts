@@ -3,8 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useMediaQuery } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import type { UIState } from "packages/store/ui.slice";
 import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
 import { screenUp } from "packages/ui/types/screens";
 import { dateNow, dayjs } from "packages/utils/date";
@@ -86,10 +86,9 @@ export function useCalendarScreen({
   const setViewMode = useCallback(
     (mode: CalendarViewType) => {
       setViewModeState(mode);
-      const availability = clientSettings?.calendar?.availability ?? "week";
-      patchClientSettings({ calendar: { shell: mode, availability } });
+      patchClientSettings({ calendar: { shell: mode } });
     },
-    [clientSettings?.calendar?.availability, patchClientSettings]
+    [patchClientSettings]
   );
   const [focusedDate, setFocusedDate] = useState(() => dateNow().startOf("day").toDate());
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
@@ -360,7 +359,7 @@ export function useCalendarScreen({
     selectedDayKey,
     setSelectedDayKey,
     selectedEvents,
-    getSelectedDayListHeading: (dateKey: string) => getCalendarDayListHeading(dateKey, "events"),
+    getSelectedDayListHeading: (dateKey: string) => getCalendarDayListHeading(dateKey),
     refetchEvents,
     updateEvent,
     deleteEvent,

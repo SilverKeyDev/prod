@@ -12,7 +12,7 @@ export type RouteName = keyof typeof ROUTES;
 /** Params for routes that have path params (e.g. splat). Most routes have no params. */
 export type RouteParamsMap = {
   PROFILE?: { splat?: string };
-  SAVED?: { splat?: string };
+  LIBRARY?: { splat?: string };
   DASHBOARD?: { splat?: string };
   AGREEMENT_SIGNING_COMPLETE?: { agreementId: string };
   PROPERTY_DETAILS?: { address?: string; propertyId?: string };

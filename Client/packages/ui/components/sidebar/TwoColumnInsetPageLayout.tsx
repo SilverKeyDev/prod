@@ -19,7 +19,7 @@ export function TwoColumnInsetPageLayout({
   regionClassName = "w-full flex-1",
 }: TwoColumnInsetPageLayoutProps) {
   return (
-    <Box className="min-h-screen bg-background-base">
+    <Box className="bg-background-base min-h-screen">
       <Box className={`mx-auto ${maxWidthClassName} pb-1 sm:px-6 lg:px-8`}>
         <Box className="flex flex-row gap-6 lg:gap-8">
           {sidebar}

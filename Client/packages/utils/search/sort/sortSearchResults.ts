@@ -1,11 +1,6 @@
 import type { SearchResult } from "packages/features/search/types";
-import { getMatchScore } from "packages/features/search/types/result";
-import {
-  legacyDefaultSortDirection,
-  type ResultsOrderBy,
-  type ResultsSortDirection,
-} from "packages/features/search/types/searchDisplay";
 import { dateNow } from "packages/utils/date";
+import { getPropertyMatchScore } from "packages/utils/search/scoring/propertyMatchScore";
 
 import {
   type DistanceAnchorInput,
@@ -13,6 +8,21 @@ import {
   type DistanceSortMode,
   resolveDistanceSortMode,
 } from "./displaySortAnchor";
+
+export type ResultsOrderBy =
+  | "match_score"
+  | "price"
+  | "distance"
+  | "bedrooms"
+  | "bathrooms"
+  | "lot_size"
+  | "home_age";
+
+export type ResultsSortDirection = "asc" | "desc";
+
+function legacyDefaultSortDirection(orderBy: ResultsOrderBy): ResultsSortDirection {
+  return orderBy === "price" || orderBy === "distance" ? "asc" : "desc";
+}
 
 export function parsePriceForSort(price: string | number | undefined): number | null {
   if (price == null) return null;
@@ -77,7 +87,7 @@ export function sortSearchResults(
     direction === "asc" ? compareNullableAsc(a, b, true) : compareNullableDesc(a, b, true);
 
   const scoreKey = (p: SearchResult) => {
-    const v = getMatchScore(p);
+    const v = getPropertyMatchScore(p);
     return Number.isFinite(v) ? v : null;
   };
 

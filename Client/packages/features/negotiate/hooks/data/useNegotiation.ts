@@ -1,6 +1,5 @@
 /**
- * Hook that exposes negotiation service actions.
- * Wraps packages/services/negotiation so components use hooks only.
+ * Hook that exposes negotiation service actions (see `packages/features/negotiate/utils`).
  */
 import { useCallback } from "react";
 

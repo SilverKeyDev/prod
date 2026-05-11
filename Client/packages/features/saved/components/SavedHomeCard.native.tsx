@@ -9,20 +9,9 @@ import { ConnectedCardHeartSave } from "packages/ui/components/primitives";
 import { Image } from "packages/ui/components/primitives";
 import { Box, Text } from "packages/ui/components/primitives";
 import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
+import { displayListingPriceForCard } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
 
 import type { SavedHomeCardProps } from "./SavedHomeCard";
-
-function formatPrice(value: string | number | null | undefined): string {
-  if (value == null) return "Price N/A";
-  const asNumber =
-    typeof value === "string"
-      ? Number(value.replace(/[^0-9.-]/g, ""))
-      : typeof value === "number"
-        ? value
-        : Number.NaN;
-  if (!Number.isFinite(asNumber)) return String(value);
-  return `$${asNumber.toLocaleString()}`;
-}
 
 /**
  * Native saved home card: image with overlay (compare + heart),
@@ -40,7 +29,7 @@ export function SavedHomeCard({
       ? home.address.toString()
       : (home.description ?? "[Invalid address]");
   const address = addressStreetLineForCard(addressRaw);
-  const priceStr = formatPrice(home.price as string | number | null | undefined);
+  const priceStr = displayListingPriceForCard(home.price, { unavailableLabel: "Price N/A" });
   const details = [
     home.bedrooms != null ? `${home.bedrooms} bed` : null,
     home.bathrooms != null ? `${home.bathrooms} bath` : null,

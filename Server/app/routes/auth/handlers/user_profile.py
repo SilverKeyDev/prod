@@ -191,15 +191,7 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
 
         _, ext = os.path.splitext(safe_filename.lower())
         s3_key = f"profile_pictures/{user.id}/avatar{ext}"
-
-        if getattr(user, "profile_picture", None):
-            try:
-                s3_service.delete_pdf(user.profile_picture)
-            except Exception as e:
-                logger.warning(
-                    "Failed to delete old profile picture",
-                    extra={"user_id": str(user.id), "error": str(e)},
-                )
+        previous_picture_key = getattr(user, "profile_picture", None)
 
         uploaded_key = s3_service.upload_file(
             temp_file_path, s3_key, content_type=validated_mime_type
@@ -207,12 +199,41 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
         if not uploaded_key:
             return SecureErrorHandler.create_secure_response("server_error", 500)
 
-        user.profile_picture = uploaded_key
-        db.session.commit()
-
         profile_picture_url = s3_service.generate_view_url(
             uploaded_key, content_type=validated_mime_type
         )
+        if not profile_picture_url:
+            logger.error(
+                "Profile picture presigned URL generation failed after S3 upload",
+                extra={"user_id": str(user.id), "s3_key": uploaded_key},
+            )
+            try:
+                s3_service.delete_pdf(uploaded_key)
+            except Exception as cleanup_err:
+                logger.warning(
+                    "Failed to delete profile picture object after presign failure",
+                    extra={"user_id": str(user.id), "error": str(cleanup_err)},
+                )
+            return SecureErrorHandler.create_secure_response(
+                "configuration_error",
+                503,
+                additional_info={
+                    "message": "Could not create a secure link for the image. Storage signing may be misconfigured.",
+                },
+            )
+
+        if previous_picture_key and previous_picture_key != uploaded_key:
+            try:
+                s3_service.delete_pdf(previous_picture_key)
+            except Exception as e:
+                logger.warning(
+                    "Failed to delete old profile picture",
+                    extra={"user_id": str(user.id), "error": str(e)},
+                )
+
+        user.profile_picture = uploaded_key
+        db.session.commit()
+
         # #region agent log
         _, ext_dbg = os.path.splitext(safe_filename.lower())
         _agent_debug_log(

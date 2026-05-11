@@ -14,7 +14,7 @@ import { Box } from "packages/ui/components/primitives";
 import { BodyText, Button, Title } from "@/components/ui";
 type PageErrorBoundaryProps = {
   children: ReactNode;
-  /** Optional label for the page (e.g. "Search", "Saved") for the error message. */
+  /** Optional label for the page (e.g. "Search", "Library") for the error message. */
   pageLabel?: string;
 };
 type PageErrorBoundaryState = {

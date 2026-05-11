@@ -93,7 +93,7 @@ export default function ClientChecklists({
       <Box className="flex-row items-center justify-between">
         <Text className="text-text-primary text-sm font-semibold">Client checklists</Text>
         {totalCount > 0 ? (
-          <Text className="text-warm-stone text-xs">
+          <Text className="text-text-tertiary text-xs">
             {completedCount} of {totalCount} items complete
           </Text>
         ) : null}

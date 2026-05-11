@@ -4,8 +4,8 @@ import { UpcomingEvents } from "packages/features/calendar";
 import { useDocumentActions, useDocumentsDataIntegration } from "packages/features/documents";
 import { useClientHubAgendaTodos } from "packages/hooks/data/agenda/useClientHubAgendaTodos";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import type { UIState } from "packages/store/ui.slice";
 import { Box } from "packages/ui/components/primitives";
 
 import { ClientHubDocumentSigningModals } from "@/features/dashboard/components/ClientHub/ClientHubDocumentSigningModals";

@@ -3,16 +3,15 @@
 import type { OnboardingData } from "packages/features/profile/types/onboarding";
 import { DEFAULT_REPORT_SECTIONS } from "packages/features/profile/utils/public/constants";
 
+import { isAgentFormSelection } from "./agentFormSelection";
+
 export type {
   ProfileSectionCompletionMap,
   ProfileSectionCompletionStatus,
   ProfileSectionId,
 } from "packages/features/profile/types/profileSections";
 
-/** True when demographics `is_agent` marks a real estate agent (aligns with server / useIsAgent). */
-export function isAgentFormSelection(is_agent: string | undefined): boolean {
-  return is_agent === "yes" || is_agent === "am_agent";
-}
+export { isAgentFormSelection };
 
 /**
  * For buyer-preference UI (optional callouts): true if the auth user is an agent or the form

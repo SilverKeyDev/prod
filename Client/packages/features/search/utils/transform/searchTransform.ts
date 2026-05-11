@@ -4,10 +4,9 @@
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { PropertySearchResult, SearchByPolygonResponse } from "packages/types/domain/api";
+import { formatPropertySearchListingPrice } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
 
 import type { SearchResult } from "@/features/search/types";
-
-import { formatPropertySearchListingPrice } from "./formatPropertySearchListingPrice";
 
 /** Pre–OpenAPI-alignment polygon row (flat). */
 type LegacyFlatPolygonProperty = {

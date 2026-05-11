@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 
 import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAuth";
-import { getSessionStorage } from "packages/features/homeauth/hooks/data/utils/logoutCleanup";
+import { getOptionalSessionStorageForLogout } from "packages/features/homeauth/hooks/data/utils/logoutCleanup";
 import { useAuthStore } from "packages/store";
 import { getWindow } from "packages/utils";
 
@@ -16,7 +16,7 @@ function setupSecureAccessTokenOnWindow(): (() => void) | void {
   if (winExt.getSecureAccessToken) return;
   winExt.getSecureAccessToken = () => null;
   winExt.secureLogout = () => {
-    const sess = getSessionStorage();
+    const sess = getOptionalSessionStorageForLogout();
     if (sess) {
       sess.removeItem("user");
       sess.removeItem("signupEmail");

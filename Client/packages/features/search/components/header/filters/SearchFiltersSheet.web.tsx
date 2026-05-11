@@ -38,9 +38,14 @@ export default function SearchFiltersSheet({
   onAgentSyncPreferencesFetched,
 }: SearchFiltersSheetProps): React.ReactElement {
   const { t } = useLocalization();
-  const handleApply = () => {
-    onApply();
-    onClose();
+  const handleApply = async () => {
+    try {
+      await Promise.resolve(onApply());
+    } catch {
+      /* Save/search errors handled upstream */
+    } finally {
+      onClose();
+    }
   };
 
   return (
@@ -108,7 +113,7 @@ export default function SearchFiltersSheet({
                   variant="primary"
                   size="md"
                   fullWidth
-                  onClick={handleApply}
+                  onClick={() => void handleApply()}
                   className="touch-friendly"
                   iconName="search"
                 >

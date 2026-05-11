@@ -5,6 +5,21 @@
 
 import { APP_TAB_DEEP_LINK, AUTH_SCREENS } from "packages/navigation/constants";
 
+/** Longest prefix first so `/library` wins over `/` if we ever add overlapping keys. */
+const APP_TAB_PREFIXES = Object.entries(APP_TAB_DEEP_LINK).sort(
+  (a, b) => b[0].length - a[0].length
+);
+
+function appTabScreenFromPathname(pathname: string): string | null {
+  if (pathname === "/settings") return "Profile";
+  for (const [prefix, tab] of APP_TAB_PREFIXES) {
+    if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
+      return tab;
+    }
+  }
+  return null;
+}
+
 export type DeepLinkTarget =
   | { type: "auth"; screen: string }
   | { type: "app"; tab: string }
@@ -23,9 +38,7 @@ export function resolveDeepLinkTarget(
     if (normalizedPathname === "/find-agents") {
       return { type: "rootStack", screen: "FindAgents" };
     }
-    const tab =
-      APP_TAB_DEEP_LINK[normalizedPathname] ??
-      (normalizedPathname === "/settings" ? "Profile" : null);
+    const tab = appTabScreenFromPathname(normalizedPathname);
     if (tab) return { type: "app", tab };
     return null;
   }

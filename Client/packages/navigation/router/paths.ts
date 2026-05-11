@@ -10,7 +10,7 @@ export { ROUTES };
 
 /**
  * Build path string for a route and optional params.
- * Handles splat routes (PROFILE, SAVED, DASHBOARD) by appending splat to the base path.
+ * Handles splat routes (PROFILE, LIBRARY, DASHBOARD) by appending splat to the base path.
  */
 export function pathFor<R extends RouteName>(route: R, params?: ParamsForRoute<R>): string {
   const path = ROUTES[route];

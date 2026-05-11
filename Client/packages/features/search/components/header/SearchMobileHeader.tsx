@@ -13,6 +13,7 @@ import SearchActions from "./SearchActions.web";
 
 export type SearchMobileHeaderProps = {
   onSearch: () => void;
+  onPreferencesApplySearch?: () => void | Promise<void>;
   onLocationSearchSubmit: () => void | Promise<void>;
   fitMapToBounds: (bounds: google.maps.LatLngBounds) => void;
   onPreciseStreetAddressSelected?: (payload: PreciseStreetAddressPayload) => void;
@@ -29,6 +30,7 @@ export type SearchMobileHeaderProps = {
 
 const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
   onSearch,
+  onPreferencesApplySearch,
   onLocationSearchSubmit,
   fitMapToBounds,
   onPreciseStreetAddressSelected,
@@ -59,6 +61,7 @@ const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
       <SearchActions
         mobileToolbarCluster
         onSearchProperties={onSearch}
+        onPreferencesApplySearch={onPreferencesApplySearch}
         onCancelSearch={onCancelSearch}
         isSearching={isSearching}
         hasLocations={hasLocations}

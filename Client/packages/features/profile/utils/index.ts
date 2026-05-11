@@ -1,11 +1,11 @@
 // Export all shared profile/onboarding utilities
 export * from "./agentPublicProfile";
-export * from "./availability/onboardingStepCompletion";
 export * from "./financials/payingCashFinancials";
 export * from "./financials/propertyTax";
 export * from "./onboarding/fieldContract";
 export * from "./onboarding/housingOptions";
 export * from "./onboarding/onboardingRoleSelection";
+export * from "./onboarding/onboardingStepCompletion";
 export * from "./onboarding/preferencesUtils";
 export * from "./onboarding/profileFormSync";
 export * from "./onboarding/steps";

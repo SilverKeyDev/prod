@@ -1,4 +1,4 @@
-import type { DocumentData, SavedPageViewType } from "packages/features/documents";
+import type { DocumentData, SavedHomesSurfaceViewType } from "packages/features/documents";
 import type { LibraryPersistSection } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import type { SavedHome } from "packages/types";
 import { dateParseISO } from "packages/utils/date";
@@ -116,8 +116,16 @@ export function sortAndFilterAgreementsForLibrary(
 
 export type LibrarySortOption = { value: string; labelKey: string };
 
-export function librarySortOptionsForView(viewType: SavedPageViewType): LibrarySortOption[] {
-  if (viewType === "forms-library") return [];
+export function librarySortOptionsForView(
+  viewType: SavedHomesSurfaceViewType
+): LibrarySortOption[] {
+  if (viewType === "forms-library") {
+    return [
+      { value: "date_desc", labelKey: "saved.library_sort_docs_newest" },
+      { value: "date_asc", labelKey: "saved.library_sort_docs_oldest" },
+      { value: "name_asc", labelKey: "saved.library_sort_docs_name" },
+    ];
+  }
   if (viewType === "homes") {
     return [
       { value: "date_desc", labelKey: "saved.library_sort_homes_newest" },

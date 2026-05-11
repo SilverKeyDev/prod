@@ -62,7 +62,7 @@ export default function AgreementSigningCompletePage() {
       <Button
         variant="primary"
         size="md"
-        onClick={() => navigateToPath("/saved?saved=agreements")}
+        onClick={() => navigateToPath("/library?library=agreements")}
         iconName="home"
       >
         Back to agreements

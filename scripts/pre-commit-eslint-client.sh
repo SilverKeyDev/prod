@@ -3,7 +3,8 @@
 # passes repo-root paths like Client/apps/web/foo.tsx; strip the Client/ prefix
 # so resolution matches `pnpm run lint` (cwd = Client).
 set -euo pipefail
-cd "$(dirname "$0")/../Client" || exit 1
+_HERE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+cd "${_HERE}/../Client" || exit 1
 rel=()
 for f in "$@"; do
   rel+=("${f#Client/}")

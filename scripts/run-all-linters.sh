@@ -2,8 +2,8 @@
 # Run all linters for the given scope. Single entry point for CI and local use.
 # Requires: Client — `cd Client && pnpm install`; Server — deps installed (e.g. venv +
 # pip install -r requirements-ci.txt for lint-only, or requirements.txt for full app).
-# New Server linters: add a file Server/scripts/lint_*.py (auto-discovered).
-# New Client linters: add the script to the "check:all" target in Client/package.json.
+# Server: auto-discovers Server/scripts/lint_*.py then lint_*.sh (sorted per shell glob).
+# Client: Client/scripts/run-client-linters.sh runs scripts/lint.d/*.sh (optional) then pnpm check.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -31,8 +31,8 @@ run_client() {
     (cd Client && pnpm run fix) || true
   fi
 
-  echo "==> Client: running linters (typecheck, lint, format:check, cycles, audit, build)..."
-  (cd Client && pnpm run check)
+  echo "==> Client: running Client/scripts/run-client-linters.sh (discovered lint.d/*.sh + pnpm check)..."
+  (cd Client && bash scripts/run-client-linters.sh)
 }
 
 run_server() {
@@ -48,20 +48,33 @@ run_server() {
     echo "==> Server: CI mode detected; skipping auto-fix steps."
   else
     echo "==> Server: applying fixes (ruff check --fix, ruff format)..."
-    (cd Server && ruff check . --fix && ruff format .)
+    if (cd "${REPO_ROOT}/Server" && "$SERVER_PYTHON" -m ruff --version >/dev/null 2>&1); then
+      (cd "${REPO_ROOT}/Server" && "$SERVER_PYTHON" -m ruff check . --fix && "$SERVER_PYTHON" -m ruff format .)
+    elif command -v ruff >/dev/null 2>&1; then
+      (cd "${REPO_ROOT}/Server" && ruff check . --fix && ruff format .)
+    else
+      echo "==> Server: ruff not found (try: cd Server && source .venv/bin/activate && pip install ruff); skipping auto-fix." >&2
+    fi
   fi
 
-  echo "==> Server: running linters (lint_*.py, ruff check, ruff format --check, pyright)..."
-  for f in Server/scripts/lint_*.py; do
-    if [ -f "$f" ]; then
+  echo "==> Server: running discovered linters (lint_*.py, then lint_*.sh)…"
+  (
+    cd "$REPO_ROOT"
+    shopt -s nullglob
+    for f in Server/scripts/lint_*.py; do
       echo "  Running $f"
       "$SERVER_PYTHON" "$f" || exit 1
-    fi
-  done
-  (cd Server && ruff check . && ruff format --check .)
-  if command -v pyright >/dev/null 2>&1; then
-    (cd Server && pyright) || true
-  fi
+    done
+    for f in Server/scripts/lint_*.sh; do
+      if [ ! -x "$f" ]; then
+        echo "  Skipping non-executable: $f (chmod +x to enable)" >&2
+        continue
+      fi
+      echo "  Running $f"
+      bash "$f" || exit 1
+    done
+    shopt -u nullglob
+  )
 }
 
 case "$SCOPE" in
@@ -77,8 +90,8 @@ case "$SCOPE" in
     ;;
   *)
     echo "Usage: $0 [client|server|all]" >&2
-    echo "  client - run all Client linters (via Client check:all)" >&2
-    echo "  server - run all Server linters (ruff, pyright, every Server/scripts/lint_*.py)" >&2
+    echo "  client - run all Client linters (lint.d/*.sh + pnpm check)" >&2
+    echo "  server - run all Server linters (lint_*.py + lint_*.sh under Server/scripts/)" >&2
     echo "  all    - run both (default)" >&2
     exit 1
     ;;

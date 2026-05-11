@@ -1,7 +1,7 @@
+import { inclusiveRangeToGoogleAllDayDates } from "packages/utils/calendar/eventFormGooglePayload";
 import { dayjs } from "packages/utils/date";
 
 import type { GoogleCalendarEventCreateBody } from "@/features/calendar/types/googleEvent";
-import { inclusiveRangeToGoogleAllDayDates } from "@/features/calendar/utils/parsing/eventFormGooglePayload";
 
 const HH_MM_REGEX = /^(\d{1,2}):(\d{2})$/;
 

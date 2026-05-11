@@ -18,7 +18,6 @@ export function SavedPageViewUnderlineTabs({
   const { t } = useLocalization();
   const items = isAgent
     ? [
-        { id: "homes" as const, label: t("saved.tab_homes") },
         { id: "documents" as const, label: t("saved.tab_documents") },
         { id: "forms-library" as const, label: t("saved.tab_forms_library") },
         {
@@ -27,7 +26,6 @@ export function SavedPageViewUnderlineTabs({
         },
       ]
     : [
-        { id: "homes" as const, label: t("saved.tab_homes") },
         { id: "documents" as const, label: t("saved.tab_documents") },
         {
           id: "agreements" as const,

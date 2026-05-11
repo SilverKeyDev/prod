@@ -7,7 +7,7 @@
 import type { IconName } from "packages/ui/types/icons";
 
 /** Bottom tab names (must match React Navigation tab screen names). */
-export const APP_TAB_NAMES = ["Dashboard", "Search", "Saved", "Messaging", "Profile"] as const;
+export const APP_TAB_NAMES = ["Dashboard", "Search", "Library", "Messaging", "Profile"] as const;
 
 export type AppTabName = (typeof APP_TAB_NAMES)[number];
 
@@ -15,7 +15,7 @@ export type AppTabName = (typeof APP_TAB_NAMES)[number];
 export const TAB_ICONS: Record<AppTabName, IconName> = {
   Dashboard: "home",
   Search: "search",
-  Saved: "bookmark",
+  Library: "bookmark",
   Messaging: "send",
   Profile: "user",
 };

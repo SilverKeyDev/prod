@@ -1,6 +1,13 @@
+import { tailwindNavChromeNavText } from "packages/ui/styles/theme/navTabTypography";
+import {
+  BUTTON_ICON_LUCIDE_SIZE_PX,
+  BUTTON_ICON_SIZE_CLASS,
+  BUTTON_LUCIDE_ICON_STROKE_WIDTH,
+} from "packages/ui/styles/variants/buttonVariants";
+
 /**
  * Unified sidebar styling (chrome + inset). All class strings use design tokens
- * from `packages/design-tokens/tokens/colors.json` — no raw `neutral-*` in sidebar UI.
+ * from merged design-tokens color JSON (foundation + features) — no raw `neutral-*` in sidebar UI.
  */
 
 /** Fixed nav column: app shell, mobile dock */
@@ -62,11 +69,12 @@ export const SIDEBAR_AVATAR_WRAP =
  * Primary nav links on dark chrome (dashboard sidebar).
  */
 export function getChromeNavButtonStyles(isActive: boolean): string {
+  const { inactive, highlighted } = tailwindNavChromeNavText;
   const baseStyles =
-    "w-full flex items-center py-3 transition-all duration-200 font-medium touch-friendly rounded-lg";
+    "w-full flex items-center py-3 transition-all duration-200 touch-friendly rounded-lg";
   const hoverActiveStyles = "bg-sidebar-accent hover:bg-sidebar-accent";
-  const activeStyles = `${hoverActiveStyles} text-sidebar-foreground font-bold`;
-  const inactiveStyles = `text-sidebar-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:-translate-y-0.5 active:bg-sidebar-accent active:text-sidebar-foreground`;
+  const activeStyles = `${hoverActiveStyles} text-sidebar-foreground ${highlighted}`;
+  const inactiveStyles = `${inactive} text-sidebar-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:-translate-y-0.5 active:bg-sidebar-accent active:text-sidebar-foreground`;
   return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
 }
 
@@ -74,11 +82,11 @@ export function getChromeNavButtonStyles(isActive: boolean): string {
  * Nested items on dark chrome (dashboard sidebar sub-links).
  */
 export function getChromeNavSubItemStyles(isActive: boolean): string {
-  const baseStyles =
-    "flex items-center transition-all duration-200 font-medium touch-friendly rounded-lg";
+  const { inactive, highlighted } = tailwindNavChromeNavText;
+  const baseStyles = "flex items-center transition-all duration-200 touch-friendly rounded-lg";
   const hoverActiveStyles = "bg-sidebar-accent hover:bg-sidebar-accent";
-  const activeStyles = `${hoverActiveStyles} text-sidebar-foreground font-bold`;
-  const inactiveStyles = `text-sidebar-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:-translate-y-0.5 active:bg-sidebar-accent active:text-sidebar-foreground`;
+  const activeStyles = `${hoverActiveStyles} text-sidebar-foreground ${highlighted}`;
+  const inactiveStyles = `${inactive} text-sidebar-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:-translate-y-0.5 active:bg-sidebar-accent active:text-sidebar-foreground`;
   return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
 }
 
@@ -106,23 +114,37 @@ export function getInsetNavItemClasses({
     return `${base} cursor-not-allowed bg-disabled text-text-disabled`;
   }
   if (active) {
-    return `${base} !bg-primary-muted !text-text-primary hover:!bg-primary-muted hover:!font-semibold hover:!text-text-primary active:!bg-primary-muted active:!font-semibold active:!text-text-primary`;
+    return `${base} !bg-neutral-100 !text-text-primary hover:!bg-neutral-100 hover:!font-semibold hover:!text-text-primary active:!bg-neutral-100 active:!font-semibold active:!text-text-primary focus-visible:!ring-0 focus-visible:!ring-offset-0`;
   }
-  return `${base} text-text-secondary hover:!bg-primary-muted hover:text-text-primary active:!bg-primary-muted active:text-text-primary`;
+  return `${base} text-text-primary hover:!bg-neutral-50 hover:text-text-primary active:!bg-neutral-100 active:text-text-primary`;
 }
 
 export function getInsetNavItemIconClasses(active: boolean): string {
-  return `size-5 flex-shrink-0 transition-colors ${
+  const sizeClass = active ? BUTTON_ICON_SIZE_CLASS.lg : BUTTON_ICON_SIZE_CLASS.sm;
+  return `${sizeClass} flex-shrink-0 transition-colors ${
     active
       ? "!text-text-primary group-hover:!text-text-primary"
-      : "text-text-secondary group-hover:text-text-primary"
+      : "text-text-primary group-hover:text-text-primary"
   }`;
 }
 
+/** Lucide / shared `Icon` `size` — use with {@link getInsetNavItemIconClasses}. */
+export function getInsetNavItemIconLucideSizePx(active: boolean): number {
+  return active ? BUTTON_ICON_LUCIDE_SIZE_PX.lg : BUTTON_ICON_LUCIDE_SIZE_PX.sm;
+}
+
+/** Lucide `strokeWidth` — use with {@link getInsetNavItemIconClasses}. */
+export function getInsetNavItemIconStrokeWidth(active: boolean): number {
+  return active
+    ? BUTTON_LUCIDE_ICON_STROKE_WIDTH.emphasized
+    : BUTTON_LUCIDE_ICON_STROKE_WIDTH.default;
+}
+
 export function getInsetNavItemLabelClasses(active: boolean): string {
-  return `text-left text-sm font-medium transition-colors ${
+  const { inactive, highlighted } = tailwindNavChromeNavText;
+  return `text-left transition-colors ${
     active
-      ? "!text-text-primary group-hover:!font-semibold group-hover:!text-text-primary"
-      : "text-text-secondary group-hover:text-text-primary"
+      ? `${highlighted} !text-text-primary group-hover:!text-text-primary`
+      : `${inactive} !text-text-primary group-hover:!text-text-primary`
   }`;
 }

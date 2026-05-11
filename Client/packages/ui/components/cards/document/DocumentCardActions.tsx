@@ -107,7 +107,7 @@ function DocumentCardActionButtons({
           className={
             isList
               ? iconOutlineList
-              : "border-border text-text-secondary disabled:border-border disabled:text-text-disabled flex-1 bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-100 active:bg-neutral-200 disabled:hover:bg-transparent"
+              : "border-border text-text-secondary disabled:border-border disabled:text-text-disabled flex-1 bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-200 disabled:hover:bg-transparent"
           }
         />
         <IconButton
@@ -126,7 +126,7 @@ function DocumentCardActionButtons({
             className={
               isList
                 ? iconGhostList
-                : "border-border text-destructive disabled:border-border disabled:text-text-disabled flex-1 border bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-100 active:bg-neutral-200 disabled:hover:bg-transparent"
+                : "border-border text-destructive disabled:border-border disabled:text-text-disabled flex-1 border bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-200 disabled:hover:bg-transparent"
             }
           />
         )}

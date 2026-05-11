@@ -1,7 +1,7 @@
 import type { ChangeEvent } from "react";
 
 import { color } from "packages/design-tokens";
-import Button from "packages/ui/components/button/Button";
+import { OliveCheckboxRowLabel } from "packages/ui/components/form/checkbox/OliveCheckboxRowLabel";
 import Dropdown from "packages/ui/components/form/dropdown";
 import { Textarea } from "packages/ui/components/form/FormField";
 import { GooglePlacesAutocompleteField } from "packages/ui/components/form/GooglePlacesAutocompleteField";
@@ -207,16 +207,10 @@ export function CreateEventModalFormFields({
               Loading shared availability…
             </BodyText>
           ) : null}
-          {mutualSchedule.hintsReady && mutualSchedule.otherPartyHasNoAvailabilityPrefs ? (
-            <BodyText as="p" size="xs" className="text-text-secondary">
-              {mutualSchedule.otherPartyLabel} has not set availability hours in their profile.
-              Google Calendar busy times still apply.
-            </BodyText>
-          ) : null}
           {mutualSchedule.hintsReady && mutualSchedule.buyerCannotLoadAgentGoogleBusy ? (
             <BodyText as="p" size="xs" className="text-text-secondary">
-              Your agent&apos;s Google calendar isn&apos;t shown here; only your calendar and both
-              people&apos;s availability hours are used to find mutual times.
+              Your agent&apos;s Google calendar isn&apos;t shown here; mutual highlights use your
+              linked Google calendar only.
             </BodyText>
           ) : null}
         </Box>
@@ -242,8 +236,8 @@ export function CreateEventModalFormFields({
           mutualAvailabilityPopoverHint={
             mutualSchedule?.mutualUiEnabled && mutualSchedule.hintsReady
               ? mutualSchedule.isTwoParty
-                ? "Green: at least one time that day works for both of you (profile hours + linked Google calendars)."
-                : "Green: at least one time that day fits your profile hours and Google calendar."
+                ? "Green: at least one time that day is free on both linked Google calendars (when connected)."
+                : "Green: at least one time that day is free on your linked Google calendar."
               : undefined
           }
           calendars={calendars}
@@ -258,15 +252,9 @@ export function CreateEventModalFormFields({
       {scheduleDetailsVisible ? (
         isAllDay ? (
           <Box className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-text-primary h-auto min-h-0 px-0 py-0 font-medium"
-              onClick={() => onIsAllDayChange(!isAllDay)}
-            >
+            <OliveCheckboxRowLabel onPress={() => onIsAllDayChange(!isAllDay)}>
               All day
-            </Button>
+            </OliveCheckboxRowLabel>
             <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(!isAllDay)} />
           </Box>
         ) : showTimedRangeRow ? (
@@ -292,30 +280,18 @@ export function CreateEventModalFormFields({
             }
             trailingSlot={
               <Box className="flex shrink-0 items-center gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-text-primary h-auto min-h-0 px-0 py-0 font-medium"
-                  onClick={() => onIsAllDayChange(!isAllDay)}
-                >
+                <OliveCheckboxRowLabel onPress={() => onIsAllDayChange(!isAllDay)}>
                   All day
-                </Button>
+                </OliveCheckboxRowLabel>
                 <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(!isAllDay)} />
               </Box>
             }
           />
         ) : (
           <Box className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-text-primary h-auto min-h-0 px-0 py-0 font-medium"
-              onClick={() => onIsAllDayChange(true)}
-            >
+            <OliveCheckboxRowLabel onPress={() => onIsAllDayChange(true)}>
               All day
-            </Button>
+            </OliveCheckboxRowLabel>
             <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(true)} />
           </Box>
         )
@@ -328,14 +304,12 @@ export function CreateEventModalFormFields({
             checked={addGoogleMeet}
             onToggle={() => onAddGoogleMeetChange(!addGoogleMeet)}
           />
-          <Button
-            type="button"
-            variant="ghost"
-            className="text-text-primary h-auto justify-start px-0 py-0 text-left text-sm font-normal"
-            onClick={() => onAddGoogleMeetChange(!addGoogleMeet)}
+          <OliveCheckboxRowLabel
+            className="min-w-0 flex-1 font-normal"
+            onPress={() => onAddGoogleMeetChange(!addGoogleMeet)}
           >
             Add Google Meet video conferencing
-          </Button>
+          </OliveCheckboxRowLabel>
         </Box>
       ) : null}
 

@@ -25,8 +25,10 @@ export default function getTailwindConfig({ tailwindPlugin }) {
         },
       },
       rules: {
-        // no-contradicting-classname can throw under ESLint 9 with some dynamic patterns
-        "tailwindcss/no-contradicting-classname": "off",
+        // Catches the same conflicting utilities as Tailwind IntelliSense `cssConflict`
+        // (e.g. `active:text-neutral-500` + `active:text-neutral-800`). Prefer static
+        // class strings or `cn()` branches so the rule can analyze them.
+        "tailwindcss/no-contradicting-classname": "error",
         "tailwindcss/classnames-order": "off",
         "tailwindcss/no-custom-classname": "off",
         "tailwindcss/enforces-shorthand": "off",

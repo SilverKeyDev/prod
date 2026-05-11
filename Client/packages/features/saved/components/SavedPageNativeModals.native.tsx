@@ -6,10 +6,10 @@ import { useLocalization } from "packages/contexts";
 import { useAgentClients } from "packages/features/agent";
 import type { SavedPageLayoutProps } from "packages/features/saved/components/layout/SavedPageLayout";
 import DocumentUploadModal from "packages/features/saved/components/upload/DocumentUploadModal";
-import { formatSavedHomePrice } from "packages/features/saved/utils/formatSavedHomePrice";
 import type { SavedHome } from "packages/types";
 import { BaseModal, PdfModal } from "packages/ui/components/modals";
 import { Box, Text } from "packages/ui/components/primitives";
+import { displayListingPriceForCard } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
 
 type SavedPageNativeModalsProps = Pick<
   SavedPageLayoutProps,
@@ -92,7 +92,7 @@ export function SavedPageNativeModals({
                   {home.address ?? home.description ?? ""}
                 </Text>
                 <Text className="text-text-secondary mt-1 text-xs">
-                  {formatSavedHomePrice(home.price as string | number | null | undefined)}
+                  {displayListingPriceForCard(home.price, { unavailableLabel: "Price N/A" })}
                 </Text>
                 <Button
                   variant="secondary"
@@ -122,9 +122,9 @@ export function SavedPageNativeModals({
               {selectedHomeForNegotiation.address ?? selectedHomeForNegotiation.description ?? ""}
             </Text>
             <Text className="text-text-secondary mt-1 text-xs">
-              {formatSavedHomePrice(
-                selectedHomeForNegotiation.price as string | number | null | undefined
-              )}
+              {displayListingPriceForCard(selectedHomeForNegotiation.price, {
+                unavailableLabel: "Price N/A",
+              })}
             </Text>
             <Text className="text-text-secondary mt-3 text-sm">
               {t("saved.negotiate_modal_body", {
@@ -163,11 +163,19 @@ export function SavedPageNativeModals({
               })}
             </Text>
           ) : clients.length === 0 ? (
-            <Text className="text-text-secondary text-sm">
-              {t("client_selector.no_clients_found", {
-                defaultValue: "No clients found.",
-              })}
-            </Text>
+            <Box className="gap-1">
+              <Text className="text-text-primary text-sm font-medium">
+                {t("client_selector.no_clients_found", {
+                  defaultValue: "No clients found",
+                })}
+              </Text>
+              <Text className="text-text-secondary text-xs">
+                {t("client_selector.no_clients_hint", {
+                  defaultValue:
+                    "Clients you work with will appear here once they are added to your workspace.",
+                })}
+              </Text>
+            </Box>
           ) : (
             <>
               <Button

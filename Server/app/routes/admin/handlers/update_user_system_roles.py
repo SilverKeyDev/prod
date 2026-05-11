@@ -70,11 +70,15 @@ def update_user_system_roles(user, data: UpdateUserSystemRolesRequest | None = N
     current = set(_gate_roles_for_user(target_id))
 
     if actor_id == target_id and "super_admin" in revokes:
-        return standardize_error_response("You cannot remove your own super_admin role here", status_code=403)
+        return standardize_error_response(
+            "You cannot remove your own super_admin role here", status_code=403
+        )
 
     if "super_admin" in revokes and "super_admin" in current:
         total_sa = int(
-            db.session.scalar(select(func.count()).select_from(UserRole).where(UserRole.role == "super_admin"))
+            db.session.scalar(
+                select(func.count()).select_from(UserRole).where(UserRole.role == "super_admin")
+            )
             or 0
         )
         if total_sa <= 1:

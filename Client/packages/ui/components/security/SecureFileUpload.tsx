@@ -283,7 +283,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                 setFiles([]);
                 setError(null);
               }}
-              className="text-gray-500 hover:text-gray-700 active:text-gray-700 active:text-gray-800"
+              className="text-gray-500 hover:text-gray-700 active:text-gray-800"
               iconName="upload"
             >
               {t("secure_upload.clear_all")}
@@ -341,7 +341,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                   size="sm"
                   onClick={() => removeFile(file.id)}
                   iconName="x"
-                  className="text-red-400 hover:text-red-600 active:text-red-600 active:text-red-700"
+                  className="text-red-400 hover:text-red-600 active:text-red-700"
                 />
               </Box>
             ))}
@@ -350,7 +350,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       )}
 
       {previewFile && (
-        <Box className="z-modal fixed inset-0 flex flex-row items-center justify-center bg-neutral-900 p-4">
+        <Box className="z-modal fixed-modal-dashboard-main flex flex-row items-center justify-center bg-neutral-900 p-4">
           <Card
             border="light"
             className="relative max-h-full min-h-0 max-w-4xl flex-1 overflow-hidden"
@@ -365,7 +365,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                 size="sm"
                 onClick={() => setPreviewFile(null)}
                 iconName="x"
-                className="text-gray-400 hover:text-gray-600 active:text-gray-600 active:text-gray-700"
+                className="text-gray-400 hover:text-gray-600 active:text-gray-700"
               />
             </Box>
             <Box className="p-6">

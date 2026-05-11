@@ -24,15 +24,12 @@ function ConfirmationDialogContent({
   onCancel,
 }: ConfirmationDialogContentProps) {
   return (
-    <Box className="z-modal fixed inset-0 overflow-y-auto">
-      <Box
-        className="space-responsive-md flex min-h-screen items-center justify-center"
-        style={{ width: "100vw", height: "100vh" }}
-      >
+    <Box className="z-modal fixed-modal-dashboard-main overflow-y-auto">
+      <Box className="space-responsive-md flex min-h-screen w-full items-center justify-center">
         <Box
           role="button"
           tabIndex={0}
-          className="bg-overlay-backdrop fixed inset-0 transition-opacity"
+          className="bg-overlay-backdrop fixed-modal-dashboard-main transition-opacity"
           onClick={onCancel}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -69,12 +66,18 @@ function ConfirmationDialogContent({
               variant="primary"
               size="md"
               onClick={onConfirm}
-              className="w-full sm:w-auto"
+              className="w-full shrink-0 sm:w-auto"
+              truncateLabel={false}
               icon={confirmIcon ?? <Icon name={showLogoutIcon ? "log-out" : "check"} />}
             >
               {confirmText}
             </Button>
-            <CancelButton onClick={onCancel} size="md" className="w-full sm:w-auto">
+            <CancelButton
+              onClick={onCancel}
+              size="md"
+              className="w-full shrink-0 sm:w-auto"
+              truncateLabel={false}
+            >
               {cancelText}
             </CancelButton>
           </Box>

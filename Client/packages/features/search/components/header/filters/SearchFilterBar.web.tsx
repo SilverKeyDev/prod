@@ -23,6 +23,9 @@ export type SearchFilterBarProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: keyof OnboardingData, value: unknown) => void;
   saveStatus?: "idle" | "saving" | "saved";
+  flushPreferencesSave: () => Promise<void>;
+  onPreferencesApplySearch?: () => void | Promise<void>;
+  isSearching?: boolean;
   onPopoverClose?: () => void;
   variant?: "desktop" | "mobile";
   selectedClientId?: string | null;
@@ -36,6 +39,9 @@ export default function SearchFilterBar({
   formData,
   updateFormData,
   saveStatus,
+  flushPreferencesSave,
+  onPreferencesApplySearch,
+  isSearching = false,
   onPopoverClose,
   variant = "desktop",
   selectedClientId,
@@ -47,11 +53,23 @@ export default function SearchFilterBar({
   const { t } = useLocalization();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [applyBusy, setApplyBusy] = useState(false);
 
-  const handleApplyFromSheet = useCallback(() => {
+  const runApplyThenSearch = useCallback(async () => {
+    if (isSearching || applyBusy) return;
+    setApplyBusy(true);
+    try {
+      await flushPreferencesSave();
+      await onPreferencesApplySearch?.();
+    } finally {
+      setApplyBusy(false);
+    }
+  }, [applyBusy, flushPreferencesSave, isSearching, onPreferencesApplySearch]);
+
+  const handleApplyFromSheet = useCallback(async () => {
+    await runApplyThenSearch();
     onPopoverClose?.();
-    setSheetOpen(false);
-  }, [onPopoverClose]);
+  }, [onPopoverClose, runApplyThenSearch]);
 
   const closePopover = useCallback(() => {
     setPopoverOpen(false);
@@ -119,7 +137,7 @@ export default function SearchFilterBar({
             className={buttonBase}
             aria-expanded={isActive}
             aria-haspopup="true"
-            iconName="search"
+            iconName="sliders-horizontal"
             label={t("search.more")}
           >
             <Box className="flex w-full items-center justify-between gap-2">
@@ -131,7 +149,7 @@ export default function SearchFilterBar({
           </Button>
         )}
       >
-        {({ onClose }) => (
+        {() => (
           <>
             <SearchPreferencesContent
               formData={formData}
@@ -148,7 +166,20 @@ export default function SearchFilterBar({
                 variant="primary"
                 size="md"
                 fullWidth
-                onClick={onClose}
+                loading={applyBusy || saveStatus === "saving"}
+                disabled={isSearching || applyBusy}
+                onClick={() => {
+                  void (async () => {
+                    try {
+                      await runApplyThenSearch();
+                    } catch {
+                      /* save errors handled in preferences layer */
+                    } finally {
+                      // Controlled popover: sync local open state (onClose alone can miss after await).
+                      closePopover();
+                    }
+                  })();
+                }}
                 className="touch-friendly"
                 iconName="search"
               >

@@ -26,6 +26,7 @@ export function seoStaticFilesPlugin(opts) {
         "/search",
         "/messaging",
         "/profile",
+        "/library",
         "/saved",
         "/find-agents",
         "/admin",

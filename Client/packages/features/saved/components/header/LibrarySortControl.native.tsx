@@ -39,7 +39,7 @@ export function LibrarySortControlNative({
         className="shrink px-3 py-2"
       >
         <BodyText as="span" size="sm" className="text-text-primary font-medium" numberOfLines={1}>
-          {t("saved.library_sort_label")}: {selectedLabel}
+          {selectedLabel}
         </BodyText>
       </Button>
       <BaseModal

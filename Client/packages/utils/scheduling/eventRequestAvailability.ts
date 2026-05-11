@@ -2,18 +2,41 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
-import type {
-  BuyerAvailabilityException,
-  BuyerAvailabilityOneOff,
-  BuyerAvailabilityPrefs,
-  BuyerAvailabilityWeeklySlot,
-} from "packages/features/profile/types/buyerPreferenceExtensions";
 import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
 import { parseHourMinute24 } from "packages/utils/calendar/eventFormGooglePayload";
 import { dateParseISO } from "packages/utils/date";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+/** Optional weekly/one-off profile windows (agents: `extended_buyer_preferences.availability`; buyers do not persist this). */
+export type BuyerAvailabilityWeeklySlot = {
+  id: string;
+  weekday: number;
+  start: string;
+  end: string;
+};
+
+export type BuyerAvailabilityOneOff = {
+  id: string;
+  date: string;
+  start: string;
+  end: string;
+};
+
+export type BuyerAvailabilityException = {
+  id: string;
+  scope: "weekly";
+  ruleId: string;
+  date: string;
+};
+
+export type BuyerAvailabilityPrefs = {
+  timezone?: string;
+  weekly?: BuyerAvailabilityWeeklySlot[];
+  oneOff?: BuyerAvailabilityOneOff[];
+  exceptions?: BuyerAvailabilityException[];
+};
 
 export type EventRequestSlotCheckParams = {
   eventDateYmd: string;

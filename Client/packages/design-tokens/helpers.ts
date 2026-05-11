@@ -1,6 +1,4 @@
-import { type BreakpointName, breakpoints } from "./tokens/breakpoints";
-import { colors } from "./tokens/colors";
-import { spacing } from "./tokens/spacing";
+import { type BreakpointName, breakpoints, colors, spacing } from "./tokens";
 
 /**
  * Resolve a spacing value by key. Use Tailwind spacing keys (0, 1, 2, 2.5, 4, etc.)

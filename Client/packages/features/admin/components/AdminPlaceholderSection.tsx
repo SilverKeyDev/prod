@@ -17,7 +17,7 @@ export function AdminPlaceholderSection({ title, description }: AdminPlaceholder
       <BodyText size="sm" muted className="max-w-2xl">
         {description}
       </BodyText>
-      <Box className="mt-6 rounded-md border border-dashed border-border p-8">
+      <Box className="border-border mt-6 rounded-md border border-dashed p-8">
         <BodyText size="sm" muted className="text-center">
           No tools connected here yet.
         </BodyText>

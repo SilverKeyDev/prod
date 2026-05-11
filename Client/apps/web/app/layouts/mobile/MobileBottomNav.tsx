@@ -10,6 +10,7 @@ import { useNotificationStore } from "packages/store";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
 import { NotificationBadge } from "packages/ui/components/primitives/index.web";
+import { tailwindNavChromeNavText } from "packages/ui/styles/theme/navTabTypography";
 
 import { useDashboardShellRoutePrefetch } from "@/app/layouts/dashboard/useDashboardShellRoutePrefetch.web";
 import { SIDEBAR_TABS, type SidebarTabKey } from "@/app/layouts/sidebar/sidebarTabs.web";
@@ -25,17 +26,18 @@ const navItems = BOTTOM_NAV_KEYS.map((k) => SIDEBAR_TABS[k]);
 const BAR_CLASS =
   "fixed inset-x-0 bottom-0 z-dock flex w-full min-h-[4rem] flex-col border-t border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg md:hidden";
 function linkClass(active: boolean): string {
-  return `flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-200 ${
+  return `flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-normal ease-standard ${
     active
       ? "text-sidebar-foreground"
       : "text-sidebar-muted-foreground active:text-sidebar-foreground/95"
   }`;
 }
 function iconClass(active: boolean): string {
-  return `h-6 w-6 transition-all duration-200 ${active ? "scale-110" : ""}`;
+  return `h-6 w-6 transition-all duration-normal ease-standard ${active ? "scale-110" : ""}`;
 }
 function labelClass(active: boolean): string {
-  return `text-xs font-medium transition-all duration-200 ${active ? "scale-105" : ""}`;
+  const { inactive, highlighted } = tailwindNavChromeNavText;
+  return `transition-all duration-normal ease-standard ${active ? highlighted : inactive}`;
 }
 
 type BottomNavItemsProps = {

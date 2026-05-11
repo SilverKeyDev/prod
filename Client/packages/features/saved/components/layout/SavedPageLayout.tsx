@@ -10,7 +10,6 @@ import type { SavedHome, SearchResult } from "packages/types";
 import Input from "packages/ui/components/form/Input";
 import { BaseModal, PdfModal } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
-import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
 
 import { ClientSelector } from "@/components/ui";
 import { BodyText, Button, Label } from "@/components/ui";
@@ -75,6 +74,8 @@ export type SavedPageLayoutProps = {
   onSignNow?: (document: DocumentData) => void;
   onViewSignedAgreement?: (document: DocumentData) => void;
   onFormSendForSignature?: (form: import("packages/features/documents").ChecklistForm) => void;
+  /** Total checklist forms in library (for toolbar count on Forms tab). */
+  formsLibraryTotalCount: number;
   sendForSignatureModal?: SendForSignatureModalState;
   onToggleHomeSelection: (homeId: string) => void;
   onUnlockHome: (home: SavedHome) => Promise<void>;
@@ -113,6 +114,7 @@ export function SavedPageLayout({
   selectedHomesData,
   selectedProperty,
   onFormSendForSignature,
+  formsLibraryTotalCount: _formsLibraryTotalCount,
   isLoadingPropertyDetails,
   isCompareModalOpen,
   setIsCompareModalOpen,
@@ -152,14 +154,9 @@ export function SavedPageLayout({
         reportId={currentDocumentId}
         onClose={closePdfModal}
       />
-      <Box
-        className={`mt-4 flex flex-col gap-4 sm:mt-6 ${
-          viewType === "homes" && selectedHomesData.length >= 1
-            ? "mb-36 sm:mb-40"
-            : "mb-responsive-lg"
-        }`}
-      >
-        <Box className="w-full">
+      <Box className="mb-responsive-lg mt-4 flex flex-col gap-4 sm:mt-6">
+        {/* Mirror DashboardScreen: horizontal inset inside dashboard-content (outer shell uses md:px-0). */}
+        <Box className="w-full px-4">
           {!isMobile && (
             <Box className="w-full">
               <SavedPageTabsAndSearch
@@ -172,37 +169,22 @@ export function SavedPageLayout({
                     />
                   ) : undefined
                 }
-                toolbarShowSearch={viewType !== "forms-library"}
+                toolbarShowSearch
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
                 searchPlaceholder={
-                  viewType === "homes"
-                    ? "Search saved homes..."
-                    : viewType === "documents"
-                      ? "Search documents..."
-                      : viewType === "agreements"
-                        ? "Search agreements..."
-                        : viewType === "forms-library"
-                          ? ""
-                          : "Filter by address"
+                  viewType === "documents"
+                    ? t("saved.search_documents_placeholder")
+                    : viewType === "agreements"
+                      ? "Search agreements..."
+                      : viewType === "forms-library"
+                        ? t("saved.search_forms_placeholder")
+                        : "Search"
                 }
                 viewType={viewType}
                 onViewTypeChange={setViewType}
                 eventTypeFilter={eventTypeFilter}
                 onEventTypeFilterChange={setEventTypeFilter}
-                rightText={
-                  viewType === "homes"
-                    ? `${filteredHomes.length} saved`
-                    : viewType === "documents"
-                      ? `${
-                          filterDocumentLibraryExcludingAgreements(filteredDocuments).length
-                        } documents`
-                      : viewType === "agreements"
-                        ? `${
-                            filteredDocuments.filter((d) => d.library_kind === "agreement").length
-                          } agreements`
-                        : ""
-                }
                 onUploadClick={() => setIsDocumentUploadModalOpen(true)}
                 libraryViewMode={libraryViewMode}
                 onLibraryViewModeChange={onLibraryViewModeChange}
@@ -216,6 +198,7 @@ export function SavedPageLayout({
             viewType={viewType}
             libraryViewMode={libraryViewMode}
             librarySortKey={librarySortKey}
+            searchTerm={searchTerm}
             filteredHomes={filteredHomes}
             homesLoading={loading}
             documents={filteredDocuments}

@@ -12,6 +12,8 @@ import SearchFiltersDropdown from "./filters/SearchFiltersDropdown.web";
 type SearchActionsProps = {
   /** Preferences / isochrone search (explicit Search control). */
   onSearchProperties?: () => void;
+  /** After Apply in the preferences panel: save then run the same search as Search (optional; falls back to `onSearchProperties`). */
+  onPreferencesApplySearch?: () => void | Promise<void>;
   onCancelSearch?: () => void;
   isSearching?: boolean;
   /** Retained for API compatibility; search availability is handled in SearchFeature (important locations vs location bar). */
@@ -37,6 +39,7 @@ type SearchActionsProps = {
 };
 export default function SearchActions({
   onSearchProperties,
+  onPreferencesApplySearch,
   onCancelSearch,
   isSearching = false,
   hasLocations: _hasLocations = true,
@@ -68,6 +71,8 @@ export default function SearchActions({
           variant="mobile"
           selectedClientId={selectedClientId}
           onClientChange={onClientChange}
+          onPreferencesApplySearch={onPreferencesApplySearch ?? onSearchProperties}
+          isSearching={isSearching}
         />
       </Box>
     );
@@ -163,6 +168,8 @@ export default function SearchActions({
         variant="desktop"
         selectedClientId={selectedClientId}
         onClientChange={onClientChange}
+        onPreferencesApplySearch={onPreferencesApplySearch ?? onSearchProperties}
+        isSearching={isSearching}
       />
       <SearchDisplayDropdown />
       {!desktopToolsOnly ? (

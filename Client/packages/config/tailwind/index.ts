@@ -8,7 +8,14 @@ import { breakpoints, fontFamily, fontSize, spacingMap, Z_LAYERS } from "../../d
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const colors = require(path.resolve(__dirname, "../../design-tokens/tokens/colors.json"));
+const foundation = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/color/foundation.json")
+);
+const features = require(path.resolve(__dirname, "../../design-tokens/tokens/color/features.json"));
+const colors = { ...foundation, ...features };
+const motionTheme = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/motion/motion.theme.json")
+);
 
 /**
  * Shared Tailwind preset for apps/web and apps/mobile.
@@ -22,6 +29,7 @@ const sharedTailwindPreset = {
       colors,
       fontFamily,
       fontSize,
+      ...motionTheme,
       animation: {
         "fade-in": "fadeIn 0.5s ease-out",
         "slide-up": "slideUp 0.3s ease-out",

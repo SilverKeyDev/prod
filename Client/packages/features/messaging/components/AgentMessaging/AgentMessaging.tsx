@@ -1,52 +1,100 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import type { ReactNode, UIEvent } from "react";
 
 import type { AgentClient } from "packages/api";
+import { getMessagingConfig } from "packages/features/agent/components/messaging/screen/messagingConfig";
+import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
+import { useConnectionRequests } from "packages/features/agent/hooks/data/useConnectionRequests";
+import { useAgentAutoSelectClient } from "packages/features/agent/hooks/ui/useAgentAutoSelectClient";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
 import UnifiedMessageInput from "packages/features/messaging/components/layout/UnifiedMessageInput";
+import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/unifiedMessagesListDynamicImport";
 import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/UnifiedMessagesListEmptyStates";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
+import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui";
 import { useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
+import { LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { screenUp } from "packages/ui/types/screens";
+import { logMessagingCheckpointSinceLatestShellMark } from "packages/utils/perf/messagingRoutePerf";
+import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
-import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
-import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
 
 const UnifiedMessagesList = lazy(
-  () => import("packages/features/messaging/components/layout/UnifiedMessagesList")
+  traceLazyImport(
+    LOG_CATEGORIES.MESSAGES,
+    "lazy:UnifiedMessagesList(agent)",
+    loadUnifiedMessagesListModule
+  )
 );
 
 type AgentMessagingProps = {
-  clients?: AgentClient[];
-  isLoadingClients?: boolean;
-  selectedClientId: string | null;
-  selectedClient?: AgentClient;
-  onClientSelect?: (clientId: string) => void;
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
 };
 
-export default function AgentMessaging({
-  clients = [],
-  isLoadingClients = false,
-  selectedClientId,
-  selectedClient,
-  onClientSelect,
-  setMobileHeaderActions,
-}: AgentMessagingProps) {
+export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagingProps) {
+  useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "AgentMessaging");
+
+  const { clients, isLoading: isLoadingClients } = useAgentClients();
+  const agentChats = useAgentChats();
+
+  const mergedClients = useMemo(() => {
+    const knownIds = new Set(clients.map((c) => c.id));
+    const extras: AgentClient[] = [];
+
+    for (const conv of agentChats.conversations) {
+      if (!knownIds.has(conv.client_id)) {
+        knownIds.add(conv.client_id);
+        extras.push({
+          id: conv.client_id,
+          name: conv.client_name ?? "Client",
+          email: conv.client_email ?? "",
+          phone: null,
+          profile_picture: conv.client_profile_picture ?? null,
+          created_at: conv.created_at ?? null,
+          client_kind: "unknown",
+          pipeline_stage: "search",
+        });
+      }
+    }
+
+    return extras.length > 0 ? [...clients, ...extras] : clients;
+  }, [clients, agentChats.conversations]);
+
+  const [selectedClientId, handleClientSelect] = useAgentAutoSelectClient(
+    mergedClients,
+    agentChats.conversations,
+    isLoadingClients
+  );
+
+  const selectedClient = useMemo(
+    () => mergedClients.find((c) => c.id === selectedClientId),
+    [mergedClients, selectedClientId]
+  );
+
   const {
     localMessages,
     activeConversationId,
     isLoadingHistory,
     activeConversation,
-    conversations,
+    conversations: messagingConversations,
     sendMessage: sendMessageApi,
     sendSharedHomes,
     sendSharedDocument,
@@ -63,6 +111,7 @@ export default function AgentMessaging({
     mode: "agent",
     conversationSelector: selectedClientId,
     clientIdForSending: selectedClientId,
+    agentChats,
   });
 
   const [message, setMessage] = useState("");
@@ -209,6 +258,10 @@ export default function AgentMessaging({
     getHeaderMode,
   ]);
 
+  useLayoutEffect(() => {
+    logMessagingCheckpointSinceLatestShellMark("AgentMessaging:firstLayoutCommit");
+  }, []);
+
   return (
     <Box className="flex h-full w-full overflow-hidden">
       <Box className="relative flex h-full w-full overflow-hidden">
@@ -219,11 +272,11 @@ export default function AgentMessaging({
           showInbox={showInbox}
           setShowInbox={setShowInbox}
           activeConversationId={activeConversationId}
-          clients={clients}
+          clients={mergedClients}
           isLoadingClients={isLoadingClients}
           selectedClientId={selectedClientId}
-          onClientSelect={onClientSelect}
-          conversations={conversations}
+          onClientSelect={handleClientSelect}
+          conversations={messagingConversations}
           onSearchClick={() => setShowSearchModal(true)}
         />
         <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">

@@ -10,6 +10,10 @@ import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import DeleteModal from "packages/ui/components/modals/standalone/DeleteModal";
 import { Box, Text, TouchableBox } from "packages/ui/components/primitives";
+import {
+  formatLocaleTime12HourEnUs,
+  formatLocaleWeekdayShortMonthDayEnUs,
+} from "packages/utils/date";
 import { getWindow } from "packages/utils/platform";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
@@ -35,27 +39,11 @@ type EventCardProps = {
 };
 
 function formatDate(date: Date) {
-  try {
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return "";
-  }
+  return formatLocaleWeekdayShortMonthDayEnUs(date);
 }
 
 function formatTime(date: Date) {
-  try {
-    return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  } catch {
-    return "";
-  }
+  return formatLocaleTime12HourEnUs(date);
 }
 
 export function EventCard({

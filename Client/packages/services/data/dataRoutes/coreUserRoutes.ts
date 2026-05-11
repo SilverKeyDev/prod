@@ -1,6 +1,7 @@
 import { preferencesApi, searchApi, userApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { fetchCachedPolygonSearchResults } from "packages/features/search/api/fetchCachedPolygonSearchResults";
+import { throwUnlessApiSuccess } from "packages/services/data/apiRouteResponse";
 import type { RouteConfig } from "packages/services/data/dataRouteTypes";
 
 export const coreUserRoutes = {
@@ -9,9 +10,7 @@ export const coreUserRoutes = {
     queryKey: () => queryKeys.user.profile(),
     queryFn: async () => {
       const response = await userApi.getProfile();
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch user profile");
-      }
+      throwUnlessApiSuccess(response, "Failed to fetch user profile");
       const userData = response.user ?? response.data;
       if (!userData) {
         throw new Error("No user data received");
@@ -42,9 +41,7 @@ export const coreUserRoutes = {
     queryKey: () => queryKeys.user.preferences(null),
     queryFn: async () => {
       const response = await preferencesApi.get();
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch preferences");
-      }
+      throwUnlessApiSuccess(response, "Failed to fetch preferences");
       return response.preferences;
     },
     shouldPoll: false,
@@ -58,9 +55,7 @@ export const coreUserRoutes = {
     queryKey: () => queryKeys.homes.favorites(),
     queryFn: async () => {
       const response = await userApi.getFavoriteHomes();
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to load favorite homes");
-      }
+      throwUnlessApiSuccess(response, "Failed to load favorite homes");
       const rawHomes = response.favorites ?? [];
       return rawHomes;
     },

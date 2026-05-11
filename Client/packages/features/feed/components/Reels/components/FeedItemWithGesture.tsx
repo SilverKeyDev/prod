@@ -110,7 +110,7 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
             />
           </Box>
         )}
-        <Box className="relative flex h-full w-full flex-row flex-col">
+        <Box className="relative flex h-full w-full flex-col">
           <MediaCarousel
             ref={mediaCarouselRef}
             media={item.media}

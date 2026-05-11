@@ -1,5 +1,5 @@
 # Single lint workflow: runs root script for client and server.
-# All linters are defined by scripts/run-all-linters.sh (Server: auto-discovers lint_*.py; Client: check:all).
+# All linters are defined by scripts/run-all-linters.sh (Server: lint_*.py + lint_*.sh; Client: lint.d/*.sh + pnpm check).
 # See .cursor/rules/shared/ci-gates.mdc for required gates.
 # Tests are run separately via test.yml workflow.
 name: Lint

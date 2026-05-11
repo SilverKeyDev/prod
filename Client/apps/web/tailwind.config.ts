@@ -17,5 +17,6 @@ export default {
     "../../packages/features/**/*.{js,ts,jsx,tsx}",
     "../../packages/contexts/**/*.{js,ts,jsx,tsx}",
     "../../packages/email-templates/**/*.{js,ts,jsx,tsx}",
+    "../../packages/design-tokens/**/*.{js,ts,jsx,tsx}",
   ],
 };

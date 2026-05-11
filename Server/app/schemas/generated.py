@@ -775,15 +775,6 @@ class Shell(Enum):
     month = "month"
 
 
-class Availability(Enum):
-    """
-    Local availability calendar (profile availability editor).
-    """
-
-    week = "week"
-    month = "month"
-
-
 class Calendar1(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -791,9 +782,6 @@ class Calendar1(BaseModel):
     shell: Shell | None = Field(
         None,
         description="Main calendar shell (agent dashboard / Google-connected calendar).",
-    )
-    availability: Availability | None = Field(
-        None, description="Local availability calendar (profile availability editor)."
     )
 
 

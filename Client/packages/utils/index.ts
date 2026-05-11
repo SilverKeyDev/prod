@@ -4,6 +4,7 @@
  */
 
 export { createGuardedSetter } from "./array";
+export { clearAuthTokens, getAuthToken, hasValidAuthToken } from "./auth";
 export { asError } from "./errorHandling";
 export { formatCompactCount, formatCompactNumber, formatNumber, formatUSD } from "./format";
 export { getMapPinColorsForScoreAndStatus } from "./format/mapMatchPinColors";
@@ -26,10 +27,3 @@ export {
   setToSessionStorage,
 } from "./storage/storage";
 export { hasProperty, isDocumentData, isFunction, isNumber, isObject } from "./typeGuards";
-
-// Legacy auth utilities (deprecated) - re-exported so packages/services can import from packages/utils
-export {
-  clearAuthTokens,
-  getAuthToken,
-  hasValidAuthToken,
-} from "packages/features/homeauth/utils/auth";

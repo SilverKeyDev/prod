@@ -4,12 +4,12 @@ import { Icon } from "@ui/icons";
 
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
 import { formatPropertyType } from "packages/features/search/types/search/formatters/propertyFormatters";
-import { displayListingPriceForCard } from "packages/features/search/utils/transform/formatPropertySearchListingPrice";
 import CardNotInterested from "packages/ui/components/button/NotInterested";
 import { OVERLAY_MARKER_CIRCLE_CLASSES } from "packages/ui/components/button/overlayMarkerButtonTypes";
 import { getCardBubbleSizeClasses } from "packages/ui/components/cards/base/styles";
 import { Box } from "packages/ui/components/primitives";
 import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
+import { displayListingPriceForCard } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
 
 import {
   CardHeartSaveWithProps,

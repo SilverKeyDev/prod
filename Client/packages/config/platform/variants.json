@@ -357,6 +357,13 @@
     "reason": "Native uses RN layout; web uses DOM layout."
   },
   {
+    "id": "saved-header-native",
+    "description": "Native-only Saved/Library header (tabs, client, filters, forms search).",
+    "webPath": "packages/features/saved/components/layout/SavedPageLayout.tsx",
+    "nativePath": "packages/features/saved/components/layout/SavedHeader.native.tsx",
+    "reason": "Web inlines SavedPageTabsAndSearch in SavedPageLayout; native uses this RN header with TextInput for forms search and shared Library controls."
+  },
+  {
     "id": "search-page-map-container",
     "description": "Search page map container with platform-specific map implementation.",
     "webPath": "packages/features/search/components/layout/SearchPageMapContainer.web.tsx",
@@ -709,8 +716,8 @@
   {
     "id": "shadows",
     "description": "Shadow styles with platform-specific values.",
-    "webPath": "packages/ui/styles/shadows.ts",
-    "nativePath": "packages/ui/styles/shadows.native.ts",
+    "webPath": "packages/ui/styles/shadows/shadows.web.ts",
+    "nativePath": "packages/ui/styles/shadows/shadows.native.ts",
     "reason": "Web uses box-shadow; native uses elevation/shadow."
   },
   {

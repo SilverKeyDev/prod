@@ -1,8 +1,11 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
+
+import { Icon } from "@ui/icons";
 
 import { authUtils, PERMISSIONS, UserRole } from "packages/config/auth/auth";
 import { useUserData } from "packages/hooks/data/user/useUserData";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
@@ -15,10 +18,114 @@ type AdminGuardProps = {
 
 export function AdminGuard({ children }: AdminGuardProps) {
   const { user, authStatus } = useAuthStoreIntegration();
-  const { userProfile, userProfileLoading } = useUserData();
+  const authReady = useAuthStore((s) => s.authReady);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { userProfile, userProfileLoading, userProfileError, userProfileQueryMeta } = useUserData();
 
-  if (authStatus === "checking" || userProfileLoading) {
-    return null;
+  const blockingChecking = authStatus === "checking";
+  const blockingProfile = userProfileLoading && userProfile == null;
+  const lastGateLogSigRef = useRef<string | null>(null);
+
+  const lastClearLogSigRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!blockingChecking && !blockingProfile) {
+      lastGateLogSigRef.current = null;
+      const clearSig = [
+        String(userProfile != null),
+        userProfileQueryMeta.status,
+        userProfileQueryMeta.fetchStatus,
+        userProfileError ?? "",
+      ].join("|");
+      if (lastClearLogSigRef.current !== clearSig) {
+        lastClearLogSigRef.current = clearSig;
+        log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_GUARD] gate cleared — rendering admin subtree", {
+          authStatus,
+          authReady,
+          isAuthenticated,
+          hasUserProfile: userProfile != null,
+          userProfileQueryStatus: userProfileQueryMeta.status,
+          userProfileQueryFetchStatus: userProfileQueryMeta.fetchStatus,
+          userProfileQueryIsError: userProfileQueryMeta.isError,
+          userProfileQueryFailureCount: userProfileQueryMeta.failureCount,
+          userProfileError: userProfileError ?? null,
+        });
+      }
+      return;
+    }
+    const sig = [
+      blockingChecking ? "check" : "",
+      blockingProfile ? "prof" : "",
+      authStatus,
+      String(userProfileLoading),
+      String(userProfile != null),
+      userProfile?.id ?? "",
+      userProfileQueryMeta.status,
+      userProfileQueryMeta.fetchStatus,
+      String(userProfileQueryMeta.isPending),
+      String(userProfileQueryMeta.isFetching),
+      String(userProfileQueryMeta.isError),
+      String(userProfileQueryMeta.failureCount),
+      String(userProfileQueryMeta.dataUpdatedAt),
+      String(userProfileQueryMeta.errorUpdatedAt),
+      String(authReady),
+      String(isAuthenticated),
+      userProfileError ?? "",
+    ].join("|");
+    if (lastGateLogSigRef.current === sig) return;
+    lastGateLogSigRef.current = sig;
+
+    log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_GUARD] gate blocking (Loading admin access…)", {
+      reason: blockingChecking ? "auth_status_checking" : "profile_initial_load",
+      authStatus,
+      authReady,
+      isAuthenticated,
+      userProfileLoading,
+      hasUserProfile: userProfile != null,
+      userProfileId: userProfile?.id ?? null,
+      userProfileQueryStatus: userProfileQueryMeta.status,
+      userProfileQueryFetchStatus: userProfileQueryMeta.fetchStatus,
+      userProfileQueryIsPending: userProfileQueryMeta.isPending,
+      userProfileQueryIsFetching: userProfileQueryMeta.isFetching,
+      userProfileQueryIsError: userProfileQueryMeta.isError,
+      userProfileQueryFailureCount: userProfileQueryMeta.failureCount,
+      userProfileDataUpdatedAt: userProfileQueryMeta.dataUpdatedAt,
+      userProfileErrorUpdatedAt: userProfileQueryMeta.errorUpdatedAt,
+      userProfileError: userProfileError ?? null,
+    });
+  }, [
+    authReady,
+    authStatus,
+    blockingChecking,
+    blockingProfile,
+    isAuthenticated,
+    userProfile,
+    userProfileError,
+    userProfileLoading,
+    userProfileQueryMeta.dataUpdatedAt,
+    userProfileQueryMeta.errorUpdatedAt,
+    userProfileQueryMeta.failureCount,
+    userProfileQueryMeta.fetchStatus,
+    userProfileQueryMeta.isError,
+    userProfileQueryMeta.isFetching,
+    userProfileQueryMeta.isPending,
+    userProfileQueryMeta.status,
+  ]);
+
+  // Block only until we have a session and an initial profile (or give up on loading).
+  // Do not unmount admin layout on background refetches (userProfileLoading with cached userProfile).
+  if (authStatus === "checking" || (userProfileLoading && userProfile == null)) {
+    return (
+      <Box className="flex min-h-screen items-center justify-center bg-background-base">
+        <Card border="light" className="w-full max-w-sm" padding="lg">
+          <Box className="text-center">
+            <Icon name="loader-2" className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
+            <BodyText size="sm" muted>
+              Loading admin access…
+            </BodyText>
+          </Box>
+        </Card>
+      </Box>
+    );
   }
 
   // Use profile from API (includes roles from backend user_roles); fall back to auth user.

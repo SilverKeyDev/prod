@@ -21,7 +21,8 @@ export const AUTH_SCREENS: Record<string, string> = {
 export const APP_TAB_DEEP_LINK: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/search": "Search",
-  "/saved": "Saved",
+  "/library": "Library",
+  "/saved": "Library",
   "/messaging": "Messaging",
   "/profile": "Profile",
 };

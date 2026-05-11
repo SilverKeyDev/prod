@@ -56,7 +56,7 @@ export default function AvailabilitySection({
           </Subtitle>
           {!isEditMode ? (
             <BodyText size="xs" muted as="p" className="mb-0">
-              Select Edit to change your availability schedule.
+              Select Edit to update when clients see you as available for bookings.
             </BodyText>
           ) : null}
           <LocalAvailabilityCalendar

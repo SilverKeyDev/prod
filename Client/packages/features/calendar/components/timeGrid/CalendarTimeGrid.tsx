@@ -102,7 +102,7 @@ export function CalendarTimeGrid({
     const win = getWindow();
     if (!win) return;
     const update = () => {
-      setHourRowHeight(Math.max(40, Math.round(win.innerHeight / 15)));
+      setHourRowHeight(Math.min(48, Math.max(40, Math.round(win.innerHeight / 18))));
     };
     update();
     win.addEventListener("resize", update);
@@ -118,11 +118,12 @@ export function CalendarTimeGrid({
   }, []);
 
   const totalGridHeight = CAL_TIME_GRID_HOURS * hourRowHeight;
-  const today = dateNow().startOf("day");
   const gridColumns = calTimeGridTemplateColumns(dayDates.length);
 
+  /** Scroll to a sensible default when the week or hour scale changes — do not depend on a new `Date` each render or scroll snaps back on every paint. */
   useEffect(() => {
-    const hasToday = dayDates.some((d) => dayjs(d).isSame(today, "day"));
+    const todayStart = dateNow().startOf("day");
+    const hasToday = dayDates.some((d) => dayjs(d).isSame(todayStart, "day"));
     if (!hasToday) {
       setCalendarTimeGridScrollY(scrollRef, 8 * hourRowHeight);
       return;
@@ -131,14 +132,14 @@ export function CalendarTimeGrid({
     const m = n.hour() * 60 + n.minute();
     const y = (m / 60) * hourRowHeight;
     setCalendarTimeGridScrollY(scrollRef, Math.max(0, y - hourRowHeight * 2));
-  }, [dayDates, hourRowHeight, today]);
+  }, [dayDates, hourRowHeight]);
 
   return (
     <Box
       style={{
         width: "100%",
         flexDirection: "column",
-        minHeight: spacing(80),
+        minHeight: spacing(0),
       }}
     >
       <Box

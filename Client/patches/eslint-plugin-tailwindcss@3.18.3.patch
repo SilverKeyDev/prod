@@ -1,0 +1,15 @@
+diff --git a/lib/util/ast.js b/lib/util/ast.js
+index a6ed24d3e697347b3879a8612c9f73b8ce7bef53..1bebe7c0b89670dc2f4cc556681f41f450c791a0 100644
+--- a/lib/util/ast.js
++++ b/lib/util/ast.js
+@@ -338,7 +338,9 @@ function parseNodeRecursive(rootNode, childNode, cb, skipConditional = false, is
+       // Don't run for empty className
+       return;
+     }
+-    const targetNode = isolate ? null : rootNode;
++    // ESLint 9 requires a valid AST node on report(); isolated conditional/template
++    // segments previously passed null and crashed (e.g. className={`...${cond ? "a b" : "c"}`}).
++    const targetNode = isolate ? childNode : rootNode;
+     cb(classNames, targetNode);
+   }
+ }

@@ -124,10 +124,10 @@ export function SidebarList(props: {
               name="bookmark"
               className="mx-auto mb-2 h-6 w-6 text-neutral-400 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12"
             />
-            <BodyText as="p" size="sm">
+            <BodyText as="p" size="sm" className="text-text-secondary">
               {t("search.no_saved_homes_yet")}
             </BodyText>
-            <BodyText as="p" size="xs" className="mt-1">
+            <BodyText as="p" size="xs" className="text-text-secondary mt-1">
               {t("search.click_heart_to_save")}
             </BodyText>
           </>

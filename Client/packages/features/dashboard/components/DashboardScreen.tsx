@@ -15,8 +15,8 @@ import {
 } from "packages/hooks/data/agenda/useSigningTodos";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import type { UIState } from "packages/store/ui.slice";
 import { Box, ScrollView, Text } from "packages/ui/components/primitives";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
@@ -56,7 +56,7 @@ export function DashboardScreen() {
 
   const handleSigningAgendaPress = useCallback(
     (_agreementId: string) => {
-      navigateToPath("/saved");
+      navigateToPath("/library");
       enqueueToast({
         type: "info",
         message: "Open Documents on Saved to complete signing.",

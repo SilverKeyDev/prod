@@ -4,7 +4,7 @@ import { useLocalization } from "packages/contexts";
 import { color, Z_LAYERS } from "packages/design-tokens";
 import IconButton from "packages/ui/components/button/IconButton";
 import { Text } from "packages/ui/components/primitives";
-import { shadowStyleForToken } from "packages/ui/styles/shadows.native";
+import { shadowStyleForToken } from "packages/ui/styles/shadows/shadows.native";
 
 import type { ToastVariant } from "./toastTypes";
 

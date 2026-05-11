@@ -5,11 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { queryAvailability } from "packages/features/calendar/api/schedulingQueries";
 import { toBuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
-import { useUserPreferences } from "packages/hooks/data/user/useUserData";
+import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
 import { useGoogleCalendarStore } from "packages/store";
 import { dayjs } from "packages/utils/date";
+import type { BuyerAvailabilityPrefs } from "packages/utils/scheduling/eventRequestAvailability";
 import {
   hasAnyAvailableSlotOnDate,
   isEventRequestSlotAvailable,
@@ -56,13 +58,14 @@ function annotateOptions(
 export function useEventRequestScheduleAvailability({
   minDateYmd,
 }: UseEventRequestScheduleAvailabilityParams) {
-  const { userPreferences, preferencesLoading } = useUserPreferences();
+  const isAgent = useIsAgent();
+  const { userPreferences, preferencesLoading: prefsLoading } = useUserPreferences();
   const isGoogleConnected = useGoogleCalendarStore((s) => s.isConnected);
 
-  const availabilityPrefs = useMemo(() => {
-    const raw = userPreferences?.extended_buyer_preferences;
-    return toBuyerPreferenceExtensions(raw)?.availability;
-  }, [userPreferences?.extended_buyer_preferences]);
+  const profileSlotPrefs: BuyerAvailabilityPrefs | undefined = useMemo(() => {
+    if (!isAgent) return undefined;
+    return toBuyerPreferenceExtensions(userPreferences?.extended_buyer_preferences)?.availability;
+  }, [isAgent, userPreferences?.extended_buyer_preferences]);
 
   const range = useMemo(() => {
     const start = dayjs(minDateYmd, "YYYY-MM-DD", true).startOf("day");
@@ -102,7 +105,7 @@ export function useEventRequestScheduleAvailability({
   }, [busyQuery.data, isGoogleConnected]);
 
   const availabilityHintsReady =
-    !preferencesLoading && (!isGoogleConnected || !busyQuery.isLoading);
+    (!isAgent || !prefsLoading) && (!isGoogleConnected || !busyQuery.isLoading);
 
   const dateOptions: EventScheduleOption[] = useMemo(() => {
     const base = buildDateOptions(minDateYmd, EVENT_REQUEST_DATE_RANGE_DAYS);
@@ -110,11 +113,11 @@ export function useEventRequestScheduleAvailability({
       ok: hasAnyAvailableSlotOnDate({
         eventDateYmd: o.value,
         stepMinutes: EVENT_REQUEST_TIME_STEP_MINUTES,
-        prefs: availabilityPrefs,
+        prefs: profileSlotPrefs,
         busyBlocks,
       }),
     }));
-  }, [minDateYmd, availabilityPrefs, busyBlocks, availabilityHintsReady]);
+  }, [minDateYmd, busyBlocks, availabilityHintsReady, profileSlotPrefs]);
 
   const buildTimeOptionsForDate = useMemo(() => {
     return (eventDateYmd: string): EventScheduleOption[] => {
@@ -127,12 +130,12 @@ export function useEventRequestScheduleAvailability({
           eventDateYmd,
           eventTimeHm: o.value,
           stepMinutes: EVENT_REQUEST_TIME_STEP_MINUTES,
-          prefs: availabilityPrefs,
+          prefs: profileSlotPrefs,
           busyBlocks,
         }),
       }));
     };
-  }, [availabilityPrefs, busyBlocks, availabilityHintsReady]);
+  }, [busyBlocks, availabilityHintsReady, profileSlotPrefs]);
 
   return useMemo(
     () => ({

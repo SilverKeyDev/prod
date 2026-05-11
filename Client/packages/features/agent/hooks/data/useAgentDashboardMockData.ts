@@ -1,6 +1,5 @@
 /**
- * Hook that exposes agent dashboard mock data helpers.
- * Wraps packages/services/agent/agentDashboard so components use hooks only.
+ * Hook that exposes agent dashboard mock data helpers for dev / fixtures.
  */
 import { useCallback } from "react";
 

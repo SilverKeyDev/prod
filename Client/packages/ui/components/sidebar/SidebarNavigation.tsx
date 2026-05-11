@@ -10,6 +10,8 @@ import { Box } from "packages/ui/components/primitives";
 import {
   getInsetNavItemClasses,
   getInsetNavItemIconClasses,
+  getInsetNavItemIconLucideSizePx,
+  getInsetNavItemIconStrokeWidth,
   getInsetNavItemLabelClasses,
 } from "packages/ui/components/sidebar/sidebarTheme";
 
@@ -117,12 +119,14 @@ export default function SidebarNavigation({
                       iconOnly: !isLargeScreen,
                     })}`}
                     title={!isLargeScreen ? item.label : undefined}
-                    icon={
-                      IconComponent ? (
-                        <IconComponent size={20} className={getInsetNavItemIconClasses(isActive)} />
-                      ) : undefined
-                    }
                   >
+                    {IconComponent ? (
+                      <IconComponent
+                        size={getInsetNavItemIconLucideSizePx(isActive)}
+                        strokeWidth={getInsetNavItemIconStrokeWidth(isActive)}
+                        className={getInsetNavItemIconClasses(isActive)}
+                      />
+                    ) : null}
                     {isLargeScreen ? (
                       <BodyText as="span" className={getInsetNavItemLabelClasses(isActive)}>
                         {item.label}

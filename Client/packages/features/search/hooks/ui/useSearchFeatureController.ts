@@ -23,6 +23,7 @@ import { useSearchRefreshIntegration } from "packages/hooks/data/integrations/us
 import { useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { useIsAgent } from "packages/hooks/store";
 import { usePreActionSnapshot } from "packages/hooks/ui";
+import { useMediaQuery } from "packages/hooks/ui/responsive/useMediaQuery";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import {
   useAgentDashboardStore,
@@ -31,6 +32,7 @@ import {
   useSearchContextStore,
   useSearchViewStore,
 } from "packages/store";
+import { screenDown } from "packages/ui/types/screens";
 
 export type SearchFeatureControllerProps = {
   setMobileHeaderActions: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
@@ -45,6 +47,7 @@ export function useSearchFeatureController({
   onSearchProperties,
   searchRef,
 }: SearchFeatureControllerProps) {
+  const isCompactHeader = useMediaQuery(screenDown("lg"));
   const { t } = useLocalization();
   const isAgent = useIsAgent();
   const { mode: searchViewMode } = useSearchViewIntegration();
@@ -194,52 +197,61 @@ export function useSearchFeatureController({
     [setActiveTab, setCurrentPage, filteredSearchResults, savedHomes, map, searchViewMode]
   );
 
-  const handleSearchUpdated = useCallback(async () => {
-    if (isSearching) return;
+  const handleSearchUpdated = useCallback(
+    async (options?: { skipLocationsGate?: boolean }) => {
+      if (isSearching) return;
 
-    if (!hasLocations) {
-      if (!locationBarDraft.trim()) {
-        showWarningToast(t("search.need_locations_or_place"));
+      const skipLocationsGate = options?.skipLocationsGate === true;
+
+      if (!hasLocations && !skipLocationsGate) {
+        if (!locationBarDraft.trim()) {
+          showWarningToast(t("search.need_locations_or_place"));
+          return;
+        }
+        if (!locationBarExternalSubmit) {
+          showWarningToast(t("search.need_locations_or_place"));
+          return;
+        }
+        await locationBarExternalSubmit();
         return;
       }
-      if (!locationBarExternalSubmit) {
-        showWarningToast(t("search.need_locations_or_place"));
-        return;
-      }
-      await locationBarExternalSubmit();
-      return;
-    }
 
-    setSearchSource("preferences");
-    snapshotPreSearch({
-      results: searchResults,
+      setSearchSource("preferences");
+      snapshotPreSearch({
+        results: searchResults,
+        currentPage,
+        showPropertyModals,
+      });
+      searchAbortControllerRef.current = new AbortController();
+      if (onSearchProperties) {
+        setIsSearching(true);
+        setSearchStage("Preparing search...");
+        await onSearchProperties();
+      } else {
+        await map.runPreferencesSearch();
+      }
+    },
+    [
+      isSearching,
+      hasLocations,
+      locationBarDraft,
+      locationBarExternalSubmit,
+      t,
+      onSearchProperties,
+      map,
+      searchResults,
       currentPage,
       showPropertyModals,
-    });
-    searchAbortControllerRef.current = new AbortController();
-    if (onSearchProperties) {
-      setIsSearching(true);
-      setSearchStage("Preparing search...");
-      await onSearchProperties();
-    } else {
-      await map.runPreferencesSearch();
-    }
-  }, [
-    isSearching,
-    hasLocations,
-    locationBarDraft,
-    locationBarExternalSubmit,
-    t,
-    onSearchProperties,
-    map,
-    searchResults,
-    currentPage,
-    showPropertyModals,
-    snapshotPreSearch,
-    setSearchSource,
-    setIsSearching,
-    setSearchStage,
-  ]);
+      snapshotPreSearch,
+      setSearchSource,
+      setIsSearching,
+      setSearchStage,
+    ]
+  );
+
+  const handlePreferencesApplySearch = useCallback(async () => {
+    await handleSearchUpdated({ skipLocationsGate: true });
+  }, [handleSearchUpdated]);
 
   const handleLocationSearchSubmit = useCallback(async () => {
     if (isSearching) return;
@@ -293,9 +305,11 @@ export function useSearchFeatureController({
     savedHomesLength: savedHomes.length,
   });
 
-  const { isCompactHeader, headerProps } = useSearchMobileHeaderActions({
+  const { headerProps } = useSearchMobileHeaderActions({
+    isCompactHeader,
     isSearching,
     onSearch: handleSearchUpdated,
+    onPreferencesApplySearch: handlePreferencesApplySearch,
     onLocationSearchSubmit: handleLocationSearchSubmit,
     fitMapToBounds: map.fitMapToBounds,
     onPreciseStreetAddressSelected: handlePreciseStreetAddressSelected,
@@ -341,6 +355,7 @@ export function useSearchFeatureController({
     displayIsochroneData,
     hasLocations,
     handleSearchUpdated,
+    handlePreferencesApplySearch,
     handleLocationSearchSubmit,
     handleCancelSearch,
     handlePreciseStreetAddressSelected,

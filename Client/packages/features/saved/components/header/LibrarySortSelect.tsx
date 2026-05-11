@@ -3,7 +3,6 @@ import type { SavedPageViewType } from "packages/features/documents";
 import { librarySortOptionsForView } from "packages/features/saved/utils/librarySort";
 import Dropdown from "packages/ui/components/form/dropdown";
 import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
 
 type LibrarySortSelectProps = {
   viewType: SavedPageViewType;
@@ -24,14 +23,7 @@ export function LibrarySortSelect({ viewType, value, onChange }: LibrarySortSele
   if (options.length === 0) return null;
 
   return (
-    <Box className="flex min-w-0 shrink-0 items-center gap-2">
-      <BodyText
-        as="span"
-        size="xs"
-        className="text-text-secondary hidden whitespace-nowrap sm:inline"
-      >
-        {t("saved.library_sort_label")}
-      </BodyText>
+    <Box className="flex min-w-0 shrink-0 items-center">
       <Dropdown
         options={options}
         value={value}

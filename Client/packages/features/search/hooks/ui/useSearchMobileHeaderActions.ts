@@ -3,12 +3,14 @@ import { useCallback, useMemo, useRef } from "react";
 
 import type { PreciseStreetAddressPayload } from "packages/features/search/components/header/location-bar/searchLocationBarTypes";
 import type { SearchMobileHeaderProps } from "packages/features/search/components/header/SearchMobileHeader";
-import { useMediaQuery } from "packages/hooks/ui/responsive/useMediaQuery";
-import { screenDown } from "packages/ui/types/screens";
 
 export type UseSearchMobileHeaderActionsParams = {
+  /** From `useMediaQuery(screenDown("lg"))` — must be read in a stable hook order at the caller. */
+  isCompactHeader: boolean;
   isSearching: boolean;
   onSearch: () => void;
+  /** After preferences Apply: flush save then run the same search as the main Search control. */
+  onPreferencesApplySearch?: () => void | Promise<void>;
   onLocationSearchSubmit: () => void | Promise<void>;
   fitMapToBounds: (bounds: google.maps.LatLngBounds) => void;
   onPreciseStreetAddressSelected?: (payload: PreciseStreetAddressPayload) => void;
@@ -30,9 +32,10 @@ export function useSearchMobileHeaderActions(params: UseSearchMobileHeaderAction
   isCompactHeader: boolean;
   headerProps: SearchMobileHeaderProps;
 } {
-  const isCompactHeader = useMediaQuery(screenDown("lg"));
+  const { isCompactHeader } = params;
 
   const onSearchRef = useRef(params.onSearch);
+  const onPreferencesApplySearchRef = useRef(params.onPreferencesApplySearch);
   const onCancelSearchRef = useRef(params.onCancelSearch);
   const onClientChangeRef = useRef(params.onClientChange);
   const onToggleModeRef = useRef(params.onToggleMode);
@@ -41,6 +44,7 @@ export function useSearchMobileHeaderActions(params: UseSearchMobileHeaderAction
   const onLocationSearchSubmitRef = useRef(params.onLocationSearchSubmit);
   const onPreciseStreetAddressSelectedRef = useRef(params.onPreciseStreetAddressSelected);
   onSearchRef.current = params.onSearch;
+  onPreferencesApplySearchRef.current = params.onPreferencesApplySearch;
   onCancelSearchRef.current = params.onCancelSearch;
   onClientChangeRef.current = params.onClientChange;
   onToggleModeRef.current = params.onToggleMode;
@@ -51,6 +55,9 @@ export function useSearchMobileHeaderActions(params: UseSearchMobileHeaderAction
 
   const stableOnSearch = useCallback(() => {
     void onSearchRef.current();
+  }, []);
+  const stableOnPreferencesApplySearch = useCallback(() => {
+    void onPreferencesApplySearchRef.current?.();
   }, []);
   const stableOnCancelSearch = useCallback(() => {
     onCancelSearchRef.current?.();
@@ -83,6 +90,7 @@ export function useSearchMobileHeaderActions(params: UseSearchMobileHeaderAction
   const headerProps = useMemo<SearchMobileHeaderProps>(
     () => ({
       onSearch: stableOnSearch,
+      onPreferencesApplySearch: stableOnPreferencesApplySearch,
       onCancelSearch: stableOnCancelSearch,
       onLocationSearchSubmit: stableOnLocationSearchSubmit,
       fitMapToBounds: stableFitMapToBounds,
@@ -102,6 +110,7 @@ export function useSearchMobileHeaderActions(params: UseSearchMobileHeaderAction
       params.mode,
       params.onToggleMode,
       stableOnSearch,
+      stableOnPreferencesApplySearch,
       stableOnCancelSearch,
       stableOnLocationSearchSubmit,
       stableFitMapToBounds,

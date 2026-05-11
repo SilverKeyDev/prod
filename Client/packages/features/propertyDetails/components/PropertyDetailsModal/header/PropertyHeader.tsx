@@ -113,7 +113,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
     if (onGenerateReport) {
       onGenerateReport(address);
     }
-    navigate("SAVED");
+    navigate("LIBRARY");
   }, [navigate, onGenerateReport, propertyAddress]);
 
   const handleShare = useCallback(() => {

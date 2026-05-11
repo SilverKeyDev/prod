@@ -36,12 +36,6 @@ properties:
           - week
           - month
         description: Main calendar shell (agent dashboard / Google-connected calendar).
-      availability:
-        type: string
-        enum:
-          - week
-          - month
-        description: Local availability calendar (profile availability editor).
     additionalProperties: false
   viewing_tour:
     allOf:

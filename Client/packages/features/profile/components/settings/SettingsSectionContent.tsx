@@ -14,6 +14,7 @@ import {
   SettingsFinancialSection,
 } from "packages/features/profile/components/sections/index.web";
 import type { OnboardingData } from "packages/features/profile/utils";
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 
 export type SettingsSectionContentProps = {
   sectionId: string;
@@ -38,6 +39,7 @@ export function SettingsSectionContent({
   scriptsReady,
   loadError,
 }: SettingsSectionContentProps) {
+  const isAgent = useIsAgent();
   switch (sectionId) {
     case "agent_brokerage":
       return (
@@ -63,6 +65,16 @@ export function SettingsSectionContent({
           formData={formData}
           isEditMode={isEditMode}
           updateFormData={updateFormData}
+        />
+      );
+
+    case "availability":
+      if (!isAgent) return null;
+      return (
+        <AvailabilitySection
+          formData={formData}
+          isEditMode={isEditMode}
+          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
       );
 
@@ -123,15 +135,6 @@ export function SettingsSectionContent({
           isEditMode={isEditMode}
           updateFormData={updateFormData}
           showAgentChoice={false}
-        />
-      );
-
-    case "availability":
-      return (
-        <AvailabilitySection
-          formData={formData}
-          isEditMode={isEditMode}
-          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
       );
 

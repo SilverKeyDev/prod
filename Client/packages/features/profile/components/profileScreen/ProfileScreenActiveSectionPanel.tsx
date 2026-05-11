@@ -19,6 +19,8 @@ import type { OnboardingData } from "packages/features/profile/utils";
 export type ProfileScreenActiveSectionPanelProps = {
   currentStep: { id: string; title: string } | undefined;
   activeSection: string;
+  /** Weekly availability editor is shown only for agents on their own profile. */
+  showAvailabilityEditor: boolean;
   effectiveEditMode: boolean;
   formData: OnboardingData;
   /** When set, privacy self-service is hidden. */
@@ -38,6 +40,7 @@ export type ProfileScreenActiveSectionPanelProps = {
 export function ProfileScreenActiveSectionPanel({
   currentStep,
   activeSection,
+  showAvailabilityEditor,
   effectiveEditMode,
   formData,
   agentSubject = null,
@@ -58,6 +61,13 @@ export function ProfileScreenActiveSectionPanel({
       screenReaderHeading={currentStep.title}
       showVisibleHeading={activeSection !== "location"}
     >
+      {activeSection === "availability" && showAvailabilityEditor ? (
+        <AvailabilitySection
+          formData={formData}
+          isEditMode={effectiveEditMode}
+          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+        />
+      ) : null}
       {activeSection === "agent_brokerage" && (
         <AgentBrokerageSection
           formData={formData}
@@ -77,13 +87,6 @@ export function ProfileScreenActiveSectionPanel({
           formData={formData}
           isEditMode={effectiveEditMode}
           updateFormData={updateField}
-        />
-      )}
-      {activeSection === "availability" && (
-        <AvailabilitySection
-          formData={formData}
-          isEditMode={effectiveEditMode}
-          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
       )}
       {activeSection === "demographics" && (

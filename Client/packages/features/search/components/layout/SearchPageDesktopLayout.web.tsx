@@ -17,6 +17,7 @@ export type SearchPageDesktopLayoutProps = {
   selectedPropertyId: string | undefined;
   onNavigateToProperty: (property: SearchResult) => void;
   onSearchProperties: () => void | Promise<void>;
+  onPreferencesApplySearch?: () => void | Promise<void>;
   hasLocations?: boolean;
   onLocationSearchSubmit: () => void | Promise<void>;
   onCancelSearch: () => void;
@@ -61,6 +62,7 @@ export function SearchPageDesktopLayout({
   selectedPropertyId,
   onNavigateToProperty,
   onSearchProperties,
+  onPreferencesApplySearch,
   hasLocations = true,
   onLocationSearchSubmit,
   onCancelSearch,
@@ -153,6 +155,7 @@ export function SearchPageDesktopLayout({
           <Box className="mb-4 flex w-full items-center justify-between">
             <SearchHeader
               onSearchProperties={onSearchProperties}
+              onPreferencesApplySearch={onPreferencesApplySearch}
               onLocationSearchSubmit={onLocationSearchSubmit}
               onCancelSearch={onCancelSearch}
               isSearching={isSearching}

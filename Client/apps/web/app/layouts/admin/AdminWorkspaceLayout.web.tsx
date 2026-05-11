@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@ui/icons";
 import { Outlet, useLocation } from "react-router-dom";
@@ -10,7 +10,8 @@ import {
   visibleAdminNavSpec,
 } from "packages/features/admin/utils/adminSidebarNavConfig";
 import { useUserData } from "packages/hooks/data/user/useUserData";
-import { useStepUpAuth } from "packages/hooks/ui";
+import { checkStepUpRequired, useStepUpAuth } from "packages/hooks/ui";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import type { NavItem } from "packages/navigation";
 import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
@@ -23,36 +24,106 @@ import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuth
 
 export function AdminWorkspaceLayout() {
   const location = useLocation();
+  const instanceLabelRef = useRef<string | null>(null);
+  if (instanceLabelRef.current === null) {
+    instanceLabelRef.current =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `admin-layout-${Date.now()}`;
+  }
+
+  const locationRef = useRef(location);
+  locationRef.current = location;
+
   const { navigateToPath } = useNavigation();
   const { user } = useAuthStoreIntegration();
   const { userProfile } = useUserData();
 
   const { isStepUpRequired, requestStepUpAuth, stepUpModalProps } = useStepUpAuth();
-  const [stepUpSatisfied, setStepUpSatisfied] = useState(false);
+  const [stepUpSatisfied, setStepUpSatisfied] = useState(
+    () => !checkStepUpRequired("access_admin_panel")
+  );
+  const isStepUpRequiredRef = useRef(isStepUpRequired);
+  const requestStepUpAuthRef = useRef(requestStepUpAuth);
+  isStepUpRequiredRef.current = isStepUpRequired;
+  requestStepUpAuthRef.current = requestStepUpAuth;
 
   useEffect(() => {
-    let mounted = true;
+    const label = instanceLabelRef.current ?? "admin-layout";
+    const loc = locationRef.current;
+    log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_WORKSPACE] mounted", {
+      instanceId: label,
+      windowPath: typeof window !== "undefined" ? window.location.pathname : "",
+      routerPath: loc.pathname,
+      routerSearch: loc.search,
+      routerKey: loc.key,
+    });
+    return () => {
+      const locUnmount = locationRef.current;
+      log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_WORKSPACE] unmounted", {
+        instanceId: label,
+        windowPath: typeof window !== "undefined" ? window.location.pathname : "",
+        routerPath: locUnmount.pathname,
+        routerSearch: locUnmount.search,
+        routerKey: locUnmount.key,
+      });
+    };
+    // Intentionally mount-only: tracks remount loops (see DynamicRoutes stable admin subtree).
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
 
     const ensureStepUp = async () => {
-      if (!isStepUpRequired("access_admin_panel")) {
-        if (mounted) setStepUpSatisfied(true);
+      if (!isStepUpRequiredRef.current("access_admin_panel")) {
+        if (!cancelled) setStepUpSatisfied(true);
         return;
       }
 
-      const ok = await requestStepUpAuth(
+      log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_WORKSPACE] step-up required, opening flow", {
+        instanceId: instanceLabelRef.current,
+      });
+
+      const ok = await requestStepUpAuthRef.current(
         "access_admin_panel",
         "Confirm your identity to access the SilverKey admin workspace."
       );
 
-      if (mounted) setStepUpSatisfied(ok);
+      if (cancelled) {
+        log.info(
+          LOG_CATEGORIES.ROUTING,
+          "[ADMIN_WORKSPACE] step-up await returned after effect cleanup",
+          {
+            instanceId: instanceLabelRef.current,
+            ok,
+            note: "setStepUpSatisfied skipped — likely React Strict Mode remount or parent unmount",
+          }
+        );
+        return;
+      }
+
+      setStepUpSatisfied(ok);
+      log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_WORKSPACE] step-up finished", {
+        instanceId: instanceLabelRef.current,
+        ok,
+      });
     };
 
     void ensureStepUp();
 
     return () => {
-      mounted = false;
+      log.info(
+        LOG_CATEGORIES.ROUTING,
+        "[ADMIN_WORKSPACE] step-up effect cancelled (strict remount or parent unmount)",
+        {
+          instanceId: instanceLabelRef.current,
+          routerPath: locationRef.current.pathname,
+          routerKey: locationRef.current.key,
+        }
+      );
+      cancelled = true;
     };
-  }, [isStepUpRequired, requestStepUpAuth]);
+  }, []);
 
   const roles = userProfile?.roles ?? user?.roles ?? [];
   const includeSuperadmin = roles.includes("super_admin");
@@ -103,10 +174,20 @@ export function AdminWorkspaceLayout() {
               "For your security, please confirm your identity to access this admin feature."}
           </BodyText>
           <Box className="mt-4 flex justify-end gap-3">
-            <Button variant="secondary" size="sm" onClick={stepUpModalProps.onClose} iconName="arrow-left">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={stepUpModalProps.onClose}
+              iconName="arrow-left"
+            >
               Cancel
             </Button>
-            <Button variant="primary" size="sm" onClick={stepUpModalProps.onSuccess} iconName="chevron-right">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={stepUpModalProps.onSuccess}
+              iconName="chevron-right"
+            >
               Continue
             </Button>
           </Box>

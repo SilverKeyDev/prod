@@ -23,10 +23,18 @@ def test_sanitize_rejects_bad_sort():
             "docusign": {"layout": "grid", "sort": "date_desc"},
         },
         "saved": {"tab": "homes"},
-        "calendar": {"shell": "month", "availability": "week"},
+        "calendar": {"shell": "month"},
     }
     out = sanitize_settings(raw)
     assert out["library"]["homes"]["sort"] == "date_desc"
+
+
+def test_sanitize_preserves_forms_library_tab():
+    raw = {
+        "saved": {"tab": "forms-library"},
+    }
+    out = sanitize_settings(raw)
+    assert out["saved"]["tab"] == "forms-library"
 
 
 def test_merge_patch_deep():

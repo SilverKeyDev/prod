@@ -28,6 +28,11 @@ type UseAutoSavePreferencesReturn = {
   saveStatus: SaveStatus;
   isSaving: boolean;
   autoSave: (data: Partial<OnboardingData>) => void;
+  /**
+   * Await any in-flight save, then persist `data` once (serialized with the auto-save chain).
+   * Clears debounced pending saves. Use after Apply so search runs against server state.
+   */
+  flushSave: (data: Partial<OnboardingData>) => Promise<void>;
   updateFormData: <T extends Partial<OnboardingData>>(
     formData: T,
     setFormData: React.Dispatch<React.SetStateAction<T>>,
@@ -116,6 +121,7 @@ export function useAutoSavePreferences({
         }
 
         onError?.(error);
+        throw error;
       }
     },
     [
@@ -142,7 +148,10 @@ export function useAutoSavePreferences({
           .catch(() => {
             /* keep the chain alive after a failed save */
           })
-          .then(() => performSave(data));
+          .then(() => performSave(data))
+          .catch(() => {
+            /* errors surfaced via toast; swallow for queued auto-saves */
+          });
         void saveChainRef.current;
         return;
       }
@@ -157,11 +166,30 @@ export function useAutoSavePreferences({
         const toSave = pendingDebouncedRef.current;
         pendingDebouncedRef.current = null;
         if (toSave) {
-          void performSave(toSave);
+          void performSave(toSave).catch(() => {
+            /* errors surfaced via toast */
+          });
         }
       }, debounceMs);
     },
     [debounceMs, performSave]
+  );
+
+  const flushSave = useCallback(
+    async (data: Partial<OnboardingData>) => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+      pendingDebouncedRef.current = null;
+      saveChainRef.current = saveChainRef.current
+        .catch(() => {
+          /* keep the chain alive after a failed save */
+        })
+        .then(() => performSave(data));
+      await saveChainRef.current;
+    },
+    [performSave]
   );
 
   const updateFormData = useCallback(
@@ -198,6 +226,7 @@ export function useAutoSavePreferences({
     saveStatus,
     isSaving,
     autoSave,
+    flushSave,
     updateFormData,
   };
 }

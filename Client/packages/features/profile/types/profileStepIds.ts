@@ -6,7 +6,6 @@
 export const PROFILE_STEP_IDS = [
   "onboarding_role",
   "demographics",
-  "availability",
   "housing_essentials",
   "housing_ranges",
   "location",
@@ -15,6 +14,7 @@ export const PROFILE_STEP_IDS = [
   "agent_brokerage",
   "agent_licensing",
   "agent_profile",
+  "availability",
   "privacy_data",
 ] as const;
 
@@ -25,6 +25,7 @@ export const AGENT_ONLY_SECTION_IDS = [
   "agent_brokerage",
   "agent_licensing",
   "agent_profile",
+  "availability",
 ] as const satisfies ReadonlyArray<ProfileStepId>;
 
 export type AgentOnlySectionId = (typeof AGENT_ONLY_SECTION_IDS)[number];
@@ -38,7 +39,6 @@ export const BUYER_PERSONALIZATION_SECTION_IDS = [
   "location",
   "search_property",
   "financial",
-  "availability",
 ] as const satisfies ReadonlyArray<ProfileStepId>;
 
 export type BuyerPersonalizationSectionId = (typeof BUYER_PERSONALIZATION_SECTION_IDS)[number];

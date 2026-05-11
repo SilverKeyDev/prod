@@ -5,6 +5,7 @@ import { EventList } from "packages/features/calendar/components/view/EventList"
 import { QuickEventPopover } from "packages/features/calendar/components/view/QuickEventPopover";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useLocalAvailabilityCalendarScreen } from "packages/hooks/data/calendar/useLocalAvailabilityCalendarScreen";
+import Button from "packages/ui/components/button/Button";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 
@@ -68,6 +69,17 @@ export function LocalAvailabilityCalendar({
               calendars={screen.gridCalendars}
               border="light"
               density="compact"
+              headerActions={
+                isInteractionEnabled ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onPress={screen.addAvailabilityForSelectedDay}
+                  >
+                    Add
+                  </Button>
+                ) : null
+              }
             />
           </Box>
         ) : null}

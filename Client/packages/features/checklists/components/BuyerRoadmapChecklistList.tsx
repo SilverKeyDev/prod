@@ -219,7 +219,7 @@ export function BuyerRoadmapChecklistList({
             <Loading />
           </Box>
         ) : error ? (
-          <Box className="flex flex-row flex-col gap-3">
+          <Box className="flex flex-col gap-3">
             <Text className="text-sm text-red-500">{error}</Text>
             <Pressable
               onPress={() => {
@@ -232,10 +232,10 @@ export function BuyerRoadmapChecklistList({
           </Box>
         ) : itemCount === 0 ? (
           <Box className="flex flex-row items-center justify-center py-12">
-            <Text className="text-warm-stone text-base">No checklist items yet.</Text>
+            <Text className="text-text-tertiary text-base">No checklist items yet.</Text>
           </Box>
         ) : (
-          <Box className="flex flex-row flex-col gap-2">
+          <Box className="flex flex-col gap-2">
             {isSectionLocked ? (
               <Pressable
                 onPress={() => {

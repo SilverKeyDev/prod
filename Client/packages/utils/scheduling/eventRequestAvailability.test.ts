@@ -3,10 +3,10 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { describe, expect, it } from "vitest";
 
-import type { BuyerAvailabilityPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
 import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
 
 import {
+  type BuyerAvailabilityPrefs,
   hasAnyAvailableSlotOnDate,
   hasConfiguredBuyerAvailabilitySlots,
   isEventRequestSlotAvailable,

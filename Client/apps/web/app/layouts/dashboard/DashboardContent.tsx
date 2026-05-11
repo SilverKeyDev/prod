@@ -1,4 +1,4 @@
-import { lazy, type ReactNode, Suspense, useEffect } from "react";
+import { lazy, type ReactNode, Suspense, useEffect, useRef } from "react";
 
 import { useIsMobile } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES, type LogCategory } from "packages/logger";
@@ -23,8 +23,8 @@ const SearchPage = lazy(
 const SavedHomes = lazy(
   traceLazyImport(
     LOG_CATEGORIES.ROUTING,
-    "lazy:SavedPage",
-    () => import("@/pages/property/SavedPage")
+    "lazy:LibraryPage",
+    () => import("@/pages/property/LibraryPage")
   )
 );
 const ProfilePage = lazy(
@@ -116,7 +116,7 @@ export function DashboardContent({
   const contentBottomMargin =
     route.isDashboard ||
     route.isProfile ||
-    route.isSaved ||
+    route.isLibrary ||
     route.isFindAgents ||
     route.isAgreementSigningComplete;
 
@@ -147,12 +147,19 @@ export function DashboardContent({
   const fbVariant = suspenseFallbackVariant(activeKey);
   const loadingFallback = <ReportingSuspenseFallback variant={fbVariant} />;
 
+  const shellNavPerfDedupRef = useRef<{ key: string; at: number } | null>(null);
+
   useEffect(() => {
-    if (activeKey === "dashboard") {
-      shellRouteNavigateStart("dashboard", route.pathname);
-    } else if (activeKey === "messaging") {
-      shellRouteNavigateStart("messaging", route.pathname);
+    if (activeKey !== "dashboard" && activeKey !== "messaging") return;
+    const routeKey = activeKey === "dashboard" ? "dashboard" : "messaging";
+    const dedupeKey = `${routeKey}|${route.pathname}`;
+    const now = performance.now();
+    const prev = shellNavPerfDedupRef.current;
+    if (prev && prev.key === dedupeKey && now - prev.at < 48) {
+      return;
     }
+    shellNavPerfDedupRef.current = { key: dedupeKey, at: now };
+    shellRouteNavigateStart(routeKey, route.pathname);
   }, [activeKey, route.pathname]);
 
   const content =
@@ -166,8 +173,8 @@ export function DashboardContent({
       <Suspense fallback={loadingFallback}>
         <ProfilePage setMobileHeaderActions={setMobileHeaderActions} />
       </Suspense>
-    ) : activeKey === "saved" ? (
-      <PageErrorBoundary key="saved" pageLabel="Saved">
+    ) : activeKey === "library" ? (
+      <PageErrorBoundary key="library" pageLabel="Library">
         <Suspense fallback={loadingFallback}>
           <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
         </Suspense>

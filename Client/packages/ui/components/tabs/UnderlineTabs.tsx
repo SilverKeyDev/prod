@@ -12,6 +12,7 @@ import {
   SIDEBAR_TAB_LOCKED_TEXT,
   SIDEBAR_TAB_ROW_BORDER,
 } from "packages/ui/components/sidebar/sidebarTheme";
+import { navRowTypography } from "packages/ui/styles/theme/navTabTypography";
 import { HOVER_BG_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 
 import {
@@ -47,7 +48,7 @@ export type UnderlineTabsProps = {
   className?: string;
   /** Underline color class (default: bg-gold, matching search Results/Saved). */
   underlineColor?: string;
-  /** When "sidebar", uses white text and white underline for sidebar-gray backgrounds. */
+  /** When "sidebar", uses white text and white underline for dark chrome (`background-sidebar`). */
   variant?: "default" | "sidebar";
   /**
    * When true, the tab row scrolls horizontally only if tabs cannot fit; tabs otherwise split the
@@ -102,9 +103,9 @@ export function UnderlineTabs({
         const isActive = activeId === item.id;
         const isLocked = item.locked === true;
         const isJourneyPhase = phaseIndicatorId != null && phaseIndicatorId === item.id;
-        const textSizeClass = isActive ? sizeStyles.activeText : sizeStyles.inactiveText;
         const iconSizeClass = isActive ? sizeStyles.activeIcon : sizeStyles.inactiveIcon;
-        const fontWeightClass = isActive ? "font-bold" : "font-medium";
+        const rowTypo = navRowTypography[tabSize];
+        const labelSlotTypography = isActive ? rowTypo.highlighted : rowTypo.inactive;
         const flexClass =
           phaseIndicatorId != null
             ? isJourneyPhase
@@ -119,10 +120,11 @@ export function UnderlineTabs({
             size={underlineTabsButtonSize(tabSize)}
             rounded="none"
             label={typeof item.label === "string" ? item.label : item.id}
+            labelSlotClassName={labelSlotTypography}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
             onClick={() => onChange(item.id)}
-            className={`relative ${buttonLayoutClass} ${flexClass} ${textSizeClass} ${fontWeightClass} ${HOVER_BG_CLASSES} focus:outline-none focus:ring-0 ${
+            className={`relative ${buttonLayoutClass} ${flexClass} ${HOVER_BG_CLASSES} outline-none focus:!ring-0 focus:!ring-offset-0 ${
               isSidebar
                 ? isLocked
                   ? SIDEBAR_TAB_LOCKED_TEXT
@@ -134,9 +136,11 @@ export function UnderlineTabs({
                   : isActive
                     ? "text-neutral-600"
                     : "text-neutral-600 hover:text-neutral-800 active:text-neutral-900 active:opacity-90"
-            } ${isSidebar ? "" : "active:text-neutral-500 active:text-neutral-800"}`}
+            }`}
           >
-            <Box className="flex flex-row items-center justify-center gap-2">
+            <Box
+              className={`flex flex-row items-center justify-center gap-2 ${labelSlotTypography}`}
+            >
               {isLocked ? (
                 <Icon name="lock" className={`${iconSizeClass} shrink-0`} aria-hidden />
               ) : (

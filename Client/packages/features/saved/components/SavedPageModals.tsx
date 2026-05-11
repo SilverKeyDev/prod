@@ -1,5 +1,5 @@
 import { CompareFloatingBar, CompareHomesModal } from "packages/features/compare";
-import type { SavedPageViewType } from "packages/features/documents";
+import type { SavedHomesSurfaceViewType } from "packages/features/documents";
 import { NegotiationModal } from "packages/features/negotiate";
 import {
   PropertyDetailsModal,
@@ -12,7 +12,7 @@ import type { SavedHome } from "packages/types";
 type PropertyForDetails = NonNullable<PropertyDetailsModalProps["property"]>;
 
 type SavedPageModalsProps = {
-  viewType: SavedPageViewType;
+  viewType: SavedHomesSurfaceViewType;
   selectedProperty: PropertyForDetails | null;
   clearSelectedProperty: () => void;
   isLoadingPropertyDetails: boolean;

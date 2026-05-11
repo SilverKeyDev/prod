@@ -10,12 +10,12 @@ Single source of truth for design tokens (colors, spacing, typography, breakpoin
 
 ## API
 
-- `colors`, `spacing` (map), `breakpoints`, `fontFamily`, `fontSize`, `themeSpacing` - raw token objects.
+- `colors` (merged `tokens/color/foundation.json` + `features.json`), `spacing` (map), `breakpoints`, `fontFamily`, `fontSize`, `motionDuration`, `motionEasing`, `themeSpacing` - raw token objects / maps.
 - `spacing(n)` / `spacingToken(n)` - resolve spacing by key (number or semantic name).
 - `color(path)` - resolve color by path string (e.g. `"neutral.500"`).
 - `breakpoint(name)` - resolve breakpoint value (e.g. `"768px"`).
 
 ## Rules
 
-- Literal hex colors are allowed **only** in this package (e.g. `tokens/colors.ts`).
+- Literal hex colors are allowed **only** in this package (e.g. `tokens/color/foundation.json`, `tokens/color/features.json`, merged in `tokens/color/index.ts`).
 - In `apps/web/components/**` and `apps/web/features/**`, ESLint forbids literal hex and warns on raw numeric/px spacing.

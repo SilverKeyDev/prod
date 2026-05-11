@@ -1,13 +1,17 @@
 /* Import modular CSS files */
-@import "./base.css";
-@import "./components.css";
-@import "./utilities.css";
-@import "./animations.css";
-@import "./mobile.css";
-@import "./maps.css";
-@import "./embla.css";
-@import "./scrollbar.css";
-@import "./semantic-variables.css";
+@import "./css/base.css";
+@import "./css/components.css";
+@import "./css/utilities.css";
+@import "./css/animations.css";
+@import "./css/mobile.css";
+@import "./css/maps.css";
+@import "./css/embla.css";
+@import "./css/scrollbar.css";
+@import "./css/semantic-variables.css";
+@import "./css/carousel.css";
+
+/* After @import (CSS spec); before @tailwind. Points Tailwind at app preset for theme() in this bundle. */
+@config "../../../apps/web/tailwind.config.ts";
 
 @tailwind base;
 @tailwind components;

@@ -11,7 +11,7 @@ import { color } from "packages/design-tokens";
 import { Link, useNavigation } from "packages/navigation";
 import { ScrollView } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
-import { SHADOW_OFFSET_SUBTLE } from "packages/ui/styles/shadows.native";
+import { SHADOW_OFFSET_SUBTLE } from "packages/ui/styles/shadows/shadows.native";
 
 export type SectionProps = {
   title: string;

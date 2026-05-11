@@ -1,4 +1,10 @@
-import { dateNow, dayjs } from "packages/utils/date";
+import {
+  dateNow,
+  dayjs,
+  formatLocaleLongWeekdayMonthDayEnUs,
+  formatLocaleLongWeekdayMonthDayYearEnUs,
+  formatLocaleTime12HourEnUs,
+} from "packages/utils/date";
 
 /**
  * Utility functions for formatting dates in message lists
@@ -8,7 +14,6 @@ import { dateNow, dayjs } from "packages/utils/date";
 /**
  * Formats a date for display in message date dividers
  * Returns: time (if within 24 hours), "Today", "Yesterday", "Monday, January 1", or "Monday, January 1, 2024"
- * Always uses the user's timezone
  */
 export function formatMessageDateHeader(date: Date): string {
   const now = dateNow();
@@ -20,11 +25,7 @@ export function formatMessageDateHeader(date: Date): string {
 
   // If within the last 24 hours, show time
   if (timeDiffInHours < 24 && timeDiffInHours >= 0) {
-    return messageDate.toDate().toLocaleTimeString(undefined, {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+    return formatLocaleTime12HourEnUs(messageDate.toDate());
   }
 
   // Check calendar days for "Today" and "Yesterday"
@@ -45,22 +46,10 @@ export function formatMessageDateHeader(date: Date): string {
   // Check if it's this year
   const isThisYear = messageDate.year() === now.year();
 
-  // Format: "Monday, January 1" or "Monday, January 1, 2024"
-  // Uses user's locale and timezone automatically
-  if (isThisYear) {
-    return messageDate.toDate().toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    });
-  } else {
-    return messageDate.toDate().toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
+  const asDate = messageDate.toDate();
+  return isThisYear
+    ? formatLocaleLongWeekdayMonthDayEnUs(asDate)
+    : formatLocaleLongWeekdayMonthDayYearEnUs(asDate);
 }
 
 /**

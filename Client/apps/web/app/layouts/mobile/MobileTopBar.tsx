@@ -6,7 +6,7 @@ const MOBILE_TOP_BAR_HEIGHT_PX = 80; // h-20 – default height (search and dens
 /** Matches `SIDEBAR_INSET_HEADER_SHELL` (`h-14`) so messaging header is not vertically centered in extra slack. */
 export const MOBILE_TOP_BAR_COMPACT_HEIGHT_PX = 56;
 /**
- * Library (/saved) mobile header: underline tabs + card toolbar exceed the default bar height; spacer
+ * Library (`/library`) mobile header: underline tabs + card toolbar exceed the default bar height; spacer
  * must match or content renders under the fixed header.
  */
 export const MOBILE_TOP_BAR_LIBRARY_HEIGHT_PX = 180;

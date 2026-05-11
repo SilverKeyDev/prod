@@ -16,7 +16,7 @@ import { getWidthPercent } from "packages/utils/layout/dashboardLayoutConfig";
 
 import { useLocationOverride } from "@/app/routes/locationOverrideContext";
 
-/** Dashboard shell area; includes DocuSign return route outside /saved prefix. */
+/** Dashboard shell area; includes DocuSign return route outside /library prefix. */
 export type DashboardAreaKey = PathPrefix | "agreement_signing_complete";
 
 function activeKeyFromPathname(pathname: string): DashboardAreaKey | null {
@@ -27,7 +27,7 @@ function activeKeyFromPathname(pathname: string): DashboardAreaKey | null {
   if (pathname.startsWith("/messaging")) return "messaging";
   if (pathname.startsWith("/find-agents")) return "find_agents";
   if (pathname.startsWith("/dashboard")) return "dashboard";
-  if (pathname.startsWith("/saved")) return "saved";
+  if (pathname.startsWith("/library") || pathname.startsWith("/saved")) return "library";
   if (pathname.startsWith("/profile")) return "profile";
   return null;
 }
@@ -40,7 +40,7 @@ export type DashboardRouteResult = {
   isSearch: boolean;
   isDashboard: boolean;
   isProfile: boolean;
-  isSaved: boolean;
+  isLibrary: boolean;
   isMessaging: boolean;
   isFindAgents: boolean;
   isAgreementSigningComplete: boolean;
@@ -66,7 +66,7 @@ export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResul
   const messagingMatch = useMatch(ROUTES.MESSAGING);
   const findAgentsMatch = useMatch(ROUTES.FIND_AGENTS);
   const dashboardMatch = useMatch(ROUTES.DASHBOARD);
-  const savedMatch = useMatch(ROUTES.SAVED);
+  const libraryMatch = useMatch(ROUTES.LIBRARY);
   const profileMatch = useMatch(ROUTES.PROFILE);
 
   const activeKey: DashboardAreaKey | null = locationOverride
@@ -81,8 +81,8 @@ export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResul
             ? "find_agents"
             : dashboardMatch
               ? "dashboard"
-              : savedMatch
-                ? "saved"
+              : libraryMatch
+                ? "library"
                 : profileMatch
                   ? "profile"
                   : null;
@@ -100,7 +100,7 @@ export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResul
     isSearch: activeKey === "search",
     isDashboard: activeKey === "dashboard",
     isProfile: activeKey === "profile",
-    isSaved: activeKey === "saved",
+    isLibrary: activeKey === "library",
     isMessaging: activeKey === "messaging",
     isFindAgents: activeKey === "find_agents",
     isAgreementSigningComplete: activeKey === "agreement_signing_complete",

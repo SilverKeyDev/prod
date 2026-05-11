@@ -3,28 +3,7 @@ import React from "react";
 import type { EventRequestStatus } from "packages/features/messaging/hooks/data/messaging/types";
 import type { EventRequestPayload } from "packages/features/messaging/utils/eventRequestPayload";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
-import { dateParseISO } from "packages/utils/date";
-
-function formatEventDateTime(start: string, end: string): string {
-  const startDate = dateParseISO(start).toDate();
-  const endDate = dateParseISO(end).toDate();
-  const dateStr = startDate.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  const timeStr = `${startDate.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  })} – ${endDate.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  })}`;
-  return `${dateStr} at ${timeStr}`;
-}
+import { formatEventRequestRangeSummaryEnUs } from "packages/utils/date";
 
 export type MessagingEventRequestCardNativeProps = {
   messageId: string;
@@ -50,7 +29,7 @@ export function MessagingEventRequestCardNative({
       <Box className="border-border bg-background-surface rounded-lg border p-3">
         <Text className="text-text-primary font-medium">{payload.title}</Text>
         <Text className="text-text-secondary mt-1 text-sm">
-          {formatEventDateTime(payload.start, payload.end)}
+          {formatEventRequestRangeSummaryEnUs(payload.start, payload.end)}
         </Text>
         {payload.location?.trim() ? (
           <Text className="text-text-secondary mt-1 text-sm" numberOfLines={2}>

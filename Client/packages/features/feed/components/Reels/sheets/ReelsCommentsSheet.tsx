@@ -91,11 +91,11 @@ export function ReelsCommentsSheet({
             leaveTo="translate-y-full"
           >
             <AccessibleDialog.Panel
-              className="bg-background-surface pointer-events-auto flex min-h-0 w-full flex-[0.75] flex-row flex-col rounded-t-2xl"
+              className="bg-background-surface pointer-events-auto flex min-h-0 w-full flex-[0.75] flex-col rounded-t-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header - Instagram: "Comments" with top drag handle */}
-              <Box className="border-border flex shrink-0 flex-row flex-col items-center border-b pt-2">
+              <Box className="border-border flex shrink-0 flex-col items-center border-b pt-2">
                 <Box className="bg-border mb-2 h-1 w-10 rounded-full" aria-hidden />
                 <Box className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-3">
                   <Box className="w-9 shrink-0" aria-hidden />
@@ -111,7 +111,7 @@ export function ReelsCommentsSheet({
               {/* Scrollable comment list */}
               <Box className="min-h-0 flex-1 overflow-y-auto">
                 {comments.length === 0 ? (
-                  <Box className="flex flex-row flex-col items-center justify-center px-4 py-12">
+                  <Box className="flex flex-col items-center justify-center px-4 py-12">
                     <BodyText size="sm" muted className="text-center">
                       No comments yet.
                     </BodyText>
@@ -180,7 +180,7 @@ export function ReelsCommentsSheet({
                         <IconButton
                           variant="ghost"
                           size="sm"
-                          className="text-text-disabled hover:text-text-secondary active:text-text-secondary active:text-text-primary shrink-0"
+                          className="text-text-disabled hover:text-text-secondary active:text-text-primary shrink-0"
                           icon={<Icon name="heart" className="h-4 w-4" />}
                           label="Like comment"
                         />

@@ -3,16 +3,13 @@ import type { QueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { checklistFormsApi } from "packages/features/documents/api/checklistForms";
 import { fetchDocumentLibraryQuery } from "packages/features/documents/hooks/data/useDocumentsData";
-import { fetchFavoriteHomesData } from "packages/hooks/data/saved/favoriteHomesQuery";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAgentDashboardStore } from "packages/store";
 import type { UserProfile } from "packages/types";
 
 /** Routes warmed in Tier A of `prefetchAllInitialData` (Library-critical). */
-export const LIBRARY_PREFETCH_ROUTE_KEYS = new Set(["savedHomes", "documentLibrary"]);
+export const LIBRARY_PREFETCH_ROUTE_KEYS = new Set(["documentLibrary"]);
 
-const HOMES_STALE_MS = 5 * 60 * 1000;
-const HOMES_GC_MS = 15 * 60 * 1000;
 const DOCUMENTS_STALE_MS = 5 * 60 * 1000;
 const FORMS_STALE_MS = 10 * 60 * 1000;
 
@@ -22,7 +19,9 @@ function pathFromHref(href: string): string {
 }
 
 export function isLibraryShellPath(path: string): boolean {
-  return path.startsWith("/saved") || path.startsWith("/compare-reports");
+  return (
+    path.startsWith("/library") || path.startsWith("/saved") || path.startsWith("/compare-reports")
+  );
 }
 
 export async function prefetchFormsLibrary(queryClient: QueryClient): Promise<void> {
@@ -40,7 +39,7 @@ export async function prefetchFormsLibrary(queryClient: QueryClient): Promise<vo
 }
 
 /**
- * Prefetch Saved homes + document library for the given client scope (matches Saved page hooks).
+ * Prefetch document library (and forms for agents) for the given client scope.
  */
 export async function prefetchLibraryRouteQueryData(
   queryClient: QueryClient,
@@ -49,12 +48,6 @@ export async function prefetchLibraryRouteQueryData(
   options?: { includeFormsLibrary?: boolean }
 ): Promise<void> {
   await Promise.allSettled([
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.homes.favorites(clientId),
-      queryFn: () => fetchFavoriteHomesData(queryClient, clientId),
-      staleTime: HOMES_STALE_MS,
-      gcTime: HOMES_GC_MS,
-    }),
     queryClient.prefetchQuery({
       queryKey: queryKeys.documents.list(undefined, clientId),
       queryFn: () => fetchDocumentLibraryQuery(clientId),

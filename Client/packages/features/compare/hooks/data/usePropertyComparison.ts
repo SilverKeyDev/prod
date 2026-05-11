@@ -4,26 +4,11 @@ import type { CompareHomesPropertyDetails } from "packages/features/compare/type
 import { useIsAgent } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAgentDashboardStore } from "packages/store";
+import { unknownToNumberOrString, unknownToString } from "packages/utils/typeGuards";
 
 import type { PropertyRequest } from "@/features/search/api/research";
 import { researchApi } from "@/features/search/api/research";
 import type { SavedHome } from "@/features/search/types/property";
-
-// Helper functions to safely convert unknown values to specific types
-const toNumberOrString = (value: unknown): string | number | undefined => {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value === "string" || typeof value === "number") return value;
-  if (typeof value === "object" && value !== null) return undefined;
-  return String(value);
-};
-
-const toString = (value: unknown): string | undefined => {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value === "string") return value;
-  if (typeof value === "number") return String(value);
-  if (typeof value === "object" && value !== null) return undefined;
-  return String(value);
-};
 
 export function usePropertyComparison(isOpen: boolean, selectedHomes: SavedHome[]) {
   const [propertyDetails, setPropertyDetails] = useState<
@@ -111,17 +96,21 @@ export function usePropertyComparison(isOpen: boolean, selectedHomes: SavedHome[
                 };
                 if (basicData.data) {
                   const data = basicData.data;
-                  const newPrice = toNumberOrString(data.price) || toNumberOrString(data.listPrice);
+                  const newPrice =
+                    unknownToNumberOrString(data.price) || unknownToNumberOrString(data.listPrice);
                   const newBedrooms =
-                    toNumberOrString(data.bedrooms) || toNumberOrString(data.beds);
+                    unknownToNumberOrString(data.bedrooms) || unknownToNumberOrString(data.beds);
                   const newBathrooms =
-                    toNumberOrString(data.bathrooms) || toNumberOrString(data.baths);
-                  const newSqft = toNumberOrString(data.sqft) || toNumberOrString(data.livingArea);
-                  const newLotSize = toString(data.lotSize) || toString(data.lotAreaValue);
-                  const newYearBuilt = toNumberOrString(data.yearBuilt);
-                  const newPropertyType = toString(data.propertyType) || toString(data.homeType);
-                  const newHomeType = toString(data.homeType);
-                  const newListingStatus = toString(data.listingStatus);
+                    unknownToNumberOrString(data.bathrooms) || unknownToNumberOrString(data.baths);
+                  const newSqft =
+                    unknownToNumberOrString(data.sqft) || unknownToNumberOrString(data.livingArea);
+                  const newLotSize =
+                    unknownToString(data.lotSize) || unknownToString(data.lotAreaValue);
+                  const newYearBuilt = unknownToNumberOrString(data.yearBuilt);
+                  const newPropertyType =
+                    unknownToString(data.propertyType) || unknownToString(data.homeType);
+                  const newHomeType = unknownToString(data.homeType);
+                  const newListingStatus = unknownToString(data.listingStatus);
 
                   updated = {
                     ...updated,

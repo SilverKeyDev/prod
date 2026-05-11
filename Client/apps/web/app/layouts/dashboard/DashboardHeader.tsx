@@ -71,7 +71,7 @@ export function DashboardHeader({
   );
 
   const fullWidthLayout = route.isMessaging || route.isSearch;
-  const noPadding = route.isSaved && isMobile;
+  const noPadding = route.isLibrary && isMobile;
 
   return (
     <>
@@ -84,7 +84,7 @@ export function DashboardHeader({
             barHeightPx={
               route.isMessaging
                 ? MOBILE_TOP_BAR_COMPACT_HEIGHT_PX
-                : route.isSaved
+                : route.isLibrary
                   ? MOBILE_TOP_BAR_LIBRARY_HEIGHT_PX
                   : undefined
             }

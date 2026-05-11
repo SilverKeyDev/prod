@@ -42,7 +42,7 @@ import {
 } from "@/features/profile/components/sections/index.web";
 import { SettingsFinancialSection } from "@/features/profile/components/sections/SettingsFinancialSection";
 
-// Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
+// Google Maps types: see `packages/features/search/utils/googleMaps` and ambient typings as needed.
 
 // Export SettingsModal for use in other components
 export { default as SettingsModal } from "packages/features/agent/components/modals/settings/SettingsModal";
@@ -290,6 +290,16 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
           />
         );
 
+      case "availability":
+        if (!isAgent) return null;
+        return (
+          <AvailabilitySection
+            formData={formData}
+            isEditMode={isEditMode}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+          />
+        );
+
       case "demographics":
         // Agent status is immutable; choice only shown during onboarding
         return (
@@ -298,15 +308,6 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
             isEditMode={isEditMode}
             updateFormData={updateFormData}
             showAgentChoice={false}
-          />
-        );
-
-      case "availability":
-        return (
-          <AvailabilitySection
-            formData={formData}
-            isEditMode={isEditMode}
-            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
           />
         );
 

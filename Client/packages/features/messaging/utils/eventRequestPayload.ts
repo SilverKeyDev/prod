@@ -1,5 +1,9 @@
 import type { EventRequestPayload } from "packages/features/messaging/types/eventRequest";
-import { dateParseISO } from "packages/utils/date";
+import {
+  dateParseISO,
+  formatLocaleLongWeekdayMonthDayYearEnUs,
+  formatLocaleTime12HourEnUs,
+} from "packages/utils/date";
 
 export type { EventRequestPayload } from "packages/features/messaging/types/eventRequest";
 
@@ -61,17 +65,8 @@ export function parseEventRequestPayload(content: string): EventRequestPayload |
 export function buildEventRequestMessage(payload: EventRequestPayload): string {
   const line = `${EVENT_REQUEST_PREFIX}${JSON.stringify(payload)}`;
   const startDate = dateParseISO(payload.start).toDate();
-  const formattedDate = startDate.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  const formattedTime = startDate.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const formattedDate = formatLocaleLongWeekdayMonthDayYearEnUs(startDate);
+  const formattedTime = formatLocaleTime12HourEnUs(startDate);
   let human = `📅 Event Request: ${payload.title}\n\n`;
   human += `Date: ${formattedDate}\n`;
   human += `Time: ${formattedTime}\n`;

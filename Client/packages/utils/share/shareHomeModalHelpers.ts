@@ -3,7 +3,7 @@
  */
 import type { SearchResult } from "packages/features/search/types";
 import type { Property } from "packages/features/search/types";
-import { formatAddress } from "packages/features/search/types/search/formatters/propertyDetailsFormatters";
+import { formatAddress } from "packages/utils/format/property/propertyDetailsDisplayFormatters";
 
 export function getShareHomePropertyId(property: Property | SearchResult | null): string | null {
   if (!property) return null;

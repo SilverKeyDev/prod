@@ -8,6 +8,11 @@ import { SearchRefreshProvider } from "packages/contexts";
 import { useIsMobile } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
+import { screenUp } from "packages/ui/types/screens";
+import {
+  DASHBOARD_MODAL_INSET_LEFT_VAR,
+  DASHBOARD_SIDEBAR_WIDTH_CSS,
+} from "packages/utils/layout/dashboardModalInset";
 
 // Sidebar
 import MobileBottomNav from "@/app/layouts/mobile/MobileBottomNav";
@@ -72,6 +77,29 @@ export default function DashboardLayout({
   React.useEffect(() => {
     if (isDashboard) setMobileHeaderActions(null);
   }, [isDashboard]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (route.isAgreementSigningComplete) {
+      root.style.setProperty(DASHBOARD_MODAL_INSET_LEFT_VAR, "0px");
+      return () => {
+        root.style.removeProperty(DASHBOARD_MODAL_INSET_LEFT_VAR);
+      };
+    }
+    const mq = window.matchMedia(screenUp("md"));
+    const apply = () => {
+      root.style.setProperty(
+        DASHBOARD_MODAL_INSET_LEFT_VAR,
+        mq.matches ? DASHBOARD_SIDEBAR_WIDTH_CSS : "0px"
+      );
+    };
+    apply();
+    mq.addEventListener("change", apply);
+    return () => {
+      mq.removeEventListener("change", apply);
+      root.style.removeProperty(DASHBOARD_MODAL_INSET_LEFT_VAR);
+    };
+  }, [route.isAgreementSigningComplete]);
 
   const searchPageRef = React.useRef<{
     triggerSearch: () => Promise<void>;

@@ -60,6 +60,14 @@ describe("displayListingPriceForCard", () => {
     expect(displayListingPriceForCard("")).toBe("Price not available");
   });
 
+  it("allows callers to preserve feature-specific unavailable copy", () => {
+    expect(displayListingPriceForCard(null, { unavailableLabel: "Price N/A" })).toBe("Price N/A");
+    expect(displayListingPriceForCard("null", { unavailableLabel: "Price N/A" })).toBe("Price N/A");
+    expect(displayListingPriceForCard("Price N/A", { unavailableLabel: "Price N/A" })).toBe(
+      "Price N/A"
+    );
+  });
+
   it("maps string null to unavailable copy", () => {
     expect(displayListingPriceForCard("null")).toBe("Price not available");
   });

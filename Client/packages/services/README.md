@@ -1,94 +1,49 @@
 # Services Package
 
-Business logic orchestration, state management, and infrastructure services.
+HTTP client, security helpers, and React Query–oriented data wiring. **Feature-owned orchestration** (documents, agent API helpers, negotiation, saved homes, maps) lives under `packages/features/<feature>/` — import those from their feature modules, not from this barrel.
 
-## Purpose
-
-The `services/` package contains business logic services that orchestrate API calls and manage application state. Services are typically class-based singletons that use `config/api/*` for all API calls.
-
-## Directory Structure
+## Layout
 
 ```
-services/
-├── http/           # Low-level HTTP client implementation
-├── security/       # Security utilities (PII scrubbing, error reporting)
-├── data/           # Data loading services (React Query integration)
-├── agent.ts        # Agent service
-├── agentDashboard.ts
-├── auth.ts         # Authentication service
-├── chats.ts        # Chat service
-├── documents.ts    # Document service
-├── googleCalendar.ts
-├── googleMaps.ts
-├── negotiation.ts  # Negotiation service
-├── plaid.ts        # Plaid integration service
-├── reports.ts      # Reports service
-├── savedHomes.ts   # Saved homes service
-├── scheduling.ts   # Scheduling service
-└── index.ts        # Centralized exports
+packages/services/
+├── http/              # HttpClient, compatibility fetch helpers (apiGet, apiPost, …)
+├── security/          # PII scrubbing, secure logger, error reporting, clipboard, images
+├── data/              # Route tables + prefetch/polling helpers for React Query
+├── index.ts           # Re-exports: auth/token helpers, HTTP config, security, error types
+└── README.md
 ```
 
-## Architecture Rules
+## Import guidance
 
-### Allowed Imports
+| Need | Import from |
+|------|----------------|
+| `apiGet` / `apiPost` / `HttpError` / `createAbortManager` | `packages/services/http/...` (or `packages/services/http` barrel) |
+| Error reporting, PII, secure logger | `packages/services/security/...` |
+| `getInitialLoadRoutes`, `DATA_ROUTES`, route types | `packages/services/data/...` |
+| `documentService`, `negotiationService`, search transforms, etc. | `packages/features/<feature>/...` |
+| Auth constants (`UserRole`, `AUTH_CONFIG`, …) | `packages/config/auth/auth` (also re-exported from `packages/services` for convenience) |
 
-- ✅ `config/api/*` - API clients (primary interface)
-- ✅ `services/http/*` - HTTP utilities
-- ✅ `services/security/*` - Security utilities
-- ✅ `schemas/*` - Type definitions
+## Architecture rules
 
-### Forbidden Imports
+### Allowed imports (inside `packages/services`)
 
-- ❌ `hooks/*` or `store/*` - Services are framework-agnostic
-- ❌ `apps/web/*` - Services should not know about components
+- `packages/config/*` (env, HTTP API wrappers used by `data/` routes)
+- `packages/features/*` only where `data/` routes must call a feature query helper (keep these edges minimal)
+- `packages/logger`, `packages/utils`, `packages/types`, `packages/schemas`
 
-## Key Principles
+### Forbidden imports
 
-1. **Use API Clients**: Services MUST use `config/api/*` for all API calls
-2. **Framework Agnostic**: Services should not depend on React (except `data/` subdirectory)
-3. **Business Logic**: Services contain business logic orchestration
-4. **Singleton Pattern**: Most services are class-based singletons
+- `packages/hooks/*` or `packages/store/*`
+- `apps/web/*` or `apps/mobile/*`
 
-## Usage Examples
+## `data/` routes
 
-### Using a Service
+`data/dataRoutes/*.ts` define React Query prefetch/poll behavior. Shared success checks use [`data/apiRouteResponse.ts`](./data/apiRouteResponse.ts) (`throwUnlessApiSuccess`, `requireApiSuccessData`).
 
-```typescript
-// ✅ CORRECT: Import service
-import { agentService } from "../../../packages/services/agent";
+See [data/README.md](./data/README.md) for prefetch and polling entry points.
 
-const clients = await agentService.fetchClients();
-```
+## Further reading
 
-### Service Pattern
-
-Services typically follow this pattern:
-
-```typescript
-export class MyService {
-  async fetchData() {
-    const response = await myApi.getData(); // Uses config/api
-    if (!response.success) {
-      throw new Error(response.error);
-    }
-    // Business logic here
-    return response.data;
-  }
-}
-
-export const myService = new MyService();
-```
-
-## Special Cases
-
-### `services/data/`
-
-Contains services that use React Query's `QueryClient`. This is an acceptable exception as these services are specifically designed for React Query integration (data prefetching and background polling).
-
-See [data/README.md](./data/README.md) for details.
-
-## Further Reading
-
-- [http/README.md](./http/README.md) - HTTP client implementation
-- [security/README.md](./security/README.md) - Security utilities
-- [data/README.md](./data/README.md) - Data loading services
+- [http/README.md](./http/README.md) — HTTP client
+- [security/README.md](./security/README.md) — Security utilities
+- [data/README.md](./data/README.md) — Data loading and polling

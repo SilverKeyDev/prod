@@ -34,6 +34,8 @@ export type SearchPageMapViewProps = {
   setHasSearched: (searched: boolean) => void;
   selectedPropertyId: string | undefined;
   onSearchProperties: () => void | Promise<void>;
+  /** Save preferences then run the same search as the main Search control (used by preferences Apply). */
+  onPreferencesApplySearch?: () => void | Promise<void>;
   /** When false, main Search uses the location bar (or warns if the bar is empty). */
   hasLocations?: boolean;
   /** Location bar / map viewport polygon search (not preferences isochrone). */
@@ -85,6 +87,7 @@ export function SearchPageMapView({
   setHasSearched,
   selectedPropertyId,
   onSearchProperties,
+  onPreferencesApplySearch,
   hasLocations = true,
   onLocationSearchSubmit,
   onCancelSearch,
@@ -160,6 +163,7 @@ export function SearchPageMapView({
         selectedPropertyId={selectedPropertyId}
         onNavigateToProperty={onNavigateToProperty}
         onSearchProperties={onSearchProperties}
+        onPreferencesApplySearch={onPreferencesApplySearch}
         hasLocations={hasLocations}
         onLocationSearchSubmit={onLocationSearchSubmit}
         onCancelSearch={onCancelSearch}

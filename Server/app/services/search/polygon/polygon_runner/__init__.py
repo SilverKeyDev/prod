@@ -36,7 +36,7 @@ from .preferences_helpers import (
 )
 
 COLLECTION_LIMIT = 500
-TOP_N = 100
+TOP_N = 40
 
 _POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
 

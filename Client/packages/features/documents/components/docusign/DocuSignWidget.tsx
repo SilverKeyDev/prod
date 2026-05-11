@@ -369,7 +369,7 @@ export default function DocuSignWidget() {
           </Box>
         </Box>
 
-        {/* View All Link - navigates to SavedPage documents view */}
+        {/* View All Link - navigates to Library documents view */}
         {agreements.length > 0 && (
           <Box className="border-border mt-4 border-t pt-4">
             <Button
@@ -380,7 +380,7 @@ export default function DocuSignWidget() {
               iconPosition="right"
               onClick={() => {
                 const win = getWindow();
-                if (win) win.location.href = "/saved?view=documents";
+                if (win) win.location.href = "/library?library=documents";
               }}
               className="h-auto"
             >

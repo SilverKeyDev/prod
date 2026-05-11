@@ -118,8 +118,8 @@ export default function ClientManagement({
             </Box>
           </Box>
         ) : clients.length === 0 ? (
-          <Box className="p-3 text-center">
-            <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-neutral-400" />
+          <Box className="px-3 py-2 text-center">
+            <Icon name="message-circle" className="mx-auto mb-2 h-12 w-12 text-neutral-400" />
             <BodyText as="p" size="sm" className="text-neutral-600">
               {t("agent.no_clients_yet")}
             </BodyText>

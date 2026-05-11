@@ -15,8 +15,8 @@ export const SESSION_KEYS_TO_CLEAR = [
   "user_restored_logged",
 ] as const;
 
-/** Get session storage via global object (RN-safe: no direct sessionStorage reference). Exported for auth hooks. */
-export function getSessionStorage(): Storage | undefined {
+/** Get optional session storage via global object (RN-safe: no direct sessionStorage reference). */
+export function getOptionalSessionStorageForLogout(): Storage | undefined {
   try {
     const g = typeof globalThis !== "undefined" ? globalThis : null;
     return g ? (g as unknown as Record<string, Storage | undefined>)["sessionStorage"] : undefined;
@@ -31,7 +31,7 @@ export function getSessionStorage(): Storage | undefined {
  * Web-only when sessionStorage is available; no-op in RN.
  */
 export function clearSessionStorageForLogout(): void {
-  const storage = getSessionStorage();
+  const storage = getOptionalSessionStorageForLogout();
   if (!storage) return;
   for (const key of SESSION_KEYS_TO_CLEAR) {
     storage.removeItem(key);

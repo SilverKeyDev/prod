@@ -40,7 +40,6 @@ const ALL_STEPS: ProfileStep[] = [
   ...HOUSING_STEPS,
   ...BUYER_LOCATION_AND_SEARCH_STEPS,
   { id: "financial", title: "Finance" },
-  { id: "availability", title: "Availability" },
 ];
 
 const PERSONALIZATION_STEPS: ProfileStep[] = [
@@ -50,19 +49,12 @@ const PERSONALIZATION_STEPS: ProfileStep[] = [
   { id: "housing_ranges", title: "Size" },
   { id: "search_property", title: "Features" },
   { id: "demographics", title: "About" },
-  { id: "availability", title: "Availability" },
 ];
 
 const BUYER_HOME_SEARCH_PERSONALIZATION_IDS = new Set<string>(BUYER_PERSONALIZATION_SECTION_IDS);
 
-function orderStepsWithAvailabilityLast(steps: ProfileStep[]): ProfileStep[] {
-  const availability = steps.find((step) => step.id === "availability");
-  const others = steps.filter((step) => step.id !== "availability");
-  return [...others, ...(availability ? [availability] : [])];
-}
-
 /**
- * Buyer: full flow with availability last when present.
+ * Buyer: full onboarding flow (home search + finance).
  * Agent: onboarding role picker, demographics then professional (brokerage / licensing / territory) only —
  * no buyer home-search steps.
  */
@@ -71,7 +63,7 @@ function getProfileFlowSteps(isAgent: boolean): ProfileStep[] {
     const demographics = ALL_STEPS.find((s) => s.id === "demographics");
     return [ONBOARDING_ROLE_STEP, ...(demographics ? [demographics] : []), ...AGENT_STEPS];
   }
-  return [ONBOARDING_ROLE_STEP, ...orderStepsWithAvailabilityLast(ALL_STEPS)];
+  return [ONBOARDING_ROLE_STEP, ...ALL_STEPS];
 }
 
 function getOnboardingStepsBase(options?: GetOnboardingStepsOptions): ProfileStep[] {
@@ -94,6 +86,7 @@ export const getPersonalizationSteps = (options?: GetPersonalizationStepsOptions
   options?.isAgent
     ? [
         ...AGENT_STEPS,
+        { id: "availability", title: SECTION_TITLES.AVAILABILITY },
         ...PERSONALIZATION_STEPS.filter((s) => !BUYER_HOME_SEARCH_PERSONALIZATION_IDS.has(s.id)),
         PRIVACY_DATA_STEP,
       ]
@@ -107,5 +100,5 @@ export const getOnboardingStepsMobile = (options?: GetOnboardingStepsOptions): P
   return getOnboardingSteps({
     excludeFinancial: true,
     isAgent: options?.isAgent,
-  }).filter((s) => s.id !== "availability");
+  });
 };

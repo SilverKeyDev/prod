@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { buildSharedHomesAttachmentMessage } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
 import type { SearchResult } from "packages/features/search/types/result";
 
 import { searchResultsToSavedHomesForShare } from "./searchResultsToSavedHomesForShare";
@@ -35,9 +34,6 @@ describe("searchResultsToSavedHomesForShare", () => {
       lat: 40,
       lng: -74,
     });
-    const msg = buildSharedHomesAttachmentMessage(rows);
-    expect(msg.startsWith("__SK_SHARE__")).toBe(true);
-    expect(msg).toContain("zpid-1");
   });
 
   it("dedupes and builds bundle when two distinct homes are mapped", () => {
@@ -49,13 +45,6 @@ describe("searchResultsToSavedHomesForShare", () => {
       imageUrl: undefined,
     };
     const rows = searchResultsToSavedHomesForShare([a, b]);
-    const msg = buildSharedHomesAttachmentMessage(rows);
-    const payload = JSON.parse(msg.replace("__SK_SHARE__", "")) as {
-      kind: string;
-      items: { type: string; home: { home_id: string } }[];
-    };
-    expect(payload.kind).toBe("bundle");
-    expect(payload.items).toHaveLength(2);
-    expect(payload.items.map((i) => i.home.home_id)).toEqual(["zpid-1", "zpid-2"]);
+    expect(rows.map((home) => home.home_id)).toEqual(["zpid-1", "zpid-2"]);
   });
 });

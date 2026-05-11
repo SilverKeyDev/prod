@@ -3,6 +3,7 @@
  */
 
 import type { AgentConversation } from "packages/api";
+import type { UseAgentChatsReturn } from "packages/features/messaging/hooks/data/useAgentChats";
 import type { SharedBundleItemV1 } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
 import type { SavedHome } from "packages/types/domain/savedHome";
 import type { DocumentData } from "packages/ui/components/cards/document/types";
@@ -33,6 +34,11 @@ export type UseMessagingConfig = {
   conversationSelector: string | null | undefined;
   clientIdForSending?: string | null;
   agentId?: string | null;
+  /**
+   * When set for `mode: "agent"`, `useMessaging` uses this subscription instead of calling
+   * `useAgentChats` again (avoids duplicate observers/effects on the agent dashboard).
+   */
+  agentChats?: UseAgentChatsReturn;
 };
 
 export type UseMessagingReturn = {

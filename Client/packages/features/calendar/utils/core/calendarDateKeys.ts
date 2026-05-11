@@ -1,14 +1,9 @@
 import { dayjs } from "packages/utils/date";
 
-export type CalendarDayListKind = "events" | "availability";
-
 /**
  * Heading for the selected-day list: "Today's schedule" / long date for other days.
  */
-export function getCalendarDayListHeading(
-  dateKey: string,
-  kind: CalendarDayListKind = "events"
-): { title: string; subtitle?: string } {
+export function getCalendarDayListHeading(dateKey: string): { title: string; subtitle?: string } {
   const d = dayjs(dateKey, "YYYY-MM-DD", true);
   if (!d.isValid()) {
     return { title: "Selected day" };
@@ -16,7 +11,7 @@ export function getCalendarDayListHeading(
   const todayKey = dayjs().format("YYYY-MM-DD");
   if (dateKey === todayKey) {
     return {
-      title: kind === "availability" ? "Today's availability" : "Today's schedule",
+      title: "Today's schedule",
       subtitle: d.format("dddd, MMMM D, YYYY"),
     };
   }
@@ -25,7 +20,7 @@ export function getCalendarDayListHeading(
 
 /** @deprecated Prefer getCalendarDayListHeading for calendar shell copy. */
 export function formatCalendarDayEventsTitle(dateKey: string): string {
-  return getCalendarDayListHeading(dateKey, "events").title;
+  return getCalendarDayListHeading(dateKey).title;
 }
 
 export function calendarDateToKey(d: Date): string {

@@ -13,10 +13,10 @@
 # Server log keys that include request_id: AUTH_REFRESH_COGNITO_FAILED, AUTH_REFRESH_MISSING_ACCESS_TOKEN,
 # AUTH_TOKEN_DECODE_ERROR, INTERNAL_SERVER_ERROR, and many auth paths in app/__init__.py middleware.
 #
-# Client log messages: "�� AUTH_ERROR_401" (packages/logger), "401 recovery refresh chain failed",
+# Client log messages: AUTH_ERROR_401 (packages/logger), "401 recovery refresh chain failed",
 # FRONTEND_AUTH_REFRESH_FAILED / FRONTEND_AUTH_BOOTSTRAP_* (secureLogger in auth bootstrap).
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
 ID="${1:-}"
 if [[ -z "$ID" ]]; then
   echo "Usage: $0 <X-Request-ID-from-response-or-logs>"

@@ -3,7 +3,7 @@
 from typing import Any
 
 from app import db
-from app.models import UserSearchIntent
+from app.models import User, UserSearchIntent
 from app.services.aggregation.extended_buyer_preferences import (
     merge_extended_buyer_preferences,
     normalize_listing_status,
@@ -57,9 +57,12 @@ def write_search_intent_from_payload(user_id: str, data: dict[str, Any]) -> User
         else:
             intent.listing_status = normalize_listing_status(raw_ls)
     if "extended_buyer_preferences" in data:
+        subject = User.query.get(user_id)
+        allow_availability = bool(subject and getattr(subject, "is_agent", False))
         merged = merge_extended_buyer_preferences(
             getattr(intent, "extended_buyer_preferences", None),
             data.get("extended_buyer_preferences"),
+            allow_availability=allow_availability,
         )
         intent.extended_buyer_preferences = merged
     return intent

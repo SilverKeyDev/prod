@@ -70,7 +70,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
   };
   if (!isOpen) return null;
   return (
-    <Box className="bg-overlay-backdrop z-modal fixed inset-0 flex items-center justify-center p-4">
+    <Box className="bg-overlay-backdrop z-modal fixed-modal-dashboard-main flex items-center justify-center p-4">
       <Box className="bg-background-surface relative w-full max-w-2xl rounded-xl shadow-lg">
         {/* Header */}
         <Box className="border-border flex items-center justify-between border-b p-4">

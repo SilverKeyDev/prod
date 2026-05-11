@@ -47,12 +47,12 @@ const scenarios = [
     ],
   },
   {
-    name: "saved--homes",
-    url: "/saved",
+    name: "library--default",
+    url: "/library",
   },
   {
-    name: "saved--documents",
-    url: "/saved?view=documents",
+    name: "library--documents",
+    url: "/library?library=documents",
   },
   {
     name: "dashboard",

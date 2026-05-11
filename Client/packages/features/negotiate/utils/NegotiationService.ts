@@ -11,8 +11,9 @@ import {
   downloadStrategyJson as doDownloadStrategyJson,
   shareStrategyJson as doShareStrategyJson,
 } from "./downloadShare";
-import { extractTextContent, loadFromSessionStorage, saveToSessionStorage } from "./persistence";
+import { loadFromSessionStorage, saveToSessionStorage } from "./persistence";
 import { fetchStrategyAndComps } from "./strategyApi";
+import { extractTextContent } from "./textContent";
 import type {
   NegotiationServiceCallbacks,
   NegotiationState,

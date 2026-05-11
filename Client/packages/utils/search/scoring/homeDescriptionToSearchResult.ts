@@ -1,9 +1,9 @@
 import type { SearchResult } from "packages/features/search/types/result";
+import type { HomeDescription } from "packages/ui/components/cards/HomeCard";
 import {
   formatFilenameToAddress,
   formatLotSize,
-} from "packages/features/search/types/search/formatters/address";
-import type { HomeDescription } from "packages/ui/components/cards/HomeCard";
+} from "packages/utils/format/property/addressFormatting";
 import { formatPropertySearchListingPrice } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
 
 const FALLBACK_LAT = 37.7749;

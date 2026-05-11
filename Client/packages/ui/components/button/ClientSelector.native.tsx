@@ -1,11 +1,13 @@
 import React, { useCallback, useState } from "react";
 
 import Button from "@ui/button/Button";
+import { Icon } from "@ui/icons";
 import { Pressable } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
 import { useIsAgent } from "packages/hooks/store";
+import { useAuthStore } from "packages/store";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
@@ -24,9 +26,11 @@ export default function ClientSelectorNative({
   hideMeOption = false,
 }: ClientSelectorNativeProps) {
   const { clients, isLoading } = useAgentClients();
+  const authReady = useAuthStore((s) => s.authReady);
   const isAgent = useIsAgent();
   const { t } = useLocalization();
   const [isOpen, setIsOpen] = useState(false);
+  const isClientListLoading = !authReady || isLoading;
 
   const handleSelect = useCallback(
     (clientId: string | null) => {
@@ -85,14 +89,29 @@ export default function ClientSelectorNative({
             </Pressable>
           ) : null}
 
-          {isLoading ? (
+          {isClientListLoading ? (
             <Text className="text-text-secondary px-4 py-2 text-sm">
-              {t("client_selector.loading_clients")}
+              {t("client_selector.loading_clients", {
+                defaultValue: "Loading clients...",
+              })}
             </Text>
           ) : clients.length === 0 ? (
-            <Text className="text-text-secondary px-4 py-2 text-sm">
-              {t("client_selector.no_clients_found")}
-            </Text>
+            <Box className="flex flex-row items-start gap-3 px-2 py-2">
+              <Icon name="users" className="text-text-secondary mt-0.5 h-5 w-5 shrink-0" />
+              <Box className="flex min-w-0 flex-1 flex-col gap-1">
+                <Text className="text-text-primary text-sm font-medium">
+                  {t("client_selector.no_clients_found", {
+                    defaultValue: "No clients found",
+                  })}
+                </Text>
+                <Text className="text-text-secondary text-xs">
+                  {t("client_selector.no_clients_hint", {
+                    defaultValue:
+                      "Clients you work with will appear here once they are added to your workspace.",
+                  })}
+                </Text>
+              </Box>
+            </Box>
           ) : (
             clients.map((client) => (
               <Pressable

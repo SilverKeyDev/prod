@@ -107,7 +107,7 @@ No React; type definitions only. Imported by config, services, hooks, store, and
 
 **Role:** Design tokens and helpers. **All `.ts`.**
 
-- **`design-tokens/helpers.ts`**, **`design-tokens/tokens/*.ts`** (colors, breakpoints, etc.), **`design-tokens/index.ts`**.
+- **`design-tokens/helpers.ts`**, **`design-tokens/tokens/index.ts`** (barrel), domain folders under **`design-tokens/tokens/`** (`color/`, `layout/`, `motion/`, `typography/`, `effects/`), **`design-tokens/index.ts`**.
 
 ---
 

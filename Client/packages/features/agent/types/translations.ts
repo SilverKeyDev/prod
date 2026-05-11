@@ -95,4 +95,6 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
   "client_selector.select_client": "Select Client",
   "client_selector.loading_clients": "Loading clients...",
   "client_selector.no_clients_found": "No clients found",
+  "client_selector.no_clients_hint":
+    "Clients you work with will appear here once they are added to your workspace.",
 };

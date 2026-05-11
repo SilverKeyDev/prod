@@ -87,9 +87,9 @@ module.exports = {
     ],
     messages: {
       rawZIndexClass:
-        "Avoid raw numeric Tailwind z-index class '{{cls}}'. Use a named z-index token instead (e.g. z-header, z-sidebar, z-dropdown, z-toast, z-overlay, z-modal). See packages/design-tokens/tokens/zLayers.ts.",
+        "Avoid raw numeric Tailwind z-index class '{{cls}}'. Use a named z-index token instead (e.g. z-header, z-sidebar, z-dropdown, z-toast, z-overlay, z-modal). See packages/design-tokens/tokens/layout/zLayers.ts.",
       rawZIndexStyle:
-        "Avoid numeric zIndex literal ({{value}}) in style objects. Import Z_LAYERS from packages/design-tokens and use e.g. Z_LAYERS.modal. See packages/design-tokens/tokens/zLayers.ts.",
+        "Avoid numeric zIndex literal ({{value}}) in style objects. Import Z_LAYERS from packages/design-tokens and use e.g. Z_LAYERS.modal. See packages/design-tokens/tokens/layout/zLayers.ts.",
     },
   },
 
@@ -105,7 +105,7 @@ module.exports = {
     ];
     const allowedPaths = opt.allowedPaths || [
       // The token definition itself is allowed
-      "packages/design-tokens/tokens/zLayers",
+      "packages/design-tokens/tokens/layout/zLayers",
       // Tailwind preset derives zIndex from Z_LAYERS — the Object.fromEntries call is fine
       "packages/config/tailwind/",
       // Map overlay domain uses its own integer-based layer system; not UI chrome

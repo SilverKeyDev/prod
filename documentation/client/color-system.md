@@ -1,6 +1,6 @@
 # Color System
 
-Single source of truth for SilverKey colors. All hex/hsl values live in `Client/packages/design-tokens/tokens/colors.json`. Web and mobile consume the same tokens via Tailwind/NativeWind.
+Single source of truth for SilverKey colors. System values live in `Client/packages/design-tokens/tokens/color/foundation.json`; domain colors (`match`, `calendar.eventKind`) live in `tokens/color/features.json` and merge into the same Tailwind theme. Web and mobile consume the same tokens via Tailwind/NativeWind.
 
 ## Rules
 

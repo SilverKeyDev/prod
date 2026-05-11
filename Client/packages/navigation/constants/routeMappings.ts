@@ -19,7 +19,7 @@ export const ROUTE_TO_SCREEN: Record<RouteName, string> = {
   TERMS: "Terms",
   CONTACT: "Contact",
   PROFILE: "Profile",
-  SAVED: "Saved",
+  LIBRARY: "Library",
   DASHBOARD: "Dashboard",
   AGREEMENT_SIGNING_COMPLETE: "Dashboard",
   MESSAGING: "Messaging",

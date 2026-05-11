@@ -12,19 +12,13 @@ import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 
 import { KeyTurnLoader } from "@/components/ui";
 
+import { loadAgentDashboardModule, loadClientMessagingModule } from "./agentFeatureDynamicImports";
+
 const ClientMessaging = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.MESSAGES,
-    "lazy:ClientMessaging",
-    () => import("./messaging/ClientMessaging")
-  )
+  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:ClientMessaging", loadClientMessagingModule)
 );
 const AgentDashboard = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.MESSAGES,
-    "lazy:AgentDashboard",
-    () => import("./workspace/AgentDashboard")
-  )
+  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:AgentDashboard", loadAgentDashboardModule)
 );
 
 const messagingBranchFallback = (

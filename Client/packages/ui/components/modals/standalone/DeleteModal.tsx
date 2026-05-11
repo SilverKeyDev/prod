@@ -26,7 +26,7 @@ function DeleteModal({
   if (!isOpen) return null;
 
   return (
-    <Box className="space-responsive-sm bg-overlay-backdrop z-modal fixed inset-0 flex items-center justify-center">
+    <Box className="space-responsive-sm bg-overlay-backdrop z-modal fixed-modal-dashboard-main flex items-center justify-center">
       <Box className="space-responsive-sm bg-background-surface mx-4 w-full max-w-md rounded-xl">
         <Box className="text-center">
           <Box className="mobile-icon-lg space-y-responsive-sm bg-destructive mx-auto flex items-center justify-center rounded-full">

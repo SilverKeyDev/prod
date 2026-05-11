@@ -10,6 +10,8 @@ import { Box } from "packages/ui/components/primitives";
 import {
   getInsetNavItemClasses,
   getInsetNavItemIconClasses,
+  getInsetNavItemIconLucideSizePx,
+  getInsetNavItemIconStrokeWidth,
   getInsetNavItemLabelClasses,
 } from "packages/ui/components/sidebar/sidebarTheme";
 import type { IconName } from "packages/ui/types/icons";
@@ -116,7 +118,8 @@ export default function PersonalizationSidebar({
               {stepIconName && (
                 <Icon
                   name={stepIconName}
-                  size={20}
+                  size={getInsetNavItemIconLucideSizePx(currentActiveSection === step.key)}
+                  strokeWidth={getInsetNavItemIconStrokeWidth(currentActiveSection === step.key)}
                   className={getInsetNavItemIconClasses(currentActiveSection === step.key)}
                 />
               )}

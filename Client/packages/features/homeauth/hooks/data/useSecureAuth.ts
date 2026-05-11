@@ -20,7 +20,10 @@ import {
   useProactiveTokenRefresh,
   useVisibilityRefresh,
 } from "./useSecureAuthEffects";
-import { clearSessionStorageForLogout, getSessionStorage } from "./utils/logoutCleanup";
+import {
+  clearSessionStorageForLogout,
+  getOptionalSessionStorageForLogout,
+} from "./utils/logoutCleanup";
 import { mapAuthResponseToUserProfile, toUserStoreProfile } from "./utils/userMapping";
 
 export type { UseSecureAuthReturn };
@@ -128,7 +131,7 @@ async function performLogin(
       return { success: true };
     }
     if (response.needs_verification) {
-      const sess = getSessionStorage();
+      const sess = getOptionalSessionStorageForLogout();
       if (sess) {
         sess.setItem("signupEmail", email);
         sess.setItem("signupPassword", password);
@@ -213,7 +216,7 @@ type RefreshSetters = {
 };
 
 async function performRefreshToken(setters: RefreshSetters): Promise<boolean> {
-  const sess = getSessionStorage();
+  const sess = getOptionalSessionStorageForLogout();
   const lastVerifyAt = sess?.getItem("auth_last_verify_at") ?? null;
   if (lastVerifyAt) {
     const elapsed = Date.now() - parseInt(lastVerifyAt, 10);

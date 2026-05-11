@@ -32,6 +32,19 @@ function isFullHeightRoute(pathname: string): boolean {
   return pathname.startsWith("/search") || pathname.startsWith("/messaging");
 }
 
+/**
+ * Outlet remount key: keep one subtree instance for all nested admin URLs so the index
+ * redirect (/admin → /admin/logging) does not remount AdminPage (which resets step-up
+ * auth and can loop with profile loading).
+ */
+function appOutletRemountKey(pathname: string, search: string): string {
+  const suffix = search ?? "";
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return `/admin${suffix}`;
+  }
+  return `${pathname}${suffix}`;
+}
+
 /** Skip to main content link - first focusable element for keyboard/screen reader users (WCAG 2.4.1). */
 function SkipToMainLink() {
   return (
@@ -99,8 +112,30 @@ function AppLayout() {
     });
     return () => cancelAnimationFrame(id);
   }, [location.pathname, location.key]);
-  // Use location.key so every navigation remounts outlet content (React Router assigns a new key per location).
-  const outletKey = location.key ?? location.pathname;
+  // Key by pathname + search so outlet remounts on real URL changes, not on router-internal
+  // location.key churn (reduces admin/step-up remount loops in dev; scroll/focus still use location.key).
+  const outletKey = appOutletRemountKey(location.pathname, location.search ?? "");
+  const prevOutletKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (prevOutletKeyRef.current === null) {
+      prevOutletKeyRef.current = outletKey;
+      return;
+    }
+    if (prevOutletKeyRef.current !== outletKey) {
+      log.info(
+        LOG_CATEGORIES.ROUTING,
+        "[APP_LAYOUT] outlet remount key changed (full subtree remount)",
+        {
+          from: prevOutletKeyRef.current,
+          to: outletKey,
+          pathname: location.pathname,
+          search: location.search ?? "",
+          routerKey: location.key,
+        }
+      );
+      prevOutletKeyRef.current = outletKey;
+    }
+  }, [outletKey, location.pathname, location.search, location.key]);
   const isPublic = authUtils.isPublicRoute(location.pathname);
   const outlet = <Outlet key={outletKey} />;
   return (

@@ -4,6 +4,11 @@ import type { Dispatch, SetStateAction } from "react";
 
 import type { ViewingStop } from "packages/api/viewings";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import {
+  CREATE_EVENT_TIME_STEP_MINUTES,
+  googleAllDayEndExclusiveToInclusiveEndYmd,
+  quantizeHourMinute,
+} from "packages/utils/calendar/eventFormGooglePayload";
 import { dateParseISO, dayjs } from "packages/utils/date";
 
 import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
@@ -12,11 +17,6 @@ import {
   type CalendarEventKindId,
 } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { defaultCreateEventTimedRange } from "@/features/calendar/utils/createEventModal/createEventModalDefaults";
-import {
-  CREATE_EVENT_TIME_STEP_MINUTES,
-  googleAllDayEndExclusiveToInclusiveEndYmd,
-  quantizeHourMinute,
-} from "@/features/calendar/utils/parsing/eventFormGooglePayload";
 import type {
   ViewingRouteEndMode,
   ViewingRouteEndpoint,

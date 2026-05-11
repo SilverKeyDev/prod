@@ -5,7 +5,7 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
-import { dateParseISO } from "packages/utils/date";
+import { formatEventRequestRangeSummaryEnUs } from "packages/utils/date";
 
 import BodyText from "@/components/ui/text/BodyText";
 import Title from "@/components/ui/text/Title";
@@ -21,26 +21,6 @@ type EventRequestCardProps = {
   messageId?: string;
   acceptingMessageId?: string | null;
 };
-function formatEventDateTime(start: string, end: string): string {
-  const startDate = dateParseISO(start).toDate();
-  const endDate = dateParseISO(end).toDate();
-  const dateStr = startDate.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  const timeStr = `${startDate.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  })} – ${endDate.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  })}`;
-  return `${dateStr} at ${timeStr}`;
-}
 export default function EventRequestCard({
   payload,
   onAccept,
@@ -75,7 +55,7 @@ export default function EventRequestCard({
       setCancelSubmitting(false);
     }
   }, [status, loading, onCancel]);
-  const dateTimeStr = formatEventDateTime(payload.start, payload.end);
+  const dateTimeStr = formatEventRequestRangeSummaryEnUs(payload.start, payload.end);
   if (status === "cancelled") {
     return (
       <Box className="border-border bg-background-surface w-full min-w-0 rounded-lg border p-4 shadow-sm">

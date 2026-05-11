@@ -62,6 +62,7 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "forms.loading_library": "Loading forms...",
   "forms.error_loading_library": "Error loading forms. Please try again.",
   "forms.no_forms_available": "No forms available",
+  "forms.no_forms_match_search": "No forms match your search.",
   "forms.form": "form",
   "forms.forms": "forms",
   "forms.form_available": "form available",

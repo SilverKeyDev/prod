@@ -13,6 +13,7 @@ import {
   renderButtonStandardRow,
 } from "packages/ui/components/button/buttonRowContent";
 import { Box, Pressable } from "packages/ui/components/primitives";
+import { tailwindButtonLabelHoverTypography } from "packages/ui/styles/theme/navTabTypography";
 import { BUTTON_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 import { buttonNativeSizes } from "packages/ui/styles/variants/buttonSizes";
 import {
@@ -103,8 +104,8 @@ export type ButtonProps = {
   truncateLabel?: boolean;
 
   /**
-   * Web only: when false, keeps the visible label beside the icon even when the button is narrower
-   * than the icon+label container breakpoint (disables @container collapse). Default true.
+   * Web only: when true, hides the label and shows icon-only until the button is at least 11rem wide
+   * (@container). Default false so icon+label buttons keep visible text in typical flex/toolbar layouts.
    */
   collapseIconWhenNarrow?: boolean;
 
@@ -116,6 +117,8 @@ export type ButtonProps = {
   onPress?: (e?: unknown) => void;
   /** Web legacy; receives click event. Prefer onPress for cross-platform. */
   onClick?: (e?: unknown) => void;
+  /** Merged onto the label row (string or JSX children) after default typography. */
+  labelSlotClassName?: string;
   type?: "button" | "submit" | "reset";
   className?: string;
   children?: React.ReactNode;
@@ -176,6 +179,127 @@ function shouldCollapseIconLabelRowOnWeb(args: {
   return args.children != null && args.children !== false;
 }
 
+function buildButtonTextVisibilityClass(
+  children: React.ReactNode,
+  hideTextBelow: ButtonProps["hideTextBelow"]
+): string {
+  if (!children || !hideTextBelow) return "";
+  const map: Record<NonNullable<typeof hideTextBelow>, string> = {
+    sm: "hidden sm:inline-flex flex-row",
+    md: "hidden md:inline-flex flex-row",
+    lg: "hidden lg:inline-flex flex-row",
+    xl: "hidden xl:inline-flex flex-row",
+    "2xl": "hidden 2xl:inline-flex flex-row",
+  };
+  return map[hideTextBelow];
+}
+
+function warnButtonCollapseA11yIfNeeded(args: {
+  containerCollapse: boolean;
+  children: React.ReactNode;
+  derivedAccessibleLabel: string | undefined;
+}): void {
+  if (
+    getEnv().isDevelopment &&
+    args.containerCollapse &&
+    typeof args.children !== "string" &&
+    args.derivedAccessibleLabel == null
+  ) {
+    log.warn(
+      LOG_CATEGORIES.ERRORS,
+      "[Button] Icon collapse uses JSX children — provide label or aria-label for accessibility when the label hides at narrow widths."
+    );
+  }
+}
+
+function buildButtonClassListString(args: {
+  mainAxisJustify: string;
+  size: NonNullable<ButtonProps["size"]>;
+  rounded: NonNullable<ButtonProps["rounded"]>;
+  effectiveVariant: ButtonStyleVariant;
+  fullWidth: boolean;
+  layoutClass: string;
+  loading: boolean;
+  containerCollapse: boolean;
+  className: string;
+}): string {
+  return [
+    BUTTON_BASE_CLASSES,
+    args.mainAxisJustify,
+    BUTTON_TRANSITION_CLASSES,
+    BUTTON_SIZE_CLASSES[args.size],
+    BUTTON_ROUNDED_CLASSES[args.rounded],
+    BUTTON_VARIANT_STYLES[args.effectiveVariant],
+    args.fullWidth ? "w-full" : "",
+    args.layoutClass,
+    args.loading
+      ? `${BUTTON_LOADING_FRAME_CLASSES} ${BUTTON_LOADING_VARIANT_OVERRIDES[args.effectiveVariant]}`
+      : "",
+    args.containerCollapse ? "@container" : "",
+    "touch-friendly",
+    !isNative && !args.loading ? "group" : "",
+    "",
+    args.className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function mergeButtonAccessibilityState(
+  pressableProps: Record<string, unknown>,
+  loading: boolean
+): Record<string, boolean | undefined> {
+  const priorA11yState =
+    pressableProps.accessibilityState &&
+    typeof pressableProps.accessibilityState === "object" &&
+    !Array.isArray(pressableProps.accessibilityState)
+      ? (pressableProps.accessibilityState as Record<string, boolean | undefined>)
+      : {};
+  return { ...priorA11yState, busy: loading };
+}
+
+function buildButtonRowContent(args: {
+  loading: boolean;
+  textColorClass: string;
+  isEdgeRight: boolean;
+  iconLeft: boolean;
+  iconRight: boolean;
+  resolvedIcon: React.ReactNode;
+  textContent: React.ReactNode;
+  size: NonNullable<ButtonProps["size"]>;
+  contentAlign: NonNullable<ButtonProps["contentAlign"]>;
+}): React.ReactNode {
+  if (args.loading) {
+    return (
+      <>
+        <RippleBackground overlay />
+        {renderButtonLoadingSlot(args.textColorClass)}
+      </>
+    );
+  }
+  if (args.isEdgeRight) {
+    return renderButtonEdgeRightRow({
+      iconLeft: args.iconLeft,
+      iconRight: args.iconRight,
+      resolvedIcon: args.resolvedIcon,
+      textContent: args.textContent,
+      size: args.size,
+      textColorClass: args.textColorClass,
+      renderIcon,
+    });
+  }
+  return renderButtonStandardRow({
+    iconLeft: args.iconLeft,
+    iconRight: args.iconRight,
+    resolvedIcon: args.resolvedIcon,
+    textContent: args.textContent,
+    contentAlign: args.contentAlign,
+    size: args.size,
+    textColorClass: args.textColorClass,
+    renderIcon,
+  });
+}
+
 const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
   (
     {
@@ -194,11 +318,12 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       disabled,
       hideTextBelow,
       truncateLabel = true,
-      collapseIconWhenNarrow = true,
+      collapseIconWhenNarrow = false,
       label,
       type = "button",
       onClick,
       onPress,
+      labelSlotClassName,
       title,
       style,
       id,
@@ -232,32 +357,15 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
     const derivedAccessibleLabel =
       ariaLabel ?? label ?? (typeof children === "string" ? children : undefined);
 
-    if (
-      getEnv().isDevelopment &&
-      containerCollapse &&
-      typeof children !== "string" &&
-      derivedAccessibleLabel == null
-    ) {
-      log.warn(
-        LOG_CATEGORIES.ERRORS,
-        "[Button] Icon collapse uses JSX children — provide label or aria-label for accessibility when the label hides at narrow widths."
-      );
-    }
+    warnButtonCollapseA11yIfNeeded({ containerCollapse, children, derivedAccessibleLabel });
 
     // Unified press handler: prefer onPress (cross-platform), fallback to onClick (web legacy)
     const handlePress = onPress ?? onClick;
 
-    const textVisibilityClass = useMemo(() => {
-      if (!children || !hideTextBelow) return "";
-      const map: Record<NonNullable<typeof hideTextBelow>, string> = {
-        sm: "hidden sm:inline-flex flex-row",
-        md: "hidden md:inline-flex flex-row",
-        lg: "hidden lg:inline-flex flex-row",
-        xl: "hidden xl:inline-flex flex-row",
-        "2xl": "hidden 2xl:inline-flex flex-row",
-      };
-      return map[hideTextBelow];
-    }, [children, hideTextBelow]);
+    const textVisibilityClass = useMemo(
+      () => buildButtonTextVisibilityClass(children, hideTextBelow),
+      [children, hideTextBelow]
+    );
 
     const isEdgeRight =
       !loading && iconPosition === "right" && iconAlign === "edge" && Boolean(resolvedIcon);
@@ -268,25 +376,17 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         ? "justify-start"
         : "justify-center";
 
-    const buttonClasses = [
-      BUTTON_BASE_CLASSES,
+    const buttonClasses = buildButtonClassListString({
       mainAxisJustify,
-      BUTTON_TRANSITION_CLASSES,
-      BUTTON_SIZE_CLASSES[size],
-      BUTTON_ROUNDED_CLASSES[rounded],
-      BUTTON_VARIANT_STYLES[effectiveVariant],
-      fullWidth ? "w-full" : "",
+      size,
+      rounded,
+      effectiveVariant,
+      fullWidth,
       layoutClass,
-      loading
-        ? `${BUTTON_LOADING_FRAME_CLASSES} ${BUTTON_LOADING_VARIANT_OVERRIDES[effectiveVariant]}`
-        : "",
-      containerCollapse ? "@container" : "",
-      "touch-friendly",
-      "",
+      loading,
+      containerCollapse,
       className,
-    ]
-      .filter(Boolean)
-      .join(" ");
+    });
 
     if (typeof __DEV__ !== "undefined" && __DEV__ && isNative) {
       log.debug(LOG_CATEGORIES.STYLING, "[Button] buttonClasses", {
@@ -301,7 +401,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
     const contentInnerLayoutClass =
       contentAlign === "start"
         ? "inline-flex w-full flex-row items-center justify-start gap-2 text-left font-medium leading-none"
-        : "inline-flex w-full flex-row items-center justify-center gap-2 text-center font-medium leading-none";
+        : "inline-flex flex-row items-center justify-center gap-2 text-center font-medium leading-none";
 
     const textContent = renderButtonLabelSlot({
       children,
@@ -313,6 +413,9 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       textColorClass,
       textSizeClass,
       truncateLabel,
+      labelSlotClassName,
+      groupHoverLabelClassName:
+        !isNative && !loading ? tailwindButtonLabelHoverTypography[size] : undefined,
     });
 
     if (getEnv().isDevelopment && hideTextBelow && !label && !ariaLabel) {
@@ -322,42 +425,20 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       );
     }
 
-    const content = loading ? (
-      <>
-        <RippleBackground overlay />
-        {renderButtonLoadingSlot(textColorClass)}
-      </>
-    ) : isEdgeRight ? (
-      renderButtonEdgeRightRow({
-        iconLeft,
-        iconRight,
-        resolvedIcon,
-        textContent,
-        size,
-        textColorClass,
-        renderIcon,
-      })
-    ) : (
-      renderButtonStandardRow({
-        iconLeft,
-        iconRight,
-        resolvedIcon,
-        textContent,
-        contentAlign,
-        size,
-        textColorClass,
-        renderIcon,
-      })
-    );
+    const content = buildButtonRowContent({
+      loading,
+      textColorClass,
+      isEdgeRight,
+      iconLeft,
+      iconRight,
+      resolvedIcon,
+      textContent,
+      size,
+      contentAlign,
+    });
 
     const pressableProps = pickPressableProps(props);
-    const priorA11yState =
-      pressableProps.accessibilityState &&
-      typeof pressableProps.accessibilityState === "object" &&
-      !Array.isArray(pressableProps.accessibilityState)
-        ? (pressableProps.accessibilityState as Record<string, boolean | undefined>)
-        : {};
-    const mergedAccessibilityState = { ...priorA11yState, busy: loading };
+    const mergedAccessibilityState = mergeButtonAccessibilityState(pressableProps, loading);
 
     /** Native: merge buttonNativeSizes (CVA native: doesn't apply at Babel time). No inline theme overrides. */
     const nativeSizeStyle = isNative ? buttonNativeSizes[size ?? "md"] : undefined;

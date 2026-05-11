@@ -1,0 +1,60 @@
+{
+  "match": {
+    "excellent": {
+      "bg": "#E3EBE0",
+      "fg": "#3D5240"
+    },
+    "strong": {
+      "bg": "#EDEEE1",
+      "fg": "#5F6A3F"
+    },
+    "fair": {
+      "bg": "#EEEAE1",
+      "fg": "#6B6355"
+    },
+    "weak": {
+      "bg": "#EFE1D6",
+      "fg": "#7A4F3A"
+    },
+    "poor": {
+      "bg": "#E8D3C8",
+      "fg": "#8C3D2A"
+    },
+    "mapPin": {
+      "excellent": {
+        "bg": "#4F7A5C",
+        "stroke": "#2D4534"
+      },
+      "strong": {
+        "bg": "#6B8A3D",
+        "stroke": "#3D4F22"
+      },
+      "fair": {
+        "bg": "#B8925A",
+        "stroke": "#6B4E30"
+      },
+      "weak": {
+        "bg": "#C17A4F",
+        "stroke": "#7A3D28"
+      },
+      "poor": {
+        "bg": "#A64A3E",
+        "stroke": "#5C2822"
+      }
+    }
+  },
+  "calendar": {
+    "eventKind": {
+      "lavender": "hsl(265, 22%, 58%)",
+      "mauve": "hsl(285, 16%, 52%)",
+      "maroon": "hsl(350, 18%, 48%)",
+      "warmBrown": "hsl(28, 22%, 50%)",
+      "mutedOrange": "hsl(28, 32%, 55%)",
+      "slateBlue": "hsl(217, 18%, 52%)",
+      "sage": "hsl(142, 16%, 45%)",
+      "dustyRose": "hsl(340, 16%, 55%)",
+      "goldMuted": "hsl(40, 22%, 52%)",
+      "terracotta": "hsl(15, 20%, 52%)"
+    }
+  }
+}

@@ -16,6 +16,7 @@ const mobileTailwindConfig = {
     path.resolve(__dirname, "../../packages/ui/**/*.{js,jsx,ts,tsx}"),
     path.resolve(__dirname, "../../packages/features/**/*.{js,jsx,ts,tsx}"),
     path.resolve(__dirname, "../../packages/contexts/**/*.{js,jsx,ts,tsx}"),
+    path.resolve(__dirname, "../../packages/design-tokens/**/*.{js,jsx,ts,tsx}"),
   ],
   plugins: [],
 };

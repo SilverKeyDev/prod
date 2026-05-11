@@ -1,5 +1,6 @@
 import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
+import { throwUnlessApiSuccess } from "packages/services/data/apiRouteResponse";
 import type { RouteConfig } from "packages/services/data/dataRouteTypes";
 import type { UserProfile } from "packages/types";
 
@@ -9,9 +10,7 @@ export const messagingRoutes = {
     queryKey: () => queryKeys.agent.conversations(),
     queryFn: async () => {
       const response = await agentApi.getChats();
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch conversations");
-      }
+      throwUnlessApiSuccess(response, "Failed to fetch conversations");
       return response.conversations ?? [];
     },
     shouldPoll: true,
@@ -27,9 +26,7 @@ export const messagingRoutes = {
     queryKey: () => queryKeys.agent.notificationCounter(),
     queryFn: async (_user: UserProfile | null) => {
       const response = await agentApi.getNotificationCounter();
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch notification counter");
-      }
+      throwUnlessApiSuccess(response, "Failed to fetch notification counter");
       return response.total_count;
     },
     shouldPoll: true,
@@ -44,9 +41,7 @@ export const messagingRoutes = {
     queryKey: () => [...queryKeys.agent.all, "connection-requests"] as const,
     queryFn: async () => {
       const response = await agentApi.getConnectionRequests();
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch connection requests");
-      }
+      throwUnlessApiSuccess(response, "Failed to fetch connection requests");
       return response.requests ?? [];
     },
     shouldPoll: true,
