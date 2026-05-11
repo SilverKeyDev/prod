@@ -1,6 +1,8 @@
 ---
 description: Cross-platform component reuse strategy - web and mobile must look and function identically with maximum sharing
-alwaysApply: true
+globs:
+  - "Client/**/*.{ts,tsx}"
+alwaysApply: false
 ---
 
 # Cross-Platform Component Reuse Strategy

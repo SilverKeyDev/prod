@@ -3,7 +3,7 @@ import React from "react";
 import Button from "@ui/button/Button";
 import { Icon } from "@ui/icons";
 
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 

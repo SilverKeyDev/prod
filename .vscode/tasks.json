@@ -58,7 +58,7 @@
     {
       "label": "server:lint:file-length",
       "type": "shell",
-      "command": "python3 Server/scripts/lint_file_length.py",
+      "command": "python3 Server/scripts/lint/lint_file_length.py",
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": {
         "owner": "python-lint",
@@ -78,7 +78,7 @@
     {
       "label": "server:lint:compile",
       "type": "shell",
-      "command": "python3 Server/scripts/lint_compile.py",
+      "command": "python3 Server/scripts/lint/lint_compile.py",
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": {
         "owner": "python-lint",
@@ -98,7 +98,7 @@
     {
       "label": "server:lint:circular-imports",
       "type": "shell",
-      "command": "python3 Server/scripts/lint_circular_imports.py",
+      "command": "python3 Server/scripts/lint/lint_circular_imports.py",
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": [],
       "group": "build"

@@ -3,7 +3,7 @@ import React, { useMemo, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
-import { Textarea } from "packages/ui/components/form/FormField";
+import { Textarea } from "packages/ui/components/form/field/FormField";
 import { Box } from "packages/ui/components/primitives";
 import Input from "packages/ui/components/primitives/input/Input";
 import BodyText from "packages/ui/components/text/BodyText";

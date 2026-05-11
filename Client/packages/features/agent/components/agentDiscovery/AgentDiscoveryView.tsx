@@ -2,9 +2,9 @@ import { useCallback } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { useNavigation } from "packages/navigation";
+import { Button } from "packages/ui";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import { ProfileAvatar } from "packages/ui/components/avatar";
-import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 import { buildAgentProfileUrl } from "packages/utils/agent";
 

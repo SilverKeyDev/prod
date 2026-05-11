@@ -1,8 +1,8 @@
 ---
 description: Asset strategy — images, icons, fonts — for web/RN pipeline parity
 globs:
-  - "Client/**/*.{ts,tsx}"
-alwaysApply: true
+  - "Client/**/*.{ts,tsx,js,jsx,json}"
+alwaysApply: false
 ---
 
 # Asset Strategy: Icons, Images, Fonts

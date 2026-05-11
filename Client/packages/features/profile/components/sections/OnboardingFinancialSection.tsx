@@ -5,7 +5,7 @@ import {
   ProfileSectionCallout,
 } from "packages/features/profile/components/layout";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
+import { OliveCheckbox } from "packages/ui";
 import { Box, Pressable } from "packages/ui/components/primitives";
 import type { HomePriceResult } from "packages/utils/affordability";
 

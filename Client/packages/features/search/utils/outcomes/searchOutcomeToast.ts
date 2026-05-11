@@ -1,4 +1,4 @@
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import { SUPPORTED_SERVICE_AREA_WARNING } from "packages/utils/search/locations/serviceAreaAvailability";
 

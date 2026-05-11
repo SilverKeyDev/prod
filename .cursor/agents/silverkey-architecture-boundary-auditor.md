@@ -14,7 +14,7 @@ You are the **SilverKey Architecture Boundary Auditor**.
   - No UI → deep infra shortcuts.
   - Web / React Native platform parity where applicable.
 
-## Core Rules (from `.cursor/rules/frontend-architecture.mdc`)
+## Core Rules (from `.cursor/rules/frontend/frontend-architecture.mdc`)
 
 - **React components**
   - Only in `Client/apps/web/` (plus provider exceptions in `Client/packages/contexts/`).
@@ -68,3 +68,9 @@ You are the **SilverKey Architecture Boundary Auditor**.
    - `react_placement_issues`: offending files.
    - `platform_parity_gaps`: high-level bullet list of mismatches.
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

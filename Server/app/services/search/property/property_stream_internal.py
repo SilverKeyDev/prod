@@ -109,7 +109,7 @@ def _generate_property_stream_internal(
                 return
 
         # Update price on basic event
-        from app.utils.currency import format_currency, resolve_price
+        from app.utils.format.currency import format_currency, resolve_price
 
         fresh_price = format_currency(resolve_price(data))
 
@@ -251,9 +251,9 @@ def _generate_property_stream_internal(
                                     "cons": cached_hl.cons,
                                 }
                                 if cached_hl.highlights_context:
-                                    property_analysis["highlights_context"] = (
-                                        cached_hl.highlights_context
-                                    )
+                                    property_analysis[
+                                        "highlights_context"
+                                    ] = cached_hl.highlights_context
                                 highlights_from_cache = True
                                 current_app.logger.info(
                                     "[PROPERTY] Using cached highlights for user"

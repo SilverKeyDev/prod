@@ -3,7 +3,7 @@ description: When and how to split folders with too many files, and how to updat
 globs:
   - "Client/**/*.{ts,tsx}"
   - "Server/**/*.py"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Folder Decomposition Rules

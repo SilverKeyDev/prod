@@ -3,8 +3,8 @@ import { Icon } from "@ui/icons";
 import { PropertyCarousel } from "packages/features/search/components/list/PropertyCarousel";
 import { Tabs } from "packages/features/search/components/list/Tabs.web";
 import type { SearchResult } from "packages/features/search/types";
-import type { SavedHome } from "packages/features/search/types/property";
-import IconButton from "packages/ui/components/button/IconButton";
+import type { SavedHome } from "packages/features/search/types/domain/property";
+import { IconButton } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import { SearchPageMapContainer } from "./SearchPageMapContainer.web";

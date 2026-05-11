@@ -5,7 +5,7 @@ import {
   CHECKLIST_TITLES,
 } from "packages/features/checklists/types/checklists";
 
-import CloseLayout from "@/features/checklists/components/CloseLayout";
+import CloseLayout from "@/features/checklists/components/layout/CloseLayout";
 
 type ClosePageHeaderData = {
   title: string;

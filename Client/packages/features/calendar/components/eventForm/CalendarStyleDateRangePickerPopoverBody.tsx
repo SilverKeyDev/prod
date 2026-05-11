@@ -2,18 +2,16 @@ import { type RefObject } from "react";
 
 import { Icon } from "@ui/icons";
 
-import Button from "packages/ui/components/button/Button";
-import { OliveCheckboxRowLabel } from "packages/ui/components/form/checkbox/OliveCheckboxRowLabel";
-import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
+import { Button, OliveCheckbox, OliveCheckboxRowLabel } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { dayjs } from "packages/utils/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import { CalendarWeekView } from "@/features/calendar/components/shell/CalendarWeekView";
-import { CalendarToolbar } from "@/features/calendar/components/view/CalendarToolbar";
 import { WeekDayHeaders } from "@/features/calendar/components/view/calendarView/WeekDayHeaders";
-import { CalendarViewModeToggle } from "@/features/calendar/components/view/CalendarViewModeToggle";
+import { CalendarToolbar } from "@/features/calendar/components/view/toolbar/CalendarToolbar";
+import { CalendarViewModeToggle } from "@/features/calendar/components/view/toolbar/CalendarViewModeToggle";
 import type { CalendarViewType } from "@/features/calendar/types/calendar";
 
 import { isInInclusiveRange } from "./calendarStyleDateRangePickerHelpers";

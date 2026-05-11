@@ -1,4 +1,4 @@
-import Dropdown from "packages/ui/components/form/dropdown";
+import { Dropdown } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import type { EventScheduleOption } from "packages/utils/scheduling/eventRequestScheduleOptions";
 

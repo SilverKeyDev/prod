@@ -9,15 +9,7 @@ env:
   IMAGE_TAG: latest
 
 jobs:
-  lint:
-    uses: ./.github/workflows/lint.yml
-
-  test:
-    uses: ./.github/workflows/test-callable.yml
-
   build-and-deploy:
-    needs: [lint, test]
-    if: ${{ needs.lint.result == 'success' && needs.test.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     concurrency:

@@ -1,6 +1,8 @@
 ---
 description: OpenAPI schema file organization and structure conventions
-alwaysApply: true
+globs:
+  - "openapi/**/*.{yaml,yml}"
+alwaysApply: false
 ---
 
 # OpenAPI Schema Organization

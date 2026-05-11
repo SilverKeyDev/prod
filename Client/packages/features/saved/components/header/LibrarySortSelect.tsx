@@ -1,7 +1,7 @@
 import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
 import { librarySortOptionsForView } from "packages/features/saved/utils/librarySort";
-import Dropdown from "packages/ui/components/form/dropdown";
+import { Dropdown } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 
 type LibrarySortSelectProps = {

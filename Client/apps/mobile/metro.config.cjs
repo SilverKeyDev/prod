@@ -343,7 +343,10 @@ function customResolveRequestImpl(context, moduleName, platform) {
     if (
       moduleName === "@ui/button/HeartSave" ||
       moduleName.startsWith("@ui/button/HeartSave/") ||
+      moduleName === "@ui/button/propertyActions/HeartSave" ||
+      moduleName.startsWith("@ui/button/propertyActions/HeartSave/") ||
       moduleName === "packages/ui/components/button/HeartSave" ||
+      moduleName === "packages/ui/components/button/propertyActions/HeartSave" ||
       moduleName === "./HeartSave" ||
       moduleName === "../button/HeartSave"
     ) {
@@ -358,8 +361,19 @@ function customResolveRequestImpl(context, moduleName, platform) {
       stem = "IconButton";
     }
     if (stem) {
-      const nativeTsx = path.join(uiButtonDir, stem + ".native.tsx");
-      if (fs.existsSync(nativeTsx)) return { type: "sourceFile", filePath: nativeTsx };
+      const nativeCandidates =
+        stem === "IconButton"
+          ? [
+              path.join(uiButtonDir, "core", stem + ".native.tsx"),
+              path.join(uiButtonDir, stem + ".native.tsx"),
+            ]
+          : [
+              path.join(uiButtonDir, "propertyActions", stem + ".native.tsx"),
+              path.join(uiButtonDir, stem + ".native.tsx"),
+            ];
+      for (const nativeTsx of nativeCandidates) {
+        if (fs.existsSync(nativeTsx)) return { type: "sourceFile", filePath: nativeTsx };
+      }
     }
   }
 

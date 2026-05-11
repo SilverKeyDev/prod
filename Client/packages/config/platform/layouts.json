@@ -149,8 +149,8 @@
   {
     "id": "unified-message-input",
     "description": "Unified message input with platform-specific layout",
-    "webPath": "packages/features/messaging/components/layout/UnifiedMessageInput.web.tsx",
-    "nativePath": "packages/features/messaging/components/layout/UnifiedMessageInput.native.tsx",
+    "webPath": "packages/features/messaging/components/layout/input/UnifiedMessageInput.web.tsx",
+    "nativePath": "packages/features/messaging/components/layout/input/UnifiedMessageInput.native.tsx",
     "reason": "Web uses DOM-based input layout; native uses KeyboardAvoidingView and RN layout.",
     "category": "layout"
   },
@@ -306,8 +306,8 @@
   {
     "id": "account-privacy-data-section-layout",
     "description": "Privacy & data section: web modal + file download vs native mailto/links",
-    "webPath": "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection.web.tsx",
-    "nativePath": "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection.native.tsx",
+    "webPath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.web.tsx",
+    "nativePath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.native.tsx",
     "reason": "Web uses BaseModal and programmatic JSON download. Native uses simpler RN layout and Linking without DOM or download APIs.",
     "category": "layout"
   },

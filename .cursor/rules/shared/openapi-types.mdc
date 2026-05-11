@@ -1,3 +1,12 @@
+---
+description: OpenAPI-generated types — do not edit generated files; layout and rules
+globs:
+  - "openapi/**/*.{yaml,yml}"
+  - "Client/packages/types/api.generated.ts"
+  - "Server/app/schemas/generated.py"
+alwaysApply: false
+---
+
 # OpenAPI Type Management
 
 ## Overview

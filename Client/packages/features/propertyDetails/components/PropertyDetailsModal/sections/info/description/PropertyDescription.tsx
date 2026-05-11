@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Icon } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";

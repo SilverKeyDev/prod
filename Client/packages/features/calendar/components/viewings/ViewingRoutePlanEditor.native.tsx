@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { buildViewingRoute } from "packages/api/viewings";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import Button from "packages/ui/components/button/Button";
-import { AddressInput } from "packages/ui/components/form/AddressInput";
-import Dropdown, { type DropdownOption } from "packages/ui/components/form/dropdown";
+import { AddressInput, Dropdown, type DropdownOption } from "packages/ui/components";
+import { Button } from "packages/ui/components/button/core/Button";
 import { Box, Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 

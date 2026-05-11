@@ -1,3 +1,10 @@
+---
+description: SQLAlchemy models, queries, relationships
+globs:
+  - "Server/**/*.py"
+alwaysApply: false
+---
+
 # SQLAlchemy Patterns and Conventions
 
 ## Overview

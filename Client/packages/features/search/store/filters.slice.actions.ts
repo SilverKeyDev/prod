@@ -2,7 +2,7 @@ import {
   clampMapHomeCardsCount,
   DEFAULT_RESULTS_ORDER_BY,
   isResultsOrderBy,
-} from "packages/features/search/types/searchDisplay";
+} from "packages/features/search/types/domain/searchDisplay";
 
 import type { FiltersState } from "./filters.slice.types";
 

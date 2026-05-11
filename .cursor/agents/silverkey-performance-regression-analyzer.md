@@ -68,3 +68,9 @@ You are the **SilverKey Performance Regression Analyzer**.
    - `backend_hotspots`: endpoints/tasks + blocking operations.
    - `bundle_hotspots`: modules/imports that bloat bundles + suggested alternatives.
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import CloseButton from "packages/ui/components/button/CloseButton";
+import { CloseButton } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import { AgentSearchPanel } from "@/features/agent/components/search/AgentSearchPanel";

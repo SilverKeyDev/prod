@@ -1,3 +1,11 @@
+---
+description: User preferences DB/JSON contract and sync pipeline
+globs:
+  - "Server/**/*.py"
+  - "Client/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
 # User Preferences Schema Contract
 
 ## Overview

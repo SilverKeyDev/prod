@@ -26,10 +26,7 @@ export type {
   SearchMetadata,
   UseIsochroneFlowParams,
   UseSearchBootstrapParams,
-} from "./hooksParams";
-export type { IsochroneApiResponse, IsochroneData } from "./isochrone";
-export type { MapBounds, MapMarker, MapPolygon, MapPosition } from "./map";
-export { isMapPosition } from "./map";
+} from "./domain/hooksParams";
 export type {
   HomeUniversal,
   Property,
@@ -39,18 +36,21 @@ export type {
   PropertySearchResult,
   PropertyWithAnalysis,
   SavedHome,
-} from "./property";
+} from "./domain/property";
 export type {
   ListingStatus,
   PropertyDetails,
   PropertyImage,
   PropertyType,
   SearchResult,
-} from "./result";
-export { getMatchScore, isListingFullCriteriaMatch, isPropertyDetails } from "./result";
+} from "./domain/result";
+export { getMatchScore, isListingFullCriteriaMatch, isPropertyDetails } from "./domain/result";
+export { SEARCH_TRANSLATIONS } from "./domain/translations";
+export type { IsochroneApiResponse, IsochroneData } from "./isochrone";
+export type { MapBounds, MapMarker, MapPolygon, MapPosition } from "./map";
+export { isMapPosition } from "./map";
 export {
   SEARCH_HEADER_FILTER_GAP_PX,
   SEARCH_HEADER_FILTER_PROMOTION_ORDER,
   type SearchHeaderFilterId,
 } from "./searchHeaderFilter";
-export { SEARCH_TRANSLATIONS } from "./translations";

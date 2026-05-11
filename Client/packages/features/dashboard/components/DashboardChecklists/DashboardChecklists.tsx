@@ -19,13 +19,15 @@ import { useDocumentsDataIntegration } from "packages/features/documents";
 import { useSigningTodos } from "packages/hooks/data/agenda/useSigningTodos";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useViewStore, type ViewState } from "packages/store";
-import ClientSelector from "packages/ui/components/button/ClientSelector";
+import ClientSelector from "packages/ui/components/button/propertyActions/ClientSelector";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 
 import DashboardChecklistsHeader from "./DashboardChecklistsHeader";
 
-const DashboardAgreementSigningModals = lazy(() => import("../DashboardAgreementSigningModals"));
+const DashboardAgreementSigningModals = lazy(
+  () => import("../panels/DashboardAgreementSigningModals")
+);
 
 const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
   search: "search",

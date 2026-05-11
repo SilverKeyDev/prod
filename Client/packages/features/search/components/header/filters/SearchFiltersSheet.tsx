@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { SearchDisplaySectionNative } from "packages/features/search/components/header/display/SearchDisplaySection.native";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { usePreferencesSubmit, useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { useSearchContextStore } from "packages/store";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import { BaseModal } from "packages/ui/components/modals";
 
 import { SearchFiltersContent } from "./SearchFiltersContent";

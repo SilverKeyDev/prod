@@ -85,7 +85,7 @@ Use this checklist to decide between consolidation and documentation:
 - [ ] Uses shared primitives (Box, Text, etc.)
 
 ### Document if:
-- [ ] Uses platform-specific rendering (DOM elements vs RN components)  
+- [ ] Uses platform-specific rendering (DOM elements vs RN components)
 - [ ] Different interaction models (mouse/hover vs touch)
 - [ ] Platform-specific styling requirements
 - [ ] Performance optimizations specific to platform
@@ -105,7 +105,7 @@ Use this checklist to decide between consolidation and documentation:
 [
   {
     "id": "input-primitive",
-    "kind": "component", 
+    "kind": "component",
     "module": "packages/ui/components/primitives/input/Input",
     "platformIndependent": false,
     "reason": "HTML input vs TextInput - different focus/keyboard behavior, validation, and accessibility requirements"
@@ -113,7 +113,7 @@ Use this checklist to decide between consolidation and documentation:
   {
     "id": "modal-primitive",
     "kind": "component",
-    "module": "packages/ui/components/modals/BaseModal", 
+    "module": "packages/ui/components/modals/BaseModal",
     "platformIndependent": false,
     "reason": "Web uses React Portal for DOM rendering, native uses react-native Modal component with different z-index and animation behavior"
   }
@@ -124,8 +124,8 @@ Use this checklist to decide between consolidation and documentation:
 
 After resolving the violation:
 
-1. **Run linter:** `npm run lint` should no longer show the violation
-2. **Test build:** `npm run build` should pass
+1. **Run linter:** `pnpm lint` (from `Client/`) should no longer show the violation
+2. **Test build:** `pnpm build` should pass
 3. **Verify functionality:** Component works identically on both platforms
 
 ## Anti-Patterns to Avoid

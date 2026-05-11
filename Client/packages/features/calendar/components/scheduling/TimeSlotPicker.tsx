@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 

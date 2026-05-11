@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo } from "react";
 import Input from "@ui/form/Input";
 
 import { spacing } from "packages/design-tokens";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { BaseModal } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";

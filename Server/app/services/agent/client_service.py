@@ -14,7 +14,7 @@ from app.services.transactions.checklist_support.checklist_constants import (
 )
 
 from ...models import AgentConnections, TransactionTask, User, UserRole
-from ...utils.json_string_list_parse import (
+from ...utils.format.json_string_list_parse import (
     parse_json_or_csv_string_list,
     serialize_json_string_list,
 )

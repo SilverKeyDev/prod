@@ -6,7 +6,7 @@ import type { PropertyComponentProps } from "packages/features/propertyDetails/c
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import { usePropertyDetailsLocationMap } from "packages/hooks/data/property/usePropertyDetailsLocationMap.web";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import { Box, Loading } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { getWindow } from "packages/utils/platform";

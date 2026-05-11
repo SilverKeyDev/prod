@@ -1,3 +1,10 @@
+---
+description: Backend code patterns — routes, handlers, examples
+globs:
+  - "Server/**/*.py"
+alwaysApply: false
+---
+
 # Backend Code Patterns Reference
 
 ## Overview
@@ -310,4 +317,3 @@ def _get_redirect_uri():  # Duplicate!
 6. **Use type hints** for better IDE support and documentation
 7. **Import at top of file** - not inside functions
 8. **Use standardized imports** - `from app import db`
-

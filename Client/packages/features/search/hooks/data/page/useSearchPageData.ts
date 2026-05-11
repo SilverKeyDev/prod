@@ -22,7 +22,7 @@ import { useSearchResultsData } from "@/features/search/hooks/data/results/useSe
 import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/useNotInterestedHomesData";
 import { useSearchMapOverlayData } from "@/features/search/hooks/data/useSearchMapOverlayData";
 import type { SearchResult } from "@/features/search/types";
-import type { SavedHome } from "@/features/search/types/property";
+import type { SavedHome } from "@/features/search/types/domain/property";
 
 export function useSearchPageData() {
   const isAgent = useIsAgent();

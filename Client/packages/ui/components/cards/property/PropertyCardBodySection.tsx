@@ -2,7 +2,7 @@ import React from "react";
 
 import { spacing } from "packages/design-tokens";
 import type { Property } from "packages/types";
-import CardNotInterested from "packages/ui/components/button/NotInterested";
+import CardNotInterested from "packages/ui/components/button/propertyActions/NotInterested";
 import {
   CardAddressDisplay,
   CardMatchScore,

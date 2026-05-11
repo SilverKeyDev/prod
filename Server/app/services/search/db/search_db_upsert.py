@@ -8,8 +8,8 @@ from typing import Any
 from app import db
 from app.models import UserPropertyLink
 from app.services.property_cache import get_or_create_property
-from app.utils.address_format import normalize_address
-from app.utils.currency import format_currency, resolve_price
+from app.utils.format.address_format import normalize_address
+from app.utils.format.currency import format_currency, resolve_price
 
 from ..helpers.geometry_helpers import geocode_address_google
 from .search_db_sync import sync_to_home_likes

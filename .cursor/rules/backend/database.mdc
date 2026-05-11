@@ -2,7 +2,7 @@
 description: Database and model file constraints
 globs:
   - "Server/**"
-alwaysApply: true
+alwaysApply: false
 ---
 - # Database and Model Constraints
 
@@ -11,4 +11,3 @@ alwaysApply: true
 - NEVER execute database migration commands (e.g., `flask db migrate`, `flask db upgrade`, `alembic upgrade`, etc.).
 - ONLY allow edits to files in `Server/app/models/` directory. All other Server files are read-only unless explicitly requested by the user.
 - When working with model files, only modify the Python model definitions themselves - do not attempt to change the underlying database structure.
-

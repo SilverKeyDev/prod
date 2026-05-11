@@ -2,7 +2,7 @@
 description: Platform-specific file extensions for apps/web and apps/mobile so Cursor and tooling use the correct conventions
 globs:
   - "Client/apps/**/*.{ts,tsx}"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Platform File Extensions (Web vs Mobile)

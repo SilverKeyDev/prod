@@ -1,3 +1,3 @@
 // Dashboard barrel; submodules imported directly (e.g. dashboard/ClientHub).
-export { DashboardFeature } from "./components/DashboardFeature";
+export { DashboardFeature } from "./components/shell/DashboardFeature";
 export { DASHBOARD_TRANSLATIONS } from "./types/translations";

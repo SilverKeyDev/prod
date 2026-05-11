@@ -1,5 +1,5 @@
 import { useLocalization } from "packages/contexts";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { useGoogleMaps } from "packages/hooks/data";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";

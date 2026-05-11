@@ -1,7 +1,6 @@
 import { useState } from "react";
 
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
+import { Button, CancelButton } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import { Input, Label, Textarea } from "@/components/ui";

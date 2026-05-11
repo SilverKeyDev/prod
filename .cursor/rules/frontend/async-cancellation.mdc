@@ -2,7 +2,7 @@
 description: Async and cancellation patterns for RN-safe unmount and request cleanup
 globs:
   - "Client/**/*.{ts,tsx}"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Async and Cancellation Patterns

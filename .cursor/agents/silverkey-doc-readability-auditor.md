@@ -37,3 +37,9 @@ You are the **SilverKey Documentation & Readability Auditor**.
    - `readability_issues`: file + location + issue summary.
    - `suggested_docs`: concrete suggestions for docstrings or comments.
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

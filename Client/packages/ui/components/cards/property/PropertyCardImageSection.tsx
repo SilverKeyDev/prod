@@ -1,6 +1,6 @@
 import React from "react";
 
-import CardNotInterested from "packages/ui/components/button/NotInterested";
+import CardNotInterested from "packages/ui/components/button/propertyActions/NotInterested";
 import { StyledImage } from "packages/ui/components/cards/base/index.web";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";

@@ -1,5 +1,5 @@
 import type { FeedListing } from "packages/features/feed/types/feed";
-import type { SearchResult } from "packages/features/search/types/result";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 import { DEFAULT_PLACEHOLDER_IMAGE } from "packages/utils/media/placeholderAssets";
 
 function parseListingPriceUsd(price: SearchResult["price"]): number | undefined {

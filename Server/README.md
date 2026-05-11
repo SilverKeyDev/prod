@@ -52,7 +52,7 @@ open coverage/html/index.html
 
 ### Coverage Configuration
 
-Coverage thresholds are enforced via `pytest.ini` and `scripts/check_coverage_thresholds.py`:
+Coverage thresholds are enforced via `pytest.ini` and `scripts/lint/check_coverage_thresholds.py`:
 
 - **Overall**: 50% coverage required (fails if not met)
 - **Services** (`app/services/`): 70% coverage required

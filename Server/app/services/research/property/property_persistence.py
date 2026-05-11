@@ -10,8 +10,8 @@ from flask import current_app
 from app import db
 from app.models import PropertyCache, UserPropertyLink
 from app.services.property_cache import get_or_create_property, update_property_basic_data
-from app.utils.address_format import normalize_address
-from app.utils.currency import format_currency, resolve_price
+from app.utils.format.address_format import normalize_address
+from app.utils.format.currency import format_currency, resolve_price
 
 
 def build_update_fields(

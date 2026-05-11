@@ -1,0 +1,17 @@
+{
+  "_comment": "Do not put secrets here. Copy server blocks into Cursor Settings → MCP. Use env vars for credentials.",
+  "mcpServers": {
+    "postgres-example": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${DATABASE_URL}"]
+    },
+    "filesystem-example": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/absolute/path/to/SilverKey"
+      ]
+    }
+  }
+}

@@ -16,7 +16,7 @@ When creating or renaming files under `apps/web/`, choose the right extension so
 
 ## Quick check
 
-**"Could mobile use this same file or the same API with a `.native` variant?"**  
+**"Could mobile use this same file or the same API with a `.native` variant?"**
 If yes → do **not** use `.web`.
 
 ## When to use `.web`
@@ -31,9 +31,15 @@ Canonical guidance: `.cursor/rules/frontend/platform-file-extensions.mdc` and `d
 ## When to use `.tsx` / `.ts` (no suffix)
 
 Use plain `.tsx` / `.ts` for:
+
 - Shared code or the default web implementation that mobile could use as-is or override later with `Component.native.tsx`.
 - Files that use only React + shared packages (no DOM-specific APIs).
 - Single implementation of a shared API (e.g. `iconMap.tsx` for `getIcon(name)`; mobile can add `iconMap.native.tsx` later if needed).
+
+## Example
+
+- **Use `SearchHeader.tsx`** — composes only `packages/ui` and shared hooks; mobile could share or add `SearchHeader.native.tsx` later.
+- **Use `Sidebar.web.tsx`** — imports `react-router-dom` and is desktop-only; no mobile equivalent.
 
 ## References
 

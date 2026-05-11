@@ -62,3 +62,9 @@ You are the **SilverKey Refactor Suggestion Engine**.
      - `size`, `concerns`, `proposed_splits` (with target paths).
      - `type_safety_issues` discovered and how refactor could fix them.
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

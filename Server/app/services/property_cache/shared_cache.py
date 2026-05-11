@@ -8,7 +8,7 @@ from typing import Any
 
 from app import db
 from app.models import PropertyCache
-from app.utils.address_format import normalize_address
+from app.utils.format.address_format import normalize_address
 
 logger = logging.getLogger(__name__)
 

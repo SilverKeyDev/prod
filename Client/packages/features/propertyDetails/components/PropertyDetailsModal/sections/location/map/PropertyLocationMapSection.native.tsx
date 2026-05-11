@@ -9,7 +9,7 @@ import { SectionTintWrapper } from "packages/features/propertyDetails/components
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import { Box, Loading } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { buildGoogleStreetViewUrl } from "packages/utils/maps/googleMapsLinks";

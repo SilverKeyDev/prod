@@ -2,9 +2,9 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 
 import type { ReactNode, UIEvent } from "react";
 
-import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
-import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/unifiedMessagesListDynamicImport";
-import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/UnifiedMessagesListEmptyStates";
+import MessagingModals from "packages/features/messaging/components/layout/chrome/MessagingModals";
+import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
+import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import {
@@ -23,8 +23,8 @@ import { getDocument, getWindow } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
-import UnifiedMessageInput from "@/features/messaging/components/layout/UnifiedMessageInput";
-import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
+import UnifiedMessagingSidebar from "@/features/messaging/components/layout/chrome/UnifiedMessagingSidebar";
+import UnifiedMessageInput from "@/features/messaging/components/layout/input/UnifiedMessageInput";
 import { isSameMessagingUserId, resolvePrimaryAgentId } from "@/features/messaging/utils";
 
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";

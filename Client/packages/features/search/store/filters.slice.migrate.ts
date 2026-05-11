@@ -4,7 +4,7 @@ import {
   isResultsOrderBy,
   isResultsSortDirection,
   legacyDefaultSortDirection,
-} from "packages/features/search/types/searchDisplay";
+} from "packages/features/search/types/domain/searchDisplay";
 
 import { filtersSliceInitialState } from "./filters.slice.initialState";
 import type { FiltersState } from "./filters.slice.types";

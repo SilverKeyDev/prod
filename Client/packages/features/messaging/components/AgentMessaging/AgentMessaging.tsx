@@ -17,10 +17,10 @@ import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClie
 import { useConnectionRequests } from "packages/features/agent/hooks/data/useConnectionRequests";
 import { useAgentAutoSelectClient } from "packages/features/agent/hooks/ui/useAgentAutoSelectClient";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
-import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
-import UnifiedMessageInput from "packages/features/messaging/components/layout/UnifiedMessageInput";
-import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/unifiedMessagesListDynamicImport";
-import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/UnifiedMessagesListEmptyStates";
+import MessagingModals from "packages/features/messaging/components/layout/chrome/MessagingModals";
+import UnifiedMessageInput from "packages/features/messaging/components/layout/input/UnifiedMessageInput";
+import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
+import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
@@ -35,7 +35,7 @@ import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
-import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
+import UnifiedMessagingSidebar from "@/features/messaging/components/layout/chrome/UnifiedMessagingSidebar";
 
 const UnifiedMessagesList = lazy(
   traceLazyImport(

@@ -8,9 +8,10 @@ export { SearchResultListingCard } from "./components/list/SearchResultListingCa
 export { DesktopReelsView } from "./components/reels/DesktopReelsView";
 export { SearchFeature } from "./components/src/SearchFeature";
 export { researchListingZpid, usePropertyDetails } from "./hooks/data/property/usePropertyDetails";
-export type { Property, SavedHome } from "./types/property";
-export type { PropertyWithAnalysis } from "./types/property";
-export type { SearchResult } from "./types/result";
+export type { Property, SavedHome } from "./types/domain/property";
+export type { PropertyWithAnalysis } from "./types/domain/property";
+export type { SearchResult } from "./types/domain/result";
+export { SEARCH_TRANSLATIONS } from "./types/domain/translations";
 export {
   formatAgentName,
   formatFilenameToAddress,
@@ -24,7 +25,6 @@ export {
   getPropertyImages,
 } from "./types/search/formatters/propertyDetailsFormatters";
 export { formatPropertyType } from "./types/search/formatters/propertyFormatters";
-export { SEARCH_TRANSLATIONS } from "./types/translations";
 export {
   buildIsochroneOverlayFromViewportRing,
   viewportRingToPolygonCoordinates,

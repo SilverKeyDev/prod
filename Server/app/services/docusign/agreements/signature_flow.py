@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from app import db
 from app.models import AgreementEvent
-from app.utils.database import transactional
+from app.utils.db import transactional
 from logger import LOG_CATEGORIES, get_logger
 
 from ..core.client import DocusignClient

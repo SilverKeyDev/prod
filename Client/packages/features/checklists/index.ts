@@ -13,19 +13,19 @@ export {
   type TransactionAddressData,
   updateTaskChecklist,
 } from "./api/checklists";
+export { default as ChooseAreasSection } from "./components/integrations/areas/ChooseAreasSection";
+export { default as ReviewComparablesSection } from "./components/integrations/comparables/ReviewComparablesSection";
+export { default as HomeConcierge } from "./components/integrations/concierge/HomeConcierge";
+export { default as FindingHome } from "./components/integrations/findingHome/FindingHome";
+export { default as ChecklistLayout } from "./components/layout/ChecklistLayout";
+export { default as CloseLayout } from "./components/layout/CloseLayout";
+export { ChecklistProgressBar } from "./components/progress/ChecklistProgressBar";
 export {
   BuyerRoadmapChecklistList,
   type BuyerRoadmapChecklistListProps,
-} from "./components/BuyerRoadmapChecklistList";
-export { default as ChecklistIntegrationSlot } from "./components/ChecklistIntegrationSlot";
-export { default as ChecklistLayout } from "./components/ChecklistLayout";
-export { ChecklistProgressBar } from "./components/ChecklistProgressBar";
-export { default as ChecklistStepForms } from "./components/ChecklistStepForms";
-export { default as CloseLayout } from "./components/CloseLayout";
-export { default as ChooseAreasSection } from "./components/integrations/ChooseAreasSection";
-export { default as FindingHome } from "./components/integrations/findingHome/FindingHome";
-export { default as HomeConcierge } from "./components/integrations/HomeConcierge";
-export { default as ReviewComparablesSection } from "./components/integrations/ReviewComparablesSection";
+} from "./components/roadmap/BuyerRoadmapChecklistList";
+export { default as ChecklistIntegrationSlot } from "./components/slots/ChecklistIntegrationSlot";
+export { default as ChecklistStepForms } from "./components/steps/ChecklistStepForms";
 export { default as ClosingMovingIn } from "./components/subheaders/ClosingMovingIn";
 export { default as EscrowLegalLogistics } from "./components/subheaders/EscrowLegalLogistics";
 export { default as FinancingInsurance } from "./components/subheaders/FinancingInsurance";

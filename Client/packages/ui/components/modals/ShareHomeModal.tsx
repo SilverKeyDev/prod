@@ -12,7 +12,7 @@ import { useIsAgent } from "packages/hooks/store";
 import { useSecureClipboardCopy } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { Textarea } from "packages/ui/components/form/FormField";
+import { Textarea } from "packages/ui/components/form/field/FormField";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Label from "packages/ui/components/text/Label.web";

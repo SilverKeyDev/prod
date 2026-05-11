@@ -42,3 +42,9 @@ You are the **SilverKey Error Surface Detector**.
    - `frontend_error_surfaces`: file + area + missing handling.
    - `backend_error_surfaces`: file + function + missing handling.
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

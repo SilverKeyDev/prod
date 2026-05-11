@@ -208,7 +208,7 @@ See: `.cursor/rules/shared/testing-tiers.mdc`
 
 - Use `@file`, `@folder`, `@codebase` explicitly for context
 - Reference `ARCHITECTURE.md` (this file) at session start for complex tasks
-- See `.cursorignore` for what's excluded from indexing
+- See **`.cursorignore.example`** (copy to `.cursorignore` locally) for recommended indexing exclusions
 - Rules in `.cursor/rules/` are always applied
 
 ## Contributing

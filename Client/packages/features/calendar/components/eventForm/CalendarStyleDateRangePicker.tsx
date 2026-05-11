@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Icon } from "@ui/icons";
 import type { MouseEvent } from "react";
 
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import Popover from "packages/ui/components/popover/Popover";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";

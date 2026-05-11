@@ -1,4 +1,4 @@
-import type { SearchResult } from "packages/features/search/types/result";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 
 /**
  * Map card focus: all search results are shown as pins on the map; only one

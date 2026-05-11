@@ -147,8 +147,8 @@ def create_app(config=None):
             pass
 
     # Validate environment variables at startup
-    from .utils.config_validator import validate_and_raise
     from .utils.security.env_validator import check_api_keys
+    from .utils.validation.config_validator import validate_and_raise
 
     try:
         validate_and_raise()  # Raises RuntimeError if required vars are missing

@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { searchDisplayApi } from "packages/features/search/api/searchDisplay";
 import { useFiltersStore } from "packages/features/search/store/filters.slice";
-import type { SearchDisplayPayload } from "packages/features/search/types/searchDisplay";
+import type { SearchDisplayPayload } from "packages/features/search/types/domain/searchDisplay";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 

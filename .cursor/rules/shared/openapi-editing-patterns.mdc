@@ -1,6 +1,9 @@
 ---
 description: Best practices for editing OpenAPI schema files
-alwaysApply: true
+globs:
+  - "openapi/**/*.{yaml,yml}"
+  - "openapi/openapi.yaml"
+alwaysApply: false
 ---
 
 # OpenAPI Schema Editing Patterns

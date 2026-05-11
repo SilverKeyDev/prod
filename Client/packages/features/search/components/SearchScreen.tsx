@@ -7,8 +7,8 @@ import { useSearchDisplaySettings } from "packages/features/search/hooks/data/us
 import { useSearchScreenCriteriaSummary } from "packages/features/search/hooks/ui/useSearchScreenCriteriaSummary";
 import { useSearchScreenSearchExecution } from "packages/features/search/hooks/ui/useSearchScreenSearchExecution";
 import type { SearchResult } from "packages/features/search/types";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { formatAddress } from "packages/features/search/types/search/formatters/propertyDetailsFormatters";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";

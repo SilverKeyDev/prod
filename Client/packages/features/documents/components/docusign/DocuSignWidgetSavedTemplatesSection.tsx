@@ -2,7 +2,7 @@ import type { ReactElement } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { DocusignTemplate } from "packages/features/documents/types/docusign";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 

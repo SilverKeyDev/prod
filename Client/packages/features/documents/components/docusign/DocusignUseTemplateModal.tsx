@@ -11,8 +11,7 @@ import type {
   SendAgreementRequest,
 } from "packages/features/documents/types/docusign";
 import { useAuthStore } from "packages/store";
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
+import { Button, CancelButton } from "packages/ui";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 

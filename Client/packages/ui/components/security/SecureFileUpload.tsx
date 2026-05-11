@@ -15,7 +15,7 @@ import Title from "@ui/text/Title";
 import { useLocalization } from "packages/contexts";
 import { formatFileSize, processImage } from "packages/services/security/imageProcessor";
 import { log } from "packages/services/security/secureLogger";
-import { DROP_ZONE_BORDER_BASE } from "packages/ui/components/form/fileUploadStyles";
+import { DROP_ZONE_BORDER_BASE } from "packages/ui/components/form/styles/fileUploadStyles";
 import { Box, Image } from "packages/ui/components/primitives";
 import { CARD_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 export type SecureFileUploadProps = {

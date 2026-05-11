@@ -1,13 +1,13 @@
 import React from "react";
 
 import { PersonalizationSectionPanel } from "packages/features/profile/components/layout";
-import { AccountPrivacyDataSection } from "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection";
-import { ProfileDemographicsSection } from "packages/features/profile/components/profileScreen/sections/ProfileDemographicsSection";
-import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/sections/ProfileFinancialSection";
-import { ProfileHousingEssentialsSection } from "packages/features/profile/components/profileScreen/sections/ProfileHousingEssentialsSection";
-import { ProfileHousingRangesSection } from "packages/features/profile/components/profileScreen/sections/ProfileHousingRangesSection";
-import { ProfileLocationSection } from "packages/features/profile/components/profileScreen/sections/ProfileLocationSection";
-import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
+import { ProfileDemographicsSection } from "packages/features/profile/components/profileScreen/sections/demographics/ProfileDemographicsSection";
+import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/sections/financial/ProfileFinancialSection";
+import { ProfileHousingEssentialsSection } from "packages/features/profile/components/profileScreen/sections/housing/ProfileHousingEssentialsSection";
+import { ProfileHousingRangesSection } from "packages/features/profile/components/profileScreen/sections/housing/ProfileHousingRangesSection";
+import { ProfileLocationSection } from "packages/features/profile/components/profileScreen/sections/location/ProfileLocationSection";
+import { AccountPrivacyDataSection } from "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection";
+import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
 import {
   AgentBrokerageSection,
   AgentLicensingSection,

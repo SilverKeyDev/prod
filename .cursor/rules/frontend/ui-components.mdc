@@ -3,7 +3,7 @@ description: UI component standardization rules - use standardized components fr
 globs:
   - "Client/apps/web/**/*.{ts,tsx}"
   - "Client/packages/**/*.{ts,tsx}"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # UI Component Standardization Rules
@@ -287,4 +287,3 @@ The following are allowed exceptions (must be documented):
 - **Title**: Real headings (e.g. "Finances", "Housing", "Location") — use `SECTION_TITLES` or `t()` for section titles.
 - **Subtitle / BodyText**: Real sentences (e.g. "Select your preferences and let our AI find the best homes for you.") — use `t()` for i18n.
 - **Label**: Real field labels (e.g. "Name", "Budget Range") — use `FIELD_LABELS` or `t()`. Never show the constant name or key as the visible text.
-

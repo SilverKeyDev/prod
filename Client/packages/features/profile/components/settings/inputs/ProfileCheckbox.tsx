@@ -1,6 +1,6 @@
 import React from "react";
 
-import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
+import { OliveCheckbox } from "packages/ui";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";

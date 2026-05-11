@@ -3,7 +3,7 @@ description: CI gates to prevent drift after web/RN split — typecheck, lint, c
 globs:
   - ".github/workflows/**"
   - "Client/**/*"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # CI Gates (Prevent Drift After Split)
@@ -24,8 +24,8 @@ These must run on every pull request (and push) for the Client:
 
 ## Workflow
 
-- **Single entry point:** `scripts/run-all-linters.sh` runs all linters for a scope (`client` | `server` | `all`). Server: every `Server/scripts/lint_*.py` then every executable `Server/scripts/lint_*.sh` (sorted). Client: every executable `Client/scripts/lint.d/*.sh` (sorted), then `pnpm check`. New linters: add a matching file under those dirs; no workflow or root script edit required.
-- **CI:** `.github/workflows/lint.yml` runs the root script for client and server (two jobs). **Main/deploy:** `ci_web.yml` calls the lint workflow before build/deploy.
+- **Single entry point:** `scripts/run-all-linters.sh` runs all linters for a scope (`client` | `server` | `all`). Server: every `Server/scripts/lint/lint_*.py` then each executable `Server/scripts/lint/lint_*.sh` (sorted). Client: every executable `Client/scripts/lint.d/*.sh` (sorted), then `pnpm check`. New linters: add a matching file under `Server/scripts/lint/`; no workflow or root script edit required.
+- **CI:** `.github/workflows/lint.yml` runs the root script for client and server (two jobs). **`ci_web.yml`** (prod web deploy) does not run lint or tests; rely on branch protection and PR checks before merging and triggering deploy.
 
 ## Enforcement
 

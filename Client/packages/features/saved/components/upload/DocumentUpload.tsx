@@ -11,7 +11,7 @@ import Label from "@ui/text/Label";
 import { useLocalization } from "packages/contexts";
 import { useDocuments } from "packages/features/documents";
 import { useUIStore } from "packages/store";
-import { DROP_ZONE_BORDER_BASE } from "packages/ui/components/form/fileUploadStyles";
+import { DROP_ZONE_BORDER_BASE } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";

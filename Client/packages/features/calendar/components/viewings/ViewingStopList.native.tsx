@@ -9,7 +9,7 @@ import DraggableFlatList, {
 } from "react-native-draggable-flatlist";
 
 import { color } from "packages/design-tokens";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
 import {

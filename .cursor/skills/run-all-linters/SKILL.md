@@ -25,7 +25,7 @@ Use scope `client` or `server` only when the user specifies (e.g. "client linter
 
 2. **Linter phase (runs after fixes)**
    - **Client:** `Client/scripts/run-client-linters.sh` → optional executable `Client/scripts/lint.d/*.sh` (sorted), then `pnpm check` (typecheck, eslint+stylelint, format:check, cycles, audit, build:web).
-   - **Server:** each `Server/scripts/lint_*.py`, then each executable `Server/scripts/lint_*.sh` (includes `lint_10_ruff.sh`, `lint_20_pyright.sh` and any future `lint_*.sh`).
+   - **Server:** each `Server/scripts/lint/lint_*.py`, then each executable `Server/scripts/lint/lint_*.sh` (includes `lint_10_ruff.sh`, `lint_20_pyright.sh` and any future `lint_*.sh`).
 
 The script may install Client deps (`pnpm install` in Client) if `node_modules/.bin` is missing. It uses a Server venv if present (`.venv` or `venv` in Server).
 

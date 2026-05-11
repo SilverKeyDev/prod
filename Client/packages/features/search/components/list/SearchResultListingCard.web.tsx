@@ -4,8 +4,8 @@ import { Icon } from "@ui/icons";
 
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
 import { formatPropertyType } from "packages/features/search/types/search/formatters/propertyFormatters";
-import CardNotInterested from "packages/ui/components/button/NotInterested";
-import { OVERLAY_MARKER_CIRCLE_CLASSES } from "packages/ui/components/button/overlayMarkerButtonTypes";
+import { OVERLAY_MARKER_CIRCLE_CLASSES } from "packages/ui/components";
+import CardNotInterested from "packages/ui/components/button/propertyActions/NotInterested";
 import { getCardBubbleSizeClasses } from "packages/ui/components/cards/base/styles";
 import { Box } from "packages/ui/components/primitives";
 import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
@@ -20,7 +20,7 @@ import {
 } from "@/components/cards/base/index.web";
 import { BodyText, Title } from "@/components/ui";
 import { getMatchScore, type SearchResult } from "@/features/search/types";
-import { SEARCH_TRANSLATIONS } from "@/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "@/features/search/types/domain/translations";
 
 /** Matches `CardNotInterested` sidebar overlay (size sm) — icon only; map markers cannot use `<button>`. */
 const MAP_PREVIEW_DISMISS_ICON_CLASSNAME = `${

@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 
 import { useLocalization } from "packages/contexts";
-import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/ChecklistStepSubmitFooter";
+import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import type { ChecklistIntegrationComponentProps } from "packages/features/checklists/types/componentRegistry";
 import {
   isPartnerWithAgentStepComplete,

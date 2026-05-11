@@ -3,11 +3,10 @@ import React, { useCallback } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import type { SearchResult } from "packages/features/search/types/result";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 import { useAgentSearchShareBundleDock } from "packages/hooks/data";
 import { useUIStore } from "packages/store";
-import Button from "packages/ui/components/button/Button";
-import ClientSelector from "packages/ui/components/button/ClientSelector";
+import { Button, ClientSelector } from "packages/ui";
 import { SelectionBottomDock } from "packages/ui/components/layout";
 
 export type AgentShareHomesDockProps = {

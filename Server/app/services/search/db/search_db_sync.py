@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from app import db
 from app.models import HomeLikes, HomeNotInterested
-from app.utils.address_format import normalize_address
+from app.utils.format.address_format import normalize_address
 
 if TYPE_CHECKING:
     from app.models.property.property_cache import PropertyCache

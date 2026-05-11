@@ -2,7 +2,7 @@ import type {
   ResultsOrderBy,
   ResultsSortDirection,
   SearchDisplayPayload,
-} from "packages/features/search/types/searchDisplay";
+} from "packages/features/search/types/domain/searchDisplay";
 
 export type ActiveTab = "results" | "saved";
 

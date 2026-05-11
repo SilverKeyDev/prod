@@ -39,7 +39,7 @@ def login(data: LoginData | None = None):
     return handle_login(data)
 ```
 
-### `validation_helpers.py`
+### `validation/helpers.py`
 
 Helper utilities for working with Pydantic validation errors.
 
@@ -52,7 +52,7 @@ Helper utilities for working with Pydantic validation errors.
 
 **Example:**
 ```python
-from app.utils.validation_helpers import format_validation_errors
+from app.utils.validation import format_validation_errors
 from pydantic import ValidationError
 
 try:

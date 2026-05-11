@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from "react";
 
-import type { SearchResult } from "packages/features/search/types/result";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 import { useViewStore } from "packages/store";
 
 /** `viewStore.dropdownSelections` key; distinct from saved-page compare (`savedHomes.selectedIds`). */

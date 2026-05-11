@@ -8,4 +8,7 @@ export { CardCompareCheckbox } from "./checkbox";
 export { CardAddressDisplay, CardMatchScore, CardPropertyDetails } from "./display";
 export { CardImageContainer, StyledImage } from "./image";
 export { getCardHoverClasses, getInteractiveCardClasses, TrianglePointer } from "./styles";
-export { default as CardHeartSave, CardHeartSaveWithProps } from "@ui/button/HeartSave";
+export {
+  default as CardHeartSave,
+  CardHeartSaveWithProps,
+} from "@ui/button/propertyActions/HeartSave";

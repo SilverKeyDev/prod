@@ -19,5 +19,5 @@ export type {
   UserPreferencesData,
   ViewportPolygonPoint,
 } from "packages/features/search/types/api";
+export type { PropertySearchResult } from "packages/features/search/types/domain/property";
 export type { IsochroneData } from "packages/features/search/types/isochrone";
-export type { PropertySearchResult } from "packages/features/search/types/property";

@@ -7,7 +7,7 @@ import DocumentUploadModal from "packages/features/saved/components/upload/Docum
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import type { Property } from "packages/features/search";
 import type { SavedHome, SearchResult } from "packages/types";
-import Input from "packages/ui/components/form/Input";
+import { Input } from "packages/ui";
 import { BaseModal, PdfModal } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
 

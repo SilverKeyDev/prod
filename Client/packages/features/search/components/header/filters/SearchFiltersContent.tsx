@@ -9,6 +9,7 @@ import {
   type LotSizeHomeAgeSearchOverridesPatch,
   MUST_HAVE_OPTIONS,
 } from "packages/features/profile";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import {
   ARCHITECTURAL_STYLE_OPTIONS,
   PROPERTY_USE_OPTIONS,
@@ -16,8 +17,7 @@ import {
   WALKABILITY_OPTIONS,
 } from "packages/features/search/types/otherFilterOptions";
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
-import ClientSelector from "packages/ui/components/button/ClientSelector";
+import { ClientSelector } from "packages/ui";
 import { ScrollView } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";

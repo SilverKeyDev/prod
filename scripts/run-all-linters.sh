@@ -2,7 +2,7 @@
 # Run all linters for the given scope. Single entry point for CI and local use.
 # Requires: Client — `cd Client && pnpm install`; Server — deps installed (e.g. venv +
 # pip install -r requirements-ci.txt for lint-only, or requirements.txt for full app).
-# Server: auto-discovers Server/scripts/lint_*.py then lint_*.sh (sorted per shell glob).
+# Server: auto-discovers Server/scripts/lint/lint_*.py then lint/lint_*.sh (sorted per shell glob).
 # Client: Client/scripts/run-client-linters.sh runs scripts/lint.d/*.sh (optional) then pnpm check.
 set -euo pipefail
 
@@ -57,15 +57,15 @@ run_server() {
     fi
   fi
 
-  echo "==> Server: running discovered linters (lint_*.py, then lint_*.sh)…"
+  echo "==> Server: running discovered linters (scripts/lint/lint_*.py, then lint_*.sh)…"
   (
     cd "$REPO_ROOT"
     shopt -s nullglob
-    for f in Server/scripts/lint_*.py; do
+    for f in Server/scripts/lint/lint_*.py; do
       echo "  Running $f"
       "$SERVER_PYTHON" "$f" || exit 1
     done
-    for f in Server/scripts/lint_*.sh; do
+    for f in Server/scripts/lint/lint_*.sh; do
       if [ ! -x "$f" ]; then
         echo "  Skipping non-executable: $f (chmod +x to enable)" >&2
         continue
@@ -91,7 +91,7 @@ case "$SCOPE" in
   *)
     echo "Usage: $0 [client|server|all]" >&2
     echo "  client - run all Client linters (lint.d/*.sh + pnpm check)" >&2
-    echo "  server - run all Server linters (lint_*.py + lint_*.sh under Server/scripts/)" >&2
+    echo "  server - run all Server linters (lint_*.py + lint_*.sh under Server/scripts/lint/)" >&2
     echo "  all    - run both (default)" >&2
     exit 1
     ;;

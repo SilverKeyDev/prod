@@ -1,6 +1,11 @@
 ---
 description: OpenAPI CI workflow and sync process
-alwaysApply: true
+globs:
+  - "openapi/**"
+  - ".github/workflows/openapi-sync.yml"
+  - "Client/packages/types/api.generated.ts"
+  - "Server/app/schemas/generated.py"
+alwaysApply: false
 ---
 
 # OpenAPI CI Workflow

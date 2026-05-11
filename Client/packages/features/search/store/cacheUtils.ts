@@ -2,7 +2,7 @@
  * Placeholder cache utils for search results
  */
 
-import type { SearchResult } from "@/features/search/types/result";
+import type { SearchResult } from "@/features/search/types/domain/result";
 
 export const cacheUtils = {
   getCachedSearchResults: (_preferencesVersion: string): SearchResult[] | null => null,

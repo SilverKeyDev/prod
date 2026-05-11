@@ -60,3 +60,9 @@ Avoid breaking runtime behavior.
      - `unreachable_branches`: file + lines + comment.
    - Distinguish **changes you made** vs **recommended cleanups** for humans/other agents.
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

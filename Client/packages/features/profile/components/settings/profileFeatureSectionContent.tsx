@@ -1,9 +1,9 @@
 import React from "react";
 
-import { AccountPrivacyDataSection } from "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection";
-import { ProfileHousingEssentialsSection } from "packages/features/profile/components/profileScreen/sections/ProfileHousingEssentialsSection";
-import { ProfileHousingRangesSection } from "packages/features/profile/components/profileScreen/sections/ProfileHousingRangesSection";
-import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
+import { ProfileHousingEssentialsSection } from "packages/features/profile/components/profileScreen/sections/housing/ProfileHousingEssentialsSection";
+import { ProfileHousingRangesSection } from "packages/features/profile/components/profileScreen/sections/housing/ProfileHousingRangesSection";
+import { AccountPrivacyDataSection } from "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection";
+import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
 import {
   AgentBrokerageSection,
   AgentLicensingSection,

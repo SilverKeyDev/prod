@@ -1,5 +1,5 @@
 import { prefetchAgentMessagingFeatureChunks } from "packages/features/agent/components/prefetchAgentMessagingChunks";
-import { prefetchDashboardFeatureChunks } from "packages/features/dashboard/components/prefetchDashboardFeatureChunks";
+import { prefetchDashboardFeatureChunks } from "packages/features/dashboard/components/shell/prefetchDashboardFeatureChunks";
 import { LOG_CATEGORIES } from "packages/logger";
 import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
 

@@ -12,7 +12,7 @@ import MapView, {
 import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import { buildGoogleStreetViewUrl } from "packages/utils/maps/googleMapsLinks";
 import { getIsochroneUnionFillNativeRgba } from "packages/utils/maps/isochroneUnionStyle";

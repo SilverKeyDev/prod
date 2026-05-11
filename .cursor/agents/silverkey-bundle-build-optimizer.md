@@ -45,3 +45,9 @@ You are the **SilverKey Bundle & Build Optimizer**.
    - `config_issues`: misconfigurations or missing options.
    - `code_splitting_opportunities`: candidate modules and suggested changes.
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

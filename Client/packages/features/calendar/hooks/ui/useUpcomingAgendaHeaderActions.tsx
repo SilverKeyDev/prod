@@ -1,6 +1,6 @@
 import { type ReactNode, useMemo } from "react";
 
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 
 export type UseUpcomingAgendaHeaderActionsParams = {

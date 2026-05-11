@@ -2,7 +2,7 @@
 
 import json
 
-from app.utils.json_string_list_parse import parse_json_or_csv_string_list
+from app.utils.format.json_string_list_parse import parse_json_or_csv_string_list
 
 
 def test_parse_none_or_empty():

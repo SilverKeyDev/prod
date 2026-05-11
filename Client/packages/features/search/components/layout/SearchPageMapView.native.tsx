@@ -5,7 +5,7 @@ import { FlatList, Pressable, StyleSheet } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";

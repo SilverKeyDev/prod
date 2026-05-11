@@ -75,3 +75,9 @@ You are the **SilverKey Security & Secrets Scanner**.
      - Issue type and severity.
      - Concrete fix recommendation.
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

@@ -6,9 +6,9 @@ import Card from "@/components/layout/Card.web";
 import { BodyText, NavigationButtons, SkipButton, Title } from "@/components/ui";
 import OnboardingHeader from "@/features/profile/components/onboard/Header";
 import OnboardingRoleStep from "@/features/profile/components/onboard/OnboardingRoleStep.web";
-import { ProfileHousingEssentialsSection } from "@/features/profile/components/profileScreen/sections/ProfileHousingEssentialsSection";
-import { ProfileHousingRangesSection } from "@/features/profile/components/profileScreen/sections/ProfileHousingRangesSection";
-import { ProfileSearchPropertySection } from "@/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
+import { ProfileHousingEssentialsSection } from "@/features/profile/components/profileScreen/sections/housing/ProfileHousingEssentialsSection";
+import { ProfileHousingRangesSection } from "@/features/profile/components/profileScreen/sections/housing/ProfileHousingRangesSection";
+import { ProfileSearchPropertySection } from "@/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
 import {
   AgentBrokerageSection,
   AgentLicensingSection,

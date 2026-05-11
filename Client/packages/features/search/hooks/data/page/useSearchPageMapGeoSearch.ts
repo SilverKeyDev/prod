@@ -29,8 +29,8 @@ import {
 } from "@/features/search/api/propertySearch";
 import type { SearchFilterOverrides } from "@/features/search/store/searchContext.slice";
 import type { SearchResult } from "@/features/search/types";
+import type { LastSearchContext } from "@/features/search/types/domain/searchDisplay";
 import type { IsochroneData } from "@/features/search/types/isochrone";
-import type { LastSearchContext } from "@/features/search/types/searchDisplay";
 
 export type UseSearchPageMapGeoSearchParams = {
   queryClient: QueryClient;

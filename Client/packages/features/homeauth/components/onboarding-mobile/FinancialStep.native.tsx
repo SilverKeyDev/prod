@@ -3,7 +3,7 @@ import React from "react";
 import Input from "@ui/form/Input";
 
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
+import { OliveCheckbox } from "packages/ui";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";

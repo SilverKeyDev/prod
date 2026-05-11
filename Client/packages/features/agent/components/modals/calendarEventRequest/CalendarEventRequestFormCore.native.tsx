@@ -4,8 +4,7 @@ import { StyleSheet, TextInput } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
-import Button from "packages/ui/components/button/Button";
-import Dropdown from "packages/ui/components/form/dropdown";
+import { Button, Dropdown } from "packages/ui";
 import { Box, ScrollView, Text, TouchableBox } from "packages/ui/components/primitives";
 
 import {

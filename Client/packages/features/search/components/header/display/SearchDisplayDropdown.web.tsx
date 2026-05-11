@@ -5,7 +5,7 @@ import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 import { TOUR_TARGETS_DESKTOP } from "packages/utils/tour/tourTargets";

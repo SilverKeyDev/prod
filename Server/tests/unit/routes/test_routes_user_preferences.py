@@ -37,7 +37,7 @@ class TestPreferences:
             db_session.session.commit()
 
             with patch(
-                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
             ) as mock_get:
                 mock_get.return_value = user
 
@@ -68,7 +68,7 @@ class TestPreferences:
             db_session.session.commit()
 
             with patch(
-                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
             ) as mock_get:
                 mock_get.return_value = user
 
@@ -103,7 +103,7 @@ class TestPreferences:
             db_session.session.commit()
 
             with patch(
-                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
             ) as mock_get:
                 mock_get.return_value = user
 
@@ -141,7 +141,7 @@ class TestPreferences:
             db_session.session.commit()
 
             with patch(
-                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
             ) as mock_get:
                 mock_get.return_value = user
 
@@ -174,7 +174,7 @@ class TestPreferences:
             db_session.session.commit()
 
             with patch(
-                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
             ) as mock_get:
                 mock_get.return_value = user
 
@@ -217,7 +217,7 @@ class TestPreferences:
             db_session.session.commit()
 
             with patch(
-                "app.routes.auth.handlers.preferences_preferences.get_current_user"
+                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
             ) as mock_get:
                 mock_get.return_value = user
 

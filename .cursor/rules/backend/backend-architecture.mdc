@@ -1,3 +1,10 @@
+---
+description: Flask backend architecture — auth decorators, routes, structure
+globs:
+  - "Server/**/*.py"
+alwaysApply: false
+---
+
 # Backend Architecture Rules
 
 ## Overview
@@ -315,4 +322,3 @@ def update_user(user):
 - When refactoring existing code, update to follow these standards
 - Code reviews **MUST** check for compliance with these rules
 - Linter rules should flag violations where possible
-

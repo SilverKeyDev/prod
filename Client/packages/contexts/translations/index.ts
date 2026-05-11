@@ -13,7 +13,7 @@ import { NEGOTIATE_TRANSLATIONS } from "packages/features/negotiate/types/transl
 import { PROFILE_TRANSLATIONS } from "packages/features/profile/types/translations";
 import { PROPERTY_DETAILS_TRANSLATIONS } from "packages/features/propertyDetails/types/translations";
 import { SAVED_TRANSLATIONS } from "packages/features/saved/types/translations";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 
 import { SHARED_TRANSLATIONS } from "./shared";
 

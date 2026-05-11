@@ -8,7 +8,7 @@ from flask import current_app
 
 from app import db
 from app.models import PropertyCache, UserPropertyLink
-from app.utils.address_format import normalize_address
+from app.utils.format.address_format import normalize_address
 
 from ..db.search_db import add_or_update_home_basic
 

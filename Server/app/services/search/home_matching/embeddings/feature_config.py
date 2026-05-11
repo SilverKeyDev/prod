@@ -89,9 +89,11 @@ SHARED_FEATURES = {
     # Binary features
     "pet_friendly": FeatureExtractor(
         name="pet_friendly",
-        extractor_func=lambda data: 1.0
-        if data.get("pet_friendly", data.get("preferences", {}).get("pet_friendly", False))
-        else 0.0,
+        extractor_func=lambda data: (
+            1.0
+            if data.get("pet_friendly", data.get("preferences", {}).get("pet_friendly", False))
+            else 0.0
+        ),
         normalizer=1.0,
         default_value=0.0,
     ),
@@ -117,17 +119,17 @@ USER_SPECIFIC_FEATURES = {
     ),
     "parking_required": FeatureExtractor(
         name="parking_required",
-        extractor_func=lambda data: 1.0
-        if data.get("preferences", {}).get("parking_required", False)
-        else 0.0,
+        extractor_func=lambda data: (
+            1.0 if data.get("preferences", {}).get("parking_required", False) else 0.0
+        ),
         normalizer=1.0,
         default_value=0.0,
     ),
     "outdoor_space_required": FeatureExtractor(
         name="outdoor_space_required",
-        extractor_func=lambda data: 1.0
-        if data.get("preferences", {}).get("outdoor_space_required", False)
-        else 0.0,
+        extractor_func=lambda data: (
+            1.0 if data.get("preferences", {}).get("outdoor_space_required", False) else 0.0
+        ),
         normalizer=1.0,
         default_value=0.0,
     ),

@@ -70,3 +70,9 @@ You are the **SilverKey File & Module Reorganizer**.
      - Proposed new files/paths.
      - Example imports/exports after reorg.
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

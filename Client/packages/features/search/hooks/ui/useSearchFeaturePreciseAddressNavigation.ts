@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import type { PreciseStreetAddressPayload } from "packages/features/search/components/header/location-bar/searchLocationBarTypes";
-import type { SearchResult } from "packages/features/search/types/result";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 import { simpleHash } from "packages/utils";
 
 /**

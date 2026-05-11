@@ -1,5 +1,12 @@
 [
   {
+    "id": "ui-package-barrel",
+    "kind": "layout",
+    "module": "packages/ui",
+    "platformIndependent": true,
+    "reason": "Package index barrel re-exports components; same surface as deep imports for ESLint resolution."
+  },
+  {
     "id": "ui-root-barrel",
     "kind": "layout",
     "module": "@/components/ui",
@@ -54,30 +61,51 @@
   {
     "id": "button-component",
     "kind": "component",
-    "module": "packages/ui/components/button/Button",
+    "module": "packages/ui/components/button/core/Button",
     "platformIndependent": false,
     "reason": "Web uses DOM button; native uses Pressable."
   },
   {
     "id": "client-selector",
     "kind": "component",
-    "module": "packages/ui/components/button/ClientSelector",
+    "module": "packages/ui/components/button/propertyActions/ClientSelector",
     "platformIndependent": false,
     "reason": "Different dropdown implementations per platform."
   },
   {
     "id": "heart-save",
     "kind": "component",
-    "module": "packages/ui/components/button/HeartSave",
+    "module": "packages/ui/components/button/propertyActions/HeartSave",
     "platformIndependent": false,
     "reason": "Different touch handling per platform."
   },
   {
     "id": "icon-button",
     "kind": "component",
-    "module": "packages/ui/components/button/IconButton",
+    "module": "packages/ui/components/button/core/IconButton",
     "platformIndependent": false,
     "reason": "Web uses DOM; native uses Pressable."
+  },
+  {
+    "id": "button-core-implementation",
+    "kind": "component",
+    "module": "packages/ui/components/button/core/Button",
+    "platformIndependent": false,
+    "reason": "Concrete web/native Button implementations (also exported via button root stubs)."
+  },
+  {
+    "id": "button-core-implementation",
+    "kind": "component",
+    "module": "packages/ui/components/button/propertyActions/HeartSave",
+    "platformIndependent": false,
+    "reason": "Concrete web/native HeartSave implementations (also exported via button root stubs)."
+  },
+  {
+    "id": "client-selector-property-actions-implementation",
+    "kind": "component",
+    "module": "packages/ui/components/button/propertyActions/ClientSelector",
+    "platformIndependent": false,
+    "reason": "Concrete web/native ClientSelector implementations (also exported via button root stubs)."
   },
   {
     "id": "input-component",
@@ -85,6 +113,13 @@
     "module": "packages/ui/components/form/Input",
     "platformIndependent": false,
     "reason": "HTML input vs TextInput."
+  },
+  {
+    "id": "form-input-web-implementation",
+    "kind": "component",
+    "module": "packages/ui/components/form/inputs/Input.web",
+    "platformIndependent": false,
+    "reason": "Web-specific text input implementation (shared via form Input stubs)."
   },
   {
     "id": "blur-view",
@@ -155,6 +190,13 @@
     "module": "packages/ui/components/primitives/row/Row",
     "platformIndependent": false,
     "reason": "Web uses div; native uses View."
+  },
+  {
+    "id": "unified-message-input",
+    "kind": "component",
+    "module": "packages/features/messaging/components/layout/input/UnifiedMessageInput",
+    "platformIndependent": false,
+    "reason": "Web textarea vs native TextInput for the messaging composer."
   },
   {
     "id": "primitives-index-web",

@@ -12,9 +12,9 @@ export {
 export type { ProfileScreenProps } from "./components/ProfileScreen";
 export { ProfileScreen } from "./components/ProfileScreen";
 export type { PatchBuyerPreferenceExtensions } from "./components/profileScreen/searchPreferences/types";
-export { ProfileHousingEssentialsSection } from "./components/profileScreen/sections/ProfileHousingEssentialsSection";
-export { ProfileHousingRangesSection } from "./components/profileScreen/sections/ProfileHousingRangesSection";
-export { ProfileSearchPropertySection } from "./components/profileScreen/sections/ProfileSearchPropertySection";
+export { ProfileHousingEssentialsSection } from "./components/profileScreen/sections/housing/ProfileHousingEssentialsSection";
+export { ProfileHousingRangesSection } from "./components/profileScreen/sections/housing/ProfileHousingRangesSection";
+export { ProfileSearchPropertySection } from "./components/profileScreen/sections/search/ProfileSearchPropertySection";
 export { default as LocationSection } from "./components/sections/LocationSection";
 export { ImportantLocationsInput } from "./components/settings/inputs/locations/ImportantLocationsInput";
 export { default as ProfileFeature } from "./components/settings/inputs/ProfileFeature";

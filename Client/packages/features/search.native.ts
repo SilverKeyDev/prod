@@ -10,9 +10,10 @@ export { SearchPageModals } from "./search/components/layout/SearchPageModals";
 export { DesktopReelsView } from "./search/components/reels/DesktopReelsView";
 export { SearchFeature } from "./search/components/src/SearchFeature";
 export { usePropertyDetails } from "./search/hooks/data/property/usePropertyDetails";
-export type { Property, SavedHome } from "./search/types/property";
-export type { PropertyWithAnalysis } from "./search/types/property";
-export type { SearchResult } from "./search/types/result";
+export type { Property, SavedHome } from "./search/types/domain/property";
+export type { PropertyWithAnalysis } from "./search/types/domain/property";
+export type { SearchResult } from "./search/types/domain/result";
+export { SEARCH_TRANSLATIONS } from "./search/types/domain/translations";
 export {
   formatAgentName,
   formatFilenameToAddress,
@@ -26,7 +27,6 @@ export {
   getPropertyImages,
 } from "./search/types/search/formatters/propertyDetailsFormatters";
 export { formatPropertyType } from "./search/types/search/formatters/propertyFormatters";
-export { SEARCH_TRANSLATIONS } from "./search/types/translations";
 export { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 export { useSavedHomesStoreIntegration } from "packages/hooks/store";
 export type {

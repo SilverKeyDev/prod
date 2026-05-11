@@ -4,15 +4,14 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
+import { Button, CancelButton } from "packages/ui";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
 import { Box } from "packages/ui/components/primitives";
 
 import BaseModal from "@/components/modals/BaseModal";
 import { BodyText, Title } from "@/components/ui";
 import { useMultiSelectionModal } from "@/features/agent/hooks/ui/useMultiSelectionModal";
-import type { SavedHome } from "@/features/search/types/property";
+import type { SavedHome } from "@/features/search/types/domain/property";
 
 type SelectHomeModalProps = {
   isOpen: boolean;

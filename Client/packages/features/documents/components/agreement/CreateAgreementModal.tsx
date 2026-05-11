@@ -1,4 +1,4 @@
-import CancelButton from "packages/ui/components/button/CancelButton";
+import { CancelButton } from "packages/ui";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 

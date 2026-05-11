@@ -44,3 +44,9 @@ You are the **SilverKey Test Coverage Gap Analyzer**.
      - `file` and `function`.
      - `suggested_tests` (bullet list of scenarios).
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

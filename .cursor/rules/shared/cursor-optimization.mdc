@@ -1,3 +1,10 @@
+---
+description: Cursor IDE — @web, MCP, context hygiene, local lint commands
+globs:
+  - "**/*"
+alwaysApply: false
+---
+
 # Cursor AI Optimization Guide
 
 ## Using Web Context (@web)
@@ -108,8 +115,8 @@ Configured in `Client/packages/config/eslint/`:
 Run manually:
 ```bash
 cd Client
-npm run lint
-npm run format
+pnpm lint
+pnpm format
 ```
 
 ### Pre-commit Hooks
@@ -154,7 +161,7 @@ Better:
 
 ### 3. Leverage .cursorignore
 
-Already configured to exclude:
+Copy **`.cursorignore.example`** at the repo root to **`.cursorignore`** locally (that file stays gitignored). Typical exclusions:
 - Build artifacts (dist/, coverage/)
 - Dependencies (node_modules/, .venv/)
 - Migrations (Server/migrations/versions/)
@@ -209,7 +216,7 @@ Third agent: Analyze database schema
 
 ### "Context window filling up"
 
-→ Check `.cursorignore` excludes build artifacts and dependencies
+→ Copy `.cursorignore.example` to `.cursorignore` and ensure it excludes build artifacts and dependencies
 
 ## Further Reading
 

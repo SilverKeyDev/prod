@@ -11,7 +11,7 @@ from flask import current_app
 from app.models import PropertyCache
 from app.services.property_cache import get_property_by_zpid_or_address
 from app.services.search.scoring import analysis_cache_signature_matches
-from app.utils.address_format import normalize_address
+from app.utils.format.address_format import normalize_address
 
 
 def find_cached_property(

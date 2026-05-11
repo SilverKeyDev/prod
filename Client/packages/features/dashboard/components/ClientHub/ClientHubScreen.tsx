@@ -15,7 +15,7 @@ import { useIsAgent } from "packages/features/homeauth";
 import { ProfileFeature, ProfileScreen } from "packages/features/profile";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
-import ClientSelector from "packages/ui/components/button/ClientSelector";
+import { ClientSelector } from "packages/ui";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
 import { UnderlineTabs } from "packages/ui/components/tabs";

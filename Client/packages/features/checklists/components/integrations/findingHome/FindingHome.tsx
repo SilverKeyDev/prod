@@ -7,10 +7,10 @@ import {
   saveTransactionAddress,
 } from "packages/features/checklists/api/checklists";
 import { useGoogleMapsStore } from "packages/store";
+import { AddressInput } from "packages/ui/components";
 import Button from "packages/ui/components/button/Button";
 import Card from "packages/ui/components/cards/Card";
-import type { AddressData } from "packages/ui/components/form/AddressInput";
-import { AddressInput } from "packages/ui/components/form/AddressInput";
+import type { AddressData } from "packages/ui/components/form/AddressInput/AddressInput";
 import { Box, Text } from "packages/ui/components/primitives";
 
 type FindingHomeProps = {

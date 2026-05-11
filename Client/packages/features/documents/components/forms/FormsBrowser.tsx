@@ -15,7 +15,7 @@ import {
 } from "packages/features/documents/utils/forms/checklistFormToDocumentData";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import BaseCard from "packages/ui/components/cards/BaseCard";
 import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
 import DocumentCardHeader from "packages/ui/components/cards/document/DocumentCardHeader";

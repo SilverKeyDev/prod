@@ -14,7 +14,7 @@ import {
 import { HomeDetailsGrid } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/homeDetails/HomeDetailsGrid";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { buildCategoryBlocks } from "packages/features/propertyDetails/utils/propertyFeaturesHelpers";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import Card from "packages/ui/components/cards/Card";
 import { buildDropdownButtonClasses } from "packages/ui/components/form/dropdown/dropdownStyles";
 import { Box, Icon } from "packages/ui/components/primitives";

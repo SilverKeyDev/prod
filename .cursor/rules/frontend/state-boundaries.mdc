@@ -2,7 +2,7 @@
 description: State boundaries — server cache vs UI state; Zugand access only via selectors/hooks
 globs:
   - "Client/**/*.{ts,tsx}"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # State Boundaries (Server Cache vs UI State)

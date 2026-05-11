@@ -12,7 +12,7 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import { useLocalization } from "packages/contexts";
 import type { PropertyImageGalleryProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import { StyledImage } from "packages/ui/components/cards/base";
 import { Box } from "packages/ui/components/primitives";
 import { getDocument, getWindow } from "packages/utils/platform";

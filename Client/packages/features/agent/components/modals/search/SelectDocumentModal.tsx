@@ -3,9 +3,8 @@ import { useMemo } from "react";
 import { Icon } from "@ui/icons";
 
 import { type DocumentData, useDocumentsData } from "packages/features/documents";
+import { Button, CancelButton } from "packages/ui";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
 import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";

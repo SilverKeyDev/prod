@@ -12,7 +12,7 @@
  * This shim maintains backward compatibility for existing imports.
  */
 
-import type { SearchDisplayPayload } from "packages/features/search/types/searchDisplay";
+import type { SearchDisplayPayload } from "packages/features/search/types/domain/searchDisplay";
 import { apiGet, apiPatch } from "packages/services/http/compatibility";
 import type { components } from "packages/types/api.generated";
 

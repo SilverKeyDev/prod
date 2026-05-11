@@ -5,7 +5,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { ReactNode } from "react";
 
-import Dropdown from "packages/ui/components/form/dropdown";
+import { Dropdown } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import Label from "packages/ui/components/text/Label.web";
 import {

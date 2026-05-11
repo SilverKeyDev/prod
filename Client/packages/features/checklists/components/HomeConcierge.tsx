@@ -1,5 +1,5 @@
 import { useLocalization } from "packages/contexts";
-import NavigationButton from "packages/ui/components/button/NavigationButton";
+import { NavigationButton } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import Image from "packages/ui/components/primitives/media/Image";
 import Subtitle from "packages/ui/components/text/Subtitle";

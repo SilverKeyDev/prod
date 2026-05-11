@@ -36,9 +36,9 @@ The layouts linter flags files that:
 1. **Analyze layout differences** - are they just responsive variations?
 2. **Create shared responsive component:**
    ```typescript
-   // Before: HomeLayout.web.tsx + HomeLayout.native.tsx  
+   // Before: HomeLayout.web.tsx + HomeLayout.native.tsx
    // After: HomeLayout.tsx (responsive)
-   
+
    export function HomeLayout({ children }: HomeLayoutProps) {
      return (
        <Box className="home-layout">
@@ -70,7 +70,7 @@ The layouts linter flags files that:
      "id": "app-navigation",
      "description": "Primary application navigation structure",
      "webPath": "packages/features/navigation/AppNavigation.web.tsx",
-     "nativePath": "packages/features/navigation/AppNavigation.native.tsx", 
+     "nativePath": "packages/features/navigation/AppNavigation.native.tsx",
      "reason": "Web uses sidebar navigation with react-router, native uses bottom tabs with react-navigation. Different navigation paradigms require separate implementations.",
      "category": "navigation"
    }
@@ -112,7 +112,7 @@ The layouts linter flags files that:
 - **Native**: Full-screen with overlays and modals
 
 **Example:**
-```json  
+```json
 {
   "id": "app-shell",
   "category": "app-shell",
@@ -128,7 +128,7 @@ The layouts linter flags files that:
 ```json
 {
   "id": "search-results-layout",
-  "category": "responsive-layout", 
+  "category": "responsive-layout",
   "reason": "Desktop shows map and list side-by-side, mobile toggles between full-screen map and list views"
 }
 ```
@@ -161,7 +161,7 @@ The layouts linter flags files that:
   {
     "id": "modal-presentation",
     "description": "Modal and dialog presentation patterns",
-    "webPath": "packages/ui/modals/ModalContainer.web.tsx", 
+    "webPath": "packages/ui/modals/ModalContainer.web.tsx",
     "nativePath": "packages/ui/modals/ModalContainer.native.tsx",
     "reason": "Web uses overlay modals with backdrop, native uses full-screen or slide-up presentation with platform-specific animations",
     "category": "interaction-pattern"
@@ -186,7 +186,7 @@ export function SearchLayout({ children, showMap }: SearchLayoutProps) {
           <MapView />
         </Box>
       </Box>
-      
+
       {/* Mobile: toggle between views */}
       <Box className="lg:hidden">
         {showMap ? <MapView /> : <SearchResults />}
@@ -201,9 +201,9 @@ export function SearchLayout({ children, showMap }: SearchLayoutProps) {
 
 After resolving the violation:
 
-1. **Run linter:** `npm run lint` should no longer show the violation
+1. **Run linter:** `pnpm lint` (from `Client/`) should no longer show the violation
 2. **Test responsive behavior:** Verify layout works across screen sizes
-3. **Check platform parity:** Ensure functionality is equivalent on both platforms  
+3. **Check platform parity:** Ensure functionality is equivalent on both platforms
 4. **Verify navigation:** Test user flows work as expected
 
 ## Anti-Patterns to Avoid
@@ -232,7 +232,7 @@ export function HomeLayout() {
   );
 }
 
-// HomeLayout.native.tsx - Mobile layout  
+// HomeLayout.native.tsx - Mobile layout
 export function HomeLayout() {
   return (
     <View style={{ flex: 1 }}>
@@ -253,12 +253,12 @@ export function HomeLayout({ children }: HomeLayoutProps) {
       <Box className="hidden md:block w-64 border-r">
         <Sidebar />
       </Box>
-      
+
       {/* Mobile bottom tabs */}
       <Box className="md:hidden fixed bottom-0 left-0 right-0">
         <BottomTabs />
       </Box>
-      
+
       {/* Main content area */}
       <Box className="flex-1 pb-16 md:pb-0">
         {children}

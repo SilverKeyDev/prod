@@ -15,23 +15,32 @@ export { default as PropertyStat } from "./text/PropertyStat";
 export { default as Subtitle } from "./text/Subtitle";
 export { default as Title } from "./text/Title";
 
-// Form components
-export { default as AccessibleRadioInput } from "./form/AccessibleRadioInput";
-export { default as AccessibleTextInput } from "./form/AccessibleTextInput";
+// Form components (implementation paths — no root-level shim files)
+export {
+  type AddressData,
+  AddressInput,
+  type AddressInputProps,
+} from "./form/AddressInput/AddressInput";
+export { default as AccessibleCheckboxInput } from "./form/checkbox/AccessibleCheckboxInput";
+export type { ChecklistItem } from "./form/checkbox/ChecklistCheckbox";
+export { default as ChecklistCheckbox } from "./form/checkbox/ChecklistCheckbox";
+export { default as OliveCheckbox } from "./form/checkbox/OliveCheckbox";
 export type { OliveCheckboxRowLabelProps } from "./form/checkbox/OliveCheckboxRowLabel";
 export { OliveCheckboxRowLabel } from "./form/checkbox/OliveCheckboxRowLabel";
-export { default as ChecklistCheckbox } from "./form/ChecklistCheckbox";
-export { default as DateInput } from "./form/DateInput";
-export { default as Dropdown } from "./form/dropdown";
-export { default as FavoriteHomesDropdown } from "./form/FavoriteHomesDropdown";
-export { default as FieldShell } from "./form/FieldShell";
-export { default as FormField } from "./form/FormField";
-export { default as Input } from "./form/Input";
-export { default as OliveCheckbox } from "./form/OliveCheckbox";
-export { default as RangeInput } from "./form/RangeInput";
-export { default as Select } from "./form/Select";
-export { default as TimeInput } from "./form/TimeInput";
-export { default as Toggle } from "./form/Toggle";
+export { default as Dropdown, type DropdownOption, type DropdownProps } from "./form/dropdown";
+export { default as FavoriteHomesDropdown } from "./form/dropdowns/FavoriteHomesDropdown";
+export { default as FieldShell } from "./form/field/FieldShell";
+export { default as FormField, Textarea } from "./form/field/FormField";
+export * from "./form/fileUploadStyles";
+export { default as GooglePlacesAutocompleteField } from "./form/GooglePlacesAutocompleteField/GooglePlacesAutocompleteField";
+export { default as AccessibleTextInput } from "./form/inputs/AccessibleTextInput";
+export { default as Input, Input, type InputProps } from "./form/inputs/Input";
+export { default as AccessibleRadioInput } from "./form/pickers/AccessibleRadioInput";
+export { default as DateInput } from "./form/pickers/DateInput";
+export { default as RangeInput } from "./form/pickers/RangeInput";
+export { default as Select } from "./form/pickers/Select";
+export { default as TimeInput } from "./form/pickers/TimeInput";
+export { default as Toggle } from "./form/pickers/Toggle";
 
 // Avatar
 export type { ProfileAvatarProps } from "./avatar";
@@ -48,17 +57,23 @@ export { default as WhiteLogo } from "./asset/WhiteLogo";
 // Security components
 export { default as SecureFileUpload } from "./security/SecureFileUpload";
 
-// Button components
-export { default as Button } from "./button/Button";
-export { default as CancelButton } from "./button/CancelButton";
-export { default as CloseButton } from "./button/CloseButton";
-export { ConnectedCardHeartSave } from "./button/ConnectedCardHeartSave";
-export { default as DropdownChevron } from "./button/DropdownChevron";
-export { default as HeartSave } from "./button/HeartSave";
-export { default as IconButton } from "./button/IconButton";
-export { default as NavigationButton } from "./button/NavigationButton";
-export { default as NavigationButtons, SkipButton } from "./button/NavigationButtons";
-export { default as NotInterested } from "./button/NotInterested";
+// Button components (implementation paths — no root-level shim files)
+export { default as Button } from "./button/core/Button";
+export { default as CancelButton } from "./button/core/CancelButton";
+export { default as CloseButton } from "./button/core/CloseButton";
+export { default as DropdownChevron } from "./button/core/DropdownChevron";
+export { default as IconButton } from "./button/core/IconButton";
+export {
+  OVERLAY_MARKER_CIRCLE_CLASSES,
+  OVERLAY_MARKER_ICON_BUTTON_SIZE,
+  OVERLAY_MARKER_ICON_CLASSES,
+} from "./button/core/overlayMarkerButtonTypes";
+export { default as NavigationButton } from "./button/navigation/NavigationButton";
+export { default as NavigationButtons, SkipButton } from "./button/navigation/NavigationButtons";
+export { default as ClientSelector } from "./button/propertyActions/ClientSelector";
+export { ConnectedCardHeartSave } from "./button/propertyActions/ConnectedCardHeartSave";
+export { default as HeartSave } from "./button/propertyActions/HeartSave";
+export { default as NotInterested } from "./button/propertyActions/NotInterested";
 
 // Sidebar / inset two-column layouts
 export { TwoColumnInsetPageLayout } from "./sidebar/TwoColumnInsetPageLayout";

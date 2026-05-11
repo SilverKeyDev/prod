@@ -170,8 +170,9 @@ class GoogleCalendarService:
             self.client_secret,
             self.token_endpoint,
             self.scopes,
-            get_or_create_silverkey_calendar_func=lambda uid,
-            buyer_name: self.get_or_create_silverkey_calendar(uid, buyer_name),
+            get_or_create_silverkey_calendar_func=lambda uid, buyer_name: (
+                self.get_or_create_silverkey_calendar(uid, buyer_name)
+            ),
         )
 
     def list_events(

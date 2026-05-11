@@ -3,8 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
+import { Button, CancelButton } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 
 type PersonalizationMobileHeaderProps = {

@@ -12,7 +12,7 @@ import {
 } from "packages/features/profile";
 import { useSyncAgentPreferencesFromClient } from "packages/features/search/hooks/data/useSyncAgentPreferencesFromClient";
 import { useIsAgent } from "packages/hooks/store";
-import ClientSelector from "packages/ui/components/button/ClientSelector";
+import { ClientSelector } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";

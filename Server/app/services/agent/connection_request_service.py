@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 from ... import db
 from ...models import AgentConnectionRequest, AgentConnections, User, UserAgentProfile
-from ...utils.json_string_list_parse import parse_json_or_csv_string_list
+from ...utils.format.json_string_list_parse import parse_json_or_csv_string_list
 from .client_service import append_unique_agent_id_for_client, append_unique_client_id
 from .connection_request_helpers import (
     agent_row_base,

@@ -3,7 +3,7 @@ description: Logging utilities and rules for both Client and Server with exact f
 globs:
   - "Client/**"
   - "Server/**"
-alwaysApply: true
+alwaysApply: false
 ---
 - # Logging Utilities
 
@@ -213,4 +213,3 @@ When updating existing code:
 - **Categories**: `Server/logger/categories.py`
 - **Public API**: `Server/logger/__init__.py`
 - **Config File**: `Server/logger/logger_config.json`
-

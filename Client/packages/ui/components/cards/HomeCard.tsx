@@ -1,4 +1,4 @@
-import type { CardHeartSavePropertyLike } from "@ui/button/HeartSave";
+import type { CardHeartSavePropertyLike } from "@ui/button/propertyActions/HeartSave";
 import type { KeyboardEvent } from "react";
 
 import type { Property } from "packages/features/search/hooks/data/property/propertyDetailsTypes";

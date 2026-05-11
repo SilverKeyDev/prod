@@ -19,9 +19,9 @@ import { useNotificationStore } from "packages/store";
 import { dateParseISO } from "packages/utils/date";
 
 import { formatMessageTime, mapApiMessagesToChatMessages } from "./helpers";
+import { useMessagingHistory } from "./history/useMessagingHistory";
+import { useMessagingSend } from "./send/useMessagingSend";
 import type { UseMessagingConfig, UseMessagingReturn } from "./types";
-import { useMessagingHistory } from "./useMessagingHistory";
-import { useMessagingSend } from "./useMessagingSend";
 
 function compareConversationsByRecency(a: AgentConversation, b: AgentConversation): number {
   const taRaw = a.last_message_at ?? a.updated_at;

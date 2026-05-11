@@ -2,7 +2,8 @@
 description: Testing tiers that work on both web and RN — coverage, no snapshot-only, no focused tests
 globs:
   - "Client/**/*.{ts,tsx,js,jsx}"
-alwaysApply: true
+  - "Server/tests/**/*.{py,pyi}"
+alwaysApply: false
 ---
 
 # Testing Tiers (Web + RN)

@@ -65,8 +65,8 @@
   {
     "id": "unified-message-input",
     "description": "Message input component with platform-specific UI implementations for iMessage-style experience.",
-    "webPath": "packages/features/messaging/components/layout/UnifiedMessageInput.web.tsx",
-    "nativePath": "packages/features/messaging/components/layout/UnifiedMessageInput.native.tsx",
+    "webPath": "packages/features/messaging/components/layout/input/UnifiedMessageInput.web.tsx",
+    "nativePath": "packages/features/messaging/components/layout/input/UnifiedMessageInput.native.tsx",
     "reason": "Web uses AutoExpandingTextarea with DOM-based height calculation and CSS animations. Native uses React Native TextInput with KeyboardAvoidingView and platform-specific styling for optimal mobile UX."
   },
   {
@@ -205,8 +205,8 @@
   {
     "id": "home-concierge",
     "description": "Home concierge component with RN layout and Linking API.",
-    "webPath": "packages/features/checklists/components/integrations/HomeConcierge.tsx",
-    "nativePath": "packages/features/checklists/components/integrations/HomeConcierge.native.tsx",
+    "webPath": "packages/features/checklists/components/integrations/concierge/HomeConcierge.tsx",
+    "nativePath": "packages/features/checklists/components/integrations/concierge/HomeConcierge.native.tsx",
     "reason": "RN layout and Linking API."
   },
   {
@@ -513,29 +513,29 @@
   {
     "id": "button-component",
     "description": "Button component with platform-specific press handling.",
-    "webPath": "packages/ui/components/button/Button.tsx",
-    "nativePath": "packages/ui/components/button/Button.native.tsx",
+    "webPath": "packages/ui/components/button/core/Button.tsx",
+    "nativePath": "packages/ui/components/button/core/Button.native.tsx",
     "reason": "Web uses DOM button; native uses Pressable."
   },
   {
     "id": "client-selector",
     "description": "Client selector with platform-specific dropdown.",
-    "webPath": "packages/ui/components/button/ClientSelector.tsx",
-    "nativePath": "packages/ui/components/button/ClientSelector.native.tsx",
+    "webPath": "packages/ui/components/button/propertyActions/ClientSelector.tsx",
+    "nativePath": "packages/ui/components/button/propertyActions/ClientSelector.native.tsx",
     "reason": "Different dropdown implementations."
   },
   {
     "id": "heart-save",
     "description": "Heart save button with platform-specific touch.",
-    "webPath": "packages/ui/components/button/HeartSave.tsx",
-    "nativePath": "packages/ui/components/button/HeartSave.native.tsx",
+    "webPath": "packages/ui/components/button/propertyActions/HeartSave.tsx",
+    "nativePath": "packages/ui/components/button/propertyActions/HeartSave.native.tsx",
     "reason": "Different touch handling per platform."
   },
   {
     "id": "icon-button",
     "description": "Icon button with platform-specific press handling.",
-    "webPath": "packages/ui/components/button/IconButton.tsx",
-    "nativePath": "packages/ui/components/button/IconButton.native.tsx",
+    "webPath": "packages/ui/components/button/core/IconButton.tsx",
+    "nativePath": "packages/ui/components/button/core/IconButton.native.tsx",
     "reason": "Web uses DOM; native uses Pressable."
   },
   {
@@ -695,8 +695,8 @@
   {
     "id": "range-input",
     "description": "Range input with platform-specific slider.",
-    "webPath": "packages/ui/components/form/RangeInput.tsx",
-    "nativePath": "packages/ui/components/form/RangeInput.native.tsx",
+    "webPath": "packages/ui/components/form/pickers/RangeInput.tsx",
+    "nativePath": "packages/ui/components/form/pickers/RangeInput.native.tsx",
     "reason": "HTML range vs RN Slider."
   },
   {
@@ -863,8 +863,8 @@
   {
     "id": "account-privacy-data-section",
     "description": "Account privacy & data export: DOM download on web vs Linking on native.",
-    "webPath": "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection.web.tsx",
-    "nativePath": "packages/features/profile/components/profileScreen/sections/AccountPrivacyDataSection.native.tsx",
+    "webPath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.web.tsx",
+    "nativePath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.native.tsx",
     "reason": "Web triggers JSON download via document/window APIs and modals. Native uses React Native Linking and has no DOM download path."
   },
   {

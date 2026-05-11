@@ -3,7 +3,7 @@ import { useSearchViewStore } from "packages/store";
 import { MotionView } from "packages/ui/components/adapters/motion";
 
 import type { SearchResult } from "@/features/search/types";
-import type { SavedHome } from "@/features/search/types/property";
+import type { SavedHome } from "@/features/search/types/domain/property";
 
 import { SearchPageDesktopLayout } from "./SearchPageDesktopLayout.web";
 import { SearchPageMobileLayout } from "./SearchPageMobileLayout.web";

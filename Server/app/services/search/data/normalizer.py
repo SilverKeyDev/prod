@@ -10,7 +10,7 @@ debug-logged from ``get_property_detail``.
 
 from __future__ import annotations
 
-from .listing_normalizer import normalize_listing, normalize_listings
+from .listings.listing_normalizer import normalize_listing, normalize_listings
 from .search_response_slim import (
     flat_slim_row_to_openapi_property_search_result,
     slim_properties_for_search_response,

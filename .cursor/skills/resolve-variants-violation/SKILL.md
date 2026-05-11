@@ -12,7 +12,7 @@ This skill helps resolve ESLint violations from the `silverkey/variants-justific
 ## When This Rule Triggers
 
 The variants linter flags files that:
-- Are in `/packages/` directory  
+- Are in `/packages/` directory
 - Have `.web.tsx` or `.native.tsx` extensions
 - Import platform-specific dependencies (react-dom, react-native modules, etc.)
 - Are NOT documented in `packages/config/platform/variants.json`
@@ -59,7 +59,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
   );
 }
 
-// packages/adapters/animation/Motion.native.tsx  
+// packages/adapters/animation/Motion.native.tsx
 import Animated from 'react-native-reanimated';
 export function Motion({ children, animate, transition }: MotionProps) {
   return (
@@ -80,7 +80,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
    {
      "id": "video-player",
      "description": "Video playback with HLS support",
-     "webPath": "packages/ui/components/media/Video.web.tsx", 
+     "webPath": "packages/ui/components/media/Video.web.tsx",
      "nativePath": "packages/ui/components/media/Video.native.tsx",
      "reason": "Web uses hls.js for HLS streaming, native uses expo-av. Different media APIs and capabilities."
    }
@@ -96,7 +96,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
 - [ ] Business logic can be shared
 - [ ] API can be unified
 
-### Document as Variant if:  
+### Document as Variant if:
 - [ ] Fundamentally different platform capabilities
 - [ ] Libraries serve the same purpose but have different APIs
 - [ ] Already documented in `documentation/client/platformVariants/`
@@ -105,7 +105,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
 ## Common Technology Variants
 
 **Navigation:**
-- Web: `react-router-dom` 
+- Web: `react-router-dom`
 - Native: `@react-navigation/native`
 - **Reason**: Different routing paradigms (URL-based vs stack-based)
 
@@ -116,7 +116,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
 
 **Video:**
 - Web: `hls.js`
-- Native: `expo-av` or `react-native-video`  
+- Native: `expo-av` or `react-native-video`
 - **Reason**: Web needs MSE for HLS, native has built-in HLS support
 
 **Icons:**
@@ -125,7 +125,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
 - **Reason**: SVG rendering vs vector icons
 
 **Lists:**
-- Web: `react-virtuoso` 
+- Web: `react-virtuoso`
 - Native: `FlatList` (built-in)
 - **Reason**: Web needs virtualization library, native has built-in virtualized lists
 
@@ -137,7 +137,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
     "id": "carousel-implementation",
     "description": "Image and content carousel with gesture support",
     "webPath": "packages/ui/components/carousel/Carousel.web.tsx",
-    "nativePath": "packages/ui/components/carousel/Carousel.native.tsx", 
+    "nativePath": "packages/ui/components/carousel/Carousel.native.tsx",
     "reason": "Web uses embla-carousel-react for DOM manipulation, native uses FlatList with horizontal scrolling and native gestures."
   },
   {
@@ -154,7 +154,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
 
 After resolving the violation:
 
-1. **Run linter:** `npm run lint` should no longer show the violation
+1. **Run linter:** `pnpm lint` (from `Client/`) should no longer show the violation
 2. **Check documentation:** Ensure entry exists in `documentation/client/platformVariants/` if documented as variant
 3. **Test functionality:** Verify feature works on both platforms
 4. **Review API consistency:** If using adapter, ensure API is consistent

@@ -1,4 +1,4 @@
-import type { SearchResult } from "packages/features/search/types/result";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 import type { HomeDescription } from "packages/ui/components/cards/HomeCard";
 import {
   formatFilenameToAddress,

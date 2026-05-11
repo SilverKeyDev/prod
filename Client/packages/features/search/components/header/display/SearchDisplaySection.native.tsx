@@ -9,8 +9,8 @@ import {
   RESULTS_ORDER_BY_OPTIONS,
   type ResultsOrderBy,
   type ResultsSortDirection,
-} from "packages/features/search/types/searchDisplay";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+} from "packages/features/search/types/domain/searchDisplay";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { useAuthStore } from "packages/store";
 import { Box, Text } from "packages/ui/components/primitives";
 

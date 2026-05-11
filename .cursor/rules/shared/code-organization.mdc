@@ -3,7 +3,7 @@ description: Code organization rules for file size and method placement
 globs:
   - "Client/**/*.{ts,tsx}"
   - "Server/**/*.py"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Code Organization Rules
@@ -195,13 +195,13 @@ class CalendarManagement:
 export default function Calendar() {
   // 100+ lines of event parsing logic
   const parseEvents = (rawEvents) => { /* ... */ };
-  
+
   // 100+ lines of filtering logic
   const filterEvents = (events) => { /* ... */ };
-  
+
   // 100+ lines of date manipulation logic
   const formatDates = (dates) => { /* ... */ };
-  
+
   // ... component JSX
 }
 
@@ -261,4 +261,3 @@ When adding new functionality:
 - **Maintain clear organization** with descriptive names and logical grouping
 - **Balance** between too many small files and too few large files
 - **Prioritize maintainability** - if a file is hard to work with, split it
-

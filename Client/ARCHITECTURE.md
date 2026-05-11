@@ -43,6 +43,45 @@ Client/
 └── documentation/              # Client-specific documentation
 ```
 
+### `packages/utils` top-level domains
+
+Shared pure helpers live under `Client/packages/utils/` with many **top-level sibling folders**. Use this map when choosing where to add or find code (subfolders inside each domain carry the detail):
+
+| Folder | Typical contents |
+| --- | --- |
+| affordability | Home price and financing calculators |
+| agent | Public URLs, slugs, pending agent connect |
+| agreement | Agreement status and agenda accent helpers |
+| array | Small array helpers |
+| auth | Legacy auth utilities |
+| calendar | Calendar-adjacent helpers (feature code usually lives in `packages/features/calendar`) |
+| date | Locale and display dates |
+| documents | Forms library filters and document mapping |
+| dom | DOM escaping |
+| domain | Cross-cutting domain labels; profile field helpers and scales |
+| errorHandling | Error types and user-facing messages |
+| format | Currency, addresses, match scores, property display |
+| layout | Dashboard modal inset and layout config |
+| maps | Map styling helpers |
+| media | Default avatar, remote image prefetch |
+| navigation | Deep link resolve, URL parsing, post-auth redirect |
+| perf | Shell / route load tracing |
+| platform | Dimensions, linking adapters (web/native) |
+| property | Property/listing mapping |
+| propertyDetails | Analysis sections, commute destinations, media helpers |
+| routing | Routing helpers |
+| saved | Universal saved-home mapping |
+| scheduling | Event-request availability |
+| search | Scoring, sorting, autocomplete, polygon/places helpers, share payloads |
+| share | Web Share API helpers |
+| storage | Platform storage abstraction |
+| tour | Product tour steps and targets |
+| typeGuards | Unknown coercion and guards |
+| ui | Tiny UI-adjacent helpers (non-components) |
+| verification | Verification code input helpers |
+| viewing | Viewing itinerary geocoding |
+| web | Web-only helpers (e.g. settings scroll) |
+
 ### Where UI components live
 
 - **Shared primitives and design system** — `Client/packages/ui/` (buttons, text, modals, cards, layout primitives, and `packages/ui/styles/` for CSS). This is what ESLint/UI rules refer to as the standardized component set.

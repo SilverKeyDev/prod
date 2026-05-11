@@ -6,7 +6,7 @@ import { Icon } from "@ui/icons";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
-import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/fileUploadStyles";
+import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/styles/fileUploadStyles";
 import { Box } from "packages/ui/components/primitives";
 import { asError } from "packages/utils";
 import { getWindow } from "packages/utils/platform";

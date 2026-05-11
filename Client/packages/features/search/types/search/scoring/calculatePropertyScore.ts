@@ -1,4 +1,4 @@
-import type { SearchResult } from "packages/features/search/types/result";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 
 /**
  * Heuristic score for map marker priority (price/beds/baths/sqft bands). Different from

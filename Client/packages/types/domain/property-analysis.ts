@@ -7,4 +7,4 @@ export type { PropertyHighlightsContext } from "./propertyHighlightsContext";
 export type {
   PropertyAnalysis,
   PropertyWithAnalysis,
-} from "packages/features/search/types/property";
+} from "packages/features/search/types/domain/property";

@@ -1,3 +1,12 @@
+---
+description: AWS resource naming and infrastructure conventions
+globs:
+  - "Server/**/*.py"
+  - "**/*.{yml,yaml,tf,json}"
+  - "documentation/**/*.md"
+alwaysApply: false
+---
+
 # AWS Resource Naming and Infrastructure Conventions
 
 ## Overview

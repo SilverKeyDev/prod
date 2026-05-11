@@ -6,13 +6,13 @@ import type {
 } from "packages/features/checklists/types/componentRegistry";
 import { isChecklistComponentKey } from "packages/features/checklists/types/componentRegistry";
 
-import ChooseAreasSection from "./ChooseAreasSection";
-import DefineCriteriaSection from "./DefineCriteriaSection";
+import ChooseAreasSection from "./areas/ChooseAreasSection";
+import SetBudgetSection from "./budget/SetBudgetSection";
+import ReviewComparablesSection from "./comparables/ReviewComparablesSection";
+import HomeConcierge from "./concierge/HomeConcierge";
+import DefineCriteriaSection from "./criteria/DefineCriteriaSection";
 import FindingHome from "./findingHome/FindingHome";
-import HomeConcierge from "./HomeConcierge";
 import PartnerAgentSection from "./partnerAgent/PartnerAgentSection";
-import ReviewComparablesSection from "./ReviewComparablesSection";
-import SetBudgetSection from "./SetBudgetSection";
 
 export const COMPONENT_REGISTRY: Record<
   ChecklistComponentKey,

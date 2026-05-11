@@ -1,9 +1,9 @@
 import { color, spacing } from "packages/design-tokens";
+import { EventList } from "packages/features/calendar/components/view/agenda/EventList";
 import { CalendarConnectionPrompt } from "packages/features/calendar/components/view/CalendarConnectionPrompt";
-import { CalendarToolbar } from "packages/features/calendar/components/view/CalendarToolbar";
-import { CreateEventModal } from "packages/features/calendar/components/view/CreateEventModal";
-import { EventList } from "packages/features/calendar/components/view/EventList";
-import { QuickEventPopover } from "packages/features/calendar/components/view/QuickEventPopover";
+import { CreateEventModal } from "packages/features/calendar/components/view/eventModal/CreateEventModal";
+import { CalendarToolbar } from "packages/features/calendar/components/view/toolbar/CalendarToolbar";
+import { QuickEventPopover } from "packages/features/calendar/components/view/toolbar/QuickEventPopover";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Text } from "packages/ui/components/primitives";
 

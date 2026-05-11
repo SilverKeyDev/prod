@@ -13,8 +13,8 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAuthStore, useUIStore } from "packages/store";
+import { Button } from "packages/ui";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
-import Button from "packages/ui/components/button/Button";
 import { Box, Text, TouchableBox } from "packages/ui/components/primitives";
 import Input from "packages/ui/components/primitives/input/Input";
 

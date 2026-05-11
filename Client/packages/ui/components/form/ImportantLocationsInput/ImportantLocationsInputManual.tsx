@@ -1,10 +1,10 @@
 import React from "react";
 
-import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/form/fileUploadStyles";
 import { Box } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
 import { PrimitiveInput } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
+import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/primitives/divider/dividerStyles";
 import type { ImportantLocation } from "packages/utils/profile";
 
 export type ImportantLocationsInputManualProps = {

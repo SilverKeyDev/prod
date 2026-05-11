@@ -27,10 +27,10 @@ import {
   convertStepsToNavItems,
   getPersonalizationStepsUi,
 } from "@/features/profile/components/profilePicture/profileStepsUi";
-import { AccountPrivacyDataSection } from "@/features/profile/components/profileScreen/sections/AccountPrivacyDataSection";
-import { ProfileHousingEssentialsSection } from "@/features/profile/components/profileScreen/sections/ProfileHousingEssentialsSection";
-import { ProfileHousingRangesSection } from "@/features/profile/components/profileScreen/sections/ProfileHousingRangesSection";
-import { ProfileSearchPropertySection } from "@/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
+import { ProfileHousingEssentialsSection } from "@/features/profile/components/profileScreen/sections/housing/ProfileHousingEssentialsSection";
+import { ProfileHousingRangesSection } from "@/features/profile/components/profileScreen/sections/housing/ProfileHousingRangesSection";
+import { AccountPrivacyDataSection } from "@/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection";
+import { ProfileSearchPropertySection } from "@/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
 // Features
 import {
   AgentBrokerageSection,

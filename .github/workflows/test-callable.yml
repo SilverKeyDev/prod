@@ -98,7 +98,7 @@ jobs:
 
       - name: Check module-specific coverage thresholds
         working-directory: Server
-        run: python scripts/check_coverage_thresholds.py
+        run: python scripts/lint/check_coverage_thresholds.py
 
       - name: Upload backend coverage reports
         uses: actions/upload-artifact@v4

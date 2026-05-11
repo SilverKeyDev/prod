@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import { buildSharedHomesAttachmentMessage } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
-import type { SearchResult } from "packages/features/search/types/result";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { searchResultsToSavedHomesForShare } from "packages/utils/search/share/searchResultsToSavedHomesForShare";
 import { getShareHomeConversationId } from "packages/utils/share";

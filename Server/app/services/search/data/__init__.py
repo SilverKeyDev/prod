@@ -6,13 +6,13 @@ Reference JSON for a single-home ``/ws/listings/get`` response:
 
 from .client import get_slipstream_headers, slipstream_get, slipstream_post, validate_token
 from .config import SLIPSTREAM_BASE, SLIPSTREAM_MARKET, SLIPSTREAM_PRIVATE
-from .listings_active import search_active_listings
-from .listings_inactive import search_inactive_listings
+from .listings.listings_active import search_active_listings
+from .listings.listings_inactive import search_inactive_listings
 from .neighborhood_boundaries import geojson_to_viewport_ring, get_area_boundary, search_areas
 from .normalizer import normalize_listing, normalize_listings
-from .property_comps import get_property_comps
-from .property_detail import get_property_detail
-from .property_images import get_property_images
+from .property.property_comps import get_property_comps
+from .property.property_detail import get_property_detail
+from .property.property_images import get_property_images
 from .slipstream_response_reference import SLIPSTREAM_LISTINGS_GET_RESPONSE_EXAMPLE
 
 __all__ = [

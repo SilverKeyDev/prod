@@ -4,9 +4,9 @@ import { useCallback } from "react";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 
 import { useLocalization } from "packages/contexts";
+import { Button } from "packages/ui";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
 import { ProfileAvatar } from "packages/ui/components/avatar";
-import Button from "packages/ui/components/button/Button";
 import { Box, Text, TouchableBox } from "packages/ui/components/primitives";
 
 import type { AgentSearchResult, RecommendedAgentResult } from "@/features/agent/api/agent";

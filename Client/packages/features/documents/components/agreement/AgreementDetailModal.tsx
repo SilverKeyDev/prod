@@ -7,9 +7,8 @@ import { useDocusignAgreement } from "packages/features/documents/hooks/data/doc
 import type { AgreementStatus } from "packages/features/documents/types/docusign";
 import { formatAgreementDate } from "packages/features/documents/utils/docusignHelpers";
 import { useAuthStore } from "packages/store";
+import { Button, CancelButton } from "packages/ui";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 import { getContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";

@@ -1,7 +1,7 @@
 import React from "react";
 
 import { PersonalizationSectionPanel } from "packages/features/profile/components/layout";
-import { AgentPublicProfileShareRow } from "packages/features/profile/components/profileScreen/sections/AgentPublicProfileShareRow";
+import { AgentPublicProfileShareRow } from "packages/features/profile/components/profileScreen/sections/privacy/AgentPublicProfileShareRow";
 import { renderProfileFeatureSectionContent } from "packages/features/profile/components/settings/profileFeatureSectionContent";
 import type { OnboardingData } from "packages/features/profile/utils";
 

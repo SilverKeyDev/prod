@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
-import { AllAgendaEventsModal } from "packages/features/calendar/components/view/AllAgendaEventsModal";
+import { AllAgendaEventsModal } from "packages/features/calendar/components/view/agenda/AllAgendaEventsModal";
+import { EventList } from "packages/features/calendar/components/view/agenda/EventList";
+import { UpcomingAgendaList } from "packages/features/calendar/components/view/agenda/UpcomingAgendaList";
 import { CalendarConnectionPrompt } from "packages/features/calendar/components/view/CalendarConnectionPrompt";
-import { EventList } from "packages/features/calendar/components/view/EventList";
-import { UpcomingAgendaList } from "packages/features/calendar/components/view/UpcomingAgendaList";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Text } from "packages/ui/components/primitives";
 

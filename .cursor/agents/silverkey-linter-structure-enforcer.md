@@ -73,3 +73,9 @@ Scan the SilverKey monorepo and:
      - Main types of fixes (lint, types, imports, UI, logging).
      - Any large files or structural smells to hand off to other agents.
 
+
+
+## SilverKey references
+
+- [`.cursor/README.md`](../README.md)
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`

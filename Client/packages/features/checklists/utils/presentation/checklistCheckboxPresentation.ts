@@ -1,5 +1,5 @@
 import type { TaskChecklistItem } from "packages/features/checklists/api/checklists";
-import type { ChecklistItem } from "packages/ui/components/form/checkbox/ChecklistCheckbox";
+import type { ChecklistItem } from "packages/ui";
 
 /** Shared Tailwind classes for `ChecklistCheckbox` rows (dashboard, client hub, close layouts). */
 export const checklistCheckboxRowClassNames = {

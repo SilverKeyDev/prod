@@ -3,8 +3,8 @@ import type { IsochroneData } from "packages/types/domain/api";
 
 import type { MapPropertyCardRenderProps } from "@/features/search/hooks/data/useMapMarkers";
 import type { SearchResult } from "@/features/search/types";
-import type { Property } from "@/features/search/types/property";
-import type { LastSearchContext } from "@/features/search/types/searchDisplay";
+import type { Property } from "@/features/search/types/domain/property";
+import type { LastSearchContext } from "@/features/search/types/domain/searchDisplay";
 
 export type UseSearchPageMapParams = {
   /** When not `"map"`, marker updates are deferred until the user returns to the map view. */

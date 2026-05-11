@@ -13,8 +13,7 @@ import {
   STORIES_PREFERENCE_OPTIONS,
 } from "packages/features/profile/utils";
 import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/public/constants";
-import { Input } from "packages/ui/components/form/Input";
-import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
+import { Input, OliveCheckbox } from "packages/ui";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";

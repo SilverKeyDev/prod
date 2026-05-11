@@ -8,7 +8,7 @@ import {
 } from "packages/features/profile/components/layout";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
+import { OliveCheckbox } from "packages/ui";
 import { Box, Pressable } from "packages/ui/components/primitives";
 
 import AlignedRow from "@/components/layout/AlignedRow";

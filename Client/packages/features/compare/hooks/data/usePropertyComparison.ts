@@ -8,7 +8,7 @@ import { unknownToNumberOrString, unknownToString } from "packages/utils/typeGua
 
 import type { PropertyRequest } from "@/features/search/api/research";
 import { researchApi } from "@/features/search/api/research";
-import type { SavedHome } from "@/features/search/types/property";
+import type { SavedHome } from "@/features/search/types/domain/property";
 
 export function usePropertyComparison(isOpen: boolean, selectedHomes: SavedHome[]) {
   const [propertyDetails, setPropertyDetails] = useState<

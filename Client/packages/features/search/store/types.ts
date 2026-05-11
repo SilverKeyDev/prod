@@ -7,7 +7,7 @@ import type {
   PropertyDetails,
   PropertyType,
   SearchResult,
-} from "@/features/search/types/result";
+} from "@/features/search/types/domain/result";
 
 export type ActiveTab = "results" | "saved";
 

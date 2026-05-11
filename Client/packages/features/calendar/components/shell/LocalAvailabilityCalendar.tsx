@@ -1,11 +1,11 @@
 import { spacing } from "packages/design-tokens";
-import { CalendarToolbar } from "packages/features/calendar/components/view/CalendarToolbar";
-import { CreateEventModal } from "packages/features/calendar/components/view/CreateEventModal";
-import { EventList } from "packages/features/calendar/components/view/EventList";
-import { QuickEventPopover } from "packages/features/calendar/components/view/QuickEventPopover";
+import { EventList } from "packages/features/calendar/components/view/agenda/EventList";
+import { CreateEventModal } from "packages/features/calendar/components/view/eventModal/CreateEventModal";
+import { CalendarToolbar } from "packages/features/calendar/components/view/toolbar/CalendarToolbar";
+import { QuickEventPopover } from "packages/features/calendar/components/view/toolbar/QuickEventPopover";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useLocalAvailabilityCalendarScreen } from "packages/hooks/data/calendar/useLocalAvailabilityCalendarScreen";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 

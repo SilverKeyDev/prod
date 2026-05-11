@@ -8,7 +8,7 @@ import type { PropertyHeaderProps } from "packages/features/propertyDetails/comp
 import type { PropertyDetailsSectionId } from "packages/features/propertyDetails/types/sectionOrder";
 import { PROPERTY_DETAILS_SECTION_ORDER } from "packages/features/propertyDetails/types/sectionOrder";
 import { useNavigation } from "packages/navigation";
-import { ConnectedCardHeartSave } from "packages/ui/components/button/ConnectedCardHeartSave";
+import { ConnectedCardHeartSave } from "packages/ui";
 import ShareHomeModal from "packages/ui/components/modals/ShareHomeModal";
 import { Box, Text } from "packages/ui/components/primitives";
 import type { UnderlineTabItem } from "packages/ui/components/tabs/UnderlineTabs";

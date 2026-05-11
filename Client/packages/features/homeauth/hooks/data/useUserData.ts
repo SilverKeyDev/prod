@@ -7,5 +7,5 @@ export type {
   UseUserDataReturn,
   UseUserPreferencesOptions,
   UseUserPreferencesReturn,
-} from "packages/hooks/data/user/useUserData";
-export { useUserData, useUserPreferences } from "packages/hooks/data/user/useUserData";
+} from "./profile/useUserData";
+export { useUserData, useUserPreferences } from "./profile/useUserData";

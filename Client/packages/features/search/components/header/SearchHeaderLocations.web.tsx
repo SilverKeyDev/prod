@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from "react";
 
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { useGoogleMaps } from "packages/hooks/data";
 import { getWindow } from "packages/utils/platform";
 

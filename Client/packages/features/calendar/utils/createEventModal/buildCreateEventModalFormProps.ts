@@ -1,6 +1,6 @@
 import type { ChangeEvent } from "react";
 
-import type { CreateEventModalFormProps } from "@/features/calendar/components/view/CreateEventModalForm";
+import type { CreateEventModalFormProps } from "@/features/calendar/components/view/eventModal/CreateEventModalForm";
 import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
 import type { Calendar } from "@/features/calendar/types/calendar";

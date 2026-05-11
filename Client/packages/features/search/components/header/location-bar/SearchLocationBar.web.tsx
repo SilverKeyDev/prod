@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { Icon } from "@ui/icons";
 
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { useSearchContextStore } from "packages/store";
-import Input from "packages/ui/components/form/Input";
+import { Input } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import { getDocument, getWindow } from "packages/utils/platform";
 import { submitAfterTopSuggestionIfNeeded } from "packages/utils/search/autocomplete/autocompleteSubmit";

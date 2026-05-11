@@ -7,7 +7,7 @@ import { useAuthStore, useGoogleMapsStore, useUIStore } from "packages/store";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import { getWindow } from "packages/utils/platform";
 
-import type { CreateEventModalFormProps } from "@/features/calendar/components/view/CreateEventModalForm";
+import type { CreateEventModalFormProps } from "@/features/calendar/components/view/eventModal/CreateEventModalForm";
 import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import { useCreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";

@@ -6,7 +6,7 @@ import { validateProfilePhotoFile } from "packages/features/profile/components/p
 import { ProfileScreenActiveSectionPanel } from "packages/features/profile/components/profileScreen/ProfileScreenActiveSectionPanel";
 import { ProfileScreenPhotoFileInput } from "packages/features/profile/components/profileScreen/ProfileScreenPhotoFileInput";
 import { ProfileScreenPreferenceToolbar } from "packages/features/profile/components/profileScreen/ProfileScreenPreferenceToolbar";
-import { AgentPublicProfileShareRow } from "packages/features/profile/components/profileScreen/sections/AgentPublicProfileShareRow";
+import { AgentPublicProfileShareRow } from "packages/features/profile/components/profileScreen/sections/privacy/AgentPublicProfileShareRow";
 import type { OnboardingData } from "packages/features/profile/utils";
 import {
   getProfileSectionCompletion,

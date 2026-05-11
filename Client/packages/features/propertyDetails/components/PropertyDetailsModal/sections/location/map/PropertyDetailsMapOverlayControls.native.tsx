@@ -4,7 +4,7 @@ import { View, type ViewStyle } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { color, Z_LAYERS } from "packages/design-tokens";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 
 import type { PropertyDetailsMapOverlayControlsProps } from "./PropertyDetailsMapOverlayControls.types";
 

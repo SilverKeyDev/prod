@@ -15,8 +15,8 @@ import { DocuSignWidgetSavedTemplatesSection } from "packages/features/documents
 import { useDocusignAgreements } from "packages/features/documents/hooks/data/docusign/useDocusignAgreements";
 import { useDocusignTemplates } from "packages/features/documents/hooks/data/docusign/useDocusignTemplates";
 import type { DocusignTemplate } from "packages/features/documents/types/docusign";
+import { Button } from "packages/ui";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import Button from "packages/ui/components/button/Button";
 import { Icon } from "packages/ui/components/icons";
 import { Box } from "packages/ui/components/primitives";
 import { dateNow, dateParseISO } from "packages/utils/date";

@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { searchDisplayApi } from "packages/features/search/api/searchDisplay";
-import type { LastSearchContext } from "packages/features/search/types/searchDisplay";
+import type { LastSearchContext } from "packages/features/search/types/domain/searchDisplay";
 import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/map/locationBoundsOverlay";
 import { centroidOfViewportRing } from "packages/features/search/utils/map/mapViewport";
 import { log, LOG_CATEGORIES } from "packages/logger";

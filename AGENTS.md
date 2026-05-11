@@ -1,41 +1,100 @@
-# Agent quickstart (SilverKey)
+# SilverKey — Agent and engineer quickstart
 
-Use this file as the **first stop** for automated assistants working in this repository.
+**What this is:** A monorepo for SilverKey: **React web** + **React Native** (`Client/`), **Flask/Python API** (`Server/`), and **OpenAPI** as the API contract (`openapi/`). Business logic and UI live primarily under `Client/packages/`; `Client/apps/*` are thin composition layers.
 
-## Client frontend (React web + React Native)
+**What this is not:** A single-page app with ad-hoc server logic in the web bundle—layering and generated types are enforced.
 
-1. **Architecture:** Thin `apps/` (composition + routing only), fat `packages/` (behavior, features, hooks, UI primitives). Read `Client/ARCHITECTURE.md` and `documentation/client/thin-app-architecture.md`.
-2. **Layer rules:** Components → hooks → `packages/config/api` → HTTP. Apps must not import `packages/config/api` or business `packages/services` directly. Full rules: `.cursor/rules/frontend/frontend-architecture.mdc`.
-3. **Where to put new code:**
-   - Pages/screens: `Client/apps/web/pages/` or `Client/apps/mobile/app/screens/` — thin shells only.
-   - Feature UI + feature hooks: `Client/packages/features/<feature>/`.
-   - Shared hooks: `Client/packages/hooks/`.
-   - API clients: `Client/packages/config/api/`.
-   - Pure utilities: `Client/packages/utils/` (not under `apps/web/features` or `apps/web/components`).
-4. **UI components:** Cross-platform primitives and design-system pieces live in **`Client/packages/ui/`**. The web app does not use a separate `apps/web/components/ui` tree; import via `packages/ui/...`, or the tsconfig aliases `@/components/ui` / `@ui` (see `Client/tsconfig.base.json`).
-5. **Import paths (canonical):** Use **`packages/...`** for all shared code under `Client/packages/`. Use **`@/...`** only for paths under **`Client/apps/web/`** (e.g. `@/pages/...`, `@/app/...`). The alias `@/features/...` maps to `packages/features/...`; prefer **`packages/features/...`** in new code for consistency. Details: `documentation/client/typescript-files.md` and `Client/packages/README.md`.
-6. **Docs index:** `documentation/client/README.md` — linting, TypeScript layout, shared packages, platform variants, mobile parity.
-7. **Repo rules:** `.cursorrules` (e.g. no unsolicited markdown, lint bar). Skills and extra rules: `.cursor/skills/`, `.cursor/rules/`.
+---
+
+## Quick start (copy-paste)
+
+**Prerequisites:** Node 20+, `pnpm` 9+, Python 3.x (see Server docs), PostgreSQL and env files as in `Server/.env.example`.
+
+```bash
+# Client — from Client/
+pnpm install
+pnpm dev:web              # Vite web app
+pnpm dev:mobile           # Expo / RN
+
+# Client quality gates
+pnpm typecheck && pnpm lint && pnpm lint:cycles && pnpm format:check
+pnpm check                # Full client check (includes build:web) — see Client/package.json
+
+# Repo-wide linters
+./scripts/run-all-linters.sh client
+./scripts/run-all-linters.sh server
+./scripts/run-all-linters.sh all
+```
+
+**Cursor indexing:** Copy [.cursorignore.example](./.cursorignore.example) to `.cursorignore` at the repo root (local file; reduces noise). Optional: tune [.cursorindexingignore](./.cursorindexingignore).
+
+---
+
+## Architecture (short)
+
+Thin **`Client/apps/*`** host routing, providers, and page shells. **Features, hooks, UI primitives, and API wrappers** live under **`Client/packages/`** (`features/`, `hooks/`, `ui/`, `config/api/`, etc.). **`Server/`** exposes HTTP APIs documented in **`openapi/`**; client and server types are generated from that spec. Details: [Client/ARCHITECTURE.md](./Client/ARCHITECTURE.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [documentation/client/thin-app-architecture.md](./documentation/client/thin-app-architecture.md).
+
+---
+
+## Top-level directory map
+
+| Path             | Purpose                                                                                         |
+| ---------------- | ----------------------------------------------------------------------------------------------- |
+| `Client/`        | Frontend monorepo (pnpm workspaces): web + mobile apps + shared packages                        |
+| `Server/`        | Python/Flask API, services, tests                                                               |
+| `openapi/`       | OpenAPI 3.1 sources; single contract for types                                                  |
+| `documentation/` | Human-facing docs index and long-form guides                                                    |
+| `.cursor/`       | Cursor rules (`.mdc`), skills, agent definitions — see [.cursor/README.md](./.cursor/README.md) |
+| `.github/`       | CI workflows, templates                                                                         |
+| `scripts/`       | Repo-wide lint/driver scripts                                                                   |
+
+---
+
+## Conventions (pointers)
+
+- **Imports and layers:** [.cursor/rules/frontend/frontend-architecture.mdc](./.cursor/rules/frontend/frontend-architecture.mdc) + [documentation/client/layered-architecture-imports.md](./documentation/client/layered-architecture-imports.md)
+- **UI components:** [documentation/client/LINTING.md](./documentation/client/LINTING.md), `.cursor/rules/frontend/ui-components.mdc`
+- **Documentation locations:** `documentation/HOW_WE_DOCUMENT.md`
+- **Commit / review:** Conventional clarity; CI must stay green (`pnpm check`, server linters)
+
+---
+
+## AI tooling in this repo
+
+| Area                          | Location                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Always-on constraints (3)** | `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`                  |
+| **Scoped rules**              | `.cursor/rules/shared/`, `frontend/`, `backend/` — attach by glob                                |
+| **Procedural workflows**      | `.cursor/skills/*/SKILL.md`                                                                      |
+| **Subagent personas**         | `.cursor/agents/*.md`                                                                            |
+| **Meta: how to extend**       | [.cursor/README.md](./.cursor/README.md)                                                         |
+| **Inventory / audit table**   | [documentation/internal/cursor-audit-latest.md](./documentation/internal/cursor-audit-latest.md) |
+
+**MCP:** Example shape (no secrets) in [.cursor/mcp.example.json](./.cursor/mcp.example.json); real credentials stay local or in env vars.
+
+---
+
+## Gotchas
+
+- **Do not edit** `Client/packages/types/api.generated.ts` or `Server/app/schemas/generated.py` by hand — change **`openapi/`** and regenerate (see `.cursor/rules/shared/openapi-workflow.mdc`).
+- **DB migrations:** Do not run or author Alembic migrations unless explicitly directed; model-only constraints in `.cursor/rules/backend/database.mdc`.
+- **Tokens:** Client uses memory + `sessionStorage` for tokens — not `localStorage` (security rule).
+- **Markdown creation:** Follow `.cursor/rules/shared/documentation.mdc` (allowed team paths include `AGENTS.md`, `.cursor/README.md`, `documentation/internal/**`).
+
+---
 
 ## Server / API
 
-- Documentation index: `documentation/server/README.md`.
-- OpenAPI is the contract: `.cursor/rules/shared/openapi-workflow.mdc`.
+Index: [documentation/server/README.md](./documentation/server/README.md). OpenAPI workflow: `.cursor/rules/shared/openapi-workflow.mdc`.
 
-### Backend consolidation / refactor PR checklist
+**Backend refactor checklist:** Run `python3 Server/scripts/lint/lint_circular_imports.py`; targeted `pytest`; if HTTP shapes change, update OpenAPI and contract tests (`Server/tests/contract/test_openapi_contracts.py` where applicable).
 
-Before merging moves that consolidate helpers or reshuffle imports under `Server/app`:
+---
 
-1. **Circular imports:** from repo root, `python3 Server/scripts/lint_circular_imports.py` must exit `0`.
-2. **Automated tests:** run targeted `pytest` for touched packages (for example `pytest Server/tests/unit/services/...`).
-3. **API contract:** if HTTP routes or request/response shapes change, update OpenAPI sources and regenerate or align `Client/packages/types/api.generated.ts`; run contract tests such as `Server/tests/contract/test_openapi_contracts.py` where applicable.
+## Checks summary
 
-Domain rotation prompts for duplication audits reference `Server/scripts/backend_dedup_rotation.json`.
-
-## Checks (Client)
-
-From `Client/`: `pnpm typecheck`, `pnpm lint`, `pnpm lint:cycles`, `pnpm format:check`, tests as configured in `Client/package.json`.
-
-## Checks (repo-wide)
-
-From repo root: `./scripts/run-all-linters.sh [client|server|all]` — Client runs `Client/scripts/run-client-linters.sh` (auto-executes executable `Client/scripts/lint.d/*.sh`, then `pnpm check`); Server runs every `Server/scripts/lint_*.py` then every executable `Server/scripts/lint_*.sh` (add new linters by adding a file; no edit to this script required).
+| Scope       | Command                                                                             |
+| ----------- | ----------------------------------------------------------------------------------- |
+| Client      | `cd Client && pnpm typecheck && pnpm lint && pnpm lint:cycles && pnpm format:check` |
+| Client full | `cd Client && pnpm check`                                                           |
+| Repo-wide   | `./scripts/run-all-linters.sh all`                                                  |

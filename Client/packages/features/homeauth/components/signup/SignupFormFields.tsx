@@ -8,7 +8,7 @@ import AuthDivider from "packages/features/homeauth/components/core/Divider";
 import AuthLink from "packages/features/homeauth/components/core/Link";
 import type { FieldKey, SignupFormData } from "packages/hooks/data/auth/useSignupAutofill";
 import { ROUTES } from "packages/navigation";
-import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
+import { OliveCheckbox } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 

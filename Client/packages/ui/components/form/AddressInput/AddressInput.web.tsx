@@ -281,4 +281,5 @@ function AddressInputWeb(props: AddressInputWebProps) {
 
 export default AddressInputWeb;
 export { AddressInputWeb };
-export type { AddressInputProps } from "./AddressInput.tsx";
+export type { AddressData, AddressInputProps } from "./AddressInput.tsx";
+export { AddressInput } from "./AddressInput.tsx";

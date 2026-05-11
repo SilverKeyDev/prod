@@ -5,7 +5,7 @@ import Button from "@ui/button/Button";
 
 import { DesktopReelsView } from "packages/features/search";
 import type { SearchResult } from "packages/features/search/types";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { Box, Text } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 

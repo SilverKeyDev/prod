@@ -31,5 +31,5 @@ export type {
 } from "packages/features/documents/types/documents";
 export type { CompareReport, Report } from "packages/features/documents/types/reports";
 export type { UserPreferences, UserProfile } from "packages/features/homeauth/types/index";
-export type { Property } from "packages/features/search/types/property";
-export type { SearchResult } from "packages/features/search/types/result";
+export type { Property } from "packages/features/search/types/domain/property";
+export type { SearchResult } from "packages/features/search/types/domain/result";

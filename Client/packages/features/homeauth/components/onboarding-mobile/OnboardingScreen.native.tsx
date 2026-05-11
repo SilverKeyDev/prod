@@ -6,7 +6,7 @@ import { KeyboardAvoidingView, Pressable, StyleSheet, View } from "react-native"
 import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useOnboardingForm } from "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm";
-import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/ProfileSearchPropertySection";
+import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
 import {
   AgentBrokerageSection,
   AgentLicensingSection,

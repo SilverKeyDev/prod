@@ -4,11 +4,12 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import CancelButton from "packages/ui/components/button/CancelButton";
-import CloseButton from "packages/ui/components/button/CloseButton";
+import CloseButton from "packages/ui/components/button/core/CloseButton";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
+
 type ValidationWarningProps = {
   isVisible: boolean;
   onClose: () => void;
@@ -16,6 +17,7 @@ type ValidationWarningProps = {
   missingFields: string[];
   errors: string[];
 };
+
 const ValidationWarning: React.FC<ValidationWarningProps> = ({
   isVisible,
   onClose,

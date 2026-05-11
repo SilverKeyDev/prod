@@ -5,7 +5,7 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Property } from "packages/types";
 import Button from "packages/ui/components/button/Button";
 import { StyledImage } from "packages/ui/components/cards/base/index.web";
-import { Textarea } from "packages/ui/components/form/FormField";
+import { Textarea } from "packages/ui/components/form/field/FormField";
 import { Box } from "packages/ui/components/primitives";
 import Input from "packages/ui/components/primitives/input/Input";
 import BodyText from "packages/ui/components/text/BodyText";

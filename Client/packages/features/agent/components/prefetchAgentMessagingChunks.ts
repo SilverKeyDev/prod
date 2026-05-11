@@ -1,4 +1,4 @@
-import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/unifiedMessagesListDynamicImport";
+import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
 import { LOG_CATEGORIES } from "packages/logger";
 import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
 

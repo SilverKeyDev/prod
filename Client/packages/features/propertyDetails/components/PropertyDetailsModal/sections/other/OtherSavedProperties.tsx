@@ -5,7 +5,7 @@ import { Icon } from "@ui/icons";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { usePropertyDetails } from "packages/hooks/data";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
-import Button from "packages/ui/components/button/Button";
+import { Button } from "packages/ui";
 import { StyledImage } from "packages/ui/components/cards/base";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";

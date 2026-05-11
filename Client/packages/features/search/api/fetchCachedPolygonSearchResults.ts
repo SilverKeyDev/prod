@@ -1,4 +1,4 @@
-import type { SearchResult } from "packages/features/search/types/result";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 import { transformSearchResponse } from "packages/features/search/utils/transform/searchTransform";
 import { log, LOG_CATEGORIES } from "packages/logger";
 

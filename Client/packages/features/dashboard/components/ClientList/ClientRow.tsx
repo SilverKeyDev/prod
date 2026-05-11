@@ -6,8 +6,8 @@ import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
-import DealStageBadge from "@/features/dashboard/components/DealStageBadge";
-import RiskFlag from "@/features/dashboard/components/RiskFlag";
+import DealStageBadge from "@/features/dashboard/components/widgets/DealStageBadge";
+import RiskFlag from "@/features/dashboard/components/widgets/RiskFlag";
 type ClientRowProps = {
   client: ClientDealInfo;
   onClick: () => void;

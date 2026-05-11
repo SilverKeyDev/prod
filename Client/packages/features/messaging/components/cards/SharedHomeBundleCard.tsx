@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { type SearchResult, SearchResultListingCard } from "packages/features/search";
+import { IconButton } from "packages/ui";
 import { useEmblaCarousel } from "packages/ui/components/adapters/carousel";
-import IconButton from "packages/ui/components/button/IconButton";
 import type { HomeDescription } from "packages/ui/components/cards/HomeCard";
 import { Box } from "packages/ui/components/primitives";
 import { homeDescriptionToSearchResult } from "packages/utils/search/scoring/homeDescriptionToSearchResult";

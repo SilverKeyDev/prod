@@ -59,8 +59,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**/*.ipynb" = ["T201"]
 "app/__init__.py" = ["E402"]
-"scripts/lint_*.py" = ["T201"]
-"scripts/check_coverage_thresholds.py" = ["T201"]
+"scripts/lint/lint_*.py" = ["T201"]
+"scripts/lint/check_coverage_thresholds.py" = ["T201"]
 "scripts/validate-schema-coverage.py" = ["T201"]
 "scripts/seed_georgia_forms.py" = ["T201", "E402"]
 
