@@ -147,7 +147,7 @@ jobs:
           python-version: "3.11"
           # Caching pip can increase disk usage; you can re-enable if needed later
           cache: "pip"
-          cache-dependency-path: Server/requirements.txt
+          cache-dependency-path: Server/requirements/runtime.txt
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -166,7 +166,7 @@ jobs:
           set -euo pipefail
           python -m pip install --upgrade pip >/dev/null
           # Use --no-cache-dir to avoid filling disk with pip cache
-          pip install --no-cache-dir -r Server/requirements.txt
+          pip install --no-cache-dir -r Server/requirements/runtime.txt
           pip install --no-cache-dir boto3 >/dev/null
 
       - name: Install frontend dependencies

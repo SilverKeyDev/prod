@@ -1,0 +1,9 @@
+---
+description: Alembic migrations rules
+globs:
+  - "Server/migrations/**"
+alwaysApply: false
+---
+- Do not edit generated migration scripts manually unless necessary; prefer autogenerate with review.
+- Keep migrations idempotent and safe for production; include downgrade paths where possible.
+- Reflect model changes accurately; avoid data loss without explicit migration steps.

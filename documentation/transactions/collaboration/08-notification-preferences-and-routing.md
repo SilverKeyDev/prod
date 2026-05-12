@@ -84,4 +84,3 @@ Invariants:
 - **Settings UI**
   - A simple but clear UI for participants to:
     - Adjust which transaction-related notifications they receive.
-

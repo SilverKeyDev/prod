@@ -1,0 +1,11 @@
+---
+description: Celery tasks rules (idempotency, reliability)
+globs:
+  - "Server/app/celery/**"
+alwaysApply: false
+
+# Celery Tasks
+
+- Ensure tasks are idempotent and retry-safe; configure retry policies explicitly.
+- Avoid long transactions; commit small units of work.
+- Pass only serializable, minimal payloads; fetch heavy data inside the task.

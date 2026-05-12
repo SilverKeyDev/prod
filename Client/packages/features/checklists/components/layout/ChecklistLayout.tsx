@@ -237,7 +237,7 @@ export default function CloseLayout({
                               name="chevron-right"
                               className="text-text-secondary h-4 w-4 shrink-0"
                             />
-                            <Text className="text-text-primary text-sm font-medium">
+                            <Text className="text-text-secondary text-sm font-medium">
                               {t("checklists.progressive.show_more_collapsed", {
                                 count: segment.count,
                               })}
@@ -294,7 +294,7 @@ export default function CloseLayout({
                     aria-expanded
                   >
                     <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
-                    <Text className="text-text-primary text-sm font-medium">
+                    <Text className="text-text-secondary text-sm font-medium">
                       {t("checklists.progressive.show_more_expanded")}
                     </Text>
                   </Pressable>

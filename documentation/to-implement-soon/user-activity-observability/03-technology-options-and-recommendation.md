@@ -121,4 +121,3 @@ This approach:
 - Can be iterated on incrementally, without blocking on a large new vendor integration.
 
 Future work can evaluate integrating a product analytics tool on top of this foundation, especially if we want self‑serve analytics for a broader team beyond internal admin use.
-

@@ -86,4 +86,3 @@ Invariants:
     - Initiating transfers.
     - Confirming receipt.
   - Security and compliance considerations for handling financial data.
-

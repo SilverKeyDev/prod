@@ -103,4 +103,3 @@ Adopt **Option B**:
     - Adding a basic “active transaction” pointer for buyers only.
   - Later:
     - Extend to more nuanced agent-specific active contexts if needed.
-

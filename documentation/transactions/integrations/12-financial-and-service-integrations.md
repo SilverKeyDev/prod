@@ -106,4 +106,3 @@ We should **align with existing HTTP and integration patterns** instead of inven
     - Financial integrations (later) respect:
       - KYC/AML where relevant.
       - Logging and audit requirements.
-

@@ -59,7 +59,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Hosted runners have limited disk; full requirements.txt pulls torch/tf/cuda (~10GB+).
+      # Hosted runners have limited disk; full requirements/runtime.txt pulls torch/tf/cuda (~10GB+).
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet
@@ -75,16 +75,16 @@ jobs:
           python-version: "3.11"
           cache: "pip"
           cache-dependency-path: |
-            Server/requirements-ci.txt
-            Server/requirements-test.txt
+            Server/requirements/ci.txt
+            Server/requirements/test.txt
 
       - name: Install dependencies
         working-directory: Server
         run: |
           python -m pip install --upgrade pip
-          pip install --no-cache-dir -r requirements-ci.txt
+          pip install --no-cache-dir -r requirements/ci.txt
           pip install --no-cache-dir torch==2.3.0 --index-url https://download.pytorch.org/whl/cpu
-          pip install --no-cache-dir -r requirements-test.txt
+          pip install --no-cache-dir -r requirements/test.txt
           pip install --no-cache-dir pytest pytest-cov
 
       - name: Create coverage directory

@@ -95,4 +95,3 @@ We should **extend these existing components and hooks** with transaction contex
   - Preferences that let each participant control:
     - Which transaction events sync to their personal calendar.
     - Whether to include system-generated milestones or only user-created events.
-

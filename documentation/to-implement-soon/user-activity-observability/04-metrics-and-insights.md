@@ -135,4 +135,3 @@ This document should evolve as:
 - New features are added and prioritized.
 - We learn which metrics are most predictive of user value.
 - We adjust what “activation” and “healthy engagement” mean for SilverKey.
-

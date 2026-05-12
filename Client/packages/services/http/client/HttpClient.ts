@@ -181,6 +181,40 @@ export class HttpClient {
       const responseText = await response.text();
       const cookiesAfter = getCookieNames(doc);
 
+      if (!response.ok && url.includes("/api/v1/search/isochrone")) {
+        let diag: Record<string, unknown> = {
+          status: response.status,
+          statusText: response.statusText,
+        };
+        try {
+          if (contentType.includes("application/json") && responseText.trim()) {
+            const j = JSON.parse(responseText) as Record<string, unknown>;
+            diag = {
+              ...diag,
+              success: j.success,
+              error: j.error,
+              message:
+                typeof j.message === "string" ? j.message.slice(0, 500) : (j.message ?? undefined),
+            };
+          } else if (responseText.trim()) {
+            diag.bodyPreview = responseText.slice(0, 240);
+          }
+        } catch {
+          diag.parseNote = "response body was not valid JSON";
+        }
+        const errCode = diag.error;
+        const expectedMissingCommute =
+          response.status === 400 &&
+          (errCode === "NO_LOCATIONS" || errCode === "NO_VALID_LOCATIONS");
+        if (!expectedMissingCommute) {
+          log.warn(
+            LOG_CATEGORIES.ERRORS,
+            "GET /api/v1/search/isochrone failed (unexpected status or error code)",
+            diag
+          );
+        }
+      }
+
       if (url.includes("/auth/") || response.status === 401) {
         log.debug(LOG_CATEGORIES.HTTP, "🔐 AUTH_RESPONSE_DETECTED", {
           url,

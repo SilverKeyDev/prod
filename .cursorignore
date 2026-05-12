@@ -1,0 +1,9 @@
+Server/.venv/
+Client/dist/
+Client/apps/mobile/ios/Pods/
+Client/apps/mobile/dist/
+Client/apps/mobile/.expo/
+**/__pycache__/
+**/*.pyc
+**/*.so
+**/*.dylib

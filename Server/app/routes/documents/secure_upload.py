@@ -7,6 +7,8 @@ import uuid
 
 from flask import Blueprint, current_app, jsonify, request
 
+from app.config.constants import UPLOAD_FOLDER_DEFAULT
+
 from ... import db
 from ...schemas import UploadResponse
 from ...services.documents import s3_service
@@ -59,7 +61,7 @@ def upload_document(user):
 
         # Create secure upload directory
         upload_dir = create_secure_upload_directory(
-            current_app.config.get("UPLOAD_FOLDER", "/tmp/uploads"), user.id
+            current_app.config.get("UPLOAD_FOLDER", UPLOAD_FOLDER_DEFAULT), user.id
         )
 
         # Save file temporarily for processing
@@ -181,7 +183,7 @@ def upload_image(user):
 
         # Process and store image similar to document upload
         upload_dir = create_secure_upload_directory(
-            current_app.config.get("UPLOAD_FOLDER", "/tmp/uploads"), user.id
+            current_app.config.get("UPLOAD_FOLDER", UPLOAD_FOLDER_DEFAULT), user.id
         )
 
         temp_file_path = os.path.join(upload_dir, safe_filename)

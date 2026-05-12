@@ -71,9 +71,10 @@ def test_validation_mode_configured():
 
     mode = os.getenv("OPENAPI_VALIDATION_MODE", "gradual")
 
-    assert mode in ["gradual", "strict"], (
-        f"Invalid OPENAPI_VALIDATION_MODE: {mode}. Must be 'gradual' or 'strict'"
-    )
+    assert mode in [
+        "gradual",
+        "strict",
+    ], f"Invalid OPENAPI_VALIDATION_MODE: {mode}. Must be 'gradual' or 'strict'"
 
     log.info(LOG_CATEGORIES["API"], f"Validation mode: {mode}")
 

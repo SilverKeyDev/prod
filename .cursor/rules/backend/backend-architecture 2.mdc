@@ -1,0 +1,324 @@
+---
+description: Flask backend architecture — auth decorators, routes, structure
+globs:
+  - "Server/**/*.py"
+alwaysApply: false
+---
+
+# Backend Architecture Rules
+
+## Overview
+
+This document defines the coding standards and architectural patterns for the Flask backend. These rules MUST be followed to maintain consistency, security, and code quality.
+
+## Authentication Standards
+
+### Protected Routes
+
+- **MUST** use `@require_authenticated_user` decorator for all protected routes
+- **MUST NOT** use `@login_required` or `current_user` from Flask-Login
+- **MUST NOT** manually call `get_current_user()` in route functions
+- **MUST** accept `user` as the first parameter in decorated route functions
+
+### Agent Routes
+
+- **MUST** use `@require_agent_access` decorator for agent-only routes
+- **MUST NOT** manually check `user.is_agent` in route functions
+- **MUST** use `@require_agent_access` instead of manual agent authorization checks
+
+### Examples
+
+```python
+# ✅ CORRECT: Using decorator
+from ..utils.common_patterns import require_authenticated_user
+
+@user_bp.route('/profile', methods=['GET'])
+@require_authenticated_user
+def get_user_profile(user):
+    return jsonify({'success': True, 'data': user.to_dict()})
+
+# ❌ WRONG: Manual authentication
+from ..services.auth.current_user import get_current_user
+
+@user_bp.route('/profile', methods=['GET'])
+def get_user_profile():
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'Unauthorized'}), 401
+        # ...
+    except Exception as e:
+        # ...
+
+# ✅ CORRECT: Agent route
+from ..utils.common_patterns import require_agent_access
+
+@agent_bp.route('/clients', methods=['GET'])
+@require_agent_access
+def get_clients(user):
+    # user is guaranteed to be an agent
+    return jsonify({'success': True, 'clients': get_agent_clients(user.id)})
+
+# ❌ WRONG: Manual agent check
+@agent_bp.route('/clients', methods=['GET'])
+def get_clients():
+    user = get_current_user()
+    if not user.is_agent:
+        return jsonify({'error': 'Only agents can access this'}), 403
+    # ...
+```
+
+## Error Handling Standards
+
+### Secure Error Handler
+
+- **MUST** use `SecureErrorHandler` for all error responses
+- **MUST NOT** return detailed error messages to clients (security risk)
+- **MUST** use `handle_exceptions_with_logging()` decorator where appropriate
+- **MUST NOT** use manual `jsonify()` for error responses
+
+### Error Response Format
+
+All error responses must follow this format:
+```python
+{
+    'success': False,
+    'error': 'error_type',
+    'message': 'Generic user-friendly message',
+    'error_id': 'unique_error_id'
+}
+```
+
+### Examples
+
+```python
+# ✅ CORRECT: Using SecureErrorHandler
+from ..utils.security.secure_errors import SecureErrorHandler
+
+try:
+    # operation
+except Exception as e:
+    return SecureErrorHandler.handle_database_error(e, {
+        'function': 'function_name',
+        'user_id': str(user.id) if user else 'unknown'
+    })
+
+# ❌ WRONG: Manual error handling
+try:
+    # operation
+except Exception as e:
+    current_app.logger.error(f"Error: {e}")
+    return jsonify({'success': False, 'error': str(e)}), 500
+
+# ✅ CORRECT: Using exception decorator
+from ..utils.common_patterns import handle_exceptions_with_logging
+
+@handle_exceptions_with_logging
+@require_authenticated_user
+def my_route(user):
+    # Exceptions automatically handled
+    return jsonify({'success': True})
+```
+
+## Database Standards
+
+### Imports
+
+- **MUST** use `from app import db` (standardized import)
+- **MUST NOT** use `from .. import db` or `from app import db, create_app`
+- **MUST** import at top of file (not inside functions)
+
+### Transaction Management
+
+- **MUST** wrap all commits in try/except with rollback
+- **MUST** use `reliable_db_commit()` for critical operations
+- **MUST** use transaction context manager for complex operations
+- **MUST NOT** commit without error handling
+
+### Examples
+
+```python
+# ✅ CORRECT: Using transaction context manager
+from app import db
+from ..utils.db_transactions import db_transaction
+
+try:
+    with db_transaction():
+        user.name = "New Name"
+        # Commit happens automatically on success
+except Exception as e:
+    # Rollback happened automatically
+    logger.error(f"Transaction failed: {e}")
+
+# ✅ CORRECT: Using reliable_db_commit
+from ..utils.db_transactions import safe_db_commit
+
+user.name = "New Name"
+safe_db_commit("update_user_name")
+
+# ❌ WRONG: No error handling
+from app import db
+
+user.name = "New Name"
+db.session.commit()  # What if this fails?
+
+# ✅ CORRECT: Manual rollback
+try:
+    user.name = "New Name"
+    db.session.commit()
+except Exception as e:
+    db.session.rollback()
+    raise
+```
+
+## Configuration Standards
+
+### Environment Variables
+
+- **MUST NOT** hardcode values (use environment variables)
+- **MUST** validate required config at startup
+- **MUST NOT** duplicate configuration functions
+- **MUST** document all required environment variables
+
+### Examples
+
+```python
+# ✅ CORRECT: Using environment variable
+EC2_HOST = os.getenv('EC2_HOST')
+if not EC2_HOST:
+    raise RuntimeError("EC2_HOST environment variable must be set")
+
+# ❌ WRONG: Hardcoded value
+EC2_HOST = '3.146.37.166'
+
+# ✅ CORRECT: Single definition in app/config/_urls.py (optional GOOGLE_REDIRECT_URI override)
+def get_google_redirect_uri():
+    explicit = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    if explicit:
+        return explicit
+    flask_env = os.getenv("FLASK_ENV", "development")
+    if flask_env == "production":
+        return "https://usesilverkey.com/api/v1/google/oauth/callback"
+    return "http://localhost:5000/api/v1/google/oauth/callback"  # Flask API, not Vite (5173)
+
+# ❌ WRONG: Duplicate functions
+def get_google_redirect_uri():
+    # ...
+
+def _get_google_redirect_uri():
+    # ... (duplicate)
+```
+
+## Code Reuse Standards
+
+### JSON Parsing
+
+- **MUST** use `safe_json_loads()` for JSON parsing
+- **MUST NOT** manually parse JSON with `json.loads()` and try/except
+
+### Address Normalization
+
+- **MUST** use `safe_normalize_address()` for address normalization
+- **MUST NOT** duplicate normalization logic with try/except
+
+### Decorators
+
+- **MUST** use decorators from `common_patterns.py` instead of duplicating patterns
+- **MUST NOT** duplicate authentication/error handling code
+
+### Examples
+
+```python
+# ✅ CORRECT: Using utility functions
+from ..utils.common_patterns import safe_json_loads
+from ..utils.address_format import safe_normalize_address
+
+client_ids = safe_json_loads(user.client_ids, default=[])
+normalized = safe_normalize_address(address)
+
+# ❌ WRONG: Manual parsing
+import json
+
+if user.client_ids:
+    try:
+        client_ids = json.loads(user.client_ids) if isinstance(user.client_ids, str) else user.client_ids
+    except json.JSONDecodeError:
+        client_ids = []
+
+# ❌ WRONG: Manual normalization
+try:
+    normalized = normalize_address(address)
+except Exception:
+    normalized = address.strip().lower()
+```
+
+## Service Layer Standards
+
+### Route Responsibilities
+
+- Routes **MUST** be thin (HTTP concerns only)
+- Business logic **MUST** be in services
+- Routes **MUST NOT** contain complex business logic
+
+### Examples
+
+```python
+# ✅ CORRECT: Thin route with service
+from ..services.agent import get_agent_clients
+
+@agent_bp.route('/clients', methods=['GET'])
+@require_agent_access
+def get_clients(user):
+    clients = get_agent_clients(user.id)
+    return jsonify({'success': True, 'clients': clients})
+
+# ❌ WRONG: Business logic in route
+@agent_bp.route('/clients', methods=['GET'])
+@require_agent_access
+def get_clients(user):
+    # Complex business logic here - WRONG
+    clients = []
+    for connection in user.connections:
+        if connection.status == 'active':
+            client_data = {
+                'id': connection.client_id,
+                'name': connection.client.name,
+                # ... complex logic
+            }
+            clients.append(client_data)
+    return jsonify({'success': True, 'clients': clients})
+```
+
+## Import Standards
+
+### Database Imports
+
+- **MUST** use `from app import db` (not `from .. import db`)
+- **MUST** import at top of file (not inside functions)
+- **MUST** use type hints for function parameters and returns
+
+### Examples
+
+```python
+# ✅ CORRECT: Top-level import
+from app import db
+
+@require_authenticated_user
+def update_user(user):
+    user.name = "New Name"
+    db.session.commit()
+
+# ❌ WRONG: Import inside function
+@require_authenticated_user
+def update_user(user):
+    from app import db
+    user.name = "New Name"
+    db.session.commit()
+```
+
+## Enforcement
+
+- All new code **MUST** follow these standards
+- When refactoring existing code, update to follow these standards
+- Code reviews **MUST** check for compliance with these rules
+- Linter rules should flag violations where possible

@@ -98,4 +98,3 @@ This serves as the **narrative backbone** for the more detailed phase docs in th
   - Transaction overview screens may:
     - Show progress by phase.
     - Surface “What’s next” and “What’s at risk” across all phases.
-

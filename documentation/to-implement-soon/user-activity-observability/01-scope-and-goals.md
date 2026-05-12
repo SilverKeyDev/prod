@@ -89,4 +89,3 @@ This observability work is **not** intended to:
 - Weaken existing security or PII controls; any new data collection must comply with our security rules and privacy expectations.
 
 Those areas can build on top of the same event infrastructure later, but are not required for the first iteration of user activity observability.
-

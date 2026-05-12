@@ -85,4 +85,3 @@ Invariants:
   - A simple way for buyers to:
     - Opt into a maintenance schedule.
     - Sync recurring tasks to their calendar.
-

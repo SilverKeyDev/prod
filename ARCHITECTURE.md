@@ -139,7 +139,7 @@ See: `.cursor/rules/shared/security.mdc`, `documentation/security/SECURITY.md`
 
    # Set up server environment
    cd ../Server && python -m venv .venv && source .venv/bin/activate
-   pip install -r requirements.txt
+   pip install -r requirements/runtime.txt
    ```
 
 2. **Configure environment**:

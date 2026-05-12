@@ -22,16 +22,20 @@ def upgrade():
         batch_op.add_column(sa.Column("preferred_bathrooms_min", sa.Integer(), nullable=True))
         batch_op.add_column(sa.Column("preferred_bathrooms_max", sa.Integer(), nullable=True))
 
-    op.execute("""
+    op.execute(
+        """
         UPDATE user_search_intent
         SET preferred_bedrooms_min = preferred_bedrooms
         WHERE preferred_bedrooms IS NOT NULL
-    """)
-    op.execute("""
+    """
+    )
+    op.execute(
+        """
         UPDATE user_search_intent
         SET preferred_bathrooms_min = preferred_bathrooms
         WHERE preferred_bathrooms IS NOT NULL
-    """)
+    """
+    )
 
     with op.batch_alter_table("user_search_intent", schema=None) as batch_op:
         batch_op.drop_column("preferred_bedrooms")
@@ -43,16 +47,20 @@ def downgrade():
         batch_op.add_column(sa.Column("preferred_bedrooms", sa.Integer(), nullable=True))
         batch_op.add_column(sa.Column("preferred_bathrooms", sa.Integer(), nullable=True))
 
-    op.execute("""
+    op.execute(
+        """
         UPDATE user_search_intent
         SET preferred_bedrooms = preferred_bedrooms_min
         WHERE preferred_bedrooms_min IS NOT NULL
-    """)
-    op.execute("""
+    """
+    )
+    op.execute(
+        """
         UPDATE user_search_intent
         SET preferred_bathrooms = preferred_bathrooms_min
         WHERE preferred_bathrooms_min IS NOT NULL
-    """)
+    """
+    )
 
     with op.batch_alter_table("user_search_intent", schema=None) as batch_op:
         batch_op.drop_column("preferred_bathrooms_max")

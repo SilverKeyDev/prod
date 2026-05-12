@@ -78,4 +78,3 @@ Invariants:
   - Hooks for:
     - Receiving status updates.
     - Reflecting those in checklists and notifications.
-

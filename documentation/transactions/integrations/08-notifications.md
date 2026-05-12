@@ -103,4 +103,3 @@ Rather than creating a transaction-specific notification stack, we should **emit
     - Delivery success/failure.
   - Safeguards to avoid accidental notification storms:
     - Batch or debounce repeated events.
-

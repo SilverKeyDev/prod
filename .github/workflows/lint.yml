@@ -46,7 +46,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Hosted runners have limited disk; full requirements.txt pulls torch/tf/cuda (~10GB+).
+      # Hosted runners have limited disk; full requirements/runtime.txt pulls torch/tf/cuda (~10GB+).
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet
@@ -63,7 +63,7 @@ jobs:
       - name: Install Server dependencies and linters
         run: |
           python -m pip install --upgrade pip
-          pip install --no-cache-dir -r Server/requirements-ci.txt
+          pip install --no-cache-dir -r Server/requirements/ci.txt
           pip install --no-cache-dir ruff pyright
 
       - name: Run all server linters (root script)

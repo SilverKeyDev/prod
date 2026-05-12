@@ -2,17 +2,16 @@
 Unit tests for preprocessing, feature engineering, and similarity (home matching).
 """
 
-import sys
 import unittest
-from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from home_matching.utils.feature_engineering import FeatureEngineer
-from home_matching.utils.preprocessing import DataPreprocessor
-from home_matching.utils.similarity import SimilarityCalculator
+from app.services.search.home_matching.utils.feature_engineering import FeatureEngineer
+from app.services.search.home_matching.utils.preprocessing import DataPreprocessor
+from app.services.search.home_matching.utils.similarity import (
+    SimilarityCalculator,
+    cosine_similarity_score,
+)
 
 
 class TestDataPreprocessing(unittest.TestCase):
@@ -92,7 +91,7 @@ class TestFeatureEngineering(unittest.TestCase):
         user_prefs = {"budget_min": 400000, "budget_max": 800000}
         home_data = {"price": 600000}
         features = self.feature_engineer.calculate_price_features(user_prefs, home_data)
-        self.assertEqual(len(features), 4)
+        self.assertEqual(len(features), 5)
         self.assertEqual(features[0], 1.0)
         self.assertEqual(features[1], 0.75)
 
@@ -138,8 +137,6 @@ class TestSimilarityCalculator(unittest.TestCase):
 
     def test_cosine_similarity_score(self):
         """Test cosine similarity calculation."""
-        from home_matching.utils.similarity import cosine_similarity_score
-
         vec1 = np.array([1, 0, 0])
         vec2 = np.array([1, 0, 0])
         similarity = cosine_similarity_score(vec1, vec2)

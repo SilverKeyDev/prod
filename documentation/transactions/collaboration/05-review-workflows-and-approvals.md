@@ -2,7 +2,7 @@
 
 ### Problem / goal
 
-Some steps in a transaction require not only completion but also **explicit review or approval** by a specific role (e.g. agent, TC, broker).  
+Some steps in a transaction require not only completion but also **explicit review or approval** by a specific role (e.g. agent, TC, broker).
 We need to define:
 - How review requirements are encoded.
 - How reviews are requested, performed, and recorded.
@@ -102,4 +102,3 @@ Invariants:
   - Clear feedback for:
     - What is waiting on them.
     - What changed as a result of their decision.
-

@@ -128,7 +128,11 @@ export default function SidebarNavigation({
                       />
                     ) : null}
                     {isLargeScreen ? (
-                      <BodyText as="span" className={getInsetNavItemLabelClasses(isActive)}>
+                      <BodyText
+                        as="span"
+                        size="sm"
+                        className={getInsetNavItemLabelClasses(isActive)}
+                      >
                         {item.label}
                       </BodyText>
                     ) : null}

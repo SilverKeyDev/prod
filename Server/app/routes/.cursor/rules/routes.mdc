@@ -1,0 +1,12 @@
+---
+description: Flask routes rules (thin controllers, secure endpoints)
+globs:
+  - "Server/app/routes/**"
+alwaysApply: false
+---
+# Routes
+- Keep routes thin; delegate business logic to `app/services`.
+- Validate requests using shared validators/decorators in `app/utils`.
+- Enforce auth and role checks consistently; verify JWTs and permissions.
+- Return standardized error shapes; avoid leaking internals.
+- Respect CORS and security headers; no ad-hoc overrides.

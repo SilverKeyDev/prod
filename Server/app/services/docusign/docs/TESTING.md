@@ -25,7 +25,7 @@ This guide provides comprehensive testing procedures for the DocuSign integratio
 ```bash
 # Install dependencies
 cd Server
-pip install -r requirements.txt
+pip install -r requirements/runtime.txt
 
 # Set environment variables
 cp .env.example .env

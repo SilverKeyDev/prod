@@ -108,15 +108,20 @@ export function getInsetNavItemClasses({
   disabled = false,
   iconOnly = false,
 }: SidebarInsetNavOptions): string {
-  const gapAndPadding = iconOnly ? "gap-0 justify-center px-0" : "gap-3 px-3";
-  const base = `group flex min-h-9 w-full items-center ${gapAndPadding} rounded-lg py-2 transition-colors`;
+  /**
+   * Inset rows use {@link Button} `variant="ghost"` `size="sm"`, which also applies `touch-friendly`
+   * (`p-2`, gray hover/active). Use `!` padding + min height so row rhythm matches the shell and wins
+   * over `touch-friendly` / button size utilities (Tailwind merge order is not guaranteed).
+   */
+  const gapAndPadding = iconOnly ? "gap-0 !justify-center !px-0 !py-2" : "gap-3 !px-3 !py-2";
+  const base = `group flex !min-h-touch w-full min-w-0 items-center ${gapAndPadding} rounded-lg transition-colors`;
   if (disabled) {
     return `${base} cursor-not-allowed bg-disabled text-text-disabled`;
   }
   if (active) {
-    return `${base} !bg-neutral-100 !text-text-primary hover:!bg-neutral-100 hover:!font-semibold hover:!text-text-primary active:!bg-neutral-100 active:!font-semibold active:!text-text-primary focus-visible:!ring-0 focus-visible:!ring-offset-0`;
+    return `${base} !bg-primary-muted !text-text-primary hover:!bg-primary-muted hover:!font-semibold hover:!text-text-primary active:!bg-primary-muted active:!font-semibold active:!text-text-primary focus-visible:!ring-0 focus-visible:!ring-offset-0`;
   }
-  return `${base} text-text-primary hover:!bg-neutral-50 hover:text-text-primary active:!bg-neutral-100 active:text-text-primary`;
+  return `${base} text-text-primary hover:!bg-primary-muted/70 hover:text-text-primary active:!bg-primary-muted active:text-text-primary`;
 }
 
 export function getInsetNavItemIconClasses(active: boolean): string {
@@ -142,7 +147,7 @@ export function getInsetNavItemIconStrokeWidth(active: boolean): number {
 
 export function getInsetNavItemLabelClasses(active: boolean): string {
   const { inactive, highlighted } = tailwindNavChromeNavText;
-  return `text-left transition-colors ${
+  return `text-left !leading-snug transition-colors ${
     active
       ? `${highlighted} !text-text-primary group-hover:!text-text-primary`
       : `${inactive} !text-text-primary group-hover:!text-text-primary`

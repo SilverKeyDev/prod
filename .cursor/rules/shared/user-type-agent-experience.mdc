@@ -85,4 +85,3 @@ If you need to restrict access, prefer RoleGuard + roles. If you need to alter U
 - **DON’T**: Create a second “agent-ness” flag with different meaning; if you need “has agent features enabled”, use `featureGates` (session store) and document the gate name.
 - **DON’T**: Use session meta (`userMeta.isAgent`) or URL/path to determine agent identity.
 - **DON’T**: Duplicate complex branching inline; extract to a small helper or dedicated component when logic grows.
-

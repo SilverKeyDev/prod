@@ -60,7 +60,7 @@ This installs all dependencies for the `Client` pnpm workspace, including the ma
 
 If you need to work on or run the backend:
 
-- **Python environment:** Use **Python 3.10–3.13** (3.14+ is not supported by current pinned wheels). From the repo root, run `bash Server/scripts/bootstrap-venv.sh` to create `Server/.venv` and install `Server/requirements.txt` (use `--force` to replace an existing `Server/.venv`, `--ci` for a slimmer CI-oriented install). If your default `python3` is too new, set e.g. `PYTHON=python3.12`. Then `source Server/.venv/bin/activate`.
+- **Python environment:** Use **Python 3.10–3.13** (3.14+ is not supported by current pinned wheels). From the repo root, run `bash Server/scripts/bootstrap-venv.sh` to create `Server/.venv` and install from `Server/requirements/` (use `--force` to replace an existing `Server/.venv`, `--ci` for a slimmer CI-oriented install). If your default `python3` is too new, set e.g. `PYTHON=python3.12`. Then `source Server/.venv/bin/activate`. See `Server/README.md` for which requirements file to use.
 - **Do not run or modify database migrations** unless you know what you’re doing; Alembic/Flask migration commands are managed separately.
 
 ---
@@ -241,4 +241,3 @@ Recommended Day‑to‑Day Flow
    ```
 
    This ensures lint, formatting, typecheck, and web build all pass locally.
-

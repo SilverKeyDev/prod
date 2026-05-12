@@ -24,7 +24,8 @@ def upgrade():
 
     # Update records where home_budget exists but range fields don't
     connection.execute(
-        sa.text("""
+        sa.text(
+            """
             UPDATE user_preferences
             SET
                 home_budget_max = home_budget,
@@ -32,7 +33,8 @@ def upgrade():
             WHERE
                 home_budget IS NOT NULL
                 AND (home_budget_max IS NULL OR home_budget_min IS NULL)
-        """)
+        """
+        )
     )
 
     # Drop the deprecated home_budget column
@@ -48,9 +50,11 @@ def downgrade():
     # Restore home_budget from home_budget_max
     connection = op.get_bind()
     connection.execute(
-        sa.text("""
+        sa.text(
+            """
             UPDATE user_preferences
             SET home_budget = home_budget_max
             WHERE home_budget_max IS NOT NULL
-        """)
+        """
+        )
     )

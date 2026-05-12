@@ -18,8 +18,8 @@ This test suite provides comprehensive coverage for:
 
 ```bash
 cd Server
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+pip install -r requirements/runtime.txt
+pip install -r requirements/dev.txt
 ```
 
 ### Test Dependencies
@@ -345,10 +345,10 @@ def test_login_success(self, app, mock_cognito_service):
     """Test successful user login"""
     # Arrange
     data = {"email": "test@example.com", "password": "Password123!"}
-    
+
     # Act
     response, status_code = handle_login(data, "req-123")
-    
+
     # Assert
     assert status_code == 200
     assert response.get_json()["success"] is True
@@ -380,8 +380,8 @@ jobs:
       - name: Install dependencies
         run: |
           cd Server
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          pip install -r requirements/runtime.txt
+          pip install -r requirements/dev.txt
       - name: Run tests
         run: |
           cd Server

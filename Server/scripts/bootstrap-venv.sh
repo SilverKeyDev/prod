@@ -45,7 +45,7 @@ if [[ -z "$PYTHON_CMD" ]] || ! command -v "$PYTHON_CMD" >/dev/null 2>&1; then
 fi
 
 if ! python_supported "$PYTHON_CMD"; then
-  echo "bootstrap-venv: interpreter $(command -v "$PYTHON_CMD") is $( "$PYTHON_CMD" -c 'import sys; print("%s.%s" % sys.version_info[:2])' ) — need Python >=3.10 and <3.14 for current requirements.txt wheels." >&2
+  echo "bootstrap-venv: interpreter $(command -v "$PYTHON_CMD") is $( "$PYTHON_CMD" -c 'import sys; print("%s.%s" % sys.version_info[:2])' ) — need Python >=3.10 and <3.14 for current requirements/runtime.txt wheels." >&2
   exit 1
 fi
 
@@ -69,11 +69,11 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 
 if [[ "$USE_CI" == true ]]; then
-  echo "Installing from requirements-ci.txt (--ci)"
-  pip install -r requirements-ci.txt
+  echo "Installing from requirements/ci.txt (--ci)"
+  pip install -r requirements/ci.txt
 else
-  echo "Installing from requirements.txt"
-  pip install -r requirements.txt
+  echo "Installing from requirements/runtime.txt"
+  pip install -r requirements/runtime.txt
 fi
 
 echo "Verifying interpreter and imports..."

@@ -70,7 +70,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install schema codegen tools
-        run: pip install -r Server/requirements-codegen.txt
+        run: pip install -r Server/requirements/codegen.txt
 
       - name: Regenerate server schemas
         working-directory: Server

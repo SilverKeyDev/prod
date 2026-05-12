@@ -103,4 +103,3 @@ Invariants:
   - Clear rules for:
     - What happens to tasks, docs, and events when a participant’s access is revoked.
     - How changes are communicated to other participants.
-

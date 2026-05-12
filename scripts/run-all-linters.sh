@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run all linters for the given scope. Single entry point for CI and local use.
 # Requires: Client — `cd Client && pnpm install`; Server — deps installed (e.g. venv +
-# pip install -r requirements-ci.txt for lint-only, or requirements.txt for full app).
+# pip install -r Server/requirements/ci.txt for lint-only, or Server/requirements/runtime.txt for full app).
 # Server: auto-discovers Server/scripts/lint/lint_*.py then lint/lint_*.sh (sorted per shell glob).
 # Client: Client/scripts/run-client-linters.sh runs scripts/lint.d/*.sh (optional) then pnpm check.
 set -euo pipefail

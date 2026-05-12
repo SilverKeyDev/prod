@@ -99,4 +99,3 @@ Adopt **Option A (transaction-scoped RBAC)**:
   - Where necessary, add:
     - Small, explicit overrides (e.g. restricting a specific doc or task).
   - Consider ABAC or policy-as-code only if/when transaction complexity demands it.
-

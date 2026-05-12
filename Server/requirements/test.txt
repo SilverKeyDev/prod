@@ -1,12 +1,12 @@
-# Dependencies for pytest + coverage in CI (beyond requirements-ci.txt).
-# Full requirements.txt also pins tensorflow, jax, CUDA PyTorch, osmnx, xgboost,
+# Dependencies for pytest + coverage in CI (beyond requirements/ci.txt).
+# Full requirements/runtime.txt also pins tensorflow, jax, CUDA PyTorch, osmnx, xgboost,
 # lightgbm, numba, etc., which are not imported anywhere under Server/ but exceed
 # GitHub-hosted runner disk. This file keeps imports used by tests and create_app().
 #
 # CPU-only PyTorch is installed separately in .github/workflows/test-callable.yml
 # before this file (see pip install --index-url .../whl/cpu).
 
-# Flask extensions imported at app package load (app/__init__.py); keep in sync with requirements-ci.txt.
+# Flask extensions imported at app package load (app/__init__.py); keep in sync with requirements/ci.txt.
 flask-compress==1.15
 
 numpy>=1.26.0,<3

@@ -23,7 +23,7 @@ import { getFirstIncompleteUnlockSection } from "packages/features/checklists/ut
 import { IconButton } from "packages/ui";
 import { ChecklistCheckbox } from "packages/ui";
 import Card from "packages/ui/components/cards/Card";
-import { Box, Pressable } from "packages/ui/components/primitives";
+import { Box, TouchableBox } from "packages/ui/components/primitives";
 
 export type BuyerRoadmapChecklistItemRowKind =
   | "flat_item"
@@ -280,9 +280,21 @@ function BuyerRoadmapChecklistItemCardInner({
       }`}
     >
       {roadmapHandoff ? (
-        <Pressable onPress={handleRoadmapHandoff} label={handoffAccessibilityLabel}>
+        <TouchableBox
+          label={handoffAccessibilityLabel}
+          onPress={handleRoadmapHandoff}
+          className="w-full text-left"
+          onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+            const target = e.target as HTMLElement;
+            if (target.closest("button, a[href], input, textarea, select")) {
+              return;
+            }
+            e.stopPropagation();
+            handleRoadmapHandoff();
+          }}
+        >
           {rowInner}
-        </Pressable>
+        </TouchableBox>
       ) : (
         rowInner
       )}

@@ -79,12 +79,12 @@ export default function KeyTurnLoader({
       98% { transform: rotate(3deg); }
       100% { transform: rotate(0deg); }
     }
-    
+
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
     }
-    
+
     @keyframes shimmer {
       0% { filter: brightness(1) saturate(1); }
       50% { filter: brightness(1.1) saturate(1.2); }

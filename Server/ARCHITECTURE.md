@@ -37,7 +37,7 @@ Server/
 │   └── .env.example              # Environment variable template
 ├── migrations/                   # Alembic database migrations
 │   └── versions/                 # Migration scripts (DO NOT EDIT)
-├── requirements.txt              # Python dependencies
+├── requirements/                 # Pinned Python deps (runtime, ci, dev, test, codegen)
 └── app.py                        # Application entry point
 ```
 
@@ -592,7 +592,7 @@ python -m venv .venv
 source .venv/bin/activate  # or `.venv\Scripts\activate` on Windows
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements/runtime.txt
 
 # Set up environment
 cp config/.env.example .env

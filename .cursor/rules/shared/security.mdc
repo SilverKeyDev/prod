@@ -14,4 +14,3 @@ alwaysApply: true
 - Mask PII in logs. Detect and redact emails, phone, SSN, credit card, and JWTs.
 - Respect CORS restrictions and HTTPS enforcement.
 - Do not commit secrets. Use environment variables and existing config mechanisms.
-

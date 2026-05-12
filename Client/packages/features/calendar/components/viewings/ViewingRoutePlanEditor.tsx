@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { buildViewingRoute } from "packages/api/viewings";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { AddressInput, Dropdown, type DropdownOption } from "packages/ui/components";
-import { Button } from "packages/ui/components/button/core/Button";
+import Button from "packages/ui/components/button/core/Button";
 import { Icon } from "packages/ui/components/icons";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";

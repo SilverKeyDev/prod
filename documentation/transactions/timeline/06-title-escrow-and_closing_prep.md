@@ -92,4 +92,3 @@ Invariants:
   - Potential APIs for:
     - Pulling commitment statuses.
     - Confirming readiness to close.
-

@@ -2,7 +2,7 @@
 
 ### Problem / goal
 
-Transactions will generate many events (checklist changes, deadline warnings, signatures, reviews, integrations).  
+Transactions will generate many events (checklist changes, deadline warnings, signatures, reviews, integrations).
 We need a notification architecture that:
 - Reuses existing email/push infrastructure.
 - Supports role-based defaults and user preferences.
@@ -97,4 +97,3 @@ Adopt **Option A (central event bus + routing)**:
 - **Operations**
   - Monitor notification volumes and error rates.
   - Introduce batching/digesting where needed (e.g. daily summary of upcoming deadlines).
-

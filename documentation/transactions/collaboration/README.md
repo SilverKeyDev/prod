@@ -20,4 +20,3 @@ See:
 - `02-task-and-checklist-collaboration.md` for tasks and assignment.
 - `03-calendar-collaboration-and-sharing.md` and `04-document-and-agreement-collaboration.md` for shared views.
 - `05-review-workflows-and-approvals.md`, `06-external-parties-and-invites.md`, `07-audit-trail-and-activity-feed.md`, and `08-notification-preferences-and-routing.md` for deeper collaboration behavior.
-

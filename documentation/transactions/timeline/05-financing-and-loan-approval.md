@@ -88,4 +88,3 @@ Invariants:
 - **Condition tracking**
   - Fine-grained modeling of:
     - Loan conditions that must be cleared (optional v2).
-

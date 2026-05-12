@@ -1,0 +1,289 @@
+---
+description: UI component standardization rules - use standardized components from ui/ directory
+globs:
+  - "Client/apps/web/**/*.{ts,tsx}"
+  - "Client/packages/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# UI Component Standardization Rules
+
+## Overview
+
+All UI components (buttons, text, forms) MUST use standardized components from **`Client/packages/ui/`** (import via `packages/ui`, `@/components/ui`, or `@ui` per `Client/tsconfig.base.json`). Custom implementations are FORBIDDEN unless explicitly approved.
+
+## Standardized Components
+
+### Layout Primitives (Box / View)
+
+- **Use a unified layout primitive** (e.g. `Box` or `View`) for block-level layout instead of raw `<div>` or framework-specific containers. `<div>` (block) vs RN `<View>` (flex column by default) is a major source of layout bugs when sharing or migrating code.
+- **Rule:** Prefer a shared `Box` (or equivalent) that standardizes flex defaults and behavior across web and (when present) React Native, so one mental model applies and moving folders does not break layout.
+
+### Buttons
+
+**Location**: `Client/packages/ui/components/button/`
+
+**Available Components**:
+- `Button` - Main button component with variants (primary, secondary, outline, ghost, danger, success, warning, cancel)
+- `CancelButton` - Standardized cancel button (wrapper around Button with outline/ghost variant)
+- `CloseButton` - Standardized close button with X icon (for modals/dialogs)
+- `IconButton` - Icon-only buttons
+- `CircularButton` - Circular button variant
+- `NavigationButton` - Link-like navigation buttons
+- `NavigationButtons` - Navigation button groups
+- `RefreshButton` - Specialized refresh button
+
+**Rules**:
+- ❌ NEVER create custom `<button>` elements with inline className styles
+- ❌ NEVER use raw button elements with custom padding, colors, or hover states
+- ✅ ALWAYS use `Button` component for standard buttons
+- ✅ ALWAYS use `CancelButton` for cancel actions
+- ✅ ALWAYS use `CloseButton` for closing modals/dialogs
+- ✅ ALWAYS use `IconButton` for icon-only buttons
+- ✅ ALWAYS import from `packages/ui` (barrel), `@/components/ui`, or `@ui` — not ad-hoc paths under `apps/web`
+
+**Examples**:
+
+```typescript
+// ❌ WRONG: Custom button implementation
+<button
+  onClick={handleClick}
+  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+>
+  Click me
+</button>
+
+// ✅ CORRECT: Use Button component
+import { Button } from "../ui";
+
+<Button variant="primary" size="md" onClick={handleClick}>
+  Click me
+</Button>
+
+// ❌ WRONG: Custom cancel button
+<button
+  onClick={onCancel}
+  className="px-4 py-2 border border-gray-300 bg-white rounded hover:bg-gray-50"
+>
+  Cancel
+</button>
+
+// ✅ CORRECT: Use CancelButton
+import { CancelButton } from "../ui";
+
+<CancelButton onClick={onCancel} size="md">
+  Cancel
+</CancelButton>
+
+// ❌ WRONG: Custom close button
+<button onClick={onClose} className="absolute right-2 top-2 text-gray-400">
+  <X className="w-5 h-5" />
+</button>
+
+// ✅ CORRECT: Use CloseButton
+import { CloseButton } from "../ui";
+
+<CloseButton onClick={onClose} size="sm" className="absolute right-2 top-2" />
+```
+
+### Text Components
+
+**Location**: `Client/packages/ui/components/text/`
+
+**Available Components**:
+- `Title` - Heading component (sizes: sm, md, lg, xl)
+- `Subtitle` - Subtitle component (sizes: xs, sm, md, lg)
+- `BodyText` - Body text component (sizes: xs, sm, md, lg)
+- `Label` - Form label component
+
+**Rules**:
+- ❌ NEVER use direct text size classes (`text-xs`, `text-sm`, `text-base`, `text-lg`, etc.) on semantic elements
+- ❌ NEVER use `<h1>`, `<h2>`, `<h3>` with custom className text sizing
+- ❌ NEVER use `<p>` with custom className text sizing
+- ✅ ALWAYS use `Title` component for headings (h1-h6)
+- ✅ ALWAYS use `Subtitle` component for subtitles
+- ✅ ALWAYS use `BodyText` component for paragraph text
+- ✅ ALWAYS use `Label` component for form labels
+- ✅ Use `as` prop on Title to maintain semantic HTML (e.g., `as="h1"`)
+
+**Reference text (actual copy to show)** — Use real user-facing copy in components, not code or placeholder keys:
+- **Title**: e.g. "Find your next home", "Preferences", "Location" (section/page headings).
+- **Subtitle**: e.g. "Select your preferences and let our AI find the best homes for you."
+- **BodyText**: e.g. "Your saved homes will appear here." (paragraphs, descriptions).
+- **Label**: e.g. "Budget Range", "Ideal Zip Code", "Name" (form field labels; use `FIELD_LABELS` / `SECTION_TITLES` from `packages/utils/domain/profile/constants` or `t()` for i18n keys).
+Never render translation keys or constant names as visible text; always pass the resolved string (e.g. `t("key")` or `FIELD_LABELS.NAME`) so the UI shows the actual reference text.
+
+**Examples**:
+
+```typescript
+// ❌ WRONG: Direct text size classes
+<h2 className="text-xl sm:text-2xl font-bold">My Title</h2>
+<p className="text-sm text-gray-600">Body text</p>
+<label className="text-sm font-medium">Label</label>
+
+// ✅ CORRECT: Use standardized text components with actual reference text
+import { Title, BodyText, Label } from "../ui";
+import { SECTION_TITLES, FIELD_LABELS } from "packages/utils/domain/profile/constants";
+
+<Title size="md" as="h2">{SECTION_TITLES.LOCATION_PREFERENCES}</Title>
+<BodyText size="sm" muted>Select your preferences and let our AI find the best homes for you.</BodyText>
+<Label size="sm">{FIELD_LABELS.NAME}</Label>
+
+// ❌ WRONG: Showing code or keys as visible text
+<Title>SECTION_TITLES.FINANCIAL_PROFILE</Title>
+<BodyText>{'"form.description"'}</BodyText>
+
+// ✅ CORRECT: Resolved strings only
+<Title>{SECTION_TITLES.FINANCIAL_PROFILE}</Title>
+<BodyText>{t("form.description")}</BodyText>
+
+// ❌ WRONG: Custom heading with responsive classes
+<h3 className="text-responsive-lg font-medium text-gray-900">
+  Dialog Title
+</h3>
+
+// ✅ CORRECT: Use Title component
+<Title size="lg" as="h3">Preferences</Title>
+```
+
+### Color System
+
+**Primary color**: Primary actions and the primary button variant use **olive** (via `brand-accent`, set to olive in Tailwind). Do not use brown for buttons.
+
+**Rules**:
+- ✅ ALWAYS use brand tokens (`brand-accent`, `brand-primary`, `brand-secondary`, `brand-tertiary`) in Button and IconButton components
+- ✅ Use semantic color variants (primary, secondary, danger, success, warning) instead of direct colors
+- ✅ Primary/CTA color is olive; `brand-accent` is set to olive in Tailwind
+- ❌ NEVER use brown for buttons; use olive or gray instead
+- ❌ NEVER use direct color classes like `bg-brown`, `text-red-600` in button implementations
+- ❌ NEVER mix brand tokens and direct colors inconsistently
+
+**Examples**:
+
+```typescript
+// ❌ WRONG: Direct color usage
+<button className="bg-brown text-white hover:bg-brown/90">
+  Click me
+</button>
+
+// ✅ CORRECT: Use Button with variant
+<Button variant="primary">Click me</Button>
+
+// ❌ WRONG: Inconsistent color usage
+<IconButton variant="primary" className="bg-olive" />
+
+// ✅ CORRECT: Use standardized variant
+<IconButton variant="primary" />
+```
+
+### Mobile Responsiveness
+
+**Rules**:
+- ✅ ALWAYS use standardized components which have built-in mobile responsiveness
+- ✅ Use `size` prop on buttons (xs, sm, md, lg, xl) - components handle responsive sizing
+- ✅ Use `hideTextBelow` prop on Button when text should hide on mobile
+- ✅ Use responsive text components (Title, Subtitle, BodyText) which handle mobile sizing automatically
+- ❌ NEVER add custom responsive classes to standardized components
+- ❌ NEVER override mobile behavior with custom className
+
+**Examples**:
+
+```typescript
+// ❌ WRONG: Custom responsive classes
+<button className="px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-base">
+  Click
+</button>
+
+// ✅ CORRECT: Use Button with size prop (handles responsiveness)
+<Button size="sm">Click</Button>
+
+// ❌ WRONG: Custom responsive text
+<h2 className="text-lg sm:text-xl md:text-2xl">Title</h2>
+
+// ✅ CORRECT: Use Title component (handles responsiveness)
+<Title size="md">Title</Title>
+```
+
+## Import Patterns
+
+**Always import from centralized location**:
+
+```typescript
+// ✅ CORRECT: Import from ui/index
+import { Button, CancelButton, CloseButton, Title, BodyText, Label } from "../ui";
+// or
+import { Button } from "packages/ui";
+```
+
+**Avoid direct imports from subdirectories** (unless necessary):
+
+```typescript
+// ⚠️ AVOID: Direct import from subdirectory
+import Button from "../ui/button/Button";
+
+// ✅ PREFER: Import from ui/index
+import { Button } from "../ui";
+```
+
+## Migration Guide
+
+When updating existing code:
+
+1. **Find custom button implementations**:
+   - Search for `<button` elements with className containing `px-`, `py-`, `bg-`, `border`, `rounded`
+   - Replace with appropriate Button component variant
+
+2. **Find custom text implementations**:
+   - Search for `<h1>`, `<h2>`, `<h3>` with `text-*` classes → Replace with `Title`
+   - Search for `<p>` with `text-*` classes → Replace with `BodyText`
+   - Search for subtitle-like text → Replace with `Subtitle`
+
+3. **Update imports**:
+   - Add imports from `packages/ui` (or `@/components/ui`)
+   - Remove custom button/text implementations
+
+## Exceptions
+
+The following are allowed exceptions (must be documented):
+
+- Specialized button components in `packages/ui/components/button/` (e.g., `NotInterested`, `HeartSave`) - these are domain-specific
+- Utility CSS classes in `packages/styles/` - these are for internal component styling
+- Email templates - may use inline styles for email compatibility
+
+## Enforcement
+
+- All new code MUST use standardized components
+- When refactoring existing code, replace custom implementations with standardized components
+- Code reviews MUST check for compliance with these rules
+- Linter rules should flag direct button/text implementations
+
+## Component Reference
+
+### Button Variants
+- `primary` - Main action (uses brand-accent = olive; no brown on buttons)
+- `secondary` - Secondary/cancel-style (gray: border, bg, text; no olive)
+- `cancel` - Alias of secondary (gray); use for CancelButton or semantic cancel
+- `outline` - Outlined button (uses brand-accent border)
+- `ghost` - Minimal button (uses brand-accent text)
+- `danger` - Destructive action (uses rose)
+- `success` - Success action (uses brand-secondary)
+- `warning` - Warning action (uses gold-muted)
+
+**IconButton** supports: `primary`, `secondary`, `outline`, `ghost`, `danger`, `toolbar` (minimal toolbar style).
+
+### Button Sizes
+- `xs` - Extra small
+- `sm` - Small
+- `md` - Medium (default)
+- `lg` - Large
+- `xl` - Extra large
+
+### Text Sizes
+- **Title**: `sm`, `md`, `lg`, `xl`
+- **Subtitle**: `xs`, `sm`, `md`, `lg`
+- **BodyText**: `xs`, `sm`, `md`, `lg`
+
+### Text reference copy (what users see)
+- **Title**: Real headings (e.g. "Finances", "Housing", "Location") — use `SECTION_TITLES` or `t()` for section titles.
+- **Subtitle / BodyText**: Real sentences (e.g. "Select your preferences and let our AI find the best homes for you.") — use `t()` for i18n.
+- **Label**: Real field labels (e.g. "Name", "Budget Range") — use `FIELD_LABELS` or `t()`. Never show the constant name or key as the visible text.

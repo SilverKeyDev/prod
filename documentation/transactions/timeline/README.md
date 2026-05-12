@@ -18,4 +18,3 @@ Each document focuses on:
   - Calendar events.
 
 The `09-state-variation-model.md` and `10-compliance-data-and-apis.md` docs explain how we handle jurisdiction-specific variations and compliance-related data.
-

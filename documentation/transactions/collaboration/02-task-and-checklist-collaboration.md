@@ -91,4 +91,3 @@ Invariants:
 - **Activity feed integration**
   - For every significant checklist update:
     - Emit an event into the transaction activity feed (see `07-audit-trail-and-activity-feed.md`).
-

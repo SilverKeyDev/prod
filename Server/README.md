@@ -2,6 +2,20 @@
 
 Python/Flask backend. API, services, and business logic live under `app/`. Do not modify migrations or run migration commands unless you own that workflow.
 
+## Python dependencies
+
+All pins live under **`requirements/`** (from `Server/`, paths are `requirements/…`):
+
+| File | When to use |
+|------|----------------|
+| `requirements/runtime.txt` | Production Docker, full local app (includes heavy ML / geospatial pins). |
+| `requirements/ci.txt` | CI lint / import smoke only; omits large stacks to save disk. |
+| `requirements/test.txt` | With `ci.txt` in backend test CI (see `.github/workflows/test-callable.yml`). |
+| `requirements/dev.txt` | Local pytest, pre-commit, mypy, codegen tools. |
+| `requirements/codegen.txt` | OpenAPI → Pydantic generation scripts only. |
+
+Quick install from `Server/`: `pip install -r requirements/runtime.txt` and, for local test tooling, `pip install -r requirements/dev.txt`. Or from repo root: `bash Server/scripts/bootstrap-venv.sh` (full) or `… --ci` (slim).
+
 ## Testing
 
 The Server uses [pytest](https://pytest.org/) for unit and integration testing with comprehensive coverage reporting.

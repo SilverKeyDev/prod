@@ -19,7 +19,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 import { AddressInput } from "packages/ui/components";
-import { Button } from "packages/ui/components/button/core/Button";
+import Button from "packages/ui/components/button/core/Button";
 import { Icon } from "packages/ui/components/icons";
 import { Box, Pressable } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";

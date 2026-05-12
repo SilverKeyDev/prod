@@ -89,8 +89,8 @@ You do **not** need to move everything at once.
 ## File and Folder Conventions
 
 - **Per-component folder:** e.g. `packages/ui/Button/`.
-- **Platform entry points:**  
-  - **Web:** `index.web.tsx` (or `Button.web.tsx`) — DOM/React for web.  
+- **Platform entry points:**
+  - **Web:** `index.web.tsx` (or `Button.web.tsx`) — DOM/React for web.
   - **Native:** `index.native.tsx` (or `Button.native.tsx`) — React Native.
 - **Barrel:** A shared `index.ts` in the component folder can re-export the component; the bundler (Vite/Metro) will resolve `index.web.tsx` or `index.native.tsx` based on platform. Alternatively, the package’s root `index.ts` re-exports from each component folder (and resolution is again by platform).
 - **Types:** Shared props and types can live in `Button.types.ts` (or similar) and be imported by both `.web.tsx` and `.native.tsx`.

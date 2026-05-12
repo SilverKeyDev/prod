@@ -109,4 +109,3 @@ Adopt **Option A (internal calendar as system of record)**:
 - **Future extensions**
   - For specific cases (e.g. manual ad-hoc events created only in Google):
     - Consider one-off import flows instead of full dual-sync.
-

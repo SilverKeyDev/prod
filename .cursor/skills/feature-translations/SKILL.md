@@ -126,4 +126,3 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   - Validation messages and generic feedback.
 
 When adding new text, default to the feature translation map unless the string is clearly global across multiple features.
-

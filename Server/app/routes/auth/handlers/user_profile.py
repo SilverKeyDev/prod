@@ -136,6 +136,7 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
     Upload profile picture: validate image, upload to S3, update user.profile_picture,
     return presigned URL.
     """
+    from app.config.constants import UPLOAD_FOLDER_DEFAULT
     from app.services.documents import s3_service
     from app.utils.security.app_logging import get_logger
     from app.utils.security.file_security import (
@@ -172,7 +173,7 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
         )
 
     upload_dir = create_secure_upload_directory(
-        current_app.config.get("UPLOAD_FOLDER", "/tmp/uploads"), user.id
+        current_app.config.get("UPLOAD_FOLDER", UPLOAD_FOLDER_DEFAULT), user.id
     )
     temp_file_path = os.path.join(upload_dir, safe_filename)
     file.seek(0)

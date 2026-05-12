@@ -177,4 +177,3 @@ Subsequent docs in:
 - `timeline/*`
 
 will expand on how these entities are created, updated, and surfaced in the UI, and where existing infrastructure should be extended versus replaced.
-

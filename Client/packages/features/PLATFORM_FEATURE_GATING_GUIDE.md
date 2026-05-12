@@ -24,7 +24,7 @@ if (options?.platform === "mobile") {
 }
 
 // ❌ WRONG: Different feature sets per platform
-const features = isWeb 
+const features = isWeb
   ? ["feature1", "feature2", "feature3"]
   : ["feature1", "feature2"]; // Missing feature3 on mobile
 ```
@@ -124,8 +124,8 @@ To convert platform gating to feature flags:
    if (options?.platform === "mobile") {
      return steps.filter(step => step.id !== "financial");
    }
-   
-   // After  
+
+   // After
    const showFinancial = useFeature("financial_onboarding_step");
    if (!showFinancial) {
      return steps.filter(step => step.id !== "financial");

@@ -54,9 +54,9 @@ This document is the **exhaustive** reference for all **shared packages** in the
 
 **Feature module structure:** Each subfolder under `packages/features/<name>/` may only contain: `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`, and `index.ts` (barrel). Enforced by ESLint rule `silverkey/package-module-allowed-children`. See `Client/packages/features/README.md` and `.cursor/rules/shared/package-feature-structure.mdc`.
 
-\* React Query lives in `config/query/`; the rest of config is non-React.  
-\** `services/data/` uses React Query's `QueryClient` for prefetch/polling; otherwise services are framework-agnostic.  
-\*** Contexts use React but no DOM; mobile can consume the same contexts or provide its own provider shell.  
+\* React Query lives in `config/query/`; the rest of config is non-React.
+\** `services/data/` uses React Query's `QueryClient` for prefetch/polling; otherwise services are framework-agnostic.
+\*** Contexts use React but no DOM; mobile can consume the same contexts or provide its own provider shell.
 \**** `packages/ui` uses `.web` / `.native` where needed; CSS files are web-oriented.
 
 **Note:** Email templates may live under `packages/email-templates/`. See [shared-ui-package.md](./shared-ui-package.md) for design-system rationale.

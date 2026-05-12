@@ -83,4 +83,3 @@ Invariants:
   - Calendar events and notifications for:
     - Upcoming inspection window end.
     - Repair request deadlines.
-

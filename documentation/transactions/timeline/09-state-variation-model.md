@@ -81,4 +81,3 @@ Invariants:
     - Representative transactions in multiple states and counties.
   - Tools to:
     - Visualize the timeline produced by a given ruleset/transaction combination.
-

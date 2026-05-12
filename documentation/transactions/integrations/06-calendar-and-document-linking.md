@@ -99,4 +99,3 @@ Invariants:
     - A push target (we create events and keep a local record).
   - Later, if needed:
     - Respond to provider updates (time changes, cancelations) and reconcile back to milestones/checklists.
-

@@ -1,7 +1,7 @@
 # Dependencies for CI lint/typecheck import smoke tests (e.g. lint_circular_imports.py:
 # `from app import create_app` without calling it). Omits heavy ML/GPU/geospatial stacks
 # that are not loaded on that import path — keeps GitHub-hosted runners under disk limits.
-# For production, tests, and full app runtime, use requirements.txt.
+# For production and full local runtime, use requirements/runtime.txt.
 
 # --- Core Flask & Extensions ---
 Flask==2.3.3

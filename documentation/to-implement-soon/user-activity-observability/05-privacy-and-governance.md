@@ -96,4 +96,3 @@ To keep the system healthy over time:
   - Whether any data can be safely down‑sampled, aggregated, or removed.
 
 This document should be the reference point when evaluating new data collection ideas, ensuring they align with SilverKey’s expectations for privacy and responsible observability.
-

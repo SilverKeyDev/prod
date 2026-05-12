@@ -1,0 +1,10 @@
+# Exclude from automatic codebase index only; paths remain @-mentionable.
+# See .cursor/README.md
+
+# Heavy or rarely-needed in default context
+Server/migrations/versions/
+Client/apps/web/e2e/test-results/
+Client/apps/web/e2e/blob-report/
+
+# Large vendored / native trees (attach when working on them)
+Client/apps/mobile/ios/Pods/

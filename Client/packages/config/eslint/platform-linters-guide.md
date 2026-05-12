@@ -15,12 +15,12 @@ The platform consolidation system includes three specialized ESLint rules that p
 
 **Example violation**:
 ```
-UI primitive 'Button.web.tsx' should be documented in packages/config/platform/primitives.json. 
-This appears to be a platform-specific UI component that needs justification. 
+UI primitive 'Button.web.tsx' should be documented in packages/config/platform/primitives.json.
+This appears to be a platform-specific UI component that needs justification.
 Use the 'resolve-primitives-violation' skill for guidance on proper documentation.
 ```
 
-### 2. `silverkey/variants-justification`  
+### 2. `silverkey/variants-justification`
 **Purpose**: Ensures files using platform-specific technology dependencies are documented.
 
 **Triggers on**: Files importing platform-specific libraries (react-dom, react-native, framer-motion, etc.).
@@ -29,8 +29,8 @@ Use the 'resolve-primitives-violation' skill for guidance on proper documentatio
 
 **Example violation**:
 ```
-Technology variant 'VideoPlayer.web.tsx' should be documented in packages/config/platform/variants.json. 
-This file appears to use platform-specific dependencies and needs justification for why it cannot be shared. 
+Technology variant 'VideoPlayer.web.tsx' should be documented in packages/config/platform/variants.json.
+This file appears to use platform-specific dependencies and needs justification for why it cannot be shared.
 Use the 'resolve-variants-violation' skill for guidance on proper documentation.
 ```
 
@@ -43,8 +43,8 @@ Use the 'resolve-variants-violation' skill for guidance on proper documentation.
 
 **Example violation**:
 ```
-Layout file 'HomeScreen.native.tsx' should be documented in packages/config/platform/layouts.json. 
-This appears to implement different layout patterns between platforms and needs justification. 
+Layout file 'HomeScreen.native.tsx' should be documented in packages/config/platform/layouts.json.
+This appears to implement different layout patterns between platforms and needs justification.
 Use the 'resolve-layouts-violation' skill for guidance on proper documentation.
 ```
 
@@ -53,7 +53,7 @@ Use the 'resolve-layouts-violation' skill for guidance on proper documentation.
 Each linter checks against its corresponding configuration file:
 
 - **Primitives**: `packages/config/platform/primitives.json`
-- **Variants**: `packages/config/platform/variants.json`  
+- **Variants**: `packages/config/platform/variants.json`
 - **Layouts**: `packages/config/platform/layouts.json`
 
 ## Resolution Workflow
@@ -87,7 +87,7 @@ When you encounter a violation:
 **Detects**: Files in primitive-related paths or with primitive component names
 **Patterns**: `/primitives/`, `/button/`, `/input/`, `Button.web.tsx`, etc.
 
-### Variants Linter  
+### Variants Linter
 **Detects**: Files importing platform-specific dependencies
 **Dependencies**: react-dom, react-native, framer-motion, react-virtuoso, etc.
 
@@ -103,7 +103,7 @@ Update the pattern arrays in each linter rule:
 - `variants-justification.js`: Update `PLATFORM_DEPENDENCIES` arrays
 - `layouts-justification.js`: Update `isLayoutFile()` patterns
 
-### Performance Optimization  
+### Performance Optimization
 All linters use 5-second caching for config file reads to minimize I/O overhead.
 
 ## Testing the Linters

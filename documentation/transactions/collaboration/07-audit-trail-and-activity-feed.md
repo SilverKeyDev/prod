@@ -81,4 +81,3 @@ Invariants:
   - A transaction-level activity feed component that:
     - Supports filtering and search.
     - Provides clear, human-readable summaries.
-

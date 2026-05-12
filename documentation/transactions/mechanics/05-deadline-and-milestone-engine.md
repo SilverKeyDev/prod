@@ -115,4 +115,3 @@ We should **build the engine as a backend service** and surface milestone result
     - Checklists (for deadlines).
     - Calendar (for events).
     - Notifications (for upcoming/overdue detection).
-

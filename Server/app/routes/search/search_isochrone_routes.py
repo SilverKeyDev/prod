@@ -2,6 +2,8 @@
 
 from flask import current_app, jsonify, request
 
+from logger import LOG_CATEGORIES, log
+
 from ...services.search.helpers.geometry_helpers import geocode_address_google
 from ...services.search.helpers.preferences_helpers import (
     get_authenticated_user,
@@ -48,8 +50,25 @@ def get_isochrone():
         important_locations, loc_error = parse_important_locations(user_preferences or {})
         if loc_error:
             current_app.logger.warning("[ISOCHRONE] %s", loc_error)
+            log.warn(
+                LOG_CATEGORIES["ERRORS"],
+                "[ISOCHRONE] 400 NO_LOCATIONS (parse important_locations failed)",
+                {
+                    "prefs_user_id": str(resolved_prefs_uid),
+                    "requested_preferences_user_id": requested,
+                    "parse_error": loc_error,
+                },
+            )
             return jsonify({"success": False, "error": "NO_LOCATIONS", "message": loc_error}), 400
         if not important_locations:
+            log.warn(
+                LOG_CATEGORIES["ERRORS"],
+                "[ISOCHRONE] 400 NO_LOCATIONS (empty important_locations list)",
+                {
+                    "prefs_user_id": str(resolved_prefs_uid),
+                    "requested_preferences_user_id": requested,
+                },
+            )
             return jsonify(
                 {
                     "success": False,
@@ -104,6 +123,15 @@ def get_isochrone():
                     )
 
         if not addresses_and_minutes:
+            log.warn(
+                LOG_CATEGORIES["ERRORS"],
+                "[ISOCHRONE] 400 NO_VALID_LOCATIONS (no non-blank addresses after parsing)",
+                {
+                    "prefs_user_id": str(resolved_prefs_uid),
+                    "requested_preferences_user_id": requested,
+                    "important_location_count": len(important_locations),
+                },
+            )
             return jsonify(
                 {
                     "success": False,

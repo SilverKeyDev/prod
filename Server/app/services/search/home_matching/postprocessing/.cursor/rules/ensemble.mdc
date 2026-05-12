@@ -1,0 +1,8 @@
+---
+description: Ensemble/blending rules
+globs:
+  - "Server/app/home_matching/ensemble/**"
+alwaysApply: false
+---
+- Blend scores with documented strategy; keep weights and methods configurable.
+- Add unit tests for blending math; avoid silent clipping/normalization.

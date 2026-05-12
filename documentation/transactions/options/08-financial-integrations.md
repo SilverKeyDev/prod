@@ -83,4 +83,3 @@ Adopt **Option A (plug-in style IntegrationTask)** and:
 - **Focus on security and compliance from the start**
   - Encapsulate financial logic in dedicated services.
   - Follow existing patterns for secret management and logging.
-

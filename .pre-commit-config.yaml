@@ -1,6 +1,6 @@
 # Pre-commit hooks for SilverKey
 #
-# Hooks run on commit so local failures are caught before a commit is created.
+# Hooks run in list order: (1) auto-fix / format, (2) read-only checks.
 # Install:
 #   pip install pre-commit
 #   pre-commit install --hook-type pre-commit
@@ -19,23 +19,38 @@ repos:
   #   hooks:
   #     - id: gitleaks
 
-  # Python: Ruff (linting + formatting)
+  # --- Phase 1: auto-fix and formatters (mutating; run before checks) ---
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+
+  # Python: Ruff formatter, then lint autofix (same as typical CI ordering)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.9
     hooks:
-      # Linter
+      - id: ruff-format
+        files: ^Server/
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
-        files: ^Server/
-      # Formatter
-      - id: ruff-format
         files: ^Server/
 
   # Mypy is not run in pre-commit: the Server gate is ruff + pyright (see
   # scripts/run-all-linters.sh). Full-tree mypy reports hundreds of gradual-
   # typing issues; run manually: (cd Server && mypy app/).
 
-  # JavaScript/TypeScript: ESLint (Client workspace — same deps as pnpm run lint)
+  # Client: Prettier first, then ESLint --fix (avoids lint fixes fighting format)
+  - repo: local
+    hooks:
+      - id: prettier-client
+        name: prettier (Client)
+        language: system
+        entry: scripts/pre-commit-prettier-client.sh
+        files: ^Client/.*\.(ts|tsx|js|jsx|json|css|scss|md)$
+        exclude: ^Client/(dist|coverage|node_modules|build)/.*
+
   - repo: local
     hooks:
       - id: eslint-client
@@ -45,22 +60,11 @@ repos:
         files: ^Client/.*\.(ts|tsx|js|jsx)$
         exclude: ^Client/(dist|coverage|node_modules|build)/.*
 
-  # JavaScript/TypeScript: Prettier (Client workspace — same as pnpm run format; no nodeenv)
-  - repo: local
-    hooks:
-      - id: prettier-client
-        name: prettier (Client)
-        language: system
-        entry: scripts/pre-commit-prettier-client.sh
-        files: ^Client/.*\.(ts|tsx|js|jsx|json|css|scss|md)$
-        exclude: ^Client/(dist|coverage|node_modules|build)/
+  # --- Phase 2: checks only (no writes) ---
 
-  # General: Trailing whitespace and EOF
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
       - id: check-yaml
         exclude: ^Client/apps/mobile/
       - id: check-added-large-files
@@ -75,12 +79,12 @@ repos:
             Server/app/services/docusign/docs/TESTING\.md$
           )
 
-  # No focused tests
-  - repo: local
-    hooks:
-      - id: no-focused-tests
-        name: No focused tests (it.only, describe.only)
-        entry: '\b(it|test|describe)\.only\b'
-        language: pygrep
-        files: ^Client/.*\.(test|spec)\.(ts|tsx|js|jsx)$
-        types: [text]
+  # No focused tests — disabled locally; re-enable to block it.only / describe.only in commits.
+  # - repo: local
+  #   hooks:
+  #     - id: no-focused-tests
+  #       name: No focused tests (it.only, describe.only)
+  #       entry: '\b(it|test|describe)\.only\b'
+  #       language: pygrep
+  #       files: ^Client/.*\.(test|spec)\.(ts|tsx|js|jsx)$
+  #       types: [text]

@@ -123,5 +123,4 @@ To avoid schema chaos over time:
 - Prefer **additive changes** to the schema (adding optional fields) over breaking changes.
 - When a breaking change is necessary, introduce a new `eventType` or a versioned field (e.g. `eventType: checklist_item_completed.v2`) and document the difference here.
 
-This document should be updated as we add new categories of events or refine the schema, so that all parts of the stack keep emitting compatible data. 
-
+This document should be updated as we add new categories of events or refine the schema, so that all parts of the stack keep emitting compatible data.

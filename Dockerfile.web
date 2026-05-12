@@ -5,54 +5,54 @@
 
   # Use bash with pipefail
   SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-  
+
   WORKDIR /app/client
-  
+
   # Install pnpm (quiet)
   RUN npm install -g pnpm@9.0.0 >/dev/null 2>&1
-  
+
   # build-time variables
   ARG VITE_GOOGLE_MAPS_ID
   ARG VITE_PLAID_CLIENT_ID
   ARG VITE_GOOGLE_CLIENT_ID
-  
+
   # Promote to ENV
   ENV VITE_GOOGLE_MAPS_ID=${VITE_GOOGLE_MAPS_ID}
   ENV VITE_PLAID_CLIENT_ID=${VITE_PLAID_CLIENT_ID}
   ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
-  
+
   # Copy client source (package files first for better layer cache when only app code changes)
   COPY Client/package.json Client/pnpm-workspace.yaml Client/pnpm-lock.yaml ./
   COPY Client/ .
   RUN rm -rf apps/mobile
-  
+
   # Single install (avoids pnpm fetch which can hang for hours in Docker/CI).
   # 20min timeout so the build fails instead of hanging indefinitely.
   RUN timeout 1200 pnpm install --frozen-lockfile --prod=false --reporter=default \
    && rm -rf /tmp/* || true
-  
+
   # Headroom for Rollup
   ENV NODE_OPTIONS="--max-old-space-size=3072"
-  
+
   # Vite build (if build fails, this RUN fails so CI shows the error)
   RUN pnpm --reporter=silent run -s build:web -- --logLevel warn \
    && rm -rf /tmp/*
 
   # Verify assets exist (build must produce Client/dist when run from WORKDIR /app/client)
   RUN test -d dist && [ "$(ls -A dist)" ] || (echo "dist missing or empty!" >&2 && exit 1)
-  
+
   # ----------------------------
   # Stage 2: Build Flask backend
   # ----------------------------
   FROM python:3.11-slim AS backend
-  
+
   SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-  
+
   ENV PYTHONDONTWRITEBYTECODE=1
   ENV PYTHONUNBUFFERED=1
-  
+
   WORKDIR /app/Server
-  
+
   # System packages (quiet)
   RUN apt-get update -qq >/dev/null 2>&1 \
    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -qq \
@@ -66,21 +66,21 @@
         libgdal-dev >/dev/null 2>&1 \
    && apt-get clean >/dev/null 2>&1 \
    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-  
-  # Python deps (quiet)
-  COPY Server/requirements.txt ./
+
+  # Python deps (quiet); pins live in Server/requirements/
+  COPY Server/requirements ./requirements
   RUN pip install --upgrade pip setuptools wheel --quiet --disable-pip-version-check \
-   && pip install --no-cache-dir --prefer-binary -r requirements.txt --quiet --disable-pip-version-check \
+   && pip install --no-cache-dir --prefer-binary -r requirements/runtime.txt --quiet --disable-pip-version-check \
    && pip cache purge >/dev/null 2>&1 \
    && rm -rf /tmp/* /var/tmp/* ~/.cache/pip
-  
+
   # App code
   COPY Server/ .
-  
+
   # Bring built frontend from stage 1
   COPY --from=frontend /app/client/dist /app/Client/dist
-  
+
   EXPOSE 5000
-  
+
   # Start Flask with Gunicorn
-  CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]  
+  CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]

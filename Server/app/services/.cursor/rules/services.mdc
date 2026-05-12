@@ -1,0 +1,11 @@
+---
+description: Backend services rules (business logic, integrations)
+globs:
+  - "Server/app/services/**"
+alwaysApply: false
+---
+# Services
+- Implement business logic here; keep functions pure where possible and testable.
+- Validate inputs and handle errors; raise domain errors mapped by routes.
+- Use parameterized queries/ORM-safe access via models; no raw SQL concatenation.
+- Interact with external services (Stripe, Plaid, AWS) via dedicated clients.
