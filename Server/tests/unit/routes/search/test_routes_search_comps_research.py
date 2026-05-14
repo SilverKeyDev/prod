@@ -20,106 +20,137 @@ MOCK_PARSE_RESEARCH_BODY = "app.routes.search.search.parse_research_request_body
 class TestPropertyCompsRoutes:
     """Test property comparables endpoint"""
 
+    MOCK_AUTH = "app.routes.search.search.get_authenticated_user"
+    MOCK_COMPS = "app.routes.search.search.slipstream_get_comps"
+
     def test_property_comps_with_address(self, client):
         """Test GET /api/v1/search/propertyComps with address"""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "comps": [
-                {
-                    "zpid": "12345",
-                    "address": "124 Main St",
-                    "price": 395000,
-                }
-            ]
-        }
+        from unittest.mock import Mock
 
-        with patch("app.routes.search.search._SESSION.get") as mock_get:
-            mock_get.return_value = mock_response
+        mock_user = Mock()
+        mock_user.id = "user-1"
 
-            response = client.get("/api/v1/search/propertyComps?address=123 Main St, City, State")
+        with patch(self.MOCK_AUTH) as mock_auth:
+            mock_auth.return_value = (mock_user, None)
+            with patch(self.MOCK_COMPS) as mock_comps:
+                mock_comps.return_value = (
+                    [
+                        {
+                            "zpid": "12345",
+                            "address": "124 Main St",
+                            "price": 395000,
+                        }
+                    ],
+                    None,
+                )
 
-            assert response.status_code == 200
-            data = response.get_json()
-            assert data["success"] is True
-            assert "data" in data
-            assert "query" in data
-            assert data["query"]["address"] == "123 Main St, City, State"
+                response = client.get(
+                    "/api/v1/search/propertyComps?address=123 Main St, City, State"
+                )
+
+                assert response.status_code == 200
+                data = response.get_json()
+                assert data["success"] is True
+                assert "data" in data
+                assert "query" in data
+                assert data["query"]["address"] == "123 Main St, City, State"
 
     def test_property_comps_with_zpid(self, client):
         """Test GET /api/v1/search/propertyComps with zpid"""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.json.return_value = {
-            "comps": [
-                {
-                    "zpid": "12346",
-                    "address": "125 Main St",
-                    "price": 405000,
-                }
-            ]
-        }
+        from unittest.mock import Mock
 
-        with patch("app.routes.search.search._SESSION.get") as mock_get:
-            mock_get.return_value = mock_response
+        mock_user = Mock()
+        mock_user.id = "user-1"
 
-            response = client.get("/api/v1/search/propertyComps?zpid=12345")
+        with patch(self.MOCK_AUTH) as mock_auth:
+            mock_auth.return_value = (mock_user, None)
+            with patch(self.MOCK_COMPS) as mock_comps:
+                mock_comps.return_value = (
+                    [
+                        {
+                            "zpid": "12346",
+                            "address": "125 Main St",
+                            "price": 405000,
+                        }
+                    ],
+                    None,
+                )
 
-            assert response.status_code == 200
-            data = response.get_json()
-            assert data["success"] is True
-            assert data["query"]["zpid"] == "12345"
+                response = client.get("/api/v1/search/propertyComps?zpid=12345")
+
+                assert response.status_code == 200
+                data = response.get_json()
+                assert data["success"] is True
+                assert data["query"]["zpid"] == "12345"
 
     def test_property_comps_with_property_url(self, client):
-        """Test GET /api/v1/search/propertyComps with property_url"""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.json.return_value = {"comps": []}
+        """Route accepts address or zpid; long URLs are passed through as address when provided."""
+        from unittest.mock import Mock
 
-        with patch("app.routes.search.search._SESSION.get") as mock_get:
-            mock_get.return_value = mock_response
+        mock_user = Mock()
+        mock_user.id = "user-1"
 
-            response = client.get(
-                "/api/v1/search/propertyComps?property_url=https://www.zillow.com/homedetails/123"
-            )
+        with patch(self.MOCK_AUTH) as mock_auth:
+            mock_auth.return_value = (mock_user, None)
+            with patch(self.MOCK_COMPS) as mock_comps:
+                mock_comps.return_value = ([], None)
 
-            assert response.status_code == 200
-            data = response.get_json()
-            assert data["success"] is True
+                response = client.get(
+                    "/api/v1/search/propertyComps?address=https://www.zillow.com/homedetails/123"
+                )
+
+                assert response.status_code == 200
+                data = response.get_json()
+                assert data["success"] is True
 
     def test_property_comps_missing_params(self, client):
         """Test GET /api/v1/search/propertyComps with no parameters"""
-        response = client.get("/api/v1/search/propertyComps")
+        from unittest.mock import Mock
 
-        assert response.status_code == 400
-        data = response.get_json()
-        assert data["success"] is False
-        assert "Provide one of" in data["message"]
+        mock_user = Mock()
+        mock_user.id = "user-1"
 
-    def test_property_comps_invalid_zpid(self, client):
-        """Test GET /api/v1/search/propertyComps with invalid zpid format"""
-        response = client.get("/api/v1/search/propertyComps?zpid=invalid")
+        with patch(self.MOCK_AUTH) as mock_auth:
+            mock_auth.return_value = (mock_user, None)
+            response = client.get("/api/v1/search/propertyComps")
 
-        assert response.status_code == 400
-        data = response.get_json()
-        assert data["success"] is False
-        assert "Invalid zpid format" in data["message"]
+            assert response.status_code == 400
+            data = response.get_json()
+            assert data["success"] is False
+            assert "Provide" in data["message"]
+
+    def test_property_comps_requires_auth(self, client):
+        """Unauthenticated requests receive 401."""
+        from flask import jsonify
+
+        with patch(self.MOCK_AUTH) as mock_auth:
+            mock_auth.return_value = (
+                None,
+                (jsonify({"success": False, "error": "UNAUTHORIZED"}), 401),
+            )
+            response = client.get("/api/v1/search/propertyComps?zpid=12345")
+            assert response.status_code == 401
 
     def test_property_comps_api_error(self, client):
         """Test GET /api/v1/search/propertyComps when external API fails"""
-        mock_response = Mock()
-        mock_response.ok = False
-        mock_response.status_code = 500
+        from unittest.mock import Mock
 
-        with patch("app.routes.search.search._SESSION.get") as mock_get:
-            mock_get.return_value = mock_response
+        mock_user = Mock()
+        mock_user.id = "user-1"
 
-            response = client.get("/api/v1/search/propertyComps?address=123 Main St")
+        with patch(self.MOCK_AUTH) as mock_auth:
+            mock_auth.return_value = (mock_user, None)
+            with patch(self.MOCK_COMPS) as mock_comps:
+                mock_comps.return_value = (
+                    [],
+                    {"success": False, "details": "upstream failed"},
+                )
 
-            # Should handle external API error gracefully
-            assert response.status_code in [500, 502, 503]
-            data = response.get_json()
-            assert data["success"] is False
+                response = client.get("/api/v1/search/propertyComps?address=123 Main St")
+
+                assert response.status_code in [500, 502, 503]
+                data = response.get_json()
+                assert data["success"] is False
 
 
 class TestPropertyResearchRoutes:

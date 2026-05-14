@@ -15,6 +15,9 @@ from ..home_matching.config.match import find_best_matches
 from ..home_matching.mcda import MCDA_CONFIG, score_listing_mcda
 from ..home_matching.preprocessing.home_input_data import format_homes_data_from_api
 
+_REDIS_SOCKET_CONNECT_TIMEOUT_S = 5.0
+_REDIS_SOCKET_TIMEOUT_S = 5.0
+
 
 def score_and_sort_properties(
     properties: list[dict[str, Any]],
@@ -103,12 +106,24 @@ def _sort_with_redis(
     try:
         redis_url = os.getenv("REDIS_URL", "").strip()
         if redis_url:
-            redis_client = redis.Redis.from_url(redis_url, decode_responses=False)
+            redis_client = redis.Redis.from_url(
+                redis_url,
+                decode_responses=False,
+                socket_connect_timeout=_REDIS_SOCKET_CONNECT_TIMEOUT_S,
+                socket_timeout=_REDIS_SOCKET_TIMEOUT_S,
+                retry_on_timeout=True,
+            )
         else:
             redis_host = os.getenv("REDIS_HOST", "localhost")
             redis_port = int(os.getenv("REDIS_PORT", 6379))
             redis_client = redis.Redis(
-                host=redis_host, port=redis_port, db=0, decode_responses=False
+                host=redis_host,
+                port=redis_port,
+                db=0,
+                decode_responses=False,
+                socket_connect_timeout=_REDIS_SOCKET_CONNECT_TIMEOUT_S,
+                socket_timeout=_REDIS_SOCKET_TIMEOUT_S,
+                retry_on_timeout=True,
             )
 
         sort_key = f"property_scores:{request_id}:{int(time.time())}"

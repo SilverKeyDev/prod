@@ -73,9 +73,6 @@ export function isSetBudgetStepComplete(formData: Partial<OnboardingData>): bool
   if (!nonEmptyTrimmed(formData.credit_score_range)) {
     return false;
   }
-  if (!nonEmptyTrimmed(formData.ideal_zip_code)) {
-    return false;
-  }
   return true;
 }
 

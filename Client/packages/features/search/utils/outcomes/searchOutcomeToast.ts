@@ -1,5 +1,6 @@
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
+import { HttpError, TimeoutError } from "packages/services/http/compatibility";
 import { SUPPORTED_SERVICE_AREA_WARNING } from "packages/utils/search/locations/serviceAreaAvailability";
 
 const MAX_ERROR_MESSAGE_LEN = 200;
@@ -35,6 +36,19 @@ export function warnSearchEmptyResults(options: { preferencesStrictFilter: boole
 
 export function warnSearchFailed(error: unknown): void {
   showWarningToast(userFacingSearchErrorMessage(error));
+}
+
+/** Gateway / upstream failures and client timeouts — clearer recovery than generic search failed. */
+export function warnSearchServerOrTimeout(error: unknown): void {
+  if (error instanceof TimeoutError) {
+    showWarningToast(translation("search.search_timeout_retry"));
+    return;
+  }
+  if (error instanceof HttpError && error.status >= 502 && error.status <= 504) {
+    showWarningToast(translation("search.search_server_unavailable"));
+    return;
+  }
+  warnSearchFailed(error);
 }
 
 export function warnSearchAreaInvalid(kind: "isochrone_api" | "geometry" | "viewport"): void {

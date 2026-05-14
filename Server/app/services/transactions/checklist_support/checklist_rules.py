@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import Any
 
 
@@ -185,6 +186,12 @@ def merge_task_checklist_checked_ids(
         elif isinstance(x, float) and x == int(x):
             req.add(int(x))
     req &= valid
+    for it in items:
+        if _completion_type_raw(it) == "signature_based":
+            try:
+                req.discard(int(it["id"]))
+            except (KeyError, TypeError, ValueError):
+                continue
 
     old_checked: set[int] = set()
     for x in old_checked_ids:
@@ -208,3 +215,102 @@ def merge_task_checklist_checked_ids(
             break
 
     return sorted(checked)
+
+
+# Stable codes for logs and optional API diagnostics (no PII).
+MERGE_REASON_SIGNATURE_BASED = "signature_based"
+MERGE_REASON_SELECTABLE_WHEN = "selectable_when"
+MERGE_REASON_SEQUENTIAL_ORDER = "sequential_order"
+MERGE_REASON_PRUNED = "pruned"
+
+
+@dataclass(frozen=True)
+class TaskChecklistMergeResult:
+    """Outcome of merging a requested checked-id set with checklist rules."""
+
+    effective_ids: list[int]
+    """Ids present in the client request but absent after merge (subset of template ids)."""
+    stripped_requested_ids: list[int] = field(default_factory=list)
+    """Parallel to stripped_requested_ids: one reason code per stripped id (same order)."""
+    stripped_reason_codes: list[str] = field(default_factory=list)
+
+
+def _classify_stripped_id(
+    iid: int,
+    *,
+    sorted_items: list[dict[str, Any]],
+    id_to_item: dict[int, dict[str, Any]],
+    effective: frozenset[int],
+) -> str:
+    item = id_to_item.get(iid)
+    if item is None:
+        return MERGE_REASON_PRUNED
+    if _completion_type_raw(item) == "signature_based":
+        return MERGE_REASON_SIGNATURE_BASED
+    idx = next(
+        (k for k, it in enumerate(sorted_items) if int(it["id"]) == iid),
+        None,
+    )
+    if idx is not None and not item.get("allow_unordered_check"):
+        for j in range(idx):
+            try:
+                prev_id = int(sorted_items[j]["id"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if prev_id not in effective:
+                return MERGE_REASON_SEQUENTIAL_ORDER
+    sel = item.get("selectable_when")
+    if sel and not evaluate_checklist_condition(sel, set(effective)):
+        return MERGE_REASON_SELECTABLE_WHEN
+    return MERGE_REASON_PRUNED
+
+
+def apply_task_checklist_merge(
+    items: list[dict[str, Any]],
+    requested_ids: list[int] | list[float],
+    old_checked_ids: set[int] | frozenset[int],
+) -> TaskChecklistMergeResult:
+    """
+    Run merge and return effective ids plus deterministic reasons for template ids
+    present in the request but absent after merge (includes signature_based requests).
+    """
+    valid: set[int] = set()
+    for it in items:
+        try:
+            valid.add(int(it["id"]))
+        except (KeyError, TypeError, ValueError):
+            continue
+
+    requested_valid: set[int] = set()
+    for x in requested_ids:
+        if isinstance(x, bool):
+            continue
+        if isinstance(x, int):
+            requested_valid.add(x)
+        elif isinstance(x, float) and x == int(x):
+            requested_valid.add(int(x))
+    requested_valid &= valid
+
+    effective_list = merge_task_checklist_checked_ids(
+        items, sorted(requested_valid), old_checked_ids
+    )
+    effective = frozenset(effective_list)
+    stripped_sorted = sorted(x for x in requested_valid if x not in effective)
+    sorted_items = sort_task_checklist_items(list(items))
+    id_to_item: dict[int, dict[str, Any]] = {}
+    for it in sorted_items:
+        try:
+            id_to_item[int(it["id"])] = it
+        except (KeyError, TypeError, ValueError):
+            continue
+    reasons = [
+        _classify_stripped_id(
+            iid, sorted_items=sorted_items, id_to_item=id_to_item, effective=effective
+        )
+        for iid in stripped_sorted
+    ]
+    return TaskChecklistMergeResult(
+        effective_ids=effective_list,
+        stripped_requested_ids=stripped_sorted,
+        stripped_reason_codes=reasons,
+    )

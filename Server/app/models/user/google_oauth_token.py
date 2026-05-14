@@ -33,6 +33,7 @@ class GoogleOAuthToken(db.Model):
     has_openid: Mapped[bool] = mapped_column(default=False)
     has_calendar_freebusy: Mapped[bool] = mapped_column(default=False)
     has_calendar_app_created: Mapped[bool] = mapped_column(default=False)
+    # Legacy columns on user_google_tokens; no longer granted or updated from scope strings.
     has_calendar_calendarlist_readonly: Mapped[bool] = mapped_column(default=False)
     has_calendar_events_freebusy: Mapped[bool] = mapped_column(default=False)
 

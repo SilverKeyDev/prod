@@ -34,14 +34,21 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
     // refetch that re-runs remote sync and can wipe in-progress field edits.
   }, [queryClient]);
 
-  const { updateFormData: updateFormDataWithAutoSave, autoSave } = useAutoSavePreferences({
+  const {
+    updateFormData: updateFormDataWithAutoSave,
+    autoSave,
+    flushSave,
+  } = useAutoSavePreferences({
     refreshUserPreferences,
     showErrorToastOnError: true,
-    successToastMessage: t("common.saved"),
+    showSuccessToastOnSave: false,
+    debounceMs: 400,
     onAfterSave,
   });
 
   const [formData, setFormData] = useState<Partial<OnboardingData>>({});
+  const formDataRef = useRef(formData);
+  formDataRef.current = formData;
   const [homePriceResult, setHomePriceResult] = useState<HomePriceResult | null>(null);
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
@@ -135,16 +142,23 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
   const stepComplete = useMemo(() => isSetBudgetStepComplete(formData), [formData]);
 
   const handleSubmitStep = useCallback(() => {
-    if (!isSetBudgetStepComplete(formData)) {
-      showWarningToast(
-        t("checklists.step.incomplete_warning", {
-          defaultValue: "Complete all required fields in this step before submitting.",
-        })
-      );
-      return;
-    }
-    onComplete?.();
-  }, [formData, onComplete, t]);
+    void (async () => {
+      if (!isSetBudgetStepComplete(formDataRef.current)) {
+        showWarningToast(
+          t("checklists.step.incomplete_warning", {
+            defaultValue: "Complete all required fields in this step before submitting.",
+          })
+        );
+        return;
+      }
+      try {
+        await flushSave(formDataRef.current);
+      } catch {
+        return;
+      }
+      onComplete?.();
+    })();
+  }, [flushSave, onComplete, t]);
 
   return (
     <Card border="dotted" padding="md" className="mb-2">

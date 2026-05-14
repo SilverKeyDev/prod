@@ -5,7 +5,6 @@ import ChecklistIntegrationSlot from "packages/features/checklists/components/sl
 import {
   ChecklistStepHeaderSubmitButton,
   ChecklistStepSubmitProvider,
-  useChecklistStepSubmitRegistry,
 } from "packages/features/checklists/components/steps/ChecklistStepSubmitContext";
 import type { ChecklistCloseLayoutCheckboxItem } from "packages/features/checklists/types/checklistCloseLayout";
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
@@ -39,7 +38,7 @@ export type ChecklistLayoutItemRowProps = {
     itemId: number
   ) => ChecklistItemToggleEligibility;
   /** Guarded toggle (progress rules) for checkbox */
-  onToggleItem: (id: number) => void;
+  onToggleItem: (id: number) => void | Promise<void>;
   /** Direct API toggle for integration onComplete */
   commitToggleItem: (id: number) => void | Promise<void>;
   toggleExpand: (id: number) => void;
@@ -59,7 +58,6 @@ function ChecklistLayoutItemRowInner({
   toggleExpand,
   isExpanded,
 }: ChecklistLayoutItemRowProps) {
-  const submitRegistry = useChecklistStepSubmitRegistry();
   const rowChecked = !!checkedById[item.id];
   const { canCheck, canUncheck, canMarkChecked } = getItemToggleEligibility(roadmapTab, item.id);
   const checkboxDisabled = (!rowChecked && !canCheck) || (rowChecked && !canUncheck);
@@ -70,7 +68,7 @@ function ChecklistLayoutItemRowInner({
     if (checkboxDisabled) {
       setConfirmOpen(true);
     } else {
-      onToggleItem(item.id);
+      void onToggleItem(item.id);
     }
   }, [checkboxDisabled, item.id, onToggleItem]);
 
@@ -92,6 +90,9 @@ function ChecklistLayoutItemRowInner({
   const isActive = activeItemIds.includes(item.id);
   const shouldShowIntegration = (item as { component_key?: string }).component_key != null;
   const expanded = isExpanded(item.id);
+  // Step expand/collapse is presentation-only: when expanded, show the full step (details +
+  // integration) so users can open any row and see all in-step context regardless of which step
+  // is active, without visibility implying or changing completion state.
   const showDetails = expanded;
   const showIntegrationBlock = shouldShowIntegration && expanded;
 
@@ -104,8 +105,6 @@ function ChecklistLayoutItemRowInner({
     resource: item.resource ?? undefined,
     optional: item.optional ?? undefined,
   };
-
-  const hasHeaderSubmit = Boolean(submitRegistry?.registration);
 
   return (
     <>
@@ -140,16 +139,14 @@ function ChecklistLayoutItemRowInner({
           </Box>
           <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-2">
             <ChecklistStepHeaderSubmitButton integrationVisible={showIntegrationBlock} />
-            {hasHeaderSubmit ? null : (
-              <IconButton
-                variant="ghost"
-                size="sm"
-                iconName={expanded ? "chevron-down" : "chevron-right"}
-                label={expanded ? "Collapse step" : "Expand step"}
-                onPress={() => toggleExpand(item.id)}
-                className="text-text-secondary hover:text-text-primary flex h-6 w-6 flex-shrink-0"
-              />
-            )}
+            <IconButton
+              variant="ghost"
+              size="sm"
+              iconName={expanded ? "chevron-down" : "chevron-right"}
+              label={expanded ? "Collapse step" : "Expand step"}
+              onPress={() => toggleExpand(item.id)}
+              className="text-text-secondary hover:text-text-primary flex h-6 w-6 flex-shrink-0"
+            />
           </Box>
         </Box>
         {showIntegrationBlock ? (

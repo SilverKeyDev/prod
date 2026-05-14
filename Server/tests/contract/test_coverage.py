@@ -15,7 +15,8 @@ import yaml
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _OPENAPI_PATH = _REPO_ROOT / "openapi" / "openapi.yaml"
 
-# Path templates or prefixes exercised by tests/contract/test_openapi_contracts.py
+# Path templates or prefixes exercised by tests under tests/contract/
+# (OpenAPI contracts plus health probes in test_health_probes.py).
 _CONTRACT_TESTED_PATHS: frozenset[str] = frozenset(
     {
         "/api/v1/user/profile",
@@ -23,6 +24,9 @@ _CONTRACT_TESTED_PATHS: frozenset[str] = frozenset(
         "/api/v1/agent/search-agents",
         "/api/v1/agent/recommended-agents",
         "/api/v1/auth/login",
+        "/livez",
+        "/healthz",
+        "/readyz",
     }
 )
 

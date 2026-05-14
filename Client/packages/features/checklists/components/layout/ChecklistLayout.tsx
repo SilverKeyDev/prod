@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { ChecklistUpdatePendingProvider } from "packages/features/checklists/components/roadmap/ChecklistUpdatePendingProvider";
 import {
   type ChecklistType,
   useChecklistData,
@@ -24,6 +25,8 @@ import {
   parseChecklistTypeFromApiEndpoint,
 } from "packages/features/checklists/utils/rules/checklistTypeTab";
 import { sortTaskChecklistItems } from "packages/features/checklists/utils/sort/sortTaskChecklistItems";
+import { showErrorToast } from "packages/hooks/ui";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/primitives/divider/dividerStyles";
@@ -63,6 +66,7 @@ export default function CloseLayout({
     activeItemId,
     activeItemIds,
     isLoading: loading,
+    isChecklistUpdatePending,
     toggleItem,
   } = useChecklistData(checklistType);
   const { getItemToggleEligibility } = useChecklistProgress();
@@ -78,15 +82,27 @@ export default function CloseLayout({
     return mapping;
   }, [checkedIds]);
 
-  const toggle = (id: number) => {
-    const rowChecked = checkedIds.includes(id);
-    const { canUncheck, canMarkChecked } = getItemToggleEligibility(roadmapTab, id);
-    if (rowChecked && !canUncheck) return;
-    if (!rowChecked && !canMarkChecked) return;
-    void toggleItem(id);
-  };
+  const toggle = useCallback(
+    async (id: number) => {
+      const rowChecked = checkedIds.includes(id);
+      const { canUncheck, canMarkChecked } = getItemToggleEligibility(roadmapTab, id);
+      if (rowChecked && !canUncheck) return;
+      if (!rowChecked && !canMarkChecked) return;
+      try {
+        await toggleItem(id);
+      } catch (error: unknown) {
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to update checklist item", error);
+        showErrorToast(
+          t("checklists.update_error", {
+            defaultValue: "Could not update this step. Please try again.",
+          })
+        );
+      }
+    },
+    [checkedIds, getItemToggleEligibility, roadmapTab, t, toggleItem]
+  );
 
-  const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemIds, checkedIds);
+  const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemIds);
 
   const [disclosureByType, setDisclosureByType] = useState<
     Partial<Record<ChecklistType, ChecklistLayoutDisclosureState>>
@@ -158,152 +174,154 @@ export default function CloseLayout({
   }
 
   return (
-    <Box className="bg-background-base">
-      {children && <Box className="mb-responsive-sm">{children}</Box>}
+    <ChecklistUpdatePendingProvider value={isChecklistUpdatePending}>
+      <Box className="bg-background-base">
+        {children && <Box className="mb-responsive-sm">{children}</Box>}
 
-      <Box className={containerClassName}>
-        {loading && showMinLoadingText && (
-          <BodyText size="sm" className="mb-responsive-sm">
-            Loading checklist…
-          </BodyText>
-        )}
+        <Box className={containerClassName}>
+          {loading && showMinLoadingText && (
+            <BodyText size="sm" className="mb-responsive-sm">
+              Loading checklist…
+            </BodyText>
+          )}
 
-        <Box className="w-full max-w-none self-center">
-          <Card border="light" className="mb-responsive-md" padding="sm">
-            <Box className={sectionTitle}>
-              <Box className="flex h-4 w-4 flex-shrink-0 flex-row items-center justify-center lg:h-5 lg:w-5">
-                <Icon name="check-square" className="text-foreground h-4 w-4 lg:h-5 lg:w-5" />
+          <Box className="w-full max-w-none self-center">
+            <Card border="light" className="mb-responsive-md" padding="sm">
+              <Box className={sectionTitle}>
+                <Box className="flex h-4 w-4 flex-shrink-0 flex-row items-center justify-center lg:h-5 lg:w-5">
+                  <Icon name="check-square" className="text-foreground h-4 w-4 lg:h-5 lg:w-5" />
+                </Box>
+                {sectionTitleText}
               </Box>
-              {sectionTitleText}
-            </Box>
 
-            <Box className="mt-responsive-xs text-left">
-              <Text className="sr-only">Checklist</Text>
-              <Box className="flex flex-col gap-2 overflow-visible">
-                {useProgressive
-                  ? segments.map((segment, segIdx) => {
-                      if (segment.kind === "completed_collapsed") {
-                        return (
-                          <Pressable
-                            key={`cc-${segIdx}`}
-                            onPress={() => setTypeDisclosure({ completedOpen: true })}
-                            className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
-                            accessibilityRole="button"
-                            aria-expanded={false}
-                          >
-                            <Icon
-                              name="chevron-right"
-                              className="text-text-secondary h-4 w-4 shrink-0"
+              <Box className="mt-responsive-xs text-left">
+                <Text className="sr-only">Checklist</Text>
+                <Box className="flex flex-col gap-2 overflow-visible">
+                  {useProgressive
+                    ? segments.map((segment, segIdx) => {
+                        if (segment.kind === "completed_collapsed") {
+                          return (
+                            <Pressable
+                              key={`cc-${segIdx}`}
+                              onPress={() => setTypeDisclosure({ completedOpen: true })}
+                              className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
+                              accessibilityRole="button"
+                              aria-expanded={false}
+                            >
+                              <Icon
+                                name="chevron-right"
+                                className="text-text-secondary h-4 w-4 shrink-0"
+                              />
+                              <Text className="text-text-primary text-sm font-medium">
+                                {t("checklists.progressive.completed_collapsed", {
+                                  count: segment.count,
+                                })}
+                              </Text>
+                            </Pressable>
+                          );
+                        }
+                        if (segment.kind === "completed_expanded_header") {
+                          return (
+                            <Pressable
+                              key={`ceh-${segIdx}`}
+                              onPress={() => setTypeDisclosure({ completedOpen: false })}
+                              className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
+                              accessibilityRole="button"
+                              aria-expanded
+                            >
+                              <Icon
+                                name="chevron-down"
+                                className="text-text-secondary h-4 w-4 shrink-0"
+                              />
+                              <Text className="text-text-primary text-sm font-medium">
+                                {t("checklists.progressive.completed_collapsed", {
+                                  count: segment.count,
+                                })}
+                              </Text>
+                            </Pressable>
+                          );
+                        }
+                        if (segment.kind === "future_collapsed") {
+                          return (
+                            <Pressable
+                              key={`fc-${segIdx}`}
+                              onPress={() => setTypeDisclosure({ futureOpen: true })}
+                              className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
+                              accessibilityRole="button"
+                              aria-expanded={false}
+                            >
+                              <Icon
+                                name="chevron-right"
+                                className="text-text-secondary h-4 w-4 shrink-0"
+                              />
+                              <Text className="text-text-secondary text-sm font-medium">
+                                {t("checklists.progressive.show_more_collapsed", {
+                                  count: segment.count,
+                                })}
+                              </Text>
+                            </Pressable>
+                          );
+                        }
+                        if (
+                          segment.kind === "completed_item" ||
+                          segment.kind === "current" ||
+                          segment.kind === "upcoming" ||
+                          segment.kind === "future_item"
+                        ) {
+                          return (
+                            <ChecklistLayoutItemRow
+                              key={`${segment.kind}-${segment.item.id}`}
+                              item={segment.item}
+                              rowKind={segment.kind}
+                              globalIndex={segment.globalIndex}
+                              checkedById={checkedById}
+                              activeItemIds={activeItemIds}
+                              roadmapTab={roadmapTab}
+                              getItemToggleEligibility={getItemToggleEligibility}
+                              onToggleItem={toggle}
+                              commitToggleItem={toggleItem}
+                              toggleExpand={toggleExpand}
+                              isExpanded={isExpanded}
                             />
-                            <Text className="text-text-primary text-sm font-medium">
-                              {t("checklists.progressive.completed_collapsed", {
-                                count: segment.count,
-                              })}
-                            </Text>
-                          </Pressable>
-                        );
-                      }
-                      if (segment.kind === "completed_expanded_header") {
-                        return (
-                          <Pressable
-                            key={`ceh-${segIdx}`}
-                            onPress={() => setTypeDisclosure({ completedOpen: false })}
-                            className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
-                            accessibilityRole="button"
-                            aria-expanded
-                          >
-                            <Icon
-                              name="chevron-down"
-                              className="text-text-secondary h-4 w-4 shrink-0"
-                            />
-                            <Text className="text-text-primary text-sm font-medium">
-                              {t("checklists.progressive.completed_collapsed", {
-                                count: segment.count,
-                              })}
-                            </Text>
-                          </Pressable>
-                        );
-                      }
-                      if (segment.kind === "future_collapsed") {
-                        return (
-                          <Pressable
-                            key={`fc-${segIdx}`}
-                            onPress={() => setTypeDisclosure({ futureOpen: true })}
-                            className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
-                            accessibilityRole="button"
-                            aria-expanded={false}
-                          >
-                            <Icon
-                              name="chevron-right"
-                              className="text-text-secondary h-4 w-4 shrink-0"
-                            />
-                            <Text className="text-text-secondary text-sm font-medium">
-                              {t("checklists.progressive.show_more_collapsed", {
-                                count: segment.count,
-                              })}
-                            </Text>
-                          </Pressable>
-                        );
-                      }
-                      if (
-                        segment.kind === "completed_item" ||
-                        segment.kind === "current" ||
-                        segment.kind === "upcoming" ||
-                        segment.kind === "future_item"
-                      ) {
-                        return (
-                          <ChecklistLayoutItemRow
-                            key={`${segment.kind}-${segment.item.id}`}
-                            item={segment.item}
-                            rowKind={segment.kind}
-                            globalIndex={segment.globalIndex}
-                            checkedById={checkedById}
-                            activeItemIds={activeItemIds}
-                            roadmapTab={roadmapTab}
-                            getItemToggleEligibility={getItemToggleEligibility}
-                            onToggleItem={toggle}
-                            commitToggleItem={toggleItem}
-                            toggleExpand={toggleExpand}
-                            isExpanded={isExpanded}
-                          />
-                        );
-                      }
-                      return null;
-                    })
-                  : sortedItems.map((item, index) => (
-                      <ChecklistLayoutItemRow
-                        key={`flat_item-${item.id}`}
-                        item={item}
-                        rowKind="flat_item"
-                        globalIndex={index}
-                        checkedById={checkedById}
-                        activeItemIds={activeItemIds}
-                        roadmapTab={roadmapTab}
-                        getItemToggleEligibility={getItemToggleEligibility}
-                        onToggleItem={toggle}
-                        commitToggleItem={toggleItem}
-                        toggleExpand={toggleExpand}
-                        isExpanded={isExpanded}
-                      />
-                    ))}
-                {useProgressive && disclosure.futureOpen && futureHidden > 0 ? (
-                  <Pressable
-                    onPress={() => setTypeDisclosure({ futureOpen: false })}
-                    className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
-                    accessibilityRole="button"
-                    aria-expanded
-                  >
-                    <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
-                    <Text className="text-text-secondary text-sm font-medium">
-                      {t("checklists.progressive.show_more_expanded")}
-                    </Text>
-                  </Pressable>
-                ) : null}
+                          );
+                        }
+                        return null;
+                      })
+                    : sortedItems.map((item, index) => (
+                        <ChecklistLayoutItemRow
+                          key={`flat_item-${item.id}`}
+                          item={item}
+                          rowKind="flat_item"
+                          globalIndex={index}
+                          checkedById={checkedById}
+                          activeItemIds={activeItemIds}
+                          roadmapTab={roadmapTab}
+                          getItemToggleEligibility={getItemToggleEligibility}
+                          onToggleItem={toggle}
+                          commitToggleItem={toggleItem}
+                          toggleExpand={toggleExpand}
+                          isExpanded={isExpanded}
+                        />
+                      ))}
+                  {useProgressive && disclosure.futureOpen && futureHidden > 0 ? (
+                    <Pressable
+                      onPress={() => setTypeDisclosure({ futureOpen: false })}
+                      className={`flex flex-row items-center gap-2 rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY}`}
+                      accessibilityRole="button"
+                      aria-expanded
+                    >
+                      <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
+                      <Text className="text-text-secondary text-sm font-medium">
+                        {t("checklists.progressive.show_more_expanded")}
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                </Box>
               </Box>
-            </Box>
-          </Card>
+            </Card>
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </ChecklistUpdatePendingProvider>
   );
 }

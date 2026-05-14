@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
@@ -22,28 +22,68 @@ export default function Toast({ variant, message, onClose, duration }: ToastProp
   const { t } = useLocalization();
   const resolvedDuration =
     duration ?? (variant === "error" ? TOAST_DURATION_ERROR_MS : TOAST_DURATION_DEFAULT_MS);
-  const [visible, setVisible] = useState(true);
+
+  // Pause-on-hover/focus to satisfy WCAG 2.2.1 (Timing Adjustable). We track remaining
+  // ms in a ref so resume restarts from where the user paused, not from the full duration.
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const remainingRef = useRef<number>(resolvedDuration);
+  const startedAtRef = useRef<number>(Date.now());
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  const clearTimer = useCallback(() => {
+    if (timerRef.current != null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const startTimer = useCallback(
+    (ms: number) => {
+      clearTimer();
+      startedAtRef.current = Date.now();
+      timerRef.current = setTimeout(() => {
+        onCloseRef.current();
+      }, ms);
+    },
+    [clearTimer]
+  );
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisible(false);
-      onClose();
-    }, resolvedDuration);
-    return () => clearTimeout(timer);
-  }, [resolvedDuration, onClose]);
+    remainingRef.current = resolvedDuration;
+    startTimer(resolvedDuration);
+    return clearTimer;
+  }, [resolvedDuration, startTimer, clearTimer]);
 
-  const dismiss = () => {
-    setVisible(false);
-    onClose();
-  };
+  const pause = useCallback(() => {
+    if (timerRef.current == null) return;
+    const elapsed = Date.now() - startedAtRef.current;
+    remainingRef.current = Math.max(0, remainingRef.current - elapsed);
+    clearTimer();
+  }, [clearTimer]);
 
-  if (!visible) return null;
+  const resume = useCallback(() => {
+    if (timerRef.current != null) return;
+    startTimer(remainingRef.current);
+  }, [startTimer]);
 
   const closeLabel = t("feedback.close_aria");
+  const role: "alert" | "status" = variant === "error" ? "alert" : "status";
+  const ariaLive: "assertive" | "polite" = variant === "error" ? "assertive" : "polite";
 
   if (variant === "error") {
     return (
-      <BaseToastFrame surfaceClassName="bg-red-50" closeLabel={closeLabel} onClose={dismiss}>
+      <BaseToastFrame
+        surfaceClassName="bg-red-50"
+        closeLabel={closeLabel}
+        onClose={onClose}
+        role={role}
+        ariaLive={ariaLive}
+        onMouseEnter={pause}
+        onMouseLeave={resume}
+        onFocus={pause}
+        onBlur={resume}
+      >
         <Box className="min-w-0 flex-1">
           <BodyText as="p" size="sm" className="text-responsive-sm font-medium text-red-800">
             {t("feedback.error_title")}
@@ -88,7 +128,17 @@ export default function Toast({ variant, message, onClose, duration }: ToastProp
     variant === "success" ? "bg-green-50" : variant === "warning" ? "bg-amber-50" : "bg-sky-50";
 
   return (
-    <BaseToastFrame surfaceClassName={surfaceClass} closeLabel={closeLabel} onClose={dismiss}>
+    <BaseToastFrame
+      surfaceClassName={surfaceClass}
+      closeLabel={closeLabel}
+      onClose={onClose}
+      role={role}
+      ariaLive={ariaLive}
+      onMouseEnter={pause}
+      onMouseLeave={resume}
+      onFocus={pause}
+      onBlur={resume}
+    >
       {messageBlock}
     </BaseToastFrame>
   );

@@ -4,12 +4,11 @@ import { useLocalization } from "packages/contexts";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import { Textarea } from "packages/ui/components/form/field/FormField";
+import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 import Input from "packages/ui/components/primitives/input/Input";
 import BodyText from "packages/ui/components/text/BodyText";
 import Label from "packages/ui/components/text/Label.web";
-
-import BaseModal from "@/components/modals/BaseModal";
 
 export type NotInterestedReason = {
   id: string;

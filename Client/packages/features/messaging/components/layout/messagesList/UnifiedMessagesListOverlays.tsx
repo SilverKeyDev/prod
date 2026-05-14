@@ -1,12 +1,11 @@
 import React from "react";
 
-import PdfModal from "@ui/modals/PdfModal";
-
 import {
   DocuSignLegalNotice,
   EmbeddedSigning,
   ViewSignedDocument,
 } from "packages/features/documents";
+import PdfModal from "packages/features/documents/components/pdf/PdfModalBridge";
 import { BaseModal } from "packages/ui/components/modals";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";

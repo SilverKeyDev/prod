@@ -6,6 +6,7 @@ from flask import current_app, jsonify, request
 
 from app.schemas import SearchByPolygonRequest, SearchByPolygonResponse
 from app.utils.validation import validate_request, validate_response
+from logger import LOG_CATEGORIES, log
 
 from ...services.search.data import get_property_comps as slipstream_get_comps
 from ...services.search.data.neighborhood_boundaries import (
@@ -34,6 +35,14 @@ def get_property_comps():
     Prioritizes address parameter, with zpid as fallback.
     """
     try:
+        user, auth_error = get_authenticated_user()
+        if auth_error:
+            return auth_error
+        if user is None:
+            return jsonify(
+                {"success": False, "error": "UNAUTHORIZED", "message": "Authentication required"}
+            ), 401
+
         address = request.args.get("address")
         zpid = request.args.get("zpid")
 
@@ -89,6 +98,14 @@ def get_monthly_cost_estimates():
     Placeholder HOA and area-average utilities (USD/month). Both zero until APIs are wired.
     Query: zipcode or zip (at least five digits).
     """
+    user, auth_error = get_authenticated_user()
+    if auth_error:
+        return auth_error
+    if user is None:
+        return jsonify(
+            {"success": False, "error": "UNAUTHORIZED", "message": "Authentication required"}
+        ), 401
+
     zipcode = request.args.get("zipcode") or request.args.get("zip")
     if not zipcode or not str(zipcode).strip():
         return (
@@ -127,7 +144,12 @@ def search_properties_by_polygon(data: SearchByPolygonRequest | None = None):
     Delegates to run_polygon_search; returns JSON and status code.
     """
     start_time = time.time()
-    request_id = f"poly_{int(start_time * 1000)}"
+    raw_header_rid = request.headers.get("X-Request-Id")
+    header_rid = (
+        str(raw_header_rid).strip()
+        if raw_header_rid is not None and str(raw_header_rid).strip()
+        else None
+    )
     user, auth_error = get_authenticated_user()
     if auth_error:
         return auth_error
@@ -151,21 +173,43 @@ def search_properties_by_polygon(data: SearchByPolygonRequest | None = None):
             str(user.id),
             request_data,
             preferences_subject_user_id=str(resolved_pref_uid),
+            correlation_id=header_rid,
         )
-        if result[0] is None:
-            return result[1]
-        return jsonify(result[0]), result[1]
+        elapsed = time.time() - start_time
+        payload, status_second = result
+        meta_rid = None
+        if isinstance(payload, dict):
+            meta = payload.get("meta")
+            if isinstance(meta, dict):
+                meta_rid = meta.get("requestId")
+        ok = bool(isinstance(payload, dict) and payload.get("success"))
+        log.info(
+            LOG_CATEGORIES["POLYGON_SEARCH"],
+            "polygon_route_complete",
+            {
+                "elapsed_s": round(elapsed, 3),
+                "status_code": status_second if isinstance(status_second, int) else None,
+                "viewer_id": str(user.id),
+                "preferences_subject_id": str(resolved_pref_uid),
+                "force_search": bool(request_data.get("forceSearch")),
+                "only_cached": bool(request_data.get("onlyCached")),
+                "success": ok,
+                "request_id": meta_rid,
+            },
+        )
+        if payload is None:
+            return status_second
+        return jsonify(payload), status_second
     except Exception as e:
         total_time = time.time() - start_time
-        current_app.logger.error(
-            "[POLYGON_SEARCH] %s - Exception: %s", request_id, e, exc_info=True
-        )
+        rid = header_rid or f"poly_{int(start_time * 1000)}"
+        current_app.logger.error("[POLYGON_SEARCH] %s - Exception: %s", rid, e, exc_info=True)
         return jsonify(
             {
                 "success": False,
                 "error": "INTERNAL",
                 "message": str(e),
-                "requestId": request_id,
+                "requestId": rid,
                 "searchTime": round(total_time, 2),
             }
         ), 500
@@ -178,6 +222,14 @@ def get_area_suggestions():
     via Slipstream /ws/areas/search. Returns matching areas with IDs for boundary lookup.
     Query: keyword (required), state (optional, e.g. "GA"), limit (optional, default 10).
     """
+    user, auth_error = get_authenticated_user()
+    if auth_error:
+        return auth_error
+    if user is None:
+        return jsonify(
+            {"success": False, "error": "UNAUTHORIZED", "message": "Authentication required"}
+        ), 401
+
     keyword = request.args.get("keyword", "").strip()
     if not keyword or len(keyword) < 2:
         return jsonify({"success": True, "areas": []}), 200
@@ -210,6 +262,14 @@ def get_area_boundary_route():
     Returns GeoJSON geometry and a viewport ring suitable for polygon search.
     Query: id (required).
     """
+    user, auth_error = get_authenticated_user()
+    if auth_error:
+        return auth_error
+    if user is None:
+        return jsonify(
+            {"success": False, "error": "UNAUTHORIZED", "message": "Authentication required"}
+        ), 401
+
     area_id = request.args.get("id", "").strip()
     if not area_id:
         return jsonify(

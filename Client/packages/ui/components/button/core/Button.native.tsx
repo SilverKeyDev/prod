@@ -3,7 +3,7 @@ import React, { forwardRef } from "react";
 
 // import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import { Icon } from "@ui/icons";
-import type { PressableProps } from "react-native";
+import type { AccessibilityRole, PressableProps } from "react-native";
 import { Pressable } from "react-native";
 
 import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
@@ -13,8 +13,12 @@ import {
   BUTTON_LOADING_VARIANT_OVERRIDES,
   BUTTON_ROUNDED_CLASSES,
 } from "packages/ui/styles/variants/buttonVariants";
+import { twMergeClasses } from "packages/ui/utils/twMergeClasses";
 
-import type { ButtonProps, ButtonVariant } from "./Button";
+import { ButtonIcon, ButtonLabel } from "./button/buttonSlots";
+import type { ButtonProps, ButtonVariant } from "./button/buttonTypes";
+
+export type { ButtonProps, ButtonVariant } from "./button/buttonTypes";
 
 /** RN-safe props to forward to Pressable (excludes DOM-specific ButtonHTMLAttributes) */
 const PRESSABLE_FORWARD_KEYS = [
@@ -86,6 +90,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       onPress,
       onClick,
       collapseIconWhenNarrow: _omitCollapseIconWhenNarrow,
+      asChild: _omitAsChild,
       ...props
     },
     ref
@@ -101,14 +106,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 
     const handlePress = onPress ?? (onClick as (() => void) | undefined);
 
-    const content = loading ? (
-      <>
-        <RippleBackground overlay />
-        <Box className="z-header relative flex-row items-center justify-center gap-2">
-          <Box className="items-center justify-center">{/* <KeyTurnLoader message="" /> */}</Box>
-        </Box>
-      </>
-    ) : (
+    const loadedRow = (
       <Box className="min-w-0 flex-row items-center justify-center gap-2 overflow-hidden">
         {resolvedIcon && iconPosition === "left" && (
           <Box className="items-center justify-center">{resolvedIcon}</Box>
@@ -120,7 +118,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
                 size === "sm" ? "text-sm" : size === "lg" ? "text-base" : "text-sm"
               }`}
               numberOfLines={1}
-              ellipsizeMode={truncateLabel ? "tail" : "clip"}
+              ellipsizeMode={truncateLabel ? ("tail" as const) : ("clip" as const)}
             >
               {children}
             </Text>
@@ -133,10 +131,23 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       </Box>
     );
 
+    const content = loading ? (
+      <Box className="relative w-full min-w-0 flex-1 self-stretch">
+        <Box className="opacity-0">{loadedRow}</Box>
+        <Box className="z-header pointer-events-none absolute inset-0 flex flex-row items-center justify-center">
+          <RippleBackground overlay />
+          <Box className="relative flex-row items-center justify-center gap-2">
+            <Box className="items-center justify-center">{/* <KeyTurnLoader message="" /> */}</Box>
+          </Box>
+        </Box>
+      </Box>
+    ) : (
+      loadedRow
+    );
+
     const roundedClass = BUTTON_ROUNDED_CLASSES[rounded];
     const pressableProps = {
       ...pickPressableProps(props),
-      ...(accessibilityRole != null ? { accessibilityRole } : {}),
       ...(accessibilityState != null ? { accessibilityState } : {}),
     };
     const priorA11yState =
@@ -147,18 +158,26 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         : {};
     const mergedAccessibilityState = { ...priorA11yState, busy: loading };
 
+    const pressableClassName = twMergeClasses(
+      "min-w-0 flex-row items-center justify-center overflow-hidden",
+      roundedClass,
+      variantClass,
+      sizeClass,
+      loading
+        ? `${BUTTON_LOADING_FRAME_CLASSES} ${BUTTON_LOADING_VARIANT_OVERRIDES[effectiveVariant]}`
+        : "",
+      className
+    );
+
     return (
       <Pressable
         ref={ref}
         onPress={handlePress}
         disabled={disabled ?? loading}
         accessibilityLabel={label}
-        className={`min-w-0 flex-row items-center justify-center overflow-hidden ${roundedClass} ${variantClass} ${sizeClass} ${
-          loading
-            ? `${BUTTON_LOADING_FRAME_CLASSES} ${BUTTON_LOADING_VARIANT_OVERRIDES[effectiveVariant]}`
-            : ""
-        } ${""} ${className}`}
+        className={pressableClassName}
         {...pressableProps}
+        accessibilityRole={accessibilityRole as AccessibilityRole | undefined}
         accessibilityState={mergedAccessibilityState}
       >
         {content}
@@ -169,4 +188,9 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 
 Button.displayName = "Button";
 
-export default Button;
+const ButtonWithSlots = Object.assign(Button, {
+  Icon: ButtonIcon,
+  Label: ButtonLabel,
+});
+
+export default ButtonWithSlots;

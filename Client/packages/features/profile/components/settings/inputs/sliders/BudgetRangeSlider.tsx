@@ -85,12 +85,12 @@ export default function BudgetRangeSlider({
       ? `${formattedValue(maxValue)}+`
       : formattedValue(maxValue);
   const valueBlock = (
-    <Box className="flex min-h-5 w-full flex-row flex-wrap items-center justify-start gap-2">
-      <Text className="text-text-primary whitespace-nowrap text-sm font-medium tabular-nums">
+    <Box className="grid min-h-5 w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-2">
+      <Text className="text-text-primary truncate text-left text-sm font-medium tabular-nums">
         {formattedValue(minValue)}
       </Text>
       <Text className="text-text-disabled flex-shrink-0 text-sm leading-5">–</Text>
-      <Text className="text-text-primary whitespace-nowrap text-sm font-medium tabular-nums">
+      <Text className="text-text-primary truncate text-right text-sm font-medium tabular-nums">
         {maxLabel}
       </Text>
     </Box>
@@ -118,7 +118,7 @@ export default function BudgetRangeSlider({
         />
         {/* Wrappers use pointer-events-none so thumbs still receive events; activeThumb raises that slider so overlapping thumbs stay usable. */}
         <Box
-          className="pointer-events-none absolute inset-x-0 top-0"
+          className="pointer-events-none absolute inset-x-0 top-0 min-w-0 max-w-full"
           style={{
             height: RANGE_SLIDER_HIT_HEIGHT,
             zIndex: activeThumb === "min" ? 5 : 4,
@@ -137,7 +137,7 @@ export default function BudgetRangeSlider({
           />
         </Box>
         <Box
-          className="pointer-events-none absolute inset-x-0 top-0"
+          className="pointer-events-none absolute inset-x-0 top-0 min-w-0 max-w-full"
           style={{
             height: RANGE_SLIDER_HIT_HEIGHT,
             zIndex: activeThumb === "max" ? 5 : 4,

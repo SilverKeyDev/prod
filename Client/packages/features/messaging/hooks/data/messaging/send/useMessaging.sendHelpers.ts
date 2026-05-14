@@ -5,10 +5,13 @@
 import { mapApiMessagesToChatMessages } from "packages/features/messaging/hooks/data/messaging/helpers";
 import type { GetChatHistoryRef } from "packages/features/messaging/hooks/data/messaging/history/useMessagingHistory.effect";
 import type { ChatMessage } from "packages/features/messaging/hooks/data/messaging/types";
-import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats";
+import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats.constants";
+import type { SendMessageApiResult } from "packages/features/messaging/hooks/data/useAgentChats.types";
 import { dateNow } from "packages/utils/date";
 
-function mergeOlderLocalsWithTail(
+export type { SendMessageApiResult } from "packages/features/messaging/hooks/data/useAgentChats.types";
+
+export function mergeOlderLocalsWithTail(
   prev: ChatMessage[],
   excludeMessageId: string,
   mergedTail: ChatMessage[]
@@ -101,7 +104,7 @@ export type SendMessageApiFn = (
   clientId?: string,
   sharedHomeId?: string,
   sharedDocumentId?: string
-) => Promise<void>;
+) => Promise<SendMessageApiResult>;
 
 export type ExecuteSendMessageParams = {
   userMessage: string;
@@ -141,14 +144,26 @@ export async function executeSendMessage(params: ExecuteSendMessageParams): Prom
   };
   setLocalMessages((prev) => [...prev, newMessage]);
   try {
-    if (mode === "agent") {
-      await sendMessageApi(conversationId, userMessage, clientIdForSending);
-    } else {
-      await sendMessageApi(conversationId, userMessage);
-    }
+    const sendOutcome =
+      mode === "agent"
+        ? await sendMessageApi(conversationId, userMessage, clientIdForSending)
+        : await sendMessageApi(conversationId, userMessage);
+    const serverMessageId =
+      sendOutcome?.message_id != null && String(sendOutcome.message_id).length > 0
+        ? String(sendOutcome.message_id)
+        : undefined;
     setLocalMessages((prev) =>
-      prev.map((msg) => (msg.id === tempMessageId ? { ...msg, status: "delivered" as const } : msg))
+      prev.map((msg) =>
+        msg.id === tempMessageId
+          ? {
+              ...msg,
+              ...(serverMessageId ? { id: serverMessageId } : {}),
+              status: "delivered" as const,
+            }
+          : msg
+      )
     );
+    const optimisticRowId = serverMessageId ?? tempMessageId;
     await refreshChats();
     if (conversationId !== "new") {
       const data = await getChatHistoryRef.current(conversationId, {
@@ -156,15 +171,17 @@ export async function executeSendMessage(params: ExecuteSendMessageParams): Prom
       });
       const serverTail = mapApiMessagesToChatMessages(data.messages ?? []);
       setLocalMessages((prev) => {
-        const tempMessage = prev.find((msg) => msg.id === tempMessageId);
+        const tempMessage = prev.find(
+          (msg) => msg.id === optimisticRowId || msg.id === tempMessageId
+        );
         const mergedTail = mergeServerMessagesPreservingTimestamp(
           serverTail,
-          tempMessageId,
+          optimisticRowId,
           userMessage,
           tempMessage?.timestamp,
           messageRole
         );
-        return mergeOlderLocalsWithTail(prev, tempMessageId, mergedTail);
+        return mergeOlderLocalsWithTail(prev, optimisticRowId, mergedTail);
       });
     } else {
       loadedHistoryIdsRef.current.clear();
@@ -221,20 +238,38 @@ export async function executeSendSharedAttachment(
   };
   setLocalMessages((prev) => [...prev, newMessage]);
   try {
-    if (mode === "agent") {
-      await sendMessageApi(
-        conversationId,
-        messageBody,
-        clientIdForSending,
-        sharedHomeId,
-        sharedDocumentId
-      );
-    } else {
-      await sendMessageApi(conversationId, messageBody, undefined, sharedHomeId, sharedDocumentId);
-    }
+    const sendOutcome =
+      mode === "agent"
+        ? await sendMessageApi(
+            conversationId,
+            messageBody,
+            clientIdForSending,
+            sharedHomeId,
+            sharedDocumentId
+          )
+        : await sendMessageApi(
+            conversationId,
+            messageBody,
+            undefined,
+            sharedHomeId,
+            sharedDocumentId
+          );
+    const serverMessageId =
+      sendOutcome?.message_id != null && String(sendOutcome.message_id).length > 0
+        ? String(sendOutcome.message_id)
+        : undefined;
     setLocalMessages((prev) =>
-      prev.map((msg) => (msg.id === tempMessageId ? { ...msg, status: "delivered" as const } : msg))
+      prev.map((msg) =>
+        msg.id === tempMessageId
+          ? {
+              ...msg,
+              ...(serverMessageId ? { id: serverMessageId } : {}),
+              status: "delivered" as const,
+            }
+          : msg
+      )
     );
+    const optimisticRowId = serverMessageId ?? tempMessageId;
     await refreshChats();
     if (conversationId !== "new") {
       const data = await getChatHistoryRef.current(conversationId, {
@@ -242,7 +277,9 @@ export async function executeSendSharedAttachment(
       });
       const serverTail = mapApiMessagesToChatMessages(data.messages ?? []);
       setLocalMessages((prev) => {
-        const tempMessage = prev.find((msg) => msg.id === tempMessageId);
+        const tempMessage = prev.find(
+          (msg) => msg.id === optimisticRowId || msg.id === tempMessageId
+        );
         const mergedTail = mergeServerMessagesPreservingSharedSend(
           serverTail,
           tempMessage?.timestamp,
@@ -250,7 +287,7 @@ export async function executeSendSharedAttachment(
           sharedDocumentId,
           messageRole
         );
-        return mergeOlderLocalsWithTail(prev, tempMessageId, mergedTail);
+        return mergeOlderLocalsWithTail(prev, optimisticRowId, mergedTail);
       });
     } else {
       loadedHistoryIdsRef.current.clear();
@@ -300,26 +337,38 @@ export async function executeRetryMessage(params: ExecuteRetryMessageParams): Pr
     prev.map((msg) => (msg.id === messageId ? { ...msg, status: "sending" as const } : msg))
   );
   try {
-    if (mode === "agent") {
-      await sendMessageApi(
-        conversationId,
-        body,
-        clientIdForSending,
-        isShared ? sharedHomeId : undefined,
-        isShared ? sharedDocumentId : undefined
-      );
-    } else {
-      await sendMessageApi(
-        conversationId,
-        body,
-        undefined,
-        isShared ? sharedHomeId : undefined,
-        isShared ? sharedDocumentId : undefined
-      );
-    }
+    const sendOutcome =
+      mode === "agent"
+        ? await sendMessageApi(
+            conversationId,
+            body,
+            clientIdForSending,
+            isShared ? sharedHomeId : undefined,
+            isShared ? sharedDocumentId : undefined
+          )
+        : await sendMessageApi(
+            conversationId,
+            body,
+            undefined,
+            isShared ? sharedHomeId : undefined,
+            isShared ? sharedDocumentId : undefined
+          );
+    const serverMessageId =
+      sendOutcome?.message_id != null && String(sendOutcome.message_id).length > 0
+        ? String(sendOutcome.message_id)
+        : undefined;
     setLocalMessages((prev) =>
-      prev.map((msg) => (msg.id === messageId ? { ...msg, status: "delivered" as const } : msg))
+      prev.map((msg) =>
+        msg.id === messageId
+          ? {
+              ...msg,
+              ...(serverMessageId ? { id: serverMessageId } : {}),
+              status: "delivered" as const,
+            }
+          : msg
+      )
     );
+    const optimisticRowId = serverMessageId ?? messageId;
     await refreshChats();
     if (conversationId !== "new") {
       const data = await getChatHistoryRef.current(conversationId, {
@@ -327,7 +376,7 @@ export async function executeRetryMessage(params: ExecuteRetryMessageParams): Pr
       });
       const serverTail = mapApiMessagesToChatMessages(data.messages ?? []);
       setLocalMessages((prev) => {
-        const failed = prev.find((msg) => msg.id === messageId);
+        const failed = prev.find((msg) => msg.id === optimisticRowId || msg.id === messageId);
         let mergedTail: ChatMessage[];
         if (!failed?.timestamp) {
           mergedTail = serverTail;
@@ -342,13 +391,13 @@ export async function executeRetryMessage(params: ExecuteRetryMessageParams): Pr
         } else {
           mergedTail = mergeServerMessagesPreservingTimestamp(
             serverTail,
-            messageId,
+            optimisticRowId,
             content,
             failed.timestamp,
             messageRole
           );
         }
-        return mergeOlderLocalsWithTail(prev, messageId, mergedTail);
+        return mergeOlderLocalsWithTail(prev, optimisticRowId, mergedTail);
       });
     } else {
       loadedHistoryIdsRef.current.clear();

@@ -20,7 +20,7 @@ def _http_403_not_owner() -> HttpError:
 
 def test_delete_calendar_returns_false_when_delete_requires_owner_access(app):
     """calendars().delete on a subscribed calendar must not raise; caller treats as skip."""
-    from app.services.calendar.calendars.management import delete_calendar
+    from app.services.calendar.calendars.calendar_delete import delete_calendar
 
     with app.app_context():
         with patch("app.services.calendar.calendars.calendar_delete.load_credentials"):
@@ -44,7 +44,7 @@ def test_delete_calendar_returns_false_when_delete_requires_owner_access(app):
 
 def test_get_or_create_ignores_subscribed_silverkey_for_duplicate_deletion(app):
     """Owned + subscribed name match is one owned calendar — no calendars().delete."""
-    from app.services.calendar.calendars.management import get_or_create_silverkey_calendar
+    from app.services.calendar.calendars.silverkey_calendar import get_or_create_silverkey_calendar
 
     owned_id = "095993129e00000000000000000000000000000000000000000000@group.calendar.google.com"
     subscribed_id = (
@@ -90,7 +90,7 @@ def test_get_or_create_ignores_subscribed_silverkey_for_duplicate_deletion(app):
 
 def test_get_or_create_deletes_second_owned_duplicate(app):
     """Two owned SilverKey calendars: delete extras (mocked success)."""
-    from app.services.calendar.calendars.management import get_or_create_silverkey_calendar
+    from app.services.calendar.calendars.silverkey_calendar import get_or_create_silverkey_calendar
 
     first_id = "a_owned@group.calendar.google.com"
     second_id = "b_owned@group.calendar.google.com"
@@ -109,24 +109,29 @@ def test_get_or_create_deletes_second_owned_duplicate(app):
                 service_mock.calendarList.return_value.list.return_value.execute.return_value = (
                     list_payload
                 )
-                delete_execute = Mock(return_value={})
-                service_mock.calendars.return_value.delete.return_value.execute = delete_execute
                 mock_build.return_value = service_mock
 
                 with patch(
                     "app.services.calendar.calendars.silverkey_calendar.should_skip_silverkey_owned_dedupe",
                     return_value=False,
                 ):
-                    cal = get_or_create_silverkey_calendar(
-                        user_id="user-dedupe",
-                        buyer_name=None,
-                        client_id="cid",
-                        client_secret="sec",
-                        token_endpoint="https://oauth2.googleapis.com/token",
-                        scopes=["https://www.googleapis.com/auth/calendar"],
-                    )
+                    with patch(
+                        "app.services.calendar.calendars.silverkey_calendar.delete_calendar",
+                        return_value=True,
+                    ) as mock_delete:
+                        with patch(
+                            "app.services.calendar.calendars.silverkey_calendar.mark_silverkey_owned_dedupe_attempt"
+                        ):
+                            cal = get_or_create_silverkey_calendar(
+                                user_id="user-dedupe",
+                                buyer_name=None,
+                                client_id="cid",
+                                client_secret="sec",
+                                token_endpoint="https://oauth2.googleapis.com/token",
+                                scopes=["https://www.googleapis.com/auth/calendar"],
+                            )
 
                 assert cal.get("id") == first_id
-                delete_execute.assert_called_once()
-                call_kwargs = service_mock.calendars.return_value.delete.call_args
-                assert call_kwargs[1]["calendarId"] == second_id
+                mock_delete.assert_called_once()
+                _args, _kwargs = mock_delete.call_args
+                assert _args[1] == second_id

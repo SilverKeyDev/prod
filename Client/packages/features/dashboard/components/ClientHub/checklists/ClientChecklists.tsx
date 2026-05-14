@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 
+import { useLocalization } from "packages/contexts";
 import {
   BuyerRoadmapChecklistList,
   CHECKLIST_SUBTITLES,
@@ -12,6 +13,8 @@ import {
   useChecklistProgress,
 } from "packages/features/checklists";
 import { useIsAgent } from "packages/features/homeauth";
+import { showErrorToast } from "packages/hooks/ui";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 
@@ -38,6 +41,7 @@ export default function ClientChecklists({
   hideIntegrationComponents = false,
   onTabChange,
 }: ClientChecklistsProps) {
+  const { t } = useLocalization();
   const isAgent = useIsAgent();
   const [internalTab, setInternalTab] = useState<ChecklistTab>(activeTab);
   const currentTab = onTabChange != null ? activeTab : internalTab;
@@ -54,8 +58,10 @@ export default function ClientChecklists({
     [currentTab]
   );
 
+  const checklistSubjectOptions = useMemo(() => ({ checklistSubjectUserId: userId }), [userId]);
+
   const { currentSection, isSectionUnlocked, getItemToggleEligibility, sectionProgress } =
-    useChecklistProgress();
+    useChecklistProgress(checklistSubjectOptions);
   const {
     items,
     checkedIds,
@@ -65,7 +71,8 @@ export default function ClientChecklists({
     error,
     toggleItem,
     refreshChecklist,
-  } = useChecklistData(checklistType);
+    isChecklistUpdatePending,
+  } = useChecklistData(checklistType, checklistSubjectOptions);
 
   const sortedItems = useMemo(() => sortTaskChecklistItems(items), [items]);
 
@@ -79,9 +86,18 @@ export default function ClientChecklists({
       const { canUncheck, canMarkChecked } = getItemToggleEligibility(currentTab, id);
       if (checked && !canUncheck) return;
       if (!checked && !canMarkChecked) return;
-      await toggleItem(id);
+      try {
+        await toggleItem(id);
+      } catch (error: unknown) {
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to update checklist item", error);
+        showErrorToast(
+          t("checklists.update_error", {
+            defaultValue: "Could not update this step. Please try again.",
+          })
+        );
+      }
     },
-    [toggleItem, getItemToggleEligibility, currentTab, checkedIds]
+    [toggleItem, getItemToggleEligibility, currentTab, checkedIds, t]
   );
 
   const handleRefresh = useCallback(async () => {
@@ -144,6 +160,7 @@ export default function ClientChecklists({
         sectionProgress={sectionProgress}
         onRoadmapTabNavigate={setTab}
         hideIntegrationComponents={hideIntegrationComponents}
+        isChecklistUpdatePending={isChecklistUpdatePending}
         hubClientUserId={isAgent ? userId : null}
         checklistCategory={isAgent ? checklistType : null}
         isAgent={isAgent}

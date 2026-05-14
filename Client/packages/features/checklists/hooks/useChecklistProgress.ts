@@ -1,7 +1,9 @@
 import { useCallback, useMemo } from "react";
 
-import type { TaskChecklistItem } from "packages/features/checklists/api/checklists";
-import { useChecklistData } from "packages/features/checklists/hooks/data/useChecklistData";
+import {
+  useChecklistData,
+  type UseChecklistDataOptions,
+} from "packages/features/checklists/hooks/data/useChecklistData";
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
 import { computeOverallChecklistProgress } from "packages/features/checklists/utils/progress/computeOverallChecklistProgress";
 import {
@@ -12,14 +14,7 @@ import {
   SECTION_CONFIG,
   SECTION_ORDER,
 } from "packages/features/checklists/utils/rules/sectionConfig";
-
-function sortItemsByOrder(items: TaskChecklistItem[]): TaskChecklistItem[] {
-  return [...items].sort((a, b) => {
-    const orderA = a.order ?? items.indexOf(a);
-    const orderB = b.order ?? items.indexOf(b);
-    return orderA - orderB;
-  });
-}
+import { sortTaskChecklistItems } from "packages/features/checklists/utils/sort/sortTaskChecklistItems";
 
 export type UseChecklistProgressReturn = {
   currentSection: ChecklistTab;
@@ -39,13 +34,15 @@ export type UseChecklistProgressReturn = {
   isLoading: boolean;
 };
 
-export function useChecklistProgress(): UseChecklistProgressReturn {
-  const searchData = useChecklistData("search");
-  const offerData = useChecklistData("offer");
-  const escrowData = useChecklistData("escrow");
-  const insuranceData = useChecklistData("insurance");
-  const financingData = useChecklistData("financing");
-  const closingData = useChecklistData("closing");
+export function useChecklistProgress(
+  options?: UseChecklistDataOptions
+): UseChecklistProgressReturn {
+  const searchData = useChecklistData("search", options);
+  const offerData = useChecklistData("offer", options);
+  const escrowData = useChecklistData("escrow", options);
+  const insuranceData = useChecklistData("insurance", options);
+  const financingData = useChecklistData("financing", options);
+  const closingData = useChecklistData("closing", options);
 
   const sectionData = useMemo(
     () => ({
@@ -98,7 +95,7 @@ export function useChecklistProgress(): UseChecklistProgressReturn {
   const getItemToggleEligibility = useCallback(
     (section: ChecklistTab, itemId: number): ChecklistItemToggleEligibility => {
       const data = sectionData[section];
-      const items = sortItemsByOrder(data.items);
+      const items = sortTaskChecklistItems(data.items);
       return getChecklistItemToggleEligibility(
         items,
         data.checkedIds,
@@ -125,7 +122,7 @@ export function useChecklistProgress(): UseChecklistProgressReturn {
   const currentItem = useCallback(
     (section: ChecklistTab): number | null => {
       const data = sectionData[section];
-      const items = sortItemsByOrder(data.items);
+      const items = sortTaskChecklistItems(data.items);
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         if (!data.checkedIds.includes(item.id) && isItemCheckable(section, item.id)) {

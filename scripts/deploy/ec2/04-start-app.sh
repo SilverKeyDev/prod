@@ -14,7 +14,7 @@ sudo docker run -d \
   --name cre_app \
   --network "$NETWORK_NAME" \
   -p 5000:5000 \
-  --health-cmd="curl -fsS http://localhost:5000/healthz || exit 1" \
+  --health-cmd="curl -fsS http://localhost:5000/livez || exit 1" \
   --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=40s \
   -e FLASK_ENV="production" \
   -e REDIS_URL="redis://redis:6379/0" \

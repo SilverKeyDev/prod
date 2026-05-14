@@ -14,7 +14,7 @@ All pins live under **`requirements/`** (from `Server/`, paths are `requirements
 | `requirements/dev.txt` | Local pytest, pre-commit, mypy, codegen tools. |
 | `requirements/codegen.txt` | OpenAPI → Pydantic generation scripts only. |
 
-Quick install from `Server/`: `pip install -r requirements/runtime.txt` and, for local test tooling, `pip install -r requirements/dev.txt`. Or from repo root: `bash Server/scripts/bootstrap-venv.sh` (full) or `… --ci` (slim).
+Quick install from `Server/`: `pip install -r requirements/runtime.txt` and, for local test tooling, `pip install -r requirements/dev.txt`. Or from repo root: `bash Server/scripts/bootstrap-venv.sh` (full), `… --ci` (slim), or `… --refresh-deps` (re-run pip in an existing `.venv`).
 
 ## Testing
 

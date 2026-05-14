@@ -1,5 +1,5 @@
 def oauth_requested_scope_urls() -> list[str]:
-    """Scope URLs included in Google OAuth authorize `scope` (excludes legacy-only entries)."""
+    """Scope URLs included in Google OAuth authorize `scope` (excludes virtual `calendar` only)."""
     return [
         perm_data["scope_url"]
         for perm_data in permissions.values()
@@ -31,7 +31,6 @@ permissions = {
         "implied_by": [
             "https://www.googleapis.com/auth/calendar",
             "https://www.googleapis.com/auth/calendar.readonly",
-            "https://www.googleapis.com/auth/calendar.events.freebusy",
         ],
     },
     "calendar_app_created": {
@@ -40,31 +39,6 @@ permissions = {
         "description": "Make secondary Google calendars, and see, create, change, and delete events on them",
         "implied_by": [
             "https://www.googleapis.com/auth/calendar",
-        ],
-    },
-    "calendar_calendarlist_readonly": {
-        "field_name": "has_calendar_calendarlist_readonly",
-        "scope_url": "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
-        "description": "See the list of Google calendars you're subscribed to",
-        # Legacy tokens only; client no longer lists calendars on new connects.
-        "include_in_oauth_request": False,
-        "implied_by": [
-            "https://www.googleapis.com/auth/calendar",
-            "https://www.googleapis.com/auth/calendar.readonly",
-            "https://www.googleapis.com/auth/calendar.calendarlist",
-        ],
-    },
-    "calendar_events_freebusy": {
-        "field_name": "has_calendar_events_freebusy",
-        "scope_url": "https://www.googleapis.com/auth/calendar.events.freebusy",
-        "description": "See the availability on Google calendars you have access to",
-        # Not requested on new OAuth connects; redundant with calendar.freebusy for our usage.
-        "include_in_oauth_request": False,
-        # Scopes that also satisfy freebusy.query authorization
-        "implied_by": [
-            "https://www.googleapis.com/auth/calendar",
-            "https://www.googleapis.com/auth/calendar.readonly",
-            "https://www.googleapis.com/auth/calendar.freebusy",
         ],
     },
     # Full Calendar access — not requested on new OAuth connects (sensitive scope / verification).

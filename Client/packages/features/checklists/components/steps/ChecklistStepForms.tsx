@@ -12,6 +12,7 @@ import {
   checklistFormToDocumentData,
   useChecklistForms,
 } from "packages/features/documents";
+import { PdfModal } from "packages/features/documents/components/pdf/PdfModalBridge";
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -21,7 +22,6 @@ import type {
   DocumentCardExternalActionHandlers,
   DocumentData,
 } from "packages/ui/components/cards/document/types";
-import { PdfModal } from "packages/ui/components/modals";
 import { Portal } from "packages/ui/components/portal";
 import { Box, Text } from "packages/ui/components/primitives";
 import { tryWebShareUrl } from "packages/utils/share";

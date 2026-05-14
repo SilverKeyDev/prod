@@ -7,6 +7,8 @@ import { searchApi } from "./search";
 export type FetchCachedPolygonSearchResultsOptions = {
   /** Verbose polygon_search / error logs (e.g. hook); route prefetch stays quiet on success. */
   verboseLog?: boolean;
+  /** When set, forwarded as `preferences_user_id` for server-side preference resolution (agents). */
+  preferencesUserId?: string | null;
 };
 
 /**
@@ -24,6 +26,9 @@ export async function fetchCachedPolygonSearchResults(
     const response = await searchApi.searchByPolygon({
       perBucketPages: 20,
       onlyCached: true,
+      ...(options?.preferencesUserId != null && options.preferencesUserId !== ""
+        ? { preferences_user_id: options.preferencesUserId }
+        : {}),
     });
 
     if (!response.success) {

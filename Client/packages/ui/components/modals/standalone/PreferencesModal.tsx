@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from "react";
 
-import BaseModal from "@/components/modals/BaseModal";
+import BaseModal from "packages/ui/components/modals/BaseModal";
+
 import PreferencesFormContent, {
   type PreferencesFormContentRef,
 } from "@/features/profile/components/settings/inputs/PreferencesFormContent.web";

@@ -1,11 +1,10 @@
 import { create } from "zustand";
 
+import { googleMapsService } from "packages/features/search/utils/googleMaps";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
-
-import { googleMapsService } from "@/features/search/utils/googleMaps";
 
 // Global type declaration for Google Maps
 declare global {
@@ -40,6 +39,18 @@ export type GoogleMapsState = {
   // Reset
   reset: () => void;
 };
+
+function migrateGoogleMapsPersisted(
+  persisted: unknown
+): Partial<Pick<GoogleMapsState, "scriptUrl">> {
+  if (!persisted || typeof persisted !== "object") return {};
+  const record = persisted as Record<string, unknown>;
+  const scriptUrl = record.scriptUrl;
+  if (typeof scriptUrl === "string" || scriptUrl === null) {
+    return { scriptUrl: scriptUrl as string | null };
+  }
+  return {};
+}
 
 const initialState = (): Omit<
   GoogleMapsState,
@@ -152,7 +163,10 @@ const withPersist = persistSafe<GoogleMapsState>(withReset, {
     scriptUrl: state.scriptUrl,
   }),
   migrate: (persisted: unknown) =>
-    ({ ...initialState(), ...(persisted as object) }) as GoogleMapsState,
+    ({
+      ...initialState(),
+      ...migrateGoogleMapsPersisted(persisted),
+    }) as GoogleMapsState,
 }) as unknown as import("zustand").StateCreator<GoogleMapsState>;
 
 const withDev = withDevtools<GoogleMapsState>("google-maps")(

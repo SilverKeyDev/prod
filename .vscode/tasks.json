@@ -187,13 +187,6 @@
       "problemMatcher": []
     },
     {
-      "label": "client:test:e2e",
-      "type": "shell",
-      "command": "cd Client && pnpm test:e2e",
-      "group": "test",
-      "problemMatcher": []
-    },
-    {
       "label": "client:lint:file",
       "type": "shell",
       "command": "cd Client && pnpm exec eslint --fix ${file}",

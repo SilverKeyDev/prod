@@ -5,6 +5,23 @@ import type { PropertySearchResult, SearchByPolygonResponse } from "packages/typ
 
 import type { MapPreviewSearchLifecycleHooks, SearchResult } from "./propertySearchTypes";
 
+/** Chunked delay so `AbortSignal` can skip remaining UI timing without applying results. */
+async function delayUnlessAborted(ms: number, signal?: AbortSignal): Promise<boolean> {
+  const chunk = 80;
+  let remaining = ms;
+  while (remaining > 0) {
+    if (signal?.aborted) {
+      return false;
+    }
+    const step = Math.min(chunk, remaining);
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, step);
+    });
+    remaining -= step;
+  }
+  return !signal?.aborted;
+}
+
 export async function handlePolygonSearchResponse(
   searchResult: SearchByPolygonResponse,
   center: { lat: number; lng: number },
@@ -15,8 +32,12 @@ export async function handlePolygonSearchResponse(
   setCurrentPage: (page: number) => void,
   setShowPropertyModals: (show: boolean) => void,
   preferencesStrictFilter: boolean,
-  mapPreview?: MapPreviewSearchLifecycleHooks
+  mapPreview?: MapPreviewSearchLifecycleHooks,
+  signal?: AbortSignal
 ): Promise<void> {
+  if (signal?.aborted) {
+    throw new DOMException("Aborted", "AbortError");
+  }
   if (!searchResult.success) {
     throw new Error(searchResult.error ?? "Search failed");
   }
@@ -40,11 +61,19 @@ export async function handlePolygonSearchResponse(
 
   if (!searchResult.meta?.cached) {
     setSearchStage("Evaluating scores...");
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    if (!(await delayUnlessAborted(1200, signal))) {
+      throw new DOMException("Aborted", "AbortError");
+    }
     setSearchStage("Scoring homes based on your preferences...");
   } else {
     setSearchStage("Loading cached results...");
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    if (!(await delayUnlessAborted(350, signal))) {
+      throw new DOMException("Aborted", "AbortError");
+    }
+  }
+
+  if (signal?.aborted) {
+    throw new DOMException("Aborted", "AbortError");
   }
 
   if (searchResult.properties && searchResult.properties.length > 0) {
@@ -97,8 +126,14 @@ export async function handlePolygonSearchResponse(
   );
 
   setSearchStage("Extracting property images...");
-  await new Promise((resolve) => setTimeout(resolve, 800));
+  if (!(await delayUnlessAborted(400, signal))) {
+    throw new DOMException("Aborted", "AbortError");
+  }
   setSearchStage("Finalizing results...");
+
+  if (signal?.aborted) {
+    throw new DOMException("Aborted", "AbortError");
+  }
 
   setSearchResults(transformedResults);
   setHasSearched(true);

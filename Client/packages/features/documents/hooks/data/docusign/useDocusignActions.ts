@@ -22,6 +22,7 @@ import {
   getDocusignMutationHandlersWithVars,
   runDocusignApi,
 } from "./docusignMutationHelpers";
+import { createDocusignQueryInvalidators } from "./useDocusignActions.invalidation";
 
 export type SendAgreementParams = { agreementId: string } & Partial<SendAgreementRequest>;
 
@@ -113,24 +114,8 @@ export function useDocusignActions(): UseDocusignActionsReturn {
   const queryClient = useQueryClient();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
-  const invalidateAgreements = () => {
-    void queryClient.invalidateQueries({
-      queryKey: queryKeys.docusign.agreements(),
-    });
-  };
-
-  const invalidateAgreementAndList = (agreementId: string) => {
-    void queryClient.invalidateQueries({
-      queryKey: queryKeys.docusign.agreement(agreementId),
-    });
-    invalidateAgreements();
-  };
-
-  const invalidateTemplates = () => {
-    void queryClient.invalidateQueries({
-      queryKey: queryKeys.docusign.templates(),
-    });
-  };
+  const { invalidateAgreements, invalidateAgreementAndList, invalidateTemplates } =
+    createDocusignQueryInvalidators(queryClient);
 
   const createAgreementMutation = useMutation<Agreement | undefined, Error, CreateAgreementRequest>(
     {

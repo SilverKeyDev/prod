@@ -35,6 +35,9 @@ celery.conf.update(
         "broker_connection_retry_on_startup": True,
         "broker_connection_retry": True,
         "broker_connection_max_retries": 10,
+        # Default caps for all tasks (override per-task if needed)
+        "task_soft_time_limit": 300,
+        "task_time_limit": 360,
         # Fix for macOS Objective-C fork issue - use threads instead of prefork
         "worker_pool": "threads",
         "worker_concurrency": 4,  # Number of threads

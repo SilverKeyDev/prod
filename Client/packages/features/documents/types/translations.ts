@@ -3,6 +3,7 @@ import { ACTION_LABELS, DOCUMENT_ACTION_LABELS } from "packages/utils/domain/act
 
 export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "documents.header": "Documents",
+  "documents.view_document": "View document",
   "documents.uploaded": "Uploaded {{date}}",
   "documents.sent_by": "Sent by {{name}} {{date}}",
   "documents.my_documents_tab": "My Documents",

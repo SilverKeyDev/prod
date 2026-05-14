@@ -6,15 +6,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-na
 
 import { Text } from "packages/ui/components/primitives";
 
-type MotionAnimate = {
-  opacity?: number;
-  scale?: number;
-};
-
-type MotionTransition = {
-  /** Seconds (framer-motion style). */
-  duration?: number;
-};
+import type { MotionButtonAnimate, MotionTransition } from "./motionTypes";
 
 export type MotionButtonProps = Omit<PressableProps, "onPress"> & {
   className?: string;
@@ -22,14 +14,14 @@ export type MotionButtonProps = Omit<PressableProps, "onPress"> & {
   onClick?: () => void;
   title?: string;
   accessibilityLabel?: string;
-  animate?: MotionAnimate;
-  whileTap?: MotionAnimate;
+  animate?: MotionButtonAnimate;
+  whileTap?: MotionButtonAnimate;
   transition?: MotionTransition;
 };
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-function resolveInitial(animate: MotionAnimate | undefined) {
+function resolveInitial(animate: MotionButtonAnimate | undefined) {
   return {
     opacity: animate?.opacity ?? 1,
     scale: animate?.scale ?? 1,

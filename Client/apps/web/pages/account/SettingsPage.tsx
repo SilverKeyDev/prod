@@ -6,17 +6,20 @@ import {
   type OnboardingData,
   validateSettingsData,
 } from "packages/features/profile";
+import {
+  useGoogleMapsPlacesReady,
+  usePersonalizationScrollActiveSection,
+} from "packages/features/profile/hooks";
+import { scrollToPersonalizationSection } from "packages/features/profile/utils/personalization/personalizationScrollActiveSection";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { useResponsive } from "packages/hooks/ui";
 import { showErrorToast } from "packages/hooks/ui/toast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 // Core
-import { useGoogleMapsStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 import SettingsSidebar from "packages/ui/components/sidebar/SettingsSidebar";
 import { TwoColumnInsetPageLayout } from "packages/ui/components/sidebar/TwoColumnInsetPageLayout";
-import { getActiveSettingsSectionId } from "packages/utils/web/settingsActiveSectionFromScroll";
 
 // Google Maps types
 /// <reference types="google.maps" />
@@ -62,8 +65,7 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
   const [isSaving, setIsSaving] = useState(false);
   const [activeSection, setActiveSection] = useState(STEPS[0]?.id ?? "demographics");
   // Modal state variables removed - modals not currently implemented
-  const [scriptsReady, setScriptsReady] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const { scriptsReady, loadError } = useGoogleMapsPlacesReady();
 
   useEffect(() => {
     return () => {
@@ -108,60 +110,8 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
     }
   }, [STEPS, activeSection]);
 
-  // Initialize active section based on current scroll position
-  useEffect(() => {
-    const sections = STEPS.map((step) => step.id);
-    const next = getActiveSettingsSectionId(
-      sections,
-      window.scrollY,
-      document.documentElement.scrollHeight,
-      window.innerHeight,
-      (id) => {
-        const el = document.getElementById(id);
-        return el ? el.offsetTop : null;
-      }
-    );
-    if (next) setActiveSection(next);
-  }, [STEPS]);
-
-  // Track scroll position to update active section
-  useEffect(() => {
-    const handleScroll = () => {
-      const sections = STEPS.map((step) => step.id);
-      const next = getActiveSettingsSectionId(
-        sections,
-        window.scrollY,
-        document.documentElement.scrollHeight,
-        window.innerHeight,
-        (id) => {
-          const el = document.getElementById(id);
-          return el ? el.offsetTop : null;
-        }
-      );
-      if (next) setActiveSection(next);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [STEPS]);
-
-  // Use centralized Google Maps loading
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMapsStore();
-
-  // Update scriptsReady based on centralized Google Maps loading
-  useEffect(() => {
-    if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
-      void setLoadError("Failed to load Google Maps script.");
-      return;
-    }
-
-    if (googleMapsLoaded && window.google?.maps?.places) {
-      setScriptsReady(true);
-    }
-  }, [googleMapsLoaded, googleMapsError]);
+  const sectionIds = useMemo(() => STEPS.map((step) => step.id), [STEPS]);
+  usePersonalizationScrollActiveSection(sectionIds, setActiveSection);
 
   const updateFormData = useCallback((field: string | number | symbol, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -244,13 +194,10 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
 
   // Modal handlers removed - modals not currently implemented
 
-  const scrollToSection = (sectionId: string) => {
+  const handleScrollToSection = useCallback((sectionId: string) => {
     setActiveSection(sectionId);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
+    scrollToPersonalizationSection(sectionId);
+  }, []);
 
   if (isLoading) {
     return (
@@ -382,7 +329,7 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
           onEdit={() => setIsEditMode(true)}
           onSave={handleSaveChanges}
           onCancel={handleCancel}
-          onScrollToSection={scrollToSection}
+          onScrollToSection={handleScrollToSection}
         />
       }
     >

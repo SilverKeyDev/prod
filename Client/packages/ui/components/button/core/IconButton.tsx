@@ -22,6 +22,7 @@ import {
   ICON_BUTTON_VARIANT_STYLES,
 } from "packages/ui/styles/variants/iconButtonVariants";
 import type { IconName } from "packages/ui/types/icons";
+import { twMergeClasses } from "packages/ui/utils/twMergeClasses";
 
 /** strokeWidth for toolbar variant icons - 50% thinner than default (2) */
 const TOOLBAR_ICON_STROKE_WIDTH = 1;
@@ -107,7 +108,7 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
           ].join(" ")
         : "";
 
-    const buttonClasses = [
+    const buttonClasses = twMergeClasses(
       ICON_BUTTON_BASE_CLASSES,
       BUTTON_TRANSITION_CLASSES,
       ICON_BUTTON_SIZE_CLASSES[size],
@@ -118,11 +119,8 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
       loading
         ? `${ICON_BUTTON_LOADING_FRAME_CLASSES} ${ICON_BUTTON_LOADING_VARIANT_OVERRIDES[variant]}`
         : "",
-      "",
-      className,
-    ]
-      .filter(Boolean)
-      .join(" ");
+      className
+    );
 
     const resolvedIcon = icon ?? (iconName ? <Icon name={iconName} size={20} /> : null);
 

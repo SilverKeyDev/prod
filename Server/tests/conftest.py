@@ -82,6 +82,8 @@ _COGNITO_IMPORT_PATHS = (
 def mock_cognito_service():
     """Mock AWS Cognito service (all import sites that bind the singleton)."""
     mock = MagicMock()
+    mock.client.exceptions.UserNotFoundException = type("UserNotFoundException", (Exception,), {})
+    mock.client.exceptions.NotAuthorizedException = type("NotAuthorizedException", (Exception,), {})
     mock.sign_in = Mock(
         return_value={
             "success": True,
@@ -102,6 +104,15 @@ def mock_cognito_service():
             },
         }
     )
+    mock.refresh_access_token = Mock(
+        return_value={
+            "success": True,
+            "tokens": {
+                "IdToken": "new_id_token",
+                "AccessToken": "new_access_token",
+            },
+        }
+    )
     mock.initiate_auth = Mock(return_value={"success": True, "session": "mock-session"})
     mock.forgot_password = Mock(return_value={"success": True})
     mock.confirm_forgot_password = Mock(return_value={"success": True})
@@ -111,34 +122,55 @@ def mock_cognito_service():
         yield mock
 
 
+_DOCUSIGN_CLIENT_IMPORT_PATHS = (
+    "app.services.docusign.core.client.DocusignClient",
+    "app.services.docusign.agreements.signature_flow.DocusignClient",
+    "app.services.docusign.envelopes.signing.DocusignClient",
+    "app.services.docusign.templates.sync.DocusignClient",
+    "app.services.docusign.envelopes.recipient_delivery.DocusignClient",
+)
+
+
 @pytest.fixture
 def mock_docusign_client():
-    """Mock DocuSign client"""
-    with patch("app.services.docusign.core.client.DocusignClient") as mock:
-        client_instance = Mock()
-        client_instance.create_envelope = Mock(
-            return_value={"envelope_id": "mock-envelope-123", "status": "created"}
-        )
-        client_instance.get_envelope_status = Mock(
-            return_value={"status": "sent", "envelope_id": "mock-envelope-123"}
-        )
-        client_instance.void_envelope = Mock(return_value={"status": "voided"})
-        client_instance.get_signing_url = Mock(
-            return_value="https://demo.docusign.net/Signing/StartInSession.aspx?..."
-        )
-        client_instance.list_templates = Mock(
-            return_value={
-                "templates": [
-                    {
-                        "templateId": "template-123",
-                        "name": "Purchase Agreement",
-                        "description": "Standard purchase agreement",
-                    }
-                ]
+    """Mock DocuSign client at every module that binds ``DocusignClient`` at import time."""
+    client_instance = Mock()
+    client_instance.create_envelope = Mock(
+        return_value={"envelope_id": "mock-envelope-123", "status": "created"}
+    )
+    client_instance.get_envelope = Mock(
+        return_value={"status": "sent", "envelopeId": "mock-envelope-123"}
+    )
+    client_instance.get_envelope_status = Mock(
+        return_value={"status": "sent", "envelope_id": "mock-envelope-123"}
+    )
+    client_instance.void_envelope = Mock(return_value={"status": "voided"})
+    client_instance.get_signing_url = Mock(
+        return_value="https://demo.docusign.net/Signing/StartInSession.aspx?..."
+    )
+    client_instance.create_recipient_view = Mock(
+        return_value="https://demo.docusign.net/Signing/StartInSession.aspx?..."
+    )
+    client_instance.get_sender_view = Mock(
+        return_value="https://demo.docusign.net/Sender/StartInSession.aspx?..."
+    )
+    client_instance.list_templates = Mock(
+        return_value=[
+            {
+                "templateId": "template-123",
+                "name": "Purchase Agreement",
+                "description": "Standard purchase agreement",
             }
-        )
-        mock.return_value = client_instance
-        yield mock
+        ]
+    )
+    with ExitStack() as stack:
+        first_patch = None
+        for path in _DOCUSIGN_CLIENT_IMPORT_PATHS:
+            p = stack.enter_context(patch(path))
+            p.return_value = client_instance
+            if first_patch is None:
+                first_patch = p
+        yield first_patch
 
 
 @pytest.fixture
@@ -172,6 +204,9 @@ def mock_google_calendar():
                     "id": "new-event-123",
                     "summary": "New Event",
                     "htmlLink": "https://calendar.google.com/event?eid=...",
+                    "start": {"dateTime": "2024-02-01T10:00:00Z", "timeZone": "UTC"},
+                    "end": {"dateTime": "2024-02-01T11:00:00Z", "timeZone": "UTC"},
+                    "status": "confirmed",
                 }
             )
         )
@@ -213,16 +248,32 @@ def mock_google_calendar():
         return_value=Mock(execute=Mock(return_value={"id": "acl-rule-123", "role": "reader"}))
     )
 
+    freebusy_mock = Mock()
+    freebusy_mock.query.return_value.execute.return_value = {
+        "calendars": {
+            "primary": {
+                "busy": [
+                    {
+                        "start": "2024-02-01T10:00:00Z",
+                        "end": "2024-02-01T11:00:00Z",
+                    }
+                ]
+            }
+        }
+    }
+
     service_mock.events = Mock(return_value=events_mock)
     service_mock.calendars = Mock(return_value=calendars_mock)
     service_mock.calendarList = Mock(return_value=calendar_list_ops)
     service_mock.acl = Mock(return_value=acl_mock)
+    service_mock.freebusy = Mock(return_value=freebusy_mock)
 
     build_patch_targets = (
         "googleapiclient.discovery.build",
         "app.services.calendar.events.operations.build",
         "app.services.calendar.events.operations_list_events.build",
         "app.services.calendar.calendars.calendar_create.build",
+        "app.services.calendar.calendars.calendar_delete.build",
         "app.services.calendar.calendars.silverkey_calendar.build",
         "app.services.calendar.calendars.sharing.build",
         "app.services.calendar.calendars.resolution.build",

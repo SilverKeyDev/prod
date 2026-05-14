@@ -20,15 +20,11 @@ import {
   calendarDateToKey,
   getCalendarDayListHeading,
 } from "@/features/calendar/utils/core/calendarDateKeys";
-import {
-  calculateCalendarDateRange,
-  getVisibleDateRange,
-  stepFocusedDate,
-} from "@/features/calendar/utils/core/date";
+import { calculateCalendarDateRange, stepFocusedDate } from "@/features/calendar/utils/core/date";
 import { formatCalendarToolbarLabel } from "@/features/calendar/utils/grid/calendarToolbarLabel";
 import { buildWeekTimedEventResizeGoogleEvent } from "@/features/calendar/utils/grid/calendarWeekTimedEventResize";
-import { getEventLocalDayKeys } from "@/features/calendar/utils/parsing/eventParsing";
 
+import { buildCalendarEventsByDay, buildCalendarMonthDayCells } from "./calendarScreenEventLayout";
 import { useCalendarErrorToasts } from "./useCalendarErrorToasts";
 import { useClientCalendarEventsQuery } from "./useClientCalendarEventsQuery";
 
@@ -242,34 +238,15 @@ export function useCalendarScreen({
     [isClientView, updateEvent, refetchEvents, enqueueToast]
   );
 
-  const eventsByDay = useMemo(() => {
-    const map = new Map<string, ExtendedGoogleEvent[]>();
-    for (const ev of gridDisplayEvents) {
-      for (const key of getEventLocalDayKeys(ev)) {
-        const arr = map.get(key);
-        if (arr) arr.push(ev);
-        else map.set(key, [ev]);
-      }
-    }
-    return map;
-  }, [gridDisplayEvents]);
+  const eventsByDay = useMemo(
+    () => buildCalendarEventsByDay(gridDisplayEvents),
+    [gridDisplayEvents]
+  );
 
-  const days = useMemo(() => {
-    const { gridDays } = getVisibleDateRange(focusedDate, "month");
-    if (!gridDays) return [];
-    return gridDays.map((day) => {
-      const key = calendarDateToKey(day.date);
-      const count = key ? (eventsByDay.get(key)?.length ?? 0) : 0;
-      return {
-        key,
-        date: day.date,
-        isCurrentMonth: day.isCurrentMonth,
-        isPast: day.isPast,
-        isToday: day.isToday,
-        count,
-      };
-    });
-  }, [focusedDate, eventsByDay]);
+  const days = useMemo(
+    () => buildCalendarMonthDayCells(focusedDate, eventsByDay),
+    [focusedDate, eventsByDay]
+  );
 
   const selectedEvents = useMemo(() => {
     const raw = selectedDayKey ? (eventsByDay.get(selectedDayKey) ?? []) : [];

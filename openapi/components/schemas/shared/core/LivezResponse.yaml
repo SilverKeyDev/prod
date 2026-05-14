@@ -1,0 +1,11 @@
+type: object
+description: >
+  Response from GET /livez (process liveness only; no database call). Use for fast orchestrator
+  probes; use GET /healthz when database connectivity must be verified.
+required:
+  - status
+additionalProperties: false
+properties:
+  status:
+    type: string
+    enum: [ok]

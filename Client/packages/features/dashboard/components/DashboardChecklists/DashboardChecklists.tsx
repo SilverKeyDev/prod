@@ -18,7 +18,7 @@ import {
 import { useDocumentsDataIntegration } from "packages/features/documents";
 import { useSigningTodos } from "packages/hooks/data/agenda/useSigningTodos";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { useViewStore, type ViewState } from "packages/store";
+import { useAuthStore, useViewStore, type ViewState } from "packages/store";
 import ClientSelector from "packages/ui/components/button/propertyActions/ClientSelector";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
@@ -40,6 +40,15 @@ const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
 
 export default function DashboardChecklists() {
   const { t } = useLocalization();
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const authUserId = useAuthStore((s) => s.user?.id ?? null);
+  const checklistSubjectOptions = useMemo(
+    () => ({
+      checklistSubjectUserId: (selectedClientId ?? authUserId) || undefined,
+    }),
+    [selectedClientId, authUserId]
+  );
+
   const {
     currentSection,
     isSectionUnlocked,
@@ -47,7 +56,7 @@ export default function DashboardChecklists() {
     isLoading: progressLoading,
     overallProgress,
     sectionProgress,
-  } = useChecklistProgress();
+  } = useChecklistProgress(checklistSubjectOptions);
   const setDropdownSelection = useViewStore((s: ViewState) => s.setDropdownSelection);
   const hasInitializedTabRef = useRef(false);
 
@@ -60,7 +69,6 @@ export default function DashboardChecklists() {
       hasInitializedTabRef.current = true;
     }
   }, [currentSection, progressLoading]);
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   useEffect(() => {
     setDropdownSelection("buyerChecklists.activeTab", activeTab as string);
@@ -77,7 +85,8 @@ export default function DashboardChecklists() {
     error,
     toggleItem,
     refreshChecklist,
-  } = useChecklistData(checklistType);
+    isChecklistUpdatePending,
+  } = useChecklistData(checklistType, checklistSubjectOptions);
 
   const signingTodos = useSigningTodos(false);
   const {
@@ -193,6 +202,7 @@ export default function DashboardChecklists() {
         getItemToggleEligibility={getItemToggleEligibility}
         sectionProgress={sectionProgress}
         onRoadmapTabNavigate={handleTabChange}
+        isChecklistUpdatePending={isChecklistUpdatePending}
         renderItemFooter={renderItemFooter}
         subtitle={
           <BodyText size="sm" className="text-text-secondary mb-4" as="p">

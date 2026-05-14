@@ -1,78 +1,34 @@
 /// <reference types="nativewind/types" />
 
-import React, { forwardRef } from "react";
+import React, { cloneElement, forwardRef, isValidElement } from "react";
 
 // import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import { Icon } from "@ui/icons";
 import type { PressableProps } from "react-native";
-import { Pressable } from "react-native";
 
 import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
-import { Box } from "packages/ui/components/primitives";
+import { Box, Pressable } from "packages/ui/components/primitives";
+import { BUTTON_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
+import type {
+  IconButtonSize,
+  IconButtonVariant,
+} from "packages/ui/styles/variants/iconButtonVariants";
 import {
+  ICON_BUTTON_ACTIVE_BG_MAP,
+  ICON_BUTTON_BASE_CLASSES,
+  ICON_BUTTON_HOVER_BG_MAP,
   ICON_BUTTON_LOADING_FRAME_CLASSES,
   ICON_BUTTON_LOADING_VARIANT_OVERRIDES,
+  ICON_BUTTON_ROUNDED_CLASSES,
+  ICON_BUTTON_SIZE_CLASSES,
+  ICON_BUTTON_TOUCH_CLASS,
+  ICON_BUTTON_VARIANT_STYLES,
 } from "packages/ui/styles/variants/iconButtonVariants";
 import type { IconName } from "packages/ui/types/icons";
+import { twMergeClasses } from "packages/ui/utils/twMergeClasses";
 
-type IconButtonVariant =
-  | "primary"
-  | "secondary"
-  | "tertiary"
-  | "outline"
-  | "ghost"
-  | "danger"
-  | "toolbar";
-
-type IconButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large";
-
-type IconButtonOwnProps = {
-  variant?: IconButtonVariant;
-  size?: IconButtonSize;
-  loading?: boolean;
-  icon?: React.ReactNode;
-  iconName?: IconName;
-  rounded?: "none" | "sm" | "md" | "lg" | "xl" | "full";
-  hoverBg?: "gray-50" | "gray-100" | "gray-200";
-  activeBg?: "gray-100" | "gray-200" | "gray-300";
-  label?: string;
-};
-
-export type IconButtonProps = IconButtonOwnProps &
-  Omit<PressableProps, keyof IconButtonOwnProps | "accessibilityLabel"> & {
-    onClick?: () => void;
-    className?: string;
-  };
-
-const SIZE_CLASSES: Record<IconButtonSize, string> = {
-  xs: "min-h-7 min-w-7",
-  sm: "min-h-8 min-w-8",
-  md: "min-h-9 min-w-9",
-  lg: "min-h-10 min-w-10",
-  xl: "min-h-11 min-w-11",
-  small: "min-h-6 min-w-6",
-  medium: "min-h-7 min-w-7",
-  large: "min-h-8 min-w-8",
-};
-
-const ROUNDED_CLASSES: Record<NonNullable<IconButtonProps["rounded"]>, string> = {
-  none: "rounded-none",
-  sm: "rounded-sm",
-  md: "rounded-md",
-  lg: "rounded-lg",
-  xl: "rounded-xl",
-  full: "rounded-full",
-};
-
-const VARIANT_CLASSES: Record<IconButtonVariant, string> = {
-  primary: "bg-primary",
-  secondary: "border border-border bg-neutral-200",
-  tertiary: "bg-accent disabled:bg-gold-locked",
-  outline: "border border-border bg-transparent",
-  ghost: "bg-transparent",
-  danger: "bg-destructive",
-  toolbar: "bg-transparent",
-};
+/** strokeWidth for toolbar variant icons - 50% thinner than default (2) */
+const TOOLBAR_ICON_STROKE_WIDTH = 1;
 
 const PRESSABLE_FORWARD_KEYS = [
   "testID",
@@ -92,9 +48,26 @@ function pickPressableProps(props: Record<string, unknown>): Partial<PressablePr
   return result as Partial<PressableProps>;
 }
 
+type IconButtonOwnProps = {
+  variant?: IconButtonVariant;
+  size?: IconButtonSize;
+  loading?: boolean;
+  icon?: React.ReactNode;
+  iconName?: IconName;
+  rounded?: "none" | "sm" | "md" | "lg" | "xl" | "full";
+  hoverBg?: keyof typeof ICON_BUTTON_HOVER_BG_MAP;
+  activeBg?: keyof typeof ICON_BUTTON_ACTIVE_BG_MAP;
+  label?: string;
+};
+
+export type IconButtonProps = IconButtonOwnProps &
+  Omit<PressableProps, keyof IconButtonOwnProps | "accessibilityLabel"> & {
+    onClick?: () => void;
+    className?: string;
+  };
+
 /**
- * Native IconButton - Pressable with icon and variant/size styling.
- * Avoids DOM <button> so React Native does not throw "View config getter for component button".
+ * Native IconButton — DS `Pressable` + shared `iconButtonVariants` (parity with web).
  */
 const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProps>(
   (
@@ -106,6 +79,8 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
       iconName,
       rounded = "lg",
       disabled,
+      hoverBg,
+      activeBg,
       label,
       onPress,
       onClick,
@@ -114,12 +89,43 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
     },
     ref
   ) => {
-    const sizeClass = SIZE_CLASSES[size];
-    const roundedClass = ROUNDED_CLASSES[rounded];
-    const variantClass = VARIANT_CLASSES[variant];
+    const toolbarOverrides =
+      variant === "toolbar" && (hoverBg ?? activeBg)
+        ? [
+            hoverBg
+              ? ICON_BUTTON_HOVER_BG_MAP[hoverBg]
+              : "hover:bg-gray-50 active:bg-gray-100 active:opacity-90",
+            activeBg ? ICON_BUTTON_ACTIVE_BG_MAP[activeBg] : "",
+          ].join(" ")
+        : "";
+
+    const buttonClasses = twMergeClasses(
+      ICON_BUTTON_BASE_CLASSES,
+      BUTTON_TRANSITION_CLASSES,
+      ICON_BUTTON_SIZE_CLASSES[size],
+      ICON_BUTTON_ROUNDED_CLASSES[rounded],
+      ICON_BUTTON_VARIANT_STYLES[variant],
+      toolbarOverrides,
+      ICON_BUTTON_TOUCH_CLASS,
+      loading
+        ? `${ICON_BUTTON_LOADING_FRAME_CLASSES} ${ICON_BUTTON_LOADING_VARIANT_OVERRIDES[variant]}`
+        : "",
+      className
+    );
+
     const resolvedIcon = icon ?? (iconName ? <Icon name={iconName} size={20} /> : null);
+
+    const iconWithStroke =
+      variant === "toolbar" &&
+      isValidElement(resolvedIcon) &&
+      typeof (resolvedIcon as React.ReactElement).type !== "string"
+        ? cloneElement(resolvedIcon as React.ReactElement<{ strokeWidth?: number }>, {
+            strokeWidth: TOOLBAR_ICON_STROKE_WIDTH,
+          })
+        : resolvedIcon;
+
     const handlePress = onPress ?? onClick;
-    const pressableProps = pickPressableProps(rest);
+    const pressableProps = pickPressableProps(rest as Record<string, unknown>);
 
     const content = loading ? (
       <>
@@ -129,21 +135,17 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
         </Box>
       </>
     ) : (
-      resolvedIcon
+      iconWithStroke
     );
 
     return (
       <Pressable
         ref={ref}
-        onPress={handlePress}
+        className={buttonClasses}
         disabled={disabled ?? loading}
+        onPress={handlePress}
         accessibilityRole="button"
         accessibilityLabel={label}
-        className={`items-center justify-center ${variantClass} ${sizeClass} ${roundedClass} ${
-          loading
-            ? `${ICON_BUTTON_LOADING_FRAME_CLASSES} ${ICON_BUTTON_LOADING_VARIANT_OVERRIDES[variant]}`
-            : ""
-        } ${""} ${className}`}
         {...pressableProps}
       >
         {content}

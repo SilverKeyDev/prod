@@ -1,3 +1,4 @@
+import { useMessagingSseSubscription } from "./useMessagingSseSubscription";
 import { usePrefetch } from "./usePrefetch";
 import { useRoutePolling } from "./useRoutePolling";
 
@@ -7,9 +8,11 @@ import { useRoutePolling } from "./useRoutePolling";
  *
  * This is a thin orchestrator that coordinates:
  * - usePrefetch: Initial data loading when user authenticates
+ * - useMessagingSseSubscription: Optional SSE for messaging (feature-flagged)
  * - useRoutePolling: Background polling for route updates
  */
 export function useDataInitialization() {
   usePrefetch();
+  useMessagingSseSubscription();
   useRoutePolling();
 }

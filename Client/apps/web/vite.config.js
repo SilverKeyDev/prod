@@ -7,12 +7,15 @@ import { defineConfig, loadEnv } from "vite";
 
 import { buildWebViteResolve } from "./vite.config.resolve.js";
 import { seoStaticFilesPlugin } from "./vite.plugin.seo.js";
+import { webManualChunks } from "./vite/build.manualChunks.js";
+import { createProcessShimPlugins } from "./vite/plugin.processShim.js";
+import { createWebStubNativePlugin } from "./vite/plugin.webStubNative.js";
+import { REACT_NATIVE_STUB } from "./vite/reactNativeStub.js";
+
 var root = path.resolve(__dirname, "../..");
 var packages = path.join(root, "packages");
 var uiComponents = path.join(packages, "ui/components");
-/** Stub for react-native in web build: no bare specifier in output, safe no-op exports. */
-var REACT_NATIVE_STUB =
-  '\nexport default {};\nexport const Platform = { OS: "web", select: (o) => (o && (o.web ?? o.default)) };\nconst noop = () => null;\nexport const View = noop;\nexport const Text = noop;\nexport const Image = noop;\nexport const ScrollView = noop;\nexport const TouchableOpacity = noop;\nexport const Pressable = noop;\nexport const Modal = noop;\nexport const StyleSheet = { create: (s) => s, flatten: (x) => x };\nexport const Animated = { View: noop, Value: class {}, timing: () => ({ start: () => {} }) };\nexport const Easing = {};\nexport const Dimensions = { get: () => ({ width: 0, height: 0 }) };\nexport const ActivityIndicator = noop;\nexport const FlatList = noop;\nexport const TextInput = noop;\nexport const KeyboardAvoidingView = noop;\nexport const SafeAreaView = noop;\nexport const Linking = { openURL: () => Promise.resolve() };\nexport const Alert = { alert: () => {} };\nexport const NativeModules = {};\nclass NativeEventEmitter {\n  addListener() { return { remove: () => {} }; }\n  removeAllListeners() {}\n}\nexport { NativeEventEmitter };\n';
+
 export default defineConfig(function (_a) {
   var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
   var mode = _a.mode;
@@ -72,29 +75,6 @@ export default defineConfig(function (_a) {
     ";\nconst processLike = { env };\nmodule.exports = processLike;\nmodule.exports.default = processLike;"
   );
   fs.writeFileSync(shimPath, shimContent, "utf8");
-  // #region agent log
-  var debugLogPath = path.join(root, ".cursor", "debug-a0035d.log");
-  try {
-    var logLine =
-      JSON.stringify({
-        sessionId: "a0035d",
-        id: "vite-shim-write",
-        timestamp: Date.now(),
-        location: "vite.config.ts:shim-write",
-        message: "process-shim written",
-        data: {
-          shimPath: shimPath,
-          contentSnippet: shimContent.slice(0, 200),
-          hasDefaultInContent: shimContent.includes("default"),
-        },
-        runId: "build",
-        hypothesisId: "A",
-      }) + "\n";
-    fs.appendFileSync(debugLogPath, logLine, "utf8");
-  } catch {
-    // Ignore debug log write failures (e.g. read-only FS).
-  }
-  // #endregion
   var analyze = process.env.ANALYZE === "1" || process.env.ANALYZE === "true";
   return {
     root: __dirname,
@@ -106,115 +86,8 @@ export default defineConfig(function (_a) {
         publicSiteUrl: publicSiteUrl,
         googleSiteVerification: googleSiteVerification,
       }),
-      {
-        name: "exclude-native-files",
-        enforce: "pre",
-        resolveId: function (id, importer) {
-          // Stub React Native and .native.* so no bare specifiers appear in the web bundle
-          var isReactNative =
-            id === "react-native" ||
-            id.startsWith("react-native/") ||
-            id.startsWith("@react-native/") ||
-            id.includes("/react-native/") ||
-            id.includes("node_modules/react-native");
-          var isNativeFile =
-            id.includes(".native.") ||
-            (importer && importer.includes(".native.")) ||
-            (importer && importer.includes("react-native"));
-          if (isReactNative) {
-            return "\0web-stub:react-native";
-          }
-          if (isNativeFile) {
-            return "\0web-stub:native";
-          }
-          return null;
-        },
-        load: function (id) {
-          if (id === "\0web-stub:react-native") {
-            return REACT_NATIVE_STUB;
-          }
-          if (id === "\0web-stub:native") {
-            return "export {};";
-          }
-          if (id.includes("react-native") || id.includes(".native.")) {
-            return "export {};";
-          }
-          return null;
-        },
-      },
-      {
-        name: "process-shim-esm",
-        enforce: "pre",
-        resolveId: function (id) {
-          var normalizedForLog = id.replace(/\?.*$/, "").replace(/^file:\/\//, "");
-          var mightBeShim =
-            id.includes("process-shim") ||
-            id === shimPath ||
-            normalizedForLog.endsWith("process-shim.cjs");
-          var normalized = id.replace(/\?.*$/, "").replace(/^file:\/\//, "");
-          var isShim =
-            normalized === shimPath ||
-            id.includes("process-shim") ||
-            normalized.endsWith("process-shim.cjs");
-          if (mightBeShim) {
-            var debugLogPath_1 = path.join(root, ".cursor", "debug-a0035d.log");
-            try {
-              fs.appendFileSync(
-                debugLogPath_1,
-                JSON.stringify({
-                  sessionId: "a0035d",
-                  id: "resolveId-seen",
-                  timestamp: Date.now(),
-                  location: "vite.config.ts:resolveId",
-                  message: "resolveId called for process-shim",
-                  data: {
-                    requestedId: id,
-                    shimPath: shimPath,
-                    normalized: normalized,
-                    isShim: isShim,
-                  },
-                  runId: "debug-resolve",
-                  hypothesisId: "D",
-                }) + "\n",
-                "utf8"
-              );
-            } catch {
-              // Ignore debug log write failures (e.g. read-only FS).
-            }
-          }
-          if (isShim) {
-            return "\0process-shim-esm";
-          }
-          return null;
-        },
-        load: function (id) {
-          if (id === "\0process-shim-esm") {
-            // #region agent log
-            try {
-              fs.appendFileSync(
-                path.join(root, ".cursor", "debug-a0035d.log"),
-                JSON.stringify({
-                  sessionId: "a0035d",
-                  id: "process-shim-esm-load",
-                  timestamp: Date.now(),
-                  location: "vite.config.ts:load(process-shim-esm)",
-                  message: "serving virtual process-shim as ESM",
-                  data: {},
-                  runId: "verify",
-                  hypothesisId: "B",
-                }) + "\n",
-                "utf8"
-              );
-            } catch {
-              // Ignore debug log write failures (e.g. read-only FS).
-            }
-            // #endregion
-            // Fix: serve as ESM so default export exists; CJS->ESM interop does not expose default.
-            return "export default { env: ".concat(JSON.stringify(envVars), " };");
-          }
-          return null;
-        },
-      },
+      createWebStubNativePlugin({ reactNativeStub: REACT_NATIVE_STUB }),
+      ...createProcessShimPlugins({ envVars: envVars, shimPath: shimPath }),
       ...(analyze
         ? [
             visualizer({
@@ -230,21 +103,6 @@ export default defineConfig(function (_a) {
         process: [shimPath, "default"],
         exclude: ["**/node_modules/**"],
       }),
-      {
-        name: "process-shim-middleware",
-        configureServer: function (server) {
-          server.middlewares.use(function (req, res, next) {
-            if (req.url && req.url.includes("process-shim.cjs")) {
-              var esm = "export default { env: ".concat(JSON.stringify(envVars), " };");
-              res.setHeader("Content-Type", "application/javascript");
-              res.setHeader("Cache-Control", "no-cache");
-              res.end(esm);
-              return;
-            }
-            next();
-          });
-        },
-      },
     ],
     envDir: root, // Look for .env in Client directory
     // esbuild define only accepts JSON literals or identifiers, never object expressions.
@@ -291,6 +149,11 @@ export default defineConfig(function (_a) {
           },
         },
         "/healthz": {
+          target: process.env.VITE_API_PROXY || "http://localhost:5000",
+          changeOrigin: true,
+          secure: false,
+        },
+        "/livez": {
           target: process.env.VITE_API_PROXY || "http://localhost:5000",
           changeOrigin: true,
           secure: false,
@@ -358,29 +221,7 @@ export default defineConfig(function (_a) {
         },
         output: {
           // Ensure consistent chunk naming and splitting
-          manualChunks: function (id) {
-            // Vendor chunks for better caching
-            if (id.includes("node_modules")) {
-              // Single vendor chunk avoids Rollup "Circular chunk" between react-vendor and vendor.
-              // Don't split react-router into separate chunk - keep it with main bundle
-              // to prevent timing issues where router context isn't available when hooks run
-              if (id.includes("react-router")) {
-                return undefined; // Include in main bundle to ensure router context is always available
-              }
-              return "vendor";
-            }
-            // Critical Router-dependent code should not be split
-            if (
-              id.includes("app/routes") &&
-              (id.includes("routes.tsx") || id.includes("StoreIntegrations"))
-            ) {
-              return undefined; // Include in main bundle
-            }
-            // Ensure hooks that use router are in main bundle
-            if (id.includes("packages/hooks") && id.includes("useDataPolling")) {
-              return undefined; // Include in main bundle
-            }
-          },
+          manualChunks: webManualChunks,
           // Consistent chunk file naming
           chunkFileNames: "assets/[name]-[hash].js",
           entryFileNames: "assets/[name]-[hash].js",

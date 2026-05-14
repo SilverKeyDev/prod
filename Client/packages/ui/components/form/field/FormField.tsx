@@ -14,25 +14,46 @@ type FormFieldProps = {
   required?: boolean;
   className?: string;
   labelClassName?: string;
+  /** Associates the label with the control (`htmlFor`). Prefer when the child input sets matching `id`. */
+  htmlFor?: string;
+  /** Optional id for the label element (for `aria-labelledby` from a composite control). */
+  labelId?: string;
 };
 
+/**
+ * Thin label + children + error stack. For full field chrome (icons, helper, password toggle),
+ * prefer `Input` or `FieldShell` on web.
+ */
 const FormField = ({
   label,
   children,
   error,
+  required = false,
   className = "",
   labelClassName = "",
+  htmlFor,
+  labelId: labelIdProp,
 }: FormFieldProps) => {
+  const reactId = React.useId();
+  const errorId = `sk-formfield-error-${reactId.replace(/:/g, "")}`;
+  const labelId =
+    labelIdProp ?? (label ? `sk-formfield-label-${reactId.replace(/:/g, "")}` : undefined);
+
   return (
     <Box className={`mb-4 ${className}`}>
       {label && (
-        <Label className={`text-text-primary mb-2 block font-medium ${labelClassName}`}>
+        <Label
+          id={labelId}
+          htmlFor={htmlFor}
+          className={`text-text-primary mb-2 block font-medium ${labelClassName}`}
+          required={required}
+        >
           {label}
         </Label>
       )}
       {children}
       {error && (
-        <BodyText size="xs" className="text-destructive mt-1">
+        <BodyText id={errorId} size="xs" className="text-destructive mt-1" role="alert">
           {error}
         </BodyText>
       )}

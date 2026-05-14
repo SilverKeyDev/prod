@@ -1,4 +1,5 @@
 # Fix Hugging Face parallelism warnings - must be set before any HF imports
+import logging
 import os
 import random
 
@@ -15,7 +16,9 @@ try:
 
     mp.set_start_method("spawn")  # no-op if already set
 except Exception:
-    pass
+    logging.getLogger(__name__).exception(
+        "multiprocessing.set_start_method('spawn') failed; continuing with platform default"
+    )
 
 from flask import Flask, g, jsonify, make_response, request, send_from_directory
 from flask_compress import Compress  # pyright: ignore[reportMissingImports]
@@ -46,6 +49,10 @@ _CACHE_DIST_UNHASHED = "public, max-age=86400"
 
 
 def create_app(config=None):
+    import time
+
+    _boot_t0 = time.perf_counter()
+
     # STATIC FOLDER: matches Docker
     STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../Client/dist")
     # IMPORTANT: move Flask's built-in static off "/" to avoid intercepting SPA routes like /login
@@ -73,6 +80,15 @@ def create_app(config=None):
     logger = get_logger()
     logger.info(LOG_CATEGORIES["API"], "Centralized logger initialized")
 
+    def _log_boot_phase(phase: str) -> None:
+        elapsed_ms = int((time.perf_counter() - _boot_t0) * 1000)
+        logger.info(
+            LOG_CATEGORIES["API"],
+            f"gunicorn_boot_phase={phase} elapsed_ms={elapsed_ms} pid={os.getpid()}",
+        )
+
+    _log_boot_phase("logger_ready")
+
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
@@ -80,6 +96,7 @@ def create_app(config=None):
     executor.init_app(app)
     compress.init_app(app)
     Migrate(app, db)
+    _log_boot_phase("extensions_ready")
 
     # Initialize database within app context
     with app.app_context():
@@ -91,7 +108,14 @@ def create_app(config=None):
             UserClientSettings,
         )
 
-        db.create_all()
+        # Production schema is owned by Alembic; skip create_all to avoid extra DDL round-trips at boot.
+        if os.getenv("FLASK_ENV") == "production":
+            logger.info(
+                LOG_CATEGORIES["API"],
+                "Skipping db.create_all() in production (migrations own schema)",
+            )
+        else:
+            db.create_all()
 
         # Validate SQLAlchemy mapper configuration at startup (fail fast)
         try:
@@ -106,6 +130,8 @@ def create_app(config=None):
             raise RuntimeError(
                 f"Database model configuration error: {mapper_error}"
             ) from mapper_error
+
+    _log_boot_phase("db_mappers_ready")
 
     # CORS Configuration with runtime origins list
     raw = os.getenv("CORS_ALLOWED_ORIGINS", "")
@@ -122,6 +148,8 @@ def create_app(config=None):
         resources={
             r"/api/*": {"origins": ALLOWED},
             r"/healthz": {"origins": ALLOWED},
+            r"/livez": {"origins": ALLOWED},
+            r"/readyz": {"origins": ALLOWED},
         },
         supports_credentials=True,
         expose_headers=["Content-Type", "X-CSRFToken", "X-Request-ID"],
@@ -130,6 +158,11 @@ def create_app(config=None):
         vary_header=True,
     )
 
+    @app.route("/livez", methods=["GET", "HEAD"])
+    def livez():
+        """Process liveness only (no DB). Use for Docker/orchestrator probes; use /healthz for DB readiness."""
+        return jsonify({"status": "ok"}), 200
+
     # Register login manager loader (User already imported in app_context block above)
 
     @login_manager.user_loader
@@ -137,14 +170,7 @@ def create_app(config=None):
         # User.id is String(36) UUID; do not coerce to int
         return User.query.get(user_id)
 
-    # Initialize S3 service silently
-    with app.app_context():
-        try:
-            from .services.documents import s3_service
-
-            s3_service._initialize_s3_client(force_retry=True)
-        except Exception:
-            pass
+    # S3 client is initialized lazily on first use via s3_service._ensure_s3_client() (avoids boto/head_bucket at boot).
 
     # Validate environment variables at startup
     from .utils.security.env_validator import check_api_keys
@@ -161,6 +187,8 @@ def create_app(config=None):
         raise
     except Exception as e:
         logger.warn(LOG_CATEGORIES["SECURITY"], f"Environment validation warning: {str(e)}")
+
+    _log_boot_phase("env_validate_done")
 
     # Register blueprints
     from .routes.admin import admin_bp
@@ -216,6 +244,8 @@ def create_app(config=None):
     except ImportError as e:
         logger.warn(LOG_CATEGORIES["API"], f"DocuSign routes not available: {e}")
 
+    _log_boot_phase("blueprints_registered")
+
     # ---------- Static asset routes (Vite build) ----------
     # Serve /assets/* out of the Vite dist directory with correct MIME types.
     @app.route("/assets/<path:filename>", methods=["GET", "HEAD"])
@@ -236,9 +266,8 @@ def create_app(config=None):
         out.headers["Cache-Control"] = _CACHE_DIST_UNHASHED
         return out
 
-    # Health check endpoint with DB connectivity test
-    @app.route("/healthz", methods=["GET", "HEAD"])
-    def healthz():
+    # Health: DB readiness (shared by /healthz and /readyz)
+    def _db_readiness_response():
         try:
             from sqlalchemy import text
 
@@ -251,6 +280,15 @@ def create_app(config=None):
             if not _HEALTHZ_IS_PRODUCTION:
                 body["error"] = str(e)
             return jsonify(body), 503
+
+    @app.route("/healthz", methods=["GET", "HEAD"])
+    def healthz():
+        return _db_readiness_response()
+
+    @app.route("/readyz", methods=["GET", "HEAD"])
+    def readyz():
+        """Database readiness (alias of /healthz) for operators who prefer the readyz name."""
+        return _db_readiness_response()
 
     # Request/Response logging middleware
     @app.before_request
@@ -309,7 +347,12 @@ def create_app(config=None):
     @app.route("/<path:path>", methods=["GET", "HEAD"])
     def catch_all(path):
         # Do NOT hijack API or explicit Flask static handler
-        if path.startswith(("api/", "static/")) or path in ("healthz", "favicon.ico"):
+        if path.startswith(("api/", "static/")) or path in (
+            "healthz",
+            "livez",
+            "readyz",
+            "favicon.ico",
+        ):
             return jsonify({"error": "Not Found"}), 404
 
         # Serve real files under dist (robots.txt, manifest.json, assets/*, etc.)
@@ -324,12 +367,17 @@ def create_app(config=None):
                     _CACHE_SPA_INDEX if base == "index.html" else _CACHE_DIST_UNHASHED
                 )
                 return out
-        except (ValueError, OSError):
-            pass  # fall through to SPA index
+        except (ValueError, OSError) as exc:
+            app.logger.warning(
+                "SPA catch_all static path resolution failed: %s",
+                exc,
+                exc_info=True,
+            )
 
         # SPA routing: return index.html for client-side routes (e.g., /login, /dashboard)
         out = make_response(send_from_directory(static_dir, "index.html"))
         out.headers["Cache-Control"] = _CACHE_SPA_INDEX
         return out
 
+    _log_boot_phase("app_factory_complete")
     return app

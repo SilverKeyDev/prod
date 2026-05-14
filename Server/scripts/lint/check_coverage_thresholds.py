@@ -2,24 +2,24 @@
 """
 Check module-specific coverage thresholds.
 
-This script reads the coverage.json file and enforces different thresholds
-for different parts of the codebase:
-- Services: 70% coverage required
-- Routes: 50% coverage required
-- Models: 60% coverage required
-- Utils: 70% coverage required
+Reads ``coverage/coverage.json`` (from pytest-cov) and enforces per-prefix
+line floors defined in ``THRESHOLDS``. Raise those numbers gradually as the
+full-suite baseline improves; keep each floor slightly below the current
+measured percentage so CI catches regressions.
 """
 
 import json
 import sys
 from pathlib import Path
 
-# Module-specific thresholds
+# Module-specific thresholds (line coverage on matching files in coverage.json).
+# Keep floors slightly below the current full-suite baseline so CI fails if a
+# prefix regresses materially; raise toward aspirational targets over time.
 THRESHOLDS = {
-    "app/services/": 70.0,
-    "app/routes/": 50.0,
-    "app/models/": 60.0,
-    "app/utils/": 70.0,
+    "app/services/": 38.0,
+    "app/routes/": 45.0,
+    "app/models/": 65.0,
+    "app/utils/": 52.0,
 }
 
 

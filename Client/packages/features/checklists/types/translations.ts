@@ -55,6 +55,15 @@ export const CHECKLISTS_TRANSLATIONS: Record<string, string> = {
   "checklists.step.submit": "Submit",
   "checklists.step.incomplete_warning":
     "Complete all required fields in this step before submitting.",
+  "checklists.update_error": "Could not update this step. Please try again.",
+  "checklists.step_merge_not_applied":
+    "This step could not be marked complete yet. Finish earlier steps or required details, then try again.",
+  "checklists.native.choose_areas.title": "Important places",
+  "checklists.native.choose_areas.body":
+    "Add the places that matter to you and your commute on the web when you have a moment. Tap Submit here once they are saved — your agent can keep things moving in the meantime.",
+  "checklists.native.set_budget.title": "Budget and financing",
+  "checklists.native.set_budget.body":
+    "Enter budget and financing details on the web for the full experience. When those fields are saved, tap Submit here to check this step off. Your agent can help if anything is unclear.",
   "checklists.roadmap.finish_blocker_first": "Finish {{blocker}} first ›",
   "checklists.roadmap.finish_phase_first": "Finish {{phase}} first ›",
   "checklists.roadmap.section_banner": "Finish {{phase}} first ›",

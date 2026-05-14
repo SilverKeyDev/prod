@@ -18,17 +18,18 @@ Human-oriented map of **Cursor** configuration: rules, skills, agents, and how t
 | `settings.json`        | Workspace-level Cursor settings (team-shared)                                      |
 | `mcp.example.json`     | Example MCP server block — **no secrets**; copy pattern to local Cursor MCP config |
 
-Loose notes under `.cursor/` should be rare. Prefer `documentation/` or `documentation/internal/` for human reference.
+Loose notes under `.cursor/` should be rare. Prefer `documentation/` or `documentation/internal/` for human reference. Do not introduce new repo-root `docs/` for SilverKey prose — that duplicates `documentation/` and confuses agents; see `documentation.mdc` (always applied). **Rule files:** use a single path per concern (e.g. `backend-architecture.mdc` only); do not keep duplicate copies such as `backend-architecture 2.mdc` alongside the canonical name — they are redundant and inflate context.
 
 ---
 
 ## Always-on vs scoped rules
 
-**Exactly three rules use `alwaysApply: true`:**
+**Exactly four rules use `alwaysApply: true`:**
 
 1. `rules/shared/security.mdc`
 2. `rules/shared/thin-app-architecture.mdc`
 3. `rules/shared/linting.mdc`
+4. `rules/shared/documentation.mdc` (canonical doc tree is `documentation/`, not repo-root `docs/`)
 
 Everything else attaches via **`globs`** (path patterns) or **agent-requested** / manual `@`-reference. Do not add new always-on rules without removing or demoting another.
 
@@ -76,6 +77,7 @@ Short body. Link to `documentation/**` for long prose.
 2. **Distinct role** from the default agent (otherwise don’t add).
 3. Keep **&lt; ~500 lines**; link to rules/skills this agent must follow.
 4. Team policy: **commit** shared agents; don’t commit personal experiments (or use a separate branch).
+5. **Post–component-audit fixes:** use the `silverkey-audit-axis*` and `silverkey-audit-architecture-remediation` personas ([`documentation/client/react-component-audit-rubric.md`](../documentation/client/react-component-audit-rubric.md) — *Remediation subagents* table).
 
 ---
 

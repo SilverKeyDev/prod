@@ -1,11 +1,10 @@
 import React from "react";
 
+import type { Property, SearchResult } from "packages/types";
 import CardNotInterested from "packages/ui/components/button/propertyActions/NotInterested";
 import { StyledImage } from "packages/ui/components/cards/base/index.web";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
-
-import type { Property, SearchResult } from "@/features/search/types";
 
 import { formatPropertyCardPrice } from "./propertyCardHelpers";
 

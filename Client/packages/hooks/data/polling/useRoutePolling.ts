@@ -66,10 +66,13 @@ export function useRoutePolling() {
         }
 
         const isOnActivePage = isRouteActivePage(routeConfig);
+        /** On `/messaging`, conversation updates are driven by SSE; keep REST polling on the idle cadence only. */
         const baseInterval =
-          isOnActivePage && routeConfig.pollingIntervalActive
-            ? routeConfig.pollingIntervalActive
-            : (routeConfig.pollingInterval ?? 0);
+          routeConfig.key === "conversations" && isOnActivePage
+            ? (routeConfig.pollingInterval ?? 45000)
+            : isOnActivePage && routeConfig.pollingIntervalActive
+              ? routeConfig.pollingIntervalActive
+              : (routeConfig.pollingInterval ?? 0);
 
         const interval = getPollingInterval(baseInterval);
         if (interval === 0) return;
@@ -89,9 +92,11 @@ export function useRoutePolling() {
 
       const isOnActivePage = isRouteActivePage(routeConfig);
       const intervalMs =
-        isOnActivePage && routeConfig.pollingIntervalActive
-          ? routeConfig.pollingIntervalActive
-          : (routeConfig.pollingInterval ?? 0);
+        routeConfig.key === "conversations" && isOnActivePage
+          ? (routeConfig.pollingInterval ?? 45000)
+          : isOnActivePage && routeConfig.pollingIntervalActive
+            ? routeConfig.pollingIntervalActive
+            : (routeConfig.pollingInterval ?? 0);
 
       if (intervalMs > 0) {
         const intervalId = setInterval(poll, intervalMs);

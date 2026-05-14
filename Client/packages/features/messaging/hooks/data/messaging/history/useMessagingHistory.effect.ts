@@ -9,11 +9,13 @@ import { queryKeys } from "packages/config/query/keys";
 import { mapApiMessagesToChatMessages } from "packages/features/messaging/hooks/data/messaging/helpers";
 import type { ChatMessage } from "packages/features/messaging/hooks/data/messaging/types";
 import {
-  type AgentChatHistoryCacheEntry,
-  type GetAgentChatHistoryOptions,
   INITIAL_CHAT_HISTORY_LIMIT,
   SYNC_NEWER_CHAT_LIMIT,
-} from "packages/features/messaging/hooks/data/useAgentChats";
+} from "packages/features/messaging/hooks/data/useAgentChats.constants";
+import type {
+  AgentChatHistoryCacheEntry,
+  GetAgentChatHistoryOptions,
+} from "packages/features/messaging/hooks/data/useAgentChats.types";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 export type GetChatHistoryRef = (

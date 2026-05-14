@@ -60,7 +60,15 @@ export type UnderlineTabsProps = {
 
 /**
  * Standardized underline tabs: gold straight underline for active tab by default,
- * optional icon support, same text color for all tabs. Uses UI Button with ghost variant.
+ * optional icon support, same text color for all tabs. Uses UI `Button` with ghost variant.
+ *
+ * **Accessibility:** The outer `Row` is a tab list (`role="tablist"`). Each item uses
+ * `accessibilityRole="tab"` and `accessibilityState.selected` on the shared `Button`.
+ *
+ * **Keyboard:** Focus moves with **Tab / Shift+Tab** (default button group behavior). This is **not**
+ * Radix-style roving tabindex with ArrowLeft/ArrowRight; add arrow-key handling in a wrapper if
+ * product requires it. Pair with tab panels in the parent using `id` / `aria-controls` / `role="tabpanel"`
+ * when applicable.
  */
 export function UnderlineTabs({
   items,
@@ -98,7 +106,7 @@ export function UnderlineTabs({
     .trim();
 
   return (
-    <Row className={className ? `${containerClass} ${className}` : containerClass}>
+    <Row role="tablist" className={className ? `${containerClass} ${className}` : containerClass}>
       {items.map((item) => {
         const isActive = activeId === item.id;
         const isLocked = item.locked === true;

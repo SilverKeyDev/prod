@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { Property, SearchResult } from "@/features/search/types";
+import type { Property, SearchResult } from "packages/types";
 
 export type PropertyCardProps = {
   /** Stable ID for memoization */

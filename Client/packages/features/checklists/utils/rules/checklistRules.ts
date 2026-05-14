@@ -152,6 +152,68 @@ export function mergeTaskChecklistCheckedIds(
   return [...checked].sort((a, b) => a - b);
 }
 
+/** Stable codes for logs and diagnostics (parity with server checklist_rules). */
+export const MERGE_REASON_SIGNATURE_BASED = "signature_based";
+export const MERGE_REASON_SELECTABLE_WHEN = "selectable_when";
+export const MERGE_REASON_SEQUENTIAL_ORDER = "sequential_order";
+export const MERGE_REASON_PRUNED = "pruned";
+
+export type TaskChecklistMergeResult = {
+  effectiveIds: number[];
+  strippedRequestedIds: number[];
+  strippedReasonCodes: string[];
+};
+
+function classifyStrippedId(
+  iid: number,
+  sortedItems: TaskChecklistItem[],
+  idToItem: Map<number, TaskChecklistItem>,
+  effective: ReadonlySet<number>
+): string {
+  const item = idToItem.get(iid);
+  if (item == null) return MERGE_REASON_PRUNED;
+  if (completionTypeRaw(item) === "signature_based") return MERGE_REASON_SIGNATURE_BASED;
+  const idx = sortedItems.findIndex((i) => i.id === iid);
+  if (idx >= 0 && !item.allow_unordered_check) {
+    for (let j = 0; j < idx; j++) {
+      const prevId = sortedItems[j]!.id;
+      if (!effective.has(prevId)) return MERGE_REASON_SEQUENTIAL_ORDER;
+    }
+  }
+  const sel = item.selectable_when;
+  if (sel != null && !evaluateChecklistCondition(sel, new Set(effective))) {
+    return MERGE_REASON_SELECTABLE_WHEN;
+  }
+  return MERGE_REASON_PRUNED;
+}
+
+/**
+ * Run merge and return effective ids plus deterministic reasons for template ids
+ * present in the request but absent after merge (parity with `apply_task_checklist_merge`).
+ */
+export function applyTaskChecklistMerge(
+  items: TaskChecklistItem[],
+  requestedIds: readonly number[],
+  oldCheckedIds: ReadonlySet<number>
+): TaskChecklistMergeResult {
+  const valid = new Set(items.map((it) => it.id));
+  const requestedValid = new Set(requestedIds.filter((id) => valid.has(id)));
+  const requestedSorted = [...requestedValid].sort((a, b) => a - b);
+  const effectiveList = mergeTaskChecklistCheckedIds(items, requestedSorted, oldCheckedIds);
+  const effective = new Set(effectiveList);
+  const strippedSorted = [...requestedValid].filter((x) => !effective.has(x)).sort((a, b) => a - b);
+  const sortedItems = sortTaskChecklistItems([...items]);
+  const idToItem = new Map(sortedItems.map((it) => [it.id, it]));
+  const strippedReasonCodes = strippedSorted.map((id) =>
+    classifyStrippedId(id, sortedItems, idToItem, effective)
+  );
+  return {
+    effectiveIds: effectiveList,
+    strippedRequestedIds: strippedSorted,
+    strippedReasonCodes,
+  };
+}
+
 export function passesSequentialForCheck(
   sortedItems: TaskChecklistItem[],
   checked: ReadonlySet<number>,

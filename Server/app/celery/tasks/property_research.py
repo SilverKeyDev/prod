@@ -1,9 +1,8 @@
 import os
 import time
 
-from flask import current_app
-
 from app.celery.celery_worker import celery
+from logger import LOG_CATEGORIES, log
 
 
 # Property Research Tasks
@@ -70,7 +69,11 @@ def research_property_task(self, params, address=None, skip_pros_cons=False, res
         self.update_state(state="PROGRESS", meta={"status": "Finalizing results", "progress": 95})
 
         elapsed = time.time() - start_time
-        current_app.logger.info(f"[PROPERTY] ✅ Task completed in {elapsed:.2f}s")
+        log.info(
+            LOG_CATEGORIES["API"],
+            "Property research Celery task completed",
+            {"elapsed_seconds": round(elapsed, 2)},
+        )
 
         return {
             "success": True,
@@ -80,7 +83,7 @@ def research_property_task(self, params, address=None, skip_pros_cons=False, res
         }
 
     except Exception as e:
-        current_app.logger.error(f"[PROPERTY] Task error: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], "Property research Celery task failed", e)
         return {
             "success": False,
             "error": str(e),
@@ -151,7 +154,11 @@ def compare_property_task(self, params, address=None, research_body=None):
         self.update_state(state="PROGRESS", meta={"status": "Finalizing results", "progress": 95})
 
         elapsed = time.time() - start_time
-        current_app.logger.info(f"[COMPARE] ✅ Task completed in {elapsed:.2f}s")
+        log.info(
+            LOG_CATEGORIES["API"],
+            "Property compare Celery task completed",
+            {"elapsed_seconds": round(elapsed, 2)},
+        )
 
         return {
             "success": True,
@@ -161,7 +168,7 @@ def compare_property_task(self, params, address=None, research_body=None):
         }
 
     except Exception as e:
-        current_app.logger.error(f"[COMPARE] Task error: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], "Property compare Celery task failed", e)
         return {
             "success": False,
             "error": str(e),

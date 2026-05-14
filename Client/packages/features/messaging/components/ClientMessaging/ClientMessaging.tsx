@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 
 import type { ReactNode, UIEvent } from "react";
 
@@ -6,6 +6,8 @@ import MessagingModals from "packages/features/messaging/components/layout/chrom
 import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
 import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
+import { useMessagingComposerStoreIntegration } from "packages/features/messaging/hooks/store/useMessagingComposerStoreIntegration";
+import { useMessagingComposerStore } from "packages/features/messaging/store";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import {
   useClientMessagingModals,
@@ -42,6 +44,7 @@ type ClientMessagingProps = {
 };
 
 export default function ClientMessaging({ setMobileHeaderActions }: ClientMessagingProps = {}) {
+  useMessagingComposerStoreIntegration();
   useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "ClientMessaging");
   const { navigate } = useNavigation();
   const { userProfile } = useUserData();
@@ -84,8 +87,24 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     return mine.length > 0 ? mine : conversations;
   }, [conversations, userProfile?.id]);
 
-  const [message, setMessage] = useState("");
-  const [isTyping] = useState(false);
+  const message = useMessagingComposerStore(
+    useCallback(
+      (s) => (activeConversationId ? (s.draftByConversationId[activeConversationId] ?? "") : ""),
+      [activeConversationId]
+    )
+  );
+  const setDraft = useMessagingComposerStore((s) => s.setDraft);
+  const clearDraft = useMessagingComposerStore((s) => s.clearDraft);
+
+  const setMessage = useCallback(
+    (text: string) => {
+      if (!activeConversationId) return;
+      setDraft(activeConversationId, text);
+    },
+    [activeConversationId, setDraft]
+  );
+
+  const isTyping = false;
 
   const { requests: pendingConnectionRequests } = useConnectionRequests();
   const pendingConnectionRequestCount = pendingConnectionRequests.length;
@@ -161,8 +180,13 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     [hasMoreOlder, isLoadingOlder, loadOlderMessages]
   );
 
-  const messageRef = useRef(message);
-  messageRef.current = message;
+  const handleSendMessage = useCallback(async () => {
+    if (!activeConversationId) return;
+    const msg = message.trim();
+    if (!msg) return;
+    clearDraft(activeConversationId);
+    await sendMessageApi(msg);
+  }, [activeConversationId, clearDraft, message, sendMessageApi]);
 
   const getHeaderMode = () => {
     if (showInbox) return "connection-requests";
@@ -180,13 +204,6 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
 
   const isXlUp = useMediaQuery(screenUp("xl"));
   const suppressDetailHeaderDuplicateActions = isXlUp && headerMode === "no-agent";
-
-  const handleSendMessage = useCallback(async () => {
-    const msg = messageRef.current.trim();
-    if (!msg) return;
-    setMessage("");
-    await sendMessageApi(msg);
-  }, [sendMessageApi]);
 
   const headerContentKeyRef = useRef<string | null>(null);
   useEffect(() => {

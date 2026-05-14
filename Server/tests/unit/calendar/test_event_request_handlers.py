@@ -13,6 +13,12 @@ from app.services.agent.event_request_handlers import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _app_context_for_event_request_handlers(app):
+    with app.app_context():
+        yield
+
+
 @pytest.fixture
 def mock_agent_conversation():
     """Create a mock agent-client conversation"""

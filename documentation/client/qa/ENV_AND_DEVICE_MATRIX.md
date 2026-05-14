@@ -46,5 +46,5 @@ Run the **same smoke suite** on each: login (or signup) → one protected action
 
 ## Automation
 
-- **Playwright (web):** `Client/apps/web` — see `playwright.config.ts` and `e2e/`. `PLAYWRIGHT_BASE_URL` can point at staging for CI or remote runs.
+- **Web:** no in-repo browser automation; optional `Client/scripts/visual-parity/` uses Chromium for screenshots only (`pnpm parity:web:*` from `Client/`).
 - **Native:** use manual checklist in [FLOW_SIGNUP_AND_VERIFICATION.md](./FLOW_SIGNUP_AND_VERIFICATION.md) until a device farm or Detox/Maestro suite exists.

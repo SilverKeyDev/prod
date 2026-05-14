@@ -54,6 +54,11 @@ type PreferencesFormContentProps = {
   preferencesSubjectUserId?: string | null;
   /** When set, parent can call `replaceFormData` to apply a full preferences snapshot (e.g. agent sync preview). */
   preferencesFormActionsRef?: React.MutableRefObject<PreferencesFormActionsRef | null>;
+  /**
+   * When > 0, debounces autosave (reduces saving/saved flicker in embedded contexts like checklists).
+   * Default 0 matches settings/profile full-page behavior.
+   */
+  autoSaveDebounceMs?: number;
 };
 export default function PreferencesFormContent({
   formContentRef,
@@ -63,6 +68,7 @@ export default function PreferencesFormContent({
   renderContent,
   preferencesSubjectUserId,
   preferencesFormActionsRef,
+  autoSaveDebounceMs = 0,
 }: PreferencesFormContentProps): React.ReactElement {
   const hasReportedInitialRef = useRef(false);
   const appliedRemoteSyncKeyRef = useRef<string | null>(null);
@@ -103,6 +109,7 @@ export default function PreferencesFormContent({
     showErrorToastOnError,
     showSuccessToastOnSave: false,
     onAfterSave: onPreferencesSaved,
+    debounceMs: autoSaveDebounceMs,
   });
   useEffect(() => {
     hasReportedInitialRef.current = false;

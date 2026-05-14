@@ -11,6 +11,7 @@ from app import db
 from app.models import AgentConnections, User
 
 from .connection_request_service import get_connection_requests
+from .conversation_access import established_messaging_relationship
 from .conversation_list import get_conversation, get_conversations
 from .conversation_messages import (
     get_conversation_history,
@@ -94,6 +95,12 @@ def create_conversation(agent_id: str, client_id: str) -> dict:
             _sync_agent_id(client, agent_id)
             db.session.commit()
             return existing.to_dict()
+
+        if not established_messaging_relationship(agent_id, client_id):
+            raise ValueError(
+                "Agent is not linked to this client. Accept a connection request or assign "
+                "the client before starting a conversation."
+            )
 
         conversation = AgentConnections(agent_id=agent_id, client_id=client_id)
         db.session.add(conversation)

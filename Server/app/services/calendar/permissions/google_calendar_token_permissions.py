@@ -8,6 +8,15 @@ from .google_calendar_oauth import normalize_google_oauth_scope_list
 logger = get_logger()
 
 
+def _clear_legacy_google_token_scope_flags(token_record: object) -> None:
+    """Scopes removed from the product OAuth client; keep DB columns aligned."""
+    from app.models import GoogleOAuthToken
+
+    if isinstance(token_record, GoogleOAuthToken):
+        token_record.has_calendar_calendarlist_readonly = False
+        token_record.has_calendar_events_freebusy = False
+
+
 def update_token_permissions_from_scopes(token_record, scopes: str) -> None:
     """Update permission boolean fields on a token record from scope string
 
@@ -42,6 +51,7 @@ def update_token_permissions_from_scopes(token_record, scopes: str) -> None:
             field = perm_data.get("field_name")
             if field:
                 setattr(token_record, field, False)
+        _clear_legacy_google_token_scope_flags(token_record)
         return
 
     # Parse scopes into a set for O(1) lookup (normalize whitespace + OIDC aliases)
@@ -142,3 +152,5 @@ def update_token_permissions_from_scopes(token_record, scopes: str) -> None:
             "final_permissions": final_permissions,
         },
     )
+
+    _clear_legacy_google_token_scope_flags(token_record)

@@ -35,6 +35,12 @@ properties:
     type: boolean
     nullable: true
     description: When true, return previously materialized results only without hitting upstream MLS.
+  preferences_user_id:
+    type: string
+    nullable: true
+    description: |
+      Optional subject for preference scoring (agents: must be a linked client id; buyers are always scoped to self).
+      Resolved server-side via `resolve_preferences_user_id_for_research`.
 example:
   viewport_polygon:
     - lat: 39.75

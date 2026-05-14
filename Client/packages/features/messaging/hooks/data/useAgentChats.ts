@@ -2,61 +2,25 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { AgentChatMessage, AgentConversation } from "packages/api";
 import { agentApi } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
-import { isSameMessagingUserId } from "packages/features/messaging/utils/userIdMatch";
+import {
+  buildConversationUnreadSignature,
+  readCachedAgentConversations,
+  resolveAgentChatsQueryKey,
+} from "packages/features/messaging/hooks/data/useAgentChats.cache";
+import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats.constants";
+import type {
+  AgentChatHistoryCacheEntry,
+  GetAgentChatHistoryOptions,
+  SendMessageApiResult,
+  UseAgentChatsOptions,
+  UseAgentChatsReturn,
+} from "packages/features/messaging/hooks/data/useAgentChats.types";
 import { showErrorToast } from "packages/hooks/ui/toast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { useNotificationStore } from "packages/store";
-
-export const INITIAL_CHAT_HISTORY_LIMIT = 5;
-export const OLDER_CHAT_HISTORY_PAGE_SIZE = 10;
-export const SYNC_NEWER_CHAT_LIMIT = 50;
-
-export type AgentChatHistoryCacheEntry = {
-  messages: AgentChatMessage[];
-  conversation?: AgentConversation;
-  has_more_older?: boolean;
-  has_more_newer?: boolean;
-};
-
-export type GetAgentChatHistoryOptions = {
-  limit?: number;
-  beforeTimestamp?: string;
-  beforeMessageId?: string;
-  afterTimestamp?: string;
-  afterMessageId?: string;
-};
-
-export type UseAgentChatsReturn = {
-  conversations: AgentConversation[];
-  isLoading: boolean;
-  error: string | null;
-  refreshChats: () => Promise<void>;
-  sendMessage: (
-    conversationId: string,
-    message: string,
-    clientId?: string,
-    sharedHomeId?: string,
-    sharedDocumentId?: string
-  ) => Promise<void>;
-  getChatHistory: (
-    conversationId: string,
-    options?: GetAgentChatHistoryOptions
-  ) => Promise<AgentChatHistoryCacheEntry>;
-  isSendingMessage: boolean;
-  lastFetchedAt: number | null;
-};
-
-export type UseAgentChatsOptions = {
-  /**
-   * When false, skips queries and side-effect syncs so a parent can own the live subscription
-   * (see `useMessaging` agent path with `agentChats`).
-   */
-  fetchEnabled?: boolean;
-};
 
 /**
  * Hook to manage agent conversations
@@ -74,6 +38,7 @@ export function useAgentChats(
   const lastConvUnreadSyncRef = useRef<string>("");
   const instanceIdRef = useRef(`uac-${Math.random().toString(36).slice(2, 9)}`);
   const lastConversationLogFingerprintRef = useRef("");
+  const lastSendErrorToastRef = useRef<{ key: string; at: number } | null>(null);
 
   const fetchEnabled = options?.fetchEnabled !== false;
 
@@ -83,41 +48,11 @@ export function useAgentChats(
 
   // Use the same query key as dataConfig when clientId is undefined
   // This ensures cache hits for prefetched data
-  const queryKey = useMemo(() => {
-    if (clientId === undefined) {
-      // Match dataConfig's query key for prefetched data
-      return queryKeys.agent.conversations();
-    }
-    // Use specific conversation key when clientId is provided
-    return queryKeys.agent.conversation(clientId);
-  }, [clientId]);
+  const queryKey = useMemo(() => resolveAgentChatsQueryKey(clientId), [clientId]);
 
-  // Check cache first to show data immediately
   const cachedConversations = useMemo(() => {
     if (!loadData) return undefined;
-    // Check cache using the same query key
-    const cached = queryClient.getQueryData<AgentConversation[]>(queryKey);
-    if (cached) {
-      // If clientId is provided, filter to that client's conversation
-      if (clientId) {
-        return cached.filter((conv) => isSameMessagingUserId(conv.client_id, clientId));
-      }
-      return cached;
-    }
-    // Also check the general conversations cache (from prefetch) as fallback
-    // This handles the case where dataConfig prefetched with conversations() key
-    // but we're querying with conversation(clientId) key
-    if (clientId !== undefined) {
-      const cachedAll = queryClient.getQueryData<AgentConversation[]>(
-        queryKeys.agent.conversations()
-      );
-      if (cachedAll) {
-        return clientId
-          ? cachedAll.filter((conv) => isSameMessagingUserId(conv.client_id, clientId))
-          : cachedAll;
-      }
-    }
-    return undefined;
+    return readCachedAgentConversations(queryClient, queryKey, clientId);
   }, [loadData, queryClient, queryKey, clientId]);
 
   // Fetch conversations
@@ -264,8 +199,18 @@ export function useAgentChats(
         queryKey: queryKeys.agent.all,
       });
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       log.error(LOG_CATEGORIES.ERRORS, "Send message failed", error);
+      const convId = variables?.conversationId ?? "";
+      const msg =
+        error instanceof Error ? error.message : typeof error === "string" ? error : "unknown";
+      const key = `${convId}|${msg}`;
+      const now = Date.now();
+      const prev = lastSendErrorToastRef.current;
+      if (prev && prev.key === key && now - prev.at < 4000) {
+        return;
+      }
+      lastSendErrorToastRef.current = { key, at: now };
       showErrorToast("Failed to send message. Please try again.");
     },
   });
@@ -297,8 +242,8 @@ export function useAgentChats(
       clientId?: string,
       sharedHomeId?: string,
       sharedDocumentId?: string
-    ) => {
-      await sendMessageMutation.mutateAsync({
+    ): Promise<SendMessageApiResult> => {
+      return sendMessageMutation.mutateAsync({
         conversationId,
         message,
         clientId,
@@ -391,12 +336,7 @@ export function useAgentChats(
   useEffect(() => {
     if (!loadData) return;
     const convs = conversationsResponse ?? [];
-    let signature = "";
-    for (const conv of convs) {
-      if (conv.unread_count !== undefined) {
-        signature += `${conv.id}:${conv.unread_count}|`;
-      }
-    }
+    const signature = buildConversationUnreadSignature(convs);
     if (signature === lastConvUnreadSyncRef.current) return;
     lastConvUnreadSyncRef.current = signature;
     for (const conv of convs) {
@@ -437,3 +377,16 @@ export function useAgentChats(
     lastFetchedAt: dataUpdatedAt > 0 ? dataUpdatedAt : null,
   };
 }
+
+export {
+  INITIAL_CHAT_HISTORY_LIMIT,
+  OLDER_CHAT_HISTORY_PAGE_SIZE,
+  SYNC_NEWER_CHAT_LIMIT,
+} from "./useAgentChats.constants";
+export type {
+  AgentChatHistoryCacheEntry,
+  GetAgentChatHistoryOptions,
+  SendMessageApiResult,
+  UseAgentChatsOptions,
+  UseAgentChatsReturn,
+} from "./useAgentChats.types";

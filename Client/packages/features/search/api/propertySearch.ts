@@ -1,7 +1,7 @@
 import { searchApi } from "packages/config/http/api";
 import {
   warnSearchAreaInvalid,
-  warnSearchFailed,
+  warnSearchServerOrTimeout,
 } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchFilterOverrides } from "packages/store";
@@ -108,7 +108,8 @@ export const searchPropertiesInIsochrone = async (
       setCurrentPage,
       setShowPropertyModals,
       preferencesStrictFilter,
-      mapPreview
+      mapPreview,
+      signal
     );
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -122,7 +123,7 @@ export const searchPropertiesInIsochrone = async (
       stack: error instanceof Error ? error.stack : undefined,
       isochroneData,
     });
-    warnSearchFailed(error);
+    warnSearchServerOrTimeout(error);
     setIsSearching(false);
     setSearchStage("");
   }
@@ -193,7 +194,8 @@ export const searchPropertiesInViewport = async (
       setCurrentPage,
       setShowPropertyModals,
       preferencesStrictFilter,
-      mapPreview
+      mapPreview,
+      signal
     );
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -202,7 +204,7 @@ export const searchPropertiesInViewport = async (
       return;
     }
     log.error(LOG_CATEGORIES.ERRORS, "Error in viewport property search", error);
-    warnSearchFailed(error);
+    warnSearchServerOrTimeout(error);
     setIsSearching(false);
     setSearchStage("");
   }

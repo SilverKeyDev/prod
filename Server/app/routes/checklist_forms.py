@@ -3,6 +3,7 @@
 from flask import jsonify, request
 
 from app.models import ChecklistForm, Transaction
+from app.services.agent.client_service import get_agent_client_ids
 from app.services.documents.forms_service import FormsService
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.security import rate_limit
@@ -23,6 +24,21 @@ def _require_agent(user):
     return None
 
 
+def _require_agent_manages_transaction(user, transaction_id: str):
+    """Agent-only; transaction_id must be a hub client user id managed by this agent."""
+    auth_error = _require_agent(user)
+    if auth_error:
+        return auth_error
+    if str(transaction_id) not in set(get_agent_client_ids(str(user.id))):
+        logger.security(
+            "security",
+            "Agent attempted checklist forms access for unmanaged transaction_id",
+            {"user_id": user.id, "transaction_id": transaction_id},
+        )
+        return jsonify({"success": False, "error": "Access denied"}), 403
+    return None
+
+
 @rate_limit(max_requests=100, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
@@ -33,7 +49,7 @@ def get_checklist_item_forms(user, transaction_id: str, section: str, item_id: s
     Returns forms associated with a checklist step. Agent-only; clients receive
     forms via messaging attachments from the agent.
     """
-    auth_error = _require_agent(user)
+    auth_error = _require_agent_manages_transaction(user, transaction_id)
     if auth_error:
         return auth_error
 
@@ -74,7 +90,7 @@ def download_form(user, transaction_id: str, section: str, item_id: str, form_id
 
     Generate a presigned download URL for a specific form. Agent-only.
     """
-    auth_error = _require_agent(user)
+    auth_error = _require_agent_manages_transaction(user, transaction_id)
     if auth_error:
         return auth_error
 
@@ -138,7 +154,7 @@ def send_form(user, transaction_id: str, section: str, item_id: str, form_id: st
     `both` runs messaging then DocuSign; returns partial success if one leg fails.
     """
     # Agent authorization
-    auth_error = _require_agent(user)
+    auth_error = _require_agent_manages_transaction(user, transaction_id)
     if auth_error:
         return auth_error
 

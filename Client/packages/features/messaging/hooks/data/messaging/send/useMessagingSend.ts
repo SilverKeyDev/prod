@@ -10,6 +10,7 @@ import type {
   MessagingSendMessageOptions,
   UseMessagingConfig,
 } from "packages/features/messaging/hooks/data/messaging/types";
+import type { SendMessageApiResult } from "packages/features/messaging/hooks/data/useAgentChats.types";
 import type { SharedBundleItemV1 } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
 import {
   buildSharedBundleAttachmentMessage,
@@ -26,6 +27,8 @@ import {
   resolveConversationIdForSend,
 } from "./useMessaging.sendHelpers";
 
+export type { SendMessageApiResult } from "packages/features/messaging/hooks/data/useAgentChats.types";
+
 export type UseMessagingSendParams = {
   config: UseMessagingConfig;
   activeConversationId: string;
@@ -36,7 +39,7 @@ export type UseMessagingSendParams = {
     clientId?: string,
     sharedHomeId?: string,
     sharedDocumentId?: string
-  ) => Promise<void>;
+  ) => Promise<SendMessageApiResult>;
   refreshChats: () => Promise<void>;
   setLocalMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   getChatHistoryRef: React.MutableRefObject<GetChatHistoryRef>;

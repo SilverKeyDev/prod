@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef } from "react";
 
 import IconButton from "@ui/button/IconButton";
 import { Icon } from "@ui/icons";
@@ -11,6 +11,10 @@ import {
   getWebInputControlClasses,
   WEB_FORM_INPUT_ICON_CLASSES,
 } from "packages/ui/styles/variants/inputVariants";
+import { twMergeClasses } from "packages/ui/utils/twMergeClasses";
+
+import { useInputField } from "./useInputField";
+
 export type InputProps = {
   variant?: "default" | "mobile" | "compact" | "search";
   size?: "sm" | "md" | "lg";
@@ -24,11 +28,17 @@ export type InputProps = {
   helperText?: string;
   showPasswordToggle?: boolean;
   customInput?: React.ReactElement;
-  // Enhanced icon support
-  iconSize?: "xs" | "sm" | "md" | "lg";
-  iconColor?: string;
-  iconPosition?: "left" | "right";
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">;
+
+function mergeDescribedBy(
+  existing: string | undefined,
+  added: string | undefined
+): string | undefined {
+  if (!added) return existing;
+  if (!existing) return added;
+  return `${existing} ${added}`.trim();
+}
+
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
@@ -36,7 +46,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       size = "md",
       error,
       label,
-      required: _required,
+      required = false,
       leftIcon,
       rightIcon,
       clearable,
@@ -50,19 +60,31 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       onChange,
       disabled,
       placeholder,
+      id: idProp,
+      "aria-describedby": ariaDescribedByProp,
+      "aria-invalid": ariaInvalidProp,
       ...props
     },
     ref
   ) => {
     const { t } = useLocalization();
-    const [showPassword, setShowPassword] = useState(false);
-    const [internalType, setInternalType] = useState(type);
-    // Handle password visibility toggle
-    React.useEffect(() => {
-      if (showPasswordToggle && type === "password") {
-        setInternalType(showPassword ? "text" : "password");
-      }
-    }, [showPassword, showPasswordToggle, type]);
+    const {
+      controlId,
+      helperId,
+      errorId,
+      ariaDescribedBy,
+      ariaInvalid,
+      passwordVisible,
+      togglePassword,
+      inputType,
+    } = useInputField({
+      id: idProp,
+      type,
+      showPasswordToggle,
+      error,
+      helperText,
+    });
+
     const hasRightIcons = Boolean(rightIcon ?? (clearable || showPasswordToggle));
     const inputClasses = getWebInputControlClasses({
       variant,
@@ -74,44 +96,65 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     });
     const containerClasses = "relative";
     const iconClasses = WEB_FORM_INPUT_ICON_CLASSES;
+
+    const describedBy = mergeDescribedBy(ariaDescribedByProp, ariaDescribedBy);
+    const invalid = ariaInvalidProp ?? ariaInvalid;
+
+    const inputAriaProps: Pick<
+      React.InputHTMLAttributes<HTMLInputElement>,
+      "id" | "aria-describedby" | "aria-invalid"
+    > = {
+      id: controlId,
+      "aria-describedby": describedBy,
+      ...(invalid ? { "aria-invalid": true } : {}),
+    };
+
     return (
-      <Box className="w-full">
-        {/* Label */}
+      <Box className={twMergeClasses("w-full")}>
         {label && (
-          <Label htmlFor={props.id} className="text-text-primary mb-2 block text-sm font-medium">
+          <Label
+            htmlFor={controlId}
+            className="text-text-primary mb-2 block text-sm font-medium"
+            required={required}
+          >
             {label}
           </Label>
         )}
 
-        {/* Input Container */}
         <Box className={containerClasses}>
-          {/* Left Icon */}
           {leftIcon && <Box className={iconClasses.left}>{leftIcon}</Box>}
 
-          {/* Input Field */}
           {customInput ? (
             React.cloneElement(customInput, {
-              className: inputClasses,
               ...props,
-            })
+              ...inputAriaProps,
+              "aria-describedby": mergeDescribedBy(
+                customInput.props["aria-describedby"] as string | undefined,
+                describedBy
+              ),
+              "aria-invalid":
+                ((customInput.props["aria-invalid"] as boolean | undefined) ?? invalid)
+                  ? true
+                  : undefined,
+              className: twMergeClasses(inputClasses, customInput.props.className as string),
+            } as Record<string, unknown>)
           ) : (
             /* eslint-disable-next-line silverkey/no-primitive-components -- base input */
             <input
               ref={ref}
-              type={internalType}
+              type={inputType}
               value={value}
               onChange={onChange}
               disabled={disabled}
               placeholder={placeholder}
               className={inputClasses}
               {...props}
+              {...inputAriaProps}
             />
           )}
 
-          {/* Right Icons */}
           <Box className={iconClasses.right}>
             <Box className="flex items-center space-x-1">
-              {/* Clear Button */}
               {clearable && value && !disabled && (
                 <IconButton
                   variant="ghost"
@@ -124,41 +167,39 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 />
               )}
 
-              {/* Password Toggle */}
               {showPasswordToggle && type === "password" && (
                 <IconButton
                   variant="ghost"
                   size="sm"
                   icon={
-                    showPassword ? (
+                    passwordVisible ? (
                       <Icon name="eye-off" className="h-4 w-4" />
                     ) : (
                       <Icon name="eye" className="h-4 w-4" />
                     )
                   }
-                  label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowPassword(!showPassword)}
+                  label={
+                    passwordVisible ? t("form.password_hide_aria") : t("form.password_show_aria")
+                  }
+                  onClick={togglePassword}
                   className="rounded p-1 transition-colors hover:bg-neutral-100"
                   tabIndex={-1}
                 />
               )}
 
-              {/* Custom Right Icon */}
               {rightIcon && !clearable && !showPasswordToggle && rightIcon}
             </Box>
           </Box>
         </Box>
 
-        {/* Helper Text */}
         {helperText && !error && (
-          <BodyText size="xs" muted className="mt-1">
+          <BodyText id={helperId} size="xs" muted className="mt-1">
             {helperText}
           </BodyText>
         )}
 
-        {/* Error Message */}
         {error && (
-          <BodyText size="xs" className="text-destructive mt-1">
+          <BodyText id={errorId} size="xs" className="text-destructive mt-1" role="alert">
             {error}
           </BodyText>
         )}
@@ -167,6 +208,5 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   }
 );
 Input.displayName = "Input";
-// Export both named and default for compatibility
 export { Input };
 export default Input;

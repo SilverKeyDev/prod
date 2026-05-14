@@ -59,6 +59,8 @@ else:
             "keepalives_idle": 600,
             "keepalives_interval": 30,
             "keepalives_count": 3,
+            # Session guardrails (milliseconds). Applied per connection via libpq "options".
+            "options": "-c statement_timeout=30000 -c idle_in_transaction_session_timeout=60000",
         },
         **_JSON_ENGINE_OPTS,
     }

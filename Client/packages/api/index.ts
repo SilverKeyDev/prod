@@ -28,6 +28,7 @@ export { authApi } from "packages/features/homeauth/api/auth";
 export { preferencesApi } from "packages/features/homeauth/api/preferences";
 export { userApi } from "packages/features/homeauth/api/user";
 export { chatbotApi } from "packages/features/messaging/api/chatbot";
+export { SavedHomesService, savedHomesService } from "packages/features/saved/api/savedHomes";
 export { researchApi } from "packages/features/search/api/research";
 export { searchApi } from "packages/features/search/api/search";
 export { searchDisplayApi } from "packages/features/search/api/searchDisplay";

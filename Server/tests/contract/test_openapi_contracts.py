@@ -298,21 +298,34 @@ def test_user_dto_to_response_matches_openapi_user(app, contract_user) -> None:
 def test_property_dto_to_saved_home_matches_openapi(app, contract_user) -> None:
     from app import db
     from app.dtos.property import PropertyDTO
-    from app.models import HomeUniversal
+    from app.models import PropertyCache, UserPropertyLink
 
     with app.app_context():
-        home = HomeUniversal(
+        prop = PropertyCache(
+            zpid="contract-test-zpid-saved-home",
+            address="123 Contract Test St",
+            city="Testville",
+            state="TS",
+            zipcode="12345",
+            beds="3",
+            baths="2",
+            price="500000",
+        )
+        db.session.add(prop)
+        db.session.flush()
+        link = UserPropertyLink(
             user_id=contract_user.id,
+            property_id=prop.id,
             is_liked=True,
             current=True,
-            address="123 Contract Test St",
         )
-        db.session.add(home)
+        db.session.add(link)
         db.session.commit()
-        fresh = db.session.get(HomeUniversal, home.id)
+        fresh = db.session.get(UserPropertyLink, link.id)
         assert fresh is not None
         payload = PropertyDTO.to_saved_home(fresh)
         db.session.delete(fresh)
+        db.session.delete(prop)
         db.session.commit()
 
     SavedHome.model_validate(payload)

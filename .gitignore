@@ -5,7 +5,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .venv/
-.aws.env
+.aws-sso
 
 .ruff_cache/
 # Distribution / packaging
@@ -56,6 +56,16 @@ out/
 
 # Testing
 coverage/
+# Playwright / e2e (default output dirs next to config)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+# Monorepo task cache
+.turbo/
+# Ad-hoc CI / reporter drops at repo root
+junit.xml
+junit-*.xml
 
 # Debug logs
 npm-debug.log*
@@ -104,6 +114,12 @@ dist/
 *.temp
 .cache/
 
+# Local UI review prompt packs (optional; remove this line to commit)
+ui-review-prompts/
+
+# Local React component audit markdown (see documentation/client/react-component-audit-rubric.md)
+audit/
+
 # OS generated files
 Thumbs.db
 ehthumbs.db
@@ -126,3 +142,6 @@ htmlcov/
 
 # OpenAPI bundled output (generated from openapi/ directory)
 /openapi.yaml
+
+# Root-level npm pack downloads (do not vendor tarballs at monorepo root)
+/*.tgz

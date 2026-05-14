@@ -8,6 +8,7 @@ import { Box } from "packages/ui/components/primitives";
 import type { DropdownOption } from "./Dropdown.types";
 
 export type DropdownTriggerProps<T> = {
+  menuListId: string;
   buttonClasses: string;
   disabled?: boolean;
   handleToggle: () => void;
@@ -22,6 +23,7 @@ export type DropdownTriggerProps<T> = {
 };
 
 export function DropdownTrigger<T>({
+  menuListId,
   buttonClasses,
   disabled,
   handleToggle,
@@ -42,6 +44,9 @@ export function DropdownTrigger<T>({
       onClick={handleToggle}
       disabled={disabled}
       aria-label={triggerA11yLabel}
+      aria-expanded={isOpen}
+      aria-controls={isOpen ? menuListId : undefined}
+      aria-haspopup="listbox"
       className={`${buttonClasses} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
       icon={
         <Icon

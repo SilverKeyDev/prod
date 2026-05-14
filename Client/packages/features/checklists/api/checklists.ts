@@ -59,6 +59,27 @@ export async function updateTaskChecklist(
   return response.data.checkedIds;
 }
 
+/** PUT checklist progress for a buyer subject (self or agent-managed client). */
+export async function updateTaskChecklistForSubject(
+  transactionId: string,
+  type: ChecklistType,
+  checkedIds: number[]
+): Promise<number[]> {
+  const response = await apiPut<TaskChecklistApiResponse>(
+    `/api/v1/transactions/${encodeURIComponent(transactionId)}/tasks?type=${type}`,
+    {
+      data: {
+        items: [],
+        checkedIds,
+      },
+    }
+  );
+  if (!response.success || !response.data) {
+    throw new Error(response.error ?? `Failed to update ${type} checklist for subject`);
+  }
+  return response.data.checkedIds;
+}
+
 // Re-export transaction address types from generated schema
 export type TransactionAddressData = components["schemas"]["TransactionAddressData"];
 export type TransactionAddressResponse = components["schemas"]["TransactionAddressResponse"];

@@ -1,13 +1,5 @@
-import type { ChangeEvent } from "react";
-
 import { color } from "packages/design-tokens";
-import {
-  Dropdown,
-  GooglePlacesAutocompleteField,
-  OliveCheckbox,
-  OliveCheckboxRowLabel,
-  Textarea,
-} from "packages/ui/components";
+import { Dropdown, OliveCheckbox, OliveCheckboxRowLabel, Textarea } from "packages/ui/components";
 import { Icon } from "packages/ui/components/icons";
 import { Box } from "packages/ui/components/primitives";
 
@@ -15,70 +7,14 @@ import { BodyText, Input } from "@/components/ui";
 import Label from "@/components/ui/text/Label.web";
 import { CalendarStyleDateRangePicker } from "@/features/calendar/components/eventForm/CalendarStyleDateRangePicker";
 import { EventFormTimeRange } from "@/features/calendar/components/eventForm/EventFormTimeRange";
-import { ViewingRoutePlanEditor } from "@/features/calendar/components/viewings/ViewingRoutePlanEditor";
-import {
-  type ViewingStop,
-  ViewingStopList,
-} from "@/features/calendar/components/viewings/ViewingStopList";
-import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
-import type { Calendar } from "@/features/calendar/types/calendar";
-import type { CalendarEventKindOptionSlice } from "@/features/calendar/utils/createEventModal/calendarEventKindOptions";
+import type { CreateEventModalFormFieldsProps } from "@/features/calendar/components/view/eventModal/createEventModalFormFields.types";
+import { CreateEventModalFormViewingOrLocation } from "@/features/calendar/components/view/eventModal/CreateEventModalFormViewingOrLocation";
 import {
   CALENDAR_EVENT_KINDS,
   type CalendarEventKindId,
 } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
-import type {
-  ViewingRouteEndMode,
-  ViewingRouteEndpoint,
-  ViewingTourAnchor,
-  ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
-export type CreateEventModalFormFieldsProps = {
-  mode: "create" | "edit";
-  calendars: Calendar[];
-  selectedCalendarId: string;
-  onCalendarChange: (id: string) => void;
-  hideCalendarPicker?: boolean;
-  eventKindId: CalendarEventKindId;
-  onEventKindIdChange: (id: CalendarEventKindId) => void;
-  kindOptionSlice: CalendarEventKindOptionSlice;
-  checklistProgressLoading?: boolean;
-  eventTitle: string;
-  onEventTitleChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  isAllDay: boolean;
-  onIsAllDayChange: (next: boolean) => void;
-  startDate: string;
-  endDate: string;
-  onDateRangeChange: (startYmd: string, endYmd: string) => void;
-  startTime: string;
-  endTime: string;
-  onStartTimeChange: (hhmm: string) => void;
-  onEndTimeChange: (hhmm: string) => void;
-  isPropertyViewing?: boolean;
-  viewingStops?: ViewingStop[];
-  onViewingStopsChange?: (next: ViewingStop[]) => void;
-  viewingStartSelection?: ViewingTourStartSelection;
-  onViewingStartSelectionChange?: (next: ViewingTourStartSelection) => void;
-  viewingEndMode?: ViewingRouteEndMode;
-  onViewingEndModeChange?: (next: ViewingRouteEndMode) => void;
-  viewingEndFixed?: ViewingRouteEndpoint | null;
-  onViewingEndFixedChange?: (next: ViewingRouteEndpoint | null) => void;
-  viewingTourAnchors?: ViewingTourAnchor[];
-  eventLocation: string;
-  onEventLocationChange: (value: string) => void;
-  locationScriptsReady: boolean;
-  loadError: string | null;
-  eventDescription: string;
-  onEventDescriptionChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-  addGoogleMeet: boolean;
-  onAddGoogleMeetChange: (next: boolean) => void;
-  showGoogleMeetOption: boolean;
-  mutualSchedule: CreateEventMutualAvailability | null;
-  /** Create flow: week double-click already set times — omit manual time row. */
-  createTimesChosenViaWeekSlot?: boolean;
-  onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
-};
+export type { CreateEventModalFormFieldsProps } from "@/features/calendar/components/view/eventModal/createEventModalFormFields.types";
 
 export function CreateEventModalFormFields({
   mode,
@@ -315,50 +251,22 @@ export function CreateEventModalFormFields({
         </Box>
       ) : null}
 
-      <Box>
-        {isPropertyViewing &&
-        onViewingStopsChange &&
-        onViewingStartSelectionChange &&
-        onViewingEndModeChange &&
-        onViewingEndFixedChange ? (
-          <ViewingRoutePlanEditor
-            viewingStops={viewingStops}
-            onViewingStopsChange={onViewingStopsChange}
-            startSelection={viewingStartSelection}
-            onStartSelectionChange={onViewingStartSelectionChange}
-            endMode={viewingEndMode}
-            onEndModeChange={onViewingEndModeChange}
-            endFixed={viewingEndFixed}
-            onEndFixedChange={onViewingEndFixedChange}
-            savedAnchors={viewingTourAnchors}
-            scriptsReady={locationScriptsReady}
-            loadError={loadError}
-          />
-        ) : isPropertyViewing && onViewingStopsChange ? (
-          <ViewingStopList
-            stops={viewingStops}
-            onStopsChange={onViewingStopsChange}
-            scriptsReady={locationScriptsReady}
-            loadError={loadError}
-          />
-        ) : (
-          <>
-            <GooglePlacesAutocompleteField
-              label="Location (optional)"
-              value={eventLocation}
-              onChange={onEventLocationChange}
-              onSelect={(data) => onEventLocationChange(data.address)}
-              scriptsReady={locationScriptsReady}
-              placeholder="Search for an address or type a place or link"
-            />
-            {loadError ? (
-              <BodyText as="p" size="xs" className="text-destructive mt-1">
-                {loadError} You can still type an address or link manually.
-              </BodyText>
-            ) : null}
-          </>
-        )}
-      </Box>
+      <CreateEventModalFormViewingOrLocation
+        isPropertyViewing={isPropertyViewing}
+        viewingStops={viewingStops}
+        onViewingStopsChange={onViewingStopsChange}
+        viewingStartSelection={viewingStartSelection}
+        onViewingStartSelectionChange={onViewingStartSelectionChange}
+        viewingEndMode={viewingEndMode}
+        onViewingEndModeChange={onViewingEndModeChange}
+        viewingEndFixed={viewingEndFixed}
+        onViewingEndFixedChange={onViewingEndFixedChange}
+        viewingTourAnchors={viewingTourAnchors}
+        eventLocation={eventLocation}
+        onEventLocationChange={onEventLocationChange}
+        locationScriptsReady={locationScriptsReady}
+        loadError={loadError}
+      />
     </>
   );
 }

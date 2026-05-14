@@ -1,9 +1,37 @@
 """Tests for favorite homes API routes."""
 
-from datetime import datetime, timezone
+import uuid
 from unittest.mock import patch
 
 from flask import Flask
+
+
+def _property_and_link(db_session, user_id: str, *, address: str, liked: bool = True):
+    """Create a ``PropertyCache`` row and a ``UserPropertyLink`` (favorites API source)."""
+    from app.models import PropertyCache, UserPropertyLink
+
+    suffix = uuid.uuid4().hex[:10]
+    prop = PropertyCache(
+        id=str(uuid.uuid4()),
+        zpid=f"zpid-{suffix}",
+        address=address,
+        address_normalized=f"{address.lower().replace(' ', '_')}_{suffix}",
+        price="350000",
+        beds="3",
+        baths="2",
+        sqft="2000",
+        primary_image_url="https://example.com/img.jpg",
+    )
+    db_session.session.add(prop)
+    db_session.session.flush()
+    link = UserPropertyLink(
+        user_id=str(user_id),
+        property_id=prop.id,
+        is_liked=liked,
+        current=True,
+    )
+    db_session.session.add(link)
+    return prop, link
 
 
 class TestFavoriteHomes:
@@ -12,9 +40,8 @@ class TestFavoriteHomes:
     def test_get_favorite_homes_authenticated(self, client, app: Flask, db_session):
         """Test GET /api/v1/user/favorite-homes"""
         with app.app_context():
-            from app.models import HomeUniversal, User
+            from app.models import User
 
-            # Create test user
             user = User(
                 cognito_id="test-cognito-123",
                 email="testuser@example.com",
@@ -24,32 +51,8 @@ class TestFavoriteHomes:
             db_session.session.add(user)
             db_session.session.commit()
 
-            # Create test homes with timezone-aware timestamps
-            now = datetime.now(timezone.utc)
-            home1 = HomeUniversal(
-                user_id=str(user.id),
-                address="123 Main St",
-                is_liked=True,
-                current=True,
-                price=350000,
-                beds=3,
-                baths=2,
-                created_at=now,
-                updated_at=now,
-            )
-            home2 = HomeUniversal(
-                user_id=str(user.id),
-                address="456 Oak Ave",
-                is_liked=True,
-                current=True,
-                price=425000,
-                beds=4,
-                baths=2.5,
-                created_at=now,
-                updated_at=now,
-            )
-            db_session.session.add(home1)
-            db_session.session.add(home2)
+            _property_and_link(db_session, user.id, address="123 Main St")
+            _property_and_link(db_session, user.id, address="456 Oak Ave")
             db_session.session.commit()
 
             with patch("app.utils.common_patterns.get_current_user") as mock_get:
@@ -70,7 +73,7 @@ class TestFavoriteHomes:
     def test_get_favorite_homes_pagination(self, client, app: Flask, db_session):
         """Test GET /api/v1/user/favorite-homes with pagination"""
         with app.app_context():
-            from app.models import HomeUniversal, User
+            from app.models import User
 
             user = User(
                 cognito_id="test-cognito-123",
@@ -81,21 +84,8 @@ class TestFavoriteHomes:
             db_session.session.add(user)
             db_session.session.commit()
 
-            # Create 25 test homes with timezone-aware timestamps
-            now = datetime.now(timezone.utc)
             for i in range(25):
-                home = HomeUniversal(
-                    user_id=str(user.id),
-                    address=f"{i + 1} Test St",
-                    is_liked=True,
-                    current=True,
-                    price=300000 + (i * 10000),
-                    beds=3,
-                    baths=2,
-                    created_at=now,
-                    updated_at=now,
-                )
-                db_session.session.add(home)
+                _property_and_link(db_session, user.id, address=f"{i + 1} Test St")
             db_session.session.commit()
 
             with patch("app.utils.common_patterns.get_current_user") as mock_get:
@@ -187,7 +177,7 @@ class TestFavoriteHomes:
     def test_remove_favorite_home(self, client, app: Flask, db_session):
         """Test POST /api/v1/user/favorite-homes/remove"""
         with app.app_context():
-            from app.models import HomeUniversal, User
+            from app.models import User
 
             user = User(
                 cognito_id="test-cognito-123",
@@ -198,20 +188,7 @@ class TestFavoriteHomes:
             db_session.session.add(user)
             db_session.session.commit()
 
-            # Create a liked home with timezone-aware timestamps
-            now = datetime.now(timezone.utc)
-            home = HomeUniversal(
-                user_id=str(user.id),
-                address="123 Main St",
-                is_liked=True,
-                current=True,
-                price=350000,
-                beds=3,
-                baths=2,
-                created_at=now,
-                updated_at=now,
-            )
-            db_session.session.add(home)
+            _property_and_link(db_session, user.id, address="123 Main St")
             db_session.session.commit()
 
             with patch("app.utils.common_patterns.get_current_user") as mock_get:

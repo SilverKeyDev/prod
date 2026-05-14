@@ -7,6 +7,7 @@ export { type ToastItem, type UIState, useUIStore } from "./slices/ui";
 export { useViewStore, type ViewState } from "./slices/ui";
 export { useGoogleCalendarStore } from "packages/features/calendar/store";
 export { useSchedulingStore } from "packages/features/calendar/store";
+export { type CompareSessionState, useCompareSessionStore } from "packages/features/compare/store";
 export { useDocumentsStore } from "packages/features/documents/store";
 export { useFeedStore } from "packages/features/feed/store";
 export { useSessionStore } from "packages/features/homeauth/store";
@@ -18,6 +19,10 @@ export {
   type UserState,
   useUserStore,
 } from "packages/features/homeauth/store";
+export {
+  type MessagingComposerState,
+  useMessagingComposerStore,
+} from "packages/features/messaging/store";
 export { useNegotiationStore } from "packages/features/negotiate/store";
 export { useSavedHomesStore } from "packages/features/saved/store";
 export {

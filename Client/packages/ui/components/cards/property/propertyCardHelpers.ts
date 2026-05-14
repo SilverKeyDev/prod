@@ -1,4 +1,5 @@
-import { isListingFullCriteriaMatch, type SearchResult } from "@/features/search/types";
+import type { SearchResult } from "packages/types";
+import { isListingFullCriteriaMatch } from "packages/utils/search/scoring/propertyMatchScore";
 
 import type { PropertyCardProps } from "./PropertyCard.types";
 

@@ -83,4 +83,5 @@
   EXPOSE 5000
 
   # Start Flask with Gunicorn
-  CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]
+  # --preload: load application once in master before forking workers (faster boot, less duplicate import work).
+  CMD ["gunicorn", "--preload", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]

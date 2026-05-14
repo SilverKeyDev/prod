@@ -36,9 +36,8 @@ _PERMISSION_NAMES_EXCLUDED_FROM_OAUTH = frozenset(
 def oauth_start():
     """Start Google OAuth flow with incremental authorization
 
-    Requests scopes where include_in_oauth_request is true (full Calendar and
-    calendar.events.freebusy are never requested). include_granted_scopes preserves
-    existing grants.
+    Requests scopes where include_in_oauth_request is true (full Calendar is virtual-only
+    and never requested). include_granted_scopes preserves existing grants.
 
     Query params (deprecated; same authorize URL regardless of values):
         full_scope: Deprecated
@@ -71,7 +70,7 @@ def oauth_enhance():
     """Request additional Google Calendar permissions (incremental authorization)
 
     Query params:
-        permissions: Comma-separated list of permission names to request (e.g., "calendar_freebusy,calendar_calendarlist_readonly")
+        permissions: Comma-separated list of permission names to request (e.g., "calendar_freebusy")
 
     This endpoint allows users to request additional permissions without disconnecting and reconnecting.
     """

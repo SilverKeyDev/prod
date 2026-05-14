@@ -1,0 +1,6 @@
+/**
+ * Stub for react-native in web build: no bare specifier in output, safe no-op exports.
+ * @type {string}
+ */
+export const REACT_NATIVE_STUB =
+  '\nexport default {};\nexport const Platform = { OS: "web", select: (o) => (o && (o.web ?? o.default)) };\nconst noop = () => null;\nexport const View = noop;\nexport const Text = noop;\nexport const Image = noop;\nexport const ScrollView = noop;\nexport const TouchableOpacity = noop;\nexport const Pressable = noop;\nexport const Modal = noop;\nexport const StyleSheet = { create: (s) => s, flatten: (x) => x };\nexport const Animated = { View: noop, Value: class {}, timing: () => ({ start: () => {} }) };\nexport const Easing = {};\nexport const Dimensions = { get: () => ({ width: 0, height: 0 }) };\nexport const ActivityIndicator = noop;\nexport const FlatList = noop;\nexport const TextInput = noop;\nexport const KeyboardAvoidingView = noop;\nexport const SafeAreaView = noop;\nexport const Linking = { openURL: () => Promise.resolve() };\nexport const Alert = { alert: () => {} };\nexport const NativeModules = {};\nclass NativeEventEmitter {\n  addListener() { return { remove: () => {} }; }\n  removeAllListeners() {}\n}\nexport { NativeEventEmitter };\n';

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 
 import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
@@ -106,6 +106,7 @@ function Dropdown<T = unknown>({
   maxVisibleOptions = 5,
 }: DropdownProps<T>) {
   const { t } = useLocalization();
+  const menuListId = useId();
   const popoverCtx = usePopoverContext();
   const effectiveSafeTarget =
     registerOutsideClickSafeTarget ?? popoverCtx?.registerOutsideClickSafeTarget;
@@ -211,6 +212,7 @@ function Dropdown<T = unknown>({
 
       <Box className="relative" ref={dropdownRef}>
         <DropdownTrigger
+          menuListId={menuListId}
           buttonClasses={buttonClasses}
           disabled={disabled}
           handleToggle={handleToggle}
@@ -227,6 +229,8 @@ function Dropdown<T = unknown>({
         {isOpen && !canPortalMenu && (
           <Box className={inlineDropdownClasses} style={{ maxHeight: desiredMenuHeightPx }}>
             <DropdownMenuBody
+              menuListId={menuListId}
+              menuAriaLabel={label}
               searchable={searchable}
               searchInputRef={searchInputRef}
               searchTerm={searchTerm}
@@ -256,6 +260,8 @@ function Dropdown<T = unknown>({
             }}
           >
             <DropdownMenuBody
+              menuListId={menuListId}
+              menuAriaLabel={label}
               searchable={searchable}
               searchInputRef={searchInputRef}
               searchTerm={searchTerm}

@@ -8,6 +8,12 @@ import pytest
 from app.services.calendar.events.creation import create_in_agent_calendars
 
 
+@pytest.fixture(autouse=True)
+def _app_context_for_agent_id_parsing_tests(app):
+    with app.app_context():
+        yield
+
+
 @pytest.mark.unit
 class TestCreateInAgentCalendarsAgentIdParsing:
     @patch("app.services.calendar.events.creation.User.query")

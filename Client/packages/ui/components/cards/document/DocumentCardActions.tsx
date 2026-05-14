@@ -3,10 +3,10 @@ import { useState } from "react";
 import Button from "@ui/button/Button";
 import IconButton from "@ui/button/IconButton";
 import { Icon } from "@ui/icons";
-import PdfModal from "@ui/modals/PdfModal";
 import DeleteModal from "@ui/modals/standalone/DeleteModal";
 
 import { useLocalization } from "packages/contexts";
+import PdfModal from "packages/features/documents/components/pdf/PdfModalBridge";
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
@@ -72,7 +72,9 @@ function DocumentCardActionButtons({
           icon={<Icon name="eye" size={16} />}
           fullWidth={!isList}
           className={primaryClass}
-        />
+        >
+          {t("documents.view_document")}
+        </Button>
         {isAgreement && onSignNow ? (
           <Button
             variant="secondary"
@@ -102,6 +104,7 @@ function DocumentCardActionButtons({
         <IconButton
           variant="outline"
           size="sm"
+          label={t("pdf.download")}
           onClick={() => onDownloadDocument(doc.id, doc.filename)}
           icon={<Icon name="download" size={16} />}
           className={
@@ -113,6 +116,7 @@ function DocumentCardActionButtons({
         <IconButton
           variant="tertiary"
           size="sm"
+          label={t("saved.share_document")}
           onClick={() => onShareDocument(doc.id, doc.filename)}
           icon={<Icon name="share" size={16} />}
           className={isList ? "min-w-0 flex-1" : "flex-1"}
@@ -121,6 +125,7 @@ function DocumentCardActionButtons({
           <IconButton
             variant="ghost"
             size="sm"
+            label={t("saved.delete_document")}
             onClick={onDeleteClick}
             icon={<Icon name="trash-2" size={16} />}
             className={

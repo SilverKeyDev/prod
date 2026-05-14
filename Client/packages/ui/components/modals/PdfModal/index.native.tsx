@@ -9,7 +9,7 @@ import { color } from "packages/design-tokens";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Text } from "packages/ui/components/primitives";
 
-import type { PdfModalProps } from "./index";
+import type { PdfModalProps } from "./PdfModal.types";
 
 const PdfModalNative: React.FC<PdfModalProps> = ({
   currentPdf,

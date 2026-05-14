@@ -52,7 +52,6 @@ export function LoginScreenNative() {
       error={error ?? undefined}
     >
       <Box style={styles.field}>
-        <Text style={styles.label}>Email</Text>
         <Input
           value={email}
           onValueChange={setEmail}
@@ -64,7 +63,6 @@ export function LoginScreenNative() {
         />
       </Box>
       <Box style={styles.field}>
-        <Text style={styles.label}>Password</Text>
         <Input
           value={password}
           onValueChange={setPassword}
@@ -72,6 +70,7 @@ export function LoginScreenNative() {
           secureTextEntry
           autoComplete="password"
           label="Password"
+          showPasswordToggle
         />
       </Box>
 
@@ -112,12 +111,6 @@ export function LoginScreenNative() {
 const styles = StyleSheet.create({
   field: {
     marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: color("neutral.700"),
-    marginBottom: 6,
   },
   primaryButton: {
     backgroundColor: color("brand.accent"),

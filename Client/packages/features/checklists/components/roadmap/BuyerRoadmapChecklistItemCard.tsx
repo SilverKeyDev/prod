@@ -8,7 +8,6 @@ import ChecklistIntegrationSlot from "packages/features/checklists/components/sl
 import {
   ChecklistStepHeaderSubmitButton,
   ChecklistStepSubmitProvider,
-  useChecklistStepSubmitRegistry,
 } from "packages/features/checklists/components/steps/ChecklistStepSubmitContext";
 import { CHECKLIST_TITLES, type ChecklistTab } from "packages/features/checklists/types/checklists";
 import {
@@ -65,11 +64,13 @@ export type BuyerRoadmapChecklistItemCardProps = {
   sectionProgress: Record<ChecklistTab, { isComplete: boolean }>;
   onRoadmapTabNavigate?: (tab: ChecklistTab) => void;
   onRevealRoadmapItem?: (itemId: number) => void;
+  /** When true, row checkbox and integration complete are disabled (checklist PUT in flight). */
+  isChecklistUpdatePending?: boolean;
 };
 
 function BuyerRoadmapChecklistItemCardInner({
   item,
-  rowKind,
+  rowKind: _rowKind,
   currentTab,
   checkedIds,
   activeItemIds,
@@ -89,12 +90,13 @@ function BuyerRoadmapChecklistItemCardInner({
   sectionProgress,
   onRoadmapTabNavigate,
   onRevealRoadmapItem,
+  isChecklistUpdatePending = false,
 }: BuyerRoadmapChecklistItemCardProps) {
   const { t } = useLocalization();
-  const submitRegistry = useChecklistStepSubmitRegistry();
   const checked = checkedIds.includes(item.id);
   const { canCheck, canUncheck, canMarkChecked } = getItemToggleEligibility(currentTab, item.id);
-  const checkboxDisabled = (!checked && !canCheck) || (checked && !canUncheck);
+  const checkboxDisabled =
+    (!checked && !canCheck) || (checked && !canUncheck) || Boolean(isChecklistUpdatePending);
   const roadmapBlocker = useMemo(
     () => (checkboxDisabled ? getRoadmapItemBlocker(item.id) : null),
     [checkboxDisabled, getRoadmapItemBlocker, item.id]
@@ -132,9 +134,11 @@ function BuyerRoadmapChecklistItemCardInner({
     item.component_key != null && !isSectionLocked && !hideIntegrationComponents;
 
   const expanded = isExpanded(item.id);
-  const isCurrentRow = rowKind === "current";
-  const showDetails = isCurrentRow ? true : expanded;
-  const showIntegration = shouldShowIntegration && (isCurrentRow || expanded);
+  // Step expand/collapse is presentation-only: when expanded, show the full step (checkbox copy,
+  // integration slot, footers) so users can pull in all available context for any item, active or
+  // not, without that visibility implying or changing completion state.
+  const showDetails = expanded;
+  const showIntegration = shouldShowIntegration && expanded;
 
   const itemBorder = isActive ? "none" : checked ? "dotted" : "light";
   const checkboxItem = toChecklistCheckboxItem(item);
@@ -164,8 +168,6 @@ function BuyerRoadmapChecklistItemCardInner({
     Boolean(isAgent && hubClientUserId && checklistCategory) &&
     item.dispatchAutomationAvailable === true;
 
-  const hasHeaderSubmit = Boolean(submitRegistry?.registration);
-
   const handleRoadmapHandoff = () => {
     if (roadmapBlocker?.kind === "prerequisite_item") {
       onRevealRoadmapItem?.(roadmapBlocker.blockerItemId);
@@ -176,93 +178,115 @@ function BuyerRoadmapChecklistItemCardInner({
     }
   };
 
-  const rowInner = (
-    <>
-      <Box
-        className={`flex w-full flex-row items-stretch ${
-          checkboxDisabled && !roadmapSoftBlocked
-            ? "bg-background-base opacity-75"
-            : "bg-background-surface"
-        }`}
-      >
-        <Box className="flex min-w-0 flex-1 flex-row items-start gap-4 px-4 py-3">
-          <Box className="min-w-0 flex-1">
-            <ChecklistCheckbox
-              item={checkboxItem}
-              checked={checked}
-              onToggle={() => {
-                void onToggleItem(item.id);
-              }}
-              disabled={checkboxDisabled}
-              roadmapSoftBlocked={roadmapSoftBlocked}
-              roadmapBlockerInlineText={blockerInlineText}
-              roadmapBlockerInlineVariant={
-                roadmapBlocker?.kind === "submit_via_integration" ? "integration_hint" : "default"
-              }
-              showDetails={showDetails}
-              itemLabelClass={itemLabelClass}
-              itemExplanationClass={checklistCheckboxRowClassNames.itemExplanation}
-              checkboxContainerClass={checklistCheckboxRowClassNames.checkboxContainer}
-            />
-          </Box>
-          <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-2">
-            {showDispatchGear ? (
-              <Box
-                onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                onKeyDown={(e: React.KeyboardEvent) => e.key === "Enter" && e.stopPropagation()}
-              >
-                <IconButton
-                  variant="ghost"
-                  size="sm"
-                  iconName="settings"
-                  label={t("checklists.dispatch_automation.open_settings", {
-                    defaultValue: "Automation settings",
-                  })}
-                  onPress={() => onOpenDispatchModal(item.id)}
-                  className="text-text-secondary hover:text-text-primary flex h-6 w-6"
-                />
-              </Box>
-            ) : null}
-            <ChecklistStepHeaderSubmitButton integrationVisible={showIntegration} />
-            {roadmapHandoff ? (
-              <Icon
-                name="chevron-right"
-                className="text-gold h-4 w-4 shrink-0 opacity-90"
-                aria-hidden
-              />
-            ) : isCurrentRow ? (
-              hasHeaderSubmit ? null : (
-                <Box className="h-6 w-6 flex-shrink-0" aria-hidden />
-              )
-            ) : (
-              <Box
-                onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                onKeyDown={(e: React.KeyboardEvent) => e.key === "Enter" && e.stopPropagation()}
-              >
-                <IconButton
-                  variant="ghost"
-                  size="sm"
-                  iconName={expanded ? "chevron-down" : "chevron-right"}
-                  label={expanded ? "Collapse step" : "Expand step"}
-                  onPress={() => toggleExpand(item.id)}
-                  className="text-text-secondary hover:text-text-primary flex h-6 w-6"
-                />
-              </Box>
-            )}
-          </Box>
-        </Box>
-      </Box>
-      {showIntegration ? (
-        <Box className="mt-2 rounded-b-lg px-4 pb-3">
-          <ChecklistIntegrationSlot
-            componentKey={item.component_key}
-            isCurrent={true}
-            onComplete={() => {
-              if (canMarkChecked) void onToggleItem(item.id);
+  const handoffInteractiveSelector =
+    "button, a[href], input, textarea, select, [role='listbox'], [role='option'], [role='combobox'], [role='menu'], [role='menuitem'], [data-radix-popper-content-wrapper], [data-radix-dropdown-menu-content], [data-radix-select-content]";
+
+  const checkboxRow = (
+    <Box
+      className={`flex w-full flex-row items-stretch ${
+        checkboxDisabled && !roadmapSoftBlocked
+          ? "bg-background-base opacity-75"
+          : "bg-background-surface"
+      }`}
+    >
+      <Box className="flex min-w-0 flex-1 flex-row items-start gap-4 px-4 py-3">
+        <Box className="min-w-0 flex-1">
+          <ChecklistCheckbox
+            item={checkboxItem}
+            checked={checked}
+            onToggle={() => {
+              void onToggleItem(item.id);
             }}
+            disabled={checkboxDisabled}
+            roadmapSoftBlocked={roadmapSoftBlocked}
+            roadmapBlockerInlineText={blockerInlineText}
+            roadmapBlockerInlineVariant={
+              roadmapBlocker?.kind === "submit_via_integration" ? "integration_hint" : "default"
+            }
+            showDetails={showDetails}
+            itemLabelClass={itemLabelClass}
+            itemExplanationClass={checklistCheckboxRowClassNames.itemExplanation}
+            checkboxContainerClass={checklistCheckboxRowClassNames.checkboxContainer}
           />
         </Box>
-      ) : null}
+        <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-2">
+          {showDispatchGear ? (
+            <Box
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              onKeyDown={(e: React.KeyboardEvent) => e.key === "Enter" && e.stopPropagation()}
+            >
+              <IconButton
+                variant="ghost"
+                size="sm"
+                iconName="settings"
+                label={t("checklists.dispatch_automation.open_settings", {
+                  defaultValue: "Automation settings",
+                })}
+                onPress={() => onOpenDispatchModal(item.id)}
+                className="text-text-secondary hover:text-text-primary flex h-6 w-6"
+              />
+            </Box>
+          ) : null}
+          <ChecklistStepHeaderSubmitButton integrationVisible={showIntegration} />
+          <Box
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            onKeyDown={(e: React.KeyboardEvent) => e.key === "Enter" && e.stopPropagation()}
+          >
+            <IconButton
+              variant="ghost"
+              size="sm"
+              iconName={expanded ? "chevron-down" : "chevron-right"}
+              label={expanded ? "Collapse step" : "Expand step"}
+              onPress={() => toggleExpand(item.id)}
+              className="text-text-secondary hover:text-text-primary flex h-6 w-6"
+            />
+          </Box>
+          {roadmapHandoff ? (
+            <Icon
+              name="chevron-right"
+              className="text-gold h-4 w-4 shrink-0 opacity-90"
+              aria-hidden
+            />
+          ) : null}
+        </Box>
+      </Box>
+    </Box>
+  );
+
+  const integrationBlock = showIntegration ? (
+    <Box className="mt-2 rounded-b-lg px-4 pb-3">
+      <ChecklistIntegrationSlot
+        componentKey={item.component_key}
+        isCurrent={true}
+        onComplete={() => {
+          if (canMarkChecked && !isChecklistUpdatePending) void onToggleItem(item.id);
+        }}
+      />
+    </Box>
+  ) : null;
+
+  const rowInner = (
+    <>
+      {roadmapHandoff ? (
+        <TouchableBox
+          label={handoffAccessibilityLabel}
+          onPress={handleRoadmapHandoff}
+          className="w-full text-left"
+          onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+            const target = e.target as HTMLElement;
+            if (target.closest(handoffInteractiveSelector)) {
+              return;
+            }
+            e.stopPropagation();
+            handleRoadmapHandoff();
+          }}
+        >
+          {checkboxRow}
+        </TouchableBox>
+      ) : (
+        checkboxRow
+      )}
+      {integrationBlock}
       {agentFooter != null ? <Box className="mt-3 px-4 pb-3">{agentFooter}</Box> : null}
       {itemFooter != null ? <Box className="mt-2 px-4 pb-3">{itemFooter}</Box> : null}
     </>
@@ -279,25 +303,7 @@ function BuyerRoadmapChecklistItemCardInner({
           : ""
       }`}
     >
-      {roadmapHandoff ? (
-        <TouchableBox
-          label={handoffAccessibilityLabel}
-          onPress={handleRoadmapHandoff}
-          className="w-full text-left"
-          onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-            const target = e.target as HTMLElement;
-            if (target.closest("button, a[href], input, textarea, select")) {
-              return;
-            }
-            e.stopPropagation();
-            handleRoadmapHandoff();
-          }}
-        >
-          {rowInner}
-        </TouchableBox>
-      ) : (
-        rowInner
-      )}
+      {rowInner}
     </Card>
   );
 }

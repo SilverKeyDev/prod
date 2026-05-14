@@ -41,11 +41,24 @@ TOP_N = 40
 _POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
 
 
+def _resolve_polygon_request_id(correlation_id: str | None, start_time: float) -> str:
+    """Prefer client X-Request-Id when safe; otherwise time-based id."""
+    fallback = f"poly_{int(start_time * 1000)}"
+    if correlation_id is None:
+        return fallback
+    s = str(correlation_id).strip()
+    if not s:
+        return fallback
+    cleaned = "".join(ch for ch in s[:80] if ch.isalnum() or ch in "-_")
+    return cleaned or fallback
+
+
 def run_polygon_search(
     user_id: str,
     data: dict,
     *,
     preferences_subject_user_id: str | None = None,
+    correlation_id: str | None = None,
 ):
     """
     Run polygon search: if forceSearch, recompute and persist; otherwise return stored DB rows only.
@@ -54,9 +67,10 @@ def run_polygon_search(
 
     user_id: authenticated viewer (cache/persist owner).
     preferences_subject_user_id: whose preferences drive filters/scoring when set; else user_id.
+    correlation_id: optional client-provided X-Request-Id (sanitized) for log correlation.
     """
     start_time = time.time()
-    request_id = f"poly_{int(start_time * 1000)}"
+    request_id = _resolve_polygon_request_id(correlation_id, start_time)
 
     only_cached_flag = data.get("onlyCached", False)
     force_search = data.get("forceSearch", False)
@@ -169,7 +183,8 @@ def run_polygon_search(
             )
 
     status_type = "ForSale"
-    per_pages = max(0, min(int(data.get("perBucketPages", 30)), 50))
+    _raw_per_bucket = data.get("perBucketPages", 30)
+    per_pages = max(0, min(int(30 if _raw_per_bucket is None else _raw_per_bucket), 50))
 
     viewport_raw = data.get("viewport_polygon")
     polygon: list[dict[str, float]] | None

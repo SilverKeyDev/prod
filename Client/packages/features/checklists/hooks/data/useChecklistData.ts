@@ -2,17 +2,29 @@ import { useCallback, useMemo } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useLocalization } from "packages/contexts";
 import {
   type ChecklistType,
   getTaskChecklist,
+  getTaskChecklistForSubject,
   type TaskChecklistResponse,
   updateTaskChecklist,
+  updateTaskChecklistForSubject,
 } from "packages/features/checklists/api/checklists";
 import { getActiveChecklistItemIds } from "packages/features/checklists/utils/presentation/getActiveChecklistItemId";
 import { mergeTaskChecklistCheckedIds } from "packages/features/checklists/utils/rules/checklistRules";
+import { showWarningToast } from "packages/hooks/ui";
 import { useAuthStore } from "packages/store";
 
 export type { ChecklistType };
+
+export type UseChecklistDataOptions = {
+  /**
+   * Buyer user id whose checklist is read/written (`/transactions/:id/tasks`).
+   * Omit for the authenticated user (`/api/v1/tasks`).
+   */
+  checklistSubjectUserId?: string | null;
+};
 
 export type UseChecklistDataReturn = {
   items: TaskChecklistResponse["items"];
@@ -22,6 +34,8 @@ export type UseChecklistDataReturn = {
   /** All steps that should show as the current wave (e.g. parallel integration group). */
   activeItemIds: readonly number[];
   isLoading: boolean;
+  /** True while a checklist PUT is in flight (checkbox or integration submit). */
+  isChecklistUpdatePending: boolean;
   error: string | null;
   toggleItem: (id: number) => Promise<void>;
   refreshChecklist: () => Promise<void>;
@@ -32,14 +46,26 @@ export type UseChecklistDataReturn = {
  * Uses unified task API: returns items (definitions) + checkedIds (progress).
  * Uses prefetched data from services/data when available.
  */
-export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
+export function useChecklistData(
+  type: ChecklistType,
+  options?: UseChecklistDataOptions
+): UseChecklistDataReturn {
+  const { t } = useLocalization();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
+  const checklistSubjectUserId = options?.checklistSubjectUserId;
 
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
-  const queryKey = useMemo(() => ["checklists", type] as const, [type]);
+  const subjectCacheKey = checklistSubjectUserId ?? "self";
+  const queryEnabled =
+    shouldLoadData && (checklistSubjectUserId == null || checklistSubjectUserId.length > 0);
+
+  const queryKey = useMemo(
+    () => ["checklists", type, subjectCacheKey] as const,
+    [type, subjectCacheKey]
+  );
 
   const {
     data: checklistData,
@@ -48,18 +74,25 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
     refetch: refetchChecklist,
   } = useQuery({
     queryKey,
-    queryFn: () => getTaskChecklist(type),
-    enabled: shouldLoadData,
+    queryFn: () =>
+      checklistSubjectUserId
+        ? getTaskChecklistForSubject(checklistSubjectUserId, type)
+        : getTaskChecklist(type),
+    enabled: queryEnabled,
     placeholderData: (previousValue) => {
       const cached = queryClient.getQueryData<TaskChecklistResponse>(queryKey);
       return cached ?? previousValue;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnMount: false,
+    refetchOnWindowFocus: true,
   });
 
   const updateChecklistMutation = useMutation({
-    mutationFn: async (ids: number[]) => updateTaskChecklist(type, ids),
+    mutationFn: async (ids: number[]) =>
+      checklistSubjectUserId
+        ? updateTaskChecklistForSubject(checklistSubjectUserId, type, ids)
+        : updateTaskChecklist(type, ids),
     onMutate: async (ids: number[]) => {
       const previous = queryClient.getQueryData<TaskChecklistResponse>(queryKey);
       queryClient.setQueryData(queryKey, (old: TaskChecklistResponse | undefined) =>
@@ -81,6 +114,9 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
 
   const toggleItem = useCallback(
     async (id: number) => {
+      if (updateChecklistMutation.isPending) {
+        return;
+      }
       const items = checklistData?.items ?? [];
       const currentIds = checklistData?.checkedIds ?? [];
       const oldSet = new Set(currentIds);
@@ -89,9 +125,17 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
         ? currentIds.filter((itemId) => itemId !== id)
         : [...currentIds, id];
       const merged = mergeTaskChecklistCheckedIds(items, requested, oldSet);
-      await updateChecklistMutation.mutateAsync(merged);
+      const serverCheckedIds = await updateChecklistMutation.mutateAsync(merged);
+      if (!isChecked && !serverCheckedIds.includes(id)) {
+        showWarningToast(
+          t("checklists.step_merge_not_applied", {
+            defaultValue:
+              "This step could not be marked complete yet. Finish earlier steps or required details, then try again.",
+          })
+        );
+      }
     },
-    [checklistData?.checkedIds, checklistData?.items, updateChecklistMutation]
+    [checklistData?.checkedIds, checklistData?.items, t, updateChecklistMutation]
   );
 
   const refreshChecklist = useCallback(async () => {
@@ -112,6 +156,7 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
     activeItemId,
     activeItemIds,
     isLoading,
+    isChecklistUpdatePending: updateChecklistMutation.isPending,
     error: error?.message ?? null,
     toggleItem,
     refreshChecklist,

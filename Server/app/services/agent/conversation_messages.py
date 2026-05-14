@@ -291,6 +291,14 @@ def send_message(
 
         db.session.add(chat_message)
         db.session.commit()
+        from .messaging_realtime import notify_conversation_participants_new_message
+
+        notify_conversation_participants_new_message(
+            str(conversation.agent_id),
+            str(conversation.client_id),
+            str(conversation_id),
+            str(chat_message.id),
+        )
         return {"message_id": chat_message.id}
 
     except Exception as e:
@@ -359,6 +367,14 @@ def mark_messages_as_read(conversation_id: str, user_id: str) -> dict:
 
         conversation.update_last_read(user_id)
         db.session.commit()
+        from .messaging_realtime import notify_conversation_participants_read
+
+        notify_conversation_participants_read(
+            str(conversation.agent_id),
+            str(conversation.client_id),
+            str(conversation_id),
+            str(user_id),
+        )
         return {"success": True, "marked_count": marked_count}
 
     except Exception as e:

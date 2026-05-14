@@ -1,9 +1,10 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { usePropertyComparison } from "packages/features/compare/hooks/data/usePropertyComparison";
+import { useCompareSessionStore } from "packages/features/compare/store";
 import type { CompareHomesPropertyDetails } from "packages/features/compare/types/compareHomes";
 import {
   exportToCSV,
@@ -206,9 +207,22 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
   const { navigateToPath } = useNavigation();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const { propertyDetails, loadingStates } = usePropertyComparison(isOpen, selectedHomes);
-  const [showRowModal, setShowRowModal] = useState(false);
-  const [omittedRows, setOmittedRows] = useState<Set<string>>(new Set());
-  const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(new Set());
+
+  const omittedRowKeys = useCompareSessionStore((s) => s.omittedRowKeys);
+  const manuallyEnabledRowKeys = useCompareSessionStore((s) => s.manuallyEnabledRowKeys);
+  const showRowModal = useCompareSessionStore((s) => s.isManageRowsModalOpen);
+  const setManageRowsModalOpen = useCompareSessionStore((s) => s.setManageRowsModalOpen);
+  const setOmittedRowsFromSet = useCompareSessionStore((s) => s.setOmittedRowsFromSet);
+  const setManuallyEnabledRowsFromSet = useCompareSessionStore(
+    (s) => s.setManuallyEnabledRowsFromSet
+  );
+
+  const omittedRows = useMemo(() => new Set(omittedRowKeys), [omittedRowKeys]);
+  const manuallyEnabledRows = useMemo(
+    () => new Set(manuallyEnabledRowKeys),
+    [manuallyEnabledRowKeys]
+  );
+
   const { comparisonData, allComparisonFields, hasDataForAnyProperty, visibleComparisonFields } =
     useCompareHomesData(
       selectedHomes,
@@ -241,7 +255,7 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
       headerContent={
         <CompareHomesModalHeader
           selectedCount={selectedHomes.length}
-          onOpenRowModal={() => setShowRowModal(true)}
+          onOpenRowModal={() => setManageRowsModalOpen(true)}
           onExportCSV={handleExportToCSV}
           onShareCSV={handleShareCSV}
           onClose={onClose}
@@ -285,11 +299,11 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
       </Box>
       <ManageRowsModal
         showRowModal={showRowModal}
-        setShowRowModal={setShowRowModal}
+        setShowRowModal={setManageRowsModalOpen}
         omittedRows={omittedRows}
-        setOmittedRows={setOmittedRows}
+        setOmittedRows={setOmittedRowsFromSet}
         manuallyEnabledRows={manuallyEnabledRows}
-        setManuallyEnabledRows={setManuallyEnabledRows}
+        setManuallyEnabledRows={setManuallyEnabledRowsFromSet}
         hasDataForAnyProperty={hasDataForAnyProperty}
         visibleFields={visibleComparisonFields}
         allFields={allComparisonFields}

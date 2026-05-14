@@ -4,6 +4,8 @@ Docs for the SilverKey backend (Python/Flask). Add server-specific long-form doc
 
 ## Contents
 
+- **[PostgreSQL (schema + ops)](../../docs/postgres/README.md)** - Generated schema reference, ER diagram, hot queries, migrations/runbook, known issues
+- **[Redis (ops + architecture)](../../docs/redis/README.md)** - Broker/results/scoring usage, key table, runbook, known issues, refactor backlog
 - **[Flask Architecture](flask-architecture.md)** - App factory, blueprints, auth pipeline, error handling
 - **[SQLAlchemy Patterns](sqlalchemy-patterns.md)** - Models, relationships, queries, session management
 - **[API Conventions](api-conventions.md)** - Route patterns, request/response format, validation, pagination

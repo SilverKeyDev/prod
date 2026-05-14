@@ -1,9 +1,75 @@
+# SilverKey — reduce Cursor indexing / default context noise (local file; tune as needed)
+# See .cursor/README.md and .cursorindexingignore (index-only exclusions still @-mentionable)
+
+# --- Python ---
+**/.venv/
+**/.venv*/
 Server/.venv/
-Client/dist/
-Client/apps/mobile/ios/Pods/
-Client/apps/mobile/dist/
-Client/apps/mobile/.expo/
 **/__pycache__/
 **/*.pyc
+**/*.pyo
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
 **/*.so
 **/*.dylib
+*.egg-info/
+
+# --- Node / pnpm (workspace) ---
+**/node_modules/
+.pnpm-store/
+**/.turbo/
+**/.vite/
+
+# --- Client build & generated bundles ---
+Client/dist/
+Client/apps/web/dist/
+Client/apps/mobile/dist/
+**/*.tsbuildinfo
+
+# --- Test & coverage output ---
+Client/coverage/
+**/coverage/
+
+# --- Local secrets & env (align with root .gitignore; keep *.example visible) ---
+.env
+.env.local
+.env.*.local
+.env.production
+.aws-sso
+**/.env
+**/.env.local
+**/.env.production
+!.env.example
+!**/.env.example
+
+# --- Logs & dumps ---
+**/*.log
+dump.rdb
+celerybeat-schedule
+celerybeat.pid
+
+# --- Bundled OpenAPI at repo root (sources live under openapi/) ---
+/openapi.yaml
+
+# --- React Native / Expo ---
+Client/apps/mobile/.expo/
+.expo/
+Client/apps/mobile/ios/Pods/
+Client/apps/mobile/ios/build/
+Client/apps/mobile/android/.gradle/
+Client/apps/mobile/android/app/build/
+Client/apps/mobile/android/build/
+
+# --- Cursor local tooling ---
+.cursor/debug-*.log
+.cursor/.agent-tools/
+
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+.idea/

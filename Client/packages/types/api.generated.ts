@@ -591,6 +591,29 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/agent/chats/stream": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Messaging events (SSE)
+     * @description Server-Sent Events stream for the authenticated user. When `REDIS_URL` or `CELERY_URL`
+     *     is configured, the server publishes `new_message` and `conversation_read` events to a
+     *     per-user Redis Pub/Sub channel (`sk:messaging:user:{user_id}`). Heartbeats use SSE comment
+     *     lines (`:` prefix). The first `data` event is always `{"kind":"_hello","redis_fanout":boolean}`.
+     */
+    get: operations["streamAgentChatEvents"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/agent/chats/{conversationId}/history": {
     parameters: {
       query?: never;
@@ -1379,7 +1402,11 @@ export interface paths {
      * @description Returns the same payload as GET /api/v1/tasks for the given transaction_id (buyer user id). Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
      */
     get: operations["getTransactionTaskChecklist"];
-    put?: never;
+    /**
+     * Replace task checklist progress for a transaction subject
+     * @description Same semantics as PUT /api/v1/tasks for the buyer user id given by transaction_id. Buyers may update their own checklist; agents may update a managed client's checklist.
+     */
+    put: operations["putTransactionTaskChecklist"];
     post?: never;
     delete?: never;
     options?: never;
@@ -2331,8 +2358,51 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Liveness and database connectivity */
+    /**
+     * Readiness and database connectivity
+     * @description Verifies the app can reach the database (SELECT 1). Prefer /livez for fast liveness only.
+     */
     get: operations["healthz"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/livez": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Process liveness (no database)
+     * @description Returns 200 when the HTTP process is up; does not check the database. Use for Docker health probes.
+     */
+    get: operations["livez"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/readyz": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Readiness and database connectivity (alias of /healthz)
+     * @description Same behavior as GET /healthz — verifies the app can reach the database (SELECT 1). Provided for operators who standardize on the readyz name.
+     */
+    get: operations["readyz"];
     put?: never;
     post?: never;
     delete?: never;
@@ -4044,7 +4114,7 @@ export interface components {
       method: string;
       minutes: number;
     };
-    /** @description Response from GET /healthz (app liveness and DB connectivity). Aligns with Flask healthz handler. */
+    /** @description Response from GET /healthz or GET /readyz (readiness: database connectivity; /readyz is an alias of /healthz). For process-only liveness without a DB round-trip, use GET /livez. Aligns with Flask handlers. */
     HealthResponse: {
       /** @enum {string} */
       status: "ok" | "error";
@@ -4052,6 +4122,11 @@ export interface components {
       database: "connected" | "disconnected";
       /** @description Present when status is error; connection or query failure detail. */
       error?: string;
+    };
+    /** @description Response from GET /livez (process liveness only; no database call). Use for fast orchestrator probes; use GET /healthz when database connectivity must be verified. */
+    LivezResponse: {
+      /** @enum {string} */
+      status: "ok";
     };
     IsochroneData: {
       isochrone: {
@@ -5142,6 +5217,11 @@ export interface components {
       forceSearch?: boolean | null;
       /** @description When true, return previously materialized results only without hitting upstream MLS. */
       onlyCached?: boolean | null;
+      /**
+       * @description Optional subject for preference scoring (agents: must be a linked client id; buyers are always scoped to self).
+       *     Resolved server-side via `resolve_preferences_user_id_for_research`.
+       */
+      preferences_user_id?: string | null;
     };
     /**
      * @description Polygon search outcome: ranked `PropertySearchResult` rows when `success` is true.
@@ -7779,6 +7859,44 @@ export interface operations {
       };
     };
   };
+  streamAgentChatEvents: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description SSE stream (`text/event-stream`) */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/event-stream": string;
+        };
+      };
+      /** @description HTTP 401 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 500 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
   getAgentChatHistory: {
     parameters: {
       query?: {
@@ -10006,6 +10124,63 @@ export interface operations {
       cookie?: never;
     };
     requestBody?: never;
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TaskChecklistApiResponse"];
+        };
+      };
+      /** @description HTTP 400 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 401 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 403 */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  putTransactionTaskChecklist: {
+    parameters: {
+      query?: {
+        /** @description Checklist category (search, offer, escrow, financing, closing, insurance). */
+        type?: string;
+      };
+      header?: never;
+      path: {
+        /** @description Buyer / hub client user id whose checklist progress is updated. */
+        transaction_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateTaskChecklistRequest"];
+      };
+    };
     responses: {
       /** @description HTTP 200 */
       200: {
@@ -12639,6 +12814,55 @@ export interface operations {
     };
   };
   healthz: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HealthResponse"];
+        };
+      };
+      /** @description HTTP 503 */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HealthResponse"];
+        };
+      };
+    };
+  };
+  livez: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LivezResponse"];
+        };
+      };
+    };
+  };
+  readyz: {
     parameters: {
       query?: never;
       header?: never;

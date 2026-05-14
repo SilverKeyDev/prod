@@ -1,3 +1,25 @@
+# =============================================================================
+# requirements/runtime.txt — PRODUCTION / FULL LOCAL RUNTIME
+# =============================================================================
+#
+# What this is:
+#   Complete dependency set for the Flask API as deployed or run locally with
+#   all features (integrations, embeddings/ML, PDFs, Celery, etc.).
+#
+# Where it is used:
+#   - Docker: Dockerfile.web (`pip install -r requirements/runtime.txt`)
+#   - GitHub Actions: sunday_newsletter.yml, sunday_newsletter_test.yml (full env)
+#   - Local: Server/scripts/bootstrap-venv.sh (default, non-`--ci`), Server/README.md,
+#     docs/local-development.md, Server/tests/README.md
+#
+# Not used for:
+#   - PR lint / import-smoke only → requirements/ci.txt (smaller; saves runner disk)
+#   - Default backend pytest CI → ci.txt + CPU torch + requirements/test.txt
+#   - OpenAPI codegen jobs → requirements/codegen.txt
+#
+# If you add a package imported at app startup or in normal request paths, add it
+# here and mirror any import-time deps into ci.txt when CI must import `create_app`.
+#
 # --- Core Flask & Extensions ---
 Flask==2.3.3
 Werkzeug==2.3.7
@@ -20,22 +42,13 @@ pandas>=2.0.0
 matplotlib>=3.8.0
 scikit-learn==1.4.2
 scipy==1.13.1
-xgboost==2.0.3
-lightgbm==4.3.0
 torch==2.3.0
-torchaudio==2.3.0
 sentence-transformers==2.6.1
 transformers==4.41.2
-numba==0.59.0
-tensorflow==2.18.0
-jax==0.4.35
-jaxlib==0.4.35
-chex==0.1.87
 openai==1.76.2
 httpx>=0.24.1
 
 # --- Geospatial ---
-osmnx==1.9.4
 shapely==2.0.4
 
 # --- PDF, API, and Web ---
@@ -82,7 +95,6 @@ pydantic==2.10.5
 email-validator==2.2.0
 marshmallow==3.20.2
 marshmallow-sqlalchemy==0.28.1
-json5==0.9.14
 
 # --- Background Tasks ---
 celery==5.3.4

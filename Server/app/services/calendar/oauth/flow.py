@@ -94,7 +94,7 @@ def build_auth_url(
     """Build Google OAuth authorization URL with incremental authorization
 
     Requests scopes from permissions.constants where include_in_oauth_request is true
-    (full Calendar and calendar.events.freebusy are never requested).
+    (virtual full Calendar scope is never requested).
     The include_granted_scopes parameter ensures existing permissions are preserved.
 
     Args:

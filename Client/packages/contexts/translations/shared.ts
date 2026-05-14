@@ -3,6 +3,7 @@ import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
 export const SHARED_TRANSLATIONS: Record<string, string> = {
   "common.save": ACTION_LABELS.SAVE,
   "common.cancel": "Cancel",
+  "common.confirm": "Confirm",
   "common.loading": "Loading...",
   "common.error": "An error occurred",
   "common.delete": "Delete",
@@ -25,8 +26,12 @@ export const SHARED_TRANSLATIONS: Record<string, string> = {
   "profile.section_about_you": "About you",
 
   "form.clear_aria": "Clear",
+  "form.password_show_aria": "Show password",
+  "form.password_hide_aria": "Hide password",
   "form.select_option": "Select an option...",
   "form.search_options": "Search options...",
+  "form.no_options_found": "No options found",
+  "form.no_options_available": "No options available",
 
   "validation.required": "This field is required",
   "validation.complete_required_title": "Complete Required Information",

@@ -11,7 +11,7 @@ from app.schemas import (
     CreateCalendarRequest,
     CreateSilverkeyCalendarRequest,
     GoogleCalendarApiResponse,
-    Type3,
+    Type,
 )
 from app.services.calendar.core import (
     get_authenticated_user_id,
@@ -97,7 +97,7 @@ def add_calendar_acl(calendar_id, data: AddCalendarACLRequest | None = None):
                 return make_response(("Agent email is required", 400))
         else:
             scope = data.scope
-            if scope.type != Type3.user:
+            if scope.type != Type.user:
                 return make_response(("Only user scope is supported for agent ACL", 400))
             if not scope.value:
                 return make_response(("Agent email (scope.value) is required", 400))

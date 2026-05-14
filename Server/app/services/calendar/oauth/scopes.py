@@ -77,24 +77,6 @@ SCOPE_CALENDAR_FREEBUSY = GoogleScope(
     category="calendar",
 )
 
-SCOPE_CALENDAR_CALENDARLIST_READONLY = GoogleScope(
-    url=permissions["calendar_calendarlist_readonly"]["scope_url"],
-    name="calendar_calendarlist_readonly",
-    description=permissions["calendar_calendarlist_readonly"]["description"],
-    documentation_url="https://developers.google.com/calendar/api/guides/auth#calendar.calendarlist.readonly",
-    requires_verification=False,
-    category="calendar",
-)
-
-SCOPE_CALENDAR_EVENTS_FREEBUSY = GoogleScope(
-    url=permissions["calendar_events_freebusy"]["scope_url"],
-    name="calendar_events_freebusy",
-    description=permissions["calendar_events_freebusy"]["description"],
-    documentation_url="https://developers.google.com/calendar/api/guides/auth#calendar.events.freebusy",
-    requires_verification=False,
-    category="calendar",
-)
-
 SCOPE_CALENDAR = GoogleScope(
     url=permissions["calendar"]["scope_url"],
     name="calendar",
@@ -111,8 +93,6 @@ SCOPE_BY_NAME: dict[str, GoogleScope] = {
     SCOPE_OPENID.name: SCOPE_OPENID,
     SCOPE_CALENDAR_APP_CREATED.name: SCOPE_CALENDAR_APP_CREATED,
     SCOPE_CALENDAR_FREEBUSY.name: SCOPE_CALENDAR_FREEBUSY,
-    SCOPE_CALENDAR_CALENDARLIST_READONLY.name: SCOPE_CALENDAR_CALENDARLIST_READONLY,
-    SCOPE_CALENDAR_EVENTS_FREEBUSY.name: SCOPE_CALENDAR_EVENTS_FREEBUSY,
     SCOPE_CALENDAR.name: SCOPE_CALENDAR,
 }
 
@@ -140,15 +120,13 @@ SCHEDULING_SCOPES: list[str] = [
     SCOPE_CALENDAR_FREEBUSY.url,
 ]
 
-# Calendar scopes actually requested on new OAuth connects (no full Calendar or calendar.events.freebusy).
+# Calendar scopes requested on OAuth connects (matches Google Cloud OAuth client; excludes full Calendar).
 OAUTH_REQUESTED_SCOPE_URLS: list[str] = oauth_requested_scope_urls()
 
-# Calendar-related scope URLs (includes legacy / not-requested; use for documentation).
+# Calendar-related scope URLs (includes virtual full Calendar for legacy token documentation only).
 CALENDAR_SCOPES: list[str] = [
     SCOPE_CALENDAR_APP_CREATED.url,
     SCOPE_CALENDAR_FREEBUSY.url,
-    SCOPE_CALENDAR_CALENDARLIST_READONLY.url,
-    SCOPE_CALENDAR_EVENTS_FREEBUSY.url,
     SCOPE_CALENDAR.url,
 ]
 

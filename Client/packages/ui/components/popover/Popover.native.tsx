@@ -26,7 +26,10 @@ export default function Popover({
     ? parseInt(String(panelMaxHeight).replace(/\D/g, ""), 10) || 400
     : 400;
   const panelContent = open ? (
-    <Box className="min-w-72 max-w-full rounded-2xl bg-neutral-50 p-6" style={{ maxHeight }}>
+    <Box
+      className="border-border bg-background-surface min-w-72 max-w-full rounded-2xl border p-6"
+      style={{ maxHeight }}
+    >
       <ScrollView
         className="max-h-80"
         contentContainerStyle={{ paddingVertical: 4 }}
@@ -47,7 +50,7 @@ export default function Popover({
     <Box className={`relative ${className}`.trim()}>
       <Box className={triggerWrapperClassName || undefined}>{trigger({ open, onToggle })}</Box>
       <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-        <Pressable className="absolute inset-0 bg-neutral-800" onPress={onClose} />
+        <Pressable className="bg-overlay-backdrop absolute inset-0" onPress={onClose} />
         <Box className="flex-1 items-center justify-end px-4 pb-6">
           <Pressable onPress={(e) => e.stopPropagation()}>{panelContent}</Pressable>
         </Box>

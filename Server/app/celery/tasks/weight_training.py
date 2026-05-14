@@ -1,6 +1,5 @@
-from flask import current_app
-
 from app.celery.celery_worker import celery
+from logger import LOG_CATEGORIES, log
 
 
 # Weight Training Tasks
@@ -33,16 +32,19 @@ def train_user_weights_task(self, user_id: str, force: bool = False):
 
         self.update_state(state="PROGRESS", meta={"status": "Training complete", "progress": 100})
 
-        current_app.logger.info(
-            f"[WEIGHT_TRAINING] ✅ Trained weights for user {user_id}: "
-            f"success={result.get('success')}"
+        log.info(
+            LOG_CATEGORIES["API"],
+            "Weight training Celery task completed for user",
+            {"user_id": user_id, "success": result.get("success")},
         )
 
         return result
 
     except Exception as e:
-        current_app.logger.error(
-            f"[WEIGHT_TRAINING] Task error for user {user_id}: {e}", exc_info=True
+        log.error(
+            LOG_CATEGORIES["ERRORS"],
+            f"Weight training Celery task failed for user {user_id}",
+            e,
         )
         return {"success": False, "error": str(e), "user_id": user_id}
 
@@ -76,17 +78,20 @@ def train_all_eligible_users_task(self, limit: int = 100):
             state="PROGRESS", meta={"status": "Batch training complete", "progress": 100}
         )
 
-        current_app.logger.info(
-            f"[WEIGHT_TRAINING] ✅ Batch training complete: "
-            f"trained={result.get('trained', 0)}, "
-            f"skipped={result.get('skipped', 0)}, "
-            f"failed={result.get('failed', 0)}"
+        log.info(
+            LOG_CATEGORIES["API"],
+            "Batch weight training Celery task completed",
+            {
+                "trained": result.get("trained", 0),
+                "skipped": result.get("skipped", 0),
+                "failed": result.get("failed", 0),
+            },
         )
 
         return result
 
     except Exception as e:
-        current_app.logger.error(f"[WEIGHT_TRAINING] Batch training task error: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], "Batch weight training Celery task failed", e)
         return {
             "success": False,
             "error": str(e),

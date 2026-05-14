@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
@@ -10,11 +9,10 @@ import {
   type ChecklistTab,
   useChecklistProgress,
 } from "packages/features/checklists";
-import { type ChecklistType, getTaskChecklist } from "packages/features/checklists/api/checklists";
+import { useClientHubChecklistPrefetch } from "packages/features/dashboard/hooks";
 import { useIsAgent } from "packages/features/homeauth";
 import { ProfileFeature, ProfileScreen } from "packages/features/profile";
 import { useNavigation } from "packages/navigation";
-import { useAuthStore } from "packages/store";
 import { ClientSelector } from "packages/ui";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
@@ -46,16 +44,6 @@ type ClientHubTab =
   | "agenda"
   | "docusign";
 
-/** Matches roadmap sub-tabs / `useChecklistData` types — prefetch so switching phases does not wait. */
-const CLIENT_HUB_PREFETCH_CHECKLIST_TYPES: readonly ChecklistType[] = [
-  "search",
-  "offer",
-  "escrow",
-  "insurance",
-  "financing",
-  "closing",
-];
-
 function formatRelativeDate(dateString: string) {
   const now = Date.now();
   const date = dateParseISO(dateString).valueOf();
@@ -73,9 +61,6 @@ function formatRelativeDate(dateString: string) {
 export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   const { t } = useLocalization();
   const { navigateToPath, goBack } = useNavigation();
-  const queryClient = useQueryClient();
-  const authReady = useAuthStore((s) => s.authReady);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isAgent = useIsAgent();
   const { clients, isLoading } = useAgentClients();
   const { enhanceClientWithDealInfo } = useAgentDashboardMockData();
@@ -86,7 +71,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
     isSectionUnlocked,
     isLoading: checklistProgressLoading,
     overallProgress,
-  } = useChecklistProgress();
+  } = useChecklistProgress({ checklistSubjectUserId: clientId });
   const [checklistTab, setChecklistTab] = useState<ChecklistTab>(currentSection);
 
   useEffect(() => {
@@ -95,17 +80,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
     }
   }, [activeTab, currentSection]);
 
-  useEffect(() => {
-    if (!clientId || !authReady || !isAuthenticated) return;
-    void Promise.all(
-      CLIENT_HUB_PREFETCH_CHECKLIST_TYPES.map((type) =>
-        queryClient.prefetchQuery({
-          queryKey: ["checklists", type],
-          queryFn: () => getTaskChecklist(type),
-        })
-      )
-    );
-  }, [authReady, clientId, isAuthenticated, queryClient]);
+  useClientHubChecklistPrefetch(clientId);
 
   const client = useMemo(() => clients.find((c) => c.id === clientId), [clients, clientId]);
 

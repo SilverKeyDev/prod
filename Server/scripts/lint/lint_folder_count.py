@@ -37,8 +37,10 @@ RELAXED_WARN_REL_PATHS = frozenset(
         "app/models/user",
         "app/routes",
         "app/services",
+        "app/services/transactions",
         "app/services/search/home_matching/mcda/criteria",
         "app/utils",
+        "tests/unit/routes",
     }
 )
 RELAXED_WARN_THRESHOLD = 24

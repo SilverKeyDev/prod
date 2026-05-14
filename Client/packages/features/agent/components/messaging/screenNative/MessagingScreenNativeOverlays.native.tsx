@@ -1,6 +1,5 @@
 import React from "react";
 
-import PdfModal from "@ui/modals/PdfModal";
 import { View } from "react-native";
 import WebView from "react-native-webview";
 
@@ -10,6 +9,7 @@ import {
   EmbeddedSigning,
   ViewSignedDocument,
 } from "packages/features/documents";
+import PdfModal from "packages/features/documents/components/pdf/PdfModalBridge";
 import type { SavedHome } from "packages/types";
 import type { DocumentData } from "packages/ui/components/cards/document/types";
 import { BaseModal } from "packages/ui/components/modals";

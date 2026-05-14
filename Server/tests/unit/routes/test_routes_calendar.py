@@ -10,9 +10,11 @@ from app.models import User
 # Consumers bind `load_credentials` / `resolve_calendar_id` at import time; patch use sites.
 _CALENDAR_LOAD_CREDENTIALS_TARGETS = (
     "app.services.calendar.events.operations.load_credentials",
-    "app.services.calendar.calendars.management.load_credentials",
+    "app.services.calendar.events.operations_list_events.load_credentials",
     "app.services.calendar.calendars.sharing.load_credentials",
     "app.services.calendar.calendars.resolution.load_credentials",
+    "app.services.calendar.calendars.calendar_create.load_credentials",
+    "app.services.calendar.calendars.calendar_delete.load_credentials",
     "app.services.calendar.availability.freebusy.load_credentials",
 )
 
@@ -208,15 +210,19 @@ class TestCalendarRoutes:
             mock_get.return_value = _auth_user("agent-123")
 
             with _patch_google_calendar_load_credentials():
-                response = client.post(
-                    "/api/v1/google/calendars/calendar-123/acl",
-                    headers={"Authorization": "Bearer mock_access_token"},
-                    json={"agent_email": "agent@example.com", "role": "reader"},
-                )
+                with patch(
+                    "app.routes.calendar.handlers.calendars.require_permission",
+                    return_value=(True, None),
+                ):
+                    response = client.post(
+                        "/api/v1/google/calendars/calendar-123/acl",
+                        headers={"Authorization": "Bearer mock_access_token"},
+                        json={"agent_email": "agent@example.com", "role": "reader"},
+                    )
 
-                assert response.status_code == 201
-                data = response.get_json()
-                assert data.get("success") is True
+                    assert response.status_code == 201
+                    data = response.get_json()
+                    assert data.get("success") is True
 
     def test_get_freebusy_endpoint(self, client, mock_google_calendar):
         """Test POST /api/v1/google/me/freebusy"""

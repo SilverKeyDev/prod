@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change.
 
-**Last regenerated:** 2026-05-11 (implementation of Optimal Cursor setup plan).
+**Last regenerated:** 2026-05-13 (component audit rubric, remediation agents, `component-audit-rubric.mdc`; duplicate `* 2.mdc` rule files removed—canonical names only; see Rules summary and Component audit artifacts).
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -38,9 +38,15 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `.cursor/agents/silverkey-file-module-reorganizer.md`         |          72 | 2026-02-20         | keep   | Subagent                       |
 | `.cursor/agents/silverkey-linter-structure-enforcer.md`       |          75 | 2026-04-20         | keep   | Subagent                       |
 | `.cursor/agents/silverkey-performance-regression-analyzer.md` |          70 | 2026-02-20         | keep   | Subagent                       |
-| `.cursor/agents/silverkey-refactor-suggestion-engine.md`      |          64 | 2026-02-20         | keep   | Subagent                       |
+| `.cursor/agents/silverkey-refactor-suggestion-engine.md`      |          71 | 2026-05-13         | keep   | Subagent                       |
 | `.cursor/agents/silverkey-security-secrets-scanner.md`        |          77 | 2026-04-20         | keep   | Subagent                       |
 | `.cursor/agents/silverkey-test-coverage-gap-analyzer.md`      |          46 | 2026-02-20         | keep   | Subagent                       |
+| `.cursor/agents/silverkey-audit-axis1-size-responsibility-fixer.md` |      43 | 2026-05-13         | keep   | Post–component-audit remediation |
+| `.cursor/agents/silverkey-audit-axis2-props-api-fixer.md`           |      40 | 2026-05-13         | keep   | Post–component-audit remediation |
+| `.cursor/agents/silverkey-audit-axis3-state-dataflow-fixer.md`      |      39 | 2026-05-13         | keep   | Post–component-audit remediation |
+| `.cursor/agents/silverkey-audit-axis4-render-cost-fixer.md`        |      40 | 2026-05-13         | keep   | Post–component-audit remediation |
+| `.cursor/agents/silverkey-audit-axis5-bundle-import-fixer.md`        |      39 | 2026-05-13         | keep   | Post–component-audit remediation |
+| `.cursor/agents/silverkey-audit-architecture-remediation.md`       |      39 | 2026-05-13         | keep   | Post–component-audit remediation |
 | `.cursor/skills/feature-translations/SKILL.md`                |         129 | 2026-04-20         | keep   | i18n / raw keys                |
 | `.cursor/skills/platform-file-extension-choice/SKILL.md`      |          46 | 2026-05-11         | keep   | `.web` / `.tsx` choice         |
 | `.cursor/skills/react-native-migration/SKILL.md`              |          54 | 2026-02-20         | keep   | RN migration                   |
@@ -63,6 +69,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `shared/security.mdc`                       | yes → **yes**              | Client/**, Server/**                    | Universal                                       |
 | `shared/thin-app-architecture.mdc`          | yes → **yes**              | Client/\*\*                             | Universal                                       |
 | `shared/linting.mdc`                        | yes → **yes**              | \*_/_                                   | Universal                                       |
+| `shared/documentation.mdc`                 | yes → **yes**              | `documentation/**/*.md`, `**/README.md` | Canonical doc tree vs `docs/`; see `AGENTS.md` |
 | `shared/monorepo.mdc`                       | yes → **no**               | \*_/_                                   | Context budget                                  |
 | `shared/ci-gates.mdc`                       | yes → **no**               | .github/workflows/**, Client/**         |                                                 |
 | `shared/openapi-workflow.mdc`               | yes → **no**               | openapi/\*\*, workflow, generated types |                                                 |
@@ -73,8 +80,16 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `frontend/platform-file-extensions.mdc`     | yes → **no**               | Client/apps/\*\*                        |                                                 |
 | `frontend/state-boundaries.mdc`             | yes → **no**               | Client/\*_/_.{ts,tsx}                   |                                                 |
 | `backend/database.mdc`                      | yes → **no**               | Server/\*\*                             |                                                 |
+| `frontend/component-audit-rubric.mdc`       | yes → **no**               | Client/\*_/_.{ts,tsx}                   | Five-axis component audits; see `documentation/client/react-component-audit-rubric.md` |
 
-Other `.mdc` files were already `alwaysApply: false` or unchanged in scope.
+Other `.mdc` files were already `alwaysApply: false` or unchanged in scope. **No duplicate filenames:** do not add `* 2.mdc` copies alongside a canonical rule—Cursor may load both and waste context.
+
+### Component audit artifacts
+
+| Path | Purpose |
+|------|---------|
+| [`documentation/internal/component-audit/README.md`](./component-audit/README.md) | Tracked markdown outputs and triage (`TRIAGE.md`, per-axis tables). |
+| Repo root `audit/` (gitignored) | Local-only scratch audit tables; see rubric doc. |
 
 ## Loose markdown under `.cursor/` (historical)
 
@@ -89,7 +104,7 @@ Previously noted: `FORMS_*`, `openapi-adoption-checklist.md`, etc. **Not present
 
 ## Definition-of-done checklist
 
-- [x] `alwaysApply: true` count ≤ 3 (security, thin-app, linting)
+- [x] `alwaysApply: true` count = **4** (security, thin-app, linting, documentation) — see [.cursor/README.md](../../.cursor/README.md)
 - [x] `.cursor/README.md` meta-doc
 - [x] `documentation/internal/cursor-audit-latest.md` (this file)
 - [x] `.cursorignore.example` / `.cursorindexingignore` tightened

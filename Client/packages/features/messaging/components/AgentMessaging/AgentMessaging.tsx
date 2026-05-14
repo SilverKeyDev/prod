@@ -1,13 +1,4 @@
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 
 import type { ReactNode, UIEvent } from "react";
 
@@ -23,6 +14,8 @@ import { loadUnifiedMessagesListModule } from "packages/features/messaging/compo
 import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import { useMessagingComposerStoreIntegration } from "packages/features/messaging/hooks/store/useMessagingComposerStoreIntegration";
+import { useMessagingComposerStore } from "packages/features/messaging/store";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui";
 import { useMessageScroll } from "packages/hooks/ui";
@@ -50,6 +43,7 @@ type AgentMessagingProps = {
 };
 
 export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagingProps) {
+  useMessagingComposerStoreIntegration();
   useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "AgentMessaging");
 
   const { clients, isLoading: isLoadingClients } = useAgentClients();
@@ -114,8 +108,24 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
     agentChats,
   });
 
-  const [message, setMessage] = useState("");
-  const [isTyping] = useState(false);
+  const message = useMessagingComposerStore(
+    useCallback(
+      (s) => (activeConversationId ? (s.draftByConversationId[activeConversationId] ?? "") : ""),
+      [activeConversationId]
+    )
+  );
+  const setDraft = useMessagingComposerStore((s) => s.setDraft);
+  const clearDraft = useMessagingComposerStore((s) => s.clearDraft);
+
+  const setMessage = useCallback(
+    (text: string) => {
+      if (!activeConversationId) return;
+      setDraft(activeConversationId, text);
+    },
+    [activeConversationId, setDraft]
+  );
+
+  const isTyping = false;
 
   const {
     showInbox,
@@ -194,11 +204,12 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
   const suppressDetailHeaderDuplicateActions = isXlUp && !showInbox && !selectedClientId;
 
   const handleSendMessage = useCallback(async () => {
-    if (!message.trim() || !selectedClientId) return;
+    if (!activeConversationId || !selectedClientId) return;
     const messageToSend = message.trim();
-    setMessage("");
+    if (!messageToSend) return;
+    clearDraft(activeConversationId);
     await sendMessageApi(messageToSend);
-  }, [message, selectedClientId, sendMessageApi]);
+  }, [activeConversationId, selectedClientId, clearDraft, message, sendMessageApi]);
 
   const getHeaderMode = useCallback(() => {
     if (showInbox) return "connection-requests";

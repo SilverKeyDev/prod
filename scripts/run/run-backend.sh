@@ -179,9 +179,9 @@ start_backend() {
     pushd "${ROOT_DIR}/Server" >/dev/null
     if [[ -d ".venv" ]]; then
       source .venv/bin/activate
-      gunicorn -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - &
+      gunicorn --preload -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - &
     else
-      python3 -m gunicorn -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - &
+      python3 -m gunicorn --preload -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - &
     fi
     FLASK_PID=$!
     popd >/dev/null

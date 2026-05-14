@@ -1,4 +1,20 @@
-# Pinned versions for scripts/generate-pydantic-models.sh and OpenAPI CI.
-# Keep in sync with .github/workflows/openapi-sync.yml (verify-server-schemas).
+# =============================================================================
+# requirements/codegen.txt — OPENAPI / PYDANTIC CODEGEN ONLY (MINIMAL)
+# =============================================================================
+#
+# What this is:
+#   Smallest pinned set to run Ruff and datamodel-code-generator against the Server
+#   OpenAPI workflow. Avoids installing the full app stack (Flask, DB drivers, ML, etc.).
+#
+# Where it is used:
+#   - GitHub Actions: .github/workflows/openapi-sync.yml (`pip install -r Server/requirements/codegen.txt`)
+#   - Shell: Server/scripts/generate-pydantic-models.sh (`pip install -r .../requirements/codegen.txt`)
+#
+# Relationship to other files:
+#   - datamodel-code-generator version should match requirements/dev.txt when both exist
+#   - Full app + codegen locally: install runtime.txt and dev.txt (or use this file only
+#     for a dedicated venv that only runs codegen)
+#
+# --- Pinned tools (bump with dev.txt datamodel-code-generator when regenerating models) ---
 datamodel-code-generator==0.56.1
 ruff==0.15.12

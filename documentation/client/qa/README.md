@@ -15,4 +15,4 @@ End-to-end and release QA checklists for the SilverKey **web and mobile** client
 
 **How we document:** see [HOW_WE_DOCUMENT.md](../../HOW_WE_DOCUMENT.md) — QA docs live under `documentation/client/qa/`.
 
-**Playwright (web):** `Client/apps/web/playwright.config.ts` and `Client/apps/web/e2e/`.
+**Web automation:** none in-repo; follow manual steps in the linked flow docs.

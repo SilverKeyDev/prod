@@ -10,6 +10,8 @@
 
 **Prerequisites:** Node 20+, `pnpm` 9+, Python 3.x (see Server docs), PostgreSQL and env files as in `Server/.env.example`.
 
+**Local bootstrap:** `./scripts/setup-local.sh` (first machine), `./scripts/refresh.sh` (after `git pull`), `make help` — see root [README.md](README.md).
+
 ```bash
 # Client — from Client/
 pnpm install
@@ -34,19 +36,25 @@ pnpm check                # Full client check (includes build:web) — see Clien
 
 Thin **`Client/apps/*`** host routing, providers, and page shells. **Features, hooks, UI primitives, and API wrappers** live under **`Client/packages/`** (`features/`, `hooks/`, `ui/`, `config/api/`, etc.). **`Server/`** exposes HTTP APIs documented in **`openapi/`**; client and server types are generated from that spec. Details: [Client/ARCHITECTURE.md](./Client/ARCHITECTURE.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [documentation/client/thin-app-architecture.md](./documentation/client/thin-app-architecture.md).
 
+### Documentation map (canonical vs server index)
+
+- **`documentation/`** — Canonical long-form guides: product flows ([documentation/transactions/README.md](./documentation/transactions/README.md)), client/server architecture, compliance, QA runbooks. Start at [documentation/README.md](./documentation/README.md).
+- **`docs/`** — Curated **server/operations** tree (Flask, Celery, Redis, Postgres stubs, runbooks, refactor backlogs). It **links into** `documentation/server/` for depth; see [`docs/README.md`](./docs/README.md). Prefer **`documentation/`** for new cross-cutting or product prose (see `.cursor/rules/shared/documentation.mdc`).
+
 ---
 
 ## Top-level directory map
 
-| Path             | Purpose                                                                                         |
-| ---------------- | ----------------------------------------------------------------------------------------------- |
-| `Client/`        | Frontend monorepo (pnpm workspaces): web + mobile apps + shared packages                        |
-| `Server/`        | Python/Flask API, services, tests                                                               |
-| `openapi/`       | OpenAPI 3.1 sources; single contract for types                                                  |
-| `documentation/` | Human-facing docs index and long-form guides                                                    |
-| `.cursor/`       | Cursor rules (`.mdc`), skills, agent definitions — see [.cursor/README.md](./.cursor/README.md) |
-| `.github/`       | CI workflows, templates                                                                         |
-| `scripts/`       | Repo-wide lint/driver scripts                                                                   |
+| Path              | Purpose                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------------------- |
+| `Client/`         | Frontend monorepo (pnpm workspaces): web + mobile apps + shared packages                        |
+| `Server/`         | Python/Flask API, services, tests                                                               |
+| `openapi/`        | OpenAPI 3.1 sources; single contract for types                                                  |
+| `documentation/`  | Human-facing docs index and long-form guides                                                    |
+| `docs/`           | Server/ops index and stubs (links into `documentation/server/`) — see [docs/README.md](./docs/README.md) |
+| `.cursor/`        | Cursor rules (`.mdc`), skills, agent definitions — see [.cursor/README.md](./.cursor/README.md) |
+| `.github/`        | CI workflows, templates                                                                         |
+| `scripts/`        | Repo-wide lint/driver scripts                                                                   |
 
 ---
 
@@ -63,7 +71,7 @@ Thin **`Client/apps/*`** host routing, providers, and page shells. **Features, h
 
 | Area                          | Location                                                                                         |
 | ----------------------------- | ------------------------------------------------------------------------------------------------ |
-| **Always-on constraints (3)** | `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`                  |
+| **Always-on constraints (4)** | `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`, `documentation.mdc` |
 | **Scoped rules**              | `.cursor/rules/shared/`, `frontend/`, `backend/` — attach by glob                                |
 | **Procedural workflows**      | `.cursor/skills/*/SKILL.md`                                                                      |
 | **Subagent personas**         | `.cursor/agents/*.md`                                                                            |

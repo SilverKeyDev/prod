@@ -4,6 +4,11 @@ import { createContext, type ReactNode, useContext, useMemo } from "react";
  * Shared context exposed by `Popover` to descendants so portaled UI (e.g. `Dropdown` with
  * `menuInPortal`) can auto-register as outside-click-safe and inherit the popover's stacking
  * level. Avoids prop-drilling through deep panel content trees.
+ *
+ * **Stacking:** `panelStack: "modal"` must match portaled children (e.g. `menuPortalStack="modal"` on
+ * `Dropdown`) so menus use `z-modal-popover` instead of page-level `z-dropdown` and stay above
+ * `BaseModal` / dialog shells. Consumers not wrapped by `Popover` should set
+ * `registerOutsideClickSafeTarget` and `menuPortalStack` explicitly when embedding in custom overlays.
  */
 export type PopoverContextValue = {
   /** Register a portaled DOM node so clicks inside it do not close the parent popover. */

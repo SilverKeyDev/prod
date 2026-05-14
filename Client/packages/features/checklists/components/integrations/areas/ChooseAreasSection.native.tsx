@@ -9,6 +9,7 @@ import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 import { userPreferencesToOnboardingData } from "@/features/profile/utils";
 
@@ -17,7 +18,7 @@ type ChooseAreasSectionProps = {
 };
 
 /**
- * Native: search areas are configured on web; submit when saved locations qualify.
+ * Native: important locations are edited on web; buyers confirm progress here once data qualifies.
  */
 export default function ChooseAreasSection({ onComplete }: ChooseAreasSectionProps) {
   const { t } = useLocalization();
@@ -47,9 +48,11 @@ export default function ChooseAreasSection({ onComplete }: ChooseAreasSectionPro
   return (
     <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
+        <Title size="sm" as="h3">
+          {t("checklists.native.choose_areas.title")}
+        </Title>
         <BodyText size="sm" className="text-text-secondary">
-          Configure important locations and commute ranges on the web app. Submit here once at least
-          one location is saved to your profile.
+          {t("checklists.native.choose_areas.body")}
         </BodyText>
         <ChecklistStepSubmitFooter disabled={!stepComplete} onSubmit={handleSubmit} />
       </Box>

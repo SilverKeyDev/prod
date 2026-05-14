@@ -198,7 +198,7 @@ See: `.cursor/rules/backend/backend-patterns.mdc`, `.cursor/rules/backend/databa
 
 - **Unit tests**: In `packages/` for shared logic (≥80% coverage target)
 - **Integration tests**: API routes and service orchestration
-- **E2E tests**: Playwright for critical user flows (web)
+- **E2E tests**: Manual QA runbooks under `documentation/client/qa/` (no browser automation suite in CI)
 - **No snapshot-only**: Meaningful assertions required
 - **No focused tests in repo**: `describe.only`, `it.only` banned
 

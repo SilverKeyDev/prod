@@ -14,7 +14,7 @@ from app.services.calendar.events.creation import get_client_events_permission_e
 class TestEventPermissions:
     """Test permission checks for calendar event operations"""
 
-    @patch("app.services.calendar.events.creation.check_permission")
+    @patch("app.services.calendar.permissions.check_permission")
     def test_client_has_permission(self, mock_check_permission):
         """Should return None when client has calendar_app_created permission"""
         client_id = "client-123"
@@ -27,9 +27,9 @@ class TestEventPermissions:
         assert result is None
         mock_check_permission.assert_called_once_with(client_id, "calendar_app_created")
 
-    @patch("app.services.calendar.events.creation.check_permission")
-    @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.permissions")
+    @patch("app.services.calendar.permissions.check_permission")
+    @patch("app.services.auth.tokens.tokens_get")
+    @patch("app.services.calendar.permissions.constants.permissions")
     def test_client_missing_permission_with_connection(
         self, mock_permissions, mock_tokens_get, mock_check_permission
     ):
@@ -54,9 +54,9 @@ class TestEventPermissions:
         assert result["client_id"] == client_id
         assert result["client_has_connection"] is True
 
-    @patch("app.services.calendar.events.creation.check_permission")
-    @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.permissions")
+    @patch("app.services.calendar.permissions.check_permission")
+    @patch("app.services.auth.tokens.tokens_get")
+    @patch("app.services.calendar.permissions.constants.permissions")
     def test_client_no_connection(self, mock_permissions, mock_tokens_get, mock_check_permission):
         """Should return 'hasn't connected' error when client has no calendar connection"""
         client_id = "client-789"
@@ -79,9 +79,9 @@ class TestEventPermissions:
         assert result["client_id"] == client_id
         assert result["client_has_connection"] is False
 
-    @patch("app.services.calendar.events.creation.check_permission")
-    @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.permissions")
+    @patch("app.services.calendar.permissions.check_permission")
+    @patch("app.services.auth.tokens.tokens_get")
+    @patch("app.services.calendar.permissions.constants.permissions")
     def test_permission_description_in_error_message(
         self, mock_permissions, mock_tokens_get, mock_check_permission
     ):
@@ -100,9 +100,9 @@ class TestEventPermissions:
         assert result is not None
         assert permission_description in result["message"]
 
-    @patch("app.services.calendar.events.creation.check_permission")
-    @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.permissions")
+    @patch("app.services.calendar.permissions.check_permission")
+    @patch("app.services.auth.tokens.tokens_get")
+    @patch("app.services.calendar.permissions.constants.permissions")
     def test_default_permission_description(
         self, mock_permissions, mock_tokens_get, mock_check_permission
     ):
@@ -118,9 +118,9 @@ class TestEventPermissions:
         assert result is not None
         assert "Access calendar events" in result["message"]  # Default description
 
-    @patch("app.services.calendar.events.creation.check_permission")
-    @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.permissions")
+    @patch("app.services.calendar.permissions.check_permission")
+    @patch("app.services.auth.tokens.tokens_get")
+    @patch("app.services.calendar.permissions.constants.permissions")
     def test_error_structure_complete(
         self, mock_permissions, mock_tokens_get, mock_check_permission
     ):
@@ -150,9 +150,9 @@ class TestEventPermissions:
         assert result["client_id"] == client_id
         assert isinstance(result["client_has_connection"], bool)
 
-    @patch("app.services.calendar.events.creation.check_permission")
-    @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.permissions")
+    @patch("app.services.calendar.permissions.check_permission")
+    @patch("app.services.auth.tokens.tokens_get")
+    @patch("app.services.calendar.permissions.constants.permissions")
     def test_message_actionable_with_connection(
         self, mock_permissions, mock_tokens_get, mock_check_permission
     ):
@@ -172,9 +172,9 @@ class TestEventPermissions:
         # Should mention granting permissions
         assert "grant" in message.lower()
 
-    @patch("app.services.calendar.events.creation.check_permission")
-    @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.permissions")
+    @patch("app.services.calendar.permissions.check_permission")
+    @patch("app.services.auth.tokens.tokens_get")
+    @patch("app.services.calendar.permissions.constants.permissions")
     def test_message_actionable_without_connection(
         self, mock_permissions, mock_tokens_get, mock_check_permission
     ):
@@ -194,9 +194,9 @@ class TestEventPermissions:
         # Should mention granting permissions
         assert "grant" in message.lower()
 
-    @patch("app.services.calendar.events.creation.check_permission")
-    @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.permissions")
+    @patch("app.services.calendar.permissions.check_permission")
+    @patch("app.services.auth.tokens.tokens_get")
+    @patch("app.services.calendar.permissions.constants.permissions")
     def test_multiple_clients_separate_errors(
         self, mock_permissions, mock_tokens_get, mock_check_permission
     ):
@@ -223,9 +223,9 @@ class TestEventPermissions:
         assert result_1["client_has_connection"] is True
         assert result_2["client_has_connection"] is False
 
-    @patch("app.services.calendar.events.creation.check_permission")
-    @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.permissions")
+    @patch("app.services.calendar.permissions.check_permission")
+    @patch("app.services.auth.tokens.tokens_get")
+    @patch("app.services.calendar.permissions.constants.permissions")
     def test_permission_check_called_first(
         self, mock_permissions, mock_tokens_get, mock_check_permission
     ):
@@ -242,9 +242,9 @@ class TestEventPermissions:
         # Should not check tokens if permission exists
         mock_tokens_get.assert_not_called()
 
-    @patch("app.services.calendar.events.creation.check_permission")
-    @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.permissions")
+    @patch("app.services.calendar.permissions.check_permission")
+    @patch("app.services.auth.tokens.tokens_get")
+    @patch("app.services.calendar.permissions.constants.permissions")
     def test_tokens_get_called_when_permission_missing(
         self, mock_permissions, mock_tokens_get, mock_check_permission
     ):

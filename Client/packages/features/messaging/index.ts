@@ -16,7 +16,11 @@ export * from "./components/ClientMessaging";
 // Hooks
 export * from "./hooks/data/messaging";
 export * from "./hooks/data/useAgentChats";
+export { useMessagingComposerStoreIntegration } from "./hooks/store/useMessagingComposerStoreIntegration";
 export * from "./hooks/ui";
+
+// Store (also re-exported from packages/store)
+export * from "./store";
 
 // Utils
 export * from "./utils";

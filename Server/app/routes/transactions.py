@@ -1,10 +1,21 @@
 """Transaction-related API (address for Finding a home step)."""
 
+import uuid
+
 from flask import Blueprint, current_app, jsonify, request
 
-from app.schemas import TransactionAddressData, TransactionAddressResponse
+from app.schemas import (
+    TaskChecklistApiResponse,
+    TransactionAddressData,
+    TransactionAddressResponse,
+    UpdateTaskChecklistRequest,
+)
 from app.services.agent.client_service import get_agent_client_ids
-from app.services.transactions.unified_task_checklist_read import build_task_checklist_data
+from app.services.transactions.unified_task_checklist_read import (
+    TASK_CATEGORIES,
+    build_task_checklist_data,
+)
+from app.services.transactions.unified_task_checklist_write import perform_task_checklist_put
 from app.utils.validation import validate_request, validate_response
 
 from .. import db
@@ -26,6 +37,9 @@ def _can_read_transaction_task_checklist(user, transaction_id: str) -> bool:
     return str(transaction_id) in set(get_agent_client_ids(str(user.id)))
 
 
+_can_write_transaction_task_checklist = _can_read_transaction_task_checklist
+
+
 @transactions_bp.route("/<transaction_id>/tasks", methods=["GET"])
 @rate_limit(max_requests=200, window_seconds=60)
 @handle_exceptions_with_logging
@@ -41,6 +55,53 @@ def get_transaction_task_checklist(user, transaction_id: str):
         return jsonify({"success": False, "error": "Invalid checklist type"}), 400
 
     return jsonify({"success": True, "data": data})
+
+
+@transactions_bp.route("/<transaction_id>/tasks", methods=["PUT"])
+@rate_limit(max_requests=100, window_seconds=60)
+@handle_exceptions_with_logging
+@require_authenticated_user
+@validate_request(UpdateTaskChecklistRequest)
+@validate_response(TaskChecklistApiResponse)
+def put_transaction_task_checklist(
+    user, transaction_id: str, data: UpdateTaskChecklistRequest | None = None
+):
+    """PUT checklist progress for buyer self or agent updating a managed client."""
+    if not _can_write_transaction_task_checklist(user, str(transaction_id)):
+        return jsonify({"success": False, "error": "Access denied"}), 403
+
+    checklist_type = request.args.get("type", "escrow")
+    if checklist_type not in TASK_CATEGORIES:
+        return jsonify({"success": False, "error": "Invalid checklist type"}), 400
+
+    try:
+        if data is None:
+            request_data = request.get_json(silent=True)
+            if not isinstance(request_data, dict):
+                return jsonify({"success": False, "error": "Expected JSON object"}), 400
+            ids = request_data.get("checkedIds")
+        else:
+            payload = data.model_dump()
+            inner = payload.get("data") or {}
+            ids = inner.get("checkedIds")
+        if not isinstance(ids, list):
+            return jsonify({"success": False, "error": "checkedIds must be an array"}), 400
+
+        coerced = [int(x) for x in ids if isinstance(x, int | float)]
+        correlation_id = (request.headers.get("X-Request-ID") or "").strip() or str(uuid.uuid4())
+        payload, _merge_diag = perform_task_checklist_put(
+            subject_user_id=str(transaction_id),
+            checklist_type=checklist_type,
+            coerced_ids=coerced,
+            actor_user_id=str(user.id),
+            correlation_id=correlation_id,
+        )
+        return jsonify(payload)
+    except ValueError as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+    except Exception as e:
+        current_app.logger.error("Failed to update transaction %s checklist: %s", transaction_id, e)
+        return jsonify({"success": False, "error": "Server error"}), 500
 
 
 @transactions_bp.route("/address", methods=["GET"])

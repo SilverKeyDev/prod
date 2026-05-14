@@ -723,6 +723,91 @@
     color: hsl(25deg 25% 30%) !important;
   }
 
+  /* FieldShell + react-phone-number-input (nested PhoneInput). Static selectors only. */
+  .autofill-parent {
+    position: relative;
+  }
+
+  .autofill-parent:has(.PhoneInputInput:-webkit-autofill) > div:last-child > div:first-child {
+    background-color: hsl(42, 45%, 92%) !important;
+    -webkit-box-shadow: 0 0 0 30px hsl(42, 45%, 92%) inset !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+  }
+
+  .autofill-parent:has(.PhoneInputInput:-moz-autofill) > div:last-child > div:first-child {
+    background-color: hsl(42, 45%, 92%) !important;
+  }
+
+  .autofill-parent .PhoneInputInput:-webkit-autofill,
+  .autofill-parent .PhoneInputInput:-webkit-autofill:hover,
+  .autofill-parent .PhoneInputInput:-webkit-autofill:focus,
+  .autofill-parent .PhoneInputInput:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px hsl(42, 45%, 92%) inset !important;
+    -webkit-text-fill-color: hsl(25, 25%, 30%) !important;
+    caret-color: hsl(25, 25%, 30%) !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+  }
+
+  .autofill-parent .PhoneInputInput:-moz-autofill {
+    background-color: hsl(42, 45%, 92%) !important;
+    color: hsl(25, 25%, 30%) !important;
+  }
+
+  .group .PhoneInput {
+    width: 100% !important;
+    height: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: relative !important;
+    z-index: 2 !important;
+  }
+
+  .group .PhoneInputInput {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    cursor: text !important;
+    pointer-events: auto !important;
+    z-index: 2 !important;
+    position: relative !important;
+  }
+
+  .group:focus-within {
+    border-color: rgb(120 53 15) !important;
+    box-shadow: 0 0 0 2px rgb(120 53 15 / 0.2) !important;
+  }
+
+  .group .PhoneInputInput::selection {
+    background-color: rgb(120 53 15 / 0.2);
+    color: rgb(120 53 15);
+  }
+
+  .group .PhoneInputInput::placeholder {
+    color: rgb(156 163 175) !important;
+  }
+
+  .group .PhoneInputInput::-webkit-input-placeholder {
+    color: rgb(156 163 175) !important;
+  }
+
+  .group .PhoneInputInput::-moz-placeholder {
+    color: rgb(156 163 175) !important;
+    opacity: 1;
+  }
+
+  .group .PhoneInputInput:-ms-input-placeholder {
+    color: rgb(156 163 175) !important;
+  }
+
   /**
    * Portaled modal/backdrop roots: span the viewport minus the dashboard sidebar when
    * `packages/utils/layout/dashboardModalInset` documents the active inset on :root.

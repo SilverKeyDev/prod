@@ -1,5 +1,6 @@
 import React from "react";
 
+import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
 import { Box, Row } from "packages/ui/components/primitives";
 
 type IconRenderer = (
@@ -15,6 +16,22 @@ export function renderButtonLoadingSlot(textColorClass: string): React.ReactElem
         className={`inline-flex h-8 w-8 shrink-0 items-center justify-center ${textColorClass}`.trim()}
       />
     </Row>
+  );
+}
+
+/** Keeps pre-loading intrinsic width: invisible row + absolute overlay (ripple + loader slot). */
+export function renderButtonLoadingPreservedLayout(args: {
+  preservedRow: React.ReactNode;
+  textColorClass: string;
+}): React.ReactElement {
+  return (
+    <Box className="relative w-full min-w-0 flex-1 self-stretch">
+      <Box className="pointer-events-none invisible flex min-w-0 flex-col">{args.preservedRow}</Box>
+      <Box className="z-header pointer-events-none absolute inset-0 flex flex-row items-center justify-center">
+        <RippleBackground overlay />
+        {renderButtonLoadingSlot(args.textColorClass)}
+      </Box>
+    </Box>
   );
 }
 

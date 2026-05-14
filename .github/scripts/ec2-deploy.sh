@@ -7,6 +7,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/_secrets-env.sh"
 
+# Timestamps for deploy phases (secrets merge, docker pull, health waits). Set to 0 to silence extra lines.
+export DEPLOY_LOG_TIMING="${DEPLOY_LOG_TIMING:-1}"
+DEPLOY_T0=$(date +%s)
+deploy_phase() {
+  local msg="$1"
+  local now
+  now=$(date +%s)
+  echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') ${msg} (deploy +$((now - DEPLOY_T0))s)"
+}
+
 echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') Starting EC2 deployment..."
 REGION="$AWS_REGION"
 DB_SECRET_NAME="${DB_URL_SECRET_ID:-db_url}"
@@ -35,6 +45,7 @@ echo "📊 Disk usage before cleanup:"
 df -h || true
 docker system df || true
 
+deploy_phase "BEGIN docker cleanup (prune old containers/images)"
 echo "🗑️ Cleaning Docker resources..."
 # Only remove ours; avoid nuking host images unnecessarily
 for name in cre_app cre_worker redis; do
@@ -44,6 +55,7 @@ sudo docker system prune -af --volumes >/dev/null 2>&1 || true
 sudo docker builder prune -af >/dev/null 2>&1 || true
 sudo docker image prune -af >/dev/null 2>&1 || true
 sudo docker volume prune -f >/dev/null 2>&1 || true
+deploy_phase "END docker cleanup"
 
 echo "🧽 Cleaning system caches..."
 sudo apt-get clean >/dev/null 2>&1 || true
@@ -69,10 +81,14 @@ fi
 ACCOUNT_ID="${ACCOUNT_ID:?ACCOUNT_ID must be set}"
 IMAGE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG"
 
+deploy_phase "BEGIN ECR login"
 aws ecr get-login-password --region "$REGION" \
   | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com" >/dev/null 2>&1
+deploy_phase "END ECR login"
 
+deploy_phase "BEGIN docker pull $IMAGE"
 sudo docker pull "$IMAGE" 2>&1 | grep -Ev 'sha256:[0-9a-f]{64}|Pulling fs layer|Waiting|Downloading|Verifying Checksum|Download complete|Extracting' || true
+deploy_phase "END docker pull"
 
 # Create user-defined bridge network
 sudo docker network rm "$NETWORK_NAME" >/dev/null 2>&1 || true
@@ -88,6 +104,7 @@ sudo docker run -d \
   --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=30s \
   redis:7-alpine >/dev/null
 
+deploy_phase "BEGIN Redis container start wait"
 echo "⏳ Waiting for Redis to start..."
 sleep 3
 
@@ -102,6 +119,7 @@ if [ "$REDIS_STATE" != "running" ]; then
   exit 1
 fi
 
+deploy_phase "BEGIN Redis health wait (up to 60s)"
 echo "⏳ Waiting for Redis to be healthy..."
 if ! timeout 60s bash -c 'until docker inspect --format="{{.State.Health.Status}}" redis 2>/dev/null | grep -q "healthy"; do sleep 2; done'; then
   echo "❌ Redis health check failed or timed out"
@@ -115,30 +133,10 @@ if ! timeout 60s bash -c 'until docker inspect --format="{{.State.Health.Status}
   sudo docker logs redis 2>&1 | tail -50 || true
   exit 1
 fi
+deploy_phase "END Redis health wait"
 
 # Merge app secrets from AWS Secrets Manager (EC2 instance role or host credentials).
-# Lists every secret in REGION (paginated), same as Server/secrets.sh — not only "# From secret:" names in .env.example.
-# Reads Server/config/.env.example from the image for required-key validation only.
-resolve_deploy_secret_ids() {
-  local tmp
-  tmp="$(mktemp)"
-  if ! list_secretsmanager_secret_names | sort -u >"$tmp"; then
-    echo "ERROR: secretsmanager list-secrets failed (check IAM secretsmanager:ListSecrets and region)." >&2
-    rm -f "$tmp"
-    exit 1
-  fi
-  if [ ! -s "$tmp" ]; then
-    echo "ERROR: No secrets found in region $REGION." >&2
-    rm -f "$tmp"
-    exit 1
-  fi
-  if ! grep -Fxq "$DB_SECRET_NAME" "$tmp" 2>/dev/null; then
-    { printf '%s\n' "$DB_SECRET_NAME"; cat "$tmp"; } >"${tmp}.out"
-    mv "${tmp}.out" "$tmp"
-  fi
-  cat "$tmp"
-  rm -f "$tmp"
-}
+# Only secret ids declared in Server/config/.env.example as "# From secret: name ...", plus DB_SECRET_NAME.
 
 DEPLOY_ENV_EXAMPLE="$(mktemp)"
 if ! sudo docker run --rm --entrypoint cat "$IMAGE" /app/Server/config/.env.example >"$DEPLOY_ENV_EXAMPLE" 2>/dev/null \
@@ -148,7 +146,21 @@ if ! sudo docker run --rm --entrypoint cat "$IMAGE" /app/Server/config/.env.exam
   exit 1
 fi
 
-mapfile -t SECRET_IDS < <(resolve_deploy_secret_ids)
+deploy_phase "BEGIN resolve secret ids from image .env.example (# From secret: lines)"
+SECRET_IDS_FILE="$(mktemp)"
+if ! resolve_deploy_secret_ids_from_example "$DEPLOY_ENV_EXAMPLE" >"$SECRET_IDS_FILE"; then
+  echo "ERROR: Failed to resolve secret ids from .env.example." >&2
+  rm -f "$SECRET_IDS_FILE" "$DEPLOY_ENV_EXAMPLE"
+  exit 1
+fi
+mapfile -t SECRET_IDS < "$SECRET_IDS_FILE"
+rm -f "$SECRET_IDS_FILE"
+if [ "${#SECRET_IDS[@]}" -eq 0 ]; then
+  echo "ERROR: No secret ids resolved for deploy." >&2
+  rm -f "$DEPLOY_ENV_EXAMPLE"
+  exit 1
+fi
+deploy_phase "Resolved ${#SECRET_IDS[@]} secret id(s) to merge from Secrets Manager"
 
 # Build env as ubuntu (merge writes need a writable file), then copy to a root-owned path for sudo docker --env-file.
 ENV_BUILD=$(mktemp)
@@ -162,7 +174,9 @@ cleanup_deploy_env_files() {
 trap cleanup_deploy_env_files EXIT
 
 export ENV_EXAMPLE_VALIDATION_PATH="$DEPLOY_ENV_EXAMPLE"
+deploy_phase "BEGIN Secrets Manager merge (${#SECRET_IDS[@]} secrets)"
 build_env_file "${SECRET_IDS[@]}"
+deploy_phase "END Secrets Manager merge"
 unset ENV_EXAMPLE_VALIDATION_PATH
 
 sudo cp "$ENV_BUILD" "$DEPLOY_ENV_FILE"
@@ -176,7 +190,7 @@ sudo docker run -d \
   --name cre_app \
   --network "$NETWORK_NAME" \
   -p 5000:5000 \
-  --health-cmd="curl -fsS http://localhost:5000/healthz || exit 1" \
+  --health-cmd="curl -fsS http://localhost:5000/livez || exit 1" \
   --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=40s \
   --env-file "$ENV_FILE" \
   -e FLASK_ENV="production" \
@@ -184,8 +198,10 @@ sudo docker run -d \
   -e AWS_REGION="${AWS_REGION}" \
   "$IMAGE" >/dev/null
 
+deploy_phase "BEGIN App container start wait (sleep 5s)"
 echo "⏳ Waiting for App to start..."
 sleep 5
+deploy_phase "END App container start wait"
 
 # Check if container crashed immediately
 APP_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_app 2>/dev/null || echo "missing")
@@ -198,6 +214,7 @@ if [ "$APP_STATE" != "running" ]; then
   exit 1
 fi
 
+deploy_phase "BEGIN App Docker health wait /livez (up to 90s)"
 echo "⏳ Waiting for App to be healthy..."
 if ! timeout 90s bash -c 'until docker inspect --format="{{.State.Health.Status}}" cre_app 2>/dev/null | grep -q "healthy"; do sleep 2; done'; then
   echo "❌ App health check failed or timed out"
@@ -211,6 +228,7 @@ if ! timeout 90s bash -c 'until docker inspect --format="{{.State.Health.Status}
   sudo docker logs cre_app 2>&1 | tail -100 || true
   exit 1
 fi
+deploy_phase "END App Docker health wait"
 
 # 3) Worker
 echo "🚀 Starting Worker..."
@@ -226,8 +244,10 @@ sudo docker run -d \
   "$IMAGE" \
   celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1
 
+deploy_phase "BEGIN Worker container start wait (sleep 5s)"
 echo "⏳ Waiting for Worker to start..."
 sleep 5
+deploy_phase "END Worker container start wait"
 
 # Check if Worker crashed immediately
 WORKER_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_worker 2>/dev/null || echo "missing")
@@ -240,6 +260,7 @@ if [ "$WORKER_STATE" != "running" ]; then
   exit 1
 fi
 
+deploy_phase "BEGIN Worker Docker health wait (up to 120s)"
 echo "⏳ Waiting for Worker to be healthy..."
 if ! timeout 120s bash -c 'until docker inspect --format="{{.State.Health.Status}}" cre_worker 2>/dev/null | grep -q "healthy"; do sleep 3; done'; then
   echo "❌ Worker health check failed or timed out"
@@ -253,6 +274,7 @@ if ! timeout 120s bash -c 'until docker inspect --format="{{.State.Health.Status
   sudo docker logs cre_worker 2>&1 | tail -100 || true
   exit 1
 fi
+deploy_phase "END Worker Docker health wait"
 
 # ---- Export built frontend WITHOUT docker cp (avoids hangs) ----
 # Use a bounded tar stream from container -> host; skip if dist missing.

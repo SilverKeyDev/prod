@@ -232,7 +232,7 @@ def _build_reconnect_url(_permission: str) -> str:
     """Build OAuth reconnect URL for requesting calendar permissions.
 
     All permissions use the same authorize URL; incremental scopes are determined
-    server-side (full Calendar and calendar.events.freebusy are never requested).
+    server-side (full Calendar is never requested).
     """
     return "/api/v1/google/oauth/start"
 

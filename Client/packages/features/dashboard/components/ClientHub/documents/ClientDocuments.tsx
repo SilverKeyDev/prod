@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 
 import { useDocumentActions, useDocumentsStoreIntegration } from "packages/features/documents";
+import { PdfModal } from "packages/features/documents/components/pdf/PdfModalBridge";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
 import Loading from "packages/ui/components/asset/loading/Loading";
-import { PdfModal } from "packages/ui/components/modals";
 import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 

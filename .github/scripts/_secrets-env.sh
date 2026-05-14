@@ -5,17 +5,18 @@
 #           build_env_file() fails unless every KEY= in that template has a non-empty value in $ENV_FILE
 #           (same keys as Server/app/utils/config_validator.py).
 #
-# Secret *names* to merge should match Server/secrets.sh / config/.env.example:
+# Secret *names* to merge should match Server/scripts/secrets.sh / config/.env.example:
 # lines like "# From secret: my_secret (json)" define which Secrets Manager ids to fetch.
+# EC2 deploy (.github/scripts/ec2-deploy.sh) merges only those ids (plus DB_SECRET_NAME), not every secret in the region.
 
-# Read .env.example text from stdin; print unique secret ids (same convention as Server/secrets.sh).
+# Read .env.example text from stdin; print unique secret ids (same convention as Server/scripts/secrets.sh).
 secret_names_from_env_example_stream() {
   grep -E '^#[[:space:]]*From secret:[[:space:]]+' \
     | sed -E 's/^#[[:space:]]*From secret:[[:space:]]+([^ (]+).*/\1/' \
     | sort -u
 }
 
-# Paginated list of all secret names in REGION (matches Server/secrets.sh list_secret_names).
+# Paginated list of all secret names in REGION (matches Server/scripts/secrets.sh list_secret_names).
 list_secretsmanager_secret_names() {
   local next="" page
   while :; do
@@ -84,6 +85,33 @@ merge_sm_secret_into_env() {
   esac
 }
 
+# Secret ids referenced by Server/config/.env.example only ("# From secret: name ...").
+# Ensures DB_SECRET_NAME is included. Prints one secret name per line (sorted, unique).
+resolve_deploy_secret_ids_from_example() {
+  local example_file="$1"
+  local tmp
+  tmp="$(mktemp)"
+  if [ ! -f "$example_file" ] || [ ! -s "$example_file" ]; then
+    echo "ERROR: .env.example file missing or empty: $example_file" >&2
+    rm -f "$tmp"
+    return 1
+  fi
+  if ! secret_names_from_env_example_stream <"$example_file" | sort -u >"$tmp"; then
+    rm -f "$tmp"
+    return 1
+  fi
+  if [ ! -s "$tmp" ]; then
+    echo "ERROR: No '# From secret:' entries found in $example_file (cannot build deploy env)." >&2
+    rm -f "$tmp"
+    return 1
+  fi
+  if ! grep -Fxq "$DB_SECRET_NAME" "$tmp" 2>/dev/null; then
+    printf '%s\n' "$DB_SECRET_NAME" >>"$tmp"
+  fi
+  sort -u "$tmp"
+  rm -f "$tmp"
+}
+
 # Same key extraction as Server/app/utils/config_validator.py (KEY= lines only).
 required_env_keys_from_example_file() {
   local f="$1"
@@ -148,9 +176,15 @@ ensure_database_url_alias() {
 build_env_file() {
   local secret_ids=("$@")
   local id
+  if [ "${DEPLOY_LOG_TIMING:-}" = "1" ]; then
+    echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') build_env_file: GetSecretValue merge starting (${#secret_ids[@]} secret(s))"
+  fi
   for id in "${secret_ids[@]}"; do
     merge_sm_secret_into_env "$id"
   done
+  if [ "${DEPLOY_LOG_TIMING:-}" = "1" ]; then
+    echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') build_env_file: GetSecretValue merge finished (${#secret_ids[@]} secret(s))"
+  fi
   ensure_database_url_alias
 
   if ! grep -q '^DATABASE_URL=' "$ENV_FILE"; then

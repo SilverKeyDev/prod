@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useIsAgent } from "packages/hooks/store";
@@ -23,17 +23,14 @@ import type {
   ViewingTourAnchor,
   ViewingTourStartSelection,
 } from "@/features/calendar/utils/viewing/viewingRoutePlan";
-import {
-  viewingEndpointHasRoutingInput,
-  viewingStopsHaveAtLeastOneAddress,
-  viewingTourStartToEndpoint,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
+import { viewingStopsHaveAtLeastOneAddress } from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 import type { UseCreateEventModalParams } from "./useCreateEventModal.types";
 import { useCreateEventModalChecklists } from "./useCreateEventModalChecklists";
 import { useCreateEventModalDateHandlers } from "./useCreateEventModalDateHandlers";
 import { useCreateEventModalPrefillAndKindState } from "./useCreateEventModalPrefillAndKindState";
 import { useCreateEventModalSubmitFlow } from "./useCreateEventModalSubmitFlow";
+import { useCreateEventModalViewingRouteEffects } from "./useCreateEventModalViewingRouteEffects";
 
 export type { UseCreateEventModalParams } from "./useCreateEventModal.types";
 
@@ -92,7 +89,6 @@ export function useCreateEventModal({
   });
   const [viewingEndMode, setViewingEndMode] = useState<ViewingRouteEndMode>("last_property");
   const [viewingEndFixed, setViewingEndFixed] = useState<ViewingRouteEndpoint | null>(null);
-  const defaultStartAnchorAppliedRef = useRef(false);
   const [addGoogleMeet, setAddGoogleMeet] = useState(true);
   /** Create flow: true after user sets start/end via week view double-click; false after grid/week-header date-only picks. */
   const [createTimesChosenViaWeekSlot, setCreateTimesChosenViaWeekSlot] = useState(false);
@@ -152,51 +148,19 @@ export function useCreateEventModal({
 
   const isPropertyViewing = useViewingStopList;
 
-  useEffect(() => {
-    if (!isPropertyViewing) {
-      setViewingStops([]);
-      setViewingStartSelection({ kind: "omit" });
-      setViewingEndMode("last_property");
-      setViewingEndFixed(null);
-      defaultStartAnchorAppliedRef.current = false;
-    }
-  }, [isPropertyViewing]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      defaultStartAnchorAppliedRef.current = false;
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen || !isPropertyViewing || mode !== "create") {
-      return;
-    }
-    if (defaultStartAnchorAppliedRef.current) {
-      return;
-    }
-    const vt = clientSettings?.viewing_tour;
-    const defId = vt?.default_start_anchor_id;
-    const anchors = vt?.anchors;
-    if (!defId || !anchors?.length) {
-      return;
-    }
-    const match = anchors.find((a) => a.id === defId);
-    if (match) {
-      setViewingStartSelection({ kind: "saved", anchorId: defId });
-      defaultStartAnchorAppliedRef.current = true;
-    }
-  }, [isOpen, isPropertyViewing, mode, clientSettings?.viewing_tour]);
-
-  useEffect(() => {
-    if (viewingEndMode !== "return_to_start") {
-      return;
-    }
-    const ep = viewingTourStartToEndpoint(viewingStartSelection, viewingTourAnchors);
-    if (!viewingEndpointHasRoutingInput(ep)) {
-      setViewingEndMode("last_property");
-    }
-  }, [viewingEndMode, viewingStartSelection, viewingTourAnchors]);
+  useCreateEventModalViewingRouteEffects({
+    isOpen,
+    mode,
+    isPropertyViewing,
+    setViewingStops,
+    setViewingStartSelection,
+    setViewingEndMode,
+    setViewingEndFixed,
+    viewingTourAnchors,
+    clientSettingsViewingTour: clientSettings?.viewing_tour ?? null,
+    viewingEndMode,
+    viewingStartSelection,
+  });
 
   useEffect(() => {
     if (!isOpen) {

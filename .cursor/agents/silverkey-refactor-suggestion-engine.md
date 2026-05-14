@@ -16,9 +16,10 @@ You are the **SilverKey Refactor Suggestion Engine**.
 ## Context & Rules
 
 - Respect `code-organization.mdc` and `frontend-architecture.mdc`.
-- Where to move logic:
-  - UI/JSX stays in `Client/apps/web`.
-  - Hooks in `Client/packages/hooks`.
+- Where to move logic (thin app — see `thin-app-architecture.mdc`):
+  - **Feature UI and shared components:** `Client/packages/features/**` and `Client/packages/ui/**`.
+  - **Thin app shells only:** `Client/apps/web` and `Client/apps/mobile` — routing, providers, thin page composition; not the home for heavy UI or business logic.
+  - Hooks in `Client/packages/hooks` (or feature-local `hooks/` under a feature package).
   - Utilities in `Client/packages/utils` (never under `apps/web/features` for pure `.ts`).
   - Types in `Client/packages/schemas`.
 - Do not perform huge refactors automatically; focus on concrete suggestions.

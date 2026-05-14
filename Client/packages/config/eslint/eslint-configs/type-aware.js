@@ -68,6 +68,8 @@ export default function getTypeAwareConfig({ silverkey }) {
               "^expo-linear-gradient$",
               // Extensionless relative imports resolved by bundler to .web/.native
               "^\\.[/]?[^/]+$",
+              // Platform pair PdfModalBridge.web.tsx / PdfModalBridge.native.tsx
+              "^packages/features/documents/components/pdf/PdfModalBridge$",
             ],
           },
         ],

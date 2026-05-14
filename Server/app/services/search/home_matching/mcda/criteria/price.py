@@ -30,8 +30,8 @@ def effective_budget_bounds(
     Return (min, max) listing-price units comparable to API listing price.
     For sale: annual dollars. For rent: monthly (prefs stored annual → /12).
     """
-    budget_max = _parse_money(preferences.get("home_budget_max"))
-    budget_min = _parse_money(preferences.get("home_budget_min"))
+    budget_max = _parse_money(preferences.get("home_budget_max") or preferences.get("price_max"))
+    budget_min = _parse_money(preferences.get("home_budget_min") or preferences.get("price_min"))
     if not budget_max or budget_max <= 0:
         return (None, None)
 
@@ -55,6 +55,7 @@ def listing_price(property_dict: dict[str, Any]) -> float | None:
     return _parse_money(
         property_dict.get("price")
         or property_dict.get("listPrice")
+        or property_dict.get("ListPrice")
         or property_dict.get("unformattedPrice")
     )
 

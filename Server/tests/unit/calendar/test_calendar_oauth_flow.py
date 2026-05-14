@@ -8,10 +8,11 @@ from app.services.calendar.permissions.constants import oauth_requested_scope_ur
 
 
 class TestCalendarOAuthFlowScopes:
-    def test_oauth_requested_scope_urls_excludes_full_calendar_and_events_freebusy(self) -> None:
+    def test_oauth_requested_scope_urls_match_google_client_scopes(self) -> None:
         urls = oauth_requested_scope_urls()
         assert "https://www.googleapis.com/auth/calendar" not in urls
         assert "https://www.googleapis.com/auth/calendar.events.freebusy" not in urls
+        assert "https://www.googleapis.com/auth/calendar.calendarlist.readonly" not in urls
         assert "https://www.googleapis.com/auth/calendar.freebusy" in urls
         assert "https://www.googleapis.com/auth/calendar.app.created" in urls
 
@@ -32,3 +33,4 @@ class TestCalendarOAuthFlowScopes:
         parts = scope_param.split()
         assert "https://www.googleapis.com/auth/calendar" not in parts
         assert "https://www.googleapis.com/auth/calendar.events.freebusy" not in parts
+        assert "https://www.googleapis.com/auth/calendar.calendarlist.readonly" not in parts

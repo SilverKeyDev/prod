@@ -64,7 +64,7 @@ tags:
     description: Multi-stop property viewing routes and navigation helpers
       (/api/v1/viewings).
   - name: Health
-    description: Process liveness and infrastructure checks (/healthz).
+    description: Process liveness (/livez) and database readiness (/healthz and /readyz alias).
   - name: Chatbot
     description: Property chatbot for address-based conversations (routes under /api/v1/chat).
 
@@ -387,6 +387,8 @@ components:
       $ref: "./components/schemas/calendar/GoogleReminderOverride.yaml"
     HealthResponse:
       $ref: "./components/schemas/shared/core/HealthResponse.yaml"
+    LivezResponse:
+      $ref: "./components/schemas/shared/core/LivezResponse.yaml"
     IsochroneData:
       $ref: "./components/schemas/search/properties/IsochroneData.yaml"
     IsochroneGeometry:
@@ -2190,6 +2192,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/chats/stream:
+    get:
+      tags: [ Agent ]
+      summary: Messaging events (SSE)
+      description: |
+        Server-Sent Events stream for the authenticated user. When `REDIS_URL` or `CELERY_URL`
+        is configured, the server publishes `new_message` and `conversation_read` events to a
+        per-user Redis Pub/Sub channel (`sk:messaging:user:{user_id}`). Heartbeats use SSE comment
+        lines (`:` prefix). The first `data` event is always `{"kind":"_hello","redis_fanout":boolean}`.
+      operationId: streamAgentChatEvents
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: SSE stream (`text/event-stream`)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/agent/chats/{conversationId}/history:
     get:
       tags: [ Agent ]
@@ -3931,6 +3965,61 @@ paths:
             type: string
             default: escrow
           description: Checklist category (search, offer, escrow, financing, closing, insurance).
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskChecklistApiResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [ Tasks ]
+      summary: Replace task checklist progress for a transaction subject
+      description: >
+        Same semantics as PUT /api/v1/tasks for the buyer user id given by transaction_id.
+        Buyers may update their own checklist; agents may update a managed client's checklist.
+      operationId: putTransactionTaskChecklist
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Buyer / hub client user id whose checklist progress is updated.
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            default: escrow
+          description: Checklist category (search, offer, escrow, financing, closing, insurance).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskChecklistRequest"
       responses:
         "200":
           description: HTTP 200
@@ -6024,8 +6113,41 @@ paths:
   /healthz:
     get:
       tags: [ Health ]
-      summary: Liveness and database connectivity
+      summary: Readiness and database connectivity
+      description: Verifies the app can reach the database (SELECT 1). Prefer /livez for fast liveness only.
       operationId: healthz
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: HTTP 503
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /livez:
+    get:
+      tags: [ Health ]
+      summary: Process liveness (no database)
+      description: Returns 200 when the HTTP process is up; does not check the database. Use for Docker health probes.
+      operationId: livez
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LivezResponse"
+  /readyz:
+    get:
+      tags: [ Health ]
+      summary: Readiness and database connectivity (alias of /healthz)
+      description: Same behavior as GET /healthz — verifies the app can reach the database (SELECT 1). Provided for operators who standardize on the readyz name.
+      operationId: readyz
       responses:
         "200":
           description: HTTP 200

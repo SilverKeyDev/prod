@@ -31,6 +31,10 @@ def apply_canonical_housing_preference_keys(out: dict[str, Any]) -> None:
     Mutate aggregated prefs so map_user_preferences_to_filters and MCDA see canonical keys.
     Safe to call on any flat dict shaped like _build_preferences_dict output.
     """
+    if out.get("preferred_bedrooms") is None and out.get("preferred_bedrooms_min") is not None:
+        out["preferred_bedrooms"] = out["preferred_bedrooms_min"]
+    if out.get("preferred_bathrooms") is None and out.get("preferred_bathrooms_min") is not None:
+        out["preferred_bathrooms"] = out["preferred_bathrooms_min"]
     ht = out.get("housing_type")
     if not out.get("preferred_housing_type") and ht is not None and str(ht).strip():
         out["preferred_housing_type"] = ht

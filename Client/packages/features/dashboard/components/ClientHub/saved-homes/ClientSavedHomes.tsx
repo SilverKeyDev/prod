@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 
 import { useDocumentActions, useHomeComparison } from "packages/features/documents";
+import { PdfModal } from "packages/features/documents/components/pdf/PdfModalBridge";
 import {
   convertSavedHomeToProperty,
   SavedHomesContent,
@@ -12,7 +13,6 @@ import { usePropertyDetails } from "packages/features/search";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { useSavedPageModals } from "packages/hooks/ui";
 import type { SavedHome } from "packages/types";
-import { PdfModal } from "packages/ui/components/modals";
 import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
 
 type ClientSavedHomesProps = {

@@ -174,5 +174,28 @@ export function silverkeyComponentsAndFeatures(silverkey) {
       plugins: { silverkey },
       rules: { "silverkey/no-standalone-ts-in-pages": "error" },
     },
+    // Property card UI must not depend on search feature types/imports (use shared UI types).
+    {
+      files: ["packages/ui/components/cards/property/**/*.{ts,tsx}"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: ["@/features/search", "@/features/search/*", "@/features/search/**/*"],
+                message:
+                  "Importing search feature modules from UI property cards couples layers; use packages/ui-local types (e.g. notInterestedCardProperty.types) or packages/types.",
+              },
+              {
+                group: ["packages/features/search", "packages/features/search/*"],
+                message:
+                  "UI property cards must not import packages/features/search; keep card types in UI or packages/types.",
+              },
+            ],
+          },
+        ],
+      },
+    },
   ];
 }

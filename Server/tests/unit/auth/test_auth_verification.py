@@ -2,9 +2,11 @@
 Tests for authentication verification flow
 """
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from flask import Flask
+
+from app.services.auth.flows import verification as verification_mod
 
 
 class TestVerificationFlow:
@@ -89,57 +91,52 @@ class TestVerificationFlow:
         """Test successful resend verification code"""
         from app.services.auth.flows.verification import handle_resend_code
 
-        mock_cognito_service.resend_confirmation_code = Mock(
-            return_value={
-                "success": True,
-                "CodeDeliveryDetails": {"Destination": "t***@example.com"},
-            }
-        )
-
         with app.app_context():
-            data = {"email": "test@example.com"}
-            response_data, status_code = handle_resend_code(data, "req-123")
+            with patch.object(
+                verification_mod.AWS_COGNITO_service.client,
+                "resend_confirmation_code",
+                return_value={"CodeDeliveryDetails": {"Destination": "t***@example.com"}},
+            ) as mock_resend:
+                data = {"email": "test@example.com"}
+                response_data, status_code = handle_resend_code(data, "req-123")
 
-            assert status_code == 200
-            assert response_data["success"] is True
-            assert "sent" in response_data["message"].lower()
-            mock_cognito_service.resend_confirmation_code.assert_called_once()
+                assert status_code == 200
+                assert response_data["success"] is True
+                assert "sent" in response_data["message"].lower()
+                mock_resend.assert_called_once()
 
     def test_resend_code_user_not_found(self, app: Flask, mock_cognito_service):
         """Test resend code for non-existent user"""
         from app.services.auth.flows.verification import handle_resend_code
 
-        mock_cognito_service.resend_confirmation_code = Mock(
-            return_value={
-                "success": False,
-                "error": "UserNotFoundException",
-                "message": "User does not exist",
-            }
-        )
-
         with app.app_context():
-            data = {"email": "nonexistent@example.com"}
-            response_data, status_code = handle_resend_code(data, "req-123")
+            with patch.object(
+                verification_mod.AWS_COGNITO_service.client,
+                "resend_confirmation_code",
+                side_effect=verification_mod.AWS_COGNITO_service.client.exceptions.UserNotFoundException(
+                    {"Error": {"Code": "UserNotFoundException"}}, "resend_confirmation_code"
+                ),
+            ):
+                data = {"email": "nonexistent@example.com"}
+                response_data, status_code = handle_resend_code(data, "req-123")
 
-            assert status_code == 400
-            assert response_data["success"] is False
+                assert status_code == 404
+                assert response_data["success"] is False
 
     def test_resend_code_already_verified(self, app: Flask, mock_cognito_service):
         """Test resend code for already verified user"""
         from app.services.auth.flows.verification import handle_resend_code
 
-        mock_cognito_service.resend_confirmation_code = Mock(
-            return_value={
-                "success": False,
-                "error": "NotAuthorizedException",
-                "message": "User is already confirmed",
-            }
-        )
-
         with app.app_context():
-            data = {"email": "test@example.com"}
-            response_data, status_code = handle_resend_code(data, "req-123")
+            with patch.object(
+                verification_mod.AWS_COGNITO_service.client,
+                "resend_confirmation_code",
+                side_effect=verification_mod.AWS_COGNITO_service.client.exceptions.NotAuthorizedException(
+                    {"Error": {"Code": "NotAuthorizedException"}}, "resend_confirmation_code"
+                ),
+            ):
+                data = {"email": "test@example.com"}
+                response_data, status_code = handle_resend_code(data, "req-123")
 
-            # Should return success message for better UX
-            assert status_code == 200
-            assert response_data["success"] is True
+                assert status_code == 200
+                assert response_data["success"] is True

@@ -58,6 +58,12 @@ describe("isSetBudgetStepComplete", () => {
     expect(isSetBudgetStepComplete({ ...baseBudget, paying_cash: false })).toBe(true);
   });
 
+  it("does not require ideal_zip_code when financing", () => {
+    const { ideal_zip_code: _z, ...withoutZip } = baseBudget;
+    void _z;
+    expect(isSetBudgetStepComplete({ ...withoutZip, paying_cash: false })).toBe(true);
+  });
+
   it("skips financing extras when paying cash", () => {
     expect(
       isSetBudgetStepComplete({

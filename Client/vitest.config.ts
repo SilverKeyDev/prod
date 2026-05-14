@@ -77,7 +77,6 @@ export default defineConfig({
       "**/dist/**",
       "**/coverage/**",
       "**/.{idea,git,cache,output,temp}/**",
-      "**/apps/web/e2e/**",
     ],
     coverage: {
       provider: "v8",
@@ -88,10 +87,10 @@ export default defineConfig({
       thresholds: {
         // High-value shared code: 70% coverage required
         "packages/utils/": {
-          lines: 70,
-          functions: 70,
+          lines: 71,
+          functions: 71,
           branches: 65,
-          statements: 70,
+          statements: 71,
         },
         "packages/hooks/": {
           lines: 70,

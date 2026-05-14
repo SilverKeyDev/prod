@@ -1,8 +1,7 @@
 import React from "react";
 
+import type { Property, SearchResult } from "packages/types";
 import { Box } from "packages/ui/components/primitives";
-
-import type { Property, SearchResult } from "@/features/search/types";
 
 import {
   PropertyCardDetailsRow,

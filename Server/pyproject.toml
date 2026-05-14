@@ -101,6 +101,48 @@ exclude = [
     ".venv",
     "migrations/versions",
 ]
+
+# --- Coverage (pytest-cov / coverage.py): config is read from here, not pytest.ini [coverage:*] ---
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/__pycache__/**",
+    "**/migrations/**",
+    "**/.venv/**",
+    "**/venv/**",
+    "**/env/**",
+    # Legacy duplicate of app/services/search/polygon/locationPolygon.py (unused import path).
+    "app/services/search/locationPolygon.py",
+]
+
+[tool.coverage.report]
+fail_under = 47
+skip_covered = false
+show_missing = true
+precision = 2
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self\\.debug",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@(abc\\.)?abstractmethod",
+    "pass",
+    "\\.\\.\\.",
+]
+
+[tool.coverage.html]
+directory = "coverage/html"
+
+[tool.coverage.xml]
+output = "coverage/coverage.xml"
+
+[tool.coverage.json]
+output = "coverage/coverage.json"
 # For stricter checking, progressively enable:
 # disallow_untyped_defs = true
 # disallow_any_unimported = true

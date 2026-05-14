@@ -3,11 +3,13 @@ description: Where documentation lives and how to add or reference it
 globs:
   - "documentation/**/*.md"
   - "**/README.md"
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Documentation
 
+- **Do not use repo-root `docs/` for new SilverKey guides.** Many models default to a top-level `docs/` folder; in this repo the **only** canonical tree for long-form project documentation is **`documentation/`** at the repo root. Do not create a new root-level `docs/` directory or drop new general-purpose `.md` files there unless the user explicitly names that path. If something already exists under root `docs/`, prefer migrating or linking from `documentation/` in a user-requested change — do not expand root `docs/` on your own. (Colocated `docs/` inside a tool-owned subtree, e.g. `Server/app/services/docusign/docs/`, is unrelated — only edit those when the task is about that area.)
+- **Existing repo-root `docs/` is intentional** for server/operations material: runbooks, Celery/Redis/Postgres stubs, refactor backlogs. It is indexed by `docs/README.md` and should **link** into `documentation/server/` instead of duplicating long guides. New cross-cutting or product documentation still belongs under **`documentation/`**.
 - **Canonical docs root:** `documentation/` at repo root. All long-form, cross-cutting docs live there. See `documentation/README.md` and `documentation/HOW_WE_DOCUMENT.md`.
 - **Client docs:** `documentation/client/` — lint reference, shared packages, TypeScript layout, React vs React Native, shared UI option. Index: `documentation/client/README.md`.
 - **Server docs:** `documentation/server/` — backend structure and server-specific guides. Index: `documentation/server/README.md`.

@@ -6,9 +6,9 @@ import { useLocalization } from "packages/contexts";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { Button, CancelButton } from "packages/ui";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 
-import BaseModal from "@/components/modals/BaseModal";
 import { BodyText, Title } from "@/components/ui";
 import { useMultiSelectionModal } from "@/features/agent/hooks/ui/useMultiSelectionModal";
 import type { SavedHome } from "@/features/search/types/domain/property";

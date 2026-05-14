@@ -60,9 +60,14 @@ export function ToastNative({ variant, message, onClose }: ToastNativeProps) {
       </View>
     );
 
+  const liveRegion: "assertive" | "polite" = variant === "error" ? "assertive" : "polite";
+
   return (
     <View style={styles.shell} pointerEvents="box-none">
       <View
+        accessible
+        accessibilityLiveRegion={liveRegion}
+        accessibilityRole={variant === "error" ? "alert" : undefined}
         style={[
           styles.surface,
           { backgroundColor: bg },

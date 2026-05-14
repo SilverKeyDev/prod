@@ -13,6 +13,9 @@ export type BodyTextProps = {
   title?: string;
   style?: React.CSSProperties | Record<string, unknown>;
   numberOfLines?: number;
+  /** DOM id for `aria-describedby` / anchors (web). */
+  id?: string;
+  role?: React.AriaRole;
 };
 
 const sizeClasses: Record<BodyTextSize, string> = {
@@ -35,6 +38,8 @@ const BodyText = forwardRef<React.ComponentRef<typeof Text>, BodyTextProps>(func
     title,
     style,
     numberOfLines,
+    id,
+    role,
     ...textProps
   },
   ref
@@ -53,6 +58,8 @@ const BodyText = forwardRef<React.ComponentRef<typeof Text>, BodyTextProps>(func
       style={style}
       title={title}
       numberOfLines={numberOfLines}
+      id={id}
+      role={role}
       {...textProps}
     >
       {children}

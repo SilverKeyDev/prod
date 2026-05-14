@@ -12,6 +12,7 @@ export {
   type TaskChecklistResponse,
   type TransactionAddressData,
   updateTaskChecklist,
+  updateTaskChecklistForSubject,
 } from "./api/checklists";
 export { default as ChooseAreasSection } from "./components/integrations/areas/ChooseAreasSection";
 export { default as ReviewComparablesSection } from "./components/integrations/comparables/ReviewComparablesSection";
@@ -24,6 +25,7 @@ export {
   BuyerRoadmapChecklistList,
   type BuyerRoadmapChecklistListProps,
 } from "./components/roadmap/BuyerRoadmapChecklistList";
+export { ChecklistUpdatePendingProvider } from "./components/roadmap/ChecklistUpdatePendingProvider";
 export { default as ChecklistIntegrationSlot } from "./components/slots/ChecklistIntegrationSlot";
 export { default as ChecklistStepForms } from "./components/steps/ChecklistStepForms";
 export { default as ClosingMovingIn } from "./components/subheaders/ClosingMovingIn";
@@ -32,12 +34,17 @@ export { default as FinancingInsurance } from "./components/subheaders/Financing
 export { default as InspectionsDueDiligence } from "./components/subheaders/InspectionsDueDiligence";
 export { default as OfferSection } from "./components/subheaders/OfferSection";
 export { default as SearchSection } from "./components/subheaders/SearchSection";
-export { useChecklistData, type UseChecklistDataReturn } from "./hooks/data/useChecklistData";
+export {
+  useChecklistData,
+  type UseChecklistDataOptions,
+  type UseChecklistDataReturn,
+} from "./hooks/data/useChecklistData";
 export {
   useChecklistProgress,
   type UseChecklistProgressReturn,
 } from "./hooks/useChecklistProgress";
 export { useChecklistStepExpansion } from "./hooks/useChecklistStepExpansion";
+export { useOptionalChecklistUpdatePending } from "./hooks/useOptionalChecklistUpdatePending";
 export {
   CHECKLIST_SUBTITLES,
   CHECKLIST_TITLES,
@@ -51,12 +58,18 @@ export {
   toChecklistCheckboxItem,
 } from "./utils/presentation/checklistCheckboxPresentation";
 export {
+  applyTaskChecklistMerge,
   type ChecklistItemToggleEligibility,
   evaluateChecklistCondition,
   getChecklistItemToggleEligibility,
   getRoadmapChecklistItemBlockerKind,
+  MERGE_REASON_PRUNED,
+  MERGE_REASON_SELECTABLE_WHEN,
+  MERGE_REASON_SEQUENTIAL_ORDER,
+  MERGE_REASON_SIGNATURE_BASED,
   mergeTaskChecklistCheckedIds,
   type RoadmapChecklistBlockerKind,
+  type TaskChecklistMergeResult,
 } from "./utils/rules/checklistRules";
 export { CHECKLIST_TYPE_TO_TAB } from "./utils/rules/checklistTypeTab";
 export {

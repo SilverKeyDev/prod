@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { Property } from "packages/types";
 import Button from "packages/ui/components/button/Button";
 import { StyledImage } from "packages/ui/components/cards/base/index.web";
 import { Textarea } from "packages/ui/components/form/field/FormField";
@@ -13,7 +12,8 @@ import Label from "packages/ui/components/text/Label.web";
 import Title from "packages/ui/components/text/Title";
 
 import Card from "@/components/layout/Card.web";
-import type { SearchResult } from "@/features/search/types";
+
+import type { NotInterestedCardProperty } from "./notInterestedCardProperty.types";
 
 export type NotInterestedReason = {
   id: string;
@@ -34,7 +34,7 @@ const ALL_REASONS: NotInterestedReason[] = [
 ];
 
 export type WhyNotInterestedCardProps = {
-  property: SearchResult | Property;
+  property: NotInterestedCardProperty;
   onSelectReason: (why: string) => Promise<void>;
   onUndo: () => Promise<void>;
   cardType?: "searchpage" | "regular";
@@ -54,7 +54,7 @@ const REASON_LABEL_KEYS: Record<string, string> = {
   other: "why_not.other",
 };
 
-function getPropertyImage(property: SearchResult | Property): string | undefined {
+function getPropertyImage(property: NotInterestedCardProperty): string | undefined {
   if ("images" in property && property.images?.length) {
     const first = property.images[0];
     return typeof first === "string" ? first : undefined;

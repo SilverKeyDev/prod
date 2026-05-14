@@ -11,6 +11,12 @@ import pytest
 from app.services.calendar.events.creation import create_in_agent_calendars
 
 
+@pytest.fixture(autouse=True)
+def _app_context_for_creation_tests(app):
+    with app.app_context():
+        yield
+
+
 @pytest.mark.unit
 class TestCreateInAgentCalendars:
     """Test agent calendar duplication logic"""

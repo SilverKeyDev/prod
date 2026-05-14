@@ -164,15 +164,25 @@ export function transformSearchResponse(
   const mapped = response.properties.map((property, index) =>
     transformPropertySearchResult(property, index, fallbackCenter)
   );
+  const seen = new Set<string>();
+  const deduped: SearchResult[] = [];
+  mapped.forEach((row, index) => {
+    const key = String(row.id ?? row.zpid ?? "") || `anon_${index}`;
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    deduped.push(row);
+  });
   log.info(
     LOG_CATEGORIES.SEARCH,
     "transformSearchResponse: mapped API properties to SearchResult",
     {
       inputCount: response.properties.length,
-      outputCount: mapped.length,
+      outputCount: deduped.length,
       metaCached: (response as SearchByPolygonResponse & { meta?: { cached?: boolean } }).meta
         ?.cached,
     }
   );
-  return mapped;
+  return deduped;
 }

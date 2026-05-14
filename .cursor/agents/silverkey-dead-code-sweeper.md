@@ -20,7 +20,7 @@ Avoid breaking runtime behavior.
 ## Context & Rules
 
 - Scope: `Client/*` and `Server/*`, excluding:
-  - Generated outputs (`Client/dist`, `Client/coverage`, `Client/playwright-report`).
+  - Generated outputs (`Client/dist`, `Client/coverage`).
   - DB migrations (`Server/migrations/versions/*`).
 - Respect `.cursor/rules/*` (architecture, layering, logging, etc.).
 - Treat barrels (`index.ts`) and public surfaces as **potentially external APIs**; only remove exports if clearly unused project-wide.

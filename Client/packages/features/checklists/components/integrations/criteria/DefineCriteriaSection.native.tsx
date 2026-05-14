@@ -28,14 +28,17 @@ export default function DefineCriteriaSection({ onComplete }: DefineCriteriaSect
     saveStatus,
     updateFormData: updateFormDataWithAutoSave,
     autoSave,
+    flushSave,
   } = useAutoSavePreferences({
     refreshUserPreferences,
     showErrorToastOnError: true,
     showSuccessToastOnSave: false,
-    successToastMessage: t("common.saved"),
+    debounceMs: 400,
   });
 
   const appliedRemoteSyncKeyRef = useRef<string | null>(null);
+  const formDataRef = useRef(formData);
+  formDataRef.current = formData;
 
   const patchBuyerPreferenceExtensions = useCallback(
     (
@@ -75,16 +78,23 @@ export default function DefineCriteriaSection({ onComplete }: DefineCriteriaSect
   const stepComplete = useMemo(() => isDefineCriteriaStepComplete(formData), [formData]);
 
   const handleSubmit = useCallback(() => {
-    if (!isDefineCriteriaStepComplete(formData)) {
-      showWarningToast(
-        t("checklists.step.incomplete_warning", {
-          defaultValue: "Complete all required fields in this step before submitting.",
-        })
-      );
-      return;
-    }
-    onComplete?.();
-  }, [formData, onComplete, t]);
+    void (async () => {
+      if (!isDefineCriteriaStepComplete(formDataRef.current)) {
+        showWarningToast(
+          t("checklists.step.incomplete_warning", {
+            defaultValue: "Complete all required fields in this step before submitting.",
+          })
+        );
+        return;
+      }
+      try {
+        await flushSave(formDataRef.current);
+      } catch {
+        return;
+      }
+      onComplete?.();
+    })();
+  }, [flushSave, onComplete, t]);
 
   return (
     <Card border="dotted" padding="md" className="mb-2">

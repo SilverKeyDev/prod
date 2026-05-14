@@ -5,11 +5,11 @@ import { Icon } from "@ui/icons";
 import { type DocumentData, useDocumentsData } from "packages/features/documents";
 import { Button, CancelButton } from "packages/ui";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
 
-import BaseModal from "@/components/modals/BaseModal";
 import { BodyText, Title } from "@/components/ui";
 import { useSingleSelectionModal } from "@/features/agent/hooks/ui/useSingleSelectionModal";
 

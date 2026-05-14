@@ -24,6 +24,7 @@ def listing_sqft(property_dict: dict[str, Any]) -> float | None:
     return _parse_sqft(
         property_dict.get("sqft")
         or property_dict.get("livingArea")
+        or property_dict.get("LivingArea")
         or property_dict.get("squareFootage")
         or property_dict.get("living_area")
     )

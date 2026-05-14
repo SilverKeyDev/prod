@@ -76,6 +76,10 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.map_missing": "The map isn’t ready yet. Try again in a moment.",
   "search.search_failed_generic":
     "Something went wrong and we couldn’t finish the search. Try again.",
+  "search.search_server_unavailable":
+    "Our search partner is temporarily unavailable. Wait a moment and try again.",
+  "search.search_timeout_retry":
+    "The search took too long to finish. Try a smaller area or search again.",
   "search.run_search_to_see_homes": "Run a search to see homes that match your profile.",
   "search.price_range": "Price range",
   "search.filters_beds_baths_range": "Beds and baths",

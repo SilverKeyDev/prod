@@ -48,8 +48,8 @@ class TestAgreementLifecycle:
         with app.app_context():
             # Create agreement in database
             agreement = Agreement(**sample_agreement)
-            db_session.add(agreement)
-            db_session.commit()
+            db_session.session.add(agreement)
+            db_session.session.commit()
 
             retrieved = AgreementLifecycleService.get_agreement(agreement.id)
             assert retrieved.id == agreement.id
@@ -76,7 +76,7 @@ class TestAgreementLifecycle:
         with app.app_context():
             # Create test data
             agreement = Agreement(**sample_agreement)
-            db_session.add(agreement)
+            db_session.session.add(agreement)
 
             signer = User(
                 id="signer-123",
@@ -84,8 +84,8 @@ class TestAgreementLifecycle:
                 email="signer@example.com",
                 name="Signer User",
             )
-            db_session.add(signer)
-            db_session.commit()
+            db_session.session.add(signer)
+            db_session.session.commit()
 
             participant = AgreementLifecycleService.add_participant(
                 agreement_id=agreement.id,
@@ -111,8 +111,8 @@ class TestAgreementLifecycle:
         with app.app_context():
             sample_agreement["status"] = "sent"
             agreement = Agreement(**sample_agreement)
-            db_session.add(agreement)
-            db_session.commit()
+            db_session.session.add(agreement)
+            db_session.session.commit()
 
             with pytest.raises(AgreementStateError):
                 AgreementLifecycleService.add_participant(
@@ -131,7 +131,7 @@ class TestAgreementLifecycle:
 
         with app.app_context():
             agreement = Agreement(**sample_agreement)
-            db_session.add(agreement)
+            db_session.session.add(agreement)
 
             agent = User(
                 id=sample_agreement["agent_id"],
@@ -139,8 +139,8 @@ class TestAgreementLifecycle:
                 email="agent@example.com",
                 name="Agent User",
             )
-            db_session.add(agent)
-            db_session.commit()
+            db_session.session.add(agent)
+            db_session.session.commit()
 
             with pytest.raises(AgreementStateError):
                 AgreementLifecycleService.add_participant(
@@ -159,7 +159,7 @@ class TestAgreementLifecycle:
 
         with app.app_context():
             agreement = Agreement(**sample_agreement)
-            db_session.add(agreement)
+            db_session.session.add(agreement)
 
             signer = User(
                 id="signer-123",
@@ -167,7 +167,7 @@ class TestAgreementLifecycle:
                 email="signer@example.com",
                 name="Signer User",
             )
-            db_session.add(signer)
+            db_session.session.add(signer)
 
             participant = AgreementParticipant(
                 agreement_id=agreement.id,
@@ -177,8 +177,8 @@ class TestAgreementLifecycle:
                 role="signer",
                 routing_order=1,
             )
-            db_session.add(participant)
-            db_session.commit()
+            db_session.session.add(participant)
+            db_session.session.commit()
 
             participant_id = participant.id
             AgreementLifecycleService.remove_participant(agreement.id, participant_id)
@@ -196,7 +196,7 @@ class TestAgreementLifecycle:
 
         with app.app_context():
             agreement = Agreement(**sample_agreement)
-            db_session.add(agreement)
+            db_session.session.add(agreement)
 
             participant = AgreementParticipant(
                 agreement_id=agreement.id,
@@ -206,8 +206,8 @@ class TestAgreementLifecycle:
                 role="signer",
                 routing_order=1,
             )
-            db_session.add(participant)
-            db_session.commit()
+            db_session.session.add(participant)
+            db_session.session.commit()
 
             updated = AgreementLifecycleService.update_participant_routing_order(
                 agreement.id, participant.id, 2
@@ -226,8 +226,8 @@ class TestAgreementLifecycle:
             with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
                 agreement = Agreement(**sample_agreement)
                 agreement.docusign_envelope_id = None
-                db_session.add(agreement)
-                db_session.commit()
+                db_session.session.add(agreement)
+                db_session.session.commit()
 
                 AgreementLifecycleService.void_agreement(agreement.id, "Testing void", "agent-123")
 
@@ -249,8 +249,8 @@ class TestAgreementLifecycle:
                 agreement = Agreement(**sample_agreement)
                 agreement.docusign_envelope_id = "envelope-123"
                 agreement.status = "sent"
-                db_session.add(agreement)
-                db_session.commit()
+                db_session.session.add(agreement)
+                db_session.session.commit()
 
                 AgreementLifecycleService.void_agreement(agreement.id, "Testing void", "agent-123")
 
@@ -275,7 +275,7 @@ class TestAgreementLifecycle:
                 )
 
                 agreement = Agreement(**sample_agreement)
-                db_session.add(agreement)
+                db_session.session.add(agreement)
 
                 participant = AgreementParticipant(
                     agreement_id=agreement.id,
@@ -285,8 +285,8 @@ class TestAgreementLifecycle:
                     role="signer",
                     routing_order=1,
                 )
-                db_session.add(participant)
-                db_session.commit()
+                db_session.session.add(participant)
+                db_session.session.commit()
 
                 url = AgreementLifecycleService.get_signing_url(agreement.id, participant.id)
 

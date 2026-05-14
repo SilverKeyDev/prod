@@ -1,0 +1,3 @@
+export const INITIAL_CHAT_HISTORY_LIMIT = 5;
+export const OLDER_CHAT_HISTORY_PAGE_SIZE = 10;
+export const SYNC_NEWER_CHAT_LIMIT = 50;

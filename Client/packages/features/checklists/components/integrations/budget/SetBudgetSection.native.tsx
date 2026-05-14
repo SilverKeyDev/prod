@@ -8,6 +8,8 @@ import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 import { userPreferencesToOnboardingData } from "@/features/profile/utils";
 
@@ -16,7 +18,7 @@ type SetBudgetSectionProps = {
 };
 
 /**
- * Native: complete this step from saved preferences (budget is edited on web).
+ * Native: budget and financing are edited on web; buyers confirm progress here once data qualifies.
  */
 export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) {
   const { t } = useLocalization();
@@ -46,6 +48,12 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
   return (
     <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
+        <Title size="sm" as="h3">
+          {t("checklists.native.set_budget.title")}
+        </Title>
+        <BodyText size="sm" className="text-text-secondary">
+          {t("checklists.native.set_budget.body")}
+        </BodyText>
         <ChecklistStepSubmitFooter disabled={!stepComplete} onSubmit={handleSubmit} />
       </Box>
     </Card>

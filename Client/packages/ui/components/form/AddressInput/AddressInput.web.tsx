@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useId, useState } from "react";
 
 import Input from "@ui/form/Input";
 import { Icon } from "@ui/icons";
@@ -6,6 +6,7 @@ import { Icon } from "@ui/icons";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import Button from "packages/ui/components/button/Button";
+import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/styles/fileUploadStyles";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { asError } from "packages/utils";
@@ -82,14 +83,20 @@ function AddressInputAutocomplete({
   disabled,
   label,
 }: AddressInputWebProps & { scriptsReady: true }) {
+  const listId = `address-suggestions-${useId().replace(/:/g, "")}`;
   const [localValue, setLocalValue] = useState(value);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   // Sync controlled value from parent
   useEffect(() => {
     setLocalValue(value);
   }, [value]);
+
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [suggestions]);
 
   // Fetch autocomplete suggestions as the user types
   useEffect(() => {
@@ -145,6 +152,27 @@ function AddressInputAutocomplete({
     const newValue = e.target.value;
     setLocalValue(newValue);
     onChange(newValue);
+  };
+
+  const handleAddressKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (suggestions.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+    } else if (
+      e.key === "Enter" &&
+      highlightedIndex >= 0 &&
+      highlightedIndex < suggestions.length
+    ) {
+      e.preventDefault();
+      void handleSelect(suggestions[highlightedIndex]);
+    } else if (e.key === "Escape") {
+      setSuggestions([]);
+      setHighlightedIndex(-1);
+    }
   };
 
   const handleSelect = async (suggestion: Suggestion) => {
@@ -222,32 +250,54 @@ function AddressInputAutocomplete({
     }
 
     setSuggestions([]);
+    setHighlightedIndex(-1);
     onSelect?.(addressData);
   };
 
   return (
-    <Box className="w-full space-y-2">
+    <Box className={`w-full space-y-2 ${LOCATION_INPUT_CONTAINER}`}>
       <Input
         label={label}
         type="text"
         value={localValue}
         onChange={handleInputChange}
+        onKeyDown={handleAddressKeyDown}
         placeholder={scriptsReady ? placeholder : "Loading..."}
         disabled={disabled ?? !scriptsReady}
         leftIcon={<Icon name="map-pin" className="h-4 w-4" />}
         autoComplete="off"
         size="md"
+        aria-autocomplete="list"
+        aria-controls={listId}
+        aria-expanded={suggestions.length > 0}
+        aria-activedescendant={
+          suggestions.length > 0 && highlightedIndex >= 0
+            ? `${listId}-option-${highlightedIndex}`
+            : undefined
+        }
       />
 
       {suggestions.length > 0 && (
-        <ul className="z-dropdown relative flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md bg-white shadow-sm">
+        <ul
+          id={listId}
+          role="listbox"
+          className="bg-background-surface z-dropdown relative mt-2 flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md shadow-sm"
+        >
           {suggestions.map((s, idx) => (
-            <li key={idx} className="rounded border border-dotted border-neutral-300">
+            <li
+              key={idx}
+              id={`${listId}-option-${idx}`}
+              role="option"
+              aria-selected={highlightedIndex === idx}
+              className="rounded border border-dotted border-neutral-300 first:border-t-0"
+            >
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => void handleSelect(s)}
-                className="w-full cursor-pointer !justify-start px-3 py-2 text-sm hover:bg-gray-100 active:bg-gray-200 [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start"
+                className={`w-full cursor-pointer !justify-start px-3 py-2 text-sm [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start ${
+                  highlightedIndex === idx ? "bg-primary-muted" : "hover:bg-primary-muted"
+                }`}
               >
                 <Box className="flex w-full items-center justify-start gap-2 text-left">
                   <Icon name="map-pin" className="h-4 w-4 shrink-0 text-neutral-500" />

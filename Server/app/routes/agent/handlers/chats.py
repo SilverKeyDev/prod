@@ -27,6 +27,7 @@ from app.services.agent import (
 from app.services.agent import (
     send_message as send_conversation_message,
 )
+from app.services.agent.conversation_access import user_may_access_conversation
 from app.services.auth import SecurityException, get_current_user
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
@@ -113,7 +114,7 @@ def get_chat_history(conversation_id):
         conversation = get_conversation(conversation_id)
         if not conversation:
             return jsonify({"success": False, "error": "Conversation not found"}), 404
-        if conversation["agent_id"] != user.id and conversation["client_id"] != user.id:
+        if not user_may_access_conversation(conversation, str(user.id)):
             return jsonify({"success": False, "error": "Access denied"}), 403
         if not user.id:
             logger.error("User ID is None in get_chat_history")
@@ -236,9 +237,7 @@ def send_message(data: SendMessageRequest | None = None):
             conversation = get_conversation(conversation_id)
             if not conversation:
                 return jsonify({"success": False, "error": "Conversation not found"}), 404
-            if str(conversation["agent_id"]) != str(user.id) and str(
-                conversation["client_id"]
-            ) != str(user.id):
+            if not user_may_access_conversation(conversation, str(user.id)):
                 return jsonify({"success": False, "error": "Access denied"}), 403
         if not user.id:
             logger.error("User ID is None in send_message")
@@ -316,9 +315,7 @@ def mark_chat_as_read(user, conversation_id):
         conversation = get_conversation(conversation_id)
         if not conversation:
             return jsonify({"success": False, "error": "Conversation not found"}), 404
-        if str(conversation["agent_id"]) != str(user.id) and str(conversation["client_id"]) != str(
-            user.id
-        ):
+        if not user_may_access_conversation(conversation, str(user.id)):
             return jsonify({"success": False, "error": "Access denied"}), 403
         result = mark_messages_as_read(conversation_id, str(user.id))
         return jsonify({"success": True, **result})

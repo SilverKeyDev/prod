@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
 
+import { useCompareSessionStoreIntegration } from "packages/features/compare/hooks/store/useCompareSessionStoreIntegration";
+import { useCompareSessionStore } from "packages/features/compare/store";
 import type { SavedHome } from "packages/types";
 
 type UseSavedPageModalsReturn = {
@@ -15,7 +17,11 @@ type UseSavedPageModalsReturn = {
  * Hook for managing modal state on saved page
  */
 export function useSavedPageModals(): UseSavedPageModalsReturn {
-  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  useCompareSessionStoreIntegration();
+
+  const isCompareModalOpen = useCompareSessionStore((s) => s.isCompareModalOpen);
+  const setCompareModalOpen = useCompareSessionStore((s) => s.setCompareModalOpen);
+
   const [isNegotiationModalOpen, setIsNegotiationModalOpen] = useState(false);
   const [selectedHomeForNegotiation, setSelectedHomeForNegotiation] = useState<SavedHome | null>(
     null
@@ -33,7 +39,7 @@ export function useSavedPageModals(): UseSavedPageModalsReturn {
 
   return {
     isCompareModalOpen,
-    setIsCompareModalOpen,
+    setIsCompareModalOpen: setCompareModalOpen,
     isNegotiationModalOpen,
     selectedHomeForNegotiation,
     handleOpenNegotiation,

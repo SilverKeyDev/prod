@@ -1831,7 +1831,7 @@ class Database(Enum):
 
 class HealthResponse(BaseModel):
     """
-    Response from GET /healthz (app liveness and DB connectivity). Aligns with Flask healthz handler.
+    Response from GET /healthz or GET /readyz (readiness: database connectivity; /readyz is an alias of /healthz). For process-only liveness without a DB round-trip, use GET /livez. Aligns with Flask handlers.
 
     """
 
@@ -1844,6 +1844,22 @@ class HealthResponse(BaseModel):
         None,
         description="Present when status is error; connection or query failure detail.",
     )
+
+
+class Status6(Enum):
+    ok = "ok"
+
+
+class LivezResponse(BaseModel):
+    """
+    Response from GET /livez (process liveness only; no database call). Use for fast orchestrator probes; use GET /healthz when database connectivity must be verified.
+
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    status: Status6
 
 
 class Geometry1(BaseModel):
@@ -2081,7 +2097,7 @@ class PaginationRequest(BaseModel):
     per_page: conint(ge=1, le=100) | None = 20
 
 
-class Status6(Enum):
+class Status7(Enum):
     generating = "generating"
     completed = "completed"
     error = "error"
@@ -2094,7 +2110,7 @@ class ReportListItem(BaseModel):
     """
 
     id: str
-    status: Status6
+    status: Status7
     generatedAt: int = Field(..., description="Unix timestamp in seconds")
     address: str
     pdfUrl: AnyUrl | None = None
@@ -2825,7 +2841,7 @@ class SyncTemplatesResponse(SuccessResponse):
     task_id: str | None = None
 
 
-class Status7(Enum):
+class Status8(Enum):
     SUCCESS = "SUCCESS"
     PENDING = "PENDING"
     PROGRESS = "PROGRESS"
@@ -2846,7 +2862,7 @@ class Meta(BaseModel):
 
 class TaskStatusResponse(SuccessResponse):
     task_id: str
-    status: Status7
+    status: Status8
     result: dict[str, Any] | None = Field(
         None,
         description="Task result payload when status is SUCCESS; shape depends on task type (Celery/async jobs). additionalProperties stays open because each task defines its own result keys.\n",
@@ -2906,7 +2922,7 @@ class UpdateClosingModeResponse(SuccessResponse):
     )
 
 
-class Status8(Enum):
+class Status9(Enum):
     """
     New status for the event request (pending cannot be set manually)
     """
@@ -2916,7 +2932,7 @@ class Status8(Enum):
 
 
 class UpdateEventRequestStatusRequest(BaseModel):
-    status: Status8 = Field(
+    status: Status9 = Field(
         ...,
         description="New status for the event request (pending cannot be set manually)",
     )
@@ -3530,6 +3546,10 @@ class SearchByPolygonRequest(BaseModel):
     onlyCached: bool | None = Field(
         None,
         description="When true, return previously materialized results only without hitting upstream MLS.",
+    )
+    preferences_user_id: str | None = Field(
+        None,
+        description="Optional subject for preference scoring (agents: must be a linked client id; buyers are always scoped to self).\nResolved server-side via `resolve_preferences_user_id_for_research`.\n",
     )
 
 

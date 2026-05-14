@@ -1,12 +1,29 @@
-# Dependencies for pytest + coverage in CI (beyond requirements/ci.txt).
-# Full requirements/runtime.txt also pins tensorflow, jax, CUDA PyTorch, osmnx, xgboost,
-# lightgbm, numba, etc., which are not imported anywhere under Server/ but exceed
-# GitHub-hosted runner disk. This file keeps imports used by tests and create_app().
+# =============================================================================
+# requirements/test.txt — BACKEND PYTEST CI (EXTRA DEPS ON TOP OF ci.txt)
+# =============================================================================
 #
-# CPU-only PyTorch is installed separately in .github/workflows/test-callable.yml
-# before this file (see pip install --index-url .../whl/cpu).
-
-# Flask extensions imported at app package load (app/__init__.py); keep in sync with requirements/ci.txt.
+# What this is:
+#   Additional packages needed to run the Server test suite in CI after ci.txt is
+#   installed. It is not a full replacement for runtime.txt: it avoids pulling every
+#   large production pin while still satisfying imports used by tests (numpy/sklearn,
+#   sentence-transformers, shapely, matplotlib, OpenAI client stack, etc.).
+#
+# Where it is used:
+#   - GitHub Actions: .github/workflows/test-callable.yml
+#       1) pip install -r requirements/ci.txt
+#       2) pip install torch==... (CPU wheel from PyTorch index — see workflow)
+#       3) pip install -r requirements/test.txt
+#       4) pytest + coverage
+#
+# Relationship to other files:
+#   - Always layered on ci.txt in CI (never the only requirements file in that job)
+#   - Full prod parity / Docker → requirements/runtime.txt
+#   - Local developers usually: runtime.txt + dev.txt (pytest lives in dev.txt)
+#
+# flask-compress below: imported at app package load (app/__init__.py). Pin must stay
+# aligned with the same line in requirements/ci.txt when versions change.
+#
+# --- Lines below are installed after ci.txt + CPU torch in test-callable.yml ---
 flask-compress==1.15
 
 numpy>=1.26.0,<3

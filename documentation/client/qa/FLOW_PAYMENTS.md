@@ -24,7 +24,7 @@ The client includes **billing** query key scaffolding (`Client/packages/config/q
 
 ## Automation
 
-- Default Playwright suite does **not** hit real Stripe. Add a dedicated `e2e/billing*.spec.ts` when checkout URLs and test keys are available in CI secrets, or use **Stripe’s test clock** in a staging-only job.
+- There is **no** in-repo browser E2E for billing. When you add one (e.g. Playwright against staging with test keys), keep card flows out of default CI until secrets and flakiness are managed; use **Stripe’s test clock** where applicable.
 - Webhook tests belong in **server** integration tests with signing secret; not duplicated here unless E2E hits a deployed staging stack.
 
 ## Evidence

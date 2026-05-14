@@ -35,9 +35,14 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def _property_lat_lon(property_dict: dict[str, Any]) -> tuple[float, float] | None:
-    lat = _parse_float(property_dict.get("latitude") or property_dict.get("lat"))
+    lat = _parse_float(
+        property_dict.get("latitude") or property_dict.get("lat") or property_dict.get("Latitude")
+    )
     lon = _parse_float(
-        property_dict.get("longitude") or property_dict.get("lon") or property_dict.get("lng")
+        property_dict.get("longitude")
+        or property_dict.get("lon")
+        or property_dict.get("lng")
+        or property_dict.get("Longitude")
     )
     if lat is None or lon is None:
         return None
@@ -63,9 +68,13 @@ def _minutes_from_distance_km(km: float) -> float:
 
 
 def soft_commute_normalized(preferences: dict[str, Any], property_dict: dict[str, Any]) -> float:
-    cm = _parse_float(property_dict.get("commute_minutes"))
+    cm = _parse_float(
+        property_dict.get("commute_minutes") or property_dict.get("commute_time_minutes")
+    )
     if cm is not None and cm >= 0:
-        max_pref = _parse_float(preferences.get("max_commute_minutes"))
+        max_pref = _parse_float(
+            preferences.get("max_commute_minutes") or preferences.get("max_commute_time")
+        )
         locs = _important_locations_list(preferences)
         tolerances = [
             _parse_float(loc.get("commute_tolerance") or loc.get("max_commute_minutes"))

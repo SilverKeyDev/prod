@@ -15,6 +15,7 @@ import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/sea
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useSearchViewIntegration } from "packages/features/search/hooks/store/useSearchViewIntegration";
 import { useAgentSearchShareSelection } from "packages/features/search/hooks/ui/useAgentSearchShareSelection";
+import { userPreferencesHasImportantLocations } from "packages/features/search/hooks/ui/useSearchFeatureController.helpers";
 import { useSearchFeatureLifecycle } from "packages/features/search/hooks/ui/useSearchFeatureLifecycle";
 import { useSearchFeaturePreciseAddressNavigation } from "packages/features/search/hooks/ui/useSearchFeaturePreciseAddressNavigation";
 import { useSearchMobileHeaderActions } from "packages/features/search/hooks/ui/useSearchMobileHeaderActions";
@@ -73,9 +74,7 @@ export function useSearchFeatureController({
     preferencesSubjectUserId: selectedClientId,
   });
   const hasLocations = useMemo(
-    () =>
-      Array.isArray(userPreferences?.important_locations) &&
-      (userPreferences?.important_locations?.length ?? 0) > 0,
+    () => userPreferencesHasImportantLocations(userPreferences?.important_locations),
     [userPreferences?.important_locations]
   );
 
@@ -222,6 +221,7 @@ export function useSearchFeatureController({
         currentPage,
         showPropertyModals,
       });
+      searchAbortControllerRef.current?.abort();
       searchAbortControllerRef.current = new AbortController();
       if (onSearchProperties) {
         setIsSearching(true);
@@ -261,6 +261,7 @@ export function useSearchFeatureController({
       currentPage,
       showPropertyModals,
     });
+    searchAbortControllerRef.current?.abort();
     searchAbortControllerRef.current = new AbortController();
     await map.runViewportSearch();
   }, [

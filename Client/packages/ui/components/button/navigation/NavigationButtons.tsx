@@ -3,9 +3,8 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import Button from "packages/ui/components/button/core/Button";
+import type { ButtonVariant } from "packages/ui/components/button/core/button/buttonTypes";
 import { Box } from "packages/ui/components/primitives";
-
-import type { ButtonVariant } from "./Button";
 export type NavigationButtonsProps = {
   /** Current step index (0-based) */
   currentStep: number;

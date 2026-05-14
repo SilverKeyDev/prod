@@ -1,243 +1,158 @@
-SilverKey Monorepo
-===================
+# SilverKey
 
-This repository contains the SilverKey application, with a TypeScript/React frontend (under `Client/`) and a Python backend (under `Server/`), plus shared tooling and CI.
+Monorepo for the SilverKey product: **React** (web + **React Native**) in [`Client/`](Client/), **Flask** API in [`Server/`](Server/), contract in [`openapi/`](openapi/), and long-form docs in [`documentation/`](documentation/).
 
-This guide covers:
-
-- **How to set up the project (with Cursor)**
-- **What to install first**
-- **How to run the web app and core checks**
-- **An overview of the tech stack and repo organization**
-
-**Documentation:** Canonical docs live in **`documentation/`** — see `documentation/README.md`. **AI assistants:** start with **`AGENTS.md`** at the repo root. Client and server each have a subfolder and index; major folders (Client, Server) have a short README.
+[![Lint](https://github.com/SilverKeyDev/prod/actions/workflows/lint.yml/badge.svg)](https://github.com/SilverKeyDev/prod/actions/workflows/lint.yml)
+[![Tests](https://github.com/SilverKeyDev/prod/actions/workflows/test.yml/badge.svg)](https://github.com/SilverKeyDev/prod/actions/workflows/test.yml)
 
 ---
 
-Getting Started (Cursor-First Workflow)
----------------------------------------
+## Contents
 
-### 1. Prerequisites
+- [Quick start](#quick-start)
+- [Requirements](#requirements)
+- [Local development](#local-development)
+- [Quality gates & CI](#quality-gates--ci)
+- [Makefile](#makefile)
+- [Repository structure](#repository-structure)
+- [Documentation](#documentation)
+- [OpenAPI & generated code](#openapi--generated-code)
+- [Security](#security)
+- [AI assistants](#ai-assistants)
 
-- **OS**: macOS (development is validated on macOS; other platforms may work but are not the primary target).
-- **Editor**: **[Cursor](https://cursor.sh)** (required – all instructions assume you are using Cursor).
-- **Node.js**: v20+ (LTS recommended).
-- **pnpm**: `9.x` (matches `packageManager` in `Client/package.json`).
-  - Install via: `corepack enable` and then `corepack prepare pnpm@9.0.0 --activate`, or follow pnpm docs.
-- **Python** & tooling:
-  - A modern Python (3.10+) and standard virtualenv tooling for the backend (if you plan to run the server).
-- **Git** and **Docker** (optional, for CI parity and containerized runs).
+---
 
-### 2. Open the repo in Cursor (first thing to do)
+## Quick start
 
-1. Clone the repo:
-
-   ```bash
-   git clone <your-fork-or-origin-url> silverkey
-   cd silverkey
-   ```
-
-2. **Open the folder in Cursor**:
-   - `cursor .` from the repo root **or** use Cursor’s “Open Folder” and select the `SilverKey` directory.
-3. Let Cursor:
-   - Index the workspace.
-   - Use the built-in agents for navigation and refactors (the project is configured with rules and skills that these agents understand).
-
-> **Always prefer running commands, editing, and navigation inside Cursor.** The repo ships Cursor-specific rules and skills that keep changes aligned with the architecture.
-
-### 3. Install frontend dependencies
-
-From the repo root:
+**AWS (for default setup):** Install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) and sign in to the **dev account** with credentials that can **read Secrets Manager** in the region you use (default `us-east-2`; override with `AWS_REGION`). Typical flows: `aws sso login --profile <your-profile>` then `export AWS_PROFILE=<your-profile>`, or use access keys your team documents. Confirm the session with `aws sts get-caller-identity`. Without AWS, use `make setup ARGS='--skip-secrets'` and maintain `Server/.env` yourself (see `Server/.env.example`).
 
 ```bash
-cd Client
-pnpm install
+git clone https://github.com/SilverKeyDev/prod.git
+cd prod   # GitHub default folder name; use your checkout directory if different
+
+make setup                            # same as ./scripts/setup-local.sh — Client, Server/.venv, secrets
+# make setup ARGS='--skip-secrets'    # skip Secrets Manager if AWS is not ready yet
+
+make dev                              # web + API (see make help)
+# or: cd Client && pnpm dev:web
 ```
 
-This installs all dependencies for the `Client` pnpm workspace, including the main web app under `apps/web/`.
+After every `git pull`:
 
-### 4. (Optional) Backend setup
+```bash
+make refresh                          # same as ./scripts/refresh.sh — refresh pnpm + pip
+# make refresh ARGS='--secrets'       # also refresh Server/.env from AWS
+```
 
-If you need to work on or run the backend:
-
-- **Python environment:** Use **Python 3.10–3.13** (3.14+ is not supported by current pinned wheels). From the repo root, run `bash Server/scripts/bootstrap-venv.sh` to create `Server/.venv` and install from `Server/requirements/` (use `--force` to replace an existing `Server/.venv`, `--ci` for a slimmer CI-oriented install). If your default `python3` is too new, set e.g. `PYTHON=python3.12`. Then `source Server/.venv/bin/activate`. See `Server/README.md` for which requirements file to use.
-- **Do not run or modify database migrations** unless you know what you’re doing; Alembic/Flask migration commands are managed separately.
-
----
-
-Running the Web App
--------------------
-
-All commands below are intended to be run from a **Cursor terminal**.
-
-1. **Start the web dev server**:
-
-   ```bash
-   cd Client
-   pnpm dev:web
-   ```
-
-   This runs Vite for the `@silverkey/web` app under `apps/web/`. The terminal output will show the local dev URL (typically `http://localhost:5173` or similar).
-
-2. **Build the production bundle**:
-
-   ```bash
-   cd Client
-   pnpm build:web
-   ```
-
-3. **Preview the production build locally**:
-
-   ```bash
-   cd Client
-   pnpm preview:web
-   ```
+| If you need… | Run |
+| ------------ | --- |
+| Same as `setup-local.sh` | `make setup` |
+| Same as `refresh.sh` | `make refresh` |
+| Secrets only | `make secrets` |
+| Web only | `make dev-web` |
+| Mobile (Expo) | `make mobile` |
+| Full client CI gate | `make check-client` |
+| All repo linters | `make lint` |
 
 ---
 
-Linting, Formatting, and Checks
--------------------------------
+## Requirements
 
-From `Client/`:
-
-- **Lint the client workspace**:
-
-  ```bash
-  pnpm lint
-  ```
-
-- **Run all lints**:
-
-  ```bash
-  pnpm lint:all
-  ```
-
-- **Format code with Prettier**:
-
-  ```bash
-  pnpm format
-  ```
-
-- **Check formatting only**:
-
-  ```bash
-  pnpm format:check
-  ```
-
-- **Type-check the web app**:
-
-  ```bash
-  pnpm typecheck
-  ```
-
-- **Full client check pipeline (lint → format check → typecheck → web build)**:
-
-  ```bash
-  pnpm check
-  ```
-
-These scripts are defined in `Client/package.json` and run across the pnpm workspace.
+| Tool | Notes |
+| ---- | ----- |
+| **Node.js** | 20+ (CI uses newer Node with pnpm cache; local 20+ matches `AGENTS.md`). |
+| **pnpm** | **9.x** — pinned via `packageManager` in [`Client/package.json`](Client/package.json). `corepack enable` then `corepack prepare pnpm@9.0.0 --activate`. |
+| **Python** | **3.10–3.13** for [`Server/.venv`](Server/README.md). Newer versions may break wheels; use e.g. `PYTHON=python3.12` with `Server/scripts/bootstrap-venv.sh`. |
+| **AWS CLI** | Needed for default `make setup` / `./scripts/setup-local.sh` (secrets → `Server/.env`). Requires an **authenticated** session (SSO or keys) with Secrets Manager access in the target account/region. Use `make setup ARGS='--skip-secrets'` without AWS. |
+| **PostgreSQL** | For a full local API stack; see `Server/.env.example` and server docs. |
+| **Docker** | Optional (containers / CI parity). |
 
 ---
 
-Tech Stack Overview
--------------------
+## Local development
 
-### Frontend (Client)
+1. **Bootstrap once** — `make setup` (same as [`scripts/setup-local.sh`](scripts/setup-local.sh)) runs `pnpm install` in `Client/`, bootstraps **`Server/.venv`**, and fetches secrets unless `ARGS='--skip-secrets'`. If `.venv` already exists and you only need dependency refresh, use **`make refresh`** instead. Recreate the venv: `make setup ARGS='--force-venv'`.
 
-- **Language**: TypeScript.
-- **Framework**: React 18.
-- **Router**: `react-router-dom` (SPA routing, nested routes).
-- **State Management**: `zustand` (global state in `packages/store/*`, consumed via hooks).
-- **Data Fetching / Caching**: `@tanstack/react-query` (hooks in `packages/hooks/data/*`).
-- **Styling**:
-  - Tailwind CSS (via `tailwindcss`, `postcss`, `autoprefixer`).
-  - Design system + UI components in `Client/packages/ui/`.
-- **UI / UX Libraries**:
-  - `@headlessui/react` (accessible primitives).
-  - `lucide-react` (icons).
-  - `embla-carousel-react`, `react-responsive-carousel` (carousels).
-  - `framer-motion` (animations).
-  - `react-virtuoso` (virtualized lists).
-  - `react-phone-number-input` (phone inputs).
-- **Build tooling**:
-  - Vite (`vite`, `@vitejs/plugin-react-swc`).
-  - Vitest + Testing Library (`vitest`, `@testing-library/*`, `jsdom`, `@vitest/ui`, `@vitest/coverage-v8`).
-  - Playwright (`@playwright/test`) for E2E tests.
-- **Linting / Formatting**:
-  - ESLint (`eslint`, `@eslint/js`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, custom `eslint-plugin-silverkey`).
-  - Prettier (`prettier`, `prettier-plugin-tailwindcss`).
-  - Additional helpers: `globals`, `eslint-config-prettier`, `eslint-import-resolver-typescript`, `eslint-plugin-import`, `eslint-plugin-boundaries`, `eslint-plugin-prettier`.
-- **Logging**:
-  - Centralized frontend logger under `Client/packages/logger/` with PII-scrubbing and category-based configuration.
+2. **Editor (optional)** — Copy [`.cursorignore.example`](.cursorignore.example) to `.cursorignore` at the repo root to trim indexing noise. Team rules live under [`.cursor/`](.cursor/).
 
-### Backend (Server)
-
-- **Language**: Python.
-- **Framework & tooling** (high level):
-  - Flask-style application with SQLAlchemy-style models and Alembic migrations.
-  - Centralized backend logging under `Server/logger/` (mirrors the frontend logger design).
-- **Important constraints**:
-  - Database schema and Alembic migrations are managed very carefully; avoid editing `Server/migrations/versions/` or running migration commands casually.
+3. **Run apps** — From `Client/`: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web`, `pnpm preview:web`. From repo root: `make help` for `dev`, `dev-web`, `dev-backend`, etc.
 
 ---
 
-Repository Organization
------------------------
+## Quality gates & CI
 
-At a high level:
+PRs are expected to stay green with the same checks CI runs (see [`.github/workflows/lint.yml`](.github/workflows/lint.yml) and [`.cursor/rules/shared/ci-gates.mdc`](.cursor/rules/shared/ci-gates.mdc)).
 
-- **Root**
-  - `Client/` – Frontend monorepo (web app and shared TS packages).
-  - `Server/` – Backend Python app and related code.
-  - `.github/` – CI workflows (e.g., `ci_web.yml`).
-  - Docker and infra files (`Dockerfile`, `.dockerignore`, etc.).
+**Client** (from `Client/`):
 
-### Client folder layout (`Client/`)
+```bash
+pnpm typecheck && pnpm lint && pnpm lint:cycles && pnpm format:check
+pnpm check          # includes build:web — full client gate
+pnpm test:run       # Vitest
+```
 
-- **`apps/`**
-  - `apps/web/` – The main React web app (`@silverkey/web`).
-    - `app/` – App shell, routing, top-level providers.
-    - `components/` – Shared UI components (must use the standardized design system in `components/ui/`).
-    - `features/` – Feature-level React components (search, dashboard, messaging, saved homes, etc.).
-- **`packages/`**
-  - `hooks/` – React hooks (`.ts` files only; no JSX). Includes:
-    - `hooks/data/*` – Data-fetching hooks using React Query and API clients.
-    - `hooks/store/*` – Store integration hooks around Zustand slices.
-    - `hooks/ui/*` – UI-specific state hooks.
-  - `services/` – Business logic and infrastructure services (framework-agnostic; **no React**).
-  - `config/` – Configuration and API clients (e.g., `config/api/*`, HTTP config, env).
-  - `store/` – Zustand slices defining global state.
-  - `schemas/` – Shared types and schemas.
-  - `utils/` – Pure utility and helper functions (no React).
-- **`logger/`**
-  - Shared frontend logging utilities (`logger.ts`, `pii.ts`, `categories.ts`, `logger.config.json`).
-- **Top-level tooling**
-  - `eslint.config.js`, multiple `tsconfig*.json`, `scripts/`, etc. for linting, builds, diagrams, and dev workflows.
+**Repo-wide:** `./scripts/run-all-linters.sh client|server|all` or `make lint` (all scopes).
 
-This layered architecture is enforced by custom ESLint rules and is documented in `.cursor/rules/frontend/frontend-architecture.mdc` and `documentation/client/` (e.g. [shared-packages.md](documentation/client/shared-packages.md), [thin-app-architecture.md](documentation/client/thin-app-architecture.md)).
+**Server:** activate `Server/.venv`, then use `Server/README.md` and [`documentation/server/`](documentation/server/README.md) for `pytest` and Python linters.
 
 ---
 
-Recommended Day‑to‑Day Flow
----------------------------
+## Makefile
 
-1. **Open the repo in Cursor** and let it index the workspace.
-2. **Start the web dev server** from a Cursor terminal:
+The root [`Makefile`](Makefile) wraps common flows (`setup`, `refresh`, `secrets`, `dev`, `lint`, `typecheck`, `check-client`, `openapi`, …). Run:
 
-   ```bash
-   cd Client
-   pnpm dev:web
-   ```
+```bash
+make help
+```
 
-3. **Use Cursor’s inline agents** to:
-   - Navigate features (`apps/web/features/*`) and shared packages (`Client/packages/*`).
-   - Apply safe refactors that respect the existing architecture (the repo ships detailed rules to guide the agent).
-4. **Before pushing or opening a PR**, run:
+---
 
-   ```bash
-   cd Client
-   pnpm check
-   ```
+## Repository structure
 
-   This ensures lint, formatting, typecheck, and web build all pass locally.
+| Path | Purpose |
+| ---- | ------- |
+| [`Client/`](Client/) | pnpm workspace: **`apps/web`**, **`apps/mobile`** (thin shells), **`packages/`** (features, hooks, UI, config, store, …). |
+| [`Server/`](Server/) | Flask app, services, tests, `Server/scripts/` (venv bootstrap, secrets, lint). |
+| [`openapi/`](openapi/) | HTTP API contract; drives generated TS/Python types. |
+| [`documentation/`](documentation/) | Canonical long-form documentation. |
+| [`docs/`](docs/README.md) | Server / ops index (links into `documentation/server/`). |
+| [`scripts/`](scripts/) | `setup-local.sh`, `refresh.sh`, `run-all-linters.sh`, `run/` dev stacks. |
+| [`.github/`](.github/) | Workflows and templates. |
+
+**Architecture rule:** business logic and shared UI live in **`Client/packages/`**; **`Client/apps/*`** stay thin (routing, providers, page composition). See [`documentation/client/thin-app-architecture.md`](documentation/client/thin-app-architecture.md) and [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md).
+
+---
+
+## Documentation
+
+| Need | Start here |
+| ---- | ---------- |
+| Agent / engineer quickstart | [`AGENTS.md`](AGENTS.md) |
+| Doc index | [`documentation/README.md`](documentation/README.md) |
+| Client (lint, packages, RN vs web) | [`documentation/client/README.md`](documentation/client/README.md) |
+| Server | [`documentation/server/README.md`](documentation/server/README.md) |
+| Ops / server stubs index | [`docs/README.md`](docs/README.md) |
+
+---
+
+## OpenAPI & generated code
+
+Edit **`openapi/`** only; regenerate types instead of editing:
+
+- `Client/packages/types/api.generated.ts`
+- `Server/app/schemas/generated.py`
+
+Regenerate: `make openapi` or `cd Client && pnpm generate:api-types`. Workflow: [`.cursor/rules/shared/openapi-workflow.mdc`](.cursor/rules/shared/openapi-workflow.mdc).
+
+---
+
+## Security
+
+- Engineering controls and patterns: [`documentation/security/SECURITY.md`](documentation/security/SECURITY.md) and [`.cursor/rules/shared/security.mdc`](.cursor/rules/shared/security.mdc).
+- **Do not** commit secrets; use env vars and existing secrets scripts.
+
+---
+
+## AI assistants
+
+Start at [`AGENTS.md`](AGENTS.md) for commands, directory map, OpenAPI rules, and Cursor configuration.

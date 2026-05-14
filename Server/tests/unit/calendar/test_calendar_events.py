@@ -16,7 +16,7 @@ class TestCalendarEvents:
         from app.services.calendar.events.operations import list_events
 
         with app.app_context():
-            with patch("app.services.calendar.core.credentials.load_credentials"):
+            with patch("app.services.calendar.events.operations_list_events.load_credentials"):
                 with patch(
                     "app.services.calendar.calendars.resolution.resolve_calendar_id"
                 ) as mock_resolve:
@@ -44,7 +44,7 @@ class TestCalendarEvents:
         from app.services.calendar.events.operations import list_events
 
         with app.app_context():
-            with patch("app.services.calendar.core.credentials.load_credentials"):
+            with patch("app.services.calendar.events.operations_list_events.load_credentials"):
                 with patch(
                     "app.services.calendar.calendars.resolution.resolve_calendar_id"
                 ) as mock_resolve:
@@ -70,10 +70,10 @@ class TestCalendarEvents:
 
     def test_create_event(self, app: Flask, mock_google_calendar):
         """Test creating new calendar event"""
-        from app.services.calendar.events.creation import create_event
+        from app.services.calendar.events.operations import create_event
 
         with app.app_context():
-            with patch("app.services.calendar.core.credentials.load_credentials"):
+            with patch("app.services.calendar.events.operations.load_credentials"):
                 with patch(
                     "app.services.calendar.calendars.resolution.resolve_calendar_id"
                 ) as mock_resolve:
@@ -106,7 +106,7 @@ class TestCalendarEvents:
         from app.services.calendar.events.operations import update_event
 
         with app.app_context():
-            with patch("app.services.calendar.core.credentials.load_credentials"):
+            with patch("app.services.calendar.events.operations.load_credentials"):
                 with patch(
                     "app.services.calendar.calendars.resolution.resolve_calendar_id"
                 ) as mock_resolve:
@@ -115,13 +115,15 @@ class TestCalendarEvents:
                     event_data = {
                         "summary": "Updated Meeting",
                         "description": "Updated description",
+                        "start": {"dateTime": "2024-02-15T10:00:00"},
+                        "end": {"dateTime": "2024-02-15T11:00:00"},
                     }
 
                     result = update_event(
                         user_id="user-123",
-                        calendar_id="primary",
                         event_id="event-123",
                         event_data=event_data,
+                        calendar_id="primary",
                         client_id="client-id",
                         client_secret="client-secret",
                         token_endpoint="https://oauth2.googleapis.com/token",
@@ -137,7 +139,7 @@ class TestCalendarEvents:
         from app.services.calendar.events.operations import delete_event
 
         with app.app_context():
-            with patch("app.services.calendar.core.credentials.load_credentials"):
+            with patch("app.services.calendar.events.operations.load_credentials"):
                 with patch(
                     "app.services.calendar.calendars.resolution.resolve_calendar_id"
                 ) as mock_resolve:
@@ -161,7 +163,7 @@ class TestCalendarEvents:
         from app.services.calendar.events.operations import list_events
 
         with app.app_context():
-            with patch("app.services.calendar.core.credentials.load_credentials"):
+            with patch("app.services.calendar.events.operations_list_events.load_credentials"):
                 with patch(
                     "app.services.calendar.calendars.resolution.resolve_calendar_id"
                 ) as mock_resolve:
@@ -309,7 +311,7 @@ class TestCalendarEvents:
         from app.services.calendar.events.operations import list_events
 
         with app.app_context():
-            with patch("app.services.calendar.core.credentials.load_credentials"):
+            with patch("app.services.calendar.events.operations_list_events.load_credentials"):
                 with patch(
                     "app.services.calendar.calendars.resolution.resolve_calendar_id"
                 ) as mock_resolve:

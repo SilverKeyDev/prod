@@ -8,6 +8,7 @@ from .chats import (
     send_message,
     update_event_request_status_route,
 )
+from .chats_stream import stream_agent_chat_events
 from .clients import get_clients
 from .connection_requests import (
     create_connection_request_endpoint,
@@ -26,6 +27,7 @@ from .todos import (
 __all__ = [
     "get_clients",
     "get_chats",
+    "stream_agent_chat_events",
     "create_chat",
     "get_chat_history",
     "send_message",

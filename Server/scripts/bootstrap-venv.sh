@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 # Create Server/.venv, install dependencies, and verify core imports.
-# Usage: from repo root: bash Server/scripts/bootstrap-venv.sh [--force] [--ci]
+# Usage: from repo root: bash Server/scripts/bootstrap-venv.sh [--force] [--ci] [--refresh-deps]
 # Optional: PYTHON=/path/to/python3.12 to pick an interpreter (otherwise prefers 3.12 / 3.11 / 3.10 over plain python3).
+#
+# --force          Remove existing .venv and create a new one (cannot combine with --refresh-deps).
+# --ci             Install from requirements/ci.txt only (slim CI-oriented venv).
+# --refresh-deps   If .venv exists: re-run pip install in that venv (idempotent). If .venv is missing: create it and install.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,17 +13,24 @@ SERVER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 FORCE=false
 USE_CI=false
+REFRESH_DEPS=false
 for arg in "$@"; do
   case "$arg" in
     --force) FORCE=true ;;
     --ci) USE_CI=true ;;
+    --refresh-deps) REFRESH_DEPS=true ;;
     *)
       echo "Unknown option: $arg" >&2
-      echo "Usage: $0 [--force] [--ci]" >&2
+      echo "Usage: $0 [--force] [--ci] [--refresh-deps]" >&2
       exit 1
       ;;
   esac
 done
+
+if [[ "$FORCE" == true && "$REFRESH_DEPS" == true ]]; then
+  echo "bootstrap-venv: --force cannot be used with --refresh-deps" >&2
+  exit 1
+fi
 
 cd "$SERVER_DIR"
 
@@ -51,29 +62,51 @@ fi
 
 echo "Using Python: $(command -v "$PYTHON_CMD") ($("$PYTHON_CMD" -c 'import sys; print("%s.%s" % sys.version_info[:2])'))"
 
-if [[ -d .venv ]]; then
+install_requirements() {
+  python -m pip install --upgrade pip
+  if [[ "$USE_CI" == true ]]; then
+    echo "Installing from requirements/ci.txt (--ci)"
+    pip install -r requirements/ci.txt
+  else
+    echo "Installing from requirements/runtime.txt"
+    pip install -r requirements/runtime.txt
+    echo "Installing from requirements/dev.txt"
+    pip install -r requirements/dev.txt
+  fi
+}
+
+if [[ "$REFRESH_DEPS" == true ]]; then
+  if [[ -d .venv ]]; then
+    echo "Refreshing dependencies in existing venv at $SERVER_DIR/.venv"
+    # shellcheck source=/dev/null
+    source .venv/bin/activate
+    install_requirements
+  else
+    echo "Creating virtual environment at $SERVER_DIR/.venv (--refresh-deps, no existing venv)"
+    "$PYTHON_CMD" -m venv .venv
+    # shellcheck source=/dev/null
+    source .venv/bin/activate
+    install_requirements
+  fi
+elif [[ -d .venv ]]; then
   if [[ "$FORCE" == true ]]; then
     echo "Removing existing .venv (--force)"
     rm -rf .venv
+    echo "Creating virtual environment at $SERVER_DIR/.venv"
+    "$PYTHON_CMD" -m venv .venv
+    # shellcheck source=/dev/null
+    source .venv/bin/activate
+    install_requirements
   else
-    echo "bootstrap-venv: $SERVER_DIR/.venv already exists. Remove it or re-run with --force." >&2
+    echo "bootstrap-venv: $SERVER_DIR/.venv already exists. Remove it, re-run with --force, or use --refresh-deps." >&2
     exit 1
   fi
-fi
-
-echo "Creating virtual environment at $SERVER_DIR/.venv"
-"$PYTHON_CMD" -m venv .venv
-# shellcheck source=/dev/null
-source .venv/bin/activate
-
-python -m pip install --upgrade pip
-
-if [[ "$USE_CI" == true ]]; then
-  echo "Installing from requirements/ci.txt (--ci)"
-  pip install -r requirements/ci.txt
 else
-  echo "Installing from requirements/runtime.txt"
-  pip install -r requirements/runtime.txt
+  echo "Creating virtual environment at $SERVER_DIR/.venv"
+  "$PYTHON_CMD" -m venv .venv
+  # shellcheck source=/dev/null
+  source .venv/bin/activate
+  install_requirements
 fi
 
 echo "Verifying interpreter and imports..."

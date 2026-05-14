@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { useOptionalChecklistUpdatePending } from "packages/features/checklists/hooks/useOptionalChecklistUpdatePending";
 import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 
@@ -40,7 +41,8 @@ export function ChecklistStepSubmitFooter(props: ChecklistStepSubmitBarProps) {
   const setRegistration = registry?.setRegistration;
   const onSubmitRef = useRef(props.onSubmit);
   onSubmitRef.current = props.onSubmit;
-  const busy = props.busy ?? false;
+  const checklistPending = useOptionalChecklistUpdatePending();
+  const busy = Boolean(props.busy) || checklistPending;
 
   useEffect(() => {
     if (!setRegistration) return;
@@ -58,7 +60,7 @@ export function ChecklistStepSubmitFooter(props: ChecklistStepSubmitBarProps) {
 
   return (
     <Box className="border-border mt-4 flex flex-row justify-end border-t pt-4">
-      <ChecklistStepSubmitButton {...props} />
+      <ChecklistStepSubmitButton {...props} busy={busy} />
     </Box>
   );
 }

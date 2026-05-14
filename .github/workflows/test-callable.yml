@@ -59,7 +59,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Hosted runners have limited disk; full requirements/runtime.txt pulls torch/tf/cuda (~10GB+).
+      # Hosted runners have limited disk; full requirements/runtime.txt still pulls torch + ML wheels (~multi-GB).
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet

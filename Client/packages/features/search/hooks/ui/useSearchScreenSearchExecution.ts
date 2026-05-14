@@ -13,7 +13,7 @@ import {
 } from "packages/features/search/utils/map/mapViewport";
 import {
   warnSearchAreaInvalid,
-  warnSearchFailed,
+  warnSearchServerOrTimeout,
 } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { usePreActionSnapshot } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -97,6 +97,7 @@ export function useSearchScreenSearchExecution({
     });
 
     const controller = new AbortController();
+    searchAbortControllerRef.current?.abort();
     searchAbortControllerRef.current = controller;
 
     setIsSearching(true);
@@ -105,6 +106,7 @@ export function useSearchScreenSearchExecution({
     try {
       const response = await searchApi.getIsochrone({
         preferencesUserId: selectedClientId ?? undefined,
+        signal: controller.signal,
       });
       if (!response.success || !response.data) {
         log.warn(LOG_CATEGORIES.SEARCH, "Isochrone API returned no data", {
@@ -137,7 +139,7 @@ export function useSearchScreenSearchExecution({
         return;
       }
       setSearchStage("Search failed");
-      warnSearchFailed(error);
+      warnSearchServerOrTimeout(error);
       log.error(LOG_CATEGORIES.SEARCH, "Mobile search runSearch failed", error);
     } finally {
       searchAbortControllerRef.current = null;
@@ -178,6 +180,7 @@ export function useSearchScreenSearchExecution({
     });
 
     const controller = new AbortController();
+    searchAbortControllerRef.current?.abort();
     searchAbortControllerRef.current = controller;
 
     const ring = mapViewportFromLatLngDeltas(lastMapRegion);
@@ -205,7 +208,7 @@ export function useSearchScreenSearchExecution({
         return;
       }
       setSearchStage("Search failed");
-      warnSearchFailed(error);
+      warnSearchServerOrTimeout(error);
       log.error(LOG_CATEGORIES.SEARCH, "Mobile viewport search failed", error);
     } finally {
       searchAbortControllerRef.current = null;

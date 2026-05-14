@@ -1,4 +1,23 @@
-# Development and Testing Dependencies
+# =============================================================================
+# requirements/dev.txt — LOCAL DEVELOPER TOOLING (NOT PRODUCTION)
+# =============================================================================
+#
+# What this is:
+#   Test runners, fixtures/mocks, optional type-checking, pre-commit, and OpenAPI-related
+#   codegen used on developer machines. These are not required for the running API in
+#   production and are intentionally omitted from requirements/runtime.txt.
+#
+# Where it is used:
+#   - Local: Server/scripts/bootstrap-venv.sh installs this after runtime.txt (non-`--ci`)
+#   - Documented in Server/README.md, Server/tests/README.md, docs/local-development.md
+#
+# Relationship to other files:
+#   - CI backend tests do not install this file; they use ci.txt + test.txt (+ torch)
+#   - OpenAPI CI uses requirements/codegen.txt (smaller: ruff + datamodel-code-generator only)
+#   - datamodel-code-generator appears here for local scripts and also in codegen.txt for
+#     CI; keep versions in sync when bumping either file
+#
+# --- Test stack ---
 pytest==8.3.2
 pytest-mock==3.14.0
 pytest-cov==6.0.0
@@ -8,11 +27,11 @@ faker==20.1.0
 freezegun==1.4.0
 responses==0.24.1
 
-# Pre-commit hooks and linting
+# --- Pre-commit, optional static typing, Requests stubs ---
 pre-commit>=3.6.0
 mypy>=1.8.0
 types-requests>=2.31.0
 types-urllib3>=1.26.25
 
-# For generating Pydantic models from OpenAPI
+# --- OpenAPI → Pydantic (local); CI uses requirements/codegen.txt for the same tool pin ---
 datamodel-code-generator==0.56.1

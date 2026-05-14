@@ -144,6 +144,58 @@ _MIN_VIEWPORT_RING_POINTS = 4
 _MAX_VIEWPORT_RING_POINTS = 50
 
 
+def _segments_intersect_open(
+    ax: float,
+    ay: float,
+    bx: float,
+    by: float,
+    cx: float,
+    cy: float,
+    dx: float,
+    dy: float,
+) -> bool:
+    """True if segment AB intersects CD at a point interior to both (proper intersection)."""
+    o1 = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
+    o2 = (bx - ax) * (dy - ay) - (by - ay) * (dx - ax)
+    o3 = (dx - cx) * (ay - cy) - (dy - cy) * (ax - cx)
+    o4 = (dx - cx) * (by - cy) - (dy - cy) * (bx - cx)
+    if o1 * o2 < 0 and o3 * o4 < 0:
+        return True
+    return False
+
+
+def viewport_ring_self_intersects(ring: list[dict[str, float]]) -> bool:
+    """
+    Detect self-intersection for a simple closed ring (lat/lon space, degrees).
+
+    Uses non-adjacent edge–edge intersection tests. Adjacent edges share a vertex and are skipped.
+    """
+    if len(ring) < 4:
+        return False
+    closed = ring[0]["lat"] == ring[-1]["lat"] and ring[0]["lon"] == ring[-1]["lon"]
+    pts = ring[:-1] if closed else ring
+    n = len(pts)
+    if n < 3:
+        return False
+
+    def pt(i: int) -> tuple[float, float, float, float]:
+        p = pts[i % n]
+        q = pts[(i + 1) % n]
+        return (p["lon"], p["lat"], q["lon"], q["lat"])
+
+    for i in range(n):
+        ax, ay, bx, by = pt(i)
+        for j in range(i + 1, n):
+            if j == (i + 1) % n or i == (j + 1) % n:
+                continue
+            if i == 0 and j == n - 1:
+                continue
+            cx, cy, dx, dy = pt(j)
+            if _segments_intersect_open(ax, ay, bx, by, cx, cy, dx, dy):
+                return True
+    return False
+
+
 def parse_viewport_polygon_ring(raw: object) -> tuple[list[dict[str, float]] | None, str | None]:
     """
     Parse JSON `viewport_polygon`: list of {lat, lng} or {lat, lon}.
@@ -153,7 +205,8 @@ def parse_viewport_polygon_ring(raw: object) -> tuple[list[dict[str, float]] | N
         (None, err) — invalid payload (stable error codes for clients).
         (points, None) — success; closed ring as [{"lat","lon"}, ...] for simplify/to_polygon_param.
 
-    Error codes: INVALID_VIEWPORT_POLYGON, VIEWPORT_TOO_LARGE
+    Error codes: INVALID_VIEWPORT_POLYGON, VIEWPORT_TOO_LARGE,
+    INVALID_VIEWPORT_POLYGON_SELF_INTERSECT
     """
     if raw is None:
         return (None, None)
@@ -192,5 +245,8 @@ def parse_viewport_polygon_ring(raw: object) -> tuple[list[dict[str, float]] | N
     last = out[-1]
     if first["lat"] != last["lat"] or first["lon"] != last["lon"]:
         out = out + [{"lat": first["lat"], "lon": first["lon"]}]
+
+    if viewport_ring_self_intersects(out):
+        return (None, "INVALID_VIEWPORT_POLYGON_SELF_INTERSECT")
 
     return (out, None)

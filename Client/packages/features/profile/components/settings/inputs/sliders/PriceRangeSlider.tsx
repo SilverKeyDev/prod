@@ -42,8 +42,10 @@ export default function PriceRangeSlider({
 
   const trackHeight = spacing(2);
   const valueBlock = (
-    <Box className="flex min-h-5 w-full flex-row flex-wrap items-center justify-start">
-      <Text className="text-text-primary text-sm font-medium">{formattedValue(value)}</Text>
+    <Box className="flex min-h-5 w-full min-w-0 flex-row items-center justify-start">
+      <Text className="text-text-primary truncate text-sm font-medium tabular-nums">
+        {formattedValue(value)}
+      </Text>
     </Box>
   );
 
@@ -60,7 +62,7 @@ export default function PriceRangeSlider({
           }}
         />
         <Box
-          className="absolute"
+          className="absolute min-w-0 max-w-full"
           style={{
             left: spacing(0),
             right: spacing(0),

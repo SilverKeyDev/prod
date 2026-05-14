@@ -80,7 +80,6 @@ export default function getSilverkeyConfig({ silverkey }) {
               "packages/config/env.ts",
               "vite.config",
               "vitest.config",
-              "playwright.config",
               "postcss.config",
               "tailwind.config",
               ".config.js",
@@ -140,12 +139,6 @@ export default function getSilverkeyConfig({ silverkey }) {
         "silverkey/max-lines-hard": "off",
       },
     },
-    {
-      files: ["apps/web/playwright.config.ts"],
-      plugins: { silverkey },
-      rules: { "silverkey/folder-max-items": "off" },
-    },
-
     // ESLint plugin rule files live in a flat folder; suppress folder count noise
     {
       files: ["packages/config/eslint/eslint-plugin-silverkey/rules/ui/*.js"],

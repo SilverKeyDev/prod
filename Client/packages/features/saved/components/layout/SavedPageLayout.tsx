@@ -1,5 +1,6 @@
 import { useLocalization } from "packages/contexts";
 import type { DocumentData, SavedPageViewType } from "packages/features/documents";
+import { PdfModal } from "packages/features/documents/components/pdf/PdfModalBridge";
 import SavedPageTabsAndSearch from "packages/features/saved/components/header/SavedPageTabsAndSearch";
 import SavedHomesContent from "packages/features/saved/components/SavedHomesContent";
 import SavedPageModals from "packages/features/saved/components/SavedPageModals";
@@ -8,7 +9,7 @@ import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibrar
 import type { Property } from "packages/features/search";
 import type { SavedHome, SearchResult } from "packages/types";
 import { Input } from "packages/ui";
-import { BaseModal, PdfModal } from "packages/ui/components/modals";
+import { BaseModal } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
 
 import { ClientSelector } from "@/components/ui";

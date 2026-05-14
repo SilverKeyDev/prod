@@ -1,6 +1,7 @@
 type: object
 description: >
-  Response from GET /healthz (app liveness and DB connectivity). Aligns with Flask healthz handler.
+  Response from GET /healthz or GET /readyz (readiness: database connectivity; /readyz is an alias
+  of /healthz). For process-only liveness without a DB round-trip, use GET /livez. Aligns with Flask handlers.
 required:
   - status
   - database

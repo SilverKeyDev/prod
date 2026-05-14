@@ -55,7 +55,7 @@ Client/.venv/
 .env.production
 .env.development
 .env.test
-.aws.env
+.aws-sso
 
 # ============================================
 # Build Artifacts & Cache
@@ -72,7 +72,10 @@ Client/.turbo/
 Client/.cache/
 Client/apps/mobile/
 Client/dist-ssr/
-Client/test-results/
+# Playwright and other runners may write under apps/web (not only Client/test-results/)
+Client/**/test-results/
+Client/**/playwright-report/
+Client/**/blob-report/
 .eslintcache
 Client/.eslintcache
 
@@ -100,8 +103,6 @@ htmlcov/
 .tox/
 .nox/
 Client/coverage/
-Client/playwright-report/
-Client/playwright/.cache/
 *.spec.ts
 *.spec.tsx
 *.test.ts

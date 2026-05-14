@@ -308,3 +308,15 @@ def handle_cognito_refresh(
     )
 
     return resp, 200
+
+
+def extract_refresh_token_from_cookie() -> str | None:
+    """Return refresh token from the current request cookies (used by routes + unit tests)."""
+    return request.cookies.get("refresh_token")
+
+
+def validate_refresh_token(token: str | None) -> bool:
+    """Basic non-empty length check for refresh tokens (unit-test contract)."""
+    if not token or not isinstance(token, str):
+        return False
+    return len(token) >= 10

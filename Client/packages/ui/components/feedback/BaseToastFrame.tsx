@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { FocusEventHandler, MouseEventHandler, ReactNode } from "react";
 
 import IconButton from "packages/ui/components/button/IconButton";
 import { Box } from "packages/ui/components/primitives";
@@ -19,6 +19,15 @@ export type BaseToastFrameProps = {
   closeLabel: string;
   onClose: () => void;
   children: ReactNode;
+  /** WAI-ARIA role on the surface. Use "alert" for errors; "status" for info/success/warning. */
+  role?: "alert" | "status";
+  /** WAI-ARIA live-region politeness. "assertive" for errors; "polite" otherwise. */
+  ariaLive?: "off" | "polite" | "assertive";
+  /** Hover/focus pass-through so callers can pause auto-dismiss timers (WCAG 2.2.1). */
+  onMouseEnter?: MouseEventHandler<HTMLDivElement>;
+  onMouseLeave?: MouseEventHandler<HTMLDivElement>;
+  onFocus?: FocusEventHandler<HTMLDivElement>;
+  onBlur?: FocusEventHandler<HTMLDivElement>;
 };
 
 /**
@@ -29,10 +38,24 @@ export default function BaseToastFrame({
   closeLabel,
   onClose,
   children,
+  role,
+  ariaLive,
+  onMouseEnter,
+  onMouseLeave,
+  onFocus,
+  onBlur,
 }: BaseToastFrameProps) {
   return (
     <Box className={TOAST_SHELL}>
-      <Box className={`${TOAST_SURFACE_BASE} ${surfaceClassName}`}>
+      <Box
+        className={`${TOAST_SURFACE_BASE} ${surfaceClassName}`}
+        role={role}
+        aria-live={ariaLive}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onFocus={onFocus}
+        onBlur={onBlur}
+      >
         <Box className={ROW}>
           {children}
           <IconButton

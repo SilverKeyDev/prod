@@ -22,7 +22,6 @@ SKIP_DIR_NAMES = frozenset(
         "node_modules",
         "dist",
         "coverage",
-        "playwright-report",
         "Pods",
         "DerivedData",
         "build",

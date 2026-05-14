@@ -5,12 +5,12 @@ import { ChecklistStepSubmitFooter } from "packages/features/checklists/componen
 import type { ChecklistIntegrationComponentProps } from "packages/features/checklists/types/componentRegistry";
 import { isDefineCriteriaStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
 import HousingSection from "packages/features/profile/components/sections/housing/HousingSection";
+import PreferencesFormContent from "packages/features/profile/components/settings/inputs/PreferencesFormContent.web";
 import { useResponsive } from "packages/hooks/ui";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";
 import Box from "packages/ui/components/primitives/box/Box";
 
-import PreferencesFormContent from "@/features/profile/components/settings/inputs/PreferencesFormContent.web";
 import PreferencesSaveStatusRow from "@/features/profile/components/settings/inputs/PreferencesSaveStatusRow";
 import type { OnboardingData } from "@/features/profile/utils";
 
@@ -24,7 +24,14 @@ export default function DefineCriteriaSection({ onComplete }: ChecklistIntegrati
     <Card border="dotted" padding="md" className="mb-2">
       <PreferencesFormContent
         showErrorToastOnError={true}
-        renderContent={({ formData, updateFormData, saveStatus }) => {
+        autoSaveDebounceMs={400}
+        renderContent={({
+          formData,
+          updateFormData,
+          saveStatus,
+          patchBuyerPreferenceExtensions,
+          flushPreferencesSave,
+        }) => {
           formSnapshotRef.current = formData;
           const stepComplete = isDefineCriteriaStepComplete(formData);
           return (
@@ -40,22 +47,29 @@ export default function DefineCriteriaSection({ onComplete }: ChecklistIntegrati
                 isEditMode={true}
                 updateFormData={updateFormData}
                 isDesktop={isDesktop}
-                wrapInCard={false}
                 showBudgetSlider={false}
+                patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
               />
               <ChecklistStepSubmitFooter
                 disabled={!stepComplete}
                 onSubmit={() => {
-                  if (!isDefineCriteriaStepComplete(formSnapshotRef.current)) {
-                    showWarningToast(
-                      t("checklists.step.incomplete_warning", {
-                        defaultValue:
-                          "Complete all required fields in this step before submitting.",
-                      })
-                    );
-                    return;
-                  }
-                  onComplete?.();
+                  void (async () => {
+                    if (!isDefineCriteriaStepComplete(formSnapshotRef.current)) {
+                      showWarningToast(
+                        t("checklists.step.incomplete_warning", {
+                          defaultValue:
+                            "Complete all required fields in this step before submitting.",
+                        })
+                      );
+                      return;
+                    }
+                    try {
+                      await flushPreferencesSave();
+                    } catch {
+                      return;
+                    }
+                    onComplete?.();
+                  })();
                 }}
               />
             </Box>

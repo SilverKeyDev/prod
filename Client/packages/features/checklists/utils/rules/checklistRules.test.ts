@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { TaskChecklistItem } from "packages/features/checklists/api/checklists";
+import { sortTaskChecklistItems } from "packages/features/checklists/utils/sort/sortTaskChecklistItems";
 
 import {
+  applyTaskChecklistMerge,
   evaluateChecklistCondition,
   getChecklistItemToggleEligibility,
+  MERGE_REASON_SELECTABLE_WHEN,
+  MERGE_REASON_SIGNATURE_BASED,
   mergeTaskChecklistCheckedIds,
 } from "./checklistRules";
 
@@ -237,5 +241,112 @@ describe("getChecklistItemToggleEligibility", () => {
     const e = getChecklistItemToggleEligibility(withSubmit, [1], 2, true);
     expect(e.canMarkChecked).toBe(true);
     expect(e.canCheck).toBe(false);
+  });
+
+  it("matches mergeTaskChecklistCheckedIds order when items omit explicit order (API index order)", () => {
+    const items: TaskChecklistItem[] = [
+      item({
+        id: 99,
+        label: "Appears first in API array",
+        explanation: "",
+      }),
+      item({
+        id: 77,
+        label: "Appears second in API array",
+        explanation: "",
+      }),
+    ];
+    const sorted = sortTaskChecklistItems(items);
+    expect(sorted.map((i) => i.id)).toEqual([99, 77]);
+
+    expect(getChecklistItemToggleEligibility(sorted, [], 77, true).canMarkChecked).toBe(false);
+    expect(getChecklistItemToggleEligibility(sorted, [99], 77, true).canMarkChecked).toBe(true);
+
+    expect(mergeTaskChecklistCheckedIds(items, [77], new Set())).not.toContain(77);
+    expect(mergeTaskChecklistCheckedIds(items, [99, 77], new Set())).toContain(77);
+  });
+});
+
+describe("applyTaskChecklistMerge", () => {
+  const searchParallelItems: TaskChecklistItem[] = [
+    item({
+      id: 1,
+      order: 0,
+      label: "Pre-approval",
+      explanation: "",
+    }),
+    item({
+      id: 5,
+      order: 1,
+      label: "Budget",
+      explanation: "",
+      allow_unordered_check: true,
+      selectable_when: { kind: "all_items_checked", item_ids: [1] },
+    }),
+    item({
+      id: 4,
+      order: 2,
+      label: "Areas",
+      explanation: "",
+      allow_unordered_check: true,
+      selectable_when: { kind: "all_items_checked", item_ids: [1] },
+    }),
+    item({
+      id: 2,
+      order: 3,
+      label: "Criteria",
+      explanation: "",
+      allow_unordered_check: true,
+      selectable_when: { kind: "all_items_checked", item_ids: [1] },
+    }),
+    item({ id: 3, order: 4, label: "Agent", explanation: "" }),
+  ];
+
+  it("matches Python test_merge_search_parallel_integrations_after_preapproval", () => {
+    expect(mergeTaskChecklistCheckedIds(searchParallelItems, [5], new Set())).toEqual([]);
+    expect(mergeTaskChecklistCheckedIds(searchParallelItems, [1, 5], new Set())).toEqual([1, 5]);
+    expect(mergeTaskChecklistCheckedIds(searchParallelItems, [1, 4], new Set())).toEqual([1, 4]);
+    expect(mergeTaskChecklistCheckedIds(searchParallelItems, [1, 2, 4, 5], new Set())).toEqual([
+      1, 2, 4, 5,
+    ]);
+    expect(mergeTaskChecklistCheckedIds(searchParallelItems, [1, 2, 4, 5, 3], new Set())).toEqual([
+      1, 2, 3, 4, 5,
+    ]);
+  });
+
+  it("reports selectable_when when budget requested without pre-approval", () => {
+    const items: TaskChecklistItem[] = [
+      item({ id: 1, order: 0, label: "Pre-approval", explanation: "" }),
+      item({
+        id: 5,
+        order: 1,
+        label: "Budget",
+        explanation: "",
+        allow_unordered_check: true,
+        selectable_when: { kind: "all_items_checked", item_ids: [1] },
+      }),
+    ];
+    const r = applyTaskChecklistMerge(items, [5], new Set());
+    expect(r.effectiveIds).toEqual([]);
+    expect(r.strippedRequestedIds).toEqual([5]);
+    expect(r.strippedReasonCodes).toEqual([MERGE_REASON_SELECTABLE_WHEN]);
+  });
+
+  it("reports signature_based for requested signature id", () => {
+    const items: TaskChecklistItem[] = [
+      item({ id: 1, order: 0, label: "A", explanation: "", allow_unordered_check: true }),
+      item({
+        id: 6,
+        order: 1,
+        label: "Sign",
+        explanation: "",
+        allow_unordered_check: true,
+        completionType: "signature_based",
+      }),
+    ];
+    const r = applyTaskChecklistMerge(items, [1, 6], new Set());
+    expect(r.effectiveIds).toEqual([1]);
+    expect(r.strippedRequestedIds).toEqual([6]);
+    expect(r.strippedReasonCodes).toEqual([MERGE_REASON_SIGNATURE_BASED]);
   });
 });

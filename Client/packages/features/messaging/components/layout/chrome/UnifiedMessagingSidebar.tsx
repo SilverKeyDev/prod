@@ -6,22 +6,16 @@ import type { AgentClient, AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import { getMessagePreview } from "packages/features/messaging/utils/messagePreview";
-import { ProfileAvatar } from "packages/ui/components";
 import { Box } from "packages/ui/components/primitives";
 import {
-  SIDEBAR_AVATAR_WRAP,
   SIDEBAR_INSET_BODY_MUTED,
   SIDEBAR_INSET_EMPTY_ICON,
   SIDEBAR_INSET_EMPTY_ICON_WRAP,
   sidebarInsetListRowClass,
 } from "packages/ui/components/sidebar/sidebarTheme";
-import { dateParseISO } from "packages/utils/date";
 
 import { BodyText, Button, KeyTurnLoader, Title } from "@/components/ui";
-import {
-  getMessagingConfig,
-  type MessagingMode,
-} from "@/features/agent/components/messaging/screen/messagingConfig";
+import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 import { ConnectionRequestsInbox } from "@/features/agent/components/modals/inbox/ConnectionRequestsInbox";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import {
@@ -33,25 +27,10 @@ import {
   sortAgentClients,
 } from "@/features/agent/utils/agentClientListSort";
 
-function MessagingSidebarAvatar({ name, imageUrl }: { name: string; imageUrl?: string | null }) {
-  return (
-    <Box className={SIDEBAR_AVATAR_WRAP}>
-      <ProfileAvatar imageUrl={imageUrl} label={name} imageClassName="h-full w-full object-cover" />
-    </Box>
-  );
-}
-
-function compareConversationsByRecency(a: AgentConversation, b: AgentConversation): number {
-  const taRaw = a.last_message_at ?? a.updated_at;
-  const tbRaw = b.last_message_at ?? b.updated_at;
-  if (!taRaw && !tbRaw) return 0;
-  if (!taRaw) return 1;
-  if (!tbRaw) return -1;
-  return dateParseISO(tbRaw).valueOf() - dateParseISO(taRaw).valueOf();
-}
+import { MessagingSidebarAvatar } from "./unifiedMessagingSidebar/MessagingSidebarAvatar";
+import { compareConversationsByRecency } from "./unifiedMessagingSidebar/unifiedMessagingSidebarModel";
 
 type UnifiedMessagingSidebarProps = {
-  mode: MessagingMode;
   isSidebarExpanded: boolean;
   setIsSidebarExpanded: (expanded: boolean) => void;
   showInbox: boolean;

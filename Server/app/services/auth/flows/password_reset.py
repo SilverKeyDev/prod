@@ -5,6 +5,7 @@ Password reset flow helper - ensures Cognito account exists for users.
 import secrets
 import string
 from datetime import datetime, timezone
+from typing import Any
 
 from flask import current_app
 
@@ -13,6 +14,61 @@ from app.models import User
 
 from ..core.cognito_service import AWS_COGNITO_service
 from ..utils.helpers import generate_request_id, mask_email
+
+
+def handle_forgot_password(data: dict[str, Any], request_id: str) -> tuple[dict[str, Any], int]:
+    """
+    Thin service entry for forgot-password (used by unit tests and callers that want dict
+    responses). Delegates to Cognito; returns generic success on UserNotFound (enumeration-safe).
+    """
+    email = data.get("email", "")
+    result = AWS_COGNITO_service.forgot_password(email, request_id=request_id)
+    if result.get("success"):
+        return {
+            "success": True,
+            "message": "Password reset code sent to your email",
+        }, 200
+    err = str(result.get("error", "") or "")
+    if err == "UserNotFoundException":
+        return {
+            "success": True,
+            "message": "If an account exists, a password reset code has been sent.",
+        }, 200
+    return {
+        "success": False,
+        "message": result.get("message", "Failed to initiate password reset"),
+    }, 400
+
+
+def handle_confirm_forgot_password(
+    data: dict[str, Any], request_id: str
+) -> tuple[dict[str, Any], int]:
+    """
+    Thin service entry for confirm-forgot-password. Maps ``confirmation_code`` (legacy) or
+    ``code`` to Cognito.
+    """
+    _ = request_id
+    email = data.get("email", "")
+    code = data.get("confirmation_code") or data.get("code", "")
+    new_password = data.get("new_password", "")
+    result = AWS_COGNITO_service.confirm_forgot_password(
+        username=email, confirmation_code=code, new_password=new_password
+    )
+    if result.get("success"):
+        return {"success": True, "message": "Password has been reset successfully"}, 200
+    err = str(result.get("error", "") or "")
+    msg = str(result.get("message", "") or "").lower()
+    # Order matters: messages like "Verification code has expired" contain "code".
+    if err == "ExpiredCodeException" or "expired" in msg:
+        return {"success": False, "message": "Verification code has expired"}, 400
+    if err == "CodeMismatchException" or ("invalid" in msg and "expired" not in msg):
+        return {"success": False, "message": "Invalid verification code"}, 400
+    if err == "InvalidPasswordException" or "password" in msg:
+        return {"success": False, "message": "Password does not meet requirements"}, 400
+    return {
+        "success": False,
+        "message": result.get("message", "Failed to reset password"),
+    }, 400
 
 
 def ensure_cognito_account_for_user(email: str) -> tuple[str | None, str | None, bool]:

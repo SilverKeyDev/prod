@@ -16,11 +16,19 @@ class TestLoginFlow:
 
         with app.app_context():
             with patch(
-                "app.services.auth.user.lookup.find_or_create_user_by_cognito"
+                "app.services.auth.flows.login.find_or_create_user_by_cognito"
             ) as mock_find_user:
-                mock_user = Mock()
-                mock_user.id = sample_user["id"]
-                mock_user.name = sample_user["name"]
+                from types import SimpleNamespace
+
+                mock_user = SimpleNamespace(
+                    id=sample_user["id"],
+                    name=sample_user["name"],
+                    phone=sample_user["phone"],
+                    is_agent=False,
+                    google_id=None,
+                    cognito_id=sample_user["cognito_id"],
+                    email=sample_user["email"],
+                )
                 mock_find_user.return_value = mock_user
 
                 data = {"email": "test@example.com", "password": "Password123!"}

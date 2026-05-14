@@ -4,10 +4,11 @@ import Button from "@ui/button/Button";
 
 import { useLocalization } from "packages/contexts";
 import { useAgentClients } from "packages/features/agent";
+import { PdfModal } from "packages/features/documents/components/pdf/PdfModalBridge";
 import type { SavedPageLayoutProps } from "packages/features/saved/components/layout/SavedPageLayout";
 import DocumentUploadModal from "packages/features/saved/components/upload/DocumentUploadModal";
 import type { SavedHome } from "packages/types";
-import { BaseModal, PdfModal } from "packages/ui/components/modals";
+import { BaseModal } from "packages/ui/components/modals";
 import { Box, Text } from "packages/ui/components/primitives";
 import { displayListingPriceForCard } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
 

@@ -1,8 +1,27 @@
-# Dependencies for CI lint/typecheck import smoke tests (e.g. lint_circular_imports.py:
-# `from app import create_app` without calling it). Omits heavy ML/GPU/geospatial stacks
-# that are not loaded on that import path — keeps GitHub-hosted runners under disk limits.
-# For production and full local runtime, use requirements/runtime.txt.
-
+# =============================================================================
+# requirements/ci.txt — CI LINT / IMPORT SMOKE (SLIM)
+# =============================================================================
+#
+# What this is:
+#   Enough packages for scripts that must import the `app` package (e.g. Ruff against
+#   Server/, lint_circular_imports.py: `from app import create_app`) without installing
+#   large wheels that are not needed on that import path (heavy ML, full torch stack, etc.).
+#
+# Where it is used:
+#   - GitHub Actions: .github/workflows/lint.yml (`pip install -r Server/requirements/ci.txt`)
+#   - Backend tests job (first layer): .github/workflows/test-callable.yml installs ci.txt,
+#     then CPU-only torch, then requirements/test.txt
+#   - Local slim venv: Server/scripts/bootstrap-venv.sh --ci
+#   - scripts/run-all-linters.sh documents this as the lint-only install option
+#
+# Relationship to other files:
+#   - Production / Docker → requirements/runtime.txt (superset of this file)
+#   - Pytest on CI needs extra ML/geo deps → also install requirements/test.txt (and torch
+#     per test-callable.yml), not this file alone
+#   - When something is imported from app/__init__.py or modules loaded at import time,
+#     add it here AND in runtime.txt; keep overlapping pins aligned with runtime where they
+#     must match (e.g. flask-compress is duplicated in test.txt for the test install path)
+#
 # --- Core Flask & Extensions ---
 Flask==2.3.3
 Werkzeug==2.3.7
@@ -63,7 +82,6 @@ pydantic==2.10.5
 email-validator==2.2.0
 marshmallow==3.20.2
 marshmallow-sqlalchemy==0.28.1
-json5==0.9.14
 
 # --- Background Tasks ---
 celery==5.3.4

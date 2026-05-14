@@ -1,264 +1,19 @@
 import React from "react";
 
 import { Icon } from "@ui/icons";
-import { useLocation, useNavigate } from "react-router-dom";
 
-import { SearchNavLink } from "packages/features/search";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { Link } from "packages/navigation";
 import WhiteLogo from "packages/ui/components/asset/WhiteLogo";
 import { Box } from "packages/ui/components/primitives";
-import {
-  getChromeNavButtonStyles,
-  getChromeNavSubItemStyles,
-} from "packages/ui/components/sidebar/sidebarTheme";
+import { getChromeNavButtonStyles } from "packages/ui/components/sidebar/sidebarTheme";
 
 import ConfirmationDialog from "@/components/modals/dialogs/ConfirmationDialog.web";
-import { BodyText, NotificationBadge } from "@/components/ui";
+import { BodyText } from "@/components/ui";
 import type { UserProfile } from "@/features/homeauth/types";
 
 import { type NavCategory, type SidebarNavItem } from "./sidebarNav.web";
+import { SidebarNavCategory } from "./SidebarNavCategory.web";
+import { sidebarNavLabelInactive } from "./sidebarNavSections.constants.web";
 
-/** Primary nav labels: inactive at sm; active one step up (base) so the gap is smaller than former xs→sm + icon jump. */
-const sidebarNavLabelInactive = "text-sm font-medium";
-const sidebarNavLabelActive = "text-base font-bold leading-snug";
-
-const SINGLE_LINK_KEYS = new Set(["dashboard", "search", "decide", "profile", "agent"]);
-type SidebarNavSingleLinkProps = {
-  categoryKey: string;
-  firstItem: SidebarNavItem;
-  expanded: boolean;
-  isActive: boolean;
-  unreadCount: number;
-  isLoaded: boolean;
-  onLinkClick?: () => void;
-  onPrefetchHref: (href: string) => void;
-};
-function SidebarNavSingleLink({
-  categoryKey,
-  firstItem,
-  expanded,
-  isActive,
-  unreadCount,
-  isLoaded,
-  onLinkClick,
-  onPrefetchHref,
-}: SidebarNavSingleLinkProps) {
-  const location = useLocation();
-  const itemIconName = firstItem.icon;
-  const buttonClass = `${getChromeNavButtonStyles(isActive)} ${!expanded ? "justify-center" : ""}`;
-  const titleAttr = !expanded ? firstItem?.name : "";
-  const iconEl = (
-    <Box className="relative inline-flex items-center">
-      <Icon
-        name={itemIconName}
-        className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""}`}
-      />
-      {categoryKey === "agent" && isLoaded && (
-        <NotificationBadge
-          count={unreadCount}
-          className="absolute -right-1 -top-1 sm:-right-0.5 sm:-top-0.5"
-        />
-      )}
-    </Box>
-  );
-  if (categoryKey === "search") {
-    return (
-      <SearchNavLink
-        className={buttonClass}
-        title={titleAttr}
-        onClick={() => onLinkClick?.()}
-        aria-current={isActive ? "page" : undefined}
-        onMouseEnter={() => onPrefetchHref("/search")}
-        onFocus={() => onPrefetchHref("/search")}
-        onTouchStart={() => onPrefetchHref("/search")}
-      >
-        {iconEl}
-        {expanded && (
-          <span className={isActive ? sidebarNavLabelActive : sidebarNavLabelInactive}>
-            {firstItem?.name}
-          </span>
-        )}
-      </SearchNavLink>
-    );
-  }
-  const to = firstItem?.href ?? "/";
-  const handleClick = () => {
-    const navId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-    log.info(LOG_CATEGORIES.ROUTING, "[NAV] Sidebar nav click (link)", {
-      navId,
-      from: location.pathname,
-      to,
-      categoryKey,
-    });
-    onLinkClick?.();
-  };
-  return (
-    <Link
-      to={to}
-      className={buttonClass}
-      title={titleAttr}
-      onClick={handleClick}
-      onMouseEnter={() => onPrefetchHref(to)}
-      onFocus={() => onPrefetchHref(to)}
-      onTouchStart={() => onPrefetchHref(to)}
-      aria-label={firstItem?.name}
-      aria-current={isActive ? "page" : undefined}
-    >
-      {iconEl}
-      {expanded && (
-        <span className={isActive ? sidebarNavLabelActive : sidebarNavLabelInactive}>
-          {firstItem?.name}
-        </span>
-      )}
-    </Link>
-  );
-}
-type SidebarNavCategoryProps = {
-  categoryKey: string;
-  category: NavCategory;
-  expanded: boolean;
-  isActive: (href: string) => boolean;
-  isCategoryActive: (items: SidebarNavItem[]) => boolean;
-  toggleCategory: (category: string) => void;
-  openCategories: Record<string, boolean>;
-  onLinkClick?: () => void;
-  unreadCount: number;
-  isLoaded: boolean;
-  onPrefetchHref: (href: string) => void;
-};
-function SidebarNavCategory({
-  categoryKey,
-  category,
-  expanded,
-  isActive,
-  isCategoryActive,
-  toggleCategory,
-  openCategories,
-  onLinkClick,
-  unreadCount,
-  isLoaded,
-  onPrefetchHref,
-}: SidebarNavCategoryProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isSingleLink = SINGLE_LINK_KEYS.has(categoryKey);
-  if (isSingleLink) {
-    const firstItem = category.items[0];
-    return (
-      <SidebarNavSingleLink
-        categoryKey={categoryKey}
-        firstItem={firstItem!}
-        expanded={expanded}
-        isActive={isActive(firstItem?.href ?? "/")}
-        unreadCount={unreadCount}
-        isLoaded={isLoaded}
-        onLinkClick={onLinkClick}
-        onPrefetchHref={onPrefetchHref}
-      />
-    );
-  }
-  const firstItemHref = category.items[0]?.href;
-  const handleCategoryHeaderClick = () => {
-    if (category.items.length === 1 && firstItemHref) {
-      log.info(LOG_CATEGORIES.ROUTING, "[NAV] Sidebar nav click (button)", {
-        categoryKey,
-        to: firstItemHref,
-        currentPathname: location.pathname,
-      });
-      onLinkClick?.();
-      void navigate(firstItemHref);
-      return;
-    }
-    toggleCategory(categoryKey);
-  };
-  const categoryPanelId = `sidebar-category-${categoryKey}`;
-  return (
-    <>
-      <button
-        onClick={handleCategoryHeaderClick}
-        type="button"
-        className={`${getChromeNavButtonStyles(isCategoryActive(category.items))} group relative ${
-          !expanded ? "justify-center" : "justify-between"
-        } cursor-pointer`}
-        title={!expanded ? category.name : ""}
-        aria-expanded={openCategories[categoryKey]}
-        aria-controls={categoryPanelId}
-      >
-        <Box className="flex items-center">
-          <Box
-            className={`${
-              !expanded && openCategories[categoryKey]
-                ? "flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-foreground/20"
-                : ""
-            }`}
-          >
-            <Icon
-              name={category.icon}
-              className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""} ${
-                !expanded && openCategories[categoryKey] ? "text-sidebar-foreground" : ""
-              }`}
-            />
-          </Box>
-          {expanded && (
-            <span
-              className={
-                isCategoryActive(category.items) ? sidebarNavLabelActive : sidebarNavLabelInactive
-              }
-            >
-              {category.name}
-            </span>
-          )}
-        </Box>
-        {!expanded && openCategories[categoryKey] && (
-          <Box className="absolute right-1 top-1 h-2 w-2 rounded-full bg-sidebar-foreground"></Box>
-        )}
-        {expanded &&
-          (openCategories[categoryKey] ? (
-            <Icon name="chevron-down" className="h-5 w-5" />
-          ) : (
-            <Icon name="chevron-right" className="h-5 w-5" />
-          ))}
-      </button>
-      {openCategories[categoryKey] && (
-        <Box
-          id={categoryPanelId}
-          className={expanded ? "ml-3 mt-2 space-y-1" : ""}
-          role="region"
-          aria-label={category.name}
-        >
-          {category.items.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              onClick={() => onLinkClick?.()}
-              onMouseEnter={() => onPrefetchHref(item.href)}
-              onFocus={() => onPrefetchHref(item.href)}
-              onTouchStart={() => onPrefetchHref(item.href)}
-              className={`${getChromeNavSubItemStyles(isActive(item.href))} ${
-                !expanded ? "justify-center py-2" : "py-2"
-              }`}
-              aria-label={item.name}
-              aria-current={isActive(item.href) ? "page" : undefined}
-            >
-              <Icon
-                name={item.icon}
-                className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""}`}
-              />
-              {expanded && (
-                <span
-                  className={isActive(item.href) ? sidebarNavLabelActive : sidebarNavLabelInactive}
-                >
-                  {item.name}
-                </span>
-              )}
-            </Link>
-          ))}
-        </Box>
-      )}
-    </>
-  );
-}
 export function SidebarHeader({
   expanded,
   isLoading,
@@ -335,6 +90,7 @@ export function SidebarFooter({
         title="Logout Confirmation"
         message="Are you sure you want to log out?"
         confirmText="Logout"
+        confirmIcon={<Icon name="log-out" />}
         onConfirm={onConfirmLogout}
         onCancel={onCancelLogout}
       />

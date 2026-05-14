@@ -1,5 +1,6 @@
 """Tests for polygon search API routes."""
 
+import json
 from unittest.mock import patch
 
 from app.models import User
@@ -148,12 +149,13 @@ class TestPolygonSearchRoutes:
         db_session.session.add(user)
         db_session.session.commit()
 
-        # Invalid polygon - less than 3 points
+        # Invalid polygon - less than 3 points; forceSearch exercises geometry validation path
         request_data = {
             "viewport_polygon": [
                 {"lat": 40.7128, "lng": -74.006},
                 {"lat": 40.7158, "lng": -74.006},
-            ]
+            ],
+            "forceSearch": True,
         }
 
         with patch(MOCK_GET_CURRENT_USER) as mock_get_user:
@@ -233,3 +235,73 @@ class TestPolygonSearchRoutes:
                         )
 
                         assert response.status_code == 200
+
+    def test_polygon_agent_preferences_user_id_forbidden_non_client(self, client, db_session):
+        """Agent cannot search with preferences_user_id outside client_ids."""
+        agent = User(
+            id="agent-1",
+            cognito_id="cognito-agent-1",
+            email="agent@example.com",
+            name="Agent",
+            is_agent=True,
+            client_ids=json.dumps(["client-good"]),
+        )
+        db_session.session.add(agent)
+        db_session.session.commit()
+
+        request_data = {
+            "viewport_polygon": [
+                {"lat": 40.7128, "lng": -74.006},
+                {"lat": 40.7158, "lng": -74.006},
+                {"lat": 40.7158, "lng": -73.996},
+                {"lat": 40.7128, "lng": -73.996},
+            ],
+            "preferences_user_id": "not-a-client",
+        }
+
+        with patch(MOCK_GET_CURRENT_USER) as mock_get_user:
+            with patch(MOCK_RUN_POLYGON_SEARCH) as mock_search:
+                mock_get_user.return_value = (agent, None)
+                response = client.post(
+                    "/api/v1/search/properties-by-polygon",
+                    json=request_data,
+                    headers={"Authorization": "Bearer mock_token"},
+                )
+                assert response.status_code == 403
+                mock_search.assert_not_called()
+
+    def test_polygon_buyer_preferences_user_id_ignored_uses_self(self, client, db_session):
+        """Buyers cannot escalate to another user's preferences; subject stays self."""
+        buyer = User(
+            id="buyer-1",
+            cognito_id="cognito-buyer-1",
+            email="buyer@example.com",
+            name="Buyer",
+            is_agent=False,
+        )
+        db_session.session.add(buyer)
+        db_session.session.commit()
+
+        request_data = {
+            "viewport_polygon": [
+                {"lat": 40.7128, "lng": -74.006},
+                {"lat": 40.7158, "lng": -74.006},
+                {"lat": 40.7158, "lng": -73.996},
+                {"lat": 40.7128, "lng": -73.996},
+            ],
+            "preferences_user_id": "someone-else",
+        }
+        mock_search_result = {"success": True, "properties": [], "total_count": 0}
+
+        with patch(MOCK_GET_CURRENT_USER) as mock_get_user:
+            with patch(MOCK_RUN_POLYGON_SEARCH) as mock_search:
+                mock_get_user.return_value = (buyer, None)
+                mock_search.return_value = (mock_search_result, 200)
+                response = client.post(
+                    "/api/v1/search/properties-by-polygon",
+                    json=request_data,
+                    headers={"Authorization": "Bearer mock_token"},
+                )
+                assert response.status_code == 200
+                mock_search.assert_called_once()
+                assert mock_search.call_args.kwargs["preferences_subject_user_id"] == "buyer-1"

@@ -8,7 +8,7 @@ import {
   ADMIN_ROUTE_SEGMENTS,
   segmentFromPath,
   visibleAdminNavSpec,
-} from "packages/features/admin/utils/adminSidebarNavConfig";
+} from "packages/features/admin/utils/navigation";
 import { useUserData } from "packages/hooks/data/user/useUserData";
 import { checkStepUpRequired, useStepUpAuth } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";

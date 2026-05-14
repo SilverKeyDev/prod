@@ -1,185 +1,93 @@
 """
-Tests for DocuSign template synchronization
+Tests for DocuSign template synchronization (TemplateSyncService).
 """
 
+import pytest
 from flask import Flask
 
+from app.services.docusign.templates.sync import TemplateSyncService
 
-class TestTemplateSync:
-    """Test DocuSign template synchronization"""
+
+class TestTemplateSyncService:
+    """Test DocuSign template sync against ``TemplateSyncService.sync_all_templates``."""
 
     def test_sync_templates_from_docusign(self, app: Flask, db_session, mock_docusign_client):
-        """Test syncing templates from DocuSign"""
-        from app.services.docusign.templates.sync import TemplateSync
-
+        """sync_all_templates returns count of templates processed from DocuSign list."""
         with app.app_context():
-            mock_docusign_client.return_value.list_templates.return_value = {
-                "templates": [
-                    {
-                        "templateId": "template-123",
-                        "name": "Purchase Agreement",
-                        "description": "Standard purchase agreement",
-                        "shared": "false",
-                        "created": "2024-01-01T10:00:00Z",
-                    },
-                    {
-                        "templateId": "template-456",
-                        "name": "Inspection Addendum",
-                        "description": "Inspection contingency addendum",
-                        "shared": "false",
-                        "created": "2024-01-02T10:00:00Z",
-                    },
-                ]
-            }
+            mock_docusign_client.return_value.list_templates.return_value = [
+                {
+                    "templateId": "template-123",
+                    "name": "Purchase Agreement",
+                    "description": "Standard purchase agreement",
+                },
+                {
+                    "templateId": "template-456",
+                    "name": "Inspection Addendum",
+                    "description": "Inspection contingency addendum",
+                },
+            ]
 
-            result = TemplateSync.sync_templates()
+            synced = TemplateSyncService.sync_all_templates()
 
-            assert result["success"] is True
-            assert result["synced_count"] >= 2
+            assert synced == 2
             mock_docusign_client.return_value.list_templates.assert_called_once()
 
     def test_sync_templates_stores_in_database(self, app: Flask, db_session, mock_docusign_client):
-        """Test template sync stores templates in database"""
+        """New DocuSign templates are persisted as ``DocusignTemplate`` rows."""
         from app.models import DocusignTemplate
-        from app.services.docusign.templates.sync import TemplateSync
 
         with app.app_context():
-            mock_docusign_client.return_value.list_templates.return_value = {
-                "templates": [
-                    {
-                        "templateId": "template-789",
-                        "name": "Listing Agreement",
-                        "description": "Exclusive listing agreement",
-                        "shared": "false",
-                        "created": "2024-01-03T10:00:00Z",
-                    }
-                ]
-            }
+            mock_docusign_client.return_value.list_templates.return_value = [
+                {
+                    "templateId": "template-789",
+                    "name": "Listing Agreement",
+                    "description": "Exclusive listing agreement",
+                }
+            ]
 
-            TemplateSync.sync_templates()
+            TemplateSyncService.sync_all_templates()
 
-            # Verify template stored in database
             template = DocusignTemplate.query.filter_by(docusign_template_id="template-789").first()
             assert template is not None
             assert template.name == "Listing Agreement"
             assert template.description == "Exclusive listing agreement"
 
     def test_sync_templates_updates_existing(self, app: Flask, db_session, mock_docusign_client):
-        """Test template sync updates existing templates"""
+        """Existing rows are updated when DocuSign returns the same template id."""
         from app.models import DocusignTemplate
-        from app.services.docusign.templates.sync import TemplateSync
 
         with app.app_context():
-            # Create existing template
             existing = DocusignTemplate(
                 docusign_template_id="template-123",
                 name="Old Name",
                 description="Old description",
             )
-            db_session.add(existing)
-            db_session.commit()
+            db_session.session.add(existing)
+            db_session.session.commit()
 
-            mock_docusign_client.return_value.list_templates.return_value = {
-                "templates": [
-                    {
-                        "templateId": "template-123",
-                        "name": "Updated Name",
-                        "description": "Updated description",
-                        "shared": "false",
-                        "created": "2024-01-01T10:00:00Z",
-                    }
-                ]
-            }
+            mock_docusign_client.return_value.list_templates.return_value = [
+                {
+                    "templateId": "template-123",
+                    "name": "Updated Name",
+                    "description": "Updated description",
+                }
+            ]
 
-            TemplateSync.sync_templates()
+            TemplateSyncService.sync_all_templates()
 
-            # Verify template updated
             updated = DocusignTemplate.query.filter_by(docusign_template_id="template-123").first()
+            assert updated is not None
             assert updated.name == "Updated Name"
             assert updated.description == "Updated description"
 
-    def test_get_template_by_id(self, app: Flask, db_session, mock_docusign_client):
-        """Test retrieving template by DocuSign template ID"""
-        from app.services.docusign.templates.sync import TemplateSync
-
+    def test_sync_templates_propagates_list_api_errors(
+        self, app: Flask, db_session, mock_docusign_client
+    ):
+        """Failures from list_templates propagate (no silent success dict)."""
         with app.app_context():
-            mock_docusign_client.return_value.get_template.return_value = {
-                "templateId": "template-123",
-                "name": "Purchase Agreement",
-                "documents": [{"documentId": "1", "name": "Agreement.pdf"}],
-                "recipients": {"signers": []},
-            }
-
-            template = TemplateSync.get_template("template-123")
-
-            assert template is not None
-            assert template["name"] == "Purchase Agreement"
-            assert "documents" in template
-            mock_docusign_client.return_value.get_template.assert_called_once()
-
-    def test_list_available_templates(self, app: Flask, db_session):
-        """Test listing available templates from database"""
-        from app.models import DocusignTemplate
-        from app.services.docusign.templates.sync import TemplateSync
-
-        with app.app_context():
-            # Create test templates
-            templates = [
-                DocusignTemplate(
-                    docusign_template_id="template-1",
-                    name="Template 1",
-                    is_active=True,
-                ),
-                DocusignTemplate(
-                    docusign_template_id="template-2",
-                    name="Template 2",
-                    is_active=True,
-                ),
-                DocusignTemplate(
-                    docusign_template_id="template-3",
-                    name="Inactive Template",
-                    is_active=False,
-                ),
-            ]
-            for template in templates:
-                db_session.add(template)
-            db_session.commit()
-
-            result = TemplateSync.list_available_templates()
-
-            assert len(result) == 2  # Only active templates
-            assert all(t["is_active"] for t in result)
-
-    def test_sync_templates_handles_errors(self, app: Flask, db_session, mock_docusign_client):
-        """Test template sync handles DocuSign API errors gracefully"""
-        from app.services.docusign.templates.sync import TemplateSync
-
-        with app.app_context():
-            mock_docusign_client.return_value.list_templates.side_effect = Exception(
+            mock_docusign_client.return_value.list_templates.side_effect = RuntimeError(
                 "DocuSign API error"
             )
 
-            result = TemplateSync.sync_templates()
-
-            assert result["success"] is False
-            assert "error" in result
-
-    def test_delete_template(self, app: Flask, db_session):
-        """Test marking template as inactive"""
-        from app.models import DocusignTemplate
-        from app.services.docusign.templates.sync import TemplateSync
-
-        with app.app_context():
-            template = DocusignTemplate(
-                docusign_template_id="template-999",
-                name="To Delete",
-                is_active=True,
-            )
-            db_session.add(template)
-            db_session.commit()
-
-            TemplateSync.delete_template("template-999")
-
-            # Verify template marked inactive
-            deleted = DocusignTemplate.query.filter_by(docusign_template_id="template-999").first()
-            assert deleted.is_active is False
+            with pytest.raises(RuntimeError, match="DocuSign API error"):
+                TemplateSyncService.sync_all_templates()

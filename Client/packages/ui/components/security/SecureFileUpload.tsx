@@ -17,6 +17,7 @@ import { formatFileSize, processImage } from "packages/services/security/imagePr
 import { log } from "packages/services/security/secureLogger";
 import { DROP_ZONE_BORDER_BASE } from "packages/ui/components/form/styles/fileUploadStyles";
 import { Box, Image } from "packages/ui/components/primitives";
+import { buildSecureFileValidationErrors } from "packages/ui/components/security/secureFileUpload/secureFileUploadValidation";
 import { CARD_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 export type SecureFileUploadProps = {
   onFilesProcessed: (files: ProcessedImage[]) => void;
@@ -60,24 +61,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   const [previewFile, setPreviewFile] = useState<FileWithPreview | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const validateFile = useCallback(
-    (file: File): string[] => {
-      const errors: string[] = [];
-      if (file.size > maxSize) {
-        errors.push(
-          `File "${file.name}" is too large (${formatFileSize(
-            file.size
-          )}). Maximum size is ${formatFileSize(maxSize)}.`
-        );
-      }
-      if (!acceptedTypes.includes(file.type)) {
-        errors.push(
-          `File "${file.name}" has unsupported type (${
-            file.type
-          }). Accepted types: ${acceptedTypes.join(", ")}.`
-        );
-      }
-      return errors;
-    },
+    (file: File): string[] => buildSecureFileValidationErrors(file, maxSize, acceptedTypes),
     [maxSize, acceptedTypes]
   );
   const processFiles = useCallback(

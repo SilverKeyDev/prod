@@ -5,17 +5,21 @@
   "markdownlint.config": { "default": false },
 
   "python.defaultInterpreterPath": "${workspaceFolder}/Server/.venv/bin/python",
-  "python.pythonPath": "${workspaceFolder}/Server/.venv/bin/python",
   "python.analysis.extraPaths": ["Server"],
-  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.diagnosticMode": "openFilesOnly",
 
   "eslint.enable": true,
+  "eslint.useFlatConfig": true,
+  "eslint.options": {
+    "overrideConfigFile": "packages/config/eslint/eslint.config.cjs"
+  },
   "eslint.workingDirectories": [
     {
       "directory": "Client",
       "changeProcessCWD": true
     }
   ],
+  "eslint.codeActionsOnSave.mode": "problems",
   "eslint.packageManager": "pnpm",
   "eslint.validate": [
     "javascript",
@@ -23,13 +27,7 @@
     "typescript",
     "typescriptreact"
   ],
-  "eslint.probe": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
-  "eslint.run": "onType",
+  "eslint.run": "onSave",
 
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
@@ -51,12 +49,5 @@
   "cursorpyright.analysis.extraPaths": [
     "Server"
   ],
-
-  "basedpyright.analysis.diagnosticMode": "workspace",
-  "basedpyright.analysis.extraPaths": [
-    "Server"
-  ],
-  "basedpyright.analysis.configFilePath": "${workspaceFolder}/Server/pyproject.toml",
-
   "cursorpyright.analysis.configFilePath": "${workspaceFolder}/Server/pyproject.toml"
 }

@@ -8,8 +8,8 @@ alwaysApply: false
 # Monorepo and Tooling
 
 - Prefer workspace-aware commands; the Client workspace uses **`pnpm`** scripts from `Client/package.json` (e.g. `pnpm lint`, `pnpm typecheck`).
-- Do not edit files in `Client/dist/`, `Client/coverage/`, or `Client/playwright-report/` (generated outputs).
+- Do not edit files in `Client/dist/`, `Client/coverage/` (generated outputs).
 - Follow documented structure in **`documentation/`**: see `documentation/README.md`, `documentation/client/README.md`, and `documentation/HOW_WE_DOCUMENT.md`. Client architecture and package layout are in `documentation/client/` and `Client/ARCHITECTURE.md`. For Thin App (Fat Packages), see `documentation/client/thin-app-architecture.md` and `thin-app-architecture.mdc`.
 - Keep configuration changes in `Client/config/` where applicable (ESLint, Prettier, PostCSS) and root configs for Vite/Tailwind/TS.
-- For CI or local tasks, use existing scripts: dev, build, test, test:e2e, lint, format.
-- **Markdown creation:** Follow `documentation.mdc` (allowed paths include `documentation/**`, `AGENTS.md`, `.cursor/README.md`, `documentation/internal/**`, and `.github/pull_request_template.md` when adding team process docs).
+- For CI or local tasks, use existing scripts: dev, build, test, lint, format.
+- **Markdown creation:** Follow `documentation.mdc` (allowed paths include `documentation/**`, `AGENTS.md`, `.cursor/README.md`, `documentation/internal/**`, and `.github/pull_request_template.md` when adding team process docs). Do not create repo-root `docs/` for new guides — use `documentation/` instead.

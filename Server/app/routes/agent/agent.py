@@ -21,6 +21,7 @@ from .handlers import (
     search_agents_endpoint,
     search_clients_endpoint,
     send_message,
+    stream_agent_chat_events,
     update_event_request_status_route,
     update_todo_endpoint,
 )
@@ -32,6 +33,7 @@ agent_bp.route("/clients", methods=["GET"])(get_clients)
 
 # Chats
 agent_bp.route("/chats", methods=["GET"])(get_chats)
+agent_bp.route("/chats/stream", methods=["GET"])(stream_agent_chat_events)
 agent_bp.route("/chats", methods=["POST"])(create_chat)
 agent_bp.route("/chats/<conversation_id>/history", methods=["GET"])(get_chat_history)
 agent_bp.route("/chats/message", methods=["POST"])(send_message)

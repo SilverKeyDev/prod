@@ -18,6 +18,30 @@ from ..utils.responses import create_auth_response
 from ..utils.token_creation import create_minimal_tokens, decode_cognito_token
 
 
+def handle_verify_email(data: dict[str, Any], request_id: str) -> tuple[dict[str, Any], int]:
+    """
+    Confirm sign-up / email verification using Cognito (dict response API for unit tests).
+    Does not auto-login; use ``handle_verification`` when password is available for auto-login.
+    """
+    _ = request_id
+    code = data.get("confirmation_code") or data.get("code", "")
+    result = AWS_COGNITO_service.confirm_sign_up(username=data["email"], confirmation_code=code)
+    if result.get("success"):
+        return {"success": True, "message": "Email verified successfully"}, 200
+    err = str(result.get("error", "") or "")
+    msg = str(result.get("message", "") or "").lower()
+    if err == "NotAuthorizedException" or "already" in msg or "confirmed" in msg:
+        return {"success": True, "message": "Email was already verified"}, 200
+    if err == "CodeMismatchException" or "invalid" in msg:
+        return {"success": False, "message": "Invalid verification code"}, 400
+    if err == "ExpiredCodeException" or "expired" in msg:
+        return {"success": False, "message": "Verification code has expired"}, 400
+    return {
+        "success": False,
+        "message": result.get("message", "Failed to verify user"),
+    }, 400
+
+
 def handle_verification(data: dict[str, Any], request_id: str) -> tuple[Response, int]:
     """
     Handle email verification and auto-login flow.
@@ -142,11 +166,14 @@ def handle_verification(data: dict[str, Any], request_id: str) -> tuple[Response
         ), 200
 
 
-def handle_resend_code(data: dict[str, Any]) -> tuple[dict[str, Any], int]:
+def handle_resend_code(
+    data: dict[str, Any], request_id: str | None = None
+) -> tuple[dict[str, Any], int]:
     """
     Handle resend verification code flow.
     Returns (response_dict, status_code).
     """
+    _ = request_id
     try:
         response = AWS_COGNITO_service.client.resend_confirmation_code(
             ClientId=os.getenv("AWS_COGNITO_CLIENT_ID"),
@@ -168,6 +195,12 @@ def handle_resend_code(data: dict[str, Any]) -> tuple[dict[str, Any], int]:
             "error": "USER_NOT_FOUND",
             "message": "No user found with this email",
         }, 404
+
+    except AWS_COGNITO_service.client.exceptions.NotAuthorizedException:
+        return {
+            "success": True,
+            "message": "If verification is still required, a code has been sent to your email.",
+        }, 200
 
     except AWS_COGNITO_service.client.exceptions.InvalidParameterException as e:
         return {"success": False, "error": "INVALID_PARAMETER", "message": str(e)}, 400

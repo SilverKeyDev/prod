@@ -13,6 +13,7 @@ import { useSecureClipboardCopy } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import { Textarea } from "packages/ui/components/form/field/FormField";
+import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Label from "packages/ui/components/text/Label.web";
@@ -21,7 +22,6 @@ import { getWindow } from "packages/utils/platform";
 import { buildPropertyUrl } from "packages/utils/property";
 import { getShareHomeConversationId, getShareHomePropertyId } from "packages/utils/share";
 
-import BaseModal from "@/components/modals/BaseModal";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 type ShareHomeModalProps = {
   isOpen: boolean;

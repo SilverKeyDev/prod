@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
 
-import { chromium } from "@playwright/test";
+import { chromium } from "playwright";
 
 const CLIENT_ROOT = path.resolve(import.meta.dirname, "../..");
 const OUT_PATH = path.join(CLIENT_ROOT, ".visual-parity", "web.storageState.json");

@@ -210,7 +210,7 @@ class TestEndToEndPipeline:
 
         from app.services.search.data.normalizer import normalize_listing
 
-        base = os.path.join(os.path.dirname(__file__), "..", "..", "app")
+        base = os.path.join(os.path.dirname(__file__), "..", "..", "..", "app")
 
         def _load(name, fp):
             spec = importlib.util.spec_from_file_location(name, fp)

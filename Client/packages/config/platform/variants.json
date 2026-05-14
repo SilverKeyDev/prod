@@ -588,6 +588,13 @@
     "reason": "HTML input vs TextInput."
   },
   {
+    "id": "form-input",
+    "description": "Design-system form Input with field chrome (icons, password toggle).",
+    "webPath": "packages/ui/components/form/inputs/Input.web.tsx",
+    "nativePath": "packages/ui/components/form/inputs/Input.native.tsx",
+    "reason": "Web uses HTML input and DOM aria patterns; native uses React Native TextInput and RN accessibility props."
+  },
+  {
     "id": "list-primitive",
     "description": "List primitive with platform-specific rendering.",
     "webPath": "packages/ui/components/primitives/list/List.web.tsx",
@@ -653,7 +660,7 @@
   {
     "id": "pdf-modal",
     "description": "PDF modal with platform-specific viewer.",
-    "webPath": "packages/ui/components/modals/PdfModal/index.tsx",
+    "webPath": "packages/features/documents/components/pdf/DocumentPdfModal.web.tsx",
     "nativePath": "packages/ui/components/modals/PdfModal/index.native.tsx",
     "reason": "Different PDF viewing per platform."
   },

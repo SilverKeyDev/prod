@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 
 /**
- * Per-step expand/collapse for checklist rows (details + integration).
- * Keeps active step(s) expanded; drops checked steps from the expanded set.
+ * Per-step expand/collapse for checklist rows (details + integration UI).
+ * Seeds the active step(s) open so users land with full context; expand/collapse is purely
+ * presentational and does not mutate checklist completion state.
+ *
+ * Completed steps are not auto-collapsed: users should always be able to reopen any step and
+ * see the same in-step context (copy, integrations, footers) whether or not that step is
+ * currently “active”, so they never lose available context while scanning the list.
  */
-export function useChecklistStepExpansion(
-  activeItemIds: readonly number[],
-  checkedIds: number[]
-): {
+export function useChecklistStepExpansion(activeItemIds: readonly number[]): {
   expandedIds: ReadonlySet<number>;
   toggleExpand: (id: number) => void;
   isExpanded: (id: number) => boolean;
@@ -21,21 +23,6 @@ export function useChecklistStepExpansion(
       return next;
     });
   }, [activeItemIds]);
-
-  useEffect(() => {
-    setExpandedIds((prev) => {
-      if (checkedIds.length === 0) return prev;
-      const next = new Set(prev);
-      let changed = false;
-      for (const id of checkedIds) {
-        if (next.has(id)) {
-          next.delete(id);
-          changed = true;
-        }
-      }
-      return changed ? next : prev;
-    });
-  }, [checkedIds]);
 
   const toggleExpand = useCallback((id: number) => {
     setExpandedIds((prev) => {

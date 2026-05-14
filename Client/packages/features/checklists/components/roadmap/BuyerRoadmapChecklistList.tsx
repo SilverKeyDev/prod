@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { ChecklistType, TaskChecklistItem } from "packages/features/checklists/api/checklists";
+import { ChecklistUpdatePendingProvider } from "packages/features/checklists/components/roadmap/ChecklistUpdatePendingProvider";
 import ChecklistDispatchAutomationModal from "packages/features/checklists/components/slots/ChecklistDispatchAutomationModal";
 import { useChecklistStepExpansion } from "packages/features/checklists/hooks/useChecklistStepExpansion";
 import { CHECKLIST_TITLES, type ChecklistTab } from "packages/features/checklists/types/checklists";
@@ -42,6 +43,8 @@ export type BuyerRoadmapChecklistListProps = {
   ) => ChecklistItemToggleEligibility;
   /** When true, checklist integration UIs are not rendered. */
   hideIntegrationComponents?: boolean;
+  /** When true, disables checklist submit buttons while a checklist PUT is in flight. */
+  isChecklistUpdatePending?: boolean;
   /** Rendered inside the outer card above the list (e.g. section subtitle). */
   subtitle?: ReactNode;
   /**
@@ -95,10 +98,11 @@ export function BuyerRoadmapChecklistList({
   isAgent = false,
   sectionProgress,
   onRoadmapTabNavigate,
+  isChecklistUpdatePending = false,
 }: BuyerRoadmapChecklistListProps) {
   const { t } = useLocalization();
   const [dispatchModalItemId, setDispatchModalItemId] = useState<number | null>(null);
-  const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemIds, checkedIds);
+  const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemIds);
 
   const [disclosureByTab, setDisclosureByTab] = useState<
     Partial<Record<ChecklistTab, TabDisclosure>>
@@ -208,157 +212,160 @@ export function BuyerRoadmapChecklistList({
     sectionProgress,
     onRoadmapTabNavigate,
     onRevealRoadmapItem: revealRoadmapItem,
+    isChecklistUpdatePending,
   };
 
   return (
-    <>
-      <Card border="light" className="bg-background-base" padding="md" hover={false}>
-        {subtitle != null ? subtitle : null}
-        {isLoading ? (
-          <Box className="flex flex-row items-center justify-center py-12">
-            <Loading />
-          </Box>
-        ) : error ? (
-          <Box className="flex flex-col gap-3">
-            <Text className="text-sm text-red-500">{error}</Text>
-            <Pressable
-              onPress={() => {
-                void onRefresh();
-              }}
-              className="bg-primary self-start rounded-lg px-4 py-2"
-            >
-              <Text className="text-sm font-medium text-white">Retry</Text>
-            </Pressable>
-          </Box>
-        ) : itemCount === 0 ? (
-          <Box className="flex flex-row items-center justify-center py-12">
-            <Text className="text-text-tertiary text-base">No checklist items yet.</Text>
-          </Box>
-        ) : (
-          <Box className="flex flex-col gap-2">
-            {isSectionLocked ? (
+    <ChecklistUpdatePendingProvider value={isChecklistUpdatePending}>
+      <>
+        <Card border="light" className="bg-background-base" padding="md" hover={false}>
+          {subtitle != null ? subtitle : null}
+          {isLoading ? (
+            <Box className="flex flex-row items-center justify-center py-12">
+              <Loading />
+            </Box>
+          ) : error ? (
+            <Box className="flex flex-col gap-3">
+              <Text className="text-sm text-red-500">{error}</Text>
               <Pressable
                 onPress={() => {
-                  if (sectionGateTarget != null) onRoadmapTabNavigate?.(sectionGateTarget);
+                  void onRefresh();
                 }}
-                label={
-                  sectionGateTarget != null
-                    ? t("checklists.roadmap.section_banner", {
-                        phase: CHECKLIST_TITLES[sectionGateTarget],
-                      })
-                    : t("checklists.roadmap.finish_previous_phases")
+                className="bg-primary self-start rounded-lg px-4 py-2"
+              >
+                <Text className="text-sm font-medium text-white">Retry</Text>
+              </Pressable>
+            </Box>
+          ) : itemCount === 0 ? (
+            <Box className="flex flex-row items-center justify-center py-12">
+              <Text className="text-text-tertiary text-base">No checklist items yet.</Text>
+            </Box>
+          ) : (
+            <Box className="flex flex-col gap-2">
+              {isSectionLocked ? (
+                <Pressable
+                  onPress={() => {
+                    if (sectionGateTarget != null) onRoadmapTabNavigate?.(sectionGateTarget);
+                  }}
+                  label={
+                    sectionGateTarget != null
+                      ? t("checklists.roadmap.section_banner", {
+                          phase: CHECKLIST_TITLES[sectionGateTarget],
+                        })
+                      : t("checklists.roadmap.finish_previous_phases")
+                  }
+                  className="border-border bg-background-base mt-2 flex flex-row items-center gap-2 rounded-lg border px-4 py-3 active:opacity-90"
+                >
+                  <Icon name="info" className="text-gold h-4 w-4 shrink-0 opacity-90" />
+                  <Text className="text-text-primary flex-1 text-sm font-medium">
+                    {sectionGateTarget != null
+                      ? t("checklists.roadmap.section_banner", {
+                          phase: CHECKLIST_TITLES[sectionGateTarget],
+                        })
+                      : t("checklists.roadmap.finish_previous_phases")}
+                  </Text>
+                  <Icon name="chevron-right" className="text-gold h-4 w-4 shrink-0 opacity-90" />
+                </Pressable>
+              ) : null}
+              {segments.map((segment, segIdx) => {
+                if (segment.kind === "completed_collapsed") {
+                  return (
+                    <Pressable
+                      key={`cc-${segIdx}`}
+                      onPress={() => setTabDisclosure({ completedOpen: true })}
+                      className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
+                      accessibilityRole="button"
+                      aria-expanded={false}
+                    >
+                      <Icon name="chevron-right" className="text-text-secondary h-4 w-4 shrink-0" />
+                      <Text className="text-text-primary text-sm font-medium">
+                        {t("checklists.progressive.completed_collapsed", {
+                          count: segment.count,
+                        })}
+                      </Text>
+                    </Pressable>
+                  );
                 }
-                className="border-border bg-background-base mt-2 flex flex-row items-center gap-2 rounded-lg border px-4 py-3 active:opacity-90"
-              >
-                <Icon name="info" className="text-gold h-4 w-4 shrink-0 opacity-90" />
-                <Text className="text-text-primary flex-1 text-sm font-medium">
-                  {sectionGateTarget != null
-                    ? t("checklists.roadmap.section_banner", {
-                        phase: CHECKLIST_TITLES[sectionGateTarget],
-                      })
-                    : t("checklists.roadmap.finish_previous_phases")}
-                </Text>
-                <Icon name="chevron-right" className="text-gold h-4 w-4 shrink-0 opacity-90" />
-              </Pressable>
-            ) : null}
-            {segments.map((segment, segIdx) => {
-              if (segment.kind === "completed_collapsed") {
-                return (
-                  <Pressable
-                    key={`cc-${segIdx}`}
-                    onPress={() => setTabDisclosure({ completedOpen: true })}
-                    className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                    accessibilityRole="button"
-                    aria-expanded={false}
-                  >
-                    <Icon name="chevron-right" className="text-text-secondary h-4 w-4 shrink-0" />
-                    <Text className="text-text-primary text-sm font-medium">
-                      {t("checklists.progressive.completed_collapsed", {
-                        count: segment.count,
-                      })}
-                    </Text>
-                  </Pressable>
-                );
-              }
-              if (segment.kind === "completed_expanded_header") {
-                return (
-                  <Pressable
-                    key={`ceh-${segIdx}`}
-                    onPress={() => setTabDisclosure({ completedOpen: false })}
-                    className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                    accessibilityRole="button"
-                    aria-expanded
-                  >
-                    <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
-                    <Text className="text-text-primary text-sm font-medium">
-                      {t("checklists.progressive.completed_collapsed", {
-                        count: segment.count,
-                      })}
-                    </Text>
-                  </Pressable>
-                );
-              }
-              if (segment.kind === "future_collapsed") {
-                return (
-                  <Pressable
-                    key={`fc-${segIdx}`}
-                    onPress={() => setTabDisclosure({ futureOpen: true })}
-                    className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                    accessibilityRole="button"
-                    aria-expanded={false}
-                  >
-                    <Icon name="chevron-right" className="text-text-secondary h-4 w-4 shrink-0" />
-                    <Text className="text-text-secondary text-sm font-medium">
-                      {t("checklists.progressive.show_more_collapsed", {
-                        count: segment.count,
-                      })}
-                    </Text>
-                  </Pressable>
-                );
-              }
-              if (
-                segment.kind === "completed_item" ||
-                segment.kind === "current" ||
-                segment.kind === "upcoming" ||
-                segment.kind === "future_item"
-              ) {
-                return (
-                  <BuyerRoadmapChecklistItemCard
-                    key={`${segment.kind}-${segment.item.id}`}
-                    {...cardProps}
-                    item={segment.item}
-                    rowKind={segment.kind}
-                  />
-                );
-              }
-              return null;
-            })}
-            {disclosure.futureOpen && futureHidden > 0 ? (
-              <Pressable
-                onPress={() => setTabDisclosure({ futureOpen: false })}
-                className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                accessibilityRole="button"
-                aria-expanded
-              >
-                <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
-                <Text className="text-text-secondary text-sm font-medium">
-                  {t("checklists.progressive.show_more_expanded")}
-                </Text>
-              </Pressable>
-            ) : null}
-          </Box>
-        )}
-      </Card>
-      {hubClientUserId && checklistCategory && dispatchModalItemId != null ? (
-        <ChecklistDispatchAutomationModal
-          isOpen={true}
-          onClose={() => setDispatchModalItemId(null)}
-          hubClientUserId={hubClientUserId}
-          checklistCategory={checklistCategory}
-          itemId={dispatchModalItemId}
-          itemLabel={sortedItems.find((i) => i.id === dispatchModalItemId)?.label ?? ""}
-        />
-      ) : null}
-    </>
+                if (segment.kind === "completed_expanded_header") {
+                  return (
+                    <Pressable
+                      key={`ceh-${segIdx}`}
+                      onPress={() => setTabDisclosure({ completedOpen: false })}
+                      className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
+                      accessibilityRole="button"
+                      aria-expanded
+                    >
+                      <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
+                      <Text className="text-text-primary text-sm font-medium">
+                        {t("checklists.progressive.completed_collapsed", {
+                          count: segment.count,
+                        })}
+                      </Text>
+                    </Pressable>
+                  );
+                }
+                if (segment.kind === "future_collapsed") {
+                  return (
+                    <Pressable
+                      key={`fc-${segIdx}`}
+                      onPress={() => setTabDisclosure({ futureOpen: true })}
+                      className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
+                      accessibilityRole="button"
+                      aria-expanded={false}
+                    >
+                      <Icon name="chevron-right" className="text-text-secondary h-4 w-4 shrink-0" />
+                      <Text className="text-text-secondary text-sm font-medium">
+                        {t("checklists.progressive.show_more_collapsed", {
+                          count: segment.count,
+                        })}
+                      </Text>
+                    </Pressable>
+                  );
+                }
+                if (
+                  segment.kind === "completed_item" ||
+                  segment.kind === "current" ||
+                  segment.kind === "upcoming" ||
+                  segment.kind === "future_item"
+                ) {
+                  return (
+                    <BuyerRoadmapChecklistItemCard
+                      key={`${segment.kind}-${segment.item.id}`}
+                      {...cardProps}
+                      item={segment.item}
+                      rowKind={segment.kind}
+                    />
+                  );
+                }
+                return null;
+              })}
+              {disclosure.futureOpen && futureHidden > 0 ? (
+                <Pressable
+                  onPress={() => setTabDisclosure({ futureOpen: false })}
+                  className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
+                  accessibilityRole="button"
+                  aria-expanded
+                >
+                  <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
+                  <Text className="text-text-secondary text-sm font-medium">
+                    {t("checklists.progressive.show_more_expanded")}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </Box>
+          )}
+        </Card>
+        {hubClientUserId && checklistCategory && dispatchModalItemId != null ? (
+          <ChecklistDispatchAutomationModal
+            isOpen={true}
+            onClose={() => setDispatchModalItemId(null)}
+            hubClientUserId={hubClientUserId}
+            checklistCategory={checklistCategory}
+            itemId={dispatchModalItemId}
+            itemLabel={sortedItems.find((i) => i.id === dispatchModalItemId)?.label ?? ""}
+          />
+        ) : null}
+      </>
+    </ChecklistUpdatePendingProvider>
   );
 }

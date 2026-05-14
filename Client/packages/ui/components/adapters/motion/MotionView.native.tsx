@@ -3,28 +3,19 @@ import React, { useEffect, useMemo } from "react";
 import type { StyleProp, ViewProps, ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
-type MotionAnimate = {
-  opacity?: number;
-};
-
-type MotionInitial = MotionAnimate | boolean;
-
-type MotionTransition = {
-  /** Seconds (framer-motion style). */
-  duration?: number;
-};
+import type { MotionOpacityAnimate, MotionTransition, MotionViewInitial } from "./motionTypes";
 
 export type MotionViewProps = ViewProps & {
   className?: string;
   style?: StyleProp<ViewStyle>;
-  initial?: MotionInitial;
-  animate?: MotionAnimate;
+  initial?: MotionViewInitial;
+  animate?: MotionOpacityAnimate;
   transition?: MotionTransition;
 };
 
 function resolveInitialOpacity(
-  initial: MotionInitial | undefined,
-  animate: MotionAnimate | undefined
+  initial: MotionViewInitial | undefined,
+  animate: MotionOpacityAnimate | undefined
 ) {
   if (initial && typeof initial === "object" && initial.opacity != null) return initial.opacity;
   if (initial === false) return animate?.opacity;

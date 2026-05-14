@@ -37,7 +37,8 @@ def decode(polyline: str) -> list[tuple[float, float]]:
         dlng = ~(result >> 1) if (result & 1) else (result >> 1)
         lng += dlng
 
-        coordinates.append((lat * 1e-5, lng * 1e-5))
+        # Integer deltas × 1e-5 degrees; round so encode→decode round-trips without float drift.
+        coordinates.append((round(lat * 1e-5, 5), round(lng * 1e-5, 5)))
 
     return coordinates
 

@@ -1,123 +1,150 @@
 """
-Tests for DocuSign webhook processing
+Tests for DocuSign webhook processing (stored ``DocusignConnectEvent`` rows).
 """
 
+import json
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 from flask import Flask
 
 
-class TestWebhookProcessor:
-    """Test DocuSign webhook processing"""
+def _completed_payload() -> dict:
+    return {
+        "data": {
+            "envelopeSummary": {
+                "status": "completed",
+                "completedDateTime": "2024-01-01T12:00:00Z",
+            }
+        }
+    }
 
-    def test_process_envelope_completed_webhook(self, app: Flask, db_session, sample_agreement):
-        """Test processing envelope completed webhook"""
-        from app.models import Agreement
-        from app.services.docusign.webhooks.processor import WebhookProcessor
 
-        with app.app_context():
-            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
-                agreement = Agreement(**sample_agreement)
-                agreement.docusign_envelope_id = "envelope-123"
-                agreement.status = "sent"
-                db_session.add(agreement)
-                db_session.commit()
+def _voided_payload() -> dict:
+    return {
+        "data": {
+            "envelopeSummary": {
+                "status": "voided",
+                "voidedDateTime": "2024-01-01T12:00:00Z",
+                "voidedReason": "Cancelled by sender",
+            }
+        }
+    }
 
-                webhook_data = {
-                    "event": "envelope-completed",
-                    "data": {
-                        "envelopeId": "envelope-123",
-                        "status": "completed",
-                        "completedDateTime": "2024-01-01T12:00:00Z",
-                    },
-                }
 
-                result = WebhookProcessor.process_webhook(webhook_data)
-
-                assert result["success"] is True
-                updated = Agreement.query.get(agreement.id)
-                assert updated.status == "completed"
-                assert updated.signed_at is not None
-
-    def test_process_envelope_voided_webhook(self, app: Flask, db_session, sample_agreement):
-        """Test processing envelope voided webhook"""
-        from app.models import Agreement
-        from app.services.docusign.webhooks.processor import WebhookProcessor
-
-        with app.app_context():
-            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
-                agreement = Agreement(**sample_agreement)
-                agreement.docusign_envelope_id = "envelope-123"
-                agreement.status = "sent"
-                db_session.add(agreement)
-                db_session.commit()
-
-                webhook_data = {
-                    "event": "envelope-voided",
-                    "data": {
-                        "envelopeId": "envelope-123",
-                        "status": "voided",
-                        "voidedDateTime": "2024-01-01T12:00:00Z",
-                        "voidedReason": "Cancelled by sender",
-                    },
-                }
-
-                result = WebhookProcessor.process_webhook(webhook_data)
-
-                assert result["success"] is True
-                updated = Agreement.query.get(agreement.id)
-                assert updated.status == "voided"
-                assert updated.voided_at is not None
-
-    def test_process_recipient_completed_webhook(self, app: Flask, db_session, sample_agreement):
-        """Test processing recipient completed webhook"""
-        from app.models import Agreement, AgreementParticipant
-        from app.services.docusign.webhooks.processor import WebhookProcessor
-
-        with app.app_context():
-            agreement = Agreement(**sample_agreement)
-            agreement.docusign_envelope_id = "envelope-123"
-            db_session.add(agreement)
-
-            participant = AgreementParticipant(
-                agreement_id=agreement.id,
-                user_id="signer-123",
-                email="signer@example.com",
-                name="Signer User",
-                role="signer",
-                docusign_recipient_id="recipient-123",
-            )
-            db_session.add(participant)
-            db_session.commit()
-
-            webhook_data = {
-                "event": "recipient-completed",
-                "data": {
-                    "envelopeId": "envelope-123",
-                    "recipientId": "recipient-123",
-                    "status": "completed",
-                    "completedDateTime": "2024-01-01T12:00:00Z",
+def _recipient_payload(recipient_id: str, status: str) -> dict:
+    return {
+        "data": {
+            "envelopeSummary": {
+                "status": "sent",
+                "recipients": {
+                    "signers": [
+                        {
+                            "recipientId": recipient_id,
+                            "email": "signer@example.com",
+                            "name": "Signer User",
+                            "status": status,
+                            "completedDateTime": "2024-01-01T12:00:00Z",
+                        }
+                    ]
                 },
             }
+        }
+    }
 
-            result = WebhookProcessor.process_webhook(webhook_data)
 
-            assert result["success"] is True
-            updated_participant = AgreementParticipant.query.get(participant.id)
-            assert updated_participant.status == "completed"
-            assert updated_participant.signed_at is not None
+class TestWebhookProcessor:
+    """Exercise ``WebhookProcessor.process_envelope_event`` with real DB rows."""
 
-    def test_process_recipient_declined_webhook(self, app: Flask, db_session, sample_agreement):
-        """Test processing recipient declined webhook"""
-        from app.models import Agreement, AgreementParticipant
+    @staticmethod
+    def _store_event(db_session, envelope_id: str, event_type: str, payload: dict) -> str:
+        from app.models import DocusignConnectEvent
+
+        event = DocusignConnectEvent(
+            envelope_id=envelope_id,
+            event_type=event_type,
+            event_timestamp=datetime.now(timezone.utc),
+            payload=json.dumps(payload),
+        )
+        db_session.session.add(event)
+        db_session.session.commit()
+        return event.id
+
+    def test_process_envelope_completed_webhook(self, app: Flask, db_session, sample_agreement):
+        from app.models import Agreement, DocusignConnectEvent
         from app.services.docusign.webhooks.processor import WebhookProcessor
 
         with app.app_context():
-            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
+            with (
+                patch("app.services.docusign.webhooks.processor_helpers.enqueue_fetch_documents"),
+                patch(
+                    "app.services.transactions.checklist_signature_completion.sync_checklist_for_completed_agreement"
+                ),
+                patch.object(WebhookProcessor, "_send_lifecycle_messages"),
+            ):
+                with patch(
+                    "app.services.documents.document_library_items.sync_agreement_library_item"
+                ):
+                    agreement = Agreement(**sample_agreement)
+                    agreement.docusign_envelope_id = "envelope-123"
+                    agreement.status = "sent"
+                    db_session.session.add(agreement)
+                    db_session.session.commit()
+
+                    event_id = self._store_event(
+                        db_session, "envelope-123", "envelope-completed", _completed_payload()
+                    )
+
+                    WebhookProcessor.process_envelope_event(event_id)
+
+                    updated = Agreement.query.get(agreement.id)
+                    assert updated is not None
+                    assert updated.status == "completed"
+                    assert updated.completed_at is not None
+
+                    ev = DocusignConnectEvent.query.get(event_id)
+                    assert ev is not None
+                    assert ev.processed is True
+
+    def test_process_envelope_voided_webhook(self, app: Flask, db_session, sample_agreement):
+        from app.models import Agreement, DocusignConnectEvent
+        from app.services.docusign.webhooks.processor import WebhookProcessor
+
+        with app.app_context():
+            with patch.object(WebhookProcessor, "_send_lifecycle_messages"):
+                with patch(
+                    "app.services.documents.document_library_items.sync_agreement_library_item"
+                ):
+                    agreement = Agreement(**sample_agreement)
+                    agreement.docusign_envelope_id = "envelope-123"
+                    agreement.status = "sent"
+                    db_session.session.add(agreement)
+                    db_session.session.commit()
+
+                    event_id = self._store_event(
+                        db_session, "envelope-123", "envelope-voided", _voided_payload()
+                    )
+
+                    WebhookProcessor.process_envelope_event(event_id)
+
+                    updated = Agreement.query.get(agreement.id)
+                    assert updated is not None
+                    assert updated.status == "voided"
+                    assert updated.voided_at is not None
+
+                    ev = DocusignConnectEvent.query.get(event_id)
+                    assert ev is not None
+                    assert ev.processed is True
+
+    def test_process_recipient_completed_webhook(self, app: Flask, db_session, sample_agreement):
+        from app.models import Agreement, AgreementParticipant, DocusignConnectEvent
+        from app.services.docusign.webhooks.processor import WebhookProcessor
+
+        with app.app_context():
+            with patch.object(WebhookProcessor, "_send_lifecycle_messages"):
                 agreement = Agreement(**sample_agreement)
                 agreement.docusign_envelope_id = "envelope-123"
-                agreement.status = "sent"
-                db_session.add(agreement)
+                db_session.session.add(agreement)
 
                 participant = AgreementParticipant(
                     agreement_id=agreement.id,
@@ -127,101 +154,136 @@ class TestWebhookProcessor:
                     role="signer",
                     docusign_recipient_id="recipient-123",
                 )
-                db_session.add(participant)
-                db_session.commit()
+                db_session.session.add(participant)
+                db_session.session.commit()
 
-                webhook_data = {
-                    "event": "recipient-declined",
-                    "data": {
-                        "envelopeId": "envelope-123",
-                        "recipientId": "recipient-123",
-                        "status": "declined",
-                        "declinedDateTime": "2024-01-01T12:00:00Z",
-                        "declinedReason": "Not interested",
-                    },
-                }
+                rid = str(participant.id)
+                event_id = self._store_event(
+                    db_session,
+                    "envelope-123",
+                    "recipient-completed",
+                    _recipient_payload(rid, "completed"),
+                )
 
-                result = WebhookProcessor.process_webhook(webhook_data)
+                WebhookProcessor.process_envelope_event(event_id)
 
-                assert result["success"] is True
-                updated_participant = AgreementParticipant.query.get(participant.id)
-                assert updated_participant.status == "declined"
+                updated = AgreementParticipant.query.get(participant.id)
+                assert updated is not None
+                assert updated.recipient_status == "completed"
 
-    def test_webhook_verification(self, app: Flask):
-        """Test webhook HMAC verification"""
-        from app.services.docusign.webhooks.verification import verify_webhook_hmac
+                ev = DocusignConnectEvent.query.get(event_id)
+                assert ev is not None
+                assert ev.processed is True
 
-        with app.app_context():
-            webhook_body = '{"event":"envelope-completed"}'
-            hmac_signature = "valid_signature_123"
-
-            with patch("app.services.docusign.webhooks.verification.compute_hmac") as mock_compute:
-                mock_compute.return_value = hmac_signature
-
-                result = verify_webhook_hmac(webhook_body, hmac_signature)
-                assert result is True
-
-    def test_webhook_verification_invalid_signature(self, app: Flask):
-        """Test webhook with invalid HMAC signature"""
-        from app.services.docusign.webhooks.verification import verify_webhook_hmac
-
-        with app.app_context():
-            webhook_body = '{"event":"envelope-completed"}'
-            hmac_signature = "invalid_signature"
-
-            with patch("app.services.docusign.webhooks.verification.compute_hmac") as mock_compute:
-                mock_compute.return_value = "different_signature"
-
-                result = verify_webhook_hmac(webhook_body, hmac_signature)
-                assert result is False
-
-    def test_process_webhook_idempotency(self, app: Flask, db_session, sample_agreement):
-        """Test webhook processing is idempotent"""
-        from app.models import Agreement
+    def test_process_recipient_declined_webhook(self, app: Flask, db_session, sample_agreement):
+        from app.models import Agreement, AgreementParticipant
         from app.services.docusign.webhooks.processor import WebhookProcessor
 
         with app.app_context():
-            with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
-                agreement = Agreement(**sample_agreement)
-                agreement.docusign_envelope_id = "envelope-123"
-                agreement.status = "sent"
-                db_session.add(agreement)
-                db_session.commit()
+            with patch.object(WebhookProcessor, "_send_lifecycle_messages"):
+                with patch(
+                    "app.services.documents.document_library_items.sync_agreement_library_item"
+                ):
+                    agreement = Agreement(**sample_agreement)
+                    agreement.docusign_envelope_id = "envelope-123"
+                    agreement.status = "sent"
+                    db_session.session.add(agreement)
 
-                webhook_data = {
-                    "event": "envelope-completed",
-                    "data": {
-                        "envelopeId": "envelope-123",
-                        "status": "completed",
-                        "completedDateTime": "2024-01-01T12:00:00Z",
-                    },
-                    "generatedDateTime": "2024-01-01T12:00:00Z",
-                }
+                    participant = AgreementParticipant(
+                        agreement_id=agreement.id,
+                        user_id="signer-123",
+                        email="signer@example.com",
+                        name="Signer User",
+                        role="signer",
+                        docusign_recipient_id="recipient-123",
+                    )
+                    db_session.session.add(participant)
+                    db_session.session.commit()
 
-                # Process same webhook twice
-                result1 = WebhookProcessor.process_webhook(webhook_data)
-                result2 = WebhookProcessor.process_webhook(webhook_data)
+                    rid = str(participant.id)
+                    event_id = self._store_event(
+                        db_session,
+                        "envelope-123",
+                        "recipient-declined",
+                        _recipient_payload(rid, "declined"),
+                    )
 
-                assert result1["success"] is True
-                assert result2["success"] is True
-                # Verify status is still completed (not changed)
-                updated = Agreement.query.get(agreement.id)
-                assert updated.status == "completed"
+                    WebhookProcessor.process_envelope_event(event_id)
 
-    def test_process_webhook_unknown_envelope(self, app: Flask, db_session):
-        """Test webhook for unknown envelope is handled gracefully"""
+                    updated = AgreementParticipant.query.get(participant.id)
+                    assert updated is not None
+                    assert updated.recipient_status == "declined"
+
+    def test_verify_hmac_accepts_matching_signature(self, app: Flask):
+        import hashlib
+        import hmac
+
+        from app.services.docusign.webhooks import verification
+
+        with app.app_context():
+            payload = '{"event":"envelope-completed"}'
+            secret = "unit-test-hmac-secret"
+            expected = hmac.new(
+                secret.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256
+            ).hexdigest()
+
+            with patch.object(verification.Config, "DOCUSIGN_USER_CONNECT_HMAC_SECRET", secret):
+                assert verification.verify_hmac(payload, expected) is True
+
+    def test_verify_hmac_rejects_mismatch(self, app: Flask):
+        from app.services.docusign.webhooks import verification
+
+        with app.app_context():
+            with patch.object(verification.Config, "DOCUSIGN_USER_CONNECT_HMAC_SECRET", "secret"):
+                assert verification.verify_hmac('{"a":1}', "deadbeef") is False
+
+    def test_process_envelope_event_idempotent(self, app: Flask, db_session, sample_agreement):
+        from app.models import Agreement, DocusignConnectEvent
         from app.services.docusign.webhooks.processor import WebhookProcessor
 
         with app.app_context():
-            webhook_data = {
-                "event": "envelope-completed",
-                "data": {
-                    "envelopeId": "unknown-envelope-456",
-                    "status": "completed",
-                },
-            }
+            with (
+                patch("app.services.docusign.webhooks.processor_helpers.enqueue_fetch_documents"),
+                patch(
+                    "app.services.transactions.checklist_signature_completion.sync_checklist_for_completed_agreement"
+                ),
+                patch.object(WebhookProcessor, "_send_lifecycle_messages"),
+            ):
+                with patch(
+                    "app.services.documents.document_library_items.sync_agreement_library_item"
+                ):
+                    agreement = Agreement(**sample_agreement)
+                    agreement.docusign_envelope_id = "envelope-123"
+                    agreement.status = "sent"
+                    db_session.session.add(agreement)
+                    db_session.session.commit()
 
-            result = WebhookProcessor.process_webhook(webhook_data)
+                    event_id = self._store_event(
+                        db_session, "envelope-123", "envelope-completed", _completed_payload()
+                    )
 
-            # Should not crash, but return error or skip
-            assert "success" in result or "error" in result
+                    WebhookProcessor.process_envelope_event(event_id)
+                    WebhookProcessor.process_envelope_event(event_id)
+
+                    updated = Agreement.query.get(agreement.id)
+                    assert updated is not None
+                    assert updated.status == "completed"
+
+                    ev = DocusignConnectEvent.query.get(event_id)
+                    assert ev is not None
+                    assert ev.processed is True
+
+    def test_process_envelope_event_unknown_envelope(self, app: Flask, db_session):
+        from app.models import DocusignConnectEvent
+        from app.services.docusign.webhooks.processor import WebhookProcessor
+
+        with app.app_context():
+            event_id = self._store_event(
+                db_session, "unknown-envelope-456", "envelope-completed", _completed_payload()
+            )
+
+            WebhookProcessor.process_envelope_event(event_id)
+
+            ev = DocusignConnectEvent.query.get(event_id)
+            assert ev is not None
+            assert ev.processing_error == "Agreement not found"

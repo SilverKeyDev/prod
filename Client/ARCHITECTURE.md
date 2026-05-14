@@ -388,22 +388,9 @@ test("loads user data", async () => {
 
 **Coverage target:** ≥80% for shared packages
 
-### E2E Tests (Playwright)
+### Browser E2E
 
-Located in `apps/web/tests/e2e/`:
-
-```typescript
-// apps/web/tests/e2e/auth.spec.ts
-import { test, expect } from "@playwright/test";
-
-test("user can log in", async ({ page }) => {
-  await page.goto("/login");
-  await page.fill('[name="email"]', "user@example.com");
-  // ...
-});
-```
-
-**Run:** `npm run test:e2e`
+There is **no** Playwright or Cypress suite in this repo. Use the QA runbooks under `documentation/client/qa/` for release verification. Optional **visual parity** scripts under `Client/scripts/visual-parity/` use the `playwright` package’s `chromium` launcher (`pnpm parity:web:*` from `Client/package.json`).
 
 See: `.cursor/rules/shared/testing-tiers.mdc`
 

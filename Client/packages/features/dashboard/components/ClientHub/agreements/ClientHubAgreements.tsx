@@ -6,9 +6,9 @@ import {
   useDocumentsDataIntegration,
   useSavedPageDocumentHandlers,
 } from "packages/features/documents";
+import { PdfModal } from "packages/features/documents/components/pdf/PdfModalBridge";
 import type { AgreementData } from "packages/ui/components/cards/agreement";
 import { AgreementCard } from "packages/ui/components/cards/agreement";
-import { PdfModal } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 

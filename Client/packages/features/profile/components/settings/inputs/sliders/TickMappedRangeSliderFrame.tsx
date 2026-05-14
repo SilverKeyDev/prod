@@ -19,9 +19,9 @@ export function TickMappedRangeSliderChrome({
   children,
 }: TickMappedRangeSliderChromeProps): React.ReactElement {
   return (
-    <Box className={`flex w-full flex-col ${className}`}>
-      <Box className="w-full max-w-xl">
-        <Box className="flex w-full flex-col gap-2">
+    <Box className={`flex w-full min-w-0 flex-col ${className}`}>
+      <Box className="w-full min-w-0 max-w-xl">
+        <Box className="flex w-full min-w-0 flex-col gap-2">
           {header}
           {children}
         </Box>
@@ -38,7 +38,7 @@ type RangeSliderTrackRootProps = {
 export function RangeSliderTrackRoot({ children }: RangeSliderTrackRootProps): React.ReactElement {
   return (
     <Box
-      className="sk-range-slider-root relative w-full justify-center"
+      className="sk-range-slider-root relative w-full min-w-0 max-w-full"
       style={{ height: RANGE_SLIDER_HIT_HEIGHT }}
     >
       {children}

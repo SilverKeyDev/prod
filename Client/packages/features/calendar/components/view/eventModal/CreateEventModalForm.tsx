@@ -1,9 +1,9 @@
 import type { ChangeEvent } from "react";
 
 import { Button, CancelButton, ClientSelector } from "packages/ui";
+import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 
-import BaseModal from "@/components/modals/BaseModal";
 import Label from "@/components/ui/text/Label.web";
 import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";

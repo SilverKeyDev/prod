@@ -1,8 +1,7 @@
 import { useCallback, useEffect } from "react";
 
+import type { SearchResult } from "packages/features/search/types";
 import { log, LOG_CATEGORIES } from "packages/logger";
-
-import type { SearchResult } from "@/features/search/types";
 
 export function useMarkerUpdates(params: {
   googleMapRef: React.MutableRefObject<google.maps.Map | null>;
@@ -14,22 +13,32 @@ export function useMarkerUpdates(params: {
   searchResults: SearchResult[];
   savedHomes: SearchResult[];
 }): { refreshMarkers: (_current?: SearchResult) => void } {
+  const {
+    googleMapRef,
+    activeTab,
+    currentPage,
+    hasSearched,
+    showPropertyModals,
+    searchResults,
+    savedHomes,
+  } = params;
+
   const refreshMarkers = useCallback(
     (_current?: SearchResult) => {
-      if (!params.googleMapRef.current) {
+      if (!googleMapRef.current) {
         log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map not available for marker refresh");
         return;
       }
     },
-    [params.googleMapRef]
+    [googleMapRef]
   );
 
   useEffect(() => {
-    if (!params.googleMapRef.current) return;
+    if (!googleMapRef.current) return;
 
-    if (params.hasSearched && params.showPropertyModals) {
-      const allData = params.activeTab === "results" ? params.searchResults : params.savedHomes;
-      const currentProperty = allData[params.currentPage];
+    if (hasSearched && showPropertyModals) {
+      const allData = activeTab === "results" ? searchResults : savedHomes;
+      const currentProperty = allData[currentPage];
       if (currentProperty) {
         refreshMarkers(currentProperty);
       } else {
@@ -38,15 +47,15 @@ export function useMarkerUpdates(params: {
     } else {
       refreshMarkers();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    params.activeTab,
-    params.currentPage,
-    params.hasSearched,
-    params.showPropertyModals,
-    params.searchResults,
-    params.savedHomes,
+    activeTab,
+    currentPage,
+    googleMapRef,
+    hasSearched,
     refreshMarkers,
+    savedHomes,
+    searchResults,
+    showPropertyModals,
   ]);
 
   return { refreshMarkers };
