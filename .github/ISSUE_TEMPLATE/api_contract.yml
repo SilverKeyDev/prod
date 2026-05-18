@@ -1,0 +1,89 @@
+name: API contract / OpenAPI
+description: Report client–server contract drift or OpenAPI sync failures
+title: "[API]: "
+labels: ["area:openapi", "type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The API contract lives in [`openapi/`](https://github.com/SilverKeyDev/prod/tree/main/openapi).
+        CI workflow: [`openapi-sync.yml`](https://github.com/SilverKeyDev/prod/blob/main/.github/workflows/openapi-sync.yml) (**OpenAPI Schema Sync**).
+
+        Edit `openapi/` only — never hand-edit `Client/packages/types/api.generated.ts` or `Server/app/schemas/generated.py`.
+
+  - type: input
+    id: endpoints
+    attributes:
+      label: Endpoint(s)
+      description: METHOD /path (one per line if multiple)
+      placeholder: GET /api/v1/users/{id}
+    validations:
+      required: true
+
+  - type: input
+    id: operation_id
+    attributes:
+      label: operationId (optional)
+      description: OpenAPI operationId if known
+      placeholder: getUserById
+
+  - type: textarea
+    id: client_symptom
+    attributes:
+      label: Client symptom
+      description: Type errors, wrong shapes, unexpected 4xx/5xx in UI
+    validations:
+      required: true
+
+  - type: textarea
+    id: server_symptom
+    attributes:
+      label: Server symptom
+      description: Validation errors, handler mismatch, pytest/contract test failures
+    validations:
+      required: true
+
+  - type: input
+    id: openapi_sync_run
+    attributes:
+      label: Did openapi-sync CI run? (optional)
+      description: Link to the GitHub Actions workflow run
+      placeholder: https://github.com/SilverKeyDev/prod/actions/runs/...
+
+  - type: dropdown
+    id: proposed_change
+    attributes:
+      label: Proposed change — additive or breaking?
+      options:
+        - additive
+        - breaking
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementer_context
+    attributes:
+      label: Context for implementers
+      description: Repo map, paths, environment, and verification already run
+      placeholder: |
+        ### Repo map (check what you touched)
+        - [ ] Client/apps/web — thin routes/layouts
+        - [ ] Client/apps/mobile — thin screens
+        - [ ] Client/packages/ — features, hooks, ui, store, utils
+        - [ ] Server/app/ — routes, services, models
+        - [ ] openapi/ — contract source (not generated files)
+        - [ ] .github/workflows/ — CI/deploy
+
+        ### Paths & symbols
+        - File paths (e.g. Client/packages/features/.../Foo.tsx)
+        - Related docs: documentation/... links
+
+        ### Environment
+        - local | staging | prod
+        - Branch / commit SHA
+
+        ### Verification already run
+        - Commands (e.g. cd Client && pnpm check, pytest Server/tests/...)
+        - Pass/fail + relevant output (no tokens, no PII)
+    validations:
+      required: true

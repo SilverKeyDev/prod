@@ -156,3 +156,5 @@ Regenerate: `make openapi` or `cd Client && pnpm generate:api-types`. Workflow: 
 ## AI assistants
 
 Start at [`AGENTS.md`](AGENTS.md) for commands, directory map, OpenAPI rules, and Cursor configuration.
+
+File bugs and requests via **GitHub Issues** — templates auto-load area, workspace, paths, and verification context for triagers and AI agents.
