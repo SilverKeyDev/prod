@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import threading
-from typing import Any
 
 from app.utils.cache.optional_redis_json_cache import _get_redis
 
@@ -19,7 +18,9 @@ def _use_testing_memory_store() -> bool:
     return os.getenv("TESTING", "").lower() == "true" and not os.getenv("REDIS_URL", "").strip()
 
 
-def register_task_owner(task_id: str, user_id: str, ttl_seconds: int = _DEFAULT_TTL_SECONDS) -> None:
+def register_task_owner(
+    task_id: str, user_id: str, ttl_seconds: int = _DEFAULT_TTL_SECONDS
+) -> None:
     """Record which user enqueued a Celery task (required before polling task-status)."""
     tid = str(task_id).strip()
     uid = str(user_id).strip()

@@ -1,7 +1,7 @@
 """
 Central OpenAI and Perplexity model IDs with optional env overrides.
 
-See Server/config/.env.example for variable names.
+See Server/.env.example for variable names.
 """
 
 from __future__ import annotations

@@ -4,7 +4,10 @@ from unittest.mock import Mock, patch
 
 import jwt as pyjwt
 
-from app.utils.security.celery_task_ownership import clear_task_owners_for_testing, register_task_owner
+from app.utils.security.celery_task_ownership import (
+    clear_task_owners_for_testing,
+    register_task_owner,
+)
 
 MOCK_JWT_USER = "app.services.auth.get_current_user"
 MOCK_JWT_TOKEN = pyjwt.encode(

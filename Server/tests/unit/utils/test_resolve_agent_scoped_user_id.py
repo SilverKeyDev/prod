@@ -24,9 +24,7 @@ class TestResolveAgentScopedUserId:
             is_agent=False,
         )
         db_session.session.add_all([agent, client_u])
-        db_session.session.add(
-            AgentConnections(agent_id=agent.id, client_id=client_u.id)
-        )
+        db_session.session.add(AgentConnections(agent_id=agent.id, client_id=client_u.id))
         db_session.session.commit()
 
         with patch(

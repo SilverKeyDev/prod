@@ -136,12 +136,12 @@ fi
 deploy_phase "END Redis health wait"
 
 # Merge app secrets from AWS Secrets Manager (EC2 instance role or host credentials).
-# Only secret ids declared in Server/config/.env.example as "# From secret: name ...", plus DB_SECRET_NAME.
+# Only secret ids declared in Server/.env.example as "# From secret: name ...", plus DB_SECRET_NAME.
 
 DEPLOY_ENV_EXAMPLE="$(mktemp)"
-if ! sudo docker run --rm --entrypoint cat "$IMAGE" /app/Server/config/.env.example >"$DEPLOY_ENV_EXAMPLE" 2>/dev/null \
+if ! sudo docker run --rm --entrypoint cat "$IMAGE" /app/Server/.env.example >"$DEPLOY_ENV_EXAMPLE" 2>/dev/null \
   || [ ! -s "$DEPLOY_ENV_EXAMPLE" ]; then
-  echo "ERROR: Could not read /app/Server/config/.env.example from $IMAGE (needed for required-key env validation)."
+  echo "ERROR: Could not read /app/Server/.env.example from $IMAGE (needed for required-key env validation)."
   rm -f "$DEPLOY_ENV_EXAMPLE"
   exit 1
 fi
