@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   REGION: us-east-2
   REPO: cre
   IMAGE_TAG: latest
@@ -15,25 +14,25 @@ jobs:
     timeout-minutes: 60
     concurrency:
       group: prod-deploy
-      cancel-in-progress: true
+      cancel-in-progress: false
     permissions:
       contents: read
       actions: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
 
       - name: Set up Docker Buildx (container driver)
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
         with:
           driver: docker-container
 
@@ -49,7 +48,7 @@ jobs:
           df -h
 
       - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@v2.1.2
 
       - name: Build & push to ECR
         env:

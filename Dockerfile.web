@@ -85,3 +85,27 @@
   # Start Flask with Gunicorn
   # --preload: load application once in master before forking workers (faster boot, less duplicate import work).
   CMD ["gunicorn", "--preload", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]
+
+  # ----------------------------
+  # Stage 3: Alembic migrations only (CI / db-migrate-main workflow)
+  # ----------------------------
+  FROM python:3.11-slim AS migrate
+
+  SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+  ENV PYTHONDONTWRITEBYTECODE=1
+  ENV PYTHONUNBUFFERED=1
+  ENV SILVERKEY_MIGRATE_ONLY=1
+  ENV FLASK_APP=run:app
+
+  WORKDIR /app/Server
+
+  COPY Server/requirements/migrate.txt ./requirements/migrate.txt
+  RUN pip install --upgrade pip setuptools wheel --quiet --disable-pip-version-check \
+   && pip install --no-cache-dir --prefer-binary -r requirements/migrate.txt --quiet --disable-pip-version-check \
+   && pip cache purge >/dev/null 2>&1 \
+   && rm -rf /tmp/* /var/tmp/* ~/.cache/pip
+
+  COPY Server/ .
+
+  CMD ["flask", "db", "upgrade"]

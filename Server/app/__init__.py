@@ -100,13 +100,7 @@ def create_app(config=None):
 
     # Initialize database within app context
     with app.app_context():
-        from .models import (  # noqa: F401
-            ChatHistory,
-            Document,
-            PropertyCache,
-            User,
-            UserClientSettings,
-        )
+        from . import models as _models  # noqa: F401 — register all ORM tables for Alembic/mappers
 
         # Production schema is owned by Alembic; skip create_all to avoid extra DDL round-trips at boot.
         if os.getenv("FLASK_ENV") == "production":
@@ -132,6 +126,16 @@ def create_app(config=None):
             ) from mapper_error
 
     _log_boot_phase("db_mappers_ready")
+
+    from .utils.migrate_mode import is_migrate_only
+
+    if is_migrate_only():
+        logger.info(
+            LOG_CATEGORIES["API"],
+            "SILVERKEY_MIGRATE_ONLY: skipping routes, CORS, and full env validation",
+        )
+        _log_boot_phase("migrate_only_ready")
+        return app
 
     # CORS Configuration with runtime origins list
     raw = os.getenv("CORS_ALLOWED_ORIGINS", "")

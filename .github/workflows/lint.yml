@@ -1,5 +1,6 @@
 # Single lint workflow: runs root script for client and server.
-# All linters are defined by scripts/run-all-linters.sh (Server: lint_*.py + lint_*.sh; Client: lint.d/*.sh + pnpm check).
+# scripts/run-all-linters.sh applies auto-fixes first (Client: pnpm run fix; Server: ruff --fix/format), then linters.
+# Linters: Server lint_*.py + lint_*.sh; Client lint.d/*.sh + pnpm check.
 # See .cursor/rules/shared/ci-gates.mdc for required gates.
 # Tests are run separately via test.yml workflow.
 name: Lint
@@ -12,24 +13,21 @@ on:
 permissions:
   contents: read
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   client-lint:
     name: Client (all linters)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 9
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: "pnpm"
@@ -47,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Hosted runners have limited disk; full requirements/runtime.txt still pulls torch + ML wheels (~multi-GB).
       - name: Free disk space

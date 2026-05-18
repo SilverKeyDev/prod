@@ -27,7 +27,9 @@ wheels/
 # Virtual Environment
 venv/
 ENV/
-cache/
+# Generic cache dirs (do not use bare `cache/` — it ignores any `cache/` package path)
+.cache/
+/cache/
 # IDE specific files
 .idea/
 *.swp

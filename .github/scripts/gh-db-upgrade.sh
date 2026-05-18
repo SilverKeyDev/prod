@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # gh-db-upgrade.sh — run Alembic migrations against prod DB from GitHub Actions.
-# Requires: aws CLI, docker, python3. Env: AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
-#           DB_URL_SECRET_ID (optional; default db_url). Run from repo root.
+# Requires: aws CLI, docker, python3. AWS creds for Secrets Manager; DATABASE_URL is
+# fetched from the secret named by DB_URL_SECRET_ID (default db_url). No other app env vars.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -79,21 +79,19 @@ export DB_SECRET_NAME
 DATABASE_URL="$(DB_SECRET_NAME="$DB_SECRET_NAME" AWS_REGION="$REGION" extract_database_url)"
 export DATABASE_URL
 
-echo "🔄 Building backend image for migrations (Dockerfile.web --target backend)..."
+echo "🔄 Building migration image (Dockerfile.web --target migrate)..."
 docker build \
   -f Dockerfile.web \
-  --target backend \
+  --target migrate \
   --platform linux/amd64 \
-  -t silverkey-backend-migrate:ci \
+  -t silverkey-db-migrate:ci \
   .
 
 echo "🔄 Running flask db upgrade..."
 docker run --rm \
   -e DATABASE_URL="$DATABASE_URL" \
-  -e SECRET_KEY="migration-cli-placeholder-not-for-serving-traffic" \
-  -e FLASK_APP=run:app \
-  -w /app/Server \
-  silverkey-backend-migrate:ci \
+  -e SILVERKEY_MIGRATE_ONLY=1 \
+  silverkey-db-migrate:ci \
   flask db upgrade
 
 echo "✅ Database migrations applied."

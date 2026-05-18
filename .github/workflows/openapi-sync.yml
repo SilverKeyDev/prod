@@ -24,19 +24,16 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   validate-openapi-spec:
     name: Validate OpenAPI Specification
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -54,10 +51,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -80,27 +77,37 @@ jobs:
         run: bash scripts/generate-pydantic-models.sh
 
       - name: Check for differences
+        env:
+          SYNC_FILE: Server/app/schemas/generated.py
         run: |
-          if ! git diff --exit-code Server/app/schemas/generated.py; then
-            echo "❌ Server schemas are out of sync with openapi.yaml"
-            echo ""
-            echo "To fix, run:"
-            echo "  cd Server && bash scripts/generate-pydantic-models.sh"
-            echo ""
-            echo "Then commit the changes to Server/app/schemas/generated.py"
-            exit 1
+          if git diff --exit-code "$SYNC_FILE"; then
+            exit 0
           fi
-          echo "✅ Server schemas are in sync with openapi.yaml"
+          echo "❌ Server schemas are out of sync with openapi.yaml"
+          echo ""
+          git diff --stat "$SYNC_FILE"
+          diff_lines=$(git diff "$SYNC_FILE" | wc -l | tr -d ' ')
+          git diff "$SYNC_FILE" | head -n 200
+          if [ "$diff_lines" -gt 200 ]; then
+            echo ""
+            echo "... diff truncated ($diff_lines lines; run locally for full output)"
+          fi
+          echo ""
+          echo "To fix, run:"
+          echo "  cd Server && bash scripts/generate-pydantic-models.sh"
+          echo ""
+          echo "Then commit the changes to $SYNC_FILE"
+          exit 1
 
   verify-client-types:
     name: Verify Client Types In Sync
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js for Redocly
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -111,12 +118,12 @@ jobs:
         run: redocly bundle openapi/openapi.yaml -o openapi.yaml
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 9
 
       - name: Setup Node.js with pnpm cache
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'pnpm'
@@ -131,17 +138,27 @@ jobs:
         run: pnpm generate:api-types
 
       - name: Check for differences
+        env:
+          SYNC_FILE: Client/packages/types/api.generated.ts
         run: |
-          if ! git diff --exit-code Client/packages/types/api.generated.ts; then
-            echo "❌ Client types are out of sync with openapi.yaml"
-            echo ""
-            echo "To fix, run:"
-            echo "  cd Client && pnpm generate:api-types"
-            echo ""
-            echo "Then commit the changes to Client/packages/types/api.generated.ts"
-            exit 1
+          if git diff --exit-code "$SYNC_FILE"; then
+            exit 0
           fi
-          echo "✅ Client types are in sync with openapi.yaml"
+          echo "❌ Client types are out of sync with openapi.yaml"
+          echo ""
+          git diff --stat "$SYNC_FILE"
+          diff_lines=$(git diff "$SYNC_FILE" | wc -l | tr -d ' ')
+          git diff "$SYNC_FILE" | head -n 200
+          if [ "$diff_lines" -gt 200 ]; then
+            echo ""
+            echo "... diff truncated ($diff_lines lines; run locally for full output)"
+          fi
+          echo ""
+          echo "To fix, run:"
+          echo "  cd Client && pnpm generate:api-types"
+          echo ""
+          echo "Then commit the changes to $SYNC_FILE"
+          exit 1
 
   summary:
     name: OpenAPI Sync Summary
@@ -151,15 +168,21 @@ jobs:
     steps:
       - name: Check status
         run: |
-          echo "Job results:"
-          echo "  validate-openapi-spec: ${{ needs.validate-openapi-spec.result }}"
-          echo "  verify-server-schemas: ${{ needs.verify-server-schemas.result }}"
-          echo "  verify-client-types: ${{ needs.verify-client-types.result }}"
-          echo ""
-          if [ "${{ needs.validate-openapi-spec.result }}" != "success" ] || \
-             [ "${{ needs.verify-server-schemas.result }}" != "success" ] || \
-             [ "${{ needs.verify-client-types.result }}" != "success" ]; then
-            echo "❌ OpenAPI validation failed (inspect the non-success job above for logs)."
+          failed=0
+          if [ "${{ needs.validate-openapi-spec.result }}" != "success" ]; then
+            echo "❌ validate-openapi-spec: ${{ needs.validate-openapi-spec.result }}"
+            failed=1
+          fi
+          if [ "${{ needs.verify-server-schemas.result }}" != "success" ]; then
+            echo "❌ verify-server-schemas: ${{ needs.verify-server-schemas.result }}"
+            failed=1
+          fi
+          if [ "${{ needs.verify-client-types.result }}" != "success" ]; then
+            echo "❌ verify-client-types: ${{ needs.verify-client-types.result }}"
+            failed=1
+          fi
+          if [ "$failed" -ne 0 ]; then
+            echo ""
+            echo "See the failed job logs above for out-of-sync diffs and fix commands."
             exit 1
           fi
-          echo "✅ All OpenAPI checks passed"

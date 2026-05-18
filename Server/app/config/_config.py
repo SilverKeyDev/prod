@@ -65,6 +65,12 @@ def _is_testing_env() -> bool:
     return os.getenv("TESTING", "").lower() in ("true", "1", "yes")
 
 
+def _is_migrate_only_env() -> bool:
+    from app.utils.migrate_mode import is_migrate_only
+
+    return is_migrate_only()
+
+
 class Config:
     # Celery Configuration
     # Use environment variable or detect based on FLASK_ENV
@@ -88,8 +94,8 @@ class Config:
         "SECRET_KEY"
     )
     if not _secret_key:
-        if _is_testing_env():
-            _secret_key = "test-secret-key-not-for-production"
+        if _is_testing_env() or _is_migrate_only_env():
+            _secret_key = "migrate-only-placeholder-not-for-serving-traffic"
         else:
             raise RuntimeError(
                 "SECRET_KEY or AWS_SECRET_ACCESS_KEY environment variable must be set"

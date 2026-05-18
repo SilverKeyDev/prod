@@ -12,8 +12,21 @@ cd "$REPO_ROOT"
 
 SCOPE="${1:-all}"
 
-is_ci() {
-  [ "${CI:-}" = "true" ]
+apply_client_fixes() {
+  echo "==> Client: applying fixes (format, lint --fix)..."
+  (cd Client && pnpm run fix) || true
+}
+
+apply_server_fixes() {
+  local server_python="$1"
+  echo "==> Server: applying fixes (ruff check --fix, ruff format)..."
+  if (cd "${REPO_ROOT}/Server" && "$server_python" -m ruff --version >/dev/null 2>&1); then
+    (cd "${REPO_ROOT}/Server" && "$server_python" -m ruff check . --fix && "$server_python" -m ruff format .)
+  elif command -v ruff >/dev/null 2>&1; then
+    (cd "${REPO_ROOT}/Server" && ruff check . --fix && ruff format .)
+  else
+    echo "==> Server: ruff not found (try: cd Server && source .venv/bin/activate && pip install ruff); skipping auto-fix." >&2
+  fi
 }
 
 run_client() {
@@ -24,12 +37,7 @@ run_client() {
   fi
   export PATH="${CLIENT_BIN}:${PATH}"
 
-  if is_ci; then
-    echo "==> Client: CI mode detected; skipping auto-fix steps."
-  else
-    echo "==> Client: applying fixes (format, lint --fix)..."
-    (cd Client && pnpm run fix) || true
-  fi
+  apply_client_fixes
 
   echo "==> Client: running Client/scripts/run-client-linters.sh (discovered lint.d/*.sh + pnpm check)..."
   (cd Client && bash scripts/run-client-linters.sh)
@@ -44,18 +52,7 @@ run_server() {
     SERVER_PYTHON="${REPO_ROOT}/Server/venv/bin/python3"
   fi
 
-  if is_ci; then
-    echo "==> Server: CI mode detected; skipping auto-fix steps."
-  else
-    echo "==> Server: applying fixes (ruff check --fix, ruff format)..."
-    if (cd "${REPO_ROOT}/Server" && "$SERVER_PYTHON" -m ruff --version >/dev/null 2>&1); then
-      (cd "${REPO_ROOT}/Server" && "$SERVER_PYTHON" -m ruff check . --fix && "$SERVER_PYTHON" -m ruff format .)
-    elif command -v ruff >/dev/null 2>&1; then
-      (cd "${REPO_ROOT}/Server" && ruff check . --fix && ruff format .)
-    else
-      echo "==> Server: ruff not found (try: cd Server && source .venv/bin/activate && pip install ruff); skipping auto-fix." >&2
-    fi
-  fi
+  apply_server_fixes "$SERVER_PYTHON"
 
   echo "==> Server: running discovered linters (scripts/lint/lint_*.py, then lint_*.sh)…"
   (

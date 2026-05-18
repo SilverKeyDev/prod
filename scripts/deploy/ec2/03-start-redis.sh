@@ -7,7 +7,13 @@ set -euo pipefail
 [ -f /tmp/ec2-deploy.env ] && . /tmp/ec2-deploy.env
 NETWORK_NAME="${NETWORK_NAME:-cre_network}"
 
-echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') Step 3: Starting Redis..."
+echo "$(date -u +'%Y-%m-%dT%H:%M:%SZ') Step 3: Replacing running stack and starting Redis..."
+
+for name in cre_app cre_worker redis; do
+  sudo docker rm -f "$name" >/dev/null 2>&1 || true
+done
+sudo docker network rm "$NETWORK_NAME" >/dev/null 2>&1 || true
+sudo docker network create "$NETWORK_NAME" >/dev/null 2>&1
 
 sudo docker run -d \
   --name redis \

@@ -117,6 +117,14 @@ def validate_and_raise() -> None:
     Required variables are loaded from .env.example file.
     This should be called at application startup.
     """
+    from app.utils.migrate_mode import is_migrate_only
+
+    if is_migrate_only():
+        logger.info(
+            "Skipping .env.example validation (SILVERKEY_MIGRATE_ONLY); migrations need DATABASE_URL only"
+        )
+        return
+
     is_valid, missing_vars = validate_environment()
 
     if not is_valid:
