@@ -14,7 +14,7 @@ PYTEST_ARGS ?=
 	dev dev-web dev-backend \
 	pre-commit precommit \
 	lint lint-all lint-client lint-server \
-	typecheck check-client openapi generate-api \
+	typecheck check-client openapi openapi-verify generate-api \
 	format-client format-check mobile
 
 help:
@@ -36,7 +36,8 @@ help:
 	@echo "  make lint-server      ./scripts/run-all-linters.sh server"
 	@echo "  make typecheck        cd Client && pnpm typecheck"
 	@echo "  make check-client     cd Client && pnpm check"
-	@echo "  make openapi          cd Client && pnpm generate:api-types"
+	@echo "  make openapi          Regenerate client + server types from openapi/ (bundle + codegen)"
+	@echo "  make openapi-verify   Regenerate, fail if git drift, run contract tests + typecheck"
 	@echo "  make format-client    cd Client && pnpm format"
 	@echo "  make format-check     cd Client && pnpm format:check"
 	@echo "  make mobile           cd Client && pnpm dev:mobile"
@@ -105,8 +106,14 @@ typecheck:
 check-client:
 	cd "$(ROOT)/Client" && pnpm check
 
-openapi generate-api:
-	cd "$(ROOT)/Client" && pnpm generate:api-types
+openapi:
+	npm run openapi:generate --prefix "$(ROOT)"
+
+openapi-verify:
+	bash "$(ROOT)/scripts/sync-openapi.sh"
+
+# Back-compat alias
+generate-api: openapi
 
 format-client:
 	cd "$(ROOT)/Client" && pnpm format

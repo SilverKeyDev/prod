@@ -142,7 +142,7 @@ Edit **`openapi/`** only; regenerate types instead of editing:
 - `Client/packages/types/api.generated.ts`
 - `Server/app/schemas/generated.py`
 
-Regenerate: `make openapi` or `cd Client && pnpm generate:api-types`. Workflow: [`.cursor/rules/shared/openapi-workflow.mdc`](.cursor/rules/shared/openapi-workflow.mdc).
+Regenerate: `make openapi` (bundle + server + client) or `cd Client && pnpm generate:api-types`. Before a PR: `make openapi-verify` (regenerates, checks git drift, contract tests, typecheck). Workflow: [`.cursor/rules/shared/openapi-workflow.mdc`](.cursor/rules/shared/openapi-workflow.mdc).
 
 ---
 

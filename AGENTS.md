@@ -108,3 +108,4 @@ Index: [documentation/server/README.md](./documentation/server/README.md). OpenA
 | Client      | `cd Client && pnpm typecheck && pnpm lint && pnpm lint:cycles && pnpm format:check` |
 | Client full | `cd Client && pnpm check`                                                           |
 | Repo-wide   | `./scripts/run-all-linters.sh all`                                                  |
+| OpenAPI sync | `make openapi` then commit generated files; `make openapi-verify` before PR        |
