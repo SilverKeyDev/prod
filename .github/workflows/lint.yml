@@ -71,7 +71,9 @@ jobs:
           python -m venv .venv
           .venv/bin/pip install --no-cache-dir -r requirements/lint.txt
 
+      # Prepend venv on the shell PATH (not env.PATH — that expression is often empty and
+      # would hide /usr/bin, breaking #!/usr/bin/env bash for run-all-linters.sh).
       - name: Run all server linters (root script)
-        env:
-          PATH: ${{ github.workspace }}/Server/.venv/bin:${{ env.PATH }}
-        run: ./scripts/run-all-linters.sh server
+        run: |
+          export PATH="${{ github.workspace }}/Server/.venv/bin:$PATH"
+          ./scripts/run-all-linters.sh server

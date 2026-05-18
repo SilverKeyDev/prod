@@ -89,6 +89,9 @@ jobs:
       # Full suite includes Server/tests/contract (OpenAPI ↔ Pydantic response checks).
       - name: Run tests with coverage
         working-directory: Server
+        env:
+          TESTING: "true"
+          APP_LOG_LEVEL: ERROR
         run: pytest
 
       - name: Check module-specific coverage thresholds

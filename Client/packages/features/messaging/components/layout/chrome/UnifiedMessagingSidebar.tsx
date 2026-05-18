@@ -15,9 +15,12 @@ import {
 } from "packages/ui/components/sidebar/sidebarTheme";
 
 import { BodyText, Button, KeyTurnLoader, Title } from "@/components/ui";
-import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
+import {
+  getMessagingConfig,
+  type MessagingMode,
+} from "@/features/agent/components/messaging/screen/messagingConfig";
 import { ConnectionRequestsInbox } from "@/features/agent/components/modals/inbox/ConnectionRequestsInbox";
-import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
+import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";
 import {
   agentClientKindTranslationKey,
   pipelineStageTranslationKey,
@@ -31,6 +34,7 @@ import { MessagingSidebarAvatar } from "./unifiedMessagingSidebar/MessagingSideb
 import { compareConversationsByRecency } from "./unifiedMessagingSidebar/unifiedMessagingSidebarModel";
 
 type UnifiedMessagingSidebarProps = {
+  mode: MessagingMode;
   isSidebarExpanded: boolean;
   setIsSidebarExpanded: (expanded: boolean) => void;
   showInbox: boolean;

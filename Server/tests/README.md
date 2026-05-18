@@ -12,6 +12,14 @@ This test suite provides comprehensive coverage for:
 4. **API Endpoints** - Auth routes, DocuSign routes, Calendar routes
 5. **Home Matching** - MCDA scoring algorithms, blend scores
 
+## Environment variables
+
+**You do not need a production `.env` or secrets from `Server/.env.example` to run pytest.**
+
+`tests/conftest.py` sets `TESTING=true` and a small set of stubs (`DATABASE_URL`, `JWT_SIGNING_SECRET`, Cognito pool/client ids for import-time reads). The app skips full `.env.example` validation in test mode. External services (Cognito, DocuSign, Google Calendar, etc.) are mocked in fixtures — use those instead of real API keys.
+
+To exercise real third-party APIs, run optional manual/integration checks locally with your own `.env`; that is outside the default CI suite.
+
 ## Setup
 
 ### Install Dependencies

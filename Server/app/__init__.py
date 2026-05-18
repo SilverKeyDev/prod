@@ -183,10 +183,15 @@ def create_app(config=None):
 
     try:
         validate_and_raise()  # Raises RuntimeError if required vars are missing
-        api_status = check_api_keys()
-        missing_apis = [name for name, status in api_status.items() if not status]
-        if missing_apis:
-            logger.warn(LOG_CATEGORIES["SECURITY"], f"Missing API keys: {', '.join(missing_apis)}")
+        from app.utils.testing_mode import is_testing
+
+        if not is_testing():
+            api_status = check_api_keys()
+            missing_apis = [name for name, status in api_status.items() if not status]
+            if missing_apis:
+                logger.warn(
+                    LOG_CATEGORIES["SECURITY"], f"Missing API keys: {', '.join(missing_apis)}"
+                )
     except RuntimeError:
         # Re-raise RuntimeError from config validation (critical)
         raise

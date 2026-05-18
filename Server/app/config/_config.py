@@ -62,7 +62,9 @@ def _optional_stripped_env(var_name: str) -> str | None:
 
 
 def _is_testing_env() -> bool:
-    return os.getenv("TESTING", "").lower() in ("true", "1", "yes")
+    from app.utils.testing_mode import is_testing
+
+    return is_testing()
 
 
 def _is_migrate_only_env() -> bool:

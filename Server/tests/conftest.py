@@ -1,5 +1,9 @@
 """
-Pytest configuration and shared fixtures for Server tests
+Pytest configuration and shared fixtures for Server tests.
+
+No production .env or secrets from .env.example are required. tests/conftest.py sets
+minimal stubs; external APIs are mocked via fixtures below. validate_and_raise() is
+skipped when TESTING=true (see app/utils/testing_mode.py).
 """
 
 import os
@@ -12,13 +16,19 @@ import pytest
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
-# Set test environment before importing app
-os.environ["TESTING"] = "true"
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
-os.environ.setdefault("JWT_SIGNING_SECRET", "test-jwt-signing-secret-not-for-production")
-# verification.py reads Cognito env at import time; CI does not inject real pool/client IDs.
-os.environ.setdefault("AWS_COGNITO_USER_POOL_ID", "us-east-2_pytestStubPoolId")
-os.environ.setdefault("AWS_COGNITO_CLIENT_ID", "pytest-stub-cognito-client-id")
+
+def _apply_minimal_test_env() -> None:
+    """Stub env for pytest/CI only — not real credentials."""
+    os.environ["TESTING"] = "true"
+    os.environ.setdefault("APP_LOG_LEVEL", "ERROR")
+    os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+    os.environ.setdefault("JWT_SIGNING_SECRET", "test-jwt-signing-secret-not-for-production")
+    # Auth modules read Cognito ids at import time; values are never sent to AWS in unit tests.
+    os.environ.setdefault("AWS_COGNITO_USER_POOL_ID", "us-east-2_pytestStubPoolId")
+    os.environ.setdefault("AWS_COGNITO_CLIENT_ID", "pytest-stub-cognito-client-id")
+
+
+_apply_minimal_test_env()
 
 
 @pytest.fixture

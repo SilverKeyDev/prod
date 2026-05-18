@@ -66,7 +66,7 @@ test-fe test-frontend:
 	cd "$(ROOT)/Client" && pnpm test:run
 
 test-be test-backend:
-	cd "$(ROOT)/Server" && . .venv/bin/activate && pytest $(PYTEST_ARGS)
+	cd "$(ROOT)/Server" && . .venv/bin/activate && TESTING=true APP_LOG_LEVEL=ERROR pytest $(PYTEST_ARGS)
 
 dev:
 	bash "$(ROOT)/scripts/run/run-web.sh"

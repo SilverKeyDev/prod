@@ -118,10 +118,17 @@ def validate_and_raise() -> None:
     This should be called at application startup.
     """
     from app.utils.migrate_mode import is_migrate_only
+    from app.utils.testing_mode import is_testing
 
     if is_migrate_only():
         logger.info(
             "Skipping .env.example validation (SILVERKEY_MIGRATE_ONLY); migrations need DATABASE_URL only"
+        )
+        return
+
+    if is_testing():
+        logger.info(
+            "Skipping .env.example validation (TESTING); pytest uses stubs in tests/conftest.py"
         )
         return
 
