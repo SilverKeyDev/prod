@@ -1,33 +1,7 @@
 #!/usr/bin/env bash
-# Resilient wrapper: run pre-commit on push when available; otherwise warn and allow.
-# Enable for this clone: git config core.hooksPath scripts/githooks
-set -u
-
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
-cd "$REPO_ROOT" || exit 0
-
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-push --hook-dir "$HERE" -- "$@")
-
-for pc in "$REPO_ROOT/Server/.venv/bin/pre-commit" "$REPO_ROOT/Server/venv/bin/pre-commit"; do
-  if [ -x "$pc" ]; then
-    exec "$pc" "${ARGS[@]}"
-  fi
-done
-
-for py in "$REPO_ROOT/Server/.venv/bin/python3" "$REPO_ROOT/Server/.venv/bin/python"; do
-  if [ -x "$py" ] && "$py" -m pre_commit version >/dev/null 2>&1; then
-    exec "$py" -m pre_commit "${ARGS[@]}"
-  fi
-done
-
-if command -v pre-commit >/dev/null 2>&1; then
-  exec pre-commit "${ARGS[@]}"
-fi
-
-if python3 -m pre_commit version >/dev/null 2>&1; then
-  exec python3 -m pre_commit "${ARGS[@]}"
-fi
-
-echo "warning: pre-commit not found; skipping push hooks. To enable: install pre-commit in Server/.venv or on PATH, then ensure git config core.hooksPath scripts/githooks" >&2
+# Format/lint hooks run on commit only (scripts/githooks/pre-commit → .pre-commit-config.yaml).
+# Pre-push intentionally does not re-run pre-commit: push would fail after mutating files
+# (e.g. end-of-file-fixer) that were already fixed at commit time.
+#
+# Enable commit hooks for this clone: git config core.hooksPath scripts/githooks
 exit 0

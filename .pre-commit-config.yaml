@@ -4,7 +4,7 @@
 # Install:
 #   pip install pre-commit
 #   pre-commit install --hook-type pre-commit
-# Optional: pre-commit install --hook-type pre-push  # also check before pushing
+# Hooks run on commit only (not on push). See scripts/githooks/pre-push.
 #
 # Resilient hooks (skip if pre-commit missing): git config core.hooksPath scripts/githooks
 # Run manually: pre-commit run --all-files
