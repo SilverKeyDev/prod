@@ -1,4 +1,5 @@
 import type { IconName } from "packages/ui/types/icons";
+import type { Workspace } from "packages/utils/workspace";
 
 import { SIDEBAR_TABS } from "./sidebarTabs.web";
 
@@ -77,43 +78,23 @@ const navigationStructure: NavigationStructure = {
 /**
  * Build navigation structure for sidebar. Messaging is always available for all users.
  * Profile is hidden on mobile.
+ * `activeWorkspace` drives which top-level areas appear (e.g. brokerage workspace omits consumer search).
  */
-export function getNavigation(
-  _isAgent: boolean,
-  _hasAgent: boolean,
-  isMobile: boolean
-): NavigationStructure {
+export function getNavigation(activeWorkspace: Workspace, isMobile: boolean): NavigationStructure {
   const navigation: NavigationStructure = {};
+  const isBrokerageWorkspace = activeWorkspace === "brokerage";
 
-  navigation.dashboard = {
-    name: navigationStructure.dashboard.name,
-    icon: navigationStructure.dashboard.icon,
-    items: [...navigationStructure.dashboard.items],
-  };
+  navigation.dashboard = { ...navigationStructure.dashboard };
 
-  navigation.search = {
-    name: navigationStructure.search.name,
-    icon: navigationStructure.search.icon,
-    items: [...navigationStructure.search.items],
-  };
-  navigation.decide = {
-    name: navigationStructure.decide.name,
-    icon: navigationStructure.decide.icon,
-    items: [...navigationStructure.decide.items],
-  };
+  if (!isBrokerageWorkspace) {
+    navigation.search = { ...navigationStructure.search };
+    navigation.decide = { ...navigationStructure.decide };
+  }
 
-  navigation.agent = {
-    name: navigationStructure.agent.name,
-    icon: navigationStructure.agent.icon,
-    items: [...navigationStructure.agent.items],
-  };
+  navigation.agent = { ...navigationStructure.agent };
 
   if (!isMobile) {
-    navigation.profile = {
-      name: navigationStructure.profile.name,
-      icon: navigationStructure.profile.icon,
-      items: [...navigationStructure.profile.items],
-    };
+    navigation.profile = { ...navigationStructure.profile };
   }
 
   return navigation;

@@ -10,7 +10,7 @@ import { MessagingScreenNativeComposer } from "packages/features/agent/component
 import { MessagingScreenNativeHeader } from "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeHeader.native";
 import { MessagingScreenNativeMessageList } from "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeMessageList.native";
 import { MessagingScreenNativeOverlays } from "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeOverlays.native";
-import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
+import { useAgentClients } from "packages/features/agent/hooks/data/clients/useAgentClients";
 import { useDocumentActions, useDocumentsDataIntegration } from "packages/features/documents";
 import { useIsAgent } from "packages/features/homeauth";
 import { useAgentChats, useMessaging } from "packages/features/messaging";
@@ -18,7 +18,6 @@ import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { showErrorToast, useMessagingHandlers } from "packages/hooks/ui";
 import { useAuthStore } from "packages/store";
 
-import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import { useAgentAutoSelectClient } from "@/features/agent/hooks/ui/useAgentAutoSelectClient";
 import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/types";
 import { resolvePrimaryAgentId } from "@/features/messaging/utils";
@@ -135,7 +134,6 @@ export function MessagingScreenNative() {
   const config = useMemo(() => getMessagingConfig(isAgent ? "agent" : "client"), [isAgent]);
 
   const [inputText, setInputText] = useState("");
-  const [inboxMode, setInboxMode] = useState<"conversations" | "requests">("conversations");
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showSelectHomeModal, setShowSelectHomeModal] = useState(false);
   const [showSelectDocumentModal, setShowSelectDocumentModal] = useState(false);
@@ -143,13 +141,6 @@ export function MessagingScreenNative() {
   const [acceptingEventRequestId, setAcceptingEventRequestId] = useState<string | null>(null);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const listRef = useRef<FlatList<ChatMessage>>(null);
-
-  const {
-    requests,
-    isLoading: isLoadingRequests,
-    respondToRequest,
-    isResponding,
-  } = useConnectionRequests();
 
   const clientHandlers = useMessagingHandlers({
     mode: "client",
@@ -250,15 +241,9 @@ export function MessagingScreenNative() {
       <MessagingAgentListSubview
         config={config}
         clients={clients}
-        requests={requests}
         isLoadingClients={isLoadingClients}
-        isLoadingRequests={isLoadingRequests}
-        isResponding={isResponding}
-        respondToRequest={respondToRequest}
         refreshChats={refreshChats}
         setSelectedClientId={setSelectedClientId}
-        inboxMode={inboxMode}
-        setInboxMode={setInboxMode}
         conversationMap={conversationMap}
         listContentStyle={styles.listContent}
         centeredStyle={styles.centered}

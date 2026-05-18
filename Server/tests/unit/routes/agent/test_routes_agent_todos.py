@@ -27,7 +27,7 @@ class TestAgentTodosRoutes:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.todos.get_agent_todos") as mock_get_todos:
@@ -71,7 +71,7 @@ class TestAgentTodosRoutes:
         db_session.session.add(user)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = user
 
             with patch("app.routes.agent.handlers.todos.get_client_todos") as mock_get_todos:
@@ -112,7 +112,7 @@ class TestAgentTodosRoutes:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.todos.get_agent_todos") as mock_get_todos:
@@ -156,7 +156,7 @@ class TestAgentTodosRoutes:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.todos.create_todo") as mock_create:
@@ -204,7 +204,7 @@ class TestAgentTodosRoutes:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             response = client.post(
@@ -229,7 +229,7 @@ class TestAgentTodosRoutes:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             response = client.post(
@@ -258,7 +258,7 @@ class TestAgentTodosRoutes:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.todos.update_todo") as mock_update:
@@ -297,7 +297,7 @@ class TestAgentTodosRoutes:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.todos.update_todo") as mock_update:
@@ -323,7 +323,7 @@ class TestAgentTodosRoutes:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.todos.delete_todo") as mock_delete:
@@ -350,7 +350,7 @@ class TestAgentTodosRoutes:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.todos.delete_todo") as mock_delete:

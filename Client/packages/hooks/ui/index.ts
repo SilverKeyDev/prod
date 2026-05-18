@@ -22,12 +22,12 @@ export { useSavedPageModals } from "../../features/documents/hooks/ui";
 
 // Auth
 export { formatTimeRemaining, useSessionTimeout } from "../../features/homeauth/hooks/ui";
-export { useLocalStorage, type UseLocalStorageReturn } from "../../features/homeauth/hooks/ui";
 export {
   checkStepUpRequired,
   useStepUpAuth,
   withStepUpAuth,
 } from "../../features/homeauth/hooks/ui";
+export { useLocalStorage, type UseLocalStorageReturn } from "./useLocalStorage";
 
 // Toast
 export {

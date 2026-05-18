@@ -2,6 +2,7 @@
 
 from flask import jsonify, request
 
+from app.dtos.agreement import AgreementDTO
 from app.models import Agreement
 from app.schemas import CreateAgreementRequest, CreateAgreementResponse
 from app.services.auth import get_current_user
@@ -13,6 +14,12 @@ from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, get_logger
 
 log = get_logger()
+
+
+def _agreement_payload(agreement: Agreement, *, include_relationships: bool = False) -> dict:
+    return AgreementDTO.from_orm(agreement, include_relationships=include_relationships).model_dump(
+        mode="json"
+    )
 
 
 def register_crud_routes(bp):
@@ -77,7 +84,10 @@ def register_crud_routes(bp):
                 },
             )
             return jsonify(
-                {"success": True, "agreement": agreement.to_dict(include_relationships=True)}
+                {
+                    "success": True,
+                    "agreement": _agreement_payload(agreement, include_relationships=True),
+                }
             ), 201
         except Exception as e:
             log.error(LOG_CATEGORIES["ERRORS"], "Failed to create agreement", {"error": str(e)})
@@ -114,7 +124,10 @@ def register_crud_routes(bp):
                 {"agreement_id": agreement_id, "user_id": user.id, "status": agreement.status},
             )
             return jsonify(
-                {"success": True, "agreement": agreement.to_dict(include_relationships=True)}
+                {
+                    "success": True,
+                    "agreement": _agreement_payload(agreement, include_relationships=True),
+                }
             ), 200
         except Exception as e:
             log.error(
@@ -170,7 +183,7 @@ def register_crud_routes(bp):
                 jsonify(
                     {
                         "success": True,
-                        "agreements": [a.to_dict() for a in agreements],
+                        "agreements": [_agreement_payload(a) for a in agreements],
                         "pagination": {
                             "limit": limit,
                             "offset": offset,

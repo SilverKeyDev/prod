@@ -106,6 +106,46 @@ class McdaScoreTests(unittest.TestCase):
         self.assertGreaterEqual(s, 1.0)
         self.assertLessEqual(s, 99.0)
 
+    def test_empty_preferences_still_differentiate_listings(self) -> None:
+        """Without user prefs, objective signals must not collapse every listing to one score."""
+        cheap_small = {
+            "zpid": "a",
+            "price": 180_000,
+            "bedrooms": 2,
+            "bathrooms": 1,
+            "sqft": 950,
+            "homeType": "CONDO",
+            "daysOnMarket": 120,
+        }
+        spacious = {
+            "zpid": "b",
+            "price": 520_000,
+            "bedrooms": 4,
+            "bathrooms": 2.5,
+            "sqft": 2800,
+            "homeType": "SINGLE_FAMILY",
+            "daysOnMarket": 8,
+            "features": {"garage": "2-car", "pool": "yes", "deck": "yes"},
+        }
+        s_small = score_listing_mcda({}, cheap_small)
+        s_big = score_listing_mcda({}, spacious)
+        self.assertNotEqual(s_small, s_big)
+        self.assertGreater(s_big, s_small)
+
+    def test_preference_match_spreads_more_than_objective_only(self) -> None:
+        """Full preferences should separate good vs poor fits more than empty prefs."""
+        good = dict(self.base_listing)
+        poor = dict(self.base_listing)
+        poor["price"] = 1_350_000
+        poor["bedrooms"] = 1
+        poor["homeType"] = "CONDO"
+
+        empty_gap = score_listing_mcda({}, good) - score_listing_mcda({}, poor)
+        pref_gap = score_listing_mcda(self.base_prefs, good) - score_listing_mcda(
+            self.base_prefs, poor
+        )
+        self.assertGreater(abs(pref_gap), abs(empty_gap))
+
 
 if __name__ == "__main__":
     unittest.main()

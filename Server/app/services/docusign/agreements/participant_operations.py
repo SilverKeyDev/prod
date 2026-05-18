@@ -4,6 +4,7 @@ Agreement participant operations: add, remove, update, and sync participants.
 
 from app import db
 from app.models import Agreement, AgreementParticipant, User
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, get_logger
 
 from ..errors import AgreementStateError
@@ -24,7 +25,7 @@ def sync_signer_participant(agreement: Agreement, participant_user_id: str, acto
     if participant_user_id == actor_id:
         raise AgreementStateError("Signer must be different from the sending agent")
 
-    participant_user = User.query.get(participant_user_id)
+    participant_user = get_model(User, participant_user_id)
     if not participant_user:
         raise AgreementStateError(f"Selected participant {participant_user_id} not found")
 
@@ -117,7 +118,7 @@ def add_participant(
             f"Cannot add participants to agreement with status: {agreement.status}"
         )
 
-    participant_user = User.query.get(user_id)
+    participant_user = get_model(User, user_id)
     if not participant_user:
         raise AgreementStateError(f"User {user_id} not found")
 
@@ -207,7 +208,7 @@ def remove_participant(agreement_id: str, participant_id: str) -> None:
             f"Cannot remove participants from agreement with status: {agreement.status}"
         )
 
-    participant = AgreementParticipant.query.get(participant_id)
+    participant = get_model(AgreementParticipant, participant_id)
     if not participant or participant.agreement_id != agreement_id:
         raise AgreementStateError(f"Participant {participant_id} not found in agreement")
 
@@ -260,7 +261,7 @@ def update_participant_routing_order(
             f"Cannot update participants in agreement with status: {agreement.status}"
         )
 
-    participant = AgreementParticipant.query.get(participant_id)
+    participant = get_model(AgreementParticipant, participant_id)
     if not participant or participant.agreement_id != agreement_id:
         raise AgreementStateError(f"Participant {participant_id} not found in agreement")
 

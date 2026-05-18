@@ -13,13 +13,25 @@ export type ChecklistStepSubmitRegistration = {
 type ChecklistStepSubmitContextValue = {
   registration: ChecklistStepSubmitRegistration | null;
   setRegistration: (value: ChecklistStepSubmitRegistration | null) => void;
+  /** When false, integration submit is disabled (checklist progress rules). */
+  markCompleteEligible: boolean;
 };
 
 const ChecklistStepSubmitContext = createContext<ChecklistStepSubmitContextValue | null>(null);
 
-export function ChecklistStepSubmitProvider({ children }: { children: ReactNode }) {
+export function ChecklistStepSubmitProvider({
+  children,
+  markCompleteEligible = true,
+}: {
+  children: ReactNode;
+  /** False when the step cannot be marked complete yet (`selectable_when` gates). */
+  markCompleteEligible?: boolean;
+}) {
   const [registration, setRegistration] = useState<ChecklistStepSubmitRegistration | null>(null);
-  const value = useMemo(() => ({ registration, setRegistration }), [registration]);
+  const value = useMemo(
+    () => ({ registration, setRegistration, markCompleteEligible }),
+    [registration, markCompleteEligible]
+  );
   return (
     <ChecklistStepSubmitContext.Provider value={value}>
       {children}

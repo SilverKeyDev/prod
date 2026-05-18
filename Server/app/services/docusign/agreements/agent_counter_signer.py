@@ -2,6 +2,7 @@
 
 from app import db
 from app.models import Agreement, AgreementParticipant, User
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, get_logger
 
 logger = get_logger()
@@ -23,7 +24,7 @@ def ensure_agent_counter_signer(agreement: Agreement, actor_id: str) -> None:
     if agent_already_signer:
         return
 
-    agent_user = User.query.get(agreement.agent_id)
+    agent_user = get_model(User, agreement.agent_id)
     if not agent_user:
         logger.warn(
             LOG_CATEGORIES["DOCUSIGN"],

@@ -111,7 +111,7 @@ class TestAgentChatsIdorIntegration:
         db_session.session.add_all([agent, client_b, intruder, conv])
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_user:
+        with patch("app.services.auth.get_current_user") as mock_user:
             mock_user.return_value = intruder
             response = client.post(
                 f"/api/v1/agent/chats/{conv.id}/read",
@@ -141,7 +141,7 @@ class TestAgentChatsIdorIntegration:
         db_session.session.add_all([agent, orphan])
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_user:
+        with patch("app.services.auth.get_current_user") as mock_user:
             mock_user.return_value = agent
             response = client.post(
                 "/api/v1/agent/chats",

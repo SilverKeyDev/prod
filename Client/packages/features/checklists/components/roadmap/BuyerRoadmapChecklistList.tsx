@@ -7,7 +7,7 @@ import type { ChecklistType, TaskChecklistItem } from "packages/features/checkli
 import { ChecklistUpdatePendingProvider } from "packages/features/checklists/components/roadmap/ChecklistUpdatePendingProvider";
 import ChecklistDispatchAutomationModal from "packages/features/checklists/components/slots/ChecklistDispatchAutomationModal";
 import { useChecklistStepExpansion } from "packages/features/checklists/hooks/useChecklistStepExpansion";
-import { CHECKLIST_TITLES, type ChecklistTab } from "packages/features/checklists/types/checklists";
+import type { ChecklistTab } from "packages/features/checklists/types/checklists";
 import {
   buildProgressiveChecklistRows,
   DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
@@ -18,7 +18,7 @@ import {
   type ChecklistItemToggleEligibility,
   getRoadmapChecklistItemBlockerKind,
 } from "packages/features/checklists/utils/rules/checklistRules";
-import { getFirstIncompleteUnlockSection } from "packages/features/checklists/utils/rules/sectionConfig";
+import { sortTaskChecklistItemsForDisplay } from "packages/features/checklists/utils/sort/sortTaskChecklistItemsForDisplay";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
@@ -37,6 +37,12 @@ export type BuyerRoadmapChecklistListProps = {
   error: string | null;
   onRefresh: () => void | Promise<void>;
   onToggleItem: (id: number) => void | Promise<void>;
+  /**
+   * Raw checklist write for integration submit completion (parity with CloseLayout
+   * `commitToggleItem`). Pass `toggleItem` from `useChecklistData` so the step checks off
+   * after save; when omitted, {@link onToggleItem} is used.
+   */
+  commitToggleItem?: (id: number) => void | Promise<void>;
   getItemToggleEligibility: (
     section: ChecklistTab,
     itemId: number
@@ -88,6 +94,7 @@ export function BuyerRoadmapChecklistList({
   error,
   onRefresh,
   onToggleItem,
+  commitToggleItem: commitToggleItemProp,
   getItemToggleEligibility,
   hideIntegrationComponents = false,
   subtitle,
@@ -102,7 +109,9 @@ export function BuyerRoadmapChecklistList({
 }: BuyerRoadmapChecklistListProps) {
   const { t } = useLocalization();
   const [dispatchModalItemId, setDispatchModalItemId] = useState<number | null>(null);
-  const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemIds);
+  const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemIds, {
+    expandFirstActiveOnly: true,
+  });
 
   const [disclosureByTab, setDisclosureByTab] = useState<
     Partial<Record<ChecklistTab, TabDisclosure>>
@@ -111,6 +120,11 @@ export function BuyerRoadmapChecklistList({
   const [revealedCompletedItemId, setRevealedCompletedItemId] = useState<number | null>(null);
 
   const disclosure = disclosureByTab[currentTab] ?? defaultTabDisclosure;
+
+  const displaySortedItems = useMemo(
+    () => sortTaskChecklistItemsForDisplay(sortedItems, checkedIds),
+    [sortedItems, checkedIds]
+  );
 
   const setTabDisclosure = useCallback(
     (patch: Partial<TabDisclosure>) => {
@@ -128,18 +142,18 @@ export function BuyerRoadmapChecklistList({
 
   useEffect(() => {
     if (revealedCompletedItemId == null) return;
-    const activeIndex = getChecklistActiveIndex(sortedItems, activeItemId);
-    const inCompletedPrefix = sortedItems
+    const activeIndex = getChecklistActiveIndex(displaySortedItems, activeItemId);
+    const inCompletedPrefix = displaySortedItems
       .slice(0, activeIndex)
       .some((i) => i.id === revealedCompletedItemId);
     if (!inCompletedPrefix) {
       setRevealedCompletedItemId(null);
     }
-  }, [activeItemId, sortedItems, revealedCompletedItemId]);
+  }, [activeItemId, displaySortedItems, revealedCompletedItemId]);
 
   const segments = useMemo(
     () =>
-      buildProgressiveChecklistRows(sortedItems, activeItemId, {
+      buildProgressiveChecklistRows(displaySortedItems, activeItemId, {
         previewUpcoming: DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
         futureOpen: disclosure.futureOpen,
         completedOpen: disclosure.completedOpen,
@@ -147,7 +161,7 @@ export function BuyerRoadmapChecklistList({
         useProgressiveStructure: true,
       }),
     [
-      sortedItems,
+      displaySortedItems,
       activeItemId,
       disclosure.futureOpen,
       disclosure.completedOpen,
@@ -156,12 +170,12 @@ export function BuyerRoadmapChecklistList({
   );
 
   const futureHidden = getHiddenFutureItemCount(
-    sortedItems,
+    displaySortedItems,
     activeItemId,
     DEFAULT_CHECKLIST_PREVIEW_UPCOMING
   );
 
-  const itemCount = sortedItems.length;
+  const itemCount = displaySortedItems.length;
 
   const getRoadmapItemBlocker = useCallback(
     (itemId: number) =>
@@ -171,8 +185,8 @@ export function BuyerRoadmapChecklistList({
 
   const revealRoadmapItem = useCallback(
     (itemId: number) => {
-      const activeIndex = getChecklistActiveIndex(sortedItems, activeItemId);
-      const idx = sortedItems.findIndex((i) => i.id === itemId);
+      const activeIndex = getChecklistActiveIndex(displaySortedItems, activeItemId);
+      const idx = displaySortedItems.findIndex((i) => i.id === itemId);
       if (idx < 0) return;
       if (idx < activeIndex) {
         setRevealedCompletedItemId(itemId);
@@ -184,13 +198,17 @@ export function BuyerRoadmapChecklistList({
       }
       toggleExpand(itemId);
     },
-    [sortedItems, activeItemId, disclosure.futureOpen, futureHidden, setTabDisclosure, toggleExpand]
+    [
+      displaySortedItems,
+      activeItemId,
+      disclosure.futureOpen,
+      futureHidden,
+      setTabDisclosure,
+      toggleExpand,
+    ]
   );
 
-  const sectionGateTarget = useMemo(
-    () => getFirstIncompleteUnlockSection(currentTab, sectionProgress),
-    [currentTab, sectionProgress]
-  );
+  const commitToggleItem = commitToggleItemProp ?? onToggleItem;
 
   const cardProps = {
     currentTab,
@@ -200,6 +218,7 @@ export function BuyerRoadmapChecklistList({
     hideIntegrationComponents,
     getItemToggleEligibility,
     onToggleItem,
+    commitToggleItem,
     isExpanded,
     toggleExpand,
     hubClientUserId,
@@ -242,31 +261,6 @@ export function BuyerRoadmapChecklistList({
             </Box>
           ) : (
             <Box className="flex flex-col gap-2">
-              {isSectionLocked ? (
-                <Pressable
-                  onPress={() => {
-                    if (sectionGateTarget != null) onRoadmapTabNavigate?.(sectionGateTarget);
-                  }}
-                  label={
-                    sectionGateTarget != null
-                      ? t("checklists.roadmap.section_banner", {
-                          phase: CHECKLIST_TITLES[sectionGateTarget],
-                        })
-                      : t("checklists.roadmap.finish_previous_phases")
-                  }
-                  className="border-border bg-background-base mt-2 flex flex-row items-center gap-2 rounded-lg border px-4 py-3 active:opacity-90"
-                >
-                  <Icon name="info" className="text-gold h-4 w-4 shrink-0 opacity-90" />
-                  <Text className="text-text-primary flex-1 text-sm font-medium">
-                    {sectionGateTarget != null
-                      ? t("checklists.roadmap.section_banner", {
-                          phase: CHECKLIST_TITLES[sectionGateTarget],
-                        })
-                      : t("checklists.roadmap.finish_previous_phases")}
-                  </Text>
-                  <Icon name="chevron-right" className="text-gold h-4 w-4 shrink-0 opacity-90" />
-                </Pressable>
-              ) : null}
               {segments.map((segment, segIdx) => {
                 if (segment.kind === "completed_collapsed") {
                   return (
@@ -274,7 +268,6 @@ export function BuyerRoadmapChecklistList({
                       key={`cc-${segIdx}`}
                       onPress={() => setTabDisclosure({ completedOpen: true })}
                       className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                      accessibilityRole="button"
                       aria-expanded={false}
                     >
                       <Icon name="chevron-right" className="text-text-secondary h-4 w-4 shrink-0" />
@@ -292,7 +285,6 @@ export function BuyerRoadmapChecklistList({
                       key={`ceh-${segIdx}`}
                       onPress={() => setTabDisclosure({ completedOpen: false })}
                       className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                      accessibilityRole="button"
                       aria-expanded
                     >
                       <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
@@ -310,7 +302,6 @@ export function BuyerRoadmapChecklistList({
                       key={`fc-${segIdx}`}
                       onPress={() => setTabDisclosure({ futureOpen: true })}
                       className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                      accessibilityRole="button"
                       aria-expanded={false}
                     >
                       <Icon name="chevron-right" className="text-text-secondary h-4 w-4 shrink-0" />
@@ -343,7 +334,6 @@ export function BuyerRoadmapChecklistList({
                 <Pressable
                   onPress={() => setTabDisclosure({ futureOpen: false })}
                   className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                  accessibilityRole="button"
                   aria-expanded
                 >
                   <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />

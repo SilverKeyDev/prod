@@ -1,6 +1,5 @@
 /**
- * Re-export the central API barrel so that "packages/config/api" resolves.
- * API clients live in packages/api/; this file exposes them under config for
- * backward compatibility and architecture conventions.
+ * Re-export of the canonical API barrel (`packages/api`).
+ * Prefer `import { … } from "packages/api"` in new code; this path remains for legacy imports.
  */
 export * from "packages/api";

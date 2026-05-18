@@ -1,6 +1,6 @@
 // Mock data service for agent dashboard
 // This will be replaced with real API calls when backend is ready
-import type { AgentClient } from "packages/config/http/api";
+import type { AgentClient } from "packages/api";
 import type { TodoItem } from "packages/features/agent/api/agent";
 import type {
   AgentNote,

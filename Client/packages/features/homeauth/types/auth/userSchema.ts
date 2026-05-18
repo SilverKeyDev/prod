@@ -48,6 +48,7 @@ export const userSchema = z.object({
   has_preferences: jsonBooleanOptional(),
   profile_picture: z.string().nullable().optional(),
   profile_picture_url: z.string().nullable().optional(),
+  brokerage_org_ids: z.array(z.string()).nullable().optional(),
 });
 
 export const userResponseSchema = z.object({

@@ -254,6 +254,22 @@ class PipelineStage(Enum):
     unknown = "unknown"
 
 
+class CurrentPhase(Enum):
+    """
+    Active checklist category for this client — first unlocked section with incomplete work.
+    Aligns with pipeline categories (`search`, `offer`, …).
+
+    """
+
+    search = "search"
+    offer = "offer"
+    escrow = "escrow"
+    financing = "financing"
+    closing = "closing"
+    insurance = "insurance"
+    unknown = "unknown"
+
+
 class AgentClient(BaseModel):
     """
     Buyer or client row as seen from the agent workspace (client list, messaging, tasks).
@@ -281,6 +297,22 @@ class AgentClient(BaseModel):
     pipeline_stage: PipelineStage | None = Field(
         None,
         description="Checklist area with the most recent completed task activity for this client (preview only).\n`search` when there are no completed checklist tasks yet or activity cannot be determined.\n",
+    )
+    profile_picture_url: str | None = Field(
+        None,
+        description="Short-lived presigned URL for `profile_picture` when available; use for list avatars.",
+    )
+    current_phase: CurrentPhase | None = Field(
+        None,
+        description="Active checklist category for this client — first unlocked section with incomplete work.\nAligns with pipeline categories (`search`, `offer`, …).\n",
+    )
+    current_step_label: str | None = Field(
+        None,
+        description="Human-readable label of the earliest incomplete checklist step in `current_phase`.\nNull when every step in the active phase is complete.\n",
+    )
+    requires_signature: bool | None = Field(
+        None,
+        description="True when the agent must sign a non-void agreement for this client (client has signed; agent has not).\n",
     )
 
 
@@ -1125,6 +1157,30 @@ class DeleteUserRequest(BaseModel):
 
 class DeleteUserResponse(SuccessResponse):
     deleted_user_id: str | None = None
+
+
+class Scope1(Enum):
+    profile = "profile"
+    preferences = "preferences"
+    docusign = "docusign"
+
+
+class DevUserDataResetRequest(BaseModel):
+    confirm: bool = Field(..., description="Must be true to confirm the reset.")
+    scopes: list[Scope1] = Field(
+        ..., description="Data domains to clear for the target user.", min_length=1
+    )
+    user_id: str | None = Field(
+        None,
+        description="Target user UUID. Omit to reset the signed-in admin. Super_admin only when set to another user.",
+    )
+
+
+class DevUserDataResetResponse(SuccessResponse):
+    target_user_id: str = Field(..., description="User whose data was reset.")
+    cleared: dict[str, bool] = Field(
+        ..., description="Map of scope name to true when that scope was applied."
+    )
 
 
 class LibraryKind(Enum):
@@ -3120,6 +3176,10 @@ class User(BaseModel):
     roles: list[str] | None = Field(
         None,
         description="Role names from user_roles; typically present on GET /user/profile.",
+    )
+    brokerage_org_ids: list[str] | None = Field(
+        None,
+        description="Brokerage organization ids this user may administer under brokerage workspace. Omitted or null until brokerage roster membership is populated server-side.\n",
     )
 
 

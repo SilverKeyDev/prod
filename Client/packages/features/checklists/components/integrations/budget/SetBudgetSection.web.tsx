@@ -23,6 +23,8 @@ type SetBudgetSectionProps = {
 
 export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) {
   const { t } = useLocalization();
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
   const queryClient = useQueryClient();
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
 
@@ -156,9 +158,11 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
       } catch {
         return;
       }
-      onComplete?.();
+      if (isSetBudgetStepComplete(formDataRef.current)) {
+        onCompleteRef.current?.();
+      }
     })();
-  }, [flushSave, onComplete, t]);
+  }, [flushSave, t]);
 
   return (
     <Card border="dotted" padding="md" className="mb-2">

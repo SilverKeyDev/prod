@@ -6,6 +6,7 @@ from app.models import ChecklistForm, Transaction
 from app.services.agent.client_service import get_agent_client_ids
 from app.services.documents.forms_service import FormsService
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.utils.db.orm_lookup import get_model
 from app.utils.security import rate_limit
 from app.utils.security.app_logging import get_logger
 
@@ -59,7 +60,7 @@ def get_checklist_item_forms(user, transaction_id: str, section: str, item_id: s
         return jsonify({"success": False, "error": "Invalid item_id"}), 400
 
     # Get transaction start date for deadline calculation (if transaction exists)
-    transaction = Transaction.query.get(transaction_id)
+    transaction = get_model(Transaction, transaction_id)
     transaction_start_date = None
     if transaction and hasattr(transaction, "start_date"):
         transaction_start_date = transaction.start_date
@@ -94,7 +95,7 @@ def download_form(user, transaction_id: str, section: str, item_id: str, form_id
     if auth_error:
         return auth_error
 
-    form = ChecklistForm.query.get(form_id)
+    form = get_model(ChecklistForm, form_id)
     if not form:
         return jsonify({"success": False, "error": "Form not found"}), 404
 
@@ -159,7 +160,7 @@ def send_form(user, transaction_id: str, section: str, item_id: str, form_id: st
         return auth_error
 
     # Get form
-    form = ChecklistForm.query.get(form_id)
+    form = get_model(ChecklistForm, form_id)
     if not form:
         return jsonify({"success": False, "error": "Form not found"}), 404
 

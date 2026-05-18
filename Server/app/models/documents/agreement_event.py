@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
-from app.utils.datetime_utc import to_aware_utc_iso
+from app.utils.format.datetime import to_aware_utc_iso
 
 
 class AgreementEvent(db.Model):

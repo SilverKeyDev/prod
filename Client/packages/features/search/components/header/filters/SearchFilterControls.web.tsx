@@ -18,7 +18,6 @@ import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
-import PreferencesSaveStatusRow from "@/features/profile/components/settings/inputs/PreferencesSaveStatusRow";
 import type { OnboardingData } from "@/features/profile/utils";
 import BedBathFilter from "@/features/search/components/filters/BedBathFilter.web";
 import HomeTypeFilter from "@/features/search/components/filters/HomeTypeFilter.web";
@@ -37,7 +36,6 @@ import { SearchFilterControlsMorePlaceholder } from "./SearchFilterControlsMoreP
 export type SearchFilterControlsProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
-  saveStatus?: "idle" | "saving" | "saved";
   onPreferencesChanged?: () => void | Promise<void>;
   onPopoverClose?: () => void;
   variant?: "desktop" | "mobile";
@@ -46,7 +44,6 @@ export type SearchFilterControlsProps = {
 export default function SearchFilterControls({
   formData,
   updateFormData,
-  saveStatus = "idle",
   onPopoverClose,
   variant: _variant = "desktop",
 }: SearchFilterControlsProps): React.ReactElement {
@@ -248,12 +245,6 @@ export default function SearchFilterControls({
 
   const overflowPanelContent = (
     <>
-      <PreferencesSaveStatusRow
-        saveStatus={saveStatus}
-        savingLabel={t("common.saving")}
-        savedLabel={t("common.saved")}
-        className="border-border mb-3 flex items-center gap-2 border-b pb-3 text-sm"
-      />
       {SEARCH_HEADER_FILTER_PROMOTION_ORDER.map(
         (id, index) =>
           index >= overflowFromIndex && (

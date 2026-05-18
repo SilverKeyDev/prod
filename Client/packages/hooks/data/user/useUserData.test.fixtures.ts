@@ -12,6 +12,7 @@ export const userProfileFull: UserProfile = {
   client_ids: "client1,client2",
   profile_picture_url: null,
   roles: [],
+  brokerage_org_ids: null,
 };
 
 export const partialUserFromApi = {
@@ -32,6 +33,7 @@ export const userProfileForRefresh: UserProfile = {
   client_ids: null,
   profile_picture_url: null,
   roles: [],
+  brokerage_org_ids: null,
 };
 
 export const userPreferencesFull: UserPreferences = {

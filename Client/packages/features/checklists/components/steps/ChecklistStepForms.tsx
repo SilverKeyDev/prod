@@ -200,74 +200,72 @@ export default function ChecklistStepForms({
 
   if (isLoading) {
     return (
-      <Box className="border-border bg-background-base rounded-lg border p-3">
-        <Text className="text-text-secondary text-sm">
-          {t("checklists.loading_forms", { defaultValue: "Loading forms..." })}
-        </Text>
+      <Box className="mt-3 px-4 pb-3">
+        <Box className="border-border bg-background-base rounded-lg border p-3">
+          <Text className="text-text-secondary text-sm">
+            {t("checklists.loading_forms", { defaultValue: "Loading forms..." })}
+          </Text>
+        </Box>
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box className="border-border bg-background-base rounded-lg border p-3">
-        <Text className="text-text-error text-sm">
-          {t("checklists.error_loading_forms", {
-            defaultValue: "Error loading forms. Please try again.",
-          })}
-        </Text>
+      <Box className="mt-3 px-4 pb-3">
+        <Box className="border-border bg-background-base rounded-lg border p-3">
+          <Text className="text-text-error text-sm">
+            {t("checklists.error_loading_forms", {
+              defaultValue: "Error loading forms. Please try again.",
+            })}
+          </Text>
+        </Box>
       </Box>
     );
   }
 
   if (forms.length === 0) {
-    return (
-      <Box className="border-border bg-background-base rounded-lg border p-3">
-        <Text className="text-text-secondary text-sm">
-          {t("checklists.no_forms_for_step", {
-            defaultValue: "No forms are required for this step.",
-          })}
-        </Text>
-      </Box>
-    );
+    return null;
   }
 
   return (
-    <Box className="border-border bg-background-base rounded-lg border p-3">
-      <Box className="mb-3">
-        <Text className="text-text-primary text-sm font-semibold">
-          {t("checklists.forms_for_step", {
-            defaultValue: "Forms for this step",
-          })}
-        </Text>
-        <Text className="text-text-secondary mt-1 text-xs">
-          {t("checklists.forms_description_agent", {
-            defaultValue: "Download forms or send them to your client in Messaging.",
-          })}
-        </Text>
-      </Box>
+    <Box className="mt-3 px-4 pb-3">
+      <Box className="border-border bg-background-base rounded-lg border p-3">
+        <Box className="mb-3">
+          <Text className="text-text-primary text-sm font-semibold">
+            {t("checklists.forms_for_step", {
+              defaultValue: "Forms for this step",
+            })}
+          </Text>
+          <Text className="text-text-secondary mt-1 text-xs">
+            {t("checklists.forms_description_agent", {
+              defaultValue: "Download forms or send them to your client in Messaging.",
+            })}
+          </Text>
+        </Box>
 
-      <Box className="flex flex-col gap-3">
-        {forms.map((form) => (
-          <DocumentListRow
-            key={form.id}
-            doc={checklistFormToDocumentData(form)}
-            showDelete={false}
-            externalActionHandlers={listActionHandlers}
-          />
-        ))}
-      </Box>
+        <Box className="flex flex-col gap-3">
+          {forms.map((form) => (
+            <DocumentListRow
+              key={form.id}
+              doc={checklistFormToDocumentData(form)}
+              showDelete={false}
+              externalActionHandlers={listActionHandlers}
+            />
+          ))}
+        </Box>
 
-      {currentPdf ? (
-        <Portal>
-          <PdfModal
-            currentPdf={currentPdf}
-            currentReportAddress={currentDocumentName}
-            reportId={currentDocumentId}
-            onClose={closePdfModal}
-          />
-        </Portal>
-      ) : null}
+        {currentPdf ? (
+          <Portal>
+            <PdfModal
+              currentPdf={currentPdf}
+              currentReportAddress={currentDocumentName}
+              reportId={currentDocumentId}
+              onClose={closePdfModal}
+            />
+          </Portal>
+        ) : null}
+      </Box>
     </Box>
   );
 }

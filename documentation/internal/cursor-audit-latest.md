@@ -1,8 +1,8 @@
 # Cursor configuration audit (SilverKey)
 
-**Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change.
+**Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change. After cross-cutting architecture or feature work, also follow [post-major-change-checklist.md](./post-major-change-checklist.md) so docs and this inventory stay aligned.
 
-**Last regenerated:** 2026-05-13 (component audit rubric, remediation agents, `component-audit-rubric.mdc`; duplicate `* 2.mdc` rule files removed—canonical names only; see Rules summary and Component audit artifacts).
+**Last regenerated:** 2026-05-15 (post–major change sync: scoped rule `post-major-change-sync.mdc`, skill `post-major-change-sync`, internal checklist, `workspace-first-architecture.md`, `documentation.mdc` / `AGENTS.md` / `.cursor/README` updates).
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -47,6 +47,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `.cursor/agents/silverkey-audit-axis4-render-cost-fixer.md`        |      40 | 2026-05-13         | keep   | Post–component-audit remediation |
 | `.cursor/agents/silverkey-audit-axis5-bundle-import-fixer.md`        |      39 | 2026-05-13         | keep   | Post–component-audit remediation |
 | `.cursor/agents/silverkey-audit-architecture-remediation.md`       |      39 | 2026-05-13         | keep   | Post–component-audit remediation |
+| `.cursor/skills/post-major-change-sync/SKILL.md`             |  (see repo) | 2026-05-15         | keep   | Docs + rules sync after major changes |
 | `.cursor/skills/feature-translations/SKILL.md`                |         129 | 2026-04-20         | keep   | i18n / raw keys                |
 | `.cursor/skills/platform-file-extension-choice/SKILL.md`      |          46 | 2026-05-11         | keep   | `.web` / `.tsx` choice         |
 | `.cursor/skills/react-native-migration/SKILL.md`              |          54 | 2026-02-20         | keep   | RN migration                   |
@@ -70,6 +71,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `shared/thin-app-architecture.mdc`          | yes → **yes**              | Client/\*\*                             | Universal                                       |
 | `shared/linting.mdc`                        | yes → **yes**              | \*_/_                                   | Universal                                       |
 | `shared/documentation.mdc`                 | yes → **yes**              | `documentation/**/*.md`, `**/README.md` | Canonical doc tree vs `docs/`; see `AGENTS.md` |
+| `shared/post-major-change-sync.mdc`         | no → **no**                | Client/apps/**, Client/packages/**, openapi/**, Server/app/** | Same-PR / fast-follow docs + rules sync after major architecture |
 | `shared/monorepo.mdc`                       | yes → **no**               | \*_/_                                   | Context budget                                  |
 | `shared/ci-gates.mdc`                       | yes → **no**               | .github/workflows/**, Client/**         |                                                 |
 | `shared/openapi-workflow.mdc`               | yes → **no**               | openapi/\*\*, workflow, generated types |                                                 |
@@ -107,6 +109,7 @@ Previously noted: `FORMS_*`, `openapi-adoption-checklist.md`, etc. **Not present
 - [x] `alwaysApply: true` count = **4** (security, thin-app, linting, documentation) — see [.cursor/README.md](../../.cursor/README.md)
 - [x] `.cursor/README.md` meta-doc
 - [x] `documentation/internal/cursor-audit-latest.md` (this file)
+- [x] `documentation/internal/post-major-change-checklist.md` — process for syncing docs + Cursor after major architecture/features
 - [x] `.cursorignore.example` / `.cursorindexingignore` tightened
 - [x] `.cursor/mcp.example.json`
 - [x] PR template Cursor section

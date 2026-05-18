@@ -1,4 +1,5 @@
-export { AdminAnalyticsSection } from "./analytics/AdminAnalyticsSection";
+export { AdminDevPersonaSection } from "./devPersona/AdminDevPersonaSection";
+export { DevPersonaActiveBanner } from "./devPersona/DevPersonaActiveBanner";
 export { AdminDocuSignDiagnosticsSection } from "./integrations/AdminDocuSignDiagnosticsSection";
 export { AdminLoggingSections } from "./logging/AdminLoggingSections";
 export { AdminPartnersSection } from "./partners/AdminPartnersSection";

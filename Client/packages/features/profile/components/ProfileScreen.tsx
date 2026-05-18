@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { AccountLogoutAction } from "packages/features/homeauth/components/account/AccountLogoutAction";
 import { getPersonalizationStepsUi } from "packages/features/profile/components/profilePicture/profileStepsUi";
 import { buildProfileUnderlineTabItems } from "packages/features/profile/components/profileScreen/buildProfileUnderlineTabItems";
 import { validateProfilePhotoFile } from "packages/features/profile/components/profileScreen/profilePhotoValidation";
@@ -258,11 +259,11 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
     <Box className="flex-1">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ paddingBottom: 16 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Box className="gap-4 px-4 pb-10 pt-4">
+        <Box className="gap-4 px-4 pt-4">
           {showAgentPublicProfileShare ? (
             <AgentPublicProfileShareRow
               agentId={agentPublicProfileUserId}
@@ -310,6 +311,7 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
           />
         </Box>
       </ScrollView>
+      {agentSubject == null ? <AccountLogoutAction variant="profile" placement="footer" /> : null}
     </Box>
   );
 }

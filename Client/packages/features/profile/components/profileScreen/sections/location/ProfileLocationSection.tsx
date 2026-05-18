@@ -10,16 +10,15 @@ import { SearchPrefsNeighborhood } from "packages/features/profile/components/pr
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
 import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
 import { ImportantLocationsInput } from "packages/features/profile/components/settings/inputs/locations/ImportantLocationsInput";
+import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import {
   AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT,
-  effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   LOCATION_SUBTITLE,
   type OnboardingData,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
-import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Subtitle from "packages/ui/components/text/Subtitle";
@@ -39,11 +38,7 @@ export function ProfileLocationSection({
   patchBuyerPreferenceExtensions,
 }: ProfileLocationSectionProps) {
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
-  const authIsAgent = useIsAgent();
-  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
-    authIsAgent,
-    formIsAgent: formData.is_agent,
-  });
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
   const locations = Array.isArray(formData.important_locations) ? formData.important_locations : [];
 
   const patch = useCallback(

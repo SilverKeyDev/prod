@@ -39,15 +39,17 @@ function ChecklistStepSubmitButton({
 export function ChecklistStepSubmitFooter(props: ChecklistStepSubmitBarProps) {
   const registry = useChecklistStepSubmitRegistry();
   const setRegistration = registry?.setRegistration;
+  const markCompleteEligible = registry?.markCompleteEligible ?? true;
   const onSubmitRef = useRef(props.onSubmit);
   onSubmitRef.current = props.onSubmit;
   const checklistPending = useOptionalChecklistUpdatePending();
   const busy = Boolean(props.busy) || checklistPending;
+  const submitDisabled = props.disabled || !markCompleteEligible;
 
   useEffect(() => {
     if (!setRegistration) return;
     setRegistration({
-      disabled: props.disabled,
+      disabled: submitDisabled,
       busy,
       onSubmit: () => {
         onSubmitRef.current();
@@ -56,11 +58,11 @@ export function ChecklistStepSubmitFooter(props: ChecklistStepSubmitBarProps) {
     return () => {
       setRegistration(null);
     };
-  }, [setRegistration, props.disabled, busy]);
+  }, [setRegistration, submitDisabled, busy]);
 
   return (
     <Box className="border-border mt-4 flex flex-row justify-end border-t pt-4">
-      <ChecklistStepSubmitButton {...props} busy={busy} />
+      <ChecklistStepSubmitButton {...props} disabled={submitDisabled} busy={busy} />
     </Box>
   );
 }

@@ -1,4 +1,6 @@
 /* eslint-disable silverkey/no-raw-spacing -- hour grid uses hairline rules (1px), z-index, and time-axis pixel math */
+import { useRef } from "react";
+
 import { color, spacing } from "packages/design-tokens";
 import { Box, Text } from "packages/ui/components/primitives";
 import { localYOffsetToRoundedMinutesFromMidnight } from "packages/utils/calendar/calendarQuickCreateSnap";
@@ -6,6 +8,8 @@ import { dateNow, dayjs } from "packages/utils/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import type { WeekTimeSlotDoubleClickPayload } from "@/features/calendar/types/calendarQuickCreate";
+import { hexToRgba } from "@/features/calendar/utils/createEventModal/calendarEventColors";
 import {
   layoutTimedEventsForColumn,
   partitionCalendarEventsForDay,
@@ -20,6 +24,9 @@ import { CalendarWeekTimedEventBlock } from "./CalendarWeekTimedEventBlock";
 
 const HOUR_GRID_ROW = 1;
 
+/** When native `detail` does not reach 2 (nested scroll / dialog stacks), pair two quick clicks. */
+type WeekSlotLastClick = { timeStamp: number; ymd: string; clientY: number };
+
 export type CalendarTimeGridHourScrollContentProps = {
   dayDates: Date[];
   events: ExtendedGoogleEvent[];
@@ -30,7 +37,7 @@ export type CalendarTimeGridHourScrollContentProps = {
   nowMinutes: number;
   showWeekendTint: boolean;
   /** When absent (e.g. client read-only), double-click is a no-op. */
-  onWeekTimeSlotDoubleClick?: (payload: { date: Date; minutesFromMidnight: number }) => void;
+  onWeekTimeSlotDoubleClick?: (payload: WeekTimeSlotDoubleClickPayload) => void;
   weekInteractionEnabled?: boolean;
   weekSelectedEventId?: string | null;
   onWeekEventSelect?: (event: ExtendedGoogleEvent) => void;
@@ -60,6 +67,7 @@ export function CalendarTimeGridHourScrollContent({
   onWeekTimeColumnBackgroundPress,
   onWeekTimedResizeCommit,
 }: CalendarTimeGridHourScrollContentProps) {
+  const weekSlotDblClickFallbackRef = useRef<WeekSlotLastClick | null>(null);
   const totalGridHeight = CAL_TIME_GRID_HOURS * hourRowHeight;
   const today = dateNow().startOf("day");
   const nowTop = (nowMinutes / 60) * hourRowHeight;
@@ -167,7 +175,7 @@ export function CalendarTimeGridHourScrollContent({
         const wk = d.getDay();
         const weekendBg =
           showWeekendTint && (wk === 0 || wk === 6)
-            ? { backgroundColor: "rgba(0,0,0,0.03)" }
+            ? { backgroundColor: hexToRgba(color("neutral.900"), 0.03) }
             : null;
         const { timedSlices } = partitionCalendarEventsForDay(events, ymd);
         const placed = layoutTimedEventsForColumn(timedSlices);
@@ -216,11 +224,9 @@ export function CalendarTimeGridHourScrollContent({
                     onWeekTimeColumnBackgroundPress();
                   }
                 }}
-                onDoubleClick={
+                onClick={
                   onWeekTimeSlotDoubleClick
                     ? (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
                         const el = e.currentTarget as unknown as HTMLElement;
                         const rect = el.getBoundingClientRect();
                         const y = e.clientY - rect.top;
@@ -229,10 +235,46 @@ export function CalendarTimeGridHourScrollContent({
                           hourRowHeight,
                           totalGridHeight
                         );
-                        onWeekTimeSlotDoubleClick({
+                        const anchorRect = {
+                          top: Math.min(Math.max(rect.top, e.clientY - 6), rect.bottom - 8),
+                          left: rect.left,
+                          width: rect.width,
+                          height: 12,
+                        };
+                        const payload: WeekTimeSlotDoubleClickPayload = {
                           date: d,
                           minutesFromMidnight: minutes,
-                        });
+                          anchorRect,
+                        };
+
+                        if (e.detail === 2) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          weekSlotDblClickFallbackRef.current = null;
+                          onWeekTimeSlotDoubleClick(payload);
+                          return;
+                        }
+
+                        const prev = weekSlotDblClickFallbackRef.current;
+                        const ts = e.nativeEvent.timeStamp;
+                        if (
+                          prev &&
+                          prev.ymd === ymd &&
+                          ts - prev.timeStamp < 550 &&
+                          Math.abs(e.clientY - prev.clientY) < 48
+                        ) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          weekSlotDblClickFallbackRef.current = null;
+                          onWeekTimeSlotDoubleClick(payload);
+                          return;
+                        }
+
+                        weekSlotDblClickFallbackRef.current = {
+                          timeStamp: ts,
+                          ymd,
+                          clientY: e.clientY,
+                        };
                       }
                     : undefined
                 }

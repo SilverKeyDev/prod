@@ -7,6 +7,7 @@ from typing import Any
 from app import db
 from app.models import User, UserAgentProfile
 from app.services.public_profile_slug import ensure_public_profile_slug
+from app.utils.db.orm_lookup import get_model
 
 from .preferences_write.agent_profile import write_agent_profile_from_payload
 from .preferences_write.demographics import (
@@ -30,7 +31,7 @@ def write_preferences_from_payload(
     and optionally UserImportantLocation / UserIntentAttribute. Sets user.has_preferences = True.
     Returns the aggregated preferences dict after write.
     """
-    u = user or User.query.get(user_id)
+    u = user or get_model(User, user_id)
     if not u:
         raise ValueError(f"User not found: {user_id}")
 

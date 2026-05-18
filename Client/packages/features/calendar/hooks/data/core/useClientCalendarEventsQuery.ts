@@ -4,6 +4,24 @@ import { queryKeys } from "packages/config/query/keys";
 
 import { googleCalendarApi } from "@/features/calendar/api";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
+import { parseClientCalendarFailure } from "@/features/calendar/utils/core/clientCalendarAccess";
+
+export async function fetchClientCalendarEvents(
+  clientId: string,
+  timeMin: string,
+  timeMax: string,
+  calendarId = "primary"
+): Promise<GoogleEvent[]> {
+  const response = await googleCalendarApi.getClientEvents(clientId, {
+    calendarId,
+    timeMin,
+    timeMax,
+  });
+  if (!response.success) {
+    throw parseClientCalendarFailure(response, "Failed to load client events");
+  }
+  return response.data?.items ?? [];
+}
 
 /**
  * Full client calendar events for a date range (agent viewing a connected client’s Google calendar).
@@ -23,17 +41,7 @@ export function useClientCalendarEventsQuery(
       timeMax,
       calendarId,
     ],
-    queryFn: async (): Promise<GoogleEvent[]> => {
-      const response = await googleCalendarApi.getClientEvents(clientId!, {
-        calendarId,
-        timeMin,
-        timeMax,
-      });
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to load client events");
-      }
-      return response.data?.items ?? [];
-    },
+    queryFn: () => fetchClientCalendarEvents(clientId!, timeMin, timeMax, calendarId),
     enabled: Boolean(clientId && timeMin && timeMax),
     staleTime: 60 * 1000,
   });

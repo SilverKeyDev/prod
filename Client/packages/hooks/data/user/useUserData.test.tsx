@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { preferencesApi, userApi } from "packages/config/http/api";
+import { preferencesApi, userApi } from "packages/api";
 
 import { useUserData, useUserPreferences } from "./useUserData";
 import {
@@ -17,7 +17,7 @@ import { createUserDataTestQueryContext, mockAuthSelectors } from "./useUserData
 
 // Mock dependencies
 vi.mock("packages/store");
-vi.mock("packages/config/http/api");
+vi.mock("packages/api");
 vi.mock("packages/utils/media/prefetchRemoteImage", () => ({
   prefetchRemoteImage: vi.fn(),
 }));
@@ -116,6 +116,7 @@ describe("useUserData", () => {
         is_closing_mode: false,
         client_ids: undefined,
         roles: [],
+        brokerage_org_ids: null,
       });
     });
 

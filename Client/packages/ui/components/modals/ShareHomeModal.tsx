@@ -22,7 +22,7 @@ import { getWindow } from "packages/utils/platform";
 import { buildPropertyUrl } from "packages/utils/property";
 import { getShareHomeConversationId, getShareHomePropertyId } from "packages/utils/share";
 
-import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
+import { useAgentClients } from "@/features/agent/hooks/data/clients/useAgentClients";
 type ShareHomeModalProps = {
   isOpen: boolean;
   onClose: () => void;

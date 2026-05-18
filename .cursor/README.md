@@ -81,6 +81,16 @@ Short body. Link to `documentation/**` for long prose.
 
 ---
 
+## After major feature or architecture work
+
+Cross-cutting changes (route shells, workspace/auth, OpenAPI contracts, monorepo boundaries, new global lint rules) should ship with **docs and Cursor updates**, not only code.
+
+1. Follow **[documentation/internal/post-major-change-checklist.md](../documentation/internal/post-major-change-checklist.md)**.
+2. Scoped rule **`rules/shared/post-major-change-sync.mdc`** (attaches under `Client/apps`, `Client/packages`, `openapi`, `Server/app`) and skill **`skills/post-major-change-sync/SKILL.md`** keep agents aligned with the same checklist.
+3. Refresh **[documentation/internal/cursor-audit-latest.md](../documentation/internal/cursor-audit-latest.md)** when rules, skills, or agents are added, removed, or renamed.
+
+---
+
 ## Rule vs skill vs agent
 
 | Type | Use when | Context |
@@ -131,6 +141,7 @@ Rule of thumb: if the model never needs a path unless you explicitly attach it, 
 | `.cursorignore`                                 | Optional local (often gitignored)             |
 | `AGENTS.md`                                     | Yes                                           |
 | `documentation/internal/cursor-audit-latest.md` | Yes (update when inventory changes)           |
+| `documentation/internal/post-major-change-checklist.md` | Yes (process doc; update when the bar for “major change” evolves) |
 | `.cursor/projects/**`, local logs               | No                                            |
 
 ---

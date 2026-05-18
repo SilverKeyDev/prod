@@ -5,6 +5,7 @@ from app.models import PropertyCache, User, UserPropertyLink
 from app.services.email.format_email_content import EmailFormatter
 from app.services.email.last_logged_in import get_recently_logged_in_users_with_preferences
 from app.services.email.send_test_emails_via_ses import send_personalized_emails_via_ses
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, log
 
 HAVE_SA_HELPERS = True
@@ -93,7 +94,7 @@ def build_messages_for_recent_users(
 
         listings = []
         for link in links:
-            prop = PropertyCache.query.get(link.property_id)
+            prop = get_model(PropertyCache, link.property_id)
             if prop:
                 listings.append(_EmailListingProxy(prop, link))
 

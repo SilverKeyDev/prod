@@ -99,7 +99,9 @@ export default function ChooseAreasSection({ onComplete }: ChooseAreasSectionPro
                     } catch {
                       return;
                     }
-                    onComplete?.();
+                    if (isChooseSearchAreaStepComplete(formSnapshotRef.current)) {
+                      onComplete?.();
+                    }
                   })();
                 }}
               />

@@ -4,7 +4,7 @@ import {
   ProfileSectionBody,
   ProfileSectionCallout,
 } from "packages/features/profile/components/layout";
-import { useIsAgent } from "packages/hooks/store/useIsAgent";
+import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
 import { OliveCheckbox } from "packages/ui";
 import { Box, Pressable } from "packages/ui/components/primitives";
 import type { HomePriceResult } from "packages/utils/affordability";
@@ -17,7 +17,6 @@ import PriceRangeSlider from "@/features/profile/components/settings/inputs/slid
 import {
   AGENT_OPTIONAL_BUYER_FINANCIAL_HINT,
   CREDIT_SCORE_OPTIONS,
-  effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   type OnboardingData,
   REQUIRED_FIELDS_ONBOARDING,
@@ -45,11 +44,7 @@ export default function OnboardingFinancialSection({
   isAffordabilityCollapsed,
   setIsAffordabilityCollapsed,
 }: OnboardingFinancialSectionProps) {
-  const authIsAgent = useIsAgent();
-  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
-    authIsAgent,
-    formIsAgent: formData.is_agent,
-  });
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
   const showAffordability =
     homePriceLoading !== undefined &&
     homePriceError !== undefined &&

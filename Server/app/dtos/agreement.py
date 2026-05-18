@@ -9,7 +9,7 @@ from app.schemas.generated import Agreement as AgreementSchema
 from app.schemas.generated import AgreementEvent as AgreementEventSchema
 from app.schemas.generated import AgreementParticipant as AgreementParticipantSchema
 from app.schemas.generated import AgreementRevision as AgreementRevisionSchema
-from app.utils.datetime_utc import to_aware_utc_iso
+from app.utils.format.datetime import to_aware_utc_iso
 
 if TYPE_CHECKING:
     from app.models.documents.agreement import Agreement as AgreementModel

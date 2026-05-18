@@ -1,5 +1,6 @@
 import React, { createContext, useContext } from "react";
 
+import type { ProfileUiSurface } from "packages/features/profile/types/profileVisibility";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";
@@ -10,21 +11,30 @@ type PersonalizationSectionLayoutValue = {
   hideStepHeadings: boolean;
   /** When false, the card heading is visually hidden; bodies should show their own primary title. */
   panelShowsVisibleHeading: boolean;
+  /** Drives agent-only buyer callouts (onboarding only). */
+  profileUiSurface: ProfileUiSurface;
 };
 
 const PersonalizationSectionLayoutContext = createContext<PersonalizationSectionLayoutValue>({
   hideStepHeadings: false,
   panelShowsVisibleHeading: true,
+  profileUiSurface: "personalization",
 });
 
 /**
  * Wraps settings / profile personalization main content when not using
  * {@link PersonalizationSectionPanel} (each panel supplies this context for its children).
  */
-export function PersonalizationSectionLayoutProvider({ children }: { children: React.ReactNode }) {
+export function PersonalizationSectionLayoutProvider({
+  children,
+  profileUiSurface = "personalization",
+}: {
+  children: React.ReactNode;
+  profileUiSurface?: ProfileUiSurface;
+}) {
   return (
     <PersonalizationSectionLayoutContext.Provider
-      value={{ hideStepHeadings: true, panelShowsVisibleHeading: true }}
+      value={{ hideStepHeadings: true, panelShowsVisibleHeading: true, profileUiSurface }}
     >
       {children}
     </PersonalizationSectionLayoutContext.Provider>
@@ -48,6 +58,12 @@ export function useShowPersonalizationSectionBodyTitle(): boolean {
   return !hideStepHeadings || !panelShowsVisibleHeading;
 }
 
+/** Profile vs onboarding vs settings — controls agent-only buyer callout visibility. */
+// eslint-disable-next-line react-refresh/only-export-components -- hook paired with Provider above
+export function useProfileUiSurface(): ProfileUiSurface {
+  return useContext(PersonalizationSectionLayoutContext).profileUiSurface;
+}
+
 export type PersonalizationSectionPanelProps = {
   /** Anchor id for sidebar scroll (`#sectionId`). */
   sectionId: string;
@@ -60,6 +76,7 @@ export type PersonalizationSectionPanelProps = {
    * Use when the section body renders the same title (e.g. Location).
    */
   showVisibleHeading?: boolean;
+  profileUiSurface?: ProfileUiSurface;
 };
 
 /**
@@ -71,6 +88,7 @@ export function PersonalizationSectionPanel({
   children,
   className = "",
   showVisibleHeading = true,
+  profileUiSurface = "personalization",
 }: PersonalizationSectionPanelProps) {
   const headingId = `${sectionId}-personalization-sr-title`;
   const headingClassName = showVisibleHeading ? "mb-6" : "sr-only";
@@ -90,6 +108,7 @@ export function PersonalizationSectionPanel({
           value={{
             hideStepHeadings: true,
             panelShowsVisibleHeading: showVisibleHeading,
+            profileUiSurface,
           }}
         >
           {children}

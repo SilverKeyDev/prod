@@ -53,7 +53,7 @@ class TestNotInterestedHomes:
             db_session.session.add(home2)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.get(
@@ -81,7 +81,7 @@ class TestNotInterestedHomes:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 home_data = {
@@ -120,7 +120,7 @@ class TestNotInterestedHomes:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 home_data = {"home": {"price": 600000}, "why": "Too expensive"}
@@ -160,7 +160,7 @@ class TestNotInterestedHomes:
             db_session.session.add(home)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.post(
@@ -198,7 +198,7 @@ class TestNotInterestedHomes:
             db_session.session.add(home)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.post(

@@ -5,15 +5,14 @@ import {
   ProfileSectionCallout,
   ProfileSectionGroup,
 } from "packages/features/profile/components/layout";
+import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
-import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Box } from "packages/ui/components/primitives";
 
 import { Title } from "@/components/ui";
 import BudgetSlider from "@/features/profile/components/settings/inputs/sliders/BudgetSlider";
 import {
   AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT,
-  effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   type OnboardingData,
   SECTION_TITLES,
@@ -47,11 +46,7 @@ export default function HousingSection({
   patchBuyerPreferenceExtensions,
 }: HousingSectionProps) {
   void _isDesktop;
-  const authIsAgent = useIsAgent();
-  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
-    authIsAgent,
-    formIsAgent: formData.is_agent,
-  });
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
   return (
     <>
       <Title size="md" className="mb-2">

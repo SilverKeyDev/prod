@@ -5,7 +5,7 @@ import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.we
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
-import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
+import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";
 import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 type ConnectionRequestsInboxProps = {
   onRequestAccepted?: () => void;

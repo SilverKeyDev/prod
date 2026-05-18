@@ -2,7 +2,7 @@
 
 from types import SimpleNamespace
 
-from app.utils.admin import user_has_admin_role, user_has_super_admin_role
+from app.utils.security.admin_roles import user_has_admin_role, user_has_super_admin_role
 
 
 def test_super_admin_allowed():

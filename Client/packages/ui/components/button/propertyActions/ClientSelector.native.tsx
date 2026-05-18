@@ -5,7 +5,7 @@ import { Icon } from "@ui/icons";
 import { Pressable } from "react-native";
 
 import { useLocalization } from "packages/contexts";
-import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
+import { useAgentClients } from "packages/features/agent/hooks/data/clients/useAgentClients";
 import { useIsAgent } from "packages/hooks/store";
 import { useAuthStore } from "packages/store";
 import BaseModal from "packages/ui/components/modals/BaseModal";

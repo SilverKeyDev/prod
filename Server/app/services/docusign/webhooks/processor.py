@@ -10,6 +10,7 @@ from typing import Any
 
 from app import db
 from app.models import Agreement, AgreementEvent, DocusignConnectEvent
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, get_logger
 
 from .processor_helpers import (
@@ -42,7 +43,7 @@ class WebhookProcessor:
                 {"event_id": event_id},
             )
 
-            event = DocusignConnectEvent.query.get(event_id)
+            event = get_model(DocusignConnectEvent, event_id)
             if not event:
                 logger.error(
                     LOG_CATEGORIES["ERRORS"], "Webhook event not found", {"event_id": event_id}
@@ -142,7 +143,7 @@ class WebhookProcessor:
                     sync_checklist_for_completed_agreement,
                 )
 
-                fresh = Agreement.query.get(agreement.id)
+                fresh = get_model(Agreement, agreement.id)
                 if fresh is not None and str(fresh.status) == "completed":
                     sync_checklist_for_completed_agreement(fresh)
             except Exception as sync_exc:
@@ -161,7 +162,7 @@ class WebhookProcessor:
 
             # Update error
             try:
-                event = DocusignConnectEvent.query.get(event_id)
+                event = get_model(DocusignConnectEvent, event_id)
                 if event:
                     event.processing_error = str(e)
                     db.session.commit()

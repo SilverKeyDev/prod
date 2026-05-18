@@ -14,6 +14,7 @@ import { useAuthVerification } from "packages/features/homeauth/hooks/data/useAu
 import { useCountdown } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import { ROUTES } from "packages/navigation/types/routes";
 import { Box } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
@@ -85,7 +86,7 @@ export function VerificationScreenNative() {
           session.removeItem("signupPassword");
         },
         (path) => navigateToPath(path),
-        { postSuccessPath: routeState?.fromLogin ? "/search" : "/onboarding" }
+        { postSuccessPath: routeState?.fromLogin ? ROUTES.SEARCH : "/onboarding" }
       );
     } catch (err: unknown) {
       log.error(LOG_CATEGORIES.AUTH, "Verification error", err);

@@ -15,7 +15,6 @@ export const CHECKLISTS_TRANSLATIONS: Record<string, string> = {
   "checklists.loading": "Loading...",
   "checklists.loading_forms": "Loading forms...",
   "checklists.error_loading_forms": "Error loading forms. Please try again.",
-  "checklists.no_forms_for_step": "No forms are required for this step.",
   "checklists.forms_for_step": "Forms for this step",
   "checklists.forms_description_agent":
     "View, download, share, or send for signature using the actions on each form.",
@@ -31,6 +30,17 @@ export const CHECKLISTS_TRANSLATIONS: Record<string, string> = {
   "checklists.buyer_journey.title": "Your Roadmap ",
   "checklists.buyer_journey.progress": "{{completed}} of {{total}} tasks complete",
   "checklists.buyer_journey.current_phase": "Current phase: {{phase}}",
+  "checklists.roadmap_tracker.nav_label": "Transaction phase roadmap",
+  "checklists.roadmap_tracker.you_are_here": "You are here",
+  "checklists.roadmap_tracker.viewing": "Viewing",
+  "checklists.roadmap_tracker.phase_aria": "{{label}}, {{status}}. {{tasks}}",
+  "checklists.roadmap_tracker.status_complete": "completed",
+  "checklists.roadmap_tracker.status_active": "current phase",
+  "checklists.roadmap_tracker.status_available": "available",
+  "checklists.roadmap_tracker.status_locked": "locked",
+  "checklists.roadmap_tracker.tasks_inline": "{{completed}} of {{total}} tasks complete",
+  "checklists.roadmap_tracker.chevron_prev_phases": "Show earlier phases",
+  "checklists.roadmap_tracker.chevron_next_phases": "Show later phases",
   "checklists.progressive.completed_collapsed": "{{count}} completed",
   "checklists.progressive.completed_expanded": "Hide {{count}} completed",
   "checklists.progressive.show_more_collapsed": "Show {{count}} more",
@@ -68,13 +78,16 @@ export const CHECKLISTS_TRANSLATIONS: Record<string, string> = {
   "checklists.roadmap.finish_phase_first": "Finish {{phase}} first ›",
   "checklists.roadmap.section_banner": "Finish {{phase}} first ›",
   "checklists.roadmap.finish_previous_phases": "Finish an earlier phase first ›",
+  "checklists.roadmap.go_to_blocker": "Go to {{blocker}}",
+  "checklists.roadmap.go_to_phase": "Open {{phase}}",
   "checklists.roadmap.complete_via_step": "Complete this step using the form below.",
   "checklists.roadmap.signature_pending": "Completes when agreements are signed.",
+  "checklists.roadmap.expand_step": "Expand step",
   "checklists.partner_agent.intro":
     "Search for an agent to send a connection request. After they accept, they appear under Connected agents and you can submit this step.",
   "checklists.partner_agent.connected_section_title": "Connected agents",
   "checklists.partner_agent.empty_state":
-    "When an agent accepts your connection request, they will appear here. Then you can submit this step.",
+    "Agents you have requested, are waiting on, or are connected with will appear here.",
   "checklists.partner_agent.incomplete_warning":
     "Connect with at least one agent (accepted request) before submitting.",
 };

@@ -4,16 +4,15 @@ import { StyleSheet, TextInput } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
+import { CALENDAR_EVENT_KINDS, type CalendarEventKindId } from "packages/features/calendar";
 import { Button, Dropdown } from "packages/ui";
 import { Box, ScrollView, Text, TouchableBox } from "packages/ui/components/primitives";
 
 import {
   useCalendarEventRequestForm,
   type UseCalendarEventRequestFormParams,
-} from "@/features/agent/hooks/data/useCalendarEventRequestForm";
+} from "@/features/agent/hooks/data/calendar/useCalendarEventRequestForm";
 import { ViewingRoutePlanEditor } from "@/features/calendar/components/viewings/ViewingRoutePlanEditor";
-import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
-import { CALENDAR_EVENT_KINDS } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 
 import { EventRequestDateDropdown } from "./EventRequestDateDropdown.native";
 import { EventRequestTimeDropdown } from "./EventRequestTimeDropdown.native";

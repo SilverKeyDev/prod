@@ -3,10 +3,15 @@ import { type ReactNode, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { prefetchLibraryRouteQueryData } from "packages/hooks/data/polling/libraryRouteDataPrefetch";
-import { useSavedHomesStoreIntegration } from "packages/hooks/store";
+import { useSavedHomesStoreIntegration, useWorkspaceIdentitySync } from "packages/hooks/store";
 import { useAgentDashboardStore, useAuthStore } from "packages/store";
 
 import { useReportsStoreIntegration } from "@/features/documents/hooks/store/useReportsStoreIntegration";
+
+function WorkspaceStoreIntegration() {
+  useWorkspaceIdentitySync();
+  return null;
+}
 
 /**
  * Single integration for saved homes: follows agent dashboard "view as client" selection
@@ -45,6 +50,7 @@ export function AuthShellProviders({ children }: { children: ReactNode }) {
 
   return (
     <>
+      <WorkspaceStoreIntegration />
       <SavedHomesShellIntegration />
       {children}
     </>

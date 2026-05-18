@@ -36,10 +36,20 @@ export type DeleteUserByIdResult = Required<
 
 export type UpdateUserSystemRolesRequest = components["schemas"]["UpdateUserSystemRolesRequest"];
 export type UpdateUserSystemRolesResponse = components["schemas"]["UpdateUserSystemRolesResponse"];
-export type ValidationStatsApiResponseSchema = components["schemas"]["ValidationStatsApiResponse"];
 
 export type UpdateUserSystemRolesResult = Required<
   Pick<components["schemas"]["UpdateUserSystemRolesResponse"], "user_id" | "gate_roles">
+>;
+
+export type UpdateAgentStatusRequest = components["schemas"]["UpdateAgentStatusRequest"];
+export type UpdateAgentStatusResponse = components["schemas"]["UpdateAgentStatusResponse"];
+
+export type DevUserDataResetRequest = components["schemas"]["DevUserDataResetRequest"];
+export type DevUserDataResetResponse = components["schemas"]["DevUserDataResetResponse"];
+export type DevUserDataResetScope = DevUserDataResetRequest["scopes"][number];
+
+export type DevUserDataResetResult = Required<
+  Pick<DevUserDataResetResponse, "target_user_id" | "cleared">
 >;
 
 type GetLoggerConfigResponse = components["schemas"]["GetLoggerConfigResponse"];
@@ -120,22 +130,6 @@ export const adminApi = {
     return { deleted_user_id: response.deleted_user_id };
   },
 
-  /** Aggregate OpenAPI validation stats (nested under SuccessResponse.data on the wire). */
-  getValidationStats: async (days?: number): Promise<ValidationStatsApiResponseSchema["data"]> => {
-    const query = typeof days === "number" ? `?days=${encodeURIComponent(String(days))}` : "";
-    const response = await apiGet<ValidationStatsApiResponseSchema>(
-      `/api/v1/admin/validation-stats${query}`
-    );
-    if (!response.success || typeof response.data !== "object" || response.data === null) {
-      throw new Error(
-        typeof response.error === "string" && response.error.length > 0
-          ? response.error
-          : "Failed to load validation statistics"
-      );
-    }
-    return response.data;
-  },
-
   /** Super_admin only — adjust `admin` / `super_admin` entries in `user_roles`. */
   updateUserSystemRoles: async (
     body: UpdateUserSystemRolesRequest
@@ -154,5 +148,61 @@ export const adminApi = {
       );
     }
     return { user_id: response.user_id, gate_roles: response.gate_roles };
+  },
+
+  /**
+   * Admin only — sets the signed-in user's `users.is_agent` (testing / dev persona).
+   * Returns the updated user row from the server.
+   */
+  setCurrentUserAgentStatus: async (
+    body: UpdateAgentStatusRequest
+  ): Promise<NonNullable<UpdateAgentStatusResponse["user"]>> => {
+    const response = await apiPost<UpdateAgentStatusResponse, UpdateAgentStatusRequest>(
+      "/api/v1/admin/current-user-agent-status",
+      body
+    );
+    if (!response.success || !response.user) {
+      throw new Error(
+        typeof response.error === "string" && response.error.length > 0
+          ? response.error
+          : "Failed to update agent status"
+      );
+    }
+    return response.user;
+  },
+
+  /**
+   * Admin only — reset scoped dev/test data (profile, preferences, DocuSign).
+   * Super_admin may pass userId to target another user.
+   */
+  resetDevUserData: async (params: {
+    scopes: DevUserDataResetScope[];
+    userId?: string;
+  }): Promise<DevUserDataResetResult> => {
+    const body: DevUserDataResetRequest = {
+      confirm: true,
+      scopes: params.scopes,
+    };
+    const trimmedId = params.userId?.trim();
+    if (trimmedId) {
+      body.user_id = trimmedId;
+    }
+    const response = await apiPost<DevUserDataResetResponse, DevUserDataResetRequest>(
+      "/api/v1/admin/users/reset-dev-data",
+      body
+    );
+    if (
+      !response.success ||
+      typeof response.target_user_id !== "string" ||
+      !response.cleared ||
+      typeof response.cleared !== "object"
+    ) {
+      throw new Error(
+        typeof response.error === "string" && response.error.length > 0
+          ? response.error
+          : "Failed to reset dev user data"
+      );
+    }
+    return { target_user_id: response.target_user_id, cleared: response.cleared };
   },
 };

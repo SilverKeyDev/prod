@@ -1,7 +1,5 @@
 import { useCallback, useMemo } from "react";
 
-import { useLocalStorage } from "packages/features/homeauth/hooks/ui/useLocalStorage";
-import { defaultClientSettings } from "packages/features/homeauth/utils/defaultClientSettings";
 import type { LibraryPersistSection } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import {
   LIBRARY_DOCUMENTS_SORT_DEFAULT,
@@ -10,6 +8,8 @@ import {
   normalizeLibrarySortValue,
 } from "packages/features/saved/utils/librarySort";
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
+import { useLocalStorage } from "packages/hooks/ui";
+import { defaultClientSettings } from "packages/utils/clientSettings";
 
 const STORAGE_KEYS: Record<LibraryPersistSection, string> = {
   homes: "library-sort:homes",

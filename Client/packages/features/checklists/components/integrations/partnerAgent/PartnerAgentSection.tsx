@@ -1,12 +1,11 @@
 import { useCallback, useMemo } from "react";
 
+import { useQueryClient } from "@tanstack/react-query";
+
 import { useLocalization } from "packages/contexts";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import type { ChecklistIntegrationComponentProps } from "packages/features/checklists/types/componentRegistry";
-import {
-  isPartnerWithAgentStepComplete,
-  listConnectedAgentsForPartnerStep,
-} from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
+import { isPartnerWithAgentStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";
@@ -14,6 +13,11 @@ import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 
 import { AgentDiscoveryView } from "@/features/agent/components/agentDiscovery/AgentDiscoveryView";
+import {
+  initiatedConnectionRequestsQueryKey,
+  useInitiatedConnectionRequests,
+} from "@/features/agent/hooks/data/connections/useInitiatedConnectionRequests";
+import { listAgentRelationshipSummaries } from "@/features/agent/utils/agentRelationshipSummaries";
 
 import PartnerAgentConnectedAgentsSection from "./PartnerAgentConnectedAgentsSection";
 
@@ -23,11 +27,13 @@ import PartnerAgentConnectedAgentsSection from "./PartnerAgentConnectedAgentsSec
  */
 export default function PartnerAgentSection({ onComplete }: ChecklistIntegrationComponentProps) {
   const { t } = useLocalization();
+  const queryClient = useQueryClient();
   const { conversations, refreshChats } = useAgentChats();
+  const { requests: initiatedRequests } = useInitiatedConnectionRequests(true);
 
-  const connectedAgents = useMemo(
-    () => listConnectedAgentsForPartnerStep(conversations),
-    [conversations]
+  const relationshipAgents = useMemo(
+    () => listAgentRelationshipSummaries(conversations, initiatedRequests),
+    [conversations, initiatedRequests]
   );
 
   const stepComplete = useMemo(
@@ -37,7 +43,8 @@ export default function PartnerAgentSection({ onComplete }: ChecklistIntegration
 
   const handleSearchSuccess = useCallback(() => {
     void refreshChats();
-  }, [refreshChats]);
+    void queryClient.invalidateQueries({ queryKey: initiatedConnectionRequestsQueryKey });
+  }, [queryClient, refreshChats]);
 
   const handleSubmitStep = useCallback(() => {
     if (!isPartnerWithAgentStepComplete(conversations)) {
@@ -55,10 +62,11 @@ export default function PartnerAgentSection({ onComplete }: ChecklistIntegration
         </BodyText>
         <AgentDiscoveryView
           isActive
+          profileTarget="external"
           className="max-w-none"
           onConnectionSuccess={handleSearchSuccess}
         />
-        <PartnerAgentConnectedAgentsSection agents={connectedAgents} />
+        <PartnerAgentConnectedAgentsSection agents={relationshipAgents} />
         <ChecklistStepSubmitFooter disabled={!stepComplete} onSubmit={handleSubmitStep} />
       </Box>
     </Card>

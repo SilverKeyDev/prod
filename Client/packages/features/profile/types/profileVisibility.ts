@@ -2,6 +2,7 @@ import {
   getOnboardingSteps,
   getPersonalizationSteps,
 } from "packages/features/profile/utils/onboarding/steps";
+import { effectiveIsAgentForOptionalBuyerUi } from "packages/features/profile/utils/onboarding/utils";
 
 import type { ProfileStepId } from "./profileStepIds";
 
@@ -25,6 +26,23 @@ export type BuyerFacingDemographicsFieldKey = (typeof BUYER_FACING_DEMOGRAPHICS_
  */
 export function isBuyerFacingDemographicsOptionalForAgent(surface: ProfileUiSurface): boolean {
   return surface === "personalization" || surface === "onboarding" || surface === "settings_modal";
+}
+
+/**
+ * “Optional for agents…” callouts appear only during onboarding — not in profile/settings.
+ */
+export function shouldShowAgentOptionalBuyerCallout(options: {
+  surface: ProfileUiSurface;
+  authIsAgent: boolean;
+  formIsAgent?: string;
+}): boolean {
+  if (options.surface !== "onboarding") {
+    return false;
+  }
+  return effectiveIsAgentForOptionalBuyerUi({
+    authIsAgent: options.authIsAgent,
+    formIsAgent: options.formIsAgent,
+  });
 }
 
 export type GetStepIdsForSurfaceOptions = {

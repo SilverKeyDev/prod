@@ -3,11 +3,11 @@ import type { IconName } from "packages/ui/types/icons";
 /** URL segment under `/admin/` (kebab-case). */
 export const ADMIN_ROUTE_SEGMENTS = {
   platformHealth: "platform-health",
-  analytics: "analytics",
   notifications: "notifications",
   logging: "logging",
   partners: "partners",
   superadmin: "superadmin",
+  devPersona: "dev-persona",
 } as const;
 
 export type AdminRouteSegment = (typeof ADMIN_ROUTE_SEGMENTS)[keyof typeof ADMIN_ROUTE_SEGMENTS];
@@ -29,11 +29,6 @@ export const ADMIN_NAV_SPEC: readonly AdminNavSpecItem[] = [
     iconName: "activity",
   },
   {
-    key: ADMIN_ROUTE_SEGMENTS.analytics,
-    label: "Analytics",
-    iconName: "bar-chart-2",
-  },
-  {
     key: ADMIN_ROUTE_SEGMENTS.notifications,
     label: "Notifications",
     iconName: "inbox",
@@ -47,6 +42,11 @@ export const ADMIN_NAV_SPEC: readonly AdminNavSpecItem[] = [
     key: ADMIN_ROUTE_SEGMENTS.partners,
     label: "Partners",
     iconName: "handshake",
+  },
+  {
+    key: ADMIN_ROUTE_SEGMENTS.devPersona,
+    label: "App persona",
+    iconName: "users",
   },
   {
     key: ADMIN_ROUTE_SEGMENTS.superadmin,

@@ -30,6 +30,7 @@ export type UseCreateEventModalPrefillAndKindStateParams = {
   setStartTime: (value: string) => void;
   setEndTime: (value: string) => void;
   setIsAllDay: (value: boolean) => void;
+  setCreateTimesChosenViaWeekSlot: (value: boolean) => void;
 };
 
 export function useCreateEventModalPrefillAndKindState({
@@ -49,6 +50,7 @@ export function useCreateEventModalPrefillAndKindState({
   setStartTime,
   setEndTime,
   setIsAllDay,
+  setCreateTimesChosenViaWeekSlot,
 }: UseCreateEventModalPrefillAndKindStateParams) {
   const [eventKindId, setEventKindId] = useState<CalendarEventKindId>("other");
   const createKindSeededRef = useRef(false);
@@ -80,6 +82,7 @@ export function useCreateEventModalPrefillAndKindState({
     setStartTime(prefilledCreateSnapshot.startTime);
     setEndTime(prefilledCreateSnapshot.endTime);
     setIsAllDay(prefilledCreateSnapshot.isAllDay);
+    setCreateTimesChosenViaWeekSlot(Boolean(prefilledCreateSnapshot.timesChosenViaWeekSlot));
     setEventKindId("other");
     createKindSeededRef.current = true;
   }, [
@@ -95,6 +98,7 @@ export function useCreateEventModalPrefillAndKindState({
     setIsAllDay,
     setStartDate,
     setStartTime,
+    setCreateTimesChosenViaWeekSlot,
   ]);
 
   useEffect(() => {

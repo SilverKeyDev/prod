@@ -11,7 +11,7 @@ alwaysApply: false
 
 Strict separation: **components** consume **hooks**; **hooks/data** call **`config/api`**; **services** stay framework-agnostic. **Apps** (`apps/web`, `apps/mobile`) are thin composition layers; **feature UI** lives in **`packages/features/<feature>/`**. Full import matrix and layer write-ups: [documentation/client/layered-architecture-imports.md](../../../documentation/client/layered-architecture-imports.md).
 
-**Also see:** `ui-components.mdc`, `platform-file-extensions.mdc`, `openapi-types.mdc`, `Client/ARCHITECTURE.md`.
+**Also see:** `ui-components.mdc`, `platform-file-extensions.mdc`, `openapi-types.mdc`, `Client/ARCHITECTURE.md`, [workspace-first-architecture.md](../../../documentation/client/workspace-first-architecture.md).
 
 ## React and JSX placement
 

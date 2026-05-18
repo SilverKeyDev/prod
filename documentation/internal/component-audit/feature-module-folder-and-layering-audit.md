@@ -48,24 +48,24 @@ Legend: **Not needed** = no action; **Defer** = add only when a concrete need ap
 
 [`Client/packages/features/README.md`](../../../Client/packages/features/README.md) states that feature code **cannot import from other feature packages**. In practice, several features compose across package boundaries (often through public barrels).
 
-**Example (dashboard → checklists, homeauth, profile, agent):**
+**Example (agent client hub → checklists, homeauth, profile):**
 
-```5:25:Client/packages/features/dashboard/components/ClientHub/ClientHubScreen.tsx
+```5:25:Client/packages/features/agent/components/clientHub/ClientHubScreen.tsx
 import {
   CHECKLIST_TITLES,
   ChecklistProgressBar,
   type ChecklistTab,
   useChecklistProgress,
 } from "packages/features/checklists";
-import { useClientHubChecklistPrefetch } from "packages/features/dashboard/hooks";
-import { useIsAgent } from "packages/features/homeauth";
+import { useClientHubChecklistPrefetch } from "packages/features/agent/hooks";
+import { useActiveWorkspace } from "packages/features/homeauth";
 import { ProfileFeature, ProfileScreen } from "packages/features/profile";
 // ...
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useAgentDashboardMockData } from "@/features/agent/hooks/data/useAgentDashboardMockData";
 ```
 
-Checklist prefetch for the hub uses the checklists **public barrel** inside [`useClientHubChecklistPrefetch.ts`](../../../Client/packages/features/dashboard/hooks/data/useClientHubChecklistPrefetch.ts) so the screen component no longer imports `packages/features/checklists/api/checklists` directly.
+Checklist prefetch for the hub uses the checklists **public barrel** inside [`useClientHubChecklistPrefetch.ts`](../../../Client/packages/features/agent/hooks/data/useClientHubChecklistPrefetch.ts) so the screen component no longer imports `packages/features/checklists/api/checklists` directly.
 
 **Example (saved → documents):**
 
@@ -99,7 +99,7 @@ Scores: axis1 size/responsibility, axis2 props/API, axis3 state/data flow, axis4
 | agent | [`MessagingScreen.native.tsx`](../../../Client/packages/features/agent/components/messaging/screen/MessagingScreen.native.tsx) (~363) | 1 | 2 | 2 | 2 | 3 | **10** | **fix list** (borderline): **A1** large screen file combining list + composer + navigation concerns. |
 | checklists | [`ChecklistLayout.tsx`](../../../Client/packages/features/checklists/components/layout/ChecklistLayout.tsx) (~327) | 1 | 2 | 2 | 2 | 3 | **10** | **fix list** (borderline): **A1** 300+ LOC shell with layout + disclosure + data hooks (`1:36` imports + body). |
 | compare | [`CompareHomesModal/index.tsx`](../../../Client/packages/features/compare/components/CompareHomesModal/index.tsx) (~300) | 2 | 2 | 2 | 2 | 3 | **11** | Modal owns CSV + comparison UI; props surface ~6 fields on `CompareHomesModalProps` (`27:34`). |
-| dashboard | [`ClientHubScreen.tsx`](../../../Client/packages/features/dashboard/components/ClientHub/ClientHubScreen.tsx) (~320) | 1 | 3 | 2 | 2 | 3 | **11** | **fix list** (borderline): **A1** 300+ LOC hub: tabs, roadmap, profile embed, documents, calendar. Checklist query prefetch moved to [`useClientHubChecklistPrefetch.ts`](../../../Client/packages/features/dashboard/hooks/data/useClientHubChecklistPrefetch.ts) (uses `getTaskChecklistForSubject` from the checklists barrel). |
+| agent | [`ClientHubScreen.tsx`](../../../Client/packages/features/agent/components/clientHub/ClientHubScreen.tsx) (~320) | 1 | 3 | 2 | 2 | 3 | **11** | **fix list** (borderline): **A1** 300+ LOC hub: tabs, roadmap, profile embed, documents, calendar. Checklist query prefetch in [`useClientHubChecklistPrefetch.ts`](../../../Client/packages/features/agent/hooks/data/useClientHubChecklistPrefetch.ts) (uses `getTaskChecklistForSubject` from the checklists barrel). |
 | messaging | [`UnifiedMessagingSidebar.tsx`](../../../Client/packages/features/messaging/components/layout/chrome/UnifiedMessagingSidebar.tsx) (~329) | 1 | 2 | 2 | 2 | 3 | **10** | **fix list** (borderline): **A1** 300+ LOC chrome. |
 | profile | [`ProfileFeature.tsx`](../../../Client/packages/features/profile/components/settings/inputs/ProfileFeature.tsx) (~303) | 1 | 2 | 2 | 2 | 3 | **10** | **fix list** (borderline): **A1** large settings shell. |
 | propertyDetails | [`PropertyDetailsBody.tsx`](../../../Client/packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsBody.tsx) (~269) | 2 | 2 | 2 | 2 | 3 | **11** | Under 300 LOC; still dense section composition—watch **A1** if it grows. |
@@ -111,7 +111,7 @@ Scores: axis1 size/responsibility, axis2 props/API, axis3 state/data flow, axis4
 |----------|------|
 | **P2** | Split or extract sub-layouts for **A1** borderline files (agent messaging screen, checklist layout, messaging sidebar, profile feature shell, saved feature) when touching those areas for product work. |
 | **P1** | Align README with real **cross-feature** composition rules (Section B). |
-| **P0** | None identified from this sample alone (no axis scored **1** with cited proof in the strictest reading; dashboard checklist prefetch no longer lives in the screen component—see `useClientHubChecklistPrefetch`). |
+| **P0** | None identified from this sample alone (no axis scored **1** with cited proof in the strictest reading; client hub checklist prefetch lives in agent—see `packages/features/agent/hooks/data/useClientHubChecklistPrefetch.ts`). |
 
 ---
 

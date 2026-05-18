@@ -7,7 +7,7 @@ Feature-level React modules live here. **`apps/web`** and **`apps/mobile`** stay
 ```
 packages/features/
 ├── saved/          # Saved homes, documents, tabs
-├── dashboard/      # Client hub, calendar entrypoints, checklists
+├── dashboard/      # Shared dashboard shell; agent client hub lives in agent
 ├── homeauth/       # Login, signup, onboarding, landing
 ├── search/         # Map, list, filters, reels on search
 ├── agent/          # Agent workspace, messaging, settings
@@ -53,7 +53,30 @@ Feature code in `packages/features/<name>/`:
 - ✅ **Can import from** (within the same feature): the feature’s own `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`
 - ✅ **Can import from** (shared packages): `packages/ui`, `packages/hooks`, `packages/store`, `packages/utils`, `packages/schemas`, `packages/navigation`, `packages/logger`, and other paths allowed by ESLint for feature modules
 - ❌ **Cannot import from**: `apps/web/*` or `apps/mobile/*` (features are framework-agnostic)
-- ❌ **Cannot import from**: Other feature packages (to prevent circular dependencies)
+- ❌ **Cannot import from**: Other feature packages by default (to prevent circular dependencies)
+
+### Cross-feature exceptions
+
+Prefer **composition** over shared modules that import both features.
+
+| Pattern | When to use | Example |
+| ------- | ----------- | ------- |
+| **A — Shell + children** | Generic layout lives in one feature; domain-specific panels are composed by the parent screen | `MessagingSidebarShell` (messaging) + `AgentMessagingClientList` (agent) wired in `AgentMessaging` |
+| **B — Narrow chrome barrel** | Messaging needs a single agent-only sidebar panel | Import only from `agent/components/messaging/chrome` (e.g. `ConnectionRequestsInboxSidebar`), not `agent/components/index` or the full modals barrel |
+
+**Ownership (messaging vs agent):**
+
+- **messaging** — threads, messages, `MessagingSidebarShell`, client conversation list, unified input/list chrome
+- **agent** — agent client list sidebar, connection-request inbox, `messagingConfig`, attachment menu, search/calendar modals used from messaging
+
+**Documented messaging → agent edges** (not sidebar; narrow over time):
+
+- `agent/components/messaging/screen/messagingConfig` — mode copy and styling
+- `agent/components/messaging/menus/AttachmentMenu` — composer attachments
+- `agent/components/modals` — search/home/document/calendar modals shell
+- `agent/hooks/data` — `useAgentClients`, `useConnectionRequests`, `useEventRequests`
+
+Audit cross-feature imports: `pnpm audit:cross-feature-imports:json` (from `Client/`).
 
 Apps (`apps/web/` and `apps/mobile/`) will import feature components from here:
 

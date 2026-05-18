@@ -16,8 +16,8 @@ from app.services.agent import (
     respond_to_connection_request,
 )
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
-from app.utils.security.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,10 @@ def get_connection_requests_endpoint(user):
     if not user.id:
         logger.error("User ID is None in get_connection_requests_endpoint")
         return jsonify({"success": False, "error": "Invalid user session"}), 401
-    requests_list = get_connection_requests(user.id, bool(user.is_agent))
+    scope = (request.args.get("scope") or "inbox").strip().lower()
+    if scope not in ("inbox", "initiated"):
+        return jsonify({"success": False, "error": "scope must be 'inbox' or 'initiated'"}), 400
+    requests_list = get_connection_requests(user.id, bool(user.is_agent), scope=scope)
     return jsonify({"success": True, "requests": requests_list})
 
 

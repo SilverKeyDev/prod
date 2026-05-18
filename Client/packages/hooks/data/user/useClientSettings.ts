@@ -5,14 +5,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import type { ClientSettings } from "packages/features/homeauth/api/clientSettings";
 import { clientSettingsApi } from "packages/features/homeauth/api/clientSettings";
-import { defaultClientSettings } from "packages/features/homeauth/utils/defaultClientSettings";
-import {
-  deepMergeRecords,
-  hydrateClientSettings,
-  mergeClientSettingsDeep,
-} from "packages/features/homeauth/utils/mergeClientSettings";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
+import {
+  deepMergeRecords,
+  defaultClientSettings,
+  hydrateClientSettings,
+  mergeClientSettingsDeep,
+} from "packages/utils/clientSettings";
 
 const PATCH_DEBOUNCE_MS = 400;
 

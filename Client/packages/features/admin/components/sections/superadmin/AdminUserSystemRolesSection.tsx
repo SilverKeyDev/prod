@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 
 import type { UpdateUserSystemRolesRequest } from "packages/api/admin";
+import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
+import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import { useUpdateUserSystemRolesMutation } from "packages/hooks/data/admin/useUpdateUserSystemRolesMutation";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { HttpError } from "packages/services/http/client";
@@ -11,9 +13,9 @@ import {
   AccessibleCheckboxInput,
   BodyText,
   Button,
+  Dropdown,
   Input,
   Label,
-  Select,
   Title,
 } from "@/components/ui";
 
@@ -24,6 +26,11 @@ const INTENT_LABELS: Record<Intent, string> = {
   grant: "Grant",
   revoke: "Revoke",
 };
+
+const INTENT_OPTIONS = (["unchanged", "grant", "revoke"] as const).map((value) => ({
+  value,
+  label: INTENT_LABELS[value],
+}));
 
 function intentsToPayload(
   admin: Intent,
@@ -40,7 +47,9 @@ function intentsToPayload(
   return { grant, revoke };
 }
 
-export function AdminUserSystemRolesSection() {
+export function AdminUserSystemRolesSection({
+  scope: _scope = DEFAULT_ADMIN_SCOPE,
+}: AdminSectionBaseProps) {
   const [userIdInput, setUserIdInput] = useState("");
   const [adminIntent, setAdminIntent] = useState<Intent>("unchanged");
   const [superIntent, setSuperIntent] = useState<Intent>("unchanged");
@@ -116,30 +125,28 @@ export function AdminUserSystemRolesSection() {
 
         <Box className="grid gap-3 sm:grid-cols-2">
           <Box>
-            <Label size="sm" className="mb-2 block">
-              Admin role intent
-            </Label>
-            <Select
+            <Label size="sm">Admin role intent</Label>
+            <Dropdown
+              className="mt-1"
+              label="Admin role intent"
+              hideLabel
+              size="sm"
               value={adminIntent}
-              options={(["unchanged", "grant", "revoke"] as const).map((v) => ({
-                value: v,
-                label: INTENT_LABELS[v],
-              }))}
-              onChange={(v) => setAdminIntent(v as Intent)}
+              options={INTENT_OPTIONS}
+              onChange={setAdminIntent}
               disabled={mutation.isPending}
             />
           </Box>
           <Box>
-            <Label size="sm" className="mb-2 block">
-              Super admin role intent
-            </Label>
-            <Select
+            <Label size="sm">Super admin role intent</Label>
+            <Dropdown
+              className="mt-1"
+              label="Super admin role intent"
+              hideLabel
+              size="sm"
               value={superIntent}
-              options={(["unchanged", "grant", "revoke"] as const).map((v) => ({
-                value: v,
-                label: INTENT_LABELS[v],
-              }))}
-              onChange={(v) => setSuperIntent(v as Intent)}
+              options={INTENT_OPTIONS}
+              onChange={setSuperIntent}
               disabled={mutation.isPending}
             />
           </Box>

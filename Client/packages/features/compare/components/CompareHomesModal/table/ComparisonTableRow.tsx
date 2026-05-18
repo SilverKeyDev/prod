@@ -4,9 +4,9 @@ import type {
 } from "packages/features/compare/types/compareHomes";
 import { renderReportSectionIcon as renderSectionIcon } from "packages/ui/components/icons/renderReportSectionIcon";
 import { Box } from "packages/ui/components/primitives";
+import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
-import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 
 type ComparisonTableRowProps = {
   field: CompareHomesComparisonField;

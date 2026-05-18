@@ -18,8 +18,9 @@ from app.schemas import (
 )
 from app.services.search.db.search_db import add_or_update_home_basic, sync_to_home_likes
 from app.utils.common_patterns import require_authenticated_user, resolve_agent_scoped_user_id
+from app.utils.db.orm_lookup import get_model
 from app.utils.format.address_format import normalize_address, safe_normalize_address
-from app.utils.pagination import build_pagination, parse_query_pagination_args
+from app.utils.http.pagination import build_pagination, parse_query_pagination_args
 from app.utils.validation import validate_request, validate_response
 
 if TYPE_CHECKING:
@@ -94,7 +95,7 @@ def post_favorite_homes(
             was_liked = link.is_liked
             link.is_liked = False
             if was_liked:
-                prop = PropertyCache.query.get(link.property_id)
+                prop = get_model(PropertyCache, link.property_id)
                 if prop:
                     sync_to_home_likes(link, prop, action="unliked")
 
@@ -187,7 +188,7 @@ def remove_favorite_home(
         all_user_links = UserPropertyLink.query.filter_by(user_id=str(target_uid)).all()
         matching: list[UserPropertyLink] = []
         for link in all_user_links:
-            prop = PropertyCache.query.get(link.property_id)
+            prop = get_model(PropertyCache, link.property_id)
             if not prop or not prop.address:
                 continue
             try:
@@ -202,7 +203,7 @@ def remove_favorite_home(
 
         for link in matching:
             if link.is_liked:
-                prop = PropertyCache.query.get(link.property_id)
+                prop = get_model(PropertyCache, link.property_id)
                 if prop:
                     sync_to_home_likes(link, prop, action="unliked")
             link.is_liked = False

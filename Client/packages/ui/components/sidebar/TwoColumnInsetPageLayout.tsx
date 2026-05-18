@@ -22,7 +22,13 @@ export function TwoColumnInsetPageLayout({
     <Box className="bg-background-base min-h-screen">
       <Box className={`mx-auto ${maxWidthClassName} pb-1 sm:px-6 lg:px-8`}>
         <Box className="flex flex-row gap-6 lg:gap-8">
-          {sidebar}
+          {/*
+            Stretch this column to the row height so inner `position: sticky` sidebars
+            (e.g. SidebarNavigation) stay anchored while the main column scrolls. Without
+            this wrapper, `h-fit` on the aside prevents flex cross-axis stretch and sticky
+            never gets a tall containing block.
+          */}
+          <Box className="shrink-0 self-stretch">{sidebar}</Box>
           <Box role="region" className={regionClassName}>
             {children}
           </Box>

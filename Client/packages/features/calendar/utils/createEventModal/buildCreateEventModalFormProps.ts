@@ -63,9 +63,8 @@ export type BuildCreateEventModalFormPropsInput = {
   setAddGoogleMeet: (next: boolean) => void;
   showGoogleMeetOption: boolean;
   mutualSchedule: CreateEventMutualAvailability | null;
-  /** Create: times came from week double-click — hide manual time row. */
-  createTimesChosenViaWeekSlot: boolean;
   onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
+  registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
 };
 
 export function buildCreateEventModalFormProps(
@@ -120,8 +119,8 @@ export function buildCreateEventModalFormProps(
     setAddGoogleMeet,
     showGoogleMeetOption,
     mutualSchedule,
-    createTimesChosenViaWeekSlot,
     onCalendarTimedSlotPick,
+    registerOutsideClickSafeTarget,
   } = input;
 
   return {
@@ -177,7 +176,7 @@ export function buildCreateEventModalFormProps(
     onAddGoogleMeetChange: setAddGoogleMeet,
     showGoogleMeetOption,
     mutualSchedule,
-    createTimesChosenViaWeekSlot,
     onCalendarTimedSlotPick,
+    registerOutsideClickSafeTarget,
   };
 }

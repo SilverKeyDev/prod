@@ -19,12 +19,14 @@ export type AgentSearchContentProps = {
   inputRef?: RefObject<HTMLInputElement | TextInput | null>;
   className?: string;
   /**
-   * `openProfile`: row opens profile via `onOpenAgentProfile`; "Connect" starts the request flow.
+   * `openProfile`: "View profile" and "Connect" buttons; connect expands the request form.
    * Default: expand inline to send a connection request.
    */
   primaryAction?: AgentSearchPrimaryAction;
   /** Required when `primaryAction` is `openProfile` (or pass a no-op). */
   onOpenAgentProfile?: (agent: AgentSearchResult) => void;
-  /** Label for the secondary connect control when `primaryAction` is `openProfile`. */
+  /** Label for the connect control when `primaryAction` is `openProfile`. */
   connectButtonLabel?: string;
+  /** Label for the profile control when `primaryAction` is `openProfile`. */
+  profileButtonLabel?: string;
 };

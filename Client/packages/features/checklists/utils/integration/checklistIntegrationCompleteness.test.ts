@@ -74,7 +74,7 @@ describe("isSetBudgetStepComplete", () => {
     ).toBe(true);
   });
 
-  it("when paying cash, fails if not OK with HOA", () => {
+  it("does not block on HOA preference when paying cash", () => {
     expect(
       isSetBudgetStepComplete({
         home_budget_min: 300_000,
@@ -85,7 +85,7 @@ describe("isSetBudgetStepComplete", () => {
           price_financing: { hoa_ok: false },
         },
       })
-    ).toBe(false);
+    ).toBe(true);
   });
 });
 
@@ -125,22 +125,61 @@ describe("isPartnerWithAgentStepComplete", () => {
     expect(listConnectedAgentsForPartnerStep(rows)).toHaveLength(1);
     expect(listConnectedAgentsForPartnerStep(rows)[0]?.displayName).toBe("Pat Agent");
   });
+
+  it("maps conversation fields to connected agent summaries", () => {
+    const summaries = listConnectedAgentsForPartnerStep([
+      conv({
+        agent_id: "agent-99",
+        agent_name: "  Sam Agent  ",
+        agent_email: "sam@example.com",
+        agent_profile_picture: "https://cdn.example/photo.jpg",
+      }),
+    ]);
+    expect(summaries[0]).toEqual({
+      agentId: "agent-99",
+      displayName: "Sam Agent",
+      email: "sam@example.com",
+      profilePictureUrl: "https://cdn.example/photo.jpg",
+    });
+  });
+
+  it("uses fallback display name when agent_name is empty", () => {
+    const summaries = listConnectedAgentsForPartnerStep([
+      conv({ agent_name: "   ", agent_email: null }),
+    ]);
+    expect(summaries[0]?.displayName).toBe("Agent");
+    expect(summaries[0]?.email).toBeNull();
+  });
 });
 
 describe("isDefineCriteriaStepComplete", () => {
   const core: Partial<OnboardingData> = {
     preferred_housing_type: "single_family",
-    must_have: ["garage"],
-    other_requirements: ["no hoa"],
-    walkability_importance: "somewhat_important",
     preferred_bedrooms_min: 2,
     preferred_bedrooms_max: 4,
     preferred_bathrooms_min: 2,
     preferred_bathrooms_max: 3,
   };
 
-  it("passes when core fields are set", () => {
+  it("passes when housing essentials are set (no must-haves or walkability required)", () => {
     expect(isDefineCriteriaStepComplete(core)).toBe(true);
+    expect(
+      isDefineCriteriaStepComplete({
+        preferred_housing_type: "single_family",
+        preferred_bedrooms_min: 2,
+        preferred_bathrooms_min: 2,
+      })
+    ).toBe(true);
+  });
+
+  it("fails without beds, baths, or housing type", () => {
+    expect(isDefineCriteriaStepComplete({ preferred_housing_type: "single_family" })).toBe(false);
+    expect(
+      isDefineCriteriaStepComplete({
+        preferred_bedrooms_min: 2,
+        preferred_bathrooms_min: 2,
+      })
+    ).toBe(false);
   });
 
   it("fails when ranges invalid", () => {

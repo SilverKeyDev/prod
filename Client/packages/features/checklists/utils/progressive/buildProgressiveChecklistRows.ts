@@ -10,7 +10,8 @@ export function shouldUseProgressiveDisclosure(itemCount: number): boolean {
 }
 
 /**
- * Index of the active (first unchecked) item in sorted order, or `sortedItems.length` when all complete.
+ * Index of the active (first unchecked) item in the display list, or `sortedItems.length` when all complete.
+ * Callers should pass display-sorted items (completed first, then incomplete).
  */
 export function getChecklistActiveIndex(
   sortedItems: TaskChecklistItem[],

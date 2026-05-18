@@ -29,8 +29,12 @@ Server/
 │   │   ├── transaction/          # Transaction and checklist models
 │   │   └── ...
 │   ├── utils/                    # Shared utilities
-│   │   ├── common_patterns.py    # Decorators (auth, validation)
-│   │   ├── security/             # Security utilities
+│   │   ├── common_patterns.py    # Re-exports route decorators (import path for routes)
+│   │   ├── route/                # Auth decorators, responses, agent scope
+│   │   ├── db/                   # Transactions, ORM helpers
+│   │   ├── format/               # Address, currency, JSON parsing helpers
+│   │   ├── http/                 # Pagination, cache headers
+│   │   ├── security/             # Security, admin role checks (admin_roles.py)
 │   │   └── ...
 │   └── __init__.py               # Flask app factory
 ├── config/                       # Configuration files
@@ -128,7 +132,7 @@ def get_profile(user):
 
 ### Auth Decorators
 
-**Standard decorators** (from `app/utils/common_patterns.py`):
+**Standard decorators** (import via `app.utils.common_patterns`; implementation in `app/utils/route/`):
 
 - `@require_authenticated_user`: Requires valid session, provides `user` parameter
 - `@require_agent_access`: Requires user is an agent, provides `user` parameter
@@ -284,7 +288,7 @@ db.session.commit()
 
 **Transaction pattern:**
 ```python
-from app.utils.common_patterns import db_transaction
+from app.utils.db import db_transaction
 
 with db_transaction():
     user.name = "New Name"

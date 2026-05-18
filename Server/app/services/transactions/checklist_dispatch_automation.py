@@ -9,6 +9,7 @@ from app.services.agent.client_service import get_agent_client_ids
 from app.services.agent.todo_service import resolve_primary_agent_id_for_client
 from app.services.documents.forms_service import FormsService
 from app.services.transactions.retrieval import get_checklist_definition
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, get_logger
 
 logger = get_logger()
@@ -18,7 +19,7 @@ _MAX_NOTE = 5000
 
 def resolve_agent_id_for_buyer(buyer_id: str) -> str | None:
     """Primary agent for checklist automation: client.agent_id list, else transaction.primary_agent_id."""
-    client = User.query.get(buyer_id)
+    client = get_model(User, buyer_id)
     if client:
         agent_id = resolve_primary_agent_id_for_client(client)
         if agent_id:

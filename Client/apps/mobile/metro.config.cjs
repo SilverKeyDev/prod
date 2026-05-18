@@ -9,18 +9,7 @@ const projectRoot = __dirname;
 const monorepoRoot = path.resolve(projectRoot, "../..");
 require("dotenv").config({ path: path.join(monorepoRoot, ".env") });
 
-// Expo inlines only EXPO_PUBLIC_* into the client bundle. Copy VITE_* → EXPO_PUBLIC_* when unset
-// so a single .env with VITE_* works for both Vite (web) and Expo (web/mobile).
-const env = process.env;
-if (!env.EXPO_PUBLIC_GOOGLE_MAPS_ID && env.VITE_GOOGLE_MAPS_ID)
-  env.EXPO_PUBLIC_GOOGLE_MAPS_ID = env.VITE_GOOGLE_MAPS_ID;
-if (!env.EXPO_PUBLIC_GOOGLE_CLIENT_ID && env.VITE_GOOGLE_CLIENT_ID)
-  env.EXPO_PUBLIC_GOOGLE_CLIENT_ID = env.VITE_GOOGLE_CLIENT_ID;
-if (!env.EXPO_PUBLIC_PLAID_CLIENT_ID && env.VITE_PLAID_CLIENT_ID)
-  env.EXPO_PUBLIC_PLAID_CLIENT_ID = env.VITE_PLAID_CLIENT_ID;
-if (!env.EXPO_PUBLIC_API_URL && env.VITE_API_URL) env.EXPO_PUBLIC_API_URL = env.VITE_API_URL;
-if (!env.EXPO_PUBLIC_API_BASE_URL && env.VITE_API_BASE_URL)
-  env.EXPO_PUBLIC_API_BASE_URL = env.VITE_API_BASE_URL;
+// Expo inlines EXPO_PUBLIC_* from .env into the client bundle. Use the same EXPO_PUBLIC_* keys as web (see Client/.env.example).
 
 const projectNodeModules = path.resolve(projectRoot, "node_modules");
 const rootNodeModules = path.resolve(monorepoRoot, "node_modules");
@@ -97,27 +86,32 @@ function resolvePackagesPath(moduleName, platform) {
   )
     return path.join(root, logicalPath);
   if (fs.existsSync(base) && fs.statSync(base).isFile()) return base;
-  // Prefer platform-specific variants before generic extensions so e.g. Loading.native.tsx is used on iOS/Android instead of Loading.tsx (web canvas/div).
-  if (platform === "ios" || platform === "android") {
-    if (fs.existsSync(withPlatform(".native", ".ts"))) return withPlatform(".native", ".ts");
-    if (fs.existsSync(withPlatform(".native", ".tsx"))) return withPlatform(".native", ".tsx");
-  }
-  if (platform === "web") {
-    if (fs.existsSync(withPlatform(".web", ".ts"))) return withPlatform(".web", ".ts");
-    if (fs.existsSync(withPlatform(".web", ".tsx"))) return withPlatform(".web", ".tsx");
-  }
-  if (fs.existsSync(withExt(".ts"))) return withExt(".ts");
-  if (fs.existsSync(withExt(".tsx"))) return withExt(".tsx");
-  if (fs.existsSync(withExt(".js"))) return withExt(".js");
-  if (fs.existsSync(withExt(".jsx"))) return withExt(".jsx");
-  // Fallback: platform variants when no generic file exists (e.g. packages/config/env).
-  if (platform === "web") {
-    if (fs.existsSync(withPlatform(".web", ".ts"))) return withPlatform(".web", ".ts");
-    if (fs.existsSync(withPlatform(".web", ".tsx"))) return withPlatform(".web", ".tsx");
-  }
-  if (platform === "ios" || platform === "android") {
-    if (fs.existsSync(withPlatform(".native", ".ts"))) return withPlatform(".native", ".ts");
-    if (fs.existsSync(withPlatform(".native", ".tsx"))) return withPlatform(".native", ".tsx");
+  const baseIsDirectory = fs.existsSync(base) && fs.statSync(base).isDirectory();
+  // When `base` is a package directory (e.g. packages/features/search), do not resolve to a
+  // sibling stem.native.ts (e.g. packages/features/search.native.ts); use <dir>/index(.native).ts.
+  if (!baseIsDirectory) {
+    // Prefer platform-specific variants before generic extensions so e.g. Loading.native.tsx is used on iOS/Android instead of Loading.tsx (web canvas/div).
+    if (platform === "ios" || platform === "android") {
+      if (fs.existsSync(withPlatform(".native", ".ts"))) return withPlatform(".native", ".ts");
+      if (fs.existsSync(withPlatform(".native", ".tsx"))) return withPlatform(".native", ".tsx");
+    }
+    if (platform === "web") {
+      if (fs.existsSync(withPlatform(".web", ".ts"))) return withPlatform(".web", ".ts");
+      if (fs.existsSync(withPlatform(".web", ".tsx"))) return withPlatform(".web", ".tsx");
+    }
+    if (fs.existsSync(withExt(".ts"))) return withExt(".ts");
+    if (fs.existsSync(withExt(".tsx"))) return withExt(".tsx");
+    if (fs.existsSync(withExt(".js"))) return withExt(".js");
+    if (fs.existsSync(withExt(".jsx"))) return withExt(".jsx");
+    // Fallback: platform variants when no generic file exists (e.g. packages/config/env).
+    if (platform === "web") {
+      if (fs.existsSync(withPlatform(".web", ".ts"))) return withPlatform(".web", ".ts");
+      if (fs.existsSync(withPlatform(".web", ".tsx"))) return withPlatform(".web", ".tsx");
+    }
+    if (platform === "ios" || platform === "android") {
+      if (fs.existsSync(withPlatform(".native", ".ts"))) return withPlatform(".native", ".ts");
+      if (fs.existsSync(withPlatform(".native", ".tsx"))) return withPlatform(".native", ".tsx");
+    }
   }
   const indexBase = path.join(base, "index");
   // Prefer index.native for package barrels on iOS/Android so exports (e.g. ConnectedCardHeartSave) use RN-safe components.

@@ -31,6 +31,7 @@ import {
   isGoogleMeetProvisioningPending,
   pollGoogleMeetHangoutLink,
 } from "./googleMeetAfterCreate";
+import { showGoogleMeetToggleForCreate } from "./googleMeetCreateEligibility";
 
 export type RunCreateEventModalSubmitParams = {
   mode: "create" | "edit";
@@ -186,6 +187,14 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
   try {
     const titleHint = detectEventTypeFromTitle(p.eventTitle.trim());
     const eventType = p.explicitEventType ?? titleHint;
+    const applyGoogleMeet =
+      Boolean(p.addGoogleMeet) &&
+      showGoogleMeetToggleForCreate({
+        mode: p.mode,
+        startDate: p.startDate,
+        endDate: p.endDate,
+        isAllDay: p.isAllDay,
+      });
     const eventData: GoogleCalendarEventCreateBody = {
       summary: p.eventTitle.trim(),
       description: p.eventDescription.trim() || undefined,
@@ -217,7 +226,7 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
       eventData.target_user_id = p.selectedClientId;
     }
 
-    if (p.mode === "create" && p.addGoogleMeet) {
+    if (applyGoogleMeet) {
       eventData.addGoogleMeet = true;
     }
 
@@ -229,8 +238,7 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
       });
     } else {
       const created = (await p.createEvent(eventData)) as GoogleEventCreateResponse;
-      const wantsMeetFlow =
-        p.mode === "create" && Boolean(p.addGoogleMeet) && Boolean(calendarIdForCreate);
+      const wantsMeetFlow = applyGoogleMeet && Boolean(calendarIdForCreate);
 
       if (wantsMeetFlow) {
         let meetLink =

@@ -10,7 +10,10 @@ from app.services.transactions.checklist_dispatch_automation import (
     format_checklist_dispatch_note,
     resolve_agent_id_for_buyer,
 )
-from app.services.transactions.checklist_support.checklist_rules import sort_task_checklist_items
+from app.services.transactions.checklist_support.checklist_rules import (
+    evaluate_checklist_condition,
+    sort_task_checklist_items,
+)
 from logger import LOG_CATEGORIES, get_logger
 
 logger = get_logger()
@@ -73,25 +76,15 @@ def _is_signature_based_item(item: dict[str, Any]) -> bool:
     return str(item.get("completion_type") or "") == _SIGNATURE_BASED
 
 
-def _prior_items_all_checked(
-    sorted_items: list[dict[str, Any]],
+def _signature_step_selectable(
+    item: dict[str, Any],
     checked: set[int],
-    item_id: int,
 ) -> bool:
-    """Match checklist sequential gate: all prior steps in sort order must be checked."""
-    idx = next((i for i, it in enumerate(sorted_items) if _item_id(it) == item_id), -1)
-    if idx < 0:
-        return False
-    target = sorted_items[idx]
-    if target.get("allow_unordered_check"):
+    """True when the step has no selectable_when gate or the gate is satisfied."""
+    sel = item.get("selectable_when")
+    if not sel:
         return True
-    for j in range(idx):
-        prev_id = _item_id(sorted_items[j])
-        if prev_id is None:
-            continue
-        if prev_id not in checked:
-            return False
-    return True
+    return evaluate_checklist_condition(sel, checked)
 
 
 def apply_signature_based_checked_ids(
@@ -163,7 +156,7 @@ def run_signature_step_auto_send(
             item_id=iid,
         ):
             continue
-        if not _prior_items_all_checked(sorted_items, effective_checked_ids, iid):
+        if not _signature_step_selectable(item, effective_checked_ids):
             continue
 
         form = _first_resolved_checklist_form(item)

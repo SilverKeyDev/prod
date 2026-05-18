@@ -12,6 +12,7 @@ import {
   mergeUpcomingAgendaItems,
   sortCompletedAgendaTodosForDisplay,
 } from "@/features/calendar/utils/agenda/mergeUpcomingAgenda";
+import { isClientCalendarAccessError } from "@/features/calendar/utils/core/clientCalendarAccess";
 import { filterUpcomingEvents } from "@/features/calendar/utils/parsing/eventFiltering";
 
 import { useAllAgendaEventsModalQuery } from "./useAllAgendaEventsModalQuery";
@@ -231,8 +232,15 @@ export function useUpcomingEventsData({
 
   const clientAgendaLoading = isClientAgendaMode && clientEventsQuery.isLoading;
 
+  const clientCalendarAccessError =
+    isClientAgendaMode &&
+    clientEventsQuery.isError &&
+    isClientCalendarAccessError(clientEventsQuery.error)
+      ? clientEventsQuery.error
+      : null;
+
   const clientAgendaErrorMessage =
-    isClientAgendaMode && clientEventsQuery.isError
+    isClientAgendaMode && clientEventsQuery.isError && !clientCalendarAccessError
       ? clientEventsQuery.error instanceof Error
         ? clientEventsQuery.error.message
         : "Could not load this client’s calendar."
@@ -241,6 +249,7 @@ export function useUpcomingEventsData({
   return {
     isClientAgendaMode,
     clientAgendaLoading,
+    clientCalendarAccessError,
     clientAgendaErrorMessage,
     embedInListHeader,
     suppressConnectionPrompt,

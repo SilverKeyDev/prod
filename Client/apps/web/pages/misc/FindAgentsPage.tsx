@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import type { ReactNode } from "react";
 
 import { useLocalization } from "packages/contexts";
-import { useIsAgent } from "packages/hooks/store";
+import { useActiveWorkspace } from "packages/hooks/store";
 import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 
@@ -16,13 +16,13 @@ type FindAgentsPageProps = {
 
 export default function FindAgentsPage({ setMobileHeaderActions }: FindAgentsPageProps) {
   const { t } = useLocalization();
-  const isAgent = useIsAgent();
+  const workspace = useActiveWorkspace();
   const { navigate } = useNavigation();
 
   useEffect(() => {
-    if (!isAgent) return;
+    if (workspace !== "agent") return;
     navigate("DASHBOARD", undefined, { replace: true });
-  }, [isAgent, navigate]);
+  }, [workspace, navigate]);
 
   useEffect(() => {
     if (!setMobileHeaderActions) return;
@@ -34,7 +34,7 @@ export default function FindAgentsPage({ setMobileHeaderActions }: FindAgentsPag
     return () => setMobileHeaderActions(null);
   }, [setMobileHeaderActions, t]);
 
-  if (isAgent) {
+  if (workspace === "agent") {
     return null;
   }
 

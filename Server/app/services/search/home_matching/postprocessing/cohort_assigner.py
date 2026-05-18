@@ -7,6 +7,7 @@ from typing import Any
 
 from app.models import User
 from app.services.aggregation import get_preferences_dict_optional
+from app.utils.db.orm_lookup import get_model
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class CohortAssigner:
             Cohort ID string
         """
         try:
-            user = User.query.get(user_id)
+            user = get_model(User, user_id)
             if not user:
                 return self.DEFAULT_COHORT
             prefs = get_preferences_dict_optional(user_id)
@@ -128,7 +129,7 @@ class CohortAssigner:
             Dictionary of cohort characteristics
         """
         try:
-            user = User.query.get(user_id)
+            user = get_model(User, user_id)
             if not user:
                 return {}
             prefs = get_preferences_dict_optional(user_id)

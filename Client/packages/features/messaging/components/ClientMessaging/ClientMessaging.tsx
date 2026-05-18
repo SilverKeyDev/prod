@@ -17,18 +17,20 @@ import {
   useMessagingHandlers,
 } from "packages/hooks/ui";
 import { LOG_CATEGORIES } from "packages/logger";
-import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 import { screenUp } from "packages/ui/types/screens";
 import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
-import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
-import UnifiedMessagingSidebar from "@/features/messaging/components/layout/chrome/UnifiedMessagingSidebar";
+import { ConnectionRequestsInboxSidebar } from "@/features/agent/components/messaging/chrome";
+import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
+import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";
+import MessagingSidebarShell from "@/features/messaging/components/layout/chrome/MessagingSidebarShell";
 import UnifiedMessageInput from "@/features/messaging/components/layout/input/UnifiedMessageInput";
 import { isSameMessagingUserId, resolvePrimaryAgentId } from "@/features/messaging/utils";
 
+import ClientMessagingConversationList from "./ClientMessagingConversationList";
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
 
 const UnifiedMessagesList = lazy(
@@ -46,13 +48,13 @@ type ClientMessagingProps = {
 export default function ClientMessaging({ setMobileHeaderActions }: ClientMessagingProps = {}) {
   useMessagingComposerStoreIntegration();
   useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "ClientMessaging");
-  const { navigate } = useNavigation();
   const { userProfile } = useUserData();
   const agentId = useMemo(
     () => resolvePrimaryAgentId(userProfile?.agent_id),
     [userProfile?.agent_id]
   );
   const showFindAgentInMessagingHeader = userProfile?.is_agent !== true;
+  const clientMessagingConfig = getMessagingConfig("client");
 
   const {
     localMessages,
@@ -106,7 +108,8 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
 
   const isTyping = false;
 
-  const { requests: pendingConnectionRequests } = useConnectionRequests();
+  // Client inbox: pending agent-initiated requests the buyer may accept or reject (agents auto-accept clients).
+  const { requests: pendingConnectionRequests } = useConnectionRequests({ inboxEnabled: true });
   const pendingConnectionRequestCount = pendingConnectionRequests.length;
 
   const {
@@ -256,20 +259,36 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
   return (
     <Box className="flex h-full w-full overflow-hidden">
       <Box className="relative flex h-full w-full overflow-hidden">
-        <UnifiedMessagingSidebar
-          mode="client"
+        <MessagingSidebarShell
           isSidebarExpanded={isSidebarExpanded}
-          setIsSidebarExpanded={setIsSidebarExpanded}
-          showInbox={showInbox}
-          setShowInbox={setShowInbox}
-          activeConversationId={activeConversationId}
-          setActiveConversationId={setActiveConversationId}
-          clientConversations={clientConversations}
-          isLoadingClientConversations={isChatsLoading}
-          onSearchClick={
-            showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined
+          header={
+            <UnifiedMessagingHeader
+              mode={showInbox ? "connection-requests" : "agents"}
+              isSidebarExpanded={isSidebarExpanded}
+              setIsSidebarExpanded={setIsSidebarExpanded}
+              onInboxClick={() => setShowInbox(true)}
+              onBackClick={() => setShowInbox(false)}
+              onSearchClick={
+                showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined
+              }
+              pendingConnectionRequestCount={pendingConnectionRequestCount}
+              className="xl:rounded-tl-xl xl:rounded-tr-none"
+            />
           }
-        />
+        >
+          {showInbox ? (
+            <ConnectionRequestsInboxSidebar onRequestAccepted={() => setShowInbox(false)} />
+          ) : (
+            <ClientMessagingConversationList
+              clientConversations={clientConversations}
+              isLoadingClientConversations={isChatsLoading}
+              activeConversationId={activeConversationId}
+              setActiveConversationId={setActiveConversationId}
+              setIsSidebarExpanded={setIsSidebarExpanded}
+              emptyMessage={clientMessagingConfig.sidebar.emptyMessage}
+            />
+          )}
+        </MessagingSidebarShell>
         <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">
           <Box className="flex min-h-0 flex-1 flex-col">
             {!showInbox && (
@@ -304,7 +323,6 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
                     isTyping={isTyping}
                     formatTime={formatTime}
                     onSearchClick={() => setShowSearchModal(true)}
-                    onBrowseAgentsClick={() => navigate("FIND_AGENTS")}
                     messagesEndRef={messagesEndRef}
                     onRetryMessage={retryMessage}
                     activeConversation={activeConversation ?? null}

@@ -13,6 +13,7 @@ from typing import Any
 
 from app.models import User
 from app.services.aggregation import get_preferences_dict_optional
+from app.utils.db.orm_lookup import get_model
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ def get_user_data_from_db(user_id: str) -> dict[str, Any] | None:
     Uses aggregated preferences (new models with legacy fallback) and User.
     """
     try:
-        user = User.query.get(user_id)
+        user = get_model(User, user_id)
         if not user:
             logger.warning(f"User not found for user_id {user_id}")
             return None

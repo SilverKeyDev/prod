@@ -6,7 +6,7 @@ import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
 import type { UserProfile } from "@/features/homeauth/types";
 import AgentProfilePage from "@/pages/misc/AgentProfilePage";
 import PropertyDetailsPage from "@/pages/property/PropertyDetailsPage";
-import AdminAnalyticsOutlet from "@/pages/workspace/admin/AdminAnalyticsOutlet";
+import AdminDevPersonaOutlet from "@/pages/workspace/admin/AdminDevPersonaOutlet";
 import AdminLoggingOutlet from "@/pages/workspace/admin/AdminLoggingOutlet";
 import AdminNotificationsOutlet from "@/pages/workspace/admin/AdminNotificationsOutlet";
 import AdminPartnersOutlet from "@/pages/workspace/admin/AdminPartnersOutlet";
@@ -14,11 +14,9 @@ import AdminPlatformHealthOutlet from "@/pages/workspace/admin/AdminPlatformHeal
 import AdminSuperadminOutlet from "@/pages/workspace/admin/AdminSuperadminOutlet";
 import AdminPage from "@/pages/workspace/AdminPage";
 
+import { LegacyWorkspaceShellPrefixRedirect } from "./LegacyWorkspaceShellPrefixRedirect";
 import { createProtectedRoute } from "./RouteConfig";
 import { ROUTE_CONFIGS } from "./routeConfigExports";
-
-/** Admin UI route is omitted from the build unless explicitly enabled (reduces exposed surface). */
-const ADMIN_PANEL_ENABLED = import.meta.env.VITE_ENABLE_ADMIN_PANEL === "true";
 
 function SettingsRedirect() {
   const location = useLocation();
@@ -49,19 +47,18 @@ function useStableNonDashboardRoutes(): ReactElement[] {
   return useMemo(() => {
     const trailing: ReactElement[] = [];
 
-    if (ADMIN_PANEL_ENABLED) {
-      trailing.push(
-        <Route key="/admin" path="/admin" element={<AdminPage />}>
-          <Route index element={<Navigate to="logging" replace />} />
-          <Route path="platform-health" element={<AdminPlatformHealthOutlet />} />
-          <Route path="analytics" element={<AdminAnalyticsOutlet />} />
-          <Route path="notifications" element={<AdminNotificationsOutlet />} />
-          <Route path="logging" element={<AdminLoggingOutlet />} />
-          <Route path="partners" element={<AdminPartnersOutlet />} />
-          <Route path="superadmin" element={<AdminSuperadminOutlet />} />
-        </Route>
-      );
-    }
+    trailing.push(
+      <Route key="/admin" path="/admin" element={<AdminPage />}>
+        <Route index element={<Navigate to="logging" replace />} />
+        <Route path="platform-health" element={<AdminPlatformHealthOutlet />} />
+        <Route path="analytics" element={<Navigate to="/admin/logging" replace />} />
+        <Route path="notifications" element={<AdminNotificationsOutlet />} />
+        <Route path="logging" element={<AdminLoggingOutlet />} />
+        <Route path="partners" element={<AdminPartnersOutlet />} />
+        <Route path="dev-persona" element={<AdminDevPersonaOutlet />} />
+        <Route path="superadmin" element={<AdminSuperadminOutlet />} />
+      </Route>
+    );
 
     trailing.push(
       <Route
@@ -94,6 +91,26 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
 
   const stableLeadingRoutes = useMemo(
     () => [
+      <Route
+        key="legacy-buyer-shell-exact"
+        path="/buyer"
+        element={<LegacyWorkspaceShellPrefixRedirect />}
+      />,
+      <Route
+        key="legacy-buyer-shell"
+        path="/buyer/*"
+        element={<LegacyWorkspaceShellPrefixRedirect />}
+      />,
+      <Route
+        key="legacy-brokerage-shell-exact"
+        path="/brokerage"
+        element={<LegacyWorkspaceShellPrefixRedirect />}
+      />,
+      <Route
+        key="legacy-brokerage-shell"
+        path="/brokerage/*"
+        element={<LegacyWorkspaceShellPrefixRedirect />}
+      />,
       <Route
         key="buyer-checklists-redirect"
         path="/buyer-checklists"

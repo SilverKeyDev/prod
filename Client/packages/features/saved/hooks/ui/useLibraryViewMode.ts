@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from "react";
 
-import { useLocalStorage } from "packages/features/homeauth/hooks/ui/useLocalStorage";
-import { defaultClientSettings } from "packages/features/homeauth/utils/defaultClientSettings";
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
+import { useLocalStorage } from "packages/hooks/ui";
+import { defaultClientSettings } from "packages/utils/clientSettings";
 
 export type LibraryViewMode = "grid" | "list";
 

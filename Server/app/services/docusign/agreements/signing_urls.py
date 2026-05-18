@@ -3,6 +3,7 @@ Agreement signing URL operations: get signing URL and sender view URL.
 """
 
 from app.models import AgreementParticipant
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, get_logger
 
 from ..envelopes.signing import SigningService
@@ -30,7 +31,7 @@ def get_signing_url(agreement_id: str, participant_id: str) -> str:
 
     agreement = get_agreement(agreement_id)
 
-    participant = AgreementParticipant.query.get(participant_id)
+    participant = get_model(AgreementParticipant, participant_id)
     if not participant or participant.agreement_id != agreement_id:
         logger.warn(
             LOG_CATEGORIES["DOCUSIGN"],

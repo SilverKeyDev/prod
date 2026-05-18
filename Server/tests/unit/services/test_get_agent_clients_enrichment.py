@@ -258,3 +258,84 @@ def test_get_agent_clients_parses_csv_client_ids(db_session):
 
     out = get_agent_clients("agent-csv")
     assert {row["id"] for row in out} == {"c-a", "c-b"}
+
+
+def test_get_agent_clients_current_step_label_for_new_client(db_session):
+    agent = User(
+        id="agent-step",
+        cognito_id="cog-step-a",
+        email="step-a@example.com",
+        name="Agent Step",
+        is_agent=True,
+        client_ids='["c-new"]',
+    )
+    client_u = User(
+        id="c-new",
+        cognito_id="cog-step-c",
+        email="new@example.com",
+        name="New Client",
+        is_agent=False,
+    )
+    db_session.session.add_all([agent, client_u])
+    db_session.session.commit()
+
+    out = get_agent_clients("agent-step")
+    assert len(out) == 1
+    row = out[0]
+    assert row["current_phase"] == "search"
+    assert row["current_step_label"] == "Set a budget"
+    assert row["requires_signature"] is False
+
+
+def test_get_agent_clients_requires_signature_when_client_signed_agent_not(db_session):
+    from app.models import Agreement, AgreementParticipant
+
+    agent = User(
+        id="agent-sign",
+        cognito_id="cog-sign-a",
+        email="sign-a@example.com",
+        name="Agent Sign",
+        is_agent=True,
+        client_ids='["c-sign"]',
+    )
+    client_u = User(
+        id="c-sign",
+        cognito_id="cog-sign-c",
+        email="sign-c@example.com",
+        name="Sign Client",
+        is_agent=False,
+    )
+    db_session.session.add_all([agent, client_u])
+    agreement = Agreement(
+        id="agr-1",
+        status="sent",
+        title="Buyer broker agreement",
+        agent_id="agent-sign",
+        buyer_id="c-sign",
+        agreement_type="buyer_broker",
+    )
+    db_session.session.add(agreement)
+    db_session.session.add(
+        AgreementParticipant(
+            agreement_id="agr-1",
+            user_id="c-sign",
+            email="sign-c@example.com",
+            name="Sign Client",
+            role="signer",
+            recipient_status="signed",
+        )
+    )
+    db_session.session.add(
+        AgreementParticipant(
+            agreement_id="agr-1",
+            user_id="agent-sign",
+            email="sign-a@example.com",
+            name="Agent Sign",
+            role="signer",
+            recipient_status="sent",
+        )
+    )
+    db_session.session.commit()
+
+    out = get_agent_clients("agent-sign")
+    assert out[0]["requires_signature"] is True

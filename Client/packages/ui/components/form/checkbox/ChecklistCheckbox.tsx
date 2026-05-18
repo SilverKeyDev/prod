@@ -131,13 +131,17 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
       <Box className="min-w-0 flex-1 text-left">
         <Label
           htmlFor={`item-${item.id}`}
-          className="!flex max-w-full flex-wrap items-baseline gap-x-2.5 gap-y-0.5 text-left"
+          className="!flex max-w-full flex-wrap items-center gap-x-2.5 gap-y-0 text-left"
         >
-          <BodyText as="span" className={itemLabelClass}>
+          <BodyText as="span" size="sm" className={`!leading-snug ${itemLabelClass}`}>
             {number != null ? `${number}. ` : ""}
             {item.label}
             {item.optional ? (
-              <BodyText as="span" size="xs" className="text-text-tertiary font-normal">
+              <BodyText
+                as="span"
+                size="xs"
+                className="text-text-tertiary font-normal !leading-snug"
+              >
                 {" "}
                 (optional)
               </BodyText>
@@ -146,10 +150,11 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
           {inlineBlocker ? (
             <BodyText
               as="span"
+              size={roadmapBlockerInlineVariant === "integration_hint" ? "xs" : "sm"}
               className={
                 roadmapBlockerInlineVariant === "integration_hint"
-                  ? "text-rose-muted text-xs font-normal italic"
-                  : "text-rose-muted text-responsive-sm font-normal"
+                  ? "text-rose-muted font-normal italic !leading-snug"
+                  : "text-rose-muted text-responsive-sm font-normal !leading-snug"
               }
             >
               {roadmapBlockerInlineText}

@@ -44,7 +44,6 @@ type UnifiedMessagesListProps = {
   isTyping: boolean;
   formatTime: (date: Date) => string;
   onSearchClick?: () => void;
-  onBrowseAgentsClick?: () => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
   selectedClientName?: string;
   onRetryMessage?: (messageId: string) => void;
@@ -65,7 +64,6 @@ export default function UnifiedMessagesList({
   formatTime: _formatTime,
   isTyping: _isTyping,
   onSearchClick,
-  onBrowseAgentsClick,
   messagesEndRef,
   selectedClientName,
   onRetryMessage,
@@ -184,13 +182,7 @@ export default function UnifiedMessagesList({
     if (mode === "agent") {
       return <UnifiedMessagesListAgentBlockedEmpty config={config} />;
     }
-    return (
-      <UnifiedMessagesListClientNoAgentEmpty
-        config={config}
-        onSearchClick={onSearchClick}
-        onBrowseAgentsClick={onBrowseAgentsClick}
-      />
-    );
+    return <UnifiedMessagesListClientNoAgentEmpty config={config} onSearchClick={onSearchClick} />;
   }
   if (isLoadingHistory) {
     return <UnifiedMessagesListLoadingHistory />;

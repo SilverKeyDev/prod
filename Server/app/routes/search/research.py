@@ -7,6 +7,8 @@ from flask import Blueprint, Response, current_app, jsonify, stream_with_context
 from flask import request as req
 
 from app.schemas import PropertyRequest
+from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.utils.security.celery_task_ownership import register_task_owner, verify_task_owner
 from app.utils.validation import validate_request
 from logger import LOG_CATEGORIES, log
 
@@ -26,9 +28,21 @@ class _CeleryTaskWithDelay(Protocol):
 research_bp = Blueprint("research", __name__, url_prefix="/api/v1/research")
 
 
+def _forbidden_task_access():
+    return jsonify(
+        {
+            "success": False,
+            "error": "FORBIDDEN",
+            "message": "Access denied to this task",
+        }
+    ), 403
+
+
 @research_bp.route("/property", methods=["POST"])
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_request(PropertyRequest)
-def get_property_via_address(data: PropertyRequest | None = None):
+def get_property_via_address(user, data: PropertyRequest | None = None):
     """
     Fetch property detail using exactly one of:
     zpid, property_url, or address (address-only is fine).
@@ -44,13 +58,11 @@ def get_property_via_address(data: PropertyRequest | None = None):
     property_url = body.get("property_url")
     address = body.get("address")
 
-    # Check if streaming is requested
     stream_mode = (
         req.args.get("stream", "false").lower() == "true"
         or req.headers.get("X-Stream", "").lower() == "true"
     )
 
-    # Build API parameters
     params = build_property_params(zpid=zpid, property_url=property_url, address=address)
     if params is None:
         return jsonify(
@@ -61,7 +73,6 @@ def get_property_via_address(data: PropertyRequest | None = None):
             }
         ), 400
 
-    # Streaming mode: yield chunks as they're generated (synchronous)
     if stream_mode:
         from ...services.search.property.property_stream import generate_property_stream
 
@@ -75,10 +86,10 @@ def get_property_via_address(data: PropertyRequest | None = None):
             },
         )
 
-    # Non-streaming mode: use Celery task
     task = cast(_CeleryTaskWithDelay, research_property_task).delay(
         params=params, address=address, skip_pros_cons=False, research_body=body
     )
+    register_task_owner(task.id, str(user.id))
 
     return jsonify(
         {
@@ -91,8 +102,10 @@ def get_property_via_address(data: PropertyRequest | None = None):
 
 
 @research_bp.route("/compare", methods=["POST"])
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_request(PropertyRequest)
-def compare_property(data: PropertyRequest | None = None):
+def compare_property(user, data: PropertyRequest | None = None):
     """
     Compare property endpoint - same as /property but skips pros/cons generation.
     Optimized for comparison use cases where pros/cons are not needed.
@@ -107,18 +120,15 @@ def compare_property(data: PropertyRequest | None = None):
     property_url = body.get("property_url")
     address = body.get("address")
 
-    # Log request details
     current_app.logger.info(
         f"[COMPARE] Request received - zpid: {zpid}, property_url: {property_url}, address: {address}"
     )
 
-    # Check if streaming is requested
     stream_mode = (
         req.args.get("stream", "false").lower() == "true"
         or req.headers.get("X-Stream", "").lower() == "true"
     )
 
-    # Build API parameters
     params = build_property_params(zpid=zpid, property_url=property_url, address=address)
     if params is None:
         error_response = {
@@ -131,7 +141,6 @@ def compare_property(data: PropertyRequest | None = None):
         )
         return jsonify(error_response), 400
 
-    # Streaming mode: yield chunks as they're generated (without pros/cons) - synchronous
     if stream_mode:
         current_app.logger.info(
             "[COMPARE] Streaming mode enabled - response will be streamed incrementally"
@@ -150,10 +159,10 @@ def compare_property(data: PropertyRequest | None = None):
             },
         )
 
-    # Non-streaming mode: use Celery task
     task = cast(_CeleryTaskWithDelay, compare_property_task).delay(
         params=params, address=address, research_body=body
     )
+    register_task_owner(task.id, str(user.id))
 
     return jsonify(
         {
@@ -166,7 +175,9 @@ def compare_property(data: PropertyRequest | None = None):
 
 
 @research_bp.route("/task-status/<task_id>", methods=["GET"])
-def get_task_status(task_id: str):
+@handle_exceptions_with_logging
+@require_authenticated_user
+def get_task_status(user, task_id: str):
     """
     Get the status of a research task (property or compare).
 
@@ -179,8 +190,15 @@ def get_task_status(task_id: str):
         "meta": {...}
     }
     """
+    if not verify_task_owner(task_id, str(user.id)):
+        current_app.logger.warning(
+            "[RESEARCH] Task status denied: user %s task %s",
+            user.id,
+            task_id,
+        )
+        return _forbidden_task_access()
+
     try:
-        # Get task result
         task_result = celery.AsyncResult(task_id)
 
         response = {
@@ -203,7 +221,6 @@ def get_task_status(task_id: str):
         elif task_result.status == "SUCCESS":
             task_data = task_result.result
             if isinstance(task_data, dict) and task_data.get("success"):
-                # Return the actual response data and status code
                 response["result"] = task_data.get("response_data", {})
                 response["status_code"] = task_data.get("status_code", 200)
                 response["elapsed_time"] = task_data.get("elapsed_time")
@@ -212,7 +229,6 @@ def get_task_status(task_id: str):
             response["message"] = "Task completed successfully"
 
         elif task_result.status == "FAILURE":
-            # Avoid leaking internal exception details; log server-side only if needed
             response["error"] = "Task failed"
             response["message"] = "Task failed"
             response["success"] = False

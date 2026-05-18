@@ -1,13 +1,17 @@
 import { useCallback, useState } from "react";
 
 import { adminApi } from "packages/api/admin";
+import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
+import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { HttpError } from "packages/services/http/client";
 import { Box } from "packages/ui/components/primitives";
 
 import { AccessibleCheckboxInput, BodyText, Button, Input, Label, Title } from "@/components/ui";
 
-export function AdminDeleteUserSection() {
+export function AdminDeleteUserSection({
+  scope: _scope = DEFAULT_ADMIN_SCOPE,
+}: AdminSectionBaseProps) {
   const [deleteUserIdInput, setDeleteUserIdInput] = useState("");
   const [deleteUserAcknowledged, setDeleteUserAcknowledged] = useState(false);
   const [deleteUserBusy, setDeleteUserBusy] = useState(false);

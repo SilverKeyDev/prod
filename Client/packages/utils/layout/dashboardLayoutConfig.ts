@@ -32,13 +32,28 @@ const DASHBOARD_ROUTE_ORDER: PathPrefix[] = [
  * Single source of truth: which dashboard area this pathname belongs to.
  * Used by pathMatches, getWidthPercent, and tests. Prefer useDashboardRoute() in UI.
  */
+
+/** Strip `/buyer` or `/brokerage` shell prefix so layout keys match legacy path resolution. */
+export function stripWorkspaceShellPrefix(pathname: string): string {
+  if (pathname === "/buyer" || pathname.startsWith("/buyer/")) {
+    const rest = pathname === "/buyer" ? "/" : pathname.slice("/buyer".length);
+    return rest.startsWith("/") ? rest : `/${rest}`;
+  }
+  if (pathname === "/brokerage" || pathname.startsWith("/brokerage/")) {
+    const rest = pathname === "/brokerage" ? "/dashboard" : pathname.slice("/brokerage".length);
+    return rest.startsWith("/") ? rest : `/${rest}`;
+  }
+  return pathname;
+}
+
 export function getActiveDashboardKey(pathname: string): PathPrefix | null {
-  if (pathname === "/saved" || pathname.startsWith("/saved/")) {
+  const normalized = stripWorkspaceShellPrefix(pathname);
+  if (normalized === "/saved" || normalized.startsWith("/saved/")) {
     return "library";
   }
   for (const key of DASHBOARD_ROUTE_ORDER) {
     const prefix = PATH_PREFIXES[key];
-    if (pathname === prefix || pathname.startsWith(prefix + "/")) {
+    if (normalized === prefix || normalized.startsWith(prefix + "/")) {
       return key;
     }
   }

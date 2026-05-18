@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
+import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/searchHeaderPopoverDismiss.web";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
@@ -21,6 +22,8 @@ const buttonBase = `inline-flex items-center gap-1.5 rounded-lg px-4 text-sm fon
 export default function SearchDisplayDropdown(): React.ReactElement {
   const { t } = useLocalization();
   const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
+  useRegisterSearchHeaderPopoverWhenOpen(open, close);
 
   const displayLabel = t("search.display") ?? SEARCH_TRANSLATIONS["search.display"] ?? "Display";
 

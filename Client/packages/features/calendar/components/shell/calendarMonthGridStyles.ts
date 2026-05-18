@@ -1,5 +1,7 @@
 import { color, spacing } from "packages/design-tokens";
 
+import { hexToRgba } from "@/features/calendar/utils/createEventModal/calendarEventColors";
+
 type SpacingFn = (n: number) => string | number;
 
 export function buildCalendarMonthGridStyles(spacingFn: SpacingFn) {
@@ -58,7 +60,7 @@ export function buildCalendarMonthGridStyles(spacingFn: SpacingFn) {
     cellMuted: { opacity: 0.45 },
     /** Selected day in month grid — very light gold (not green/gray). */
     cellSelected: {
-      backgroundColor: hexToRgbaToken(color("gold.DEFAULT"), 0.22),
+      backgroundColor: hexToRgba(color("gold.DEFAULT"), 0.22),
     },
     dayNumber: {
       fontSize: 14,
@@ -132,7 +134,7 @@ export function buildCalendarMonthGridStyles(spacingFn: SpacingFn) {
       borderWidth: 1,
       borderStyle: "dashed" as const,
       borderColor: color("neutral.400"),
-      backgroundColor: "rgba(120, 120, 120, 0.08)",
+      backgroundColor: hexToRgba(color("neutral.500"), 0.08),
     },
     eventChipText: {
       fontSize: 10,
@@ -143,19 +145,6 @@ export function buildCalendarMonthGridStyles(spacingFn: SpacingFn) {
       minWidth: 0,
     },
   };
-}
-
-/** Parse design-token hex `color("path")` for alpha blend (token returns hex). */
-function hexToRgbaToken(hex: string, alpha: number): string {
-  const h = hex.replace("#", "");
-  if (h.length !== 6) {
-    return `rgba(163, 177, 138, ${alpha})`;
-  }
-  const n = parseInt(h, 16);
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 export type CalendarMonthGridStyles = ReturnType<typeof buildCalendarMonthGridStyles>;

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { preferencesApi, userApi } from "packages/config/http/api";
+import { preferencesApi, userApi } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
@@ -109,6 +109,7 @@ export function useUserData(): UseUserDataReturn {
             ? userData.client_ids.join(",")
             : userData.client_ids,
           roles: userData.roles ?? [], // Include roles from backend (user_roles table)
+          brokerage_org_ids: userData.brokerage_org_ids ?? null,
         };
 
         prefetchRemoteImage(profile.profile_picture_url);

@@ -6,6 +6,7 @@ import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
+import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/searchHeaderPopoverDismiss.web";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
@@ -22,10 +23,6 @@ const panelClass = `${SEARCH_HEADER_PANEL_CLASS_DEFAULT} overflow-x-hidden w-[mi
 export type SearchFilterBarProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: keyof OnboardingData, value: unknown) => void;
-  saveStatus?: "idle" | "saving" | "saved";
-  flushPreferencesSave: () => Promise<void>;
-  onPreferencesApplySearch?: () => void | Promise<void>;
-  isSearching?: boolean;
   onPopoverClose?: () => void;
   variant?: "desktop" | "mobile";
   selectedClientId?: string | null;
@@ -38,10 +35,6 @@ export type SearchFilterBarProps = {
 export default function SearchFilterBar({
   formData,
   updateFormData,
-  saveStatus,
-  flushPreferencesSave,
-  onPreferencesApplySearch,
-  isSearching = false,
   onPopoverClose,
   variant = "desktop",
   selectedClientId,
@@ -53,28 +46,12 @@ export default function SearchFilterBar({
   const { t } = useLocalization();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [applyBusy, setApplyBusy] = useState(false);
-
-  const runApplyThenSearch = useCallback(async () => {
-    if (isSearching || applyBusy) return;
-    setApplyBusy(true);
-    try {
-      await flushPreferencesSave();
-      await onPreferencesApplySearch?.();
-    } finally {
-      setApplyBusy(false);
-    }
-  }, [applyBusy, flushPreferencesSave, isSearching, onPreferencesApplySearch]);
-
-  const handleApplyFromSheet = useCallback(async () => {
-    await runApplyThenSearch();
-    onPopoverClose?.();
-  }, [onPopoverClose, runApplyThenSearch]);
 
   const closePopover = useCallback(() => {
     setPopoverOpen(false);
     onPopoverClose?.();
   }, [onPopoverClose]);
+  useRegisterSearchHeaderPopoverWhenOpen(popoverOpen, closePopover);
 
   if (variant === "mobile") {
     return (
@@ -97,10 +74,8 @@ export default function SearchFilterBar({
         <SearchFiltersSheet
           open={sheetOpen}
           onClose={() => setSheetOpen(false)}
-          onApply={handleApplyFromSheet}
           formData={formData}
           updateFormData={updateFormData}
-          saveStatus={saveStatus}
           scriptsReady={scriptsReady}
           selectedClientId={selectedClientId}
           onClientChange={onClientChange}
@@ -150,43 +125,14 @@ export default function SearchFilterBar({
         )}
       >
         {() => (
-          <>
-            <SearchPreferencesContent
-              formData={formData}
-              updateFormData={updateFormData}
-              saveStatus={saveStatus}
-              patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
-              scriptsReady={scriptsReady}
-              viewingClientId={selectedClientId ?? null}
-              onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
-            />
-            <Box className="border-border bg-background-surface z-dropdown sticky bottom-0 -mx-4 -mb-4 mt-4 border-t px-4 py-3">
-              <Button
-                type="button"
-                variant="primary"
-                size="md"
-                fullWidth
-                loading={applyBusy || saveStatus === "saving"}
-                disabled={isSearching || applyBusy}
-                onClick={() => {
-                  void (async () => {
-                    try {
-                      await runApplyThenSearch();
-                    } catch {
-                      /* save errors handled in preferences layer */
-                    } finally {
-                      // Controlled popover: sync local open state (onClose alone can miss after await).
-                      closePopover();
-                    }
-                  })();
-                }}
-                className="touch-friendly"
-                iconName="search"
-              >
-                {t("search.apply")}
-              </Button>
-            </Box>
-          </>
+          <SearchPreferencesContent
+            formData={formData}
+            updateFormData={updateFormData}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+            scriptsReady={scriptsReady}
+            viewingClientId={selectedClientId ?? null}
+            onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
+          />
         )}
       </Popover>
     </Box>

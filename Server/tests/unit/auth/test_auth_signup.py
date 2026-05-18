@@ -119,7 +119,7 @@ class TestSignupFlow:
     def test_signup_handles_database_error_gracefully(
         self, app: Flask, mock_cognito_service, db_session
     ):
-        """Test signup continues even if database creation fails"""
+        """Test signup returns 503 when Cognito succeeds but database insert fails."""
         from app.services.auth.flows.signup import handle_signup
 
         with app.app_context():
@@ -131,6 +131,6 @@ class TestSignupFlow:
                 }
                 response_data, status_code = handle_signup(data)
 
-                # Signup should still succeed (Cognito user created)
-                assert status_code == 201
-                assert response_data["success"] is True
+                assert status_code == 503
+                assert response_data["success"] is False
+                assert response_data["error"] == "SIGNUP_SYNC_FAILED"

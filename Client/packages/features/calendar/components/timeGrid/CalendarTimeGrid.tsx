@@ -8,6 +8,7 @@ import { getWindow } from "packages/utils/platform";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import type { WeekTimeSlotDoubleClickPayload } from "@/features/calendar/types/calendarQuickCreate";
 
 import { CAL_TIME_GRID_HOURS, calTimeGridTemplateColumns } from "./calendarTimeGridConstants";
 import { CalendarTimeGridHourScrollContent } from "./CalendarTimeGridHourScrollContent";
@@ -55,7 +56,7 @@ export type CalendarTimeGridProps = {
   calendars: GoogleCalendar[];
   onDayHeaderPress?: (date: Date) => void;
   onDayHeaderDoubleTap?: (date: Date) => void;
-  onWeekTimeSlotDoubleClick?: (payload: { date: Date; minutesFromMidnight: number }) => void;
+  onWeekTimeSlotDoubleClick?: (payload: WeekTimeSlotDoubleClickPayload) => void;
   showWeekendTint?: boolean;
   weekInteractionEnabled?: boolean;
   weekSelectedEventId?: string | null;

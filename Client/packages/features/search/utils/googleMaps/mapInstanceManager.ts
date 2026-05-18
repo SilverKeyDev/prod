@@ -3,6 +3,8 @@ import { asError } from "packages/utils";
 import { dateNow } from "packages/utils/date";
 import { getWindow } from "packages/utils/platform";
 
+import { buildWebGoogleMapOptions } from "./buildWebGoogleMapOptions";
+
 /**
  * Tracks and manages Google Map instances (create, cleanup, resize).
  */
@@ -30,24 +32,11 @@ export class MapInstanceManager {
     });
 
     try {
-      const baseOptions: google.maps.MapOptions = {
-        center: { lat: 33.75, lng: -84.39 },
-        zoom: 12,
-        mapId: effectiveMapId,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        zoomControl: false,
-        scaleControl: false,
-        rotateControl: false,
-        keyboardShortcuts: false,
-        gestureHandling: "greedy",
-        disableDefaultUI: true,
-      };
-      const map = new win.google.maps.Map(container, {
-        ...baseOptions,
-        ...overrides,
-      });
+      const mapOptions = buildWebGoogleMapOptions(
+        effectiveMapId,
+        overrides as Parameters<typeof buildWebGoogleMapOptions>[1]
+      );
+      const map = new win.google.maps.Map(container, mapOptions as google.maps.MapOptions);
       MapInstanceManager.mapInstanceCount++;
       MapInstanceManager.activeMapInstances.add(map);
       log.info(LOG_CATEGORIES.MAP_RENDERING, "Google Map created successfully", {

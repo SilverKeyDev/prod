@@ -5,13 +5,12 @@ import {
   ProfileSectionCallout,
   useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
+import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
 import {
   AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT,
-  effectiveIsAgentForOptionalBuyerUi,
   type OnboardingData,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
-import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import Title from "packages/ui/components/text/Title";
 
 import { HousingEssentialRows } from "@/features/profile/components/sections/housing/HousingEssentialRows";
@@ -28,11 +27,7 @@ export function ProfileHousingEssentialsSection({
   updateField,
 }: ProfileHousingEssentialsSectionProps) {
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
-  const authIsAgent = useIsAgent();
-  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
-    authIsAgent,
-    formIsAgent: formData.is_agent,
-  });
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
 
   return (
     <ProfileSectionBody>

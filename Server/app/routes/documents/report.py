@@ -7,7 +7,8 @@ from jose.exceptions import ExpiredSignatureError, JWTError
 from sqlalchemy import or_
 
 from app.schemas import DeleteReportRequest, DeleteReportResponse, DocumentLibraryResponse
-from app.utils.pagination import build_pagination, parse_query_pagination_args
+from app.utils.db.orm_lookup import get_model
+from app.utils.http.pagination import build_pagination, parse_query_pagination_args
 from app.utils.security.app_logging import get_logger
 from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES
@@ -251,14 +252,14 @@ def delete_report(user, report_id, data: DeleteReportRequest | None = None):
             s3_deleted = deletion_result["pdf_deleted"] or deletion_result["json_deleted"]
 
         # Delete from database
-        pdf_doc = Document.query.get(report_id)
+        pdf_doc = get_model(Document, report_id)
         if not pdf_doc or pdf_doc.user_id != user.id:
             return jsonify({"error": "Report not found"}), 404
 
         li_id = pdf_doc.library_item_id
         db.session.delete(pdf_doc)
         if li_id:
-            li = DocumentLibraryItem.query.get(li_id)
+            li = get_model(DocumentLibraryItem, li_id)
             if li:
                 db.session.delete(li)
         db.session.commit()

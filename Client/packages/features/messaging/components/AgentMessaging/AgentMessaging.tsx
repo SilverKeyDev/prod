@@ -4,8 +4,7 @@ import type { ReactNode, UIEvent } from "react";
 
 import type { AgentClient } from "packages/api";
 import { getMessagingConfig } from "packages/features/agent/components/messaging/screen/messagingConfig";
-import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
-import { useConnectionRequests } from "packages/features/agent/hooks/data/useConnectionRequests";
+import { useAgentClients } from "packages/features/agent/hooks/data/clients/useAgentClients";
 import { useAgentAutoSelectClient } from "packages/features/agent/hooks/ui/useAgentAutoSelectClient";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import MessagingModals from "packages/features/messaging/components/layout/chrome/MessagingModals";
@@ -28,7 +27,8 @@ import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import { Region } from "@/components/ui";
-import UnifiedMessagingSidebar from "@/features/messaging/components/layout/chrome/UnifiedMessagingSidebar";
+import AgentMessagingClientList from "@/features/agent/components/messaging/chrome/AgentMessagingClientList";
+import MessagingSidebarShell from "@/features/messaging/components/layout/chrome/MessagingSidebarShell";
 
 const UnifiedMessagesList = lazy(
   traceLazyImport(
@@ -128,8 +128,6 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
   const isTyping = false;
 
   const {
-    showInbox,
-    setShowInbox,
     showSearchModal,
     setShowSearchModal,
     showSelectHomeModal,
@@ -159,9 +157,6 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
     doc.addEventListener("visibilitychange", onVisibilityChange);
     return () => doc.removeEventListener("visibilitychange", onVisibilityChange);
   }, [acknowledgeActiveConversationAsRead]);
-
-  const { requests: pendingConnectionRequests } = useConnectionRequests();
-  const pendingConnectionRequestCount = pendingConnectionRequests.length;
 
   const handlers = useMessagingHandlers({
     mode: "agent",
@@ -201,7 +196,7 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
   );
   const config = getMessagingConfig("agent");
   const isXlUp = useMediaQuery(screenUp("xl"));
-  const suppressDetailHeaderDuplicateActions = isXlUp && !showInbox && !selectedClientId;
+  const suppressDetailHeaderDuplicateActions = isXlUp && !selectedClientId;
 
   const handleSendMessage = useCallback(async () => {
     if (!activeConversationId || !selectedClientId) return;
@@ -212,10 +207,9 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
   }, [activeConversationId, selectedClientId, clearDraft, message, sendMessageApi]);
 
   const getHeaderMode = useCallback(() => {
-    if (showInbox) return "connection-requests";
     if (!selectedClientId) return "no-client";
     return "chat";
-  }, [showInbox, selectedClientId]);
+  }, [selectedClientId]);
 
   const headerContentKeyRef = useRef<string | null>(null);
   useEffect(() => {
@@ -231,9 +225,7 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
 
     const headerMode = getHeaderMode();
     const chatTitle = selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle;
-    const contentKey = `${headerMode}-${isSidebarExpanded}-${
-      selectedClient?.name ?? ""
-    }-${chatTitle}-${pendingConnectionRequestCount}`;
+    const contentKey = `${headerMode}-${isSidebarExpanded}-${selectedClient?.name ?? ""}-${chatTitle}`;
     if (headerContentKeyRef.current === contentKey) return;
     headerContentKeyRef.current = contentKey;
     setMobileHeaderActions(
@@ -244,9 +236,6 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
         chatTitle={chatTitle}
         selectedClientName={selectedClient?.name}
         onSearchClick={() => setShowSearchModal(true)}
-        onInboxClick={() => setShowInbox(true)}
-        onBackClick={() => setShowInbox(false)}
-        pendingConnectionRequestCount={pendingConnectionRequestCount}
         suppressListColumnActionDuplicates={false}
       />
     );
@@ -256,13 +245,10 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
     };
   }, [
     setMobileHeaderActions,
-    showInbox,
     selectedClientId,
     isSidebarExpanded,
     setIsSidebarExpanded,
     setShowSearchModal,
-    setShowInbox,
-    pendingConnectionRequestCount,
     selectedClient?.name,
     selectedClient,
     config.header.chatTitle,
@@ -276,40 +262,43 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
   return (
     <Box className="flex h-full w-full overflow-hidden">
       <Box className="relative flex h-full w-full overflow-hidden">
-        <UnifiedMessagingSidebar
-          mode="agent"
+        <MessagingSidebarShell
           isSidebarExpanded={isSidebarExpanded}
-          setIsSidebarExpanded={setIsSidebarExpanded}
-          showInbox={showInbox}
-          setShowInbox={setShowInbox}
-          activeConversationId={activeConversationId}
-          clients={mergedClients}
-          isLoadingClients={isLoadingClients}
-          selectedClientId={selectedClientId}
-          onClientSelect={handleClientSelect}
-          conversations={messagingConversations}
-          onSearchClick={() => setShowSearchModal(true)}
-        />
+          header={
+            <UnifiedMessagingHeader
+              mode="clients"
+              isSidebarExpanded={isSidebarExpanded}
+              setIsSidebarExpanded={setIsSidebarExpanded}
+              onSearchClick={() => setShowSearchModal(true)}
+              className="xl:rounded-tl-xl xl:rounded-tr-none"
+            />
+          }
+        >
+          <AgentMessagingClientList
+            clients={mergedClients}
+            conversations={messagingConversations}
+            isLoadingClients={isLoadingClients}
+            selectedClientId={selectedClientId}
+            onClientSelect={handleClientSelect}
+            setIsSidebarExpanded={setIsSidebarExpanded}
+            emptyMessage={config.sidebar.emptyMessage}
+          />
+        </MessagingSidebarShell>
         <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">
           <Box className="flex min-h-0 flex-1 flex-col">
-            {!showInbox && (
-              <Box className="hidden flex-shrink-0 md:block">
-                <UnifiedMessagingHeader
-                  mode={getHeaderMode()}
-                  isSidebarExpanded={isSidebarExpanded}
-                  setIsSidebarExpanded={setIsSidebarExpanded}
-                  chatTitle={
-                    selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle
-                  }
-                  selectedClientName={selectedClient?.name}
-                  onSearchClick={() => setShowSearchModal(true)}
-                  onInboxClick={() => setShowInbox(true)}
-                  onBackClick={() => setShowInbox(false)}
-                  pendingConnectionRequestCount={pendingConnectionRequestCount}
-                  suppressListColumnActionDuplicates={suppressDetailHeaderDuplicateActions}
-                />
-              </Box>
-            )}
+            <Box className="hidden flex-shrink-0 md:block">
+              <UnifiedMessagingHeader
+                mode={getHeaderMode()}
+                isSidebarExpanded={isSidebarExpanded}
+                setIsSidebarExpanded={setIsSidebarExpanded}
+                chatTitle={
+                  selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle
+                }
+                selectedClientName={selectedClient?.name}
+                onSearchClick={() => setShowSearchModal(true)}
+                suppressListColumnActionDuplicates={suppressDetailHeaderDuplicateActions}
+              />
+            </Box>
             <Box className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <Region
                 label="Message list"

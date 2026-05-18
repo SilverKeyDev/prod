@@ -141,7 +141,7 @@ export function CalendarTimeGridWeekHeader({
         const wk = d.getDay();
         const weekend =
           showWeekendTint && (wk === 0 || wk === 6)
-            ? { backgroundColor: "rgba(0,0,0,0.04)" }
+            ? { backgroundColor: hexToRgba(color("neutral.900"), 0.04) }
             : null;
         const colBg = isTodayCol
           ? color("olive.muted")

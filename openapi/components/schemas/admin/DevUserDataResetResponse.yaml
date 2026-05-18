@@ -1,0 +1,15 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    required:
+      - target_user_id
+      - cleared
+    properties:
+      target_user_id:
+        type: string
+        description: User whose data was reset.
+      cleared:
+        type: object
+        additionalProperties:
+          type: boolean
+        description: Map of scope name to true when that scope was applied.

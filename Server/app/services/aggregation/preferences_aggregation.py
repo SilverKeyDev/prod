@@ -24,6 +24,7 @@ from app.services.aggregation.extended_buyer_preferences import (
     coerce_extension_value,
     normalize_stored_document,
 )
+from app.utils.db.orm_lookup import get_model
 
 
 def apply_canonical_housing_preference_keys(out: dict[str, Any]) -> None:
@@ -42,7 +43,7 @@ def apply_canonical_housing_preference_keys(out: dict[str, Any]) -> None:
 
 def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
     """Build a flat preferences dict from related models for the given user_id."""
-    user = User.query.get(user_id)
+    user = get_model(User, user_id)
     if not user:
         return None
 
@@ -263,7 +264,7 @@ def get_preferences_dict_optional(user_id: str) -> dict[str, Any] | None:
     """Return aggregated preferences dict for the user, or None if user missing or no prefs."""
     if not user_id:
         return None
-    user = User.query.get(user_id)
+    user = get_model(User, user_id)
     if not user:
         return None
     return _build_preferences_dict(user_id)
@@ -271,7 +272,7 @@ def get_preferences_dict_optional(user_id: str) -> dict[str, Any] | None:
 
 def get_preferences_updated_at(user_id: str) -> datetime | None:
     """Return the most recent updated_at among user and preference-related records."""
-    user = User.query.get(user_id)
+    user = get_model(User, user_id)
     if not user:
         return None
     candidates: list[datetime] = []
@@ -316,7 +317,7 @@ def get_preferences_dict_for_user(
             jsonify({"success": False, "error": "USER_NOT_FOUND", "message": "User not found"}),
             404,
         )
-    user = User.query.get(user_id)
+    user = get_model(User, user_id)
     if not user:
         return None, (
             jsonify({"success": False, "error": "USER_NOT_FOUND", "message": "User not found"}),
@@ -330,7 +331,7 @@ def user_has_preferences(user_id: str) -> bool:
     """Return True if the user exists and has preferences (has_preferences flag or aggregated data)."""
     if not user_id:
         return False
-    user = User.query.get(user_id)
+    user = get_model(User, user_id)
     if not user:
         return False
     if getattr(user, "has_preferences", False):

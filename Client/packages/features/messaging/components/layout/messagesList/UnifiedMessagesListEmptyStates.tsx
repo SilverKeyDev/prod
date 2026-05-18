@@ -2,7 +2,6 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { useLocalization } from "packages/contexts";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import { Box } from "packages/ui/components/primitives";
 
@@ -40,11 +39,7 @@ export function UnifiedMessagesListAgentBlockedEmpty({ config }: { config: Messa
 export function UnifiedMessagesListClientNoAgentEmpty({
   config,
   onSearchClick,
-  onBrowseAgentsClick,
-}: Pick<EmptyStatesProps, "config" | "onSearchClick"> & {
-  onBrowseAgentsClick?: () => void;
-}) {
-  const { t } = useLocalization();
+}: Pick<EmptyStatesProps, "config" | "onSearchClick">) {
   return (
     <Box className="flex h-full items-center justify-center">
       <Box className="text-center">
@@ -55,19 +50,8 @@ export function UnifiedMessagesListClientNoAgentEmpty({
         <BodyText as="p" size="sm" className="text-text-secondary mb-4">
           {config.emptyStates.noAgent.message}
         </BodyText>
-        <Box className="mx-auto flex flex-col items-center justify-center gap-2 sm:flex-row">
-          {onBrowseAgentsClick && (
-            <Button
-              variant="primary"
-              size="sm"
-              icon={<Icon name="search" className="h-4 w-4" />}
-              iconPosition="left"
-              onClick={onBrowseAgentsClick}
-            >
-              {t("agent.discovery_browse_full")}
-            </Button>
-          )}
-          {onSearchClick && (
+        {onSearchClick && (
+          <Box className="flex w-full justify-center">
             <Button
               variant="outline"
               size="sm"
@@ -78,8 +62,8 @@ export function UnifiedMessagesListClientNoAgentEmpty({
             >
               {config.emptyStates.noAgent.actionLabel}
             </Button>
-          )}
-        </Box>
+          </Box>
+        )}
       </Box>
     </Box>
   );

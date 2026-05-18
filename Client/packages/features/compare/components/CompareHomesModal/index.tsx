@@ -16,10 +16,10 @@ import { useNavigation } from "packages/navigation";
 import { useUIStore } from "packages/store";
 import type { SavedHome } from "packages/types";
 import { Box } from "packages/ui/components/primitives";
+import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
 import { buildPropertyUrl } from "packages/utils/property/slug";
 
 import { BodyText, Cover, IconButton, Subtitle } from "@/components/ui";
-import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 
 import { fallbackComparisonDetails } from "./compareHomesModalHelpers";
 import { PropertyCardsGrid, RemainingLikedHomes } from "./grid";

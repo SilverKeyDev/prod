@@ -56,7 +56,7 @@ tags:
     description: Unified transaction task checklists (routes under /api/v1/tasks).
   - name: HomeMatching
     description: Background home-matching tasks (routes under /api/home-matching;
-      uses Flask-Login).
+      JWT session cookie or bearer token).
   - name: Transactions
     description: Saved transaction address and checklist-linked documents
       (/api/v1/transactions).
@@ -236,6 +236,10 @@ components:
       $ref: "./components/schemas/admin/DeleteUserRequest.yaml"
     DeleteUserResponse:
       $ref: "./components/schemas/user/profile/DeleteUserResponse.yaml"
+    DevUserDataResetRequest:
+      $ref: "./components/schemas/admin/DevUserDataResetRequest.yaml"
+    DevUserDataResetResponse:
+      $ref: "./components/schemas/admin/DevUserDataResetResponse.yaml"
     DocumentLibraryListItem:
       $ref: "./components/schemas/agreements/documents/DocumentLibraryListItem.yaml"
     DocumentLibraryResponse:
@@ -2554,6 +2558,19 @@ paths:
       security:
         - sessionCookie: []
         - bearerAuth: []
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          description: |
+            `inbox` (default) returns pending requests awaiting the user's response.
+            For agents, client-initiated requests are auto-accepted on create, so inbox is
+            typically empty. For clients, inbox lists pending agent-initiated requests they may
+            accept or reject. `initiated` returns requests the user sent (pending, accepted, or rejected).
+          schema:
+            type: string
+            enum: [inbox, initiated]
+            default: inbox
       responses:
         "200":
           description: HTTP 200
@@ -2576,6 +2593,10 @@ paths:
     post:
       tags: [ Agent ]
       summary: Create a connection request
+      description: |
+        When the client initiates (`requested_by_agent` false), the server auto-accepts and
+        returns `status: accepted` (no agent inbox). When the agent initiates, the request stays
+        `pending` until the client responds via the respond endpoint.
       operationId: createConnectionRequest
       security:
         - sessionCookie: []
@@ -2588,7 +2609,9 @@ paths:
               $ref: "#/components/schemas/CreateConnectionRequestRequest"
       responses:
         "200":
-          description: HTTP 200
+          description: |
+            Connection request created. Client-initiated requests are accepted immediately;
+            agent-initiated requests remain pending until the client responds.
           content:
             application/json:
               schema:
@@ -3469,6 +3492,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden (e.g. task owned by another user)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/research/compare:
     post:
       tags: [ Research ]
@@ -3506,6 +3541,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden (e.g. task owned by another user)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/research/task-status/{task_id}:
     get:
       tags: [ Research ]
@@ -3526,6 +3573,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TaskStatusResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden (task owned by another user)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: HTTP 500
           content:
@@ -3535,8 +3594,11 @@ paths:
   /api/home-matching/find-matches:
     post:
       tags: [ HomeMatching ]
-      summary: Queue home matching task (Flask-Login session)
+      summary: Queue home matching task
       operationId: homeMatchingFindMatches
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -3556,6 +3618,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: HTTP 500
           content:
@@ -3567,6 +3635,9 @@ paths:
       tags: [ HomeMatching ]
       summary: Home matching Celery task status
       operationId: getHomeMatchingTaskStatus
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
       parameters:
         - name: task_id
           in: path
@@ -3579,6 +3650,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TaskStatusResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden (task owned by another user)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: HTTP 500
           content:
@@ -5300,6 +5383,45 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/users/reset-dev-data:
+    post:
+      tags: [ Admin ]
+      summary: Reset dev/test data for a user (profile, preferences, DocuSign)
+      operationId: adminResetDevUserData
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DevUserDataResetRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DevUserDataResetResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Target user not found
           content:
             application/json:
               schema:

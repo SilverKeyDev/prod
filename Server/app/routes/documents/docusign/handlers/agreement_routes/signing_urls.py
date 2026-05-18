@@ -7,6 +7,7 @@ from app.schemas import GetSigningUrlRequest, GetSigningUrlResponse
 from app.services.auth import get_current_user
 from app.services.docusign import AgreementLifecycleService
 from app.services.docusign.utils.permissions import can_get_signing_url
+from app.utils.db.orm_lookup import get_model
 from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.validation import validate_request, validate_response
@@ -52,7 +53,7 @@ def register_signing_url_routes(bp):
                 },
             )
             agreement = AgreementLifecycleService.get_agreement(agreement_id)
-            participant = AgreementParticipant.query.get(participant_id)
+            participant = get_model(AgreementParticipant, participant_id)
             if not participant or participant.agreement_id != agreement_id:
                 log.warn(
                     LOG_CATEGORIES["DOCUSIGN"],

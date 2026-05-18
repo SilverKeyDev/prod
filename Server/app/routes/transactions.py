@@ -16,12 +16,12 @@ from app.services.transactions.unified_task_checklist_read import (
     build_task_checklist_data,
 )
 from app.services.transactions.unified_task_checklist_write import perform_task_checklist_put
+from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 
 from .. import db
 from ..models import TransactionAddress
 from ..utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
-from ..utils.security.security import rate_limit
 from .checklist_dispatch_automation import (
     get_checklist_dispatch_automation,
     put_checklist_dispatch_automation,

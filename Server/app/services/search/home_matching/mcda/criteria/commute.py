@@ -49,6 +49,22 @@ def _property_lat_lon(property_dict: dict[str, Any]) -> tuple[float, float] | No
     return (lat, lon)
 
 
+def has_commute_preference(preferences: dict[str, Any]) -> bool:
+    """True when commute scoring should use user-specific targets (not objective-only)."""
+    max_pref = _parse_float(
+        preferences.get("max_commute_minutes") or preferences.get("max_commute_time")
+    )
+    if max_pref is not None and max_pref > 0:
+        return True
+    locs = _important_locations_list(preferences)
+    if not locs:
+        return False
+    for loc in locs:
+        if _parse_float(loc.get("lat")) is not None and _parse_float(loc.get("lng")) is not None:
+            return True
+    return False
+
+
 def _important_locations_list(preferences: dict[str, Any]) -> list[dict[str, Any]]:
     raw = preferences.get("important_locations")
     if isinstance(raw, str):

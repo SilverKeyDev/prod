@@ -57,7 +57,13 @@ def test_run_signature_step_auto_send_skips_when_locked(
     _dispatch_model.query.filter_by.return_value.first.return_value = None
     items_raw = [
         {"id": 1, "order": 0},
-        {"id": 6, "order": 1, "completion_type": "signature_based", "suggested_form_ids": ["a"]},
+        {
+            "id": 6,
+            "order": 1,
+            "completion_type": "signature_based",
+            "suggested_form_ids": ["a"],
+            "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
+        },
     ]
     run_signature_step_auto_send(
         buyer_user_id="buyer-1",
@@ -99,7 +105,13 @@ def test_run_signature_step_auto_send_invokes_docusign_when_unlocked(
     _dispatch_model.query.filter_by.return_value.first.return_value = None
     items_raw = [
         {"id": 1, "order": 0},
-        {"id": 6, "order": 1, "completion_type": "signature_based", "suggested_form_ids": ["a"]},
+        {
+            "id": 6,
+            "order": 1,
+            "completion_type": "signature_based",
+            "suggested_form_ids": ["a"],
+            "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
+        },
     ]
     run_signature_step_auto_send(
         buyer_user_id="buyer-1",

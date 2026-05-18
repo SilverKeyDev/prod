@@ -2,15 +2,37 @@ import fs from "fs";
 import path from "path";
 
 /**
- * Writes robots.txt and sitemap.xml into the Vite outDir after build.
- * @param {{ root: string; publicSiteUrl: string }} opts
+ * Static SEO for the web production build (Vite-only; values come from `loadEnv` in
+ * `vite.config.js`, not from `packages/config/env.ts`).
+ *
+ * **transformIndexHtml** — When `googleSiteVerification` is non-empty, injects
+ * `<meta name="google-site-verification" content="…">` before `</head>` (Google Search Console
+ * HTML tag method).
+ *
+ * **closeBundle** — Writes `robots.txt` into the resolved `build.outDir` with `Disallow` rules
+ * for authenticated / app shells. When `publicSiteUrl` is set (canonical origin, no trailing
+ * slash, e.g. `https://usesilverkey.com`), adds `Sitemap: {origin}/sitemap.xml` and writes
+ * `sitemap.xml` for a small set of public marketing paths.
+ *
+ * Env (optional, in `Client/.env`): `EXPO_PUBLIC_SITE_URL`, `EXPO_PUBLIC_GOOGLE_SITE_VERIFICATION`.
+ *
+ * @param {{ root: string; publicSiteUrl: string; googleSiteVerification?: string }} opts
+ *   - `root` — Client workspace root; fallback if `build.outDir` is not resolved yet.
+ *   - `publicSiteUrl` — Canonical public origin for sitemap absolute `<loc>` URLs.
+ *   - `googleSiteVerification` — Optional verification token for the meta tag.
  */
 export function seoStaticFilesPlugin(opts) {
-  var root = opts.root;
+  var clientRoot = opts.root;
   var publicSiteUrl = (opts.publicSiteUrl || "").trim().replace(/\/$/, "");
   var googleVerification = (opts.googleSiteVerification || "").trim();
+  /** Filled in `configResolved`; default matches `build.outDir` when outDir is `Client/dist`. */
+  var resolvedOutDir = path.join(clientRoot, "dist");
+
   return {
     name: "silverkey-seo-static",
+    configResolved: function (config) {
+      resolvedOutDir = path.resolve(config.root, config.build.outDir);
+    },
     transformIndexHtml: function (html) {
       if (!googleVerification) return html;
       var safe = googleVerification.replace(/"/g, "");
@@ -20,7 +42,7 @@ export function seoStaticFilesPlugin(opts) {
       );
     },
     closeBundle: function () {
-      var outDir = path.join(root, "dist");
+      var outDir = resolvedOutDir;
       var disallow = [
         "/dashboard",
         "/search",
@@ -45,6 +67,7 @@ export function seoStaticFilesPlugin(opts) {
         lines.push("");
         lines.push("Sitemap: " + publicSiteUrl + "/sitemap.xml");
       }
+      fs.mkdirSync(outDir, { recursive: true });
       fs.writeFileSync(path.join(outDir, "robots.txt"), lines.join("\n") + "\n", "utf8");
 
       if (!publicSiteUrl) {

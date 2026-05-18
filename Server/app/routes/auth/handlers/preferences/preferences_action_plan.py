@@ -1,12 +1,12 @@
 """Client action plan handler."""
 
-import json
 from datetime import datetime
 
 from flask import jsonify
 
 from app.models import User
 from app.schemas import ActionPlanResponse
+from app.services.agent.client_service import agent_may_access_client
 from app.services.aggregation import get_preferences_dict_optional
 from app.services.auth import get_current_user
 from app.services.chatbot.chatbot_utils import generate_action_plan
@@ -28,11 +28,7 @@ def generate_client_action_plan(client_id):
         client_user = User.query.filter_by(id=client_id).first()
         if not client_user:
             return jsonify({"success": False, "error": "Client not found"}), 404
-        try:
-            client_ids = json.loads(current_user.client_ids) if current_user.client_ids else []
-        except (json.JSONDecodeError, TypeError):
-            client_ids = []
-        if client_id not in client_ids:
+        if not agent_may_access_client(str(current_user.id), str(client_id)):
             return jsonify({"success": False, "error": "Client not assigned to this agent"}), 403
         client_preferences = get_preferences_dict_optional(client_id)
         if not client_preferences:

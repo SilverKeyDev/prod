@@ -18,6 +18,11 @@ from ...utils.format.json_string_list_parse import (
     parse_json_or_csv_string_list,
     serialize_json_string_list,
 )
+from .client_list_enrichment import (
+    batch_current_step,
+    batch_profile_picture_urls,
+    batch_requires_signature,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -145,19 +150,27 @@ def get_agent_clients(agent_id: str) -> list[dict]:
         ordered_ids = [c.id for c in ordered_clients]
         kind_by_id = _batch_client_kinds(ordered_ids)
         stage_by_id = _batch_pipeline_stages(ordered_ids)
+        step_by_id = batch_current_step(ordered_ids)
+        avatar_url_by_id = batch_profile_picture_urls(ordered_clients)
+        signature_by_id = batch_requires_signature(agent_id, ordered_ids)
 
         client_list = []
         for client in ordered_clients:
             cid = client.id
+            current_phase, current_step_label = step_by_id.get(cid, ("search", None))
             client_data = {
                 "id": cid,
                 "name": client.name,
                 "email": client.email,
                 "phone": client.phone,
                 "profile_picture": client.profile_picture,
+                "profile_picture_url": avatar_url_by_id.get(cid),
                 "created_at": client.created_at.isoformat() if client.created_at else None,
                 "client_kind": kind_by_id.get(cid, "unknown"),
                 "pipeline_stage": stage_by_id.get(cid, "search"),
+                "current_phase": current_phase,
+                "current_step_label": current_step_label,
+                "requires_signature": signature_by_id.get(cid, False),
             }
             client_list.append(client_data)
 
@@ -203,17 +216,29 @@ def validate_agent_client_relationship(agent_id: str, client_id: str) -> bool:
 
     Checks client_ids first, then falls back to AgentConnections.
     """
+    return agent_may_access_client(agent_id, client_id)
+
+
+def agent_may_access_client(agent_id: str, client_id: str) -> bool:
+    """
+    True when *client_id* is on the agent roster (User.client_ids) or linked via AgentConnections.
+    """
     try:
-        agent = User.query.filter_by(id=agent_id, is_agent=True).first()
+        agent_id_s = str(agent_id).strip()
+        client_id_s = str(client_id).strip()
+        if not agent_id_s or not client_id_s:
+            return False
+
+        agent = User.query.filter_by(id=agent_id_s, is_agent=True).first()
         if not agent:
             return False
 
-        if client_id in parse_json_or_csv_string_list(agent.client_ids):
+        roster = {str(x) for x in parse_json_or_csv_string_list(agent.client_ids)}
+        if client_id_s in roster:
             return True
 
-        # Fallback: check if an AgentConnections row exists
         return (
-            AgentConnections.query.filter_by(agent_id=agent_id, client_id=client_id).first()
+            AgentConnections.query.filter_by(agent_id=agent_id_s, client_id=client_id_s).first()
             is not None
         )
 

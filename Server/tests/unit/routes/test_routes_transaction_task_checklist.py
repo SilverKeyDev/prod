@@ -36,7 +36,7 @@ def test_put_transaction_tasks_forbidden_when_agent_does_not_manage_client(
     actor = SimpleNamespace(id=agent_id)
 
     with (
-        patch("app.utils.common_patterns.get_current_user", return_value=actor),
+        patch("app.services.auth.get_current_user", return_value=actor),
         patch("app.routes.transactions.get_agent_client_ids", return_value=[]),
         patch(
             "app.routes.transactions.perform_task_checklist_put",
@@ -88,7 +88,7 @@ def test_put_transaction_tasks_ok_when_agent_manages_client(client, app: Flask, 
     }
 
     with (
-        patch("app.utils.common_patterns.get_current_user", return_value=actor),
+        patch("app.services.auth.get_current_user", return_value=actor),
         patch("app.routes.transactions.get_agent_client_ids", return_value=[buyer_id]),
         patch("app.routes.transactions.perform_task_checklist_put", return_value=(payload, None)),
     ):

@@ -5,7 +5,10 @@ export function normalizeSiteOrigin(raw: string | undefined): string {
 }
 
 export function getSiteOrigin(): string {
-  return normalizeSiteOrigin(import.meta.env.VITE_PUBLIC_SITE_URL);
+  if (typeof window !== "undefined") {
+    return normalizeSiteOrigin(window.location.origin);
+  }
+  return "";
 }
 
 /** Absolute URL for a path starting with `/`, or empty string if origin is unset. */

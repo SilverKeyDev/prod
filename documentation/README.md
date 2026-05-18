@@ -21,6 +21,7 @@ Canonical docs live here. One place for project documentation; no scattered long
 | To implement soon: Broker team dashboard | [to-implement-soon/broker-workspace/01-broker-team-dashboard.md](./to-implement-soon/broker-workspace/01-broker-team-dashboard.md) |
 | Reels for Homes | [reels/](./reels/) |
 | Cursor / AI config audit (inventory table) | [internal/cursor-audit-latest.md](./internal/cursor-audit-latest.md) |
+| After major architecture: docs + Cursor sync | [internal/post-major-change-checklist.md](./internal/post-major-change-checklist.md) |
 | Legacy Cursor notes (forms / OpenAPI adoption logs) | [dev/cursor-legacy/](./dev/cursor-legacy/) |
 
 ## In-repo references

@@ -13,8 +13,8 @@ vi.mock("packages/hooks/ui", () => ({
 }));
 
 vi.mock("packages/logger", () => ({
-  log: { info: vi.fn(), error: vi.fn() },
-  LOG_CATEGORIES: { PROFILE_PREFERENCES: "p", ERRORS: "e" },
+  log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+  LOG_CATEGORIES: { PROFILE_PREFERENCES: "p", ERRORS: "e", API: "API" },
 }));
 
 const createOrUpdate = vi.fn();

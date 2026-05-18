@@ -25,6 +25,7 @@ Brief guide to SilverKey’s documentation approach: one canonical system plus l
 
 - **Rules** (e.g. `monorepo.mdc`, `documentation.mdc`) point to `documentation/` for structure and “how we document.” Don’t reference removed or legacy doc paths (e.g. old `Client/documentation/structure-*.md`).
 - **Agents/skills** that need doc context should use `documentation/client/` or `documentation/server/` and the READMEs in major folders.
+- **After major features or architecture changes** — Update canonical docs, scoped Cursor rules, skills (repeatable procedures), and `documentation/internal/cursor-audit-latest.md` per [documentation/internal/post-major-change-checklist.md](./internal/post-major-change-checklist.md). Agents: use skill **post-major-change-sync** (`.cursor/skills/post-major-change-sync/SKILL.md`).
 
 ## 5. Adding or moving docs
 
@@ -38,6 +39,7 @@ Brief guide to SilverKey’s documentation approach: one canonical system plus l
 |-------|------|
 | `documentation/` | Single canonical docs root; client/ and server/ subfolders. |
 | `documentation/HOW_WE_DOCUMENT.md` | This file — how we do documentation. |
+| `documentation/internal/post-major-change-checklist.md` | After major features: sync `documentation/`, `.cursor/rules`, skills, audit inventory. |
 | Major top-level folders | Lightweight README.md only; link to documentation/ for detail. |
 | Client/Server in-repo | Short local refs (ARCHITECTURE, LINTING, package READMEs); long-form in documentation/. |
 | Cursor rules | Reference documentation/ and READMEs; no legacy doc paths. |

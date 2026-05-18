@@ -26,6 +26,8 @@ export {
   type BuyerRoadmapChecklistListProps,
 } from "./components/roadmap/BuyerRoadmapChecklistList";
 export { ChecklistUpdatePendingProvider } from "./components/roadmap/ChecklistUpdatePendingProvider";
+export { PhaseNode } from "./components/roadmap/PhaseNode";
+export { RoadmapTracker } from "./components/roadmap/RoadmapTracker";
 export { default as ChecklistIntegrationSlot } from "./components/slots/ChecklistIntegrationSlot";
 export { default as ChecklistStepForms } from "./components/steps/ChecklistStepForms";
 export { default as ClosingMovingIn } from "./components/subheaders/ClosingMovingIn";
@@ -40,10 +42,17 @@ export {
   type UseChecklistDataReturn,
 } from "./hooks/data/useChecklistData";
 export {
+  useAutoCompleteChecklistIntegrations,
+  type UseAutoCompleteChecklistIntegrationsArgs,
+} from "./hooks/useAutoCompleteChecklistIntegrations";
+export {
   useChecklistProgress,
   type UseChecklistProgressReturn,
 } from "./hooks/useChecklistProgress";
-export { useChecklistStepExpansion } from "./hooks/useChecklistStepExpansion";
+export {
+  useChecklistStepExpansion,
+  type UseChecklistStepExpansionOptions,
+} from "./hooks/useChecklistStepExpansion";
 export { useOptionalChecklistUpdatePending } from "./hooks/useOptionalChecklistUpdatePending";
 export {
   CHECKLIST_SUBTITLES,
@@ -52,11 +61,14 @@ export {
   type ChecklistIntegrationComponentProps,
   type ChecklistTab,
 } from "./types/checklists";
+export type { Phase, PhaseStatus, RoadmapTrackerProps } from "./types/roadmapTracker";
 export { CHECKLISTS_TRANSLATIONS } from "./types/translations";
 export {
   checklistCheckboxRowClassNames,
   toChecklistCheckboxItem,
 } from "./utils/presentation/checklistCheckboxPresentation";
+export type { BuildBuyerRoadmapPhasesParams } from "./utils/roadmap/buildBuyerRoadmapPhases";
+export { buildBuyerRoadmapPhases } from "./utils/roadmap/buildBuyerRoadmapPhases";
 export {
   applyTaskChecklistMerge,
   type ChecklistItemToggleEligibility,
@@ -78,3 +90,4 @@ export {
   SECTION_ORDER,
 } from "./utils/rules/sectionConfig";
 export { sortTaskChecklistItems } from "./utils/sort/sortTaskChecklistItems";
+export { sortTaskChecklistItemsForDisplay } from "./utils/sort/sortTaskChecklistItemsForDisplay";

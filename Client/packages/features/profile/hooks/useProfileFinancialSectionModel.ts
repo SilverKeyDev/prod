@@ -3,13 +3,10 @@ import { useCallback } from "react";
 import { useShowPersonalizationSectionBodyTitle } from "packages/features/profile/components/layout";
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
 import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
+import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import type { OnboardingData } from "packages/features/profile/utils";
-import {
-  effectiveIsAgentForOptionalBuyerUi,
-  PROFILE_NOT_SPECIFIED_LABEL,
-} from "packages/features/profile/utils";
-import { useIsAgent } from "packages/hooks/store/useIsAgent";
+import { PROFILE_NOT_SPECIFIED_LABEL } from "packages/features/profile/utils";
 import type { HomePriceResult } from "packages/utils/affordability";
 
 export type ProfileFinancialSectionProps = {
@@ -41,11 +38,7 @@ export function useProfileFinancialSectionModel(
     homePriceError,
   } = props;
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
-  const authIsAgent = useIsAgent();
-  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
-    authIsAgent,
-    formIsAgent: formData.is_agent,
-  });
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
   const showAffordabilityBlock =
     homePriceLoading !== undefined || homePriceError !== undefined || homePriceResult !== undefined;
 

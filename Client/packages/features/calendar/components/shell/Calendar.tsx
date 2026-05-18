@@ -1,6 +1,7 @@
 import { color, spacing } from "packages/design-tokens";
 import { EventList } from "packages/features/calendar/components/view/agenda/EventList";
 import { CalendarConnectionPrompt } from "packages/features/calendar/components/view/CalendarConnectionPrompt";
+import { ClientCalendarAccessPrompt } from "packages/features/calendar/components/view/ClientCalendarAccessPrompt";
 import { CreateEventModal } from "packages/features/calendar/components/view/eventModal/CreateEventModal";
 import { CalendarToolbar } from "packages/features/calendar/components/view/toolbar/CalendarToolbar";
 import { QuickEventPopover } from "packages/features/calendar/components/view/toolbar/QuickEventPopover";
@@ -9,6 +10,7 @@ import { Box, Text } from "packages/ui/components/primitives";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import { useCalendarScreen } from "@/features/calendar/hooks/data/core/useCalendarScreen";
+import { isClientCalendarAccessError } from "@/features/calendar/utils/core/clientCalendarAccess";
 
 import { CalendarMonthBody } from "./CalendarMonthBody";
 import { buildCalendarMonthGridStyles } from "./calendarMonthGridStyles";
@@ -18,12 +20,15 @@ type CalendarProps = {
   sectionTitle?: string;
   clientUserId?: string;
   showSelectedDayEventList?: boolean;
+  /** When true and client calendar access is blocked, render nothing (sibling agenda shows the prompt). */
+  suppressClientAccessPrompt?: boolean;
 };
 
 export function Calendar({
   sectionTitle,
   clientUserId,
   showSelectedDayEventList = true,
+  suppressClientAccessPrompt = false,
 }: CalendarProps) {
   const screen = useCalendarScreen({
     clientUserId,
@@ -63,6 +68,19 @@ export function Calendar({
   }
 
   if (screen.isClientView && screen.clientEventsQuery.isError) {
+    if (isClientCalendarAccessError(screen.clientEventsQuery.error)) {
+      if (suppressClientAccessPrompt) {
+        return null;
+      }
+      return (
+        <Card border="light" className="w-full" padding="md" hover={false}>
+          <ClientCalendarAccessPrompt
+            clientHasConnection={screen.clientEventsQuery.error.clientHasConnection}
+          />
+        </Card>
+      );
+    }
+
     const message =
       screen.clientEventsQuery.error instanceof Error
         ? screen.clientEventsQuery.error.message
@@ -242,12 +260,17 @@ export function Calendar({
 
       <CreateEventModal
         isOpen={screen.fullCreateFromQuickOpen}
-        onClose={() => screen.setFullCreateFromQuickOpen(false)}
+        onClose={screen.dismissFullCreate}
         mode="create"
         calendars={screen.gridCalendars}
         defaultCalendarId={screen.defaultCalendarId}
         prefilledCreateSnapshot={screen.fullCreatePrefill}
         prefilledCreateKey={screen.fullCreateKey}
+        presentation={screen.fullCreateAnchorRect ? "popover" : "modal"}
+        anchorRect={screen.fullCreateAnchorRect}
+        registerOutsideClickSafeTarget={
+          screen.fullCreateAnchorRect ? screen.registerQuickCreateOutsideSafeTarget : undefined
+        }
         onEventCreated={() => {
           void screen.refetchEvents();
         }}

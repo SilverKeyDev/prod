@@ -7,7 +7,7 @@ from flask import jsonify
 from app.schemas.generated import NotificationCounterResponse
 from app.services.agent import get_notification_counter
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
-from app.utils.security.security import rate_limit
+from app.utils.security import rate_limit
 from app.utils.validation import validate_response
 
 logger = logging.getLogger(__name__)

@@ -25,6 +25,8 @@ export type CreateModalPrefilledCreateSnapshot = {
   startTime: string;
   endTime: string;
   isAllDay: boolean;
+  /** When true, create flow treats times as chosen from a week grid slot (same as date picker week pick). */
+  timesChosenViaWeekSlot?: boolean;
 };
 
 export type UseCreateEventModalParams = {
@@ -49,4 +51,6 @@ export type UseCreateEventModalParams = {
    * instead of creating a Google Calendar event.
    */
   calendarEventRequest?: CalendarEventRequestModalIntegration;
+  /** Week create popover: register portaled menu roots for outside-click guards. */
+  registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
 };

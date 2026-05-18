@@ -43,7 +43,7 @@ executor = Executor()
 compress = Compress()
 
 # HTTP caching for Vite `dist` (hashed /assets are immutable; `index.html` must stay fresh for deploys)
-_CACHE_VITE_ASSETS = "public, max-age=31536000, immutable"
+_CACHE_IMMUTABLE_WEB_ASSETS = "public, max-age=31536000, immutable"
 _CACHE_SPA_INDEX = "no-cache, no-store, must-revalidate"
 _CACHE_DIST_UNHASHED = "public, max-age=86400"
 
@@ -167,8 +167,10 @@ def create_app(config=None):
 
     @login_manager.user_loader
     def load_user(user_id):
+        from app.utils.db.orm_lookup import get_model
+
         # User.id is String(36) UUID; do not coerce to int
-        return User.query.get(user_id)
+        return get_model(User, user_id)
 
     # S3 client is initialized lazily on first use via s3_service._ensure_s3_client() (avoids boto/head_bucket at boot).
 
@@ -251,7 +253,7 @@ def create_app(config=None):
     @app.route("/assets/<path:filename>", methods=["GET", "HEAD"])
     def serve_assets(filename):
         out = make_response(send_from_directory(os.path.join(static_dir, "assets"), filename))
-        out.headers["Cache-Control"] = _CACHE_VITE_ASSETS
+        out.headers["Cache-Control"] = _CACHE_IMMUTABLE_WEB_ASSETS
         return out
 
     # Common top-level files Vite may emit (optional but nice to have)

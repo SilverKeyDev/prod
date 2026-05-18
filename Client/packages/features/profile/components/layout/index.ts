@@ -3,6 +3,7 @@ export {
   PersonalizationSectionLayoutProvider,
   PersonalizationSectionPanel,
   useHidePersonalizationStepHeading,
+  useProfileUiSurface,
   useShowPersonalizationSectionBodyTitle,
 } from "./PersonalizationSectionLayout";
 export { PROFILE_FIELDS_ROW_PROPS } from "./profileFieldsRowProps";

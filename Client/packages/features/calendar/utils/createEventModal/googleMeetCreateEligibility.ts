@@ -1,6 +1,7 @@
 /**
- * Whether the Add to Agenda (create) modal should show the Google Meet toggle:
- * timed schedule only — not unscheduled, not all-day.
+ * Whether a Google Calendar create should attach Meet (`addGoogleMeet` on the insert body).
+ * Timed schedule only — not unscheduled, not all-day. (The Add to Agenda UI shows the Meet
+ * toggle whenever you are creating; submit uses this to decide when Meet actually applies.)
  */
 export function showGoogleMeetToggleForCreate(params: {
   mode: "create" | "edit";

@@ -8,6 +8,7 @@ from app.services.aggregation.extended_buyer_preferences import (
     merge_extended_buyer_preferences,
     normalize_listing_status,
 )
+from app.utils.db.orm_lookup import get_model
 
 
 def write_search_intent_from_payload(user_id: str, data: dict[str, Any]) -> UserSearchIntent:
@@ -57,7 +58,7 @@ def write_search_intent_from_payload(user_id: str, data: dict[str, Any]) -> User
         else:
             intent.listing_status = normalize_listing_status(raw_ls)
     if "extended_buyer_preferences" in data:
-        subject = User.query.get(user_id)
+        subject = get_model(User, user_id)
         allow_availability = bool(subject and getattr(subject, "is_agent", False))
         merged = merge_extended_buyer_preferences(
             getattr(intent, "extended_buyer_preferences", None),

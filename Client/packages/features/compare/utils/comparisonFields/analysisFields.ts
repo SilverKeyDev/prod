@@ -2,12 +2,11 @@ import type {
   CompareHomesComparisonField,
   CompareHomesPropertyDetails,
 } from "packages/features/compare/types/compareHomes";
+import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
 import {
   normalizeConEntry,
   normalizeProEntry,
 } from "packages/utils/search/normalize/normalizeProsConsItems";
-
-import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 
 type SectionField = {
   fieldKey: string;

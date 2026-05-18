@@ -3,8 +3,22 @@ export { useFeatureFlagsStore } from "./slices/featureFlags";
 export { useGoogleMapsStore } from "./slices/maps";
 export { useNotificationStore } from "./slices/notifications";
 export { type ReportsState, useReportsStore } from "./slices/reports";
-export { type ToastItem, type UIState, useUIStore } from "./slices/ui";
-export { useViewStore, type ViewState } from "./slices/ui";
+export {
+  type AppDevPersona,
+  type DevAppPersonaState,
+  type ToastItem,
+  type UIState,
+  useDevAppPersonaStore,
+  useUIStore,
+  useViewStore,
+  type ViewState,
+} from "./slices/ui";
+export {
+  resetWorkspaceStore,
+  useWorkspaceStore,
+  type Workspace,
+  type WorkspaceState,
+} from "./slices/workspace";
 export { useGoogleCalendarStore } from "packages/features/calendar/store";
 export { useSchedulingStore } from "packages/features/calendar/store";
 export { type CompareSessionState, useCompareSessionStore } from "packages/features/compare/store";

@@ -1,8 +1,6 @@
 """Unit tests for checklist rule merge (parity with client)."""
 
 from app.services.transactions.checklist_support.checklist_rules import (
-    MERGE_REASON_SELECTABLE_WHEN,
-    MERGE_REASON_SEQUENTIAL_ORDER,
     MERGE_REASON_SIGNATURE_BASED,
     apply_task_checklist_merge,
     evaluate_checklist_condition,
@@ -41,25 +39,25 @@ def test_sort_task_checklist_items_preserves_api_order_when_order_omitted():
     assert [int(it["id"]) for it in sorted_items] == [99, 77]
 
 
-def test_merge_sequential_blocks_later_step_until_previous_checked():
-    """Parity with Client mergeTaskChecklistCheckedIds when allow_unordered_check is absent."""
+def test_merge_allows_later_step_before_earlier_in_template_order():
+    """Parity with Client: checklist steps may be completed out of template order."""
     items = [
         {"id": 99, "label": "Appears first in API array", "explanation": ""},
         {"id": 77, "label": "Appears second in API array", "explanation": ""},
     ]
-    assert 77 not in merge_task_checklist_checked_ids(items, [77], frozenset())
+    assert merge_task_checklist_checked_ids(items, [77], frozenset()) == [77]
     assert merge_task_checklist_checked_ids(items, [99, 77], frozenset()) == [77, 99]
 
 
-def test_apply_merge_reports_sequential_order_when_second_requested_without_first():
+def test_apply_merge_keeps_later_step_when_earlier_is_still_open():
     items = [
         {"id": 1, "order": 0, "label": "A", "explanation": ""},
         {"id": 2, "order": 1, "label": "B", "explanation": ""},
     ]
     result = apply_task_checklist_merge(items, [2], frozenset())
-    assert result.effective_ids == []
-    assert result.stripped_requested_ids == [2]
-    assert result.stripped_reason_codes == [MERGE_REASON_SEQUENTIAL_ORDER]
+    assert result.effective_ids == [2]
+    assert result.stripped_requested_ids == []
+    assert result.stripped_reason_codes == []
 
 
 def test_merge_auto_complete():
@@ -104,7 +102,7 @@ def test_merge_lock_readds():
     assert merge_task_checklist_checked_ids(items, [1], frozenset({1, 2})) == [1, 2]
 
 
-def test_merge_persists_previously_checked_without_lock_uncheck_when():
+def test_merge_allows_uncheck_without_lock_uncheck_when():
     items = [
         {
             "id": 1,
@@ -121,10 +119,10 @@ def test_merge_persists_previously_checked_without_lock_uncheck_when():
             "allow_unordered_check": True,
         },
     ]
-    assert merge_task_checklist_checked_ids(items, [1], frozenset({1, 2})) == [1, 2]
+    assert merge_task_checklist_checked_ids(items, [1], frozenset({1, 2})) == [1]
 
 
-def test_merge_selectable_strips():
+def test_merge_selectable_strips_submit_gated_integration():
     items = [
         {
             "id": 1,
@@ -136,50 +134,58 @@ def test_merge_selectable_strips():
         {
             "id": 2,
             "order": 1,
-            "label": "B",
+            "label": "Budget",
             "explanation": "",
             "allow_unordered_check": True,
+            "component_key": "set_budget",
+            "completion_requires_submit": True,
             "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
         },
     ]
     assert merge_task_checklist_checked_ids(items, [2], frozenset()) == []
 
 
-def test_merge_search_parallel_integrations_after_preapproval():
-    """Budget / areas / criteria: unordered among themselves after item 1; block without pre-approval."""
+def test_merge_ignores_selectable_when_for_non_gated_steps():
     items = [
-        {"id": 1, "order": 0, "label": "Pre-approval", "explanation": ""},
         {
-            "id": 5,
-            "order": 1,
-            "label": "Budget",
+            "id": 1,
+            "order": 0,
+            "label": "A",
             "explanation": "",
             "allow_unordered_check": True,
-            "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
-        },
-        {
-            "id": 4,
-            "order": 2,
-            "label": "Areas",
-            "explanation": "",
-            "allow_unordered_check": True,
-            "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
         },
         {
             "id": 2,
-            "order": 3,
-            "label": "Criteria",
+            "order": 1,
+            "label": "B",
             "explanation": "",
             "allow_unordered_check": True,
             "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
         },
+    ]
+    assert merge_task_checklist_checked_ids(items, [2], frozenset()) == [2]
+
+
+def test_merge_search_parallel_integrations_without_preapproval_gate():
+    """Budget / areas / criteria: may be checked in parallel without pre-approval (item 1)."""
+    items = [
+        {"id": 5, "order": 0, "label": "Budget", "explanation": "", "allow_unordered_check": True},
+        {"id": 4, "order": 1, "label": "Areas", "explanation": "", "allow_unordered_check": True},
+        {
+            "id": 2,
+            "order": 2,
+            "label": "Criteria",
+            "explanation": "",
+            "allow_unordered_check": True,
+        },
+        {"id": 1, "order": 3, "label": "Pre-approval", "explanation": ""},
         {"id": 3, "order": 4, "label": "Agent", "explanation": ""},
     ]
-    assert merge_task_checklist_checked_ids(items, [5], frozenset()) == []
-    assert merge_task_checklist_checked_ids(items, [1, 5], frozenset()) == [1, 5]
-    assert merge_task_checklist_checked_ids(items, [1, 4], frozenset()) == [1, 4]
+    assert merge_task_checklist_checked_ids(items, [5], frozenset()) == [5]
+    assert merge_task_checklist_checked_ids(items, [4], frozenset()) == [4]
+    assert merge_task_checklist_checked_ids(items, [2], frozenset()) == [2]
+    assert merge_task_checklist_checked_ids(items, [2, 4, 5], frozenset()) == [2, 4, 5]
     assert merge_task_checklist_checked_ids(items, [1, 2, 4, 5], frozenset()) == [1, 2, 4, 5]
-    assert merge_task_checklist_checked_ids(items, [1, 2, 4, 5, 3], frozenset()) == [1, 2, 3, 4, 5]
 
 
 def test_merge_drops_client_requested_signature_based_ids():
@@ -203,22 +209,14 @@ def test_merge_drops_client_requested_signature_based_ids():
     assert merge_task_checklist_checked_ids(items, [1, 6], frozenset()) == [1]
 
 
-def test_apply_merge_budget_without_preapproval_reports_selectable():
+def test_apply_merge_budget_without_preapproval_succeeds_when_no_selectable_gate():
     items = [
-        {"id": 1, "order": 0, "label": "Pre-approval", "explanation": ""},
-        {
-            "id": 5,
-            "order": 1,
-            "label": "Budget",
-            "explanation": "",
-            "allow_unordered_check": True,
-            "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
-        },
+        {"id": 5, "order": 0, "label": "Budget", "explanation": "", "allow_unordered_check": True},
+        {"id": 1, "order": 3, "label": "Pre-approval", "explanation": ""},
     ]
     result = apply_task_checklist_merge(items, [5], frozenset())
-    assert result.effective_ids == []
-    assert result.stripped_requested_ids == [5]
-    assert result.stripped_reason_codes == [MERGE_REASON_SELECTABLE_WHEN]
+    assert result.effective_ids == [5]
+    assert result.stripped_requested_ids == []
 
 
 def test_apply_merge_signature_requested_is_stripped_with_reason():

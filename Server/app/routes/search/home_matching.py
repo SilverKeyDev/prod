@@ -1,13 +1,14 @@
 from typing import Any, Protocol, cast
 
 from flask import Blueprint, jsonify, request
-from flask_login import current_user, login_required
 
 from app.schemas import FindMatchesRequest, TaskStatusResponse
 from app.services.search.home_matching.preprocessing.home_input_data import (
     format_homes_data_from_api,
 )
 from app.services.search.home_matching.preprocessing.user_input_data import get_user_data_from_dict
+from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.utils.security.celery_task_ownership import register_task_owner, verify_task_owner
 from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, log
 
@@ -23,15 +24,25 @@ class _CeleryTaskWithDelay(Protocol):
         ...
 
 
-# Create blueprint
 home_matching_bp = Blueprint("home_matching", __name__, url_prefix="/api/home-matching")
 
 
+def _forbidden_task_access():
+    return jsonify(
+        {
+            "success": False,
+            "error": "FORBIDDEN",
+            "message": "Access denied to this task",
+        }
+    ), 403
+
+
 @home_matching_bp.route("/find-matches", methods=["POST"])
-@login_required
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_request(FindMatchesRequest)
 @validate_response(TaskStatusResponse)
-def find_matches(data: FindMatchesRequest | None = None):
+def find_matches(user, data: FindMatchesRequest | None = None):
     """
     Start a background task to find the best home matches for a user.
 
@@ -89,17 +100,13 @@ def find_matches(data: FindMatchesRequest | None = None):
             if len(homes_data) == 0:
                 return jsonify({"success": False, "error": "homes_data cannot be empty"}), 400
 
-        # Add current user info to user_data if not present
-        if "user_id" not in user_data and current_user:
-            user_data["user_id"] = str(current_user.id)
+        if not isinstance(user_data, dict):
+            user_data = {}
+        user_data["user_id"] = str(user.id)
 
-        # Format user data using the new module for consistency
         user_data = get_user_data_from_dict(user_data)
-
-        # Format homes data using the new module for consistency
         homes_data = format_homes_data_from_api(homes_data)
 
-        # Start the Celery task
         task = cast(_CeleryTaskWithDelay, find_best_matches_task).delay(
             user_data=user_data,
             homes_data=homes_data,
@@ -107,6 +114,7 @@ def find_matches(data: FindMatchesRequest | None = None):
             include_explanations=include_explanations,
             embedding_provider=embedding_provider,
         )
+        register_task_owner(task.id, str(user.id))
 
         return jsonify(
             {
@@ -132,9 +140,10 @@ def find_matches(data: FindMatchesRequest | None = None):
 
 
 @home_matching_bp.route("/task-status/<task_id>", methods=["GET"])
-@login_required
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_response(TaskStatusResponse)
-def get_task_status(task_id: str):
+def get_task_status(user, task_id: str):
     """
     Get the status of a home matching task.
 
@@ -147,8 +156,10 @@ def get_task_status(task_id: str):
         "meta": {...}
     }
     """
+    if not verify_task_owner(task_id, str(user.id)):
+        return _forbidden_task_access()
+
     try:
-        # Get task result
         task_result = celery.AsyncResult(task_id)
 
         response = {
@@ -162,14 +173,17 @@ def get_task_status(task_id: str):
 
         elif task_result.status == "PROGRESS":
             response["meta"] = task_result.info
-            response["message"] = task_result.info.get("status", "Task is in progress")
+            response["message"] = (
+                task_result.info.get("status", "Task is in progress")
+                if isinstance(task_result.info, dict)
+                else "Task is in progress"
+            )
 
         elif task_result.status == "SUCCESS":
             response["result"] = task_result.result
             response["message"] = "Task completed successfully"
 
         elif task_result.status == "FAILURE":
-            # Avoid leaking internal exception details to client; log server-side if needed
             response["error"] = "Task failed"
             response["message"] = "Task failed"
             response["success"] = False
@@ -189,7 +203,6 @@ def get_task_status(task_id: str):
         return response, status
 
 
-# Error handlers for the blueprint
 @home_matching_bp.errorhandler(400)
 def bad_request(error):
     return jsonify(

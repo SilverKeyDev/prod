@@ -8,6 +8,8 @@ from unittest.mock import patch
 
 from flask import Flask
 
+from app.utils.db.orm_lookup import get_model
+
 
 def _completed_payload() -> dict:
     return {
@@ -97,12 +99,12 @@ class TestWebhookProcessor:
 
                     WebhookProcessor.process_envelope_event(event_id)
 
-                    updated = Agreement.query.get(agreement.id)
+                    updated = get_model(Agreement, agreement.id)
                     assert updated is not None
                     assert updated.status == "completed"
                     assert updated.completed_at is not None
 
-                    ev = DocusignConnectEvent.query.get(event_id)
+                    ev = get_model(DocusignConnectEvent, event_id)
                     assert ev is not None
                     assert ev.processed is True
 
@@ -127,12 +129,12 @@ class TestWebhookProcessor:
 
                     WebhookProcessor.process_envelope_event(event_id)
 
-                    updated = Agreement.query.get(agreement.id)
+                    updated = get_model(Agreement, agreement.id)
                     assert updated is not None
                     assert updated.status == "voided"
                     assert updated.voided_at is not None
 
-                    ev = DocusignConnectEvent.query.get(event_id)
+                    ev = get_model(DocusignConnectEvent, event_id)
                     assert ev is not None
                     assert ev.processed is True
 
@@ -167,11 +169,11 @@ class TestWebhookProcessor:
 
                 WebhookProcessor.process_envelope_event(event_id)
 
-                updated = AgreementParticipant.query.get(participant.id)
+                updated = get_model(AgreementParticipant, participant.id)
                 assert updated is not None
                 assert updated.recipient_status == "completed"
 
-                ev = DocusignConnectEvent.query.get(event_id)
+                ev = get_model(DocusignConnectEvent, event_id)
                 assert ev is not None
                 assert ev.processed is True
 
@@ -210,7 +212,7 @@ class TestWebhookProcessor:
 
                     WebhookProcessor.process_envelope_event(event_id)
 
-                    updated = AgreementParticipant.query.get(participant.id)
+                    updated = get_model(AgreementParticipant, participant.id)
                     assert updated is not None
                     assert updated.recipient_status == "declined"
 
@@ -265,11 +267,11 @@ class TestWebhookProcessor:
                     WebhookProcessor.process_envelope_event(event_id)
                     WebhookProcessor.process_envelope_event(event_id)
 
-                    updated = Agreement.query.get(agreement.id)
+                    updated = get_model(Agreement, agreement.id)
                     assert updated is not None
                     assert updated.status == "completed"
 
-                    ev = DocusignConnectEvent.query.get(event_id)
+                    ev = get_model(DocusignConnectEvent, event_id)
                     assert ev is not None
                     assert ev.processed is True
 
@@ -284,6 +286,6 @@ class TestWebhookProcessor:
 
             WebhookProcessor.process_envelope_event(event_id)
 
-            ev = DocusignConnectEvent.query.get(event_id)
+            ev = get_model(DocusignConnectEvent, event_id)
             assert ev is not None
             assert ev.processing_error == "Agreement not found"

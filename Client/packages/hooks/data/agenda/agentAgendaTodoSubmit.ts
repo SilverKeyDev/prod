@@ -4,16 +4,14 @@ import { queryKeys } from "packages/config/query/keys";
 import type { CreateTodoRequest } from "packages/features/agent/api/agent";
 import { googleCalendarApi } from "packages/features/calendar/api";
 import type { GoogleEventCreateResponse } from "packages/features/calendar/api/types";
+import { showErrorToast, showInfoToast } from "packages/hooks/ui/toast";
 import {
   buildAgentTodoGoogleEvent,
-  parseAgendaDeadlineTime,
-} from "packages/features/calendar/utils/core/agentTaskEvent";
-import {
   copyTextToClipboard,
   isGoogleMeetProvisioningPending,
+  parseAgendaDeadlineTime,
   pollGoogleMeetHangoutLink,
-} from "packages/features/calendar/utils/createEventModal/googleMeetAfterCreate";
-import { showErrorToast, showInfoToast } from "packages/hooks/ui/toast";
+} from "packages/utils/calendar";
 import { dayjs } from "packages/utils/date";
 
 /** Payload for a single-day Google Calendar quick-add (requires a date). */

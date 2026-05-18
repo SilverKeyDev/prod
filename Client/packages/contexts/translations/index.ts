@@ -2,7 +2,9 @@
  * English translation strings. Aggregated from shared and feature-owned types/translations.
  * LocalizationContext consumes TRANSLATIONS. Feature strings live in packages/features/<name>/types/translations.ts.
  */
+import { ADMIN_TRANSLATIONS } from "packages/features/admin/types/translations";
 import { AGENT_TRANSLATIONS } from "packages/features/agent/types/translations";
+import { BROKERAGE_TRANSLATIONS } from "packages/features/brokerage/types/translations";
 import { CHECKLISTS_TRANSLATIONS } from "packages/features/checklists/types/translations";
 import { COMPARE_TRANSLATIONS } from "packages/features/compare/types/translations";
 import { DASHBOARD_TRANSLATIONS } from "packages/features/dashboard/types/translations";
@@ -20,6 +22,8 @@ import { SHARED_TRANSLATIONS } from "./shared";
 export const TRANSLATIONS: Record<string, string> = {
   ...SHARED_TRANSLATIONS,
   ...AUTH_TRANSLATIONS,
+  ...BROKERAGE_TRANSLATIONS,
+  ...ADMIN_TRANSLATIONS,
   ...SEARCH_TRANSLATIONS,
   ...PROPERTY_DETAILS_TRANSLATIONS,
   ...SAVED_TRANSLATIONS,

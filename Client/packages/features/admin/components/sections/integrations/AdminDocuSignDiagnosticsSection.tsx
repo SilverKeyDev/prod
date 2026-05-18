@@ -1,16 +1,21 @@
 import { useCallback, useState } from "react";
 
 import { adminApi } from "packages/api/admin";
+import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
+import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 
-type AdminDocuSignDiagnosticsSectionProps = {
+type AdminDocuSignDiagnosticsSectionProps = AdminSectionBaseProps & {
   isAgent: boolean;
 };
 
-export function AdminDocuSignDiagnosticsSection({ isAgent }: AdminDocuSignDiagnosticsSectionProps) {
+export function AdminDocuSignDiagnosticsSection({
+  isAgent,
+  scope: _scope = DEFAULT_ADMIN_SCOPE,
+}: AdminDocuSignDiagnosticsSectionProps) {
   const [docusignAuthUrl, setDocusignAuthUrl] = useState<string | null>(null);
   const [docusignOAuthLoading, setDocusignOAuthLoading] = useState(false);
   const [docusignOAuthError, setDocusignOAuthError] = useState<string | null>(null);

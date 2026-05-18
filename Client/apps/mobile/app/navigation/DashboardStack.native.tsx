@@ -2,7 +2,8 @@ import React from "react";
 
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { ClientHubScreen, DashboardScreen } from "packages/features/dashboard/native";
+import { ClientHubScreen } from "packages/features/agent/native";
+import { DashboardScreen } from "packages/features/dashboard/native";
 
 export type DashboardStackParamList = {
   DashboardMain: undefined;

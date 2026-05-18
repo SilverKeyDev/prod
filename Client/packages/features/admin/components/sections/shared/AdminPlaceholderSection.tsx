@@ -1,14 +1,20 @@
+import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
+import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
 
-type AdminPlaceholderSectionProps = {
+type AdminPlaceholderSectionProps = AdminSectionBaseProps & {
   title: string;
   description: string;
 };
 
-export function AdminPlaceholderSection({ title, description }: AdminPlaceholderSectionProps) {
+export function AdminPlaceholderSection({
+  title,
+  description,
+  scope: _scope = DEFAULT_ADMIN_SCOPE,
+}: AdminPlaceholderSectionProps) {
   return (
     <Card border="light" padding="lg" className="w-full">
       <Title size="lg" as="h1" className="mb-2">

@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from app import db
+from app.utils.db.orm_lookup import get_model
 
 if TYPE_CHECKING:
     from app.models import Agreement, Document
@@ -60,7 +61,7 @@ def sync_agreement_library_item(agreement: Agreement) -> None:
         return
     from app.models import DocumentLibraryItem
 
-    item = DocumentLibraryItem.query.get(agreement.library_item_id)
+    item = get_model(DocumentLibraryItem, agreement.library_item_id)
     if not item:
         return
     item.title = (agreement.title or "Agreement")[:512]

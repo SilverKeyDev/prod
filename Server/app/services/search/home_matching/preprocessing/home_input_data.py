@@ -12,6 +12,7 @@ import logging
 from typing import Any
 
 from app.models import PropertyCache, UserPropertyLink
+from app.utils.db.orm_lookup import get_model
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ except ImportError:
 def get_home_data_from_db(home_id: str, user_id: str | None = None) -> dict[str, Any] | None:
     """Retrieve home data from database by property ID."""
     try:
-        prop = PropertyCache.query.get(home_id)
+        prop = get_model(PropertyCache, home_id)
         if not prop:
             logger.warning("Property not found: %s", home_id)
             return None
@@ -67,7 +68,7 @@ def get_homes_data_from_db(
         links = query.all()
         results = []
         for link in links:
-            prop = PropertyCache.query.get(link.property_id)
+            prop = get_model(PropertyCache, link.property_id)
             if prop:
                 results.append(format_home_data_for_matching(prop, link))
         return results

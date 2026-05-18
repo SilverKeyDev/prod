@@ -35,6 +35,10 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.discovery_no_recommendations":
     "Add a ZIP or search location, or complete your home preferences, to see better matches.",
   "agent.discovery_connect": "Connect",
+  "agent.discovery_view_profile": "View profile",
+  "agent.connection_status.accepted": "Accepted",
+  "agent.connection_status.waiting": "Waiting",
+  "agent.connection_status.declined": "Declined",
   "agent.discovery_browse_full": "Browse agents",
   "agent.discovery_loading_recommendations": "Loading recommendations...",
   "agent.discovery_search_min_chars": "Type at least 2 characters to search.",
@@ -90,6 +94,8 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.pipeline_stage.closing": "Closing",
   "agent.pipeline_stage.insurance": "Insurance",
   "agent.pipeline_stage.unknown": "—",
+
+  "agent.client_list_all_steps_complete": "All steps complete",
 
   "client_selector.me": "Me",
   "client_selector.select_client": "Select Client",

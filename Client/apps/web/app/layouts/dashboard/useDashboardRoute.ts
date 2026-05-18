@@ -8,11 +8,13 @@
  * activeKey from pathname so the UI matches the browser URL.
  */
 
-import { useLocation, useMatch } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
-import { ROUTES } from "packages/navigation";
 import type { PathPrefix } from "packages/utils/layout/dashboardLayoutConfig";
-import { getWidthPercent } from "packages/utils/layout/dashboardLayoutConfig";
+import {
+  getActiveDashboardKey,
+  getWidthPercent,
+} from "packages/utils/layout/dashboardLayoutConfig";
 
 import { useLocationOverride } from "@/app/routes/locationOverrideContext";
 
@@ -23,13 +25,7 @@ function activeKeyFromPathname(pathname: string): DashboardAreaKey | null {
   if (/^\/agreements\/[^/]+\/complete\/?$/.test(pathname)) {
     return "agreement_signing_complete";
   }
-  if (pathname.startsWith("/search")) return "search";
-  if (pathname.startsWith("/messaging")) return "messaging";
-  if (pathname.startsWith("/find-agents")) return "find_agents";
-  if (pathname.startsWith("/dashboard")) return "dashboard";
-  if (pathname.startsWith("/library") || pathname.startsWith("/saved")) return "library";
-  if (pathname.startsWith("/profile")) return "profile";
-  return null;
+  return getActiveDashboardKey(pathname);
 }
 
 export type DashboardRouteResult = {
@@ -59,33 +55,7 @@ export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResul
   const pathname = location.pathname;
   const search = location.search;
 
-  // When override is set (browser URL diverged from router), derive activeKey from pathname.
-  // Otherwise use useMatch so the router drives the result.
-  const agreementSigningCompleteMatch = useMatch(ROUTES.AGREEMENT_SIGNING_COMPLETE);
-  const searchMatch = useMatch(ROUTES.SEARCH);
-  const messagingMatch = useMatch(ROUTES.MESSAGING);
-  const findAgentsMatch = useMatch(ROUTES.FIND_AGENTS);
-  const dashboardMatch = useMatch(ROUTES.DASHBOARD);
-  const libraryMatch = useMatch(ROUTES.LIBRARY);
-  const profileMatch = useMatch(ROUTES.PROFILE);
-
-  const activeKey: DashboardAreaKey | null = locationOverride
-    ? activeKeyFromPathname(pathname)
-    : agreementSigningCompleteMatch
-      ? "agreement_signing_complete"
-      : searchMatch
-        ? "search"
-        : messagingMatch
-          ? "messaging"
-          : findAgentsMatch
-            ? "find_agents"
-            : dashboardMatch
-              ? "dashboard"
-              : libraryMatch
-                ? "library"
-                : profileMatch
-                  ? "profile"
-                  : null;
+  const activeKey: DashboardAreaKey | null = activeKeyFromPathname(pathname);
 
   const isFullHeightRoute = activeKey === "search" || activeKey === "messaging";
   const widthPercent =

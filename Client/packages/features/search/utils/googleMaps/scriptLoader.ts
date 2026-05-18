@@ -16,11 +16,6 @@ export class ScriptLoader {
   error: string | null = null;
   scriptUrl: string | null = null;
   loadPromise: Promise<void> | null = null;
-  private mapId: string | undefined;
-
-  constructor() {
-    this.mapId = this.getMapId();
-  }
 
   getMapId(): string | undefined {
     try {
@@ -28,7 +23,7 @@ export class ScriptLoader {
       if (!mapId) {
         log.warn(
           LOG_CATEGORIES.MAP_RENDERING,
-          "VITE_GOOGLE_MAPS_ID not configured - using default map styling"
+          "Google Maps Cloud map ID not configured (EXPO_PUBLIC_GOOGLE_MAPS_ID) - using default map styling"
         );
         return undefined;
       }

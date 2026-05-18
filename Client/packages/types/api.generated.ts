@@ -747,7 +747,12 @@ export interface paths {
     /** List connection requests */
     get: operations["getConnectionRequests"];
     put?: never;
-    /** Create a connection request */
+    /**
+     * Create a connection request
+     * @description When the client initiates (`requested_by_agent` false), the server auto-accepts and
+     *     returns `status: accepted` (no agent inbox). When the agent initiates, the request stays
+     *     `pending` until the client responds via the respond endpoint.
+     */
     post: operations["createConnectionRequest"];
     delete?: never;
     options?: never;
@@ -2005,6 +2010,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/admin/users/reset-dev-data": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reset dev/test data for a user (profile, preferences, DocuSign) */
+    post: operations["adminResetDevUserData"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/docusign/oauth/start": {
     parameters: {
       query?: never;
@@ -2624,7 +2646,10 @@ export interface components {
      *       "profile_picture": "profiles/c3d4e5f6-a7b8-9012-cdef-345678901234.jpg",
      *       "created_at": "2025-08-01T16:45:00.000Z",
      *       "client_kind": "buyer",
-     *       "pipeline_stage": "search"
+     *       "pipeline_stage": "search",
+     *       "current_phase": "search",
+     *       "current_step_label": "Set a budget",
+     *       "requires_signature": false
      *     }
      */
     AgentClient: {
@@ -2662,6 +2687,29 @@ export interface components {
         | "insurance"
         | "unknown"
         | null;
+      /** @description Short-lived presigned URL for `profile_picture` when available; use for list avatars. */
+      profile_picture_url?: string | null;
+      /**
+       * @description Active checklist category for this client — first unlocked section with incomplete work.
+       *     Aligns with pipeline categories (`search`, `offer`, …).
+       * @enum {string|null}
+       */
+      current_phase?:
+        | "search"
+        | "offer"
+        | "escrow"
+        | "financing"
+        | "closing"
+        | "insurance"
+        | "unknown"
+        | null;
+      /**
+       * @description Human-readable label of the earliest incomplete checklist step in `current_phase`.
+       *     Null when every step in the active phase is complete.
+       */
+      current_step_label?: string | null;
+      /** @description True when the agent must sign a non-void agreement for this client (client has signed; agent has not). */
+      requires_signature?: boolean | null;
     };
     AgentClientsResponse: components["schemas"]["SuccessResponse"] & {
       clients?: components["schemas"]["AgentClient"][] | null;
@@ -3388,6 +3436,22 @@ export interface components {
     };
     DeleteUserResponse: components["schemas"]["SuccessResponse"] & {
       deleted_user_id?: string | null;
+    };
+    DevUserDataResetRequest: {
+      /** @description Must be true to confirm the reset. */
+      confirm: boolean;
+      /** @description Data domains to clear for the target user. */
+      scopes: ("profile" | "preferences" | "docusign")[];
+      /** @description Target user UUID. Omit to reset the signed-in admin. Super_admin only when set to another user. */
+      user_id?: string | null;
+    };
+    DevUserDataResetResponse: components["schemas"]["SuccessResponse"] & {
+      /** @description User whose data was reset. */
+      target_user_id: string;
+      /** @description Map of scope name to true when that scope was applied. */
+      cleared: {
+        [key: string]: boolean;
+      };
     };
     /**
      * @description Single row in the unified document library: either a user upload or a DocuSign-backed
@@ -5792,6 +5856,8 @@ export interface components {
       profile_picture_url?: string | null;
       /** @description Role names from user_roles; typically present on GET /user/profile. */
       roles?: string[];
+      /** @description Brokerage organization ids this user may administer under brokerage workspace. Omitted or null until brokerage roster membership is populated server-side. */
+      brokerage_org_ids?: string[] | null;
     };
     UserAgentsResponse: components["schemas"]["SuccessResponse"] & {
       agents?: components["schemas"]["User"][] | null;
@@ -8276,7 +8342,15 @@ export interface operations {
   };
   getConnectionRequests: {
     parameters: {
-      query?: never;
+      query?: {
+        /**
+         * @description `inbox` (default) returns pending requests awaiting the user's response.
+         *     For agents, client-initiated requests are auto-accepted on create, so inbox is
+         *     typically empty. For clients, inbox lists pending agent-initiated requests they may
+         *     accept or reject. `initiated` returns requests the user sent (pending, accepted, or rejected).
+         */
+        scope?: "inbox" | "initiated";
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -8325,7 +8399,10 @@ export interface operations {
       };
     };
     responses: {
-      /** @description HTTP 200 */
+      /**
+       * @description Connection request created. Client-initiated requests are accepted immediately;
+       *     agent-initiated requests remain pending until the client responds.
+       */
       200: {
         headers: {
           [name: string]: unknown;
@@ -11810,6 +11887,57 @@ export interface operations {
       };
       /** @description HTTP 403 */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  adminResetDevUserData: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DevUserDataResetRequest"];
+      };
+    };
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DevUserDataResetResponse"];
+        };
+      };
+      /** @description HTTP 400 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 403 */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Target user not found */
+      404: {
         headers: {
           [name: string]: unknown;
         };

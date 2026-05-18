@@ -7,13 +7,13 @@ from sqlalchemy import delete, func, select
 from app import db
 from app.models import User, UserRole
 from app.schemas import UpdateUserSystemRolesRequest, UpdateUserSystemRolesResponse
-from app.utils.admin import user_has_super_admin_role
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_authenticated_user,
     standardize_error_response,
     standardize_success_response,
 )
+from app.utils.security.admin_roles import user_has_super_admin_role
 from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, log
 

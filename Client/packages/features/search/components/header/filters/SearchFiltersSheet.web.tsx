@@ -7,17 +7,15 @@ import { Transition } from "packages/ui/components/adapters/headless";
 import { Box } from "packages/ui/components/primitives";
 import { TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
 
-import { AccessibleDialog, Button, CloseButton, Title } from "@/components/ui";
+import { AccessibleDialog, CloseButton, Title } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 import SearchPreferencesContent from "@/features/search/components/filters/SearchPreferencesContent.web";
 
 export type SearchFiltersSheetProps = {
   open: boolean;
   onClose: () => void;
-  onApply: () => void;
   formData: Partial<OnboardingData>;
   updateFormData: (field: keyof OnboardingData, value: unknown) => void;
-  saveStatus?: "idle" | "saving" | "saved";
   scriptsReady: boolean;
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
@@ -28,25 +26,14 @@ export type SearchFiltersSheetProps = {
 export default function SearchFiltersSheet({
   open,
   onClose,
-  onApply,
   formData,
   updateFormData,
-  saveStatus = "idle",
   scriptsReady,
   selectedClientId,
   patchBuyerPreferenceExtensions,
   onAgentSyncPreferencesFetched,
 }: SearchFiltersSheetProps): React.ReactElement {
   const { t } = useLocalization();
-  const handleApply = async () => {
-    try {
-      await Promise.resolve(onApply());
-    } catch {
-      /* Save/search errors handled upstream */
-    } finally {
-      onClose();
-    }
-  };
 
   return (
     <Transition show={open} as="div">
@@ -87,11 +74,10 @@ export default function SearchFiltersSheet({
                 </Box>
               </Box>
 
-              <Box className="scrollbar-styled min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-16">
+              <Box className="scrollbar-styled min-h-0 flex-1 overflow-y-auto px-4 py-4">
                 <SearchPreferencesContent
                   formData={formData}
                   updateFormData={updateFormData}
-                  saveStatus={saveStatus}
                   patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
                   scriptsReady={scriptsReady}
                   viewingClientId={selectedClientId ?? null}
@@ -106,19 +92,6 @@ export default function SearchFiltersSheet({
                   </Title>
                   <SearchDisplayPanelWeb menuPortalStack="modal" />
                 </Box>
-              </Box>
-
-              <Box className="border-border flex shrink-0 items-center gap-2 border-t px-4 py-3">
-                <Button
-                  variant="primary"
-                  size="md"
-                  fullWidth
-                  onClick={() => void handleApply()}
-                  className="touch-friendly"
-                  iconName="search"
-                >
-                  {t("search.apply")}
-                </Button>
               </Box>
             </AccessibleDialog.Panel>
           </Transition.Child>

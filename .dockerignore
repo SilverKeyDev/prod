@@ -72,10 +72,6 @@ Client/.turbo/
 Client/.cache/
 Client/apps/mobile/
 Client/dist-ssr/
-# Playwright and other runners may write under apps/web (not only Client/test-results/)
-Client/**/test-results/
-Client/**/playwright-report/
-Client/**/blob-report/
 .eslintcache
 Client/.eslintcache
 
@@ -90,7 +86,7 @@ Client/.eslintcache
 *.whl
 
 # ============================================
-# Testing & Coverage
+# Testing & Coverage (not used at runtime or in production image)
 # ============================================
 coverage/
 **/coverage/
@@ -100,19 +96,52 @@ coverage/
 .coverage.*
 htmlcov/
 .pytest_cache/
+**/.pytest_cache/
 .tox/
 .nox/
 Client/coverage/
-*.spec.ts
-*.spec.tsx
-*.test.ts
-*.test.tsx
-*.test.py
-*_test.py
-tests/
-test/
+
+# Playwright / Vitest output (runners may write under apps/web, not only Client/)
+Client/**/test-results/
+Client/**/playwright-report/
+Client/**/blob-report/
+
+# Frontend unit/integration test sources
+**/__tests__/**
+**/*.test.ts
+**/*.test.tsx
+**/*.test.js
+**/*.test.jsx
+**/*.test.mjs
+**/*.test.cjs
+**/*.test.fixtures.ts
+**/*.test.helpers.ts
+**/*.spec.ts
+**/*.spec.tsx
+**/*.spec.js
+**/*.spec.jsx
+**/*.spec.mjs
+**/*.spec.cjs
+
+# Backend pytest sources (Server/tests/ and app/services/**/tests/)
+**/*.test.py
+**/test_*.py
+**/*_test.py
+**/conftest.py
+**/tests/**
+**/test/**
 Server/tests/
 Server/pytest.ini
+
+# Test runners and dev-only requirement sets (image installs runtime.txt only)
+Client/vitest.config.ts
+**/vitest.config.*
+**/vitest.workspace.*
+**/jest.config.*
+**/playwright.config.*
+Server/requirements/test.txt
+Server/requirements/dev.txt
+Server/requirements/ci.txt
 
 # ============================================
 # Server-specific (dev, cache, tooling)

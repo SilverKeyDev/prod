@@ -52,7 +52,7 @@ def authenticated_client(
 
     with (
         patch(
-            "app.utils.common_patterns.get_current_user",
+            "app.services.auth.get_current_user",
             side_effect=_current_user,
         ),
         patch(

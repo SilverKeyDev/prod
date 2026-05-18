@@ -10,6 +10,7 @@ export { type ColorPath, colors } from "./color";
 export {
   shadowCard,
   shadowElevated,
+  shadowFloating,
   shadowSubtle,
   type ShadowToken,
   type ShadowTokenName,

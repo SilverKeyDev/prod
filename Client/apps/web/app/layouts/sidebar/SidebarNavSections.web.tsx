@@ -1,18 +1,14 @@
 import React from "react";
 
-import { Icon } from "@ui/icons";
-
+import { AccountLogoutAction } from "packages/features/homeauth/components/account/AccountLogoutAction";
 import WhiteLogo from "packages/ui/components/asset/WhiteLogo";
 import { Box } from "packages/ui/components/primitives";
-import { getChromeNavButtonStyles } from "packages/ui/components/sidebar/sidebarTheme";
 
-import ConfirmationDialog from "@/components/modals/dialogs/ConfirmationDialog.web";
 import { BodyText } from "@/components/ui";
 import type { UserProfile } from "@/features/homeauth/types";
 
 import { type NavCategory, type SidebarNavItem } from "./sidebarNav.web";
 import { SidebarNavCategory } from "./SidebarNavCategory.web";
-import { sidebarNavLabelInactive } from "./sidebarNavSections.constants.web";
 
 export function SidebarHeader({
   expanded,
@@ -58,44 +54,8 @@ export function SidebarHeader({
     </Box>
   );
 }
-export function SidebarFooter({
-  expanded,
-  showLogoutConfirm,
-  onLogoutClick,
-  onConfirmLogout,
-  onCancelLogout,
-}: {
-  expanded: boolean;
-  showLogoutConfirm: boolean;
-  onLogoutClick: (e: React.MouseEvent) => void;
-  onConfirmLogout: () => void;
-  onCancelLogout: () => void;
-}) {
-  return (
-    <Box className="flex-shrink-0 border-t border-sidebar-border py-4">
-      <button
-        onClick={onLogoutClick}
-        className={`${getChromeNavButtonStyles(false).replace(
-          "text-sidebar-muted-foreground",
-          "text-sidebar-foreground"
-        )} cursor-pointer justify-center py-3`}
-      >
-        <Icon name="log-out" className={`h-6 w-6 ${expanded ? "mr-3" : ""}`} />
-        {expanded && (
-          <span className={`${sidebarNavLabelInactive} text-sidebar-foreground`}>Logout</span>
-        )}
-      </button>
-      <ConfirmationDialog
-        isOpen={showLogoutConfirm}
-        title="Logout Confirmation"
-        message="Are you sure you want to log out?"
-        confirmText="Logout"
-        confirmIcon={<Icon name="log-out" />}
-        onConfirm={onConfirmLogout}
-        onCancel={onCancelLogout}
-      />
-    </Box>
-  );
+export function SidebarFooter({ expanded, onLogout }: { expanded: boolean; onLogout: () => void }) {
+  return <AccountLogoutAction variant="sidebar" expanded={expanded} onLogout={onLogout} />;
 }
 type SidebarNavProps = {
   navigation: Record<string, NavCategory>;

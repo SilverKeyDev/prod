@@ -1,6 +1,7 @@
-import { prefetchAgentMessagingFeatureChunks } from "packages/features/agent/components/prefetchAgentMessagingChunks";
+import { prefetchAgentMessagingFeatureChunks } from "packages/features/agent/components/loading/prefetchAgentMessagingChunks";
 import { prefetchDashboardFeatureChunks } from "packages/features/dashboard/components/shell/prefetchDashboardFeatureChunks";
 import { LOG_CATEGORIES } from "packages/logger";
+import { stripWorkspaceShellPrefix } from "packages/utils/layout/dashboardLayoutConfig";
 import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
 
 export type PrefetchDashboardShellRouteOptions = {
@@ -31,7 +32,8 @@ export function prefetchDashboardShellRoute(
   options?: PrefetchDashboardShellRouteOptions
 ): void {
   const raw = (href.split("?")[0] ?? "").split("#")[0] ?? "";
-  const path = raw.startsWith("/") ? raw : `/${raw}`;
+  const normalized = raw.startsWith("/") ? raw : `/${raw}`;
+  const path = stripWorkspaceShellPrefix(normalized);
 
   if (path.startsWith("/search")) {
     traceDynamicImport(

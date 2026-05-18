@@ -31,6 +31,21 @@ This document is the **exhaustive** reference for all **shared packages** in the
 3. **Framework boundaries** — Packages are either framework-agnostic (no React) or React-only (hooks, contexts); no React Native–specific code in shared packages unless using platform extensions (`.web.*` / `.native.*`).
 4. **No direct app imports** — Shared packages must not import from `apps/web/*` or `apps/mobile/*`.
 
+### API client import path (canonical)
+
+**Use `packages/api`** (and subpaths such as `packages/api/viewings`, `packages/api/admin`) for API clients and shared API types. That package is the implementation barrel: it re-exports domain clients from `packages/features/*/api/` and generated contract types.
+
+**`packages/config/http/api`** re-exports the same surface for backward compatibility. Prefer **`packages/api`** in new code so features, hooks, and services share one path. Importing from `packages/config` or `packages/config/http/api` is equivalent but discouraged for new edits.
+
+**Do not use `packages/config/api`** — there is no `packages/config/api/` tree; older docs referred to that name. ESLint blocks `packages/config/api/*` in feature **components** (non-`api/` paths); feature **`api/`** modules and hooks may call clients via `packages/api`.
+
+| Layer | API imports |
+| ----- | ----------- |
+| `packages/features/*/api/` | `packages/api` or feature-local `api/` modules |
+| `packages/features/*` (hooks, utils, components) | `packages/api` for clients/types; prefer hooks in components for runtime calls |
+| `packages/hooks/` | `packages/api` (or `packages/config/http/api` only when touching legacy lines) |
+| `apps/*` | No direct API clients — use `packages/hooks` |
+
 ---
 
 ## Package Inventory
@@ -49,7 +64,7 @@ This document is the **exhaustive** reference for all **shared packages** in the
 | **ui** | `packages/ui/` | Design-system components, primitives, `packages/ui/styles/` (web CSS) | Yes | Yes**** |
 | **features** | `packages/features/` | Feature-level modules (saved, agent, search, etc.) | Yes | Yes |
 | **types** | `packages/types/` | API/generated and shared type barrel | No | Yes |
-| **api** | `packages/api/` | Small surfaced API helpers (see folder) | No | Yes |
+| **api** | `packages/api/` | Canonical API client barrel (re-exports feature `api/` modules and contract types) | No | Yes |
 | **logger** | `packages/logger/` | Centralized logging, PII scrubbing | No | Yes |
 
 **Feature module structure:** Each subfolder under `packages/features/<name>/` may only contain: `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`, and `index.ts` (barrel). Enforced by ESLint rule `silverkey/package-module-allowed-children`. See `Client/packages/features/README.md` and `.cursor/rules/shared/package-feature-structure.mdc`.
@@ -120,11 +135,11 @@ For allowed children of any feature folder, see `.cursor/rules/shared/package-fe
 
 ### 1. `packages/config/`
 
-**Purpose:** Thin, type-safe API client wrappers and configuration. Primary interface for all HTTP/API calls.
+**Purpose:** Environment, HTTP constants, React Query setup, and a **re-export** of the API barrel (`http/api.ts` → `packages/api`). Domain API **implementations** live in `packages/api/` and `packages/features/*/api/`.
 
 **Contents (summary):**
 
-- **`config/api/`** — Domain API modules: `auth/`, `user`, `search/`, `calendar/googleCalendar/`, `documents/`, `agent/`, `feed/`, `chat/`, `core/`, `standalone/`, `offer`, `secureUpload`, `maps`, `googleCalendar`, `chatbot`, `index`.
+- **`config/http/api.ts`** — Re-exports `packages/api` (canonical clients live there).
 - **`config/query/`** — `queryClient.ts`, `keys.ts`, `adapters.ts` (React Query setup).
 - **Root:** `auth.ts`, `env.ts`, `http.ts`, `vite-env.d.ts`, `index.ts`.
 

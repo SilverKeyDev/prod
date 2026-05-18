@@ -1,4 +1,5 @@
 import type { TaskChecklistItem } from "packages/features/checklists/api/checklists";
+import { isSubmitGatedChecklistIntegration } from "packages/features/checklists/utils/rules/checklistIntegrationGating";
 import { sortTaskChecklistItems } from "packages/features/checklists/utils/sort/sortTaskChecklistItems";
 
 export function evaluateChecklistCondition(
@@ -66,47 +67,12 @@ function completionTypeRaw(item: TaskChecklistItem): string {
   return String(raw);
 }
 
-/** Re-add ids already stored as checked; users cannot remove progress via PUT (prune steps may still fix invalid sets). */
-function applyPersistedCheckedIds(
-  checked: Set<number>,
-  sortedItems: TaskChecklistItem[],
-  oldChecked: ReadonlySet<number>
-): void {
-  const byId = new Map(sortedItems.map((it) => [it.id, it]));
-  for (const iid of oldChecked) {
-    const item = byId.get(iid);
-    if (item == null) continue;
-    if (completionTypeRaw(item) === "signature_based") continue;
-    checked.add(iid);
-  }
-}
-
-function pruneSequential(checked: Set<number>, sortedItems: TaskChecklistItem[]): void {
-  for (;;) {
-    let changed = false;
-    for (let i = 0; i < sortedItems.length; i++) {
-      const item = sortedItems[i]!;
-      const iid = item.id;
-      if (!checked.has(iid)) continue;
-      if (item.allow_unordered_check) continue;
-      for (let j = 0; j < i; j++) {
-        const prevId = sortedItems[j]!.id;
-        if (!checked.has(prevId)) {
-          checked.delete(iid);
-          changed = true;
-          break;
-        }
-      }
-    }
-    if (!changed) break;
-  }
-}
-
 function pruneSelectable(checked: Set<number>, sortedItems: TaskChecklistItem[]): void {
   for (const item of sortedItems) {
     const iid = item.id;
     if (!checked.has(iid)) continue;
     if (autoWouldComplete(item, iid, checked)) continue;
+    if (!isSubmitGatedChecklistIntegration(item)) continue;
     const sel = item.selectable_when;
     if (sel != null) {
       const without = new Set(checked);
@@ -142,9 +108,7 @@ export function mergeTaskChecklistCheckedIds(
   for (let n = 0; n < maxIter; n++) {
     const before = signature(checked);
     applyAutoComplete(checked, sortedItems);
-    applyPersistedCheckedIds(checked, sortedItems, oldChecked);
     applyLocks(checked, sortedItems, oldChecked);
-    pruneSequential(checked, sortedItems);
     pruneSelectable(checked, sortedItems);
     if (signature(checked) === before) break;
   }
@@ -173,16 +137,11 @@ function classifyStrippedId(
   const item = idToItem.get(iid);
   if (item == null) return MERGE_REASON_PRUNED;
   if (completionTypeRaw(item) === "signature_based") return MERGE_REASON_SIGNATURE_BASED;
-  const idx = sortedItems.findIndex((i) => i.id === iid);
-  if (idx >= 0 && !item.allow_unordered_check) {
-    for (let j = 0; j < idx; j++) {
-      const prevId = sortedItems[j]!.id;
-      if (!effective.has(prevId)) return MERGE_REASON_SEQUENTIAL_ORDER;
+  if (isSubmitGatedChecklistIntegration(item)) {
+    const sel = item.selectable_when;
+    if (sel != null && !evaluateChecklistCondition(sel, new Set(effective))) {
+      return MERGE_REASON_SELECTABLE_WHEN;
     }
-  }
-  const sel = item.selectable_when;
-  if (sel != null && !evaluateChecklistCondition(sel, new Set(effective))) {
-    return MERGE_REASON_SELECTABLE_WHEN;
   }
   return MERGE_REASON_PRUNED;
 }
@@ -214,40 +173,27 @@ export function applyTaskChecklistMerge(
   };
 }
 
-export function passesSequentialForCheck(
-  sortedItems: TaskChecklistItem[],
-  checked: ReadonlySet<number>,
-  item: TaskChecklistItem
-): boolean {
-  if (item.allow_unordered_check) return true;
-  const idx = sortedItems.findIndex((i) => i.id === item.id);
-  if (idx < 0) return false;
-  for (let i = 0; i < idx; i++) {
-    if (!checked.has(sortedItems[i]!.id)) return false;
-  }
-  return true;
-}
-
 export type ChecklistItemToggleEligibility = {
   /** User may check the box to mark the step complete (false when `completionRequiresSubmit`). */
   canCheck: boolean;
-  /** Always false: completed steps cannot be cleared from the checklist UI. */
+  /** User may clear a checked step when it was manually completable and not locked/auto-held. */
   canUncheck: boolean;
   /**
-   * Unchecked step may be marked complete (checkbox or integration submit) when sequential
-   * gates and `selectable_when` pass. Used for PUT/submit; manual checkbox uses `canCheck`.
+   * Unchecked step may be marked complete (checkbox or integration submit) when `selectable_when`
+   * passes. Used for PUT/submit; manual checkbox uses `canCheck`.
    */
   canMarkChecked: boolean;
 };
 
 /**
- * UX-only eligibility (server enforces on PUT). `sectionUnlocked` is the buyer-roadmap section gate.
+ * UX-only eligibility (server enforces on PUT). `sectionUnlocked` is ignored for toggling so
+ * buyers/agents may check steps in any phase; only submit-gated integrations keep submit rules.
  */
 export function getChecklistItemToggleEligibility(
   items: TaskChecklistItem[],
   checkedIds: readonly number[],
   itemId: number,
-  sectionUnlocked: boolean
+  _sectionUnlocked: boolean
 ): ChecklistItemToggleEligibility {
   const sortedItems = sortTaskChecklistItems([...items]);
   const item = sortedItems.find((i) => i.id === itemId);
@@ -257,24 +203,19 @@ export function getChecklistItemToggleEligibility(
   const checked = new Set(checkedIds);
   const isChecked = checked.has(itemId);
 
-  if (!sectionUnlocked) {
-    return { canCheck: false, canUncheck: false, canMarkChecked: false };
-  }
-
   if (item.completionType === "signature_based") {
     return { canCheck: false, canUncheck: false, canMarkChecked: false };
   }
 
+  const submitGated = isSubmitGatedChecklistIntegration(item);
   const canMarkChecked =
-    !isChecked &&
-    passesSequentialForCheck(sortedItems, checked, item) &&
-    evaluateChecklistCondition(item.selectable_when, checked);
+    !isChecked && (submitGated ? evaluateChecklistCondition(item.selectable_when, checked) : true);
 
-  const submitOnly = item.completionRequiresSubmit === true;
-  const canCheck = canMarkChecked && !submitOnly;
+  const canCheck = canMarkChecked && !submitGated;
 
-  /** Checked steps cannot be cleared from the UI; server merge also re-adds stored ids (see sticky merge). */
-  const canUncheck = false;
+  const lockBlocksUncheck =
+    item.lock_uncheck_when != null && evaluateChecklistCondition(item.lock_uncheck_when, checked);
+  const canUncheck = isChecked && !lockBlocksUncheck && !autoWouldComplete(item, itemId, checked);
 
   return { canCheck, canUncheck, canMarkChecked };
 }
@@ -333,14 +274,10 @@ export function getRoadmapChecklistItemBlockerKind(
   sortedItems: TaskChecklistItem[],
   checkedIds: readonly number[],
   itemId: number,
-  sectionUnlocked: boolean
+  _sectionUnlocked: boolean
 ): RoadmapChecklistBlockerKind | null {
   const item = sortedItems.find((i) => i.id === itemId);
   if (item == null || checkedIds.includes(itemId)) return null;
-
-  if (!sectionUnlocked) {
-    return { kind: "section_gate" };
-  }
 
   const checked = new Set(checkedIds);
 
@@ -348,32 +285,15 @@ export function getRoadmapChecklistItemBlockerKind(
     return { kind: "signature_pending" };
   }
 
-  const passesSeq = passesSequentialForCheck(sortedItems, checked, item);
-  const selOk = evaluateChecklistCondition(item.selectable_when, checked);
-  const canMarkChecked = passesSeq && selOk;
+  const submitGated = isSubmitGatedChecklistIntegration(item);
+  const selOk = submitGated ? evaluateChecklistCondition(item.selectable_when, checked) : true;
 
-  if (canMarkChecked && item.completionRequiresSubmit === true) {
+  if (submitGated && selOk) {
     return { kind: "submit_via_integration" };
   }
 
-  if (!canMarkChecked) {
-    if (!passesSeq && !item.allow_unordered_check) {
-      const idx = sortedItems.findIndex((i) => i.id === itemId);
-      if (idx > 0) {
-        for (let i = 0; i < idx; i++) {
-          const prev = sortedItems[i]!;
-          if (!checked.has(prev.id)) {
-            return {
-              kind: "prerequisite_item",
-              blockerItemId: prev.id,
-              blockerLabel: prev.label,
-              showInlinePrerequisiteLabel: true,
-            };
-          }
-        }
-      }
-    }
-    if (!selOk && item.selectable_when != null) {
+  if (submitGated && !selOk) {
+    if (item.selectable_when != null) {
       const dep = firstUnsatisfiedSelectableDependency(sortedItems, checked, item.selectable_when);
       if (dep != null) {
         return {

@@ -41,10 +41,20 @@ export const shadowCard: ShadowToken = {
   opacity: 0.08,
 };
 
+/** Large floating panel (e.g. calendar quick-create / event form popovers). */
+export const shadowFloating: ShadowToken = {
+  offsetX: 0,
+  offsetY: 12,
+  blur: 40,
+  spread: 0,
+  opacity: 0.12,
+};
+
 export const shadowTokens = {
   subtle: shadowSubtle,
   elevated: shadowElevated,
   card: shadowCard,
+  floating: shadowFloating,
 } as const;
 
 export type ShadowTokenName = keyof typeof shadowTokens;

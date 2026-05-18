@@ -24,7 +24,7 @@ from app.services.search.helpers.preferences_helpers import (
 )
 from app.services.search.helpers.scoring_helpers import score_and_sort_properties
 from app.services.search.helpers.search_loop_helpers import search_properties_paginated
-from app.utils.pagination import build_pagination
+from app.utils.http.pagination import build_pagination
 from logger import LOG_CATEGORIES, log
 
 from ..polygon_search_post_filters import apply_polygon_search_post_filters

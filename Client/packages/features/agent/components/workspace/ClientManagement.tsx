@@ -2,23 +2,26 @@ import { useMemo, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import type { AgentClient } from "packages/config/http/api";
+import type { AgentClient } from "packages/api";
 import { useLocalization } from "packages/contexts";
 import { ClientSearchModal } from "packages/features/agent/components/modals";
-import { getMessagePreview } from "packages/features/messaging";
 import { useAgentChats } from "packages/features/messaging";
 import MiniLogo from "packages/ui/components/asset/MiniLogo";
 import { Box } from "packages/ui/components/primitives";
+import { SidebarInsetListSelectionStripe } from "packages/ui/components/sidebar/SidebarInsetListSelectionStripe";
+import {
+  sidebarInsetListRowClass,
+  sidebarInsetListRowSelectedProps,
+} from "packages/ui/components/sidebar/sidebarTheme";
+import { getMessagePreview } from "packages/utils/messaging/messagePreview";
 
 import { BodyText, Button, KeyTurnLoader, Title } from "@/components/ui";
-import {
-  agentClientKindTranslationKey,
-  pipelineStageTranslationKey,
-} from "@/features/agent/utils/agentClientListLabels";
+import AgentClientListRow from "@/features/agent/components/clientList/AgentClientListRow";
 import {
   type AgentClientSortMode,
   sortAgentClients,
 } from "@/features/agent/utils/agentClientListSort";
+import { agentClientActionFromConversation } from "@/features/agent/utils/clientList/agentClientListRowHelpers";
 type ClientManagementProps = {
   clients: AgentClient[];
   isLoading: boolean;
@@ -42,7 +45,10 @@ export default function ClientManagement({
     [conversations]
   );
   const sortedClients = useMemo(
-    () => sortAgentClients(clients, clientSort, conversationMap),
+    () =>
+      sortAgentClients(clients, clientSort, conversationMap, (client) =>
+        agentClientActionFromConversation(client, conversationMap.get(client.id))
+      ),
     [clients, clientSort, conversationMap]
   );
   return (
@@ -133,59 +139,34 @@ export default function ClientManagement({
             const messagePreview = conversation?.last_message
               ? getMessagePreview({ content: conversation.last_message })
               : null;
-            const kindLabel = t(agentClientKindTranslationKey(client.client_kind));
-            const stageLabel = t(pipelineStageTranslationKey(client.pipeline_stage));
-            const typeStageLine = `${kindLabel} · ${stageLabel}`;
+            const isSelected = selectedClientId === client.id;
+            const selectClient = () => {
+              onClientSelect(client.id);
+              setIsSidebarExpanded(false);
+            };
             return (
               <Box
                 key={client.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => {
-                  onClientSelect(client.id);
-                  setIsSidebarExpanded(false);
-                }}
+                {...sidebarInsetListRowSelectedProps(isSelected)}
+                onClick={selectClient}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    onClientSelect(client.id);
-                    setIsSidebarExpanded(false);
+                    selectClient();
                   }
                 }}
-                className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${
-                  selectedClientId === client.id ? "bg-olive/10 border-l-olive border-l-4" : ""
-                }`}
+                className={sidebarInsetListRowClass(isSelected)}
               >
-                <Box className="flex items-start gap-3">
-                  <Box className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100">
-                    <Icon name="user" className="h-5 w-5 text-neutral-600" />
-                  </Box>
-                  <Box className="min-w-0 flex-1">
-                    <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
-                      {client.name}
-                    </Title>
-                    <BodyText
-                      as="p"
-                      className="mb-0.5 truncate text-xs font-medium text-neutral-700"
-                    >
-                      {typeStageLine}
-                    </BodyText>
-                    {messagePreview ? (
-                      <BodyText as="p" className="truncate text-xs text-neutral-600">
-                        {messagePreview}
-                      </BodyText>
-                    ) : (
-                      <BodyText as="p" className="truncate text-xs text-neutral-600">
-                        {client.email}
-                      </BodyText>
-                    )}
-                    {client.phone && !messagePreview && (
-                      <BodyText as="p" className="truncate text-xs text-neutral-500">
-                        {client.phone}
-                      </BodyText>
-                    )}
-                  </Box>
-                </Box>
+                {isSelected ? <SidebarInsetListSelectionStripe /> : null}
+                <AgentClientListRow
+                  embedded
+                  client={client}
+                  conversation={conversation}
+                  variant="sidebar"
+                  detailLine={messagePreview ?? client.email ?? undefined}
+                />
               </Box>
             );
           })

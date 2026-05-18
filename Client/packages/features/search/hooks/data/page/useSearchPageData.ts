@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { getEnv } from "packages/config";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { useUserPreferences } from "packages/hooks/data/user/useUserData";
-import { useIsAgent } from "packages/hooks/store";
+import { useActiveWorkspace } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import {
   useAgentDashboardStore,
@@ -25,13 +25,13 @@ import type { SearchResult } from "@/features/search/types";
 import type { SavedHome } from "@/features/search/types/domain/property";
 
 export function useSearchPageData() {
-  const isAgent = useIsAgent();
+  const isAgentWorkspace = useActiveWorkspace() === "agent";
   const {
     searchResults,
     setSearchResults,
     isLoading: isLoadingSearchResults,
     clearSearchResults,
-  } = useSearchResultsData({ skipInitialFetch: isAgent });
+  } = useSearchResultsData({ skipInitialFetch: isAgentWorkspace });
   const isSearching = useFiltersStore((s) => s.isSearching);
   const setIsSearching = useFiltersStore((s) => s.setIsSearching);
   const searchStage = useFiltersStore((s) => s.searchStage);
@@ -52,7 +52,7 @@ export function useSearchPageData() {
     clearIsochroneData,
   } = useIsochroneData({
     preferencesSubjectUserId: agentViewClientId,
-    skipInitialFetch: isAgent,
+    skipInitialFetch: isAgentWorkspace,
   });
   const { displayIsochroneData: rawDisplayIsochroneData } = useSearchMapOverlayData(
     isochroneData ?? null
@@ -60,7 +60,7 @@ export function useSearchPageData() {
   const clearLocationPlaceSearchArea = useSearchContextStore((s) => s.clearLocationPlaceSearchArea);
 
   useEffect(() => {
-    if (!isAgent) {
+    if (!isAgentWorkspace) {
       return;
     }
     setHasSearched(false);
@@ -68,7 +68,7 @@ export function useSearchPageData() {
     clearIsochroneData();
     clearLocationPlaceSearchArea();
   }, [
-    isAgent,
+    isAgentWorkspace,
     agentViewClientId,
     setHasSearched,
     clearSearchResults,
@@ -77,11 +77,11 @@ export function useSearchPageData() {
   ]);
 
   const displayIsochroneData = useMemo((): IsochroneData | null => {
-    if (isAgent && !hasSearched) {
+    if (isAgentWorkspace && !hasSearched) {
       return null;
     }
     return rawDisplayIsochroneData;
-  }, [hasSearched, isAgent, rawDisplayIsochroneData]);
+  }, [hasSearched, isAgentWorkspace, rawDisplayIsochroneData]);
   const currentPage = useFiltersStore((s) => s.currentPage);
   const setCurrentPage = useFiltersStore((s) => s.setCurrentPage);
   const showPropertyModals = useUIStore((s) => s.showPropertyModals);

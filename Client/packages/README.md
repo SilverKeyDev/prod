@@ -30,7 +30,7 @@ Shared CSS for the design system lives under **`packages/ui/styles/`**; the web 
 ```
 apps/web (pages, layouts)
   -> packages/hooks/
-    -> packages/config/api/
+    -> packages/api/          # canonical API barrel (also re-exported from packages/config/http/api)
       -> packages/services/http/
 ```
 
@@ -46,7 +46,7 @@ apps/web (pages, layouts)
 - **`@/...`** — **Only** for files under **`Client/apps/web/`** (e.g. `@/pages/property/SearchPage`, `@/app/layouts/...`).
 - **`@/features/...`** — TypeScript alias for `packages/features/...`. **New code** should prefer **`packages/features/...`** so shared imports read the same everywhere.
 
-Do not import `packages/config/api` or business `packages/services` from page/components; use `packages/hooks`.
+Do not import API clients or business `packages/services` from page/components; use `packages/hooks`. **Canonical API path:** `packages/api` (see [shared-packages.md](../documentation/client/shared-packages.md#api-client-import-path-canonical)).
 
 ## Import rules by layer
 
@@ -57,12 +57,12 @@ Do not import `packages/config/api` or business `packages/services` from page/co
 
 ### Hooks (`packages/hooks/`)
 
-- Can import: `packages/config/api/*`, `packages/store/*`, `packages/schemas/*`, `packages/services/http/*`, `packages/services/security/*`.
-- Cannot import: business-logic `packages/services/*` (use `config/api`).
+- Can import: `packages/api` (or `packages/config/http/api`), `packages/store/*`, `packages/schemas/*`, `packages/services/http/*`, `packages/services/security/*`.
+- Cannot import: business-logic `packages/services/*` (use `packages/api`).
 
 ### Services (`packages/services/`)
 
-- Can import: `packages/config/api/*`, `packages/services/http/*`, `packages/services/security/*`, `packages/schemas/*`.
+- Can import: `packages/api`, `packages/services/http/*`, `packages/services/security/*`, `packages/schemas/*`.
 - Cannot import: `packages/hooks/*`, `packages/store/*`.
 
 ### Config (`packages/config/`)

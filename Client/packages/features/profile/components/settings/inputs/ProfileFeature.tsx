@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /// <reference types="google.maps" />
+import { AccountLogoutAction } from "packages/features/homeauth/components/account/AccountLogoutAction";
 import PersonalizationMobileHeader from "packages/features/profile/components/account/MobileHeader";
 import {
   convertStepsToNavItems,
@@ -295,7 +296,10 @@ export default function ProfileFeature({
             onCancel={handleCancel}
             onScrollToSection={scrollToSection}
           />
-          {sectionPanels}
+          <Box className="min-w-0 flex-1">
+            {sectionPanels}
+            {isMdDown ? <AccountLogoutAction variant="profile" placement="footer" /> : null}
+          </Box>
         </Box>
       </Box>
     </Box>

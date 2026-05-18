@@ -28,6 +28,7 @@ export const ROUTE_TO_SCREEN: Record<RouteName, string> = {
   PROPERTY_DETAILS: "PropertyDetails",
   PROPERTY: "PropertyDetails",
   AGENT_PROFILE: "AgentProfile",
+  AGENT_PROFILE_SHORT: "AgentProfile",
   APP: "Dashboard",
 };
 

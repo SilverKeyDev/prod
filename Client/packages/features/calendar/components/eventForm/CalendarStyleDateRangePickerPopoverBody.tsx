@@ -2,7 +2,7 @@ import { type RefObject } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Button, OliveCheckbox, OliveCheckboxRowLabel } from "packages/ui";
+import { Button, IconButton, OliveCheckbox, OliveCheckboxRowLabel } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { dayjs } from "packages/utils/date";
@@ -13,6 +13,7 @@ import { WeekDayHeaders } from "@/features/calendar/components/view/calendarView
 import { CalendarToolbar } from "@/features/calendar/components/view/toolbar/CalendarToolbar";
 import { CalendarViewModeToggle } from "@/features/calendar/components/view/toolbar/CalendarViewModeToggle";
 import type { CalendarViewType } from "@/features/calendar/types/calendar";
+import type { WeekTimeSlotDoubleClickPayload } from "@/features/calendar/types/calendarQuickCreate";
 
 import { isInInclusiveRange } from "./calendarStyleDateRangePickerHelpers";
 
@@ -37,7 +38,7 @@ export type CalendarStyleDateRangePickerPopoverBodyProps = {
   resolvedCalendars: GoogleCalendar[];
   handleWeekDayHeaderPress: (date: Date) => void;
   weekTimeSelectionEnabled: boolean;
-  handleWeekTimeSlotDoubleClick: (payload: { date: Date; minutesFromMidnight: number }) => void;
+  handleWeekTimeSlotDoubleClick: (payload: WeekTimeSlotDoubleClickPayload) => void;
   pendingStart: string | null;
   panelId?: string;
   goPrevWindow: () => void;
@@ -94,10 +95,24 @@ export function CalendarStyleDateRangePickerPopoverBody({
   };
   return (
     <Box ref={popoverPanelContentRef} className="min-w-0">
-      <Box className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <Box className="flex min-w-0 flex-1 items-center gap-2">
-          <OliveCheckboxRowLabel onPress={handleRangeModeToggle}>Date range</OliveCheckboxRowLabel>
-          <OliveCheckbox checked={rangeMode} onToggle={handleRangeModeToggle} />
+      <Box className="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-3">
+        <Box className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          <IconButton
+            iconName="chevron-left"
+            variant="ghost"
+            size="sm"
+            label="Back"
+            onPress={onClose}
+            className="shrink-0"
+          />
+          {effectiveLayout === "grid" ? (
+            <>
+              <OliveCheckboxRowLabel onPress={handleRangeModeToggle}>
+                Date range
+              </OliveCheckboxRowLabel>
+              <OliveCheckbox checked={rangeMode} onToggle={handleRangeModeToggle} />
+            </>
+          ) : null}
         </Box>
         <Button type="button" variant="ghost" size="sm" onPress={onClose} iconName="x">
           Close
@@ -138,8 +153,8 @@ export function CalendarStyleDateRangePickerPopoverBody({
           </CalendarToolbar>
           {weekTimeSelectionEnabled ? (
             <BodyText as="p" size="xs" className="text-text-secondary mt-2">
-              Double-click a time slot to set the start time (default 1 hour). Tap a day header to
-              pick a date without changing times.
+              Double-click a time slot (or two quick clicks in the same column) to set the start
+              time (default 1 hour). Tap a day header to pick a date without changing times.
             </BodyText>
           ) : rangeMode ? (
             pendingStart ? (

@@ -1,5 +1,6 @@
 import { lazy, type ReactNode, Suspense, useEffect, useRef } from "react";
 
+import { useActiveWorkspace } from "packages/hooks/store";
 import { useIsMobile } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES, type LogCategory } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
@@ -32,6 +33,13 @@ const ProfilePage = lazy(
     LOG_CATEGORIES.ROUTING,
     "lazy:ProfilePage",
     () => import("@/pages/account/ProfilePage")
+  )
+);
+const BrokerageDashboardPage = lazy(
+  traceLazyImport(
+    LOG_CATEGORIES.DASHBOARD,
+    "lazy:BrokerageDashboardPage",
+    () => import("@/pages/workspace/BrokerageDashboardPage")
   )
 );
 const DashboardPage = lazy(
@@ -110,6 +118,7 @@ export function DashboardContent({
 }: DashboardContentProps) {
   const route = useDashboardRoute(maxWidth);
   const isMobile = useIsMobile();
+  const activeWorkspace = useActiveWorkspace();
 
   const { activeKey, isSearch, isMessaging, widthPercent } = route;
   const contentTopMargin = route.isDashboard || route.isProfile || route.isFindAgents;
@@ -187,7 +196,11 @@ export function DashboardContent({
       </PageErrorBoundary>
     ) : activeKey === "dashboard" ? (
       <Suspense fallback={loadingFallback}>
-        <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
+        {activeWorkspace === "brokerage" ? (
+          <BrokerageDashboardPage />
+        ) : (
+          <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
+        )}
       </Suspense>
     ) : activeKey === "find_agents" ? (
       <PageErrorBoundary key="find-agents" pageLabel="Find agents">

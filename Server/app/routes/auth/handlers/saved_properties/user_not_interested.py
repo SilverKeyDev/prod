@@ -17,6 +17,7 @@ from app.schemas import (
 )
 from app.services.search.db.search_db import add_or_update_home_basic, sync_to_home_not_interested
 from app.utils.common_patterns import require_authenticated_user
+from app.utils.db.orm_lookup import get_model
 from app.utils.format.address_format import normalize_address, safe_normalize_address
 from app.utils.validation import validate_request, validate_response
 
@@ -53,7 +54,7 @@ def add_not_interested_home(
                 {"success": False, "error": "Address is required and must be a string"}
             ), 400
         link = add_or_update_home_basic(user_id=str(user.id), home=home, set_liked=False)
-        prop = PropertyCache.query.get(link.property_id)
+        prop = get_model(PropertyCache, link.property_id)
         why = payload.get("why")
         if why and isinstance(why, str):
             why = why.strip() or None

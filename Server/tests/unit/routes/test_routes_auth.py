@@ -91,8 +91,8 @@ class TestAuthRoutes:
             "unused",
             algorithm="HS256",
         )
-        client.set_cookie("localhost", "session", session_token)
-        client.set_cookie("localhost", "refresh_token", "mock_refresh_token")
+        client.set_cookie(key="session", value=session_token, domain="localhost")
+        client.set_cookie(key="refresh_token", value="mock_refresh_token", domain="localhost")
 
         with patch(
             "app.services.auth.user.lookup.find_or_create_user_by_cognito"
@@ -219,7 +219,7 @@ class TestAuthRoutes:
         db_session.session.add(user)
         db_session.session.commit()
 
-        with patch("app.utils.common_patterns.get_current_user") as mock_get:
+        with patch("app.services.auth.get_current_user") as mock_get:
             mock_get.return_value = user
 
             response = client.get(

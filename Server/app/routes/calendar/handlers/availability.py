@@ -19,8 +19,8 @@ from app.services.calendar.permissions import (
     require_permission,
 )
 from app.services.calendar.permissions.constants import permissions
+from app.utils.security import rate_limit
 from app.utils.security.app_logging import get_logger
-from app.utils.security.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 
 logger = get_logger()

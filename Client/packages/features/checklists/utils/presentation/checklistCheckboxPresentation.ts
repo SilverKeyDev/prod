@@ -4,7 +4,7 @@ import type { ChecklistItem } from "packages/ui";
 /** Shared Tailwind classes for `ChecklistCheckbox` rows (dashboard, client hub, close layouts). */
 export const checklistCheckboxRowClassNames = {
   checkboxContainer: "flex flex-row w-full items-start gap-responsive-xs",
-  itemLabel: "text-left font-medium text-text-primary text-responsive-sm",
+  itemLabel: "text-left font-medium leading-snug text-text-primary text-responsive-sm",
   itemExplanation: "text-left text-text-secondary text-responsive-xs mt-1",
 } as const;
 

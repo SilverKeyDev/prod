@@ -121,6 +121,14 @@ properties:
     items:
       type: string
     description: Role names from user_roles; typically present on GET /user/profile.
+  brokerage_org_ids:
+    type: array
+    items:
+      type: string
+    nullable: true
+    description: >
+      Brokerage organization ids this user may administer under brokerage workspace.
+      Omitted or null until brokerage roster membership is populated server-side.
 example:
   id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   email: "jane.buyer@example.com"

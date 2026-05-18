@@ -7,6 +7,7 @@ from flask import jsonify
 from app.models import ChecklistForm
 from app.services.documents.s3_service import s3_service
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.utils.db.orm_lookup import get_model
 from app.utils.security import rate_limit
 from logger import LOG_CATEGORIES, log
 
@@ -121,7 +122,7 @@ def get_form_download_url(user, form_id: str):
         return auth_error
 
     # Get form
-    form = ChecklistForm.query.get(form_id)
+    form = get_model(ChecklistForm, form_id)
     if not form:
         return jsonify({"success": False, "error": "Form not found"}), 404
 

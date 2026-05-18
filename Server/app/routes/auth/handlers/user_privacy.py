@@ -13,7 +13,7 @@ from app.utils.common_patterns import (
     require_authenticated_user,
     standardize_success_response,
 )
-from app.utils.security.security import rate_limit
+from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, log
 

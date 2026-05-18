@@ -5,6 +5,7 @@ import { dayjs } from "packages/utils/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import type { WeekTimeSlotDoubleClickPayload } from "@/features/calendar/types/calendarQuickCreate";
 import { getWeekStart } from "@/features/calendar/utils/core/date";
 
 export type CalendarWeekViewProps = {
@@ -13,7 +14,7 @@ export type CalendarWeekViewProps = {
   calendars: GoogleCalendar[];
   onDayHeaderPress?: (date: Date) => void;
   onDayHeaderDoubleTap?: (date: Date) => void;
-  onWeekTimeSlotDoubleClick?: (payload: { date: Date; minutesFromMidnight: number }) => void;
+  onWeekTimeSlotDoubleClick?: (payload: WeekTimeSlotDoubleClickPayload) => void;
   weekInteractionEnabled?: boolean;
   weekSelectedEventId?: string | null;
   onWeekEventSelect?: (event: ExtendedGoogleEvent) => void;

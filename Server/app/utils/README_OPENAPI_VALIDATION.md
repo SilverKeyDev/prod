@@ -62,18 +62,18 @@ except ValidationError as e:
     # {"email": "This field is required", "password": "Invalid format"}
 ```
 
-### `common_patterns.py` (Updated)
+### Route decorators (`app/utils/route/openapi_auth.py`)
 
-Enhanced with OpenAPI validation-aware decorators.
+OpenAPI validation-aware decorators; import via `app.utils.common_patterns` or `app.utils.route`.
 
-**New Decorators:**
+**Decorators:**
 - `@require_validated_user(schema)` - Auth + optional request validation
 - `@require_validated_agent(schema)` - Agent auth + optional validation
 
 **Example:**
 ```python
 from app.schemas import CreateTodoRequest
-from app.utils.common_patterns import require_validated_agent
+from app.utils.common_patterns import require_validated_agent  # or app.utils.route
 
 @agent_bp.route('/todos', methods=['POST'])
 @require_validated_agent(CreateTodoRequest)

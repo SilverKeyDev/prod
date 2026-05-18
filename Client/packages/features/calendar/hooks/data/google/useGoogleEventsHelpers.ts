@@ -1,4 +1,4 @@
-import type { GoogleEvent } from "packages/config/http/api";
+import type { GoogleEvent } from "packages/api";
 import { googleCalendarApi } from "packages/features/calendar/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
 

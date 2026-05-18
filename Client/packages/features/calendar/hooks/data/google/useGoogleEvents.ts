@@ -6,7 +6,7 @@ import type {
   GoogleCalendarEventCreateBody,
   GoogleEvent,
   GoogleEventCreateResponse,
-} from "packages/config/http/api";
+} from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
 import { googleCalendarApi } from "packages/features/calendar/api";
 import { showErrorToast } from "packages/hooks/ui/toast";

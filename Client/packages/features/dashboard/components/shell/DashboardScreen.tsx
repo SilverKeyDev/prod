@@ -2,12 +2,11 @@ import React, { useCallback, useMemo, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
+import { DashboardAgentTodaySection, mapTodosToAgendaDTO } from "packages/features/agent";
 import { type AgendaTodoDTO, Calendar, UpcomingEvents } from "packages/features/calendar";
 import DashboardChecklists from "packages/features/dashboard/components/DashboardChecklists/DashboardChecklists";
-import { DashboardAgentTodaySection } from "packages/features/dashboard/components/panels/DashboardAgentTodaySection";
 import { MobileAgendaAddButton } from "packages/features/dashboard/components/widgets/MobileAgendaAddButton";
-import { mapTodosToAgendaDTO } from "packages/features/dashboard/utils/mapTodosToAgendaDTO";
-import { useIsAgent } from "packages/features/homeauth";
+import { useActiveWorkspace } from "packages/features/homeauth";
 import {
   submitAgendaItemAsGoogleCalendarEvent,
   submitAgentAgendaTodo,
@@ -22,20 +21,16 @@ import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
 import { Box, ScrollView, Text } from "packages/ui/components/primitives";
 
-import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
-import { useAgentDashboardMockData } from "@/features/agent/hooks/data/useAgentDashboardMockData";
-import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
+import { useAgentTodos } from "@/features/agent/hooks/data/clientHub/useAgentTodos";
 import { useCalendarOAuthCallback } from "@/features/calendar/hooks/data";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
 
 export function DashboardScreen() {
-  const isAgent = useIsAgent();
+  const isAgentWorkspace = useActiveWorkspace() === "agent";
   const queryClient = useQueryClient();
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   useCalendarOAuthCallback({ enqueueToast });
   const { navigateToPath } = useNavigation();
-  const { clients } = useAgentClients();
-  const { generateMockAlerts } = useAgentDashboardMockData();
   const { isConnected, calendars } = useGoogleCalendarStoreIntegration();
 
   const scopedCalendars = useMemo(() => calendars ?? [], [calendars]);
@@ -45,7 +40,7 @@ export function DashboardScreen() {
   const useCalendarEventForTodo = Boolean(canCreateEvent && defaultCalendarId);
 
   const { todos, createTodo, updateTodo } = useAgentTodos(false);
-  const signingTodos = useSigningTodos(isAgent);
+  const signingTodos = useSigningTodos(isAgentWorkspace);
   const completedSigningTodos = useCompletedSigningTodos();
 
   const agendaTodos = useMemo<AgendaTodoDTO[]>(
@@ -77,7 +72,8 @@ export function DashboardScreen() {
   };
 
   const googleCalendarAgendaMeetEligible =
-    (isAgent && useCalendarEventForTodo) || (!isAgent && Boolean(defaultCalendarId));
+    (isAgentWorkspace && useCalendarEventForTodo) ||
+    (!isAgentWorkspace && Boolean(defaultCalendarId));
 
   const handleMobileAgendaSubmit = async (payload: {
     title: string;
@@ -86,7 +82,7 @@ export function DashboardScreen() {
     deadlineTime: string | null;
     addGoogleMeet?: boolean;
   }) => {
-    if (isAgent) {
+    if (isAgentWorkspace) {
       try {
         await submitAgentAgendaTodo(payload, {
           useCalendarEvent: useCalendarEventForTodo,
@@ -139,7 +135,7 @@ export function DashboardScreen() {
     }
   };
 
-  const showMobileAdd = isAgent || useCalendarEventForTodo || !isAgent;
+  const showMobileAdd = isAgentWorkspace || useCalendarEventForTodo || !isAgentWorkspace;
   const headerActions = showMobileAdd ? (
     <MobileAgendaAddButton
       onSubmitTodo={handleMobileAgendaSubmit}
@@ -147,7 +143,6 @@ export function DashboardScreen() {
     />
   ) : undefined;
 
-  const allAlerts = useMemo(() => generateMockAlerts(clients), [clients, generateMockAlerts]);
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = useCallback(async () => {
@@ -158,7 +153,7 @@ export function DashboardScreen() {
   return (
     <ScrollView className="flex-1" refreshing={refreshing} onRefresh={handleRefresh}>
       <Box className="gap-6 px-4 pb-8 pt-4">
-        {isAgent ? <DashboardAgentTodaySection alerts={allAlerts} /> : null}
+        {isAgentWorkspace ? <DashboardAgentTodaySection /> : null}
 
         <UpcomingEvents
           embedInListHeader
@@ -170,7 +165,7 @@ export function DashboardScreen() {
           headerActions={headerActions}
         />
 
-        {!isAgent ? (
+        {!isAgentWorkspace ? (
           <Box className="gap-3">
             <Text className="text-text-primary text-lg font-medium">Checklists</Text>
             <DashboardChecklists />

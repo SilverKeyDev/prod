@@ -11,12 +11,21 @@ export const DASHBOARD_TRANSLATIONS: Record<string, string> = {
   "dashboard.back_to_dashboard": "Back to dashboard",
   "dashboard.tab_roadmap": "Roadmap",
   "dashboard.tab_profile": "Profile",
-  "dashboard.tab_liked_homes": "Liked Homes",
+  "dashboard.tab_liked_homes": "Homes",
   "dashboard.tab_documents": "Documents",
+  "dashboard.tab_library": "Library",
+  "dashboard.tab_schedule": "Schedule",
   "dashboard.tab_calendar": "Calendar",
   "dashboard.tab_agenda": "Agenda",
   "dashboard.back": "Back",
   "dashboard.checklists_empty": "Checklists for this client will appear here.",
   "dashboard.liked_homes_empty": "No liked homes for this client yet.",
+  "dashboard.library_empty": "No documents or agreements for this client yet.",
   "dashboard.calendar_empty": "Calendar for this client will appear here.",
+  "dashboard.client_calendar_not_connected_title": "Google Calendar not connected",
+  "dashboard.client_calendar_not_connected_body":
+    "This client has not connected their Google Calendar yet. Ask them to connect Google Calendar in their account settings so you can view their schedule.",
+  "dashboard.client_calendar_permission_title": "Calendar access not granted",
+  "dashboard.client_calendar_permission_body":
+    "This client connected Google Calendar but has not granted full calendar access. Ask them to reconnect and approve all requested permissions.",
 };

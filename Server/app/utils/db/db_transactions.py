@@ -27,7 +27,7 @@ def db_transaction():
     Example:
         try:
             with db_transaction():
-                user = User.query.get(user_id)
+                user = get_model(User, user_id)
                 user.name = "Updated"
                 # If any exception occurs here, rollback is automatic
         except Exception as e:
@@ -49,7 +49,7 @@ def db_transaction_decorator(func: Callable) -> Callable:
     Usage:
         @db_transaction_decorator
         def update_user(user_id, name):
-            user = User.query.get(user_id)
+            user = get_model(User, user_id)
             user.name = name
             # Commit happens automatically
 

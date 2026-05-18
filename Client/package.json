@@ -10,7 +10,7 @@
     "dev:mobile": "pnpm --filter @silverkey/mobile start",
     "dev:mobile:clear": "pnpm --filter @silverkey/mobile start:clear",
     "dev:mobile:subpath": "EXPO_MOBILE_BASE_URL=/apps/mobile pnpm --filter @silverkey/mobile start",
-    "dev:web:gateway": "VITE_PORT=3000 pnpm --filter @silverkey/web dev",
+    "dev:web:gateway": "WEB_DEV_PORT=3000 pnpm --filter @silverkey/web dev",
     "ios": "pnpm --filter @silverkey/mobile ios",
     "ios:clean": "pnpm --filter @silverkey/mobile ios:clean",
     "ios:native": "pnpm --filter @silverkey/mobile run:ios",

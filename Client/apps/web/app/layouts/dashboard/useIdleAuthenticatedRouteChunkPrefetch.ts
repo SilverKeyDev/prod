@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { prefetchAgentMessagingFeatureChunks } from "packages/features/agent/components/prefetchAgentMessagingChunks";
+import { prefetchAgentMessagingFeatureChunks } from "packages/features/agent/components/loading/prefetchAgentMessagingChunks";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { ROUTES } from "packages/navigation";
 import { useAuthStore } from "packages/store";

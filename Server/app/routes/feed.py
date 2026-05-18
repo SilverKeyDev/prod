@@ -9,6 +9,7 @@ from app.models import HomeComment, ReelLike, User
 from app.schemas import AddCommentRequest, AddCommentResponse, AddFeedLikeRequest, SuccessResponse
 from app.services.auth import get_current_user
 from app.utils.common_patterns import require_authenticated_user
+from app.utils.db.orm_lookup import get_model
 from app.utils.validation import validate_request, validate_response
 
 feed_bp = Blueprint("feed", __name__, url_prefix="/api/v1/feed")
@@ -16,7 +17,7 @@ feed_bp = Blueprint("feed", __name__, url_prefix="/api/v1/feed")
 
 def _comment_to_client(comment: HomeComment) -> dict:
     """Convert a HomeComment model to OpenAPI FeedCommentApiShape."""
-    user = User.query.get(comment.user_id) if comment.user_id else None
+    user = get_model(User, comment.user_id) if comment.user_id else None
     raw_avatar = getattr(user, "avatar_url", None) or getattr(user, "avatarUrl", None)
     avatar_url = None
     if isinstance(raw_avatar, str) and (

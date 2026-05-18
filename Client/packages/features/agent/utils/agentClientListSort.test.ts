@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import type { AgentClient } from "packages/api";
 
+import { getClientListActionInput } from "@/features/agent/utils/clientList/clientListActionPriority";
+
 import {
   type AgentClientSortConversation,
   pipelineStageSortIndex,
@@ -125,5 +127,42 @@ describe("sortAgentClients", () => {
     ]);
     const out = sortAgentClients([b, a], "recent", map);
     expect(out.map((c) => c.id)).toEqual(["a", "b"]);
+  });
+
+  it("sorts action-required clients before others, then by recency", () => {
+    const quiet = client({ id: "q", name: "Quiet", email: "q@example.com" });
+    const active = client({
+      id: "a",
+      name: "Active",
+      email: "a@example.com",
+      requires_signature: true,
+    });
+    const map = new Map<string, AgentClientSortConversation>([
+      ["q", { last_message_at: "2024-09-01T00:00:00.000Z", updated_at: null, last_message: null }],
+      ["a", { last_message_at: "2024-01-01T00:00:00.000Z", updated_at: null, last_message: null }],
+    ]);
+    const getAction = (c: AgentClient) =>
+      getClientListActionInput(c, map.get(c.id)?.unread_count ?? 0);
+    const out = sortAgentClients([quiet, active], "recent", map, getAction);
+    expect(out.map((c) => c.id)).toEqual(["a", "q"]);
+  });
+
+  it("uses current_phase for stage sort when present", () => {
+    const searchPhase = client({
+      id: "s",
+      name: "Sam",
+      email: "s@example.com",
+      pipeline_stage: "closing",
+      current_phase: "search",
+    });
+    const closing = client({
+      id: "c",
+      name: "Cal",
+      email: "c@example.com",
+      pipeline_stage: "search",
+      current_phase: "closing",
+    });
+    const out = sortAgentClients([closing, searchPhase], "stage", new Map());
+    expect(out.map((c) => c.id)).toEqual(["s", "c"]);
   });
 });

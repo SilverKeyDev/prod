@@ -5,8 +5,8 @@ import {
   ProfileSectionCallout,
   useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
+import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
-import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Subtitle, Title } from "@/components/ui";
@@ -17,7 +17,6 @@ import { withBuyerExtV1 } from "@/features/profile/components/profileScreen/sear
 import ImportantLocationsInput from "@/features/profile/components/settings/inputs/locations/ImportantLocationsInput.web";
 import {
   AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT,
-  effectiveIsAgentForOptionalBuyerUi,
   LOCATION_SUBTITLE,
   type OnboardingData,
   SECTION_TITLES,
@@ -47,11 +46,7 @@ export default function LocationSection({
   titleId,
 }: LocationSectionProps) {
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
-  const authIsAgent = useIsAgent();
-  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
-    authIsAgent,
-    formIsAgent: formData.is_agent,
-  });
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
 
   const patch = useCallback(
     (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {

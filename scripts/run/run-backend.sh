@@ -108,7 +108,12 @@ run_with_timeout() {
 # =========================
 wait_for_port() {
   local host="$1" port="$2" retries="${3:-12}" delay="${4:-1}"
+  local pid="${5:-}"
   for i in $(seq 1 "$retries"); do
+    if [[ -n "$pid" ]] && ! ps -p "$pid" >/dev/null 2>&1; then
+      err "Process PID $pid exited before $host:$port was ready. Check Python output above (DB connection, imports, missing env)."
+      return 1
+    fi
     if nc -z "$host" "$port" 2>/dev/null; then
       log "${GREEN}✅ $host:$port is accepting TCP${NC}"
       return 0
@@ -199,12 +204,12 @@ start_backend() {
     popd >/dev/null
   fi
 
-  # Wait for Flask
+  # Wait for Flask (create_app blocks on DB + imports before binding the port)
   log "Waiting for Flask TCP on 127.0.0.1:${FLASK_PORT}..."
-  if wait_for_port 127.0.0.1 "${FLASK_PORT}" 30 1; then
+  if wait_for_port 127.0.0.1 "${FLASK_PORT}" 60 1 "${FLASK_PID}"; then
     log "${GREEN}✅ Flask TCP is accepting on 127.0.0.1:${FLASK_PORT}${NC}"
   else
-    err "Flask did not start accepting TCP on port ${FLASK_PORT} within 30s. Check: lsof -i :${FLASK_PORT}; ps aux | grep -E 'flask|python.*run.py'; tail Server logs for Python errors."
+    err "Flask did not start accepting TCP on port ${FLASK_PORT} within 60s. create_app() may be blocked on DATABASE_URL (remote RDS needs network/VPN). Check: lsof -i :${FLASK_PORT}; ps aux | grep -E 'flask|python.*run.py'; python -c 'from app import create_app; create_app()' in Server/"
     exit 1
   fi
 

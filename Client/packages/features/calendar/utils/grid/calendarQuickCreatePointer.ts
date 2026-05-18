@@ -12,7 +12,11 @@ export function classifyQuickCreatePointerTarget(
   if (!(target instanceof Node)) {
     return { kind: "other" };
   }
-  if (target instanceof Element && target.closest("[data-silverkey-quick-event-popover]")) {
+  if (
+    target instanceof Element &&
+    (target.closest("[data-silverkey-quick-event-popover]") ||
+      target.closest("[data-silverkey-create-event-form-popover]"))
+  ) {
     return { kind: "popover" };
   }
   const weekEvent = target instanceof Element ? target.closest("[data-calendar-week-event]") : null;

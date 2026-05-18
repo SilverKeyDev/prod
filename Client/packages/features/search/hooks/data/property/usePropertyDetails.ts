@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { useIsAgent } from "packages/hooks/store";
+import { useActiveWorkspace } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAgentDashboardStore } from "packages/store";
 import { type ResearchListingKeyInput, researchListingZpid } from "packages/utils/property";
@@ -35,7 +35,7 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const isAgent = useIsAgent();
+  const isAgentWorkspace = useActiveWorkspace() === "agent";
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
 
   const fetchPropertyDetails = useCallback(
@@ -49,7 +49,7 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
           address: property.address,
           ...(zpid ? { zpid } : {}),
         };
-        if (isAgent && selectedClientId) {
+        if (isAgentWorkspace && selectedClientId) {
           payload.preferences_user_id = selectedClientId;
         }
         for await (const update of researchApi.streamProperty(payload)) {
@@ -77,7 +77,7 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
         setIsLoading(false);
       }
     },
-    [isAgent, selectedClientId]
+    [isAgentWorkspace, selectedClientId]
   );
 
   const clearSelectedProperty = useCallback(() => {

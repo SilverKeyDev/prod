@@ -6,7 +6,8 @@ from app import db
 from app.models import Agreement, AgreementLink, Document, Transaction
 from app.schemas import LinkDocumentToChecklistRequest, SuccessResponse
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
-from app.utils.security.security import rate_limit
+from app.utils.db.orm_lookup import get_model
+from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 
 
@@ -17,7 +18,7 @@ def _get_agent_id_for_transaction(transaction: Transaction | None, current_user_
 
 
 def _get_or_create_transaction(transaction_id: str) -> Transaction | None:
-    return Transaction.query.get(transaction_id)
+    return get_model(Transaction, transaction_id)
 
 
 @rate_limit(max_requests=100, window_seconds=60)
@@ -75,7 +76,7 @@ def link_agreement_to_checklist_item(
     document_id = request_data.get("document_id")
 
     if document_id:
-        document = Document.query.get(document_id)
+        document = get_model(Document, document_id)
         if not document:
             return jsonify({"success": False, "error": "Document not found"}), 404
 
@@ -96,7 +97,7 @@ def link_agreement_to_checklist_item(
         db.session.flush()
         agreement_id = agreement.id
     elif agreement_id:
-        agreement = Agreement.query.get(agreement_id)
+        agreement = get_model(Agreement, agreement_id)
         if not agreement:
             return jsonify({"success": False, "error": "Agreement not found"}), 404
     else:

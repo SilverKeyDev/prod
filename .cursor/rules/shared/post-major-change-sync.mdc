@@ -1,0 +1,41 @@
+---
+description: After major features or architecture changes, sync canonical documentation and Cursor rules/skills so agents stay accurate.
+globs:
+  - "Client/apps/**/*.{ts,tsx}"
+  - "Client/packages/**/*.{ts,tsx}"
+  - "openapi/**/*.yaml"
+  - "Server/app/**/*.py"
+alwaysApply: false
+---
+
+# Post–major change: docs and Cursor sync
+
+When a change is **cross-cutting** (new product modes, routing shells, auth/workspace model, OpenAPI contract, import/layer conventions, or repo structure), treat **documentation + Cursor artifacts** as part of the same deliverable as the code.
+
+## When this applies
+
+- New or renamed **route shells**, dashboards, or navigation contracts (web/mobile).
+- **Workspace / identity** UX shifts (`useActiveWorkspace`, allowed workspaces, session persistence).
+- **OpenAPI** schema or codegen changes that affect client/server types.
+- New **always-on constraints** or ESLint/package-structure rules (rare — see `.cursor/README.md` always-on cap).
+- New **repeatable workflows** that engineers or agents should follow (prefer a **skill** under `.cursor/skills/`).
+
+## Checklist (do not skip)
+
+Use the full checklist: [documentation/internal/post-major-change-checklist.md](../../../documentation/internal/post-major-change-checklist.md).
+
+Minimum bar before calling the work “done”:
+
+1. **`documentation/`** — Add or update the relevant guide under `documentation/client/` or `documentation/server/`; add a row to that folder’s `README.md` when it is a new long-form doc.
+2. **`.cursor/rules/`** — If behavior is now constrained or patterned differently, update the smallest set of `.mdc` files (or add one **scoped** rule with `globs`; do **not** add a fifth `alwaysApply: true` rule without demoting another — see `.cursor/README.md`).
+3. **`AGENTS.md` / `.cursor/README.md`** — Update only when onboarding or extension process changes.
+4. **`documentation/internal/cursor-audit-latest.md`** — Refresh the inventory table when rules, skills, or agents are added/removed/renamed.
+
+## Examples
+
+```markdown
+// ✅ DO — Same PR or fast-follow: workspace shells land + `documentation/client/workspace-first-architecture.md` updated
+// ❌ DON'T — Large routing refactor with no doc or rule touch; the next agent will re-derive intent from diff noise only
+```
+
+Long prose and file maps belong in **`documentation/`**, not in bloated `.mdc` bodies (see `documentation.mdc`).

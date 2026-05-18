@@ -4,6 +4,7 @@ import { useAuthVerification } from "packages/hooks/data/auth/useAuthVerificatio
 import { useCountdown } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import { ROUTES } from "packages/navigation/types/routes";
 import { dateNow } from "packages/utils/date";
 import { getSessionStorage } from "packages/utils/storage";
 import { performVerify } from "packages/utils/verification";
@@ -88,7 +89,7 @@ export function VerificationFeature() {
           session.removeItem("signupPassword");
         },
         navigateToPath,
-        { postSuccessPath: locationState?.fromLogin ? "/search" : "/onboarding" }
+        { postSuccessPath: locationState?.fromLogin ? ROUTES.SEARCH : "/onboarding" }
       );
     } catch (err: unknown) {
       log.error(LOG_CATEGORIES.AUTH, "Verification error", err);

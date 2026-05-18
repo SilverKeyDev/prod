@@ -142,4 +142,4 @@ Per project rules ([platform-file-extensions.mdc](.cursor/rules/frontend/platfor
 
 ## 14. Running the app and API base URL
 
-For native (iOS/Android), the API base URL must be set so the app can reach the backend. Use `EXPO_PUBLIC_API_URL` or `VITE_API_URL` in `.env` (Metro copies `VITE_*` to `EXPO_PUBLIC_*` when unset; see `apps/mobile/metro.config.cjs`). If none is set, the app defaults to `http://localhost:5000` in development on the simulator. For a **physical device**, set the URL to your machine’s LAN IP (e.g. `http://192.168.1.x:5000`) and ensure the backend is reachable from the device.
+For native (iOS/Android), the API base URL must be set so the app can reach the backend. Use `EXPO_PUBLIC_API_URL` or `EXPO_PUBLIC_API_BASE_URL` in `Client/.env`. If none is set, the app defaults to `http://localhost:5000` in development on the simulator. For a **physical device**, set the URL to your machine’s LAN IP (e.g. `http://192.168.1.x:5000`) and ensure the backend is reachable from the device.

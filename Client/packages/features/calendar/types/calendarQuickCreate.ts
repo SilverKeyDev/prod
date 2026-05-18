@@ -21,3 +21,11 @@ export type CalendarQuickCreateAnchorRect = {
   width: number;
   height: number;
 };
+
+/** Week grid double-click: timed slot + anchor for floating create UI. */
+export type WeekTimeSlotDoubleClickPayload = {
+  date: Date;
+  minutesFromMidnight: number;
+  /** Omitted for callers that only start local quick-create (e.g. profile availability). */
+  anchorRect?: CalendarQuickCreateAnchorRect;
+};

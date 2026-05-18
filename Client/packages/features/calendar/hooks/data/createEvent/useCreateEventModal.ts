@@ -16,7 +16,6 @@ import { buildCreateEventModalFormProps } from "@/features/calendar/utils/create
 import { getCalendarEventKind } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { deriveCreateEventModalFormSubmitState } from "@/features/calendar/utils/createEventModal/createEventModalFormDerived";
 import { defaultGoogleMeetForCreate } from "@/features/calendar/utils/createEventModal/defaultGoogleMeetForCreate";
-import { showGoogleMeetToggleForCreate } from "@/features/calendar/utils/createEventModal/googleMeetCreateEligibility";
 import type {
   ViewingRouteEndMode,
   ViewingRouteEndpoint,
@@ -48,6 +47,7 @@ export function useCreateEventModal({
   prefilledCreateSnapshot = null,
   prefilledCreateKey,
   calendarEventRequest,
+  registerOutsideClickSafeTarget,
 }: UseCreateEventModalParams) {
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const authUserId = useAuthStore((s) => s.user?.id ?? null);
@@ -90,7 +90,7 @@ export function useCreateEventModal({
   const [viewingEndMode, setViewingEndMode] = useState<ViewingRouteEndMode>("last_property");
   const [viewingEndFixed, setViewingEndFixed] = useState<ViewingRouteEndpoint | null>(null);
   const [addGoogleMeet, setAddGoogleMeet] = useState(true);
-  /** Create flow: true after user sets start/end via week view double-click; false after grid/week-header date-only picks. */
+  /** Create flow: true after week double-click set times (used for submit-time end clamp); cleared on date-only picks. */
   const [createTimesChosenViaWeekSlot, setCreateTimesChosenViaWeekSlot] = useState(false);
   const [isSendingCalendarRequest, setIsSendingCalendarRequest] = useState(false);
 
@@ -130,6 +130,7 @@ export function useCreateEventModal({
       setStartTime,
       setEndTime,
       setIsAllDay,
+      setCreateTimesChosenViaWeekSlot,
     });
 
   const kindDef = useMemo(() => getCalendarEventKind(eventKindId), [eventKindId]);
@@ -234,16 +235,8 @@ export function useCreateEventModal({
     );
 
   const showGoogleMeetOption = useMemo(
-    () =>
-      isCalendarEventRequestFlow
-        ? false
-        : showGoogleMeetToggleForCreate({
-            mode,
-            startDate,
-            endDate,
-            isAllDay,
-          }),
-    [isCalendarEventRequestFlow, mode, startDate, endDate, isAllDay]
+    () => mode === "create" && !isCalendarEventRequestFlow,
+    [isCalendarEventRequestFlow, mode]
   );
 
   const mutualScheduleFull = useCreateEventMutualAvailability({
@@ -254,6 +247,11 @@ export function useCreateEventModal({
     selectedCalendarId,
   });
   const mutualScheduleForForm = mode === "create" ? mutualScheduleFull : null;
+
+  const clampTimedEndToStartLocalDay = useMemo(
+    () => mode === "create" && !isAllDay && createTimesChosenViaWeekSlot,
+    [mode, isAllDay, createTimesChosenViaWeekSlot]
+  );
 
   const { handleSubmit } = useCreateEventModalSubmitFlow({
     isCalendarEventRequestFlow,
@@ -286,9 +284,9 @@ export function useCreateEventModal({
     onClose,
     enqueueToast,
     addGoogleMeet,
-    showGoogleMeetOption,
     setIsSendingCalendarRequest,
     setIsSavingUnscheduled,
+    clampTimedEndToStartLocalDay,
   });
 
   const { canSubmit, formSubmitting, primaryActionLabel } = deriveCreateEventModalFormSubmitState({
@@ -348,7 +346,6 @@ export function useCreateEventModal({
     endTime,
     setStartTime,
     setEndTime,
-    createTimesChosenViaWeekSlot,
     onCalendarTimedSlotPick,
     isPropertyViewing,
     viewingStops,
@@ -374,6 +371,7 @@ export function useCreateEventModal({
     setAddGoogleMeet,
     showGoogleMeetOption,
     mutualSchedule: mutualScheduleForForm,
+    registerOutsideClickSafeTarget,
   });
 
   return { formProps };

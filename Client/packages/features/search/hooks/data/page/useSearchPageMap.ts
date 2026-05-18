@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { env } from "packages/config";
 import { calculatePropertyScore } from "packages/features/search/types/search/scoring/calculatePropertyScore";
 import { useGoogleMaps } from "packages/hooks/data";
-import { useIsAgent } from "packages/hooks/store";
+import { useActiveWorkspace } from "packages/hooks/store";
 import { useFiltersStore, useSearchContextStore } from "packages/store";
 import type { IsochroneData, UserPreferencesData } from "packages/types/domain/api";
 import { getWindow } from "packages/utils/platform";
@@ -24,6 +24,7 @@ import { useSearchPageMapListingPreview } from "@/features/search/hooks/data/pag
 import { useSearchPageMapMarkerDataEffect } from "@/features/search/hooks/data/page/useSearchPageMapMarkerDataEffect";
 import { useSearchPageMapOverlayRenderers } from "@/features/search/hooks/data/page/useSearchPageMapOverlayRenderers";
 import { useMapMarkers } from "@/features/search/hooks/data/useMapMarkers";
+import { useDismissSearchHeaderPopoversOnMapClick } from "@/features/search/hooks/ui/useDismissSearchHeaderPopoversOnMapClick.web";
 import type { SearchResult } from "@/features/search/types";
 import { getMapFocusedProperty } from "@/features/search/types/search/map/mapCardFocus";
 
@@ -65,8 +66,8 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     saveLastSearchContext,
   } = params;
 
-  const isAgent = useIsAgent();
-  const shouldPrimeIsochrone = !isAgent || hasSearched;
+  const isAgentWorkspace = useActiveWorkspace() === "agent";
+  const shouldPrimeIsochrone = !isAgentWorkspace || hasSearched;
 
   const queryClient = useQueryClient();
   const {
@@ -116,6 +117,8 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     mobileMapRef,
     desktopMapRef,
   });
+
+  useDismissSearchHeaderPopoversOnMapClick(googleMapRef, isGoogleMapsLoaded);
 
   useWebMapCameraPersistence({ googleMapRef, isGoogleMapsLoaded });
 

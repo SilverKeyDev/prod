@@ -55,7 +55,7 @@ class TestFavoriteHomes:
             _property_and_link(db_session, user.id, address="456 Oak Ave")
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.get(
@@ -88,7 +88,7 @@ class TestFavoriteHomes:
                 _property_and_link(db_session, user.id, address=f"{i + 1} Test St")
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.get(
@@ -118,7 +118,7 @@ class TestFavoriteHomes:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 home_data = {
@@ -158,7 +158,7 @@ class TestFavoriteHomes:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 home_data = {"home": {"price": 450000, "beds": 4}}
@@ -191,7 +191,7 @@ class TestFavoriteHomes:
             _property_and_link(db_session, user.id, address="123 Main St")
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.post(
@@ -219,7 +219,7 @@ class TestFavoriteHomes:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.post(

@@ -95,22 +95,16 @@ def get_user_preferences_by_id(user_id):
         current_user = get_current_user()
         if not current_user:
             return jsonify({"success": False, "error": "Authentication required"}), 401
-        if not hasattr(current_user, "client_ids") or not current_user.client_ids:
-            logger.warning("Agent %s has no clients assigned", current_user.id)
-            return jsonify({"success": False, "error": "No clients assigned to this agent"}), 403
-        try:
-            client_ids = (
-                json.loads(current_user.client_ids)
-                if isinstance(current_user.client_ids, str)
-                else current_user.client_ids
-            )
-        except (json.JSONDecodeError, TypeError):
-            client_ids = []
-        if user_id not in client_ids:
+        if not current_user.is_agent:
+            return jsonify({"success": False, "error": "Agent access required"}), 403
+        from app.services.agent.client_service import agent_may_access_client
+
+        target_id = str(user_id).strip()
+        if not agent_may_access_client(str(current_user.id), target_id):
             logger.warning(
                 "Agent %s attempted to access preferences for user %s who is not their client",
                 current_user.id,
-                user_id,
+                target_id,
             )
             return jsonify(
                 {"success": False, "error": "Access denied: User is not your client"}

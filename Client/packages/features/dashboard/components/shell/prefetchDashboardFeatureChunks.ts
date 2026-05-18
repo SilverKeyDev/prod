@@ -1,8 +1,8 @@
+import { prefetchAgentDashboardChunks } from "packages/features/agent/components/loading/prefetchAgentDashboardChunks";
 import { LOG_CATEGORIES } from "packages/logger";
 import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
 
 import {
-  loadClientListModule,
   loadDashboardAgreementSigningModalsModule,
   loadDashboardCalendarPanelModule,
   loadDashboardChecklistsModule,
@@ -34,9 +34,7 @@ export function prefetchDashboardFeatureChunks(
   branch: DashboardFeaturePrefetchBranch = "all"
 ): void {
   prefetchSharedDashboardLazyChunks();
-  if (branch === "all" || branch === "agent") {
-    traceDynamicImport(LOG_CATEGORIES.DASHBOARD, "prefetch:ClientList", loadClientListModule());
-  }
+  prefetchAgentDashboardChunks(branch);
   if (branch === "all" || branch === "client") {
     traceDynamicImport(
       LOG_CATEGORIES.DASHBOARD,

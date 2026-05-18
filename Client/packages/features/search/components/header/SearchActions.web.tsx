@@ -1,10 +1,8 @@
-import { Icon } from "@ui/icons";
-
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
-import { Button, CancelButton, IconButton } from "@/components/ui";
+import { Button, CancelButton } from "@/components/ui";
 
 import SearchDisplayDropdown from "./display/SearchDisplayDropdown.web";
 import SearchFiltersDropdown from "./filters/SearchFiltersDropdown.web";
@@ -12,8 +10,6 @@ import SearchFiltersDropdown from "./filters/SearchFiltersDropdown.web";
 type SearchActionsProps = {
   /** Preferences / isochrone search (explicit Search control). */
   onSearchProperties?: () => void;
-  /** After Apply in the preferences panel: save then run the same search as Search (optional; falls back to `onSearchProperties`). */
-  onPreferencesApplySearch?: () => void | Promise<void>;
   onCancelSearch?: () => void;
   isSearching?: boolean;
   /** Retained for API compatibility; search availability is handled in SearchFeature (important locations vs location bar). */
@@ -39,14 +35,13 @@ type SearchActionsProps = {
 };
 export default function SearchActions({
   onSearchProperties,
-  onPreferencesApplySearch,
   onCancelSearch,
   isSearching = false,
   hasLocations: _hasLocations = true,
   variant = "desktop",
   onToggleMode,
-  onBeforeSwitchToReels,
-  showReelsButton = false,
+  onBeforeSwitchToReels: _onBeforeSwitchToReels,
+  showReelsButton: _showReelsButton = false,
   showMapButton = false,
   selectedClientId,
   onClientChange,
@@ -54,7 +49,7 @@ export default function SearchActions({
   mobileToolbarCluster = false,
 }: SearchActionsProps) {
   const { t } = useLocalization();
-  const showReels = showReelsButton && onToggleMode != null;
+  // Reels button temporarily hidden — restore: const showReels = showReelsButton && onToggleMode != null;
   const showMap = showMapButton && onToggleMode != null;
   const handleSearchClick = () => {
     void onSearchProperties?.();
@@ -71,8 +66,6 @@ export default function SearchActions({
           variant="mobile"
           selectedClientId={selectedClientId}
           onClientChange={onClientChange}
-          onPreferencesApplySearch={onPreferencesApplySearch ?? onSearchProperties}
-          isSearching={isSearching}
         />
       </Box>
     );
@@ -86,6 +79,7 @@ export default function SearchActions({
 
     const reelsAndMap = (
       <>
+        {/* Reels button temporarily hidden
         {showReels && (
           <IconButton
             variant="toolbar"
@@ -99,6 +93,7 @@ export default function SearchActions({
             label={t("search.reels")}
           />
         )}
+        */}
         {showMap && (
           <Button
             variant="outline"
@@ -168,8 +163,6 @@ export default function SearchActions({
         variant="desktop"
         selectedClientId={selectedClientId}
         onClientChange={onClientChange}
-        onPreferencesApplySearch={onPreferencesApplySearch ?? onSearchProperties}
-        isSearching={isSearching}
       />
       <SearchDisplayDropdown />
       {!desktopToolsOnly ? (
@@ -194,6 +187,7 @@ export default function SearchActions({
           ) : null}
         </>
       ) : null}
+      {/* Reels button temporarily hidden
       {showReels && (
         <IconButton
           variant="toolbar"
@@ -207,6 +201,7 @@ export default function SearchActions({
           label={t("search.reels")}
         />
       )}
+      */}
     </Box>
   );
 }

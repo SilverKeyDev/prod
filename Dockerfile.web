@@ -11,15 +11,15 @@
   # Install pnpm (quiet)
   RUN npm install -g pnpm@9.0.0 >/dev/null 2>&1
 
-  # build-time variables
-  ARG VITE_GOOGLE_MAPS_ID
-  ARG VITE_PLAID_CLIENT_ID
-  ARG VITE_GOOGLE_CLIENT_ID
+  # build-time variables (client bundle; EXPO_PUBLIC_* inlined by Vite)
+  ARG EXPO_PUBLIC_GOOGLE_MAPS_ID
+  ARG EXPO_PUBLIC_PLAID_CLIENT_ID
+  ARG EXPO_PUBLIC_GOOGLE_CLIENT_ID
 
   # Promote to ENV
-  ENV VITE_GOOGLE_MAPS_ID=${VITE_GOOGLE_MAPS_ID}
-  ENV VITE_PLAID_CLIENT_ID=${VITE_PLAID_CLIENT_ID}
-  ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+  ENV EXPO_PUBLIC_GOOGLE_MAPS_ID=${EXPO_PUBLIC_GOOGLE_MAPS_ID}
+  ENV EXPO_PUBLIC_PLAID_CLIENT_ID=${EXPO_PUBLIC_PLAID_CLIENT_ID}
+  ENV EXPO_PUBLIC_GOOGLE_CLIENT_ID=${EXPO_PUBLIC_GOOGLE_CLIENT_ID}
 
   # Copy client source (package files first for better layer cache when only app code changes)
   COPY Client/package.json Client/pnpm-workspace.yaml Client/pnpm-lock.yaml ./

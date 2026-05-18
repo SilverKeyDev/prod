@@ -1,9 +1,9 @@
 /**
- * Re-exports favorite-homes API types from the shared API barrel (`packages/api`).
+ * Favorite-homes API types (OpenAPI-derived; owned by homeauth user API).
  */
 export type {
   AddFavoriteRequest as AddFavoriteHomeRequest,
   FavoriteHomesReplaceResponse as FavoriteHomeMutationResponse,
   FavoriteHomesResponse,
   RemoveFavoriteRequest as RemoveFavoriteHomeRequest,
-} from "packages/api";
+} from "packages/features/homeauth/types/auth/user";

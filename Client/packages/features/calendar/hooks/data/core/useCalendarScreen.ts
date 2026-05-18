@@ -193,7 +193,11 @@ export function useCalendarScreen({
       if (t instanceof Element && t.closest(SILVERKEY_MODAL_ROOT_SELECTOR)) {
         return;
       }
-      if (t instanceof Element && t.closest("[data-silverkey-quick-event-popover]")) {
+      if (
+        t instanceof Element &&
+        (t.closest("[data-silverkey-quick-event-popover]") ||
+          t.closest("[data-silverkey-create-event-form-popover]"))
+      ) {
         return;
       }
       const hit = gridDisplayEvents.find((x) => x.id === weekSelectedEventId);
@@ -371,6 +375,8 @@ export function useCalendarScreen({
     setEditEvent: quickSession.setEditEvent,
     fullCreateFromQuickOpen: quickSession.fullCreateFromQuickOpen,
     setFullCreateFromQuickOpen: quickSession.setFullCreateFromQuickOpen,
+    fullCreateAnchorRect: quickSession.fullCreateAnchorRect,
+    dismissFullCreate: quickSession.dismissFullCreate,
     fullCreatePrefill: quickSession.fullCreatePrefill,
     fullCreateKey: quickSession.fullCreateKey,
     isCreatingQuickEvent: quickSession.isCreatingQuickEvent,

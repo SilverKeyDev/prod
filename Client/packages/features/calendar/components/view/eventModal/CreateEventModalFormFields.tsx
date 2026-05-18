@@ -57,15 +57,14 @@ export function CreateEventModalFormFields({
   onAddGoogleMeetChange,
   showGoogleMeetOption,
   mutualSchedule,
-  createTimesChosenViaWeekSlot = false,
   onCalendarTimedSlotPick,
+  registerOutsideClickSafeTarget,
 }: CreateEventModalFormFieldsProps) {
   const hasAnyScheduleDate = Boolean(
     (startDate?.trim() ?? "").length > 0 || (endDate?.trim() ?? "").length > 0
   );
   const scheduleDetailsVisible = mode === "edit" || hasAnyScheduleDate;
-  const showTimeRangeInCreateFlow =
-    mode === "create" && !isAllDay && hasAnyScheduleDate && !createTimesChosenViaWeekSlot;
+  const showTimeRangeInCreateFlow = mode === "create" && !isAllDay && hasAnyScheduleDate;
   const showTimedRangeRow = mode === "edit" || showTimeRangeInCreateFlow;
   const showCustomTitle = eventKindId === "other";
 
@@ -97,6 +96,7 @@ export function CreateEventModalFormFields({
         menuInPortal
         menuPortalStack="modal"
         menuPlacement="below"
+        registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
       />
 
       {showCustomTitle ? (
@@ -135,6 +135,9 @@ export function CreateEventModalFormFields({
           }))}
           value={selectedCalendarId}
           onChange={(id) => onCalendarChange(id)}
+          menuInPortal
+          menuPortalStack="modal"
+          registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
         />
       ) : null}
 
@@ -184,6 +187,7 @@ export function CreateEventModalFormFields({
           onTimedSlotPick={({ startTime, endTime }) => {
             onCalendarTimedSlotPick({ startTime, endTime });
           }}
+          registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
         />
       </Box>
 
@@ -206,6 +210,7 @@ export function CreateEventModalFormFields({
             menuPlacement="overlap"
             menuInPortal
             menuPortalStack="modal"
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
             mutualTimeRange={
               mutualSchedule?.mutualUiEnabled
                 ? {

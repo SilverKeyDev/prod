@@ -199,8 +199,12 @@ export const agentApi = {
   /**
    * Get connection requests for authenticated user
    */
-  getConnectionRequests: (): Promise<ConnectionRequestsResponse> =>
-    apiGet<ConnectionRequestsResponse>("/api/v1/agent/connection-requests"),
+  getConnectionRequests: (
+    scope: "inbox" | "initiated" = "inbox"
+  ): Promise<ConnectionRequestsResponse> =>
+    apiGet<ConnectionRequestsResponse>(
+      `/api/v1/agent/connection-requests?scope=${encodeURIComponent(scope)}`
+    ),
 
   /**
    * Create a connection request

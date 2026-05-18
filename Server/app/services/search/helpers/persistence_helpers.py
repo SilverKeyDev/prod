@@ -8,6 +8,7 @@ from flask import current_app
 
 from app import db
 from app.models import PropertyCache, UserPropertyLink
+from app.utils.db.orm_lookup import get_model
 from app.utils.format.address_format import normalize_address
 
 from ..db.search_db import add_or_update_home_basic
@@ -32,7 +33,7 @@ def persist_and_prune_search_results(user_id: str, properties: list[dict[str, An
         existing_links = UserPropertyLink.query.filter_by(user_id=str(user_id), current=True).all()
         existing_by_norm: dict[str, UserPropertyLink] = {}
         for link in existing_links:
-            p = PropertyCache.query.get(link.property_id)
+            p = get_model(PropertyCache, link.property_id)
             if p and p.address:
                 try:
                     existing_by_norm[normalize_address(p.address)] = link
@@ -79,7 +80,7 @@ def persist_and_prune_search_results(user_id: str, properties: list[dict[str, An
             user_id=str(user_id), is_liked=False, current=True
         ).all()
         for link in unliked_links:
-            prop = PropertyCache.query.get(link.property_id)
+            prop = get_model(PropertyCache, link.property_id)
             keep = False
             if prop and prop.zpid and str(prop.zpid) in result_zpids:
                 keep = True

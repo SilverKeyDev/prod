@@ -21,7 +21,7 @@ err_web() {
 # =========================
 # Config
 # =========================
-VITE_PORT="${VITE_PORT:-5173}"
+export WEB_DEV_PORT="${WEB_DEV_PORT:-5173}"
 TYPECHECK_TIMEOUT="${TYPECHECK_TIMEOUT:-120}"
 
 # =========================
@@ -41,7 +41,7 @@ done
 # =========================
 # Web-specific PIDs
 # =========================
-VITE_PID=""
+WEB_SERVER_PID=""
 TC_WATCH_PID=""
 
 # =========================
@@ -87,7 +87,7 @@ cleanup() {
   if [[ "$NO_BACKEND" != "true" ]]; then
     cleanup_backend
   fi
-  if [[ -n "${VITE_PID}" ]];   then kill "${VITE_PID}"   2>/dev/null || true; fi
+  if [[ -n "${WEB_SERVER_PID}" ]];   then kill "${WEB_SERVER_PID}"   2>/dev/null || true; fi
   if [[ -n "${TC_WATCH_PID}" ]]; then kill "${TC_WATCH_PID}" 2>/dev/null || true; fi
   pkill -P $$ 2>/dev/null || true
   log_web "${GREEN}All processes terminated.${NC}"
@@ -146,19 +146,19 @@ if [[ "${1:-}" != "--production" ]]; then
   log_web "[Phase 3/4] Starting Vite client..."
   pushd Client >/dev/null
   pnpm dev:web &
-  VITE_PID=$!
+  WEB_SERVER_PID=$!
 
   # Start background TypeScript watch so type errors are surfaced continuously
   pnpm -s typecheck:watch >/dev/null 2>&1 &
   TC_WATCH_PID=$!
   popd >/dev/null
 
-  log_web "[Phase 4/4] Waiting for Vite TCP on localhost:${VITE_PORT} (up to 60s for first-run optimizeDeps)..."
-  if wait_for_port localhost "${VITE_PORT}" 60 1; then
-    log_web "${GREEN}✅ Vite TCP is accepting on localhost:${VITE_PORT}${NC}"
+  log_web "[Phase 4/4] Waiting for Vite TCP on localhost:${WEB_DEV_PORT} (up to 60s for first-run optimizeDeps)..."
+  if wait_for_port localhost "${WEB_DEV_PORT}" 60 1; then
+    log_web "${GREEN}✅ Vite TCP is accepting on localhost:${WEB_DEV_PORT}${NC}"
   else
-    err_web "Vite did not start on localhost:${VITE_PORT} within 60s. Possible causes: port in use, pnpm/node failure, Vite config error."
-    warn_web "Diagnostics: lsof -i :${VITE_PORT} | head -5; cd Client && pnpm typecheck; try --skip-typecheck if typecheck passes"
+    err_web "Vite did not start on localhost:${WEB_DEV_PORT} within 60s. Possible causes: port in use, pnpm/node failure, Vite config error."
+    warn_web "Diagnostics: lsof -i :${WEB_DEV_PORT} | head -5; cd Client && pnpm typecheck; try --skip-typecheck if typecheck passes"
     exit 1
   fi
 else
@@ -169,7 +169,7 @@ fi
 # Keep script in foreground
 # =========================
 if [[ "$NO_BACKEND" == "true" ]]; then
-  wait "${VITE_PID}"
+  wait "${WEB_SERVER_PID}"
 else
   wait "${FLASK_PID}"
 fi

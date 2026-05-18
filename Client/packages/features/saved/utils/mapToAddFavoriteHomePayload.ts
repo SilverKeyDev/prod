@@ -1,4 +1,4 @@
-import type { AddFavoriteRequest } from "packages/features/homeauth/api/user";
+import type { AddFavoriteRequest } from "packages/features/homeauth/types/auth/user";
 
 /**
  * Map arbitrary property input to AddFavoriteRequest.home payload (FavoriteHomePayload).

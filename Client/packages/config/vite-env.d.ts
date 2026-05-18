@@ -3,14 +3,13 @@
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ImportMetaEnv = {
-  // Third-party Services
-  readonly VITE_GOOGLE_MAPS_ID: string;
-  readonly VITE_GOOGLE_CLIENT_ID: string;
-  readonly VITE_PLAID_CLIENT_ID: string;
-  readonly VITE_PUBLIC_SITE_URL: string;
-  readonly VITE_GOOGLE_SITE_VERIFICATION: string;
-  /** When `"true"`, registers the `/admin` route in the web app. */
-  readonly VITE_ENABLE_ADMIN_PANEL?: string;
+  readonly EXPO_PUBLIC_GOOGLE_MAPS_ID: string;
+  readonly EXPO_PUBLIC_GOOGLE_CLIENT_ID: string;
+  readonly EXPO_PUBLIC_PLAID_CLIENT_ID: string;
+  /** Optional: canonical public origin for production SEO (sitemap / robots); web Vite build only. */
+  readonly EXPO_PUBLIC_SITE_URL?: string;
+  /** Optional: Google Search Console verification token; web Vite build only. */
+  readonly EXPO_PUBLIC_GOOGLE_SITE_VERIFICATION?: string;
 
   // Development
   readonly DEV: boolean;

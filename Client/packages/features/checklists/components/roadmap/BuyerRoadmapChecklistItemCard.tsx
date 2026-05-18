@@ -1,6 +1,4 @@
-import React, { type ReactNode, useMemo } from "react";
-
-import { Icon } from "@ui/icons";
+import React, { type ReactNode, useCallback, useMemo, useRef } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { ChecklistType, TaskChecklistItem } from "packages/features/checklists/api/checklists";
@@ -10,15 +8,18 @@ import {
   ChecklistStepSubmitProvider,
 } from "packages/features/checklists/components/steps/ChecklistStepSubmitContext";
 import { CHECKLIST_TITLES, type ChecklistTab } from "packages/features/checklists/types/checklists";
+import { runChecklistIntegrationComplete } from "packages/features/checklists/utils/integration/checklistIntegrationComplete";
 import {
   checklistCheckboxRowClassNames,
   toChecklistCheckboxItem,
 } from "packages/features/checklists/utils/presentation/checklistCheckboxPresentation";
+import { CHECKLIST_ROW_INTERACTIVE_SELECTOR } from "packages/features/checklists/utils/presentation/checklistRowInteractiveSelector";
 import type {
   ChecklistItemToggleEligibility,
   RoadmapChecklistBlockerKind,
 } from "packages/features/checklists/utils/rules/checklistRules";
 import { getFirstIncompleteUnlockSection } from "packages/features/checklists/utils/rules/sectionConfig";
+import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import { IconButton } from "packages/ui";
 import { ChecklistCheckbox } from "packages/ui";
 import Card from "packages/ui/components/cards/Card";
@@ -44,6 +45,8 @@ export type BuyerRoadmapChecklistItemCardProps = {
     itemId: number
   ) => ChecklistItemToggleEligibility;
   onToggleItem: (id: number) => void | Promise<void>;
+  /** Raw checklist write after integration submit (see `BuyerRoadmapChecklistListProps.commitToggleItem`). */
+  commitToggleItem: (id: number) => void | Promise<void>;
   isExpanded: (id: number) => boolean;
   toggleExpand: (id: number) => void;
   hubClientUserId: string | null;
@@ -74,10 +77,10 @@ function BuyerRoadmapChecklistItemCardInner({
   currentTab,
   checkedIds,
   activeItemIds,
-  isSectionLocked,
   hideIntegrationComponents,
   getItemToggleEligibility,
   onToggleItem,
+  commitToggleItem,
   isExpanded,
   toggleExpand,
   hubClientUserId,
@@ -130,8 +133,7 @@ function BuyerRoadmapChecklistItemCardInner({
     isRoadmapActiveBlockedUi &&
     (roadmapBlocker?.kind === "prerequisite_item" ||
       (roadmapBlocker?.kind === "section_gate" && sectionGateTarget != null));
-  const shouldShowIntegration =
-    item.component_key != null && !isSectionLocked && !hideIntegrationComponents;
+  const shouldShowIntegration = item.component_key != null && !hideIntegrationComponents;
 
   const expanded = isExpanded(item.id);
   // Step expand/collapse is presentation-only: when expanded, show the full step (checkbox copy,
@@ -164,6 +166,32 @@ function BuyerRoadmapChecklistItemCardInner({
   const agentFooter =
     renderItemAgentFooter?.(item, { canCheck, canUncheck, canMarkChecked }) ?? null;
   const itemFooter = renderItemFooter?.(item) ?? null;
+
+  const commitToggleItemRef = useRef(commitToggleItem);
+  commitToggleItemRef.current = commitToggleItem;
+  const canMarkCheckedRef = useRef(canMarkChecked);
+  canMarkCheckedRef.current = canMarkChecked;
+
+  const handleIntegrationComplete = useCallback(() => {
+    runChecklistIntegrationComplete({
+      canMarkChecked: () => canMarkCheckedRef.current,
+      commitToggleItem: (id) => commitToggleItemRef.current(id),
+      itemId: item.id,
+      notifyBlocked: () =>
+        showWarningToast(
+          t("checklists.step_merge_not_applied", {
+            defaultValue:
+              "This step could not be marked complete yet. Finish earlier steps or required details, then try again.",
+          })
+        ),
+      notifyError: () =>
+        showWarningToast(
+          t("checklists.update_error", {
+            defaultValue: "Could not update this step. Please try again.",
+          })
+        ),
+    });
+  }, [item.id, t]);
   const showDispatchGear =
     Boolean(isAgent && hubClientUserId && checklistCategory) &&
     item.dispatchAutomationAvailable === true;
@@ -178,10 +206,20 @@ function BuyerRoadmapChecklistItemCardInner({
     }
   };
 
-  const handoffInteractiveSelector =
-    "button, a[href], input, textarea, select, [role='listbox'], [role='option'], [role='combobox'], [role='menu'], [role='menuitem'], [data-radix-popper-content-wrapper], [data-radix-dropdown-menu-content], [data-radix-select-content]";
+  const handleExpandRowPress = useCallback(() => {
+    if (!expanded) {
+      toggleExpand(item.id);
+    }
+  }, [expanded, item.id, toggleExpand]);
 
-  const checkboxRow = (
+  const expandRowAccessibilityLabel = `${checkboxItem.label}. ${t(
+    "checklists.roadmap.expand_step",
+    {
+      defaultValue: "Expand step",
+    }
+  )}`;
+
+  const checkboxRowInner = (
     <Box
       className={`flex w-full flex-row items-stretch ${
         checkboxDisabled && !roadmapSoftBlocked
@@ -189,7 +227,7 @@ function BuyerRoadmapChecklistItemCardInner({
           : "bg-background-surface"
       }`}
     >
-      <Box className="flex min-w-0 flex-1 flex-row items-start gap-4 px-4 py-3">
+      <Box className="flex min-w-0 flex-1 flex-row items-start gap-4 px-4 py-2">
         <Box className="min-w-0 flex-1">
           <ChecklistCheckbox
             item={checkboxItem}
@@ -241,26 +279,41 @@ function BuyerRoadmapChecklistItemCardInner({
               className="text-text-secondary hover:text-text-primary flex h-6 w-6"
             />
           </Box>
-          {roadmapHandoff ? (
-            <Icon
-              name="chevron-right"
-              className="text-gold h-4 w-4 shrink-0 opacity-90"
-              aria-hidden
-            />
-          ) : null}
         </Box>
       </Box>
     </Box>
   );
+
+  const checkboxRow =
+    !expanded && !roadmapHandoff ? (
+      <TouchableBox
+        label={expandRowAccessibilityLabel}
+        onPress={handleExpandRowPress}
+        className="w-full text-left"
+        onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+          const target = e.target as HTMLElement;
+          if (target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR)) {
+            return;
+          }
+          if (target.closest("label")) {
+            e.preventDefault();
+          }
+          e.stopPropagation();
+          handleExpandRowPress();
+        }}
+      >
+        {checkboxRowInner}
+      </TouchableBox>
+    ) : (
+      checkboxRowInner
+    );
 
   const integrationBlock = showIntegration ? (
     <Box className="mt-2 rounded-b-lg px-4 pb-3">
       <ChecklistIntegrationSlot
         componentKey={item.component_key}
         isCurrent={true}
-        onComplete={() => {
-          if (canMarkChecked && !isChecklistUpdatePending) void onToggleItem(item.id);
-        }}
+        onComplete={handleIntegrationComplete}
       />
     </Box>
   ) : null;
@@ -274,7 +327,7 @@ function BuyerRoadmapChecklistItemCardInner({
           className="w-full text-left"
           onClick={(e: React.MouseEvent<HTMLDivElement>) => {
             const target = e.target as HTMLElement;
-            if (target.closest(handoffInteractiveSelector)) {
+            if (target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR)) {
               return;
             }
             e.stopPropagation();
@@ -287,8 +340,8 @@ function BuyerRoadmapChecklistItemCardInner({
         checkboxRow
       )}
       {integrationBlock}
-      {agentFooter != null ? <Box className="mt-3 px-4 pb-3">{agentFooter}</Box> : null}
-      {itemFooter != null ? <Box className="mt-2 px-4 pb-3">{itemFooter}</Box> : null}
+      {agentFooter}
+      {itemFooter}
     </>
   );
 
@@ -309,8 +362,9 @@ function BuyerRoadmapChecklistItemCardInner({
 }
 
 export function BuyerRoadmapChecklistItemCard(props: BuyerRoadmapChecklistItemCardProps) {
+  const { canMarkChecked } = props.getItemToggleEligibility(props.currentTab, props.item.id);
   return (
-    <ChecklistStepSubmitProvider>
+    <ChecklistStepSubmitProvider markCompleteEligible={canMarkChecked}>
       <BuyerRoadmapChecklistItemCardInner {...props} />
     </ChecklistStepSubmitProvider>
   );

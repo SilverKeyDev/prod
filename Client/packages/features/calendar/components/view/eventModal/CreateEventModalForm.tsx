@@ -72,15 +72,24 @@ export type CreateEventModalFormProps = {
   onAddGoogleMeetChange: (next: boolean) => void;
   showGoogleMeetOption: boolean;
   mutualSchedule: CreateEventMutualAvailability | null;
-  createTimesChosenViaWeekSlot: boolean;
   onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
+  /** Portaled pickers (week create popover, quick event) register menu roots for outside-click guards. */
+  registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
 };
 
-export function CreateEventModalForm({
-  isOpen,
-  onClose,
+export type CreateEventModalFormCoreProps = Omit<
+  CreateEventModalFormProps,
+  | "isOpen"
+  | "onClose"
+  | "modalTitle"
+  | "canSubmit"
+  | "isSubmitting"
+  | "primaryActionLabel"
+  | "onSubmit"
+>;
+
+export function CreateEventModalFormCore({
   mode,
-  modalTitle,
   calendars,
   selectedCalendarId,
   onCalendarChange,
@@ -119,16 +128,84 @@ export function CreateEventModalForm({
   loadError,
   eventDescription,
   onEventDescriptionChange,
-  canSubmit,
-  isSubmitting,
-  primaryActionLabel,
-  onSubmit,
   addGoogleMeet,
   onAddGoogleMeetChange,
   showGoogleMeetOption,
   mutualSchedule,
-  createTimesChosenViaWeekSlot,
   onCalendarTimedSlotPick,
+  registerOutsideClickSafeTarget,
+}: CreateEventModalFormCoreProps) {
+  return (
+    <Box className="space-y-4">
+      {mode === "create" && showAgentClientPicker ? (
+        <Box>
+          <Label className="mb-2 block">Client</Label>
+          <ClientSelector
+            selectedClientId={selectedClientId}
+            onClientChange={onSelectedClientIdChange}
+            className="w-full max-w-full [&_button]:w-full"
+          />
+        </Box>
+      ) : null}
+
+      <CreateEventModalFormFields
+        mode={mode}
+        calendars={calendars}
+        selectedCalendarId={selectedCalendarId}
+        onCalendarChange={onCalendarChange}
+        hideCalendarPicker={hideCalendarPicker}
+        eventKindId={eventKindId}
+        onEventKindIdChange={onEventKindIdChange}
+        kindOptionSlice={kindOptionSlice}
+        checklistProgressLoading={checklistProgressLoading}
+        eventTitle={eventTitle}
+        onEventTitleChange={onEventTitleChange}
+        isAllDay={isAllDay}
+        onIsAllDayChange={onIsAllDayChange}
+        startDate={startDate}
+        endDate={endDate}
+        onDateRangeChange={onDateRangeChange}
+        startTime={startTime}
+        endTime={endTime}
+        onStartTimeChange={onStartTimeChange}
+        onEndTimeChange={onEndTimeChange}
+        isPropertyViewing={isPropertyViewing}
+        viewingStops={viewingStops}
+        onViewingStopsChange={onViewingStopsChange}
+        viewingStartSelection={viewingStartSelection}
+        onViewingStartSelectionChange={onViewingStartSelectionChange}
+        viewingEndMode={viewingEndMode}
+        onViewingEndModeChange={onViewingEndModeChange}
+        viewingEndFixed={viewingEndFixed}
+        onViewingEndFixedChange={onViewingEndFixedChange}
+        viewingTourAnchors={viewingTourAnchors}
+        eventLocation={eventLocation}
+        onEventLocationChange={onEventLocationChange}
+        locationScriptsReady={locationScriptsReady}
+        loadError={loadError}
+        eventDescription={eventDescription}
+        onEventDescriptionChange={onEventDescriptionChange}
+        addGoogleMeet={addGoogleMeet}
+        onAddGoogleMeetChange={onAddGoogleMeetChange}
+        showGoogleMeetOption={showGoogleMeetOption}
+        mutualSchedule={mutualSchedule}
+        onCalendarTimedSlotPick={onCalendarTimedSlotPick}
+        registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
+      />
+    </Box>
+  );
+}
+
+export function CreateEventModalForm({
+  isOpen,
+  onClose,
+  mode,
+  modalTitle,
+  canSubmit,
+  isSubmitting,
+  primaryActionLabel,
+  onSubmit,
+  ...coreProps
 }: CreateEventModalFormProps) {
   return (
     <BaseModal
@@ -140,61 +217,7 @@ export function CreateEventModalForm({
       showHeaderBorder
     >
       <Box className="space-y-4">
-        {mode === "create" && showAgentClientPicker ? (
-          <Box>
-            <Label className="mb-2 block">Client</Label>
-            <ClientSelector
-              selectedClientId={selectedClientId}
-              onClientChange={onSelectedClientIdChange}
-              className="w-full max-w-full [&_button]:w-full"
-            />
-          </Box>
-        ) : null}
-
-        <CreateEventModalFormFields
-          mode={mode}
-          calendars={calendars}
-          selectedCalendarId={selectedCalendarId}
-          onCalendarChange={onCalendarChange}
-          hideCalendarPicker={hideCalendarPicker}
-          eventKindId={eventKindId}
-          onEventKindIdChange={onEventKindIdChange}
-          kindOptionSlice={kindOptionSlice}
-          checklistProgressLoading={checklistProgressLoading}
-          eventTitle={eventTitle}
-          onEventTitleChange={onEventTitleChange}
-          isAllDay={isAllDay}
-          onIsAllDayChange={onIsAllDayChange}
-          startDate={startDate}
-          endDate={endDate}
-          onDateRangeChange={onDateRangeChange}
-          startTime={startTime}
-          endTime={endTime}
-          onStartTimeChange={onStartTimeChange}
-          onEndTimeChange={onEndTimeChange}
-          isPropertyViewing={isPropertyViewing}
-          viewingStops={viewingStops}
-          onViewingStopsChange={onViewingStopsChange}
-          viewingStartSelection={viewingStartSelection}
-          onViewingStartSelectionChange={onViewingStartSelectionChange}
-          viewingEndMode={viewingEndMode}
-          onViewingEndModeChange={onViewingEndModeChange}
-          viewingEndFixed={viewingEndFixed}
-          onViewingEndFixedChange={onViewingEndFixedChange}
-          viewingTourAnchors={viewingTourAnchors}
-          eventLocation={eventLocation}
-          onEventLocationChange={onEventLocationChange}
-          locationScriptsReady={locationScriptsReady}
-          loadError={loadError}
-          eventDescription={eventDescription}
-          onEventDescriptionChange={onEventDescriptionChange}
-          addGoogleMeet={addGoogleMeet}
-          onAddGoogleMeetChange={onAddGoogleMeetChange}
-          showGoogleMeetOption={showGoogleMeetOption}
-          mutualSchedule={mutualSchedule}
-          createTimesChosenViaWeekSlot={createTimesChosenViaWeekSlot}
-          onCalendarTimedSlotPick={onCalendarTimedSlotPick}
-        />
+        <CreateEventModalFormCore {...coreProps} />
 
         <Box className="flex gap-3 pt-2">
           <CancelButton onClick={onClose} className="flex-1" disabled={isSubmitting}>

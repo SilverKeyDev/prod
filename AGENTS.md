@@ -74,6 +74,7 @@ Thin **`Client/apps/*`** host routing, providers, and page shells. **Features, h
 | **Always-on constraints (4)** | `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`, `documentation.mdc` |
 | **Scoped rules**              | `.cursor/rules/shared/`, `frontend/`, `backend/` — attach by glob                                |
 | **Procedural workflows**      | `.cursor/skills/*/SKILL.md`                                                                      |
+| **Post–major change sync**    | `.cursor/skills/post-major-change-sync/SKILL.md` + scoped rule `.cursor/rules/shared/post-major-change-sync.mdc` |
 | **Subagent personas**         | `.cursor/agents/*.md`                                                                            |
 | **Meta: how to extend**       | [.cursor/README.md](./.cursor/README.md)                                                         |
 | **Inventory / audit table**   | [documentation/internal/cursor-audit-latest.md](./documentation/internal/cursor-audit-latest.md) |
@@ -88,6 +89,7 @@ Thin **`Client/apps/*`** host routing, providers, and page shells. **Features, h
 - **DB migrations:** Do not run or author Alembic migrations unless explicitly directed; model-only constraints in `.cursor/rules/backend/database.mdc`.
 - **Tokens:** Client uses memory + `sessionStorage` for tokens — not `localStorage` (security rule).
 - **Markdown creation:** Follow `.cursor/rules/shared/documentation.mdc` (allowed team paths include `AGENTS.md`, `.cursor/README.md`, `documentation/internal/**`).
+- **Major architecture / feature work:** Update canonical docs and Cursor config per [documentation/internal/post-major-change-checklist.md](./documentation/internal/post-major-change-checklist.md) (same PR or fast-follow).
 
 ---
 

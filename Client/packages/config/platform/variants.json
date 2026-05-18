@@ -289,8 +289,8 @@
   {
     "id": "onboarding-screen",
     "description": "Onboarding screen with platform-specific layout.",
-    "webPath": "packages/features/homeauth/components/onboarding-mobile/OnboardingFeature.tsx",
-    "nativePath": "packages/features/homeauth/components/onboarding-mobile/OnboardingScreen.native.tsx",
+    "webPath": "packages/features/homeauth/components/flows/OnboardingFeature.tsx",
+    "nativePath": "packages/features/profile/components/onboarding/OnboardingScreen.native.tsx",
     "reason": "Native onboarding layout; web uses different composition."
   },
   {

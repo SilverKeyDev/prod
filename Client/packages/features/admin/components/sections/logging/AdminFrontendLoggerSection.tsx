@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
+import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
+import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import { log, LOG_CATEGORIES, type LoggerConfig } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
-import { AccessibleCheckboxInput, BodyText, Button, Label, Select, Title } from "@/components/ui";
+import { AccessibleCheckboxInput, BodyText, Dropdown, Label, Title } from "@/components/ui";
 
 type FrontendLoggerConfigState = LoggerConfig;
 
@@ -22,7 +24,9 @@ const BOOLEAN_KEYS: BooleanConfigKey[] = [
 
 const LOG_LEVELS: FrontendLoggerConfigState["logLevel"][] = ["DEBUG", "INFO", "WARN", "ERROR"];
 
-export function AdminFrontendLoggerSection() {
+export function AdminFrontendLoggerSection({
+  scope: _scope = DEFAULT_ADMIN_SCOPE,
+}: AdminSectionBaseProps) {
   const [frontendConfig, setFrontendConfig] = useState<FrontendLoggerConfigState | null>(() => {
     try {
       return log.getConfig();
@@ -35,81 +39,15 @@ export function AdminFrontendLoggerSection() {
   const apiConfig =
     frontendConfig && typeof frontendConfig.api === "object" ? frontendConfig.api : undefined;
 
-  const handleToggleBoolean = (key: BooleanConfigKey) => {
-    setFrontendConfig((prev) => {
-      if (!prev) return prev;
-      return { ...prev, [key]: !prev[key] };
-    });
-  };
-
-  const handleApiToggle = (key: keyof NonNullable<FrontendLoggerConfigState["api"]>) => {
-    setFrontendConfig((prev) => {
-      if (!prev || !prev.api || typeof prev.api !== "object") return prev;
-      const nextApi = prev.api as NonNullable<FrontendLoggerConfigState["api"]>;
-      return {
-        ...prev,
-        api: {
-          ...nextApi,
-          [key]: !nextApi[key],
-        },
-      };
-    });
-  };
-
-  const handleLogLevelChange = (value: FrontendLoggerConfigState["logLevel"]) => {
-    setFrontendConfig((prev) => {
-      if (!prev) return prev;
-      return { ...prev, logLevel: value };
-    });
-  };
-
-  const diff = useMemo(() => {
-    if (!frontendConfig) return null;
-    try {
-      const current = log.getConfig();
-      const changed: Partial<FrontendLoggerConfigState> = {};
-
-      BOOLEAN_KEYS.forEach((key) => {
-        if (frontendConfig[key] !== current[key]) {
-          changed[key] = frontendConfig[key];
-        }
-      });
-
-      if (typeof frontendConfig.api === "object" && typeof current.api === "object") {
-        const apiChanges: Record<string, boolean> = {};
-        (["initialLoad", "polling", "pageMount", "other"] as const).forEach((k) => {
-          if (frontendConfig.api && current.api && frontendConfig.api[k] !== current.api[k]) {
-            apiChanges[k] = frontendConfig.api[k];
-          }
-        });
-        if (Object.keys(apiChanges).length > 0) {
-          changed.api = {
-            ...(current.api as NonNullable<FrontendLoggerConfigState["api"]>),
-            ...apiChanges,
-          };
-        }
-      }
-
-      if (frontendConfig.logLevel !== current.logLevel) {
-        changed.logLevel = frontendConfig.logLevel;
-      }
-
-      return Object.keys(changed).length > 0 ? changed : null;
-    } catch {
-      return null;
-    }
-  }, [frontendConfig]);
-
-  const handleApplyFrontendConfig = () => {
-    if (!frontendConfig || !diff) return;
+  const applyPartial = (partial: Partial<FrontendLoggerConfigState>) => {
+    if (!frontendConfig) return;
     setFrontendSaving(true);
     try {
-      log.updateConfig(diff);
+      log.updateConfig(partial);
       log.security(LOG_CATEGORIES.SECURITY, "[ADMIN_PAGE] Updated frontend logger config", {
-        fields: Object.keys(diff),
+        fields: Object.keys(partial),
       });
-      const updated = log.getConfig();
-      setFrontendConfig(updated);
+      setFrontendConfig(log.getConfig() as FrontendLoggerConfigState);
     } catch (error) {
       log.error(
         LOG_CATEGORIES.ERRORS,
@@ -119,6 +57,27 @@ export function AdminFrontendLoggerSection() {
     } finally {
       setFrontendSaving(false);
     }
+  };
+
+  const handleToggleBoolean = (key: BooleanConfigKey) => {
+    if (!frontendConfig) return;
+    applyPartial({ [key]: !frontendConfig[key] });
+  };
+
+  const handleApiToggle = (key: keyof NonNullable<FrontendLoggerConfigState["api"]>) => {
+    if (!frontendConfig?.api || typeof frontendConfig.api !== "object") return;
+    const currentApi = frontendConfig.api as NonNullable<FrontendLoggerConfigState["api"]>;
+    applyPartial({
+      api: {
+        ...currentApi,
+        [key]: !currentApi[key],
+      },
+    });
+  };
+
+  const handleLogLevelChange = (value: FrontendLoggerConfigState["logLevel"]) => {
+    if (!frontendConfig || frontendConfig.logLevel === value) return;
+    applyPartial({ logLevel: value });
   };
 
   if (!frontendConfig) {
@@ -149,6 +108,7 @@ export function AdminFrontendLoggerSection() {
             <Label key={String(key)} size="sm" className="flex items-center gap-2">
               <AccessibleCheckboxInput
                 checked={Boolean(frontendConfig[key])}
+                disabled={frontendSaving}
                 className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
                 label={`Toggle ${String(key)}`}
                 onChange={() => handleToggleBoolean(key)}
@@ -163,17 +123,19 @@ export function AdminFrontendLoggerSection() {
         <Box className="space-y-3">
           <Box>
             <Label size="sm">Log level</Label>
-            <Select
+            <Dropdown
               className="mt-1"
-              options={LOG_LEVELS.map((lvl) => ({
-                value: lvl,
-                label: lvl,
-              }))}
+              label="Log level"
+              hideLabel
+              size="sm"
+              disabled={frontendSaving}
+              options={LOG_LEVELS.map((lvl) => ({ value: lvl, label: lvl }))}
               value={frontendConfig.logLevel}
-              onChange={(value) =>
-                handleLogLevelChange(value as FrontendLoggerConfigState["logLevel"])
-              }
+              onChange={handleLogLevelChange}
             />
+            <BodyText size="xs" muted className="mt-3">
+              Checkbox and level changes apply immediately when toggled.
+            </BodyText>
           </Box>
 
           {apiConfig && (
@@ -185,6 +147,7 @@ export function AdminFrontendLoggerSection() {
                 <Label key={k} size="sm" className="flex items-center gap-2">
                   <AccessibleCheckboxInput
                     checked={Boolean(apiConfig[k])}
+                    disabled={frontendSaving}
                     className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
                     label={`Toggle API ${k}`}
                     onChange={() => handleApiToggle(k)}
@@ -197,21 +160,6 @@ export function AdminFrontendLoggerSection() {
             </Box>
           )}
         </Box>
-      </Box>
-
-      <Box className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <BodyText size="xs" muted>
-          Backend logger settings live in the server logger card below.
-        </BodyText>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleApplyFrontendConfig}
-          disabled={!diff || frontendSaving}
-          iconName="settings"
-        >
-          Apply frontend logger settings
-        </Button>
       </Box>
     </Card>
   );

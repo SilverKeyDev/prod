@@ -1,5 +1,10 @@
 """
-Service functions for managing agent-client connection requests
+Service functions for managing agent-client connection requests.
+
+Connection policy (asymmetric by design):
+- Client → agent: auto-accepted on create; agents never get an inbox to approve clients.
+- Agent → client: stays pending until the client accepts or rejects via their inbox,
+  because clients may not want to connect with every agent.
 """
 
 import logging
@@ -198,19 +203,56 @@ def search_clients(query: str, agent_id: str, limit: int = 20) -> list[dict]:
         raise
 
 
-def get_connection_requests(user_id: str, is_agent: bool) -> list[dict]:
+def _serialize_connection_request(req: AgentConnectionRequest, is_agent: bool) -> dict:
+    if is_agent:
+        other_party = User.query.filter_by(id=req.client_id).first()
+    else:
+        other_party = User.query.filter_by(id=req.agent_id).first()
+    return {
+        "id": req.id,
+        "agent_id": req.agent_id,
+        "client_id": req.client_id,
+        "requested_by_agent": req.requested_by_agent,
+        "status": req.status,
+        "message": req.message,
+        "other_party_name": other_party.name if other_party else "Unknown",
+        "other_party_email": other_party.email if other_party else "",
+        "created_at": req.created_at.isoformat() if req.created_at else None,
+    }
+
+
+def get_connection_requests(user_id: str, is_agent: bool, scope: str = "inbox") -> list[dict]:
     """
-    Get connection requests for a user
+    Get connection requests for a user.
 
     Args:
         user_id: The ID of the user
         is_agent: Whether the user is an agent
+        scope: ``inbox`` (default) — pending requests awaiting the user's response;
+               ``initiated`` — requests this user sent (all statuses).
 
     Returns:
         List of connection request dictionaries
     """
     try:
-        if is_agent:
+        if scope == "initiated":
+            if is_agent:
+                requests = (
+                    AgentConnectionRequest.query.filter_by(
+                        agent_id=user_id, requested_by_agent=True
+                    )
+                    .order_by(AgentConnectionRequest.updated_at.desc())
+                    .all()
+                )
+            else:
+                requests = (
+                    AgentConnectionRequest.query.filter_by(
+                        client_id=user_id, requested_by_agent=False
+                    )
+                    .order_by(AgentConnectionRequest.updated_at.desc())
+                    .all()
+                )
+        elif is_agent:
             # Incoming only: clients who requested this agent
             requests = AgentConnectionRequest.query.filter_by(
                 agent_id=user_id, status="pending", requested_by_agent=False
@@ -221,33 +263,61 @@ def get_connection_requests(user_id: str, is_agent: bool) -> list[dict]:
                 client_id=user_id, status="pending", requested_by_agent=True
             ).all()
 
-        result = []
-        for req in requests:
-            # Get the other party's info
-            if is_agent:
-                other_party = User.query.filter_by(id=req.client_id).first()
-            else:
-                other_party = User.query.filter_by(id=req.agent_id).first()
-
-            result.append(
-                {
-                    "id": req.id,
-                    "agent_id": req.agent_id,
-                    "client_id": req.client_id,
-                    "requested_by_agent": req.requested_by_agent,
-                    "status": req.status,
-                    "message": req.message,
-                    "other_party_name": other_party.name if other_party else "Unknown",
-                    "other_party_email": other_party.email if other_party else "",
-                    "created_at": req.created_at.isoformat() if req.created_at else None,
-                }
-            )
-
-        return result
+        return [_serialize_connection_request(req, is_agent) for req in requests]
 
     except Exception as e:
         logger.error(f"Error fetching connection requests: {e}", exc_info=True)
         raise
+
+
+def _apply_connection_acceptance(request: AgentConnectionRequest) -> None:
+    """Mark a request accepted and create relationship + optional calendar sharing."""
+    now = datetime.now(timezone.utc)
+    request.status = "accepted"
+    request.responded_at = now
+    request.updated_at = now
+
+    existing_conv = AgentConnections.query.filter_by(
+        agent_id=request.agent_id, client_id=request.client_id
+    ).first()
+
+    if not existing_conv:
+        conversation = AgentConnections(agent_id=request.agent_id, client_id=request.client_id)
+        db.session.add(conversation)
+
+    agent = User.query.filter_by(id=request.agent_id).first()
+    client = User.query.filter_by(id=request.client_id).first()
+
+    if agent:
+        append_unique_client_id(agent, request.client_id)
+    if client:
+        append_unique_agent_id_for_client(client, request.agent_id)
+
+    try:
+        from ...services.calendar.core import google_calendar_service
+
+        sharing_result = google_calendar_service.setup_agent_client_calendar_sharing(
+            agent_id=request.agent_id,
+            client_id=request.client_id,
+            agent_email=agent.email if agent else None,
+            client_email=client.email if client else None,
+            db_session=db.session,
+        )
+
+        if sharing_result.get("success"):
+            logger.info(
+                f"Calendar sharing set up successfully between agent {request.agent_id} and client {request.client_id}"
+            )
+        else:
+            errors = sharing_result.get("errors", [])
+            logger.warning(
+                f"Calendar sharing setup had issues for agent {request.agent_id} and client {request.client_id}: {errors}"
+            )
+    except Exception as e:
+        logger.error(
+            f"Error setting up calendar sharing for agent {request.agent_id} and client {request.client_id}: {e}",
+            exc_info=True,
+        )
 
 
 def create_connection_request(
@@ -272,6 +342,10 @@ def create_connection_request(
         ).first()
 
         if existing:
+            # Client-initiated pendings are auto-accepted (including legacy rows on retry).
+            if not existing.requested_by_agent and existing.status == "pending":
+                _apply_connection_acceptance(existing)
+                db.session.commit()
             return {"request": existing.to_dict(), "already_pending": True}
 
         # Verify users exist
@@ -293,6 +367,8 @@ def create_connection_request(
         )
 
         db.session.add(request)
+        if not requested_by_agent:
+            _apply_connection_acceptance(request)
         db.session.commit()
 
         return {"request": request.to_dict(), "already_pending": False}
@@ -330,64 +406,21 @@ def respond_to_connection_request(
         else:
             if not is_agent or request.agent_id != user_id:
                 raise ValueError("Only the invited agent can respond to this request")
+            raise ValueError(
+                "Client-initiated connection requests are accepted automatically; "
+                "agents do not accept or reject via the inbox."
+            )
 
         if request.status != "pending":
             raise ValueError(f"Request already {request.status}")
 
-        request.status = "accepted" if accept else "rejected"
-        request.responded_at = datetime.now(timezone.utc)
-        request.updated_at = datetime.now(timezone.utc)
-
-        # If accepted, create a conversation
+        now = datetime.now(timezone.utc)
         if accept:
-            # Check if conversation already exists
-            existing_conv = AgentConnections.query.filter_by(
-                agent_id=request.agent_id, client_id=request.client_id
-            ).first()
-
-            if not existing_conv:
-                conversation = AgentConnections(
-                    agent_id=request.agent_id, client_id=request.client_id
-                )
-                db.session.add(conversation)
-
-            # Update agent's client_ids and client's agent_id
-            agent = User.query.filter_by(id=request.agent_id).first()
-            client = User.query.filter_by(id=request.client_id).first()
-
-            if agent:
-                append_unique_client_id(agent, request.client_id)
-            if client:
-                append_unique_agent_id_for_client(client, request.agent_id)
-
-            # Set up calendar sharing between agent and client
-            try:
-                from ...services.calendar.core import google_calendar_service
-
-                sharing_result = google_calendar_service.setup_agent_client_calendar_sharing(
-                    agent_id=request.agent_id,
-                    client_id=request.client_id,
-                    agent_email=agent.email,
-                    client_email=client.email,
-                    db_session=db.session,
-                )
-
-                if sharing_result.get("success"):
-                    logger.info(
-                        f"Calendar sharing set up successfully between agent {request.agent_id} and client {request.client_id}"
-                    )
-                else:
-                    # Log but don't fail the relationship creation
-                    errors = sharing_result.get("errors", [])
-                    logger.warning(
-                        f"Calendar sharing setup had issues for agent {request.agent_id} and client {request.client_id}: {errors}"
-                    )
-            except Exception as e:
-                # Log but don't fail the relationship creation if calendar setup fails
-                logger.error(
-                    f"Error setting up calendar sharing for agent {request.agent_id} and client {request.client_id}: {e}",
-                    exc_info=True,
-                )
+            _apply_connection_acceptance(request)
+        else:
+            request.status = "rejected"
+            request.responded_at = now
+            request.updated_at = now
 
         db.session.commit()
 

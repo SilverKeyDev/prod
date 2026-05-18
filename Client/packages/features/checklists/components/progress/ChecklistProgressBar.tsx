@@ -37,8 +37,8 @@ export function ChecklistProgressBar({
 
   const trackClassName =
     variant === "closePage"
-      ? "bg-neutral-200 h-1 w-full overflow-hidden rounded dark:bg-neutral-600 lg:h-2"
-      : "bg-neutral-200 h-1 w-full overflow-hidden rounded dark:bg-neutral-600";
+      ? "bg-neutral-300 h-1 w-full overflow-hidden rounded dark:bg-neutral-600 lg:h-2"
+      : "bg-neutral-300 h-1 w-full overflow-hidden rounded dark:bg-neutral-600";
 
   const safePercent = clampPercent(percent);
 
@@ -50,7 +50,7 @@ export function ChecklistProgressBar({
         aria-busy={true}
         aria-valuetext="Loading progress"
       >
-        <Box className="bg-primary-muted h-full w-full animate-pulse rounded opacity-70" />
+        <Box className="h-full w-full animate-pulse rounded bg-neutral-300/80 dark:bg-neutral-500/80" />
       </Box>
     );
   }

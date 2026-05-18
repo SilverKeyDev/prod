@@ -1,5 +1,8 @@
 """
 MCDA orchestration: base score + weighted soft signals (0–1 each) * hard multiplier → 1–99 display.
+
+When a preference dimension is unset, objective listing-quality signals still differentiate scores.
+When preferences are set, contributions are amplified so matches spread more dramatically.
 """
 
 from __future__ import annotations
@@ -20,14 +23,43 @@ from .criteria import (
     soft_sqft_normalized,
     soft_walkability_normalized,
 )
+from .criteria.objective_quality import (
+    objective_amenities_richness_normalized,
+    objective_baths_normalized,
+    objective_beds_normalized,
+    objective_dom_freshness_normalized,
+    objective_home_age_normalized,
+    objective_lot_normalized,
+    objective_price_value_normalized,
+    objective_sqft_normalized,
+    objective_walkability_normalized,
+)
+from .criteria.preference_activity import (
+    count_active_preference_dimensions,
+    has_amenities_preference,
+    has_baths_preference,
+    has_beds_preference,
+    has_budget_preference,
+    has_commute_preference,
+    has_dom_preference,
+    has_home_age_preference,
+    has_housing_type_preference,
+    has_lot_preference,
+    has_sqft_preference,
+    has_walkability_preference,
+    preference_strength_multiplier,
+)
 
 # Single tuning surface — adjust weights and multipliers here only.
-# Added housing-range signals (lot, age, DOM, walkability, listing_type): trimmed price/amenities slightly.
 MCDA_CONFIG: dict[str, Any] = {
-    # Slightly above neutral so typical listings land higher; soft signals still differentiate.
     "base_score": 52.5,
     "price_peak_ratio": 0.65,
     "beds_baths_diminishing_k": 0.45,
+    # Fraction of each dimension's weight applied to objective fallback signals.
+    "objective_weight_scale": 0.34,
+    # Extra multiplier on preference-driven dimensions (more prefs → wider spread).
+    "preference_strength_per_dimension": 0.05,
+    "preference_strength_max": 0.40,
     "soft_signal_weights": {
         "price_fit": 15.0,
         "beds": 7.5,
@@ -42,7 +74,6 @@ MCDA_CONFIG: dict[str, Any] = {
         "listing_type_fit": 1.0,
     },
     "hard_multipliers": {
-        # Moderate misses: a bit more forgiving; severe / wrong-type / extreme over-budget: harsher.
         "over_budget_moderate": 0.63,
         "over_budget_severe": 0.38,
         "over_budget_extreme": 0.26,
@@ -57,7 +88,6 @@ MCDA_CONFIG: dict[str, Any] = {
     },
     "output_display_min": 1.0,
     "output_display_max": 99.0,
-    # Share of *display* score from embedding when enabled; capped so ≥99% stays MCDA (see cap below).
     "embedding_blend_weight": 0.0,
     "embedding_blend_weight_cap": 0.01,
 }
@@ -77,6 +107,20 @@ def _soft_contribution(weight: float, signal_01: float) -> float:
     return weight * max(-1.0, min(1.0, damped))
 
 
+def _dimension_contribution(
+    *,
+    base_weight: float,
+    preference_active: bool,
+    preference_signal: float,
+    objective_signal: float,
+    preference_strength: float,
+    objective_scale: float,
+) -> float:
+    if preference_active:
+        return _soft_contribution(base_weight * preference_strength, preference_signal)
+    return _soft_contribution(base_weight * objective_scale, objective_signal)
+
+
 def score_listing_mcda(
     preferences: dict[str, Any],
     property_dict: dict[str, Any],
@@ -91,31 +135,113 @@ def score_listing_mcda(
     weights = cfg["soft_signal_weights"]
     k_bb = float(cfg.get("beds_baths_diminishing_k", 0.45))
     peak = float(cfg.get("price_peak_ratio", 0.65))
-
-    s_price = soft_price_normalized(preferences, property_dict, status_type, peak)
-    s_beds = soft_beds_normalized(preferences, property_dict, k_bb)
-    s_baths = soft_baths_normalized(preferences, property_dict, k_bb)
-    s_sqft = soft_sqft_normalized(preferences, property_dict)
-    s_commute = soft_commute_normalized(preferences, property_dict)
-    s_amenities = soft_amenities_normalized(preferences, property_dict)
-    s_lot = soft_lot_acres_normalized(preferences, property_dict)
-    s_age = soft_home_age_normalized(preferences, property_dict)
-    s_dom = soft_days_on_market_normalized(preferences, property_dict)
-    s_walk = soft_walkability_normalized(preferences, property_dict)
-    s_listing = soft_listing_type_normalized(preferences, property_dict)
+    obj_scale = float(cfg.get("objective_weight_scale", 0.34))
+    pref_strength = preference_strength_multiplier(
+        preferences,
+        status_type=status_type,
+        per_dimension=float(cfg.get("preference_strength_per_dimension", 0.05)),
+        max_boost=float(cfg.get("preference_strength_max", 0.40)),
+    )
 
     raw_soft = float(cfg["base_score"])
-    raw_soft += _soft_contribution(float(weights["price_fit"]), s_price)
-    raw_soft += _soft_contribution(float(weights["beds"]), s_beds)
-    raw_soft += _soft_contribution(float(weights["baths"]), s_baths)
-    raw_soft += _soft_contribution(float(weights["sqft"]), s_sqft)
-    raw_soft += _soft_contribution(float(weights["commute"]), s_commute)
-    raw_soft += _soft_contribution(float(weights["amenities"]), s_amenities)
-    raw_soft += _soft_contribution(float(weights["lot_acres"]), s_lot)
-    raw_soft += _soft_contribution(float(weights["home_age"]), s_age)
-    raw_soft += _soft_contribution(float(weights["days_on_market"]), s_dom)
-    raw_soft += _soft_contribution(float(weights["walkability"]), s_walk)
-    raw_soft += _soft_contribution(float(weights["listing_type_fit"]), s_listing)
+
+    raw_soft += _dimension_contribution(
+        base_weight=float(weights["price_fit"]),
+        preference_active=has_budget_preference(preferences, status_type),
+        preference_signal=soft_price_normalized(preferences, property_dict, status_type, peak),
+        objective_signal=objective_price_value_normalized(property_dict),
+        preference_strength=pref_strength,
+        objective_scale=obj_scale,
+    )
+    raw_soft += _dimension_contribution(
+        base_weight=float(weights["beds"]),
+        preference_active=has_beds_preference(preferences),
+        preference_signal=soft_beds_normalized(preferences, property_dict, k_bb),
+        objective_signal=objective_beds_normalized(property_dict, k=k_bb),
+        preference_strength=pref_strength,
+        objective_scale=obj_scale,
+    )
+    raw_soft += _dimension_contribution(
+        base_weight=float(weights["baths"]),
+        preference_active=has_baths_preference(preferences),
+        preference_signal=soft_baths_normalized(preferences, property_dict, k_bb),
+        objective_signal=objective_baths_normalized(property_dict, k=k_bb),
+        preference_strength=pref_strength,
+        objective_scale=obj_scale,
+    )
+    raw_soft += _dimension_contribution(
+        base_weight=float(weights["sqft"]),
+        preference_active=has_sqft_preference(preferences),
+        preference_signal=soft_sqft_normalized(preferences, property_dict),
+        objective_signal=objective_sqft_normalized(property_dict),
+        preference_strength=pref_strength,
+        objective_scale=obj_scale,
+    )
+
+    if has_commute_preference(preferences):
+        raw_soft += _dimension_contribution(
+            base_weight=float(weights["commute"]),
+            preference_active=True,
+            preference_signal=soft_commute_normalized(preferences, property_dict),
+            objective_signal=0.5,
+            preference_strength=pref_strength,
+            objective_scale=obj_scale,
+        )
+
+    raw_soft += _dimension_contribution(
+        base_weight=float(weights["amenities"]),
+        preference_active=has_amenities_preference(preferences),
+        preference_signal=soft_amenities_normalized(preferences, property_dict),
+        objective_signal=objective_amenities_richness_normalized(property_dict),
+        preference_strength=pref_strength,
+        objective_scale=obj_scale,
+    )
+    raw_soft += _dimension_contribution(
+        base_weight=float(weights["lot_acres"]),
+        preference_active=has_lot_preference(preferences),
+        preference_signal=soft_lot_acres_normalized(preferences, property_dict),
+        objective_signal=objective_lot_normalized(property_dict),
+        preference_strength=pref_strength,
+        objective_scale=obj_scale,
+    )
+    raw_soft += _dimension_contribution(
+        base_weight=float(weights["home_age"]),
+        preference_active=has_home_age_preference(preferences),
+        preference_signal=soft_home_age_normalized(preferences, property_dict),
+        objective_signal=objective_home_age_normalized(property_dict),
+        preference_strength=pref_strength,
+        objective_scale=obj_scale,
+    )
+    raw_soft += _dimension_contribution(
+        base_weight=float(weights["days_on_market"]),
+        preference_active=has_dom_preference(preferences),
+        preference_signal=soft_days_on_market_normalized(preferences, property_dict),
+        objective_signal=objective_dom_freshness_normalized(property_dict),
+        preference_strength=pref_strength,
+        objective_scale=obj_scale,
+    )
+
+    walk_pref = has_walkability_preference(preferences)
+    walk_obj = objective_walkability_normalized(property_dict)
+    if walk_pref or walk_obj != 0.5:
+        raw_soft += _dimension_contribution(
+            base_weight=float(weights["walkability"]),
+            preference_active=walk_pref,
+            preference_signal=soft_walkability_normalized(preferences, property_dict),
+            objective_signal=walk_obj,
+            preference_strength=pref_strength,
+            objective_scale=obj_scale,
+        )
+
+    if has_housing_type_preference(preferences):
+        raw_soft += _dimension_contribution(
+            base_weight=float(weights["listing_type_fit"]),
+            preference_active=True,
+            preference_signal=soft_listing_type_normalized(preferences, property_dict),
+            objective_signal=0.5,
+            preference_strength=pref_strength,
+            objective_scale=obj_scale,
+        )
 
     raw_soft = max(0.0, min(100.0, raw_soft))
 
@@ -136,3 +262,8 @@ def score_listing_mcda(
 def get_mcda_config() -> dict[str, Any]:
     """Return a shallow copy of the default config (for tests / callers)."""
     return dict(MCDA_CONFIG)
+
+
+def preference_coverage_count(preferences: dict[str, Any], *, status_type: str = "ForSale") -> int:
+    """Public helper: how many MCDA preference dimensions are active (for logging / tests)."""
+    return count_active_preference_dimensions(preferences, status_type=status_type)

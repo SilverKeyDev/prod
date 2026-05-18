@@ -105,7 +105,7 @@ You don’t need to name every package today — the important part is **directi
 
 ## Config & Environment
 
-- **Web (Vite):** env is **build-time** (injected at build via `define` in vite.config.js so `process.env` is populated; use `VITE_*` in .env).
+- **Web (Vite):** env is **build-time** (injected at build via `process` shim in `vite.config.js` so `process.env` is populated; use `EXPO_PUBLIC_*` in `Client/.env`).
 - **Mobile (Expo):** env is **build-time** (Expo injects `EXPO_PUBLIC_*` into `process.env`).
 
 **Packages must not read env directly.** Apps pass configuration in via:
@@ -132,6 +132,7 @@ That keeps packages portable and testable; the app is the single place that know
 ## Relation to Other Docs
 
 - **Cursor rule:** `.cursor/rules/shared/thin-app-architecture.mdc` — enforces what belongs in apps vs packages.
+- **Workspace route shells:** [workspace-first-architecture.md](./workspace-first-architecture.md) — `/buyer/*`, `/seller/*`, `/brokerage/*` stay thin in `apps/web`; workspace state in `packages/`.
 - **What lives in the app folder:** [apps-folder-contents.md](./apps-folder-contents.md) — literal breakdown: bootstrapper, provider tree, router, thin pages/screens (orchestrator-only).
 - **Implementation:** See thin-app pattern in this doc and in `.cursor/rules/shared/thin-app-architecture.mdc`; migrate by moving logic into packages and keeping apps as composition only.
 - **Layers (config, services, hooks, components):** `.cursor/rules/frontend/frontend-architecture.mdc`.

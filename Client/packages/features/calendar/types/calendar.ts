@@ -18,15 +18,7 @@ export interface Calendar {
   primary?: boolean;
 }
 
-export type CalendarViewType = "week" | "month";
-
-export interface CalendarGridDay {
-  date: Date;
-  isCurrentMonth: boolean;
-  isToday: boolean;
-  isPast: boolean;
-  isFirstOfMonth: boolean;
-}
+export type { CalendarGridDay, CalendarViewType } from "packages/types/calendar/calendarGrid";
 
 /**
  * Calendar event stored in the database

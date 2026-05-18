@@ -17,6 +17,7 @@ import { Button, ClientSelector, Dropdown, IconButton, OliveCheckbox } from "pac
 import { Box } from "packages/ui/components/primitives";
 import Input from "packages/ui/components/primitives/input/Input";
 import Label from "packages/ui/components/text/Label.web";
+import { boxShadow } from "packages/ui/styles/shadows/shadows.web";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import { Title } from "@/components/ui";
@@ -146,7 +147,7 @@ export function QuickEventPopover({
     borderColor: color("neutral.200"),
     borderRadius: spacing(2),
     padding: spacing(3),
-    boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+    boxShadow: boxShadow("floating"),
   };
 
   return createPortal(

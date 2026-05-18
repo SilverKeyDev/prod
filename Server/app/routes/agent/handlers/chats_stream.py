@@ -10,7 +10,7 @@ from flask import Response, jsonify, stream_with_context
 
 from app.services.agent.messaging_realtime import CHANNEL_PREFIX, messaging_redis_url
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
-from app.utils.security.security import rate_limit
+from app.utils.security import rate_limit
 from logger import LOG_CATEGORIES, log
 
 _SSE_HEADERS = {

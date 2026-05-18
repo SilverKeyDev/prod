@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { UseCalendarEventRequestFormParams } from "@/features/agent/hooks/data/useCalendarEventRequestForm";
+import type { UseCalendarEventRequestFormParams } from "@/features/agent/hooks/data/calendar/useCalendarEventRequestForm";
 import { CreateEventModalForm } from "@/features/calendar/components/view/eventModal/CreateEventModalForm";
 import { useCreateEventModal } from "@/features/calendar/hooks/data/createEvent/useCreateEventModal";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";

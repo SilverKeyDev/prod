@@ -25,4 +25,6 @@ export type UserProfile = {
   auth_method?: AuthMethod; // NEW: Track authentication method
   profile_picture?: string | null;
   profile_picture_url?: string | null;
+  /** Brokerage org ids the user may administer (server-driven; optional until roster APIs ship). */
+  brokerage_org_ids?: string[] | null;
 };

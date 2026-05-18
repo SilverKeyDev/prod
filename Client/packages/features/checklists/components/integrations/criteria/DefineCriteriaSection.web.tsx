@@ -68,7 +68,9 @@ export default function DefineCriteriaSection({ onComplete }: ChecklistIntegrati
                     } catch {
                       return;
                     }
-                    onComplete?.();
+                    if (isDefineCriteriaStepComplete(formSnapshotRef.current)) {
+                      onComplete?.();
+                    }
                   })();
                 }}
               />

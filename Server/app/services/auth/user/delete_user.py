@@ -20,11 +20,7 @@ from app import db
 from app.models import (
     AgentConnectionRequest,
     AgentConnections,
-    Agreement,
-    AgreementEvent,
     AgreementLink,
-    AgreementParticipant,
-    AgreementRevision,
     CalendarEvent,
     CalendarShare,
     ChatHistory,
@@ -59,6 +55,8 @@ from app.models import (
     UserScoreWeights,
     UserSearchIntent,
 )
+from app.services.auth.user.agreement_cleanup import delete_agreements_for_user
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, log
 
 
@@ -182,41 +180,11 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
             li_id = d.library_item_id
             db.session.delete(d)
             if li_id:
-                li = DocumentLibraryItem.query.get(li_id)
+                li = get_model(DocumentLibraryItem, li_id)
                 if li:
                     db.session.delete(li)
 
-        agreements = Agreement.query.filter(
-            or_(Agreement.agent_id == uid, Agreement.buyer_id == uid)
-        ).all()
-        if agreements:
-            aid_list = [a.id for a in agreements]
-            AgreementLink.query.filter(AgreementLink.agreement_id.in_(aid_list)).delete(
-                synchronize_session=False
-            )
-            for ag in agreements:
-                li_id = ag.library_item_id
-                db.session.delete(ag)
-                if li_id:
-                    li = DocumentLibraryItem.query.get(li_id)
-                    if li:
-                        db.session.delete(li)
-
-        # Clear user FKs on agreement rows we are not removing (participant / audit only).
-        AgreementParticipant.query.filter(AgreementParticipant.user_id == uid).update(
-            {AgreementParticipant.user_id: None},
-            synchronize_session=False,
-        )
-        AgreementEvent.query.filter(AgreementEvent.actor_id == uid).update(
-            {AgreementEvent.actor_id: None},
-            synchronize_session=False,
-        )
-        for rev in AgreementRevision.query.filter_by(created_by=uid).all():
-            ag = Agreement.query.filter_by(id=rev.agreement_id).one_or_none()
-            if ag is not None:
-                rev.created_by = ag.agent_id
-            else:
-                db.session.delete(rev)
+        delete_agreements_for_user(uid)
 
         Search.query.filter_by(user_id=uid).delete(synchronize_session=False)
 

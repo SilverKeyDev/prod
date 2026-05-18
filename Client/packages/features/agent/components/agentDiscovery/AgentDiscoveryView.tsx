@@ -1,18 +1,25 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useNavigation } from "packages/navigation";
+import { useAuthStore, useUIStore } from "packages/store";
 import { Button } from "packages/ui";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { ProfileAvatar } from "packages/ui/components/avatar";
 import { Box } from "packages/ui/components/primitives";
-import { buildAgentProfileUrl } from "packages/utils/agent";
+import { buildAgentProfileUrl, openAgentPublicProfileExternal } from "packages/utils/agent";
 
 import { BodyText, Title } from "@/components/ui";
 import type { AgentSearchResult, RecommendedAgentResult } from "@/features/agent/api/agent";
+import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
+import { AgentDirectoryRow } from "@/features/agent/components/search/AgentDirectoryRow";
 import { AgentSearchContent } from "@/features/agent/components/search/AgentSearchContent";
-import { useAgentDiscoveryContext } from "@/features/agent/hooks/data/useAgentDiscoveryContext";
-import { useRecommendedAgents } from "@/features/agent/hooks/data/useRecommendedAgents";
+import { useAgentConnectionDisplayStatus } from "@/features/agent/hooks/data/connections/useAgentConnectionDisplayStatus";
+import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";
+import { useAgentDiscoveryContext } from "@/features/agent/hooks/data/discovery/useAgentDiscoveryContext";
+import { useRecommendedAgents } from "@/features/agent/hooks/data/discovery/useRecommendedAgents";
+import { hasAgentConnectionRelationship } from "@/features/agent/utils/agentRelationshipSummaries";
+import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 
 import type { AgentDiscoveryViewProps } from "./agentDiscoveryView.types";
 
@@ -20,6 +27,7 @@ export type { AgentDiscoveryViewProps } from "./agentDiscoveryView.types";
 
 export function AgentDiscoveryView({
   isActive = true,
+  profileTarget = "navigate",
   onOpenAgentProfile: onOpenAgentProfileProp,
   onConnectionSuccess,
   className = "",
@@ -31,6 +39,29 @@ export function AgentDiscoveryView({
     discoveryContext,
     isActive
   );
+  const { getConnectionStatus } = useAgentConnectionDisplayStatus(isActive);
+
+  const recommendedAgentsToShow = useMemo(
+    () =>
+      recommendedAgents.filter(
+        (agent) => !hasAgentConnectionRelationship(getConnectionStatus(agent.id))
+      ),
+    [recommendedAgents, getConnectionStatus]
+  );
+  const config = getMessagingConfig("client").searchModal;
+  const { createRequestAsInitiator, isCreatingRequest } = useConnectionRequests();
+  const { userProfile } = useUserData();
+  const authUser = useAuthStore((s) => s.user);
+  const enqueueToast = useUIStore((s) => s.enqueueToast);
+  const initiatorId = userProfile?.id ?? authUser?.id;
+
+  const [recommendedConnectAgentId, setRecommendedConnectAgentId] = useState<string | null>(null);
+  const [recommendedConnectMessage, setRecommendedConnectMessage] = useState("");
+  const recommendedConnectMessageRef = useRef("");
+
+  useEffect(() => {
+    recommendedConnectMessageRef.current = recommendedConnectMessage;
+  }, [recommendedConnectMessage]);
 
   const openProfile = useCallback(
     (agent: Pick<AgentSearchResult, "id" | "name">) => {
@@ -38,49 +69,82 @@ export function AgentDiscoveryView({
         onOpenAgentProfileProp(agent);
         return;
       }
+      if (profileTarget === "external") {
+        openAgentPublicProfileExternal(agent);
+        return;
+      }
       const name = agent.name?.trim() || "Agent";
       const { pathname, search } = getCurrentRoute();
       const returnTo = `${pathname}${search}`;
       navigateToPath(buildAgentProfileUrl(agent.id, name), { state: { returnTo } });
     },
-    [getCurrentRoute, navigateToPath, onOpenAgentProfileProp]
+    [getCurrentRoute, navigateToPath, onOpenAgentProfileProp, profileTarget]
+  );
+
+  const handleRecommendedSendRequest = useCallback(
+    async (agentId: string): Promise<boolean> => {
+      if (!initiatorId) {
+        enqueueToast({
+          type: "error",
+          message: "Profile not loaded. Please try again in a moment.",
+        });
+        return false;
+      }
+      try {
+        const note = recommendedConnectMessageRef.current.trim() || undefined;
+        const { alreadyPending } = await createRequestAsInitiator(
+          initiatorId,
+          agentId,
+          false,
+          note
+        );
+        if (alreadyPending) {
+          enqueueToast({
+            type: "warning",
+            message: "A connection request is already pending with this agent.",
+          });
+          return false;
+        }
+        enqueueToast({ type: "success", message: "Request sent" });
+        setRecommendedConnectMessage("");
+        setRecommendedConnectAgentId(null);
+        onConnectionSuccess?.();
+        return true;
+      } catch (err: unknown) {
+        enqueueToast({
+          type: "error",
+          message: connectionRequestApiErrorMessage(err),
+        });
+        return false;
+      }
+    },
+    [createRequestAsInitiator, enqueueToast, initiatorId, onConnectionSuccess]
   );
 
   const renderRecommendedRow = (agent: RecommendedAgentResult) => (
-    <Box
+    <AgentDirectoryRow
       key={agent.id}
-      className="border-border hover:bg-background-base flex flex-col gap-2 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
-    >
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        contentAlign="start"
-        onClick={() => openProfile(agent)}
-        className="flex h-auto min-h-0 flex-1 items-start justify-start gap-3 py-0 text-left"
-      >
-        <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full">
-          <ProfileAvatar
-            imageUrl={agent.profile_picture}
-            label={agent.name?.trim() || "Agent"}
-            imageClassName="h-full w-full object-cover"
-          />
-        </Box>
-        <Box className="min-w-0 flex-1">
-          <Title as="h3" size="sm" className="font-medium text-black">
-            {agent.name}
-          </Title>
-          <BodyText as="p" size="sm" className="text-text-secondary line-clamp-2">
-            {agent.description?.trim() || agent.email}
-          </BodyText>
-          {agent.match_reasons?.length ? (
-            <BodyText as="p" size="xs" className="text-text-disabled mt-1">
-              {agent.match_reasons.join(" · ")}
-            </BodyText>
-          ) : null}
-        </Box>
-      </Button>
-    </Box>
+      agent={agent}
+      connectionStatus={getConnectionStatus(agent.id)}
+      isExpanded={recommendedConnectAgentId === agent.id}
+      onExpandConnect={() => setRecommendedConnectAgentId(agent.id)}
+      onCollapseConnect={() => {
+        setRecommendedConnectAgentId(null);
+        setRecommendedConnectMessage("");
+      }}
+      onOpenProfile={() => openProfile(agent)}
+      profileButtonLabel={t("agent.discovery_view_profile")}
+      connectButtonLabel={t("agent.discovery_connect")}
+      message={recommendedConnectMessage}
+      onMessageChange={setRecommendedConnectMessage}
+      onSendRequest={() => void handleRecommendedSendRequest(agent.id)}
+      isCreatingRequest={isCreatingRequest}
+      canSendRequest={Boolean(initiatorId)}
+      sendButtonLabel={config.sendButtonLabel}
+      cancelButtonLabel="Cancel"
+      messageFieldLabel="Message (optional)"
+      messagePlaceholder="Add a note (optional)"
+    />
   );
 
   return (
@@ -102,12 +166,12 @@ export function AgentDiscoveryView({
           <Box className="flex justify-start py-6">
             <KeyTurnLoader message={t("agent.discovery_loading_recommendations")} />
           </Box>
-        ) : recommendedAgents.length === 0 ? (
+        ) : recommendedAgentsToShow.length === 0 ? (
           <BodyText size="sm" className="text-text-secondary">
             {t("agent.discovery_no_recommendations")}
           </BodyText>
         ) : (
-          <Box className="space-y-2">{recommendedAgents.map(renderRecommendedRow)}</Box>
+          <Box className="space-y-2">{recommendedAgentsToShow.map(renderRecommendedRow)}</Box>
         )}
       </Box>
 
@@ -120,6 +184,7 @@ export function AgentDiscoveryView({
             isActive={isActive}
             primaryAction="openProfile"
             onOpenAgentProfile={openProfile}
+            profileButtonLabel={t("agent.discovery_view_profile")}
             connectButtonLabel={t("agent.discovery_connect")}
             onSuccess={onConnectionSuccess}
           />

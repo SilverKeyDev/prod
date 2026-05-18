@@ -1,0 +1,22 @@
+type: object
+required:
+  - confirm
+  - scopes
+properties:
+  confirm:
+    type: boolean
+    description: Must be true to confirm the reset.
+  scopes:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      enum:
+        - profile
+        - preferences
+        - docusign
+    description: Data domains to clear for the target user.
+  user_id:
+    type: string
+    nullable: true
+    description: Target user UUID. Omit to reset the signed-in admin. Super_admin only when set to another user.

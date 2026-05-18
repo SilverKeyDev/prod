@@ -53,7 +53,6 @@ export type CreateEventModalFormFieldsProps = {
   onAddGoogleMeetChange: (next: boolean) => void;
   showGoogleMeetOption: boolean;
   mutualSchedule: CreateEventMutualAvailability | null;
-  /** Create flow: week double-click already set times — omit manual time row. */
-  createTimesChosenViaWeekSlot?: boolean;
+  registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
   onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
 };

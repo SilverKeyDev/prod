@@ -5,6 +5,22 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+SUBMIT_GATED_CHECKLIST_INTEGRATION_KEYS = frozenset(
+    {
+        "set_budget",
+        "choose_areas",
+        "define_criteria",
+        "partner_agent",
+    }
+)
+
+
+def _is_submit_gated_integration(item: dict[str, Any]) -> bool:
+    key = item.get("component_key")
+    if isinstance(key, str) and key in SUBMIT_GATED_CHECKLIST_INTEGRATION_KEYS:
+        return True
+    return bool(item.get("completion_requires_submit") or item.get("completionRequiresSubmit"))
+
 
 def evaluate_checklist_condition(cond: dict[str, Any] | None, checked: set[int]) -> bool:
     """Evaluate a ChecklistCondition v1 against the current checked id set."""
@@ -96,56 +112,6 @@ def _completion_type_raw(item: dict[str, Any]) -> str:
     return str(ct)
 
 
-def _apply_persisted_checked_ids(
-    checked: set[int],
-    sorted_items: list[dict[str, Any]],
-    old_checked: set[int],
-) -> None:
-    """
-    Re-add checklist ids already stored for the user. Clients cannot remove completed
-    steps via PUT; signature_based truth still comes from apply_signature_based_checked_ids.
-    Prune steps may still discard checks that violate ordering/selectable rules.
-    """
-    id_to_item: dict[int, dict[str, Any]] = {}
-    for item in sorted_items:
-        try:
-            iid = int(item["id"])
-        except (KeyError, TypeError, ValueError):
-            continue
-        id_to_item[iid] = item
-    for iid in old_checked:
-        item = id_to_item.get(iid)
-        if item is None:
-            continue
-        if _completion_type_raw(item) == "signature_based":
-            continue
-        checked.add(iid)
-
-
-def _prune_sequential(checked: set[int], sorted_items: list[dict[str, Any]]) -> None:
-    changed = True
-    while changed:
-        changed = False
-        for i, item in enumerate(sorted_items):
-            try:
-                iid = int(item["id"])
-            except (KeyError, TypeError, ValueError):
-                continue
-            if iid not in checked:
-                continue
-            if item.get("allow_unordered_check"):
-                continue
-            for j in range(i):
-                try:
-                    prev_id = int(sorted_items[j]["id"])
-                except (KeyError, TypeError, ValueError):
-                    continue
-                if prev_id not in checked:
-                    checked.discard(iid)
-                    changed = True
-                    break
-
-
 def _prune_selectable(checked: set[int], sorted_items: list[dict[str, Any]]) -> None:
     for item in sorted_items:
         try:
@@ -155,6 +121,8 @@ def _prune_selectable(checked: set[int], sorted_items: list[dict[str, Any]]) -> 
         if iid not in checked:
             continue
         if _auto_would_complete(item, iid, checked):
+            continue
+        if not _is_submit_gated_integration(item):
             continue
         sel = item.get("selectable_when")
         if sel and not evaluate_checklist_condition(sel, checked - {iid}):
@@ -168,7 +136,7 @@ def merge_task_checklist_checked_ids(
 ) -> list[int]:
     """
     Compute authoritative checked ids: auto_complete_when, lock_uncheck_when,
-    sequential order, and selectable_when (manual-only gate).
+    and selectable_when (manual-only gate).
     """
     valid: set[int] = set()
     for it in items:
@@ -207,9 +175,7 @@ def merge_task_checklist_checked_ids(
     for _ in range(len(sorted_items) * 6 + 12):
         before = frozenset(checked)
         _apply_auto_complete(checked, sorted_items)
-        _apply_persisted_checked_ids(checked, sorted_items, old_checked)
         _apply_locks(checked, sorted_items, old_checked)
-        _prune_sequential(checked, sorted_items)
         _prune_selectable(checked, sorted_items)
         if frozenset(checked) == before:
             break
@@ -247,21 +213,10 @@ def _classify_stripped_id(
         return MERGE_REASON_PRUNED
     if _completion_type_raw(item) == "signature_based":
         return MERGE_REASON_SIGNATURE_BASED
-    idx = next(
-        (k for k, it in enumerate(sorted_items) if int(it["id"]) == iid),
-        None,
-    )
-    if idx is not None and not item.get("allow_unordered_check"):
-        for j in range(idx):
-            try:
-                prev_id = int(sorted_items[j]["id"])
-            except (KeyError, TypeError, ValueError):
-                continue
-            if prev_id not in effective:
-                return MERGE_REASON_SEQUENTIAL_ORDER
-    sel = item.get("selectable_when")
-    if sel and not evaluate_checklist_condition(sel, set(effective)):
-        return MERGE_REASON_SELECTABLE_WHEN
+    if _is_submit_gated_integration(item):
+        sel = item.get("selectable_when")
+        if sel and not evaluate_checklist_condition(sel, set(effective)):
+            return MERGE_REASON_SELECTABLE_WHEN
     return MERGE_REASON_PRUNED
 
 

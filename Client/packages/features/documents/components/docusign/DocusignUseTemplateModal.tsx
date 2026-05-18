@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { useLocalization } from "packages/contexts";
-import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
+import { useAgentClients } from "packages/features/agent/hooks/data/clients/useAgentClients";
 import { docusignApi } from "packages/features/documents/api/docusign";
 import type {
   DocusignTemplateRoleMapEntry,

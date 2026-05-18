@@ -10,8 +10,7 @@ from functools import wraps
 from flask import Blueprint, jsonify, request
 
 from app.schemas import ClientErrorReport, SuccessResponse
-from app.utils.security import rate_limit
-from app.utils.security.security import SecurityError, security_error_response
+from app.utils.security import SecurityError, rate_limit, security_error_response
 from app.utils.validation import validate_request, validate_response
 
 # Centralized logger (category-based, PII scrubbing)

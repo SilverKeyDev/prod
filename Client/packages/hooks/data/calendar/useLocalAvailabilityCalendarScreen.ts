@@ -12,18 +12,6 @@ import type {
   ExtendedGoogleEvent,
 } from "packages/features/calendar/types/calendar";
 import type { GoogleEvent } from "packages/features/calendar/types/googleEvent";
-import {
-  calendarDateToKey,
-  getCalendarDayListHeading,
-} from "packages/features/calendar/utils/core/calendarDateKeys";
-import {
-  calculateCalendarDateRange,
-  getVisibleDateRange,
-  stepFocusedDate,
-} from "packages/features/calendar/utils/core/date";
-import { formatCalendarToolbarLabel } from "packages/features/calendar/utils/grid/calendarToolbarLabel";
-import { buildWeekTimedEventResizeGoogleEvent } from "packages/features/calendar/utils/grid/calendarWeekTimedEventResize";
-import { getEventLocalDayKeys } from "packages/features/calendar/utils/parsing/eventParsing";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { expandProfileAvailabilityToEvents } from "packages/features/profile/utils/availability/expandProfileAvailabilityToEvents";
 import {
@@ -35,6 +23,16 @@ import { useMediaQuery } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
 import { screenUp } from "packages/ui/types/screens";
+import {
+  buildWeekTimedEventResizeGoogleEvent,
+  calculateCalendarDateRange,
+  calendarDateToKey,
+  formatCalendarToolbarLabel,
+  getCalendarDayListHeading,
+  getEventLocalDayKeys,
+  getVisibleDateRange,
+  stepFocusedDate,
+} from "packages/utils/calendar";
 import { dateNow, dayjs } from "packages/utils/date";
 import { getDocument } from "packages/utils/platform";
 
@@ -266,7 +264,11 @@ export function useLocalAvailabilityCalendarScreen({
       if (t instanceof Element && t.closest(SILVERKEY_MODAL_ROOT_SELECTOR)) {
         return;
       }
-      if (t instanceof Element && t.closest("[data-silverkey-quick-event-popover]")) {
+      if (
+        t instanceof Element &&
+        (t.closest("[data-silverkey-quick-event-popover]") ||
+          t.closest("[data-silverkey-create-event-form-popover]"))
+      ) {
         return;
       }
       const hit = gridDisplayEvents.find((x) => x.id === weekSelectedEventId);
@@ -373,6 +375,8 @@ export function useLocalAvailabilityCalendarScreen({
     setEditEvent: quickSession.setEditEvent,
     fullCreateFromQuickOpen: quickSession.fullCreateFromQuickOpen,
     setFullCreateFromQuickOpen: quickSession.setFullCreateFromQuickOpen,
+    fullCreateAnchorRect: quickSession.fullCreateAnchorRect,
+    dismissFullCreate: quickSession.dismissFullCreate,
     fullCreatePrefill: quickSession.fullCreatePrefill,
     fullCreateKey: quickSession.fullCreateKey,
     isCreatingQuickEvent: quickSession.isCreatingQuickEvent,

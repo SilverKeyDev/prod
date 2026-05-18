@@ -34,8 +34,8 @@ from app.utils.common_patterns import (
     require_agent_access,
     require_authenticated_user,
 )
+from app.utils.security import SecurityError, rate_limit, security_error_response
 from app.utils.security.secure_errors import SecureErrorHandler
-from app.utils.security.security import SecurityError, rate_limit, security_error_response
 from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, log
 

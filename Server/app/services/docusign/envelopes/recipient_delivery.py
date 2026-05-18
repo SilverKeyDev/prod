@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from app.models import AgreementParticipant
 from app.schemas.generated import DocusignUpdateEnvelopeNotificationRequest
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, get_logger
 
 from ..agreements.agreement_crud import get_agreement
@@ -26,7 +27,7 @@ def resend_agreement_recipient(agreement_id: str, participant_id: str, note: str
     if not agreement.docusign_envelope_id:
         raise AgreementStateError("Agreement has no DocuSign envelope")
 
-    participant = AgreementParticipant.query.get(participant_id)
+    participant = get_model(AgreementParticipant, participant_id)
     if not participant or participant.agreement_id != agreement.id:
         raise AgreementStateError("Participant not found on this agreement")
     if participant.role != "signer":

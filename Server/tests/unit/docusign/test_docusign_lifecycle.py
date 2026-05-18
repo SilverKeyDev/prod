@@ -8,6 +8,8 @@ from unittest.mock import patch
 import pytest
 from flask import Flask
 
+from app.utils.db.orm_lookup import get_model
+
 
 class TestAgreementLifecycle:
     """Test agreement lifecycle operations"""
@@ -184,7 +186,7 @@ class TestAgreementLifecycle:
             AgreementLifecycleService.remove_participant(agreement.id, participant_id)
 
             # Verify participant removed
-            removed = AgreementParticipant.query.get(participant_id)
+            removed = get_model(AgreementParticipant, participant_id)
             assert removed is None
 
     def test_update_participant_routing_order(self, app: Flask, db_session, sample_agreement):
@@ -231,7 +233,7 @@ class TestAgreementLifecycle:
 
                 AgreementLifecycleService.void_agreement(agreement.id, "Testing void", "agent-123")
 
-                voided = Agreement.query.get(agreement.id)
+                voided = get_model(Agreement, agreement.id)
                 assert voided.status == "voided"
                 assert voided.voided_at is not None
 
@@ -254,7 +256,7 @@ class TestAgreementLifecycle:
 
                 AgreementLifecycleService.void_agreement(agreement.id, "Testing void", "agent-123")
 
-                voided = Agreement.query.get(agreement.id)
+                voided = get_model(Agreement, agreement.id)
                 assert voided.status == "voided"
                 # Verify DocuSign void was called
                 mock_docusign_client.return_value.void_envelope.assert_called_once()
@@ -340,8 +342,8 @@ class TestAgreementLifecycle:
                 agreement.id, "cleanup", sample_agreement["agent_id"]
             )
 
-            assert DocumentLibraryItem.query.get(lib_id) is None
-            refreshed = Agreement.query.get(agreement.id)
+            assert get_model(DocumentLibraryItem, lib_id) is None
+            refreshed = get_model(Agreement, agreement.id)
             assert refreshed is not None
             assert refreshed.library_item_id is None
             assert refreshed.status == "completed"

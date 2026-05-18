@@ -4,7 +4,6 @@
  * Without this, some builds/dev timings can resolve prefetch quickly while a
  * later lazy boundary still pays full fetch/eval cost.
  */
-let clientListModulePromise: Promise<typeof import("../ClientList/ClientList")> | null = null;
 let dashboardChecklistsModulePromise: Promise<
   typeof import("../DashboardChecklists/DashboardChecklists")
 > | null = null;
@@ -17,11 +16,6 @@ let dashboardAgreementSigningModalsModulePromise: Promise<
 let upcomingEventsModulePromise: Promise<
   typeof import("packages/features/calendar/components/agenda/UpcomingEvents")
 > | null = null;
-
-export function loadClientListModule(): Promise<typeof import("../ClientList/ClientList")> {
-  clientListModulePromise ??= import("../ClientList/ClientList");
-  return clientListModulePromise;
-}
 
 export function loadDashboardChecklistsModule(): Promise<
   typeof import("../DashboardChecklists/DashboardChecklists")

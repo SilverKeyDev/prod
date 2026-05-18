@@ -5,7 +5,6 @@
 export * from "./agenda/agendaAllDisplay";
 export * from "./agenda/estimateViewingItineraryDuration";
 export * from "./agenda/mergeUpcomingAgenda";
-export * from "./core/agentTaskEvent";
 export * from "./core/calendar";
 export * from "./core/calendarDateKeys";
 export * from "./core/date";

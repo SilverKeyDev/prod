@@ -26,7 +26,7 @@ class TestUserProfile:
             db_session.session.commit()
 
             # Mock authentication - patch where it's imported
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.get(
@@ -50,7 +50,7 @@ class TestUserProfile:
     def test_get_profile_invalid_token(self, client, app: Flask):
         """Test GET /api/v1/user/profile with invalid token"""
         with app.app_context():
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 from app.services.auth import SecurityException
 
                 mock_get.side_effect = SecurityException(("invalid_token", 401))
@@ -76,7 +76,7 @@ class TestUserProfile:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 with patch("app.services.documents.s3_service") as mock_s3:
@@ -124,7 +124,7 @@ class TestUserProfile:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 with patch("app.services.documents.s3_service") as mock_s3:
@@ -167,7 +167,7 @@ class TestUserProfile:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch("app.utils.common_patterns.get_current_user") as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.post(

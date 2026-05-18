@@ -1,5 +1,6 @@
 import { pathFor } from "packages/navigation/router/paths";
 import type { IconName } from "packages/ui/types/icons";
+import { stripWorkspaceShellPrefix } from "packages/utils/layout/dashboardLayoutConfig";
 
 export type SidebarTabKey = "dashboard" | "search" | "decide" | "profile" | "agent";
 export type SidebarSubStep = {
@@ -93,16 +94,12 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
   },
 };
 export const getTabByPath = (pathname: string): SidebarTab | undefined => {
-  if (pathname.startsWith("/dashboard")) return SIDEBAR_TABS.dashboard;
-  if (pathname.startsWith("/profile")) return SIDEBAR_TABS.profile;
-  if (pathname.startsWith("/search")) return SIDEBAR_TABS.search;
-  if (
-    pathname.startsWith("/library") ||
-    pathname.startsWith("/saved") ||
-    pathname.startsWith("/compare-reports")
-  )
+  const p = stripWorkspaceShellPrefix(pathname);
+  if (p.startsWith("/dashboard")) return SIDEBAR_TABS.dashboard;
+  if (p.startsWith("/profile")) return SIDEBAR_TABS.profile;
+  if (p.startsWith("/search")) return SIDEBAR_TABS.search;
+  if (p.startsWith("/library") || p.startsWith("/saved") || p.startsWith("/compare-reports"))
     return SIDEBAR_TABS.decide;
-  if (pathname.startsWith("/messaging") || pathname.startsWith("/find-agents"))
-    return SIDEBAR_TABS.agent;
+  if (p.startsWith("/messaging") || p.startsWith("/find-agents")) return SIDEBAR_TABS.agent;
   return undefined;
 };

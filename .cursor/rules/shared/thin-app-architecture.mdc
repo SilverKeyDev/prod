@@ -26,6 +26,7 @@ alwaysApply: true
 3. **Routing map**
    - Web: `<BrowserRouter>` and route list (e.g. `/login`, `/dashboard`)
    - Mobile: `<Stack.Navigator>`, bottom tabs, screen registration
+   - **Workspace shells** (e.g. `/buyer/*`, `/seller/*`, `/brokerage/*`): stay thin in `apps/web`; workspace state and feature logic live in `packages/`. See [documentation/client/workspace-first-architecture.md](../../../documentation/client/workspace-first-architecture.md).
 
 4. **Page/screen composition**
    - Thin files that **compose** shared layout and feature components from `packages/`. No data-fetching or complex logic in the page file itself — use hooks from `packages/hooks/` and components from shared packages.

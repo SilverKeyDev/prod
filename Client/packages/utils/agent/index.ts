@@ -1,3 +1,17 @@
+export {
+  buildClientHubPath,
+  generateClientHubIdSlug,
+  generateClientHubNameSlug,
+  parseClientHubPathname,
+  type ParsedClientHubPath,
+  resolveClientHubRouteClientId,
+  resolveClientIdFromHubSegments,
+  resolveClientIdFromLegacyHubSegment,
+} from "./clientHubSlug";
+export {
+  type AgentPublicProfileLinkAgent,
+  openAgentPublicProfileExternal,
+} from "./openAgentPublicProfileExternal";
 export type { PendingAgentConnectMeta } from "./pendingPublicAgentConnect";
 export {
   clearPendingPublicAgentConnect,

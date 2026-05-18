@@ -4,6 +4,7 @@ import { AllAgendaEventsModal } from "packages/features/calendar/components/view
 import { EventList } from "packages/features/calendar/components/view/agenda/EventList";
 import { UpcomingAgendaList } from "packages/features/calendar/components/view/agenda/UpcomingAgendaList";
 import { CalendarConnectionPrompt } from "packages/features/calendar/components/view/CalendarConnectionPrompt";
+import { ClientCalendarAccessPrompt } from "packages/features/calendar/components/view/ClientCalendarAccessPrompt";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Text } from "packages/ui/components/primitives";
 
@@ -90,6 +91,30 @@ export function UpcomingEvents({
       </Card>
     );
     return wrap(loadingCard);
+  }
+
+  if (d.isClientAgendaMode && d.clientCalendarAccessError) {
+    const hasTodosWhileBlocked =
+      d.useAgendaList &&
+      (d.agendaTodosIncompleteInRange.length > 0 || d.completedAgendaTodosSorted.length > 0);
+
+    const accessBlockedBody = (
+      <Box className={sectionTitle ? "w-full gap-4" : "mt-4 w-full gap-4"}>
+        <Card border="charcoal" className="w-full" padding="sm" hover={false}>
+          <ClientCalendarAccessPrompt
+            clientHasConnection={d.clientCalendarAccessError.clientHasConnection}
+          />
+        </Card>
+        {hasTodosWhileBlocked ? (
+          <UpcomingAgendaList
+            items={mergeUpcomingAgendaItems([], d.agendaTodosIncompleteInRange)}
+            {...d.agendaListProps}
+          />
+        ) : null}
+        {allAgendaEventsModalEl}
+      </Box>
+    );
+    return wrap(accessBlockedBody);
   }
 
   if (d.isClientAgendaMode && d.clientAgendaErrorMessage) {

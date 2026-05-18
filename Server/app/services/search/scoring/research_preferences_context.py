@@ -10,6 +10,7 @@ import json
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from app.services.agent.client_service import agent_may_access_client
 from app.services.aggregation import get_preferences_dict_optional
 
 ProfileSubject = Literal["self", "client"]
@@ -92,17 +93,8 @@ def resolve_preferences_user_id_for_research(
         # Buyers: ignore other users' ids (no privilege escalation probe)
         return uid, None
 
-    try:
-        raw = getattr(user, "client_ids", None)
-        if raw:
-            client_ids = json.loads(raw) if isinstance(raw, str) else list(raw)
-        else:
-            client_ids = []
-    except (json.JSONDecodeError, TypeError):
-        client_ids = []
-
     target = str(requested_id).strip()
-    if target not in client_ids:
+    if not agent_may_access_client(uid, target):
         return None, {
             "success": False,
             "error": "FORBIDDEN",

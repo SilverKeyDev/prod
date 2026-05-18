@@ -58,9 +58,9 @@ export function useCreateEventModalSubmitFlow(params: {
   onClose: () => void;
   enqueueToast: EnqueueToast;
   addGoogleMeet: boolean;
-  showGoogleMeetOption: boolean;
   setIsSendingCalendarRequest: (v: boolean) => void;
   setIsSavingUnscheduled: (v: boolean) => void;
+  clampTimedEndToStartLocalDay: boolean;
 }) {
   const {
     isCalendarEventRequestFlow,
@@ -93,9 +93,9 @@ export function useCreateEventModalSubmitFlow(params: {
     onClose,
     enqueueToast,
     addGoogleMeet,
-    showGoogleMeetOption,
     setIsSendingCalendarRequest,
     setIsSavingUnscheduled,
+    clampTimedEndToStartLocalDay,
   } = params;
 
   const explicitEventType = explicitEventTypeForCalendarKind(eventKindId);
@@ -196,7 +196,8 @@ export function useCreateEventModalSubmitFlow(params: {
       onClose,
       setIsSavingUnscheduled,
       enqueueToast,
-      addGoogleMeet: showGoogleMeetOption ? addGoogleMeet : false,
+      addGoogleMeet,
+      clampTimedEndToStartLocalDay: clampTimedEndToStartLocalDay || undefined,
     });
   }, [
     isCalendarEventRequestFlow,
@@ -229,9 +230,9 @@ export function useCreateEventModalSubmitFlow(params: {
     onClose,
     enqueueToast,
     addGoogleMeet,
-    showGoogleMeetOption,
     setIsSendingCalendarRequest,
     setIsSavingUnscheduled,
+    clampTimedEndToStartLocalDay,
   ]);
 
   return { handleSubmit };

@@ -1,4 +1,4 @@
-import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
+import { useAgentClients } from "packages/features/agent/hooks/data/clients/useAgentClients";
 
 import { useAgentSearchShareBundleSend } from "./useAgentSearchShareBundleSend";
 

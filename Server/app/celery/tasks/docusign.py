@@ -20,6 +20,7 @@ from app.services.docusign import (
 )
 from app.services.docusign.envelopes import TemplateEnvelopeBuilder
 from app.services.docusign.errors import DocusignAPIError, DocusignAuthError
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, get_logger
 
 logger = get_logger()
@@ -97,7 +98,7 @@ def send_envelope_task(
         )
 
         # Load agreement
-        agreement = Agreement.query.get(agreement_id)
+        agreement = get_model(Agreement, agreement_id)
         if not agreement:
             logger.error(
                 LOG_CATEGORIES["ERRORS"], "Agreement not found", {"agreement_id": agreement_id}
@@ -240,7 +241,7 @@ def process_webhook_task(self, event_id: str):
 
         # Update retry count
         try:
-            event = DocusignConnectEvent.query.get(event_id)
+            event = get_model(DocusignConnectEvent, event_id)
             if event:
                 event.retry_count += 1
                 event.processing_error = str(exc)
@@ -281,7 +282,7 @@ def fetch_completed_documents_task(self, agreement_id: str):
             {"agreement_id": agreement_id, "attempt": self.request.retries + 1},
         )
 
-        agreement = Agreement.query.get(agreement_id)
+        agreement = get_model(Agreement, agreement_id)
         if not agreement or not agreement.docusign_envelope_id:
             logger.error(
                 LOG_CATEGORIES["ERRORS"], "Cannot fetch documents", {"agreement_id": agreement_id}

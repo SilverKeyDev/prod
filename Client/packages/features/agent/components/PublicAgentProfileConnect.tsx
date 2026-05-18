@@ -11,7 +11,7 @@ import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { setPendingPublicAgentConnect } from "packages/utils/agent";
 
-import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
+import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";
 import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 
 export type PublicAgentProfileConnectProps = {

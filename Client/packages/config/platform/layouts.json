@@ -52,7 +52,7 @@
     "description": "Agent messaging inbox list before a client conversation is selected",
     "webPath": "packages/features/agent/components/messaging/screen/MessagingAgentListSubview.tsx",
     "nativePath": "packages/features/agent/components/messaging/screen/MessagingAgentListSubview.native.tsx",
-    "reason": "Native uses RN FlatList and Pressable rows; web agent inbox uses UnifiedMessagingSidebar in the workspace layout.",
+    "reason": "Native uses RN FlatList and Pressable rows; web agent inbox uses MessagingSidebarShell + agent chrome in the workspace layout.",
     "category": "layout"
   },
   {
@@ -120,8 +120,8 @@
   {
     "id": "onboarding-screen",
     "description": "Onboarding screen with platform-specific layout",
-    "webPath": "packages/features/homeauth/components/onboarding-mobile/OnboardingFeature.tsx",
-    "nativePath": "packages/features/homeauth/components/onboarding-mobile/OnboardingScreen.native.tsx",
+    "webPath": "packages/features/homeauth/components/flows/OnboardingFeature.tsx",
+    "nativePath": "packages/features/profile/components/onboarding/OnboardingScreen.native.tsx",
     "reason": "Native onboarding layout.",
     "category": "layout"
   },

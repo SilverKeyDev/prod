@@ -11,8 +11,8 @@ import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, CancelButton, CloseButton, Input, Title } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
-import { useClientSearch } from "@/features/agent/hooks/data/useAgentSearch";
-import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
+import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";
+import { useClientSearch } from "@/features/agent/hooks/data/discovery/useAgentSearch";
 import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 type ClientSearchModalProps = {
   isOpen: boolean;

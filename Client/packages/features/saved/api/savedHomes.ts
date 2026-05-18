@@ -1,10 +1,10 @@
 import { authApi } from "packages/features/homeauth/api/auth";
-import {
-  type AddFavoriteRequest,
-  type FavoriteHomesReplaceResponse,
-  type RemoveFavoriteRequest,
-  userApi,
-} from "packages/features/homeauth/api/user";
+import { userApi } from "packages/features/homeauth/api/user";
+import type {
+  AddFavoriteRequest,
+  FavoriteHomesReplaceResponse,
+  RemoveFavoriteRequest,
+} from "packages/features/homeauth/types/auth/user";
 import { mapToAddFavoriteHomePayload } from "packages/features/saved/utils/mapToAddFavoriteHomePayload";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { AuthenticationError } from "packages/services/http/client";

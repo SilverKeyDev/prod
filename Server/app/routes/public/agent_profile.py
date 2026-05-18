@@ -5,8 +5,8 @@ from flask import jsonify
 from app.schemas.generated import PublicAgentProfileResponse, Success
 from app.services.public_agent_profile import build_public_agent_profile
 from app.services.public_profile_slug import lookup_agent_user_id_by_public_slug
-from app.utils.http_cache import apply_edge_cache
-from app.utils.security.security import rate_limit
+from app.utils.http.cache import apply_edge_cache
+from app.utils.security import rate_limit
 from app.utils.validation import validate_response
 
 from . import public_bp

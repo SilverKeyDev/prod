@@ -10,6 +10,7 @@ import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type {
   CalendarQuickCreateAnchorRect,
   CalendarQuickCreateState,
+  WeekTimeSlotDoubleClickPayload,
 } from "@/features/calendar/types/calendarQuickCreate";
 import type { GoogleCalendarEventCreateBody } from "@/features/calendar/types/googleEvent";
 import { calendarDateToKey } from "@/features/calendar/utils/core/calendarDateKeys";
@@ -79,10 +80,30 @@ export function useCalendarQuickCreateSession({
   const [fullCreatePrefill, setFullCreatePrefill] =
     useState<CreateModalPrefilledCreateSnapshot | null>(null);
   const [fullCreateKey, setFullCreateKey] = useState(0);
+  const [fullCreateAnchorRect, setFullCreateAnchorRect] =
+    useState<CalendarQuickCreateAnchorRect | null>(null);
   const [quickCreateAnchorRect, setQuickCreateAnchorRect] =
     useState<CalendarQuickCreateAnchorRect | null>(null);
 
   const commitQuickCreateRef = useRef<() => Promise<void>>(async () => {});
+
+  const openFullCreateFromPrefill = useCallback(
+    (
+      snapshot: CreateModalPrefilledCreateSnapshot,
+      opts?: { anchorRect?: CalendarQuickCreateAnchorRect | null }
+    ) => {
+      setFullCreatePrefill(snapshot);
+      setFullCreateKey((k) => k + 1);
+      setFullCreateAnchorRect(opts?.anchorRect ?? null);
+      setFullCreateFromQuickOpen(true);
+    },
+    []
+  );
+
+  const dismissFullCreate = useCallback(() => {
+    setFullCreateFromQuickOpen(false);
+    setFullCreateAnchorRect(null);
+  }, []);
 
   useEffect(() => {
     const win = getWindow();
@@ -244,16 +265,51 @@ export function useCalendarQuickCreateSession({
   );
 
   const handleWeekTimeSlotDoubleClick = useCallback(
-    async (payload: { date: Date; minutesFromMidnight: number }) => {
+    async (payload: WeekTimeSlotDoubleClickPayload) => {
       if (isClientView) {
         return;
       }
       if (quickCreateRef.current) {
         await commitQuickCreateRef.current();
       }
-      beginQuickCreateWeek(payload.date, payload.minutesFromMidnight);
+      if (localPersistence) {
+        beginQuickCreateWeek(payload.date, payload.minutesFromMidnight);
+        return;
+      }
+      const startYmd = calendarDateToKey(payload.date);
+      const { startTime, endTime } = defaultTimedRangeFromMinutes(
+        startYmd,
+        payload.minutesFromMidnight
+      );
+      const shell = calendarShellRef.current;
+      const fallbackAnchor: CalendarQuickCreateAnchorRect | null = shell
+        ? (() => {
+            const r = shell.getBoundingClientRect();
+            return { top: r.top + 72, left: r.left + 16, width: 4, height: 4 };
+          })()
+        : null;
+      openFullCreateFromPrefill(
+        {
+          eventTitle: "New Event",
+          eventDescription: "",
+          eventLocation: "",
+          startDate: startYmd,
+          endDate: startYmd,
+          startTime,
+          endTime,
+          isAllDay: false,
+          timesChosenViaWeekSlot: true,
+        },
+        { anchorRect: payload.anchorRect ?? fallbackAnchor }
+      );
     },
-    [beginQuickCreateWeek, isClientView]
+    [
+      beginQuickCreateWeek,
+      calendarShellRef,
+      isClientView,
+      localPersistence,
+      openFullCreateFromPrefill,
+    ]
   );
 
   const handleMonthQuickCreateDoubleTap = useCallback(
@@ -274,20 +330,22 @@ export function useCalendarQuickCreateSession({
     if (!q) {
       return;
     }
-    setFullCreatePrefill({
-      eventTitle: q.eventTitle,
-      eventDescription: q.eventDescription,
-      eventLocation: q.eventLocation,
-      startDate: q.startDate,
-      endDate: q.endDate,
-      startTime: q.startTime,
-      endTime: q.endTime,
-      isAllDay: q.isAllDay,
-    });
-    setFullCreateKey((k) => k + 1);
+    openFullCreateFromPrefill(
+      {
+        eventTitle: q.eventTitle,
+        eventDescription: q.eventDescription,
+        eventLocation: q.eventLocation,
+        startDate: q.startDate,
+        endDate: q.endDate,
+        startTime: q.startTime,
+        endTime: q.endTime,
+        isAllDay: q.isAllDay,
+        timesChosenViaWeekSlot: !q.isAllDay && q.source === "week",
+      },
+      { anchorRect: null }
+    );
     discardQuickCreate();
-    setFullCreateFromQuickOpen(true);
-  }, [discardQuickCreate]);
+  }, [discardQuickCreate, openFullCreateFromPrefill]);
 
   useCalendarQuickCreateOutsidePointer(
     quickCreate,
@@ -335,6 +393,8 @@ export function useCalendarQuickCreateSession({
     setEditEvent,
     fullCreateFromQuickOpen,
     setFullCreateFromQuickOpen,
+    fullCreateAnchorRect,
+    dismissFullCreate,
     fullCreatePrefill,
     fullCreateKey,
     isCreatingQuickEvent: localPersistence ? localPersistence.isSaving : isCreatingEvent,

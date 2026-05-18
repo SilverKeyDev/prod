@@ -1,8 +1,8 @@
 /// <reference types="google.maps" />
 import React, { useCallback, useState } from "react";
 
+import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/agent/hooks/data/search/useAgentSyncPreferencesWhenClientSelected";
 import { useSearchPageData } from "packages/features/search/hooks/data/page/useSearchPageData";
-import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/search/hooks/data/useAgentSyncPreferencesWhenClientSelected";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useSearchScreenCriteriaSummary } from "packages/features/search/hooks/ui/useSearchScreenCriteriaSummary";
 import { useSearchScreenSearchExecution } from "packages/features/search/hooks/ui/useSearchScreenSearchExecution";

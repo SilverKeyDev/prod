@@ -9,7 +9,8 @@ from flask import current_app, request
 from jose.exceptions import ExpiredSignatureError, JWTClaimsError
 
 from app.models import User
-from app.utils.security.security import SecurityError, log_security_event, security_error_response
+from app.utils.security import SecurityError, security_error_response
+from app.utils.security.security import log_security_event
 
 from ..tokens.verification import (
     classify_token,

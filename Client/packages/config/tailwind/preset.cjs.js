@@ -71,6 +71,13 @@ const spacingMap = {
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  safelist: [
+    // Messaging / inset sidebar selected person row (see sidebarInsetListRowClass + components.css)
+    "sk-inset-row-selected",
+    "bg-olive",
+    "bg-olive/10",
+    "hover:bg-olive/15",
+  ],
   theme: {
     screens: breakpoints,
     extend: {

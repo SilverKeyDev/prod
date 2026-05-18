@@ -2,10 +2,15 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react
 
 import { useQueryClient } from "@tanstack/react-query";
 
+import type { AgentClient } from "packages/api";
+import { mapTodosToAgendaDTO } from "packages/features/agent";
+import {
+  loadClientHubModule,
+  loadClientListModule,
+} from "packages/features/agent/components/loading/agentDashboardDynamicImports";
 import type { AgendaTodoDTO } from "packages/features/calendar/types/agenda";
-import ClientHubScreen from "packages/features/dashboard/components/ClientHub/ClientHubScreen";
 import { useDocumentsDataIntegration } from "packages/features/documents";
-import { useIsAgent } from "packages/features/homeauth";
+import { useActiveWorkspace } from "packages/features/homeauth";
 import { submitAgentAgendaTodo } from "packages/hooks/data/agenda/agentAgendaTodoSubmit";
 import {
   useCompletedSigningTodos,
@@ -18,15 +23,15 @@ import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
+import { buildClientHubPath, parseClientHubPathname } from "packages/utils/dashboard";
+import { stripWorkspaceShellPrefix } from "packages/utils/layout/dashboardLayoutConfig";
 import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 
-import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
-import type { TodoItem } from "@/features/agent/types/agent";
+import { useAgentTodos } from "@/features/agent/hooks/data/clientHub/useAgentTodos";
 import { useCalendarOAuthCallback } from "@/features/calendar/hooks/data";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
 
 import {
-  loadClientListModule,
   loadDashboardAgreementSigningModalsModule,
   loadDashboardCalendarPanelModule,
   loadDashboardChecklistsModule,
@@ -47,6 +52,11 @@ const UpcomingEventsLazy = lazy(
 // the same import() promise as React.lazy.
 const ClientList = lazy(
   traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:ClientList", loadClientListModule)
+);
+const ClientHubScreenLazy = lazy(
+  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:ClientHubScreen", () =>
+    loadClientHubModule().then((m) => ({ default: m.ClientHubScreen }))
+  )
 );
 const DashboardChecklists = lazy(
   traceLazyImport(
@@ -82,25 +92,16 @@ type DashboardFeatureProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
 };
 
-function mapTodosToAgendaDTO(todos: TodoItem[]): AgendaTodoDTO[] {
-  return todos.map((t) => ({
-    id: t.id,
-    title: t.title,
-    due_date: t.due_date,
-    completed: t.completed,
-  }));
-}
-
 export function DashboardFeature({ setMobileHeaderActions }: DashboardFeatureProps) {
   useFirstRenderCommitTimer(LOG_CATEGORIES.DASHBOARD, "DashboardFeature");
   const { navigateToPath, getCurrentRoute } = useNavigation();
-  const isAgent = useIsAgent();
+  const isAgentWorkspace = useActiveWorkspace() === "agent";
   const queryClient = useQueryClient();
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   useCalendarOAuthCallback({ enqueueToast });
 
   const { todos, createTodo, updateTodo } = useAgentTodos(false);
-  const signingTodos = useSigningTodos(isAgent);
+  const signingTodos = useSigningTodos(isAgentWorkspace);
   const completedSigningTodos = useCompletedSigningTodos();
   const {
     documents,
@@ -157,7 +158,7 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
   const defaultCalendarId = scopedCalendars[0]?.id ?? null;
 
   const canAddGoogleCalendarItem = Boolean(isConnected && defaultCalendarId);
-  const showAddButton = isAgent || canAddGoogleCalendarItem || !isAgent;
+  const showAddButton = isAgentWorkspace || canAddGoogleCalendarItem || !isAgentWorkspace;
 
   const headerActions = showAddButton ? (
     <Box className="flex flex-wrap items-center justify-end gap-2">
@@ -184,15 +185,20 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
     };
   }, [setMobileHeaderActions]);
 
-  const handleClientClick = (clientId: string) => {
-    navigateToPath(`/dashboard/client/${clientId}`);
+  const handleClientClick = (client: Pick<AgentClient, "id" | "name">) => {
+    navigateToPath(buildClientHubPath(client.id, client.name));
   };
 
-  const pathMatch = getCurrentRoute().pathname.match(/^\/dashboard\/client\/(.+)$/);
-  const clientIdFromPath = pathMatch ? pathMatch[1] : null;
+  const clientHubRoute = parseClientHubPathname(
+    stripWorkspaceShellPrefix(getCurrentRoute().pathname)
+  );
 
-  if (clientIdFromPath) {
-    return <ClientHubScreen clientId={clientIdFromPath} />;
+  if (clientHubRoute) {
+    return (
+      <Suspense fallback={dashboardSectionSkeleton}>
+        <ClientHubScreenLazy />
+      </Suspense>
+    );
   }
 
   return (
@@ -209,13 +215,13 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
           />
         </Suspense>
 
-        {isAgent ? (
+        {isAgentWorkspace ? (
           <Suspense fallback={dashboardSectionSkeleton}>
             <ClientList onClientClick={handleClientClick} />
           </Suspense>
         ) : null}
 
-        {!isAgent ? (
+        {!isAgentWorkspace ? (
           <Suspense fallback={dashboardSectionSkeleton}>
             <DashboardChecklists />
           </Suspense>
@@ -237,7 +243,7 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
                     description: payload.description,
                     deadlineDate: null,
                     deadlineTime: null,
-                    clientId: isAgent ? payload.clientId : undefined,
+                    clientId: isAgentWorkspace ? payload.clientId : undefined,
                   },
                   {
                     useCalendarEvent: false,

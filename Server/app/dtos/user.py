@@ -87,6 +87,9 @@ class UserDTO:
         if include_roles:
             data["roles"] = [ur.role for ur in user.user_roles]
 
+        # Brokerage roster membership (optional; no DB column until brokerage admin ships).
+        data["brokerage_org_ids"] = getattr(user, "brokerage_org_ids", None)
+
         if presign_profile_pic:
             url = _try_presigned_profile_picture_url(user)
             if url is not None:

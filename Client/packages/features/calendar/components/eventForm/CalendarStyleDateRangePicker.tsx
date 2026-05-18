@@ -12,6 +12,7 @@ import { dateNow, dayjs } from "packages/utils/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { Calendar, CalendarViewType } from "@/features/calendar/types/calendar";
+import type { WeekTimeSlotDoubleClickPayload } from "@/features/calendar/types/calendarQuickCreate";
 import {
   formatDateRange,
   getVisibleDateRange,
@@ -218,6 +219,8 @@ export function CalendarStyleDateRangePicker({
 
   const activateWeekView = useCallback(() => {
     setLayoutMode("week");
+    setRangeMode(false);
+    setPendingStart(null);
     const t = startDate?.trim();
     if (t && dayjs(t, "YYYY-MM-DD", true).isValid()) {
       setWeekFocusedDate(dayjs(t, "YYYY-MM-DD", true).toDate());
@@ -238,7 +241,7 @@ export function CalendarStyleDateRangePicker({
   );
 
   const handleWeekTimeSlotDoubleClick = useCallback(
-    (payload: { date: Date; minutesFromMidnight: number }) => {
+    (payload: WeekTimeSlotDoubleClickPayload) => {
       const ymd = dayjs(payload.date).format("YYYY-MM-DD");
       const { startTime, endTime } = defaultTimedRangeFromMinutes(ymd, payload.minutesFromMidnight);
       onRangeChange(ymd, ymd);

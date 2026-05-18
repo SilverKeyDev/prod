@@ -10,6 +10,7 @@ from pydantic import EmailStr, TypeAdapter
 from app.dtos.user import _profile_picture_content_type, _try_presigned_profile_picture_url
 from app.models import User, UserAgentProfile
 from app.schemas.generated import PublicAgentProfile
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, log
 
 
@@ -102,7 +103,7 @@ def build_public_agent_profile(user_id: str) -> PublicAgentProfile | None:
     """Return validated public profile or None if user is missing, not an agent, or inactive."""
     if not user_id or not str(user_id).strip():
         return None
-    user = User.query.get(str(user_id).strip())
+    user = get_model(User, str(user_id).strip())
     if user is None:
         return None
     is_active = user.is_active if user.is_active is not None else True

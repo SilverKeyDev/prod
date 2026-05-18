@@ -8,7 +8,9 @@ import {
   toUserStoreProfile,
 } from "packages/features/homeauth/hooks/data/utils/userMapping";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { ROUTES } from "packages/navigation/types/routes";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
+import { resetWorkspaceStore, useDevAppPersonaStore } from "packages/store";
 import { asError, getWindow } from "packages/utils";
 
 import type { UserProfile } from "@/features/homeauth/types";
@@ -69,7 +71,7 @@ function applyLoginSuccess(
     setStoreIsAuthenticated(true);
     setStoreAuthStatus("authenticated");
     setStoreAuthReady(true);
-    setStorePostAuthRedirectPath("/search");
+    setStorePostAuthRedirectPath(ROUTES.SEARCH);
     setUserProfile(userStoreProfile);
     if (getEnv().isDevelopment) {
       log.debug(LOG_CATEGORIES.AUTH, "User state after login", {
@@ -82,7 +84,7 @@ function applyLoginSuccess(
     setStoreIsAuthenticated(true);
     setStoreAuthStatus("authenticated");
     setStoreAuthReady(true);
-    setStorePostAuthRedirectPath("/search");
+    setStorePostAuthRedirectPath(ROUTES.SEARCH);
   }
   setLoginRef(false);
   if (getEnv().isDevelopment) {
@@ -184,6 +186,8 @@ export async function performLogout(setters: LogoutSetters): Promise<void> {
   setStoreAuthReady(false);
   setStorePostAuthRedirectPath(null);
   setUserProfile(null);
+  resetWorkspaceStore();
+  useDevAppPersonaStore.setState({ persona: null });
   clearSessionStorageForLogout();
   log.security(LOG_CATEGORIES.AUTH, "User logged out - HTTP-only cookies cleared by server");
   log.info(LOG_CATEGORIES.AUTH, "Logout complete, navigating to /login");
@@ -242,6 +246,8 @@ export async function performRefreshToken(setters: RefreshSetters): Promise<bool
       setters.setStoreUser(null);
       setters.setStoreIsAuthenticated(false);
       setters.setStoreAuthStatus("unauthenticated");
+      resetWorkspaceStore();
+      useDevAppPersonaStore.setState({ persona: null });
     } else {
       log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed", {
         error: response.error,

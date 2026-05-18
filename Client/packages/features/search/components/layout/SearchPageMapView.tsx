@@ -1,4 +1,5 @@
 import type { PreciseStreetAddressPayload } from "packages/features/search/components/header/location-bar/SearchLocationBar.web";
+import { SearchHeaderPopoverDismissProvider } from "packages/features/search/hooks/ui/searchHeaderPopoverDismiss.web";
 import { useSearchViewStore } from "packages/store";
 import { MotionView } from "packages/ui/components/adapters/motion";
 
@@ -34,8 +35,6 @@ export type SearchPageMapViewProps = {
   setHasSearched: (searched: boolean) => void;
   selectedPropertyId: string | undefined;
   onSearchProperties: () => void | Promise<void>;
-  /** Save preferences then run the same search as the main Search control (used by preferences Apply). */
-  onPreferencesApplySearch?: () => void | Promise<void>;
   /** When false, main Search uses the location bar (or warns if the bar is empty). */
   hasLocations?: boolean;
   /** Location bar / map viewport polygon search (not preferences isochrone). */
@@ -87,7 +86,6 @@ export function SearchPageMapView({
   setHasSearched,
   selectedPropertyId,
   onSearchProperties,
-  onPreferencesApplySearch,
   hasLocations = true,
   onLocationSearchSubmit,
   onCancelSearch,
@@ -119,81 +117,82 @@ export function SearchPageMapView({
   };
 
   return (
-    <MotionView
-      key="map"
-      className="h-full"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      <SearchPageMobileLayout
-        activeTab={activeTab}
-        onTabChange={onTabChange}
-        filteredSearchResults={filteredSearchResults}
-        savedHomes={savedHomes}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        onViewPropertyDetails={onViewPropertyDetails}
-        onNavigateToProperty={onNavigateToProperty}
-        isHomeSaved={isHomeSaved}
-        saveHome={saveHomeForSidebar}
-        removeSavedHome={removeSavedHome}
-        isCarouselCollapsed={isCarouselCollapsed}
-        setIsCarouselCollapsed={setIsCarouselCollapsed}
-        isSearching={isSearching}
-        hasSearched={hasSearched}
-        searchResults={searchResults}
-        searchStage={searchStage}
-        mapZoomIn={mapZoomIn}
-        mapZoomOut={mapZoomOut}
-        mobileMapRef={mobileMapRef}
-        setShowPropertyModals={setShowPropertyModals}
-        setHasSearched={setHasSearched}
-        mapHomeCardsCount={mapHomeCardsCount}
-      />
+    <SearchHeaderPopoverDismissProvider>
+      <MotionView
+        key="map"
+        className="h-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <SearchPageMobileLayout
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          filteredSearchResults={filteredSearchResults}
+          savedHomes={savedHomes}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          onViewPropertyDetails={onViewPropertyDetails}
+          onNavigateToProperty={onNavigateToProperty}
+          isHomeSaved={isHomeSaved}
+          saveHome={saveHomeForSidebar}
+          removeSavedHome={removeSavedHome}
+          isCarouselCollapsed={isCarouselCollapsed}
+          setIsCarouselCollapsed={setIsCarouselCollapsed}
+          isSearching={isSearching}
+          hasSearched={hasSearched}
+          searchResults={searchResults}
+          searchStage={searchStage}
+          mapZoomIn={mapZoomIn}
+          mapZoomOut={mapZoomOut}
+          mobileMapRef={mobileMapRef}
+          setShowPropertyModals={setShowPropertyModals}
+          setHasSearched={setHasSearched}
+          mapHomeCardsCount={mapHomeCardsCount}
+        />
 
-      <SearchPageDesktopLayout
-        activeTab={activeTab}
-        onTabChange={onTabChange}
-        filteredSearchResults={filteredSearchResults}
-        savedHomes={savedHomes}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        selectedPropertyId={selectedPropertyId}
-        onNavigateToProperty={onNavigateToProperty}
-        onSearchProperties={onSearchProperties}
-        onPreferencesApplySearch={onPreferencesApplySearch}
-        hasLocations={hasLocations}
-        onLocationSearchSubmit={onLocationSearchSubmit}
-        onCancelSearch={onCancelSearch}
-        isSearching={isSearching}
-        selectedClientId={selectedClientId}
-        onClientChange={onClientChange}
-        desktopMapRef={desktopMapRef}
-        isLoadingPropertyDetails={isLoadingPropertyDetails}
-        isHomeSaved={isHomeSaved}
-        saveHome={saveHomeForSidebar}
-        removeSavedHome={removeSavedHome}
-        setShowPropertyModals={setShowPropertyModals}
-        setHasSearched={setHasSearched}
-        hasSearched={hasSearched}
-        searchResults={searchResults}
-        searchStage={searchStage}
-        isLoadingSearchResults={isLoadingSearchResults}
-        isLoadingIsochrone={isLoadingIsochrone}
-        isochroneData={isochroneData}
-        mapZoomIn={mapZoomIn}
-        mapZoomOut={mapZoomOut}
-        mode={mode}
-        onToggleMode={handleToggleMode}
-        onBeforeSwitchToReels={onBeforeSwitchToReels}
-        fitMapToBounds={fitMapToBounds}
-        mapHomeCardsCount={mapHomeCardsCount}
-        onPreciseStreetAddressSelected={onPreciseStreetAddressSelected}
-        agentShareBundle={agentShareBundle}
-        agentShareDockVisible={agentShareDockVisible}
-      />
-    </MotionView>
+        <SearchPageDesktopLayout
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          filteredSearchResults={filteredSearchResults}
+          savedHomes={savedHomes}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          selectedPropertyId={selectedPropertyId}
+          onNavigateToProperty={onNavigateToProperty}
+          onSearchProperties={onSearchProperties}
+          hasLocations={hasLocations}
+          onLocationSearchSubmit={onLocationSearchSubmit}
+          onCancelSearch={onCancelSearch}
+          isSearching={isSearching}
+          selectedClientId={selectedClientId}
+          onClientChange={onClientChange}
+          desktopMapRef={desktopMapRef}
+          isLoadingPropertyDetails={isLoadingPropertyDetails}
+          isHomeSaved={isHomeSaved}
+          saveHome={saveHomeForSidebar}
+          removeSavedHome={removeSavedHome}
+          setShowPropertyModals={setShowPropertyModals}
+          setHasSearched={setHasSearched}
+          hasSearched={hasSearched}
+          searchResults={searchResults}
+          searchStage={searchStage}
+          isLoadingSearchResults={isLoadingSearchResults}
+          isLoadingIsochrone={isLoadingIsochrone}
+          isochroneData={isochroneData}
+          mapZoomIn={mapZoomIn}
+          mapZoomOut={mapZoomOut}
+          mode={mode}
+          onToggleMode={handleToggleMode}
+          onBeforeSwitchToReels={onBeforeSwitchToReels}
+          fitMapToBounds={fitMapToBounds}
+          mapHomeCardsCount={mapHomeCardsCount}
+          onPreciseStreetAddressSelected={onPreciseStreetAddressSelected}
+          agentShareBundle={agentShareBundle}
+          agentShareDockVisible={agentShareDockVisible}
+        />
+      </MotionView>
+    </SearchHeaderPopoverDismissProvider>
   );
 }

@@ -46,11 +46,29 @@ export function sidebarInsetHeaderCollapseButtonClass(): string {
   return "inline-flex items-center justify-center rounded-lg bg-primary-muted px-3 py-2 text-text-primary transition hover:bg-accent-muted xl:hidden";
 }
 
+/**
+ * Selected inset list row (messaging client/agent sidebar).
+ * Visual indicator is olive-only via `.sk-inset-row-selected` in `components.css` (::before stripe).
+ */
+export const SK_INSET_ROW_SELECTED_CLASS = "sk-inset-row-selected";
+
+/** Set on the row element when selected; pairs with {@link SK_INSET_ROW_SELECTED_CLASS}. */
+export const SK_INSET_ROW_SELECTED_DATA_ATTR = "data-sk-inset-row-selected";
+
 /** List rows inside inset scroll areas */
 export function sidebarInsetListRowClass(selected: boolean): string {
   const base =
-    "border-border group cursor-pointer border-b p-3 transition-colors hover:bg-primary-muted/70";
-  return selected ? `${base} border-l-olive bg-olive/10 border-l-4 hover:bg-olive/15` : base;
+    "group relative cursor-pointer border-0 border-b border-border p-3 transition-colors focus-visible:outline-none focus-visible:ring-0";
+  if (selected) {
+    return `${base} ${SK_INSET_ROW_SELECTED_CLASS} bg-olive/10 hover:bg-olive/15`;
+  }
+  return `${base} hover:bg-primary-muted/70`;
+}
+
+export function sidebarInsetListRowSelectedProps(selected: boolean): {
+  [SK_INSET_ROW_SELECTED_DATA_ATTR]?: "true";
+} {
+  return selected ? { [SK_INSET_ROW_SELECTED_DATA_ATTR]: "true" } : {};
 }
 
 /** Native flat list row: token-aligned inset list surface + touch feedback */

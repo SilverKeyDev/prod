@@ -17,6 +17,8 @@ Docs for the SilverKey frontend: TypeScript/React (web) and React Native (mobile
 | [layered-architecture-imports.md](./layered-architecture-imports.md) | Long-form import matrix: config vs hooks vs services vs `packages/features`; supplements `.cursor/rules/frontend/frontend-architecture.mdc`. |
 | [react-hooks-patterns.md](./react-hooks-patterns.md) | Loop-prevention patterns (`useEffect`, React Query, Zustand selectors); supplements `.cursor/rules/frontend/react-hooks.mdc`. |
 | [react-component-audit-rubric.md](./react-component-audit-rubric.md) | Five-axis component audit (size, props, state, render cost, bundle), Cursor workflow, artifacts; supplements `.cursor/rules/frontend/component-audit-rubric.mdc`. |
+| [workspace-first-architecture.md](./workspace-first-architecture.md) | Workspace vs server identity (`useActiveWorkspace`, shells, transaction party config, admin scope); supplements thin-app + routing docs. |
+| [../internal/post-major-change-checklist.md](../internal/post-major-change-checklist.md) | Checklist: after major features, update `documentation/`, `.cursor/rules`, skills, and cursor audit inventory. |
 | [qa/](./qa/) | E2E QA runbooks, cross-browser matrix, error/email/payment checklists (manual; no in-repo browser automation). **Start with [qa/END_TO_END_QA_RUNBOOK.md](./qa/END_TO_END_QA_RUNBOOK.md).** |
 | [apps-folder-contents.md](./apps-folder-contents.md) | What lives in apps/web and apps/mobile only: bootstrapper, provider tree, router, and thin pages/screens (orchestrator-only). |
 | [mobile-app-structure.md](./mobile-app-structure.md) | Full breakdown of the React Native mobile app: structure and purpose of each file under `Client/apps/mobile/`. |
@@ -33,6 +35,7 @@ Docs for the SilverKey frontend: TypeScript/React (web) and React Native (mobile
 
 - **Agent quickstart (Cursor / automation):** `AGENTS.md` at the repository root.
 - **Architecture and layer rules:** `.cursor/rules/frontend/frontend-architecture.mdc` and `thin-app-architecture.mdc`.
+- **Workspace-first UX:** [documentation/client/workspace-first-architecture.md](./workspace-first-architecture.md) — `useActiveWorkspace` vs `useIsAgent`, shells, transaction party config.
 - **Platform file conventions (web-only / desktop-only):** `.cursor/rules/frontend/platform-file-extensions.mdc`.
 - **Lint and checks:** [documentation/client/LINTING.md](./LINTING.md).
 - **Client/packages/README.md** — Package overview and import rules.

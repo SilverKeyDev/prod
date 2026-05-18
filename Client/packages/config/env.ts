@@ -1,51 +1,46 @@
 /* =========================
    Type-Safe Environment Configuration (shared: Metro, Vite, Node)
-   Uses process.env only. Safe for React Native (Metro), Vite (via define), and Node.
-   Single source of truth; Vite injects process.env at build time via define.
+   Uses process.env only. Safe for React Native (Metro), Vite (via inject shim), and Node.
+   Client-visible keys use EXPO_PUBLIC_* (Metro + Vite web shim); application code does not use Vite-prefixed env keys.
    ========================= */
 
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { resolveGoogleMapsCloudMapId } from "packages/utils/maps/resolveGoogleMapsCloudMapId";
+
+function trimEnv(value: string | undefined): string {
+  return (value ?? "").trim();
+}
 
 /**
- * Environment interface (same shape as Vite's env for API compatibility)
+ * Shape mirrored into `process.env` by the web Vite process shim (see apps/web/vite.config.js).
+ * On native, Metro inlines EXPO_PUBLIC_* from .env.
  */
 type EnvShape = {
-  readonly VITE_GOOGLE_MAPS_ID: string;
-  readonly VITE_GOOGLE_CLIENT_ID: string;
-  readonly VITE_PLAID_CLIENT_ID: string;
-  /** Optional override for API base URL in development (Expo web / mobile dev; e.g. http://localhost:5000) */
-  readonly API_BASE_URL_OVERRIDE: string;
+  readonly EXPO_PUBLIC_GOOGLE_MAPS_ID: string;
+  readonly EXPO_PUBLIC_GOOGLE_CLIENT_ID: string;
+  readonly EXPO_PUBLIC_PLAID_CLIENT_ID: string;
+  readonly EXPO_PUBLIC_API_URL: string;
+  readonly EXPO_PUBLIC_API_BASE_URL: string;
+  readonly EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: string;
+  readonly EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: string;
   readonly DEV: boolean;
   readonly PROD: boolean;
-  /** Native-only overrides for Google Maps styling and behavior (Expo / RN) */
-  readonly EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: string;
-  readonly EXPO_PUBLIC_GOOGLE_MAPS_ID: string;
-  readonly EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: string;
 };
 
 function readProcessEnv(): EnvShape {
   const p = typeof process !== "undefined" ? process.env : ({} as NodeJS.ProcessEnv);
   const nodeEnv = p.NODE_ENV ?? "development";
   const isProd = nodeEnv === "production";
-  // Support both VITE_* (web/Vite) and EXPO_PUBLIC_* (Expo/mobile) for cross-platform .env
   return {
-    VITE_GOOGLE_MAPS_ID: p.VITE_GOOGLE_MAPS_ID ?? p.EXPO_PUBLIC_GOOGLE_MAPS_ID ?? "",
-    VITE_GOOGLE_CLIENT_ID: p.VITE_GOOGLE_CLIENT_ID ?? p.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? "",
-    VITE_PLAID_CLIENT_ID: p.VITE_PLAID_CLIENT_ID ?? p.EXPO_PUBLIC_PLAID_CLIENT_ID ?? "",
-    API_BASE_URL_OVERRIDE: (
-      p.EXPO_PUBLIC_API_URL ??
-      p.VITE_API_URL ??
-      p.EXPO_PUBLIC_API_BASE_URL ??
-      p.VITE_API_BASE_URL ??
-      ""
-    ).trim(),
+    EXPO_PUBLIC_GOOGLE_MAPS_ID: trimEnv(p.EXPO_PUBLIC_GOOGLE_MAPS_ID),
+    EXPO_PUBLIC_GOOGLE_CLIENT_ID: trimEnv(p.EXPO_PUBLIC_GOOGLE_CLIENT_ID),
+    EXPO_PUBLIC_PLAID_CLIENT_ID: trimEnv(p.EXPO_PUBLIC_PLAID_CLIENT_ID),
+    EXPO_PUBLIC_API_URL: trimEnv(p.EXPO_PUBLIC_API_URL),
+    EXPO_PUBLIC_API_BASE_URL: trimEnv(p.EXPO_PUBLIC_API_BASE_URL),
+    EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: trimEnv(p.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS),
+    EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: trimEnv(p.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR),
     DEV: !isProd,
     PROD: isProd,
-    EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: (p.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS ?? "").trim(),
-    EXPO_PUBLIC_GOOGLE_MAPS_ID: (p.EXPO_PUBLIC_GOOGLE_MAPS_ID ?? "").trim(),
-    EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: (
-      p.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR ?? ""
-    ).trim(),
   };
 }
 
@@ -86,9 +81,9 @@ class EnvConfig {
 
   private validateRequiredEnvVars(): void {
     const required: Array<keyof EnvShape> = [
-      "VITE_GOOGLE_MAPS_ID",
-      "VITE_GOOGLE_CLIENT_ID",
-      "VITE_PLAID_CLIENT_ID",
+      "EXPO_PUBLIC_GOOGLE_MAPS_ID",
+      "EXPO_PUBLIC_GOOGLE_CLIENT_ID",
+      "EXPO_PUBLIC_PLAID_CLIENT_ID",
     ];
 
     const missing = required.filter((key) => !this.env[key]);
@@ -101,22 +96,28 @@ class EnvConfig {
   }
 
   get googleMapsId(): string | undefined {
-    const mapId = EnvConfig.STATIC.GOOGLE_MAPS_ID || this.env.VITE_GOOGLE_MAPS_ID;
+    const raw = typeof process !== "undefined" ? process.env : ({} as NodeJS.ProcessEnv);
+    const mapId =
+      EnvConfig.STATIC.GOOGLE_MAPS_ID ||
+      resolveGoogleMapsCloudMapId(
+        this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID,
+        trimEnv(raw.VITE_GOOGLE_MAPS_ID)
+      );
     if (!mapId) {
       log.warn(
         LOG_CATEGORIES.API,
-        "VITE_GOOGLE_MAPS_ID not configured - using default map styling"
+        "Google Maps Cloud map ID not configured (EXPO_PUBLIC_GOOGLE_MAPS_ID) - using default map styling"
       );
     }
     return mapId;
   }
 
   get googleClientId(): string | null {
-    const clientId = EnvConfig.STATIC.GOOGLE_CLIENT_ID || this.env.VITE_GOOGLE_CLIENT_ID;
+    const clientId = EnvConfig.STATIC.GOOGLE_CLIENT_ID || this.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) {
       log.warn(
         LOG_CATEGORIES.API,
-        "VITE_GOOGLE_CLIENT_ID not configured - Google services integration may be limited"
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID not configured - Google services integration may be limited"
       );
       return null;
     }
@@ -124,11 +125,11 @@ class EnvConfig {
   }
 
   get plaidClientId(): string | null {
-    const clientId = EnvConfig.STATIC.PLAID_CLIENT_ID || this.env.VITE_PLAID_CLIENT_ID;
+    const clientId = EnvConfig.STATIC.PLAID_CLIENT_ID || this.env.EXPO_PUBLIC_PLAID_CLIENT_ID;
     if (!clientId) {
       log.warn(
         LOG_CATEGORIES.API,
-        "VITE_PLAID_CLIENT_ID not configured - Plaid integration may be limited"
+        "EXPO_PUBLIC_PLAID_CLIENT_ID not configured - Plaid integration may be limited"
       );
       return null;
     }
@@ -139,13 +140,13 @@ class EnvConfig {
     if (!this.isDevelopment) {
       return "https://usesilverkey.com";
     }
-    const override = this.env.API_BASE_URL_OVERRIDE;
+    const override = trimEnv(this.env.EXPO_PUBLIC_API_URL || this.env.EXPO_PUBLIC_API_BASE_URL);
     if (override !== "") {
       return override;
     }
     // React Native: no document origin; relative URLs fail. Default localhost often fails on
     // simulator/device because localhost is the device, not the host. Set EXPO_PUBLIC_API_URL
-    // to your machine's IP (e.g. http://192.168.1.5:5000) in .env when running the backend on the host.
+    // to your machine's IP (e.g. http://192.168.1.5:5000) when the backend runs on the host.
     if (isReactNativeContext()) {
       return "http://localhost:5000";
     }
@@ -185,7 +186,7 @@ class EnvConfig {
 export const env = EnvConfig.getInstance();
 
 /**
- * Single entry point for environment (use instead of process.env or Vite env).
+ * Single entry point for environment (use instead of process.env or import.meta.env in shared code).
  * Allowlist for env access: this file and build configs (vite.config.*, metro.config.js, *.config.js).
  */
 export function getEnv(): EnvConfig {

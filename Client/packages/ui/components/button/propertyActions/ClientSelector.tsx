@@ -10,7 +10,7 @@ import Button from "packages/ui/components/button/core/Button";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 
-import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
+import { useAgentClients } from "@/features/agent/hooks/data/clients/useAgentClients";
 type ClientSelectorProps = {
   selectedClientId: string | null;
   onClientChange: (clientId: string | null) => void;

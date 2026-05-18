@@ -9,8 +9,9 @@ export {
   type DocusignSyncTemplatesResult,
   type DocusignTemplateListItem,
   type ServerLoggerConfig,
+  type UpdateAgentStatusRequest,
+  type UpdateAgentStatusResponse,
   type UpdateUserSystemRolesRequest,
   type UpdateUserSystemRolesResponse,
   type UpdateUserSystemRolesResult,
-  type ValidationStatsApiResponseSchema,
 } from "packages/features/admin/api/admin";

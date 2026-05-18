@@ -25,7 +25,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
-    "test:unit": "vitest run src/tests/unit",
+    "test:unit": "pnpm -C ../.. test:run",
     "test:all": "npm run test:run",
     "render:email": "tsx services/email/render-email.ts",
     "lighthouse:audit": "node ../../scripts/lighthouse-audit.mjs"

@@ -7,12 +7,13 @@ import { authUtils } from "packages/config/auth/auth";
 // Deep import (not via "packages/features/agent" barrel) so the eagerly-loaded
 // app shell does not pay the cost of evaluating the entire agent feature
 // (AgentDashboard, AgentMessaging, ClientMessaging, modals, …) on first load.
-import { useResumePendingAgentPublicConnect } from "packages/features/agent/hooks/data/useResumePendingAgentPublicConnect";
+import { useResumePendingAgentPublicConnect } from "packages/features/agent/hooks/data/connections/useResumePendingAgentPublicConnect";
 import { useDataInitialization } from "packages/hooks/data/polling/useDataInitialization";
 import { useDataPolling } from "packages/hooks/data/polling/useDataPolling";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
+import { getActiveDashboardKey } from "packages/utils/layout/dashboardLayoutConfig";
 
 import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
 import { useIdleAuthenticatedRouteChunkPrefetch } from "@/app/layouts/dashboard/useIdleAuthenticatedRouteChunkPrefetch";
@@ -29,7 +30,8 @@ const MAIN_CONTENT_ID = "main-content";
 
 /** Full-height routes manage their own scroll/focus; skip global focus and scroll-to-top there. */
 function isFullHeightRoute(pathname: string): boolean {
-  return pathname.startsWith("/search") || pathname.startsWith("/messaging");
+  const key = getActiveDashboardKey(pathname);
+  return key === "search" || key === "messaging";
 }
 
 /**

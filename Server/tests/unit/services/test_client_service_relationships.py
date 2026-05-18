@@ -4,11 +4,35 @@ import json
 
 from app.models import AgentConnections, User
 from app.services.agent.client_service import (
+    agent_may_access_client,
     get_agent_client_ids,
     get_connected_agent_ids_for_client,
     get_user_agent_id,
     validate_agent_client_relationship,
 )
+
+
+def test_agent_may_access_client_matches_validate(db_session):
+    agent = User(
+        id="rel-am1",
+        cognito_id="cog-rel-am1",
+        email="rel-am1@example.com",
+        name="Agent",
+        is_agent=True,
+        client_ids='["rel-amc1"]',
+    )
+    client_u = User(
+        id="rel-amc1",
+        cognito_id="cog-rel-amc1",
+        email="rel-amc1@example.com",
+        name="Client",
+        is_agent=False,
+    )
+    db_session.session.add_all([agent, client_u])
+    db_session.session.commit()
+
+    assert agent_may_access_client("rel-am1", "rel-amc1") is True
+    assert validate_agent_client_relationship("rel-am1", "rel-amc1") is True
 
 
 def test_validate_agent_client_relationship_true_from_client_ids(db_session):

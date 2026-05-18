@@ -37,7 +37,6 @@ def handle_signup(data: dict[str, Any]) -> tuple[dict[str, Any], int]:
             "message": result.get("message", "Failed to register user"),
         }, 400
 
-    # Create user in database (non-blocking)
     try:
         now = datetime.now(timezone.utc)
         user = User(
@@ -55,8 +54,21 @@ def handle_signup(data: dict[str, Any]) -> tuple[dict[str, Any], int]:
         db.session.add(user)
         db.session.commit()
     except Exception as e:
-        current_app.logger.error(f"Error creating user in database: {str(e)}")
-        # Don't fail signup if DB creation fails
+        db.session.rollback()
+        current_app.logger.error(
+            "Signup Cognito succeeded but database user creation failed for %s: %s",
+            data.get("email"),
+            str(e),
+        )
+        return {
+            "success": False,
+            "error": "SIGNUP_SYNC_FAILED",
+            "message": (
+                "Account was created in our identity provider but could not be synced. "
+                "Please contact support or try signing in after verifying your email."
+            ),
+            "user_sub": result["user_sub"],
+        }, 503
 
     return {
         "success": True,

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Open the Vite dev root and /admin in Google Chrome if those URLs are not already open in Chrome.
-# Respects VITE_PORT (default 5173). Set OPEN_LOCALHOST_CHROME=0 to skip (e.g. from CI).
+# Respects WEB_DEV_PORT (default 5173). Set OPEN_LOCALHOST_CHROME=0 to skip (e.g. from CI).
 #
 # macOS: detects existing Chrome tabs. Other platforms: opens both URLs via xdg-open.
 
@@ -8,8 +8,8 @@ set -euo pipefail
 
 [[ "${OPEN_LOCALHOST_CHROME:-1}" == "1" ]] || exit 0
 
-VITE_PORT="${VITE_PORT:-5173}"
-BASE="http://localhost:${VITE_PORT}"
+WEB_DEV_PORT="${WEB_DEV_PORT:-5173}"
+BASE="http://localhost:${WEB_DEV_PORT}"
 ROOT_URL="${BASE}/"
 ADMIN_URL="${BASE}/admin"
 

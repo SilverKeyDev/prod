@@ -7,16 +7,17 @@ import { TodoAgendaRow } from "packages/features/calendar";
 import {
   BuyerRoadmapChecklistList,
   CHECKLIST_SUBTITLES,
-  CHECKLIST_TITLES,
   type ChecklistTab,
   type ChecklistType,
   sortTaskChecklistItems,
   type TaskChecklistItem,
+  useAutoCompleteChecklistIntegrations,
   useChecklistData,
   useChecklistProgress,
 } from "packages/features/checklists";
 import { useDocumentsDataIntegration } from "packages/features/documents";
 import { useSigningTodos } from "packages/hooks/data/agenda/useSigningTodos";
+import { useTransactionShellConfig } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore, useViewStore, type ViewState } from "packages/store";
 import ClientSelector from "packages/ui/components/button/propertyActions/ClientSelector";
@@ -40,6 +41,7 @@ const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
 
 export default function DashboardChecklists() {
   const { t } = useLocalization();
+  const transactionShell = useTransactionShellConfig();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const authUserId = useAuthStore((s) => s.user?.id ?? null);
   const checklistSubjectOptions = useMemo(
@@ -99,6 +101,16 @@ export default function DashboardChecklists() {
 
   const sortedItems = useMemo(() => sortTaskChecklistItems(items), [items]);
 
+  useAutoCompleteChecklistIntegrations({
+    items,
+    checkedIds,
+    toggleItem,
+    getItemToggleEligibility,
+    roadmapTab: activeTab,
+    isChecklistUpdatePending,
+    isChecklistLoading: isLoading,
+  });
+
   const isSectionLocked = !isSectionUnlocked(activeTab);
 
   const handleTabChange = useCallback((tab: ChecklistTab) => {
@@ -141,7 +153,7 @@ export default function DashboardChecklists() {
         (item.suggestedFormIds != null && item.suggestedFormIds.length > 0);
       if (!hasForm || signingTodos.length === 0) return null;
       return (
-        <Box className="flex flex-col gap-2">
+        <Box className="mt-2 flex flex-col gap-2 px-4 pb-3">
           {signingTodos.map((todo) => (
             <TodoAgendaRow
               key={todo.id}
@@ -158,7 +170,7 @@ export default function DashboardChecklists() {
   );
 
   return (
-    <Box className="flex w-full flex-col gap-3">
+    <Box className="flex w-full flex-col gap-3" data-transaction-party={transactionShell.party}>
       <Box className="mb-2">
         <ClientSelector selectedClientId={selectedClientId} onClientChange={setSelectedClientId} />
       </Box>
@@ -173,19 +185,13 @@ export default function DashboardChecklists() {
                 total: overallProgress.total,
               })
         }
-        currentPhaseLabel={
-          progressLoading
-            ? t("checklists.loading")
-            : t("checklists.buyer_journey.current_phase", {
-                phase: CHECKLIST_TITLES[currentSection],
-              })
-        }
         overallPercent={overallProgress.percent}
         overallLoading={progressLoading}
         activeTab={activeTab}
-        phaseIndicatorId={currentSection}
+        currentSection={currentSection}
         onTabChange={handleTabChange}
         isSectionUnlocked={isSectionUnlocked}
+        sectionProgress={sectionProgress}
       />
 
       <BuyerRoadmapChecklistList
@@ -199,6 +205,7 @@ export default function DashboardChecklists() {
         error={error}
         onRefresh={handleRefresh}
         onToggleItem={handleToggleItem}
+        commitToggleItem={toggleItem}
         getItemToggleEligibility={getItemToggleEligibility}
         sectionProgress={sectionProgress}
         onRoadmapTabNavigate={handleTabChange}

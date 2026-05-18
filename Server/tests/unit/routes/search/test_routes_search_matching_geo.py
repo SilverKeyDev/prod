@@ -5,6 +5,9 @@ from unittest.mock import Mock, patch
 from flask import jsonify
 
 from app.models import User
+from app.utils.security.celery_task_ownership import register_task_owner
+
+MOCK_JWT_USER = "app.services.auth.get_current_user"
 
 # Patch path for get_authenticated_user where it's used in the route
 MOCK_GET_CURRENT_USER = "app.routes.search.search.get_authenticated_user"
@@ -42,7 +45,6 @@ class TestHomeMatchingRoutes:
             name="Test User",
             is_agent=False,
         )
-        user.is_authenticated = True
         db_session.session.add(user)
         db_session.session.commit()
 
@@ -69,7 +71,7 @@ class TestHomeMatchingRoutes:
             "top_k": 5,
         }
 
-        with patch("flask_login.utils._get_user") as mock_current_user:
+        with patch(MOCK_JWT_USER) as mock_current_user:
             mock_current_user.return_value = user
 
             with patch("app.routes.search.home_matching.find_best_matches_task") as mock_task:
@@ -100,7 +102,6 @@ class TestHomeMatchingRoutes:
             name="Test User",
             is_agent=False,
         )
-        user.is_authenticated = True
         db_session.session.add(user)
         db_session.session.commit()
 
@@ -110,7 +111,7 @@ class TestHomeMatchingRoutes:
             ]
         }
 
-        with patch("flask_login.utils._get_user") as mock_current_user:
+        with patch(MOCK_JWT_USER) as mock_current_user:
             mock_current_user.return_value = user
 
             response = client.post(
@@ -133,7 +134,6 @@ class TestHomeMatchingRoutes:
             name="Test User",
             is_agent=False,
         )
-        user.is_authenticated = True
         db_session.session.add(user)
         db_session.session.commit()
 
@@ -142,7 +142,7 @@ class TestHomeMatchingRoutes:
             "homes_data": [],
         }
 
-        with patch("flask_login.utils._get_user") as mock_current_user:
+        with patch(MOCK_JWT_USER) as mock_current_user:
             mock_current_user.return_value = user
 
             response = client.post(
@@ -179,11 +179,11 @@ class TestHomeMatchingRoutes:
             name="Test User",
             is_agent=False,
         )
-        user.is_authenticated = True
         db_session.session.add(user)
         db_session.session.commit()
 
-        with patch("flask_login.utils._get_user") as mock_current_user:
+        register_task_owner("task-123", "user-123")
+        with patch(MOCK_JWT_USER) as mock_current_user:
             mock_current_user.return_value = user
 
             with patch("app.routes.search.home_matching.celery.AsyncResult") as mock_result:

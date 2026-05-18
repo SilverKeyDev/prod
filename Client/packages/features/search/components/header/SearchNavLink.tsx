@@ -2,12 +2,11 @@ import type { ComponentProps } from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import { pathFor } from "packages/navigation/router/paths";
 import { useSearchViewStore } from "packages/store";
+import { getActiveDashboardKey } from "packages/utils/layout/dashboardLayoutConfig";
 
 import { AccessibleLink } from "@/components/ui";
-
-/** Search tab route - shared constant so packages do not depend on app layout. */
-const SEARCH_HREF = "/search";
 
 function genNavId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
@@ -42,15 +41,16 @@ export function SearchNavLink({
 }: SearchNavLinkProps) {
   const { getCurrentRoute } = useNavigation();
   const route = getCurrentRoute();
+  const searchHref = pathFor("SEARCH");
   const mode = useSearchViewStore((s) => s.mode);
-  const isOnSearch = route.pathname.startsWith("/search");
+  const isOnSearch = getActiveDashboardKey(route.pathname) === "search";
 
   const handleClick = () => {
     const navId = genNavId();
     onNavigateClick?.(navId);
     log.info(LOG_CATEGORIES.ROUTING, "[NAV] SearchNavLink click", {
       navId,
-      target: "/search",
+      target: searchHref,
       prevPathname: route.pathname,
       pathname: route.pathname,
       isOnSearch,
@@ -61,7 +61,7 @@ export function SearchNavLink({
 
   return (
     <AccessibleLink
-      to={SEARCH_HREF}
+      to={searchHref}
       onClick={handleClick}
       className={className}
       title={title}

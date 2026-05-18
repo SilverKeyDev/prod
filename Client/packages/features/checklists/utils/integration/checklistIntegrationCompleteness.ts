@@ -1,5 +1,6 @@
 import type { AgentConversation } from "packages/api";
 import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import { parseHousingTypes } from "packages/utils/domain/profile/fieldHelpers";
 
 export type ConnectedAgentSummary = {
   agentId: string;
@@ -44,11 +45,6 @@ function nonEmptyTrimmed(s: unknown): s is string {
   return typeof s === "string" && s.trim().length > 0;
 }
 
-/** Matches SearchPrefsPriceFinancing: undefined defaults to OK with HOA. */
-function isOkWithHoa(formData: Partial<OnboardingData>): boolean {
-  return formData.buyerPreferenceExtensions?.price_financing?.hoa_ok !== false;
-}
-
 /** Budget + financing fields shown in the checklist Set a budget step. */
 export function isSetBudgetStepComplete(formData: Partial<OnboardingData>): boolean {
   if (!isPositiveNumber(formData.home_budget_min) || !isPositiveNumber(formData.home_budget_max)) {
@@ -58,7 +54,7 @@ export function isSetBudgetStepComplete(formData: Partial<OnboardingData>): bool
     return false;
   }
   if (formData.paying_cash === true) {
-    return isOkWithHoa(formData);
+    return true;
   }
   if (!isPositiveNumber(formData.gross_income)) {
     return false;
@@ -101,16 +97,13 @@ function defineCriteriaRangeOk(formData: Partial<OnboardingData>): boolean {
 }
 
 /**
- * Core housing criteria for the checklist step (beds/baths, type, must-haves,
- * other requirements as deal-breaker proxy, walkability).
+ * Core housing criteria for the checklist step — aligned with profile housing essentials
+ * (beds, baths, housing type). Does not require must-haves, other requirements, or walkability.
  */
 export function isDefineCriteriaStepComplete(formData: Partial<OnboardingData>): boolean {
   if (!defineCriteriaRangeOk(formData)) return false;
-  if (!nonEmptyTrimmed(formData.preferred_housing_type)) return false;
-  const must = formData.must_have;
-  if (!Array.isArray(must) || must.length === 0) return false;
-  const other = formData.other_requirements;
-  if (!Array.isArray(other) || other.length === 0) return false;
-  if (!nonEmptyTrimmed(formData.walkability_importance)) return false;
-  return true;
+  if (formData.preferred_bedrooms_min == null || formData.preferred_bathrooms_min == null) {
+    return false;
+  }
+  return parseHousingTypes(formData.preferred_housing_type).length > 0;
 }

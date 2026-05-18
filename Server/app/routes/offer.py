@@ -12,6 +12,7 @@ from flask import Blueprint, current_app, jsonify, request
 from app.schemas import NegotiationStrategyRequest, NegotiationStrategyResponse
 from app.utils.validation import validate_request, validate_response
 
+from ..services.agent.client_service import agent_may_access_client
 from ..services.auth import get_current_user
 from ..services.search.data import get_property_detail
 from ..utils.security.secure_errors import SecureErrorHandler
@@ -89,31 +90,16 @@ def generate_negotiation_strategy(data: NegotiationStrategyRequest | None = None
                     }
                 ), 403
 
-            # Parse agent's client_ids to verify access
-            try:
-                if user.client_ids:
-                    client_ids = (
-                        json.loads(user.client_ids)
-                        if isinstance(user.client_ids, str)
-                        else user.client_ids
-                    )
-                else:
-                    client_ids = []
+            target_s = str(target_user_id).strip()
+            if not agent_may_access_client(str(user.id), target_s):
+                current_app.logger.warning(
+                    f"Agent {user.id} attempted to access client {target_s} who is not in their list"
+                )
+                return jsonify(
+                    {"error": "Access denied: User is not your client", "success": False}
+                ), 403
 
-                if target_user_id not in client_ids:
-                    current_app.logger.warning(
-                        f"Agent {user.id} attempted to access client {target_user_id} who is not in their client list"
-                    )
-                    return jsonify(
-                        {"error": "Access denied: User is not your client", "success": False}
-                    ), 403
-
-                # Ensure preferences_user_id is the same type as user.id (string)
-                preferences_user_id = str(target_user_id) if target_user_id else user.id
-
-            except Exception as e:
-                current_app.logger.error(f"Error parsing agent client_ids: {str(e)}")
-                return jsonify({"error": "Error validating client access", "success": False}), 500
+            preferences_user_id = target_s
 
         # Import the strategy generation service
         try:

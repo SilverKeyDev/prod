@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { useLocation } from "react-router-dom";
 
-import { useUserData } from "packages/hooks/data/auth/useUserData";
-import { useIsAgent } from "packages/hooks/store";
+import { useActiveWorkspace } from "packages/hooks/store";
 import { useViewStore, type ViewState } from "packages/store";
 import { useNotificationStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
@@ -23,37 +22,15 @@ export type SidebarProps = {
   isMobile?: boolean;
   onLinkClick?: () => void;
 };
-function useSidebarLogoutConfirm(onLogout: () => void) {
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const handleLogoutClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setShowLogoutConfirm(true);
-  };
-  const handleConfirmLogout = () => {
-    setShowLogoutConfirm(false);
-    onLogout();
-  };
-  const handleCancelLogout = () => setShowLogoutConfirm(false);
-  return {
-    showLogoutConfirm,
-    handleLogoutClick,
-    handleConfirmLogout,
-    handleCancelLogout,
-  };
-}
 export default function Sidebar({
   onLogout,
   expanded,
   isMobile = false,
   onLinkClick,
 }: SidebarProps) {
-  const { showLogoutConfirm, handleLogoutClick, handleConfirmLogout, handleCancelLogout } =
-    useSidebarLogoutConfirm(onLogout);
   const { user: authUser, authReady, authStatus } = useAuthStoreIntegration();
   const isLoading = authStatus === "checking" || !authReady;
-  const { userProfile } = useUserData();
-  const _isAgent = useIsAgent();
-  const hasAgent = userProfile?.agent_id ? true : false;
+  const activeWorkspace = useActiveWorkspace();
   const openCategories = useViewStore((s: ViewState) => s.openCategories);
   const toggleCategoryInStore = useViewStore((s: ViewState) => s.toggleCategory);
   const location = useLocation();
@@ -67,7 +44,7 @@ export default function Sidebar({
   };
   const toggleCategory = (category: string) => toggleCategoryInStore(category);
   const isCategoryActive = (items: SidebarNavItem[]) => items.some((item) => isActive(item.href));
-  const navigation = getNavigation(_isAgent, hasAgent, isMobile);
+  const navigation = getNavigation(activeWorkspace, isMobile);
   const prefetchHref = useDashboardShellRoutePrefetch();
   return (
     <Box
@@ -94,13 +71,7 @@ export default function Sidebar({
             onPrefetchHref={prefetchHref}
           />
         </Box>
-        <SidebarFooter
-          expanded={expanded}
-          showLogoutConfirm={showLogoutConfirm}
-          onLogoutClick={handleLogoutClick}
-          onConfirmLogout={handleConfirmLogout}
-          onCancelLogout={handleCancelLogout}
-        />
+        <SidebarFooter expanded={expanded} onLogout={onLogout} />
       </Box>
     </Box>
   );

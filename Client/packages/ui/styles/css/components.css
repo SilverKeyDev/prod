@@ -300,4 +300,18 @@
       0 1px 3px rgb(0 0 0 / 20%),
       0 0 0 2px theme("colors.accent");
   }
+
+  /**
+   * Messaging inset sidebar — selected person row background.
+   * Stripe is {@link SidebarInsetListSelectionStripe} (olive DOM node); no border-l utilities.
+   */
+  .sk-inset-row-selected,
+  [data-sk-inset-row-selected="true"] {
+    background-color: #e4ebe4 !important;
+  }
+
+  .sk-inset-row-selected:hover,
+  [data-sk-inset-row-selected="true"]:hover {
+    background-color: color-mix(in srgb, #5e7a5f 15%, transparent) !important;
+  }
 }

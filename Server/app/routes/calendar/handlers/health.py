@@ -9,8 +9,8 @@ from flask import jsonify, make_response
 from app.schemas import ConnectionStatusResponse
 from app.services.auth.tokens import tokens_get
 from app.services.calendar.core import get_authenticated_user_id, google_calendar_service
+from app.utils.security import rate_limit
 from app.utils.security.app_logging import get_logger
-from app.utils.security.security import rate_limit
 from app.utils.validation import validate_response
 
 logger = get_logger()

@@ -1,11 +1,12 @@
+import { PersonalizationSectionLayoutProvider } from "packages/features/profile/components/layout";
 import { useOnboardingForm } from "packages/hooks/data/auth/onboarding/useOnboardingForm";
 import { LOGO } from "packages/ui/components/asset";
 import { Box, Image } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, NavigationButtons, SkipButton, Title } from "@/components/ui";
-import OnboardingHeader from "@/features/profile/components/onboard/Header";
-import OnboardingRoleStep from "@/features/profile/components/onboard/OnboardingRoleStep.web";
+import OnboardingHeader from "@/features/profile/components/onboarding/Header.web";
+import OnboardingRoleStep from "@/features/profile/components/onboarding/OnboardingRoleStep.web";
 import { ProfileHousingEssentialsSection } from "@/features/profile/components/profileScreen/sections/housing/ProfileHousingEssentialsSection";
 import { ProfileHousingRangesSection } from "@/features/profile/components/profileScreen/sections/housing/ProfileHousingRangesSection";
 import { ProfileSearchPropertySection } from "@/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
@@ -191,7 +192,9 @@ export function OnboardingFeature() {
         {/* Step Content */}
         <Box className="bg-background-surface mt-4 rounded-2xl shadow-sm">
           <Card border="light" className="pb-8 sm:pb-12">
-            {renderStepContent()}
+            <PersonalizationSectionLayoutProvider profileUiSurface="onboarding">
+              {renderStepContent()}
+            </PersonalizationSectionLayoutProvider>
 
             {/* Navigation Buttons */}
             <Box className="border-border mt-10 border-t px-4 pb-1 pt-8 sm:px-6 sm:pb-2">

@@ -17,53 +17,32 @@ var packages = path.join(root, "packages");
 var uiComponents = path.join(packages, "ui/components");
 
 export default defineConfig(function (_a) {
-  var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
   var mode = _a.mode;
   // .env is NOT loaded into process.env before config runs; load it so define has correct values
   var env = loadEnv(mode, root, "");
-  var publicSiteUrl = (env.VITE_PUBLIC_SITE_URL ?? process.env.VITE_PUBLIC_SITE_URL ?? "")
-    .trim()
-    .replace(/\/$/, "");
-  var googleSiteVerification = (
-    env.VITE_GOOGLE_SITE_VERIFICATION ??
-    process.env.VITE_GOOGLE_SITE_VERIFICATION ??
-    ""
-  ).trim();
+  function str(v) {
+    return (v !== null && v !== void 0 ? v : "").toString().trim();
+  }
+  function pickEnv(key) {
+    return str(env[key] ?? process.env[key]);
+  }
+  /** Build-time only (vite.plugin.seo.js); not read by packages/config/env.ts. */
+  var seoPublicSiteUrl = pickEnv("EXPO_PUBLIC_SITE_URL").replace(/\/$/, "");
+  var seoGoogleSiteVerification = pickEnv("EXPO_PUBLIC_GOOGLE_SITE_VERIFICATION");
   var nodeEnv = mode === "production" ? "production" : "development";
+  var webDevPort = parseInt(process.env.WEB_DEV_PORT || process.env.CLIENT_WEB_PORT || "5173", 10);
   var envVars = {
     NODE_ENV: nodeEnv,
-    VITE_GOOGLE_MAPS_ID:
-      (_c =
-        (_b = env.VITE_GOOGLE_MAPS_ID) !== null && _b !== void 0
-          ? _b
-          : process.env.VITE_GOOGLE_MAPS_ID) !== null && _c !== void 0
-        ? _c
-        : "",
-    VITE_GOOGLE_CLIENT_ID:
-      (_e =
-        (_d = env.VITE_GOOGLE_CLIENT_ID) !== null && _d !== void 0
-          ? _d
-          : process.env.VITE_GOOGLE_CLIENT_ID) !== null && _e !== void 0
-        ? _e
-        : "",
-    VITE_PLAID_CLIENT_ID:
-      (_g =
-        (_f = env.VITE_PLAID_CLIENT_ID) !== null && _f !== void 0
-          ? _f
-          : process.env.VITE_PLAID_CLIENT_ID) !== null && _g !== void 0
-        ? _g
-        : "",
+    DEV: nodeEnv !== "production",
+    PROD: nodeEnv === "production",
     EXPO_PUBLIC_GOOGLE_MAPS_ID:
-      (_h = env.EXPO_PUBLIC_GOOGLE_MAPS_ID) !== null && _h !== void 0 ? _h : "",
-    EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS:
-      (_j = env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS) !== null && _j !== void 0 ? _j : "",
-    EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR:
-      (_k = env.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR) !== null && _k !== void 0 ? _k : "",
-    EXPO_PUBLIC_API_URL: (_l = env.EXPO_PUBLIC_API_URL) !== null && _l !== void 0 ? _l : "",
-    VITE_API_URL: (_m = env.VITE_API_URL) !== null && _m !== void 0 ? _m : "",
-    EXPO_PUBLIC_API_BASE_URL:
-      (_o = env.EXPO_PUBLIC_API_BASE_URL) !== null && _o !== void 0 ? _o : "",
-    VITE_API_BASE_URL: (_p = env.VITE_API_BASE_URL) !== null && _p !== void 0 ? _p : "",
+      pickEnv("EXPO_PUBLIC_GOOGLE_MAPS_ID") || pickEnv("VITE_GOOGLE_MAPS_ID"),
+    EXPO_PUBLIC_GOOGLE_CLIENT_ID: pickEnv("EXPO_PUBLIC_GOOGLE_CLIENT_ID"),
+    EXPO_PUBLIC_PLAID_CLIENT_ID: pickEnv("EXPO_PUBLIC_PLAID_CLIENT_ID"),
+    EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: pickEnv("EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS"),
+    EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: pickEnv("EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR"),
+    EXPO_PUBLIC_API_URL: pickEnv("EXPO_PUBLIC_API_URL"),
+    EXPO_PUBLIC_API_BASE_URL: pickEnv("EXPO_PUBLIC_API_BASE_URL"),
   };
   // esbuild define only accepts JSON literals or identifiers; object expressions like
   // ({ env: {...} }) are rejected. Inject process via a generated shim so env.ts sees process.env.
@@ -79,12 +58,13 @@ export default defineConfig(function (_a) {
   return {
     root: __dirname,
     base: "/",
+    envPrefix: "EXPO_PUBLIC_",
     plugins: [
       react(),
       seoStaticFilesPlugin({
         root: root,
-        publicSiteUrl: publicSiteUrl,
-        googleSiteVerification: googleSiteVerification,
+        publicSiteUrl: seoPublicSiteUrl,
+        googleSiteVerification: seoGoogleSiteVerification,
       }),
       createWebStubNativePlugin({ reactNativeStub: REACT_NATIVE_STUB }),
       ...createProcessShimPlugins({ envVars: envVars, shimPath: shimPath }),
@@ -116,7 +96,7 @@ export default defineConfig(function (_a) {
     },
     server: {
       host: "localhost", // Changed from 0.0.0.0 to localhost for cookie consistency
-      port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT, 10) : 5173,
+      port: webDevPort,
       strictPort: true,
       // Allow resolving/serving from Client root so node_modules (zustand, react, etc.) is accessible
       fs: {
@@ -129,16 +109,16 @@ export default defineConfig(function (_a) {
       hmr: {
         protocol: "ws",
         host: "localhost",
-        port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT, 10) : 5173,
-        clientPort: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT, 10) : 5173,
+        port: webDevPort,
+        clientPort: webDevPort,
       },
       // Proxy: secure: false is intentional for local HTTP backend (e.g. Flask on localhost:5000).
-      // If the backend requires SameSite=None; Secure cookies, serve dev over HTTPS (e.g. set
-      // VITE_DEV_HTTPS=1 and use @vitejs/plugin-basic-ssl) and open https://localhost:5173, or
-      // cookies will be dropped on http://localhost.
+      // If the backend requires SameSite=None; Secure cookies, serve dev over HTTPS (e.g. use
+      // @vitejs/plugin-basic-ssl) and open https://localhost:<WEB_DEV_PORT>, or cookies will be
+      // dropped on http://localhost.
       proxy: {
         "/api": {
-          target: process.env.VITE_API_PROXY || "http://localhost:5000",
+          target: process.env.WEB_API_PROXY || "http://localhost:5000",
           changeOrigin: true,
           secure: false,
           configure: function (proxy) {
@@ -149,12 +129,12 @@ export default defineConfig(function (_a) {
           },
         },
         "/healthz": {
-          target: process.env.VITE_API_PROXY || "http://localhost:5000",
+          target: process.env.WEB_API_PROXY || "http://localhost:5000",
           changeOrigin: true,
           secure: false,
         },
         "/livez": {
-          target: process.env.VITE_API_PROXY || "http://localhost:5000",
+          target: process.env.WEB_API_PROXY || "http://localhost:5000",
           changeOrigin: true,
           secure: false,
         },

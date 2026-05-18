@@ -10,9 +10,9 @@ import { Loading } from "packages/ui/components/asset/loading/Loading";
 import { Text } from "packages/ui/components/primitives";
 
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
-import { useAgentSearch } from "@/features/agent/hooks/data/useAgentSearch";
-import { useClientSearch } from "@/features/agent/hooks/data/useAgentSearch";
-import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
+import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";
+import { useAgentSearch } from "@/features/agent/hooks/data/discovery/useAgentSearch";
+import { useClientSearch } from "@/features/agent/hooks/data/discovery/useAgentSearch";
 import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 
 type ClientSearchModalNativeProps = {

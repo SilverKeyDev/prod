@@ -1,81 +1,56 @@
-import React from "react";
+import React, { useMemo } from "react";
 
-import { Icon } from "@ui/icons";
-
-import { ChecklistProgressBar } from "packages/features/checklists";
-import { CHECKLIST_TITLES, type ChecklistTab } from "packages/types";
+import {
+  buildBuyerRoadmapPhases,
+  CHECKLIST_TITLES,
+  ChecklistProgressBar,
+  type ChecklistTab,
+  RoadmapTracker,
+} from "packages/features/checklists";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
-import { UnderlineTabs } from "packages/ui/components/tabs";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
+
+type SectionProgress = Record<
+  ChecklistTab,
+  { completed: number; total: number; isComplete: boolean }
+>;
 
 type DashboardChecklistsHeaderProps = {
   journeyTitle: string;
   journeyProgressLabel: string;
-  currentPhaseLabel: string;
   overallPercent: number;
   overallLoading: boolean;
   activeTab?: ChecklistTab;
-  /** Journey phase tab (first incomplete section); distinct from {@link activeTab}. */
-  phaseIndicatorId?: ChecklistTab;
+  currentSection: ChecklistTab;
   onTabChange?: (tab: ChecklistTab) => void;
   isSectionUnlocked?: (section: ChecklistTab) => boolean;
-};
-
-const TAB_IDS: ChecklistTab[] = [
-  "search",
-  "offer",
-  "escrow",
-  "inspections",
-  "financing",
-  "closing",
-];
-
-const TAB_CONFIG: Record<ChecklistTab, { label: string; icon: React.ReactNode }> = {
-  search: {
-    label: CHECKLIST_TITLES.search,
-    icon: <Icon name="search" className="h-4 w-4" />,
-  },
-  offer: {
-    label: CHECKLIST_TITLES.offer,
-    icon: <Icon name="file-signature" className="h-4 w-4" />,
-  },
-  escrow: {
-    label: CHECKLIST_TITLES.escrow,
-    icon: <Icon name="file-text" className="h-4 w-4" />,
-  },
-  inspections: {
-    label: CHECKLIST_TITLES.inspections,
-    icon: <Icon name="clipboard-check" className="h-4 w-4" />,
-  },
-  financing: {
-    label: CHECKLIST_TITLES.financing,
-    icon: <Icon name="dollar-sign" className="h-4 w-4" />,
-  },
-  closing: {
-    label: CHECKLIST_TITLES.closing,
-    icon: <Icon name="home" className="h-4 w-4" />,
-  },
+  sectionProgress: SectionProgress;
 };
 
 export default function DashboardChecklistsHeader({
   journeyTitle,
   journeyProgressLabel,
-  currentPhaseLabel,
   overallPercent,
   overallLoading,
   activeTab,
-  phaseIndicatorId,
+  currentSection,
   onTabChange,
   isSectionUnlocked,
+  sectionProgress,
 }: DashboardChecklistsHeaderProps) {
-  const tabs = TAB_IDS.map((id) => ({
-    id,
-    label: TAB_CONFIG[id].label,
-    icon: TAB_CONFIG[id].icon,
-    locked: isSectionUnlocked ? !isSectionUnlocked(id) : false,
-  }));
+  const phases = useMemo(
+    () =>
+      buildBuyerRoadmapPhases({
+        sectionProgress,
+        isSectionUnlocked: isSectionUnlocked ?? (() => true),
+        labelsByTab: CHECKLIST_TITLES,
+        selectedPhaseId: activeTab ?? "search",
+        journeyPhaseId: currentSection,
+      }),
+    [sectionProgress, isSectionUnlocked, activeTab, currentSection]
+  );
 
   return (
     <Card border="light" className="bg-background-surface" padding="none" hover={false}>
@@ -96,22 +71,20 @@ export default function DashboardChecklistsHeader({
             variant="dashboard"
           />
         </Box>
-
-        <BodyText size="sm" className="text-text-secondary mt-2" as="p">
-          {currentPhaseLabel}
-        </BodyText>
       </Box>
 
-      {activeTab != null && onTabChange != null && (
-        <Box className="mt-4">
-          <UnderlineTabs
-            items={tabs}
-            activeId={activeTab}
-            phaseIndicatorId={phaseIndicatorId}
-            onChange={(id) => onTabChange(id as ChecklistTab)}
+      {activeTab != null && onTabChange != null ? (
+        <Box className="mt-4 px-2 pb-2">
+          <RoadmapTracker
+            phases={phases}
+            activePhaseId={activeTab}
+            journeyPhaseId={currentSection}
+            onPhaseSelect={(id) => {
+              onTabChange(id as ChecklistTab);
+            }}
           />
         </Box>
-      )}
+      ) : null}
     </Card>
   );
 }

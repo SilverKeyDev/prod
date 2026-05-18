@@ -48,6 +48,9 @@ if database_url.startswith("sqlite://"):
         }
 else:
     # PostgreSQL/other database configuration with connection args
+    _is_production = os.getenv("FLASK_ENV") == "production"
+    _default_connect_timeout = 300 if _is_production else 15
+    _connect_timeout = int(os.getenv("DB_CONNECT_TIMEOUT", str(_default_connect_timeout)))
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
         "pool_recycle": 300,
@@ -55,7 +58,7 @@ else:
         "pool_size": 10,
         "max_overflow": 20,
         "connect_args": {
-            "connect_timeout": 300,
+            "connect_timeout": _connect_timeout,
             "keepalives_idle": 600,
             "keepalives_interval": 30,
             "keepalives_count": 3,

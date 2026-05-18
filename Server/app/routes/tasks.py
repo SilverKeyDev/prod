@@ -5,6 +5,7 @@ import uuid
 from flask import Blueprint, jsonify, request
 
 from app.schemas import TaskChecklistApiResponse, UpdateTaskChecklistRequest
+from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 
 from ..services.transactions.unified_task_checklist_read import (
@@ -13,7 +14,6 @@ from ..services.transactions.unified_task_checklist_read import (
 )
 from ..services.transactions.unified_task_checklist_write import perform_task_checklist_put
 from ..utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
-from ..utils.security.security import rate_limit
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/api/v1/tasks")
 

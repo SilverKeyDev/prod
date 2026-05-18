@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef } from "react";
 
 import { useLocalization, useSearchRefresh } from "packages/contexts";
+import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/agent/hooks/data/search/useAgentSyncPreferencesWhenClientSelected";
 import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
 import {
   cleanupMapPropertyCard,
@@ -11,7 +12,6 @@ import { useSearchPageData } from "packages/features/search/hooks/data/page/useS
 import { useSearchPageHandlers } from "packages/features/search/hooks/data/page/useSearchPageHandlers";
 import { useSearchPageMap } from "packages/features/search/hooks/data/page/useSearchPageMap";
 import type { Property } from "packages/features/search/hooks/data/property/usePropertyDetails";
-import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/search/hooks/data/useAgentSyncPreferencesWhenClientSelected";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useSearchViewIntegration } from "packages/features/search/hooks/store/useSearchViewIntegration";
 import { useAgentSearchShareSelection } from "packages/features/search/hooks/ui/useAgentSearchShareSelection";
@@ -22,7 +22,7 @@ import { useSearchMobileHeaderActions } from "packages/features/search/hooks/ui/
 import type { SearchResult } from "packages/features/search/types";
 import { useSearchRefreshIntegration } from "packages/hooks/data/integrations/useSearchRefreshIntegration";
 import { useUserPreferences } from "packages/hooks/data/user/useUserData";
-import { useIsAgent } from "packages/hooks/store";
+import { useActiveWorkspace } from "packages/hooks/store";
 import { usePreActionSnapshot } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui/responsive/useMediaQuery";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
@@ -50,7 +50,7 @@ export function useSearchFeatureController({
 }: SearchFeatureControllerProps) {
   const isCompactHeader = useMediaQuery(screenDown("lg"));
   const { t } = useLocalization();
-  const isAgent = useIsAgent();
+  const isAgentWorkspace = useActiveWorkspace() === "agent";
   const { mode: searchViewMode } = useSearchViewIntegration();
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
   const searchRefresh = useSearchRefresh();
@@ -249,10 +249,6 @@ export function useSearchFeatureController({
     ]
   );
 
-  const handlePreferencesApplySearch = useCallback(async () => {
-    await handleSearchUpdated({ skipLocationsGate: true });
-  }, [handleSearchUpdated]);
-
   const handleLocationSearchSubmit = useCallback(async () => {
     if (isSearching) return;
     setSearchSource("location");
@@ -310,7 +306,6 @@ export function useSearchFeatureController({
     isCompactHeader,
     isSearching,
     onSearch: handleSearchUpdated,
-    onPreferencesApplySearch: handlePreferencesApplySearch,
     onLocationSearchSubmit: handleLocationSearchSubmit,
     fitMapToBounds: map.fitMapToBounds,
     onPreciseStreetAddressSelected: handlePreciseStreetAddressSelected,
@@ -325,7 +320,7 @@ export function useSearchFeatureController({
 
   return {
     FEED_ACTION_INTERACTION_CLASS,
-    isAgent,
+    isAgent: isAgentWorkspace,
     searchViewMode,
     handleToggleMode,
     activeTab,
@@ -356,7 +351,6 @@ export function useSearchFeatureController({
     displayIsochroneData,
     hasLocations,
     handleSearchUpdated,
-    handlePreferencesApplySearch,
     handleLocationSearchSubmit,
     handleCancelSearch,
     handlePreciseStreetAddressSelected,

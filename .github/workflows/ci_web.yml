@@ -52,9 +52,10 @@ jobs:
 
       - name: Build & push to ECR
         env:
-          VITE_GOOGLE_MAPS_ID: ${{ secrets.VITE_GOOGLE_MAPS_ID }}
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-          VITE_PLAID_CLIENT_ID: ${{ secrets.VITE_PLAID_CLIENT_ID }}
+          # GitHub Actions: add repository secrets EXPO_PUBLIC_* (Plaid Link / Maps / OAuth client IDs for the web bundle).
+          EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
+          EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
+          EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
         run: |
           set -euo pipefail
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -71,9 +72,9 @@ jobs:
           docker buildx build \
             --platform linux/amd64 \
             -f Dockerfile.web \
-            --build-arg VITE_GOOGLE_MAPS_ID="$VITE_GOOGLE_MAPS_ID" \
-            --build-arg VITE_GOOGLE_CLIENT_ID="$VITE_GOOGLE_CLIENT_ID" \
-            --build-arg VITE_PLAID_CLIENT_ID="$VITE_PLAID_CLIENT_ID" \
+            --build-arg EXPO_PUBLIC_GOOGLE_MAPS_ID="$EXPO_PUBLIC_GOOGLE_MAPS_ID" \
+            --build-arg EXPO_PUBLIC_GOOGLE_CLIENT_ID="$EXPO_PUBLIC_GOOGLE_CLIENT_ID" \
+            --build-arg EXPO_PUBLIC_PLAID_CLIENT_ID="$EXPO_PUBLIC_PLAID_CLIENT_ID" \
             --tag "$IMAGE_REF" \
             --tag "$WEB_PROD_REF" \
             --cache-from type=registry,ref="$CACHE_REF" \

@@ -5,7 +5,7 @@ from flask import jsonify
 from app.schemas.generated import AgentClientsResponse
 from app.services.agent import get_agent_clients
 from app.utils.common_patterns import handle_exceptions_with_logging, require_agent_access
-from app.utils.security.security import rate_limit
+from app.utils.security import rate_limit
 from app.utils.validation import validate_response
 
 

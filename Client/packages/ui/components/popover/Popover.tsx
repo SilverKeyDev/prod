@@ -101,11 +101,12 @@ export default function Popover({
     };
     const handler = (e: MouseEvent) => handleClickOutside(e);
     const touchHandler = (e: TouchEvent) => handleClickOutside(e);
-    doc.addEventListener("mousedown", handler);
-    doc.addEventListener("touchstart", touchHandler, { passive: true });
+    // Capture phase so nested handlers (e.g. map overlays, list rows) cannot block dismiss.
+    doc.addEventListener("mousedown", handler, true);
+    doc.addEventListener("touchstart", touchHandler, { passive: true, capture: true });
     return () => {
-      doc.removeEventListener("mousedown", handler);
-      doc.removeEventListener("touchstart", touchHandler);
+      doc.removeEventListener("mousedown", handler, true);
+      doc.removeEventListener("touchstart", touchHandler, true);
     };
   }, [open, onClose]);
 

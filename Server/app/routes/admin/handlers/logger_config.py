@@ -1,15 +1,34 @@
 from flask import jsonify, request
 
 from app.schemas import GetLoggerConfigResponse, UpdateLoggerConfigRequest
-from app.utils.admin import user_has_admin_role
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_authenticated_user,
     standardize_error_response,
     standardize_success_response,
 )
+from app.utils.security.admin_roles import user_has_admin_role
 from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, LoggerConfig, log
+
+# Keep in sync with LoggerConfig.to_dict() keys (see tests/unit/logger/test_logger_allowed_keys_contract.py).
+ALLOWED_LOGGER_CONFIG_KEYS = frozenset(
+    {
+        "polling",
+        "pages",
+        "hooks",
+        "auth",
+        "http",
+        "api",
+        "errors",
+        "security",
+        "polygonSearch",
+        "docusign",
+        "documents",
+        "profilePreferences",
+        "logLevel",
+    }
+)
 
 
 @handle_exceptions_with_logging
@@ -54,23 +73,7 @@ def update_logger_config(user, data: UpdateLoggerConfigRequest | None = None):
     if not isinstance(updates, dict):
         return standardize_error_response("Invalid updates payload", status_code=400)
 
-    allowed_keys = {
-        "polling",
-        "pages",
-        "hooks",
-        "auth",
-        "http",
-        "api",
-        "errors",
-        "security",
-        "polygonSearch",
-        "docusign",
-        "documents",
-        "profilePreferences",
-        "logLevel",
-    }
-
-    safe_updates = {k: v for k, v in updates.items() if k in allowed_keys}
+    safe_updates = {k: v for k, v in updates.items() if k in ALLOWED_LOGGER_CONFIG_KEYS}
 
     if not safe_updates:
         return standardize_error_response("No valid logger fields to update", status_code=400)

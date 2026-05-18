@@ -13,6 +13,8 @@ import { useSecureAuth } from "./useSecureAuth";
 vi.mock("packages/store", () => ({
   useAuthStore: vi.fn(),
   useUserStore: vi.fn(),
+  resetWorkspaceStore: vi.fn(),
+  useDevAppPersonaStore: { setState: vi.fn() },
 }));
 
 vi.mock("./useSecureAuthEffects", () => ({

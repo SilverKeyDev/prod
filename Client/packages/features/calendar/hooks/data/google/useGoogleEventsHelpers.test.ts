@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { GoogleEvent } from "packages/config/http/api";
+import type { GoogleEvent } from "packages/api";
 
 import { buildEventsListQueryFn } from "./useGoogleEventsHelpers";
 

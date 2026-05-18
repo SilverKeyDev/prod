@@ -8,6 +8,7 @@ import {
   type ChecklistType,
   useChecklistData,
 } from "packages/features/checklists/hooks/data/useChecklistData";
+import { useAutoCompleteChecklistIntegrations } from "packages/features/checklists/hooks/useAutoCompleteChecklistIntegrations";
 import { useChecklistProgress } from "packages/features/checklists/hooks/useChecklistProgress";
 import { useChecklistStepExpansion } from "packages/features/checklists/hooks/useChecklistStepExpansion";
 import type {
@@ -25,6 +26,7 @@ import {
   parseChecklistTypeFromApiEndpoint,
 } from "packages/features/checklists/utils/rules/checklistTypeTab";
 import { sortTaskChecklistItems } from "packages/features/checklists/utils/sort/sortTaskChecklistItems";
+import { sortTaskChecklistItemsForDisplay } from "packages/features/checklists/utils/sort/sortTaskChecklistItemsForDisplay";
 import { showErrorToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import Card from "packages/ui/components/cards/Card";
@@ -72,7 +74,21 @@ export default function CloseLayout({
   const { getItemToggleEligibility } = useChecklistProgress();
   const roadmapTab = CHECKLIST_TYPE_TO_TAB[checklistType];
 
-  const sortedItems = useMemo(() => sortTaskChecklistItems(items), [items]);
+  const templateSortedItems = useMemo(() => sortTaskChecklistItems(items), [items]);
+  const displaySortedItems = useMemo(
+    () => sortTaskChecklistItemsForDisplay(templateSortedItems, checkedIds),
+    [templateSortedItems, checkedIds]
+  );
+
+  useAutoCompleteChecklistIntegrations({
+    items,
+    checkedIds,
+    toggleItem,
+    getItemToggleEligibility,
+    roadmapTab,
+    isChecklistUpdatePending,
+    isChecklistLoading: loading,
+  });
 
   const checkedById = React.useMemo(() => {
     const mapping: { [id: number]: boolean } = {};
@@ -125,21 +141,21 @@ export default function CloseLayout({
 
   const segments = useMemo(
     () =>
-      buildProgressiveChecklistRows(sortedItems, activeItemId, {
+      buildProgressiveChecklistRows(displaySortedItems, activeItemId, {
         previewUpcoming: DEFAULT_CHECKLIST_PREVIEW_UPCOMING,
         futureOpen: disclosure.futureOpen,
         completedOpen: disclosure.completedOpen,
         revealedCompletedItemId: null,
       }),
-    [sortedItems, activeItemId, disclosure.futureOpen, disclosure.completedOpen]
+    [displaySortedItems, activeItemId, disclosure.futureOpen, disclosure.completedOpen]
   );
 
   const futureHidden = getHiddenFutureItemCount(
-    sortedItems,
+    displaySortedItems,
     activeItemId,
     DEFAULT_CHECKLIST_PREVIEW_UPCOMING
   );
-  const useProgressive = shouldUseProgressiveDisclosure(sortedItems.length);
+  const useProgressive = shouldUseProgressiveDisclosure(displaySortedItems.length);
 
   useEffect(() => {
     if (setClosePageHeaderData) {
@@ -287,7 +303,7 @@ export default function CloseLayout({
                         }
                         return null;
                       })
-                    : sortedItems.map((item, index) => (
+                    : displaySortedItems.map((item, index) => (
                         <ChecklistLayoutItemRow
                           key={`flat_item-${item.id}`}
                           item={item}

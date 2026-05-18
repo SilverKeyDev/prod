@@ -2,17 +2,21 @@ import { lazy, Suspense, useEffect } from "react";
 
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
-import { useIsAgent } from "packages/features/homeauth";
+import { useActiveWorkspace, useIsAgent } from "packages/features/homeauth";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
+import { stripWorkspaceShellPrefix } from "packages/utils/layout/dashboardLayoutConfig";
 import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 
 import { KeyTurnLoader } from "@/components/ui";
 
-import { loadAgentDashboardModule, loadClientMessagingModule } from "./agentFeatureDynamicImports";
+import {
+  loadAgentDashboardModule,
+  loadClientMessagingModule,
+} from "./loading/agentFeatureDynamicImports";
 
 const ClientMessaging = lazy(
   traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:ClientMessaging", loadClientMessagingModule)
@@ -34,10 +38,13 @@ type AgentFeatureProps = {
 export default function AgentFeature({ setMobileHeaderActions }: AgentFeatureProps = {}) {
   useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "AgentFeature");
   const authReady = useAuthStore((s) => s.authReady);
-  const isAgent = useIsAgent();
-  const { navigateToPath, getCurrentRoute } = useNavigation();
+  const isAgentIdentity = useIsAgent();
+  const activeWorkspace = useActiveWorkspace();
+  const { getCurrentRoute } = useNavigation();
   const pathname = getCurrentRoute().pathname;
-  const isOnMessagingPath = pathname === "/messaging";
+  const normalizedPath = stripWorkspaceShellPrefix(pathname);
+  const isOnMessagingPath =
+    normalizedPath === "/messaging" || normalizedPath.startsWith("/messaging/");
 
   // Clear mobile header when leaving page (messaging sets its own header while mounted)
   useEffect(() => {
@@ -45,14 +52,6 @@ export default function AgentFeature({ setMobileHeaderActions }: AgentFeaturePro
       if (setMobileHeaderActions) setMobileHeaderActions(null);
     };
   }, [setMobileHeaderActions]);
-
-  // If a non-agent lands on a non-messaging path, redirect to /messaging (client experience).
-  useEffect(() => {
-    if (!authReady || isAgent) return;
-    if (!isOnMessagingPath) {
-      navigateToPath("/messaging", { replace: true });
-    }
-  }, [authReady, isAgent, isOnMessagingPath, navigateToPath]);
 
   // Avoid flicker: don't render a potentially incorrect experience before auth bootstrap completes
   if (!authReady) {
@@ -63,8 +62,9 @@ export default function AgentFeature({ setMobileHeaderActions }: AgentFeaturePro
     );
   }
 
-  // Agent: show agent dashboard. Client on /messaging: show client messaging. Client elsewhere: redirecting.
-  if (isAgent) {
+  const inAgentWorkspace = activeWorkspace === "agent" && isAgentIdentity;
+
+  if (inAgentWorkspace) {
     return (
       <Box className="h-full w-full">
         <Suspense fallback={messagingBranchFallback}>
@@ -80,9 +80,5 @@ export default function AgentFeature({ setMobileHeaderActions }: AgentFeaturePro
       </Suspense>
     );
   }
-  return (
-    <Box className="py-responsive-lg flex justify-center">
-      <KeyTurnLoader message="Redirecting…" />
-    </Box>
-  );
+  return null;
 }

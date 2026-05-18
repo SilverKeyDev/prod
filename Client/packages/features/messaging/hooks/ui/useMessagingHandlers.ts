@@ -6,7 +6,7 @@ import type { components } from "packages/types/api.generated";
 import type { SavedHome } from "packages/types/domain/savedHome";
 import type { DocumentData } from "packages/ui/components/cards/document/types";
 
-import { useEventRequests } from "@/features/agent/hooks/data/useEventRequests";
+import { useEventRequests } from "@/features/agent/hooks/data/calendar/useEventRequests";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 

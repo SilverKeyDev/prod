@@ -9,8 +9,8 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Path to .env.example file (relative to Server directory)
-ENV_EXAMPLE_PATH = Path(__file__).resolve().parents[3] / "config" / ".env.example"
+# Path to .env.example file (Server/.env.example)
+ENV_EXAMPLE_PATH = Path(__file__).resolve().parents[3] / ".env.example"
 
 
 def _load_env_example_keys() -> set[str]:
@@ -41,6 +41,10 @@ def _load_env_example_keys() -> set[str]:
                 match = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=", line)
                 if match:
                     key = match.group(1)
+                    # Client bundle vars (Expo/Vite) are listed in Server/.env.example for
+                    # secrets.sh but are not required to boot the Flask API.
+                    if key.startswith("EXPO_PUBLIC_"):
+                        continue
                     env_keys.add(key)
 
         if env_keys:

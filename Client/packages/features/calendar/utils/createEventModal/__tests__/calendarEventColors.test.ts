@@ -92,4 +92,10 @@ describe("hexToRgba", () => {
     const hex = color("green.DEFAULT");
     expect(hexToRgba(hex, 0.2)).toBe("rgba(22,163,74,0.2)");
   });
+
+  it("parses hsl design-token event kind colors", () => {
+    const hsl = color(CALENDAR_EVENT_KINDS.agent_consultation.uiColorPath);
+    expect(hexToRgba(hsl, 0.18)).toMatch(/^rgba\(\d+,\d+,\d+,0\.18\)$/);
+    expect(hexToRgba(hsl, 0.18)).not.toBe("rgba(0,0,0,0.18)");
+  });
 });

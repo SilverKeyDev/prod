@@ -2,9 +2,9 @@
 
 from datetime import datetime, timezone
 
-from app.utils.datetime_utc import to_aware_utc_iso
 from app.utils.format.currency import format_currency, resolve_price
-from app.utils.pagination import (
+from app.utils.format.datetime import to_aware_utc_iso
+from app.utils.http.pagination import (
     build_pagination,
     clamp_page,
     clamp_per_page,

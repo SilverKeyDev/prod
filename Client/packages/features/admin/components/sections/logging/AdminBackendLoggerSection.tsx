@@ -1,4 +1,6 @@
 import type { ServerLoggerConfig } from "packages/api/admin";
+import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
+import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import {
   useAdminLoggerConfig,
   useUpdateAdminLoggerConfig,
@@ -6,7 +8,7 @@ import {
 import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
-import { AccessibleCheckboxInput, BodyText, Label, Select, Title } from "@/components/ui";
+import { AccessibleCheckboxInput, BodyText, Dropdown, Label, Title } from "@/components/ui";
 
 const CORE_BOOL_KEYS: (keyof ServerLoggerConfig)[] = [
   "polling",
@@ -21,7 +23,9 @@ const CORE_BOOL_KEYS: (keyof ServerLoggerConfig)[] = [
 
 const LEVELS: ServerLoggerConfig["logLevel"][] = ["DEBUG", "INFO", "WARN", "ERROR"];
 
-export function AdminBackendLoggerSection() {
+export function AdminBackendLoggerSection({
+  scope: _scope = DEFAULT_ADMIN_SCOPE,
+}: AdminSectionBaseProps) {
   const { config, isLoading, error } = useAdminLoggerConfig();
   const mutation = useUpdateAdminLoggerConfig();
 
@@ -99,14 +103,15 @@ export function AdminBackendLoggerSection() {
         </Box>
         <Box>
           <Label size="sm">Log level</Label>
-          <Select
+          <Dropdown
             className="mt-1"
+            label="Log level"
+            hideLabel
+            size="sm"
             disabled={mutation.isPending}
             options={LEVELS.map((lvl) => ({ value: lvl, label: lvl }))}
             value={config.logLevel}
-            onChange={(value) =>
-              mutation.mutate({ logLevel: value as ServerLoggerConfig["logLevel"] })
-            }
+            onChange={(value) => mutation.mutate({ logLevel: value })}
           />
           <BodyText size="xs" muted className="mt-3">
             Checkbox and level changes persist immediately when toggled.

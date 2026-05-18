@@ -6,6 +6,7 @@ import uuid
 
 from app import db
 from app.models import Agreement, AgreementEvent
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, get_logger
 
 from ..errors import AgreementNotFoundError
@@ -94,7 +95,7 @@ def get_agreement(agreement_id: str) -> Agreement:
     """Get agreement by ID"""
     logger.debug(LOG_CATEGORIES["DOCUSIGN"], "Fetching agreement", {"agreement_id": agreement_id})
 
-    agreement = Agreement.query.get(agreement_id)
+    agreement = get_model(Agreement, agreement_id)
     if not agreement:
         logger.warn(
             LOG_CATEGORIES["DOCUSIGN"], "Agreement not found", {"agreement_id": agreement_id}

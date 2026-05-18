@@ -163,6 +163,10 @@ components:
       $ref: './components/schemas/user/profile/DeleteReportResponse.yaml'
     DeleteUserRequest:
       $ref: './components/schemas/admin/DeleteUserRequest.yaml'
+    DevUserDataResetRequest:
+      $ref: './components/schemas/admin/DevUserDataResetRequest.yaml'
+    DevUserDataResetResponse:
+      $ref: './components/schemas/admin/DevUserDataResetResponse.yaml'
     DeleteUserResponse:
       $ref: './components/schemas/user/profile/DeleteUserResponse.yaml'
     DocumentLibraryListItem:

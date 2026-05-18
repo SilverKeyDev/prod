@@ -16,7 +16,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=dev_ports.sh
 source "${SCRIPT_DIR}/dev_ports.sh"
 FLASK_PORT="${FLASK_PORT:-5000}"
-VITE_PORT="${VITE_PORT:-5173}"
+export WEB_DEV_PORT="${WEB_DEV_PORT:-5173}"
 
 # Colors
 GREEN='\033[0;32m'
@@ -29,7 +29,7 @@ log() { echo -e "${BLUE}[$(date +%T)] [run-all]${NC} $1"; }
 warn() { echo -e "${YELLOW}[$(date +%T)] [run-all] WARN:${NC} $1" >&2; }
 err() {
   echo -e "${RED}[$(date +%T)] [run-all] ERROR:${NC} $1" >&2
-  echo -e "${RED}  Context: PROJECT_ROOT=$PROJECT_ROOT FLASK_PORT=$FLASK_PORT VITE_PORT=$VITE_PORT${NC}" >&2
+  echo -e "${RED}  Context: PROJECT_ROOT=$PROJECT_ROOT FLASK_PORT=$FLASK_PORT WEB_DEV_PORT=$WEB_DEV_PORT${NC}" >&2
 }
 
 # Kill processes on dev ports (backend, web) from previous runs
@@ -57,7 +57,7 @@ close_all_terminal_windows() {
   log "${GREEN}✅ Terminal windows closed${NC}"
 }
 
-log "Starting run-all.sh | PROJECT_ROOT=$PROJECT_ROOT | FLASK_PORT=$FLASK_PORT | VITE_PORT=$VITE_PORT"
+log "Starting run-all.sh | PROJECT_ROOT=$PROJECT_ROOT | FLASK_PORT=$FLASK_PORT | WEB_DEV_PORT=$WEB_DEV_PORT"
 
 if [[ "$(uname)" != "Darwin" ]]; then
   err "run-all.sh requires macOS (uses osascript + Terminal.app)"
@@ -65,7 +65,7 @@ if [[ "$(uname)" != "Darwin" ]]; then
   echo "  Terminal 1: cd $PROJECT_ROOT && ./scripts/run/run-backend.sh"
   echo "  Terminal 2: cd $PROJECT_ROOT && ./scripts/run/run-web.sh --no-backend"
   echo "  Terminal 3: cd $PROJECT_ROOT && ./scripts/run/run-ios.sh"
-  echo "  Then open http://localhost:${VITE_PORT} in your browser"
+  echo "  Then open http://localhost:${WEB_DEV_PORT} in your browser"
   exit 1
 fi
 
@@ -112,14 +112,14 @@ if ! osascript -e "tell application \"Terminal\" to do script \"cd '$PROJECT_ROO
 fi
 
 # Wait for Vite to be ready
-log "Waiting for Vite to be ready on port ${VITE_PORT} (up to 60s)..."
+log "Waiting for Vite to be ready on port ${WEB_DEV_PORT} (up to 60s)..."
 for i in $(seq 1 60); do
-  if nc -z localhost "${VITE_PORT}" 2>/dev/null; then
-    log "${GREEN}✅ Vite is ready at http://localhost:${VITE_PORT}${NC}"
+  if nc -z localhost "${WEB_DEV_PORT}" 2>/dev/null; then
+    log "${GREEN}✅ Vite is ready at http://localhost:${WEB_DEV_PORT}${NC}"
     break
   fi
   [[ $i -eq 60 ]] && {
-    err "Vite did not start on port ${VITE_PORT} within 60s. Check the web Terminal for errors (pnpm, Vite, typecheck)."
+    err "Vite did not start on port ${WEB_DEV_PORT} within 60s. Check the web Terminal for errors (pnpm, Vite, typecheck)."
     break
   }
   sleep 1
@@ -127,7 +127,7 @@ done
 
 if [[ -x "${SCRIPT_DIR}/open-localhost-chrome.sh" ]]; then
   log "Opening Chrome tabs for app root and /admin (if not already open)..."
-  VITE_PORT="${VITE_PORT}" "${SCRIPT_DIR}/open-localhost-chrome.sh" || warn "open-localhost-chrome.sh exited non-zero (Chrome may be unavailable)"
+  WEB_DEV_PORT="${WEB_DEV_PORT}" "${SCRIPT_DIR}/open-localhost-chrome.sh" || warn "open-localhost-chrome.sh exited non-zero (Chrome may be unavailable)"
 else
   warn "open-localhost-chrome.sh missing or not executable at ${SCRIPT_DIR}/open-localhost-chrome.sh"
 fi
@@ -144,4 +144,4 @@ fi
 #   exit 1
 # fi
 
-log "${GREEN}✅ All terminals launched. Backend, Web running at http://localhost:${VITE_PORT}${NC}"
+log "${GREEN}✅ All terminals launched. Backend, Web running at http://localhost:${WEB_DEV_PORT}${NC}"

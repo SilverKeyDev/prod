@@ -14,7 +14,7 @@ from app.schemas import (
 from app.services.calendar.core import get_authenticated_user_id
 from app.services.calendar.permissions import require_permission
 from app.services.viewings.route_builder import build_google_maps_navigate_url, build_viewing_route
-from app.utils.security.security import rate_limit
+from app.utils.security import rate_limit
 from app.utils.validation import validate_request
 
 
