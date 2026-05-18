@@ -167,10 +167,9 @@ def create_app(config=None):
         """Process liveness only (no DB). Use for Docker/orchestrator probes; use /healthz for DB readiness."""
         return jsonify({"status": "ok"}), 200
 
-    # Register login manager loader (User already imported in app_context block above)
-
     @login_manager.user_loader
     def load_user(user_id):
+        from app.models.user import User
         from app.utils.db.orm_lookup import get_model
 
         # User.id is String(36) UUID; do not coerce to int

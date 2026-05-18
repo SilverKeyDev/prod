@@ -274,9 +274,9 @@ class TestOpenAPIContracts:
         with app.app_context():
             rows = db.session.execute(select(Agreement.status).distinct()).all()
         for (status,) in rows:
-            assert (
-                status in allowed
-            ), f"DB agreements.status={status!r} is not in OpenAPI AgreementStatus enum"
+            assert status in allowed, (
+                f"DB agreements.status={status!r} is not in OpenAPI AgreementStatus enum"
+            )
 
 
 @pytest.mark.api

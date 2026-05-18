@@ -20,7 +20,7 @@ Use scope `client` or `server` only when the user specifies (e.g. "client linter
 ## What the script does
 
 1. **Fix phase (runs first — local and CI)**
-   - **Client:** `pnpm run fix` (`pnpm format` then `pnpm lint:fix`). Non-fatal (`|| true`) so linters still run if fix exits 1.
+   - **Client:** `pnpm run fix:quiet` (silent Prettier/ESLint/Stylelint auto-fix). Output is shown only if fix fails. Non-fatal in `run-all-linters.sh` so linters still run if fix exits 1.
    - **Server:** `ruff check . --fix`, then `ruff format .`
 
 2. **Linter phase (runs after fixes)**

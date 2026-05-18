@@ -80,18 +80,12 @@ jobs:
         env:
           SYNC_FILE: Server/app/schemas/generated.py
         run: |
-          if git diff --exit-code "$SYNC_FILE"; then
+          if git diff --quiet "$SYNC_FILE"; then
             exit 0
           fi
           echo "❌ Server schemas are out of sync with openapi.yaml"
           echo ""
-          git diff --stat "$SYNC_FILE"
-          diff_lines=$(git diff "$SYNC_FILE" | wc -l | tr -d ' ')
-          git diff "$SYNC_FILE" | head -n 200
-          if [ "$diff_lines" -gt 200 ]; then
-            echo ""
-            echo "... diff truncated ($diff_lines lines; run locally for full output)"
-          fi
+          bash .github/scripts/summarize-openapi-sync-diff.sh "$SYNC_FILE" "Server Pydantic models"
           echo ""
           echo "To fix, run:"
           echo "  cd Server && bash scripts/generate-pydantic-models.sh"
@@ -141,18 +135,12 @@ jobs:
         env:
           SYNC_FILE: Client/packages/types/api.generated.ts
         run: |
-          if git diff --exit-code "$SYNC_FILE"; then
+          if git diff --quiet "$SYNC_FILE"; then
             exit 0
           fi
           echo "❌ Client types are out of sync with openapi.yaml"
           echo ""
-          git diff --stat "$SYNC_FILE"
-          diff_lines=$(git diff "$SYNC_FILE" | wc -l | tr -d ' ')
-          git diff "$SYNC_FILE" | head -n 200
-          if [ "$diff_lines" -gt 200 ]; then
-            echo ""
-            echo "... diff truncated ($diff_lines lines; run locally for full output)"
-          fi
+          bash .github/scripts/summarize-openapi-sync-diff.sh "$SYNC_FILE" "Client TypeScript types"
           echo ""
           echo "To fix, run:"
           echo "  cd Client && pnpm generate:api-types"

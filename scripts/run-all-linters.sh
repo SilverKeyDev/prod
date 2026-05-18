@@ -13,8 +13,14 @@ cd "$REPO_ROOT"
 SCOPE="${1:-all}"
 
 apply_client_fixes() {
-  echo "==> Client: applying fixes (format, lint --fix)..."
-  (cd Client && pnpm run fix) || true
+  local log
+  log="$(mktemp)"
+  # Suppress per-file "(unchanged)" / auto-fix noise; surface output only if fix fails.
+  if ! (cd Client && pnpm run fix:quiet >"$log" 2>&1); then
+    echo "==> Client: auto-fix failed:" >&2
+    cat "$log" >&2
+  fi
+  rm -f "$log"
 }
 
 apply_server_fixes() {
@@ -39,7 +45,6 @@ run_client() {
 
   apply_client_fixes
 
-  echo "==> Client: running Client/scripts/run-client-linters.sh (discovered lint.d/*.sh + pnpm check)..."
   (cd Client && bash scripts/run-client-linters.sh)
 }
 
