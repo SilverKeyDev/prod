@@ -13,8 +13,9 @@
 #     docs/local-development.md, Server/tests/README.md
 #
 # Not used for:
-#   - PR lint / import-smoke only → requirements/ci.txt (smaller; saves runner disk)
-#   - Default backend pytest CI → ci.txt + CPU torch + requirements/test.txt
+#   - PR lint → requirements/lint.txt (ci.txt + ruff + pyright)
+#   - Import smoke only → requirements/ci.txt
+#   - Backend pytest CI → ci.txt + CPU torch + requirements/test.txt
 #   - OpenAPI codegen jobs → requirements/codegen.txt
 #
 # If you add a package imported at app startup or in normal request paths, add it

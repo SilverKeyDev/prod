@@ -1,0 +1,25 @@
+# =============================================================================
+# requirements/lint.txt — SERVER LINT CI / LOCAL (APP IMPORTS + LINT TOOLS)
+# =============================================================================
+#
+# Layered install (do not use test.txt or torch here — those are for pytest only):
+#   -r ci.txt     Import surface for `from app import create_app`, Pyright, Ruff on app/
+#   ruff, pyright Linters run by Server/scripts/lint/ and scripts/run-all-linters.sh
+#
+# Where it is used:
+#   - GitHub Actions: .github/workflows/lint.yml
+#   - Local: Server/scripts/bootstrap-venv.sh --lint
+#   - Documented in scripts/run-all-linters.sh
+#
+# Relationship to other files:
+#   - ci.txt        App/runtime pins needed at import time (no linters)
+#   - test.txt      Pytest + ML/geo extras; install only in test-callable.yml
+#   - codegen.txt   OpenAPI codegen only (datamodel-code-generator + ruff)
+#   - dev.txt       Local pytest/pre-commit/mypy; full devs often use runtime + dev
+#
+# Keep ruff version aligned with requirements/codegen.txt when bumping either file.
+
+-r ci.txt
+
+ruff==0.15.12
+pyright==1.1.404

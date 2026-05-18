@@ -17,6 +17,7 @@
 #
 # Relationship to other files:
 #   - Always layered on ci.txt in CI (never the only requirements file in that job)
+#   - Lint CI uses requirements/lint.txt instead (no test.txt, no torch)
 #   - Full prod parity / Docker → requirements/runtime.txt
 #   - Local developers usually: runtime.txt + dev.txt (pytest lives in dev.txt)
 #

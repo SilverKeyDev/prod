@@ -5,8 +5,8 @@ Runs the same import chain as run.py (from app import create_app) and catches
 ImportError mentioning "circular" or "partially initialized".
 Does not call create_app() so no database or network is required.
 Run from repo root: python3 Server/scripts/lint/lint_circular_imports.py
-Requires Server dependencies installed (pip install -r Server/requirements/ci.txt in CI,
-or full pip install -r Server/requirements/runtime.txt for a local runtime that matches production).
+Requires Server dependencies installed (pip install -r Server/requirements/lint.txt in CI,
+or requirements/runtime.txt for a full local runtime).
 """
 
 import os

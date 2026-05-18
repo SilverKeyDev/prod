@@ -8,11 +8,10 @@
 #   large wheels that are not needed on that import path (heavy ML, full torch stack, etc.).
 #
 # Where it is used:
-#   - GitHub Actions: .github/workflows/lint.yml (`pip install -r Server/requirements/ci.txt`)
+#   - Layered by requirements/lint.txt (CI lint) and requirements/test.txt (CI pytest)
 #   - Backend tests job (first layer): .github/workflows/test-callable.yml installs ci.txt,
 #     then CPU-only torch, then requirements/test.txt
-#   - Local slim venv: Server/scripts/bootstrap-venv.sh --ci
-#   - scripts/run-all-linters.sh documents this as the lint-only install option
+#   - Local slim venv: Server/scripts/bootstrap-venv.sh --ci (import smoke) or --lint (CI lint parity)
 #
 # Relationship to other files:
 #   - Production / Docker → requirements/runtime.txt (superset of this file)
