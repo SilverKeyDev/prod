@@ -65,16 +65,16 @@ _DEEP_STUBS = [
 for _mod_name in _DEEP_STUBS:
     _stub_if_missing(_mod_name)
 
-
 import importlib  # noqa: E402 (after sys.modules patching)
 
-_stream_mod = importlib.import_module("app.services.search.property.property_stream_steps")
-_cache_mod = importlib.import_module("app.services.research.property.property_research_cache")
-
-# MagicMock entries are not packages; leaving them in sys.modules breaks other tests
-# that import real app.services.search.home_matching.preprocessing.*.
-for _name in _stubbed:
-    del sys.modules[_name]
+try:
+    _stream_mod = importlib.import_module("app.services.search.property.property_stream_steps")
+    _cache_mod = importlib.import_module("app.services.research.property.property_research_cache")
+finally:
+    # MagicMock entries are not packages; leaving them in sys.modules breaks other tests
+    # that import real app.services.search.home_matching.preprocessing.*.
+    for _name in _stubbed:
+        sys.modules.pop(_name, None)
 
 
 # ---- fetch_basic_property_data ----

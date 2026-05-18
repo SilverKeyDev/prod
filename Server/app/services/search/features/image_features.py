@@ -22,8 +22,20 @@ from app.config.llm_models import (
     openai_model_vision_batch,
 )
 
-client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
+_client: OpenAI | None = None
 logger = logging.getLogger(__name__)
+
+
+def _get_client() -> OpenAI:
+    """Get or create OpenAI client (lazy init so imports work without OPENAI_KEY)."""
+    global _client
+    if _client is None:
+        api_key = os.getenv("OPENAI_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_KEY not found in environment variables")
+        _client = OpenAI(api_key=api_key)
+    return _client
+
 
 _IMAGE_DOWNLOAD_TIMEOUT = 15
 _IMAGE_DOWNLOAD_HEADERS = {
@@ -218,7 +230,7 @@ def extract_features_from_batch(image_batch: list[str], batch_num: int) -> list[
         vision_model = openai_model_vision_batch()
 
         def make_request():
-            return client.chat.completions.create(
+            return _get_client().chat.completions.create(
                 model=vision_model,
                 messages=user_message,
                 response_format=response_format_param,
@@ -332,7 +344,7 @@ def normalize_and_dedupe_features(raw_features: list[str]) -> list[str]:
     cleanup_model = openai_model_text_cleanup()
 
     def make_request():
-        return client.chat.completions.create(
+        return _get_client().chat.completions.create(
             model=cleanup_model,
             messages=normalize_messages,
             response_format=normalize_response_format,
