@@ -112,14 +112,30 @@ resolve_deploy_secret_ids_from_example() {
   rm -f "$tmp"
 }
 
+# Client bundle keys (Vite web / Expo mobile) are baked at image build — not Flask runtime on EC2.
+is_client_bundle_env_key() {
+  case "$1" in
+    EXPO_PUBLIC_* | VITE_*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # Same key extraction as Server/app/utils/config_validator.py (KEY= lines only).
 required_env_keys_from_example_file() {
-  local f="$1"
+  local f="$1" key
   [ -f "$f" ] || return 1
-  sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$f" \
-    | grep -v '^#' \
-    | grep -v '^$' \
-    | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)[[:space:]]*=.*/\1/p'
+  while IFS= read -r key; do
+    [ -z "$key" ] && continue
+    if is_client_bundle_env_key "$key"; then
+      continue
+    fi
+    printf '%s\n' "$key"
+  done < <(
+    sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$f" \
+      | grep -v '^#' \
+      | grep -v '^$' \
+      | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)[[:space:]]*=.*/\1/p'
+  )
 }
 
 # True if env-file has KEY= with a non-empty value (after trim / simple quote strip).

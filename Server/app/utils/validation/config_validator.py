@@ -42,8 +42,8 @@ def _load_env_example_keys() -> set[str]:
                 if match:
                     key = match.group(1)
                     # Client bundle vars (Expo/Vite) are listed in Server/.env.example for
-                    # secrets.sh but are not required to boot the Flask API.
-                    if key.startswith("EXPO_PUBLIC_"):
+                    # secrets.sh / Docker web build but are not required to boot the Flask API.
+                    if key.startswith(("EXPO_PUBLIC_", "VITE_")):
                         continue
                     env_keys.add(key)
 
