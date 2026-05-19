@@ -22,7 +22,7 @@ flask_executor==1.0.0
 flask_jwt_extended==4.5.2
 
 # --- Database ---
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 psycopg2-binary==2.9.9
 SQLAlchemy==2.0.43
 
