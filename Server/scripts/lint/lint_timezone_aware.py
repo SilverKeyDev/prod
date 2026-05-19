@@ -19,6 +19,7 @@ import sys
 EXCLUDED_DIRS = frozenset(
     {
         ".venv",
+        ".venv-ci",
         "venv",
         "__pycache__",
         ".git",

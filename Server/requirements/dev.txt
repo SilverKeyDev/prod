@@ -18,7 +18,7 @@
 #     CI; keep versions in sync when bumping either file
 #
 # --- Test stack ---
-pytest==8.3.2
+pytest==9.0.3
 pytest-mock==3.14.0
 pytest-cov==6.0.0
 pytest-asyncio==0.21.1

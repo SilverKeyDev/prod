@@ -38,7 +38,7 @@ jobs:
           node-version: '22'
 
       - name: Install OpenAPI tools
-        run: npm install -g @apidevtools/swagger-cli@4.0.4 @redocly/cli@2.26.0
+        run: npm install -g @apidevtools/swagger-cli@4.0.4 @redocly/cli@2.31.1
 
       - name: Bundle modular OpenAPI spec
         run: redocly bundle openapi/openapi.yaml -o openapi.yaml
@@ -59,7 +59,7 @@ jobs:
           node-version: '22'
 
       - name: Install Redocly CLI
-        run: npm install -g @redocly/cli@2.26.0
+        run: npm install -g @redocly/cli@2.31.1
 
       - name: Bundle modular OpenAPI spec
         run: redocly bundle openapi/openapi.yaml -o openapi.yaml
@@ -106,7 +106,7 @@ jobs:
           node-version: '22'
 
       - name: Install Redocly CLI
-        run: npm install -g @redocly/cli@2.26.0
+        run: npm install -g @redocly/cli@2.31.1
 
       - name: Bundle modular OpenAPI spec
         run: redocly bundle openapi/openapi.yaml -o openapi.yaml
