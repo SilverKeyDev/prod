@@ -4,8 +4,9 @@
 #
 # What this is:
 #   Enough packages for scripts that must import the `app` package (e.g. Ruff against
-#   Server/, lint_circular_imports.py: `from app import create_app`) without installing
-#   large wheels that are not needed on that import path (heavy ML, full torch stack, etc.).
+#   Server/, lint_circular_imports.py: `from app import create_app`) and for Pyright to
+#   resolve optional ML/geo imports under app/services/{research,search/**} without
+#   installing torch (torch + sentence-transformers stay in requirements/test.txt).
 #
 # Where it is used:
 #   - Layered by requirements/lint.txt (CI lint) and requirements/test.txt (CI pytest)
@@ -15,8 +16,8 @@
 #
 # Relationship to other files:
 #   - Production / Docker → requirements/runtime.txt (superset of this file)
-#   - Pytest on CI needs extra ML/geo deps → also install requirements/test.txt (and torch
-#     per test-callable.yml), not this file alone
+#   - Pytest on CI needs torch + sentence-transformers → also install requirements/test.txt
+#     (and CPU torch per test-callable.yml), not this file alone
 #   - When something is imported from app/__init__.py or modules loaded at import time,
 #     add it here AND in runtime.txt; keep overlapping pins aligned with runtime where they
 #     must match (e.g. flask-compress is duplicated in test.txt for the test install path)
@@ -89,6 +90,13 @@ redis==7.4.0
 plaid-python==36.1.0
 tenacity==8.2.3
 
-# --- HTTP / LLM clients (imported outside the ML stack; keep pins aligned with runtime.txt) ---
+# --- HTTP / LLM clients (keep pins aligned with runtime.txt) ---
 openai==1.76.2
 httpx>=0.24.1,<1
+
+# --- Data / ML / Geo (Pyright + import smoke; pins aligned with runtime.txt / test.txt) ---
+numpy>=1.26.0,<3
+pandas>=2.0.0,<3
+matplotlib>=3.8.0,<4
+scikit-learn==1.5.0
+shapely==2.0.4

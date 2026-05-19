@@ -79,7 +79,7 @@ line-ending = "auto"
 
 # --- Pyright: import resolution (catches missing modules); type checking off to avoid 600+ existing issues ---
 # pythonVersion: omit so each venv's lib/pythonX.Y/site-packages is used (pin only if you must match CI stubs).
-# Lint CI installs requirements/lint.txt (ci.txt + ruff + pyright), not test.txt / torch / full ML stack.
+# Lint CI installs requirements/lint.txt (ci.txt + ruff + pyright). ML/geo pins live in ci.txt.
 [tool.pyright]
 typeCheckingMode = "off"
 venvPath = "."
@@ -99,19 +99,8 @@ exclude = [
     "app/schemas/generated.py",
 ]
 
-[tool.pyright.overrides."app/services/research"]
-reportMissingImports = "none"
-reportMissingModuleSource = "none"
-
-[tool.pyright.overrides."app/services/search/home_matching"]
-reportMissingImports = "none"
-reportMissingModuleSource = "none"
-
-[tool.pyright.overrides."app/services/search/locationPolygon.py"]
-reportMissingImports = "none"
-reportMissingModuleSource = "none"
-
-[tool.pyright.overrides."app/services/search/polygon"]
+# sentence-transformers (and torch) are test-only wheels; suppress import noise in lint CI.
+[tool.pyright.overrides."app/services/search/home_matching/embeddings/model_loader.py"]
 reportMissingImports = "none"
 reportMissingModuleSource = "none"
 

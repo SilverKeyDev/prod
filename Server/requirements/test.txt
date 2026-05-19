@@ -4,9 +4,9 @@
 #
 # What this is:
 #   Additional packages needed to run the Server test suite in CI after ci.txt is
-#   installed. It is not a full replacement for runtime.txt: it avoids pulling every
-#   large production pin while still satisfying imports used by tests (numpy/sklearn,
-#   sentence-transformers, shapely, matplotlib, OpenAI client stack, etc.).
+#   installed. It is not a full replacement for runtime.txt: it adds torch +
+#   sentence-transformers (heavy wheels) on top of ci.txt (which already includes
+#   numpy/pandas/matplotlib/sklearn/shapely for lint Pyright and import smoke).
 #
 # Where it is used:
 #   - GitHub Actions: .github/workflows/test-callable.yml
@@ -27,11 +27,6 @@
 # --- Lines below are installed after ci.txt + CPU torch in test-callable.yml ---
 flask-compress==1.15
 
-numpy>=1.26.0,<3
-pandas>=2.0.0,<3
-matplotlib>=3.8.0,<4
-scikit-learn==1.5.0
-shapely==2.0.4
 sentence-transformers==5.3.0
 transformers==5.8.1
-# openai + httpx: installed via ci.txt (lint + test layers)
+# numpy, pandas, matplotlib, scikit-learn, shapely, openai, httpx: installed via ci.txt
