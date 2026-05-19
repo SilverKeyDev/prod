@@ -38,7 +38,7 @@ flask_executor==1.0.0
 flask_jwt_extended==4.5.2
 
 # --- PDF, API, and Web ---
-pypdf==5.1.0
+pypdf==6.10.2
 reportlab==4.0.4
 stripe==9.4.0
 requests==2.31.0
