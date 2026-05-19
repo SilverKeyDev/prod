@@ -1,7 +1,5 @@
 version: 2
 
-# One PR per week: npm (Client + root), pip, GitHub Actions, and Docker together.
-# https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configuring-multi-ecosystem-updates
 multi-ecosystem-groups:
   weekly-all:
     schedule:
@@ -9,6 +7,7 @@ multi-ecosystem-groups:
       day: monday
       time: "09:00"
       timezone: America/New_York
+    open-pull-requests-limit: 1
     assignees:
       - jaycewalzer1
     labels:
@@ -21,62 +20,30 @@ updates:
     directories:
       - /Client
       - /
+    multi-ecosystem-group: weekly-all
     patterns:
       - "*"
-    multi-ecosystem-group: weekly-all
-    open-pull-requests-limit: 1
     ignore:
       - dependency-name: openapi-typescript
-        update-types:
-          - version-update:semver-major
-          - version-update:semver-minor
-          - version-update:semver-patch
       - dependency-name: "@apidevtools/json-schema-ref-parser"
-        update-types:
-          - version-update:semver-major
-          - version-update:semver-minor
-          - version-update:semver-patch
       - dependency-name: react-native-svg
-        update-types:
-          - version-update:semver-major
-          - version-update:semver-minor
-          - version-update:semver-patch
       - dependency-name: react-native-maps
-        update-types:
-          - version-update:semver-major
-          - version-update:semver-minor
-          - version-update:semver-patch
       - dependency-name: nativewind
-        update-types:
-          - version-update:semver-major
-          - version-update:semver-minor
-          - version-update:semver-patch
 
   - package-ecosystem: pip
     directory: /Server
+    multi-ecosystem-group: weekly-all
     patterns:
       - "*"
-    multi-ecosystem-group: weekly-all
-    open-pull-requests-limit: 1
-    # Only runtime.txt for Dependabot; mirror pins into ci.txt / others manually.
-    exclude-paths:
-      - requirements/ci.txt
-      - requirements/migrate.txt
-      - requirements/dev.txt
-      - requirements/test.txt
-      - requirements/lint.txt
-      - requirements/codegen.txt
 
   - package-ecosystem: github-actions
     directory: /
+    multi-ecosystem-group: weekly-all
     patterns:
       - "*"
-    multi-ecosystem-group: weekly-all
-    open-pull-requests-limit: 1
 
   - package-ecosystem: docker
     directory: /
+    multi-ecosystem-group: weekly-all
     patterns:
       - "*"
-    multi-ecosystem-group: weekly-all
-    open-pull-requests-limit: 1
