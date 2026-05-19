@@ -84,7 +84,7 @@ marshmallow-sqlalchemy==0.28.1
 
 # --- Background Tasks ---
 celery==5.3.4
-redis==5.0.1
+redis==7.4.0
 
 plaid-python==36.1.0
 tenacity==8.2.3
