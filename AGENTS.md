@@ -16,7 +16,7 @@
 | **PostgreSQL** | Full local API stack; env from [`Server/.env.example`](Server/.env.example) |
 | **AWS CLI** | Optional for `make setup` / secrets → `Server/.env`; use `make setup ARGS='--skip-secrets'` without AWS |
 
-**First machine:** `make setup` (or `./scripts/setup-local.sh`). **After `git pull`:** `make refresh`. Human-oriented setup: [README.md](README.md).
+**First machine:** `make setup` — deps, build, AWS SSO, secrets, verify (see [setup.md](setup.md)). **After `git pull`:** `make refresh`.
 
 ---
 

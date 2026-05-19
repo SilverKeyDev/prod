@@ -10,8 +10,11 @@ import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/styles/fil
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { asError } from "packages/utils";
-import { hasProperty, isFunction, isObject } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
+import {
+  placeFromAutocompleteSuggestion,
+  resolveGooglePlaceToAddressData,
+} from "packages/ui/components/form/resolveGooglePlaceToAddressData";
 
 import type { AddressData } from "./AddressInput.tsx";
 import { AddressInput } from "./AddressInput.tsx";
@@ -38,41 +41,6 @@ type AddressInputWebProps = {
   disabled?: boolean;
   label?: string;
 };
-
-/** Parse addressComponents from Google Place into structured AddressData.
- * New API uses longText/shortText; legacy uses long_name/short_name. */
-function parseAddressComponents(
-  components:
-    | Array<{
-        longText?: string;
-        shortText?: string;
-        long_name?: string;
-        short_name?: string;
-        types?: string[];
-      }>
-    | undefined,
-  _formattedAddress: string
-): Pick<AddressData, "street" | "city" | "state" | "postal_code" | "country"> {
-  const result: Pick<AddressData, "street" | "city" | "state" | "postal_code" | "country"> = {};
-  if (!Array.isArray(components)) return result;
-
-  const getByType = (type: string): string | undefined => {
-    const comp = components.find((c) => c.types?.includes(type));
-    return comp?.longText ?? comp?.shortText ?? comp?.long_name ?? comp?.short_name;
-  };
-
-  const streetNumber = getByType("street_number");
-  const route = getByType("route");
-  result.street =
-    streetNumber && route ? `${streetNumber} ${route}` : (streetNumber ?? route ?? undefined);
-  result.city =
-    getByType("locality") ?? getByType("sublocality") ?? getByType("sublocality_level_1");
-  result.state = getByType("administrative_area_level_1");
-  result.postal_code = getByType("postal_code");
-  result.country = getByType("country");
-
-  return result;
-}
 
 function AddressInputAutocomplete({
   value,
@@ -177,78 +145,10 @@ function AddressInputAutocomplete({
 
   const handleSelect = async (suggestion: Suggestion) => {
     setHasSelected(true);
-    const suggestionData = suggestion as Record<string, unknown>;
-    const placePrediction = suggestionData.placePrediction as Record<string, unknown>;
-    const place =
-      placePrediction &&
-      typeof placePrediction === "object" &&
-      "toPlace" in placePrediction &&
-      typeof placePrediction.toPlace === "function"
-        ? (
-            placePrediction as {
-              toPlace: () => unknown;
-            }
-          ).toPlace()
-        : null;
-
-    let addressData: AddressData = {
-      address: localValue.trim(),
-    };
-
-    if (isObject(place) && hasProperty(place, "fetchFields") && isFunction(place.fetchFields)) {
-      try {
-        const fetchFieldsMethod = place.fetchFields;
-        if (typeof fetchFieldsMethod === "function") {
-          await fetchFieldsMethod.call(place, {
-            fields: ["formattedAddress", "addressComponents", "id", "location"],
-          });
-        }
-      } catch (error) {
-        log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields", error);
-      }
-
-      const formattedAddr =
-        hasProperty(place, "formattedAddress") && typeof place.formattedAddress === "string"
-          ? place.formattedAddress
-          : localValue.trim();
-      const placeId =
-        hasProperty(place, "id") && typeof place.id === "string" ? place.id : undefined;
-      const components = hasProperty(place, "addressComponents")
-        ? (place.addressComponents as Array<{
-            longText?: string;
-            shortText?: string;
-            long_name?: string;
-            short_name?: string;
-            types?: string[];
-          }>)
-        : undefined;
-
-      const parsed = parseAddressComponents(components, formattedAddr);
-      let lat: number | undefined;
-      let lng: number | undefined;
-      if (
-        hasProperty(place, "location") &&
-        place.location &&
-        typeof place.location === "object" &&
-        "lat" in place.location &&
-        typeof (place.location as { lat: unknown }).lat === "function"
-      ) {
-        const loc = place.location as google.maps.LatLng;
-        lat = loc.lat();
-        lng = loc.lng();
-      }
-      addressData = {
-        address: formattedAddr,
-        place_id: placeId,
-        ...parsed,
-        lat,
-        lng,
-      };
-
-      setLocalValue(formattedAddr);
-      onChange(formattedAddr);
-    }
-
+    const place = placeFromAutocompleteSuggestion(suggestion);
+    const addressData = await resolveGooglePlaceToAddressData(place, localValue.trim());
+    setLocalValue(addressData.address);
+    onChange(addressData.address);
     setSuggestions([]);
     setHighlightedIndex(-1);
     onSelect?.(addressData);

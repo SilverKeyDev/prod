@@ -66,7 +66,10 @@ export default function ClientChecklists({
     [currentTab]
   );
 
-  const checklistSubjectOptions = useMemo(() => ({ checklistSubjectUserId: userId }), [userId]);
+  const checklistSubjectOptions = useMemo(
+    () => ({ checklistSubjectUserId: userId, isAgentViewer: isAgentWorkspace }),
+    [userId, isAgentWorkspace]
+  );
 
   const { currentSection, isSectionUnlocked, getItemToggleEligibility, sectionProgress } =
     useChecklistProgress(checklistSubjectOptions);

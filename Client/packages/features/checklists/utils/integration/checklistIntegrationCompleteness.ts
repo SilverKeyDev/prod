@@ -107,3 +107,10 @@ export function isDefineCriteriaStepComplete(formData: Partial<OnboardingData>):
   }
   return parseHousingTypes(formData.preferred_housing_type).length > 0;
 }
+
+/** Offer checklist: saved transaction address with non-empty text. */
+export function isFindingHomeStepComplete(
+  transactionAddress: { address?: string | null } | null | undefined
+): boolean {
+  return nonEmptyTrimmed(transactionAddress?.address);
+}

@@ -35,8 +35,7 @@ export default defineConfig(function (_a) {
     NODE_ENV: nodeEnv,
     DEV: nodeEnv !== "production",
     PROD: nodeEnv === "production",
-    EXPO_PUBLIC_GOOGLE_MAPS_ID:
-      pickEnv("EXPO_PUBLIC_GOOGLE_MAPS_ID") || pickEnv("VITE_GOOGLE_MAPS_ID"),
+    EXPO_PUBLIC_GOOGLE_MAPS_ID: pickEnv("EXPO_PUBLIC_GOOGLE_MAPS_ID"),
     EXPO_PUBLIC_GOOGLE_CLIENT_ID: pickEnv("EXPO_PUBLIC_GOOGLE_CLIENT_ID"),
     EXPO_PUBLIC_PLAID_CLIENT_ID: pickEnv("EXPO_PUBLIC_PLAID_CLIENT_ID"),
     EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: pickEnv("EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS"),

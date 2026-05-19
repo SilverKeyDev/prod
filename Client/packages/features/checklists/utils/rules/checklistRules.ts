@@ -84,13 +84,22 @@ function pruneSelectable(checked: Set<number>, sortedItems: TaskChecklistItem[])
   }
 }
 
+export type MergeTaskChecklistCheckedIdsOptions = {
+  /**
+   * When true (agent updating a client checklist), skip submit-gated pruning and
+   * lock_uncheck_when re-adds. Signature-based steps still cannot be manually toggled.
+   */
+  bypassProgressGates?: boolean;
+};
+
 /**
  * Mirrors `Server/app/services/transactions/checklist_rules.merge_task_checklist_checked_ids`.
  */
 export function mergeTaskChecklistCheckedIds(
   items: TaskChecklistItem[],
   requestedIds: readonly number[],
-  oldCheckedIds: ReadonlySet<number>
+  oldCheckedIds: ReadonlySet<number>,
+  options?: MergeTaskChecklistCheckedIdsOptions
 ): number[] {
   const valid = new Set(items.map((it) => it.id));
   const req = new Set(requestedIds.filter((id) => valid.has(id)));
@@ -103,13 +112,16 @@ export function mergeTaskChecklistCheckedIds(
   const sortedItems = sortTaskChecklistItems([...items]);
   const checked = new Set(req);
 
+  const bypassProgressGates = options?.bypassProgressGates === true;
   const signature = (s: Set<number>) => [...s].sort((a, b) => a - b).join(",");
   const maxIter = sortedItems.length * 6 + 12;
   for (let n = 0; n < maxIter; n++) {
     const before = signature(checked);
     applyAutoComplete(checked, sortedItems);
-    applyLocks(checked, sortedItems, oldChecked);
-    pruneSelectable(checked, sortedItems);
+    if (!bypassProgressGates) {
+      applyLocks(checked, sortedItems, oldChecked);
+      pruneSelectable(checked, sortedItems);
+    }
     if (signature(checked) === before) break;
   }
 
@@ -153,12 +165,13 @@ function classifyStrippedId(
 export function applyTaskChecklistMerge(
   items: TaskChecklistItem[],
   requestedIds: readonly number[],
-  oldCheckedIds: ReadonlySet<number>
+  oldCheckedIds: ReadonlySet<number>,
+  options?: MergeTaskChecklistCheckedIdsOptions
 ): TaskChecklistMergeResult {
   const valid = new Set(items.map((it) => it.id));
   const requestedValid = new Set(requestedIds.filter((id) => valid.has(id)));
   const requestedSorted = [...requestedValid].sort((a, b) => a - b);
-  const effectiveList = mergeTaskChecklistCheckedIds(items, requestedSorted, oldCheckedIds);
+  const effectiveList = mergeTaskChecklistCheckedIds(items, requestedSorted, oldCheckedIds, options);
   const effective = new Set(effectiveList);
   const strippedSorted = [...requestedValid].filter((x) => !effective.has(x)).sort((a, b) => a - b);
   const sortedItems = sortTaskChecklistItems([...items]);
@@ -185,15 +198,24 @@ export type ChecklistItemToggleEligibility = {
   canMarkChecked: boolean;
 };
 
+export type ChecklistItemToggleEligibilityOptions = {
+  /**
+   * Agent viewing/managing a client checklist: may manually check or uncheck any non-signature step.
+   */
+  isAgentViewer?: boolean;
+};
+
 /**
  * UX-only eligibility (server enforces on PUT). `sectionUnlocked` is ignored for toggling so
- * buyers/agents may check steps in any phase; only submit-gated integrations keep submit rules.
+ * buyers/agents may check steps in any phase; buyers cannot manually check form-type (submit-gated)
+ * steps; agents managing a client may override progress gates on non-signature steps.
  */
 export function getChecklistItemToggleEligibility(
   items: TaskChecklistItem[],
   checkedIds: readonly number[],
   itemId: number,
-  _sectionUnlocked: boolean
+  _sectionUnlocked: boolean,
+  options?: ChecklistItemToggleEligibilityOptions
 ): ChecklistItemToggleEligibility {
   const sortedItems = sortTaskChecklistItems([...items]);
   const item = sortedItems.find((i) => i.id === itemId);
@@ -207,6 +229,14 @@ export function getChecklistItemToggleEligibility(
     return { canCheck: false, canUncheck: false, canMarkChecked: false };
   }
 
+  if (options?.isAgentViewer === true) {
+    return {
+      canCheck: !isChecked,
+      canUncheck: isChecked,
+      canMarkChecked: true,
+    };
+  }
+
   const submitGated = isSubmitGatedChecklistIntegration(item);
   const canMarkChecked =
     !isChecked && (submitGated ? evaluateChecklistCondition(item.selectable_when, checked) : true);
@@ -215,7 +245,8 @@ export function getChecklistItemToggleEligibility(
 
   const lockBlocksUncheck =
     item.lock_uncheck_when != null && evaluateChecklistCondition(item.lock_uncheck_when, checked);
-  const canUncheck = isChecked && !lockBlocksUncheck && !autoWouldComplete(item, itemId, checked);
+  const canUncheck =
+    isChecked && !submitGated && !lockBlocksUncheck && !autoWouldComplete(item, itemId, checked);
 
   return { canCheck, canUncheck, canMarkChecked };
 }

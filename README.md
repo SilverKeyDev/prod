@@ -10,8 +10,6 @@ Monorepo for the SilverKey product: **React** (web + **React Native**) in [`Clie
 ## Contents
 
 - [Quick start](#quick-start)
-- [Requirements](#requirements)
-- [Local development](#local-development)
 - [Quality gates & CI](#quality-gates--ci)
 - [Makefile](#makefile)
 - [Repository structure](#repository-structure)
@@ -24,28 +22,17 @@ Monorepo for the SilverKey product: **React** (web + **React Native**) in [`Clie
 
 ## Quick start
 
-**AWS (for default setup):** Install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) and sign in to the **dev account** with credentials that can **read Secrets Manager** in the region you use (default `us-east-2`; override with `AWS_REGION`). Typical flows: `aws sso login --profile <your-profile>` then `export AWS_PROFILE=<your-profile>`, or use access keys your team documents. Confirm the session with `aws sts get-caller-identity`. Without AWS, use `make setup ARGS='--skip-secrets'` and maintain `Server/.env` yourself (see `Server/.env.example`).
+**First-time setup:** run **`make setup`** — installs missing tools (or prints commands), builds Client/Server env, AWS SSO login, fetches secrets, and verifies. Details: **[setup.md](setup.md)**.
 
 ```bash
-git clone https://github.com/SilverKeyDev/prod.git
-cd prod   # GitHub default folder name; use your checkout directory if different
-
-make setup                            # same as ./scripts/setup-local.sh — Client, Server/.venv, secrets
-# make setup ARGS='--skip-secrets'    # skip Secrets Manager if AWS is not ready yet
-
-make dev                              # web + API (see make help)
-# or: cd Client && pnpm dev:web
-```
-
-After every `git pull`:
-
-```bash
-make refresh                          # same as ./scripts/refresh.sh — refresh pnpm + pip
-# make refresh ARGS='--secrets'       # also refresh Server/.env from AWS
+make setup          # deps → build → AWS SSO → secrets → verify
+make dev            # web + API (after setup)
+make refresh        # after git pull
 ```
 
 | If you need… | Run |
 | ------------ | --- |
+| Full setup guide | [setup.md](setup.md) |
 | Same as `setup-local.sh` | `make setup` |
 | Same as `refresh.sh` | `make refresh` |
 | Secrets only | `make secrets` |
@@ -53,29 +40,6 @@ make refresh                          # same as ./scripts/refresh.sh — refresh
 | Mobile (Expo) | `make mobile` |
 | Full client CI gate | `make check-client` |
 | All repo linters | `make lint` |
-
----
-
-## Requirements
-
-| Tool | Notes |
-| ---- | ----- |
-| **Node.js** | 20+ (CI uses newer Node with pnpm cache; local 20+ matches `AGENTS.md`). |
-| **pnpm** | **9.x** — pinned via `packageManager` in [`Client/package.json`](Client/package.json). `corepack enable` then `corepack prepare pnpm@9.0.0 --activate`. |
-| **Python** | **3.10–3.13** for [`Server/.venv`](Server/README.md). Newer versions may break wheels; use e.g. `PYTHON=python3.12` with `Server/scripts/bootstrap-venv.sh`. |
-| **AWS CLI** | Needed for default `make setup` / `./scripts/setup-local.sh` (secrets → `Server/.env`). Requires an **authenticated** session (SSO or keys) with Secrets Manager access in the target account/region. Use `make setup ARGS='--skip-secrets'` without AWS. |
-| **PostgreSQL** | For a full local API stack; see `Server/.env.example` and server docs. |
-| **Docker** | Optional (containers / CI parity). |
-
----
-
-## Local development
-
-1. **Bootstrap once** — `make setup` (same as [`scripts/setup-local.sh`](scripts/setup-local.sh)) runs `pnpm install` in `Client/`, bootstraps **`Server/.venv`**, and fetches secrets unless `ARGS='--skip-secrets'`. If `.venv` already exists and you only need dependency refresh, use **`make refresh`** instead. Recreate the venv: `make setup ARGS='--force-venv'`.
-
-2. **Editor (optional)** — Copy [`.cursorignore.example`](.cursorignore.example) to `.cursorignore` at the repo root to trim indexing noise. Team rules live under [`.cursor/`](.cursor/).
-
-3. **Run apps** — From `Client/`: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web`, `pnpm preview:web`. From repo root: `make help` for `dev`, `dev-web`, `dev-backend`, etc.
 
 ---
 
@@ -116,7 +80,7 @@ make help
 | [`openapi/`](openapi/) | HTTP API contract; drives generated TS/Python types. |
 | [`documentation/`](documentation/) | Canonical long-form documentation. |
 | [`docs/`](docs/README.md) | Server / ops index (links into `documentation/server/`). |
-| [`scripts/`](scripts/) | `setup-local.sh`, `refresh.sh`, `run-all-linters.sh`, `run/` dev stacks. |
+| [`scripts/`](scripts/) | `setup-local.sh`, `check-deps.sh`, `refresh.sh`, `run-all-linters.sh`, `run/` dev stacks. |
 | [`.github/`](.github/) | Workflows and templates. |
 
 **Architecture rule:** business logic and shared UI live in **`Client/packages/`**; **`Client/apps/*`** stay thin (routing, providers, page composition). See [`documentation/client/thin-app-architecture.md`](documentation/client/thin-app-architecture.md) and [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md).
@@ -127,6 +91,7 @@ make help
 
 | Need | Start here |
 | ---- | ---------- |
+| **Local machine setup** | **[setup.md](setup.md)** |
 | Agent / engineer quickstart | [`AGENTS.md`](AGENTS.md) |
 | Doc index | [`documentation/README.md`](documentation/README.md) |
 | Client (lint, packages, RN vs web) | [`documentation/client/README.md`](documentation/client/README.md) |

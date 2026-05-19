@@ -137,6 +137,54 @@ class TestPolygonSearchRoutes:
                         assert data["success"] is True
                         assert data["cached"] is False
 
+    def test_polygon_search_cached_results(self, client, db_session):
+        """Test POST /api/v1/search/properties-by-polygon returns cached=true from runner."""
+        user = User(
+            id="user-123",
+            cognito_id="cognito-user-1",
+            email="user@example.com",
+            name="Test User",
+            is_agent=False,
+        )
+        db_session.session.add(user)
+        db_session.session.commit()
+
+        request_data = {
+            "viewport_polygon": [
+                {"lat": 40.7128, "lng": -74.006},
+                {"lat": 40.7158, "lng": -74.006},
+                {"lat": 40.7158, "lng": -73.996},
+                {"lat": 40.7128, "lng": -73.996},
+            ],
+        }
+
+        mock_search_result = {
+            "success": True,
+            "properties": [],
+            "count": 0,
+            "cached": True,
+        }
+
+        with patch(MOCK_GET_CURRENT_USER) as mock_get_user:
+            with patch(MOCK_RESOLVE_PREFS_USER_ID) as mock_resolve:
+                with patch(MOCK_PARSE_RESEARCH_BODY) as mock_parse:
+                    with patch(MOCK_RUN_POLYGON_SEARCH) as mock_search:
+                        mock_get_user.return_value = (user, None)
+                        mock_resolve.return_value = ("user-123", None)
+                        mock_parse.return_value = {}
+                        mock_search.return_value = (mock_search_result, 200)
+
+                        response = client.post(
+                            "/api/v1/search/properties-by-polygon",
+                            json=request_data,
+                            headers={"Authorization": "Bearer mock_token"},
+                        )
+
+                        assert response.status_code == 200
+                        data = response.get_json()
+                        assert data["success"] is True
+                        assert data["cached"] is True
+
     def test_polygon_search_invalid_polygon(self, client, db_session):
         """Test POST /api/v1/search/properties-by-polygon with invalid polygon"""
         user = User(

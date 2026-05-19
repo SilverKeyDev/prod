@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useRef } from "react";
 
+import { useQuery } from "@tanstack/react-query";
+
 import type { TaskChecklistItem } from "packages/features/checklists/api/checklists";
+import { getTransactionAddress } from "packages/features/checklists/api/checklists";
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
 import {
   type ChecklistComponentKey,
   isChecklistComponentKey,
 } from "packages/features/checklists/types/componentRegistry";
 import { listConnectedAgentsForPartnerStep } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
-import { isChecklistIntegrationStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompletenessByKey";
+import {
+  isChecklistIntegrationStepComplete,
+  isPreferenceBackedChecklistIntegrationKey,
+} from "packages/features/checklists/utils/integration/checklistIntegrationCompletenessByKey";
 import type { ChecklistItemToggleEligibility } from "packages/features/checklists/utils/rules/checklistRules";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
@@ -45,6 +51,18 @@ export function useAutoCompleteChecklistIntegrations({
   const { userPreferences, isLoading: prefsLoading } = useUserPreferences();
   const { conversations, isLoading: agentChatsLoading } = useAgentChats();
 
+  const hasFindingHomeItem = useMemo(
+    () => items.some((item) => item.component_key === "finding_home"),
+    [items]
+  );
+
+  const { data: transactionAddress, isLoading: transactionAddressLoading } = useQuery({
+    queryKey: ["transaction", "address"],
+    queryFn: getTransactionAddress,
+    staleTime: 60 * 1000,
+    enabled: enabled && hasFindingHomeItem,
+  });
+
   const checkedSet = useMemo(() => new Set(checkedIds), [checkedIds]);
   const formData = useMemo(() => {
     if (!userPreferences) return null;
@@ -65,9 +83,15 @@ export function useAutoCompleteChecklistIntegrations({
     [conversations]
   );
 
+  const transactionAddressSyncKey = useMemo(
+    () => String(transactionAddress?.address ?? "").trim(),
+    [transactionAddress?.address]
+  );
+
   const attemptedRef = useRef<Set<number>>(new Set());
   const lastPrefsSyncKeyRef = useRef<string | null>(null);
   const lastConversationsSyncKeyRef = useRef<string | null>(null);
+  const lastTransactionAddressSyncKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (lastPrefsSyncKeyRef.current !== prefsSyncKey) {
@@ -84,13 +108,14 @@ export function useAutoCompleteChecklistIntegrations({
   }, [conversationsSyncKey]);
 
   useEffect(() => {
-    if (
-      !enabled ||
-      prefsLoading ||
-      agentChatsLoading ||
-      isChecklistLoading ||
-      isChecklistUpdatePending
-    ) {
+    if (lastTransactionAddressSyncKeyRef.current !== transactionAddressSyncKey) {
+      attemptedRef.current = new Set();
+      lastTransactionAddressSyncKeyRef.current = transactionAddressSyncKey;
+    }
+  }, [transactionAddressSyncKey]);
+
+  useEffect(() => {
+    if (!enabled || isChecklistLoading || isChecklistUpdatePending) {
       return;
     }
 
@@ -102,7 +127,24 @@ export function useAutoCompleteChecklistIntegrations({
       if (!isChecklistComponentKey(rawKey)) continue;
       const componentKey = rawKey as ChecklistComponentKey;
 
-      if (!isChecklistIntegrationStepComplete(componentKey, formData, conversations)) {
+      if (isPreferenceBackedChecklistIntegrationKey(componentKey) && prefsLoading) {
+        continue;
+      }
+      if (componentKey === "partner_agent" && agentChatsLoading) {
+        continue;
+      }
+      if (componentKey === "finding_home" && transactionAddressLoading) {
+        continue;
+      }
+
+      if (
+        !isChecklistIntegrationStepComplete(
+          componentKey,
+          formData,
+          conversations,
+          transactionAddress
+        )
+      ) {
         continue;
       }
 
@@ -116,12 +158,14 @@ export function useAutoCompleteChecklistIntegrations({
     enabled,
     prefsLoading,
     agentChatsLoading,
+    transactionAddressLoading,
     isChecklistLoading,
     isChecklistUpdatePending,
     items,
     checkedSet,
     formData,
     conversations,
+    transactionAddress,
     getItemToggleEligibility,
     roadmapTab,
     toggleItem,

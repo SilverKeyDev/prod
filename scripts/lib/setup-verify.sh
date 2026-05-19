@@ -1,0 +1,83 @@
+# Post-setup smoke checks. Source from setup-local.sh.
+# shellcheck shell=bash
+
+setup_verify_fail() {
+  echo "setup-verify: FAIL — $*" >&2
+  return 1
+}
+
+setup_verify_ok() {
+  echo "setup-verify: OK — $*"
+}
+
+setup_verify_env_file() {
+  local root="$1" env_file="${root}/Server/.env"
+  [[ -f "$env_file" ]] || { setup_verify_fail "Server/.env missing (secrets step did not run?)"; return 1; }
+
+  local key line val
+  for key in DATABASE_URL JWT_SIGNING_SECRET; do
+    line="$(grep -E "^${key}=" "$env_file" | tail -1 || true)"
+    [[ -n "$line" ]] || { setup_verify_fail "${key} missing from Server/.env"; return 1; }
+    val="${line#*=}"
+    val="${val%\"}"
+    val="${val#\"}"
+    [[ -n "$val" ]] || { setup_verify_fail "${key} is empty in Server/.env"; return 1; }
+  done
+  setup_verify_ok "Server/.env has DATABASE_URL and JWT_SIGNING_SECRET"
+}
+
+setup_verify_server_venv() {
+  local root="$1" venv="${root}/Server/.venv/bin/python"
+  [[ -x "$venv" ]] || { setup_verify_fail "Server/.venv not found"; return 1; }
+  if ! "$venv" -c 'import flask, sqlalchemy' 2>/dev/null; then
+    setup_verify_fail "Python venv import check failed (flask/sqlalchemy)"
+    return 1
+  fi
+  setup_verify_ok "Server/.venv imports (flask, sqlalchemy)"
+}
+
+setup_verify_client() {
+  local root="$1"
+  [[ -d "${root}/Client/node_modules" ]] || { setup_verify_fail "Client/node_modules missing — pnpm install may have failed"; return 1; }
+  if ! (cd "${root}/Client" && pnpm list --depth=0 >/dev/null 2>&1); then
+    setup_verify_fail "Client pnpm workspace looks incomplete"
+    return 1
+  fi
+  setup_verify_ok "Client dependencies installed"
+}
+
+setup_verify_aws() {
+  local root="$1" region="${AWS_REGION:-us-east-2}"
+  # shellcheck disable=SC1091
+  [[ -f "${root}/Server/config/.aws-sso" ]] && source "${root}/Server/config/.aws-sso"
+  local -a cmd=(aws sts get-caller-identity --region "$region" --output text --query Account)
+  [[ -n "${AWS_PROFILE:-}" ]] && cmd+=(--profile "$AWS_PROFILE")
+  local acct
+  if ! acct="$("${cmd[@]}" 2>&1)"; then
+    setup_verify_fail "AWS session: ${acct}"
+    return 1
+  fi
+  setup_verify_ok "AWS session (account ${acct})"
+}
+
+setup_verify_all() {
+  local root="$1" skip_aws="${2:-false}"
+  local failed=false
+  echo "==> Verifying setup"
+
+  setup_verify_client "$root" || failed=true
+  setup_verify_server_venv "$root" || failed=true
+  if [[ "$skip_aws" != true ]]; then
+    setup_verify_env_file "$root" || failed=true
+    setup_verify_aws "$root" || failed=true
+  else
+    setup_verify_ok "skipped Server/.env and AWS checks (--skip-secrets)"
+  fi
+
+  if [[ "$failed" == true ]]; then
+    echo "setup-verify: one or more checks failed — see messages above" >&2
+    return 1
+  fi
+  echo "setup-verify: all checks passed — try: make dev"
+  return 0
+}

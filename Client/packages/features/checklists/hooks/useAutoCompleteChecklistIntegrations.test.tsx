@@ -38,6 +38,24 @@ vi.mock("@/features/profile/utils", () => ({
   userPreferencesToOnboardingData: (prefs: Record<string, unknown>) => prefs,
 }));
 
+const transactionAddressState = vi.hoisted(() => ({
+  data: null as { address: string } | null,
+  isLoading: false,
+}));
+
+vi.mock("@tanstack/react-query", () => ({
+  useQuery: (options: { queryKey?: unknown[]; enabled?: boolean }) => {
+    const key = options.queryKey?.[0];
+    if (key === "transaction" && options.enabled !== false) {
+      return {
+        data: transactionAddressState.data,
+        isLoading: transactionAddressState.isLoading,
+      };
+    }
+    return { data: undefined, isLoading: false };
+  },
+}));
+
 function budgetItem(id: number): TaskChecklistItem {
   return {
     id,
@@ -59,11 +77,23 @@ function partnerAgentItem(id: number): TaskChecklistItem {
   };
 }
 
+function findingHomeItem(id: number): TaskChecklistItem {
+  return {
+    id,
+    label: "Decide on a home",
+    explanation: "",
+    component_key: "finding_home",
+    completionRequiresSubmit: true,
+  };
+}
+
 describe("useAutoCompleteChecklistIntegrations", () => {
   beforeEach(() => {
     toggleItem.mockClear();
     agentChatsState.conversations = [];
     agentChatsState.isLoading = false;
+    transactionAddressState.data = null;
+    transactionAddressState.isLoading = false;
   });
 
   it("calls toggleItem when preferences satisfy an unchecked integration step", async () => {
@@ -189,6 +219,58 @@ describe("useAutoCompleteChecklistIntegrations", () => {
 
     await waitFor(() => {
       expect(toggleItem).toHaveBeenCalledWith(3);
+    });
+  });
+
+  it("auto-completes finding_home when a transaction address is saved", async () => {
+    transactionAddressState.data = { address: "123 Main St, San Francisco, CA 94102" };
+
+    renderHook(() =>
+      useAutoCompleteChecklistIntegrations({
+        items: [findingHomeItem(1)],
+        checkedIds: [],
+        toggleItem,
+        getItemToggleEligibility: () => ({
+          canCheck: false,
+          canUncheck: false,
+          canMarkChecked: true,
+        }),
+        roadmapTab: "offer",
+      })
+    );
+
+    await waitFor(() => {
+      expect(toggleItem).toHaveBeenCalledWith(1);
+    });
+  });
+
+  it("waits for transaction address to finish loading before finding_home auto-complete", async () => {
+    transactionAddressState.isLoading = true;
+    transactionAddressState.data = { address: "123 Main St" };
+
+    const { rerender } = renderHook(() =>
+      useAutoCompleteChecklistIntegrations({
+        items: [findingHomeItem(1)],
+        checkedIds: [],
+        toggleItem,
+        getItemToggleEligibility: () => ({
+          canCheck: false,
+          canUncheck: false,
+          canMarkChecked: true,
+        }),
+        roadmapTab: "offer",
+      })
+    );
+
+    await waitFor(() => {
+      expect(toggleItem).not.toHaveBeenCalled();
+    });
+
+    transactionAddressState.isLoading = false;
+    rerender();
+
+    await waitFor(() => {
+      expect(toggleItem).toHaveBeenCalledWith(1);
     });
   });
 });

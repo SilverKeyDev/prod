@@ -276,7 +276,8 @@ class TestPropertyResearchRoutes:
             ) as mock_stream:
 
                 def mock_generator():
-                    yield "data: {}\n\n"
+                    yield 'data: {"type": "basic", "data": {"success": true}}\n\n'
+                    yield 'data: {"type": "complete", "data": null}\n\n'
 
                 mock_stream.return_value = mock_generator()
 
@@ -287,6 +288,33 @@ class TestPropertyResearchRoutes:
 
                 assert response.status_code == 200
                 assert response.content_type == "text/event-stream; charset=utf-8"
+                body = response.get_data(as_text=True)
+                assert '"type": "basic"' in body
+                assert '"type": "complete"' in body
+
+    def test_property_research_passes_preferences_user_id_in_stream_body(self, client):
+        """Stream mode forwards request body (including preferences_user_id) to the generator."""
+        request_data = {
+            "address": "123 Main St",
+            "preferences_user_id": "client-abc",
+        }
+
+        with patch(MOCK_JWT_USER) as mock_user_fn:
+            mock_user_fn.return_value = _mock_user()
+            with patch(
+                "app.services.search.property.property_stream.generate_property_stream"
+            ) as mock_stream:
+                mock_stream.return_value = iter([])
+
+                response = client.post(
+                    "/api/v1/research/property?stream=true",
+                    json=request_data,
+                )
+
+                assert response.status_code == 200
+                mock_stream.assert_called_once()
+                research_body = mock_stream.call_args.kwargs.get("research_body") or {}
+                assert research_body.get("preferences_user_id") == "client-abc"
 
     def test_property_compare_endpoint(self, client):
         """Test POST /api/v1/research/compare (no pros/cons)"""

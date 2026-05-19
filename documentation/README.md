@@ -13,6 +13,7 @@ Canonical docs live here. One place for project documentation; no scattered long
 | Topic | Location |
 |-------|----------|
 | Agent quickstart (AI assistants) | [AGENTS.md](../AGENTS.md) (repo root) |
+| Local machine setup | [setup.md](../setup.md) (repo root) |
 | How we do documentation | [HOW_WE_DOCUMENT.md](./HOW_WE_DOCUMENT.md) |
 | Client docs index | [client/README.md](./client/README.md) |
 | Server docs index | [server/README.md](./server/README.md) |

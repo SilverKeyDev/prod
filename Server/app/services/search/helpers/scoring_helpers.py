@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 import time
+import zlib
 from typing import Any, cast
 
 import redis
@@ -17,6 +18,34 @@ from ..home_matching.preprocessing.home_input_data import format_homes_data_from
 
 _REDIS_SOCKET_CONNECT_TIMEOUT_S = 5.0
 _REDIS_SOCKET_TIMEOUT_S = 5.0
+
+
+def _listings_have_scoring_payload(properties: list[dict[str, Any]]) -> bool:
+    """True when at least one row has fields MCDA can use (skip tie-break on empty shells)."""
+    for prop in properties:
+        if prop.get("price") or prop.get("bedrooms") or prop.get("livingArea") or prop.get("sqft"):
+            return True
+    return False
+
+
+def _apply_deterministic_score_tiebreak(
+    score_map: dict[str, float], properties: list[dict[str, Any]]
+) -> None:
+    """When every listing rounds to the same score, spread by 0.1 steps for sort and UI."""
+    if len(score_map) < 2 or not _listings_have_scoring_payload(properties):
+        return
+    rounded = {zpid: round(score, 1) for zpid, score in score_map.items()}
+    if len(set(rounded.values())) > 1:
+        return
+    out_lo = float(MCDA_CONFIG["output_display_min"])
+    out_hi = float(MCDA_CONFIG["output_display_max"])
+    base = next(iter(rounded.values()))
+    zpids_sorted = sorted(score_map.keys(), key=lambda z: (zlib.crc32(str(z).encode("utf-8")), str(z)))
+    n = len(zpids_sorted)
+    for i, zpid in enumerate(zpids_sorted):
+        offset = (i - (n - 1) / 2.0) * 0.1
+        adjusted = base + offset
+        score_map[zpid] = round(max(out_lo, min(out_hi, adjusted)), 1)
 
 
 def score_and_sort_properties(
@@ -81,6 +110,8 @@ def score_and_sort_properties(
                     mcda = (1.0 - embed_weight) * mcda + embed_weight * emb_display
                     mcda = round(mcda, 1)
             score_map[zkey] = mcda
+
+        _apply_deterministic_score_tiebreak(score_map, properties)
 
         # Try Redis sorting first
         scored_properties = _sort_with_redis(properties, score_map, request_id)

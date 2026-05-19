@@ -18,6 +18,11 @@ MAPBOX_GEOCODE_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places"
 _ALLOWED_EXCLUDES = {"motorway", "toll", "ferry", "unpaved", "cash_only_tolls"}
 
 
+def _coerce_minutes(minutes: float | int | str) -> float:
+    """Normalize commute tolerance from prefs (may be str) to a float minute value."""
+    return float(minutes)
+
+
 def _mode_to_profile(mode: str, traffic: bool) -> str:
     m = mode.lower()
     if m in {"drive", "driving", "car"}:
@@ -95,9 +100,10 @@ def isochrone_polygon(
     requested `minutes`. If Mapbox returns multiple rings, they are merged
     when merge=True (default).
     """
-    if minutes <= 0:
+    minutes_f = _coerce_minutes(minutes)
+    if minutes_f <= 0:
         raise ValueError("minutes must be > 0")
-    if minutes > 60:
+    if minutes_f > 60:
         raise ValueError("Mapbox max is 60 minutes per request.")
 
     token = _pick_token(access_token)
@@ -105,7 +111,7 @@ def isochrone_polygon(
 
     # Build query params
     params = {
-        "contours_minutes": int(round(minutes)),
+        "contours_minutes": int(round(minutes_f)),
         "polygons": "true",  # filled polygons
         "access_token": token,
     }
@@ -166,7 +172,7 @@ def isochrone_polygon(
         "type": "Feature",
         "properties": {
             "origin": {"lat": lat, "lon": lon},
-            "minutes": int(round(minutes)),
+            "minutes": int(round(minutes_f)),
             "mode": mode.lower(),
             "profile": profile,
             "source": "mapbox-isochrone",

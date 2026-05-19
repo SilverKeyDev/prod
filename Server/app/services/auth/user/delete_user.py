@@ -4,6 +4,9 @@ Hard-delete a user and all application rows that reference them.
 Intended for admin / support / local dev. Irreversible: also removes agreements and
 transactions where this user is a party (affects the counterparty's records).
 
+Before DB deletion, revokes Google Calendar and DocuSign OAuth, disconnects Plaid
+when configured, and deletes user-scoped S3 objects.
+
 Usage (Flask shell):
 
     from app.services.auth.user.delete_user import delete_user_and_all_related_data
@@ -26,6 +29,7 @@ from app.models import (
     ChatHistory,
     Document,
     DocumentLibraryItem,
+    DocusignOAuthToken,
     GoogleOAuthToken,
     HomeComment,
     HomeLikes,
@@ -56,6 +60,9 @@ from app.models import (
     UserSearchIntent,
 )
 from app.services.auth.user.agreement_cleanup import delete_agreements_for_user
+from app.services.auth.user.delete_user_external_cleanup import (
+    cleanup_external_resources_for_user,
+)
 from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, log
 
@@ -119,6 +126,22 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
     if user is None:
         log.info(LOG_CATEGORIES["API"], "delete_user_and_all_related_data: user not found", {})
         return False
+
+    extra_s3_keys: list[str] = []
+    if user.profile_picture:
+        extra_s3_keys.append(str(user.profile_picture))
+    for doc in Document.query.filter_by(user_id=uid).all():
+        if doc.file_path:
+            extra_s3_keys.append(str(doc.file_path))
+
+    try:
+        cleanup_external_resources_for_user(uid, extra_s3_keys=extra_s3_keys)
+    except Exception as exc:
+        log.error(
+            LOG_CATEGORIES["ERRORS"],
+            f"delete_user: external cleanup raised user_id={uid}",
+            exc,
+        )
 
     try:
         AgentConnectionRequest.query.filter(
@@ -199,7 +222,9 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
         UserAgentProfile.query.filter_by(user_id=uid).delete(synchronize_session=False)
         UserIntegration.query.filter_by(user_id=uid).delete(synchronize_session=False)
 
+        # Google/DocuSign tokens removed during external cleanup; delete rows if any remain.
         GoogleOAuthToken.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        DocusignOAuthToken.query.filter_by(user_id=uid).delete(synchronize_session=False)
 
         UserPropertyHighlights.query.filter_by(user_id=uid).delete(synchronize_session=False)
         UserPropertyCommute.query.filter_by(user_id=uid).delete(synchronize_session=False)

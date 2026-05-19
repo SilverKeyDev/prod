@@ -311,6 +311,76 @@ describe("getChecklistItemToggleEligibility", () => {
     expect(e.canCheck).toBe(false);
   });
 
+  it("agent viewer may manually check and uncheck submit-gated steps", () => {
+    const withSubmit: TaskChecklistItem[] = [
+      item({
+        id: 2,
+        order: 1,
+        label: "Set budget",
+        explanation: "",
+        component_key: "set_budget",
+        completionRequiresSubmit: true,
+      }),
+    ];
+    const unchecked = getChecklistItemToggleEligibility(withSubmit, [], 2, true, {
+      isAgentViewer: true,
+    });
+    expect(unchecked.canCheck).toBe(true);
+    expect(unchecked.canUncheck).toBe(false);
+    expect(unchecked.canMarkChecked).toBe(true);
+
+    const checked = getChecklistItemToggleEligibility(withSubmit, [2], 2, true, {
+      isAgentViewer: true,
+    });
+    expect(checked.canCheck).toBe(false);
+    expect(checked.canUncheck).toBe(true);
+    expect(checked.canMarkChecked).toBe(true);
+  });
+
+  it("agent viewer cannot manually toggle signature-based steps", () => {
+    const sig: TaskChecklistItem[] = [
+      item({
+        id: 6,
+        order: 0,
+        label: "Sign agreement",
+        explanation: "",
+        completionType: "signature_based",
+      }),
+    ];
+    const e = getChecklistItemToggleEligibility(sig, [], 6, true, { isAgentViewer: true });
+    expect(e.canCheck).toBe(false);
+    expect(e.canUncheck).toBe(false);
+    expect(e.canMarkChecked).toBe(false);
+  });
+
+  it("submit-gated steps cannot be manually unchecked when checked", () => {
+    const withSubmit: TaskChecklistItem[] = [
+      item({
+        id: 1,
+        order: 0,
+        label: "Partner with agent",
+        explanation: "",
+        component_key: "partner_agent",
+        completionRequiresSubmit: true,
+      }),
+      item({
+        id: 2,
+        order: 1,
+        label: "Decide on a home",
+        explanation: "",
+        component_key: "finding_home",
+        completionRequiresSubmit: true,
+      }),
+    ];
+    const partner = getChecklistItemToggleEligibility(withSubmit, [1], 1, true);
+    expect(partner.canCheck).toBe(false);
+    expect(partner.canUncheck).toBe(false);
+
+    const finding = getChecklistItemToggleEligibility(withSubmit, [2], 2, true);
+    expect(finding.canCheck).toBe(false);
+    expect(finding.canUncheck).toBe(false);
+  });
+
   it("submit-only active step: merge keeps id after client requests check (integration submit path)", () => {
     const withSubmit: TaskChecklistItem[] = [
       item({
@@ -356,6 +426,26 @@ describe("getChecklistItemToggleEligibility", () => {
     expect(getChecklistItemToggleEligibility(sorted, [], 77, true).canMarkChecked).toBe(true);
     expect(mergeTaskChecklistCheckedIds(items, [77], new Set())).toContain(77);
     expect(mergeTaskChecklistCheckedIds(items, [99, 77], new Set())).toEqual([77, 99]);
+  });
+});
+
+describe("mergeTaskChecklistCheckedIds bypassProgressGates", () => {
+  it("allows agent to check submit-gated step without selectable_when", () => {
+    const items: TaskChecklistItem[] = [
+      item({
+        id: 2,
+        order: 1,
+        label: "Set budget",
+        explanation: "",
+        component_key: "set_budget",
+        completionRequiresSubmit: true,
+        selectable_when: { kind: "all_items_checked", item_ids: [1] },
+      }),
+    ];
+    expect(mergeTaskChecklistCheckedIds(items, [2], new Set(), { bypassProgressGates: true })).toEqual(
+      [2]
+    );
+    expect(mergeTaskChecklistCheckedIds(items, [2], new Set())).toEqual([]);
   });
 });
 

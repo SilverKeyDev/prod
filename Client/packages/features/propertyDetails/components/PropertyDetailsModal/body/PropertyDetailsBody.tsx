@@ -31,7 +31,10 @@ import { Loading } from "packages/ui/components/primitives";
 import {
   getClimateEnvironmentalSection,
   getNeighborhoodAnalysisPayload,
+  getPropertyDetailsExcludeSections,
   hasEnvironmentalFactorsContent,
+  shouldHideStandaloneLocationMap,
+  shouldShowListingAgentSkeleton,
 } from "packages/utils/propertyDetails";
 
 export type PropertyDetailsBodyProps = PropertyComponentProps & {
@@ -91,44 +94,32 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
     [climateEnvironmentalRaw]
   );
 
-  /**
-   * When commute has travel times, that section renders the map (or the same unavailable message).
-   * Hide the standalone location map to avoid duplicate "Map" sections.
-   */
-  const commuteSectionHasTravelTimesMap = useMemo(() => {
-    const cd = (property as unknown as { commute_data?: { travel_times?: unknown[] } })
-      .commute_data;
-    return Array.isArray(cd?.travel_times) && cd.travel_times.length > 0;
-  }, [property]);
+  const commuteSectionHasTravelTimesMap = useMemo(
+    () => shouldHideStandaloneLocationMap(property),
+    [property]
+  );
 
-  const excludeSections = useMemo(() => {
-    const out: string[] = [];
-    if (hasCommute || commuteAnalysis) out.push("commute");
-    if (familyFriendlyAnalysis) out.push("family_friendly");
-    if (hasNeighborhood || neighborhoodAnalysis) {
-      out.push("neighborhood_overview");
-      out.push("neighborhood");
-      out.push("age_distribution");
-      out.push("race_distribution");
-      out.push("income_distribution");
-      out.push("education_distribution");
-      out.push("demographics");
-    }
-    if (hasEnvironmentalSection) out.push("climate_environmental_safety");
-    return out;
-  }, [
-    hasCommute,
-    commuteAnalysis,
-    familyFriendlyAnalysis,
-    hasNeighborhood,
-    neighborhoodAnalysis,
-    hasEnvironmentalSection,
-  ]);
+  const excludeSections = useMemo(
+    () =>
+      getPropertyDetailsExcludeSections({
+        property,
+        propertyAnalysis: propertyAnalysis as Record<string, unknown> | undefined,
+        hasCommute,
+        commuteAnalysis,
+        familyFriendlyAnalysis,
+      }),
+    [
+      property,
+      propertyAnalysis,
+      hasCommute,
+      commuteAnalysis,
+      familyFriendlyAnalysis,
+    ]
+  );
 
   const agent = useMemo(() => getAgentFromProperty(property), [property]);
   const mlsListingId = useMemo(() => getMlsListingId(property), [property]);
-  /** Stream stays "loading" until `complete`, but agent arrives on `basic` — avoid skeleton after data exists. */
-  const showListingAgentSkeleton = isLoading && !agent.hasAgent;
+  const showListingAgentSkeleton = shouldShowListingAgentSkeleton(isLoading, agent);
 
   return (
     <Box className="pb-4">

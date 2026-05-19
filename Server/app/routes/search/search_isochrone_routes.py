@@ -88,7 +88,11 @@ def get_isochrone():
             name = location.get("name") or location.get("address", "")[:40] or "Unknown Location"
 
             if address and address.strip():
-                addresses_and_minutes.append((address.strip(), commute_tolerance))
+                try:
+                    minutes = float(commute_tolerance)
+                except (TypeError, ValueError):
+                    minutes = 30.0
+                addresses_and_minutes.append((address.strip(), minutes))
 
                 # Geocode the address to get coordinates using Google Maps API
                 coords = geocode_address_google(address.strip())

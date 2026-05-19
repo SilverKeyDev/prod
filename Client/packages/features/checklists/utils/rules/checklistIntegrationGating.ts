@@ -4,6 +4,7 @@ export const SUBMIT_GATED_CHECKLIST_INTEGRATION_KEYS = new Set([
   "choose_areas",
   "define_criteria",
   "partner_agent",
+  "finding_home",
 ]);
 
 export function isSubmitGatedChecklistIntegration(item: {

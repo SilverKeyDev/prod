@@ -50,7 +50,7 @@ openai==1.76.2
 httpx>=0.24.1
 
 # --- Geospatial ---
-shapely==2.0.4
+shapely>=2.0.6,<2.1
 
 # --- PDF, API, and Web ---
 pypdf==6.11.0

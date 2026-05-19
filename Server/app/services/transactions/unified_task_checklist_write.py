@@ -72,7 +72,13 @@ def perform_task_checklist_put(
     """
     items = get_checklist_definition(checklist_type)
     old_ids = {int(x) for x in get_checked_ids_for_user(str(subject_user_id), checklist_type)}
-    merge_diag = apply_task_checklist_merge(items, coerced_ids, old_ids)
+    bypass_progress_gates = str(actor_user_id) != str(subject_user_id)
+    merge_diag = apply_task_checklist_merge(
+        items,
+        coerced_ids,
+        old_ids,
+        bypass_progress_gates=bypass_progress_gates,
+    )
 
     effective_set = set(merge_diag.effective_ids)
     apply_signature_based_checked_ids(items, str(subject_user_id), checklist_type, effective_set)

@@ -23,7 +23,7 @@ from .s3.upload_download import (
 from .s3.upload_download import (
     upload_pdf as _upload_pdf,
 )
-from .s3_helpers import get_bucket_name
+from .s3_helpers import delete_s3_objects_under_prefix, get_bucket_name
 
 logger = get_logger()
 
@@ -109,6 +109,19 @@ class S3Service(S3ClientManager):
         if not bucket_name:
             return None
         return _generate_view_url(self.s3_client, bucket_name, s3_key, operation, content_type)
+
+    def delete_objects_under_prefix(self, prefix: str) -> int:
+        """Delete all objects under an S3 key prefix. Returns count deleted."""
+        if not self._ensure_s3_client():
+            logger.error("S3 client not initialized - cannot delete by prefix")
+            return 0
+
+        bucket_name = self.bucket_name or get_bucket_name()
+        if not bucket_name:
+            logger.error("S3 bucket name not available for prefix deletion")
+            return 0
+
+        return delete_s3_objects_under_prefix(self.s3_client, bucket_name, prefix)
 
     def delete_pdf(self, s3_key: str) -> bool:
         """

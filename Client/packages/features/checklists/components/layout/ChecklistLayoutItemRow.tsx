@@ -152,6 +152,7 @@ function ChecklistLayoutItemRowInner({
           item={checklistItem}
           checked={rowChecked}
           onToggle={handleCheckboxToggle}
+          disabled={checkboxDisabled}
           itemLabelClass={itemLabel}
           itemExplanationClass={itemExplanation}
           checkboxContainerClass={checkboxContainer}

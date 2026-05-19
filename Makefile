@@ -20,7 +20,7 @@ PYTEST_ARGS ?=
 help:
 	@echo "SilverKey Makefile (see also ./scripts/setup-local.sh and ./scripts/refresh.sh)"
 	@echo ""
-	@echo "  make setup            First-time setup (optional: make setup ARGS='--skip-secrets')"
+	@echo "  make setup            First-time setup — see setup.md (optional: ARGS='--skip-secrets')"
 	@echo "  make refresh          After git pull: pnpm + pip refresh (optional: make refresh ARGS='--secrets')"
 	@echo "  make secrets          AWS Secrets Manager -> Server/.env (REGION=$(REGION), PROFILE optional)"
 	@echo "  make migrate          flask db upgrade (operators only; see warning in recipe)"

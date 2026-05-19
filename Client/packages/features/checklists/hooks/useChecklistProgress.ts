@@ -37,6 +37,7 @@ export type UseChecklistProgressReturn = {
 export function useChecklistProgress(
   options?: UseChecklistDataOptions
 ): UseChecklistProgressReturn {
+  const isAgentViewer = options?.isAgentViewer === true;
   const searchData = useChecklistData("search", options);
   const offerData = useChecklistData("offer", options);
   const escrowData = useChecklistData("escrow", options);
@@ -100,10 +101,11 @@ export function useChecklistProgress(
         items,
         data.checkedIds,
         itemId,
-        isSectionUnlocked(section)
+        isSectionUnlocked(section),
+        { isAgentViewer }
       );
     },
-    [sectionData, isSectionUnlocked]
+    [isAgentViewer, sectionData, isSectionUnlocked]
   );
 
   const isItemCheckable = useCallback(

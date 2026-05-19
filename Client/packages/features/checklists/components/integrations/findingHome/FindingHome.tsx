@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -6,9 +6,9 @@ import {
   getTransactionAddress,
   saveTransactionAddress,
 } from "packages/features/checklists/api/checklists";
+import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import { useGoogleMapsStore } from "packages/store";
-import { AddressInput } from "packages/ui/components";
-import Button from "packages/ui/components/button/Button";
+import { GooglePlacesAutocompleteField } from "packages/ui/components";
 import Card from "packages/ui/components/cards/Card";
 import type { AddressData } from "packages/ui/components/form/AddressInput/AddressInput";
 import { Box, Text } from "packages/ui/components/primitives";
@@ -17,6 +17,18 @@ type FindingHomeProps = {
   onSave?: (address: string) => void;
   onComplete?: () => void;
 };
+
+/** True when the field has a value and it differs from the last saved transaction address. */
+export function hasFindingHomeAddressChanges(
+  currentAddress: string,
+  saved: { address?: string | null } | null | undefined
+): boolean {
+  const trimmed = currentAddress.trim();
+  if (!trimmed) return false;
+  const savedTrimmed = (saved?.address ?? "").trim();
+  if (!savedTrimmed) return true;
+  return trimmed !== savedTrimmed;
+}
 
 export default function FindingHome({ onSave, onComplete }: FindingHomeProps) {
   const queryClient = useQueryClient();
@@ -40,30 +52,46 @@ export default function FindingHome({ onSave, onComplete }: FindingHomeProps) {
   const saveMutation = useMutation({
     mutationFn: saveTransactionAddress,
     onSuccess: (data) => {
+      const previous = queryClient.getQueryData<{ address?: string | null } | null>([
+        "transaction",
+        "address",
+      ]);
+      const wasFirstSave = !(previous?.address ?? "").trim();
       queryClient.setQueryData(["transaction", "address"], data);
       onSave?.(data.address);
-      onComplete?.();
+      if (wasFirstSave) {
+        onComplete?.();
+      }
     },
   });
 
-  const handleSave = useCallback(() => {
+  const buildPayload = useCallback(() => {
     const trimmed = address.trim();
-    if (!trimmed) return;
-    const payload = selectedAddress
-      ? {
-          address: selectedAddress.address,
-          place_id: selectedAddress.place_id,
-          street: selectedAddress.street,
-          city: selectedAddress.city,
-          state: selectedAddress.state,
-          postal_code: selectedAddress.postal_code,
-          country: selectedAddress.country,
-        }
-      : { address: trimmed };
-    saveMutation.mutate(payload);
-  }, [address, selectedAddress, saveMutation]);
+    if (!trimmed) return null;
+    if (selectedAddress) {
+      return {
+        address: selectedAddress.address,
+        place_id: selectedAddress.place_id,
+        street: selectedAddress.street,
+        city: selectedAddress.city,
+        state: selectedAddress.state,
+        postal_code: selectedAddress.postal_code,
+        country: selectedAddress.country,
+      };
+    }
+    return { address: trimmed };
+  }, [address, selectedAddress]);
 
-  const canSave = address.trim().length > 0 && !saveMutation.isPending;
+  const canSubmit = useMemo(
+    () => hasFindingHomeAddressChanges(address, savedAddress),
+    [address, savedAddress]
+  );
+
+  const handleSubmitStep = useCallback(() => {
+    const payload = buildPayload();
+    if (!payload || saveMutation.isPending) return;
+    saveMutation.mutate(payload);
+  }, [buildPayload, saveMutation]);
 
   return (
     <>
@@ -72,32 +100,26 @@ export default function FindingHome({ onSave, onComplete }: FindingHomeProps) {
           <Text className="text-text-primary text-sm font-medium">
             Enter the address of the home you want to make an offer on
           </Text>
-          <AddressInput
-            value={address}
-            onChange={(value) => {
-              setAddress(value);
-              setSelectedAddress(null);
-            }}
-            onSelect={(data) => {
-              setAddress(data.address);
-              setSelectedAddress(data);
-            }}
-            scriptsReady={scriptsReady}
-            placeholder="e.g., 123 Main St, San Francisco, CA 94102"
-            disabled={saveMutation.isPending}
-          />
-          <Box className="flex flex-row flex-wrap items-center gap-2">
-            <Button
-              variant="primary"
-              size="md"
-              onPress={handleSave}
-              disabled={!canSave}
-              loading={saveMutation.isPending}
-              iconName="save"
-            >
-              Save address
-            </Button>
+          <Box className="mb-4">
+            <GooglePlacesAutocompleteField
+              value={address}
+              onChange={(value) => {
+                setAddress(value);
+                setSelectedAddress(null);
+              }}
+              onSelect={(data) => {
+                setAddress(data.address);
+                setSelectedAddress(data);
+              }}
+              scriptsReady={scriptsReady}
+              placeholder="e.g., 123 Main St, San Francisco, CA 94102"
+              disabled={saveMutation.isPending}
+            />
           </Box>
+          <ChecklistStepSubmitFooter
+            disabled={!canSubmit || saveMutation.isPending}
+            onSubmit={handleSubmitStep}
+          />
           {saveMutation.isError && (
             <Text className="text-destructive text-sm">
               {saveMutation.error instanceof Error

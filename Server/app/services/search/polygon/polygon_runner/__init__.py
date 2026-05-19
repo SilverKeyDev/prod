@@ -322,6 +322,32 @@ def run_polygon_search(
 
     if scored_properties:
         sample_scores = [(p.get("zpid"), p.get("_score", 0.0)) for p in scored_properties[:3]]
+        rounded_scores = [
+            round(float(p.get("_score", 0.0)), 1) for p in scored_properties if p.get("_score") is not None
+        ]
+        unique_rounded = len(set(rounded_scores))
+        if len(scored_properties) > 3 and unique_rounded <= 1:
+            from app.services.search.home_matching.mcda.score import preference_coverage_count
+
+            sample = scored_properties[0]
+            log.warn(
+                _POLY,
+                "polygon_search uniform_match_scores",
+                {
+                    "request_id": request_id,
+                    "count": len(scored_properties),
+                    "rounded_score": rounded_scores[0] if rounded_scores else None,
+                    "preference_coverage": preference_coverage_count(
+                        user_preferences, status_type=status_type
+                    ),
+                    "sample_has_price": sample.get("price") is not None,
+                    "sample_has_bedrooms": sample.get("bedrooms") is not None,
+                    "sample_has_living_area": sample.get("livingArea") is not None
+                    or sample.get("sqft") is not None,
+                    "pref_source_id": pref_source_id,
+                    "search_area_mode": search_area_mode,
+                },
+            )
         log.info(
             _POLY,
             "polygon_search sample_scores",

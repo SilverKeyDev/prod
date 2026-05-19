@@ -9,7 +9,7 @@ from app import db
 
 
 class TransactionAddress(db.Model):
-    """User's saved address for the 'Finding a home' / transaction step."""
+    """User's saved address for the 'Decide on a home' / transaction step."""
 
     __tablename__ = "transaction_addresses"
 

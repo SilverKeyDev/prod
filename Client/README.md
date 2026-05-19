@@ -4,7 +4,7 @@ TypeScript/React frontend: web app (`apps/web`) and React Native app (`apps/mobi
 
 ## Quick start
 
-From repo root: `cd Client && pnpm install && pnpm dev:web`. See root [README.md](../README.md) for full setup.
+From repo root: `make setup` then `make dev-web` (or `cd Client && pnpm dev:web`). See [setup.md](../setup.md) for full machine setup.
 
 ## Running the mobile app (React Native / Expo)
 

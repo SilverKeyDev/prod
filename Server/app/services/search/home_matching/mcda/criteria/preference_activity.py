@@ -24,6 +24,22 @@ def _has_float_pref(preferences: dict[str, Any], key: str) -> bool:
         return False
 
 
+def normalize_preferences_for_mcda(preferences: dict[str, Any] | None) -> dict[str, Any]:
+    """
+    Align aggregated profile keys with MCDA dimension detectors (e.g. preferred_bedrooms → _min).
+    """
+    out = dict(preferences or {})
+    if out.get("preferred_bedrooms_min") is None and out.get("preferred_bedrooms") is not None:
+        out["preferred_bedrooms_min"] = out["preferred_bedrooms"]
+    if out.get("preferred_bathrooms_min") is None and out.get("preferred_bathrooms") is not None:
+        out["preferred_bathrooms_min"] = out["preferred_bathrooms"]
+    if not out.get("preferred_housing_type") and out.get("housing_type"):
+        ht = out.get("housing_type")
+        if isinstance(ht, str) and ht.strip():
+            out["preferred_housing_type"] = ht
+    return out
+
+
 def has_budget_preference(preferences: dict[str, Any], status_type: str = "ForSale") -> bool:
     lo, hi = effective_budget_bounds(preferences, status_type)
     return hi is not None and hi > 0

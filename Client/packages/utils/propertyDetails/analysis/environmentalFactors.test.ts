@@ -73,4 +73,23 @@ describe("parseEnvironmentalSection", () => {
     expect(parsed?.headerRating).toBe(6);
     expect(parsed?.factors.find((f) => f.key === "wind_score")?.rating).toBe(5);
   });
+
+  it("returns false for partial climate payload with only empty strings", () => {
+    expect(
+      hasEnvironmentalFactorsContent({
+        climate_environmental_safety: {
+          climate: "",
+          flood_risk: "   ",
+        },
+      })
+    ).toBe(false);
+  });
+
+  it("returns true for partial score-only environmental payload", () => {
+    expect(
+      hasEnvironmentalFactorsContent({
+        climate_environmental_safety: { earthquake_score: 4 },
+      })
+    ).toBe(true);
+  });
 });

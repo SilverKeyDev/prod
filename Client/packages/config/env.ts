@@ -96,13 +96,9 @@ class EnvConfig {
   }
 
   get googleMapsId(): string | undefined {
-    const raw = typeof process !== "undefined" ? process.env : ({} as NodeJS.ProcessEnv);
     const mapId =
       EnvConfig.STATIC.GOOGLE_MAPS_ID ||
-      resolveGoogleMapsCloudMapId(
-        this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID,
-        trimEnv(raw.VITE_GOOGLE_MAPS_ID)
-      );
+      resolveGoogleMapsCloudMapId(this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID);
     if (!mapId) {
       log.warn(
         LOG_CATEGORIES.API,

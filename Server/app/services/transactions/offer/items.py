@@ -4,11 +4,12 @@ OFFER_ITEMS = [
     {
         "id": 1,
         "order": 1,
-        "label": "Finding a home",
+        "label": "Decide on a home",
         "explanation": "Enter the address of the home you want to make an offer on.",
         "bullets": [],
         "resource": None,
         "component_key": "finding_home",
+        "completion_requires_submit": True,
     },
     {
         "id": 2,

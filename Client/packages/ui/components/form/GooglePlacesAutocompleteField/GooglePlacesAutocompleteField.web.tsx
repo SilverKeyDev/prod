@@ -14,7 +14,11 @@ import BodyText from "packages/ui/components/text/BodyText";
 import { asError } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
 
-import { applyGooglePlaceSuggestionToAddress } from "./applyGooglePlaceSuggestionToAddress";
+import {
+  placeFromAutocompleteSuggestion,
+  resolveGooglePlaceToAddressData,
+} from "packages/ui/components/form/resolveGooglePlaceToAddressData";
+
 import type { GooglePlacesAutocompleteFieldProps } from "./GooglePlacesAutocompleteField";
 import type { GooglePlacePrediction, GooglePlacesSuggestion } from "./types";
 
@@ -122,16 +126,13 @@ function GooglePlacesAutocompleteFieldWeb({
 
   const handleSelect = async (suggestion: GooglePlacesSuggestion) => {
     setHasSelected(true);
-    await applyGooglePlaceSuggestionToAddress(suggestion, {
-      setAddress: (next) => {
-        setLocalValue(next);
-        onChange(next);
-        const data: AddressData = { address: next };
-        onSelect?.(data);
-      },
-      setSuggestions,
-      setHighlightedIndex,
-    });
+    const place = placeFromAutocompleteSuggestion(suggestion);
+    const addressData = await resolveGooglePlaceToAddressData(place, localValue.trim());
+    setLocalValue(addressData.address);
+    onChange(addressData.address);
+    onSelect?.(addressData);
+    setSuggestions([]);
+    setHighlightedIndex(-1);
   };
 
   const inputDisabled = disabled ?? false;

@@ -1,0 +1,8 @@
+# Copy to Server/config/.aws-sso (gitignored) and set your dev SSO profile.
+# Used by make setup, Server/scripts/secrets.sh, and scripts/lib/aws-setup.sh.
+#
+#   cp Server/config/aws-sso.example Server/config/.aws-sso
+#   # edit AWS_PROFILE below
+
+export AWS_PROFILE="your-sso-profile-name"
+export AWS_REGION="us-east-2"

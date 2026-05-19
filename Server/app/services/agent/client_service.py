@@ -2,29 +2,43 @@
 Service functions for managing agent clients
 """
 
+from __future__ import annotations
+
 import logging
 from collections import defaultdict
+from typing import Any
 
 from sqlalchemy import func
 
 from app import db
+from app.dtos.user import _try_presigned_profile_picture_url
 from app.services.transactions.checklist_support.checklist_constants import (
+    PIPELINE_ORDER,
     PIPELINE_RANK,
     TASK_CATEGORIES,
 )
 
-from ...models import AgentConnections, TransactionTask, User, UserRole
+from ...models import AgentConnections, Agreement, TransactionTask, User, UserRole
 from ...utils.format.json_string_list_parse import (
     parse_json_or_csv_string_list,
     serialize_json_string_list,
 )
-from .client_list_enrichment import (
-    batch_current_step,
-    batch_profile_picture_urls,
-    batch_requires_signature,
-)
 
 logger = logging.getLogger(__name__)
+
+# --- Client list enrichment (step labels, avatars, signature actions) ---
+
+_SECTION_UNLOCK_REQUIRES: dict[str, tuple[str, ...]] = {
+    "search": (),
+    "offer": ("search",),
+    "escrow": ("search", "offer"),
+    "financing": ("search", "offer", "escrow"),
+    "closing": ("search", "offer", "escrow", "financing"),
+    "insurance": ("search", "offer", "escrow", "financing", "closing"),
+}
+
+_AGREEMENT_ACTIVE_STATUSES = frozenset({"sent", "delivered", "signed", "completed"})
+_SIGNED_RECIPIENT_STATUSES = frozenset({"signed", "completed"})
 
 
 def _client_kind_from_roles(role_names: set[str]) -> str:
@@ -89,6 +103,157 @@ def _batch_pipeline_stages(user_ids: list[str]) -> dict[str, str]:
     return {uid: best[uid][2] if uid in best else "search" for uid in user_ids}
 
 
+def _item_id(item: dict[str, Any]) -> int | None:
+    try:
+        return int(item["id"])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def _effective_checked_ids(user_id: str, category: str) -> set[int]:
+    from app.services.transactions.checklist_signature_completion import (
+        apply_signature_based_checked_ids,
+    )
+    from app.services.transactions.checklist_support.checklist_rules import (
+        merge_task_checklist_checked_ids,
+    )
+    from app.services.transactions.retrieval import get_checklist_definition
+    from app.services.transactions.unified_task_checklist_read import get_checked_ids_for_user
+
+    items = get_checklist_definition(category)
+    if not items:
+        return set()
+    raw_checked = get_checked_ids_for_user(str(user_id), category)
+    old_set = {int(x) for x in raw_checked}
+    pre_signature = merge_task_checklist_checked_ids(items, raw_checked, old_set)
+    checked_set = set(pre_signature)
+    apply_signature_based_checked_ids(items, str(user_id), category, checked_set)
+    return checked_set
+
+
+def _section_is_complete(user_id: str, category: str) -> bool:
+    from app.services.transactions.checklist_support.checklist_rules import (
+        sort_task_checklist_items,
+    )
+    from app.services.transactions.retrieval import get_checklist_definition
+
+    items = get_checklist_definition(category)
+    if not items:
+        return True
+    checked = _effective_checked_ids(user_id, category)
+    sorted_items = sort_task_checklist_items(list(items))
+    for item in sorted_items:
+        iid = _item_id(item)
+        if iid is None:
+            continue
+        if iid not in checked:
+            return False
+    return True
+
+
+def _first_incomplete_step_label(items: list[dict[str, Any]], checked: set[int]) -> str | None:
+    """Port of Client getActiveChecklistItemIds — returns label for the first active step only."""
+    from app.services.transactions.checklist_support.checklist_rules import (
+        sort_task_checklist_items,
+    )
+
+    sorted_items = sort_task_checklist_items(list(items))
+    first_incomplete = None
+    for item in sorted_items:
+        iid = _item_id(item)
+        if iid is None or iid in checked:
+            continue
+        first_incomplete = item
+        break
+    if first_incomplete is None:
+        return None
+
+    label = str(first_incomplete.get("label") or "").strip()
+    if not label:
+        return None
+
+    group = str(first_incomplete.get("parallel_step_group") or "").strip()
+    if not group:
+        return label
+
+    return label
+
+
+def _current_step_for_user(user_id: str) -> tuple[str, str | None]:
+    from app.services.transactions.retrieval import get_checklist_definition
+
+    completion_cache: dict[str, bool] = {
+        cat: _section_is_complete(user_id, cat) for cat in PIPELINE_ORDER
+    }
+
+    for category in PIPELINE_ORDER:
+        reqs = _SECTION_UNLOCK_REQUIRES.get(category, ())
+        if not all(completion_cache.get(req, False) for req in reqs):
+            continue
+
+        items = get_checklist_definition(category)
+        if not items:
+            continue
+
+        checked = _effective_checked_ids(user_id, category)
+        label = _first_incomplete_step_label(items, checked)
+        if label:
+            return category, label
+
+        if not completion_cache.get(category, True):
+            return category, None
+
+    return "closing", None
+
+
+def _batch_current_step(user_ids: list[str]) -> dict[str, tuple[str, str | None]]:
+    if not user_ids:
+        return {}
+    return {uid: _current_step_for_user(uid) for uid in user_ids}
+
+
+def _batch_profile_picture_urls(users: list[User]) -> dict[str, str | None]:
+    return {str(u.id): _try_presigned_profile_picture_url(u) for u in users}
+
+
+def _batch_requires_signature(agent_id: str, client_ids: list[str]) -> dict[str, bool]:
+    if not client_ids:
+        return {}
+
+    out = dict.fromkeys(client_ids, False)
+    agreements = Agreement.query.filter(
+        Agreement.agent_id == agent_id,
+        Agreement.buyer_id.in_(client_ids),
+        Agreement.status.in_(tuple(_AGREEMENT_ACTIVE_STATUSES)),
+    ).all()
+
+    for agreement in agreements:
+        buyer_id = str(agreement.buyer_id)
+        if buyer_id not in out:
+            continue
+
+        participants = list(agreement.participants or [])
+        if not participants:
+            continue
+
+        agent_participant = next((p for p in participants if p.user_id == agent_id), None)
+        buyer_participant = next((p for p in participants if p.user_id == agreement.buyer_id), None)
+        if agent_participant is None or buyer_participant is None:
+            continue
+
+        agent_signed = (
+            agent_participant.recipient_status or ""
+        ).lower() in _SIGNED_RECIPIENT_STATUSES
+        buyer_signed = (
+            buyer_participant.recipient_status or ""
+        ).lower() in _SIGNED_RECIPIENT_STATUSES
+
+        if buyer_signed and not agent_signed:
+            out[buyer_id] = True
+
+    return out
+
+
 def append_unique_client_id(agent: User, client_id: str) -> None:
     """Mutate agent.client_ids to include client_id once."""
     merged = parse_json_or_csv_string_list(agent.client_ids)
@@ -150,9 +315,9 @@ def get_agent_clients(agent_id: str) -> list[dict]:
         ordered_ids = [c.id for c in ordered_clients]
         kind_by_id = _batch_client_kinds(ordered_ids)
         stage_by_id = _batch_pipeline_stages(ordered_ids)
-        step_by_id = batch_current_step(ordered_ids)
-        avatar_url_by_id = batch_profile_picture_urls(ordered_clients)
-        signature_by_id = batch_requires_signature(agent_id, ordered_ids)
+        step_by_id = _batch_current_step(ordered_ids)
+        avatar_url_by_id = _batch_profile_picture_urls(ordered_clients)
+        signature_by_id = _batch_requires_signature(agent_id, ordered_ids)
 
         client_list = []
         for client in ordered_clients:

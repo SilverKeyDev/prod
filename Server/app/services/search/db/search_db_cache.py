@@ -114,7 +114,14 @@ def get_cached_search_results(user_id: str) -> list[dict[str, Any]]:
             if link.score is not None:
                 property_dict["_score"] = float(link.score)
             else:
-                property_dict["_score"] = 0.0
+                hydrated_score: float | None = None
+                if prop.raw_data and isinstance(prop.raw_data, dict):
+                    for score_key in ("_score", "score"):
+                        raw_val = prop.raw_data.get(score_key)
+                        if isinstance(raw_val, int | float):
+                            hydrated_score = float(raw_val)
+                            break
+                property_dict["_score"] = hydrated_score if hydrated_score is not None else 0.0
 
             if prop.raw_data and isinstance(prop.raw_data, dict):
                 for key, value in prop.raw_data.items():

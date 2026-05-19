@@ -24,6 +24,11 @@ export type UseChecklistDataOptions = {
    * Omit for the authenticated user (`/api/v1/tasks`).
    */
   checklistSubjectUserId?: string | null;
+  /**
+   * Agent managing a client checklist: bypass submit-gated pruning on optimistic PUT merge
+   * (server applies the same when actor_user_id != subject_user_id).
+   */
+  isAgentViewer?: boolean;
 };
 
 export type UseChecklistDataReturn = {
@@ -55,6 +60,7 @@ export function useChecklistData(
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
   const checklistSubjectUserId = options?.checklistSubjectUserId;
+  const isAgentViewer = options?.isAgentViewer === true;
 
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
@@ -124,7 +130,9 @@ export function useChecklistData(
       const requested = isChecked
         ? currentIds.filter((itemId) => itemId !== id)
         : [...currentIds, id];
-      const merged = mergeTaskChecklistCheckedIds(items, requested, oldSet);
+      const merged = mergeTaskChecklistCheckedIds(items, requested, oldSet, {
+        bypassProgressGates: isAgentViewer,
+      });
       const serverCheckedIds = await updateChecklistMutation.mutateAsync(merged);
       if (!isChecked && !serverCheckedIds.includes(id)) {
         showWarningToast(
@@ -135,7 +143,7 @@ export function useChecklistData(
         );
       }
     },
-    [checklistData?.checkedIds, checklistData?.items, t, updateChecklistMutation]
+    [checklistData?.checkedIds, checklistData?.items, isAgentViewer, t, updateChecklistMutation]
   );
 
   const refreshChecklist = useCallback(async () => {

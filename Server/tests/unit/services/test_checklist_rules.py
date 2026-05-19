@@ -122,6 +122,24 @@ def test_merge_allows_uncheck_without_lock_uncheck_when():
     assert merge_task_checklist_checked_ids(items, [1], frozenset({1, 2})) == [1]
 
 
+def test_merge_bypass_progress_gates_allows_submit_gated_without_prerequisites():
+    items = [
+        {
+            "id": 2,
+            "order": 1,
+            "label": "Budget",
+            "explanation": "",
+            "component_key": "set_budget",
+            "completion_requires_submit": True,
+            "selectable_when": {"kind": "all_items_checked", "item_ids": [1]},
+        },
+    ]
+    assert merge_task_checklist_checked_ids(items, [2], frozenset()) == []
+    assert (
+        merge_task_checklist_checked_ids(items, [2], frozenset(), bypass_progress_gates=True) == [2]
+    )
+
+
 def test_merge_selectable_strips_submit_gated_integration():
     items = [
         {

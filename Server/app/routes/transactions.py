@@ -1,4 +1,4 @@
-"""Transaction-related API (address for Finding a home step)."""
+"""Transaction-related API (address for Decide on a home step)."""
 
 import uuid
 
