@@ -1,111 +1,153 @@
 # SilverKey — Agent and engineer quickstart
 
-**What this is:** A monorepo for SilverKey: **React web** + **React Native** (`Client/`), **Flask/Python API** (`Server/`), and **OpenAPI** as the API contract (`openapi/`). Business logic and UI live primarily under `Client/packages/`; `Client/apps/*` are thin composition layers.
+**What this is:** A monorepo for SilverKey: **React web** + **React Native** (`Client/`), **Flask/Python API** (`Server/`), and **OpenAPI** as the API contract (`openapi/`). Business logic and UI live in **`Client/packages/`**; **`Client/apps/*`** are thin composition layers only.
 
 **What this is not:** A single-page app with ad-hoc server logic in the web bundle—layering and generated types are enforced.
 
 ---
 
-## Quick start (copy-paste)
+## Prerequisites
 
-**Prerequisites:** Node 20+, `pnpm` 9+, Python 3.x (see Server docs), PostgreSQL and env files as in `Server/.env.example`.
+| Tool | Version / notes |
+| ---- | ---------------- |
+| **Node.js** | 20+ locally; CI lint uses **22** (see `.github/workflows/lint.yml`) |
+| **pnpm** | **9.x** — pinned in [`Client/package.json`](Client/package.json) (`packageManager`) |
+| **Python** | **3.10–3.13** for `Server/.venv` (see [`Server/README.md`](Server/README.md)) |
+| **PostgreSQL** | Full local API stack; env from [`Server/.env.example`](Server/.env.example) |
+| **AWS CLI** | Optional for `make setup` / secrets → `Server/.env`; use `make setup ARGS='--skip-secrets'` without AWS |
 
-**Local bootstrap:** `./scripts/setup-local.sh` (first machine), `./scripts/refresh.sh` (after `git pull`), `make help` — see root [README.md](README.md).
+**First machine:** `make setup` (or `./scripts/setup-local.sh`). **After `git pull`:** `make refresh`. Human-oriented setup: [README.md](README.md).
+
+---
+
+## Makefile (repo root)
+
+Run `make help` for the full list. Common targets:
+
+| Target | Purpose |
+| ------ | ------- |
+| `make setup` | First-time: Client `pnpm install`, Server venv, optional secrets |
+| `make refresh` | Refresh deps after pull |
+| `make dev` | Web + backend (`scripts/run/run-web.sh`) |
+| `make dev-web` / `make mobile` | Vite web only / Expo mobile |
+| `make dev-backend` | Backend stack only |
+| `make lint` | `./scripts/run-all-linters.sh all` (fix phase, then checks) |
+| `make lint-client` / `make lint-server` | Client or server linters only |
+| `make typecheck` / `make check-client` | Client typecheck / full `pnpm check` |
+| `make test` / `make test-fe` / `make test-be` | Vitest + Server pytest |
+| `make openapi` | Regenerate TS + Python types from `openapi/` |
+| `make openapi-verify` | Regenerate, fail on git drift, contract tests |
+
+---
+
+## Commands (copy-paste)
 
 ```bash
 # Client — from Client/
 pnpm install
-pnpm dev:web              # Vite web app
+pnpm dev:web              # Vite web
 pnpm dev:mobile           # Expo / RN
 
-# Client quality gates
+# Client tests & gates
+pnpm test:run             # Vitest (CI: make test-fe)
 pnpm typecheck && pnpm lint && pnpm lint:cycles && pnpm format:check
-pnpm check                # Full client check (includes build:web) — see Client/package.json
+pnpm check                # typecheck + lint + format + cycles + audit + build:web
 
-# Repo-wide linters
-./scripts/run-all-linters.sh client
-./scripts/run-all-linters.sh server
-./scripts/run-all-linters.sh all
+# Server — activate Server/.venv first
+cd Server && pytest       # or: make test-be from repo root
+
+# Repo-wide linters (fix first, then verify — same order as CI)
+./scripts/run-all-linters.sh client|server|all
+# equivalent: make lint
 ```
 
-**Cursor indexing:** Copy [.cursorignore.example](./.cursorignore.example) to `.cursorignore` at the repo root (local file; reduces noise). Optional: tune [.cursorindexingignore](./.cursorindexingignore).
+**Cursor indexing:** Copy [.cursorignore.example](./.cursorignore.example) → `.cursorignore` (local, gitignored). Optional: [.cursorindexingignore](./.cursorindexingignore).
 
 ---
 
 ## Architecture (short)
 
-Thin **`Client/apps/*`** host routing, providers, and page shells. **Features, hooks, UI primitives, and API wrappers** live under **`Client/packages/`** (`features/`, `hooks/`, `ui/`, `config/api/`, etc.). **`Server/`** exposes HTTP APIs documented in **`openapi/`**; client and server types are generated from that spec. Details: [Client/ARCHITECTURE.md](./Client/ARCHITECTURE.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [documentation/client/thin-app-architecture.md](./documentation/client/thin-app-architecture.md).
+- **Thin apps:** `Client/apps/web`, `Client/apps/mobile` — routing, providers, page composition only.
+- **Fat packages:** `Client/packages/` — `features/`, `hooks/`, `ui/`, `config/api/`, services, store.
+- **Workspace shells:** Buyer / seller / brokerage routes and workspace state live in **`packages/`**, not in fat app files. See [documentation/client/workspace-first-architecture.md](./documentation/client/workspace-first-architecture.md).
+- **API contract:** Edit **`openapi/`** only; regenerate client/server types (never hand-edit generated files).
+- **Deeper reads:** [Client/ARCHITECTURE.md](./Client/ARCHITECTURE.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [documentation/client/thin-app-architecture.md](./documentation/client/thin-app-architecture.md).
 
-### Documentation map (canonical vs server index)
+### Documentation map
 
-- **`documentation/`** — Canonical long-form guides: product flows ([documentation/transactions/README.md](./documentation/transactions/README.md)), client/server architecture, compliance, QA runbooks. Start at [documentation/README.md](./documentation/README.md).
-- **`docs/`** — Curated **server/operations** tree (Flask, Celery, Redis, Postgres stubs, runbooks, refactor backlogs). It **links into** `documentation/server/` for depth; see [`docs/README.md`](./docs/README.md). Prefer **`documentation/`** for new cross-cutting or product prose (see `.cursor/rules/shared/documentation.mdc`).
+| Tree | Use for |
+| ---- | ------- |
+| [`documentation/`](documentation/README.md) | Canonical long-form: product flows, architecture, compliance, QA |
+| [`docs/`](docs/README.md) | Server/ops index (Celery, Redis, runbooks) — links into `documentation/server/` |
+| New cross-cutting prose | **`documentation/`** only — not repo-root `docs/` expansion (see `.cursor/rules/shared/documentation.mdc`) |
 
 ---
 
 ## Top-level directory map
 
-| Path              | Purpose                                                                                         |
-| ----------------- | ----------------------------------------------------------------------------------------------- |
-| `Client/`         | Frontend monorepo (pnpm workspaces): web + mobile apps + shared packages                        |
-| `Server/`         | Python/Flask API, services, tests                                                               |
-| `openapi/`        | OpenAPI 3.1 sources; single contract for types                                                  |
-| `documentation/`  | Human-facing docs index and long-form guides                                                    |
-| `docs/`           | Server/ops index and stubs (links into `documentation/server/`) — see [docs/README.md](./docs/README.md) |
-| `.cursor/`        | Cursor rules (`.mdc`), skills, agent definitions — see [.cursor/README.md](./.cursor/README.md) |
-| `.github/`        | CI workflows, templates                                                                         |
-| `scripts/`        | Repo-wide lint/driver scripts                                                                   |
+| Path | Purpose |
+| ---- | ------- |
+| `Client/` | pnpm workspace: `apps/*` (thin) + `packages/` (logic, UI, hooks) |
+| `Server/` | Flask API, services, tests, `scripts/` (venv, lint, secrets) |
+| `openapi/` | OpenAPI 3.1 sources → generated TS/Python types |
+| `documentation/` | Canonical human docs |
+| `docs/` | Server/ops stubs and index |
+| `scripts/` | `setup-local.sh`, `refresh.sh`, `run-all-linters.sh`, `run/` dev stacks |
+| `.cursor/` | Rules (`.mdc`), skills, agent personas — [.cursor/README.md](./.cursor/README.md) |
+| `.github/` | CI workflows and PR templates |
 
 ---
 
 ## Conventions (pointers)
 
-- **Imports and layers:** [.cursor/rules/frontend/frontend-architecture.mdc](./.cursor/rules/frontend/frontend-architecture.mdc) + [documentation/client/layered-architecture-imports.md](./documentation/client/layered-architecture-imports.md)
-- **UI components:** [documentation/client/LINTING.md](./documentation/client/LINTING.md), `.cursor/rules/frontend/ui-components.mdc`
-- **Documentation locations:** `documentation/HOW_WE_DOCUMENT.md`
-- **Commit / review:** Conventional clarity; CI must stay green (`pnpm check`, server linters)
+- **Imports / layers:** [.cursor/rules/frontend/frontend-architecture.mdc](./.cursor/rules/frontend/frontend-architecture.mdc) + [documentation/client/layered-architecture-imports.md](./documentation/client/layered-architecture-imports.md)
+- **UI primitives:** [documentation/client/LINTING.md](./documentation/client/LINTING.md), `.cursor/rules/frontend/ui-components.mdc`
+- **CI gates (client):** typecheck, lint (incl. cycles + max-lines), format, then full `pnpm check` — [.cursor/rules/shared/ci-gates.mdc](./.cursor/rules/shared/ci-gates.mdc)
+- **Docs placement:** `documentation/HOW_WE_DOCUMENT.md`
+- **PR bar:** Same gates as CI (`pnpm check`, `./scripts/run-all-linters.sh server` or `make lint`)
 
 ---
 
 ## AI tooling in this repo
 
-| Area                          | Location                                                                                         |
-| ----------------------------- | ------------------------------------------------------------------------------------------------ |
-| **Always-on constraints (4)** | `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`, `documentation.mdc` |
-| **Scoped rules**              | `.cursor/rules/shared/`, `frontend/`, `backend/` — attach by glob                                |
-| **Procedural workflows**      | `.cursor/skills/*/SKILL.md`                                                                      |
-| **Post–major change sync**    | `.cursor/skills/post-major-change-sync/SKILL.md` + scoped rule `.cursor/rules/shared/post-major-change-sync.mdc` |
-| **Subagent personas**         | `.cursor/agents/*.md`                                                                            |
-| **Meta: how to extend**       | [.cursor/README.md](./.cursor/README.md)                                                         |
-| **Inventory / audit table**   | [documentation/internal/cursor-audit-latest.md](./documentation/internal/cursor-audit-latest.md) |
+| Area | Location |
+| ---- | -------- |
+| **Always-on (4)** | `security`, `thin-app-architecture`, `linting`, `documentation` under `.cursor/rules/shared/` |
+| **Scoped rules** | `.cursor/rules/shared/`, `frontend/`, `backend/` (+ some under `Server/`) — glob-attached; see audit table |
+| **Skills** | `.cursor/skills/*/SKILL.md` (e.g. `run-all-linters`, `post-major-change-sync`) |
+| **Subagents** | `.cursor/agents/*.md` |
+| **Extend / inventory** | [.cursor/README.md](./.cursor/README.md), [documentation/internal/cursor-audit-latest.md](./documentation/internal/cursor-audit-latest.md) |
 
-**MCP:** Example shape (no secrets) in [.cursor/mcp.example.json](./.cursor/mcp.example.json); real credentials stay local or in env vars.
+**MCP:** Example only — [.cursor/mcp.example.json](./.cursor/mcp.example.json). Credentials stay local/env.
+
+**After major architecture changes:** [documentation/internal/post-major-change-checklist.md](./documentation/internal/post-major-change-checklist.md) — update `documentation/`, relevant `.mdc` files, and this file when quickstart or tooling map changes.
 
 ---
 
 ## Gotchas
 
-- **Do not edit** `Client/packages/types/api.generated.ts` or `Server/app/schemas/generated.py` by hand — change **`openapi/`** and regenerate (see `.cursor/rules/shared/openapi-workflow.mdc`).
-- **DB migrations:** Do not run or author Alembic migrations unless explicitly directed; model-only constraints in `.cursor/rules/backend/database.mdc`.
-- **Tokens:** Client uses memory + `sessionStorage` for tokens — not `localStorage` (security rule).
-- **Markdown creation:** Follow `.cursor/rules/shared/documentation.mdc` (allowed team paths include `AGENTS.md`, `.cursor/README.md`, `documentation/internal/**`).
-- **Major architecture / feature work:** Update canonical docs and Cursor config per [documentation/internal/post-major-change-checklist.md](./documentation/internal/post-major-change-checklist.md) (same PR or fast-follow).
+- **Generated types:** Do not edit `Client/packages/types/api.generated.ts` or `Server/app/schemas/generated.py` — change `openapi/`, then `make openapi` (see `.cursor/rules/shared/openapi-workflow.mdc`).
+- **DB migrations:** Do not run or author Alembic unless explicitly directed (`.cursor/rules/backend/database.mdc`). `make migrate` is operator-only.
+- **Tokens:** Client uses memory + `sessionStorage` — not `localStorage`.
+- **Logging:** Use `packages/logger` (client) and `Server/logger` (backend) — not raw `console.*` / `print`.
+- **Markdown:** Follow `.cursor/rules/shared/documentation.mdc`; team-maintained exceptions include `AGENTS.md`, `.cursor/README.md`, `documentation/internal/**`.
 
 ---
 
 ## Server / API
 
-Index: [documentation/server/README.md](./documentation/server/README.md). OpenAPI workflow: `.cursor/rules/shared/openapi-workflow.mdc`.
-
-**Backend refactor checklist:** Run `python3 Server/scripts/lint/lint_circular_imports.py`; targeted `pytest`; if HTTP shapes change, update OpenAPI and contract tests (`Server/tests/contract/test_openapi_contracts.py` where applicable).
+- Index: [documentation/server/README.md](./documentation/server/README.md)
+- **Refactor checklist:** `python3 Server/scripts/lint/lint_circular_imports.py`; targeted `pytest`; if HTTP shapes change → update `openapi/` + `make openapi-verify` + contract tests (`Server/tests/contract/test_openapi_contracts.py` where applicable)
 
 ---
 
 ## Checks summary
 
-| Scope       | Command                                                                             |
-| ----------- | ----------------------------------------------------------------------------------- |
-| Client      | `cd Client && pnpm typecheck && pnpm lint && pnpm lint:cycles && pnpm format:check` |
-| Client full | `cd Client && pnpm check`                                                           |
-| Repo-wide   | `./scripts/run-all-linters.sh all`                                                  |
-| OpenAPI sync | `make openapi` then commit generated files; `make openapi-verify` before PR        |
+| Scope | Command |
+| ----- | ------- |
+| Client (partial) | `cd Client && pnpm typecheck && pnpm lint && pnpm lint:cycles && pnpm format:check` |
+| Client (full) | `cd Client && pnpm check` or `make check-client` |
+| Client tests | `cd Client && pnpm test:run` or `make test-fe` |
+| Server tests | `make test-be` (venv + `TESTING=true`) |
+| Repo-wide lint | `./scripts/run-all-linters.sh all` or `make lint` |
+| OpenAPI | `make openapi` → commit generated files; `make openapi-verify` before PR |
