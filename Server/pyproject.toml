@@ -97,12 +97,9 @@ exclude = [
     "migrations/versions",
     "tests",
     "app/schemas/generated.py",
+    # sentence-transformers + torch: test/runtime only (requirements/test.txt), not lint CI.
+    "app/services/search/home_matching/embeddings/model_loader.py",
 ]
-
-# sentence-transformers (and torch) are test-only wheels; suppress import noise in lint CI.
-[tool.pyright.overrides."app/services/search/home_matching/embeddings/model_loader.py"]
-reportMissingImports = "none"
-reportMissingModuleSource = "none"
 
 # --- Mypy: Optional gradual type checking ---
 [tool.mypy]

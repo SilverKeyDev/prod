@@ -13,6 +13,7 @@ EXCLUDED_DIRS = frozenset(
     {
         ".venv",
         ".venv-ci",
+        ".venv-ci-smoke",
         "venv",
         "__pycache__",
         ".git",
