@@ -27,7 +27,7 @@ psycopg2-binary==2.9.9
 SQLAlchemy==2.0.43
 
 # --- Serialization (models / marshmallow) ---
-marshmallow==3.26.2
+marshmallow==4.3.0
 marshmallow-sqlalchemy==1.5.0
 pydantic==2.10.5
 email-validator==2.2.0

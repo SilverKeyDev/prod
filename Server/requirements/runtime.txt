@@ -94,7 +94,7 @@ cryptography==48.0.0
 # --- Pydantic & Serialization ---
 pydantic==2.10.5
 email-validator==2.2.0
-marshmallow==3.26.2
+marshmallow==4.3.0
 marshmallow-sqlalchemy==1.5.0
 
 # --- Background Tasks ---
