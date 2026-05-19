@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ec2-deploy.sh — executed on EC2 by CI after scp.
 # Required env: ACCOUNT_ID, AWS_REGION, IMAGE_TAG, REPO, DB_URL_SECRET_ID
+# Optional env: IMAGE_DIGEST (sha256:… from ECR; preferred over tag), DEPLOY_LOG_LINES (default 500)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -21,6 +22,8 @@ DEPLOY_SUCCEEDED=0
 ROLLBACK_WAS_TEARDOWN=0
 ROLLBACK_IMAGE=""
 ROLLBACK_ENV_FILE="/root/.deploy_env.rollback"
+ROLLBACK_IMAGE_FILE="/root/.deploy_rollback_image_ref"
+DEPLOY_LOG_LINES="${DEPLOY_LOG_LINES:-500}"
 STACK_IMAGE=""
 ENV_FILE=""
 DEPLOY_ENV_FILE="/root/.deploy_env"
@@ -30,12 +33,76 @@ cleanup_deploy_temp_files() {
   rm -f "${ENV_BUILD:-}" "${DEPLOY_ENV_EXAMPLE:-}" 2>/dev/null || true
 }
 
+# Full diagnostics on failure (inspect + tail + persisted log file). Surfaces Alembic/migration errors
+# that are often truncated in CI SSH output.
+dump_container_diagnostics() {
+  local name="${1:?container name required}"
+  local ts
+  ts=$(date -u +'%Y%m%dT%H%M%SZ')
+  local log_file="/var/log/silverkey-deploy-failure-${name}-${ts}.log"
+
+  echo ""
+  echo "══════════════════════════════════════════════════════════════"
+  echo "DIAGNOSTICS: container=${name} (last ${DEPLOY_LOG_LINES} log lines + full dump)"
+  echo "══════════════════════════════════════════════════════════════"
+
+  if sudo docker inspect "$name" >/dev/null 2>&1; then
+    echo "--- docker inspect (state) ---"
+    sudo docker inspect "$name" --format \
+      'Status={{.State.Status}} ExitCode={{.State.ExitCode}} OOMKilled={{.State.OOMKilled}} Error={{.State.Error}} StartedAt={{.State.StartedAt}} FinishedAt={{.State.FinishedAt}}' \
+      2>/dev/null || true
+    echo "--- docker inspect (health) ---"
+    sudo docker inspect "$name" --format 'Health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}}' 2>/dev/null || true
+    echo "--- docker inspect (image) ---"
+    sudo docker inspect "$name" --format 'Image={{.Config.Image}} ImageID={{.Image}}' 2>/dev/null || true
+  else
+    echo "Container $name not found (may have been removed)."
+  fi
+
+  echo "--- docker logs (tail ${DEPLOY_LOG_LINES}) ---"
+  sudo docker logs "$name" 2>&1 | tail -n "$DEPLOY_LOG_LINES" || true
+
+  echo "--- saving full docker logs to ${log_file} ---"
+  sudo mkdir -p /var/log
+  sudo docker logs "$name" 2>&1 | sudo tee "$log_file" >/dev/null || true
+  sudo chmod 640 "$log_file" 2>/dev/null || true
+  echo "Full logs: $log_file"
+  echo "══════════════════════════════════════════════════════════════"
+  echo ""
+}
+
+load_rollback_image_ref() {
+  if [ -n "$ROLLBACK_IMAGE" ]; then
+    return 0
+  fi
+  if [ -f "$ROLLBACK_IMAGE_FILE" ]; then
+    ROLLBACK_IMAGE=$(sudo cat "$ROLLBACK_IMAGE_FILE" 2>/dev/null || true)
+    if [ -n "$ROLLBACK_IMAGE" ]; then
+      echo "📌 Rollback image loaded from $ROLLBACK_IMAGE_FILE: $ROLLBACK_IMAGE"
+    fi
+  fi
+}
+
+# Pin rollback by image ID before pulling a new tag/digest. A mutable :latest tag would point at the
+# broken image after docker pull.
 capture_rollback_snapshot() {
+  ROLLBACK_IMAGE=""
   if sudo docker inspect cre_app >/dev/null 2>&1; then
-    ROLLBACK_IMAGE=$(sudo docker inspect --format='{{.Config.Image}}' cre_app)
-    echo "📌 Rollback image saved: $ROLLBACK_IMAGE"
+    local image_id prev_tag
+    image_id=$(sudo docker inspect --format='{{.Image}}' cre_app)
+    prev_tag="cre-rollback:predeploy-$(date -u +'%Y%m%dT%H%M%SZ')"
+    if sudo docker tag "$image_id" "$prev_tag" 2>/dev/null; then
+      ROLLBACK_IMAGE="$prev_tag"
+      echo "$ROLLBACK_IMAGE" | sudo tee "$ROLLBACK_IMAGE_FILE" >/dev/null
+      sudo chmod 600 "$ROLLBACK_IMAGE_FILE" 2>/dev/null || true
+      echo "📌 Rollback image pinned locally: $ROLLBACK_IMAGE (from image id ${image_id:0:19}…)"
+      echo "   Prior registry ref was: $(sudo docker inspect --format='{{.Config.Image}}' cre_app 2>/dev/null || echo unknown)"
+    else
+      echo "⚠️ Could not tag rollback image; rollback may be unavailable if deploy fails."
+    fi
   else
     echo "ℹ️ No running cre_app; rollback will not be available if this deploy fails."
+    sudo rm -f "$ROLLBACK_IMAGE_FILE" 2>/dev/null || true
   fi
   if [ -f "$DEPLOY_ENV_FILE" ]; then
     sudo cp "$DEPLOY_ENV_FILE" "$ROLLBACK_ENV_FILE"
@@ -76,7 +143,7 @@ start_redis_container() {
   redis_state=$(sudo docker inspect --format='{{.State.Status}}' redis 2>/dev/null || echo "missing")
   if [ "$redis_state" != "running" ]; then
     echo "❌ Redis container is not running! Status: $redis_state"
-    sudo docker logs redis 2>&1 | tail -50 || true
+    dump_container_diagnostics redis
     return 1
   fi
 
@@ -84,7 +151,7 @@ start_redis_container() {
   echo "⏳ Waiting for Redis to be healthy..."
   if ! timeout 60s bash -c 'until sudo docker inspect --format="{{.State.Health.Status}}" redis 2>/dev/null | grep -q "healthy"; do sleep 2; done'; then
     echo "❌ Redis health check failed or timed out"
-    sudo docker logs redis 2>&1 | tail -50 || true
+    dump_container_diagnostics redis
     return 1
   fi
   deploy_phase "END Redis health wait"
@@ -107,30 +174,50 @@ start_app_container() {
     -e AWS_REGION="${AWS_REGION}" \
     "$image" >/dev/null
 
-  deploy_phase "BEGIN App container start wait (sleep 5s)"
-  echo "⏳ Waiting for App to start..."
-  sleep 5
-
-  local app_state
+  deploy_phase "BEGIN App container start wait (poll up to 120s)"
+  echo "⏳ Waiting for App to start (watching for early exit — e.g. Alembic migrations)..."
+  local app_state waited=0
+  while [ "$waited" -lt 120 ]; do
+    app_state=$(sudo docker inspect --format='{{.State.Status}}' cre_app 2>/dev/null || echo "missing")
+    if [ "$app_state" = "exited" ] || [ "$app_state" = "dead" ]; then
+      echo "❌ App container exited during startup! Status: $app_state"
+      dump_container_diagnostics cre_app
+      return 1
+    fi
+    if [ "$app_state" = "running" ]; then
+      break
+    fi
+    sleep 2
+    waited=$((waited + 2))
+  done
   app_state=$(sudo docker inspect --format='{{.State.Status}}' cre_app 2>/dev/null || echo "missing")
   if [ "$app_state" != "running" ]; then
-    echo "❌ App container is not running! Status: $app_state"
-    sudo docker logs cre_app 2>&1 | tail -100 || true
+    echo "❌ App container is not running after ${waited}s! Status: $app_state"
+    dump_container_diagnostics cre_app
     return 1
   fi
 
   deploy_phase "BEGIN App Docker health wait /livez (up to 90s)"
   echo "⏳ Waiting for App to be healthy..."
-  if ! timeout 90s bash -c 'until sudo docker inspect --format="{{.State.Health.Status}}" cre_app 2>/dev/null | grep -q "healthy"; do sleep 2; done'; then
-    echo "❌ App health check failed or timed out"
-    sudo docker logs cre_app 2>&1 | tail -100 || true
+  if ! timeout 90s bash -c 'until sudo docker inspect --format="{{.State.Health.Status}}" cre_app 2>/dev/null | grep -q "healthy"; do
+    st=$(sudo docker inspect --format="{{.State.Status}}" cre_app 2>/dev/null || echo missing)
+    if [ "$st" = "exited" ] || [ "$st" = "dead" ]; then exit 2; fi
+    sleep 2
+  done'; then
+    app_state=$(sudo docker inspect --format='{{.State.Status}}' cre_app 2>/dev/null || echo "missing")
+    if [ "$app_state" = "exited" ] || [ "$app_state" = "dead" ]; then
+      echo "❌ App exited during health wait (status: $app_state)"
+    else
+      echo "❌ App health check failed or timed out"
+    fi
+    dump_container_diagnostics cre_app
     return 1
   fi
   sleep 3
   app_state=$(sudo docker inspect --format='{{.State.Status}}' cre_app 2>/dev/null || echo "missing")
   if [ "$app_state" != "running" ]; then
     echo "❌ App exited after health check (status: $app_state)"
-    sudo docker logs cre_app 2>&1 | tail -100 || true
+    dump_container_diagnostics cre_app
     return 1
   fi
   deploy_phase "END App Docker health wait"
@@ -161,7 +248,7 @@ start_worker_container() {
   worker_state=$(sudo docker inspect --format='{{.State.Status}}' cre_worker 2>/dev/null || echo "missing")
   if [ "$worker_state" != "running" ]; then
     echo "❌ Worker container is not running! Status: $worker_state"
-    sudo docker logs cre_worker 2>&1 | tail -100 || true
+    dump_container_diagnostics cre_worker
     return 1
   fi
 
@@ -169,7 +256,7 @@ start_worker_container() {
   echo "⏳ Waiting for Worker to be healthy..."
   if ! timeout 120s bash -c 'until sudo docker inspect --format="{{.State.Health.Status}}" cre_worker 2>/dev/null | grep -q "healthy"; do sleep 3; done'; then
     echo "❌ Worker health check failed or timed out"
-    sudo docker logs cre_worker 2>&1 | tail -100 || true
+    dump_container_diagnostics cre_worker
     return 1
   fi
   deploy_phase "END Worker Docker health wait"
@@ -202,8 +289,15 @@ try_rollback_on_failure() {
   if [ "$ROLLBACK_WAS_TEARDOWN" != "1" ]; then
     return 0
   fi
+  load_rollback_image_ref
   if [ -z "$ROLLBACK_IMAGE" ] || [ ! -f "$ROLLBACK_ENV_FILE" ]; then
     echo "⚠️ Deploy failed after teardown but rollback snapshot is missing; manual recovery required."
+    echo "   Check ECR for prior image tags/digests or /var/log/silverkey-deploy-failure-*.log on this host."
+    return 0
+  fi
+  if ! sudo docker image inspect "$ROLLBACK_IMAGE" >/dev/null 2>&1; then
+    echo "⚠️ Rollback image ref is no longer on this host ($ROLLBACK_IMAGE); manual recovery required."
+    echo "   Recover from ECR using a prior git-SHA tag or image digest."
     return 0
   fi
 
@@ -233,7 +327,10 @@ echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') Starting EC2 deployment..."
 REGION="$AWS_REGION"
 DB_SECRET_NAME="${DB_URL_SECRET_ID:-db_url}"
 REPO="${REPO:-cre}"
-IMAGE_TAG="${IMAGE_TAG:-latest}"
+if [ -z "${IMAGE_TAG:-}" ]; then
+  echo "ERROR: IMAGE_TAG must be set (immutable git SHA from CI; do not use :latest)." >&2
+  exit 1
+fi
 
 # Ensure Docker is installed & running (quiet)
 if ! command -v docker >/dev/null 2>&1; then
@@ -273,22 +370,34 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 ACCOUNT_ID="${ACCOUNT_ID:?ACCOUNT_ID must be set}"
-IMAGE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$IMAGE_TAG"
-STACK_IMAGE="$IMAGE"
+ECR_BASE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO"
+IMAGE="$ECR_BASE:$IMAGE_TAG"
+if [ -n "${IMAGE_DIGEST:-}" ]; then
+  STACK_IMAGE="${ECR_BASE}@${IMAGE_DIGEST}"
+  echo "📦 Deploy target: $STACK_IMAGE (tag $IMAGE_TAG)"
+else
+  STACK_IMAGE="$IMAGE"
+  echo "⚠️ IMAGE_DIGEST not set; deploying by tag only: $STACK_IMAGE"
+fi
 
 deploy_phase "BEGIN ECR login"
 aws ecr get-login-password --region "$REGION" \
   | sudo docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com" >/dev/null 2>&1
 deploy_phase "END ECR login"
 
-deploy_phase "BEGIN docker pull $IMAGE (old stack still running)"
-sudo docker pull "$IMAGE" 2>&1 | grep -Ev 'sha256:[0-9a-f]{64}|Pulling fs layer|Waiting|Downloading|Verifying Checksum|Download complete|Extracting' || true
+deploy_phase "BEGIN docker pull $STACK_IMAGE (old stack still running)"
+sudo docker pull "$STACK_IMAGE" 2>&1 | grep -Ev 'sha256:[0-9a-f]{64}|Pulling fs layer|Waiting|Downloading|Verifying Checksum|Download complete|Extracting' || true
 deploy_phase "END docker pull"
 
+if sudo docker image inspect "$STACK_IMAGE" >/dev/null 2>&1; then
+  resolved_digest=$(sudo docker image inspect --format='{{if index .RepoDigests 0}}{{index .RepoDigests 0}}{{else}}{{.Id}}{{end}}' "$STACK_IMAGE" 2>/dev/null || true)
+  echo "📦 Resolved deploy image: ${resolved_digest:-unknown}"
+fi
+
 DEPLOY_ENV_EXAMPLE="$(mktemp)"
-if ! sudo docker run --rm --entrypoint cat "$IMAGE" /app/Server/.env.example >"$DEPLOY_ENV_EXAMPLE" 2>/dev/null \
+if ! sudo docker run --rm --entrypoint cat "$STACK_IMAGE" /app/Server/.env.example >"$DEPLOY_ENV_EXAMPLE" 2>/dev/null \
   || [ ! -s "$DEPLOY_ENV_EXAMPLE" ]; then
-  echo "ERROR: Could not read /app/Server/.env.example from $IMAGE (needed for required-key env validation)."
+  echo "ERROR: Could not read /app/Server/.env.example from $STACK_IMAGE (needed for required-key env validation)."
   exit 1
 fi
 
@@ -352,7 +461,7 @@ APP_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_app 2>/dev/null
 APP_HEALTH=$(sudo docker inspect --format='{{.State.Health.Status}}' cre_app 2>/dev/null || echo "unknown")
 if [ "$APP_STATE" != "running" ] || [ "$APP_HEALTH" != "healthy" ]; then
   echo "❌ App is not healthy! Status: $APP_STATE, Health: $APP_HEALTH"
-  sudo docker logs cre_app 2>&1 | tail -100 || true
+  dump_container_diagnostics cre_app
   FAILED_CONTAINERS+=("cre_app")
 else
   echo "✅ App: $APP_STATE ($APP_HEALTH)"
@@ -362,7 +471,7 @@ WORKER_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_worker 2>/de
 WORKER_HEALTH=$(sudo docker inspect --format='{{.State.Health.Status}}' cre_worker 2>/dev/null || echo "unknown")
 if [ "$WORKER_STATE" != "running" ] || [ "$WORKER_HEALTH" != "healthy" ]; then
   echo "❌ Worker is not healthy! Status: $WORKER_STATE, Health: $WORKER_HEALTH"
-  sudo docker logs cre_worker 2>&1 | tail -100 || true
+  dump_container_diagnostics cre_worker
   FAILED_CONTAINERS+=("cre_worker")
 else
   echo "✅ Worker: $WORKER_STATE ($WORKER_HEALTH)"

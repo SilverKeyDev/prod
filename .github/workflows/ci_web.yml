@@ -6,7 +6,6 @@ on:
 env:
   REGION: us-east-2
   REPO: cre
-  IMAGE_TAG: latest
 
 jobs:
   build-and-deploy:
@@ -23,6 +22,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+
+      - name: Set immutable image tag (git SHA)
+        run: |
+          set -euo pipefail
+          IMAGE_TAG="${GITHUB_SHA::12}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "Deploy image tag: $IMAGE_TAG (from ${GITHUB_SHA})"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -61,7 +67,7 @@ jobs:
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
 
-          IMAGE_TAG="${IMAGE_TAG:-latest}"
+          IMAGE_TAG="${IMAGE_TAG:?IMAGE_TAG must be set (git SHA)}"
           BASE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}"
           IMAGE_REF="$BASE_REF:$IMAGE_TAG"
           CACHE_REF="$BASE_REF:buildcache"
@@ -72,6 +78,8 @@ jobs:
           docker buildx build \
             --platform linux/amd64 \
             -f Dockerfile.web \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
             --build-arg EXPO_PUBLIC_GOOGLE_MAPS_ID="$EXPO_PUBLIC_GOOGLE_MAPS_ID" \
             --build-arg EXPO_PUBLIC_GOOGLE_CLIENT_ID="$EXPO_PUBLIC_GOOGLE_CLIENT_ID" \
             --build-arg EXPO_PUBLIC_PLAID_CLIENT_ID="$EXPO_PUBLIC_PLAID_CLIENT_ID" \
@@ -81,6 +89,19 @@ jobs:
             --cache-to type=registry,ref="$CACHE_REF",mode=max \
             --push \
             .
+
+          IMAGE_DIGEST="$(aws ecr describe-images \
+            --region "${{ env.REGION }}" \
+            --repository-name "${{ env.REPO }}" \
+            --image-ids "imageTag=${IMAGE_TAG}" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+          if [ -z "$IMAGE_DIGEST" ] || [ "$IMAGE_DIGEST" = "None" ]; then
+            echo "ERROR: Could not resolve ECR digest for tag ${IMAGE_TAG}" >&2
+            exit 1
+          fi
+          echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_ENV"
+          echo "Pushed $IMAGE_REF ($IMAGE_DIGEST)"
 
       - name: Prune Buildx cache (safe)
         run: |
@@ -127,13 +148,14 @@ jobs:
           ACCOUNT_ID: ${{ env.ACCOUNT_ID }}
           AWS_REGION: ${{ env.REGION }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          IMAGE_DIGEST: ${{ env.IMAGE_DIGEST }}
           REPO: ${{ env.REPO }}
           DB_URL_SECRET_ID: ${{ env.DB_URL_SECRET_ID }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ACCOUNT_ID,AWS_REGION,IMAGE_TAG,REPO,DB_URL_SECRET_ID
+          envs: ACCOUNT_ID,AWS_REGION,IMAGE_TAG,IMAGE_DIGEST,REPO,DB_URL_SECRET_ID
           script: |
             mkdir -p /tmp/deploy
             chmod +x /tmp/deploy/ec2-deploy.sh
