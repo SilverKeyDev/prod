@@ -142,7 +142,7 @@ jobs:
           export_if_present "$slipstream_json" "SLIPSTREAM_PRIVATE" "SLIPSTREAM_PRIVATE"
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           # Caching pip can increase disk usage; you can re-enable if needed later
