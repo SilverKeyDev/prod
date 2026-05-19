@@ -14,7 +14,7 @@
   "author": "SilverKey",
   "license": "UNLICENSED",
   "devDependencies": {
-    "@redocly/cli": "^1.25.14",
+    "@redocly/cli": "^2.31.1",
     "@apidevtools/swagger-cli": "^4.0.4"
   }
 }
