@@ -55,7 +55,7 @@ psycopg2-binary==2.9.9
 SQLAlchemy==2.0.43
 pyOpenSSL==24.1.0
 usaddress==0.5.10
-pillow==9.5.0
+pillow==12.2.0
 
 # --- Security Dependencies ---
 python-magic==0.4.27
