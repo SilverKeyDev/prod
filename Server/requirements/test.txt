@@ -30,7 +30,7 @@ flask-compress==1.15
 numpy>=1.26.0,<3
 pandas>=2.0.0,<3
 matplotlib>=3.8.0,<4
-scikit-learn==1.5.0
+scikit-learn==1.8.0
 shapely==2.0.4
 sentence-transformers==5.3.0
 transformers==5.8.1
