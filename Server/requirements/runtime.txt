@@ -68,7 +68,7 @@ PyJWT==2.8.0
 python-jose[cryptography]==3.3.0
 psycopg2-binary==2.9.9
 SQLAlchemy==2.0.43
-pyOpenSSL==24.1.0
+pyOpenSSL==26.0.0
 usaddress==0.5.10
 pillow==9.5.0
 
