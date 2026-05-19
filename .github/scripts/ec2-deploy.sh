@@ -308,6 +308,7 @@ deploy_phase "Resolved ${#SECRET_IDS[@]} secret id(s) to merge from Secrets Mana
 
 ENV_BUILD=$(mktemp)
 chmod 600 "$ENV_BUILD" 2>/dev/null || true
+ENV_FILE="$ENV_BUILD"
 export ENV_EXAMPLE_VALIDATION_PATH="$DEPLOY_ENV_EXAMPLE"
 deploy_phase "BEGIN Secrets Manager merge (${#SECRET_IDS[@]} secrets)"
 build_env_file "${SECRET_IDS[@]}"

@@ -1,30 +1,30 @@
 version: 2
 
-updates:
-  # --- Client: pnpm workspace (primary JS/TS stack) ---
-  - package-ecosystem: npm
-    directory: /Client
+# One PR per week: npm (Client + root), pip, GitHub Actions, and Docker together.
+# https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configuring-multi-ecosystem-updates
+multi-ecosystem-groups:
+  weekly-all:
     schedule:
       interval: weekly
       day: monday
       time: "09:00"
       timezone: America/New_York
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
-      - ecosystem:npm-client
     assignees:
       - jaycewalzer1
+    labels:
+      - dependencies
     commit-message:
       prefix: chore(deps)
-    groups:
-      minor-and-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
+
+updates:
+  - package-ecosystem: npm
+    directories:
+      - /Client
+      - /
+    patterns:
+      - "*"
+    multi-ecosystem-group: weekly-all
+    open-pull-requests-limit: 1
     ignore:
       - dependency-name: openapi-typescript
         update-types:
@@ -52,102 +52,31 @@ updates:
           - version-update:semver-minor
           - version-update:semver-patch
 
-  # --- Root: OpenAPI CLI tooling (small npm manifest) ---
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: "09:00"
-      timezone: America/New_York
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
-      - ecosystem:npm-root
-    assignees:
-      - jaycewalzer1
-    commit-message:
-      prefix: chore(deps)
-    groups:
-      minor-and-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
-
-  # --- Server: pip requirements sets ---
   - package-ecosystem: pip
     directory: /Server
-    schedule:
-      interval: weekly
-      day: monday
-      time: "09:00"
-      timezone: America/New_York
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
-      - ecosystem:pip
-    assignees:
-      - jaycewalzer1
-    commit-message:
-      prefix: chore(deps)
-    groups:
-      minor-and-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
+    patterns:
+      - "*"
+    multi-ecosystem-group: weekly-all
+    open-pull-requests-limit: 1
+    # Only runtime.txt for Dependabot; mirror pins into ci.txt / others manually.
+    exclude-paths:
+      - requirements/ci.txt
+      - requirements/migrate.txt
+      - requirements/dev.txt
+      - requirements/test.txt
+      - requirements/lint.txt
+      - requirements/codegen.txt
 
-  # --- GitHub Actions ---
   - package-ecosystem: github-actions
     directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: "09:00"
-      timezone: America/New_York
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
-      - ecosystem:github-actions
-    assignees:
-      - jaycewalzer1
-    commit-message:
-      prefix: chore(ci)
-    groups:
-      minor-and-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
+    patterns:
+      - "*"
+    multi-ecosystem-group: weekly-all
+    open-pull-requests-limit: 1
 
-  # --- Docker base images (Dockerfile.web) ---
   - package-ecosystem: docker
     directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: "09:00"
-      timezone: America/New_York
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
-      - ecosystem:docker
-    assignees:
-      - jaycewalzer1
-    commit-message:
-      prefix: chore(docker)
-    groups:
-      minor-and-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
+    patterns:
+      - "*"
+    multi-ecosystem-group: weekly-all
+    open-pull-requests-limit: 1
