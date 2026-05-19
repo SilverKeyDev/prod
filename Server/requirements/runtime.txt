@@ -89,7 +89,7 @@ googleapis-common-protos==1.70.0
 proto-plus==1.26.1
 grpcio==1.75.0
 httplib2==0.31.0
-cryptography==46.0.7
+cryptography==48.0.0
 
 # --- Pydantic & Serialization ---
 pydantic==2.10.5
