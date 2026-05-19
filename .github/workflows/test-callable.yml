@@ -38,7 +38,7 @@ jobs:
         run: pnpm test:coverage
 
       - name: Upload frontend coverage reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: frontend-coverage
@@ -99,7 +99,7 @@ jobs:
         run: python scripts/lint/check_coverage_thresholds.py
 
       - name: Upload backend coverage reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: backend-coverage
