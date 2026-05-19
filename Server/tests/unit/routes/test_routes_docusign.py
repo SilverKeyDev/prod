@@ -102,7 +102,7 @@ class TestDocuSignRoutes:
             assert data.get("participant", {}).get("id")
 
     def test_send_for_signature_endpoint(
-        self, client, db_session, sample_agreement, mock_celery_task
+        self, client, db_session, sample_agreement, mock_celery_task, mock_docusign_client
     ):
         """Test POST /api/v1/docusign/agreements/:id/send"""
         seed_agent_buyer(db_session)

@@ -24,6 +24,7 @@ ROLLBACK_IMAGE=""
 ROLLBACK_ENV_FILE="/root/.deploy_env.rollback"
 ROLLBACK_IMAGE_FILE="/root/.deploy_rollback_image_ref"
 DEPLOY_LOG_LINES="${DEPLOY_LOG_LINES:-500}"
+DEPLOY_DEBUG="${DEPLOY_DEBUG:-0}"
 STACK_IMAGE=""
 ENV_FILE=""
 DEPLOY_ENV_FILE="/root/.deploy_env"
@@ -33,17 +34,13 @@ cleanup_deploy_temp_files() {
   rm -f "${ENV_BUILD:-}" "${DEPLOY_ENV_EXAMPLE:-}" 2>/dev/null || true
 }
 
-# Full diagnostics on failure (inspect + tail + persisted log file). Surfaces Alembic/migration errors
-# that are often truncated in CI SSH output.
+# Full diagnostics on failure — all output goes to stdout for CI (no host log files).
 dump_container_diagnostics() {
   local name="${1:?container name required}"
-  local ts
-  ts=$(date -u +'%Y%m%dT%H%M%SZ')
-  local log_file="/var/log/silverkey-deploy-failure-${name}-${ts}.log"
 
   echo ""
   echo "══════════════════════════════════════════════════════════════"
-  echo "DIAGNOSTICS: container=${name} (last ${DEPLOY_LOG_LINES} log lines + full dump)"
+  echo "DIAGNOSTICS: container=${name}"
   echo "══════════════════════════════════════════════════════════════"
 
   if sudo docker inspect "$name" >/dev/null 2>&1; then
@@ -53,22 +50,88 @@ dump_container_diagnostics() {
       2>/dev/null || true
     echo "--- docker inspect (health) ---"
     sudo docker inspect "$name" --format 'Health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}}' 2>/dev/null || true
-    echo "--- docker inspect (image) ---"
-    sudo docker inspect "$name" --format 'Image={{.Config.Image}} ImageID={{.Image}}' 2>/dev/null || true
+    if sudo docker inspect "$name" --format='{{if .State.Health}}{{range .State.Health.Log}}  {{.Start}} exit={{.ExitCode}} output={{.Output}}{{end}}{{end}}' 2>/dev/null | grep -q .; then
+      echo "--- docker healthcheck log ---"
+      sudo docker inspect "$name" --format='{{if .State.Health}}{{range .State.Health.Log}}  {{.Start}} exit={{.ExitCode}} output={{.Output}}{{end}}{{end}}' 2>/dev/null || true
+    fi
+    echo "--- docker inspect (image + cmd) ---"
+    sudo docker inspect "$name" --format 'Image={{.Config.Image}} ImageID={{.Image}} Cmd={{json .Config.Cmd}} Entrypoint={{json .Config.Entrypoint}}' 2>/dev/null || true
   else
     echo "Container $name not found (may have been removed)."
   fi
 
-  echo "--- docker logs (tail ${DEPLOY_LOG_LINES}) ---"
+  echo "--- docker logs (last ${DEPLOY_LOG_LINES} lines) ---"
   sudo docker logs "$name" 2>&1 | tail -n "$DEPLOY_LOG_LINES" || true
 
-  echo "--- saving full docker logs to ${log_file} ---"
-  sudo mkdir -p /var/log
-  sudo docker logs "$name" 2>&1 | sudo tee "$log_file" >/dev/null || true
-  sudo chmod 640 "$log_file" 2>/dev/null || true
-  echo "Full logs: $log_file"
+  echo "--- docker logs (complete; streamed to CI stdout) ---"
+  local full_logs exit_code image_cmd
+  full_logs=$(sudo docker logs "$name" 2>&1 || true)
+  printf '%s\n' "$full_logs"
+
+  exit_code=$(sudo docker inspect --format='{{.State.ExitCode}}' "$name" 2>/dev/null || echo "?")
+  image_cmd=$(sudo docker inspect --format='{{json .Config.Cmd}}' "$name" 2>/dev/null || echo "?")
+  if [ "$exit_code" = "0" ] && echo "$full_logs" | grep -q 'alembic'; then
+    echo ""
+    echo "⚠️ LIKELY ROOT CAUSE: Container exited 0 after Alembic logs only."
+    echo "   The deployed image may be Dockerfile.web target 'migrate' (flask db upgrade), not 'backend' (gunicorn)."
+    echo "   CI must build with: docker buildx build --target backend -f Dockerfile.web ..."
+    echo "   Image Cmd was: $image_cmd"
+  fi
   echo "══════════════════════════════════════════════════════════════"
   echo ""
+}
+
+print_deploy_failure_report() {
+  local headline="${1:?headline required}"
+  echo ""
+  echo "══════════════ DEPLOY FAILURE REPORT ══════════════"
+  echo "SilverKey deploy failure — $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+  echo "Headline: $headline"
+  echo "IMAGE_TAG=${IMAGE_TAG:-}"
+  echo "IMAGE_DIGEST=${IMAGE_DIGEST:-}"
+  echo "STACK_IMAGE=${STACK_IMAGE:-}"
+  echo "ROLLBACK_IMAGE=${ROLLBACK_IMAGE:-}"
+  echo ""
+  local c
+  for c in cre_app cre_worker redis; do
+    if sudo docker inspect "$c" >/dev/null 2>&1; then
+      echo "--- $c (inspect) ---"
+      sudo docker inspect "$c" --format 'status={{.State.Status}} exit={{.State.ExitCode}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}} cmd={{json .Config.Cmd}}' 2>/dev/null || true
+      echo "--- $c (docker logs, complete) ---"
+      sudo docker logs "$c" 2>&1 || true
+      echo ""
+    fi
+  done
+  echo "════════════════════════════════════════════════════"
+  echo ""
+}
+
+inspect_image_cmd() {
+  local image="${1:?image required}"
+  local cmd entrypoint
+  cmd=$(sudo docker image inspect --format='{{json .Config.Cmd}}' "$image" 2>/dev/null || echo "null")
+  entrypoint=$(sudo docker image inspect --format='{{json .Config.Entrypoint}}' "$image" 2>/dev/null || echo "null")
+  echo "   Cmd: $cmd"
+  echo "   Entrypoint: $entrypoint"
+  printf '%s' "$cmd"
+}
+
+verify_deploy_image_is_app_server() {
+  local image="${1:?image required}"
+  echo "🔎 Verifying deploy image is production app (gunicorn), not migrate-only..."
+  inspect_image_cmd "$image" >/dev/null
+  local cmd
+  cmd=$(sudo docker image inspect --format='{{json .Config.Cmd}}' "$image" 2>/dev/null || echo "")
+  if ! echo "$cmd" | grep -q gunicorn; then
+    echo "❌ Deploy image CMD does not include gunicorn."
+    if echo "$cmd" | grep -qE 'flask|db upgrade'; then
+      echo "   This image is the migrate target (flask db upgrade). It exits after Alembic and never serves /livez."
+    fi
+    echo "   Rebuild with: docker buildx build --target backend -f Dockerfile.web ..."
+    return 1
+  fi
+  echo "✅ Deploy image CMD includes gunicorn"
+  return 0
 }
 
 load_rollback_image_ref() {
@@ -80,6 +143,26 @@ load_rollback_image_ref() {
     if [ -n "$ROLLBACK_IMAGE" ]; then
       echo "📌 Rollback image loaded from $ROLLBACK_IMAGE_FILE: $ROLLBACK_IMAGE"
     fi
+  fi
+}
+
+# If no running app, pin whatever is currently on the host as web-prod (pre-pull) for rollback.
+pin_rollback_from_local_web_prod() {
+  if [ -n "$ROLLBACK_IMAGE" ]; then
+    return 0
+  fi
+  local web_prod="${ECR_BASE:-}:web-prod"
+  if [ "$web_prod" = ":web-prod" ] || ! sudo docker image inspect "$web_prod" >/dev/null 2>&1; then
+    return 0
+  fi
+  local tag="cre-rollback:from-web-prod-$(date -u +'%Y%m%dT%H%M%SZ')"
+  local image_id
+  image_id=$(sudo docker image inspect --format='{{.Id}}' "$web_prod")
+  if sudo docker tag "$image_id" "$tag" 2>/dev/null; then
+    ROLLBACK_IMAGE="$tag"
+    echo "$ROLLBACK_IMAGE" | sudo tee "$ROLLBACK_IMAGE_FILE" >/dev/null
+    sudo chmod 600 "$ROLLBACK_IMAGE_FILE" 2>/dev/null || true
+    echo "📌 Rollback pinned from local $web_prod → $ROLLBACK_IMAGE"
   fi
 }
 
@@ -182,6 +265,7 @@ start_app_container() {
     if [ "$app_state" = "exited" ] || [ "$app_state" = "dead" ]; then
       echo "❌ App container exited during startup! Status: $app_state"
       dump_container_diagnostics cre_app
+      print_deploy_failure_report "cre_app exited during startup (${app_state})"
       return 1
     fi
     if [ "$app_state" = "running" ]; then
@@ -194,6 +278,7 @@ start_app_container() {
   if [ "$app_state" != "running" ]; then
     echo "❌ App container is not running after ${waited}s! Status: $app_state"
     dump_container_diagnostics cre_app
+    print_deploy_failure_report "cre_app not running after startup poll"
     return 1
   fi
 
@@ -211,6 +296,7 @@ start_app_container() {
       echo "❌ App health check failed or timed out"
     fi
     dump_container_diagnostics cre_app
+    print_deploy_failure_report "cre_app health wait failed or container exited"
     return 1
   fi
   sleep 3
@@ -218,6 +304,7 @@ start_app_container() {
   if [ "$app_state" != "running" ]; then
     echo "❌ App exited after health check (status: $app_state)"
     dump_container_diagnostics cre_app
+    print_deploy_failure_report "cre_app exited after passing health check (status: $app_state)"
     return 1
   fi
   deploy_phase "END App Docker health wait"
@@ -292,7 +379,7 @@ try_rollback_on_failure() {
   load_rollback_image_ref
   if [ -z "$ROLLBACK_IMAGE" ] || [ ! -f "$ROLLBACK_ENV_FILE" ]; then
     echo "⚠️ Deploy failed after teardown but rollback snapshot is missing; manual recovery required."
-    echo "   Check ECR for prior image tags/digests or /var/log/silverkey-deploy-failure-*.log on this host."
+    echo "   Check ECR for prior image tags/digests; see CI job log above for container diagnostics."
     return 0
   fi
   if ! sudo docker image inspect "$ROLLBACK_IMAGE" >/dev/null 2>&1; then
@@ -316,6 +403,9 @@ try_rollback_on_failure() {
 
 deploy_exit_trap() {
   local exit_code=$?
+  if [ "$exit_code" != "0" ]; then
+    echo "❌ Deploy failed (exit $exit_code). Full diagnostics are in this CI job log above."
+  fi
   try_rollback_on_failure
   cleanup_deploy_temp_files
   exit "$exit_code"
@@ -323,7 +413,12 @@ deploy_exit_trap() {
 
 trap deploy_exit_trap EXIT
 
+if [ "$DEPLOY_DEBUG" = "1" ]; then
+  set -x
+fi
+
 echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') Starting EC2 deployment..."
+echo "📋 Deploy inputs: IMAGE_TAG=${IMAGE_TAG:-} IMAGE_DIGEST=${IMAGE_DIGEST:-} REPO=${REPO:-} REGION=${AWS_REGION:-}"
 REGION="$AWS_REGION"
 DB_SECRET_NAME="${DB_URL_SECRET_ID:-db_url}"
 REPO="${REPO:-cre}"
@@ -349,6 +444,10 @@ docker buildx version >/dev/null 2>&1 || (wget -qO- https://get.docker.com | sh 
 
 capture_rollback_snapshot
 
+ACCOUNT_ID="${ACCOUNT_ID:?ACCOUNT_ID must be set}"
+ECR_BASE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO"
+pin_rollback_from_local_web_prod
+
 echo "📊 Disk usage before deploy:"
 df -h || true
 docker system df || true
@@ -369,8 +468,6 @@ if ! command -v jq >/dev/null 2>&1; then
   sudo apt-get install -y jq >/dev/null 2>&1 || true
 fi
 
-ACCOUNT_ID="${ACCOUNT_ID:?ACCOUNT_ID must be set}"
-ECR_BASE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO"
 IMAGE="$ECR_BASE:$IMAGE_TAG"
 if [ -n "${IMAGE_DIGEST:-}" ]; then
   STACK_IMAGE="${ECR_BASE}@${IMAGE_DIGEST}"
@@ -392,6 +489,13 @@ deploy_phase "END docker pull"
 if sudo docker image inspect "$STACK_IMAGE" >/dev/null 2>&1; then
   resolved_digest=$(sudo docker image inspect --format='{{if index .RepoDigests 0}}{{index .RepoDigests 0}}{{else}}{{.Id}}{{end}}' "$STACK_IMAGE" 2>/dev/null || true)
   echo "📦 Resolved deploy image: ${resolved_digest:-unknown}"
+  echo "📦 Image command:"
+  inspect_image_cmd "$STACK_IMAGE" || true
+fi
+
+if ! verify_deploy_image_is_app_server "$STACK_IMAGE"; then
+  print_deploy_failure_report "deploy image is not gunicorn backend (wrong Dockerfile target?)"
+  exit 1
 fi
 
 DEPLOY_ENV_EXAMPLE="$(mktemp)"
@@ -479,6 +583,7 @@ fi
 
 if [ ${#FAILED_CONTAINERS[@]} -gt 0 ]; then
   echo "❌ Deployment failed! Unhealthy containers: ${FAILED_CONTAINERS[*]}"
+  print_deploy_failure_report "final health check failed: ${FAILED_CONTAINERS[*]}"
   exit 1
 fi
 

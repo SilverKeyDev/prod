@@ -78,6 +78,7 @@ jobs:
           docker buildx build \
             --platform linux/amd64 \
             -f Dockerfile.web \
+            --target backend \
             --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
             --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
             --build-arg EXPO_PUBLIC_GOOGLE_MAPS_ID="$EXPO_PUBLIC_GOOGLE_MAPS_ID" \
@@ -102,6 +103,27 @@ jobs:
           fi
           echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_ENV"
           echo "Pushed $IMAGE_REF ($IMAGE_DIGEST)"
+
+      - name: Verify production image CMD (gunicorn, not migrate)
+        run: |
+          set -euo pipefail
+          ACCOUNT_ID="${ACCOUNT_ID:?}"
+          IMAGE_TAG="${IMAGE_TAG:?}"
+          IMAGE_REF="${ACCOUNT_ID}.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:${IMAGE_TAG}"
+          docker pull "$IMAGE_REF" >/dev/null
+          CMD="$(docker image inspect --format='{{json .Config.Cmd}}' "$IMAGE_REF")"
+          ENTRYPOINT="$(docker image inspect --format='{{json .Config.Entrypoint}}' "$IMAGE_REF")"
+          echo "Image CMD: $CMD"
+          echo "Image Entrypoint: $ENTRYPOINT"
+          if ! echo "$CMD" | grep -q gunicorn; then
+            echo "ERROR: Image CMD does not include gunicorn — build must use Dockerfile.web --target backend (migrate target runs flask db upgrade and exits)." >&2
+            exit 1
+          fi
+          if echo "$CMD" | grep -qE 'flask|db upgrade'; then
+            echo "ERROR: Image CMD looks like a migration-only image." >&2
+            exit 1
+          fi
+          echo "✅ Production image uses gunicorn (backend target)"
 
       - name: Prune Buildx cache (safe)
         run: |
@@ -151,11 +173,12 @@ jobs:
           IMAGE_DIGEST: ${{ env.IMAGE_DIGEST }}
           REPO: ${{ env.REPO }}
           DB_URL_SECRET_ID: ${{ env.DB_URL_SECRET_ID }}
+          DEPLOY_DEBUG: "1"
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ACCOUNT_ID,AWS_REGION,IMAGE_TAG,IMAGE_DIGEST,REPO,DB_URL_SECRET_ID
+          envs: ACCOUNT_ID,AWS_REGION,IMAGE_TAG,IMAGE_DIGEST,REPO,DB_URL_SECRET_ID,DEPLOY_DEBUG
           script: |
             mkdir -p /tmp/deploy
             chmod +x /tmp/deploy/ec2-deploy.sh

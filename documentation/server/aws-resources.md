@@ -268,7 +268,7 @@ See: `documentation/compliance/`
 - Lint and test on PR
 - Build Docker image on merge to main
 - Push to ECR with an **immutable tag** (`${GITHUB_SHA::12}`) and deploy by **digest** (`IMAGE_DIGEST`); `web-prod` is a moving convenience tag only
-- SSH to EC2 and run deploy (see `.github/workflows/ci_web.yml` and `.github/scripts/ec2-deploy.sh`), merging Secrets Manager secrets listed above into the app container env file. On failure, full container logs are written under `/var/log/silverkey-deploy-failure-*.log` on the host; rollback uses a locally pinned `cre-rollback:predeploy-*` image captured **before** `docker pull`
+- SSH to EC2 and run deploy (see `.github/workflows/ci_web.yml` and `.github/scripts/ec2-deploy.sh`), merging Secrets Manager secrets listed above into the app container env file. On failure, full container logs are streamed to the GitHub Actions job log (stdout); rollback uses a locally pinned `cre-rollback:predeploy-*` image captured **before** `docker pull`
 
 Optional repository variable **`DB_URL_SECRET_ID`**: overrides the default database secret name (`db_url`) for that workflow.
 
