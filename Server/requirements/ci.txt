@@ -24,37 +24,37 @@
 # --- Core Flask & Extensions ---
 Flask==2.3.3
 Werkzeug==2.3.7
-flask_sqlalchemy==3.0.5
-flask_login==0.6.2
+flask_sqlalchemy==3.1.1
+flask_login==0.6.3
 flask_cors==4.0.0
-flask-compress==1.15
-flask_wtf==1.1.1
-WTForms==3.2.1
+flask-compress==1.24
+flask_wtf==1.3.0
+WTForms==3.2.2
 flask_marshmallow==0.15.0
-flask_migrate==4.0.5
-alembic==1.16.5
+flask_migrate==4.1.0
+alembic==1.18.4
 Mako==1.3.12
 flask_executor==1.0.0
-flask_jwt_extended==4.5.2
+flask_jwt_extended==4.7.4
 
 # --- PDF, API, and Web ---
-pypdf==6.10.2
-reportlab==4.0.4
+pypdf==6.11.0
+reportlab==4.5.1
 stripe==9.4.0
-requests==2.33.0
+requests==2.34.2
 urllib3==2.7.0
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 gunicorn==21.2.0
-boto3==1.28.44
-botocore==1.31.85
-s3transfer==0.6.2
-jmespath==1.0.1
-PyJWT==2.12.0
-python-jose[cryptography]==3.3.0
-psycopg2-binary==2.9.9
-SQLAlchemy==2.0.43
+boto3==1.43.10
+botocore==1.43.10
+s3transfer==0.17.0
+jmespath==1.1.0
+PyJWT==2.12.1
+python-jose[cryptography]==3.5.0
+psycopg2-binary==2.9.12
+SQLAlchemy==2.0.49
 pyOpenSSL==24.1.0
-usaddress==0.5.10
+usaddress==0.5.16
 pillow==12.2.0
 
 # --- Security Dependencies ---
@@ -62,28 +62,28 @@ python-magic==0.4.27
 
 # --- DocuSign Dependencies ---
 docusign-esign==3.25.0
-pycryptodome==3.20.0
+pycryptodome==3.23.0
 
 # --- Google Calendar OAuth Dependencies ---
 google-auth>=2.26.1,<3.0dev
-google-auth-oauthlib==1.1.0
-google-auth-httplib2==0.2.0
-google-api-python-client==2.108.0
-google-api-core==2.25.1
-googleapis-common-protos==1.70.0
-proto-plus==1.26.1
-grpcio==1.75.0
-httplib2==0.31.0
+google-auth-oauthlib==1.4.0
+google-auth-httplib2==0.4.0
+google-api-python-client==2.196.0
+google-api-core==2.30.3
+googleapis-common-protos==1.75.0
+proto-plus==1.28.0
+grpcio==1.80.0
+httplib2==0.31.2
 cryptography==46.0.7
 
 # --- Pydantic & Serialization ---
-pydantic==2.10.5
-email-validator==2.2.0
+pydantic==2.13.4
+email-validator==2.3.0
 marshmallow==3.20.2
 marshmallow-sqlalchemy==1.5.0
 
 # --- Background Tasks ---
-celery==5.3.4
+celery==5.6.3
 redis==7.4.0
 
 plaid-python==36.1.0
