@@ -41,7 +41,7 @@ flask_jwt_extended==4.5.2
 numpy>=1.26.0
 pandas>=2.0.0
 matplotlib>=3.8.0
-scikit-learn==1.4.2
+scikit-learn==1.5.0
 scipy==1.13.1
 torch==2.3.0
 sentence-transformers==2.6.1
