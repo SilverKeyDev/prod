@@ -56,7 +56,7 @@ shapely==2.0.4
 pypdf==6.10.2
 reportlab==4.0.4
 stripe==9.4.0
-requests==2.31.0
+requests==2.33.0
 urllib3==2.0.7
 python-dotenv==1.0.0
 gunicorn==21.2.0
