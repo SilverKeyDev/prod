@@ -1,7 +1,5 @@
 """Config validator behavior in test vs production modes."""
 
-import os
-
 import pytest
 
 from app.utils.validation.config_validator import validate_and_raise

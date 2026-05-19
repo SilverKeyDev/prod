@@ -88,3 +88,7 @@ redis==7.4.0
 
 plaid-python==36.1.0
 tenacity==8.2.3
+
+# --- HTTP / LLM clients (imported outside the ML stack; keep pins aligned with runtime.txt) ---
+openai==1.76.2
+httpx>=0.24.1,<1

@@ -79,6 +79,7 @@ line-ending = "auto"
 
 # --- Pyright: import resolution (catches missing modules); type checking off to avoid 600+ existing issues ---
 # pythonVersion: omit so each venv's lib/pythonX.Y/site-packages is used (pin only if you must match CI stubs).
+# Lint CI installs requirements/lint.txt (ci.txt + ruff + pyright), not test.txt / torch / full ML stack.
 [tool.pyright]
 typeCheckingMode = "off"
 venvPath = "."
@@ -87,7 +88,32 @@ venv = ".venv"
 reportMissingImports = true
 reportMissingModuleSource = true
 reportUndefinedVariable = true
-exclude = ["venv", ".venv", "**/node_modules", "**/__pycache__", "**/.*", "migrations/versions"]
+exclude = [
+    "venv",
+    ".venv",
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "migrations/versions",
+    "tests",
+    "app/schemas/generated.py",
+]
+
+[tool.pyright.overrides."app/services/research"]
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+
+[tool.pyright.overrides."app/services/search/home_matching"]
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+
+[tool.pyright.overrides."app/services/search/locationPolygon.py"]
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+
+[tool.pyright.overrides."app/services/search/polygon"]
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
 
 # --- Mypy: Optional gradual type checking ---
 [tool.mypy]

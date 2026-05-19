@@ -50,7 +50,9 @@ def _effective_checked_ids(user_id: str, category: str) -> set[int]:
 
 
 def _section_is_complete(user_id: str, category: str) -> bool:
-    from app.services.transactions.checklist_support.checklist_rules import sort_task_checklist_items
+    from app.services.transactions.checklist_support.checklist_rules import (
+        sort_task_checklist_items,
+    )
     from app.services.transactions.retrieval import get_checklist_definition
 
     items = get_checklist_definition(category)
@@ -69,7 +71,9 @@ def _section_is_complete(user_id: str, category: str) -> bool:
 
 def _first_incomplete_step_label(items: list[dict[str, Any]], checked: set[int]) -> str | None:
     """Port of Client getActiveChecklistItemIds — returns label for the first active step only."""
-    from app.services.transactions.checklist_support.checklist_rules import sort_task_checklist_items
+    from app.services.transactions.checklist_support.checklist_rules import (
+        sort_task_checklist_items,
+    )
 
     sorted_items = sort_task_checklist_items(list(items))
     first_incomplete = None
@@ -142,14 +146,11 @@ def batch_requires_signature(agent_id: str, client_ids: list[str]) -> dict[str, 
         return {}
 
     out = dict.fromkeys(client_ids, False)
-    agreements = (
-        Agreement.query.filter(
-            Agreement.agent_id == agent_id,
-            Agreement.buyer_id.in_(client_ids),
-            Agreement.status.in_(tuple(_AGREEMENT_ACTIVE_STATUSES)),
-        )
-        .all()
-    )
+    agreements = Agreement.query.filter(
+        Agreement.agent_id == agent_id,
+        Agreement.buyer_id.in_(client_ids),
+        Agreement.status.in_(tuple(_AGREEMENT_ACTIVE_STATUSES)),
+    ).all()
 
     for agreement in agreements:
         buyer_id = str(agreement.buyer_id)
@@ -165,8 +166,12 @@ def batch_requires_signature(agent_id: str, client_ids: list[str]) -> dict[str, 
         if agent_participant is None or buyer_participant is None:
             continue
 
-        agent_signed = (agent_participant.recipient_status or "").lower() in _SIGNED_RECIPIENT_STATUSES
-        buyer_signed = (buyer_participant.recipient_status or "").lower() in _SIGNED_RECIPIENT_STATUSES
+        agent_signed = (
+            agent_participant.recipient_status or ""
+        ).lower() in _SIGNED_RECIPIENT_STATUSES
+        buyer_signed = (
+            buyer_participant.recipient_status or ""
+        ).lower() in _SIGNED_RECIPIENT_STATUSES
 
         if buyer_signed and not agent_signed:
             out[buyer_id] = True
