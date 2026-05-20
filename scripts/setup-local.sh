@@ -1,24 +1,25 @@
 #!/usr/bin/env bash
 # First-time local onboarding: deps → build → AWS SSO → secrets → verify.
-# Usage: ./scripts/setup-local.sh [--skip-secrets] [--force-venv] [--ci] [--no-install]
+# Usage: ./scripts/setup-local.sh [--skip-secrets] [--ci] [--no-install]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 SKIP_SECRETS=false
-FORCE_VENV=false
 BOOTSTRAP_CI=false
 NO_INSTALL=false
 for arg in "$@"; do
   case "$arg" in
     --skip-secrets) SKIP_SECRETS=true ;;
-    --force-venv) FORCE_VENV=true ;;
+    --force-venv)
+      echo "setup-local: --force-venv is no longer required (make setup recreates Server/.venv when present)" >&2
+      ;;
     --ci) BOOTSTRAP_CI=true ;;
     --no-install) NO_INSTALL=true ;;
     *)
       echo "Unknown option: $arg" >&2
-      echo "Usage: $0 [--skip-secrets] [--force-venv] [--ci] [--no-install]" >&2
+      echo "Usage: $0 [--skip-secrets] [--ci] [--no-install]" >&2
       exit 1
       ;;
   esac
@@ -49,15 +50,14 @@ fi
 echo "==> Step 2/5: Client (pnpm install)"
 (cd Client && pnpm install)
 
-if [[ -d Server/.venv && "$FORCE_VENV" != true ]]; then
-  die "Server/.venv already exists. Use: make refresh  OR  make setup ARGS='--force-venv'"
-fi
-
 bootstrap_args=()
-[[ "$FORCE_VENV" == true ]] && bootstrap_args+=(--force)
+if [[ -d Server/.venv ]]; then
+  echo "==> Step 2/5: Server (removing existing .venv, recreating)"
+  bootstrap_args+=(--force)
+else
+  echo "==> Step 2/5: Server (Python venv)"
+fi
 [[ "$BOOTSTRAP_CI" == true ]] && bootstrap_args+=(--ci)
-
-echo "==> Step 2/5: Server (Python venv)"
 bash Server/scripts/bootstrap-venv.sh "${bootstrap_args[@]}"
 
 # --- Step 3–4: AWS SSO + secrets ---
@@ -66,8 +66,6 @@ if [[ "$SKIP_SECRETS" != true ]]; then
   if ! aws_setup_login "$ROOT"; then
     die "AWS SSO setup failed (see setup.md — AWS section)"
   fi
-  # Export profile/region for secrets.sh (sourced from .aws-sso in aws_setup_login)
-  aws_setup_load_env "$ROOT"
 
   echo "==> Step 4/5: Secrets (Server/.env)"
   bash Server/scripts/secrets.sh "${AWS_REGION:-us-east-2}" "${AWS_PROFILE:-}"

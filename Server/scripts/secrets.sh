@@ -4,7 +4,8 @@
 #   bash Server/scripts/secrets.sh [region] [profile]
 #
 # Behavior:
-# - If AWS_* env vars are not set and no profile is given, will source ./config/.aws-sso (under Server/).
+# - Uses AWS_PROFILE / AWS_REGION from the environment or optional [profile] arg (terminal SSO).
+# - Does not read repo-local aws-sso files — configure ~/.aws/config and export AWS_PROFILE.
 # - Lists every secret in the account for the chosen region (paginated); no hardcoded names.
 # - Each secret may be:
 #     (a) flat JSON object -> expands to KEY=VALUE lines
@@ -144,15 +145,7 @@ PY
   fi
 }
 
-# ---- credentials ----
-if [ -z "${AWS_ACCESS_KEY_ID:-}" ] && [ -z "${PROFILE:-}" ]; then
-  if [ -f "config/.aws-sso" ]; then
-    # shellcheck disable=SC1091
-    . ./config/.aws-sso
-    log "Loaded AWS SSO config from ./config/.aws-sso"
-  fi
-fi
-
+# ---- credentials (terminal / ~/.aws/config only) ----
 have_cmd aws || die "aws CLI not found."
 
 AWS_ARGS="--region $REGION"

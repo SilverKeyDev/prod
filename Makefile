@@ -22,7 +22,7 @@ help:
 	@echo ""
 	@echo "  make setup            First-time setup — see setup.md (optional: ARGS='--skip-secrets')"
 	@echo "  make refresh          After git pull: pnpm + pip refresh (optional: make refresh ARGS='--secrets')"
-	@echo "  make secrets          AWS Secrets Manager -> Server/.env (REGION=$(REGION), PROFILE optional)"
+	@echo "  make secrets          AWS Secrets Manager -> Server/.env (uses AWS_PROFILE / ~/.aws/config)"
 	@echo "  make migrate          flask db upgrade (operators only; see warning in recipe)"
 	@echo "  make test / test-all Client + Server tests"
 	@echo "  make test-fe          Client Vitest (pnpm test:run)"

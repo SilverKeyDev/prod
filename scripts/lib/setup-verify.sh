@@ -36,6 +36,16 @@ setup_verify_server_venv() {
   setup_verify_ok "Server/.venv imports (flask, sqlalchemy)"
 }
 
+setup_verify_libmagic() {
+  local root="$1" venv="${root}/Server/.venv/bin/python"
+  [[ -x "$venv" ]] || { setup_verify_fail "Server/.venv not found (cannot verify libmagic)"; return 1; }
+  if ! "$venv" -c 'import magic; magic.Magic(mime=True)' 2>/dev/null; then
+    setup_verify_fail "python-magic cannot load libmagic — macOS: brew install libmagic; Debian/Ubuntu: sudo apt install libmagic1"
+    return 1
+  fi
+  setup_verify_ok "python-magic loads libmagic (secure uploads)"
+}
+
 setup_verify_client() {
   local root="$1"
   [[ -d "${root}/Client/node_modules" ]] || { setup_verify_fail "Client/node_modules missing — pnpm install may have failed"; return 1; }
@@ -46,10 +56,25 @@ setup_verify_client() {
   setup_verify_ok "Client dependencies installed"
 }
 
+setup_verify_redis() {
+  if redis-cli ping 2>/dev/null | grep -qE '^(PONG|LOADING)'; then
+    setup_verify_ok "Redis responds to ping (localhost:6379)"
+    return 0
+  fi
+  if command -v redis-server >/dev/null 2>&1; then
+    setup_verify_fail "Redis installed but not running — brew services start redis  OR  redis-server --daemonize yes"
+  else
+    setup_verify_fail "redis-server not found — see setup.md (brew install redis / apt install redis-server)"
+  fi
+  return 1
+}
+
 setup_verify_aws() {
   local root="$1" region="${AWS_REGION:-us-east-2}"
-  # shellcheck disable=SC1091
-  [[ -f "${root}/Server/config/.aws-sso" ]] && source "${root}/Server/config/.aws-sso"
+  [[ -n "${AWS_PROFILE:-}" ]] || {
+    setup_verify_fail "AWS_PROFILE not set — run: aws sso login --profile <name> (see setup.md)"
+    return 1
+  }
   local -a cmd=(aws sts get-caller-identity --region "$region" --output text --query Account)
   [[ -n "${AWS_PROFILE:-}" ]] && cmd+=(--profile "$AWS_PROFILE")
   local acct
@@ -67,6 +92,8 @@ setup_verify_all() {
 
   setup_verify_client "$root" || failed=true
   setup_verify_server_venv "$root" || failed=true
+  setup_verify_libmagic "$root" || failed=true
+  setup_verify_redis || failed=true
   if [[ "$skip_aws" != true ]]; then
     setup_verify_env_file "$root" || failed=true
     setup_verify_aws "$root" || failed=true

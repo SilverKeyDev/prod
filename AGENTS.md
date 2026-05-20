@@ -13,6 +13,8 @@
 | **Node.js** | 20+ locally; CI lint uses **22** (see `.github/workflows/lint.yml`) |
 | **pnpm** | **9.x** — pinned in [`Client/package.json`](Client/package.json) (`packageManager`) |
 | **Python** | **3.10–3.13** for `Server/.venv` (see [`Server/README.md`](Server/README.md)) |
+| **Redis** | Local Celery/cache; `make setup` installs and verifies (`redis-cli ping`) |
+| **libmagic** | System library for `python-magic` (secure uploads); macOS: `brew install libmagic` — see [`Server/README.md`](Server/README.md) |
 | **PostgreSQL** | Full local API stack; env from [`Server/.env.example`](Server/.env.example) |
 | **AWS CLI** | Optional for `make setup` / secrets → `Server/.env`; use `make setup ARGS='--skip-secrets'` without AWS |
 
