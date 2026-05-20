@@ -59,6 +59,7 @@ usaddress==0.5.10
 pillow==12.2.0
 
 # --- Security Dependencies ---
+# python-magic wraps system libmagic: macOS `brew install libmagic`, Debian `libmagic1`
 python-magic==0.4.27
 
 # --- DocuSign Dependencies ---

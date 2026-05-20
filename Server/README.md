@@ -17,6 +17,18 @@ All pins live under **`requirements/`** (from `Server/`, paths are `requirements
 
 Quick install from `Server/`: `pip install -r requirements/runtime.txt` and, for local test tooling, `pip install -r requirements/dev.txt`. Or from repo root: `bash Server/scripts/bootstrap-venv.sh` (full), `… --lint` (CI lint parity), `… --ci` (import smoke only), or `… --refresh-deps` (re-run pip in an existing `.venv`).
 
+### System libraries (local dev)
+
+`python-magic` (secure uploads) needs the native **libmagic** library on your machine (pip only installs the Python binding):
+
+| OS | Install |
+| -- | ------- |
+| macOS | `brew install libmagic` (`make setup` installs via Homebrew when possible) |
+| Debian / Ubuntu | `sudo apt install libmagic1` |
+| Fedora | `sudo dnf install file-libs` |
+
+Docker images already include `libmagic1`. If Flask fails at startup with `failed to find libmagic`, install the package above and restart the API.
+
 ## Testing
 
 The Server uses [pytest](https://pytest.org/) for unit and integration testing with comprehensive coverage reporting.
