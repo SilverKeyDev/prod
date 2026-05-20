@@ -75,6 +75,8 @@ yarn-debug.log*
 yarn-error.log*
 .cursor/debug-*.log
 .cursor/.agent-tools/
+.cursor/mcp.json
+.claude-context/conversations.json
 
 # Editor directories and files
 .idea
@@ -85,6 +87,7 @@ yarn-error.log*
 *.sw?
 
 key.pem
+*.pem
 
 dump.rdb
 
@@ -101,9 +104,10 @@ dist/
 
 # Environment files
 .env
+.env.*
+!.env.example
 .env.local
 .env.*.local
-!.env.example
 .env.production
 
 # Database files

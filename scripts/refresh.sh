@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Refresh after git pull: Client deps + Server pip installs (existing venv).
-# Usage: ./scripts/refresh.sh [--ci] [--secrets] [--no-install]
+# Refresh after git pull: clear stale caches, Client deps, Server pip (existing venv).
+# Usage: ./scripts/refresh.sh [--ci] [--secrets] [--no-install] [--no-clean] [--aggressive-clean]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 NO_INSTALL=false
-
+RUN_CLEAN=true
+AGGRESSIVE_CLEAN=false
 RUN_SECRETS=false
 BOOTSTRAP_CI=false
 for arg in "$@"; do
@@ -15,9 +16,11 @@ for arg in "$@"; do
     --secrets) RUN_SECRETS=true ;;
     --ci) BOOTSTRAP_CI=true ;;
     --no-install) NO_INSTALL=true ;;
+    --no-clean) RUN_CLEAN=false ;;
+    --aggressive-clean) AGGRESSIVE_CLEAN=true ;;
     *)
       echo "Unknown option: $arg" >&2
-      echo "Usage: $0 [--ci] [--secrets] [--no-install]" >&2
+      echo "Usage: $0 [--ci] [--secrets] [--no-install] [--no-clean] [--aggressive-clean]" >&2
       exit 1
       ;;
   esac
@@ -39,6 +42,13 @@ fi
 if [[ -d "$ROOT/scripts" ]]; then
   echo "==> scripts: chmod +x on *.sh under scripts/"
   find "$ROOT/scripts" -type f -name '*.sh' -exec chmod +x {} +
+fi
+
+if [[ "$RUN_CLEAN" == true ]]; then
+  echo "==> Clean regenerable dev caches"
+  # shellcheck source=lib/clean-caches.sh
+  source "${ROOT}/scripts/lib/clean-caches.sh"
+  clean_dev_caches "$ROOT" "$AGGRESSIVE_CLEAN"
 fi
 
 echo "==> Client: pnpm install"

@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change. After cross-cutting architecture or feature work, also follow [post-major-change-checklist.md](./post-major-change-checklist.md) so docs and this inventory stay aligned.
 
-**Last regenerated:** 2026-05-18 (`AGENTS.md` quickstart: Makefile targets, tests, workspace-first, pinned prerequisites).
+**Last regenerated:** 2026-05-20 (Cursor Master Setup: `CLAUDE.md`, company rules, `silverkey-engineer` agent, 6 always-on rules, Mercury MCP).
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -30,6 +30,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `.cursor/README.md`                                           |  (see repo) | 2026-05-11         | keep   | Meta-doc for `.cursor/` layout |
 | `.cursorindexingignore`                                       | (repo root) | 2026-05-11         | keep   | Index-only excludes            |
 | `.cursor/settings.json`                                       |          16 | 2026-05-11         | keep   | Workspace Cursor settings      |
+| `.cursor/agents/silverkey-engineer.md`                        |  (see repo) | 2026-05-20         | keep   | Default engineering persona    |
 | `.cursor/agents/react-lint-fixer.md`                          |          73 | 2026-05-11         | keep   | Subagent                       |
 | `.cursor/agents/silverkey-architecture-boundary-auditor.md`   |          70 | 2026-02-20         | keep   | Subagent                       |
 | `.cursor/agents/silverkey-bundle-build-optimizer.md`          |          47 | 2026-02-20         | keep   | Subagent                       |
@@ -72,6 +73,10 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `shared/thin-app-architecture.mdc`          | yes → **yes**              | Client/\*\*                             | Universal                                       |
 | `shared/linting.mdc`                        | yes → **yes**              | \*_/_                                   | Universal                                       |
 | `shared/documentation.mdc`                 | yes → **yes**              | `documentation/**/*.md`, `**/README.md` | Canonical doc tree vs `docs/`; see `AGENTS.md` |
+| `shared/silverkey-context.mdc`            | — → **yes**                | (always-on)                             | Company, RESPA reflex, MCP; see `CLAUDE.md`    |
+| `shared/code-style.mdc`                   | — → **yes**                | (always-on)                             | Stack, Linear commits, verification            |
+| `shared/respa-compliance.mdc`             | — → **no**                 | partners, placement, concierge, financing/insurance/closing | RESPA guardrails for partner code |
+| `shared/pitch-and-fundraising.mdc`        | — → **no**                 | pitch, deck, investor, fundraising globs | Deck-aligned numbers and tone      |
 | `shared/post-major-change-sync.mdc`         | no → **no**                | Client/apps/**, Client/packages/**, openapi/**, Server/app/** | Same-PR / fast-follow docs + rules sync after major architecture |
 | `shared/monorepo.mdc`                       | yes → **no**               | \*_/_                                   | Context budget                                  |
 | `shared/ci-gates.mdc`                       | yes → **no**               | .github/workflows/**, Client/**         |                                                 |
@@ -107,7 +112,9 @@ Previously noted: `FORMS_*`, `openapi-adoption-checklist.md`, etc. **Not present
 
 ## Definition-of-done checklist
 
-- [x] `alwaysApply: true` count = **4** (security, thin-app, linting, documentation) — see [.cursor/README.md](../../.cursor/README.md)
+- [x] `alwaysApply: true` count = **6** (security, thin-app, linting, documentation, silverkey-context, code-style) — see [.cursor/README.md](../../.cursor/README.md)
+- [x] [CLAUDE.md](../../CLAUDE.md) — company AI context at repo root
+- [x] [.cursor/rules/README.md](../../.cursor/rules/README.md) — rules index
 - [x] `.cursor/README.md` meta-doc
 - [x] `documentation/internal/cursor-audit-latest.md` (this file)
 - [x] `documentation/internal/post-major-change-checklist.md` — process for syncing docs + Cursor after major architecture/features

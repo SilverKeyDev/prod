@@ -9,7 +9,7 @@ REGION ?= us-east-2
 PROFILE ?=
 PYTEST_ARGS ?=
 
-.PHONY: help setup refresh secrets migrate \
+.PHONY: help setup setup-mcp refresh clean-caches secrets migrate \
 	test test-all test-fe test-be test-frontend test-backend \
 	dev dev-web dev-backend \
 	pre-commit precommit \
@@ -21,7 +21,9 @@ help:
 	@echo "SilverKey Makefile (see also ./scripts/setup-local.sh and ./scripts/refresh.sh)"
 	@echo ""
 	@echo "  make setup            First-time setup — see setup.md (optional: ARGS='--skip-secrets')"
-	@echo "  make refresh          After git pull: pnpm + pip refresh (optional: make refresh ARGS='--secrets')"
+	@echo "  make setup-mcp        Cursor MCP only (seed mcp.json, install uv/npx, verify)"
+	@echo "  make refresh          After git pull: clear caches + pnpm + pip (ARGS='--secrets' | '--no-clean' | '--aggressive-clean')"
+	@echo "  make clean-caches     Remove regenerable dev caches only (ARGS='--aggressive')"
 	@echo "  make secrets          AWS Secrets Manager -> Server/.env (uses AWS_PROFILE / ~/.aws/config)"
 	@echo "  make migrate          flask db upgrade (operators only; see warning in recipe)"
 	@echo "  make test / test-all Client + Server tests"
@@ -45,8 +47,14 @@ help:
 setup:
 	bash "$(ROOT)/scripts/setup-local.sh" $(ARGS)
 
+setup-mcp:
+	bash "$(ROOT)/scripts/setup-mcp.sh"
+
 refresh:
 	bash "$(ROOT)/scripts/refresh.sh" $(ARGS)
+
+clean-caches:
+	bash "$(ROOT)/scripts/lib/clean-caches.sh" $(ARGS)
 
 secrets:
 	bash "$(ROOT)/Server/scripts/secrets.sh" "$(REGION)" "$(PROFILE)"
@@ -66,7 +74,7 @@ test-fe test-frontend:
 	cd "$(ROOT)/Client" && pnpm test:run
 
 test-be test-backend:
-	cd "$(ROOT)/Server" && . .venv/bin/activate && TESTING=true APP_LOG_LEVEL=ERROR pytest $(PYTEST_ARGS)
+	cd "$(ROOT)/Server" && mkdir -p coverage && . .venv/bin/activate && TESTING=true APP_LOG_LEVEL=ERROR pytest $(PYTEST_ARGS)
 
 dev:
 	bash "$(ROOT)/scripts/run/run-web.sh"

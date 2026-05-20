@@ -116,6 +116,8 @@ exclude = [
 
 # --- Coverage (pytest-cov / coverage.py): config is read from here, not pytest.ini [coverage:*] ---
 [tool.coverage.run]
+# Keep SQLite data out of Server/ root (avoids iCloud " .coverage 2" duplicates on Desktop).
+data_file = "coverage/.coverage"
 source = ["app"]
 omit = [
     "**/tests/**",

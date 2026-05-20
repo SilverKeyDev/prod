@@ -2,6 +2,12 @@
 
 <!-- What does this PR change and why? -->
 
+## Linear
+
+<!-- Ticket: SK-___ — https://linear.app/... -->
+
+- [ ] Commit messages use `[LINEAR-ID] description` when applicable
+
 ## Testing
 
 <!-- How was this verified (manual, unit, e2e)? -->

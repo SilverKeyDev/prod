@@ -12,7 +12,7 @@ Use this when shipping **cross-cutting** work (routing shells, workspace/auth mo
 ## Cursor rules (`.cursor/rules/`)
 
 - [ ] **Constraint or pattern changed?** Update the relevant `.mdc` (prefer editing one rule per concern over duplicating guidance).
-- [ ] **New concern?** Add a **scoped** rule (`alwaysApply: false` + `globs`) unless you are explicitly replacing one of the four always-on rules (security, thin-app, linting, documentation — cap is **4**; see `.cursor/README.md`).
+- [ ] **New concern?** Add a **scoped** rule (`alwaysApply: false` + `globs`) unless you are explicitly replacing one of the six always-on rules (security, thin-app, linting, documentation, silverkey-context, code-style — cap is **6**; see `.cursor/README.md`).
 - [ ] **Keep rules short** — Deep examples and tables live under `documentation/`; rules link out.
 
 ## Cursor skills and agents

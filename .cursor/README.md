@@ -24,14 +24,18 @@ Loose notes under `.cursor/` should be rare. Prefer `documentation/` or `documen
 
 ## Always-on vs scoped rules
 
-**Exactly four rules use `alwaysApply: true`:**
+**Six rules use `alwaysApply: true`:**
 
 1. `rules/shared/security.mdc`
 2. `rules/shared/thin-app-architecture.mdc`
 3. `rules/shared/linting.mdc`
 4. `rules/shared/documentation.mdc` (canonical doc tree is `documentation/`, not repo-root `docs/`)
+5. `rules/shared/silverkey-context.mdc` (company, RESPA reflex, partners — see [CLAUDE.md](../CLAUDE.md))
+6. `rules/shared/code-style.mdc` (stack, Linear commits, verification)
 
-Everything else attaches via **`globs`** (path patterns) or **agent-requested** / manual `@`-reference. Do not add new always-on rules without removing or demoting another.
+**Index:** [rules/README.md](rules/README.md) lists all rules and when they attach.
+
+Everything else attaches via **`globs`** (path patterns) or **agent-requested** / manual `@`-reference. Adding a seventh always-on rule requires team agreement and demoting or merging an existing one.
 
 ---
 
@@ -133,6 +137,8 @@ Rule of thumb: if the model never needs a path unless you explicitly attach it, 
 | `.cursor/skills/**`                             | Yes                                           |
 | `.cursor/agents/**`                             | Yes (team agents)                             |
 | `.cursor/README.md`                             | Yes                                           |
+| `.cursor/rules/README.md`                       | Yes                                           |
+| `CLAUDE.md` (repo root)                         | Yes                                           |
 | `.cursor/settings.json`                         | Yes                                           |
 | `.cursor/mcp.example.json`                      | Yes                                           |
 | `.cursor/mcp.json`                              | Only if **no secrets** — otherwise local only |

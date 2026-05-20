@@ -10,11 +10,19 @@ import os
 from collections.abc import Generator
 from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+
+
+def _ensure_coverage_data_dir() -> None:
+    """Write coverage SQLite under Server/coverage/ (see pyproject [tool.coverage.run])."""
+    cov_dir = Path(__file__).resolve().parent.parent / "coverage"
+    cov_dir.mkdir(parents=True, exist_ok=True)
+    os.environ.setdefault("COVERAGE_FILE", str(cov_dir / ".coverage"))
 
 
 def _apply_minimal_test_env() -> None:
@@ -28,6 +36,7 @@ def _apply_minimal_test_env() -> None:
     os.environ.setdefault("AWS_COGNITO_CLIENT_ID", "pytest-stub-cognito-client-id")
 
 
+_ensure_coverage_data_dir()
 _apply_minimal_test_env()
 
 

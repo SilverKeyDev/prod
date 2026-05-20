@@ -18,7 +18,7 @@
 | **PostgreSQL** | Full local API stack; env from [`Server/.env.example`](Server/.env.example) |
 | **AWS CLI** | Optional for `make setup` / secrets → `Server/.env`; use `make setup ARGS='--skip-secrets'` without AWS |
 
-**First machine:** `make setup` — deps, build, AWS SSO, secrets, verify (see [setup.md](setup.md)). **After `git pull`:** `make refresh`.
+**First machine:** `make setup` — deps, build, AWS SSO, secrets, verify, Cursor MCP (see [setup.md](setup.md)). **After `git pull`:** `make refresh`.
 
 ---
 
@@ -29,7 +29,7 @@ Run `make help` for the full list. Common targets:
 | Target | Purpose |
 | ------ | ------- |
 | `make setup` | First-time: Client `pnpm install`, Server venv, optional secrets |
-| `make refresh` | Refresh deps after pull |
+| `make refresh` | Clear stale dev caches + refresh deps after pull (`ARGS='--no-clean'` to skip) |
 | `make dev` | Web + backend (`scripts/run/run-web.sh`) |
 | `make dev-web` / `make mobile` | Vite web only / Expo mobile |
 | `make dev-backend` | Backend stack only |
@@ -114,13 +114,16 @@ cd Server && pytest       # or: make test-be from repo root
 
 | Area | Location |
 | ---- | -------- |
-| **Always-on (4)** | `security`, `thin-app-architecture`, `linting`, `documentation` under `.cursor/rules/shared/` |
+| **Always-on (6)** | `security`, `thin-app-architecture`, `linting`, `documentation`, `silverkey-context`, `code-style` under `.cursor/rules/shared/` |
+| **Company context** | [CLAUDE.md](CLAUDE.md) — business model, RESPA, partners, fundraising (read before partner-facing work) |
 | **Scoped rules** | `.cursor/rules/shared/`, `frontend/`, `backend/` (+ some under `Server/`) — glob-attached; see audit table |
 | **Skills** | `.cursor/skills/*/SKILL.md` (e.g. `run-all-linters`, `post-major-change-sync`) |
 | **Subagents** | `.cursor/agents/*.md` |
 | **Extend / inventory** | [.cursor/README.md](./.cursor/README.md), [documentation/internal/cursor-audit-latest.md](./documentation/internal/cursor-audit-latest.md) |
 
-**MCP:** Example only — [.cursor/mcp.example.json](./.cursor/mcp.example.json). Credentials stay local/env.
+**MCP:** Example — [.cursor/mcp.example.json](./.cursor/mcp.example.json); local config via `make setup-mcp` (install/verify, summary at end). Connectors: GitHub, Linear, Slack, Mercury (read-only banking), plus optional AWS/gcloud. Credentials stay local/env.
+
+**Commits:** `[LINEAR-ID] short description` — link the Linear ticket in PR descriptions.
 
 **After major architecture changes:** [documentation/internal/post-major-change-checklist.md](./documentation/internal/post-major-change-checklist.md) — update `documentation/`, relevant `.mdc` files, and this file when quickstart or tooling map changes.
 
