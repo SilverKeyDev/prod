@@ -5,7 +5,7 @@ import {
   isStaleLazyChunkMessage,
   resetStaleChunkRecoveryStateForTests,
   tryReloadForStaleChunkError,
-} from "./shellRouteLoadTiming";
+} from "./staleChunkRecovery";
 
 vi.mock("packages/config/env", () => ({
   isProduction: true,

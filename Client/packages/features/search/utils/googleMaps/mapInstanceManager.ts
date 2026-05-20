@@ -1,6 +1,7 @@
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { asError } from "packages/utils";
 import { dateNow } from "packages/utils/date";
+import { logWebMapsEnvDiagnostics } from "packages/utils/maps/cloudMapId/logWebMapsEnvDiagnostics";
 import { getWindow } from "packages/utils/platform";
 
 import { buildWebGoogleMapOptions } from "./buildWebGoogleMapOptions";
@@ -39,9 +40,9 @@ export class MapInstanceManager {
       const map = new win.google.maps.Map(container, mapOptions as google.maps.MapOptions);
       MapInstanceManager.mapInstanceCount++;
       MapInstanceManager.activeMapInstances.add(map);
+      logWebMapsEnvDiagnostics({ phase: "map_instance", map });
       log.info(LOG_CATEGORIES.MAP_RENDERING, "Google Map created successfully", {
         mapIdApplied: !!effectiveMapId,
-        mapId: effectiveMapId ?? undefined,
         activeInstances: MapInstanceManager.activeMapInstances.size,
       });
       return map;

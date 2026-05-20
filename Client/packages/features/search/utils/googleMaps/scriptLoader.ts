@@ -2,6 +2,7 @@ import { mapsApi, type MapsScriptResponse } from "packages/api/maps";
 import { env } from "packages/config";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { asError } from "packages/utils";
+import { logWebMapsEnvDiagnostics } from "packages/utils/maps/cloudMapId/logWebMapsEnvDiagnostics";
 import { getDocument, getWindow } from "packages/utils/platform";
 import { getSessionStorage } from "packages/utils/storage/platformStorage";
 
@@ -19,15 +20,11 @@ export class ScriptLoader {
 
   getMapId(): string | undefined {
     try {
+      logWebMapsEnvDiagnostics({ phase: "env" });
       const mapId = env.googleMapsId;
       if (!mapId) {
-        log.warn(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Google Maps Cloud map ID not configured (EXPO_PUBLIC_GOOGLE_MAPS_ID) - using default map styling"
-        );
         return undefined;
       }
-      log.info(LOG_CATEGORIES.MAP_RENDERING, "Web map ID resolved for Cloud styling", { mapId });
       return mapId;
     } catch {
       log.warn(LOG_CATEGORIES.MAP_RENDERING, "Could not load config, using fallback");

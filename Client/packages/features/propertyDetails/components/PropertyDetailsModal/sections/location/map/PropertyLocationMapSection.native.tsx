@@ -12,12 +12,12 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { Button } from "packages/ui";
 import { Box, Loading } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
-import { buildGoogleStreetViewUrl } from "packages/utils/maps/googleMapsLinks";
+import { buildGoogleStreetViewUrl } from "packages/utils/maps/links/googleMapsLinks";
 import {
   getGoogleMapIdForNative,
   getUseGoogleMapsProvider,
-} from "packages/utils/maps/nativeGoogleMapsCloudConfig";
-import { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/maps/propertyDetailsMapRegion";
+} from "packages/utils/maps/native/nativeGoogleMapsCloudConfig";
+import { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/maps/native/propertyDetailsMapRegion";
 import {
   getListingCoords,
   getListingCoordsUnavailableDiagnostics,

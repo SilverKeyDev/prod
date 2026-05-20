@@ -8,7 +8,7 @@ import {
   CREATE_EVENT_TIME_STEP_MINUTES,
   googleAllDayEndExclusiveToInclusiveEndYmd,
   quantizeHourMinute,
-} from "packages/utils/calendar/eventFormGooglePayload";
+} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 import { dateParseISO, dayjs } from "packages/utils/date";
 
 import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

@@ -1,4 +1,4 @@
-import { inclusiveRangeToGoogleAllDayDates } from "packages/utils/calendar/eventFormGooglePayload";
+import { inclusiveRangeToGoogleAllDayDates } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 import { dayjs } from "packages/utils/date";
 
 import type { GoogleCalendarEventCreateBody } from "@/features/calendar/types/googleEvent";

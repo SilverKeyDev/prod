@@ -6,6 +6,7 @@
   "scripts": {
     "dev:web": "pnpm --filter @silverkey/web dev",
     "build:web": "pnpm --filter @silverkey/web build",
+    "verify:web:maps": "node scripts/verify-web-maps-map-id.mjs",
     "preview:web": "pnpm --filter @silverkey/web preview",
     "dev:mobile": "pnpm --filter @silverkey/mobile start",
     "dev:mobile:clear": "pnpm --filter @silverkey/mobile start:clear",

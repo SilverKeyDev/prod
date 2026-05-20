@@ -1,4 +1,4 @@
-import { CREATE_EVENT_TIME_STEP_MINUTES } from "./eventFormGooglePayload";
+import { CREATE_EVENT_TIME_STEP_MINUTES } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 
 /**
  * Maps a Y offset within the week/day time grid to nearest step-aligned minutes from midnight.

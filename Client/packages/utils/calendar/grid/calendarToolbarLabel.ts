@@ -1,7 +1,6 @@
 import type { CalendarViewType } from "packages/types/calendar/calendarGrid";
+import { getVisibleDateRange } from "packages/utils/calendar/core/date";
 import { type Dayjs, dayjs } from "packages/utils/date";
-
-import { getVisibleDateRange } from "./date";
 
 /**
  * Formats the visible grid range with month and day for both endpoints

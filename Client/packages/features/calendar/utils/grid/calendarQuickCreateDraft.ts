@@ -2,7 +2,7 @@ import {
   CREATE_EVENT_TIME_STEP_MINUTES,
   parseHourMinute24,
   quantizeHourMinute,
-} from "packages/utils/calendar/eventFormGooglePayload";
+} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 import { dayjs } from "packages/utils/date";
 
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

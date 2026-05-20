@@ -86,7 +86,7 @@ if [[ -f "$ROOT/.pre-commit-config.yaml" && -x "$ROOT/Server/.venv/bin/pip" ]]; 
     "$ROOT/Server/.venv/bin/pip" install -q pre-commit || true
   fi
   if [[ -x "$ROOT/Server/.venv/bin/pre-commit" && -d "$ROOT/.git" ]]; then
-    (cd "$ROOT" && "$ROOT/Server/.venv/bin/pre-commit" install) || true
+    git -C "$ROOT" config core.hooksPath scripts/githooks || true
   fi
 fi
 

@@ -4,7 +4,7 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import {
   buildCreateEventGoogleStartEnd,
   CREATE_EVENT_TIME_STEP_MINUTES,
-} from "packages/utils/calendar/eventFormGooglePayload";
+} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 
 import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

@@ -12,7 +12,7 @@ export const SEARCH_MAP_LISTING_FOCUS_ZOOM = 13;
  */
 export const PROPERTY_DETAILS_NEIGHBORHOOD_ZOOM = 19;
 
-export { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/maps/propertyDetailsMapRegion";
+export { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/maps/native/propertyDetailsMapRegion";
 
 /** @deprecated Prefer SEARCH_MAP_LISTING_FOCUS_ZOOM */
 export const DEFAULT_ZOOM = SEARCH_MAP_LISTING_FOCUS_ZOOM;

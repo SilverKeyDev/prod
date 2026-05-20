@@ -7,7 +7,7 @@ import { queryKeys } from "packages/config/query/keys";
 import { toBuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useUserData, useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { useGoogleCalendarStore } from "packages/store";
-import { CREATE_EVENT_TIME_STEP_MINUTES } from "packages/utils/calendar/eventFormGooglePayload";
+import { CREATE_EVENT_TIME_STEP_MINUTES } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 import { dayjs } from "packages/utils/date";
 import {
   type AvailabilityParty,

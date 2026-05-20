@@ -1,15 +1,14 @@
 # Pre-commit hooks for SilverKey
 #
 # Commit hooks: auto-fix formatters/linters only (Prettier, ESLint, Ruff).
-# Generic file hooks (EOF, trailing whitespace) and Phase-2 read-only checks are
-# commented out — they mutate or block commits and stall local dev; CI still gates.
+# They report warnings/errors but do not block commits (see scripts/githooks/pre-commit).
+# Phase-2 read-only checks stay disabled locally; CI enforces the full gate (make lint).
 #
 # Install:
-#   pip install pre-commit
-#   pre-commit install --hook-type pre-commit
+#   pip install pre-commit   # or: Server/.venv via make setup
+#   git config core.hooksPath scripts/githooks
 # Hooks run on commit only (not on push). See scripts/githooks/pre-push.
 #
-# Resilient hooks (skip if pre-commit missing): git config core.hooksPath scripts/githooks
 # Run manually: pre-commit run --all-files
 
 default_stages: [pre-commit]

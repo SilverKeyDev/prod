@@ -5,7 +5,7 @@
    ========================= */
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { resolveGoogleMapsCloudMapId } from "packages/utils/maps/resolveGoogleMapsCloudMapId";
+import { resolveGoogleMapsCloudMapId } from "packages/utils/maps/cloudMapId/resolveGoogleMapsCloudMapId";
 
 function trimEnv(value: string | undefined): string {
   return (value ?? "").trim();

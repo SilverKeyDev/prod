@@ -4,4 +4,4 @@ export {
   getEventFirstLocalDayKey,
   getEventLocalDayKeys,
   getEventStartDate,
-} from "packages/utils/calendar/eventParsing";
+} from "packages/utils/calendar/parsing/eventParsing";

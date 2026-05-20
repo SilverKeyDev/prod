@@ -23,6 +23,7 @@ Docs for the SilverKey frontend: TypeScript/React (web) and React Native (mobile
 | [apps-folder-contents.md](./apps-folder-contents.md) | What lives in apps/web and apps/mobile only: bootstrapper, provider tree, router, and thin pages/screens (orchestrator-only). |
 | [mobile-app-structure.md](./mobile-app-structure.md) | Full breakdown of the React Native mobile app: structure and purpose of each file under `Client/apps/mobile/`. |
 | [web-mobile-parity-gotchas.md](./web-mobile-parity-gotchas.md) | Three gotchas: stale app (API/schema versioning), React version dictator, deep linking. |
+| [google-maps-web-setup.md](./google-maps-web-setup.md) | Web Maps: Cloud Map ID (`EXPO_PUBLIC_GOOGLE_MAPS_ID`) vs server API key, local/prod setup, verification. |
 | [config-files-reference.md](./config-files-reference.md) | Every tsconfig, package.json, vite.config, and tailwind.config: purpose, necessity, and whether it can be merged. |
 | [tsconfig-reference.md](./tsconfig-reference.md) | TypeScript config hierarchy: root, web, mobile, packages/config; how they extend and reference each other; scripts. |
 | [tailwind-config-reference.md](./tailwind-config-reference.md) | Tailwind and PostCSS: web vs mobile, shared preset (ESM vs CJS), content paths, and how they work with Vite and Metro. |

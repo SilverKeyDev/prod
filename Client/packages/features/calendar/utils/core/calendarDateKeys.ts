@@ -2,4 +2,4 @@ export {
   calendarDateToKey,
   formatCalendarDayEventsTitle,
   getCalendarDayListHeading,
-} from "packages/utils/calendar/calendarDateKeys";
+} from "packages/utils/calendar/core/calendarDateKeys";

@@ -779,8 +779,8 @@
   {
     "id": "native-google-maps-cloud-config",
     "description": "Google Cloud Map ID and provider selection for react-native-maps.",
-    "webPath": "packages/utils/maps/nativeGoogleMapsCloudConfig.ts",
-    "nativePath": "packages/utils/maps/nativeGoogleMapsCloudConfig.native.ts",
+    "webPath": "packages/utils/maps/native/nativeGoogleMapsCloudConfig.ts",
+    "nativePath": "packages/utils/maps/native/nativeGoogleMapsCloudConfig.native.ts",
     "reason": "Native implementation uses Expo Constants and React Native Platform; web uses a no-op stub."
   },
   {

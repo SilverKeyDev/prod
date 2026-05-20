@@ -1,33 +1,67 @@
 #!/usr/bin/env bash
-# Resilient wrapper: run pre-commit when available; otherwise warn and allow the commit.
+# Run auto-fix linters on commit; report warnings/errors but never block the commit.
+# Re-stages files that hooks fixed so fixes land in the same commit.
+#
 # Enable for this clone: git config core.hooksPath scripts/githooks
 set -u
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 cd "$REPO_ROOT" || exit 0
 
+STAGED_FILES="$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true)"
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit --hook-dir "$HERE" -- "$@")
 
+run_hooks() {
+  local cmd=("$@")
+  "${cmd[@]}" "${ARGS[@]}"
+}
+
+PC_CMD=()
 for pc in "$REPO_ROOT/Server/.venv/bin/pre-commit" "$REPO_ROOT/Server/venv/bin/pre-commit"; do
   if [ -x "$pc" ]; then
-    exec "$pc" "${ARGS[@]}"
+    PC_CMD=("$pc")
+    break
   fi
 done
 
-for py in "$REPO_ROOT/Server/.venv/bin/python3" "$REPO_ROOT/Server/.venv/bin/python"; do
-  if [ -x "$py" ] && "$py" -m pre_commit version >/dev/null 2>&1; then
-    exec "$py" -m pre_commit "${ARGS[@]}"
+if [ "${#PC_CMD[@]}" -eq 0 ]; then
+  for py in "$REPO_ROOT/Server/.venv/bin/python3" "$REPO_ROOT/Server/.venv/bin/python"; do
+    if [ -x "$py" ] && "$py" -m pre_commit version >/dev/null 2>&1; then
+      PC_CMD=("$py" -m pre_commit)
+      break
+    fi
+  done
+fi
+
+if [ "${#PC_CMD[@]}" -eq 0 ]; then
+  if command -v pre-commit >/dev/null 2>&1; then
+    PC_CMD=(pre-commit)
+  elif python3 -m pre_commit version >/dev/null 2>&1; then
+    PC_CMD=(python3 -m pre_commit)
   fi
-done
-
-if command -v pre-commit >/dev/null 2>&1; then
-  exec pre-commit "${ARGS[@]}"
 fi
 
-if python3 -m pre_commit version >/dev/null 2>&1; then
-  exec python3 -m pre_commit "${ARGS[@]}"
+STATUS=0
+if [ "${#PC_CMD[@]}" -gt 0 ]; then
+  run_hooks "${PC_CMD[@]}" || STATUS=$?
+else
+  echo "warning: pre-commit not found; skipping commit hooks. Install in Server/.venv: pip install pre-commit" >&2
 fi
 
-echo "warning: pre-commit not found; skipping commit hooks. To enable: install pre-commit in Server/.venv or on PATH, then ensure git config core.hooksPath scripts/githooks" >&2
+# Re-stage paths that were in the index before hooks ran (captures auto-fixes).
+if [ -n "$STAGED_FILES" ]; then
+  while IFS= read -r f; do
+    if [ -n "$f" ]; then
+      git add -- "$f" 2>/dev/null || true
+    fi
+  done <<< "$STAGED_FILES"
+fi
+
+if [ "$STATUS" -ne 0 ]; then
+  echo "" >&2
+  echo "pre-commit: hooks reported problems above (commit was not blocked). Review before push; full gate: make lint" >&2
+fi
+
 exit 0

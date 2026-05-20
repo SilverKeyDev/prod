@@ -4,9 +4,11 @@ import {
   buildCreateEventGoogleStartEnd,
   CREATE_EVENT_TIME_STEP_MINUTES,
   quantizeMinutesFromMidnight,
-} from "packages/utils/calendar/eventFormGooglePayload";
-
-import { eventSpansMultipleLocalDays, getEventLocalDayKeys } from "./eventParsing";
+} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
+import {
+  eventSpansMultipleLocalDays,
+  getEventLocalDayKeys,
+} from "packages/utils/calendar/parsing/eventParsing";
 
 type GoogleEvent = components["schemas"]["GoogleEvent"];
 

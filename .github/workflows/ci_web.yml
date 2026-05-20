@@ -56,6 +56,17 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2.1.5
 
+      - name: Assert Maps Map ID secret is set
+        env:
+          EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${EXPO_PUBLIC_GOOGLE_MAPS_ID:-}" ]; then
+            echo "::error::EXPO_PUBLIC_GOOGLE_MAPS_ID is empty. Set the GitHub repository secret to your Google Cloud Map ID (not the JS API key). Advanced Markers will fail in prod."
+            exit 1
+          fi
+          echo "EXPO_PUBLIC_GOOGLE_MAPS_ID is set (length ${#EXPO_PUBLIC_GOOGLE_MAPS_ID})"
+
       - name: Build & push to ECR
         env:
           # GitHub Actions: add repository secrets EXPO_PUBLIC_* (Plaid Link / Maps / OAuth client IDs for the web bundle).

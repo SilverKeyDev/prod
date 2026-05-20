@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from "react";
 
 import { color } from "packages/design-tokens";
 import { Box, Text } from "packages/ui/components/primitives";
-import { quantizeMinutesFromMidnight } from "packages/utils/calendar/eventFormGooglePayload";
+import { quantizeMinutesFromMidnight } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 import { getDocument } from "packages/utils/platform";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";

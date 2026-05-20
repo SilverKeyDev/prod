@@ -75,6 +75,18 @@ finally:
     # that import real app.services.search.home_matching.preprocessing.*.
     for _name in _stubbed:
         sys.modules.pop(_name, None)
+    # Importing property_stream_steps loads the property package __init__, which pulls in
+    # property_stream_internal while scoring stubs are active. That binds MagicMock exports
+    # (build_research_analysis_options, etc.) that survive stub removal — reload so later
+    # tests (e.g. test_property_stream_sections) see real implementations.
+    _POLLUTED_AFTER_SCORING_STUB = (
+        "app.services.search.property.property_stream_internal",
+        "app.services.search.property.property_stream_internal_tail",
+        "app.services.search.property.property_stream",
+    )
+    for _mod_name in _POLLUTED_AFTER_SCORING_STUB:
+        if _mod_name in sys.modules:
+            importlib.reload(sys.modules[_mod_name])
 
 
 # ---- fetch_basic_property_data ----

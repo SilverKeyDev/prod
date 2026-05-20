@@ -11,7 +11,7 @@ import { Loading } from "packages/ui/components/asset/loading/Loading";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { getNativeMapPinColorHex } from "packages/utils/format/mapMatchPinColors";
-import { getIsochroneUnionFillNativeRgba } from "packages/utils/maps/isochroneUnionStyle";
+import { getIsochroneUnionFillNativeRgba } from "packages/utils/maps/isochrone/isochroneUnionStyle";
 
 import { searchPageMapContainerNativeStyles as styles } from "./searchPageMapContainerNative.styles";
 
