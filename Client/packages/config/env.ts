@@ -98,11 +98,12 @@ class EnvConfig {
   get googleMapsId(): string | undefined {
     const mapId =
       EnvConfig.STATIC.GOOGLE_MAPS_ID ||
-      resolveGoogleMapsCloudMapId(this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID);
+      resolveGoogleMapsCloudMapId(this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID) ||
+      resolveGoogleMapsCloudMapId(this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS);
     if (!mapId) {
       log.warn(
         LOG_CATEGORIES.API,
-        "Google Maps Cloud map ID not configured (EXPO_PUBLIC_GOOGLE_MAPS_ID) - using default map styling"
+        "Google Maps Cloud map ID not configured (EXPO_PUBLIC_GOOGLE_MAPS_ID or EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS) - using default map styling"
       );
     }
     return mapId;

@@ -45,7 +45,7 @@ make refresh        # after git pull
 
 ## Quality gates & CI
 
-PRs are expected to stay green with the same checks CI runs (see [`.github/workflows/lint.yml`](.github/workflows/lint.yml) and [`.cursor/rules/shared/ci-gates.mdc`](.cursor/rules/shared/ci-gates.mdc)).
+Run lint gates locally before merge (`make lint`, `pnpm check`). CI runs the same linters **weekly on Mondays** (see [`.github/workflows/lint.yml`](.github/workflows/lint.yml) and [`.cursor/rules/shared/ci-gates.mdc`](.cursor/rules/shared/ci-gates.mdc)); tests still run on every PR via [`.github/workflows/test.yml`](.github/workflows/test.yml).
 
 **Client** (from `Client/`):
 

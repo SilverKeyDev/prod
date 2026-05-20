@@ -1,13 +1,16 @@
 # Single lint workflow: runs root script for client and server.
 # scripts/run-all-linters.sh applies auto-fixes first (Client: pnpm run fix; Server: ruff --fix/format), then linters.
 # Linters: Server lint_*.py + lint_*.sh; Client lint.d/*.sh + pnpm check.
-# See .cursor/rules/shared/ci-gates.mdc for required gates.
+# Scheduled weekly (same cadence as dependabot.yml weekly-all). Run locally before merge: make lint / pnpm check.
 # Tests are run separately via test.yml workflow.
 name: Lint
 
 on:
-  push:
-  pull_request:
+  schedule:
+    # Monday 09:00 America/New_York — matches .github/dependabot.yml weekly-all
+    - cron: "0 9 * * 1"
+      timezone: America/New_York
+  workflow_dispatch:
   workflow_call:
 
 permissions:

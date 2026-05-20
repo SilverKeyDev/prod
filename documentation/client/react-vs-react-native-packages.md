@@ -210,7 +210,7 @@ For a component in a shared location (e.g. future `packages/ui/Button/`):
 
 ### CI
 
-- Client lint workflow (e.g. `.github/workflows/lint.yml`) runs typecheck, lint, format:check, lint:cycles, audit, and build so that platform conventions and code quality are enforced on every PR.
+- Client lint workflow (e.g. `.github/workflows/lint.yml`) runs typecheck, lint, format:check, lint:cycles, audit, and build on a weekly schedule; run the same gates locally before merge.
 
 ---
 

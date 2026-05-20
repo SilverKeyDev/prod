@@ -86,6 +86,25 @@ describe("EnvConfig", () => {
       expect(getEnv().googleMapsId).toBe("cloud-map-123");
     });
 
+    it("falls back to EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS when web id is empty", async () => {
+      applyEnv({
+        NODE_ENV: "development",
+        EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: "  ios-cloud-map  ",
+      });
+      const { getEnv } = await loadFreshEnv();
+      expect(getEnv().googleMapsId).toBe("ios-cloud-map");
+    });
+
+    it("prefers EXPO_PUBLIC_GOOGLE_MAPS_ID over iOS when both are set", async () => {
+      applyEnv({
+        NODE_ENV: "development",
+        EXPO_PUBLIC_GOOGLE_MAPS_ID: "web-map",
+        EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: "ios-map",
+      });
+      const { getEnv } = await loadFreshEnv();
+      expect(getEnv().googleMapsId).toBe("web-map");
+    });
+
     it("returns undefined when map id is not configured", async () => {
       applyEnv({ NODE_ENV: "development" });
       const { getEnv } = await loadFreshEnv();
