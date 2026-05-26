@@ -156,3 +156,29 @@ cd Server && pytest       # or: make test-be from repo root
 | Server tests | `make test-be` (venv + `TESTING=true`) |
 | Repo-wide lint | `./scripts/run-all-linters.sh all` or `make lint` |
 | OpenAPI | `make openapi` → commit generated files; `make openapi-verify` before PR |
+
+---
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+| Service | Port | Start command |
+| ------- | ---- | ------------- |
+| **Vite web** | 5173 | `cd Client && pnpm dev:web` |
+| **Flask API** | 5000 | `cd Server && source .venv/bin/activate && source .env && python run.py --host 0.0.0.0 --port 5000` |
+| **Redis** | 6379 | `redis-server --daemonize yes --port 6379` |
+| **PostgreSQL** | 5432 | `sudo pg_ctlcluster 16 main start` (auto-starts via service) |
+
+### Running the full dev stack
+
+Use `make dev` (runs `scripts/run/run-web.sh` which starts Redis, Flask, Celery, then Vite). Or start services individually as shown above.
+
+### Gotchas for Cloud Agents
+
+- **Flask requires all `.env.example` vars to be non-empty** — the `config_validator.py` reads `Server/.env.example` and checks each key at startup. Use `Server/.env` with placeholder values for keys you don't have real secrets for (the validator only checks `os.getenv(key)` is truthy, not that the value is valid). Tests skip this check via `TESTING=true`.
+- **pnpm must be 9.x** — the VM may ship with pnpm 10+. Fix via `corepack enable && corepack prepare pnpm@9.0.0 --activate`.
+- **`python3.12-venv`** package is required on Ubuntu for `Server/scripts/bootstrap-venv.sh` to create the venv.
+- **Server tests** pass with `TESTING=true APP_LOG_LEVEL=ERROR pytest --no-cov` (coverage threshold may fail but all 793+ tests pass).
+- **Client lint** has a few pre-existing warnings/errors on `main` (import sorting, unused vars) — these are not regressions.
+- **Do not run migrations** — the database schema is managed externally. `make migrate` is operator-only.
