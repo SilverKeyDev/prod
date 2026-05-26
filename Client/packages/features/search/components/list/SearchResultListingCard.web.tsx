@@ -284,11 +284,11 @@ export function SearchResultListingCard({
           </Title>
 
           {activeTab === "results" ? (
-            <Box className="flex w-full min-w-0 flex-row flex-nowrap items-center justify-center gap-2">
+            <Box className="flex w-full min-w-0 flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1">
               <BodyText
                 as="p"
                 size="sm"
-                className="min-w-0 shrink truncate font-semibold leading-none text-neutral-800"
+                className="whitespace-nowrap font-semibold tabular-nums leading-none text-neutral-800"
               >
                 {displayListingPriceForCard(property.price)}
               </BodyText>
