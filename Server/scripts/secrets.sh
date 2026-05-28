@@ -4,8 +4,10 @@
 #   bash Server/scripts/secrets.sh [region] [profile]
 #
 # Behavior:
-# - Uses AWS_PROFILE / AWS_REGION from the environment or optional [profile] arg (terminal SSO).
-# - Does not read repo-local aws-sso files — configure ~/.aws/config and export AWS_PROFILE.
+# - Profile/region: optional [profile] arg, then shell AWS_* env, then Server/config/.aws-sso
+#   (copy aws-sso.example → .aws-sso; gitignored). SSO still lives in ~/.aws/config.
+# - Expired SSO on an interactive terminal: runs `aws sso login` automatically (same as make setup).
+#   Set AWS_SSO_NO_AUTO_LOGIN=1 to only print the command (CI / non-TTY).
 # - Lists every secret in the account for the chosen region (paginated); no hardcoded names.
 # - Each secret may be:
 #     (a) flat JSON object -> expands to KEY=VALUE lines
@@ -18,7 +20,12 @@ set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SERVER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT="$(cd "$SERVER_DIR/.." && pwd)"
 cd "$SERVER_DIR" || exit 1
+
+# shellcheck source=../../scripts/lib/aws-sso-env.sh
+. "$ROOT/scripts/lib/aws-sso-env.sh"
+aws_sso_source_repo_config "$ROOT"
 
 REGION="${1:-${AWS_REGION:-us-east-2}}"
 PROFILE="${2:-${AWS_PROFILE:-}}"
@@ -189,12 +196,20 @@ PY
   fi
 }
 
-# ---- credentials (terminal / ~/.aws/config only) ----
+# ---- credentials (~/.aws/config SSO; profile from env, .aws-sso, or arg) ----
 have_cmd aws || die "aws CLI not found."
+
+if [ -z "${PROFILE:-}" ]; then
+  die "AWS profile not set. Copy Server/config/aws-sso.example to Server/config/.aws-sso, or export AWS_PROFILE, or: make secrets PROFILE=<name>"
+fi
 
 AWS_ARGS="--region $REGION"
 if [ -z "${AWS_ACCESS_KEY_ID:-}" ] && [ -n "${PROFILE:-}" ]; then
   AWS_ARGS="$AWS_ARGS --profile $PROFILE"
+fi
+
+if ! aws_sso_ensure_session "$REGION" "$PROFILE"; then
+  exit 1
 fi
 
 # ---- assemble fresh .env ----

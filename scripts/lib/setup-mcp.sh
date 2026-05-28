@@ -47,7 +47,7 @@ setup_mcp_configure() {
     setup_mcp_verify_json "$target" || errors+=("invalid JSON in .cursor/mcp.json")
     setup_mcp_verify_github_token "$target" || warnings+=("GitHub PAT still placeholder YOUR_GITHUB_PAT — edit .cursor/mcp.json")
     setup_mcp_verify_mercury_url "$target" || warnings+=("Mercury MCP URL still placeholder — paste URL from Mercury dashboard into .cursor/mcp.json")
-    setup_mcp_verify_aws_session || warnings+=("AWS session not ready — aws-api MCP needs AWS_PROFILE + aws sso login (see ${MCP_SETUP_DOC})")
+    setup_mcp_verify_aws_session "$root" || warnings+=("AWS session not ready — aws-api MCP needs AWS_PROFILE + aws sso login (see ${MCP_SETUP_DOC})")
     setup_mcp_verify_gcloud_adc || warnings+=("gcloud application-default credentials missing — run: gcloud auth application-default login")
     setup_mcp_verify_command_smoke || warnings+=("one or more MCP command runners failed smoke check (see phase 3 logs above)")
   else
@@ -162,6 +162,12 @@ setup_mcp_verify_mercury_url() {
 }
 
 setup_mcp_resolve_aws_profile() {
+  local root="${1:-}"
+  if [[ -n "$root" ]]; then
+    # shellcheck source=aws-sso-env.sh
+    source "$(dirname "${BASH_SOURCE[0]}")/aws-sso-env.sh"
+    aws_sso_source_repo_config "$root"
+  fi
   [[ -n "${AWS_PROFILE:-}" ]] && return 0
   local -a profiles=()
   local p
@@ -176,7 +182,7 @@ setup_mcp_resolve_aws_profile() {
   if [[ ${#profiles[@]} -gt 1 ]]; then
     setup_mcp_warn_msg "multiple SSO profiles — pick one:"
     printf '    %s\n' "${profiles[@]}" >&2
-    setup_mcp_warn_msg "export AWS_PROFILE=<name> && aws sso login"
+    setup_mcp_warn_msg "cp Server/config/aws-sso.example Server/config/.aws-sso — or export AWS_PROFILE=<name> && aws sso login"
   else
     setup_mcp_warn_msg "no SSO profile — run: aws configure sso"
   fi
@@ -195,11 +201,12 @@ setup_mcp_print_cursor_steps() {
 }
 
 setup_mcp_verify_aws_session() {
+  local root="${1:-}"
   command -v aws >/dev/null 2>&1 || {
     setup_mcp_warn_msg "aws CLI missing — brew install awscli"
     return 1
   }
-  setup_mcp_resolve_aws_profile || return 1
+  setup_mcp_resolve_aws_profile "$root" || return 1
   local -a cmd=(aws sts get-caller-identity --output text --query Account)
   [[ -n "${AWS_REGION:-}" ]] && cmd+=(--region "$AWS_REGION")
   cmd+=(--profile "$AWS_PROFILE")

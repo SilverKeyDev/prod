@@ -4,7 +4,7 @@ Run **`make setup`** once on a new machine. The script walks through six steps a
 
 1. **Prerequisites** — Node 20+, pnpm 9.x, Python 3.10–3.13, Redis, libmagic (for secure file uploads), AWS CLI v2 (installs via Homebrew on macOS when possible, otherwise prints exact commands)
 2. **Build** — `pnpm install` + `Server/.venv`
-3. **AWS SSO** — uses your `~/.aws/config` profile and runs `aws sso login` in the terminal (no repo aws-sso files created)
+3. **AWS SSO** — `~/.aws/config` + `aws sso login`; optional per-repo profile pin in `Server/config/.aws-sso` (see below)
 4. **Secrets** — fetches `Server/.env` from AWS Secrets Manager
 5. **Verify** — smoke checks Client deps, Python imports, Redis, `.env` keys, and AWS session
 6. **Cursor MCP** — installs optional MCP runtimes (`npx`, `uvx`), seeds [`.cursor/mcp.json`](.cursor/mcp.json) from [`.cursor/mcp.example.json`](.cursor/mcp.example.json) when missing, runs checks, then prints a **summary** of all warnings/errors (does not stop at the first issue). MCP errors do not fail the rest of `make setup`.
@@ -30,7 +30,25 @@ export AWS_REGION=us-east-2
 aws sso login --profile "$AWS_PROFILE"
 ```
 
-If `~/.aws/config` has exactly one SSO profile, setup picks it automatically. With several profiles, export `AWS_PROFILE` before `make setup`. During setup, step 3 runs `aws sso login` again if the session expired.
+If `~/.aws/config` has exactly one SSO profile, setup picks it automatically. With several profiles, either:
+
+- **Recommended (per repo):** `cp Server/config/aws-sso.example Server/config/.aws-sso` and set `AWS_PROFILE` to your SilverKey SSO profile name, or
+- **Shell-wide:** `export AWS_PROFILE=…` and `export AWS_REGION=us-east-2` in `~/.zshrc`
+
+During setup, step 3 runs `aws sso login` again if the session expired.
+
+### Optional: `Server/config/.aws-sso`
+
+Gitignored file (copy from [`Server/config/aws-sso.example`](Server/config/aws-sso.example)). Used by `make setup`, `make secrets`, and `make refresh --secrets`. It only stores **which profile name** and **region** to use — not passwords. SSO configuration remains in `~/.aws/config` via `aws configure sso`.
+
+```bash
+cp Server/config/aws-sso.example Server/config/.aws-sso
+# Edit AWS_PROFILE (from: aws configure list-profiles) and AWS_REGION in .aws-sso
+aws sso login --profile "$(grep '^export AWS_PROFILE=' Server/config/.aws-sso | cut -d= -f2- | tr -d '"')"
+make secrets
+```
+
+Shell `export AWS_PROFILE=…` overrides `.aws-sso` when already set in the environment.
 
 ---
 
@@ -205,7 +223,9 @@ See also [.cursor/README.md](.cursor/README.md) and [AGENTS.md](AGENTS.md).
 | No SSO profile yet | Run `aws configure sso`, then `export AWS_PROFILE=...` and re-run `make setup` |
 | Wrong Python / broken venv | `export PYTHON=python3.12` then `make setup` (recreates `Server/.venv`) |
 | After `git pull` only | `make refresh` (clears `.turbo`, Vite/pytest caches, etc.; keeps venv; refreshes pip/pnpm). Skip cache clear: `make refresh ARGS='--no-clean'`. Deeper clean (Expo/Playwright): `make refresh ARGS='--aggressive-clean'` |
-| `your-sso-profile-name` / secrets profile error | Remove legacy `Server/config/.aws-sso` if present; use terminal SSO only (`export AWS_PROFILE=...`, `aws sso login`) |
+| Invalid security token / secrets profile error | `aws sso login --profile <name>`; set profile via `Server/config/.aws-sso` or `export AWS_PROFILE=...` (not stale `~/.aws/credentials` default) |
+| `Token has expired and refresh failed` | On an interactive terminal, `make secrets` runs `aws sso login` for the profile in `Server/config/.aws-sso`. If it still fails, run login manually. CI: set `AWS_SSO_NO_AUTO_LOGIN=1` and provide credentials another way. |
+| `AWS profile not set` on `make secrets` | `cp Server/config/aws-sso.example Server/config/.aws-sso` or `export AWS_PROFILE=...` |
 | Verification: empty `DATABASE_URL` | Re-run `make secrets` or fix AWS access |
 | Redis not running after setup | `brew services start redis` or `redis-server --daemonize yes` then `redis-cli ping` |
 | Step 1: redis missing | `brew install redis` (macOS) or `sudo apt install redis-server` (Debian/Ubuntu) |
