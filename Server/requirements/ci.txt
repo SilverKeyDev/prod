@@ -91,6 +91,12 @@ redis==7.4.0
 plaid-python==36.1.0
 tenacity==8.2.3
 
+# --- Analytics / observability (app.posthog_client imports posthog at module load; pins aligned with runtime.txt) ---
+posthog>=3.0.0
+opentelemetry-api>=1.27.0
+opentelemetry-sdk>=1.27.0
+opentelemetry-exporter-otlp-proto-http>=1.27.0
+
 # --- HTTP / LLM clients (keep pins aligned with runtime.txt) ---
 openai==1.76.2
 httpx>=0.24.1,<1
