@@ -65,6 +65,7 @@ export default function getSilverkeyConfig({ silverkey }) {
             },
           },
         ],
+        "silverkey/no-unsafe-innerhtml": "error",
         "silverkey/no-raw-translation-key-literal": [
           "warn",
           {

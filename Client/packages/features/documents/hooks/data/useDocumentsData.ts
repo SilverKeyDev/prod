@@ -32,6 +32,8 @@ export type DocumentData = {
   library_item_id?: string;
   library_kind?: DocumentLibraryKind;
   agreement_type?: string | null;
+  /** When set, `{checklist_category}.{item_id}` for checklist-linked agreements. */
+  linked_checklist_item_id?: string | null;
   // Agreement-specific fields (populated when library_kind === "agreement")
   agent_id?: string | null;
   buyer_id?: string | null;
@@ -71,6 +73,7 @@ export async function fetchDocumentLibraryQuery(clientId?: string): Promise<Docu
       library_item_id: row.library_item_id,
       library_kind: row.library_kind,
       agreement_type: row.agreement_type ?? null,
+      linked_checklist_item_id: row.linked_checklist_item_id ?? null,
       agent_id: ((row as Record<string, unknown>).agent_id as string | null) ?? null,
       buyer_id: ((row as Record<string, unknown>).buyer_id as string | null) ?? null,
       participants:

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "variables": [
+    {
+      "key": "EXPO_PUBLIC_GOOGLE_MAPS_ID",
+      "required": true,
+      "dockerBuildArg": true,
+      "githubSecret": "EXPO_PUBLIC_GOOGLE_MAPS_ID",
+      "minLength": 8,
+      "forbidPrefix": "AIza",
+      "description": "Google Cloud Map ID (not the Maps JavaScript API key). Required for Advanced Markers."
+    },
+    {
+      "key": "EXPO_PUBLIC_PLAID_CLIENT_ID",
+      "required": false,
+      "dockerBuildArg": true,
+      "githubSecret": "EXPO_PUBLIC_PLAID_CLIENT_ID",
+      "description": "Plaid Link client id (optional until Plaid UI ships in web bundle)."
+    },
+    {
+      "key": "EXPO_PUBLIC_GOOGLE_CLIENT_ID",
+      "required": false,
+      "dockerBuildArg": true,
+      "githubSecret": "EXPO_PUBLIC_GOOGLE_CLIENT_ID",
+      "description": "Google OAuth client id for client-side flows (optional; web sign-in uses server redirect today)."
+    }
+  ]
+}

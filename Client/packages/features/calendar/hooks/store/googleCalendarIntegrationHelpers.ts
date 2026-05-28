@@ -71,6 +71,10 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
 
   const isConnected = connectionStatusQuery.data ?? cachedConnectionStatus ?? false;
 
+  /** True until the first connection check resolves (avoids flashing "Connect Google Calendar"). */
+  const connectionStatusLoading =
+    shouldLoadData && connectionStatusQuery.data === undefined && connectionStatusQuery.isPending;
+
   const silverKeyQuery = useQuery({
     queryKey: queryKeys.scheduling.silverKeyCalendar(),
     queryFn: async () => {
@@ -100,6 +104,7 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
   return {
     queryClient,
     isConnected,
+    connectionStatusLoading,
     calendars,
     calendarsLoading,
     calendarsError,

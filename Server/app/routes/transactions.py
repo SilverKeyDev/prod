@@ -10,14 +10,19 @@ from app.schemas import (
     TransactionAddressResponse,
     UpdateTaskChecklistRequest,
 )
+from app.schemas.generated import ChecklistTypeQueryParams
 from app.services.agent.client_service import get_agent_client_ids
+from app.services.transactions.checklist_support.checklist_constants import coerce_checklist_type
+from app.services.transactions.unified_task_checklist_progress_summary import (
+    build_task_checklist_progress_summary,
+)
 from app.services.transactions.unified_task_checklist_read import (
     TASK_CATEGORIES,
     build_task_checklist_data,
 )
 from app.services.transactions.unified_task_checklist_write import perform_task_checklist_put
 from app.utils.security import rate_limit
-from app.utils.validation import validate_request, validate_response
+from app.utils.validation import validate_query, validate_request, validate_response
 
 from .. import db
 from ..models import TransactionAddress
@@ -44,12 +49,17 @@ _can_write_transaction_task_checklist = _can_read_transaction_task_checklist
 @rate_limit(max_requests=200, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
-def get_transaction_task_checklist(user, transaction_id: str):
+@validate_query(ChecklistTypeQueryParams)
+def get_transaction_task_checklist(
+    user, transaction_id: str, query: ChecklistTypeQueryParams | None = None
+):
     """GET checklist definitions + checkedIds for a buyer (self) or an agent's client."""
     if not _can_read_transaction_task_checklist(user, str(transaction_id)):
         return jsonify({"success": False, "error": "Access denied"}), 403
 
-    checklist_type = request.args.get("type", "escrow")
+    checklist_type = coerce_checklist_type(
+        (query.type if query is not None else None) or request.args.get("type")
+    )
     data = build_task_checklist_data(str(transaction_id), checklist_type)
     if data is None:
         return jsonify({"success": False, "error": "Invalid checklist type"}), 400
@@ -57,20 +67,39 @@ def get_transaction_task_checklist(user, transaction_id: str):
     return jsonify({"success": True, "data": data})
 
 
+@transactions_bp.route("/<transaction_id>/tasks/progress-summary", methods=["GET"])
+@rate_limit(max_requests=200, window_seconds=60)
+@handle_exceptions_with_logging
+@require_authenticated_user
+def get_transaction_task_checklist_progress_summary(user, transaction_id: str):
+    """GET progress summary for a buyer (self) or an agent's managed client."""
+    if not _can_read_transaction_task_checklist(user, str(transaction_id)):
+        return jsonify({"success": False, "error": "Access denied"}), 403
+
+    data = build_task_checklist_progress_summary(str(transaction_id))
+    return jsonify({"success": True, "data": data})
+
+
 @transactions_bp.route("/<transaction_id>/tasks", methods=["PUT"])
 @rate_limit(max_requests=100, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
+@validate_query(ChecklistTypeQueryParams)
 @validate_request(UpdateTaskChecklistRequest)
 @validate_response(TaskChecklistApiResponse)
 def put_transaction_task_checklist(
-    user, transaction_id: str, data: UpdateTaskChecklistRequest | None = None
+    user,
+    transaction_id: str,
+    data: UpdateTaskChecklistRequest | None = None,
+    query: ChecklistTypeQueryParams | None = None,
 ):
     """PUT checklist progress for buyer self or agent updating a managed client."""
     if not _can_write_transaction_task_checklist(user, str(transaction_id)):
         return jsonify({"success": False, "error": "Access denied"}), 403
 
-    checklist_type = request.args.get("type", "escrow")
+    checklist_type = coerce_checklist_type(
+        (query.type if query is not None else None) or request.args.get("type")
+    )
     if checklist_type not in TASK_CATEGORIES:
         return jsonify({"success": False, "error": "Invalid checklist type"}), 400
 
@@ -96,6 +125,18 @@ def put_transaction_task_checklist(
             actor_user_id=str(user.id),
             correlation_id=correlation_id,
         )
+
+        from app.services.analytics.posthog_events import capture_product_event
+
+        capture_product_event(
+            str(user.id),
+            "checklist_tasks_updated",
+            properties={
+                "checklist_type": checklist_type,
+                "checked_count": len(coerced),
+            },
+        )
+
         return jsonify(payload)
     except ValueError as e:
         return jsonify({"success": False, "error": str(e)}), 400
@@ -210,6 +251,15 @@ def save_transaction_address(user, data: TransactionAddressData | None = None):
             )
             db.session.add(addr)
         db.session.commit()
+
+        from app.services.analytics.posthog_events import capture_product_event
+
+        capture_product_event(
+            str(user.id),
+            "transaction_address_saved",
+            properties={"has_place_id": bool(addr.place_id)},
+        )
+
         return jsonify(
             {
                 "success": True,

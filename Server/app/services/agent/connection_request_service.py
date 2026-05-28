@@ -10,14 +10,15 @@ Connection policy (asymmetric by design):
 import logging
 from datetime import datetime, timezone
 
-from ... import db
-from ...models import AgentConnectionRequest, AgentConnections, User
-from .client_service import append_unique_agent_id_for_client, append_unique_client_id
-from .connection_request_discovery import (
+from app.services.agent.connection_request.discovery import (
     recommend_agents,
     search_agents,
     search_clients,
 )
+
+from ... import db
+from ...models import AgentConnectionRequest, AgentConnections, User
+from .client_service import append_unique_agent_id_for_client, append_unique_client_id
 
 logger = logging.getLogger(__name__)
 

@@ -145,6 +145,7 @@ class Config:
 
     # Google Calendar Settings (OAuth client secret shared with Google sign-in)
     _google_calendar_secret = _optional_stripped_env("GOOGLE_CALENDAR_SECRET")
+    GOOGLE_CALENDAR_WEBHOOK_TOKEN = _optional_stripped_env("GOOGLE_CALENDAR_WEBHOOK_TOKEN")
     if not _google_calendar_secret and _is_testing_env():
         _google_calendar_secret = "test-google-calendar-secret-not-for-production"
     GOOGLE_CALENDAR_SECRET = _google_calendar_secret

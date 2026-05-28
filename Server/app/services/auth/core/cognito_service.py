@@ -11,6 +11,9 @@ from .cognito_admin import (
     admin_create_user as _admin_create_user,
 )
 from .cognito_admin import (
+    admin_delete_user as _admin_delete_user,
+)
+from .cognito_admin import (
     admin_get_user as _admin_get_user,
 )
 from .cognito_admin import (
@@ -126,6 +129,9 @@ class CognitoService:
             temporary_password,
             admin_get_user_fn=lambda u: _admin_get_user(self.client, self.user_pool_id, u),
         )
+
+    def admin_delete_user(self, username):
+        return _admin_delete_user(self.client, self.user_pool_id, username)
 
     def admin_get_user(self, username):
         return _admin_get_user(self.client, self.user_pool_id, username)

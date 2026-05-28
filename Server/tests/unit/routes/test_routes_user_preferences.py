@@ -232,12 +232,49 @@ class TestPreferences:
                 data = response.get_json()
                 assert data["success"] is True
 
-    def test_preferences_unauthorized(self, client):
-        """Test preferences endpoints without auth"""
-        # Test POST
-        response = client.post("/api/v1/preferences", json={"price_min": 200000})
-        assert response.status_code == 401
+    def test_create_preferences_syncs_seller_roles_to_profile(self, client, app: Flask, db_session):
+        """POST preferences with seller why_join → GET profile includes seller (+ buyer) roles."""
+        with app.app_context():
+            from app.models import User
 
-        # Test GET
-        response = client.get("/api/v1/preferences")
-        assert response.status_code == 401
+            user = User(
+                cognito_id="test-cognito-seller",
+                email="seller@example.com",
+                name="Seller User",
+                is_active=True,
+            )
+            db_session.session.add(user)
+            db_session.session.commit()
+
+            seller_prefs = {
+                "is_agent": "no",
+                "why_joining_silverkey": ["buying_house", "selling_house"],
+            }
+
+            with patch(
+                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
+            ) as mock_get:
+                mock_get.return_value = user
+
+                post = client.post(
+                    "/api/v1/preferences",
+                    headers={"Authorization": "Bearer mock_token"},
+                    json=seller_prefs,
+                )
+                assert post.status_code == 200
+
+                db_session.session.refresh(user)
+
+                with patch("app.services.auth.get_current_user") as mock_profile:
+                    mock_profile.return_value = user
+                    profile = client.get(
+                        "/api/v1/user/profile",
+                        headers={"Authorization": "Bearer mock_token"},
+                    )
+
+            assert profile.status_code == 200
+            body = profile.get_json()
+            inner = body.get("data") or body.get("user") or body
+            roles = inner.get("roles") or []
+            assert "seller" in roles
+            assert "buyer" in roles

@@ -42,6 +42,7 @@ export function useCalendarScreen({
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const {
     isConnected,
+    connectionStatusLoading,
     calendars,
     calendarsLoading,
     calendarsError,
@@ -314,13 +315,20 @@ export function useCalendarScreen({
   }, [connectGoogleCalendar]);
 
   const shouldShowConnectionPrompt = useMemo(() => {
-    if (isClientView) return false;
+    if (isClientView || connectionStatusLoading) return false;
     if (!isConnected) return true;
     if (isConnected && permissions !== null) {
       if (!hasRequiredPermissions || isPartiallyEnabled) return true;
     }
     return false;
-  }, [isClientView, isConnected, permissions, hasRequiredPermissions, isPartiallyEnabled]);
+  }, [
+    isClientView,
+    connectionStatusLoading,
+    isConnected,
+    permissions,
+    hasRequiredPermissions,
+    isPartiallyEnabled,
+  ]);
 
   const permissionsReady = isClientView || (!permissionsLoading && permissions !== undefined);
 
@@ -332,6 +340,7 @@ export function useCalendarScreen({
     silverKeyCalendarId,
     defaultCalendarId,
     calendarsLoading,
+    connectionStatusLoading,
     permissionsReady,
     clientEventsQuery,
     shouldShowConnectionPrompt,

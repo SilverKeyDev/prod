@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PreferencesSubmitResult } from "packages/features/profile/types/submitHandler";
 
-import { handleSubmit } from "./submitHandler";
+import { handleSubmit, postOnboardingPathForForm } from "./submitHandler";
 
 const { removeItemMock, patchClientSettingsMock } = vi.hoisted(() => ({
   removeItemMock: vi.fn(),
@@ -29,6 +29,28 @@ vi.mock("packages/features/homeauth/api/clientSettings", () => ({
   },
 }));
 
+describe("postOnboardingPathForForm", () => {
+  it("routes seller to dashboard", () => {
+    expect(
+      postOnboardingPathForForm({
+        primary_onboarding_role: "seller",
+        is_agent: "no",
+        why_joining_silverkey: ["buying_house", "selling_house"],
+      })
+    ).toBe("/dashboard");
+  });
+
+  it("routes buyer to search", () => {
+    expect(
+      postOnboardingPathForForm({
+        primary_onboarding_role: "buyer",
+        is_agent: "no",
+        why_joining_silverkey: ["buying_house"],
+      })
+    ).toBe("/search");
+  });
+});
+
 describe("onboarding submission validation bypass", () => {
   beforeEach(() => {
     removeItemMock.mockReset();
@@ -48,16 +70,20 @@ describe("onboarding submission validation bypass", () => {
       missingFields: ["name"],
       errors: ["Name is required"],
     }));
+    const navigate = vi.fn<(path: string) => void>();
 
     await handleSubmit({
-      formData: {},
+      formData: { primary_onboarding_role: "buyer", is_agent: "no" },
       submitPreferences,
       setLoading,
       setValidationResult,
       setShowValidationWarning,
       validateFunction,
+      navigate,
       skipValidation: true,
     });
+
+    expect(navigate).toHaveBeenCalledWith("/search");
 
     expect(validateFunction).not.toHaveBeenCalled();
     expect(submitPreferences).toHaveBeenCalledTimes(1);

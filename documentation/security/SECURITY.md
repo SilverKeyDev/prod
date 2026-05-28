@@ -370,6 +370,10 @@ def get_valid_token(user_id: str) -> DocusignOAuthToken:
 
 ## 3. PII Protection Mechanisms
 
+### 3.0 Rev-share click IP hashing
+
+Outbound partner clicks (`GET /r/{link_id}`) persist **`ip_address_hash`** only — HMAC-SHA256 of the client IP using server secret `REV_SHARE_IP_HASH_SECRET` (falls back to `SECRET_KEY` in dev). Raw IPs are not stored in `rev_share_link_clicks` or written to application logs. Optional GeoIP fills nullable `geo_city` / `geo_zip` at click time. See [`documentation/client/rev-share-partners.md`](../client/rev-share-partners.md).
+
 ### 3.1 Automatic PII Scrubbing (Frontend)
 
 **Location:** `Client/packages/logger/pii.ts`
@@ -549,6 +553,19 @@ def sanitize_error_message(error: Exception) -> str:
 ---
 
 ## 4. Input Validation Patterns
+
+Canonical guide: [documentation/server/input-validation.md](../server/input-validation.md).
+
+| Layer | Mechanism |
+| ----- | --------- |
+| JSON bodies | `@validate_request` + Pydantic models from `openapi/` |
+| Query strings | `@validate_query` + generated query param models |
+| Multipart text fields | `sanitize_optional_address()` and domain validators |
+| Webhooks | HMAC / channel token verification (fail-closed outside development) |
+| Global mode | `OPENAPI_VALIDATION_MODE` (`gradual` \| `strict`) |
+| Per-domain strict | `OPENAPI_VALIDATION_STRICT_DOMAINS` (comma-separated path prefixes) |
+
+Client-side Zod mirrors for UX live under `Client/packages/schemas/` (not a substitute for server validation).
 
 ### 4.1 Server-Side Validation
 

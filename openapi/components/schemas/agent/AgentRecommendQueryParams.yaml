@@ -1,0 +1,16 @@
+type: object
+properties:
+  zip:
+    type: string
+    maxLength: 16
+  state:
+    type: string
+    maxLength: 8
+  intent:
+    type: string
+    maxLength: 64
+  limit:
+    type: integer
+    minimum: 1
+    maximum: 50
+    default: 20

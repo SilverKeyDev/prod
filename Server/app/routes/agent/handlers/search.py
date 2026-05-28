@@ -2,10 +2,12 @@
 
 import logging
 
-from flask import jsonify, request
+from flask import jsonify
 from jose.exceptions import ExpiredSignatureError, JWTError
 
 from app.schemas.generated import (
+    AgentRecommendQueryParams,
+    AgentSearchQueryParams,
     RecommendedAgentsResponse,
     SearchAgentsResponse,
     SearchClientsResponse,
@@ -16,24 +18,26 @@ from app.services.auth import SecurityException, get_current_user
 from app.utils.common_patterns import handle_exceptions_with_logging, require_agent_access
 from app.utils.security import SecurityError, rate_limit, security_error_response
 from app.utils.security.secure_errors import SecureErrorHandler
-from app.utils.validation import validate_response
+from app.utils.validation import validate_query, validate_response
 
 logger = logging.getLogger(__name__)
 
 
 @rate_limit(max_requests=100, window_seconds=60)
+@validate_query(AgentSearchQueryParams)
 @validate_response(SearchAgentsResponse)
-def search_agents_endpoint():
+def search_agents_endpoint(query: AgentSearchQueryParams | None = None):
     """Search for agents (for clients)"""
     try:
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
-        query = request.args.get("q", "").strip()
-        limit = int(request.args.get("limit", 20))
-        if len(query) < 2:
+        params = query or AgentSearchQueryParams()
+        search_query = (params.q or "").strip()
+        limit = params.limit or 20
+        if len(search_query) < 2:
             return jsonify({"success": True, "agents": []})
-        agents = search_agents(query, limit)
+        agents = search_agents(search_query, limit)
         return jsonify({"success": True, "agents": agents})
     except (SecurityException, ExpiredSignatureError, JWTError):
         return jsonify({"success": False, "error": "Authentication required"}), 401
@@ -44,17 +48,19 @@ def search_agents_endpoint():
 
 
 @rate_limit(max_requests=100, window_seconds=60)
+@validate_query(AgentRecommendQueryParams)
 @validate_response(RecommendedAgentsResponse)
-def recommended_agents_endpoint():
+def recommended_agents_endpoint(query: AgentRecommendQueryParams | None = None):
     """Recommend agents for the current user from optional buyer/search context."""
     try:
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
-        zip_code = request.args.get("zip", "").strip() or None
-        state = request.args.get("state", "").strip() or None
-        intent = request.args.get("intent", "").strip() or None
-        limit = int(request.args.get("limit", 20))
+        params = query or AgentRecommendQueryParams()
+        zip_code = (params.zip or "").strip() or None
+        state = (params.state or "").strip() or None
+        intent = (params.intent or "").strip() or None
+        limit = params.limit or 20
         excluded: set[str] = set()
         if user.id and not user.is_agent:
             excluded = get_connected_agent_ids_for_client(user.id)
@@ -69,20 +75,22 @@ def recommended_agents_endpoint():
 
 
 @rate_limit(max_requests=100, window_seconds=60)
+@validate_query(AgentSearchQueryParams)
 @validate_response(SearchClientsResponse)
 @handle_exceptions_with_logging
 @require_agent_access
-def search_clients_endpoint(user):
+def search_clients_endpoint(user, query: AgentSearchQueryParams | None = None):
     """Search for clients (for agents)"""
     try:
-        query = request.args.get("q", "").strip()
-        limit = int(request.args.get("limit", 20))
-        if len(query) < 2:
+        params = query or AgentSearchQueryParams()
+        search_query = (params.q or "").strip()
+        limit = params.limit or 20
+        if len(search_query) < 2:
             return jsonify({"success": True, "clients": []})
         if not user.id:
             logger.error("User ID is None in search_clients_endpoint")
             return jsonify({"success": False, "error": "Invalid user session"}), 401
-        clients = search_clients(query, user.id, limit)
+        clients = search_clients(search_query, user.id, limit)
         return jsonify({"success": True, "clients": clients})
     except Exception as e:
         return SecureErrorHandler.handle_database_error(

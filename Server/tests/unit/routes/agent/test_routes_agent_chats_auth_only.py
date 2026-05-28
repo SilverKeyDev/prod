@@ -2,8 +2,10 @@
 
 import jwt as pyjwt
 
+from tests.jwt_test_secret import TEST_JWT_HMAC_SECRET
+
 MOCK_JWT_TOKEN = pyjwt.encode(
-    {"sub": "test-user", "email": "test@example.com"}, "test-secret", algorithm="HS256"
+    {"sub": "test-user", "email": "test@example.com"}, TEST_JWT_HMAC_SECRET, algorithm="HS256"
 )
 
 

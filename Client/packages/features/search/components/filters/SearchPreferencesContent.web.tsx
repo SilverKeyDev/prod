@@ -13,6 +13,7 @@ import { Box } from "packages/ui/components/primitives";
 import AgentSearchPreferencesSyncPanel from "@/features/agent/components/search/AgentSearchPreferencesSyncPanel.web";
 import type { OnboardingData } from "@/features/profile/utils";
 
+import { ClearPreferencesButton } from "./ClearPreferencesButton";
 import PriceRangeFilter from "./PriceRangeFilter.web";
 
 export type SearchPreferencesContentProps = {
@@ -27,6 +28,10 @@ export type SearchPreferencesContentProps = {
    * called immediately after client prefs load so the form can snap to those values before POST finishes.
    */
   onAgentSyncPreferencesFetched?: (onboarding: Partial<OnboardingData>) => void;
+  onClientChange?: (clientId: string | null) => void;
+  replaceFormData?: (next: Partial<OnboardingData>) => void;
+  cancelPendingSave?: () => void;
+  onAfterClear?: () => void | Promise<void>;
 };
 
 export default function SearchPreferencesContent({
@@ -36,12 +41,25 @@ export default function SearchPreferencesContent({
   scriptsReady,
   viewingClientId = null,
   onAgentSyncPreferencesFetched,
+  onClientChange,
+  replaceFormData,
+  cancelPendingSave,
+  onAfterClear,
 }: SearchPreferencesContentProps): React.ReactElement {
   const typedFormData = formData as OnboardingData;
   const isAgent = useIsAgent();
 
   return (
     <Box className="space-y-6">
+      <ClearPreferencesButton
+        selectedClientId={viewingClientId}
+        onClientChange={onClientChange}
+        replaceFormData={replaceFormData}
+        cancelPendingSave={cancelPendingSave}
+        onAfterClear={onAfterClear}
+        className="border-border w-full border-b pb-4"
+      />
+
       {isAgent ? (
         <AgentSearchPreferencesSyncPanel
           viewingClientId={viewingClientId}

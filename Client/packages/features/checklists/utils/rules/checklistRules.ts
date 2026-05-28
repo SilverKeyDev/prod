@@ -171,7 +171,12 @@ export function applyTaskChecklistMerge(
   const valid = new Set(items.map((it) => it.id));
   const requestedValid = new Set(requestedIds.filter((id) => valid.has(id)));
   const requestedSorted = [...requestedValid].sort((a, b) => a - b);
-  const effectiveList = mergeTaskChecklistCheckedIds(items, requestedSorted, oldCheckedIds, options);
+  const effectiveList = mergeTaskChecklistCheckedIds(
+    items,
+    requestedSorted,
+    oldCheckedIds,
+    options
+  );
   const effective = new Set(effectiveList);
   const strippedSorted = [...requestedValid].filter((x) => !effective.has(x)).sort((a, b) => a - b);
   const sortedItems = sortTaskChecklistItems([...items]);

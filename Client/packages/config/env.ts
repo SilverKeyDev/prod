@@ -21,6 +21,7 @@ type EnvShape = {
   readonly EXPO_PUBLIC_PLAID_CLIENT_ID: string;
   readonly EXPO_PUBLIC_API_URL: string;
   readonly EXPO_PUBLIC_API_BASE_URL: string;
+  readonly EXPO_PUBLIC_POSTHOG_KEY: string;
   readonly EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: string;
   readonly EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: string;
   readonly DEV: boolean;
@@ -37,6 +38,7 @@ function readProcessEnv(): EnvShape {
     EXPO_PUBLIC_PLAID_CLIENT_ID: trimEnv(p.EXPO_PUBLIC_PLAID_CLIENT_ID),
     EXPO_PUBLIC_API_URL: trimEnv(p.EXPO_PUBLIC_API_URL),
     EXPO_PUBLIC_API_BASE_URL: trimEnv(p.EXPO_PUBLIC_API_BASE_URL),
+    EXPO_PUBLIC_POSTHOG_KEY: trimEnv(p.EXPO_PUBLIC_POSTHOG_KEY),
     EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: trimEnv(p.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS),
     EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: trimEnv(p.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR),
     DEV: !isProd,
@@ -156,6 +158,11 @@ class EnvConfig {
 
   get apiRetries(): number {
     return 2;
+  }
+
+  get posthogKey(): string | null {
+    const key = trimEnv(this.env.EXPO_PUBLIC_POSTHOG_KEY);
+    return key || null;
   }
 
   get isDevelopment(): boolean {

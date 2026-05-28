@@ -4,8 +4,14 @@ import type { SubmitHandlerParams } from "packages/features/profile/types/submit
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
+import { primaryOnboardingRoleFromForm } from "./onboardingRoleSelection";
 import { formDataToPreferencesPayload } from "./profileFormSync";
 import { validateOnboardingData } from "./validation";
+
+/** Default post-onboarding route by primary role (canonical paths). */
+export function postOnboardingPathForForm(formData: OnboardingData): string {
+  return primaryOnboardingRoleFromForm(formData) === "seller" ? "/dashboard" : "/search";
+}
 
 export type {
   PreferencesSubmitResult,
@@ -85,7 +91,7 @@ export const handleSubmit = async ({
       if (onSuccessNavigate) {
         onSuccessNavigate();
       } else if (navigate) {
-        navigate("/search");
+        navigate(postOnboardingPathForForm(formData));
       }
     } else {
       const errorMsg = result.error ?? "Failed to generate report";

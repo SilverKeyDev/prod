@@ -11,6 +11,9 @@
     },
     "datadog": {
       "enabled": true
+    },
+    "posthog": {
+      "enabled": true
     }
   }
 }

@@ -30,6 +30,11 @@
     "gcloud": {
       "command": "npx",
       "args": ["-y", "@google-cloud/gcloud-mcp"]
+    },
+    "cursor-memory": {
+      "command": "npx",
+      "args": ["-y", "cursor-memory@latest"],
+      "_comment": "Local /memo /recall /forget — optional; enable in Cursor Settings → MCP. See documentation/client/cursor-agent-memory.md"
     }
   }
 }

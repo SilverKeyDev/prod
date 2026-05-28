@@ -1,14 +1,17 @@
 """Checklist forms API – endpoints for forms embedded in checklist steps."""
 
 from flask import jsonify, request
+from pydantic import ValidationError
 
 from app.models import ChecklistForm, Transaction
+from app.schemas import ChecklistFormSendRequest
 from app.services.agent.client_service import get_agent_client_ids
 from app.services.documents.forms_service import FormsService
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.db.orm_lookup import get_model
 from app.utils.security import rate_limit
 from app.utils.security.app_logging import get_logger
+from app.utils.validation import validate_request
 
 logger = get_logger()
 
@@ -134,7 +137,15 @@ def download_form(user, transaction_id: str, section: str, item_id: str, form_id
 @rate_limit(max_requests=50, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
-def send_form(user, transaction_id: str, section: str, item_id: str, form_id: str):
+@validate_request(ChecklistFormSendRequest)
+def send_form(
+    user,
+    transaction_id: str,
+    section: str,
+    item_id: str,
+    form_id: str,
+    data: ChecklistFormSendRequest | None = None,
+):
     """
     POST /api/v1/transactions/<tid>/checklist-items/<section>/<item_id>/forms/<form_id>/send
 
@@ -164,17 +175,17 @@ def send_form(user, transaction_id: str, section: str, item_id: str, form_id: st
     if not form:
         return jsonify({"success": False, "error": "Form not found"}), 404
 
-    # Parse request
-    data = request.get_json(silent=True) or {}
-    method = data.get("method", "docusign")
+    if data is None:
+        try:
+            payload = ChecklistFormSendRequest.model_validate(request.get_json(silent=True) or {})
+        except ValidationError as exc:
+            return jsonify(
+                {"success": False, "error": "Invalid request", "details": exc.errors()}
+            ), 400
+    else:
+        payload = data
 
-    if method not in ["docusign", "messaging", "both"]:
-        return (
-            jsonify(
-                {"success": False, "error": "Invalid method. Must be docusign, messaging, or both"}
-            ),
-            400,
-        )
+    method = payload.method
 
     logger.info(
         "agent_forms",
@@ -198,9 +209,9 @@ def send_form(user, transaction_id: str, section: str, item_id: str, form_id: st
             result = FormsService.send_form_via_messaging(
                 form=form,
                 agent_user_id=str(user.id),
-                conversation_id=data.get("conversation_id"),
-                client_id_for_new=data.get("client_id"),
-                optional_message=data.get("message"),
+                conversation_id=payload.conversation_id,
+                client_id_for_new=payload.client_id,
+                optional_message=payload.message,
             )
             return jsonify({"success": True, "message_id": result["message_id"]})
         except ValueError as e:
@@ -214,7 +225,7 @@ def send_form(user, transaction_id: str, section: str, item_id: str, form_id: st
                 buyer_user_id=str(transaction_id),
                 section=str(section),
                 item_id=item_id_int,
-                optional_message=data.get("message"),
+                optional_message=payload.message,
             )
             return jsonify({"success": True, "agreement_id": result["agreement_id"]})
         except ValueError as e:
@@ -228,9 +239,9 @@ def send_form(user, transaction_id: str, section: str, item_id: str, form_id: st
         msg = FormsService.send_form_via_messaging(
             form=form,
             agent_user_id=str(user.id),
-            conversation_id=data.get("conversation_id"),
-            client_id_for_new=data.get("client_id"),
-            optional_message=data.get("message"),
+            conversation_id=payload.conversation_id,
+            client_id_for_new=payload.client_id,
+            optional_message=payload.message,
         )
         message_id_out = msg.get("message_id")
     except ValueError as e:
@@ -242,7 +253,7 @@ def send_form(user, transaction_id: str, section: str, item_id: str, form_id: st
             buyer_user_id=str(transaction_id),
             section=str(section),
             item_id=item_id_int,
-            optional_message=data.get("message"),
+            optional_message=payload.message,
         )
         agreement_id_out = ds.get("agreement_id")
     except ValueError as e:

@@ -203,11 +203,11 @@
     "reason": "RN modal and list."
   },
   {
-    "id": "home-concierge",
-    "description": "Home concierge component with RN layout and Linking API.",
-    "webPath": "packages/features/checklists/components/integrations/concierge/HomeConcierge.tsx",
-    "nativePath": "packages/features/checklists/components/integrations/concierge/HomeConcierge.native.tsx",
-    "reason": "RN layout and Linking API."
+    "id": "partner-transaction-integration",
+    "description": "Partner transaction checklist integration with RN WebView and tracked links.",
+    "webPath": "packages/features/partners/components/PartnerTransactionIntegration.tsx",
+    "nativePath": "packages/features/partners/components/PartnerTransactionIntegration.native.tsx",
+    "reason": "RN WebView embed and Linking API for partner placements."
   },
   {
     "id": "feed-item-with-gesture",

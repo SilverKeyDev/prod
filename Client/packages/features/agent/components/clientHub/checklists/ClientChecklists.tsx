@@ -4,13 +4,13 @@ import { useLocalization } from "packages/contexts";
 import {
   BuyerRoadmapChecklistList,
   CHECKLIST_SUBTITLES,
+  CHECKLIST_TAB_TO_TYPE,
   CHECKLIST_TITLES,
   ChecklistStepForms,
   type ChecklistTab,
   type ChecklistType,
   sortTaskChecklistItems,
   useAutoCompleteChecklistIntegrations,
-  useChecklistData,
   useChecklistProgress,
 } from "packages/features/checklists";
 import { useActiveWorkspace } from "packages/features/homeauth";
@@ -21,14 +21,7 @@ import { Box, Pressable, Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import type { TransactionShellConfig } from "packages/utils/workspace";
 
-const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
-  search: "search",
-  offer: "offer",
-  escrow: "escrow",
-  inspections: "insurance",
-  financing: "financing",
-  closing: "closing",
-};
+const TAB_TO_CHECKLIST_TYPE = CHECKLIST_TAB_TO_TYPE;
 
 type ClientChecklistsProps = {
   userId: string;
@@ -71,9 +64,11 @@ export default function ClientChecklists({
     [userId, isAgentWorkspace]
   );
 
-  const { currentSection, isSectionUnlocked, getItemToggleEligibility, sectionProgress } =
-    useChecklistProgress(checklistSubjectOptions);
   const {
+    currentSection,
+    isSectionUnlocked,
+    getItemToggleEligibility,
+    sectionProgress,
     items,
     checkedIds,
     activeItemId,
@@ -83,7 +78,7 @@ export default function ClientChecklists({
     toggleItem,
     refreshChecklist,
     isChecklistUpdatePending,
-  } = useChecklistData(checklistType, checklistSubjectOptions);
+  } = useChecklistProgress({ ...checklistSubjectOptions, activeSection: currentTab });
 
   const sortedItems = useMemo(() => sortTaskChecklistItems(items), [items]);
 
@@ -184,6 +179,7 @@ export default function ClientChecklists({
         onRoadmapTabNavigate={setTab}
         hideIntegrationComponents={hideIntegrationComponents}
         isChecklistUpdatePending={isChecklistUpdatePending}
+        transactionSubjectId={userId}
         hubClientUserId={isAgentWorkspace ? userId : null}
         checklistCategory={isAgentWorkspace ? checklistType : null}
         isAgent={isAgentWorkspace}

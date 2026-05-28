@@ -136,6 +136,9 @@ celery.Task = ContextTask
 # Optional lifecycle logging
 @worker_process_init.connect
 def worker_started(**_):
+    from logger.posthog_otlp import init_posthog_otlp
+
+    init_posthog_otlp("silverkey-celery")
     log.info(LOG_CATEGORIES["API"], "Celery worker process started")
 
 

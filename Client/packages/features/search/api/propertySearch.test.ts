@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SearchByPolygonResponse } from "packages/types/domain/api";
 
-import {
-  searchPropertiesInIsochrone,
-  searchPropertiesInViewport,
-} from "./propertySearch";
+import { searchPropertiesInIsochrone, searchPropertiesInViewport } from "./propertySearch";
 
 vi.mock("packages/logger", () => ({
   log: {
@@ -62,9 +59,8 @@ describe("searchPropertiesInIsochrone", () => {
 
   it("returns early without API call when isochrone geometry is missing", async () => {
     const setters = createSetters();
-    const { warnSearchAreaInvalid } = await import(
-      "packages/features/search/utils/outcomes/searchOutcomeToast"
-    );
+    const { warnSearchAreaInvalid } =
+      await import("packages/features/search/utils/outcomes/searchOutcomeToast");
 
     await searchPropertiesInIsochrone(
       { isochrone: {} } as never,
@@ -150,14 +146,16 @@ describe("searchPropertiesInViewport", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockHandlePolygonSearchResponse.mockResolvedValue(undefined);
-    mockSearchByPolygon.mockResolvedValue({ success: true, properties: [] } as SearchByPolygonResponse);
+    mockSearchByPolygon.mockResolvedValue({
+      success: true,
+      properties: [],
+    } as SearchByPolygonResponse);
   });
 
   it("returns early when viewport polygon is too small", async () => {
     const setters = createSetters();
-    const { warnSearchAreaInvalid } = await import(
-      "packages/features/search/utils/outcomes/searchOutcomeToast"
-    );
+    const { warnSearchAreaInvalid } =
+      await import("packages/features/search/utils/outcomes/searchOutcomeToast");
 
     await searchPropertiesInViewport(
       [{ lat: 1, lng: 2 }],
@@ -209,9 +207,8 @@ describe("searchPropertiesInViewport", () => {
     const abortErr = new Error("aborted");
     abortErr.name = "AbortError";
     mockSearchByPolygon.mockRejectedValue(abortErr);
-    const { warnSearchServerOrTimeout } = await import(
-      "packages/features/search/utils/outcomes/searchOutcomeToast"
-    );
+    const { warnSearchServerOrTimeout } =
+      await import("packages/features/search/utils/outcomes/searchOutcomeToast");
 
     await searchPropertiesInViewport(
       viewportPolygon,

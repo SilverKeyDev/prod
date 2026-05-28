@@ -1,0 +1,153 @@
+"""Upload partner integration logo to S3 integration-logos/."""
+
+from __future__ import annotations
+
+import os
+
+from flask import current_app, jsonify, request
+
+from app import db
+from app.models import Partner
+from app.services.rev_share.admin.partner_logo import (
+    LOGO_ALLOWED_MIME_TYPES,
+    is_external_logo_reference,
+    resolve_partner_logo_url,
+)
+from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.utils.security import rate_limit
+from app.utils.security.secure_errors import SecureErrorHandler
+from logger import LOG_CATEGORIES, log
+
+
+@rate_limit(max_requests=30, window_seconds=60)
+@handle_exceptions_with_logging
+@require_authenticated_user
+def upload_partner_logo(user, partner_id: str):
+    from app.routes.rev_share.handlers.admin_partners import _require_admin
+
+    denied = _require_admin(user)
+    if denied:
+        return denied
+
+    from app.config.constants import UPLOAD_FOLDER_DEFAULT
+    from app.services.documents import s3_service
+    from app.utils.security.file_security import (
+        FileSecurityError,
+        create_secure_upload_directory,
+        validate_file_upload,
+    )
+
+    partner = Partner.query.filter_by(id=partner_id).first()
+    if not partner:
+        return SecureErrorHandler.create_secure_response(
+            "not_found", 404, additional_info={"message": "Partner not found"}
+        )
+
+    if "file" not in request.files:
+        log.warn(
+            LOG_CATEGORIES["API"],
+            "partner_logo_upload_missing_file_field",
+            {"partner_id": partner_id, "content_type": request.content_type},
+        )
+        return SecureErrorHandler.create_secure_response(
+            "file_upload_error",
+            400,
+            additional_info={"message": "No file provided. Use multipart form field name 'file'."},
+        )
+
+    file = request.files["file"]
+    if not file or file.filename == "":
+        return SecureErrorHandler.create_secure_response(
+            "file_upload_error", 400, additional_info={"message": "No file selected"}
+        )
+
+    try:
+        safe_filename, validated_mime_type = validate_file_upload(
+            file, allowed_types=LOGO_ALLOWED_MIME_TYPES
+        )
+    except FileSecurityError as e:
+        log.warn(
+            LOG_CATEGORIES["API"],
+            "partner_logo_upload_validation_failed",
+            {
+                "partner_id": partner_id,
+                "original_filename": file.filename,
+                "error": str(e),
+            },
+        )
+        return SecureErrorHandler.create_secure_response(
+            "file_upload_error",
+            400,
+            additional_info={
+                "message": str(e),
+                "allowed_types": sorted(LOGO_ALLOWED_MIME_TYPES.keys()),
+            },
+        )
+
+    upload_dir = create_secure_upload_directory(
+        current_app.config.get("UPLOAD_FOLDER", UPLOAD_FOLDER_DEFAULT),
+        f"partner-{partner_id}",
+    )
+    temp_file_path = os.path.join(upload_dir, safe_filename)
+    file.seek(0)
+    file.save(temp_file_path)
+
+    try:
+        if not s3_service or not s3_service.s3_client:
+            return SecureErrorHandler.create_secure_response(
+                "configuration_error",
+                503,
+                additional_info={"message": "File storage not available"},
+            )
+
+        _, ext = os.path.splitext(safe_filename.lower())
+        s3_key = f"integration-logos/{partner.slug}/logo{ext}"
+        previous_key = (
+            partner.logo_url
+            if partner.logo_url and not is_external_logo_reference(partner.logo_url)
+            else None
+        )
+
+        uploaded_key = s3_service.upload_file(
+            temp_file_path, s3_key, content_type=validated_mime_type
+        )
+        if not uploaded_key:
+            return SecureErrorHandler.create_secure_response("server_error", 500)
+
+        logo_url = resolve_partner_logo_url(uploaded_key, content_type=validated_mime_type)
+        if not logo_url:
+            try:
+                s3_service.delete_pdf(uploaded_key)
+            except Exception:
+                pass
+            return SecureErrorHandler.create_secure_response(
+                "configuration_error",
+                503,
+                additional_info={"message": "Could not create a secure link for the logo."},
+            )
+
+        if previous_key and previous_key != uploaded_key:
+            try:
+                s3_service.delete_pdf(previous_key)
+            except Exception:
+                pass
+
+        partner.logo_url = uploaded_key
+        db.session.commit()
+
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "logo_url": logo_url,
+                    "data": {"logo_key": uploaded_key, "logo_url": logo_url},
+                }
+            ),
+            201,
+        )
+    finally:
+        if os.path.exists(temp_file_path):
+            try:
+                os.remove(temp_file_path)
+            except OSError:
+                pass

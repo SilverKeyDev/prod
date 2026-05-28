@@ -2,6 +2,8 @@
 
 from flask import current_app, jsonify, request
 
+from app.schemas import IsochroneQueryParams
+from app.utils.validation import validate_query
 from logger import LOG_CATEGORIES, log
 
 from ...services.search.helpers.geometry_helpers import geocode_address_google
@@ -18,7 +20,8 @@ from .search_blueprint import search_bp
 
 
 @search_bp.route("/isochrone", methods=["GET"])
-def get_isochrone():
+@validate_query(IsochroneQueryParams)
+def get_isochrone(query: IsochroneQueryParams | None = None):
     """
     Generate and return isochrone polygon data based on user preferences.
     Returns GeoJSON polygon representing areas reachable within commute tolerance
@@ -35,7 +38,11 @@ def get_isochrone():
                 {"success": False, "error": "UNAUTHORIZED", "message": "Authentication required"}
             ), 401
 
-        requested = request.args.get("preferences_user_id")
+        requested = (
+            query.preferences_user_id
+            if query is not None
+            else request.args.get("preferences_user_id")
+        )
         resolved_prefs_uid, resolve_err = resolve_preferences_user_id_for_research(user, requested)
         if resolve_err is not None:
             return jsonify(resolve_err), 403

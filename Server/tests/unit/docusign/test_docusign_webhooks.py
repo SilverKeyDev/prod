@@ -239,6 +239,15 @@ class TestWebhookProcessor:
             with patch.object(verification.Config, "DOCUSIGN_USER_CONNECT_HMAC_SECRET", "secret"):
                 assert verification.verify_hmac('{"a":1}', "deadbeef") is False
 
+    def test_verify_hmac_fails_closed_without_secret_in_production(self, app: Flask, monkeypatch):
+        from app.services.docusign.webhooks import verification
+
+        monkeypatch.setenv("FLASK_ENV", "production")
+        monkeypatch.delenv("TESTING", raising=False)
+        with app.app_context():
+            with patch.object(verification.Config, "DOCUSIGN_USER_CONNECT_HMAC_SECRET", ""):
+                assert verification.verify_hmac('{"a":1}', "sig") is False
+
     def test_process_envelope_event_idempotent(self, app: Flask, db_session, sample_agreement):
         from app.models import Agreement, DocusignConnectEvent
         from app.services.docusign.webhooks.processor import WebhookProcessor

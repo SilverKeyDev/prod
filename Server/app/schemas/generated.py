@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date as date_aliased
 from enum import Enum
 from typing import Any, Literal
 
@@ -713,6 +713,25 @@ class ChecklistDispatchNoteMode(Enum):
     per_client = "per_client"
 
 
+class Method(Enum):
+    docusign = "docusign"
+    messaging = "messaging"
+    both = "both"
+
+
+class Participant(BaseModel):
+    email: constr(max_length=320) | None = None
+    name: constr(max_length=200) | None = None
+
+
+class ChecklistFormSendRequest(BaseModel):
+    method: Method
+    conversation_id: constr(max_length=64) | None = None
+    client_id: constr(max_length=64) | None = None
+    message: constr(max_length=4000) | None = None
+    participants: list[Participant] | None = None
+
+
 class ClientAvailabilityRequest(BaseModel):
     start_date: AwareDatetime = Field(..., description="Start of availability window")
     end_date: AwareDatetime = Field(..., description="End of availability window")
@@ -1163,6 +1182,9 @@ class Scope1(Enum):
     profile = "profile"
     preferences = "preferences"
     docusign = "docusign"
+    transaction_steps = "transaction_steps"
+    s3 = "s3"
+    connections = "connections"
 
 
 class DevUserDataResetRequest(BaseModel):
@@ -1241,6 +1263,10 @@ class DocumentLibraryListItem(BaseModel):
     document_type: str | None = None
     address: str | None = None
     agreement_type: str | None = None
+    linked_checklist_item_id: str | None = Field(
+        None,
+        description="When this agreement is linked to a checklist step, the key `{checklist_category}.{item_id}` (e.g. `offer.3`, `insurance.2`).",
+    )
     event_type: EventType | None = Field(
         None,
         description="MLS-style listing event when the library item ties to a feed update:\n- `listed`: New listing associated with documents\n- `price_change`: Price update triggering revised paperwork\n- `sold`: Closed transaction context\n- `withdrawn`: Listing canceled or taken off market\n",
@@ -2015,6 +2041,21 @@ class IsochroneResponse(SuccessResponse):
     locations: list[Location1] | None = Field(None, description="Legacy field")
 
 
+class IsochroneQueryParams(BaseModel):
+    preferences_user_id: constr(max_length=64) | None = Field(
+        None,
+        description="Optional user id whose preferences drive the isochrone (agent research scope).",
+    )
+
+
+class OAuthCallbackQueryParams(BaseModel):
+    code: constr(max_length=2048) | None = Field(None, description="OAuth authorization code")
+    state: constr(max_length=512) | None = Field(None, description="OAuth CSRF state parameter")
+    error: constr(max_length=256) | None = Field(
+        None, description="OAuth error code when authorization failed"
+    )
+
+
 class ListTemplatesResponse(SuccessResponse):
     templates: list[DocusignTemplate] | None = None
 
@@ -2338,7 +2379,7 @@ class Event(Enum):
 
 
 class PriceHistoryItem(BaseModel):
-    eventDate: date = Field(..., description="Date of price event")
+    eventDate: date_aliased = Field(..., description="Date of price event")
     price: float = Field(..., description="Price at this event")
     event: Event = Field(..., description="Type of price event")
 
@@ -2458,7 +2499,7 @@ class PropertyMetadata(BaseModel):
     daysOnMarket: conint(ge=0) | None = Field(
         None, description="Number of days property has been listed"
     )
-    listingDate: date | None = Field(None, description="Date property was listed")
+    listingDate: date_aliased | None = Field(None, description="Date property was listed")
     lastUpdated: AwareDatetime | None = Field(None, description="Last time listing was updated")
     createdAt: AwareDatetime | None = Field(
         None, description="When record was created in our system"
@@ -2694,6 +2735,31 @@ class RevokeResponse(SuccessResponse):
     revoked: bool | None = Field(None, description="Whether OAuth token was successfully revoked")
 
 
+class AgentSearchQueryParams(BaseModel):
+    q: constr(max_length=200) | None = ""
+    limit: conint(ge=1, le=50) | None = 20
+
+
+class AgentRecommendQueryParams(BaseModel):
+    zip: constr(max_length=16) | None = None
+    state: constr(max_length=8) | None = None
+    intent: constr(max_length=64) | None = None
+    limit: conint(ge=1, le=50) | None = 20
+
+
+class FeedListQueryParams(BaseModel):
+    page: conint(ge=0, le=10000) | None = 0
+    limit: conint(ge=1, le=50) | None = 10
+
+
+class FeedLikesQueryParams(BaseModel):
+    ids: constr(max_length=2000) | None = Field(None, description="Comma-separated home ids")
+
+
+class ChecklistTypeQueryParams(BaseModel):
+    type: ChecklistType | None = "escrow"
+
+
 class SearchAgentsResponse(SuccessResponse):
     agents: list[AgentSearchResult] | None = None
 
@@ -2897,6 +2963,18 @@ class SyncTemplatesResponse(SuccessResponse):
     task_id: str | None = None
 
 
+class TaskChecklistSectionProgress(BaseModel):
+    completed: conint(ge=0)
+    total: conint(ge=0)
+    isComplete: bool
+
+
+class TaskChecklistOverallProgress(BaseModel):
+    completed: conint(ge=0)
+    total: conint(ge=0)
+    percent: conint(ge=0, le=100)
+
+
 class Status8(Enum):
     SUCCESS = "SUCCESS"
     PENDING = "PENDING"
@@ -2954,6 +3032,24 @@ class UpdateAgentStatusRequest(BaseModel):
     brokerage: str | None = Field(
         None,
         description="Optional users.brokerage when toggling agent status (if used by client).",
+    )
+
+
+class DevWorkspacePersona(Enum):
+    """
+    Dev-only workspace persona for admin self-impersonation (local QA).
+    """
+
+    buyer = "buyer"
+    seller = "seller"
+    agent = "agent"
+    brokerage = "brokerage"
+    integration_partner = "integration_partner"
+
+
+class SetCurrentUserDevWorkspaceRequest(BaseModel):
+    workspace: DevWorkspacePersona = Field(
+        ..., description="Exclusive workspace persona to apply to the signed-in user."
     )
 
 
@@ -3077,6 +3173,212 @@ class ValidationStatsApiResponse(SuccessResponse):
         ...,
         description="Aggregate validation-stats payload from the API (structured log snapshot; may evolve).",
     )
+
+
+class TargetRole(Enum):
+    buyer = "buyer"
+    seller = "seller"
+    agent = "agent"
+    brokerage = "brokerage"
+    integration_partner = "integration_partner"
+
+
+class PayoutType(Enum):
+    """
+    Whether payout is attributed per click or per closed transaction
+    """
+
+    on_click = "on_click"
+    on_close = "on_close"
+
+
+class IntegrationDisplayMode(Enum):
+    """
+    Checklist integration UI — embedded iframe plus new-tab link, or link only
+    """
+
+    iframe_and_link = "iframe_and_link"
+    link_only = "link_only"
+
+
+class Partner(BaseModel):
+    id: str
+    name: str
+    slug: str
+    destination_url_template: str
+    logo_url: str | None = None
+    description: str | None = None
+    step_id: str = Field(
+        ...,
+        description="Deprecated primary step mirror (step_ids[0]) for analytics compatibility",
+    )
+    step_ids: list[str] = Field(
+        ..., description="Checklist step references (section:item_id), e.g. closing:13"
+    )
+    target_roles: list[TargetRole] = Field(
+        ..., description="Workspaces that may see this placement"
+    )
+    payout_type: PayoutType = Field(
+        ...,
+        description="Whether payout is attributed per click or per closed transaction",
+    )
+    payout_per_conversion: float
+    integration_display_mode: IntegrationDisplayMode | None = Field(
+        "iframe_and_link",
+        description="Checklist integration UI — embedded iframe plus new-tab link, or link only",
+    )
+    embed_url_template: str | None = Field(
+        None,
+        description="Optional URL loaded in the iframe when integration_display_mode is iframe_and_link; defaults to destination_url_template",
+    )
+    is_active: bool
+    created_at: AwareDatetime | None = None
+    updated_at: AwareDatetime | None = None
+    total_clicks: int | None = None
+    click_through_rate: float | None = None
+    unique_buyer_step_views: int | None = None
+
+
+class PayoutType1(Enum):
+    on_click = "on_click"
+    on_close = "on_close"
+
+
+class IntegrationDisplayMode1(Enum):
+    iframe_and_link = "iframe_and_link"
+    link_only = "link_only"
+
+
+class PartnerCreateRequest(BaseModel):
+    name: str
+    slug: str
+    destination_url_template: str = Field(
+        ...,
+        description="Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here.",
+    )
+    logo_url: str | None = None
+    description: str | None = None
+    step_ids: list[str] | None = Field(
+        None, description="Required when target_roles includes buyer or seller"
+    )
+    target_roles: list[TargetRole] = Field(..., min_length=1)
+    payout_type: PayoutType1
+    payout_per_conversion: float | None = None
+    integration_display_mode: IntegrationDisplayMode1 | None = "iframe_and_link"
+    embed_url_template: str | None = Field(
+        None,
+        description="Optional iframe embed URL; when omitted, destination_url_template is used for the iframe src",
+    )
+
+
+class PartnerUpdateRequest(BaseModel):
+    name: str | None = None
+    slug: str | None = None
+    destination_url_template: str | None = Field(
+        None,
+        description="Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here.",
+    )
+    logo_url: str | None = None
+    description: str | None = None
+    step_ids: list[str] | None = None
+    target_roles: list[TargetRole] | None = None
+    payout_type: PayoutType1 | None = None
+    payout_per_conversion: float | None = None
+    integration_display_mode: IntegrationDisplayMode1 | None = "iframe_and_link"
+    embed_url_template: str | None = None
+    is_active: bool | None = Field(
+        None,
+        description="Table activate/deactivate only; not set from create/edit form",
+    )
+
+
+class Data(BaseModel):
+    partners: list[Partner]
+
+
+class PartnerListResponse(BaseModel):
+    success: bool
+    data: Data
+
+
+class PartnerResponse(BaseModel):
+    success: bool
+    data: Partner
+
+
+class Data1(BaseModel):
+    logo_key: str | None = None
+    logo_url: str | None = None
+
+
+class PartnerLogoUploadResponse(BaseModel):
+    success: bool
+    logo_url: str | None = Field(None, description="Presigned view URL for the uploaded logo")
+    data: Data1 | None = None
+
+
+class RevShareStepViewRequest(BaseModel):
+    step_id: str
+    transaction_id: str
+
+
+class Placement(BaseModel):
+    partner: Partner
+    link_id: str
+    destination_url: str | None = Field(
+        None,
+        description="Resolved partner destination URL for outbound open (no /r redirect required)",
+    )
+    embed_src: str | None = Field(
+        None,
+        description="Resolved iframe URL when partner integration_display_mode is iframe_and_link",
+    )
+
+
+class Data2(BaseModel):
+    placements: list[Placement]
+
+
+class RevSharePlacementsResponse(BaseModel):
+    success: bool
+    data: Data2
+
+
+class Point(BaseModel):
+    date: str | None = None
+    count: int | None = None
+
+
+class ClicksOverTime(BaseModel):
+    bucket: str | None = None
+    points: list[Point] | None = None
+
+
+class TopAgent(BaseModel):
+    agent_id: str | None = None
+    name: str | None = None
+    clicks: int | None = None
+
+
+class Data3(BaseModel):
+    partner_id: str | None = None
+    total_clicks: int | None = None
+    unique_buyer_clicks: int | None = None
+    unique_buyer_step_views: int | None = None
+    click_through_rate: float | None = None
+    estimated_revenue: float | None = None
+    estimated_revenue_label: str | None = None
+    clicks_over_time: ClicksOverTime | None = None
+    top_agents: list[TopAgent] | None = None
+    geo_breakdown: list[dict[str, Any]] | None = None
+    device_breakdown: list[dict[str, Any]] | None = None
+    referrer_breakdown: list[dict[str, Any]] | None = None
+    recent_clicks: list[dict[str, Any]] | None = None
+
+
+class RevShareAnalyticsResponse(BaseModel):
+    success: bool
+    data: Data3
 
 
 class ViewingNavigateResponse(BaseModel):
@@ -3633,7 +3935,23 @@ class SendAgreementRequest(BaseModel):
     )
 
 
+class TaskChecklistProgressSummary(BaseModel):
+    sections: dict[str, TaskChecklistSectionProgress] = Field(
+        ...,
+        description="Per-category progress keyed by ChecklistType (search, offer, escrow, insurance, financing, closing).",
+    )
+    overall: TaskChecklistOverallProgress
+
+
+class TaskChecklistProgressSummaryResponse(SuccessResponse):
+    data: TaskChecklistProgressSummary | None = None
+
+
 class UpdateAgentStatusResponse(SuccessResponse):
+    user: User | None = None
+
+
+class SetCurrentUserDevWorkspaceResponse(SuccessResponse):
     user: User | None = None
 
 

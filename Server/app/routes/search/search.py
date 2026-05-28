@@ -197,6 +197,18 @@ def search_properties_by_polygon(data: SearchByPolygonRequest | None = None):
                 "request_id": meta_rid,
             },
         )
+        if ok and bool(request_data.get("forceSearch")):
+            from app.services.analytics.posthog_events import capture_product_event
+
+            capture_product_event(
+                str(user.id),
+                "property_search_run",
+                properties={
+                    "elapsed_s": round(elapsed, 3),
+                    "for_self": str(resolved_pref_uid) == str(user.id),
+                },
+            )
+
         if payload is None:
             return status_second
         return jsonify(payload), status_second

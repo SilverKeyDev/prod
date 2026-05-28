@@ -4,6 +4,7 @@ import type { OnboardingData } from "packages/features/profile/types/onboarding"
 
 import {
   applyOnboardingRoleSelection,
+  isSelectableOnboardingRole,
   primaryOnboardingRoleFromForm,
   WHY_JOIN_FOR_ROLE,
 } from "./onboardingRoleSelection";
@@ -30,17 +31,20 @@ describe("applyOnboardingRoleSelection", () => {
     expect(patches.why_joining_silverkey).toEqual([WHY_JOIN_FOR_ROLE.buyer]);
   });
 
-  it("maps seller to is_agent no and both buying + selling intents", () => {
+  it("does not apply patches for coming-soon seller tile", () => {
     const patches: Record<string, unknown> = {};
     applyOnboardingRoleSelection("seller", (k, v) => {
       patches[String(k)] = v;
     });
-    expect(patches.primary_onboarding_role).toBe("seller");
-    expect(patches.is_agent).toBe("no");
-    expect(patches.why_joining_silverkey).toEqual([
-      WHY_JOIN_FOR_ROLE.buyer,
-      WHY_JOIN_FOR_ROLE.seller,
-    ]);
+    expect(patches).toEqual({});
+  });
+
+  it("does not apply patches for coming-soon integration partner tile", () => {
+    const patches: Record<string, unknown> = {};
+    applyOnboardingRoleSelection("integration_partner", (k, v) => {
+      patches[String(k)] = v;
+    });
+    expect(patches).toEqual({});
   });
 });
 
@@ -81,8 +85,28 @@ describe("formDataToPreferencesPayload", () => {
   it("omits draft-only primary_onboarding_role", () => {
     const payload = formDataToPreferencesPayload({
       is_agent: "no",
-      primary_onboarding_role: "investor",
+      primary_onboarding_role: "buyer",
     } as OnboardingData);
     expect(Object.prototype.hasOwnProperty.call(payload, "primary_onboarding_role")).toBe(false);
+  });
+});
+
+describe("isSelectableOnboardingRole", () => {
+  it("allows buyer and agent only", () => {
+    expect(isSelectableOnboardingRole("buyer")).toBe(true);
+    expect(isSelectableOnboardingRole("agent")).toBe(true);
+    expect(isSelectableOnboardingRole("seller")).toBe(false);
+    expect(isSelectableOnboardingRole("integration_partner")).toBe(false);
+  });
+});
+
+describe("legacy investor draft", () => {
+  it("maps investor draft to buyer flow", () => {
+    expect(
+      primaryOnboardingRoleFromForm({
+        primary_onboarding_role: "investor",
+        is_agent: "no",
+      })
+    ).toBe("buyer");
   });
 });

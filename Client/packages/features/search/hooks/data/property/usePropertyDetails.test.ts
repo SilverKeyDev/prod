@@ -117,9 +117,12 @@ describe("usePropertyDetails", () => {
   });
 
   it("sets error message when generator throws", async () => {
-    vi.mocked(researchApi.streamProperty).mockImplementation(async function* () {
-      throw new Error("Stream failed");
-    });
+    vi.mocked(researchApi.streamProperty).mockReturnValue(
+      // eslint-disable-next-line require-yield -- stream failure before first event
+      (async function* failingStream() {
+        throw new Error("Stream failed");
+      })() as never
+    );
 
     const { result } = renderHook(() => usePropertyDetails());
 

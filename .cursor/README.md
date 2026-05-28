@@ -15,8 +15,9 @@ Human-oriented map of **Cursor** configuration: rules, skills, agents, and how t
 | `rules/backend/*.mdc`  | Flask/SQLAlchemy/model constraints                                                 |
 | `skills/*/SKILL.md`    | **Procedures** — multi-step workflows agents follow when invoked                   |
 | `agents/*.md`          | **Subagent personas** — specialized prompts (lint, security, architecture, …)      |
+| `memory/*.md`          | **Session memory bank** — active context + progress (team git); see `agent-memory.mdc` |
 | `settings.json`        | Workspace-level Cursor settings (team-shared)                                      |
-| `mcp.example.json`     | Example MCP server block — **no secrets**; copy pattern to local Cursor MCP config |
+| `mcp.example.json`     | Example MCP server block — **no secrets**; copy pattern to local `.cursor/mcp.json` |
 
 Loose notes under `.cursor/` should be rare. Prefer `documentation/` or `documentation/internal/` for human reference. Do not introduce new repo-root `docs/` for SilverKey prose — that duplicates `documentation/` and confuses agents; see `documentation.mdc` (always applied). **Rule files:** use a single path per concern (e.g. `backend-architecture.mdc` only); do not keep duplicate copies such as `backend-architecture 2.mdc` alongside the canonical name — they are redundant and inflate context.
 
@@ -159,6 +160,21 @@ Rule of thumb: if the model never needs a path unless you explicitly attach it, 
 - [ ] `.cursorignore.example` / `.cursorindexingignore` — new build outputs or huge dirs?
 - [ ] MCP servers in use still valid?
 - [ ] Diff `AGENTS.md` Quick start against `Client/package.json` and `./scripts/run-all-linters.sh`
+
+---
+
+## Agent memory (four layers)
+
+Full setup: [documentation/client/cursor-agent-memory.md](../documentation/client/cursor-agent-memory.md).
+
+| Layer | Where |
+| ----- | ----- |
+| Repo bank | `.cursor/memory/` + rule `rules/shared/agent-memory.mdc` |
+| Cursor account | Settings → Memories |
+| Automations | Tools → Memories → **Manage** (Memory Notes); seeds in `.cursor/memory/automations/` |
+| MCP | `cursor-memory` in `.cursor/mcp.json` (from `mcp.example.json`) |
+
+Print paste bundle: `./scripts/print-automation-memory.sh <persona>` (e.g. `engineer-default`, `ci-pr-babysit`).
 
 ---
 

@@ -156,19 +156,20 @@ export function SearchScreen() {
       return;
     }
     if (!hasLocations) {
-      showWarningToast(
-        SEARCH_TRANSLATIONS["search.need_locations_or_place"] ??
-          "Add important locations in Filters, or type a city, neighborhood, or ZIP in the search bar and search."
-      );
+      void runMapAreaSearch();
       return;
     }
     void runSearch();
-  }, [isSearching, hasLocations, handleCancelSearch, runSearch]);
+  }, [isSearching, hasLocations, handleCancelSearch, runSearch, runMapAreaSearch]);
 
   const handleFiltersSheetApply = useCallback(async () => {
     if (isSearching) return;
+    if (!hasLocations) {
+      await runMapAreaSearch();
+      return;
+    }
     await runSearch();
-  }, [isSearching, runSearch]);
+  }, [isSearching, hasLocations, runSearch, runMapAreaSearch]);
 
   return (
     <SearchScreenBody

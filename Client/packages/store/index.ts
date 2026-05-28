@@ -4,7 +4,6 @@ export { useGoogleMapsStore } from "./slices/maps";
 export { useNotificationStore } from "./slices/notifications";
 export { type ReportsState, useReportsStore } from "./slices/reports";
 export {
-  type AppDevPersona,
   type DevAppPersonaState,
   type ToastItem,
   type UIState,

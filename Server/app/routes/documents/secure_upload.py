@@ -21,7 +21,7 @@ from ...utils.security.file_security import (
     validate_file_upload,
 )
 from ...utils.security.secure_errors import SecureErrorHandler
-from ...utils.validation import validate_response
+from ...utils.validation import sanitize_optional_address, validate_response
 
 logger = get_logger()
 secure_upload_bp = Blueprint("secure_upload", __name__, url_prefix="/api/v1/upload")
@@ -96,8 +96,12 @@ def upload_document(user):
         # Note: file_path is required, so we store the S3 URL there if S3 is used
         final_file_path = s3_url if s3_url else temp_file_path
 
-        # Get optional address from form data
-        address = request.form.get("address") or None
+        try:
+            address = sanitize_optional_address(request.form.get("address"))
+        except ValueError as exc:
+            return SecureErrorHandler.create_secure_response(
+                "file_upload_error", 400, additional_info={"message": str(exc)}
+            )
 
         document = Document(
             id=document_id,

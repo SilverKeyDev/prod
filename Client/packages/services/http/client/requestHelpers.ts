@@ -1,3 +1,4 @@
+import { getPostHogRequestHeaders } from "packages/services/analytics/posthogHeaders";
 import { getDocument } from "packages/utils/platform";
 
 import { createAuthHeaders, normalizeHeaders, normalizeUrl } from "./httpRequestHeaders";
@@ -53,6 +54,7 @@ export function buildRequestOptions(
   const normalized = normalizeHeaders(fetchOptions.headers);
   const mergedHeaders = {
     ...authHeaders,
+    ...getPostHogRequestHeaders(),
     ...normalized,
   };
   if (!mergedHeaders["X-Request-ID"] && !mergedHeaders["x-request-id"]) {

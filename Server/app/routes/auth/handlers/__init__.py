@@ -12,6 +12,7 @@ from .preferences.preferences_agents import (
 )
 from .preferences.preferences_preferences import (
     create_or_update_preferences,
+    delete_preferences,
     get_clients_preferences,
     get_preferences,
     get_user_preferences_by_id,
@@ -51,6 +52,7 @@ __all__ = [
     "google_oauth_start",
     "google_oauth_callback",
     "create_or_update_preferences",
+    "delete_preferences",
     "get_preferences",
     "get_user_preferences_by_id",
     "get_clients_preferences",

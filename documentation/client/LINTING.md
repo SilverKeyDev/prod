@@ -38,6 +38,11 @@ If you prefer to stay at the repo root, prefix commands with `cd Client &&`.
 - **Git hooks**
   - `husky` and `lint-staged` are configured (see `Client/package.json`) to run lint/format checks on staged files before committing.
 
+- **Accessibility (jsx-a11y + SilverKey)**
+  - `eslint-plugin-jsx-a11y` (recommended rules) runs on `apps/web`, `apps/mobile`, `packages/ui`, `packages/features`, `packages/hooks`, and `packages/contexts` via `packages/config/eslint/eslint-overrides/a11y-overrides.js`.
+  - SilverKey rules: `no-direct-accessibility-props` (use unified `label` in features/pages), `require-interactive-label` (icon-only buttons must have `label`).
+  - Standards and WCAG checklist: [accessibility-standards.md](./accessibility-standards.md).
+
 ---
 
 ## Commands

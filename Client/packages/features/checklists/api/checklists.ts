@@ -19,12 +19,39 @@ import type { components } from "packages/types/api.generated";
 export type TaskChecklistItem = components["schemas"]["TaskChecklistItem"];
 export type TaskChecklistResponse = components["schemas"]["TaskChecklistResponse"];
 export type TaskChecklistApiResponse = components["schemas"]["TaskChecklistApiResponse"];
+export type TaskChecklistProgressSummary = components["schemas"]["TaskChecklistProgressSummary"];
+export type TaskChecklistProgressSummaryResponse =
+  components["schemas"]["TaskChecklistProgressSummaryResponse"];
+export type TaskChecklistSectionProgress = components["schemas"]["TaskChecklistSectionProgress"];
 export type ChecklistType = components["schemas"]["ChecklistType"];
 
 export async function getTaskChecklist(type: ChecklistType): Promise<TaskChecklistResponse> {
   const response = await apiGet<TaskChecklistApiResponse>(`/api/v1/tasks?type=${type}`);
   if (!response.success || !response.data) {
     throw new Error(response.error ?? `Failed to fetch ${type} checklist`);
+  }
+  return response.data;
+}
+
+export async function getTaskChecklistProgressSummary(): Promise<TaskChecklistProgressSummary> {
+  const response = await apiGet<TaskChecklistProgressSummaryResponse>(
+    "/api/v1/tasks/progress-summary"
+  );
+  if (!response.success || !response.data) {
+    throw new Error(response.error ?? "Failed to fetch checklist progress summary");
+  }
+  return response.data;
+}
+
+/** Progress summary for a buyer user id (self or agent's client). */
+export async function getTaskChecklistProgressSummaryForSubject(
+  transactionId: string
+): Promise<TaskChecklistProgressSummary> {
+  const response = await apiGet<TaskChecklistProgressSummaryResponse>(
+    `/api/v1/transactions/${encodeURIComponent(transactionId)}/tasks/progress-summary`
+  );
+  if (!response.success || !response.data) {
+    throw new Error(response.error ?? "Failed to fetch checklist progress summary for subject");
   }
   return response.data;
 }

@@ -46,48 +46,6 @@ describe("adminApi", () => {
     });
   });
 
-  describe("docusignOAuthStart", () => {
-    it("returns auth_url on success", async () => {
-      vi.mocked(apiGet).mockResolvedValueOnce({
-        success: true,
-        auth_url: "https://example.test/oauth",
-      });
-      await expect(adminApi.docusignOAuthStart()).resolves.toEqual({
-        auth_url: "https://example.test/oauth",
-      });
-    });
-
-    it("throws when auth_url missing", async () => {
-      vi.mocked(apiGet).mockResolvedValueOnce({ success: true });
-      await expect(adminApi.docusignOAuthStart()).rejects.toThrow();
-    });
-  });
-
-  describe("docusignListTemplates", () => {
-    it("returns templates array", async () => {
-      vi.mocked(apiGet).mockResolvedValueOnce({
-        success: true,
-        templates: [{ id: "t1" }],
-      });
-      await expect(adminApi.docusignListTemplates()).resolves.toEqual([{ id: "t1" }]);
-    });
-  });
-
-  describe("docusignSyncTemplates", () => {
-    it("returns task_id on success", async () => {
-      vi.mocked(apiPost).mockResolvedValueOnce({
-        success: true,
-        task_id: "celery-123",
-      });
-      await expect(adminApi.docusignSyncTemplates()).resolves.toEqual({ task_id: "celery-123" });
-      expect(apiPost).toHaveBeenCalledWith(
-        "/api/v1/docusign/templates/sync",
-        {},
-        { acceptStatuses: [202] }
-      );
-    });
-  });
-
   describe("deleteUserById", () => {
     it("trims user id and returns deleted_user_id", async () => {
       vi.mocked(apiPost).mockResolvedValueOnce({
@@ -159,6 +117,21 @@ describe("adminApi", () => {
         user_id: "other",
       });
     });
+
+    it("accepts extended scope enum values", async () => {
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        success: true,
+        target_user_id: "u1",
+        cleared: { s3: true, connections: true },
+      });
+      await adminApi.resetDevUserData({
+        scopes: ["s3", "connections"],
+      });
+      expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/users/reset-dev-data", {
+        confirm: true,
+        scopes: ["s3", "connections"],
+      });
+    });
   });
 
   describe("setCurrentUserAgentStatus", () => {
@@ -180,6 +153,39 @@ describe("adminApi", () => {
         error: "Forbidden",
       });
       await expect(adminApi.setCurrentUserAgentStatus({ is_agent: false })).rejects.toThrow(
+        "Forbidden"
+      );
+    });
+  });
+
+  describe("setCurrentUserDevWorkspace", () => {
+    it("returns user on success", async () => {
+      const user = {
+        id: "u1",
+        email: "a@b.c",
+        name: "A",
+        is_active: true,
+        is_agent: false,
+        roles: ["seller"],
+      };
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        success: true,
+        user,
+      });
+      await expect(adminApi.setCurrentUserDevWorkspace({ workspace: "seller" })).resolves.toEqual(
+        user
+      );
+      expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/current-user-dev-workspace", {
+        workspace: "seller",
+      });
+    });
+
+    it("throws with server error string when present", async () => {
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        success: false,
+        error: "Forbidden",
+      });
+      await expect(adminApi.setCurrentUserDevWorkspace({ workspace: "buyer" })).rejects.toThrow(
         "Forbidden"
       );
     });

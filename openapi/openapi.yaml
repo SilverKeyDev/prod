@@ -154,6 +154,8 @@ components:
       $ref: "./components/schemas/checklists/ChecklistDispatchAutomationSetting.yaml"
     ChecklistDispatchChannel:
       $ref: "./components/schemas/checklists/ChecklistDispatchChannel.yaml"
+    ChecklistFormSendRequest:
+      $ref: "./components/schemas/checklists/ChecklistFormSendRequest.yaml"
     ChecklistDispatchNoteMode:
       $ref: "./components/schemas/checklists/ChecklistDispatchNoteMode.yaml"
     ChecklistDispatchRecipientScope:
@@ -399,6 +401,10 @@ components:
       $ref: "./components/schemas/search/properties/IsochroneGeometry.yaml"
     IsochroneResponse:
       $ref: "./components/schemas/search/properties/IsochroneResponse.yaml"
+    IsochroneQueryParams:
+      $ref: "./components/schemas/search/properties/IsochroneQueryParams.yaml"
+    OAuthCallbackQueryParams:
+      $ref: "./components/schemas/shared/OAuthCallbackQueryParams.yaml"
     ListAgreementsResponse:
       $ref: "./components/schemas/agreements/agreements/ListAgreementsResponse.yaml"
     ListTemplatesResponse:
@@ -510,6 +516,16 @@ components:
       $ref: "./components/schemas/user/favorites/SavedHome.yaml"
     SearchAgentsPreferencesResponse:
       $ref: "./components/schemas/preferences/SearchAgentsPreferencesResponse.yaml"
+    AgentSearchQueryParams:
+      $ref: "./components/schemas/agent/AgentSearchQueryParams.yaml"
+    AgentRecommendQueryParams:
+      $ref: "./components/schemas/agent/AgentRecommendQueryParams.yaml"
+    FeedListQueryParams:
+      $ref: "./components/schemas/feed/FeedListQueryParams.yaml"
+    FeedLikesQueryParams:
+      $ref: "./components/schemas/feed/FeedLikesQueryParams.yaml"
+    ChecklistTypeQueryParams:
+      $ref: "./components/schemas/checklists/ChecklistTypeQueryParams.yaml"
     SearchAgentsResponse:
       $ref: "./components/schemas/agent/core/SearchAgentsResponse.yaml"
     SearchByPolygonRequest:
@@ -547,6 +563,14 @@ components:
       $ref: "./components/schemas/checklists/TaskChecklistApiResponse.yaml"
     TaskChecklistItem:
       $ref: "./components/schemas/checklists/TaskChecklistItem.yaml"
+    TaskChecklistProgressSummary:
+      $ref: "./components/schemas/checklists/TaskChecklistProgressSummary.yaml"
+    TaskChecklistProgressSummaryResponse:
+      $ref: "./components/schemas/checklists/TaskChecklistProgressSummaryResponse.yaml"
+    TaskChecklistSectionProgress:
+      $ref: "./components/schemas/checklists/TaskChecklistSectionProgress.yaml"
+    TaskChecklistOverallProgress:
+      $ref: "./components/schemas/checklists/TaskChecklistOverallProgress.yaml"
     TaskChecklistResponse:
       $ref: "./components/schemas/checklists/TaskChecklistResponse.yaml"
     TaskStatusResponse:
@@ -563,6 +587,12 @@ components:
       $ref: "./components/schemas/admin/UpdateAgentStatusRequest.yaml"
     UpdateAgentStatusResponse:
       $ref: "./components/schemas/admin/UpdateAgentStatusResponse.yaml"
+    DevWorkspacePersona:
+      $ref: "./components/schemas/admin/DevWorkspacePersona.yaml"
+    SetCurrentUserDevWorkspaceRequest:
+      $ref: "./components/schemas/admin/SetCurrentUserDevWorkspaceRequest.yaml"
+    SetCurrentUserDevWorkspaceResponse:
+      $ref: "./components/schemas/admin/SetCurrentUserDevWorkspaceResponse.yaml"
     UpdateChecklistDispatchAutomationRequest:
       $ref: "./components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml"
     UpdateChecklistRequest:
@@ -612,6 +642,24 @@ components:
       $ref: "./components/schemas/user/profile/UserDataExportResponse.yaml"
     ValidationStatsApiResponse:
       $ref: "./components/schemas/admin/ValidationStatsApiResponse.yaml"
+    Partner:
+      $ref: "./components/schemas/partners/Partner.yaml"
+    PartnerCreateRequest:
+      $ref: "./components/schemas/partners/PartnerCreateRequest.yaml"
+    PartnerUpdateRequest:
+      $ref: "./components/schemas/partners/PartnerUpdateRequest.yaml"
+    PartnerListResponse:
+      $ref: "./components/schemas/partners/PartnerListResponse.yaml"
+    PartnerResponse:
+      $ref: "./components/schemas/partners/PartnerResponse.yaml"
+    PartnerLogoUploadResponse:
+      $ref: "./components/schemas/partners/PartnerLogoUploadResponse.yaml"
+    RevShareStepViewRequest:
+      $ref: "./components/schemas/partners/RevShareStepViewRequest.yaml"
+    RevSharePlacementsResponse:
+      $ref: "./components/schemas/partners/RevSharePlacementsResponse.yaml"
+    RevShareAnalyticsResponse:
+      $ref: "./components/schemas/partners/RevShareAnalyticsResponse.yaml"
     ViewingBuildRouteApiResponse:
       $ref: "./components/schemas/viewings/ViewingBuildRouteApiResponse.yaml"
     ViewingItinerary:
@@ -879,6 +927,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Preferences
+      summary: Clear current user preferences
+      description: |
+        Deletes all normalized preference rows for the authenticated user and sets
+        `has_preferences` to false. Agents cannot clear a client's preferences via this
+        endpoint; it always affects only the signed-in user.
+      operationId: deletePreferences
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Preferences cleared
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    required:
+                      - has_preferences
+                    properties:
+                      has_preferences:
+                        type: boolean
+                        enum: [false]
+                      preferences:
+                        nullable: true
+                      message:
+                        type: string
         "401":
           description: Not authenticated
           content:
@@ -3368,6 +3459,13 @@ paths:
       security:
         - sessionCookie: []
         - bearerAuth: []
+      parameters:
+        - name: preferences_user_id
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 64
       responses:
         "200":
           description: HTTP 200
@@ -4022,6 +4120,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/transactions/{transaction_id}/tasks/progress-summary:
+    get:
+      tags: [ Tasks ]
+      summary: Task checklist progress summary for a transaction subject
+      description: >
+        Returns per-category completion counts and overall journey progress for the
+        buyer user id given by transaction_id. Same auth as GET .../tasks.
+      operationId: getTransactionTaskChecklistProgressSummary
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Buyer / hub client user id whose checklist progress is returned.
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskChecklistProgressSummaryResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/transactions/{transaction_id}/tasks:
     get:
       tags: [ Tasks ]
@@ -4045,7 +4180,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
+            $ref: "#/components/schemas/ChecklistType"
             default: escrow
           description: Checklist category (search, offer, escrow, financing, closing, insurance).
       responses:
@@ -4094,7 +4229,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
+            $ref: "#/components/schemas/ChecklistType"
             default: escrow
           description: Checklist category (search, offer, escrow, financing, closing, insurance).
       requestBody:
@@ -4218,6 +4353,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/tasks/progress-summary:
+    get:
+      tags: [ Tasks ]
+      summary: Unified task checklist progress summary
+      description: >
+        Returns per-category completion counts and overall journey progress for the
+        authenticated user without fetching full item definitions.
+      operationId: getUnifiedTaskChecklistProgressSummary
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskChecklistProgressSummaryResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/tasks:
     get:
       tags: [ Tasks ]
@@ -4230,7 +4389,7 @@ paths:
         - name: type
           in: query
           schema:
-            type: string
+            $ref: "#/components/schemas/ChecklistType"
             default: escrow
       responses:
         "200":
@@ -4267,7 +4426,7 @@ paths:
         - name: type
           in: query
           schema:
-            type: string
+            $ref: "#/components/schemas/ChecklistType"
             default: escrow
       requestBody:
         required: true
@@ -5273,6 +5432,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UpdateAgentStatusResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/current-user-dev-workspace:
+    post:
+      tags: [ Admin ]
+      summary: Set current user dev workspace persona (admin)
+      operationId: adminSetCurrentUserDevWorkspace
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetCurrentUserDevWorkspaceRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetCurrentUserDevWorkspaceResponse"
         "400":
           description: HTTP 400
           content:
@@ -6432,3 +6624,256 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/partners:
+    get:
+      tags:
+        - Admin
+      summary: List rev-share partners
+      operationId: listAdminPartners
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Partner list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerListResponse"
+    post:
+      tags:
+        - Admin
+      summary: Create rev-share partner
+      operationId: createAdminPartner
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartnerCreateRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerResponse"
+  /api/v1/admin/partners/checklist-steps:
+    get:
+      tags:
+        - Admin
+      summary: List checklist steps eligible for partner placement
+      operationId: listPartnerChecklistSteps
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Steps
+  /api/v1/admin/partners/{partner_id}:
+    get:
+      tags:
+        - Admin
+      summary: Get partner by id
+      operationId: getAdminPartner
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: partner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Partner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerResponse"
+    patch:
+      tags:
+        - Admin
+      summary: Update partner
+      operationId: patchAdminPartner
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: partner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartnerUpdateRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerResponse"
+  /api/v1/admin/partners/{partner_id}/provision-links:
+    post:
+      tags:
+        - Admin
+      summary: Provision rev_share_links for all agents
+      operationId: provisionAdminPartnerLinks
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: partner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Provisioned
+  /api/v1/admin/rev-share/analytics:
+    get:
+      tags:
+        - Admin
+      summary: Rev-share analytics for a partner
+      operationId: getAdminRevShareAnalytics
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: partner_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: step_id
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+        - name: brokerage
+          in: query
+          schema:
+            type: string
+        - name: bucket
+          in: query
+          schema:
+            type: string
+            enum:
+              - day
+              - week
+      responses:
+        "200":
+          description: Analytics payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevShareAnalyticsResponse"
+  /api/v1/partners/placements:
+    get:
+      tags:
+        - Transactions
+      summary: Active partner placements for a checklist step
+      operationId: getPartnerPlacements
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: step_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: transaction_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Placements
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevSharePlacementsResponse"
+  /api/v1/rev-share/step-views:
+    post:
+      tags:
+        - Transactions
+      summary: Record buyer step view (CTR denominator)
+      operationId: postRevShareStepView
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevShareStepViewRequest"
+      responses:
+        "200":
+          description: Recorded
+  /r/{link_id}:
+    get:
+      tags:
+        - Public
+      summary: Rev-share click redirect
+      operationId: revShareRedirect
+      parameters:
+        - name: link_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: buyer_id
+          in: query
+          schema:
+            type: string
+        - name: transaction_id
+          in: query
+          schema:
+            type: string
+        - name: step_id
+          in: query
+          schema:
+            type: string
+        - name: utm_source
+          in: query
+          schema:
+            type: string
+        - name: utm_medium
+          in: query
+          schema:
+            type: string
+        - name: utm_campaign
+          in: query
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to partner destination
+        "404":
+          description: Link not found

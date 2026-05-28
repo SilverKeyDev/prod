@@ -2,7 +2,7 @@
  * Hook and layout parameter types for search (bootstrap, isochrone flow, layout props).
  */
 
-import type { IsochroneData } from "./isochrone";
+import type { IsochroneData } from "../isochrone";
 import type { ListingStatus, PropertyDetails, PropertyType } from "./result";
 
 export type SearchMetadata = {

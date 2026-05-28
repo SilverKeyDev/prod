@@ -6,15 +6,15 @@ import { Icon } from "@ui/icons";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import Button from "packages/ui/components/button/Button";
+import {
+  placeFromAutocompleteSuggestion,
+  resolveGooglePlaceToAddressData,
+} from "packages/ui/components/form/resolveGooglePlaceToAddressData";
 import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/styles/fileUploadStyles";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { asError } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
-import {
-  placeFromAutocompleteSuggestion,
-  resolveGooglePlaceToAddressData,
-} from "packages/ui/components/form/resolveGooglePlaceToAddressData";
 
 import type { AddressData } from "./AddressInput.tsx";
 import { AddressInput } from "./AddressInput.tsx";

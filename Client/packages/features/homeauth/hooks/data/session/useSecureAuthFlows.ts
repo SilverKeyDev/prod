@@ -3,6 +3,7 @@ import {
   clearSessionStorageForLogout,
   getOptionalSessionStorageForLogout,
 } from "packages/features/homeauth/hooks/data/utils/logoutCleanup";
+import { mergeSessionRefreshUserIntoAuthProfile } from "packages/features/homeauth/hooks/data/utils/mergeAuthUserProfile";
 import {
   mapAuthResponseToUserProfile,
   toUserStoreProfile,
@@ -187,7 +188,7 @@ export async function performLogout(setters: LogoutSetters): Promise<void> {
   setStorePostAuthRedirectPath(null);
   setUserProfile(null);
   resetWorkspaceStore();
-  useDevAppPersonaStore.setState({ persona: null });
+  useDevAppPersonaStore.setState({ serverIdentityTouched: false });
   clearSessionStorageForLogout();
   log.security(LOG_CATEGORIES.AUTH, "User logged out - HTTP-only cookies cleared by server");
   log.info(LOG_CATEGORIES.AUTH, "Logout complete, navigating to /login");
@@ -201,6 +202,7 @@ type RefreshSetters = {
   setStoreUser: (u: UserProfile | null) => void;
   setStoreIsAuthenticated: (v: boolean) => void;
   setStoreAuthStatus: (s: string) => void;
+  currentUser: UserProfile | null;
 };
 
 export async function performRefreshToken(setters: RefreshSetters): Promise<boolean> {
@@ -227,8 +229,12 @@ export async function performRefreshToken(setters: RefreshSetters): Promise<bool
     if (response.success) {
       setters.setAccessToken("authenticated");
       if (response.user) {
-        setters.setUser(response.user);
-        setters.setStoreUser(response.user);
+        const prev = setters.currentUser;
+        const nextUser = prev
+          ? mergeSessionRefreshUserIntoAuthProfile(prev, response.user)
+          : mapAuthResponseToUserProfile(response.user, response.user_sub);
+        setters.setUser(nextUser);
+        setters.setStoreUser(nextUser);
       }
       log.info(LOG_CATEGORIES.AUTH, "Token refresh successful");
       return true;
@@ -247,7 +253,7 @@ export async function performRefreshToken(setters: RefreshSetters): Promise<bool
       setters.setStoreIsAuthenticated(false);
       setters.setStoreAuthStatus("unauthenticated");
       resetWorkspaceStore();
-      useDevAppPersonaStore.setState({ persona: null });
+      useDevAppPersonaStore.setState({ serverIdentityTouched: false });
     } else {
       log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed", {
         error: response.error,

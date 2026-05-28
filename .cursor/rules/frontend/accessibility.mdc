@@ -1,0 +1,30 @@
+---
+description: WCAG 2.1 AA accessibility — labels, modals, keyboard, contrast; full detail in documentation
+globs:
+  - "Client/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Accessibility (WCAG 2.1 AA)
+
+**Canonical reference:** [documentation/client/accessibility-standards.md](../../../documentation/client/accessibility-standards.md).
+
+## Must follow
+
+- **Unified `label`:** In `packages/features/` and `apps/*/pages/`, use design-system `label` — not raw `aria-label`, `aria-labelledby`, or `accessibilityLabel` (`silverkey/no-direct-accessibility-props`).
+- **Icon-only controls:** Every `IconButton` and icon-only `Button` must have a `label` (`silverkey/require-interactive-label`).
+- **Modals:** Use `BaseModal`, `ConfirmationDialog`, or `AccessibleDialog`. No ad-hoc portaled overlays without dialog semantics and focus management.
+- **Never** put `aria-hidden="true"` on focusable elements (backdrops, buttons).
+- **Headings:** One `Title as="h1"` per screen; section hierarchy `h2` → `h3`.
+- **Forms:** Use `Input` / `FormField`; errors use visible text + `role="alert"` (see `Input.web.tsx`).
+- **Decorative icons:** Omit `label` on `Icon` (defaults hidden); meaningful icons get `label`.
+- **Touch targets:** ≥44×44px — see [responsive-ui.mdc](./responsive-ui.mdc).
+
+## React Native
+
+- Use primitive `label` / `accessibilityRole` via `Box` and `Button` — same feature code as web where shared.
+- Modals: `accessibilityViewIsModal={true}` on overlay; title → `accessibilityLabel`.
+
+## After edits
+
+Run `pnpm lint` and relevant a11y tests from `Client/`. See [ACCESSIBILITY_CHECKLIST.md](../../../documentation/client/qa/ACCESSIBILITY_CHECKLIST.md) for manual release checks.

@@ -335,6 +335,19 @@ def generate_negotiation_strategy(data: NegotiationStrategyRequest | None = None
             if property_analysis:
                 response_data["property_analysis"] = property_analysis
 
+            from app.services.analytics.posthog_events import capture_product_event
+
+            capture_product_event(
+                str(user.id),
+                "negotiation_strategy_generated",
+                properties={
+                    "generated_for_self": str(preferences_user_id) == str(user.id),
+                    "has_property_data": bool(property_data),
+                    "has_commute_data": bool(commute_data),
+                    "has_property_analysis": bool(property_analysis),
+                },
+            )
+
             return jsonify(response_data), 200
 
         except Exception as e:

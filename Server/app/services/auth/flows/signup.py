@@ -70,6 +70,22 @@ def handle_signup(data: dict[str, Any]) -> tuple[dict[str, Any], int]:
             "user_sub": result["user_sub"],
         }, 503
 
+    from app.services.analytics.posthog_events import capture_product_event, set_person_properties
+
+    set_person_properties(
+        str(user.id),
+        properties={"has_brokerage": bool(user.brokerage)},
+    )
+    capture_product_event(
+        str(user.id),
+        "user_signed_up",
+        properties={
+            "signup_method": "password",
+            "has_phone": bool(user.phone),
+            "has_brokerage": bool(user.brokerage),
+        },
+    )
+
     return {
         "success": True,
         "message": "User registered successfully. Please check your email for verification code.",

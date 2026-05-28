@@ -93,9 +93,7 @@ def delete_s3_objects_under_prefix(s3_client, bucket_name: str, prefix: str) -> 
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(
-            f"S3 bulk delete failed for prefix {prefix}: {error_code} - {error_message}"
-        )
+        logger.error(f"S3 bulk delete failed for prefix {prefix}: {error_code} - {error_message}")
         return deleted
     except Exception as e:
         logger.error(f"Unexpected error deleting S3 prefix {prefix}: {str(e)}")

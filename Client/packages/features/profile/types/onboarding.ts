@@ -9,7 +9,7 @@ export type OnboardingData = {
 
   // Demographics
   /** Draft-only: first-screen role selection; stripped from preferences API payload. */
-  primary_onboarding_role?: "buyer" | "seller" | "investor" | "agent";
+  primary_onboarding_role?: "buyer" | "seller" | "agent" | "integration_partner" | "investor";
   name?: string;
   is_agent?: string;
   pets?: string;

@@ -2,8 +2,9 @@
 Best-effort external cleanup when hard-deleting a user.
 
 Revokes OAuth at Google and DocuSign, removes Plaid items when configured,
-and deletes S3 objects keyed by user id. Failures are logged; callers should
-still proceed with database deletion.
+deletes the Cognito identity when present, and deletes S3 objects keyed by
+user id. Failures are logged; callers should still proceed with database
+deletion.
 """
 
 from __future__ import annotations
@@ -22,6 +23,41 @@ USER_S3_PREFIX_TEMPLATES = (
     "images/{user_id}/",
     "profile_pictures/{user_id}/",
 )
+
+
+def _delete_cognito_user(*, email: str | None, cognito_id: str | None) -> dict[str, Any]:
+    """Remove the user's Cognito identity. Email is the Cognito username in this pool."""
+    if not email and not cognito_id:
+        return {"skipped": True, "reason": "no_cognito_identity"}
+
+    try:
+        from app.services.auth.core.cognito_service import AWS_COGNITO_service
+
+        if not AWS_COGNITO_service.user_pool_id:
+            log.warn(
+                LOG_CATEGORIES["API"],
+                "delete_user: Cognito user pool not configured; skipping Cognito delete",
+                {},
+            )
+            return {"skipped": True, "reason": "cognito_not_configured"}
+
+        username = (email or "").strip()
+        if not username:
+            return {"skipped": True, "reason": "missing_email_username"}
+
+        result = AWS_COGNITO_service.admin_delete_user(username)
+        return {
+            "deleted": bool(result.get("success")),
+            "already_absent": bool(result.get("already_absent")),
+            "error": result.get("error"),
+        }
+    except Exception as exc:
+        log.warn(
+            LOG_CATEGORIES["API"],
+            "delete_user: Cognito delete failed",
+            {"error": str(exc)},
+        )
+        return {"deleted": False, "error": str(exc)}
 
 
 def _revoke_google_calendar_oauth(user_id: str) -> bool:
@@ -70,9 +106,7 @@ def _disconnect_plaid(user_id: str) -> dict[str, int]:
             return result
 
         rows = db.session.execute(
-            text(
-                "SELECT id, access_token FROM plaid_items WHERE user_id = :user_id"
-            ),
+            text("SELECT id, access_token FROM plaid_items WHERE user_id = :user_id"),
             {"user_id": user_id},
         ).fetchall()
 
@@ -104,11 +138,7 @@ def _plaid_item_remove_calls(rows: list[Any], client_id: str, secret: str) -> in
         return 0
 
     env_name = os.getenv("PLAID_ENV", "sandbox").strip().lower()
-    host = (
-        plaid.Environment.Production
-        if env_name == "production"
-        else plaid.Environment.Sandbox
-    )
+    host = plaid.Environment.Production if env_name == "production" else plaid.Environment.Sandbox
     configuration = Configuration(
         host=host,
         api_key={"clientId": client_id, "secret": secret},
@@ -181,6 +211,8 @@ def cleanup_external_resources_for_user(
     user_id: str,
     *,
     extra_s3_keys: list[str] | None = None,
+    email: str | None = None,
+    cognito_id: str | None = None,
 ) -> dict[str, Any]:
     """
     Revoke third-party access and delete user-scoped S3 objects.
@@ -193,6 +225,7 @@ def cleanup_external_resources_for_user(
 
     summary: dict[str, Any] = {
         "user_id": uid,
+        "cognito": _delete_cognito_user(email=email, cognito_id=cognito_id),
         "google_revoked": _revoke_google_calendar_oauth(uid),
         "docusign_disconnected": _revoke_docusign_oauth(uid),
         "plaid": _disconnect_plaid(uid),

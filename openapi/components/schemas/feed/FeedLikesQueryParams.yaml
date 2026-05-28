@@ -1,0 +1,6 @@
+type: object
+properties:
+  ids:
+    type: string
+    maxLength: 2000
+    description: Comma-separated home ids

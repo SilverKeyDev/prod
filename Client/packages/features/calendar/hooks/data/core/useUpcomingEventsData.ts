@@ -43,8 +43,13 @@ export function useUpcomingEventsData({
   clientUserId = null,
 }: UseUpcomingEventsDataParams = {}) {
   const isClientAgendaMode = Boolean(clientUserId);
-  const { isConnected, calendars, calendarsLoading, connectGoogleCalendar } =
-    useGoogleCalendarStoreIntegration();
+  const {
+    isConnected,
+    connectionStatusLoading,
+    calendars,
+    calendarsLoading,
+    connectGoogleCalendar,
+  } = useGoogleCalendarStoreIntegration();
 
   const scopedCalendars = useMemo(() => calendars ?? [], [calendars]);
 
@@ -171,7 +176,7 @@ export function useUpcomingEventsData({
   }, [connectGoogleCalendar]);
 
   const shouldShowConnectionPrompt = useMemo(() => {
-    if (isClientAgendaMode) {
+    if (isClientAgendaMode || connectionStatusLoading) {
       return false;
     }
     if (!isConnected) {
@@ -183,7 +188,14 @@ export function useUpcomingEventsData({
       }
     }
     return false;
-  }, [isClientAgendaMode, isConnected, permissions, hasRequiredPermissions, isPartiallyEnabled]);
+  }, [
+    isClientAgendaMode,
+    connectionStatusLoading,
+    isConnected,
+    permissions,
+    hasRequiredPermissions,
+    isPartiallyEnabled,
+  ]);
 
   const permissionsReady = isClientAgendaMode || (!permissionsLoading && permissions !== undefined);
 
@@ -263,6 +275,7 @@ export function useUpcomingEventsData({
     scopedCalendars,
     silverKeyCalendarId: effectiveSilverKeyCalendarId,
     permissionsReady,
+    connectionStatusLoading,
     shouldShowConnectionPrompt,
     useAgendaList,
     showDisplayAll,

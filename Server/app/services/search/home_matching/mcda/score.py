@@ -36,7 +36,6 @@ from .criteria.objective_quality import (
 )
 from .criteria.preference_activity import (
     count_active_preference_dimensions,
-    normalize_preferences_for_mcda,
     has_amenities_preference,
     has_baths_preference,
     has_beds_preference,
@@ -48,6 +47,7 @@ from .criteria.preference_activity import (
     has_lot_preference,
     has_sqft_preference,
     has_walkability_preference,
+    normalize_preferences_for_mcda,
     preference_strength_multiplier,
 )
 

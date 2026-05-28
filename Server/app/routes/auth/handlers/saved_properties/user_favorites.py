@@ -152,6 +152,15 @@ def add_favorite_home(
             user_id=str(target_uid), is_liked=True, current=True
         ).all()
         favorites = [PropertyDTO.to_saved_home(link) for link in liked_links]
+
+        from app.services.analytics.posthog_events import capture_product_event
+
+        capture_product_event(
+            str(user.id),
+            "property_favorited",
+            properties={"total_favorites": len(liked_links)},
+        )
+
         return jsonify(
             {"success": True, "message": "Home added to favorites", "favorites": favorites}
         )
@@ -213,6 +222,15 @@ def remove_favorite_home(
             user_id=str(target_uid), is_liked=True, current=True
         ).all()
         favorites = [PropertyDTO.to_saved_home(link) for link in liked_links]
+
+        from app.services.analytics.posthog_events import capture_product_event
+
+        capture_product_event(
+            str(user.id),
+            "property_unfavorited",
+            properties={"total_favorites": len(liked_links)},
+        )
+
         return jsonify({"success": True, "message": "Home unliked", "favorites": favorites})
     except Exception as e:
         current_app.logger.error("Failed to remove favorite home: %s", e)

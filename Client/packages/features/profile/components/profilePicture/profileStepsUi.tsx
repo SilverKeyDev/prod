@@ -10,6 +10,7 @@ import {
   getOnboardingSteps,
   getPersonalizationSteps,
   type GetPersonalizationStepsOptions,
+  primaryOnboardingRoleFromForm,
   type ProfileStep,
   type ProfileStepId,
 } from "@/features/profile/utils";
@@ -60,7 +61,8 @@ const withIcons = (steps: ProfileStep[]): StepWithIcon[] =>
 /** Onboarding steps with optional agent step; pass formData to include agent when is_agent is yes/am_agent. */
 export const getOnboardingStepsUi = (formData?: OnboardingData): StepWithIcon[] => {
   const isAgent = formData?.is_agent === "yes" || formData?.is_agent === "am_agent";
-  return withIcons(getOnboardingSteps({ excludeFinancial: true, isAgent }));
+  const primaryRole = formData ? primaryOnboardingRoleFromForm(formData) : undefined;
+  return withIcons(getOnboardingSteps({ excludeFinancial: true, isAgent, primaryRole }));
 };
 
 /** Personalization steps; pass isAgent true to include Brokerage, Licensing, Profile tabs. */

@@ -3,6 +3,7 @@
  */
 
 import { getEnv } from "packages/config/env";
+import { getPostHogRequestHeaders } from "packages/services/analytics/posthogHeaders";
 import {
   AuthenticationError,
   createAuthHeaders,
@@ -82,6 +83,7 @@ export async function apiRequest<T = unknown>(
   const token = authToken ?? (includeAuth ? getAuthToken() : null);
   const mergedHeaders = {
     ...createAuthHeaders(token),
+    ...getPostHogRequestHeaders(),
     ...toPlainHeaderObject(fetchOptions.headers),
   };
 
@@ -138,6 +140,7 @@ export async function apiHead(
   const token = authToken ?? (includeAuth ? getAuthToken() : null);
   const mergedHeaders = {
     ...createAuthHeaders(token),
+    ...getPostHogRequestHeaders(),
     ...toPlainHeaderObject(fetchOptions.headers),
   };
 

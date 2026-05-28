@@ -4,7 +4,6 @@ import React, { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import { SearchRefreshProvider } from "packages/contexts";
-import { DevPersonaActiveBanner } from "packages/features/admin";
 import { useIsMobile } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
@@ -170,7 +169,6 @@ export default function DashboardLayout({
             isFullHeightRoute ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
           }`}
         >
-          <DevPersonaActiveBanner />
           <DashboardHeader
             isMobile={isMobile}
             mobileHeaderActions={mobileHeaderActions}

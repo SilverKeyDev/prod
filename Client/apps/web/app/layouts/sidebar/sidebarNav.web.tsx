@@ -1,5 +1,6 @@
 import type { IconName } from "packages/ui/types/icons";
 import type { Workspace } from "packages/utils/workspace";
+import { getWorkspaceNavTabs } from "packages/utils/workspace/workspaceNavConfig";
 
 import { SIDEBAR_TABS } from "./sidebarTabs.web";
 
@@ -78,23 +79,28 @@ const navigationStructure: NavigationStructure = {
 /**
  * Build navigation structure for sidebar. Messaging is always available for all users.
  * Profile is hidden on mobile.
- * `activeWorkspace` drives which top-level areas appear (e.g. brokerage workspace omits consumer search).
+ * `activeWorkspace` drives which top-level areas appear and their display labels.
  */
-export function getNavigation(activeWorkspace: Workspace, isMobile: boolean): NavigationStructure {
+export function getNavigation(
+  activeWorkspace: Workspace,
+  isMobile: boolean,
+  resolveLabel: (labelKey: string, fallback: string) => string
+): NavigationStructure {
   const navigation: NavigationStructure = {};
-  const isBrokerageWorkspace = activeWorkspace === "brokerage";
+  const tabs = getWorkspaceNavTabs(activeWorkspace, isMobile);
 
-  navigation.dashboard = { ...navigationStructure.dashboard };
-
-  if (!isBrokerageWorkspace) {
-    navigation.search = { ...navigationStructure.search };
-    navigation.decide = { ...navigationStructure.decide };
-  }
-
-  navigation.agent = { ...navigationStructure.agent };
-
-  if (!isMobile) {
-    navigation.profile = { ...navigationStructure.profile };
+  for (const tab of tabs) {
+    const base = navigationStructure[tab.key];
+    if (!base) continue;
+    const name = resolveLabel(tab.labelKey, base.name);
+    navigation[tab.key] = {
+      ...base,
+      name,
+      items: base.items.map((item) => ({
+        ...item,
+        label: item.label === base.name ? name : item.label,
+      })),
+    };
   }
 
   return navigation;

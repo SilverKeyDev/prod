@@ -29,6 +29,8 @@ export type UseChecklistDataOptions = {
    * (server applies the same when actor_user_id != subject_user_id).
    */
   isAgentViewer?: boolean;
+  /** When false, skips the React Query fetch (e.g. summary-only progress views). */
+  enabled?: boolean;
 };
 
 export type UseChecklistDataReturn = {
@@ -66,7 +68,9 @@ export function useChecklistData(
 
   const subjectCacheKey = checklistSubjectUserId ?? "self";
   const queryEnabled =
-    shouldLoadData && (checklistSubjectUserId == null || checklistSubjectUserId.length > 0);
+    shouldLoadData &&
+    options?.enabled !== false &&
+    (checklistSubjectUserId == null || checklistSubjectUserId.length > 0);
 
   const queryKey = useMemo(
     () => ["checklists", type, subjectCacheKey] as const,

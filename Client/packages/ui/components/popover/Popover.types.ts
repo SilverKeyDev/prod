@@ -8,6 +8,8 @@ export type PopoverSide = "left" | "bottom" | "top" | "overlap" | "viewportCente
  * Native: usePortal and side are ignored (Modal-based); panelClassName maps to style.
  */
 export type PopoverProps = {
+  /** Optional accessible name when no titled element uses `${panelId}-title`. */
+  label?: string;
   /** Trigger element (e.g. button); receives open state, toggle, and optional panelId for aria-controls */
   trigger: (props: { open: boolean; onToggle: () => void; panelId?: string }) => ReactNode;
   /** Panel content; receives close callback and panelId for aria-labelledby */

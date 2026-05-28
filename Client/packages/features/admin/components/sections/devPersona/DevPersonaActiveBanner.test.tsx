@@ -27,29 +27,31 @@ const authState = {
   },
 };
 
-const devPersonaSession = { persona: null as "agent" | "buyer" | null };
+const devPersonaSession = { serverIdentityTouched: false };
 
 vi.mock("packages/store", () => ({
   useAuthStore: (sel: (s: typeof authState) => unknown) => sel(authState),
-  useDevAppPersonaStore: (sel: (s: { persona: typeof devPersonaSession.persona }) => unknown) =>
-    sel({ persona: devPersonaSession.persona }),
+  useDevAppPersonaStore: (
+    sel: (s: { serverIdentityTouched: typeof devPersonaSession.serverIdentityTouched }) => unknown
+  ) => sel({ serverIdentityTouched: devPersonaSession.serverIdentityTouched }),
 }));
 
 describe("DevPersonaActiveBanner", () => {
   beforeEach(() => {
     navigateToPath.mockClear();
-    devPersonaSession.persona = null;
+    devPersonaSession.serverIdentityTouched = false;
   });
 
-  it("renders nothing when session persona is unset", () => {
+  it("renders nothing when server identity was not toggled this session", () => {
     const { container } = render(<DevPersonaActiveBanner />);
     expect(container.firstChild).toBeNull();
   });
 
-  it("shows derived persona copy and navigates to settings", () => {
-    devPersonaSession.persona = "agent";
+  it("shows persona copy and navigates to settings", () => {
+    devPersonaSession.serverIdentityTouched = true;
     render(<DevPersonaActiveBanner />);
-    expect(screen.getByText(/admin\.dev_persona\.banner_agent_shell/)).toBeTruthy();
+    expect(screen.getByText(/admin\.dev_persona\.banner_prefix/)).toBeTruthy();
+    expect(screen.getByText(/workspace\.switcher\.agent/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "admin.dev_persona.open_settings" }));
     expect(navigateToPath).toHaveBeenCalledWith("/admin/dev-persona");
   });

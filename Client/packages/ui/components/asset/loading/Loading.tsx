@@ -180,7 +180,12 @@ function OrbRippleLoader({ message = "Thinking..." }: { message?: string }) {
   }, []);
 
   return (
-    <Box className="flex flex-col items-center justify-center space-y-2 py-4">
+    <Box
+      className="flex flex-col items-center justify-center space-y-2 py-4"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
       <Box
         className="rounded-full"
         style={{

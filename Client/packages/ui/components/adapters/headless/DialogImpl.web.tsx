@@ -1,4 +1,4 @@
 /**
- * Web: re-export Headless UI Dialog.
+ * Web: re-export Headless UI Dialog components.
  */
-export { Dialog } from "@headlessui/react";
+export { Description, Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";

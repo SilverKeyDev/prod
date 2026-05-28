@@ -14,6 +14,7 @@ from .documents import (
     DocusignOAuthToken,
     DocusignTemplate,
 )
+from .partners import BuyerStepView, Partner, RevShareLink, RevShareLinkClick
 from .property import (
     HomeComment,
     HomeLikes,
@@ -62,6 +63,10 @@ def init_db():
 
 
 __all__ = [
+    "Partner",
+    "RevShareLink",
+    "RevShareLinkClick",
+    "BuyerStepView",
     "User",
     "ChecklistItemDispatchSetting",
     "Transaction",

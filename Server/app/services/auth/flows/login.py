@@ -149,4 +149,17 @@ def handle_login(data: dict[str, Any], request_id: str) -> tuple[Response, int]:
         request_id=request_id,
     )
 
+    from app.services.analytics.posthog_events import capture_product_event, set_person_properties
+
+    if user:
+        set_person_properties(
+            user_id,
+            properties={"is_agent": bool(getattr(user, "is_agent", False))},
+        )
+        capture_product_event(
+            user_id,
+            "user_logged_in",
+            properties={"login_method": "password"},
+        )
+
     return resp, 200

@@ -1,8 +1,8 @@
 import {
   getClimateEnvironmentalSection,
-  getNeighborhoodAnalysisPayload,
   hasEnvironmentalFactorsContent,
-} from "packages/utils/propertyDetails";
+} from "packages/utils/propertyDetails/analysis/environmentalFactors";
+import { getNeighborhoodAnalysisPayload } from "packages/utils/propertyDetails/analysis/neighborhoodAnalysisPayload";
 
 export type PropertyDetailsLayoutInput = {
   property: unknown;
@@ -25,16 +25,8 @@ export function shouldHideStandaloneLocationMap(property: unknown): boolean {
 }
 
 /** Sections already rendered in Location/Match tabs — exclude from PropertyAnalysis to avoid duplication. */
-export function getPropertyDetailsExcludeSections(
-  input: PropertyDetailsLayoutInput
-): string[] {
-  const {
-    property,
-    propertyAnalysis,
-    hasCommute = false,
-    commuteAnalysis,
-    familyFriendlyAnalysis,
-  } = input;
+export function getPropertyDetailsExcludeSections(input: PropertyDetailsLayoutInput): string[] {
+  const { propertyAnalysis, hasCommute = false, commuteAnalysis, familyFriendlyAnalysis } = input;
 
   const neighborhoodAnalysis = getNeighborhoodAnalysisPayload(propertyAnalysis ?? undefined);
   const hasNeighborhood = neighborhoodAnalysis != null;

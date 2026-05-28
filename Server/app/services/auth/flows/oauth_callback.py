@@ -300,4 +300,29 @@ def handle_google_oauth_callback(
         ),
     )
 
+    from app.services.analytics.posthog_events import capture_product_event, set_person_properties
+
+    set_person_properties(
+        str(user.id),
+        properties={
+            "is_agent": bool(user.is_agent),
+            "has_brokerage": bool(user.brokerage),
+        },
+    )
+    if is_new_signup:
+        capture_product_event(
+            str(user.id),
+            "user_signed_up",
+            properties={
+                "signup_method": "google",
+                "has_brokerage": bool(user.brokerage),
+            },
+        )
+    else:
+        capture_product_event(
+            str(user.id),
+            "user_logged_in",
+            properties={"login_method": "google"},
+        )
+
     return resp

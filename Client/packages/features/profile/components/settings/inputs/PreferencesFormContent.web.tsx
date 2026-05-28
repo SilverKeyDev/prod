@@ -46,6 +46,8 @@ type PreferencesFormContentProps = {
     scriptsReady: boolean;
     /** Persist current form to the server and await refresh (e.g. before preference-based search). */
     flushPreferencesSave: () => Promise<void>;
+    /** Cancel debounced autosave without persisting (e.g. before clear preferences). */
+    cancelPendingSave: () => void;
   }) => React.ReactNode;
   /**
    * When set, loads that user's preferences for display/editing in the form.
@@ -103,6 +105,7 @@ export default function PreferencesFormContent({
     saveStatus,
     updateFormData: updateFormDataWithAutoSave,
     autoSave,
+    cancelPendingSave,
     flushSave,
   } = useAutoSavePreferences({
     refreshUserPreferences,
@@ -240,6 +243,7 @@ export default function PreferencesFormContent({
           patchBuyerPreferenceExtensions,
           scriptsReady,
           flushPreferencesSave,
+          cancelPendingSave,
         })}
       </Box>
     );

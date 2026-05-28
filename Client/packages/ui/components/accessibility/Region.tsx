@@ -7,15 +7,17 @@ export type RegionProps = {
    * Unified accessibility label. Maps to aria-label (web) and accessibilityLabel (RN).
    */
   label?: string;
-} & React.HTMLAttributes<HTMLDivElement>;
+  /** Landmark role (web) / accessibilityRole (native). Defaults to `region`. */
+  role?: React.AriaRole;
+} & React.ComponentProps<typeof Box>;
 
 /**
  * Semantic region wrapper. Use for scrollable or landmark areas that need an accessible name.
- * Pass label instead of aria-label so the design system can map per platform.
+ * Pass label instead of raw aria-label / accessibilityLabel in feature code.
  */
-const Region = forwardRef<HTMLDivElement, RegionProps>(
+const Region = forwardRef<React.ElementRef<typeof Box>, RegionProps>(
   ({ label, role = "region", ...props }, ref) => {
-    return <Box ref={ref} role={role} aria-label={label} {...props} />;
+    return <Box ref={ref} accessibilityRole={role} accessibilityLabel={label} {...props} />;
   }
 );
 Region.displayName = "Region";

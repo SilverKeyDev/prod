@@ -47,6 +47,7 @@ Keep always-on bodies short; deep detail belongs in `documentation/` or `CLAUDE.
 | [shared/user-type-agent-experience.mdc](shared/user-type-agent-experience.mdc) | Agent UX by user type |
 | [shared/aws-resource-naming.mdc](shared/aws-resource-naming.mdc) | AWS naming/tags |
 | [shared/cursor-optimization.mdc](shared/cursor-optimization.mdc) | @web, MCP tips |
+| [shared/agent-memory.mdc](shared/agent-memory.mdc) | `.cursor/memory/` read/update; pairs with [cursor-agent-memory.md](../../documentation/client/cursor-agent-memory.md) |
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change. After cross-cutting architecture or feature work, also follow [post-major-change-checklist.md](./post-major-change-checklist.md) so docs and this inventory stay aligned.
 
-**Last regenerated:** 2026-05-20 (Cursor Master Setup: `CLAUDE.md`, company rules, `silverkey-engineer` agent, 6 always-on rules, Mercury MCP).
+**Last regenerated:** 2026-05-27 (accessibility standards doc + `frontend/accessibility.mdc`).
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -89,6 +89,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `frontend/state-boundaries.mdc`             | yes → **no**               | Client/\*_/_.{ts,tsx}                   |                                                 |
 | `backend/database.mdc`                      | yes → **no**               | Server/\*\*                             |                                                 |
 | `frontend/component-audit-rubric.mdc`       | yes → **no**               | Client/\*_/_.{ts,tsx}                   | Five-axis component audits; see `documentation/client/react-component-audit-rubric.md` |
+| `frontend/accessibility.mdc`                | no → **no**                | Client/\*_/_.{ts,tsx}                   | WCAG 2.1 AA; see `documentation/client/accessibility-standards.md` |
 
 Other `.mdc` files were already `alwaysApply: false` or unchanged in scope. **No duplicate filenames:** do not add `* 2.mdc` copies alongside a canonical rule—Cursor may load both and waste context.
 

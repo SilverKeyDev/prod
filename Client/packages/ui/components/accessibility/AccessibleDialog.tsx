@@ -1,6 +1,11 @@
 import React from "react";
 
-import { Dialog } from "packages/ui/components/adapters/headless";
+import {
+  Description,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+} from "packages/ui/components/adapters/headless";
 
 export type AccessibleDialogProps = {
   /** Unified accessibility label. Passed as aria-label to the dialog. */
@@ -10,14 +15,14 @@ export type AccessibleDialogProps = {
 /**
  * Dialog adapter with unified label prop. Use in features/pages instead of
  * passing aria-label directly so the design system can map per platform.
- * Use AccessibleDialog.Panel, AccessibleDialog.Title, etc. as with Dialog.
+ * Use AccessibleDialog.Panel, AccessibleDialog.Title, etc.
  */
 function AccessibleDialog({ label, ...props }: AccessibleDialogProps) {
   return <Dialog aria-label={label} {...props} />;
 }
 
-AccessibleDialog.Panel = Dialog.Panel;
-AccessibleDialog.Title = Dialog.Title;
-AccessibleDialog.Description = Dialog.Description;
+AccessibleDialog.Panel = DialogPanel;
+AccessibleDialog.Title = DialogTitle;
+AccessibleDialog.Description = Description;
 
 export default AccessibleDialog;

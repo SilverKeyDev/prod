@@ -40,7 +40,7 @@ Single source of truth for SilverKey colors. System values live in `Client/packa
 | Token | Hex | Use Cases |
 |-------|-----|-----------|
 | `text-primary` | #2D2D2A | Headings, main body text |
-| `text-secondary` | #A8A8A2 | Subtitles, timestamps, descriptive text |
+| `text-secondary` | #6B6B65 | Subtitles, timestamps, descriptive text (WCAG AA ≥4.5:1 on `background-base`) |
 | `text-disabled` | #D5D5D1 | Locked/disabled text |
 | `border` | #A8A8A2 | Dividers, input borders |
 

@@ -1,0 +1,9 @@
+type: object
+required:
+  - step_id
+  - transaction_id
+properties:
+  step_id:
+    type: string
+  transaction_id:
+    type: string

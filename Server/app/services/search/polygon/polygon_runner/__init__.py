@@ -323,7 +323,9 @@ def run_polygon_search(
     if scored_properties:
         sample_scores = [(p.get("zpid"), p.get("_score", 0.0)) for p in scored_properties[:3]]
         rounded_scores = [
-            round(float(p.get("_score", 0.0)), 1) for p in scored_properties if p.get("_score") is not None
+            round(float(p.get("_score", 0.0)), 1)
+            for p in scored_properties
+            if p.get("_score") is not None
         ]
         unique_rounded = len(set(rounded_scores))
         if len(scored_properties) > 3 and unique_rounded <= 1:

@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 import jwt
 
 from app.models import User
+from tests.jwt_test_secret import TEST_JWT_HMAC_SECRET
 
 
 class TestAuthRoutes:
@@ -88,7 +89,7 @@ class TestAuthRoutes:
 
         session_token = jwt.encode(
             {"sub": "user-123", "email": "refresh@example.com"},
-            "unused",
+            TEST_JWT_HMAC_SECRET,
             algorithm="HS256",
         )
         client.set_cookie(key="session", value=session_token, domain="localhost")

@@ -10,6 +10,7 @@ from flask import Flask
 
 from app import db
 from app.models import User
+from tests.jwt_test_secret import TEST_JWT_HMAC_SECRET
 
 
 class TestRefreshFlow:
@@ -43,7 +44,9 @@ class TestRefreshFlow:
 
         user_id = self._seed_cognito_user(app)
         try:
-            token = jwt.encode({"sub": user_id, "email": "refresh-test@example.com"}, "secret")
+            token = jwt.encode(
+                {"sub": user_id, "email": "refresh-test@example.com"}, TEST_JWT_HMAC_SECRET
+            )
             with app.app_context():
                 with patch.object(
                     refresh_mod.jwt,
@@ -81,7 +84,9 @@ class TestRefreshFlow:
                 "error": "NotAuthorizedException",
                 "message": "Invalid refresh token",
             }
-            token = jwt.encode({"sub": user_id, "email": "refresh-test@example.com"}, "secret")
+            token = jwt.encode(
+                {"sub": user_id, "email": "refresh-test@example.com"}, TEST_JWT_HMAC_SECRET
+            )
             with app.app_context():
                 with patch.object(
                     refresh_mod.jwt,
@@ -113,7 +118,9 @@ class TestRefreshFlow:
                 "error": "NotAuthorizedException",
                 "message": "Refresh token has expired",
             }
-            token = jwt.encode({"sub": user_id, "email": "refresh-test@example.com"}, "secret")
+            token = jwt.encode(
+                {"sub": user_id, "email": "refresh-test@example.com"}, TEST_JWT_HMAC_SECRET
+            )
             with app.app_context():
                 with patch.object(
                     refresh_mod.jwt,
@@ -140,7 +147,9 @@ class TestRefreshFlow:
 
         user_id = self._seed_cognito_user(app)
         try:
-            token = jwt.encode({"sub": user_id, "email": "refresh-test@example.com"}, "secret")
+            token = jwt.encode(
+                {"sub": user_id, "email": "refresh-test@example.com"}, TEST_JWT_HMAC_SECRET
+            )
             with app.app_context():
                 with patch.object(
                     refresh_mod.jwt,

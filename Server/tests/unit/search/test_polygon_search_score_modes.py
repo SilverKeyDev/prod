@@ -14,9 +14,12 @@ MOCK_ISOCHRONE = (
     "app.services.search.polygon.polygon_runner.generate_isochrone_polygon_from_preferences"
 )
 MOCK_PAGINATED = "app.services.search.polygon.polygon_runner.search_properties_paginated"
-MOCK_MARK_PAST = "app.services.search.polygon.polygon_runner.mark_past_search_results_as_not_current"
+MOCK_MARK_PAST = (
+    "app.services.search.polygon.polygon_runner.mark_past_search_results_as_not_current"
+)
 MOCK_PERSIST = "app.services.search.polygon.polygon_runner.persist_and_prune_search_results"
 MOCK_STRICT = "app.services.search.polygon.polygon_runner.resolve_strict_preference_filter"
+
 
 def _square_ring() -> list[dict[str, float]]:
     """Ring with lat/lon keys (isochrone + GeoJSON helpers)."""
@@ -29,12 +32,15 @@ def _square_ring() -> list[dict[str, float]]:
     return [{"lat": lat, "lon": lon, "lng": lon} for lat, lon in corners]
 
 
-_VIEWPORT = [{"lat": lat, "lng": lon} for lat, lon in [
-    (33.75, -84.39),
-    (33.76, -84.39),
-    (33.76, -84.38),
-    (33.75, -84.38),
-]]
+_VIEWPORT = [
+    {"lat": lat, "lng": lon}
+    for lat, lon in [
+        (33.75, -84.39),
+        (33.76, -84.39),
+        (33.76, -84.38),
+        (33.75, -84.38),
+    ]
+]
 
 _CLIENT_PREFS = {
     "home_budget_max": 550_000,

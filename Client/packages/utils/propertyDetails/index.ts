@@ -19,11 +19,11 @@ export {
   stripSectionRatingField,
   unwrapPropertyAnalysisSection,
 } from "./analysis/sectionRating";
-export { getPropertyImages } from "./media/getPropertyImages";
 export {
   getPropertyDetailsExcludeSections,
+  type ListingAgentDisplay,
+  type PropertyDetailsLayoutInput,
   shouldHideStandaloneLocationMap,
   shouldShowListingAgentSkeleton,
-  type PropertyDetailsLayoutInput,
-  type ListingAgentDisplay,
 } from "./layout/propertyDetailsSectionLayout";
+export { getPropertyImages } from "./media/getPropertyImages";

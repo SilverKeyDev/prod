@@ -6,6 +6,16 @@
 export function folderMaxItemsOverrides(silverkey) {
   return [
     {
+      files: ["packages/features/checklists/utils/rules/checklistRules.test.ts"],
+      plugins: { silverkey },
+      rules: { "silverkey/max-lines-hard": "off" },
+    },
+    {
+      files: ["packages/features/profile/utils/onboarding/**/*.{ts,tsx}"],
+      plugins: { silverkey },
+      rules: { "silverkey/folder-max-items": "off" },
+    },
+    {
       files: ["apps/web/pages/HomeAuth/**/*.{ts,tsx}"],
       plugins: { silverkey },
       rules: { "silverkey/folder-max-items": "off" },

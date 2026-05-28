@@ -6,6 +6,7 @@ Verify authenticity of DocuSign Connect webhooks using HMAC and/or OAuth.
 
 import hashlib
 import hmac
+import os
 from datetime import datetime, timezone
 
 import jwt
@@ -14,6 +15,15 @@ from app.config import Config
 from logger import LOG_CATEGORIES, get_logger
 
 logger = get_logger()
+
+
+def _is_strict_webhook_env() -> bool:
+    """Require HMAC configuration outside local development and pytest."""
+    from app.utils.testing_mode import is_testing
+
+    if is_testing():
+        return False
+    return os.getenv("FLASK_ENV", "development") != "development"
 
 
 def verify_hmac(payload: str, signature: str | None, use_org_secret: bool = False) -> bool:
@@ -47,10 +57,16 @@ def verify_hmac(payload: str, signature: str | None, use_org_secret: bool = Fals
     )
 
     if not secret:
+        if _is_strict_webhook_env():
+            logger.security(
+                LOG_CATEGORIES["SECURITY"],
+                f"{secret_name} not configured in non-development environment",
+            )
+            return False
         logger.warn(
             LOG_CATEGORIES["SECURITY"], f"{secret_name} not configured, skipping HMAC verification"
         )
-        return True  # Allow in development/testing
+        return True
 
     if not signature:
         logger.warn(LOG_CATEGORIES["SECURITY"], "No HMAC signature provided in webhook")

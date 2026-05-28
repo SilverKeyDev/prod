@@ -117,11 +117,15 @@ cd Server && pytest       # or: make test-be from repo root
 | **Always-on (6)** | `security`, `thin-app-architecture`, `linting`, `documentation`, `silverkey-context`, `code-style` under `.cursor/rules/shared/` |
 | **Company context** | [CLAUDE.md](CLAUDE.md) — business model, RESPA, partners, fundraising (read before partner-facing work) |
 | **Scoped rules** | `.cursor/rules/shared/`, `frontend/`, `backend/` (+ some under `Server/`) — glob-attached; see audit table |
+| **Session memory bank** | [.cursor/memory/](./.cursor/memory/) — `activeContext.md`, `progress.md`; rule: `agent-memory.mdc` |
+| **Automation memory seeds** | [.cursor/memory/automations/](./.cursor/memory/automations/) — paste into Cursor Memory Notes; `./scripts/print-automation-memory.sh <persona>` |
 | **Skills** | `.cursor/skills/*/SKILL.md` (e.g. `run-all-linters`, `post-major-change-sync`) |
 | **Subagents** | `.cursor/agents/*.md` |
 | **Extend / inventory** | [.cursor/README.md](./.cursor/README.md), [documentation/internal/cursor-audit-latest.md](./documentation/internal/cursor-audit-latest.md) |
 
-**MCP:** Example — [.cursor/mcp.example.json](./.cursor/mcp.example.json); local config via `make setup-mcp` (install/verify, summary at end). Connectors: GitHub, Linear, Slack, Mercury (read-only banking), plus optional AWS/gcloud. Credentials stay local/env.
+**MCP:** Example — [.cursor/mcp.example.json](./.cursor/mcp.example.json); local config via `make setup-mcp` (install/verify, summary at end). Connectors: GitHub, Linear, Slack, Mercury (read-only banking), optional AWS/gcloud, and **`cursor-memory`** (`/memo`, `/recall`). Credentials stay local/env.
+
+**Agent memory (all layers):** [documentation/client/cursor-agent-memory.md](./documentation/client/cursor-agent-memory.md) — repo bank, Cursor Settings → Memories, Automations Memory Notes, MCP.
 
 **Commits:** `[LINEAR-ID] short description` — link the Linear ticket in PR descriptions.
 
@@ -156,3 +160,29 @@ cd Server && pytest       # or: make test-be from repo root
 | Server tests | `make test-be` (venv + `TESTING=true`) |
 | Repo-wide lint | `./scripts/run-all-linters.sh all` or `make lint` |
 | OpenAPI | `make openapi` → commit generated files; `make openapi-verify` before PR |
+
+---
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+| Service | Port | Start command |
+| ------- | ---- | ------------- |
+| **Vite web** | 5173 | `cd Client && pnpm dev:web` |
+| **Flask API** | 5000 | `cd Server && source .venv/bin/activate && source .env && python run.py --host 0.0.0.0 --port 5000` |
+| **Redis** | 6379 | `redis-server --daemonize yes --port 6379` |
+| **PostgreSQL** | 5432 | `sudo pg_ctlcluster 16 main start` (auto-starts via service) |
+
+### Running the full dev stack
+
+Use `make dev` (runs `scripts/run/run-web.sh` which starts Redis, Flask, Celery, then Vite). Or start services individually as shown above.
+
+### Gotchas for Cloud Agents
+
+- **Flask requires all `.env.example` vars to be non-empty** — the `config_validator.py` reads `Server/.env.example` and checks each key at startup. Use `Server/.env` with placeholder values for keys you don't have real secrets for (the validator only checks `os.getenv(key)` is truthy, not that the value is valid). Tests skip this check via `TESTING=true`.
+- **pnpm must be 9.x** — the VM may ship with pnpm 10+. Fix via `corepack enable && corepack prepare pnpm@9.0.0 --activate`.
+- **`python3.12-venv`** package is required on Ubuntu for `Server/scripts/bootstrap-venv.sh` to create the venv.
+- **Server tests** pass with `TESTING=true APP_LOG_LEVEL=ERROR pytest --no-cov` (coverage threshold may fail but all 793+ tests pass).
+- **Client lint** has a few pre-existing warnings/errors on `main` (import sorting, unused vars) — these are not regressions.
+- **Do not run migrations** — the database schema is managed externally. `make migrate` is operator-only.

@@ -1,3 +1,4 @@
+import type { PrimaryOnboardingRole } from "packages/features/profile/utils/onboarding/onboardingRoleSelection";
 import {
   getOnboardingSteps,
   getPersonalizationSteps,
@@ -48,6 +49,8 @@ export function shouldShowAgentOptionalBuyerCallout(options: {
 export type GetStepIdsForSurfaceOptions = {
   /** Mobile onboarding omits financial step. */
   excludeFinancialOnOnboarding?: boolean;
+  /** Draft or resolved primary onboarding role (buyer, agent, seller, etc.). */
+  primaryRole?: PrimaryOnboardingRole;
 };
 
 /**
@@ -61,6 +64,7 @@ export function getStepIdsForSurface(
   if (surface === "onboarding") {
     return getOnboardingSteps({
       isAgent,
+      primaryRole: options?.primaryRole,
       excludeFinancial: options?.excludeFinancialOnOnboarding ?? false,
     }).map((s) => s.id as ProfileStepId);
   }

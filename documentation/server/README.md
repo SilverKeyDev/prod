@@ -9,6 +9,7 @@ Docs for the SilverKey backend (Python/Flask). Add server-specific long-form doc
 - **[Flask Architecture](flask-architecture.md)** - App factory, blueprints, auth pipeline, error handling
 - **[SQLAlchemy Patterns](sqlalchemy-patterns.md)** - Models, relationships, queries, session management
 - **[API Conventions](api-conventions.md)** - Route patterns, request/response format, validation, pagination
+- **[Input validation](input-validation.md)** - `@validate_request` / `@validate_query`, strict rollout, webhooks, sanitization
 - **[User Preferences](user-preferences.md)** - Preferences schema, write/read pipeline, usage in search
 - **[AWS Resources](aws-resources.md)** - AWS services, IAM, monitoring, deployment, cost optimization
 - **[Infrastructure reliability gap audit](infrastructure-reliability-gap-audit.md)** - Checklist of backups, monitoring, staging, CDN, load testing, and what is verifiable from this repo

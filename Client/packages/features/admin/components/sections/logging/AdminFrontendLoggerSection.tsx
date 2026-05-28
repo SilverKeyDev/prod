@@ -96,7 +96,9 @@ export function AdminFrontendLoggerSection({
         Frontend logger
       </Title>
       <BodyText size="sm" muted className="mb-4">
-        Adjust browser logging categories at runtime for this tab and session peers.
+        Adjust browser logging categories at runtime for this tab. PostHog receives all log
+        categories and levels whenever PostHog is configured; toggles here only affect the in-memory
+        config snapshot shown below (console output follows the same always-on logger).
       </BodyText>
 
       <Box className="grid gap-4 md:grid-cols-2">

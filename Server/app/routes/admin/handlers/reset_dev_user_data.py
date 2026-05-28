@@ -29,7 +29,7 @@ def _scope_to_str(scope: object) -> str:
 @validate_request(DevUserDataResetRequest)
 @validate_response(DevUserDataResetResponse)
 def reset_dev_user_data_route(user, data: DevUserDataResetRequest | None = None):
-    """Reset profile, preferences, and/or DocuSign data for dev/testing."""
+    """Reset scoped dev/test data (profile, preferences, DocuSign, checklist, S3, connections)."""
     if not dev_user_data_reset_enabled():
         return standardize_error_response(
             "Dev user data reset is disabled in this environment",
@@ -77,7 +77,8 @@ def reset_dev_user_data_route(user, data: DevUserDataResetRequest | None = None)
         )
     if not scope_set:
         return standardize_error_response(
-            "scopes must include at least one of profile, preferences, docusign",
+            "scopes must include at least one of profile, preferences, docusign, "
+            "transaction_steps, s3, connections",
             status_code=400,
         )
 

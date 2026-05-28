@@ -1,9 +1,13 @@
 """Preferences CRUD and client preferences handlers."""
 
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 
 from flask import current_app, jsonify, request
 
+from app import db
 from app.dtos.user import UserDTO
 from app.models import User
 from app.schemas import CreatePreferencesRequest
@@ -11,11 +15,16 @@ from app.services.aggregation import (
     get_preferences_dict_optional,
     write_preferences_from_payload,
 )
+from app.services.aggregation.clear_user_preferences import clear_user_preferences
 from app.services.auth import SecurityException, get_current_user
+from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.security.app_logging import get_logger
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.security.security import security_error_response
 from app.utils.validation import validate_request
+
+if TYPE_CHECKING:
+    from app.models.user import User as UserModel
 
 logger = get_logger()
 
@@ -86,6 +95,29 @@ def get_preferences():
     except Exception as e:
         return SecureErrorHandler.handle_database_error(
             e, {"function": "get_preferences", "user_id": getattr(user, "id", "unknown")}
+        )
+
+
+@handle_exceptions_with_logging
+@require_authenticated_user
+def delete_preferences(user: UserModel):
+    """Clear all preference rows for the authenticated user only."""
+    try:
+        clear_user_preferences(str(user.id), user=user)
+        db.session.commit()
+        return jsonify(
+            {
+                "success": True,
+                "has_preferences": False,
+                "preferences": None,
+                "message": "Preferences cleared successfully",
+            }
+        )
+    except Exception as e:
+        db.session.rollback()
+        return SecureErrorHandler.handle_database_error(
+            e,
+            {"function": "delete_preferences", "user_id": str(user.id)},
         )
 
 

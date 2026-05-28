@@ -23,8 +23,14 @@ export function useGoogleCalendarStoreIntegration() {
   const authReady = useAuthStore((s) => s.authReady);
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
-  const { queryClient, isConnected, calendars, calendarsLoading, calendarsError } =
-    useGoogleCalendarConnectionState(shouldLoadData);
+  const {
+    queryClient,
+    isConnected,
+    connectionStatusLoading,
+    calendars,
+    calendarsLoading,
+    calendarsError,
+  } = useGoogleCalendarConnectionState(shouldLoadData);
 
   const revokeMutation = useMutation({
     mutationFn: async () => {
@@ -119,6 +125,7 @@ export function useGoogleCalendarStoreIntegration() {
 
   return {
     isConnected,
+    connectionStatusLoading,
     calendars,
     calendarsLoading,
     calendarsError,

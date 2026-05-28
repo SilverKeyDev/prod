@@ -442,9 +442,9 @@ describe("mergeTaskChecklistCheckedIds bypassProgressGates", () => {
         selectable_when: { kind: "all_items_checked", item_ids: [1] },
       }),
     ];
-    expect(mergeTaskChecklistCheckedIds(items, [2], new Set(), { bypassProgressGates: true })).toEqual(
-      [2]
-    );
+    expect(
+      mergeTaskChecklistCheckedIds(items, [2], new Set(), { bypassProgressGates: true })
+    ).toEqual([2]);
     expect(mergeTaskChecklistCheckedIds(items, [2], new Set())).toEqual([]);
   });
 });

@@ -40,7 +40,10 @@ module.exports = {
     if (isAllowed) return {};
 
     const isFeatureOrPage =
-      filename.includes("packages/features/") || filename.includes("apps/web/pages/");
+      filename.includes("packages/features/") ||
+      filename.includes("apps/web/pages/") ||
+      filename.includes("apps/web/app/") ||
+      filename.includes("apps/mobile/");
     if (!isFeatureOrPage) return {};
 
     const bannedProps = ["aria-label", "aria-labelledby", "accessibilityLabel"];

@@ -65,8 +65,12 @@ const distHint = readDistMapIdHint();
 const mapId = shim.mapId || distHint;
 
 if (!mapId) {
-  console.error("verify-web-maps-map-id: EXPO_PUBLIC_GOOGLE_MAPS_ID is missing or empty in the web build.");
-  console.error("  Set it at build time (Client/.env locally, GitHub secret EXPO_PUBLIC_GOOGLE_MAPS_ID for ci_web).");
+  console.error(
+    "verify-web-maps-map-id: EXPO_PUBLIC_GOOGLE_MAPS_ID is missing or empty in the web build."
+  );
+  console.error(
+    "  Set it at build time (Client/.env locally, GitHub secret EXPO_PUBLIC_GOOGLE_MAPS_ID for ci_web)."
+  );
   console.error(`  Shim probe: ${shim.source}${shim.mapId === null ? "" : ` (empty)`}`);
   if (distHint === null) {
     console.error("  Dist probe: no non-empty map id found in dist/assets/*.js");

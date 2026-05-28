@@ -4,8 +4,8 @@ Hard-delete a user and all application rows that reference them.
 Intended for admin / support / local dev. Irreversible: also removes agreements and
 transactions where this user is a party (affects the counterparty's records).
 
-Before DB deletion, revokes Google Calendar and DocuSign OAuth, disconnects Plaid
-when configured, and deletes user-scoped S3 objects.
+Before DB deletion, deletes the Cognito identity, revokes Google Calendar and DocuSign
+OAuth, disconnects Plaid when configured, and deletes user-scoped S3 objects.
 
 Usage (Flask shell):
 
@@ -15,14 +15,10 @@ Usage (Flask shell):
 
 from __future__ import annotations
 
-import json
-
 from sqlalchemy import or_
 
 from app import db
 from app.models import (
-    AgentConnectionRequest,
-    AgentConnections,
     AgreementLink,
     CalendarEvent,
     CalendarShare,
@@ -38,7 +34,6 @@ from app.models import (
     ReelLike,
     ScoringResultsTracker,
     Search,
-    Todo,
     Transaction,
     TransactionAddress,
     TransactionTask,
@@ -59,53 +54,14 @@ from app.models import (
     UserScoreWeights,
     UserSearchIntent,
 )
+from app.services.agent.connection_cleanup import clear_agent_client_connections
 from app.services.auth.user.agreement_cleanup import delete_agreements_for_user
 from app.services.auth.user.delete_user_external_cleanup import (
     cleanup_external_resources_for_user,
 )
+from app.services.auth.user.user_s3_cleanup import collect_user_s3_keys
 from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, log
-
-
-def _strip_id_from_user_list_field(raw: str | None, deleted_id: str) -> tuple[str | None, bool]:
-    """Parse legacy client_ids / agent_id text; remove deleted_id. Returns (new_value, changed)."""
-    if not raw or not str(raw).strip():
-        return raw, False
-    s = str(raw).strip()
-    ids: list[str] = []
-    used_json = False
-    try:
-        parsed = json.loads(s)
-        if isinstance(parsed, list):
-            ids = [str(x) for x in parsed]
-            used_json = True
-        elif parsed is not None and parsed != "":
-            ids = [str(parsed)]
-            used_json = True
-    except (json.JSONDecodeError, TypeError):
-        ids = [p.strip() for p in s.split(",") if p.strip()]
-    before = len(ids)
-    ids = [x for x in ids if x != deleted_id]
-    if len(ids) == before:
-        return raw, False
-    if not ids:
-        return None, True
-    return (json.dumps(ids) if used_json else ",".join(ids), True)
-
-
-def _remove_deleted_user_from_peer_legacy_fields(deleted_id: str) -> None:
-    for peer in User.query.filter(User.id != deleted_id).all():
-        changed = False
-        new_c, ch = _strip_id_from_user_list_field(peer.client_ids, deleted_id)
-        if ch:
-            peer.client_ids = new_c
-            changed = True
-        new_a, ch = _strip_id_from_user_list_field(peer.agent_id, deleted_id)
-        if ch:
-            peer.agent_id = new_a
-            changed = True
-        if changed:
-            db.session.add(peer)
 
 
 def delete_user_and_all_related_data(user_id: str) -> bool:
@@ -127,15 +83,15 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
         log.info(LOG_CATEGORIES["API"], "delete_user_and_all_related_data: user not found", {})
         return False
 
-    extra_s3_keys: list[str] = []
-    if user.profile_picture:
-        extra_s3_keys.append(str(user.profile_picture))
-    for doc in Document.query.filter_by(user_id=uid).all():
-        if doc.file_path:
-            extra_s3_keys.append(str(doc.file_path))
+    extra_s3_keys = collect_user_s3_keys(uid, user=user)
 
     try:
-        cleanup_external_resources_for_user(uid, extra_s3_keys=extra_s3_keys)
+        cleanup_external_resources_for_user(
+            uid,
+            extra_s3_keys=extra_s3_keys,
+            email=user.email,
+            cognito_id=user.cognito_id,
+        )
     except Exception as exc:
         log.error(
             LOG_CATEGORIES["ERRORS"],
@@ -144,30 +100,7 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
         )
 
     try:
-        AgentConnectionRequest.query.filter(
-            or_(
-                AgentConnectionRequest.agent_id == uid,
-                AgentConnectionRequest.client_id == uid,
-            )
-        ).delete(synchronize_session=False)
-
-        conv_ids = [
-            row[0]
-            for row in db.session.query(AgentConnections.id).filter(
-                or_(AgentConnections.agent_id == uid, AgentConnections.client_id == uid)
-            )
-        ]
-        if conv_ids:
-            ChatHistory.query.filter(ChatHistory.conversation_id.in_(conv_ids)).delete(
-                synchronize_session=False
-            )
-            AgentConnections.query.filter(AgentConnections.id.in_(conv_ids)).delete(
-                synchronize_session=False
-            )
-
-        Todo.query.filter(or_(Todo.agent_id == uid, Todo.client_id == uid)).delete(
-            synchronize_session=False
-        )
+        clear_agent_client_connections(uid, user)
 
         CalendarShare.query.filter(
             or_(
@@ -246,8 +179,6 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
         # null it out via the backref when the User row is deleted. Delete it
         # explicitly before removing the User.
         UserClientSettings.query.filter_by(user_id=uid).delete(synchronize_session=False)
-
-        _remove_deleted_user_from_peer_legacy_fields(uid)
 
         db.session.delete(user)
         db.session.commit()
