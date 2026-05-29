@@ -3,7 +3,7 @@
 
 Usage (from repo root, with Server venv active):
 
-    python3 Server/scripts/extract_routes.py
+    python3 Server/scripts/endpoints/extract_routes.py
 
 Or:
 
@@ -19,11 +19,13 @@ import os
 import sys
 from pathlib import Path
 
-SERVER_DIR = Path(__file__).resolve().parents[1]
+SERVER_DIR = Path(__file__).resolve().parents[2]
 if str(SERVER_DIR) not in sys.path:
     sys.path.insert(0, str(SERVER_DIR))
 
+# Inventory generation only needs Flask url_map — no real DB or secrets (see tests/conftest.py).
 os.environ.setdefault("TESTING", "true")
+os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 
 from app import create_app  # noqa: E402
 from app.http.api_telemetry import (  # noqa: E402

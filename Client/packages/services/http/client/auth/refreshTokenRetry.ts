@@ -1,9 +1,8 @@
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { normalizeUrl } from "packages/services/http/client/request/httpRequestHeaders";
+import { createHttpRequestId } from "packages/services/http/client/request/requestId";
 import { getFetch } from "packages/utils/platform";
-
-import { normalizeUrl } from "./httpRequestHeaders";
-import { createHttpRequestId } from "./requestId";
 
 export type RefreshTokenAttemptResult = {
   ok: boolean;

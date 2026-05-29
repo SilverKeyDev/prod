@@ -80,6 +80,7 @@ export default function getSilverkeyConfig({ silverkey }) {
           {
             allowlist: [
               "packages/config/env.ts",
+              "packages/logger/config/loggerEnv.ts",
               "vite.config",
               "vitest.config",
               "postcss.config",
@@ -87,6 +88,9 @@ export default function getSilverkeyConfig({ silverkey }) {
               ".config.js",
               ".config.mjs",
             ],
+            exceptions: {
+              testFiles: true,
+            },
           },
         ],
         "silverkey/no-explicit-any-disable-reason": "error",

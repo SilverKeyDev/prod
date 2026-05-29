@@ -1,6 +1,6 @@
 import { getEnv } from "packages/config/env";
 
-import { normalizeUrl } from "./client/httpRequestHeaders";
+import { normalizeUrl } from "./client/request/httpRequestHeaders";
 
 export type QueryValue =
   | string

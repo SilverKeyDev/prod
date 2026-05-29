@@ -103,7 +103,7 @@ jobs:
         env:
           TESTING: "true"
         run: |
-          python3 scripts/extract_routes.py
+          python3 scripts/endpoints/extract_routes.py
           git diff --exit-code endpoints.json
 
       - name: Upload backend coverage reports

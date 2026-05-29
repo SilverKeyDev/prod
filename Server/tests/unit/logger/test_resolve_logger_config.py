@@ -1,6 +1,5 @@
 """Tests for environment-aware logger config resolution."""
 
-
 import pytest
 
 from logger.resolve_logger_config import (

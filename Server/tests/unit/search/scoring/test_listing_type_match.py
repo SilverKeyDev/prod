@@ -9,7 +9,7 @@ from pathlib import Path
 
 # Load module by path so importing does not execute app/__init__.py (Flask).
 _helper_path = (
-    Path(__file__).resolve().parents[3] / "app/services/search/helpers/listing_type_match.py"
+    Path(__file__).resolve().parents[4] / "app/services/search/helpers/listing_type_match.py"
 )
 _spec = importlib.util.spec_from_file_location("listing_type_match_standalone", _helper_path)
 assert _spec and _spec.loader

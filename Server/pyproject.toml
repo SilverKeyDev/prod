@@ -62,8 +62,8 @@ ignore = [
 "scripts/lint/lint_*.py" = ["T201"]
 "scripts/lint/check_coverage_thresholds.py" = ["T201"]
 "scripts/validate-schema-coverage.py" = ["T201"]
-"scripts/extract_routes.py" = ["T201", "E402"]
-"scripts/check_dead_endpoints.py" = ["T201"]
+"scripts/endpoints/extract_routes.py" = ["T201", "E402"]
+"scripts/endpoints/check_dead_endpoints.py" = ["T201"]
 "scripts/seed_georgia_forms.py" = ["T201", "E402"]
 
 [tool.ruff.lint.isort]

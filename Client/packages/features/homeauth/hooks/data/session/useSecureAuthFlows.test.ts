@@ -6,7 +6,7 @@ import { performRefreshToken } from "./useSecureAuthFlows";
 
 const postRefreshTokenWithRetryMock = vi.fn();
 
-vi.mock("packages/services/http/client/refreshTokenRetry", () => ({
+vi.mock("packages/services/http/client/auth/refreshTokenRetry", () => ({
   postRefreshTokenWithRetry: (...args: unknown[]) => postRefreshTokenWithRetryMock(...args),
   isTransientRefreshFailure: () => false,
 }));

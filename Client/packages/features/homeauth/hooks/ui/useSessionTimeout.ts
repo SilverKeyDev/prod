@@ -105,7 +105,7 @@ export function useSessionTimeout(config: SessionTimeoutConfig = {}): SessionTim
       timeRemaining: 0,
       sessionExpired: true,
     });
-  }, [fullConfig]);
+  }, []);
 
   // Set up activity listeners and session checking
   useEffect(() => {

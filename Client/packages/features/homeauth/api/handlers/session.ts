@@ -6,7 +6,7 @@ import { HttpError } from "packages/services/http/client";
 import {
   isTransientRefreshFailure,
   postRefreshTokenWithRetry,
-} from "packages/services/http/client/refreshTokenRetry";
+} from "packages/services/http/client/auth/refreshTokenRetry";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
 import { getDocument, getWindow } from "packages/utils/platform";
 

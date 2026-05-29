@@ -1,5 +1,10 @@
+import type {
+  ApiSubcategoryConfig,
+  LoggerConfig,
+  LogLevel,
+} from "packages/logger/core/loggerTypes";
+
 import { isLoggerProduction, isLoggerVerboseDev, parseDevCategoryOverrides } from "./loggerEnv";
-import type { ApiSubcategoryConfig, LoggerConfig, LogLevel } from "./loggerTypes";
 
 export const LOGGER_BOOLEAN_KEYS = [
   "polling",

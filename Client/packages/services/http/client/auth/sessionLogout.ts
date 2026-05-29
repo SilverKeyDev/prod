@@ -1,10 +1,10 @@
+import type { AuthenticationError } from "packages/services/http/client/errors";
 import { useAuthStore } from "packages/store";
 
 import { broadcastAuthLogout } from "./authBroadcast";
 import { notifyAuthenticationError } from "./authErrorNotify";
 import { redirectToLoginIfNeeded } from "./authRedirect";
 import { clearLegacyAuthStorage } from "./authStorage";
-import type { AuthenticationError } from "./errors";
 
 export { broadcastAuthLogout, getAuthBC } from "./authBroadcast";
 export { redirectToLoginIfNeeded } from "./authRedirect";

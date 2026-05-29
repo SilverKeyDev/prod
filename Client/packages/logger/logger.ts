@@ -10,19 +10,19 @@
  * Dev opt-in: admin toggles, EXPO_PUBLIC_LOGGER_VERBOSE, EXPO_PUBLIC_LOGGER_CATEGORIES.
  */
 
-import type { ApiSubcategory, LogCategory } from "./categories";
-import { formatLogMessage } from "./formatLogMessage";
-import { loadLoggerConfigFromBundled } from "./loadLoggerConfig";
-import { shouldExportLogsToPostHog } from "./loggerEnv";
-import type { LoggerConfig } from "./loggerTypes";
-import type { LogLevel } from "./loggerTypes";
-import { createSafeLogObject } from "./pii";
-import { emitPostHogLog } from "./posthogLogSink";
-import type { PostHogLogLevel } from "./posthogLogSink.types";
-import { mergeLoggerConfigUpdate, resolveLoggerConfig } from "./resolveLoggerConfig";
-import { shouldEmitLog } from "./shouldEmitLog";
+import { loadLoggerConfigFromBundled } from "./config/loadLoggerConfig";
+import { shouldExportLogsToPostHog } from "./config/loggerEnv";
+import { mergeLoggerConfigUpdate, resolveLoggerConfig } from "./config/resolveLoggerConfig";
+import type { ApiSubcategory, LogCategory } from "./core/categories";
+import { formatLogMessage } from "./core/formatLogMessage";
+import type { LoggerConfig } from "./core/loggerTypes";
+import type { LogLevel } from "./core/loggerTypes";
+import { createSafeLogObject } from "./core/pii";
+import { shouldEmitLog } from "./core/shouldEmitLog";
+import { emitPostHogLog } from "./sinks/posthogLogSink";
+import type { PostHogLogLevel } from "./sinks/posthogLogSink.types";
 
-export type { ApiSubcategoryConfig, LoggerConfig } from "./loggerTypes";
+export type { ApiSubcategoryConfig, LoggerConfig } from "./core/loggerTypes";
 
 class Logger {
   private config: LoggerConfig;

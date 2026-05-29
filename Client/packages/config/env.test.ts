@@ -2,7 +2,6 @@
  * EnvConfig is a singleton. Each case uses vi.resetModules() + dynamic import("./env")
  * after stubbing process.env so getters read fresh values.
  */
-/* eslint-disable silverkey/no-process-env-outside-config -- tests must stub process.env before loading env.ts */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockWarn = vi.hoisted(() => vi.fn());

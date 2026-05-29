@@ -1,8 +1,8 @@
-"""Tests for Server/scripts/extract_routes.py inventory generation."""
+"""Tests for Server/scripts/endpoints/extract_routes.py inventory generation."""
 
 from __future__ import annotations
 
-from scripts.extract_routes import collect_route_entries
+from scripts.endpoints.extract_routes import collect_route_entries
 
 
 def test_collect_route_entries_is_sorted():

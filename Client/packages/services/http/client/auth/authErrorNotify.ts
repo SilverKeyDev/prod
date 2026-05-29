@@ -1,10 +1,10 @@
 import { log, LOG_CATEGORIES } from "packages/logger";
+import type { AuthenticationError } from "packages/services/http/client/errors";
 import { getWindow } from "packages/utils/platform";
 
 import { broadcastAuthLogout } from "./authBroadcast";
 import { redirectToLoginIfNeeded } from "./authRedirect";
 import { clearLegacyAuthStorage } from "./authStorage";
-import type { AuthenticationError } from "./errors";
 
 /** HTTP-layer auth failure handling without importing the auth store (avoids import cycles). */
 export function notifyAuthenticationError(error: AuthenticationError): void {

@@ -4,7 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { logoutFromAuthStore } from "packages/features/homeauth/hooks/data/session/useSecureAuthFlows";
+import { useAuthStoreIntegration } from "packages/features/homeauth/hooks/store/useAuthStoreIntegration";
 import { useHealthCheck, useSessionTimeout } from "packages/hooks/ui";
 import { Text } from "packages/ui/components/primitives";
 
@@ -19,9 +19,11 @@ export function AppContent() {
   const [loading, setLoading] = useState(true);
   const { maintenance, healthCheckComplete } = useHealthCheck();
 
+  const { logout: authLogout } = useAuthStoreIntegration();
+
   const handleSessionTimeoutLogout = useCallback(() => {
-    void logoutFromAuthStore();
-  }, []);
+    void authLogout();
+  }, [authLogout]);
 
   useSessionTimeout({ onLogout: handleSessionTimeoutLogout });
 

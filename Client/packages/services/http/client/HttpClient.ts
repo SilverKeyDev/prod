@@ -2,14 +2,14 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { dateNow } from "packages/utils/date";
 import { getDocument, getFetch } from "packages/utils/platform";
 
-import { notifyAuthenticationError } from "./authErrorNotify";
-import { isAuthEndpoint, recoverSessionAfter401 } from "./authRecovery";
+import { notifyAuthenticationError } from "./auth/authErrorNotify";
+import { isAuthEndpoint, recoverSessionAfter401 } from "./auth/authRecovery";
 import { AuthenticationError, HttpError } from "./errors";
-import { normalizeUrl, sleep } from "./httpRequestHeaders";
-import { logApiRequest, logApiResponse } from "./logging";
-import type { HttpClientConfig as RequestHelpersConfig } from "./requestHelpers";
-import { buildRequestOptions } from "./requestHelpers";
-import { handleHttpResponse } from "./responseHandler";
+import { normalizeUrl, sleep } from "./request/httpRequestHeaders";
+import { logApiRequest, logApiResponse } from "./request/logging";
+import type { HttpClientConfig as RequestHelpersConfig } from "./request/requestHelpers";
+import { buildRequestOptions } from "./request/requestHelpers";
+import { handleHttpResponse } from "./request/responseHandler";
 
 function getCookieNames(doc: Document | null): string[] {
   if (!doc) return [];

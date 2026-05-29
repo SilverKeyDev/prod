@@ -12,7 +12,11 @@ import type {
 import { getFetch } from "packages/utils/platform";
 
 import { AuthenticationError } from "./client/errors";
-import { createAuthHeaders, normalizeHeaders, normalizeUrl } from "./client/httpRequestHeaders";
+import {
+  createAuthHeaders,
+  normalizeHeaders,
+  normalizeUrl,
+} from "./client/request/httpRequestHeaders";
 
 const toPlainHeaderObject = normalizeHeaders;
 const normalizeBase = normalizeUrl;

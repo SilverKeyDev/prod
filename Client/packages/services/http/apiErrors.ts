@@ -1,7 +1,7 @@
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { log as secureLog } from "packages/services/security/secureLogger";
 
-import { notifyAuthenticationError } from "./client/authErrorNotify";
+import { notifyAuthenticationError } from "./client/auth/authErrorNotify";
 import { AuthenticationError, HttpError } from "./client/errors";
 
 export function logHttp(scope: string, e: unknown) {

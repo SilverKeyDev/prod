@@ -142,10 +142,10 @@ mobile:
 	cd "$(ROOT)/Client" && pnpm dev:mobile
 
 routes-extract:
-	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/extract_routes.py
+	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/endpoints/extract_routes.py
 
 routes-extract-verify: routes-extract
 	cd "$(ROOT)" && git diff --exit-code Server/endpoints.json
 
 endpoints-check-dead:
-	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/check_dead_endpoints.py
+	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/endpoints/check_dead_endpoints.py

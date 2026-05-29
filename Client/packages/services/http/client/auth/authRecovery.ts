@@ -1,10 +1,10 @@
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { normalizeUrl } from "packages/services/http/client/request/httpRequestHeaders";
+import { createHttpRequestId } from "packages/services/http/client/request/requestId";
 import { getFetch, getWindow } from "packages/utils/platform";
 
 import { broadcastAuthLogout } from "./authBroadcast";
-import { normalizeUrl } from "./httpRequestHeaders";
 import { postRefreshTokenWithRetry } from "./refreshTokenRetry";
-import { createHttpRequestId } from "./requestId";
 
 let verifyingPromise: Promise<boolean> | null = null;
 

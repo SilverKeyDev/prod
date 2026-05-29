@@ -33,4 +33,4 @@ jobs:
         env:
           POSTHOG_PERSONAL_API_KEY: ${{ secrets.POSTHOG_PERSONAL_API_KEY }}
           POSTHOG_PROJECT_ID: ${{ secrets.POSTHOG_PROJECT_ID }}
-        run: python3 Server/scripts/check_dead_endpoints.py
+        run: python3 Server/scripts/endpoints/check_dead_endpoints.py

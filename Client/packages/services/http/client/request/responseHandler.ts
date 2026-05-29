@@ -1,10 +1,9 @@
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { isAuthEndpoint } from "packages/services/http/client/auth/authRecovery";
+import { AuthenticationError, HttpError } from "packages/services/http/client/errors";
 import { dateNow } from "packages/utils/date";
 import { asError } from "packages/utils/errorHandling/error";
 import { getDocument, getWindow } from "packages/utils/platform";
-
-import { isAuthEndpoint } from "./authRecovery";
-import { AuthenticationError, HttpError } from "./errors";
 
 export function handleHttpResponse<T>(
   response: Response,

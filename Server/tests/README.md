@@ -132,7 +132,7 @@ pytest tests/unit/test_auth_login.py::TestLoginFlow::test_successful_login
 - **API Routes** (`tests/unit/routes/<domain>/`): HTTP blueprint tests grouped by domain
   - `auth/` — auth, profile, preferences (`test_routes_auth.py`, `test_routes_user_*.py`)
   - `docusign/` — DocuSign routes and shared `docusign_route_test_helpers.py`
-  - `calendar/` — Google Calendar API routes (`test_routes_calendar.py`; service tests live in `tests/unit/calendar/`)
+  - `calendar/` — Google Calendar API routes (`test_routes_calendar.py`; service tests live in `tests/unit/integrations/calendar/`)
   - `rev_share/`, `user_properties/`, `transactions/`, `admin/`, `agent/`, `search/`
   - Parent: `test_rate_limit_unauthenticated.py` (cross-cutting)
 

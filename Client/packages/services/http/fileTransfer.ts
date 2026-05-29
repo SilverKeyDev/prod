@@ -5,7 +5,7 @@ import { getFetch } from "packages/utils/platform";
 
 import { apiRequest } from "./apiRequest";
 import { HttpError } from "./client/errors";
-import { normalizeHeaders, normalizeUrl } from "./client/httpRequestHeaders";
+import { normalizeHeaders, normalizeUrl } from "./client/request/httpRequestHeaders";
 
 const toPlainHeaderObject = normalizeHeaders;
 const normalizeBase = normalizeUrl;

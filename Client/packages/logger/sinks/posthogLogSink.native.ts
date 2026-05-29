@@ -1,13 +1,9 @@
-import posthog from "posthog-js";
+import { createSafeLogObject } from "packages/logger/core/pii";
+import { getPostHogNativeClient } from "packages/services/analytics/posthogClient";
 
-import { createSafeLogObject } from "./pii";
 import type { PostHogLogLevel } from "./posthogLogSink.types";
 
-const SERVICE_NAME = "silverkey-web";
-
-function posthogLoggerReady(): boolean {
-  return typeof posthog.logger?.info === "function";
-}
+const SERVICE_NAME = "silverkey-mobile";
 
 function buildAttributes(
   category: string,
@@ -28,32 +24,19 @@ function buildAttributes(
   return attributes;
 }
 
-function emitWithLogger(
-  level: PostHogLogLevel,
-  message: string,
-  attributes: Record<string, string | number | boolean>
-): void {
-  const logger = posthog.logger;
-  if (!logger) {
-    return;
-  }
-
+function mapLevel(level: PostHogLogLevel): "debug" | "info" | "warn" | "error" {
   switch (level) {
     case "DEBUG":
-      logger.debug?.(message, attributes);
-      break;
+      return "debug";
     case "INFO":
-      logger.info?.(message, attributes);
-      break;
+      return "info";
     case "WARN":
     case "SECURITY":
-      logger.warn?.(message, attributes);
-      break;
+      return "warn";
     case "ERROR":
-      logger.error?.(message, attributes);
-      break;
+      return "error";
     default:
-      logger.info?.(message, attributes);
+      return "info";
   }
 }
 
@@ -64,14 +47,34 @@ export function emitPostHogLog(
   data?: unknown,
   subcategory?: string
 ): void {
-  if (!posthogLoggerReady()) {
+  const posthog = getPostHogNativeClient();
+  if (!posthog?.logger) {
     return;
   }
 
   try {
     const attributes = buildAttributes(category, subcategory, data);
-    emitWithLogger(level, message, attributes);
+    const severity = mapLevel(level);
+    const logger = posthog.logger;
+    switch (severity) {
+      case "debug":
+        logger.debug?.(message, attributes);
+        break;
+      case "info":
+        logger.info?.(message, attributes);
+        break;
+      case "warn":
+        logger.warn?.(message, attributes);
+        break;
+      case "error":
+        logger.error?.(message, attributes);
+        break;
+      default:
+        logger.info?.(message, attributes);
+    }
   } catch {
     // PostHog must never break application logging
   }
 }
+
+export type { PostHogLogLevel } from "./posthogLogSink.types";

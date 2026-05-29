@@ -14,14 +14,9 @@ import { applyLocalUnauthenticatedState } from "packages/services/http/client/au
 import {
   isTransientRefreshFailure,
   postRefreshTokenWithRetry,
-} from "packages/services/http/client/refreshTokenRetry";
+} from "packages/services/http/client/auth/refreshTokenRetry";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
-import {
-  resetWorkspaceStore,
-  useAuthStore,
-  useDevAppPersonaStore,
-  useUserStore,
-} from "packages/store";
+import { resetWorkspaceStore, useDevAppPersonaStore } from "packages/store";
 import { asError, getWindow } from "packages/utils";
 import { resolveUserFacingMessage } from "packages/utils/errorHandling";
 
@@ -38,22 +33,6 @@ function clearAuthStateAfterRefreshFailure(setters: RefreshSetters): void {
   applyLocalUnauthenticatedState();
   resetWorkspaceStore();
   useDevAppPersonaStore.setState({ serverIdentityTouched: false });
-}
-
-/** Server logout using current Zustand auth store setters (web + native). */
-export async function logoutFromAuthStore(): Promise<void> {
-  const store = useAuthStore.getState();
-  const setUserProfile = useUserStore.getState().setUserProfile;
-  await performLogout({
-    setAccessToken: () => {},
-    setUser: store.setUser,
-    setStoreUser: store.setUser,
-    setStoreIsAuthenticated: store.setIsAuthenticated,
-    setStoreAuthStatus: store.setAuthStatus,
-    setStoreAuthReady: store.setAuthReady,
-    setStorePostAuthRedirectPath: store.setPostAuthRedirectPath,
-    setUserProfile,
-  });
 }
 
 type LoginSetters = {

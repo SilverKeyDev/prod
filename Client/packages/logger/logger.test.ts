@@ -2,11 +2,11 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 
 const posthogEmit = vi.hoisted(() => vi.fn());
 
-vi.mock("./posthogLogSink", () => ({
+vi.mock("./sinks/posthogLogSink", () => ({
   emitPostHogLog: posthogEmit,
 }));
 
-import { LOG_CATEGORIES } from "./categories";
+import { LOG_CATEGORIES } from "./core/categories";
 import type { log as LogApi } from "./logger";
 
 describe("logger emit gating", () => {

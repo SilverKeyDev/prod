@@ -1,5 +1,6 @@
+import type { LoggerConfig } from "packages/logger/core/loggerTypes";
+
 import bundledLoggerConfig from "./logger.config.json";
-import type { LoggerConfig } from "./loggerTypes";
 import { resolveLoggerConfig } from "./resolveLoggerConfig";
 
 export function loadLoggerConfigFromBundled(): LoggerConfig {

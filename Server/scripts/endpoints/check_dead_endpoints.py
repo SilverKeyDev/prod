@@ -24,7 +24,7 @@ except ImportError:
     sys.stderr.write("check_dead_endpoints: the 'requests' package is required.\n")
     sys.exit(1)
 
-SERVER_DIR = Path(__file__).resolve().parents[1]
+SERVER_DIR = Path(__file__).resolve().parents[2]
 INVENTORY_PATH = SERVER_DIR / "endpoints.json"
 POSTHOG_QUERY_URL = "https://us.posthog.com/api/projects/{project_id}/query/"
 
