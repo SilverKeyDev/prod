@@ -48,7 +48,7 @@ TC_WATCH_PID=""
 # Kill processes on web dev ports (5000, 5173, 6379)
 # =========================
 kill_port_processes() {
-  local ports=(5000 5173 6379)
+  local ports=("${FLASK_PORT}" 5173 6379)
   for port in "${ports[@]}"; do
     log_web "Checking for processes on port $port..."
     if dev_port_busy "$port"; then
@@ -103,7 +103,7 @@ if [[ "$NO_BACKEND" == "true" ]]; then
   log_web "[Phase 1/4] Cleaning up existing processes on port 5173 only (--no-backend)..."
   kill_port_processes_web_only
 else
-  log_web "[Phase 1/4] Cleaning up existing processes on ports 5000, 5173, and 6379..."
+  log_web "[Phase 1/4] Cleaning up existing processes on ports ${FLASK_PORT}, 5173, and 6379..."
   kill_port_processes
 fi
 
@@ -112,6 +112,7 @@ fi
 # =========================
 if [[ "$NO_BACKEND" != "true" ]]; then
   start_backend "$@"
+  export WEB_API_PROXY="${WEB_API_PROXY:-http://localhost:${FLASK_PORT}}"
 fi
 
 # =========================

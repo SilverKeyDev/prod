@@ -24,6 +24,10 @@ NC='\033[0m' # No Color
 # =========================
 # Config
 # =========================
+FLASK_PORT_EXPLICIT=false
+if [[ -n "${FLASK_PORT+x}" ]]; then
+  FLASK_PORT_EXPLICIT=true
+fi
 FLASK_PORT="${FLASK_PORT:-5000}"
 
 # =========================
@@ -52,23 +56,59 @@ err() {
 # =========================
 # Kill processes on backend dev ports (5000, 6379)
 # =========================
-kill_port_processes_backend() {
-  local ports=(5000 6379)
-  for port in "${ports[@]}"; do
-    log "Checking for processes on port $port..."
+describe_port_listener() {
+  local port="$1"
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -nP -iTCP:"$port" -sTCP:LISTEN 2>/dev/null || true
+  fi
+}
+
+clear_tcp_port() {
+  local port="$1"
+  log "Checking for processes on port $port..."
+  if dev_port_busy "$port"; then
+    log "${RED}Killing processes on port $port${NC}"
+    dev_kill_tcp_port "$port" || true
+    sleep 1
     if dev_port_busy "$port"; then
-      log "${RED}Killing processes on port $port${NC}"
-      dev_kill_tcp_port "$port" || true
-      sleep 1
-      if dev_port_busy "$port"; then
-        warn "Some processes on port $port may still be running"
-      else
-        log "${GREEN}✅ Port $port is now free${NC}"
-      fi
-    else
-      log "${GREEN}✅ Port $port is already free${NC}"
+      warn "Some processes on port $port may still be running"
+      describe_port_listener "$port" >&2
+      return 1
     fi
-  done
+    log "${GREEN}✅ Port $port is now free${NC}"
+    return 0
+  fi
+  log "${GREEN}✅ Port $port is already free${NC}"
+}
+
+choose_flask_port() {
+  clear_tcp_port "$FLASK_PORT" && return 0
+
+  if [[ "$FLASK_PORT_EXPLICIT" == "true" ]]; then
+    err "Requested FLASK_PORT=${FLASK_PORT} is still in use after cleanup."
+    warn "Choose another port: FLASK_PORT=5001 WEB_API_PROXY=http://localhost:5001 make dev"
+    exit 1
+  fi
+
+  if [[ "$FLASK_PORT" == "5000" ]]; then
+    warn "Port 5000 is still in use. On macOS this is often AirPlay Receiver / ControlCenter."
+    warn "Falling back to Flask port 5001 for this dev run."
+    FLASK_PORT=5001
+    export FLASK_PORT
+    clear_tcp_port "$FLASK_PORT" || {
+      err "Fallback FLASK_PORT=${FLASK_PORT} is also in use."
+      exit 1
+    }
+    return 0
+  fi
+
+  err "FLASK_PORT=${FLASK_PORT} is still in use after cleanup."
+  exit 1
+}
+
+kill_port_processes_backend() {
+  choose_flask_port
+  clear_tcp_port 6379 || true
 }
 
 # =========================
@@ -158,7 +198,7 @@ start_backend() {
     log "No Server/.env found (optional); using shell env"
   fi
 
-  log "${RED}Cleaning up existing processes on ports 5000 and 6379...${NC}"
+  log "${RED}Cleaning up existing processes on ports ${FLASK_PORT} and 6379...${NC}"
   kill_port_processes_backend
 
   # Start Redis

@@ -28,10 +28,16 @@ def map_user_preferences_to_filters(
     budget_min = user_preferences.get("home_budget_min")
     budget_max = user_preferences.get("home_budget_max")
 
-    if budget_max:
-        price_min = int(budget_min) if budget_min else int(budget_max * 0.65)
-        price_max = int(budget_max)
-        filters["listPrice"] = f"{price_min}:{price_max}"
+    if budget_min is not None or budget_max is not None:
+        try:
+            if budget_min is not None and budget_max is not None:
+                filters["listPrice"] = f"{int(budget_min)}:{int(budget_max)}"
+            elif budget_min is not None:
+                filters["listPrice"] = f">={int(budget_min)}"
+            elif budget_max is not None:
+                filters["listPrice"] = f"{int(int(budget_max) * 0.65)}:{int(budget_max)}"
+        except (TypeError, ValueError):
+            pass
 
     beds_min = user_preferences.get("preferred_bedrooms_min")
     if beds_min is not None:
@@ -54,26 +60,34 @@ def map_user_preferences_to_filters(
         "houses": "Single Family Residence",
         "condo": "Condominium",
         "condos": "Condominium",
+        "condos-co-ops": "Condominium",
         "townhouse": "Townhouse",
+        "townhome": "Townhouse",
         "townhomes": "Townhouse",
         "apartment": "Condominium",
         "apartments": "Condominium",
         "multi_family": "Multi-Family",
+        "multi-family": "Multi-Family",
         "multifamily": "Multi-Family",
         "manufactured": "Manufactured Home",
         "mobile": "Manufactured Home",
         "land": "Land",
         "lot": "Land",
         "lots": "Land",
+        "lots-land": "Land",
     }
 
     raw_type = str(
         user_preferences.get("preferred_housing_type", user_preferences.get("housing_type", ""))
     )
     if raw_type:
-        mapped = _SLIPSTREAM_TYPE_MAP.get(raw_type.lower())
-        if mapped:
-            filters["propertyType"] = mapped
+        mapped_values = []
+        for token in raw_type.split(","):
+            mapped = _SLIPSTREAM_TYPE_MAP.get(token.strip().lower())
+            if mapped and mapped not in mapped_values:
+                mapped_values.append(mapped)
+        if mapped_values:
+            filters["propertyType"] = ",".join(mapped_values)
 
     sqft_min = user_preferences.get("preferred_sqft_min")
     sqft_max = user_preferences.get("preferred_sqft_max")

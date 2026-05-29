@@ -315,7 +315,7 @@ def test_must_have_applied_when_strict() -> None:
     assert len(out) == 0
 
 
-def test_lenient_mode_skips_filters_when_count_at_threshold() -> None:
+def test_non_strict_mode_applies_basic_filters_when_count_at_threshold() -> None:
     props = [
         {"zpid": str(i), "bedrooms": 5} for i in range(PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT)
     ]
@@ -327,7 +327,7 @@ def test_lenient_mode_skips_filters_when_count_at_threshold() -> None:
         agent_debug_log=_noop_debug_log,
         strict_preference_filter=False,
     )
-    assert len(out) == PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT
+    assert len(out) == 0
 
 
 def test_owner_posted_only_non_strict_restores_when_no_fsbo_in_feed() -> None:
@@ -373,6 +373,52 @@ def test_lenient_mode_applies_filters_when_count_above_threshold() -> None:
     assert len(out) == 0
 
 
+def test_price_filter_applies_to_small_result_sets() -> None:
+    props = [
+        {"zpid": "under", "price": 900000},
+        {"zpid": "over", "price": 1250000},
+    ]
+    out = apply_polygon_search_post_filters(
+        props,
+        {"home_budget_min": 1000000},
+        "req_test",
+        agent_debug_log=_noop_debug_log,
+        strict_preference_filter=False,
+    )
+    assert [p.get("zpid") for p in out] == ["over"]
+
+
+def test_property_type_filter_accepts_ui_townhome_value() -> None:
+    props = [
+        {"zpid": "sfh", "homeType": "SINGLE_FAMILY"},
+        {"zpid": "town", "homeType": "TOWNHOUSE"},
+        {"zpid": "condo", "homeType": "CONDO"},
+    ]
+    out = apply_polygon_search_post_filters(
+        props,
+        {"preferred_housing_type": "townhome"},
+        "req_test",
+        agent_debug_log=_noop_debug_log,
+        strict_preference_filter=False,
+    )
+    assert [p.get("zpid") for p in out] == ["town"]
+
+
+def test_property_type_filter_accepts_lots_land_value() -> None:
+    props = [
+        {"zpid": "sfh", "homeType": "SINGLE_FAMILY"},
+        {"zpid": "land", "homeType": "LOT"},
+    ]
+    out = apply_polygon_search_post_filters(
+        props,
+        {"preferred_housing_type": "lots-land"},
+        "req_test",
+        agent_debug_log=_noop_debug_log,
+        strict_preference_filter=False,
+    )
+    assert [p.get("zpid") for p in out] == ["land"]
+
+
 def test_user_feature_ac_matches_central_air_in_description() -> None:
     prop = {"description": "Lovely home with Central air throughout."}
     assert user_feature_need_matches_property(prop, "ac") is True
@@ -381,3 +427,8 @@ def test_user_feature_ac_matches_central_air_in_description() -> None:
 def test_user_feature_single_story_rejects_two_stories_reso() -> None:
     prop = {"resoFacts": {"stories": 2}}
     assert user_feature_need_matches_property(prop, "single_story") is False
+
+
+def test_user_feature_fenced_in_backyard_matches_common_phrasing() -> None:
+    prop = {"description": "Large private fenced yard and patio."}
+    assert user_feature_need_matches_property(prop, "fenced in backyard") is True

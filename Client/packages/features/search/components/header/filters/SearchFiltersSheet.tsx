@@ -71,11 +71,35 @@ export function SearchFiltersSheet({
       await submitPreferences(formData as Record<string, unknown>);
       setSearchFilterOverrides((prev) => ({
         ...prev,
+        ...(formData.home_budget_min != null && {
+          home_budget_min: formData.home_budget_min,
+        }),
+        ...(formData.home_budget_max != null && {
+          home_budget_max: formData.home_budget_max,
+        }),
+        ...(formData.preferred_bedrooms_min != null && {
+          preferred_bedrooms_min: formData.preferred_bedrooms_min,
+        }),
         ...(formData.preferred_bedrooms_max != null && {
           preferred_bedrooms_max: formData.preferred_bedrooms_max,
         }),
+        ...(formData.preferred_bathrooms_min != null && {
+          preferred_bathrooms_min: formData.preferred_bathrooms_min,
+        }),
         ...(formData.preferred_bathrooms_max != null && {
           preferred_bathrooms_max: formData.preferred_bathrooms_max,
+        }),
+        ...(formData.preferred_housing_type != null && {
+          preferred_housing_type: formData.preferred_housing_type,
+        }),
+        ...(Array.isArray(formData.listing_type) && {
+          listing_type: formData.listing_type,
+        }),
+        ...(formData.preferred_sqft_min != null && {
+          preferred_sqft_min: formData.preferred_sqft_min,
+        }),
+        ...(formData.preferred_sqft_max != null && {
+          preferred_sqft_max: formData.preferred_sqft_max,
         }),
         ...(formData.preferred_lot_size_min != null && {
           preferred_lot_size_min: formData.preferred_lot_size_min,

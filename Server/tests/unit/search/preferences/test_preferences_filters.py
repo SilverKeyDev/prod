@@ -39,7 +39,7 @@ class TestPriceFilter:
 
     def test_budget_min_only_no_max(self):
         f = _call({"home_budget_min": 100000})
-        assert "listPrice" not in f
+        assert f["listPrice"] == ">=100000"
 
 
 # ---- Bedrooms ----
@@ -138,22 +138,30 @@ class TestPropertyTypeFilter:
             ("houses", "Single Family Residence"),
             ("condo", "Condominium"),
             ("condos", "Condominium"),
+            ("condos-co-ops", "Condominium"),
             ("townhouse", "Townhouse"),
+            ("townhome", "Townhouse"),
             ("townhomes", "Townhouse"),
             ("apartment", "Condominium"),
             ("apartments", "Condominium"),
             ("multi_family", "Multi-Family"),
+            ("multi-family", "Multi-Family"),
             ("multifamily", "Multi-Family"),
             ("manufactured", "Manufactured Home"),
             ("mobile", "Manufactured Home"),
             ("land", "Land"),
             ("lot", "Land"),
             ("lots", "Land"),
+            ("lots-land", "Land"),
         ],
     )
     def test_property_type_mapping(self, pref_value, expected):
         f = _call({"preferred_housing_type": pref_value})
         assert f["propertyType"] == expected
+
+    def test_property_type_multi_value_mapping(self):
+        f = _call({"preferred_housing_type": "townhome,condos-co-ops,lots-land"})
+        assert f["propertyType"] == "Townhouse,Condominium,Land"
 
     def test_property_type_fallback_to_housing_type(self):
         f = _call({"housing_type": "condo"})
