@@ -5,6 +5,7 @@ module.exports = {
   ...base,
   expo: {
     ...base.expo,
+    plugins: [...(base.expo.plugins ?? []), "expo-localization"],
     web: {
       ...base.expo.web,
       bundler: "metro",

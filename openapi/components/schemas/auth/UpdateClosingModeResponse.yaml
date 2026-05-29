@@ -1,9 +1,0 @@
-allOf:
-  - $ref: '../shared/core/SuccessResponse.yaml'
-  - type: object
-    properties:
-      is_closing_mode:
-        type: boolean
-        description: >
-          Echo of the request value for API compatibility. Not persisted on the users table
-          (column removed); do not treat as stored user profile state.

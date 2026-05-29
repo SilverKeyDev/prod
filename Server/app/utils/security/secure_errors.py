@@ -96,7 +96,13 @@ class SecureErrorHandler:
 
         # Only include safe additional information
         if additional_info:
-            safe_keys = ["field_errors", "validation_errors", "retry_after", "allowed_types"]
+            safe_keys = [
+                "field_errors",
+                "validation_errors",
+                "retry_after",
+                "allowed_types",
+                "message",
+            ]
             for key, value in additional_info.items():
                 if key in safe_keys:
                     response[key] = value

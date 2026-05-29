@@ -1,4 +1,3 @@
-import warnings
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Mapped, mapped_column
@@ -39,23 +38,6 @@ class Document(db.Model):
         back_populates="upload_document",
         foreign_keys=[library_item_id],
     )
-
-    def to_dict(self):
-        warnings.warn(
-            "Document.to_dict() is deprecated; use app.dtos.document.WorkflowDocumentDTO.from_document",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return {
-            "id": self.id,
-            "filename": self.filename,
-            "file_size": self.file_size,
-            "status": self.status,
-            "address": self.address,
-            "document_type": self.document_type,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
 
     def __repr__(self):
         return f"<Document {self.filename}>"

@@ -18,3 +18,10 @@ export function createAbortManager() {
 
   return { abortAll, withAbort };
 }
+
+export function isAbortError(error: unknown): boolean {
+  return (
+    (error instanceof DOMException && error.name === "AbortError") ||
+    (error instanceof Error && error.name === "AbortError")
+  );
+}

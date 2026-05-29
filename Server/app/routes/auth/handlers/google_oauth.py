@@ -4,11 +4,15 @@ import traceback
 
 from flask import current_app, jsonify, redirect, request, session
 
+from app.schemas import OAuthCallbackQueryParams
 from app.services.auth.core import google_oauth_service
 from app.services.auth.flows import handle_google_oauth_callback
 from app.services.auth.utils import generate_request_id
+from app.utils.security import rate_limit
+from app.utils.validation import validate_query
 
 
+@rate_limit(max_requests=10, window_seconds=60)
 def google_oauth_start():
     """Start Google OAuth flow for authentication"""
     request_id = generate_request_id("google_oauth")
@@ -45,23 +49,28 @@ def google_oauth_start():
         ), 500
 
 
-def google_oauth_callback():
+@rate_limit(max_requests=10, window_seconds=60)
+@validate_query(OAuthCallbackQueryParams)
+def google_oauth_callback(query: OAuthCallbackQueryParams | None = None):
     """Handle Google OAuth callback and sign in/sign up user"""
     request_id = generate_request_id("google_callback")
     try:
+        request_args = (
+            query.model_dump(exclude_none=True) if query is not None else dict(request.args.items())
+        )
         current_app.logger.info(
             "GOOGLE_OAUTH_CALLBACK",
             extra={
                 "request_id": request_id,
-                "has_code": bool(request.args.get("code")),
-                "has_error": bool(request.args.get("error")),
-                "has_state": bool(request.args.get("state")),
+                "has_code": bool(request_args.get("code")),
+                "has_error": bool(request_args.get("error")),
+                "has_state": bool(request_args.get("state")),
                 "session_keys": list(session.keys()) if session else [],
                 "has_session_state": "google_auth_oauth_state" in session if session else False,
             },
         )
         resp = handle_google_oauth_callback(
-            request_args=dict(request.args), session_data=dict(session), request_id=request_id
+            request_args=request_args, session_data=dict(session), request_id=request_id
         )
         return resp
     except Exception as e:

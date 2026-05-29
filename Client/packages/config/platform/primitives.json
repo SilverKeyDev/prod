@@ -204,5 +204,19 @@
     "module": "packages/ui/components/primitives/index.web",
     "platformIndependent": false,
     "reason": "Web-specific primitive exports."
+  },
+  {
+    "id": "feed-hls-video-hook-shim",
+    "kind": "component",
+    "module": "packages/features/feed/hooks/ui/video/useHlsVideo",
+    "platformIndependent": false,
+    "reason": "Feature-layer re-export shim; bundler resolves .web to packages/ui HLS adapter or .native no-op."
+  },
+  {
+    "id": "feed-scroll-container-hook",
+    "kind": "component",
+    "module": "packages/features/feed/hooks/ui/scroll/useFeedScrollContainer",
+    "platformIndependent": false,
+    "reason": "Web Virtuoso scroll vs native FlatList; platform-specific scroll container APIs."
   }
 ]

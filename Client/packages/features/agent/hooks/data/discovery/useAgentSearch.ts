@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { useAuthStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 import type { AgentSearchResult, ClientSearchResult } from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";
@@ -58,7 +59,7 @@ export function useAgentSearch(query: string, enabled: boolean = true) {
       }
       const response = await agentApi.searchAgents(debouncedQuery);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to search agents");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to search agents"));
       }
       return response.agents ?? [];
     },
@@ -111,7 +112,7 @@ export function useClientSearch(query: string, enabled: boolean = true) {
       }
       const response = await agentApi.searchClients(debouncedQuery);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to search clients");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to search clients"));
       }
       return response.clients ?? [];
     },

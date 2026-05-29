@@ -1,5 +1,5 @@
 import { color } from "packages/design-tokens";
-import { detectEventTypeFromTitle } from "packages/utils/calendar/detectEventTypeFromTitle";
+import { detectEventTypeFromTitle } from "packages/utils/calendar/parsing/detectEventTypeFromTitle";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

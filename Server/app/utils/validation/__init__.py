@@ -3,6 +3,7 @@
 from .decorators import (
     VALIDATION_MODE,
     has_validation_decorator,
+    validate_query,
     validate_request,
     validate_response,
 )
@@ -13,6 +14,7 @@ from .helpers import (
     get_validation_summary,
     validate_response_data,
 )
+from .sanitize import sanitize_optional_address
 
 __all__ = [
     "VALIDATION_MODE",
@@ -21,6 +23,8 @@ __all__ = [
     "format_validation_errors",
     "get_validation_summary",
     "has_validation_decorator",
+    "sanitize_optional_address",
+    "validate_query",
     "validate_request",
     "validate_response",
     "validate_response_data",

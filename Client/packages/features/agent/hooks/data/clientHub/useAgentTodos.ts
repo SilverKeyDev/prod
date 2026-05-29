@@ -6,6 +6,7 @@ import { queryKeys } from "packages/config/query/keys";
 import { showErrorToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 import type { CreateTodoRequest, TodoItem, UpdateTodoRequest } from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";
@@ -42,7 +43,7 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     queryFn: async () => {
       const response = await agentApi.getTodos(includeCompleted);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch todos");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch todos"));
       }
       return response.todos ?? [];
     },
@@ -64,7 +65,7 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     mutationFn: async (data: CreateTodoRequest) => {
       const response = await agentApi.createTodo(data);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to create todo");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to create todo"));
       }
       return response.todo ?? null;
     },
@@ -82,7 +83,7 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     mutationFn: async ({ id, data }: { id: string; data: UpdateTodoRequest }) => {
       const response = await agentApi.updateTodo(id, data);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to update todo");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to update todo"));
       }
       return response.todo ?? null;
     },

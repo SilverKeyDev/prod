@@ -28,6 +28,7 @@ export default function SearchFiltersDropdown({
         updateFormData,
         patchBuyerPreferenceExtensions,
         scriptsReady,
+        cancelPendingSave,
       }) => (
         <SearchFilterBar
           formData={formData}
@@ -40,6 +41,8 @@ export default function SearchFiltersDropdown({
           onAgentSyncPreferencesFetched={(onboarding) =>
             preferencesFormActionsRef.current?.replaceFormData(onboarding)
           }
+          replaceFormData={(next) => preferencesFormActionsRef.current?.replaceFormData(next)}
+          cancelPendingSave={cancelPendingSave}
         />
       )}
     />

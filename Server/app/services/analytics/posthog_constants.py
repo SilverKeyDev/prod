@@ -1,0 +1,6 @@
+"""SilverKey PostHog project (US cloud)."""
+
+POSTHOG_API_HOST = "https://us.i.posthog.com"
+
+POSTHOG_DISTINCT_ID_HEADER = "X-POSTHOG-DISTINCT-ID"
+POSTHOG_SESSION_ID_HEADER = "X-POSTHOG-SESSION-ID"

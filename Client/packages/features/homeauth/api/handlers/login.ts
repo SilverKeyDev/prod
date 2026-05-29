@@ -1,7 +1,7 @@
 import type { AuthResponse, LoginData } from "packages/features/homeauth/types";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { apiPost } from "packages/services/http/compatibility";
-import { HttpError } from "packages/services/http/compatibility";
+import { apiPost } from "packages/services/http";
+import { HttpError } from "packages/services/http";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
 import { dateNow } from "packages/utils/date";
 

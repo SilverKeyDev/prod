@@ -75,12 +75,12 @@ The Client uses a centralized OpenAPI 3.1.0 specification for all API types:
 2. Run `pnpm generate:api-types`
 3. Import from `packages/types/api.generated`
 
-**See:** [OPENAPI_MIGRATION.md](../OPENAPI_MIGRATION.md) and [.cursor/rules/shared/openapi-types.mdc](../.cursor/rules/shared/openapi-types.mdc)
+**See:** [documentation/server/openapi-workflow.md](../documentation/server/openapi-workflow.md) and [.cursor/rules/shared/openapi-types.mdc](../.cursor/rules/shared/openapi-types.mdc)
 
 ## Where to read more
 
-- **Architecture and layers:** [.cursor/rules/frontend/frontend-architecture.mdc](../.cursor/rules/frontend/frontend-architecture.mdc) and [documentation/client/thin-app-architecture.md](../documentation/client/thin-app-architecture.md)
-- **Lint and checks:** [documentation/client/LINTING.md](../documentation/client/LINTING.md)
+- **Architecture and layers:** [.cursor/rules/frontend/frontend-architecture.mdc](../.cursor/rules/frontend/frontend-architecture.mdc) and [documentation/client/architecture/thin-app-architecture.md](../documentation/client/architecture/thin-app-architecture.md)
+- **Lint and checks:** [documentation/client/standards/LINTING.md](../documentation/client/standards/LINTING.md)
 - **Web-only / desktop-only files:** [.cursor/rules/frontend/platform-file-extensions.mdc](../.cursor/rules/frontend/platform-file-extensions.mdc)
-- **API types:** [OPENAPI_MIGRATION.md](../OPENAPI_MIGRATION.md) and [.cursor/rules/shared/openapi-types.mdc](../.cursor/rules/shared/openapi-types.mdc)
+- **API types:** [documentation/server/openapi-workflow.md](../documentation/server/openapi-workflow.md) and [.cursor/rules/shared/openapi-types.mdc](../.cursor/rules/shared/openapi-types.mdc)
 - **Canonical docs (packages, platform, lint reference):** [documentation/client/](../documentation/client/README.md)

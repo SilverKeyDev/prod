@@ -2,6 +2,7 @@
 Aggregation services: preferences aggregation and report comparison helpers.
 """
 
+from app.services.aggregation.clear_user_preferences import clear_user_preferences
 from app.services.aggregation.preferences_aggregation import (
     get_preferences_dict_for_user,
     get_preferences_dict_optional,
@@ -13,6 +14,7 @@ from app.services.aggregation.report_comparator import _download_json_from_s3
 
 __all__ = [
     "_download_json_from_s3",
+    "clear_user_preferences",
     "get_preferences_dict_for_user",
     "get_preferences_dict_optional",
     "get_preferences_updated_at",

@@ -6,6 +6,7 @@ import type {
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { createAbortManager, HttpError, isAbortError } from "packages/services/http";
 import { dateNow, dateParseISO } from "packages/utils/date";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 /** Client-side category when upload UI does not collect one (not sent on multipart upload). */
 export const DEFAULT_UPLOAD_DOCUMENT_CATEGORY = "general";
@@ -147,7 +148,7 @@ export class DocumentService {
 
         return updatedDocument;
       } else {
-        throw new Error(response.error ?? "Failed to update document status");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to update document status"));
       }
     } catch (e: unknown) {
       if (!isAbortError(e)) {
@@ -172,7 +173,7 @@ export class DocumentService {
 
         return signedDocument;
       } else {
-        throw new Error(response.error ?? "Failed to sign document");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to sign document"));
       }
     } catch (e: unknown) {
       if (!isAbortError(e)) {

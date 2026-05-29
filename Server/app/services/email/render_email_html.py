@@ -190,7 +190,7 @@ def render_email_html(template_name: str, props: dict[str, Any]) -> str:
         os.chdir(original_cwd)
 
 
-def convert_home_universal_to_listing_dict(home) -> dict[str, Any]:
+def convert_listing_to_email_dict(home) -> dict[str, Any]:
     """Convert a property-like object to a listing dictionary for email templates.
 
     Accepts any object with address, price, beds, baths, sqft, score, image_url attrs.

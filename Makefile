@@ -9,19 +9,22 @@ REGION ?= us-east-2
 PROFILE ?=
 PYTEST_ARGS ?=
 
-.PHONY: help setup refresh secrets migrate \
+.PHONY: help setup setup-mcp refresh clean-caches secrets migrate \
 	test test-all test-fe test-be test-frontend test-backend \
 	dev dev-web dev-backend \
 	pre-commit precommit \
 	lint lint-all lint-client lint-server \
 	typecheck check-client openapi openapi-verify generate-api \
-	format-client format-check mobile
+	format-client format-check mobile \
+	routes-extract endpoints-check-dead routes-extract-verify
 
 help:
 	@echo "SilverKey Makefile (see also ./scripts/setup-local.sh and ./scripts/refresh.sh)"
 	@echo ""
 	@echo "  make setup            First-time setup — see setup.md (optional: ARGS='--skip-secrets')"
-	@echo "  make refresh          After git pull: pnpm + pip refresh (optional: make refresh ARGS='--secrets')"
+	@echo "  make setup-mcp        Cursor MCP only (seed mcp.json, install uv/npx, verify)"
+	@echo "  make refresh          After git pull: clear caches + pnpm + pip (ARGS='--secrets' | '--no-clean' | '--aggressive-clean')"
+	@echo "  make clean-caches     Remove regenerable dev caches only (ARGS='--aggressive')"
 	@echo "  make secrets          AWS Secrets Manager -> Server/.env (uses AWS_PROFILE / ~/.aws/config)"
 	@echo "  make migrate          flask db upgrade (operators only; see warning in recipe)"
 	@echo "  make test / test-all Client + Server tests"
@@ -36,17 +39,27 @@ help:
 	@echo "  make lint-server      ./scripts/run-all-linters.sh server"
 	@echo "  make typecheck        cd Client && pnpm typecheck"
 	@echo "  make check-client     cd Client && pnpm check"
+	@echo "  make check-docs       doc placement + internal .md link checks"
 	@echo "  make openapi          Regenerate client + server types from openapi/ (bundle + codegen)"
 	@echo "  make openapi-verify   Regenerate, fail if git drift, run contract tests + typecheck"
 	@echo "  make format-client    cd Client && pnpm format"
 	@echo "  make format-check     cd Client && pnpm format:check"
 	@echo "  make mobile           cd Client && pnpm dev:mobile"
+	@echo "  make routes-extract   Write Server/endpoints.json from Flask url_map"
+	@echo "  make routes-extract-verify  Regenerate endpoints.json; fail if git drift (CI)"
+	@echo "  make endpoints-check-dead  Diff inventory vs PostHog api_request (7d; scheduled ops)"
 
 setup:
 	bash "$(ROOT)/scripts/setup-local.sh" $(ARGS)
 
+setup-mcp:
+	bash "$(ROOT)/scripts/setup-mcp.sh"
+
 refresh:
 	bash "$(ROOT)/scripts/refresh.sh" $(ARGS)
+
+clean-caches:
+	bash "$(ROOT)/scripts/lib/clean-caches.sh" $(ARGS)
 
 secrets:
 	bash "$(ROOT)/Server/scripts/secrets.sh" "$(REGION)" "$(PROFILE)"
@@ -66,7 +79,7 @@ test-fe test-frontend:
 	cd "$(ROOT)/Client" && pnpm test:run
 
 test-be test-backend:
-	cd "$(ROOT)/Server" && . .venv/bin/activate && TESTING=true APP_LOG_LEVEL=ERROR pytest $(PYTEST_ARGS)
+	cd "$(ROOT)/Server" && mkdir -p coverage && . .venv/bin/activate && TESTING=true APP_LOG_LEVEL=ERROR pytest $(PYTEST_ARGS)
 
 dev:
 	bash "$(ROOT)/scripts/run/run-web.sh"
@@ -106,6 +119,10 @@ typecheck:
 check-client:
 	cd "$(ROOT)/Client" && pnpm check
 
+check-docs:
+	bash "$(ROOT)/scripts/check-doc-placement.sh"
+	bash "$(ROOT)/scripts/check-doc-links.sh"
+
 openapi:
 	npm run openapi:generate --prefix "$(ROOT)"
 
@@ -123,3 +140,12 @@ format-check:
 
 mobile:
 	cd "$(ROOT)/Client" && pnpm dev:mobile
+
+routes-extract:
+	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/endpoints/extract_routes.py
+
+routes-extract-verify: routes-extract
+	cd "$(ROOT)" && git diff --exit-code Server/endpoints.json
+
+endpoints-check-dead:
+	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/endpoints/check_dead_endpoints.py

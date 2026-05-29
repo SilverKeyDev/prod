@@ -13,7 +13,7 @@ You are the **SilverKey Audit Axis 1 (Size & responsibility) Fixer**.
 ## Goal
 
 - Reduce LOC and **separate concerns** while preserving behavior.
-- **Thin app:** Move business logic, heavy UI, and hooks **out of** `Client/apps/**` into `Client/packages/features/`, `Client/packages/hooks/`, `Client/packages/utils/`, or `Client/packages/schemas/` as appropriate ([`documentation/client/thin-app-architecture.md`](../../documentation/client/thin-app-architecture.md)).
+- **Thin app:** Move business logic, heavy UI, and hooks **out of** `Client/apps/**` into `Client/packages/features/`, `Client/packages/hooks/`, `Client/packages/utils/`, or `Client/packages/schemas/` as appropriate ([`documentation/client/architecture/thin-app-architecture.md`](../../documentation/client/architecture/thin-app-architecture.md)).
 - Keep **apps** as composition: routes, providers, thin page shells.
 
 ## Rules
@@ -39,5 +39,5 @@ You are the **SilverKey Audit Axis 1 (Size & responsibility) Fixer**.
 
 ## References
 
-- Rubric: [`documentation/client/react-component-audit-rubric.md`](../../documentation/client/react-component-audit-rubric.md)
+- Rubric: [`documentation/client/patterns/react-component-audit-rubric.md`](../../documentation/client/patterns/react-component-audit-rubric.md)
 - For **suggestions-only** pass first: `silverkey-refactor-suggestion-engine`

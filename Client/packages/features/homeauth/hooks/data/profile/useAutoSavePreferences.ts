@@ -28,6 +28,8 @@ type UseAutoSavePreferencesReturn = {
   saveStatus: SaveStatus;
   isSaving: boolean;
   autoSave: (data: Partial<OnboardingData>) => void;
+  /** Drop debounced pending saves without persisting (e.g. before clear preferences). */
+  cancelPendingSave: () => void;
   /**
    * Await any in-flight save, then persist `data` once (serialized with the auto-save chain).
    * Clears debounced pending saves. Use after Apply so search runs against server state.
@@ -175,13 +177,17 @@ export function useAutoSavePreferences({
     [debounceMs, performSave]
   );
 
+  const cancelPendingSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    pendingDebouncedRef.current = null;
+  }, []);
+
   const flushSave = useCallback(
     async (data: Partial<OnboardingData>) => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = null;
-      }
-      pendingDebouncedRef.current = null;
+      cancelPendingSave();
       saveChainRef.current = saveChainRef.current
         .catch(() => {
           /* keep the chain alive after a failed save */
@@ -189,7 +195,7 @@ export function useAutoSavePreferences({
         .then(() => performSave(data));
       await saveChainRef.current;
     },
-    [performSave]
+    [cancelPendingSave, performSave]
   );
 
   const updateFormData = useCallback(
@@ -226,6 +232,7 @@ export function useAutoSavePreferences({
     saveStatus,
     isSaving,
     autoSave,
+    cancelPendingSave,
     flushSave,
     updateFormData,
   };

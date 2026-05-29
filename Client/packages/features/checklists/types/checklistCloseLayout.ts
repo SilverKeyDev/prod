@@ -36,6 +36,8 @@ export type CloseLayoutProps = {
   containerClassName?: string;
   showMinLoadingText?: boolean;
   setClosePageHeaderData?: Dispatch<SetStateAction<ClosePageHeaderData | null>>;
+  /** Buyer user id or transaction id for rev-share placements (defaults to auth user). */
+  transactionSubjectId?: string | null;
 };
 
 export type ChecklistLayoutDisclosureState = {

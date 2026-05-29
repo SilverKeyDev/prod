@@ -10,13 +10,13 @@ export { useDocumentsData } from "./hooks/data/useDocumentsData";
 export { useSavedPageDocumentHandlers } from "./hooks/data/useSavedPageDocumentHandlers";
 
 // Document store integration hooks
-export type { SendForSignatureParams } from "./hooks/store/documentsDataIntegrationTypes";
-export { useDocumentsDataIntegration } from "./hooks/store/useDocumentsDataIntegration";
-export { useDocumentsStoreIntegration } from "./hooks/store/useDocumentsStoreIntegration";
-export { useHomeComparison } from "./hooks/store/useHomeComparison";
-export { useReportsStoreIntegration } from "./hooks/store/useReportsStoreIntegration";
-export type { SavedHomesSurfaceViewType, SavedPageViewType } from "./hooks/store/useSavedPageView";
-export { useSavedPageView } from "./hooks/store/useSavedPageView";
+export type { SendForSignatureParams } from "./hooks/store";
+export type { SavedHomesSurfaceViewType, SavedPageViewType } from "./hooks/store";
+export { useDocumentsDataIntegration } from "./hooks/store";
+export { useDocumentsStoreIntegration } from "./hooks/store";
+export { useHomeComparison } from "./hooks/store";
+export { useReportsStoreIntegration } from "./hooks/store";
+export { useSavedPageView } from "./hooks/store";
 
 // Document types
 export type { DocumentLibraryKind, DocumentLibraryListItem } from "./types/documentLibrary";

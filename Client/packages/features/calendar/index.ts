@@ -17,11 +17,11 @@ export {
   googleAllDayEndExclusiveToInclusiveEndYmd,
   inclusiveRangeToGoogleAllDayDates,
   quantizeHourMinute,
-} from "packages/utils/calendar/eventFormGooglePayload";
+} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 export {
   eventSpansMultipleLocalDays,
   getEventEndDate,
   getEventFirstLocalDayKey,
   getEventLocalDayKeys,
   getEventStartDate,
-} from "packages/utils/calendar/eventParsing";
+} from "packages/utils/calendar/parsing/eventParsing";

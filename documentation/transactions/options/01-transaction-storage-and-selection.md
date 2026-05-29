@@ -1,105 +1,35 @@
-## Option: Transaction Storage and Selection
+> **Status:** Partial — buyer-scoped checklists shipped; multi-`Transaction` entity and active pointer not wired.  
+> **Last verified:** 2026-05-28
 
-This document compares approaches for modeling and selecting transactions for a user.
+## Problem
 
-### Problem
+Represent multiple concurrent deals per user, resolve an **active transaction** for checklists/calendar/docs, and avoid a parallel transactions-only UX.
 
-We need a way to:
-- Represent **multiple concurrent transactions** per user.
-- Efficiently look up **“active transaction”** for a given context (buyer, agent, TC, etc.).
-- Scope checklists, milestones, calendar, and documents to the correct transaction.
+## Settled decisions
 
-### Existing infrastructure to check
+| Decision | Choice |
+| -------- | ------ |
+| Multi-transaction requirement | Reject single global active transaction only (**Option A**). |
+| Default model | **Option B** — many transactions per user; buyers get an `active_transaction_id`; agents pick per client context. |
+| Per-surface-only selection (**Option C**) | Rejected — too much friction. |
 
-- Any existing “client” or “buyer” records that may already group data per home search or deal.
-- `TransactionTask` (`Server/app/models/transactions/transaction_task.py`) and `/api/v1/tasks`:
-  - Today implicitly scoped by `user_id + category` (no transaction dimension).
-- Dashboard and checklists views:
-  - `Client/packages/features/dashboard/components/ClientHub/checklists/ClientChecklists.tsx`
-  - `Client/packages/features/checklists/components/CloseLayout.tsx`
+## Code today
 
-We should **extend** these surfaces rather than introducing a parallel “transactions-only” UX.
+| Area | What exists | Pointers |
+| ---- | ----------- | -------- |
+| Checklist scope | `transaction_id` in `/api/v1/transactions/<id>/tasks` is the **buyer user id** (self or agent’s managed client). | `Server/app/routes/transactions.py` (`_can_read_transaction_task_checklist`), `Client/packages/features/checklists/hooks/data/useChecklistData.ts` (`checklistSubjectUserId`) |
+| Progress storage | `TransactionTask` rows keyed by `user_id` + `category` (`user_tasks` table). | `Server/app/models/transactions/transaction_task.py`, `Server/app/services/transactions/unified_task_checklist_*.py` |
+| `Transaction` row | Minimal model (`buyer_id`, `primary_agent_id`, `skyslope_file_id`); used for agreement links, not checklist routing. | `Server/app/models/transactions/transaction.py`, `Server/app/routes/checklist_documents.py` |
+| Client surfaces | Close/roadmap checklists, agent hub prefetch. | `Client/packages/features/checklists/components/layout/CloseLayout.tsx`, `Client/packages/features/checklists/components/roadmap/`, `Client/packages/features/agent/hooks/data/clientHub/useClientHubChecklistPrefetch.ts` |
+| Workspace shells | Buyer/seller/brokerage placeholders. | `Client/packages/features/workspace/` |
 
----
+## Gaps (Option B not finished)
 
-### Option A – Single active transaction per user (global)
+- No `active_transaction_id` on buyer profile; no transaction switcher.
+- No `TransactionParticipant` or per-deal participant graph.
+- No `POST /api/v1/transactions` that creates a deal row and binds address + checklists to `transactions.id`.
 
-**Idea:** Each user has at most one active transaction; everything else is historical.
+## Rejected options (summary)
 
-- **Pros**
-  - Simplest mental model and UI.
-  - Minimal changes to data structures; could store `active_transaction_id` on `User`.
-  - Slightly easier to integrate with existing checklist API (just swap category storage).
-- **Cons**
-  - Does not meet the requirement for **multiple concurrent transactions** (e.g. investor buyers, multiple offers).
-  - Forces unnatural “archiving” or switching behavior when a second deal starts.
-
-**Conclusion:** Not acceptable given the multi-transaction requirement.
-
----
-
-### Option B – Multiple transactions, per-user active transaction pointer
-
-**Idea:** A user can have many transactions, but for each user we track a **single “active transaction” pointer** per role/context.
-
-- **Pros**
-  - Supports concurrency while still giving UI a simple default (open app → see active transaction).
-  - Active pointer can be stored cheaply (e.g. on User or in a small `UserActiveTransaction` table).
-  - Checklists/calendar/docs can default to the active transaction but allow switching.
-- **Cons**
-  - Must define semantics when:
-    - No active transaction exists yet.
-    - A transaction completes (auto-switch? require explicit user action?).
-  - Need to handle multi-role scenarios (e.g. an agent’s “active transaction with Client A” vs with Client B).
-
-**Implementation notes**
-- For **buyers**:
-  - Store a simple `active_transaction_id` on the user profile.
-  - On transaction creation, if none exists, set it.
-  - Allow explicit switching in the UI.
-- For **agents and other roles**:
-  - Use per-session or per-view selection (e.g. a transaction picker on dashboards filtered by client).
-  - Avoid a global agent-wide “active transaction”; scope by **client context**.
-
-**Recommendation:** **Adopt Option B** as the default model.
-
----
-
-### Option C – Per-surface transaction selection only (no active pointer)
-
-**Idea:** The system does not track an “active” transaction; every view requires the user to pick a transaction explicitly.
-
-- **Pros**
-  - Simple storage; no need for an active pointer.
-  - No hidden state that can drift or confuse users.
-- **Cons**
-  - Worse UX:
-    - Users would be forced to pick a transaction every time they open checklists, calendar, or docs.
-  - Harder to implement deep-links that assume an implicit active transaction.
-
-**Conclusion:** Not recommended; UX friction outweighs storage simplicity.
-
----
-
-### Recommended approach
-
-Adopt **Option B**:
-
-- **Data model**
-  - `Transaction` table keyed by `id`, linked to buyers and agents.
-  - `TransactionParticipant` for multi-party roles.
-  - Simple `active_transaction_id` pointer per buyer (and optionally per agent+client relationship).
-
-- **UX**
-  - Buyer:
-    - When they create their first transaction, it becomes active automatically.
-    - A transaction switcher is available in checklist and calendar headers.
-  - Agent:
-    - Views filtered through a **client context**; within that context, can choose which transaction is active.
-
-- **Migration**
-  - Start by:
-    - Defining `Transaction` and `TransactionParticipant`.
-    - Adding a basic “active transaction” pointer for buyers only.
-  - Later:
-    - Extend to more nuanced agent-specific active contexts if needed.
+- **Option A** — one active deal globally: fails multi-transaction product requirement.
+- **Option C** — pick transaction on every surface: rejected for UX and deep links.

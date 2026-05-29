@@ -10,9 +10,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .categories import LogCategory, category_to_config_key, is_always_enabled
-from .config_model import LOG_LEVELS, LoggerConfig, LogLevel
+from .categories import LogCategory
+from .check_category_enabled import should_emit_log
+from .config_model import LoggerConfig, LogLevel
+from .logger_env import should_export_logs_to_posthog
 from .pii import create_safe_log_object, mask_sensitive_data
+from .posthog_otlp import emit_structured_log
+from .resolve_logger_config import merge_logger_config_update, resolve_logger_config
 
 
 class Logger:
@@ -63,39 +67,16 @@ class Logger:
         self._py_logger.propagate = False
 
     def _load_config(self) -> LoggerConfig:
-        """
-        Load config from JSON file
-
-        Returns:
-            LoggerConfig instance
-        """
-        default_config = {
-            "polling": True,
-            "pages": True,
-            "hooks": True,
-            "auth": True,
-            "http": True,
-            "api": True,
-            "errors": True,
-            "security": True,
-            "polygonSearch": True,
-            "docusign": True,
-            "documents": True,
-            "profilePreferences": False,
-            "logLevel": "DEBUG",
-        }
-
+        """Load config from JSON file with environment-aware defaults."""
+        overrides: dict[str, Any] = {}
         try:
             if os.path.exists(self.config_path):
                 with open(self.config_path) as f:
-                    config_dict = json.load(f)
-                    # Merge with defaults
-                    default_config.update(config_dict)
+                    overrides = json.load(f)
         except Exception:
-            # If config file doesn't exist or can't be loaded, use defaults
             pass
 
-        return LoggerConfig(default_config)
+        return resolve_logger_config(overrides)
 
     def reload_config(self) -> None:
         """Reload config from file"""
@@ -112,7 +93,7 @@ class Logger:
         Args:
             updates: Dictionary of config updates
         """
-        self.config.update(updates)
+        self.config = merge_logger_config_update(self.config, updates)
         self._setup_python_logging()
 
     def get_config(self) -> dict[str, Any]:
@@ -124,35 +105,75 @@ class Logger:
         """
         return self.config.to_dict()
 
-    def _is_category_enabled(self, category: LogCategory) -> bool:
-        """
-        Check if a category is enabled
+    def _normalize_error_data(self, error: Exception | Any | None) -> Any | None:
+        if error is None:
+            return None
+        if isinstance(error, Exception):
+            error_data: dict[str, Any] = {
+                "name": type(error).__name__,
+                "message": str(error),
+                "stack": None,
+            }
+            import traceback
 
-        Args:
-            category: Log category
+            try:
+                error_data["stack"] = traceback.format_exc()
+            except Exception:
+                pass
+            return error_data
+        return error
 
-        Returns:
-            True if category is enabled
-        """
-        if is_always_enabled(category):
-            return True
+    def _scrubbed_payload(self, message: str, data: Any | None) -> tuple[str, Any | None]:
+        safe_message = mask_sensitive_data(message)
+        scrubbed_data = create_safe_log_object(data) if data is not None else None
+        return safe_message, scrubbed_data
 
-        config_key = category_to_config_key(category)
-        return getattr(self.config, config_key, True)
+    def _emit(
+        self,
+        level: LogLevel,
+        category: LogCategory,
+        message: str,
+        data: Any | None = None,
+    ) -> None:
+        """Emit to stdout and PostHog when category, level, and environment allow."""
+        if not should_emit_log(self.config, level, category):
+            return
 
-    def _is_level_enabled(self, level: LogLevel) -> bool:
-        """
-        Check if log level is enabled
+        try:
+            safe_message, scrubbed_data = self._scrubbed_payload(message, data)
+            formatted = self._format_message(level, category, safe_message, scrubbed_data)
 
-        Args:
-            level: Log level to check
+            if should_export_logs_to_posthog():
+                emit_structured_log(level, category.value, safe_message, scrubbed_data)
 
-        Returns:
-            True if level is enabled
-        """
-        current_level = LOG_LEVELS.get(self.config.logLevel, 0)
-        message_level = LOG_LEVELS.get(level, 0)
-        return message_level >= current_level
+            py_level = {
+                "DEBUG": self._py_logger.debug,
+                "INFO": self._py_logger.info,
+                "WARN": self._py_logger.warning,
+                "SECURITY": self._py_logger.warning,
+                "ERROR": self._py_logger.error,
+            }.get(level, self._py_logger.info)
+            py_level(formatted)
+        except Exception as e:
+            self._py_logger.error(f"[Logger] Emit error ({level}): {e}")
+
+    def debug(self, category: LogCategory, message: str, data: Any | None = None) -> None:
+        self._emit("DEBUG", category, message, data)
+
+    def info(self, category: LogCategory, message: str, data: Any | None = None) -> None:
+        self._emit("INFO", category, message, data)
+
+    def warn(self, category: LogCategory, message: str, data: Any | None = None) -> None:
+        self._emit("WARN", category, message, data)
+
+    def error(
+        self, category: LogCategory, message: str, error: Exception | Any | None = None
+    ) -> None:
+        self._emit("ERROR", category, message, self._normalize_error_data(error))
+
+    def security(self, category: LogCategory, event: str, data: Any | None = None) -> None:
+        scrubbed_data = create_safe_log_object(data) if data else None
+        self._emit("SECURITY", category, f"🔒 {event}", scrubbed_data)
 
     def _format_message(
         self,
@@ -167,8 +188,8 @@ class Logger:
         Args:
             level: Log level
             category: Log category
-            message: Log message
-            data: Optional data to include
+            message: Log message (already scrubbed when called from _emit)
+            data: Optional data to include (already scrubbed when called from _emit)
 
         Returns:
             Formatted log message
@@ -182,127 +203,16 @@ class Logger:
             timestamp = datetime.now(timezone.utc).isoformat()
             prefix = f"[{timestamp}] [{level}] [{category.value}]"
 
-            # Mask sensitive data in message
-            safe_message = mask_sensitive_data(message)
-
             if data is not None:
-                scrubbed_data = create_safe_log_object(data)
-                data_str = json.dumps(scrubbed_data, default=str)
-                return f"{prefix} {safe_message} {data_str}"
+                data_str = json.dumps(data, default=str)
+                return f"{prefix} {message} {data_str}"
 
-            return f"{prefix} {safe_message}"
+            return f"{prefix} {message}"
         except Exception:
             timestamp = datetime.now(timezone.utc).isoformat()
             return f"[{timestamp}] [{level}] [{category.value}] {message} [FORMAT_ERROR]"
         finally:
             self.is_processing = False
-
-    def debug(self, category: LogCategory, message: str, data: Any | None = None) -> None:
-        """
-        Debug logging
-
-        Args:
-            category: Log category
-            message: Log message
-            data: Optional data to include
-        """
-        if not self._is_category_enabled(category) or not self._is_level_enabled("DEBUG"):
-            return
-
-        try:
-            formatted = self._format_message("DEBUG", category, message, data)
-            self._py_logger.debug(formatted)
-        except Exception as e:
-            self._py_logger.error(f"[Logger] Debug error: {e}")
-
-    def info(self, category: LogCategory, message: str, data: Any | None = None) -> None:
-        """
-        Info logging
-
-        Args:
-            category: Log category
-            message: Log message
-            data: Optional data to include
-        """
-        if not self._is_category_enabled(category) or not self._is_level_enabled("INFO"):
-            return
-
-        try:
-            formatted = self._format_message("INFO", category, message, data)
-            self._py_logger.info(formatted)
-        except Exception as e:
-            self._py_logger.error(f"[Logger] Info error: {e}")
-
-    def warn(self, category: LogCategory, message: str, data: Any | None = None) -> None:
-        """
-        Warning logging
-
-        Args:
-            category: Log category
-            message: Log message
-            data: Optional data to include
-        """
-        if not self._is_category_enabled(category) or not self._is_level_enabled("WARN"):
-            return
-
-        try:
-            formatted = self._format_message("WARN", category, message, data)
-            self._py_logger.warning(formatted)
-        except Exception as e:
-            self._py_logger.error(f"[Logger] Warn error: {e}")
-
-    def error(
-        self, category: LogCategory, message: str, error: Exception | Any | None = None
-    ) -> None:
-        """
-        Error logging
-
-        Args:
-            category: Log category
-            message: Log message
-            error: Optional error object or data
-        """
-        if not self._is_category_enabled(category) or not self._is_level_enabled("ERROR"):
-            return
-
-        try:
-            error_data = error
-
-            # Handle Exception objects
-            if isinstance(error, Exception):
-                error_data = {
-                    "name": type(error).__name__,
-                    "message": str(error),
-                    "stack": None,
-                }
-                # Try to get traceback if available
-                import traceback
-
-                try:
-                    error_data["stack"] = traceback.format_exc()
-                except Exception:
-                    pass
-
-            formatted = self._format_message("ERROR", category, message, error_data)
-            self._py_logger.error(formatted)
-        except Exception as e:
-            self._py_logger.error(f"[Logger] Error logging error: {e}")
-
-    def security(self, category: LogCategory, event: str, data: Any | None = None) -> None:
-        """
-        Security event logging (always logs)
-
-        Args:
-            category: Log category
-            event: Security event message
-            data: Optional data to include
-        """
-        try:
-            scrubbed_data = create_safe_log_object(data) if data else None
-            formatted = self._format_message("SECURITY", category, f"🔒 {event}", scrubbed_data)
-            self._py_logger.warning(formatted)
-        except Exception as e:
-            self._py_logger.error(f"[Logger] Security logging error: {e}")
 
 
 # Export singleton instance

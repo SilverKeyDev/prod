@@ -136,13 +136,9 @@ class GoogleCalendarService:
     def build_auth_url(
         self,
         user_id: str,
-        request_full_scope: bool = False,
-        use_scheduling_scopes: bool = False,
         request_additional_scopes: list[str] | None = None,
     ) -> tuple[str, str]:
-        return self._oauth_facade.build_auth_url(
-            user_id, request_full_scope, use_scheduling_scopes, request_additional_scopes
-        )
+        return self._oauth_facade.build_auth_url(user_id, request_additional_scopes)
 
     def exchange_code_for_tokens(self, code: str, user_id: str) -> dict[str, Any]:
         return self._oauth_facade.exchange_code_for_tokens(code, user_id)

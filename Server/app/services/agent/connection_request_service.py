@@ -10,14 +10,15 @@ Connection policy (asymmetric by design):
 import logging
 from datetime import datetime, timezone
 
-from ... import db
-from ...models import AgentConnectionRequest, AgentConnections, User
-from .client_service import append_unique_agent_id_for_client, append_unique_client_id
-from .connection_request_discovery import (
+from app.services.agent.connection_request.discovery import (
     recommend_agents,
     search_agents,
     search_clients,
 )
+from app.services.auth.user_role_helpers import get_user_if_agent, user_is_agent
+
+from ... import db
+from ...models import AgentConnectionRequest, AgentConnections, User
 
 logger = logging.getLogger(__name__)
 
@@ -116,11 +117,6 @@ def _apply_connection_acceptance(request: AgentConnectionRequest) -> None:
     agent = User.query.filter_by(id=request.agent_id).first()
     client = User.query.filter_by(id=request.client_id).first()
 
-    if agent:
-        append_unique_client_id(agent, request.client_id)
-    if client:
-        append_unique_agent_id_for_client(client, request.agent_id)
-
     try:
         from ...services.calendar.core import google_calendar_service
 
@@ -177,12 +173,12 @@ def create_connection_request(
             return {"request": existing.to_dict(), "already_pending": True}
 
         # Verify users exist
-        agent = User.query.filter_by(id=agent_id, is_agent=True).first()
+        agent = get_user_if_agent(agent_id)
         if not agent:
             raise ValueError(f"Agent {agent_id} not found")
 
-        client = User.query.filter_by(id=client_id, is_agent=False).first()
-        if not client:
+        client = User.query.filter_by(id=client_id).first()
+        if not client or user_is_agent(client):
             raise ValueError(f"Client {client_id} not found")
 
         # Create request

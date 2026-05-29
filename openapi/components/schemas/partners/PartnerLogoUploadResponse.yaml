@@ -1,0 +1,16 @@
+type: object
+required:
+  - success
+properties:
+  success:
+    type: boolean
+  logo_url:
+    type: string
+    description: Presigned view URL for the uploaded logo
+  data:
+    type: object
+    properties:
+      logo_key:
+        type: string
+      logo_url:
+        type: string

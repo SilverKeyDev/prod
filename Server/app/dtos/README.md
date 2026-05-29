@@ -33,10 +33,11 @@ Legacy `to_dict()` methods remain for incremental migration but emit `Deprecatio
 | Module               | ORM model         | OpenAPI schema                    |
 |----------------------|-------------------|-----------------------------------|
 | `dtos/user.py`       | `User`            | `User` / `UserProfile`            |
-| `dtos/saved_home.py` | `HomeUniversal`   | `SavedHome`                       |
+| `dtos/saved_home.py` | `PropertyCache` + `UserPropertyLink` | `SavedHome`                       |
 | `dtos/property.py`   | (alias)           | Same as `SavedHomeDTO` (compat)   |
 | `dtos/agreement.py`  | `Agreement` (+ nested) | `Agreement`                |
 | `dtos/document.py`   | `Document`        | `WorkflowDocumentRecord`          |
 | `dtos/todo.py`       | `Todo`            | `TodoItem`                        |
+| `dtos/agent_conversation.py` | `AgentConnections` | (conversation metadata dict) |
 
 `WorkflowDocumentDTO.from_document` maps pipeline `Document` rows to `WorkflowDocumentRecord` using defaults for fields not stored on the table; pass `overrides=` for offer id, expiry, etc., when assembling dashboard payloads.

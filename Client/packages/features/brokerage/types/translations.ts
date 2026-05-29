@@ -1,5 +1,2 @@
-export const BROKERAGE_TRANSLATIONS: Record<string, string> = {
-  "brokerage.dashboard_title": "Brokerage workspace",
-  "brokerage.dashboard_subtitle":
-    "Brokerage-scoped tools and roster views will appear here as they ship.",
-};
+/** Brokerage product copy lives in workspace placeholder keys until brokerage features ship. */
+export const BROKERAGE_TRANSLATIONS: Record<string, string> = {};

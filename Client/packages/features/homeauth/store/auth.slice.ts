@@ -141,11 +141,8 @@ const withPersist = persistSafe<AuthState>(withReset, {
           name: state.user.name,
           created_at: state.user.created_at,
           is_active: state.user.is_active,
-          has_subscription: state.user.has_subscription,
-          subscription: state.user.subscription,
           has_preferences: state.user.has_preferences,
           is_agent: state.user.is_agent,
-          client_ids: state.user.client_ids,
         }
       : null,
     isAuthenticated: state.isAuthenticated,

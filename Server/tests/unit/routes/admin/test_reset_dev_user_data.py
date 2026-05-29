@@ -91,7 +91,7 @@ def test_admin_cannot_reset_other_user(client, reset_enabled, mock_reset_service
         )
 
     assert response.status_code == 403
-    assert "Super admin" in response.get_json().get("error", "")
+    assert "Super admin" in response.get_json().get("message", "")
     mock_reset_service.assert_not_called()
 
 
@@ -117,6 +117,18 @@ def test_invalid_scope_rejected(client, reset_enabled, mock_reset_service) -> No
 
     assert response.status_code == 400
     mock_reset_service.assert_not_called()
+
+
+def test_transaction_steps_scope_accepted(client, reset_enabled, mock_reset_service) -> None:
+    with patch("app.services.auth.get_current_user", return_value=_ADMIN_USER):
+        response = client.post(
+            _RESET_URL,
+            headers={"Authorization": "Bearer mock_token"},
+            json={"confirm": True, "scopes": ["transaction_steps"]},
+        )
+
+    assert response.status_code == 200
+    mock_reset_service.assert_called_once_with("admin-1", {"transaction_steps"})
 
 
 def test_user_not_found(client, reset_enabled) -> None:

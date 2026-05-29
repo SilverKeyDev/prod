@@ -7,6 +7,7 @@ import { useLocalization } from "packages/contexts";
 import { useUserData } from "packages/hooks/data/user/useUserData";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 import { preferencesApi } from "@/features/homeauth/api/preferences";
 import {
@@ -46,9 +47,7 @@ export function useSyncAgentPreferencesFromClient(): UseSyncAgentPreferencesFrom
         const response = await preferencesApi.getByUserId(clientId);
         if (response.success === false) {
           throw new Error(
-            typeof response.error === "string"
-              ? response.error
-              : "Failed to load client preferences"
+            resolveApiResultErrorMessage(response, "Failed to load client preferences")
           );
         }
         const rawPrefs = response.preferences;

@@ -1,9 +1,13 @@
 """Preferences CRUD and client preferences handlers."""
 
+from __future__ import annotations
+
 import json
+from typing import TYPE_CHECKING
 
 from flask import current_app, jsonify, request
 
+from app import db
 from app.dtos.user import UserDTO
 from app.models import User
 from app.schemas import CreatePreferencesRequest
@@ -11,11 +15,16 @@ from app.services.aggregation import (
     get_preferences_dict_optional,
     write_preferences_from_payload,
 )
+from app.services.aggregation.clear_user_preferences import clear_user_preferences
 from app.services.auth import SecurityException, get_current_user
+from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.security.app_logging import get_logger
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.security.security import security_error_response
 from app.utils.validation import validate_request
+
+if TYPE_CHECKING:
+    from app.models.user import User as UserModel
 
 logger = get_logger()
 
@@ -89,6 +98,29 @@ def get_preferences():
         )
 
 
+@handle_exceptions_with_logging
+@require_authenticated_user
+def delete_preferences(user: UserModel):
+    """Clear all preference rows for the authenticated user only."""
+    try:
+        clear_user_preferences(str(user.id), user=user)
+        db.session.commit()
+        return jsonify(
+            {
+                "success": True,
+                "has_preferences": False,
+                "preferences": None,
+                "message": "Preferences cleared successfully",
+            }
+        )
+    except Exception as e:
+        db.session.rollback()
+        return SecureErrorHandler.handle_database_error(
+            e,
+            {"function": "delete_preferences", "user_id": str(user.id)},
+        )
+
+
 def get_user_preferences_by_id(user_id):
     """Get preferences for a specific user by user ID. Used by agents to view client preferences."""
     try:
@@ -134,12 +166,9 @@ def get_clients_preferences():
         log.error("Failed to get current user: %s", str(e), exc_info=True)
         return jsonify({"success": False, "error": "Authorization failure"}), 500
     try:
-        if user.client_ids:
-            clients = (
-                json.loads(user.client_ids) if isinstance(user.client_ids, str) else user.client_ids
-            )
-        else:
-            clients = []
+        from app.services.agent.client_service import get_agent_client_ids
+
+        clients = get_agent_client_ids(str(user.id))
     except (json.JSONDecodeError, TypeError) as e:
         log.error("Failed to parse client IDs JSON: %s", str(e), exc_info=True)
         return jsonify({"success": True, "preferences": [], "has_preferences": False}), 500

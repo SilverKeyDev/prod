@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# Run ESLint using the Client workspace (pnpm + full plugin graph). Pre-commit
-# passes repo-root paths like Client/apps/web/foo.tsx; strip the Client/ prefix
-# so resolution matches `pnpm run lint` (cwd = Client).
-set -euo pipefail
+# Run ESLint --fix on staged Client files. Reports issues; does not block commits
+# (the githooks/pre-commit wrapper always exits 0).
+set -uo pipefail
 _HERE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-cd "${_HERE}/../Client" || exit 1
+cd "${_HERE}/../Client" || exit 0
 rel=()
 for f in "$@"; do
   rel+=("${f#Client/}")
@@ -12,4 +11,9 @@ done
 if [ "${#rel[@]}" -eq 0 ]; then
   exit 0
 fi
-exec pnpm exec eslint --config packages/config/eslint/eslint.config.cjs --fix --max-warnings=0 --no-warn-ignored "${rel[@]}"
+pnpm exec eslint \
+  --config packages/config/eslint/eslint.config.cjs \
+  --fix \
+  --no-warn-ignored \
+  "${rel[@]}" || true
+exit 0

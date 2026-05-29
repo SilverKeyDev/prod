@@ -10,7 +10,7 @@ import { SearchPrefsPhysical } from "packages/features/profile/components/profil
 import { SearchPrefsUtilities } from "packages/features/profile/components/profileScreen/searchPreferences/SearchPrefsUtilities";
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
 import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { type OnboardingData, SECTION_TITLES } from "packages/features/profile/utils";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";

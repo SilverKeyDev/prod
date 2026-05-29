@@ -1,0 +1,17 @@
+type: object
+required:
+  - success
+  - data
+properties:
+  success:
+    type: boolean
+  data:
+    type: object
+    required:
+      - agreement
+    properties:
+      agreement:
+        $ref: '../agreements/agreements/Agreement.yaml'
+  error:
+    type: string
+    nullable: true

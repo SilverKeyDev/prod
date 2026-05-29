@@ -70,10 +70,11 @@ pytest tests/unit/test_calendar_management.py
 pytest tests/unit/test_home_matching_score.py
 pytest tests/unit/test_home_matching_blend.py
 
-# API routes tests
-pytest tests/unit/test_routes_auth.py
-pytest tests/unit/test_routes_docusign.py
-pytest tests/unit/test_routes_calendar.py
+# API routes tests (by domain under tests/unit/routes/)
+pytest tests/unit/routes/auth/
+pytest tests/unit/routes/docusign/
+pytest tests/unit/routes/calendar/
+pytest tests/unit/routes/   # all route unit tests
 ```
 
 ### Run Tests with Coverage
@@ -128,10 +129,12 @@ pytest tests/unit/test_auth_login.py::TestLoginFlow::test_successful_login
   - `test_home_matching_score.py` - MCDA scoring tests
   - `test_home_matching_blend.py` - Blend score tests
 
-- **API Routes**: `test_routes_*.py`
-  - `test_routes_auth.py` - Auth endpoint tests
-  - `test_routes_docusign.py` - DocuSign endpoint tests
-  - `test_routes_calendar.py` - Calendar endpoint tests
+- **API Routes** (`tests/unit/routes/<domain>/`): HTTP blueprint tests grouped by domain
+  - `auth/` — auth, profile, preferences (`test_routes_auth.py`, `test_routes_user_*.py`)
+  - `docusign/` — DocuSign routes and shared `docusign_route_test_helpers.py`
+  - `calendar/` — Google Calendar API routes (`test_routes_calendar.py`; service tests live in `tests/unit/integrations/calendar/`)
+  - `rev_share/`, `user_properties/`, `transactions/`, `admin/`, `agent/`, `search/`
+  - Parent: `test_rate_limit_unauthenticated.py` (cross-cutting)
 
 ### Fixtures (`tests/conftest.py`)
 
@@ -278,7 +281,7 @@ Shared test fixtures:
 
 ### 5. API Endpoints (68 tests)
 
-**Auth Routes** (`test_routes_auth.py`):
+**Auth Routes** (`routes/auth/test_routes_auth.py`):
 - POST `/api/v1/auth/login`
 - POST `/api/v1/auth/signup`
 - POST `/api/v1/auth/refresh`
@@ -289,7 +292,7 @@ Shared test fixtures:
 - GET `/api/v1/auth/google/callback`
 - GET `/api/v1/auth/user`
 
-**DocuSign Routes** (`test_routes_docusign.py`):
+**DocuSign Routes** (`routes/docusign/test_routes_docusign.py`):
 - GET `/api/v1/documents/docusign/templates`
 - POST `/api/v1/documents/docusign/agreements`
 - GET `/api/v1/documents/docusign/agreements/:id`
@@ -300,7 +303,7 @@ Shared test fixtures:
 - POST `/api/v1/documents/docusign/webhook`
 - GET `/api/v1/documents/docusign/oauth/connect`
 
-**Calendar Routes** (`test_routes_calendar.py`):
+**Calendar Routes** (`routes/calendar/test_routes_calendar.py`):
 - GET `/api/v1/calendar/events`
 - POST `/api/v1/calendar/events`
 - PUT `/api/v1/calendar/events/:event_id`

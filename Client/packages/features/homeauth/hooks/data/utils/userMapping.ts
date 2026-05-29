@@ -25,8 +25,6 @@ export function mapAuthResponseToUserProfile(
     phone: ("phone" in user ? user.phone : undefined) as string | null | undefined,
     created_at: null,
     is_active: true,
-    has_subscription: false,
-    subscription: null,
     has_preferences: false,
     is_agent: ("is_agent" in user ? (user.is_agent ?? false) : false) ?? false,
     auth_method: ("auth_method" in user ? user.auth_method : undefined) as

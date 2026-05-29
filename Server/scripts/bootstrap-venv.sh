@@ -70,7 +70,16 @@ fi
 
 echo "Using Python: $(command -v "$PYTHON_CMD") ($("$PYTHON_CMD" -c 'import sys; print("%s.%s" % sys.version_info[:2])'))"
 
+ensure_pip() {
+  if python -m pip --version >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "bootstrap-venv: pip missing in venv; bootstrapping with ensurepip"
+  python -m ensurepip --upgrade
+}
+
 install_requirements() {
+  ensure_pip
   python -m pip install --upgrade pip
   if [[ "$USE_LINT" == true ]]; then
     echo "Installing from requirements/lint.txt (--lint)"

@@ -62,6 +62,8 @@ ignore = [
 "scripts/lint/lint_*.py" = ["T201"]
 "scripts/lint/check_coverage_thresholds.py" = ["T201"]
 "scripts/validate-schema-coverage.py" = ["T201"]
+"scripts/endpoints/extract_routes.py" = ["T201", "E402"]
+"scripts/endpoints/check_dead_endpoints.py" = ["T201"]
 "scripts/seed_georgia_forms.py" = ["T201", "E402"]
 
 [tool.ruff.lint.isort]
@@ -116,6 +118,8 @@ exclude = [
 
 # --- Coverage (pytest-cov / coverage.py): config is read from here, not pytest.ini [coverage:*] ---
 [tool.coverage.run]
+# Keep SQLite data out of Server/ root (avoids iCloud " .coverage 2" duplicates on Desktop).
+data_file = "coverage/.coverage"
 source = ["app"]
 omit = [
     "**/tests/**",
@@ -125,8 +129,6 @@ omit = [
     "**/.venv/**",
     "**/venv/**",
     "**/env/**",
-    # Legacy duplicate of app/services/search/polygon/locationPolygon.py (unused import path).
-    "app/services/search/locationPolygon.py",
 ]
 
 [tool.coverage.report]

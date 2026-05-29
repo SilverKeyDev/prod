@@ -3,7 +3,8 @@ import React from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import FindingHome, { hasFindingHomeAddressChanges } from "./FindingHome";
+import FindingHome from "./FindingHome";
+import { hasFindingHomeAddressChanges } from "./findingHomeAddressChanges";
 
 const mutate = vi.fn();
 const setQueryData = vi.fn();

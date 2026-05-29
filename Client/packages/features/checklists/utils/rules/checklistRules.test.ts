@@ -337,7 +337,7 @@ describe("getChecklistItemToggleEligibility", () => {
     expect(checked.canMarkChecked).toBe(true);
   });
 
-  it("agent viewer cannot manually toggle signature-based steps", () => {
+  it("agent viewer may manually toggle signature-based steps", () => {
     const sig: TaskChecklistItem[] = [
       item({
         id: 6,
@@ -347,10 +347,15 @@ describe("getChecklistItemToggleEligibility", () => {
         completionType: "signature_based",
       }),
     ];
-    const e = getChecklistItemToggleEligibility(sig, [], 6, true, { isAgentViewer: true });
-    expect(e.canCheck).toBe(false);
-    expect(e.canUncheck).toBe(false);
-    expect(e.canMarkChecked).toBe(false);
+    const unchecked = getChecklistItemToggleEligibility(sig, [], 6, true, { isAgentViewer: true });
+    expect(unchecked.canCheck).toBe(true);
+    expect(unchecked.canUncheck).toBe(false);
+    expect(unchecked.canMarkChecked).toBe(true);
+
+    const checked = getChecklistItemToggleEligibility(sig, [6], 6, true, { isAgentViewer: true });
+    expect(checked.canCheck).toBe(false);
+    expect(checked.canUncheck).toBe(true);
+    expect(checked.canMarkChecked).toBe(true);
   });
 
   it("submit-gated steps cannot be manually unchecked when checked", () => {
@@ -430,6 +435,23 @@ describe("getChecklistItemToggleEligibility", () => {
 });
 
 describe("mergeTaskChecklistCheckedIds bypassProgressGates", () => {
+  it("allows agent to check signature-based step", () => {
+    const items: TaskChecklistItem[] = [
+      item({
+        id: 6,
+        order: 0,
+        label: "Sign",
+        explanation: "",
+        allow_unordered_check: true,
+        completionType: "signature_based",
+      }),
+    ];
+    expect(mergeTaskChecklistCheckedIds(items, [6], new Set())).toEqual([]);
+    expect(
+      mergeTaskChecklistCheckedIds(items, [6], new Set(), { bypassProgressGates: true })
+    ).toEqual([6]);
+  });
+
   it("allows agent to check submit-gated step without selectable_when", () => {
     const items: TaskChecklistItem[] = [
       item({
@@ -442,9 +464,9 @@ describe("mergeTaskChecklistCheckedIds bypassProgressGates", () => {
         selectable_when: { kind: "all_items_checked", item_ids: [1] },
       }),
     ];
-    expect(mergeTaskChecklistCheckedIds(items, [2], new Set(), { bypassProgressGates: true })).toEqual(
-      [2]
-    );
+    expect(
+      mergeTaskChecklistCheckedIds(items, [2], new Set(), { bypassProgressGates: true })
+    ).toEqual([2]);
     expect(mergeTaskChecklistCheckedIds(items, [2], new Set())).toEqual([]);
   });
 });
@@ -473,7 +495,14 @@ describe("applyTaskChecklistMerge", () => {
       allow_unordered_check: true,
     }),
     item({ id: 1, order: 3, label: "Pre-approval", explanation: "" }),
-    item({ id: 3, order: 4, label: "Agent", explanation: "" }),
+    item({
+      id: 3,
+      order: 4,
+      label: "Agent",
+      explanation: "",
+      allow_unordered_check: true,
+      parallel_step_group: "search_parallel_integrations",
+    }),
   ];
 
   it("matches Python test_merge_search_parallel_integrations_without_preapproval_gate", () => {
@@ -499,6 +528,9 @@ describe("applyTaskChecklistMerge", () => {
       true
     );
     expect(getChecklistItemToggleEligibility(searchParallelItems, [], 2, true).canMarkChecked).toBe(
+      true
+    );
+    expect(getChecklistItemToggleEligibility(searchParallelItems, [], 3, true).canMarkChecked).toBe(
       true
     );
   });

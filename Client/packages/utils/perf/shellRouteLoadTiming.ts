@@ -116,3 +116,30 @@ export function traceLazyImport<T>(
     return promise;
   };
 }
+
+const prefetchByLabel = new Map<string, Promise<unknown>>();
+
+/**
+ * Dedupes idle prefetch import() calls by label. Reuses the in-flight promise until
+ * rejection; on failure the label is cleared so a later prefetch can retry.
+ */
+export function tracedPrefetch<T>(
+  category: LogCategory,
+  label: string,
+  load: () => Promise<T>
+): void {
+  let promise = prefetchByLabel.get(label);
+  if (!promise) {
+    promise = load();
+    prefetchByLabel.set(label, promise);
+    void promise.catch(() => {
+      prefetchByLabel.delete(label);
+    });
+  }
+  traceDynamicImport(category, label, promise);
+}
+
+/** @internal test-only */
+export function resetTracedPrefetchStateForTests(): void {
+  prefetchByLabel.clear();
+}

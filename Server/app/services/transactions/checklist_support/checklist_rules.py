@@ -157,12 +157,13 @@ def merge_task_checklist_checked_ids(
         elif isinstance(x, float) and x == int(x):
             req.add(int(x))
     req &= valid
-    for it in items:
-        if _completion_type_raw(it) == "signature_based":
-            try:
-                req.discard(int(it["id"]))
-            except (KeyError, TypeError, ValueError):
-                continue
+    if not bypass_progress_gates:
+        for it in items:
+            if _completion_type_raw(it) == "signature_based":
+                try:
+                    req.discard(int(it["id"]))
+                except (KeyError, TypeError, ValueError):
+                    continue
 
     old_checked: set[int] = set()
     for x in old_checked_ids:

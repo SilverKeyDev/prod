@@ -1,4 +1,4 @@
-import { preferencesApi, searchApi, userApi } from "packages/config/http/api";
+import { preferencesApi, userApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { fetchCachedPolygonSearchResults } from "packages/features/search/api/fetchCachedPolygonSearchResults";
 import { throwUnlessApiSuccess } from "packages/services/data/apiRouteResponse";
@@ -15,19 +15,10 @@ export const coreUserRoutes = {
       if (!userData) {
         throw new Error("No user data received");
       }
-      const raw = userData as Record<string, unknown>;
-      const closing = typeof raw.is_closing_mode === "boolean" ? raw.is_closing_mode : false;
-
       return {
         ...userData,
-        has_subscription: userData.has_subscription ?? false,
-        subscription: userData.subscription ?? null,
         has_preferences: userData.has_preferences ?? false,
         is_agent: userData.is_agent ?? false,
-        is_closing_mode: closing,
-        client_ids: Array.isArray(userData.client_ids)
-          ? userData.client_ids.join(",")
-          : userData.client_ids,
       };
     },
     shouldPoll: false,
@@ -69,36 +60,11 @@ export const coreUserRoutes = {
   isochrone: {
     key: "isochrone",
     queryKey: () => queryKeys.search.isochrone(null),
-    queryFn: async (user) => {
-      if (!user?.has_preferences) {
-        return null;
-      }
-      const response = await searchApi.getIsochrone();
-      if (response.success && response.data) {
-        return {
-          ...response.data,
-          center: {
-            lat: response.data.center.lat,
-            lng: response.data.center.lon,
-          },
-        };
-      }
-      const failed = response as unknown as {
-        success?: boolean;
-        error?: string | null;
-      };
-      if (
-        failed.success === false &&
-        (failed.error === "NO_LOCATIONS" || failed.error === "NO_VALID_LOCATIONS")
-      ) {
-        return null;
-      }
-      throw new Error(failed.error ?? "Failed to fetch isochrone data");
-    },
+    queryFn: async () => null,
     shouldPoll: false,
     staleTime: 5 * 60 * 1000,
     userType: "all",
-    initialLoad: true,
+    initialLoad: false,
   },
 
   searchResults: {

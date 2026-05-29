@@ -1,0 +1,16 @@
+type: object
+required:
+  - completed
+  - total
+  - percent
+properties:
+  completed:
+    type: integer
+    minimum: 0
+  total:
+    type: integer
+    minimum: 0
+  percent:
+    type: integer
+    minimum: 0
+    maximum: 100

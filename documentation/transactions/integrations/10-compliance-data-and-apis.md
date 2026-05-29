@@ -1,92 +1,31 @@
-## Compliance Data and External APIs
+> **Status:** Planned  
+> **Last verified:** 2026-05-28  
+> **Code pointers:** Checklist templates `Server/app/services/transactions/*/items.py`; timeline specs `documentation/transactions/timeline/`; no `JurisdictionRuleSet` model in repo yet
 
-### Problem / goal
+## Compliance data and external APIs
 
-Real estate transaction timing and requirements vary by:
-- State and sometimes county.
-- Contract form and brokerage practices.
+### Problem
 
-There is **no single universal “deadlines API”** that completely covers:
-- Inspection windows.
-- Earnest money timing.
-- Title objection deadlines.
-- Financing contingencies.
+Inspection windows, earnest money timing, and financing contingencies vary by state, county, and contract form. There is **no single universal deadlines API** SilverKey calls today.
 
-We need a strategy to:
-- Encode and maintain **our own rules** for deadlines and checklist behavior.
-- Stay open to leveraging:
-  - Vendor-provided rule feeds when/if they emerge.
-  - Legal/compliance content providers.
+### Shipped today (minimal)
 
-### Data model & invariants
+- **Checklist item metadata** encodes step order, conditions, and some `completion_type` values per category (`offer/items.py`, `closing/items.py`, etc.).
+- **Location enrichment** (profile/search) supplies address context for product flows; it does **not** yet drive a jurisdiction rules engine.
 
-- **JurisdictionRuleSet**
-  - `id` (e.g. `us_generic`, `us_or`, `us_tx`, `us_va`, etc.)
-  - Scope:
-    - `state_code` (required).
-    - `county_code` or equivalent (optional).
-  - Rules:
-    - Defaults for:
-      - Inspection periods.
-      - Earnest money deadlines.
-      - Title and financing timelines.
-    - Business vs calendar day handling.
+### Planned: `JurisdictionRuleSet`
 
-- **RuleVersion**
-  - Versioning of rule sets:
-    - `ruleset_id`
-    - `version`
-    - `effective_from`, `effective_to` (optional).
+Conceptual model (not implemented):
 
-Invariants:
-- Every transaction is associated with **one primary `JurisdictionRuleSet`**.
-- Deadline and milestone calculations always record which **rule version** they used.
+- `id`, `state_code`, optional county, versioned defaults for inspection/earnest/title/financing windows.
+- Every transaction references one primary ruleset; milestone/deadline engine records which version was used.
 
-### Flows / UX (indirect)
+Consumer: deadline engine in `documentation/transactions/mechanics/05-deadline-and-milestone-engine.md`.
 
-This document mostly affects **backend behavior and docs**, but the impact for users is:
-- Dates and obligations they see in:
-  - Checklists.
-  - Calendar.
-  - Notifications.
-are driven by **rules that can vary by jurisdiction**, not hard-coded global defaults.
+### External feeds (strategy)
 
-### Existing infrastructure to reuse / extend
+Treat vendor or compliance APIs as **advisory inputs** to update internal rule tables — not live black-box deadline logic. Survey and ingest into `JurisdictionRuleSet` when the engine lands.
 
-- **Deadline engine**
-  - The rules engine described in `mechanics/05-deadline-and-milestone-engine.md`:
-    - Should be the consumer of `JurisdictionRuleSet`.
+### Related timeline docs
 
-- **Location enrichment**
-  - `mechanics/04-location-enrichment.md`:
-    - Produces `jurisdiction_ruleset_key` based on address and derived data.
-
-- **Any existing compliance/legal code**
-  - Backend modules that already:
-    - Encode regulatory thresholds or per-state behavior (if any).
-  - These should be:
-    - Folded into the new `JurisdictionRuleSet` structure where appropriate.
-
-### Gaps that require new work
-
-- **Authoring and managing rule sets**
-  - A format (e.g. JSON/YAML/config) for:
-    - Defining per-jurisdiction defaults.
-    - Overriding specific aspects for certain states/counties.
-  - A process:
-    - For non-engineers (e.g. ops/legal) to propose updates.
-    - For engineering to review and deploy.
-
-- **Evaluation and safety**
-  - Testing:
-    - Unit tests to ensure that rule changes produce expected milestones.
-  - Observability:
-    - Metrics for how often rules are used and for which jurisdictions.
-
-- **Vendor and content provider integration**
-  - Survey potential sources:
-    - Third-party brokerage or compliance APIs (if they surface structured timing/compliance metadata).
-    - State-specific forms/vendors that publish timing guidelines in machine-readable form.
-  - Strategy:
-    - Treat external sources as **advisory feeds**.
-    - Use them to update our `JurisdictionRuleSet` tables, not as live, opaque black-box logic.
+State variation and compliance inputs: `documentation/transactions/timeline/09-state-variation-model.md`, `documentation/transactions/timeline/10-compliance-data-and-apis.md`.

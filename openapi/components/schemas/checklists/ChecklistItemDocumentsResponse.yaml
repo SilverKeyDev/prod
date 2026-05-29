@@ -1,14 +1,19 @@
 type: object
 required:
   - success
+  - data
 properties:
   success:
     type: boolean
-  documents:
-    type: array
-    items:
-      $ref: '../agreements/agreements/Agreement.yaml'
-    nullable: true
+  data:
+    type: object
+    required:
+      - agreements
+    properties:
+      agreements:
+        type: array
+        items:
+          $ref: '../agreements/agreements/Agreement.yaml'
   error:
     type: string
     nullable: true

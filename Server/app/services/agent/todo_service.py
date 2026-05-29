@@ -2,7 +2,6 @@
 Service functions for managing agent todos
 """
 
-import json
 import os
 import sys
 from datetime import datetime, timezone
@@ -10,6 +9,8 @@ from datetime import datetime, timezone
 from ... import db
 from ...dtos.todo import TodoDTO
 from ...models import Todo, User
+from ...services.agent.client_service import get_connected_agent_ids_for_client
+from ...services.auth.user_role_helpers import get_user_if_agent
 
 # Initialize centralized logger
 server_dir = os.path.dirname(
@@ -69,21 +70,11 @@ def get_agent_todos(agent_id: str, include_completed: bool = False) -> list[dict
 
 
 def _parse_buyer_linked_agent_ids(client_user: User) -> list[str]:
-    """Parse legacy `users.agent_id` JSON/text into ordered agent id strings."""
-    if not client_user.agent_id:
-        return []
+    """Agent ids linked to this client via ``agent_conversations`` (preference order)."""
     try:
-        if isinstance(client_user.agent_id, str):
-            try:
-                raw = json.loads(client_user.agent_id)
-            except json.JSONDecodeError:
-                return [x.strip() for x in client_user.agent_id.split(",") if x.strip()]
-        else:
-            raw = client_user.agent_id
-        if not isinstance(raw, list):
-            return []
-        return [str(x).strip() for x in raw if str(x).strip()]
-    except (TypeError, ValueError):
+        linked = get_connected_agent_ids_for_client(str(client_user.id))
+        return list(linked)
+    except Exception:
         return []
 
 
@@ -95,13 +86,8 @@ def resolve_primary_agent_id_for_client(client_user: User) -> str | None:
     agent_ids = _parse_buyer_linked_agent_ids(client_user)
     if not agent_ids:
         return None
-    agents = User.query.filter(
-        User.id.in_(agent_ids),  # pyright: ignore[reportAttributeAccessIssue]
-        User.is_agent.is_(True),
-    ).all()
-    by_id = {a.id for a in agents}
     for aid in agent_ids:
-        if aid in by_id:
+        if get_user_if_agent(aid) is not None:
             return aid
     return None
 

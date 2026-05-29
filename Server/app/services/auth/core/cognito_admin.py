@@ -1,4 +1,4 @@
-"""Cognito admin API: admin_create_user, admin_get_user, admin_get_user_status, admin_set_user_password, admin_reset_user_password."""
+"""Cognito admin API: admin_create_user, admin_delete_user, admin_get_user, admin_get_user_status, admin_set_user_password, admin_reset_user_password."""
 
 import logging
 import secrets
@@ -87,6 +87,54 @@ def admin_create_user(
         return {"success": False, "error": error_code, "message": error_message}
     except Exception as e:
         logger.error("Unexpected error creating user in Cognito: %s", e, exc_info=True)
+        return {
+            "success": False,
+            "error": "INTERNAL_ERROR",
+            "message": f"An unexpected error occurred: {str(e)}",
+        }
+
+
+def admin_delete_user(client, user_pool_id: str, username):
+    """Delete a user from Cognito using admin privileges."""
+    if not user_pool_id or not username:
+        return {
+            "success": False,
+            "error": "INVALID_INPUT",
+            "message": "user_pool_id and username are required",
+        }
+
+    try:
+        client.admin_delete_user(UserPoolId=user_pool_id, Username=username)
+        logger.info(
+            "Admin deleted user from Cognito",
+            extra={
+                "username": username[:3] + "***" + username[-3:] if username else "missing",
+            },
+        )
+        return {"success": True}
+    except ClientError as e:
+        error_code = e.response["Error"]["Code"]
+        error_message = e.response["Error"]["Message"]
+        if error_code == "UserNotFoundException":
+            logger.info(
+                "Cognito user already absent during delete",
+                extra={
+                    "username": username[:3] + "***" + username[-3:] if username else "missing",
+                },
+            )
+            return {"success": True, "already_absent": True}
+        logger.error(
+            "Error deleting user from Cognito: %s",
+            e,
+            extra={
+                "error_code": error_code,
+                "error_message": error_message,
+                "username": username[:3] + "***" + username[-3:] if username else "missing",
+            },
+        )
+        return {"success": False, "error": error_code, "message": error_message}
+    except Exception as e:
+        logger.error("Unexpected error deleting user from Cognito: %s", e, exc_info=True)
         return {
             "success": False,
             "error": "INTERNAL_ERROR",

@@ -2,7 +2,7 @@
  * Shared error handling for Google Calendar API responses.
  */
 
-import { HttpError } from "packages/services/http/compatibility";
+import { HttpError } from "packages/services/http";
 
 /**
  * Wraps a calendar API call, catching HttpError and mapping to a failure payload.

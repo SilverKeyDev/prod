@@ -7,6 +7,7 @@ import { googleCalendarApi } from "packages/features/calendar/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore, useGoogleCalendarStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 
@@ -23,14 +24,20 @@ export function useGoogleCalendarStoreIntegration() {
   const authReady = useAuthStore((s) => s.authReady);
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
-  const { queryClient, isConnected, calendars, calendarsLoading, calendarsError } =
-    useGoogleCalendarConnectionState(shouldLoadData);
+  const {
+    queryClient,
+    isConnected,
+    connectionStatusLoading,
+    calendars,
+    calendarsLoading,
+    calendarsError,
+  } = useGoogleCalendarConnectionState(shouldLoadData);
 
   const revokeMutation = useMutation({
     mutationFn: async () => {
       const response = await googleCalendarApi.revokeAccess();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to revoke access");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to revoke access"));
       }
       googleCalendarApi.clearConnectionStatus();
     },
@@ -119,6 +126,7 @@ export function useGoogleCalendarStoreIntegration() {
 
   return {
     isConnected,
+    connectionStatusLoading,
     calendars,
     calendarsLoading,
     calendarsError,

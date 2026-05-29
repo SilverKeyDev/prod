@@ -41,8 +41,6 @@ class CalendarOAuthFacade:
     def build_auth_url(
         self,
         user_id: str,
-        request_full_scope: bool = False,
-        use_scheduling_scopes: bool = False,
         request_additional_scopes: list[str] | None = None,
     ) -> tuple[str, str]:
         """Build Google OAuth authorization URL."""
@@ -53,8 +51,6 @@ class CalendarOAuthFacade:
             self.auth_endpoint,
             self.scopes,
             user_id,
-            request_full_scope,
-            use_scheduling_scopes,
             request_additional_scopes,
         )
 

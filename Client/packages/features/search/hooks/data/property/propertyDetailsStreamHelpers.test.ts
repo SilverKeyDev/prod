@@ -1,16 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { Property } from "./propertyDetailsTypes";
 import { applyStreamUpdate, parseStreamError } from "./propertyDetailsStreamHelpers";
+import type { Property } from "./propertyDetailsTypes";
 
 function apply(
   update: { type: string; data: unknown },
   initial: Property | null = { address: "123 Main", id: "1" } as Property
 ) {
   let state: Property | null = initial;
-  const setSelectedProperty = vi.fn((value: Property | null | ((prev: Property | null) => Property | null)) => {
-    state = typeof value === "function" ? value(state) : value;
-  });
+  const setSelectedProperty = vi.fn(
+    (value: Property | null | ((prev: Property | null) => Property | null)) => {
+      state = typeof value === "function" ? value(state) : value;
+    }
+  );
   const setIsLoading = vi.fn();
   applyStreamUpdate(update, setSelectedProperty, setIsLoading);
   return { state, setIsLoading };
@@ -118,9 +120,11 @@ describe("applyStreamUpdate", () => {
 
   it("does not mutate when prev property is null", () => {
     let state: Property | null = null;
-    const setSelectedProperty = vi.fn((value: Property | null | ((prev: Property | null) => Property | null)) => {
-      state = typeof value === "function" ? value(state) : value;
-    });
+    const setSelectedProperty = vi.fn(
+      (value: Property | null | ((prev: Property | null) => Property | null)) => {
+        state = typeof value === "function" ? value(state) : value;
+      }
+    );
     applyStreamUpdate(
       { type: "basic", data: { data: { price: "$1" } } },
       setSelectedProperty,

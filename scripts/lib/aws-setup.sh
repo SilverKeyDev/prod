@@ -1,9 +1,15 @@
-# AWS SSO login for local setup (terminal / ~/.aws/config only).
+# AWS SSO login for local setup (~/.aws/config; optional Server/config/.aws-sso).
 # shellcheck shell=bash
 
 aws_setup_die() { echo "aws-setup: $*" >&2; exit 1; }
 
 aws_setup_load_env() {
+  local root="${1:-}"
+  if [[ -n "$root" ]]; then
+    # shellcheck source=aws-sso-env.sh
+    source "$(dirname "${BASH_SOURCE[0]}")/aws-sso-env.sh"
+    aws_sso_source_repo_config "$root"
+  fi
   export AWS_REGION="${AWS_REGION:-us-east-2}"
   return 0
 }
@@ -138,5 +144,6 @@ aws_setup_login() {
   local acct
   acct="$(aws sts get-caller-identity --region "$AWS_REGION" --output text --query Account --profile "$AWS_PROFILE")"
   echo "aws-setup: SSO login OK (profile=${AWS_PROFILE}, account ${acct}, region ${AWS_REGION})"
-  echo "aws-setup: tip: export AWS_PROFILE=${AWS_PROFILE} AWS_REGION=${AWS_REGION} in your shell profile"
+  echo "aws-setup: tip: pin profile for this repo: cp Server/config/aws-sso.example Server/config/.aws-sso"
+  echo "aws-setup: tip: or export AWS_PROFILE=${AWS_PROFILE} AWS_REGION=${AWS_REGION} in your shell profile"
 }

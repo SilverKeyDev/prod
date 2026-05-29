@@ -29,11 +29,12 @@ def _scope_to_str(scope: object) -> str:
 @validate_request(DevUserDataResetRequest)
 @validate_response(DevUserDataResetResponse)
 def reset_dev_user_data_route(user, data: DevUserDataResetRequest | None = None):
-    """Reset profile, preferences, and/or DocuSign data for dev/testing."""
+    """Reset scoped dev/test data (profile, preferences, DocuSign, checklist, S3, connections)."""
     if not dev_user_data_reset_enabled():
         return standardize_error_response(
             "Dev user data reset is disabled in this environment",
             status_code=403,
+            error_code="configuration_error",
         )
 
     if not user_has_admin_role(user):
@@ -42,7 +43,9 @@ def reset_dev_user_data_route(user, data: DevUserDataResetRequest | None = None)
             "Unauthorized admin reset dev user data attempt",
             {"actor_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Admin access required", status_code=403)
+        return standardize_error_response(
+            "Admin access required", status_code=403, error_code="admin_forbidden"
+        )
 
     if data is None:
         request_data = request.get_json(silent=True) or {}
@@ -50,6 +53,7 @@ def reset_dev_user_data_route(user, data: DevUserDataResetRequest | None = None)
             return standardize_error_response(
                 'confirm must be true (JSON boolean). Send {"confirm": true}',
                 status_code=400,
+                error_code="validation_error",
             )
         raw_scopes = request_data.get("scopes")
         raw_user_id = request_data.get("user_id")
@@ -58,6 +62,7 @@ def reset_dev_user_data_route(user, data: DevUserDataResetRequest | None = None)
             return standardize_error_response(
                 'confirm must be true (JSON boolean). Send {"confirm": true}',
                 status_code=400,
+                error_code="validation_error",
             )
         raw_scopes = data.scopes
         raw_user_id = data.user_id
@@ -66,6 +71,7 @@ def reset_dev_user_data_route(user, data: DevUserDataResetRequest | None = None)
         return standardize_error_response(
             "scopes must be a non-empty array",
             status_code=400,
+            error_code="validation_error",
         )
 
     scope_set = {_scope_to_str(s) for s in raw_scopes if _scope_to_str(s)}
@@ -74,11 +80,14 @@ def reset_dev_user_data_route(user, data: DevUserDataResetRequest | None = None)
         return standardize_error_response(
             f"Invalid scopes: {sorted(invalid)}. Allowed: {sorted(VALID_SCOPES)}",
             status_code=400,
+            error_code="validation_error",
         )
     if not scope_set:
         return standardize_error_response(
-            "scopes must include at least one of profile, preferences, docusign",
+            "scopes must include at least one of profile, preferences, docusign, "
+            "transaction_steps, s3, connections",
             status_code=400,
+            error_code="validation_error",
         )
 
     actor_id = str(getattr(user, "id", "") or "")
@@ -93,6 +102,7 @@ def reset_dev_user_data_route(user, data: DevUserDataResetRequest | None = None)
             return standardize_error_response(
                 "Super admin access required to reset another user's data",
                 status_code=403,
+                error_code="super_admin_required",
             )
         target_id = str(raw_user_id).strip()
     else:
@@ -101,10 +111,12 @@ def reset_dev_user_data_route(user, data: DevUserDataResetRequest | None = None)
     try:
         cleared = reset_user_dev_data(target_id, scope_set)
     except ValueError as exc:
-        return standardize_error_response(str(exc), status_code=400)
+        return standardize_error_response(str(exc), status_code=400, error_code="validation_error")
 
     if cleared is None:
-        return standardize_error_response("User not found", status_code=404)
+        return standardize_error_response(
+            "User not found", status_code=404, error_code="resource_not_found"
+        )
 
     log.security(
         LOG_CATEGORIES["SECURITY"],

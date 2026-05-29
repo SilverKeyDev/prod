@@ -66,10 +66,10 @@ def check_cache_fast_path(
     return None
 
 
-def fetch_property_from_rapidapi(
-    params: dict[str, Any], rapidapi_key: str | None = None
+def fetch_property_detail_for_research(
+    params: dict[str, Any],
 ) -> tuple[dict[str, Any] | None, tuple[dict[str, Any], int] | None]:
-    """Fetch property data from Slipstream (name kept for backward compat)."""
+    """Fetch property data from Slipstream for research flows."""
     listing_id = params.get("zpid") or params.get("id")
     address = params.get("address")
 

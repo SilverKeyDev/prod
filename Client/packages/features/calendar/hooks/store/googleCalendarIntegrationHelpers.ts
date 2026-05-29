@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { GoogleCalendar, GoogleEvent } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
 import type { GoogleCalendarState } from "packages/features/calendar/store";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 import { googleCalendarApi } from "@/features/calendar/api";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
@@ -71,12 +72,18 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
 
   const isConnected = connectionStatusQuery.data ?? cachedConnectionStatus ?? false;
 
+  /** True until the first connection check resolves (avoids flashing "Connect Google Calendar"). */
+  const connectionStatusLoading =
+    shouldLoadData && connectionStatusQuery.data === undefined && connectionStatusQuery.isPending;
+
   const silverKeyQuery = useQuery({
     queryKey: queryKeys.scheduling.silverKeyCalendar(),
     queryFn: async () => {
       const response = await googleCalendarApi.getOrCreateSilverKeyCalendar(undefined);
       if (!response.success || !response.data) {
-        throw new Error(response.error ?? "Failed to load SilverKey calendar");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to load SilverKey calendar")
+        );
       }
       return response.data;
     },
@@ -100,6 +107,7 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
   return {
     queryClient,
     isConnected,
+    connectionStatusLoading,
     calendars,
     calendarsLoading,
     calendarsError,

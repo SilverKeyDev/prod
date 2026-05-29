@@ -149,6 +149,10 @@ export function UpcomingEvents({
     return wrap(loadingCard);
   }
 
+  if (d.connectionStatusLoading) {
+    return null;
+  }
+
   if (d.shouldShowConnectionPrompt) {
     const hasTodosWhileDisconnected =
       d.useAgendaList &&

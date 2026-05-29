@@ -5,13 +5,13 @@ import MapView, { Marker, Polygon, PROVIDER_GOOGLE } from "react-native-maps";
 
 import { color } from "packages/design-tokens";
 import { MapControlsNative } from "packages/features/search/components/map/MapControls.native";
-import { useSearchPageMapContainerNative } from "packages/features/search/hooks/ui/useSearchPageMapContainerNative";
+import { useSearchPageMapContainerNative } from "packages/features/search/hooks/ui/screen/useSearchPageMapContainerNative";
 import { getMatchScore, type SearchResult } from "packages/features/search/types";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { getNativeMapPinColorHex } from "packages/utils/format/mapMatchPinColors";
-import { getIsochroneUnionFillNativeRgba } from "packages/utils/maps/isochroneUnionStyle";
+import { getIsochroneUnionFillNativeRgba } from "packages/utils/maps/isochrone/isochroneUnionStyle";
 
 import { searchPageMapContainerNativeStyles as styles } from "./searchPageMapContainerNative.styles";
 

@@ -1,9 +1,10 @@
 import Button from "@ui/button/Button";
+import IconButton from "@ui/button/IconButton";
 import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 import type { MouseEvent, ReactElement, RefObject } from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box, Row } from "packages/ui/components/primitives";
 
 import type { DropdownOption } from "./Dropdown.types";
 
@@ -36,29 +37,22 @@ export function DropdownTrigger<T>({
   isOpen,
   t,
 }: DropdownTriggerProps<T>): ReactElement {
+  const showClear = clearable && Boolean(selectedOption) && !disabled;
+
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      contentAlign="start"
-      onClick={handleToggle}
-      disabled={disabled}
-      aria-label={triggerA11yLabel}
-      aria-expanded={isOpen}
-      aria-controls={isOpen ? menuListId : undefined}
-      aria-haspopup="listbox"
-      className={`${buttonClasses} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
-      icon={
-        <Icon
-          name="chevron-down"
-          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
-            isOpen ? "rotate-180 transform" : ""
-          }`}
-        />
-      }
-      iconPosition="right"
-    >
-      <Box className="flex w-full min-w-0 flex-row items-center justify-between gap-2">
+    <Row className={`${buttonClasses} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}>
+      <Button
+        type="button"
+        variant="ghost"
+        contentAlign="start"
+        onClick={handleToggle}
+        disabled={disabled}
+        aria-label={triggerA11yLabel}
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? menuListId : undefined}
+        aria-haspopup="listbox"
+        className="h-auto min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 shadow-none hover:bg-transparent focus:ring-0 focus-visible:ring-0"
+      >
         <Box className="flex min-w-0 flex-1 items-center gap-2">
           {selectedOption?.icon ? (
             <Box className="flex shrink-0 items-center">{selectedOption.icon}</Box>
@@ -73,22 +67,34 @@ export function DropdownTrigger<T>({
             {displayLabel}
           </BodyText>
         </Box>
+      </Button>
 
-        <Box className="flex shrink-0 items-center justify-end gap-1">
-          {clearable && selectedOption && !disabled && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleClear}
-              iconName="x"
-              label={t("form.clear_aria")}
-              className="cursor-pointer rounded p-1 transition-colors hover:bg-gray-100"
-              tabIndex={-1}
-            />
-          )}
-        </Box>
+      {showClear ? (
+        <IconButton
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleClear}
+          icon={<Icon name="x" className="h-4 w-4" />}
+          label={t("form.clear_aria")}
+          disabled={disabled}
+          className="shrink-0 cursor-pointer rounded p-1 transition-colors hover:bg-gray-100"
+          tabIndex={-1}
+        />
+      ) : null}
+
+      <Box
+        className={`flex shrink-0 items-center px-1 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+        onClick={disabled ? undefined : handleToggle}
+        aria-hidden
+      >
+        <Icon
+          name="chevron-down"
+          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+            isOpen ? "rotate-180 transform" : ""
+          }`}
+        />
       </Box>
-    </Button>
+    </Row>
   );
 }

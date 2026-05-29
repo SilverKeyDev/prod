@@ -63,12 +63,7 @@ describe("isChecklistIntegrationStepComplete", () => {
   it("evaluates finding_home from saved transaction address", () => {
     expect(isChecklistIntegrationStepComplete("finding_home", null, [], null)).toBe(false);
     expect(
-      isChecklistIntegrationStepComplete(
-        "finding_home",
-        null,
-        [],
-        { address: "  123 Main St  " }
-      )
+      isChecklistIntegrationStepComplete("finding_home", null, [], { address: "  123 Main St  " })
     ).toBe(true);
   });
 });

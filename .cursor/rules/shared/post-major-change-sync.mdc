@@ -34,7 +34,7 @@ Minimum bar before calling the work “done”:
 ## Examples
 
 ```markdown
-// ✅ DO — Same PR or fast-follow: workspace shells land + `documentation/client/workspace-first-architecture.md` updated
+// ✅ DO — Same PR or fast-follow: workspace shells land + `documentation/client/architecture/workspace-first-architecture.md` updated
 // ❌ DON'T — Large routing refactor with no doc or rule touch; the next agent will re-derive intent from diff noise only
 ```
 

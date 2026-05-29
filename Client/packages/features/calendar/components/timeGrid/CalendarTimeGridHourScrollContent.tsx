@@ -3,7 +3,7 @@ import { useRef } from "react";
 
 import { color, spacing } from "packages/design-tokens";
 import { Box, Text } from "packages/ui/components/primitives";
-import { localYOffsetToRoundedMinutesFromMidnight } from "packages/utils/calendar/calendarQuickCreateSnap";
+import { localYOffsetToRoundedMinutesFromMidnight } from "packages/utils/calendar/grid/calendarQuickCreateSnap";
 import { dateNow, dayjs } from "packages/utils/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";

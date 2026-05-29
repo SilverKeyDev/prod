@@ -27,7 +27,9 @@ def set_current_user_agent_status(user, data: UpdateAgentStatusRequest | None = 
             "Unauthorized admin set-current-user-agent attempt",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Admin access required", status_code=403)
+        return standardize_error_response(
+            "Admin access required", status_code=403, error_code="admin_forbidden"
+        )
 
     if data is None:
         request_data = request.get_json(silent=True) or {}
@@ -39,6 +41,7 @@ def set_current_user_agent_status(user, data: UpdateAgentStatusRequest | None = 
         return standardize_error_response(
             "is_agent must be a boolean",
             status_code=400,
+            error_code="validation_error",
         )
 
     user.is_agent = is_agent

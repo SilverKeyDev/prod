@@ -203,11 +203,11 @@
     "reason": "RN modal and list."
   },
   {
-    "id": "home-concierge",
-    "description": "Home concierge component with RN layout and Linking API.",
-    "webPath": "packages/features/checklists/components/integrations/concierge/HomeConcierge.tsx",
-    "nativePath": "packages/features/checklists/components/integrations/concierge/HomeConcierge.native.tsx",
-    "reason": "RN layout and Linking API."
+    "id": "partner-transaction-integration",
+    "description": "Partner transaction checklist integration with RN WebView and tracked links.",
+    "webPath": "packages/features/partners/components/PartnerTransactionIntegration.tsx",
+    "nativePath": "packages/features/partners/components/PartnerTransactionIntegration.native.tsx",
+    "reason": "RN WebView embed and Linking API for partner placements."
   },
   {
     "id": "feed-item-with-gesture",
@@ -240,8 +240,8 @@
   {
     "id": "use-feed-scroll-container",
     "description": "Feed scroll container hook with platform-specific scroll API.",
-    "webPath": "packages/features/feed/hooks/ui/useFeedScrollContainer.ts",
-    "nativePath": "packages/features/feed/hooks/ui/useFeedScrollContainer.native.ts",
+    "webPath": "packages/features/feed/hooks/ui/scroll/useFeedScrollContainer.ts",
+    "nativePath": "packages/features/feed/hooks/ui/scroll/useFeedScrollContainer.native.ts",
     "reason": "Native scroll hook uses RN scroll API; web uses different scroll implementation."
   },
   {
@@ -779,8 +779,8 @@
   {
     "id": "native-google-maps-cloud-config",
     "description": "Google Cloud Map ID and provider selection for react-native-maps.",
-    "webPath": "packages/utils/maps/nativeGoogleMapsCloudConfig.ts",
-    "nativePath": "packages/utils/maps/nativeGoogleMapsCloudConfig.native.ts",
+    "webPath": "packages/utils/maps/native/nativeGoogleMapsCloudConfig.ts",
+    "nativePath": "packages/utils/maps/native/nativeGoogleMapsCloudConfig.native.ts",
     "reason": "Native implementation uses Expo Constants and React Native Platform; web uses a no-op stub."
   },
   {

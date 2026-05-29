@@ -123,13 +123,11 @@ def _emit_schema_md(tables: list) -> str:
         ("ix_chat_history_conversation_id", "chat_history", "conversation_id"),
         ("ix_documents_user_id", "documents", "user_id"),
         ("ix_docusign_templates_created_by_user_id", "docusign_templates", "created_by_user_id"),
-        ("ix_search_session_user_id", "search_session", "user_id"),
         ("ix_todos_agent_id", "todos", "agent_id"),
         ("ix_todos_client_id", "todos", "client_id"),
         ("ix_user_tasks_user_id", "user_tasks", "user_id"),
         ("ix_transactions_buyer_id", "transactions", "buyer_id"),
         ("ix_transactions_primary_agent_id", "transactions", "primary_agent_id"),
-        ("ix_user_calendar_connections_user_id", "user_calendar_connections", "user_id"),
         ("ix_user_important_locations_user_id", "user_important_locations", "user_id"),
         ("ix_user_intent_attributes_user_id", "user_intent_attributes", "user_id"),
     ]

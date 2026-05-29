@@ -4,8 +4,8 @@
  * Handles web-only concerns like sessionStorage and bootstrap key tracking.
  */
 
-import type { AuthBootstrapSetters } from "packages/hooks/data/auth/authBootstrap";
-import { runAuthBootstrap as runSharedAuthBootstrap } from "packages/hooks/data/auth/authBootstrap";
+import type { AuthBootstrapSetters } from "packages/features/homeauth/hooks/data/authBootstrap";
+import { runAuthBootstrap as runSharedAuthBootstrap } from "packages/features/homeauth/hooks/data/authBootstrap";
 import { getSessionStorage } from "packages/utils/storage/platformStorage";
 
 /**

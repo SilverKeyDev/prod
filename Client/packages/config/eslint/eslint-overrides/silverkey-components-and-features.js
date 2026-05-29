@@ -49,13 +49,19 @@ export function silverkeyComponentsAndFeatures(silverkey) {
       },
     },
     {
-      files: ["packages/features/**/*.{ts,tsx}", "apps/web/pages/**/*.{ts,tsx}"],
+      files: [
+        "packages/features/**/*.{ts,tsx}",
+        "apps/web/pages/**/*.{ts,tsx}",
+        "apps/web/app/**/*.{ts,tsx}",
+        "apps/mobile/**/*.{ts,tsx}",
+      ],
       plugins: { silverkey },
       rules: {
         "silverkey/no-direct-accessibility-props": [
           "error",
           { allowedInPaths: ["packages/ui/components/ui/"] },
         ],
+        "silverkey/require-interactive-label": ["error", { allowedInPaths: ["packages/ui/"] }],
       },
     },
     {

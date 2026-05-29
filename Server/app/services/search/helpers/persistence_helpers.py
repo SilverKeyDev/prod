@@ -11,7 +11,7 @@ from app.models import PropertyCache, UserPropertyLink
 from app.utils.db.orm_lookup import get_model
 from app.utils.format.address_format import normalize_address
 
-from ..db.search_db import add_or_update_home_basic
+from ..db import add_or_update_home_basic
 
 
 def persist_and_prune_search_results(user_id: str, properties: list[dict[str, Any]]) -> None:

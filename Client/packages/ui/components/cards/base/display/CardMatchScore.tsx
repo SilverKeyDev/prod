@@ -1,8 +1,8 @@
 import { useLocalization } from "packages/contexts";
-import { formatMatchScoreDisplayPercent } from "packages/utils/format/matchScore";
 import { MatchPill } from "packages/ui/components/match/MatchPill";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
+import { formatMatchScoreDisplayPercent } from "packages/utils/format/matchScore";
 
 type CardMatchScoreProps = {
   /** Match score (0-100) */

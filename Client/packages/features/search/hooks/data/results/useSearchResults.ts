@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useFiltersStore } from "packages/store";
+import { useConsolidatedSearchStore } from "packages/store";
 import type { SearchResult } from "packages/types";
 import { createGuardedSetter } from "packages/utils";
 
@@ -45,18 +45,18 @@ export const useSearchResults = (): UseSearchResultsReturn => {
   const setSearchResults = useMemo(() => createGuardedSetter(_setSearchResults), []);
   const setSavedHomes = useMemo(() => createGuardedSetter(_setSavedHomes), []);
 
-  const favoriteAddresses = useFiltersStore((s) => s.favoriteAddresses);
-  const setFavoriteAddresses = useFiltersStore((s) => s.setFavoriteAddresses);
-  const isSearching = useFiltersStore((s) => s.isSearching);
-  const setIsSearching = useFiltersStore((s) => s.setIsSearching);
-  const searchStage = useFiltersStore((s) => s.searchStage);
-  const setSearchStage = useFiltersStore((s) => s.setSearchStage);
+  const favoriteAddresses = useConsolidatedSearchStore((s) => s.favoriteAddresses);
+  const setFavoriteAddresses = useConsolidatedSearchStore((s) => s.setFavoriteAddresses);
+  const isSearching = useConsolidatedSearchStore((s) => s.isSearching);
+  const setIsSearching = useConsolidatedSearchStore((s) => s.setIsSearching);
+  const searchStage = useConsolidatedSearchStore((s) => s.searchStage);
+  const setSearchStage = useConsolidatedSearchStore((s) => s.setSearchStage);
   const [isLocalStorageLoaded, setIsLocalStorageLoaded] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const currentPage = useFiltersStore((s) => s.currentPage);
-  const setCurrentPage = useFiltersStore((s) => s.setCurrentPage);
-  const activeTab = useFiltersStore((s) => s.activeTab);
-  const setActiveTab = useFiltersStore((s) => s.setActiveTab);
+  const currentPage = useConsolidatedSearchStore((s) => s.currentPage);
+  const setCurrentPage = useConsolidatedSearchStore((s) => s.setCurrentPage);
+  const activeTab = useConsolidatedSearchStore((s) => s.activeTab);
+  const setActiveTab = useConsolidatedSearchStore((s) => s.setActiveTab);
 
   const PROPERTIES_PER_PAGE = 1;
 

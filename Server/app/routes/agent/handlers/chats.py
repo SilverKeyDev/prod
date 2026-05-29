@@ -1,6 +1,5 @@
 """Agent chat/conversation endpoints."""
 
-import json
 import logging
 from datetime import datetime
 
@@ -27,6 +26,7 @@ from app.services.agent import (
 from app.services.agent import (
     send_message as send_conversation_message,
 )
+from app.services.agent.client_service import get_user_agent_id
 from app.services.agent.conversation_access import user_may_access_conversation
 from app.services.auth import SecurityException, get_current_user
 from app.utils.common_patterns import (
@@ -209,21 +209,7 @@ def send_message(data: SendMessageRequest | None = None):
                 conversation = create_conversation(str(user.id), str(client_id))
                 conversation_id = conversation["id"]
             else:
-                agent_id = None
-                if user.agent_id:
-                    try:
-                        agent_ids = (
-                            json.loads(user.agent_id)
-                            if isinstance(user.agent_id, str)
-                            else user.agent_id
-                        )
-                        agent_id = (
-                            agent_ids[0]
-                            if isinstance(agent_ids, list) and len(agent_ids) > 0
-                            else (agent_ids if isinstance(agent_ids, str) else None)
-                        )
-                    except Exception:
-                        agent_id = user.agent_id.split(",")[0] if user.agent_id else None
+                agent_id = get_user_agent_id(str(user.id))
                 if not agent_id:
                     return jsonify(
                         {"success": False, "error": "No agent assigned. Please contact support."}

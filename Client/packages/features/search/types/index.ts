@@ -28,7 +28,6 @@ export type {
   UseSearchBootstrapParams,
 } from "./domain/hooksParams";
 export type {
-  HomeUniversal,
   Property,
   PropertyAnalysis,
   PropertyConItem,
@@ -36,6 +35,7 @@ export type {
   PropertySearchResult,
   PropertyWithAnalysis,
   SavedHome,
+  SavedHomeWireRow,
 } from "./domain/property";
 export type {
   ListingStatus,

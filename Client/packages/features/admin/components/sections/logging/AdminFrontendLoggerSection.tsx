@@ -18,6 +18,20 @@ const BOOLEAN_KEYS: BooleanConfigKey[] = [
   "hooks",
   "auth",
   "http",
+  "search",
+  "polygonSearch",
+  "mapRendering",
+  "propertyDetails",
+  "negotiation",
+  "checklists",
+  "calendar",
+  "dashboard",
+  "messages",
+  "feed",
+  "routing",
+  "docusign",
+  "documents",
+  "profilePreferences",
   "errors",
   "security",
 ];
@@ -96,7 +110,9 @@ export function AdminFrontendLoggerSection({
         Frontend logger
       </Title>
       <BodyText size="sm" muted className="mb-4">
-        Adjust browser logging categories at runtime for this tab and session peers.
+        Enable console logging categories for this browser tab. In development, categories default
+        off except errors and security. PostHog log export runs in production only unless explicitly
+        opted in. Production builds keep all categories enabled regardless of these toggles.
       </BodyText>
 
       <Box className="grid gap-4 md:grid-cols-2">

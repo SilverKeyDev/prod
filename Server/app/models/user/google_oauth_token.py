@@ -33,9 +33,6 @@ class GoogleOAuthToken(db.Model):
     has_openid: Mapped[bool] = mapped_column(default=False)
     has_calendar_freebusy: Mapped[bool] = mapped_column(default=False)
     has_calendar_app_created: Mapped[bool] = mapped_column(default=False)
-    # Legacy columns on user_google_tokens; no longer granted or updated from scope strings.
-    has_calendar_calendarlist_readonly: Mapped[bool] = mapped_column(default=False)
-    has_calendar_events_freebusy: Mapped[bool] = mapped_column(default=False)
 
     # Metadata
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
@@ -71,8 +68,6 @@ class GoogleOAuthToken(db.Model):
             "has_openid": self.has_openid,
             "has_calendar_freebusy": self.has_calendar_freebusy,
             "has_calendar_app_created": self.has_calendar_app_created,
-            "has_calendar_calendarlist_readonly": self.has_calendar_calendarlist_readonly,
-            "has_calendar_events_freebusy": self.has_calendar_events_freebusy,
         }
 
     def __repr__(self):

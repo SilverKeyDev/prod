@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { usePreferencesSubmit } from "packages/features/homeauth/hooks/data/usePreferencesSubmit";
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
+import { useSetActiveWorkspace } from "packages/hooks/store";
 import { showErrorToast } from "packages/hooks/ui";
 
 import type { ProfileStep } from "@/features/profile/utils";
@@ -10,6 +11,7 @@ import {
   mergeOnboardingServerAndDraft,
   nextPreferencesVersion,
   type OnboardingData,
+  primaryOnboardingRoleFromForm,
 } from "@/features/profile/utils";
 
 import { getOnboardingDraftFromStorage, persistOnboardingDraft } from "./useOnboardingForm.helpers";
@@ -40,6 +42,7 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
   const hydratedServerDraftRef = useRef(false);
   const steps = useMemo(() => getSteps(formData), [getSteps, formData]);
   const submitPreferences = usePreferencesSubmit();
+  const setActiveWorkspace = useSetActiveWorkspace();
 
   const [loading, setLoading] = useState(false);
 
@@ -103,12 +106,24 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
       submitPreferences,
       setLoading,
       navigate,
-      onSuccess: afterPreferencesSuccess,
+      onSuccess: () => {
+        if (primaryOnboardingRoleFromForm(dataToSave) === "seller") {
+          setActiveWorkspace("seller");
+        }
+        afterPreferencesSuccess?.();
+      },
       onSuccessNavigate: onSubmitSuccess,
       skipValidation: true,
       onShowError: showErrorToast,
     });
-  }, [formData, submitPreferences, navigate, onSubmitSuccess, afterPreferencesSuccess]);
+  }, [
+    formData,
+    submitPreferences,
+    navigate,
+    onSubmitSuccess,
+    afterPreferencesSuccess,
+    setActiveWorkspace,
+  ]);
 
   return {
     steps,

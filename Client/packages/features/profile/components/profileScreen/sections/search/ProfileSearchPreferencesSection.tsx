@@ -11,7 +11,7 @@ import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/c
 import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
 import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/sections/financial/ProfileFinancialSection";
 import { ProfileLocationSection } from "packages/features/profile/components/profileScreen/sections/location/ProfileLocationSection";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { type OnboardingData, SECTION_TITLES } from "packages/features/profile/utils";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";

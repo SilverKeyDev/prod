@@ -15,7 +15,7 @@ from app.schemas import (
     RemoveNotInterestedRequest,
     UpdateNotInterestedRequest,
 )
-from app.services.search.db.search_db import add_or_update_home_basic, sync_to_home_not_interested
+from app.services.search.db import add_or_update_home_basic, sync_to_home_not_interested
 from app.utils.common_patterns import require_authenticated_user
 from app.utils.db.orm_lookup import get_model
 from app.utils.format.address_format import normalize_address, safe_normalize_address

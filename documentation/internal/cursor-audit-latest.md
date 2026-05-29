@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change. After cross-cutting architecture or feature work, also follow [post-major-change-checklist.md](./post-major-change-checklist.md) so docs and this inventory stay aligned.
 
-**Last regenerated:** 2026-05-18 (`AGENTS.md` quickstart: Makefile targets, tests, workspace-first, pinned prerequisites).
+**Last regenerated:** 2026-05-28 (documentation refresh: doc-check CI, documentation-placement skill, single `documentation/` tree).
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -30,6 +30,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `.cursor/README.md`                                           |  (see repo) | 2026-05-11         | keep   | Meta-doc for `.cursor/` layout |
 | `.cursorindexingignore`                                       | (repo root) | 2026-05-11         | keep   | Index-only excludes            |
 | `.cursor/settings.json`                                       |          16 | 2026-05-11         | keep   | Workspace Cursor settings      |
+| `.cursor/agents/silverkey-engineer.md`                        |  (see repo) | 2026-05-20         | keep   | Default engineering persona    |
 | `.cursor/agents/react-lint-fixer.md`                          |          73 | 2026-05-11         | keep   | Subagent                       |
 | `.cursor/agents/silverkey-architecture-boundary-auditor.md`   |          70 | 2026-02-20         | keep   | Subagent                       |
 | `.cursor/agents/silverkey-bundle-build-optimizer.md`          |          47 | 2026-02-20         | keep   | Subagent                       |
@@ -49,6 +50,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `.cursor/agents/silverkey-audit-axis5-bundle-import-fixer.md`        |      39 | 2026-05-13         | keep   | Post–component-audit remediation |
 | `.cursor/agents/silverkey-audit-architecture-remediation.md`       |      39 | 2026-05-13         | keep   | Post–component-audit remediation |
 | `.cursor/skills/post-major-change-sync/SKILL.md`             |  (see repo) | 2026-05-15         | keep   | Docs + rules sync after major changes |
+| `.cursor/skills/documentation-placement/SKILL.md`            |  (see repo) | 2026-05-28         | keep   | Canonical `documentation/` placement; anti-`docs/` |
 | `.cursor/skills/feature-translations/SKILL.md`                |         129 | 2026-04-20         | keep   | i18n / raw keys                |
 | `.cursor/skills/platform-file-extension-choice/SKILL.md`      |          46 | 2026-05-11         | keep   | `.web` / `.tsx` choice         |
 | `.cursor/skills/react-native-migration/SKILL.md`              |          54 | 2026-02-20         | keep   | RN migration                   |
@@ -72,6 +74,10 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `shared/thin-app-architecture.mdc`          | yes → **yes**              | Client/\*\*                             | Universal                                       |
 | `shared/linting.mdc`                        | yes → **yes**              | \*_/_                                   | Universal                                       |
 | `shared/documentation.mdc`                 | yes → **yes**              | `documentation/**/*.md`, `**/README.md` | Canonical doc tree vs `docs/`; see `AGENTS.md` |
+| `shared/silverkey-context.mdc`            | — → **yes**                | (always-on)                             | Company, RESPA reflex, MCP; see `CLAUDE.md`    |
+| `shared/code-style.mdc`                   | — → **yes**                | (always-on)                             | Stack, Linear commits, verification            |
+| `shared/respa-compliance.mdc`             | — → **no**                 | partners, placement, concierge, financing/insurance/closing | RESPA guardrails for partner code |
+| `shared/pitch-and-fundraising.mdc`        | — → **no**                 | pitch, deck, investor, fundraising globs | Deck-aligned numbers and tone      |
 | `shared/post-major-change-sync.mdc`         | no → **no**                | Client/apps/**, Client/packages/**, openapi/**, Server/app/** | Same-PR / fast-follow docs + rules sync after major architecture |
 | `shared/monorepo.mdc`                       | yes → **no**               | \*_/_                                   | Context budget                                  |
 | `shared/ci-gates.mdc`                       | yes → **no**               | .github/workflows/**, Client/**         |                                                 |
@@ -83,7 +89,8 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `frontend/platform-file-extensions.mdc`     | yes → **no**               | Client/apps/\*\*                        |                                                 |
 | `frontend/state-boundaries.mdc`             | yes → **no**               | Client/\*_/_.{ts,tsx}                   |                                                 |
 | `backend/database.mdc`                      | yes → **no**               | Server/\*\*                             |                                                 |
-| `frontend/component-audit-rubric.mdc`       | yes → **no**               | Client/\*_/_.{ts,tsx}                   | Five-axis component audits; see `documentation/client/react-component-audit-rubric.md` |
+| `frontend/component-audit-rubric.mdc`       | yes → **no**               | Client/\*_/_.{ts,tsx}                   | Five-axis component audits; see `documentation/client/patterns/react-component-audit-rubric.md` |
+| `frontend/accessibility.mdc`                | no → **no**                | Client/\*_/_.{ts,tsx}                   | WCAG 2.1 AA; see `documentation/client/standards/accessibility-standards.md` |
 
 Other `.mdc` files were already `alwaysApply: false` or unchanged in scope. **No duplicate filenames:** do not add `* 2.mdc` copies alongside a canonical rule—Cursor may load both and waste context.
 
@@ -107,7 +114,9 @@ Previously noted: `FORMS_*`, `openapi-adoption-checklist.md`, etc. **Not present
 
 ## Definition-of-done checklist
 
-- [x] `alwaysApply: true` count = **4** (security, thin-app, linting, documentation) — see [.cursor/README.md](../../.cursor/README.md)
+- [x] `alwaysApply: true` count = **6** (security, thin-app, linting, documentation, silverkey-context, code-style) — see [.cursor/README.md](../../.cursor/README.md)
+- [x] [CLAUDE.md](../../CLAUDE.md) — company AI context at repo root
+- [x] [.cursor/rules/README.md](../../.cursor/rules/README.md) — rules index
 - [x] `.cursor/README.md` meta-doc
 - [x] `documentation/internal/cursor-audit-latest.md` (this file)
 - [x] `documentation/internal/post-major-change-checklist.md` — process for syncing docs + Cursor after major architecture/features

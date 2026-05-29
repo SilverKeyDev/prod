@@ -7,6 +7,7 @@ import { docusignApi } from "packages/features/documents/api/docusign";
 import type { Agreement } from "packages/features/documents/types/docusign";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 export type UseDocusignAgreementReturn = {
   agreement: Agreement | null;
@@ -46,7 +47,7 @@ export function useDocusignAgreement(agreementId?: string): UseDocusignAgreement
       try {
         const response = await docusignApi.getAgreement(agreementId);
         if (!response.success) {
-          const errorMessage = response.error ?? "Failed to fetch agreement";
+          const errorMessage = resolveApiResultErrorMessage(response, "Failed to fetch agreement");
           log.error(LOG_CATEGORIES.API, "Failed to fetch agreement", {
             agreementId,
             error: errorMessage,

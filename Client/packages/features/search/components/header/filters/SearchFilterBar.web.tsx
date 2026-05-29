@@ -6,7 +6,7 @@ import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
-import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/searchHeaderPopoverDismiss.web";
+import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/popovers/searchHeaderPopoverDismiss.web";
 import {
   type SearchFilterOverrides,
   useSearchContextStore,
@@ -40,6 +40,9 @@ export type SearchFilterBarProps = {
   patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
   scriptsReady: boolean;
   onAgentSyncPreferencesFetched?: (onboarding: Partial<OnboardingData>) => void;
+  replaceFormData?: (next: Partial<OnboardingData>) => void;
+  cancelPendingSave?: () => void;
+  onAfterClear?: () => void | Promise<void>;
 };
 
 export default function SearchFilterBar({
@@ -52,6 +55,9 @@ export default function SearchFilterBar({
   patchBuyerPreferenceExtensions,
   scriptsReady,
   onAgentSyncPreferencesFetched,
+  replaceFormData,
+  cancelPendingSave,
+  onAfterClear,
 }: SearchFilterBarProps): React.ReactElement {
   const { t } = useLocalization();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -140,6 +146,9 @@ export default function SearchFilterBar({
           onClientChange={onClientChange}
           patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
           onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
+          replaceFormData={replaceFormData}
+          cancelPendingSave={cancelPendingSave}
+          onAfterClear={onAfterClear}
         />
       </>
     );
@@ -191,6 +200,10 @@ export default function SearchFilterBar({
             scriptsReady={scriptsReady}
             viewingClientId={selectedClientId ?? null}
             onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
+            onClientChange={onClientChange}
+            replaceFormData={replaceFormData}
+            cancelPendingSave={cancelPendingSave}
+            onAfterClear={onAfterClear}
           />
         )}
       </Popover>

@@ -29,6 +29,9 @@ _JSON_ENGINE_OPTS = {"json_serializer": _sqlalchemy_json_serializer}
 is_testing = os.getenv("TESTING") == "true"
 
 if database_url.startswith("sqlite://"):
+    from app.utils.sqlite_datetime_adapters import register_sqlite_datetime_adapters
+
+    register_sqlite_datetime_adapters()
     if is_testing or ":memory:" in database_url:
         # SQLite in-memory (testing) - no pool settings (uses StaticPool)
         SQLALCHEMY_ENGINE_OPTIONS = {

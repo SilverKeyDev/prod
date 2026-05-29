@@ -1,205 +1,97 @@
-## Implementation Order for Checklist-Driven Transactions
+> **Status:** Living build sequence — phases marked **Shipped**, **Partial**, or **Planned** per code on 2026-05-28.  
+> **Last verified:** 2026-05-28
 
-This document provides a **practical build sequence** for taking the transaction-through-checklists vision to production.
+Practical order for checklist-driven transactions. Extend existing surfaces; avoid a parallel transactions-only app.
 
-Each step includes:
-- What to implement.
-- Which existing infrastructure to extend first.
-- What can be deferred to a later phase.
+**Status key:** **Shipped** = in production paths · **Partial** = started, gaps listed · **Planned** = not in code yet
 
 ---
 
-### Phase 1 – Transaction and address foundation
+## Phase 1 — Transaction and address foundation
 
-1. **Introduce Transaction + PropertyAddress models**
-   - Define server-side models for:
-     - `Transaction` (linking buyer, primary agent, status, contract metadata).
-     - `PropertyAddress` (normalized address, placeId, lat/lng).
-   - Add a simple `POST /api/v1/transactions` endpoint that:
-     - Accepts an address payload (canonicalized from the client).
-     - Creates `Transaction` + `PropertyAddress` + returns IDs.
-   - **Existing infra to check/extend:**
-     - Reuse address normalization patterns used in search/calendar where possible.
-     - Check for any existing “client hub” or buyer record that should be associated.
-
-2. **In-flow address entry (no header "+ New transaction")**
-   - The **"Choose a house"** step in the Search section (or Offer's "Finding a home") contains a component that accepts an address input. That component:
-     - Uses Google Places-style autocomplete.
-     - Forces the user to pick a canonical result (placeId + normalized address + coordinates); no arbitrary text.
-     - On save, creates `Transaction` + `PropertyAddress` and calls `POST /transactions` (or equivalent).
-   - **Coordinates are stored** and drive downstream behavior: earthquake insurance requirement, flood zone disclosures, jurisdiction-specific deadlines.
-   - **Existing infra to check/extend:**
-     - `Client/packages/features/checklists/components/FindingHome.tsx` – extend to use canonical address + coordinates.
-     - `CreateEventModal` location autocomplete patterns.
-     - Close / checklists headers – no "+ New transaction" button.
+| Step | Status | Notes | Code pointers |
+| ---- | ------ | ----- | ------------- |
+| 1. `Transaction` + address models | **Partial** | `Transaction` minimal; address is `TransactionAddress` per **user**, not per `transactions.id`. | `Server/app/models/transactions/transaction.py`, `transaction_address.py` |
+| 2. Create deal API | **Planned** | No `POST /api/v1/transactions` that returns a deal id for all downstream scopes. | — |
+| 3. In-flow address (Finding home) | **Partial** | Places autocomplete + save; `place_id` optional on server; no lat/lng. | `FindingHome.tsx`, `POST /api/v1/transactions/address` in `Server/app/routes/transactions.py` |
 
 ---
 
-### Phase 2 – Transaction-aware checklists (MVP)
+## Phase 2 — Transaction-aware checklists (MVP)
 
-3. **Transaction-scoped checklist read path**
-   - Introduce a **transaction-aware checklist endpoint**, e.g.:
-     - `GET /api/v1/transactions/<transaction_id>/tasks?type=escrow|inspections|financing|closing`
-   - Initially:
-     - Reuse `get_checklist_definition` from the existing `/api/v1/tasks` route.
-     - Keep progress storage as today (user+category via `TransactionTask`) but scoped to the **active transaction** in memory.
-   - **Existing infra to check/extend:**
-     - `Server/app/routes/tasks.py` and `get_checklist_definition`.
-     - `TransactionTask` (`user_tasks` table) – confirm compatibility with a transaction field or a bridge strategy.
-
-4. **Client-side wiring for transaction-aware checklists**
-   - Update `useChecklistData` to accept `transactionId` and call the new route.
-   - Thread `transactionId` from:
-     - Transaction creation flow.
-     - Transaction switcher (per user).
-   - Keep UI unchanged where possible:
-     - `CloseLayout`, `ChecklistCheckbox`, subheader components.
-
-5. **Transaction switcher**
-   - Add a basic **transaction switcher** (dropdown/list) in:
-     - Close/checklists pages.
-     - Dashboard widgets that render transaction-scoped checklists.
-   - Make sure switching transaction updates:
-     - `useChecklistData(transactionId, type)`.
-     - Any transaction-scoped context (calendar, docs) where already wired.
+| Step | Status | Notes | Code pointers |
+| ---- | ------ | ----- | ------------- |
+| 3. Transaction-scoped checklist API | **Shipped** | `<transaction_id>` = buyer **user id**; agent access via client list. | `Server/app/routes/transactions.py`, `unified_task_checklist_*.py` |
+| 4. Client wiring | **Shipped** | `checklistSubjectUserId` / `transactionSubjectId`. | `useChecklistData.ts`, `checklists/api/checklists.ts` |
+| 5. Transaction switcher | **Planned** | No multi-deal picker; one checklist scope per buyer user today. | — |
 
 ---
 
-### Phase 3 – Location enrichment and basic deadlines
+## Phase 3 — Location enrichment and deadlines
 
-6. **Location enrichment service**
-   - Implement a small server-side service that:
-     - Accepts `PropertyAddress` (placeId or normalized form).
-     - Derives `jurisdiction` (state, county).
-     - Provides hooks to add flood and other risk data later.
-   - Write results back to `Transaction` / `PropertyAddress`.
-
-7. **Baseline milestone/deadline engine**
-   - Implement a first version of the **deadline engine**:
-     - Inputs: contract acceptance date, closing date (if known), jurisdiction.
-     - Outputs: inspection window end, earnest money due, financing contingency date, etc.
-   - Store milestones per transaction and expose through:
-     - `GET /api/v1/transactions/<transaction_id>/milestones`.
-   - **Existing infra to check/extend:**
-     - Any existing scheduling or calendar schema (`packages/schemas/scheduling` or similar).
-     - Date utility helpers in `packages/utils/date`.
-
-8. **Wire milestones into checklists (read-only)**
-   - For now, simply display milestone-derived deadlines in checklist metadata (e.g. “Due by X”).
-   - Use this as a validation step before full calendar integration.
+| Step | Status | Notes | Code pointers |
+| ---- | ------ | ----- | ------------- |
+| 6. Location enrichment | **Planned** | No jurisdiction/flood service writing back to deal/address. | `transactions/mechanics/04-location-enrichment.md` |
+| 7. Milestone / deadline engine | **Planned** | Form step deadlines only; no `.../milestones` API. | `Server/app/services/documents/forms_service.py` |
+| 8. Milestones in checklist UI | **Partial** | Deadline on forms metadata; not engine-driven checklist labels everywhere. | checklist forms routes |
 
 ---
 
-### Phase 4 – Calendar and event linking
+## Phase 4 — Calendar and event linking
 
-9. **In-app calendar view scoped to a transaction**
-   - Extend existing calendar routes/hooks to support `transactionId` filters where appropriate.
-   - Render milestones for the active transaction as:
-     - Non-editable events initially (date comes from the engine).
-
-10. **Google Calendar integration for milestones**
-   - Decide which milestones should sync to Google Calendar by default.
-   - Use existing:
-     - `CreateEventModal`
-     - `CalendarHeader` and `CalendarConnectionPrompt`
-   - Add transaction context to event creation:
-     - Include `transactionId` and `milestoneId` when creating events.
+| Step | Status | Notes | Code pointers |
+| ---- | ------ | ----- | ------------- |
+| 9. Transaction-scoped calendar | **Planned** | Google user calendar exists; no deal filter. | `Client/packages/features/calendar/` |
+| 10. Google sync for milestones | **Planned** | See `options/04-calendar-sync-strategy.md`. | calendar create hooks |
 
 ---
 
-### Phase 5 – Documents, DocuSign + S3, optional FMLS/eXp forms, and signature-driven completion
+## Phase 5 — Documents, DocuSign, signing-driven completion
 
-11. **Documents and templates (agent side)** – DocuSign + optional FMLS / eXp
-   - Use **DocuSign** for template sync (system/JWT), per-agent OAuth, envelope create/send, Connect webhooks, and completed-document fetch to **S3** — see `integrations/09-documents-docusign-and-s3.md` and `Server/app/services/docusign/README.md`.
-   - Where product requirements call for it, add or extend **FMLS** and/or **eXp API** flows to list brokerage forms separately from DocuSign templates.
-   - **Checklist linkage:** Associate agreements with checklist items/milestones (e.g. `AgreementLink` per `integrations/07-signing-review-and-completion.md`) so the right documents appear per step.
-   - **Existing infra to check/extend:**
-     - Agreement models and document service in `Server/app/services/documents/`; DocuSign under `Server/app/services/docusign/`.
-     - Client documents UI (`Client/packages/features/documents/*`).
-
-12. **Signature and status wiring (DocuSign)**
-   - Ensure `SignatureProvider` / DocuSign routes cover: create/send, status, embedded signing URL, cancel — aligned with `Server/app/services/docusign/`.
-   - Wire **Connect webhooks** and client polling as needed so agreement status stays in sync.
-
-13. **Checklist completion from signature status**
-   - For items tagged as `signature_based` or `signature_plus_review`:
-     - Tie completion to agreement status and (for review) the presence of a review record by the right role.
-   - Ensure agreement → checklist linkage is stored via `AgreementLink`.
+| Step | Status | Notes | Code pointers |
+| ---- | ------ | ----- | ------------- |
+| 11. Templates + checklist forms | **Partial** | Forms library + per-step send; DocuSign stack under `Server/app/services/docusign/`. | `checklist_forms.py`, `Client/packages/features/documents/` |
+| 12. Signature status wiring | **Partial** | Connect webhooks + client polling; messaging on completion. | `docusign/notifications/`, documents hooks |
+| 13. Checklist completion from signatures | **Partial** | `AgreementLink` to checklist items exists; not all template items are signature-gated. | `Server/app/models/documents/agreement.py`, `checklist_documents.py` |
 
 ---
 
-### Phase 6 – HomeConcierge and integration-backed tasks (MVP)
+## Phase 6 — Move Concierge and integration-backed tasks
 
-14. **IntegrationTask model and service**
-   - Add a generic `IntegrationTask` model for provider-backed actions (HomeConcierge, later loans/Plaid).
-   - Minimal v1 fields: `transaction_id`, `provider_key`, `status`, `data`.
-
-15. **HomeConcierge integration as a first provider**
-   - Surface an optional **HomeConcierge step** in relevant checklist categories (e.g. move-in).
-   - Provide “Start with HomeConcierge” action:
-     - Creates an `IntegrationTask` and redirects to HomeConcierge.
-   - Handle completion callback (webhook or redirect) and update:
-     - Integration task status.
-     - Associated checklist item status.
+| Step | Status | Notes | Code pointers |
+| ---- | ------ | ----- | ------------- |
+| 14. `IntegrationTask` model | **Planned** | — | — |
+| 15. Move Concierge as first provider | **Shipped** (placement) | Rev-share embed + step views; not `IntegrationTask` callback. | `Client/packages/features/partners/`, `Server/app/routes/rev_share/` |
 
 ---
 
-### Phase 7 – Collaboration and multi-party access
+## Phase 7 — Collaboration and multi-party access
 
-16. **Transaction participants and roles**
-   - Implement `TransactionParticipant` model and role templates:
-     - Buyer, Agent, TC, Loan Officer, Escrow, etc.
-   - Expose endpoints to:
-     - List participants.
-     - Invite new participants (email-based or user-based).
-
-17. **Permissions and assignments**
-   - Apply a first-pass permission matrix (view/edit/review per role) for:
-     - Checklists.
-     - Milestones.
-     - Documents and agreements.
-   - Add ability to assign checklist items to participants.
-
-18. **Audit trail and notifications**
-   - Add an activity feed per transaction:
-     - “Task X completed by Buyer,” “Agreement Y signed by Buyer,” etc.
-   - Connect these events to the existing notification system:
-     - Push/email/in-app routing per role and preferences.
+| Step | Status | Notes | Code pointers |
+| ---- | ------ | ----- | ------------- |
+| 16. `TransactionParticipant` | **Planned** | — | `options/07-collaboration-and-permissions.md` |
+| 17. Permissions + assignments | **Planned** | Agent/client checklist gate only today. | `transactions.py` |
+| 18. Activity feed + notifications | **Planned** | — | `collaboration/07-audit-trail-and-activity-feed.md` |
 
 ---
 
-### Phase 8 – Timeline refinement and state variation
+## Phase 8 — Timeline and state variation
 
-19. **Timeline phase docs → rule implementation**
-   - Use `timeline/*` docs to:
-     - Encode specific default deadlines and behaviors (inspection windows, earnest money rules, etc.).
-   - Implement a `JurisdictionRuleSet` abstraction:
-     - Start with 1–2 key states (e.g. home markets) and general rules elsewhere.
-
-20. **Compliance and external data**
-   - Evaluate whether any vendor exposes structured timing/compliance metadata.
-   - If not, rely on:
-     - Internal tables + curated content.
-   - Keep the compliance API integration as a **future extension**.
+| Step | Status | Notes | Code pointers |
+| ---- | ------ | ----- | ------------- |
+| 19. Timeline docs → rules | **Planned** | `transactions/timeline/*` is spec. | `mechanics/05-deadline-and-milestone-engine.md` |
+| 20. Compliance / external data APIs | **Planned** | — | `integrations/10-compliance-data-and-apis.md` |
 
 ---
 
-### Phase 9 – Hardening and production readiness
+## Phase 9 — Hardening
 
-21. **Observability and error handling**
-   - Instrument:
-     - Transaction creation, checklist generation, deadline calculation, signing, integrations.
-   - Define metrics, logs, and alerting for:
-     - Checklist API errors.
-     - Deadline engine failures.
-     - Signing and integration errors.
+| Step | Status | Notes | Code pointers |
+| ---- | ------ | ----- | ------------- |
+| 21. Observability | **Partial** | Structured logging; no dedicated transaction funnel metrics doc in code. | `packages/logger`, `Server/logger` |
+| 22. Security / permissions review | **Partial** | Auth decorators + rev-share exposure logging. | `respa-compliance.mdc`, `step_views.py` |
+| 23. E2E + feature flag | **Planned** | — | — |
 
-22. **Security and permissions review**
-   - Validate that:
-     - Only authorized roles can see/edit sensitive transaction data.
-     - External integrations (DocuSign, HomeConcierge, financial rails) use secure tokens and webhooks.
+---
 
-23. **End-to-end tests and roll-out**
-   - Add end-to-end tests for:
-     - “New transaction → address → checklists → milestones → docs/signing.”
-   - Gate the feature behind a **feature flag** and roll out progressively.
+See [11-implementation-timeline.md](./11-implementation-timeline.md) for a compact phase status table.

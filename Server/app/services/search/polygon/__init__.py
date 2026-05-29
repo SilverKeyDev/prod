@@ -5,11 +5,11 @@ from .locationPolygon import (
     isochrone_polygon,
     isochrone_union_for_addresses,
 )
-from .polygon_search_post_filters import (
+from .polygon_post_filters import (
     PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT,
     apply_polygon_search_post_filters,
 )
-from .polygon_search_runner import run_polygon_search
+from .polygon_runner import run_polygon_search
 
 __all__ = [
     "geocode_address",

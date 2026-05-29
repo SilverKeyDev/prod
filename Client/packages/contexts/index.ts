@@ -32,15 +32,17 @@ export { useSearchRefresh } from "../features/search/hooks/searchRefresh/useSear
 export { useChats } from "packages/features/messaging/hooks/data/useChats";
 
 // Store integration hooks (recommended for components):
-export { useDocumentsStoreIntegration as useDocuments } from "@/features/documents/hooks/store/useDocumentsStoreIntegration";
-export { useReportsStoreIntegration as useReports } from "@/features/documents/hooks/store/useReportsStoreIntegration";
+export { useDocumentsStoreIntegration as useDocuments } from "@/features/documents/hooks/store";
+export { useReportsStoreIntegration as useReports } from "@/features/documents/hooks/store";
 export { useUserStoreIntegration as useUser } from "@/features/homeauth/hooks/store/useUserStoreIntegration";
 export { useUserStoreIntegration as usePreferences } from "@/features/homeauth/hooks/store/useUserStoreIntegration";
 export { useNegotiationStoreIntegration as useNegotiation } from "@/features/negotiate/hooks/store/useNegotiationStoreIntegration";
-export { useSavedHomesStoreIntegration as useSavedHomes } from "packages/hooks/store";
+export {
+  useFiltersStoreIntegration as useFilters,
+  useSavedHomesStoreIntegration as useSavedHomes,
+  useSessionStoreIntegration as useSession,
+  useUIStoreIntegration as useUI,
+} from "packages/hooks/store";
 export { useFeature } from "packages/hooks/store/featureFlags/useFeature";
 export { useFeatureFlagsStoreIntegration as useFeatureFlags } from "packages/hooks/store/featureFlags/useFeatureFlagsStoreIntegration";
 export { useGoogleMapsStoreIntegration as useGoogleMaps } from "packages/hooks/store/map/useGoogleMapsStoreIntegration";
-export { useFiltersStoreIntegration as useFilters } from "packages/hooks/store/useFiltersStoreIntegration";
-export { useSessionStoreIntegration as useSession } from "packages/hooks/store/useSessionStoreIntegration";
-export { useUIStoreIntegration as useUI } from "packages/hooks/store/useUIStoreIntegration";

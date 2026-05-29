@@ -144,15 +144,17 @@ export function AdminWorkspaceLayout() {
   const activeSegment = useMemo(() => {
     const seg = segmentFromPath(location.pathname);
     if (seg && !includeSuperadmin && seg === ADMIN_ROUTE_SEGMENTS.superadmin) {
-      return ADMIN_ROUTE_SEGMENTS.logging;
+      return ADMIN_ROUTE_SEGMENTS.operations;
     }
-    return seg ?? ADMIN_ROUTE_SEGMENTS.logging;
+    return seg ?? ADMIN_ROUTE_SEGMENTS.operations;
   }, [includeSuperadmin, location.pathname]);
 
   useEffect(() => {
     const seg = segmentFromPath(location.pathname);
     if (seg === ADMIN_ROUTE_SEGMENTS.superadmin && !includeSuperadmin) {
-      void navigateToPath(`${ADMIN_BASE_PATH}/${ADMIN_ROUTE_SEGMENTS.logging}`, { replace: true });
+      void navigateToPath(`${ADMIN_BASE_PATH}/${ADMIN_ROUTE_SEGMENTS.operations}`, {
+        replace: true,
+      });
     }
   }, [includeSuperadmin, location.pathname, navigateToPath]);
 

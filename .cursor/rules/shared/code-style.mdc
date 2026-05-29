@@ -1,0 +1,59 @@
+---
+description: SilverKey coding conventions — stack, commits, PRs, and verification
+alwaysApply: true
+---
+
+# SilverKey coding conventions
+
+Company context: [CLAUDE.md](../../../CLAUDE.md). Lint details: [linting.mdc](./linting.mdc). CI gates: [ci-gates.mdc](./ci-gates.mdc).
+
+## Stack
+
+| Area | Stack |
+| ---- | ----- |
+| **Client** | pnpm 9, Node 20+, React (Vite web) + React Native (Expo), TypeScript, Zustand, Vitest |
+| **Server** | Python 3.10–3.13, Flask, SQLAlchemy, Celery/Redis, pytest, ruff/mypy |
+| **Contract** | OpenAPI 3.1 in `openapi/` — regenerate types; never hand-edit generated files |
+| **Layout** | Thin apps (`Client/apps/*`), fat packages (`Client/packages/*`) — [thin-app-architecture.mdc](./thin-app-architecture.mdc) |
+
+## Commits and PRs
+
+- **Commit format:** `[LINEAR-ID] short description` (e.g. `[SK-142] Add Move Concierge prefill params`).
+- **PR description:** Link the Linear ticket URL or ID; summarize what changed and why.
+- **Do not commit:** secrets, API keys, `.env`, partner deal terms, or credentials files.
+
+## Architecture (pointers)
+
+- **Client layers:** [frontend-architecture.mdc](../frontend/frontend-architecture.mdc) — components → hooks → config/api → services; no fat apps.
+- **OpenAPI changes:** [openapi-workflow.mdc](./openapi-workflow.mdc) — edit spec, `make openapi` / `make openapi-verify`.
+- **Security:** [security.mdc](./security.mdc) — tokens in memory + sessionStorage; mask PII in logs.
+
+## Partner and money flows
+
+Code touching **partner placement, payments, or brokerage revenue** must be:
+
+- **Boring and auditable** — clear names, explicit branches, minimal cleverness.
+- **RESPA-documented** — comment block per [respa-compliance.mdc](./respa-compliance.mdc).
+- **Logged** — partner exposure and money-adjacent events traceable.
+
+## Done means verified
+
+Before claiming complete:
+
+| Scope | Minimum check |
+| ----- | ---------------- |
+| Client | `pnpm typecheck`, `pnpm lint`, relevant tests; full gate: `pnpm check` or `make check-client` |
+| Server | targeted `pytest`; repo lint: `make lint` or `./scripts/run-all-linters.sh server` |
+| OpenAPI | `make openapi-verify` when HTTP shapes changed |
+| Both | `./scripts/run-all-linters.sh all` or `make lint` for cross-cutting PRs |
+
+Linter errors are **blocking** — see [linting.mdc](./linting.mdc). Do not disable rules without justification.
+
+## Logging
+
+- Client: `packages/logger` — not raw `console.*`
+- Server: `Server/logger` — not `print` for production paths
+
+## When unsure
+
+Ask. Match existing file patterns in the same package. Prefer extending shared utilities over one-off copies.

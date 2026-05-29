@@ -13,6 +13,8 @@ import type {
   ViewportPolygonPoint,
 } from "packages/types/domain/api";
 
+import { extractViewportRingFromIsochroneGeometry } from "@/features/search/utils/map/extractViewportRingFromIsochroneGeometry";
+
 import { handlePolygonSearchResponse } from "./polygonPropertySearchResponse";
 import {
   compactSearchFilterOverridesForPolygon,
@@ -66,6 +68,11 @@ export const searchPropertiesInIsochrone = async (
   const centerLng =
     isochroneData.center?.lon ?? (isochroneData.center as { lng?: number } | undefined)?.lng ?? 0;
 
+  const viewportFromIsochrone =
+    extractViewportRingFromIsochroneGeometry(
+      isochroneData?.isochrone?.geometry as { type?: string; coordinates?: unknown }
+    ) ?? undefined;
+
   try {
     setSearchStage("Extracting property data...");
 
@@ -75,6 +82,7 @@ export const searchPropertiesInIsochrone = async (
       perBucketPages: 20,
       forceSearch: true,
       preferences_strict_filter: preferencesStrictFilter,
+      ...(viewportFromIsochrone ? { viewport_polygon: viewportFromIsochrone } : {}),
       ...(userPrefsOverride ? { user_preferences: userPrefsOverride } : {}),
       ...(preferencesUserId != null && preferencesUserId !== ""
         ? { preferences_user_id: preferencesUserId }

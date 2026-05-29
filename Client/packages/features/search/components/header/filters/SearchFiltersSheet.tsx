@@ -1,12 +1,16 @@
 import React, { useCallback, useEffect, useState } from "react";
 
+import { useLocalization } from "packages/contexts";
+import { ClearPreferencesButton } from "packages/features/search/components/filters/ClearPreferencesButton";
 import { SearchDisplaySectionNative } from "packages/features/search/components/header/display/SearchDisplaySection.native";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
 import { usePreferencesSubmit, useUserPreferences } from "packages/hooks/data/user/useUserData";
+import { useIsAgent } from "packages/hooks/store";
 import { useSearchContextStore } from "packages/store";
 import { Button } from "packages/ui";
 import { BaseModal } from "packages/ui/components/modals";
+import { Box } from "packages/ui/components/primitives";
 
 import { SearchFiltersContent } from "./SearchFiltersContent";
 
@@ -39,6 +43,8 @@ export function SearchFiltersSheet({
   selectedClientId,
   onClientChange,
 }: SearchFiltersSheetProps): React.ReactElement {
+  const { t } = useLocalization();
+  const isAgent = useIsAgent();
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const submitPreferences = usePreferencesSubmit();
   const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
@@ -47,9 +53,12 @@ export function SearchFiltersSheet({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open && userPreferences) {
-      setFormData(preferencesToFormData(userPreferences as Record<string, unknown>));
+    if (!open) return;
+    if (!userPreferences) {
+      setFormData({});
+      return;
     }
+    setFormData(preferencesToFormData(userPreferences as Record<string, unknown>));
   }, [open, userPreferences]);
 
   const update = useCallback((field: keyof SearchFiltersFormData, value: unknown) => {
@@ -122,6 +131,11 @@ export function SearchFiltersSheet({
     submitPreferences,
   ]);
 
+  const handleAfterClear = useCallback(async () => {
+    await refreshUserPreferences();
+    await Promise.resolve(onApply());
+  }, [onApply, refreshUserPreferences]);
+
   if (!open) return <></>;
 
   return (
@@ -139,11 +153,23 @@ export function SearchFiltersSheet({
           loading={saving}
           className="w-full"
           iconName="check"
+          label={t("search.apply")}
         >
           {SEARCH_TRANSLATIONS["search.apply"] ?? "Apply"}
         </Button>
       }
     >
+      {isAgent ? (
+        <Box className="border-border mb-4 border-b pb-4">
+          <ClearPreferencesButton
+            selectedClientId={selectedClientId}
+            onClientChange={onClientChange}
+            replaceFormData={(next) => setFormData(next as Partial<SearchFiltersFormData>)}
+            onAfterClear={handleAfterClear}
+            className="w-full"
+          />
+        </Box>
+      ) : null}
       <SearchFiltersContent
         formData={formData}
         update={update}

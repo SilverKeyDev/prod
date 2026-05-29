@@ -77,6 +77,16 @@ def create_connection_request_endpoint(user, data: CreateConnectionRequestReques
                 ), 403
             requested_by_agent = False
         result = create_connection_request(agent_id, client_id, requested_by_agent, message)
+
+        from app.services.analytics.posthog_events import capture_product_event
+
+        if not result.get("already_pending"):
+            capture_product_event(
+                str(user.id),
+                "agent_connection_requested",
+                properties={"requested_by_agent": requested_by_agent},
+            )
+
         return jsonify(
             {
                 "success": True,
@@ -113,6 +123,15 @@ def respond_to_connection_request_endpoint(
         request_obj = respond_to_connection_request(
             request_id, user.id, bool(user.is_agent), accept
         )
+
+        from app.services.analytics.posthog_events import capture_product_event
+
+        capture_product_event(
+            str(user.id),
+            "agent_connection_responded",
+            properties={"accepted": accept},
+        )
+
         return jsonify({"success": True, "request": request_obj})
     except ValueError as e:
         return jsonify({"success": False, "error": str(e)}), 400

@@ -1,1 +1,1 @@
-export { detectEventTypeFromTitle } from "packages/utils/calendar/detectEventTypeFromTitle";
+export { detectEventTypeFromTitle } from "packages/utils/calendar/parsing/detectEventTypeFromTitle";

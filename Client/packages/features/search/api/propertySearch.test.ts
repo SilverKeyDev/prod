@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SearchByPolygonResponse } from "packages/types/domain/api";
 
-import {
-  searchPropertiesInIsochrone,
-  searchPropertiesInViewport,
-} from "./propertySearch";
+import { searchPropertiesInIsochrone, searchPropertiesInViewport } from "./propertySearch";
 
 vi.mock("packages/logger", () => ({
   log: {
@@ -35,6 +32,12 @@ vi.mock("./polygonPropertySearchResponse", () => ({
     mockHandlePolygonSearchResponse(...args),
 }));
 
+const mockExtractViewportRing = vi.fn();
+vi.mock("@/features/search/utils/map/extractViewportRingFromIsochroneGeometry", () => ({
+  extractViewportRingFromIsochroneGeometry: (...args: unknown[]) =>
+    mockExtractViewportRing(...args),
+}));
+
 function createSetters() {
   return {
     setSearchStage: vi.fn(),
@@ -59,6 +62,12 @@ describe("searchPropertiesInIsochrone", () => {
     vi.clearAllMocks();
     mockHandlePolygonSearchResponse.mockResolvedValue(undefined);
     mockSearchByPolygon.mockResolvedValue({ success: true, properties: [] });
+    mockExtractViewportRing.mockReturnValue([
+      { lat: 33.75, lng: -84.39 },
+      { lat: 33.76, lng: -84.39 },
+      { lat: 33.76, lng: -84.38 },
+      { lat: 33.75, lng: -84.38 },
+    ]);
   });
 
   it("returns early without API call when isochrone geometry is missing", async () => {
@@ -86,12 +95,25 @@ describe("searchPropertiesInIsochrone", () => {
     expect(warnSearchAreaInvalid).toHaveBeenCalledWith("geometry");
   });
 
-  it("builds polygon request with preferences_user_id and strict filter", async () => {
+  it("builds polygon request with viewport_polygon, preferences_user_id and strict filter", async () => {
     const setters = createSetters();
 
     await searchPropertiesInIsochrone(
       {
-        isochrone: { geometry: { type: "Polygon", coordinates: [] } },
+        isochrone: {
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [-84.39, 33.75],
+                [-84.39, 33.76],
+                [-84.38, 33.76],
+                [-84.38, 33.75],
+                [-84.39, 33.75],
+              ],
+            ],
+          },
+        },
         center: { lat: 30.2, lon: -97.7 },
       } as never,
       {},
@@ -113,6 +135,12 @@ describe("searchPropertiesInIsochrone", () => {
         forceSearch: true,
         preferences_strict_filter: false,
         preferences_user_id: "client-42",
+        viewport_polygon: [
+          { lat: 33.75, lng: -84.39 },
+          { lat: 33.76, lng: -84.39 },
+          { lat: 33.76, lng: -84.38 },
+          { lat: 33.75, lng: -84.38 },
+        ],
         user_preferences: { preferred_bedrooms_min: 3 },
       }),
       expect.objectContaining({ signal: undefined }),

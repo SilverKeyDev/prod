@@ -52,6 +52,12 @@ properties:
   agreement_type:
     type: string
     nullable: true
+  linked_checklist_item_id:
+    type: string
+    nullable: true
+    description: >-
+      When this agreement is linked to a checklist step, the key
+      `{checklist_category}.{item_id}` (e.g. `offer.3`, `insurance.2`).
   event_type:
     type: string
     enum: [listed, price_change, sold, withdrawn]

@@ -1,6 +1,6 @@
 import React from "react";
 
-import type { BuyerConditionPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerConditionPrefs } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import {
   FIELD_LABELS,
   LISTING_STATUS_PROFILE_OPTIONS,

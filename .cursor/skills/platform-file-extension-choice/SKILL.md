@@ -44,4 +44,4 @@ Use plain `.tsx` / `.ts` for:
 ## References
 
 - **Cursor rule:** `.cursor/rules/frontend/platform-file-extensions.mdc`
-- **Docs:** `documentation/client/react-vs-react-native-packages.md`, `documentation/client/LINTING.md`
+- **Docs:** `documentation/client/platform/react-vs-react-native-packages.md`, `documentation/client/standards/LINTING.md`

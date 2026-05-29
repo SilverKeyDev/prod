@@ -1,6 +1,6 @@
 import type { AgentConversation } from "packages/api";
 import type { ChecklistComponentKey } from "packages/features/checklists/types/componentRegistry";
-import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 
 import {
   isChooseSearchAreaStepComplete,

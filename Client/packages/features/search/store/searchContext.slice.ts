@@ -62,6 +62,7 @@ export type SearchContextState = {
       | Partial<SearchFilterOverrides>
       | ((prev: SearchFilterOverrides) => Partial<SearchFilterOverrides>),
   ) => void;
+  resetSearchFilterOverrides: () => void;
   clearAnchor: () => void;
   setLocationPlaceViewportFromBar: (payload: {
     ring: ViewportPolygonPoint[];
@@ -108,6 +109,8 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (
             }
           : { ...s.searchFilterOverrides, ...overrides },
     })),
+
+  resetSearchFilterOverrides: () => set({ searchFilterOverrides: {} }),
 
   clearAnchor: () => set({ anchor: initialAnchor }),
 

@@ -108,13 +108,7 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
         commuteAnalysis,
         familyFriendlyAnalysis,
       }),
-    [
-      property,
-      propertyAnalysis,
-      hasCommute,
-      commuteAnalysis,
-      familyFriendlyAnalysis,
-    ]
+    [property, propertyAnalysis, hasCommute, commuteAnalysis, familyFriendlyAnalysis]
   );
 
   const agent = useMemo(() => getAgentFromProperty(property), [property]);

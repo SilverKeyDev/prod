@@ -65,6 +65,7 @@ export default function getSilverkeyConfig({ silverkey }) {
             },
           },
         ],
+        "silverkey/no-unsafe-innerhtml": "error",
         "silverkey/no-raw-translation-key-literal": [
           "warn",
           {
@@ -73,11 +74,13 @@ export default function getSilverkeyConfig({ silverkey }) {
             ignoredFirstSegments: ["brand", "neutral"],
           },
         ],
+        "silverkey/no-direct-api-error-field": "warn",
         "silverkey/no-process-env-outside-config": [
           "error",
           {
             allowlist: [
               "packages/config/env.ts",
+              "packages/logger/config/loggerEnv.ts",
               "vite.config",
               "vitest.config",
               "postcss.config",
@@ -85,6 +88,9 @@ export default function getSilverkeyConfig({ silverkey }) {
               ".config.js",
               ".config.mjs",
             ],
+            exceptions: {
+              testFiles: true,
+            },
           },
         ],
         "silverkey/no-explicit-any-disable-reason": "error",

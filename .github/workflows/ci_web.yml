@@ -56,9 +56,42 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2.1.5
 
+      # Public bake-time key — load via API so the IDE language service does not flag an unknown secrets.* name.
+      - name: Load EXPO_PUBLIC_POSTHOG_KEY from repository variables
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/variables/EXPO_PUBLIC_POSTHOG_KEY"
+          tmp="$(mktemp)"
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$api")"
+          if [ "$code" != "200" ]; then
+            echo "::error::EXPO_PUBLIC_POSTHOG_KEY repository variable is missing (HTTP ${code}). Add it under Settings → Secrets and variables → Actions → Variables (PostHog project API key, phc_…)."
+            exit 1
+          fi
+          value="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("value") or "")' < "$tmp")"
+          rm -f "$tmp"
+          if [ -z "$value" ]; then
+            echo "::error::EXPO_PUBLIC_POSTHOG_KEY repository variable is empty."
+            exit 1
+          fi
+          echo "EXPO_PUBLIC_POSTHOG_KEY is set (length ${#value})"
+          printf '%s\n' "EXPO_PUBLIC_POSTHOG_KEY=${value}" >> "$GITHUB_ENV"
+
+      - name: Assert bundle build secrets
+        env:
+          # GitHub Actions: repository secrets EXPO_PUBLIC_* (Maps / Plaid / OAuth for the web bundle).
+          EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
+          EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
+          EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
+        run: node Client/scripts/assert-github-bundle-secrets.mjs Client
+
       - name: Build & push to ECR
         env:
-          # GitHub Actions: add repository secrets EXPO_PUBLIC_* (Plaid Link / Maps / OAuth client IDs for the web bundle).
           EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
           EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
           EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
@@ -84,6 +117,7 @@ jobs:
             --build-arg EXPO_PUBLIC_GOOGLE_MAPS_ID="$EXPO_PUBLIC_GOOGLE_MAPS_ID" \
             --build-arg EXPO_PUBLIC_GOOGLE_CLIENT_ID="$EXPO_PUBLIC_GOOGLE_CLIENT_ID" \
             --build-arg EXPO_PUBLIC_PLAID_CLIENT_ID="$EXPO_PUBLIC_PLAID_CLIENT_ID" \
+            --build-arg EXPO_PUBLIC_POSTHOG_KEY="$EXPO_PUBLIC_POSTHOG_KEY" \
             --tag "$IMAGE_REF" \
             --tag "$WEB_PROD_REF" \
             --cache-from type=registry,ref="$CACHE_REF" \

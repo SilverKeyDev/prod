@@ -1,28 +1,7 @@
 // Shared utility functions for onboarding and personalization
 
-import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { DEFAULT_REPORT_SECTIONS } from "packages/features/profile/utils/public/constants";
-
-import { isAgentFormSelection } from "./agentFormSelection";
-
-export type {
-  ProfileSectionCompletionMap,
-  ProfileSectionCompletionStatus,
-  ProfileSectionId,
-} from "packages/features/profile/types/profileSections";
-
-export { isAgentFormSelection };
-
-/**
- * For buyer-preference UI (optional callouts): true if the auth user is an agent or the form
- * draft says agent (onboarding before store updates).
- */
-export function effectiveIsAgentForOptionalBuyerUi(options: {
-  authIsAgent: boolean;
-  formIsAgent?: string;
-}): boolean {
-  return options.authIsAgent || isAgentFormSelection(options.formIsAgent);
-}
 
 type SetStateAction<S> = S | ((prevState: S) => S);
 type Dispatch<A> = (value: A) => void;
@@ -81,8 +60,3 @@ export const createDropdownRefManager = () => {
 export const getOrderedReportSections = (_formData?: OnboardingData) => {
   return DEFAULT_REPORT_SECTIONS;
 };
-
-export {
-  getProfileSectionCompletion,
-  navigateToMissingFieldSection,
-} from "./profileSectionCompletion";

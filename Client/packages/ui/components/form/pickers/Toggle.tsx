@@ -31,12 +31,15 @@ const Toggle: React.FC<ToggleProps> = ({
   size = "md",
 }) => {
   const sizes = sizeClasses[size];
+  const labelId = label && id ? `${id}-label` : undefined;
   return (
     <Pressable
       id={id}
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-labelledby={labelId}
+      aria-label={label && !id ? label : undefined}
       disabled={disabled}
       onPress={() => !disabled && onChange(!checked)}
       className={`touch-friendly inline-flex items-center ${sizes.track} focus:ring-accent-muted rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 ${
@@ -50,7 +53,12 @@ const Toggle: React.FC<ToggleProps> = ({
         }`}
       />
       {label && (
-        <BodyText as="span" className="text-text-primary ml-2 select-none text-sm font-medium">
+        <BodyText
+          as="span"
+          nativeID={labelId}
+          id={labelId}
+          className="text-text-primary ml-2 select-none text-sm font-medium"
+        >
           {label}
         </BodyText>
       )}

@@ -4,20 +4,28 @@
 #   bash Server/scripts/secrets.sh [region] [profile]
 #
 # Behavior:
-# - Uses AWS_PROFILE / AWS_REGION from the environment or optional [profile] arg (terminal SSO).
-# - Does not read repo-local aws-sso files — configure ~/.aws/config and export AWS_PROFILE.
+# - Profile/region: optional [profile] arg, then shell AWS_* env, then Server/config/.aws-sso
+#   (copy aws-sso.example → .aws-sso; gitignored). SSO still lives in ~/.aws/config.
+# - Expired SSO on an interactive terminal: runs `aws sso login` automatically (same as make setup).
+#   Set AWS_SSO_NO_AUTO_LOGIN=1 to only print the command (CI / non-TTY).
 # - Lists every secret in the account for the chosen region (paginated); no hardcoded names.
 # - Each secret may be:
 #     (a) flat JSON object -> expands to KEY=VALUE lines
 #     (b) dotenv text -> KEY=VALUE lines (even if \n-escaped in SecretString)
 #     (c) scalar -> falls back to SECRET_NAME=<value>
 # - Rewrites ./.env (real values) and ./.env.example (same keys, empty placeholder values)
+# TO IMPLEMENT: merge any EXPO_* keys into ../../Client/.env (Vite / Expo; see Client/.env.example)
 
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SERVER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT="$(cd "$SERVER_DIR/.." && pwd)"
 cd "$SERVER_DIR" || exit 1
+
+# shellcheck source=../../scripts/lib/aws-sso-env.sh
+. "$ROOT/scripts/lib/aws-sso-env.sh"
+aws_sso_source_repo_config "$ROOT"
 
 REGION="${1:-${AWS_REGION:-us-east-2}}"
 PROFILE="${2:-${AWS_PROFILE:-}}"
@@ -92,6 +100,49 @@ env_lines_to_example_template() {
   done
 }
 
+# TO IMPLEMENT: merge EXPO_* assignments from fetched secrets into Client/.env (replace prior EXPO_* lines).
+# REPO_ROOT="$(cd "$SERVER_DIR/.." && pwd)"
+# CLIENT_ENV="$REPO_ROOT/Client/.env"
+#
+# write_client_env_expo_keys() {
+#   source_env="$1"
+#   client_env="$2"
+#   tmp_expo="$(mktemp)"
+#   tmp_preserved="$(mktemp)"
+#   tmp_out="$(mktemp)"
+#
+#   grep -E '^EXPO_[A-Za-z0-9_]*=' "$source_env" >"$tmp_expo" 2>/dev/null || true
+#   if [ ! -s "$tmp_expo" ]; then
+#     log "No EXPO_* keys in fetched secrets; Client/.env unchanged"
+#     rm -f "$tmp_expo" "$tmp_preserved" "$tmp_out"
+#     return 0
+#   fi
+#
+#   mkdir -p "$(dirname "$client_env")"
+#   if [ -f "$client_env" ]; then
+#     grep -Ev '^EXPO_[A-Za-z0-9_]*=' "$client_env" >"$tmp_preserved" 2>/dev/null || true
+#   else
+#     : >"$tmp_preserved"
+#   fi
+#
+#   stamp_client="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+#   {
+#     if [ -s "$tmp_preserved" ]; then
+#       cat "$tmp_preserved"
+#       printf '\n'
+#     fi
+#     echo "# EXPO_* keys from AWS Secrets Manager (Server/scripts/secrets.sh on $stamp_client)"
+#     echo "# Region: $REGION"
+#     cat "$tmp_expo"
+#     printf '\n'
+#   } >"$tmp_out"
+#
+#   mv "$tmp_out" "$client_env"
+#   chmod 600 "$client_env" 2>/dev/null || true
+#   log "Merged EXPO_* keys into Client/.env"
+#   rm -f "$tmp_expo" "$tmp_preserved"
+# }
+
 # List all secret names (paginated). Uses jq when available; otherwise Python + AWS CLI.
 list_secret_names() {
   if have_cmd jq; then
@@ -145,12 +196,20 @@ PY
   fi
 }
 
-# ---- credentials (terminal / ~/.aws/config only) ----
+# ---- credentials (~/.aws/config SSO; profile from env, .aws-sso, or arg) ----
 have_cmd aws || die "aws CLI not found."
+
+if [ -z "${PROFILE:-}" ]; then
+  die "AWS profile not set. Copy Server/config/aws-sso.example to Server/config/.aws-sso, or export AWS_PROFILE, or: make secrets PROFILE=<name>"
+fi
 
 AWS_ARGS="--region $REGION"
 if [ -z "${AWS_ACCESS_KEY_ID:-}" ] && [ -n "${PROFILE:-}" ]; then
   AWS_ARGS="$AWS_ARGS --profile $PROFILE"
+fi
+
+if ! aws_sso_ensure_session "$REGION" "$PROFILE"; then
+  exit 1
 fi
 
 # ---- assemble fresh .env ----
@@ -249,6 +308,7 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
 done
 
 # ---- rewrite .env and .env.example ----
+# TO IMPLEMENT: write_client_env_expo_keys "$tmp_env" "$CLIENT_ENV"
 mv "$tmp_env" .env
 mv "$tmp_example" .env.example
 chmod 600 .env || true

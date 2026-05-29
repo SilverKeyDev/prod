@@ -4,7 +4,7 @@ import {
   ProfileSectionBody,
   ProfileSectionGroup,
 } from "packages/features/profile/components/layout";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { Box } from "packages/ui/components/primitives";
 
 import { SearchPrefsPhysical } from "@/features/profile/components/profileScreen/searchPreferences/SearchPrefsPhysical";

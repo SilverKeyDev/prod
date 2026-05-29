@@ -78,10 +78,10 @@ export function PropertyCardPriceRow({
         </Box>
       )}
       {pricePosition === "below-address" && (
-        <Box className="flex w-full min-w-0 flex-row flex-nowrap items-center justify-center gap-2 sm:gap-3">
+        <Box className="flex w-full min-w-0 flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1 sm:gap-x-3">
           {showScore && score !== undefined ? (
             <>
-              <Box className="text-primary min-w-0 shrink truncate text-lg font-bold leading-none sm:text-xl">
+              <Box className="text-primary whitespace-nowrap text-lg font-bold tabular-nums leading-none sm:text-xl">
                 {formatPriceDisplay(price)}
               </Box>
               <CardMatchScore score={score} size="xs" useColorStyling={true} className="shrink-0" />

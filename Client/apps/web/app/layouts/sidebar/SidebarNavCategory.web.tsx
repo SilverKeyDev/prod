@@ -5,6 +5,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link } from "packages/navigation";
+import AccessibleLink from "packages/ui/components/accessibility/AccessibleLink";
+import Region from "packages/ui/components/accessibility/Region";
+import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 import {
   getChromeNavButtonStyles,
@@ -81,12 +84,14 @@ export function SidebarNavCategory({
   const categoryPanelId = `sidebar-category-${categoryKey}`;
   return (
     <>
-      <button
+      <Button
         onClick={handleCategoryHeaderClick}
         type="button"
+        variant="ghost"
+        label={category.name}
         className={`${getChromeNavButtonStyles(isCategoryActive(category.items))} group relative ${
           !expanded ? "justify-center" : "justify-between"
-        } cursor-pointer`}
+        } w-full cursor-pointer`}
         title={!expanded ? category.name : ""}
         aria-expanded={openCategories[categoryKey]}
         aria-controls={categoryPanelId}
@@ -125,42 +130,64 @@ export function SidebarNavCategory({
           ) : (
             <Icon name="chevron-right" className="h-5 w-5" />
           ))}
-      </button>
+      </Button>
       {openCategories[categoryKey] && (
-        <Box
+        <Region
           id={categoryPanelId}
+          label={category.name}
           className={expanded ? "ml-3 mt-2 space-y-1" : ""}
-          role="region"
-          aria-label={category.name}
         >
-          {category.items.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              onClick={() => onLinkClick?.()}
-              onMouseEnter={() => onPrefetchHref(item.href)}
-              onFocus={() => onPrefetchHref(item.href)}
-              onTouchStart={() => onPrefetchHref(item.href)}
-              className={`${getChromeNavSubItemStyles(isActive(item.href))} ${
-                !expanded ? "justify-center py-2" : "py-2"
-              }`}
-              aria-label={item.name}
-              aria-current={isActive(item.href) ? "page" : undefined}
-            >
-              <Icon
-                name={item.icon}
-                className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""}`}
-              />
-              {expanded && (
-                <span
-                  className={isActive(item.href) ? sidebarNavLabelActive : sidebarNavLabelInactive}
-                >
-                  {item.name}
-                </span>
-              )}
-            </Link>
-          ))}
-        </Box>
+          {category.items.map((item) => {
+            const linkClassName = `${getChromeNavSubItemStyles(isActive(item.href))} ${
+              !expanded ? "justify-center py-2" : "py-2"
+            }`;
+            const linkContent = (
+              <>
+                <Icon
+                  name={item.icon}
+                  className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""}`}
+                />
+                {expanded && (
+                  <span
+                    className={
+                      isActive(item.href) ? sidebarNavLabelActive : sidebarNavLabelInactive
+                    }
+                  >
+                    {item.name}
+                  </span>
+                )}
+              </>
+            );
+            return expanded ? (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={() => onLinkClick?.()}
+                onMouseEnter={() => onPrefetchHref(item.href)}
+                onFocus={() => onPrefetchHref(item.href)}
+                onTouchStart={() => onPrefetchHref(item.href)}
+                className={linkClassName}
+                aria-current={isActive(item.href) ? "page" : undefined}
+              >
+                {linkContent}
+              </Link>
+            ) : (
+              <AccessibleLink
+                key={item.name}
+                to={item.href}
+                label={item.name}
+                onClick={() => onLinkClick?.()}
+                onMouseEnter={() => onPrefetchHref(item.href)}
+                onFocus={() => onPrefetchHref(item.href)}
+                onTouchStart={() => onPrefetchHref(item.href)}
+                className={linkClassName}
+                aria-current={isActive(item.href) ? "page" : undefined}
+              >
+                {linkContent}
+              </AccessibleLink>
+            );
+          })}
+        </Region>
       )}
     </>
   );

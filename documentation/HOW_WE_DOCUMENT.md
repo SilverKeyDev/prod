@@ -1,45 +1,59 @@
 # How we do documentation
 
-Brief guide to SilverKey’s documentation approach: one canonical system plus lightweight READMEs, no sprawl.
+Brief guide to SilverKey's documentation approach: one canonical system plus lightweight READMEs, no sprawl.
 
 ## 1. One canonical docs system
 
 - **Root:** `documentation/` at the repo root. All long-form, cross-cutting docs live here.
-- **Split by surface:** `documentation/client/` for frontend; `documentation/server/` for backend. Add new docs in the right folder and link from the folder’s README.
-- **No duplicate long-form docs:** Don’t add new long guides or references under `Client/` or `Server/` (except as noted below). Put them in `documentation/client/` or `documentation/server/` and link from READMEs or Cursor rules if needed.
+- **Repo-root `docs/` must not exist.** Ops runbooks live in `documentation/server/ops/`. Creating `docs/` fails CI.
+- **Split by surface:** `documentation/client/` for frontend; `documentation/server/` for backend. Client docs are grouped in subfolders (`architecture/`, `platform/`, `standards/`, `tooling/`, `patterns/`, `features/`, `qa/`). Add new docs in the right subfolder and link from that folder's README and `documentation/client/README.md`.
+- **No duplicate long-form docs:** Don't add new long guides under `Client/` or `Server/` (except colocated READMEs noted below). Put them in `documentation/` and link from READMEs or Cursor rules.
 
-## 2. Lightweight READMEs in major folders
+## 2. Doc types
 
-- **Every major top-level folder** has a short **README.md**: what the folder is, how it’s used, and where to read more (often a link into `documentation/`).
-- **Major folders:** Repo root, `Client/`, `Server/`, `documentation/`, and optionally `Client/apps/`, `Client/packages/` (the latter already have a `packages/README.md`). Not every subfolder gets a README — only those that are entry points or need a one-paragraph orientation.
-- **Keep READMEs short:** A few sentences or a small table; link to `documentation/` or in-repo files (e.g. `ARCHITECTURE.md`, `LINTING.md`) for detail. No “README spam”: avoid redundant or copy-pasted long text.
+| Type | Where | Length |
+|------|-------|--------|
+| **Canonical** | `documentation/**` | Long-form allowed |
+| **Entrypoint** | `AGENTS.md`, `ARCHITECTURE.md`, `README.md`, `setup.md`, `CLAUDE.md` | Short; link to `documentation/` |
+| **Colocated** | `Client/packages/*/README.md`, `Server/app/**/README.md`, `Server/app/services/docusign/docs/` | Short (~40 lines); link to canonical |
+| **Design spec** | `documentation/transactions/`, `documentation/to-implement-soon/` | Status banner required; may be planned vs shipped |
+| **Cursor** | `.cursor/rules/`, `.cursor/skills/` | Constraints + links; not duplicate long guides |
 
-## 3. What stays in-repo (not under documentation/)
+## 3. Lightweight READMEs in major folders
 
-- **Client:** `documentation/client/LINTING.md` — kept as local reference. Architecture and platform rules are in `.cursor/rules/frontend/`. Linked from `documentation/client/` and Cursor rules.
-- **Client packages:** `Client/packages/*/README.md` and key subfolders (e.g. `config/`, `hooks/`, `services/`) — short package/API overviews. Detailed structure and rules live in `documentation/client/`.
+- **Every major top-level folder** has a short **README.md**: what the folder is and where to read more.
+- **Keep READMEs short:** A few sentences or a small table; link to `documentation/` for detail.
+
+## 4. What stays in-repo (not under documentation/)
+
+- **Client:** `documentation/client/standards/LINTING.md` — local reference. Architecture rules in `.cursor/rules/frontend/`.
+- **Client packages:** `Client/packages/*/README.md` — short overviews only.
 - **Server:** Per-module READMEs under `Server/app/` stay; server-wide long-form docs go in `documentation/server/`.
-- **Cursor:** `.cursor/rules/` and `.cursor/agents/` — rules and agent instructions; they may reference paths under `documentation/`.
+- **Cursor:** `.cursor/rules/` and `.cursor/agents/` — may reference `documentation/`.
 
-## 4. Cursor and tooling
+## 5. Cursor and tooling
 
-- **Rules** (e.g. `monorepo.mdc`, `documentation.mdc`) point to `documentation/` for structure and “how we document.” Don’t reference removed or legacy doc paths (e.g. old `Client/documentation/structure-*.md`).
-- **Agents/skills** that need doc context should use `documentation/client/` or `documentation/server/` and the READMEs in major folders.
-- **After major features or architecture changes** — Update canonical docs, scoped Cursor rules, skills (repeatable procedures), and `documentation/internal/cursor-audit-latest.md` per [documentation/internal/post-major-change-checklist.md](./internal/post-major-change-checklist.md). Agents: use skill **post-major-change-sync** (`.cursor/skills/post-major-change-sync/SKILL.md`).
+- **Rules** (`monorepo.mdc`, `documentation.mdc`) point to `documentation/` for structure.
+- **Skills:** `documentation-placement` for new prose; `post-major-change-sync` after major architecture changes.
+- **Checks:** `./scripts/check-doc-placement.sh` and `./scripts/check-doc-links.sh` (also `make check-docs`).
 
-## 5. Adding or moving docs
+## 6. Adding or moving docs
 
-- **New long-form doc:** Create it under `documentation/client/` or `documentation/server/`, add a row to that folder’s README, and fix any internal links (e.g. `./other-doc.md`).
-- **New major folder:** Add a brief README.md at the top level of that folder and, if relevant, a link from `documentation/README.md` or the appropriate client/server README.
-- **Deprecating a doc:** Remove or replace content and update all links (READMEs, Cursor rules, other docs). Don’t leave broken references.
+- **New long-form doc:** Create under `documentation/client/` or `documentation/server/`, add a row to that folder's README, fix internal links.
+- **Broken `docs/` links:** Retarget to `documentation/server/ops/` — never create repo-root `docs/`.
+- **Deprecating a doc:** Remove content and update all links.
+
+## 7. Maintenance
+
+- Quarterly: run `make check-docs` and bump "Last verified" dates on `documentation/transactions/` docs after code review.
+- After major features: [post-major-change-checklist.md](./internal/post-major-change-checklist.md).
 
 ## Summary
 
 | Where | What |
 |-------|------|
-| `documentation/` | Single canonical docs root; client/ and server/ subfolders. |
-| `documentation/HOW_WE_DOCUMENT.md` | This file — how we do documentation. |
-| `documentation/internal/post-major-change-checklist.md` | After major features: sync `documentation/`, `.cursor/rules`, skills, audit inventory. |
-| Major top-level folders | Lightweight README.md only; link to documentation/ for detail. |
-| Client/Server in-repo | Short local refs (ARCHITECTURE, LINTING, package READMEs); long-form in documentation/. |
-| Cursor rules | Reference documentation/ and READMEs; no legacy doc paths. |
+| `documentation/` | Single canonical docs root |
+| `documentation/HOW_WE_DOCUMENT.md` | This file |
+| `documentation/internal/post-major-change-checklist.md` | After major features: sync docs + Cursor |
+| Entrypoints | Short READMEs linking to `documentation/` |
+| CI | `scripts/check-doc-placement.sh`, `scripts/check-doc-links.sh` |

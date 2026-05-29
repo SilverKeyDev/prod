@@ -1,6 +1,6 @@
 import React from "react";
 
-import type { ProfileSectionCompletionMap } from "packages/features/profile/types/profileSections";
+import type { ProfileSectionCompletionMap } from "packages/features/profile/types/sections/profileSections";
 
 export type ProfileUnderlineTabStep = {
   id: string;

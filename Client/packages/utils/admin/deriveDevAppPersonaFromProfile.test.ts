@@ -8,7 +8,7 @@ describe("deriveDevAppPersonaFromProfile", () => {
     expect(deriveDevAppPersonaFromProfile(undefined)).toBeNull();
   });
 
-  it("returns agent for is_agent without brokerage signals", () => {
+  it("returns agent for is_agent without brokerage or partner signals", () => {
     expect(
       deriveDevAppPersonaFromProfile({
         is_agent: true,
@@ -17,23 +17,32 @@ describe("deriveDevAppPersonaFromProfile", () => {
     ).toBe("agent");
   });
 
-  it("returns broker when brokerage_org_ids is non-empty", () => {
+  it("returns brokerage when brokerage_org_ids is non-empty", () => {
     expect(
       deriveDevAppPersonaFromProfile({
         is_agent: true,
         roles: [],
         brokerage_org_ids: ["org-1"],
       })
-    ).toBe("broker");
+    ).toBe("brokerage");
   });
 
-  it("returns broker for brokerage_admin role", () => {
+  it("returns brokerage for brokerage_admin role", () => {
     expect(
       deriveDevAppPersonaFromProfile({
-        is_agent: true,
+        is_agent: false,
         roles: ["Brokerage_Admin"],
       })
-    ).toBe("broker");
+    ).toBe("brokerage");
+  });
+
+  it("returns integration_partner for integration_partner role", () => {
+    expect(
+      deriveDevAppPersonaFromProfile({
+        is_agent: false,
+        roles: ["integration_partner"],
+      })
+    ).toBe("integration_partner");
   });
 
   it("returns seller when only seller role in client mode", () => {

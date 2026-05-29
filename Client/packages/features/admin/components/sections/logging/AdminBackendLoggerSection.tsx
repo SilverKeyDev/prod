@@ -64,7 +64,9 @@ export function AdminBackendLoggerSection({
         Server logger
       </Title>
       <BodyText size="sm" muted className="mb-4">
-        Updates run through the authenticated admin logger-config API for this deployment.
+        Updates run through the authenticated admin logger-config API for this deployment. PostHog
+        receives all server log categories and levels when POSTHOG_PROJECT_TOKEN is set; fields
+        below persist deployment preferences but do not gate PostHog export.
       </BodyText>
 
       <Box className="grid gap-4 md:grid-cols-2">

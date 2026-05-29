@@ -21,6 +21,7 @@ import { showErrorToast } from "packages/hooks/ui/toast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { useNotificationStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 /**
  * Hook to manage agent conversations
@@ -67,7 +68,7 @@ export function useAgentChats(
     queryFn: async () => {
       const response = await agentApi.getChats(clientId);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch conversations");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch conversations"));
       }
       return response.conversations ?? [];
     },
@@ -187,7 +188,7 @@ export function useAgentChats(
       });
 
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to send message");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to send message"));
       }
       return response;
     },
@@ -219,7 +220,7 @@ export function useAgentChats(
     async (conversationId: string, limit: number): Promise<AgentChatHistoryCacheEntry> => {
       const response = await agentApi.getChatHistory(conversationId, { limit });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch chat history");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch chat history"));
       }
       return {
         messages: response.messages ?? [],
@@ -270,7 +271,7 @@ export function useAgentChats(
           after_message_id: options?.afterMessageId,
         });
         if (!response.success) {
-          throw new Error(response.error ?? "Failed to fetch chat history");
+          throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch chat history"));
         }
         return {
           messages: response.messages ?? [],
@@ -317,7 +318,9 @@ export function useAgentChats(
     queryFn: async () => {
       const response = await agentApi.getNotificationCounter();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch notification counter");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to fetch notification counter")
+        );
       }
       return response.total_count;
     },

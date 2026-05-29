@@ -7,8 +7,7 @@ If ``REDIS_URL`` is unset, functions no-op (use HTTP ``Cache-Control`` via
 ``apply_edge_cache`` in the handler).
 
 Client creation follows Redis client guidance: bounded pool (``max_connections``),
-connect/read timeouts, and ``retry_on_timeout`` so a slow or flaky Redis does not
-hold workers indefinitely.
+connect/read timeouts so a slow or flaky Redis does not hold workers indefinitely.
 """
 
 from __future__ import annotations
@@ -40,7 +39,6 @@ def _get_redis() -> redis.Redis | None:
         max_connections=_REDIS_MAX_CONNECTIONS,
         socket_connect_timeout=_REDIS_SOCKET_CONNECT_TIMEOUT_S,
         socket_timeout=_REDIS_SOCKET_TIMEOUT_S,
-        retry_on_timeout=True,
     )
     return _redis
 

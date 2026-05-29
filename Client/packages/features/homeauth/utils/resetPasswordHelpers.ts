@@ -27,8 +27,6 @@ export function mapResultUserToProfile(resultUser: ResetResultUser, _email: stri
     phone: ("phone" in resultUser ? resultUser.phone : undefined) as string | null | undefined,
     created_at: null,
     is_active: true,
-    has_subscription: false,
-    subscription: null,
     has_preferences: false,
     is_agent: ("is_agent" in resultUser ? (resultUser.is_agent ?? false) : false) ?? false,
     auth_method: ("auth_method" in resultUser ? resultUser.auth_method : undefined) as

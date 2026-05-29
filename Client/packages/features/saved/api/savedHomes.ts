@@ -7,13 +7,10 @@ import type {
 } from "packages/features/homeauth/types/auth/user";
 import { mapToAddFavoriteHomePayload } from "packages/features/saved/utils/mapToAddFavoriteHomePayload";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { handleAuthenticationError, isAuthenticationError } from "packages/services/http/apiErrors";
 import type { AuthenticationError } from "packages/services/http/client";
-import {
-  handleAuthenticationError,
-  isAuthenticationError,
-} from "packages/services/http/compatibility/helpers/errors";
 import type { SavedHome } from "packages/types";
-import { mapHomeUniversalToSavedHome } from "packages/utils/saved";
+import { mapSavedHomeWireToSavedHome } from "packages/utils/saved";
 
 /**
  * SavedHomes service - I/O only, no state management
@@ -73,7 +70,9 @@ export class SavedHomesService {
           Array.isArray(typedResponse.favorites)
             ? typedResponse.favorites
             : [];
-        const homeObjects: SavedHome[] = rawHomes.map(mapHomeUniversalToSavedHome);
+        const homeObjects: SavedHome[] = rawHomes.map((home, index) =>
+          mapSavedHomeWireToSavedHome(home, index)
+        );
         return homeObjects;
       } else {
         const errorMsg =

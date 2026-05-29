@@ -47,6 +47,17 @@ def post_build_route(data: BuildRouteRequest | None = None):
         raw = build_viewing_route(payload)
         itinerary = ViewingItinerary.model_validate(raw)
         body = ViewingBuildRouteApiResponse(success=True, data=itinerary, error=None)
+
+        from app.services.analytics.posthog_events import capture_product_event
+
+        if user_id:
+            stop_count = len(itinerary.stops)
+            capture_product_event(
+                str(user_id),
+                "viewing_route_built",
+                properties={"stop_count": stop_count},
+            )
+
         return jsonify(body.model_dump(mode="json")), 200
     except ValueError as e:
         return jsonify(

@@ -1,7 +1,7 @@
 import React from "react";
 
 import { PROFILE_FIELDS_ROW_PROPS } from "packages/features/profile/components/layout";
-import type { BuyerPhysicalPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPhysicalPrefs } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import {
   ACCESSIBILITY_NEEDS_OPTIONS,
   FIELD_LABELS,

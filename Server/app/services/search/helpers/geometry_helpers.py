@@ -53,19 +53,6 @@ def simplify_polygon(
     return simplified
 
 
-def to_polygon_param(ring: list[dict[str, float]]) -> str:
-    """Convert polygon coordinates to comma-separated lat/lon pairs (legacy, unused)."""
-    if len(ring) < 3:
-        raise ValueError("Polygon needs at least 3 points")
-
-    # Ensure polygon is closed
-    if ring[0]["lon"] != ring[-1]["lon"] or ring[0]["lat"] != ring[-1]["lat"]:
-        ring = ring + [ring[0]]
-
-    # Format: "lon lat,lon lat,..."
-    return ", ".join([f"{p['lon']} {p['lat']}" for p in ring])
-
-
 def to_geojson_polygon(ring: list[dict[str, float]]) -> dict:
     """Convert internal polygon coords to GeoJSON Polygon for Slipstream.
 
@@ -203,7 +190,7 @@ def parse_viewport_polygon_ring(raw: object) -> tuple[list[dict[str, float]] | N
     Returns:
         (None, None) — field omitted or JSON null; use preference isochrone.
         (None, err) — invalid payload (stable error codes for clients).
-        (points, None) — success; closed ring as [{"lat","lon"}, ...] for simplify/to_polygon_param.
+        (points, None) — success; closed ring as [{"lat","lon"}, ...] for simplify/to_geojson_polygon.
 
     Error codes: INVALID_VIEWPORT_POLYGON, VIEWPORT_TOO_LARGE,
     INVALID_VIEWPORT_POLYGON_SELF_INTERSECT

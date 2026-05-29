@@ -1,0 +1,30 @@
+{
+  "polling": false,
+  "pages": false,
+  "hooks": false,
+  "auth": false,
+  "http": false,
+  "api": {
+    "initialLoad": false,
+    "polling": false,
+    "pageMount": false,
+    "other": false
+  },
+  "errors": false,
+  "security": false,
+  "search": false,
+  "polygonSearch": false,
+  "mapRendering": false,
+  "propertyDetails": false,
+  "negotiation": false,
+  "checklists": false,
+  "calendar": false,
+  "dashboard": false,
+  "messages": false,
+  "feed": false,
+  "routing": false,
+  "docusign": false,
+  "documents": false,
+  "profilePreferences": false,
+  "logLevel": "ERROR"
+}

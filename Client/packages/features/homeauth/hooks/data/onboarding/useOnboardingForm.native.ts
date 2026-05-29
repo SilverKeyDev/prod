@@ -1,4 +1,4 @@
-import { getOnboardingStepsMobile } from "@/features/profile/utils";
+import { getOnboardingStepsMobile, primaryOnboardingRoleFromForm } from "@/features/profile/utils";
 
 import { useOnboardingAffordability } from "./useOnboardingAffordability";
 import { useOnboardingFormCore } from "./useOnboardingFormCore";
@@ -15,6 +15,7 @@ export function useOnboardingForm(options: UseOnboardingFormOptions = {}) {
     getSteps: (formData) =>
       getOnboardingStepsMobile({
         isAgent: formData.is_agent === "yes" || formData.is_agent === "am_agent",
+        primaryRole: primaryOnboardingRoleFromForm(formData),
       }),
     onSubmitSuccess,
   });

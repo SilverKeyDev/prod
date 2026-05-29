@@ -34,15 +34,7 @@ _PERMISSION_NAMES_EXCLUDED_FROM_OAUTH = frozenset(
 
 @rate_limit(max_requests=10, window_seconds=60)
 def oauth_start():
-    """Start Google OAuth flow with incremental authorization
-
-    Requests scopes where include_in_oauth_request is true (full Calendar is virtual-only
-    and never requested). include_granted_scopes preserves existing grants.
-
-    Query params (deprecated; same authorize URL regardless of values):
-        full_scope: Deprecated
-        scheduling: Deprecated
-    """
+    """Start Google OAuth flow with incremental authorization."""
     user_id, error_response = get_authenticated_user_id()
     if error_response:
         log_oauth_event("start_failed", None, reason="auth_error", error="authentication_failed")
@@ -50,15 +42,8 @@ def oauth_start():
     if user_id is None:
         return make_response(("Unauthorized", 401))
 
-    # Check if full scope is requested (for agent sharing)
-    request_full_scope = request.args.get("full_scope", "false").lower() == "true"
-    # Check if scheduling scopes are requested (for scheduling MVP)
-    use_scheduling_scopes = request.args.get("scheduling", "false").lower() == "true"
-
     # Generate auth URL and state
-    auth_url, state = google_calendar_service.build_auth_url(
-        user_id, request_full_scope=request_full_scope, use_scheduling_scopes=use_scheduling_scopes
-    )
+    auth_url, state = google_calendar_service.build_auth_url(user_id)
     # Use separate session key for calendar flow to avoid conflicts with auth OAuth
     session["google_calendar_oauth_state"] = state
 
@@ -146,8 +131,6 @@ def oauth_enhance():
     # include_granted_scopes will preserve existing permissions
     auth_url, state = google_calendar_service.build_auth_url(
         user_id,
-        request_full_scope=False,
-        use_scheduling_scopes=False,
         request_additional_scopes=requested_scopes,
     )
 

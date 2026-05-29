@@ -1,0 +1,6 @@
+type: object
+properties:
+  preferences_user_id:
+    type: string
+    maxLength: 64
+    description: Optional user id whose preferences drive the isochrone (agent research scope).

@@ -98,6 +98,14 @@ jobs:
         working-directory: Server
         run: python scripts/lint/check_coverage_thresholds.py
 
+      - name: Verify Server/endpoints.json matches Flask url_map
+        working-directory: Server
+        env:
+          TESTING: "true"
+        run: |
+          python3 scripts/endpoints/extract_routes.py
+          git diff --exit-code endpoints.json
+
       - name: Upload backend coverage reports
         uses: actions/upload-artifact@v7
         if: always()

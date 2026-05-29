@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PropertySearchResult } from "packages/types/domain/api";
 
-import {
-  transformPropertySearchResult,
-  transformSearchResponse,
-} from "./searchTransform";
+import { transformPropertySearchResult, transformSearchResponse } from "./searchTransform";
 
 vi.mock("packages/config/env", () => ({
   getEnv: () => ({ isDevelopment: false }),
@@ -127,10 +124,7 @@ describe("transformPropertySearchResult", () => {
   });
 
   it("defaults OpenAPI score to 0 when field is missing", () => {
-    const result = transformPropertySearchResult(
-      openApiProperty({ score: undefined }),
-      0
-    );
+    const result = transformPropertySearchResult(openApiProperty({ score: undefined }), 0);
     expect(result._score).toBe(0);
   });
 

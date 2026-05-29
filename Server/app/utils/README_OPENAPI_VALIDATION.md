@@ -337,7 +337,7 @@ from validation import validate_request
 
 ## Resources
 
-- **Migration Status**: [`OPENAPI_MIGRATION_STATUS.md`](../../OPENAPI_MIGRATION_STATUS.md)
+- **Migration / rollout:** [openapi-validation-rollout.md](../../../documentation/server/openapi-validation-rollout.md)
 - **OpenAPI Spec**: [`openapi.yaml`](../../openapi.yaml)
 - **Generated Schemas**: [`Server/app/schemas/generated.py`](../schemas/generated.py)
 - **Contract Tests**: [`Server/tests/contract/`](../../tests/contract/)

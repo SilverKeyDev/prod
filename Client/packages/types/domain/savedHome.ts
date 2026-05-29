@@ -1,6 +1,6 @@
 /**
- * API wire type: HomeUniversal.to_dict() (OpenAPI SavedHome).
- * UI code uses {@link SavedHome} (normalized shape from mapHomeUniversalToSavedHome).
+ * API wire type: OpenAPI SavedHome (PropertyCache + UserPropertyLink).
+ * UI code uses {@link SavedHome} (normalized shape from mapSavedHomeWireToSavedHome).
  */
 import type { components } from "packages/types/api.generated";
 

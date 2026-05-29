@@ -6,7 +6,7 @@ End-to-end and release QA checklists for the SilverKey **web and mobile** client
 |----------|-------------|
 | [END_TO_END_QA_RUNBOOK.md](./END_TO_END_QA_RUNBOOK.md) | Master execution order and links |
 | [ENV_AND_DEVICE_MATRIX.md](./ENV_AND_DEVICE_MATRIX.md) | Staging, test users, cross-browser and **real Mobile Safari** |
-| [FLOW_SIGNUP_AND_VERIFICATION.md](./FLOW_SIGNUP_AND_VERIFICATION.md) | Signup, verification, web Playwright, native manual |
+| [FLOW_SIGNUP_AND_VERIFICATION.md](./FLOW_SIGNUP_AND_VERIFICATION.md) | Signup, verification — manual QA steps |
 | [FLOW_PAYMENTS.md](./FLOW_PAYMENTS.md) | Billing when product confirms it is live |
 | [ACCOUNT_DELETION.md](./ACCOUNT_DELETION.md) | Self-serve gap; admin delete; process |
 | [ERROR_STATES.md](./ERROR_STATES.md) | API down, 5xx, 429, payment failure |

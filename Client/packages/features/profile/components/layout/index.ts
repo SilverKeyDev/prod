@@ -2,7 +2,6 @@ export type { PersonalizationSectionPanelProps } from "./PersonalizationSectionL
 export {
   PersonalizationSectionLayoutProvider,
   PersonalizationSectionPanel,
-  useHidePersonalizationStepHeading,
   useProfileUiSurface,
   useShowPersonalizationSectionBodyTitle,
 } from "./PersonalizationSectionLayout";

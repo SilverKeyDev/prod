@@ -6,7 +6,7 @@ import {
   ProfileSectionBody,
   useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Subtitle, Title } from "@/components/ui";

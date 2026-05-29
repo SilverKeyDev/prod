@@ -1,7 +1,7 @@
 export { AdminDevPersonaSection } from "./devPersona/AdminDevPersonaSection";
 export { DevPersonaActiveBanner } from "./devPersona/DevPersonaActiveBanner";
-export { AdminDocuSignDiagnosticsSection } from "./integrations/AdminDocuSignDiagnosticsSection";
 export { AdminLoggingSections } from "./logging/AdminLoggingSections";
+export { AdminOperationsSection } from "./operations/AdminOperationsSection";
 export { AdminPartnersSection } from "./partners/AdminPartnersSection";
 export { AdminPlaceholderSection } from "./shared/AdminPlaceholderSection";
 export { AdminDeleteUserSection } from "./superadmin/AdminDeleteUserSection";

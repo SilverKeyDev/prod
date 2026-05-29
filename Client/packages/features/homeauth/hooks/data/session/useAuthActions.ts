@@ -6,7 +6,10 @@
 import { useCallback, useState } from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { HttpError } from "packages/services/http/compatibility";
+import {
+  resolveApiResultErrorMessage,
+  resolveUserFacingMessage,
+} from "packages/utils/errorHandling";
 
 import { authApi } from "@/features/homeauth/api/auth";
 
@@ -31,11 +34,12 @@ export function useSignup() {
       try {
         const response = await authApi.signup(data);
         if (!response.success) {
-          const errorMessage = response.error ?? "Signup failed";
+          const errorMessage = resolveApiResultErrorMessage(response, "Signup failed");
           setError(errorMessage);
           log.warn(LOG_CATEGORIES.AUTH, "Signup failed", {
             email: data.email,
-            error: errorMessage,
+            error: response.error,
+            message: errorMessage,
           });
           return {
             success: false,
@@ -53,20 +57,7 @@ export function useSignup() {
           needsVerification: response.needs_verification,
         };
       } catch (err: unknown) {
-        let errorMessage = "Signup failed";
-
-        // Extract error message from HttpError parsedBody
-        if (err instanceof HttpError && err.parsedBody) {
-          const parsedBody = err.parsedBody as Record<string, unknown>;
-          if (typeof parsedBody.message === "string") {
-            errorMessage = parsedBody.message;
-          } else if (typeof parsedBody.error === "string") {
-            errorMessage = parsedBody.error;
-          }
-        } else if (err instanceof Error) {
-          errorMessage = err.message;
-        }
-
+        const errorMessage = resolveUserFacingMessage(err, { fallbackMessage: "Signup failed" });
         setError(errorMessage);
         log.error(LOG_CATEGORIES.AUTH, "Signup error", err);
         return { success: false, error: errorMessage };
@@ -94,11 +85,12 @@ export function useForgotPassword() {
     try {
       const response = await authApi.forgotPassword(email);
       if (!response.success) {
-        const errorMessage = response.error ?? "Failed to send reset code";
+        const errorMessage = resolveApiResultErrorMessage(response, "Failed to send reset code");
         setError(errorMessage);
         log.warn(LOG_CATEGORIES.AUTH, "Forgot password failed", {
           email,
-          error: errorMessage,
+          error: response.error,
+          message: errorMessage,
         });
         return { success: false, error: errorMessage };
       }
@@ -106,20 +98,9 @@ export function useForgotPassword() {
       log.info(LOG_CATEGORIES.AUTH, "Password reset code sent", { email });
       return { success: true };
     } catch (err: unknown) {
-      let errorMessage = "Failed to send reset code";
-
-      // Extract error message from HttpError parsedBody
-      if (err instanceof HttpError && err.parsedBody) {
-        const parsedBody = err.parsedBody as Record<string, unknown>;
-        if (typeof parsedBody.message === "string") {
-          errorMessage = parsedBody.message;
-        } else if (typeof parsedBody.error === "string") {
-          errorMessage = parsedBody.error;
-        }
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-
+      const errorMessage = resolveUserFacingMessage(err, {
+        fallbackMessage: "Failed to send reset code",
+      });
       setError(errorMessage);
       log.error(LOG_CATEGORIES.AUTH, "Forgot password error", err);
       return { success: false, error: errorMessage };
@@ -145,11 +126,12 @@ export function useResetPassword() {
     try {
       const response = await authApi.resetPassword(email, code, newPassword);
       if (!response.success) {
-        const errorMessage = response.error ?? "Failed to reset password";
+        const errorMessage = resolveApiResultErrorMessage(response, "Failed to reset password");
         setError(errorMessage);
         log.warn(LOG_CATEGORIES.AUTH, "Reset password failed", {
           email,
-          error: errorMessage,
+          error: response.error,
+          message: errorMessage,
         });
         return { success: false, error: errorMessage };
       }
@@ -161,20 +143,9 @@ export function useResetPassword() {
         message: response.message,
       };
     } catch (err: unknown) {
-      let errorMessage = "Failed to reset password";
-
-      // Extract error message from HttpError parsedBody
-      if (err instanceof HttpError && err.parsedBody) {
-        const parsedBody = err.parsedBody as Record<string, unknown>;
-        if (typeof parsedBody.message === "string") {
-          errorMessage = parsedBody.message;
-        } else if (typeof parsedBody.error === "string") {
-          errorMessage = parsedBody.error;
-        }
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-
+      const errorMessage = resolveUserFacingMessage(err, {
+        fallbackMessage: "Failed to reset password",
+      });
       setError(errorMessage);
       log.error(LOG_CATEGORIES.AUTH, "Reset password error", err);
       return { success: false, error: errorMessage };

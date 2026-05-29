@@ -6,11 +6,19 @@ from flask import Blueprint, jsonify, request
 
 from app import db
 from app.models import HomeComment, ReelLike, User
-from app.schemas import AddCommentRequest, AddCommentResponse, AddFeedLikeRequest, SuccessResponse
+from app.schemas import (
+    AddCommentRequest,
+    AddCommentResponse,
+    AddFeedLikeRequest,
+    FeedLikesQueryParams,
+    FeedListQueryParams,
+    SuccessResponse,
+)
 from app.services.auth import get_current_user
 from app.utils.common_patterns import require_authenticated_user
 from app.utils.db.orm_lookup import get_model
-from app.utils.validation import validate_request, validate_response
+from app.utils.security import rate_limit
+from app.utils.validation import validate_query, validate_request, validate_response
 
 feed_bp = Blueprint("feed", __name__, url_prefix="/api/v1/feed")
 
@@ -39,18 +47,16 @@ def _comment_to_client(comment: HomeComment) -> dict:
 
 
 @feed_bp.route("", methods=["GET"])
-def get_feed():
+@rate_limit(max_requests=100, window_seconds=60)
+@validate_query(FeedListQueryParams)
+def get_feed(query: FeedListQueryParams | None = None):
     """
     GET /api/v1/feed?page=0&limit=10&filtersHash=...&cursor=...
     Returns paginated feed items. Client expects { items: [], hasMore: boolean, cursor?: string }.
     """
-    page = request.args.get("page", "0")
-    limit = request.args.get("limit", "10")
-    try:
-        max(0, int(page))
-        min(50, max(1, int(limit)))
-    except ValueError:
-        pass
+    params = query or FeedListQueryParams()
+    _ = max(0, params.page or 0)
+    _ = min(50, max(1, params.limit or 10))
     return jsonify(
         {
             "items": [],
@@ -61,13 +67,15 @@ def get_feed():
 
 
 @feed_bp.route("/likes", methods=["GET"])
-def get_feed_likes():
+@rate_limit(max_requests=100, window_seconds=60)
+@validate_query(FeedLikesQueryParams)
+def get_feed_likes(query: FeedLikesQueryParams | None = None):
     """
     GET /api/v1/feed/likes?ids=id1,id2,...
     Returns { likes: { [homeId]: { count, isLikedByMe } } }. Auth optional.
     """
-    ids_param = request.args.get("ids", "")
-    home_ids = [x.strip() for x in ids_param.split(",") if x.strip()] if ids_param else []
+    ids_param = (query.ids if query is not None else request.args.get("ids", "")) or ""
+    home_ids = [x.strip() for x in ids_param.split(",") if x.strip()][:100]
     if not home_ids:
         return jsonify({"likes": {}})
 
@@ -148,6 +156,7 @@ def delete_feed_like(user, home_id):
 
 
 @feed_bp.route("/comments/<home_id>", methods=["GET"])
+@rate_limit(max_requests=100, window_seconds=60)
 def get_feed_comments(home_id):
     """GET /api/v1/feed/comments/<home_id>. Returns { comments: [] }."""
     home_id = (home_id or "").strip()

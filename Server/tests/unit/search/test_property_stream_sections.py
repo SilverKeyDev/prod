@@ -107,6 +107,7 @@ def _stream_patch_targets(
     }
     if compare_mode:
         targets[f"{internal}.generate_report_sections_for_property_streaming"] = iter([])
+        targets[f"{internal}.build_research_analysis_options"] = (analysis_options, None)
     else:
         targets[f"{internal}.build_research_analysis_options"] = (analysis_options, None)
         targets[f"{internal}.get_user_commute"] = None
@@ -135,6 +136,7 @@ class TestGeneratePropertyStreamSections:
             "investment": {"outlook": "stable"},
             "convenience_walkability": {"walk_score": 72},
         }
+
         class _SonarResult:
             pros = ["Great layout"]
             cons = ["Busy street"]
@@ -194,7 +196,9 @@ class TestGeneratePropertyStreamSections:
                 assert "pros" in partial["data"]
                 assert "cons" in partial["data"]
 
-    def test_compare_stream_skips_highlights_and_yields_section_events(self, app) -> None:
+    def test_compare_stream_skips_highlights_and_yields_section_events(
+        self, app, analysis_options
+    ) -> None:
         from app.services.search.property.property_stream import generate_property_stream_compare
 
         cached_sections = {
@@ -202,7 +206,11 @@ class TestGeneratePropertyStreamSections:
         }
 
         with app.app_context():
-            targets = _stream_patch_targets(cached_sections=cached_sections, compare_mode=True)
+            targets = _stream_patch_targets(
+                analysis_options=analysis_options,
+                cached_sections=cached_sections,
+                compare_mode=True,
+            )
             with ExitStack() as stack:
                 mock_db = stack.enter_context(
                     patch("app.services.search.property.property_stream_internal.db")

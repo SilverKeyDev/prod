@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { adminApi, type DevUserDataResetScope } from "packages/features/admin/api/admin";
+import { initiatedConnectionRequestsQueryKey } from "packages/features/agent/hooks/data";
 import { useAuthStore } from "packages/store";
 
 export function useResetDevUserDataMutation() {
@@ -29,7 +30,21 @@ export function useResetDevUserDataMutation() {
 
       void queryClient.invalidateQueries({ queryKey: queryKeys.user.profile() });
       void queryClient.invalidateQueries({ queryKey: queryKeys.user.all });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.docusign.all });
+
+      if (result.cleared.docusign) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.docusign.all });
+      }
+      if (result.cleared.transaction_steps) {
+        void queryClient.invalidateQueries({ queryKey: ["checklists"] });
+        void queryClient.invalidateQueries({ queryKey: ["transaction", "address"] });
+      }
+      if (result.cleared.s3) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.documents.all });
+      }
+      if (result.cleared.connections) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.agent.all });
+        void queryClient.invalidateQueries({ queryKey: initiatedConnectionRequestsQueryKey });
+      }
     },
   });
 }

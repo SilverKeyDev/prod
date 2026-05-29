@@ -1,0 +1,6 @@
+export AWS_PROFILE="PASTE_PROFILE_NAME_HERE"
+export AWS_REGION="us-east-2"
+
+# Then:
+#   aws sso login --profile "$AWS_PROFILE"
+#   make secrets

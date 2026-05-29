@@ -8,9 +8,13 @@ from app.services.auth.user.delete_user_external_cleanup import (
 )
 
 
-def test_cleanup_calls_google_docusign_s3_and_plaid() -> None:
+def test_cleanup_calls_cognito_google_docusign_and_s3() -> None:
     user_id = "user-abc-123"
     with (
+        patch(
+            "app.services.auth.user.delete_user_external_cleanup._delete_cognito_user",
+            return_value={"deleted": True},
+        ) as mock_cognito,
         patch(
             "app.services.auth.user.delete_user_external_cleanup._revoke_google_calendar_oauth",
             return_value=True,
@@ -20,10 +24,6 @@ def test_cleanup_calls_google_docusign_s3_and_plaid() -> None:
             return_value=True,
         ) as mock_docusign,
         patch(
-            "app.services.auth.user.delete_user_external_cleanup._disconnect_plaid",
-            return_value={"items_removed": 1, "rows_deleted": 2},
-        ) as mock_plaid,
-        patch(
             "app.services.auth.user.delete_user_external_cleanup._delete_user_s3_objects",
             return_value={"prefix_deleted": 3, "keys_deleted": 1},
         ) as mock_s3,
@@ -31,18 +31,23 @@ def test_cleanup_calls_google_docusign_s3_and_plaid() -> None:
         summary = cleanup_external_resources_for_user(
             user_id,
             extra_s3_keys=["documents/user-abc-123/file.pdf"],
+            email="user@example.com",
+            cognito_id="cognito-sub-123",
         )
 
+    mock_cognito.assert_called_once_with(
+        email="user@example.com",
+        cognito_id="cognito-sub-123",
+    )
     mock_google.assert_called_once_with(user_id)
     mock_docusign.assert_called_once_with(user_id)
-    mock_plaid.assert_called_once_with(user_id)
     mock_s3.assert_called_once_with(
         user_id,
         ["documents/user-abc-123/file.pdf"],
     )
+    assert summary["cognito"]["deleted"] is True
     assert summary["google_revoked"] is True
     assert summary["docusign_disconnected"] is True
-    assert summary["plaid"]["items_removed"] == 1
     assert summary["s3"]["prefix_deleted"] == 3
 
 

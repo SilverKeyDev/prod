@@ -8,8 +8,8 @@
   "errors": false,
   "security": false,
   "polygonSearch": false,
-  "docusign": true,
-  "documents": true,
-  "profilePreferences": true,
-  "logLevel": "INFO"
+  "docusign": false,
+  "documents": false,
+  "profilePreferences": false,
+  "logLevel": "ERROR"
 }

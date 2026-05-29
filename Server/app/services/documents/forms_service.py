@@ -16,6 +16,18 @@ from .s3_service import s3_service
 logger = get_logger()
 
 SHARED_ATTACHMENT_PREFIX = "__SK_SHARE__"
+_MAX_OPTIONAL_MESSAGE_LEN = 4000
+
+
+def _bound_optional_message(message: str | None) -> str | None:
+    if message is None:
+        return None
+    trimmed = message.strip()
+    if not trimmed:
+        return None
+    if len(trimmed) > _MAX_OPTIONAL_MESSAGE_LEN:
+        raise ValueError(f"message exceeds maximum length ({_MAX_OPTIONAL_MESSAGE_LEN})")
+    return trimmed
 
 
 class FormsService:
@@ -102,6 +114,7 @@ class FormsService:
         Raises:
             ValueError: Missing PDF bytes or upload failure.
         """
+        optional_message = _bound_optional_message(optional_message)
         from app.services.docusign import AgreementLifecycleService
         from app.services.docusign.agreements.revisions import RevisionService
 
@@ -168,6 +181,7 @@ class FormsService:
         Raises:
             ValueError: Missing/invalid conversation, access denied, or presign failure.
         """
+        optional_message = _bound_optional_message(optional_message)
         if not conversation_id or not str(conversation_id).strip():
             raise ValueError("conversation_id is required")
 

@@ -27,7 +27,7 @@ export const SECTION_TITLES = {
   SEARCH_PROPERTY_STEP: "Features",
   /** Weekly availability editor (agents only; shown in profile, not onboarding). */
   AVAILABILITY: "Availability",
-  /** First onboarding step: buyer / seller / investor / agent. */
+  /** First onboarding step: buyer / seller / agent / integration partner. */
   ONBOARDING_ROLE: "Who I am",
   COMMUNICATION_PREFERENCES: "Communication",
   AGENT_PROFESSIONAL_INFO: "Professional Info",
@@ -54,8 +54,8 @@ export const FIELD_LABELS = {
     "Choose the option that best describes you. We use this only to personalize your experience—details can live in your profile later.",
   ONBOARDING_ROLE_BUYER: "Buyer",
   ONBOARDING_ROLE_SELLER: "Seller",
-  ONBOARDING_ROLE_INVESTOR: "Investor",
   ONBOARDING_ROLE_AGENT: "Real estate agent",
+  ONBOARDING_ROLE_INTEGRATION_PARTNER: "Integration partner",
   AGE: "Age",
   WHY_JOINING_SILVERKEY: "Why are you joining SilverKey?",
   GENDER: "Gender",
