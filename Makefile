@@ -16,7 +16,8 @@ PYTEST_ARGS ?=
 	lint lint-all lint-client lint-server \
 	typecheck check-client openapi openapi-verify generate-api \
 	format-client format-check mobile \
-	routes-extract endpoints-check-dead routes-extract-verify
+	routes-extract endpoints-check-dead routes-extract-verify endpoints-sync-posthog \
+	log-contracts log-contracts-verify
 
 help:
 	@echo "SilverKey Makefile (see also ./scripts/setup-local.sh and ./scripts/refresh.sh)"
@@ -47,7 +48,10 @@ help:
 	@echo "  make mobile           cd Client && pnpm dev:mobile"
 	@echo "  make routes-extract   Write Server/endpoints.json from Flask url_map"
 	@echo "  make routes-extract-verify  Regenerate endpoints.json; fail if git drift (CI)"
-	@echo "  make endpoints-check-dead  Diff inventory vs PostHog api_request (7d; scheduled ops)"
+	@echo "  make endpoints-check-dead  Diff inventory vs PostHog api_request (7d; needs POSTHOG_QUERY_API_KEY)"
+	@echo "  make endpoints-sync-posthog  POST endpoint_inventory_sync to PostHog (needs POSTHOG_PROJECT_TOKEN)"
+	@echo "  make log-contracts        Regenerate Client/Server log category contracts"
+	@echo "  make log-contracts-verify Regenerate log contracts; fail if git drift"
 
 setup:
 	bash "$(ROOT)/scripts/setup-local.sh" $(ARGS)
@@ -149,3 +153,12 @@ routes-extract-verify: routes-extract
 
 endpoints-check-dead:
 	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/endpoints/check_dead_endpoints.py
+
+endpoints-sync-posthog:
+	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/endpoints/sync_inventory_posthog.py
+
+log-contracts:
+	python3 "$(ROOT)/scripts/generate-log-contracts.py"
+
+log-contracts-verify:
+	bash "$(ROOT)/scripts/sync-log-contracts.sh"

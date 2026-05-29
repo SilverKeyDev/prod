@@ -41,8 +41,7 @@ def _load_env_example_keys() -> set[str]:
                 match = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=", line)
                 if match:
                     key = match.group(1)
-                    # Client bundle vars (Expo/Vite) are listed in Server/.env.example for
-                    # secrets.sh / Docker web build but are not required to boot the Flask API.
+                    # Client bundle vars (Expo/Vite) live in Client/.env — skip if ever present here.
                     if key.startswith(("EXPO_PUBLIC_", "VITE_")):
                         continue
                     env_keys.add(key)

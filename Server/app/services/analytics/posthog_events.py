@@ -125,8 +125,10 @@ def _build_api_request_properties(
 
     route_pattern = normalize_flask_route_rule(request.url_rule.rule)
     status_code = int(response.status_code)
-    start_time = getattr(g, "start_time", None)
-    latency_ms = round((time.time() - start_time) * 1000, 2) if start_time is not None else None
+    start_perf = getattr(g, "_request_start_perf", None)
+    duration_ms = (
+        round((time.perf_counter() - start_perf) * 1000, 2) if start_perf is not None else None
+    )
 
     gpc_opt_out = bool(getattr(g, "gpc_opt_out", False))
     _distinct_id, user_role, brokerage_org_id = _resolve_api_request_identity(gpc_opt_out)
@@ -142,9 +144,10 @@ def _build_api_request_properties(
         "is_server_error": status_code >= 500,
         "request_id": getattr(g, "request_id", None),
     }
-    if latency_ms is not None:
-        properties["latency_ms"] = latency_ms
-        properties["is_slow"] = latency_ms > 1000
+    if duration_ms is not None:
+        properties["duration_ms"] = duration_ms
+        properties["latency_ms"] = duration_ms  # deprecated alias; use duration_ms
+        properties["is_slow"] = duration_ms > 1000
     if user_role is not None:
         properties["user_role"] = user_role
     if brokerage_org_id is not None:

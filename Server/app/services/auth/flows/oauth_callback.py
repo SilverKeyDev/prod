@@ -301,12 +301,15 @@ def handle_google_oauth_callback(
     )
 
     from app.services.analytics.posthog_events import capture_product_event, set_person_properties
+    from app.services.brokerage.membership import brokerage_org_ids_for_user
 
+    org_ids = brokerage_org_ids_for_user(str(user.id))
+    has_brokerage = bool(org_ids)
     set_person_properties(
         str(user.id),
         properties={
             "is_agent": bool(user.is_agent),
-            "has_brokerage": bool(user.brokerage),
+            "has_brokerage": has_brokerage,
         },
     )
     if is_new_signup:
@@ -315,7 +318,7 @@ def handle_google_oauth_callback(
             "user_signed_up",
             properties={
                 "signup_method": "google",
-                "has_brokerage": bool(user.brokerage),
+                "has_brokerage": has_brokerage,
             },
         )
     else:

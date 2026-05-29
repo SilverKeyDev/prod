@@ -3,6 +3,7 @@
  */
 export {
   type ChecklistType,
+  getMyTransaction,
   getTaskChecklist,
   getTaskChecklistForSubject,
   getTaskChecklistProgressSummary,
@@ -14,6 +15,7 @@ export {
   type TaskChecklistProgressSummary,
   type TaskChecklistProgressSummaryResponse,
   type TaskChecklistResponse,
+  type Transaction,
   type TransactionAddressData,
   updateTaskChecklist,
   updateTaskChecklistForSubject,
@@ -43,6 +45,8 @@ export {
   type UseChecklistDataReturn,
 } from "./hooks/data/useChecklistData";
 export { useChecklistProgressSummary } from "./hooks/data/useChecklistProgressSummary";
+export { useMyTransaction } from "./hooks/data/useMyTransaction";
+export { useResolvedTransactionId } from "./hooks/data/useResolvedTransactionId";
 export {
   useAutoCompleteChecklistIntegrations,
   type UseAutoCompleteChecklistIntegrationsArgs,

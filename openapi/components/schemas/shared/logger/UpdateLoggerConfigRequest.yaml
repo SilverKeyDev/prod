@@ -3,6 +3,4 @@ required:
   - updates
 properties:
   updates:
-    type: object
-    additionalProperties: true
-    description: "Partial logger config updates"
+    $ref: './DeploymentLoggerConfigUpdates.yaml'

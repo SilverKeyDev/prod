@@ -114,6 +114,15 @@ def _apply_connection_acceptance(request: AgentConnectionRequest) -> None:
         conversation = AgentConnections(agent_id=request.agent_id, client_id=request.client_id)
         db.session.add(conversation)
 
+    from app.services.brokerage.membership import ensure_org_membership
+    from app.services.transactions.ensure import ensure_transaction
+
+    ensure_transaction(
+        buyer_id=str(request.client_id),
+        primary_agent_id=str(request.agent_id),
+    )
+    ensure_org_membership(str(request.client_id), role="member")
+
     agent = User.query.filter_by(id=request.agent_id).first()
     client = User.query.filter_by(id=request.client_id).first()
 

@@ -23,11 +23,11 @@ export function useChecklistProgressSummary(
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
   const checklistSubjectUserId = options?.checklistSubjectUserId;
+  const transactionId = options?.transactionId ?? checklistSubjectUserId;
 
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
-  const subjectCacheKey = checklistSubjectUserId ?? "self";
-  const queryEnabled =
-    shouldLoadData && (checklistSubjectUserId == null || checklistSubjectUserId.length > 0);
+  const subjectCacheKey = transactionId ?? "self";
+  const queryEnabled = shouldLoadData && (transactionId == null || transactionId.length > 0);
 
   const queryKey = useMemo(
     () => ["checklists", "progress-summary", subjectCacheKey] as const,
@@ -37,8 +37,8 @@ export function useChecklistProgressSummary(
   const { data, isLoading, error, refetch } = useQuery({
     queryKey,
     queryFn: () =>
-      checklistSubjectUserId
-        ? getTaskChecklistProgressSummaryForSubject(checklistSubjectUserId)
+      transactionId
+        ? getTaskChecklistProgressSummaryForSubject(transactionId)
         : getTaskChecklistProgressSummary(),
     enabled: queryEnabled,
     staleTime: 5 * 60 * 1000,

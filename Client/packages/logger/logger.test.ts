@@ -76,4 +76,13 @@ describe("logger emit gating", () => {
     log.error(LOG_CATEGORIES.ERRORS, "failure");
     expect(errorSpy).toHaveBeenCalled();
   });
+
+  it("accepts dot-notation LogPath for API subcategories", () => {
+    log.updateConfig({
+      api: { initialLoad: false, polling: true, pageMount: false, other: false },
+      logLevel: "INFO",
+    });
+    log.info("API.POLLING", "dot path message");
+    expect(infoSpy).toHaveBeenCalled();
+  });
 });

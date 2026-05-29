@@ -9,6 +9,9 @@ class Document(db.Model):
     __tablename__ = "documents"
 
     id: Mapped[str] = mapped_column(db.String(36), primary_key=True)
+    transaction_id: Mapped[str] = mapped_column(
+        db.ForeignKey("transactions.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
     library_item_id: Mapped[str | None] = mapped_column(
         db.ForeignKey("document_library_items.id"), unique=True

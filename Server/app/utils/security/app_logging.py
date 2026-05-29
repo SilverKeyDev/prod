@@ -2,11 +2,9 @@
 Centralized logging configuration and utilities for the entire application.
 """
 
-import json
 import logging
 import os
 import sys
-from pathlib import Path
 
 from flask import current_app, has_app_context
 
@@ -15,8 +13,7 @@ _LOG_LEVEL_NAMES = ("DEBUG", "INFO", "WARNING", "WARN", "ERROR", "CRITICAL")
 
 def _resolve_app_log_level() -> int:
     """
-    Flask / stdlib log level: env APP_LOG_LEVEL wins, then logger/logger_config.json logLevel,
-    then INFO. Matches the centralized logger config file when present.
+    Flask / stdlib log level: env APP_LOG_LEVEL wins, then centralized logger logLevel, then INFO.
     """
     env_level = (
         (os.environ.get("APP_LOG_LEVEL") or os.environ.get("LOG_LEVEL") or "").strip().upper()
@@ -24,18 +21,14 @@ def _resolve_app_log_level() -> int:
     if env_level in _LOG_LEVEL_NAMES:
         return getattr(logging, env_level if env_level != "WARN" else "WARNING")
 
-    # Server/logger/logger_config.json (same source as logger.Logger)
     try:
-        here = Path(__file__).resolve()
-        server_root = here.parent.parent.parent.parent
-        cfg_path = server_root / "logger" / "logger_config.json"
-        if cfg_path.is_file():
-            with cfg_path.open(encoding="utf-8") as f:
-                data = json.load(f)
-            name = str(data.get("logLevel", "INFO")).strip().upper()
-            if name in _LOG_LEVEL_NAMES:
-                return getattr(logging, name if name != "WARN" else "WARNING")
-    except (OSError, ValueError, TypeError):
+        from logger import log
+
+        config = log.get_config()
+        name = str(config.get("logLevel", "INFO")).strip().upper()
+        if name in _LOG_LEVEL_NAMES:
+            return getattr(logging, name if name != "WARN" else "WARNING")
+    except Exception:
         pass
 
     return logging.INFO

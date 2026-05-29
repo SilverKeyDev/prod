@@ -3,6 +3,7 @@ export type RevShareRedirectParams = {
   buyerId?: string | null;
   transactionId?: string | null;
   stepId?: string | null;
+  sessionId?: string | null;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
@@ -15,6 +16,7 @@ export function buildRevShareRedirectUrl(origin: string, params: RevShareRedirec
   if (params.buyerId) url.searchParams.set("buyer_id", params.buyerId);
   if (params.transactionId) url.searchParams.set("transaction_id", params.transactionId);
   if (params.stepId) url.searchParams.set("step_id", params.stepId);
+  if (params.sessionId) url.searchParams.set("session_id", params.sessionId);
   if (params.utmSource) url.searchParams.set("utm_source", params.utmSource);
   if (params.utmMedium) url.searchParams.set("utm_medium", params.utmMedium);
   if (params.utmCampaign) url.searchParams.set("utm_campaign", params.utmCampaign);

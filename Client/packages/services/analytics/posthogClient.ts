@@ -3,13 +3,13 @@ import posthog from "posthog-js";
 import { getEnv } from "packages/config/env";
 import { getWindow } from "packages/utils";
 
-import { POSTHOG_API_HOST, POSTHOG_APP_URL } from "./posthogConstants";
+import { POSTHOG_APP_URL, POSTHOG_HOST } from "./posthogConstants";
 
 let initialized = false;
 
 export function buildPostHogWebInitOptions() {
   return {
-    api_host: POSTHOG_API_HOST,
+    api_host: POSTHOG_HOST,
     ui_host: POSTHOG_APP_URL,
     person_profiles: "identified_only" as const,
     capture_pageview: true,

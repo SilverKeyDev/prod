@@ -1,8 +1,9 @@
-"""Aggregate checklist progress counts across all pipeline categories for one subject user."""
+"""Aggregate checklist progress counts across all pipeline categories for one transaction."""
 
 from __future__ import annotations
 
 from app.services.transactions.checklist_support.checklist_constants import PIPELINE_ORDER
+from app.services.transactions.ensure import ensure_transaction
 from app.services.transactions.unified_task_checklist_read import build_task_checklist_data
 
 
@@ -18,18 +19,13 @@ def _section_progress(data: dict) -> dict:
     }
 
 
-def build_task_checklist_progress_summary(subject_user_id: str) -> dict:
-    """
-    Build per-category and overall checklist progress for a buyer subject.
-
-    Reuses build_task_checklist_data (merge + signature rules) per category.
-    """
+def build_task_checklist_progress_summary(transaction_id: str) -> dict:
     sections: dict[str, dict] = {}
     overall_completed = 0
     overall_total = 0
 
     for category in PIPELINE_ORDER:
-        data = build_task_checklist_data(str(subject_user_id), category)
+        data = build_task_checklist_data(str(transaction_id), category)
         if data is None:
             continue
         progress = _section_progress(data)
@@ -47,3 +43,8 @@ def build_task_checklist_progress_summary(subject_user_id: str) -> dict:
             "percent": percent,
         },
     }
+
+
+def build_task_checklist_progress_summary_for_buyer(buyer_user_id: str) -> dict:
+    tx = ensure_transaction(buyer_id=str(buyer_user_id))
+    return build_task_checklist_progress_summary(tx.id)

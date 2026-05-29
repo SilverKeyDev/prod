@@ -8,7 +8,7 @@ export {
   resetPostHogUser,
   resolvePostHogAppUrl,
 } from "./posthogClient";
-export { POSTHOG_API_HOST, POSTHOG_APP_URL } from "./posthogConstants";
+export { POSTHOG_APP_URL, POSTHOG_HOST } from "./posthogConstants";
 export {
   getPostHogRequestHeaders,
   POSTHOG_DISTINCT_ID_HEADER,

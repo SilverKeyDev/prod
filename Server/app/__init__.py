@@ -91,7 +91,7 @@ def create_app(config=None):
 
     init_posthog()
 
-    from logger.posthog_otlp import init_posthog_otlp
+    from logger.export import init_posthog_otlp
 
     init_posthog_otlp("silverkey-api")
 
@@ -121,6 +121,18 @@ def create_app(config=None):
             raise RuntimeError(
                 f"Database model configuration error: {mapper_error}"
             ) from mapper_error
+
+        try:
+            from app.services.admin.deployment_logger_config import load_server_config_at_startup
+
+            load_server_config_at_startup()
+            logger.info(LOG_CATEGORIES["API"], "Deployment logger config loaded from database")
+        except Exception as deployment_logger_error:
+            logger.warn(
+                LOG_CATEGORIES["API"],
+                "Deployment logger config not loaded; using codegen defaults",
+                {"error": str(deployment_logger_error)},
+            )
 
     _log_boot_phase("db_mappers_ready")
 

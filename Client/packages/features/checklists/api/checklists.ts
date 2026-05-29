@@ -108,6 +108,16 @@ export async function updateTaskChecklistForSubject(
 // Re-export transaction address types from generated schema
 export type TransactionAddressData = components["schemas"]["TransactionAddressData"];
 export type TransactionAddressResponse = components["schemas"]["TransactionAddressResponse"];
+export type Transaction = components["schemas"]["Transaction"];
+export type TransactionMeResponse = components["schemas"]["TransactionMeResponse"];
+
+export async function getMyTransaction(): Promise<Transaction> {
+  const response = await apiGet<TransactionMeResponse>("/api/v1/transactions/me");
+  if (!response.success || !response.data) {
+    throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch transaction"));
+  }
+  return response.data;
+}
 
 export async function getTransactionAddress(): Promise<TransactionAddressData | null> {
   const response = await apiGet<TransactionAddressResponse>("/api/v1/transactions/address");

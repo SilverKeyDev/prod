@@ -257,6 +257,14 @@ components:
       $ref: ./components/schemas/shared/dashboard/GetDashboardResponse.yaml
     GetLoggerConfigResponse:
       $ref: ./components/schemas/shared/logger/GetLoggerConfigResponse.yaml
+    ClientLoggerConfig:
+      $ref: ./components/schemas/shared/logger/ClientLoggerConfig.yaml
+    ClientApiSubcategoryConfig:
+      $ref: ./components/schemas/shared/logger/ClientApiSubcategoryConfig.yaml
+    DeploymentLoggerConfig:
+      $ref: ./components/schemas/shared/logger/DeploymentLoggerConfig.yaml
+    DeploymentLoggerConfigUpdates:
+      $ref: ./components/schemas/shared/logger/DeploymentLoggerConfigUpdates.yaml
     GetSenderViewUrlResponse:
       $ref: ./components/schemas/agreements/agreements/GetSenderViewUrlResponse.yaml
     GetSigningUrlRequest:

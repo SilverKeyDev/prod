@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-from flask import request
-
+from app.schemas import RevShareAnalyticsQueryParams, RevShareAnalyticsResponse
 from app.services.rev_share.analytics import RevShareAnalyticsFilters, get_rev_share_analytics
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
@@ -14,24 +11,15 @@ from app.utils.common_patterns import (
     standardize_success_response,
 )
 from app.utils.security.admin_roles import user_has_admin_role
+from app.utils.validation import validate_query, validate_response
 from logger import LOG_CATEGORIES, log
-
-
-def _parse_dt(value: str | None) -> datetime | None:
-    if not value:
-        return None
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
-        return parsed
-    except ValueError:
-        return None
 
 
 @handle_exceptions_with_logging
 @require_authenticated_user
-def get_admin_rev_share_analytics(user):
+@validate_query(RevShareAnalyticsQueryParams)
+@validate_response(RevShareAnalyticsResponse)
+def get_admin_rev_share_analytics(user, query: RevShareAnalyticsQueryParams | None = None):
     if not user_has_admin_role(user):
         log.security(
             LOG_CATEGORIES["SECURITY"],
@@ -42,20 +30,20 @@ def get_admin_rev_share_analytics(user):
             "Admin access required", status_code=403, error_code="admin_forbidden"
         )
 
-    partner_id = (request.args.get("partner_id") or "").strip()
-    if not partner_id:
+    if query is None:
         return standardize_error_response(
             "partner_id is required", status_code=400, error_code="validation_error"
         )
-
+    params = query
+    bucket = params.bucket.value if params.bucket else "day"
     filters = RevShareAnalyticsFilters(
-        partner_id=partner_id,
-        step_id=(request.args.get("step_id") or "").strip() or None,
-        date_from=_parse_dt(request.args.get("date_from")),
-        date_to=_parse_dt(request.args.get("date_to")),
-        agent_id=(request.args.get("agent_id") or "").strip() or None,
-        brokerage=(request.args.get("brokerage") or "").strip() or None,
-        bucket=(request.args.get("bucket") or "day").strip(),
+        partner_id=params.partner_id.strip(),
+        step_id=(params.step_id or "").strip() or None,
+        date_from=params.date_from,
+        date_to=params.date_to,
+        agent_id=(params.agent_id or "").strip() or None,
+        brokerage=(params.brokerage or "").strip() or None,
+        bucket=bucket,
     )
     result = get_rev_share_analytics(filters)
     if not result.get("success"):

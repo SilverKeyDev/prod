@@ -2,7 +2,6 @@ export {
   AdminDeleteUserSection,
   AdminDevPersonaSection,
   AdminLoggingSections,
-  AdminOperationsSection,
   AdminPartnersSection,
   AdminPlaceholderSection,
   AdminSuperadminSections,

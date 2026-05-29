@@ -2,7 +2,6 @@ import type { IconName } from "packages/ui/types/icons";
 
 /** URL segment under `/admin/` (kebab-case). */
 export const ADMIN_ROUTE_SEGMENTS = {
-  operations: "operations",
   logging: "logging",
   partners: "partners",
   superadmin: "superadmin",
@@ -22,11 +21,6 @@ export type AdminNavSpecItem = {
 
 /** Static nav metadata (icons resolved in the web shell). */
 export const ADMIN_NAV_SPEC: readonly AdminNavSpecItem[] = [
-  {
-    key: ADMIN_ROUTE_SEGMENTS.operations,
-    label: "Operations",
-    iconName: "activity",
-  },
   {
     key: ADMIN_ROUTE_SEGMENTS.logging,
     label: "Logging",

@@ -7,7 +7,7 @@ import type { Workspace } from "packages/utils/workspace";
 
 type PartnerRevSharePlacementProps = {
   stepId: string;
-  transactionSubjectId?: string | null;
+  transactionId?: string | null;
   workspace?: Workspace;
   /** When provided, skips the internal placements query (parent owns fetch). */
   placements?: PartnerPlacement[];
@@ -16,14 +16,14 @@ type PartnerRevSharePlacementProps = {
 
 export function PartnerRevSharePlacement({
   stepId,
-  transactionSubjectId,
+  transactionId,
   workspace = "buyer",
   placements: placementsProp,
   isLoading: isLoadingProp,
 }: PartnerRevSharePlacementProps) {
   const internalQuery = usePartnerPlacements(
     placementsProp != null ? undefined : stepId,
-    placementsProp != null ? undefined : (transactionSubjectId ?? undefined),
+    placementsProp != null ? undefined : (transactionId ?? undefined),
     workspace
   );
 
@@ -33,7 +33,7 @@ export function PartnerRevSharePlacement({
   const rows = usePartnerPlacementPresentation({
     placements,
     stepId,
-    transactionSubjectId,
+    transactionId,
   });
 
   if (isLoading || rows.length === 0) {

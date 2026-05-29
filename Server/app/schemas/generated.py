@@ -263,6 +263,10 @@ class AgentClient(BaseModel):
     """
 
     id: str = Field(..., description="Application user id for the client.")
+    transaction_id: str = Field(
+        ...,
+        description="Revenue spine id (`transactions.id`) for this client's deal. Use for checklist,\nforms, documents, and rev-share APIs — not the buyer user id.\n",
+    )
     name: str = Field(..., description="Display name shown in agent UI and shared documents.")
     email: EmailStr = Field(
         ..., description="Primary contact email for invites and DocuSign routing."
@@ -1755,6 +1759,13 @@ class LogLevel(Enum):
     ERROR = "ERROR"
 
 
+class ClientApiSubcategoryConfig(BaseModel):
+    initialLoad: bool
+    polling: bool
+    pageMount: bool
+    other: bool
+
+
 class ServerLoggerConfig(BaseModel):
     """
     Logger category toggles (booleans) plus logLevel. additionalProperties allows future category keys to be boolean or string without breaking older clients when the server adds flags.
@@ -2997,6 +3008,29 @@ class TransactionAddressResponse(SuccessResponse):
     data: TransactionAddressData | None = None
 
 
+class Transaction(BaseModel):
+    """
+    Revenue spine row for a buyer deal (v1 one row per buyer).
+    """
+
+    id: str = Field(
+        ...,
+        description="Primary key (`transactions.id`); use as `transaction_id` on checklist and rev-share APIs.",
+    )
+    buyer_id: str = Field(..., description="Buyer user id for this deal.")
+    primary_agent_id: str | None = Field(
+        None, description="Primary agent user id when linked via agent_conversations."
+    )
+    brokerage_org_id: str = Field(
+        ..., description="Attribution org for brokerage revenue (not tenant isolation)."
+    )
+
+
+class TransactionMeResponse(BaseModel):
+    success: bool
+    data: Transaction | None = None
+
+
 class UpdateAgentStatusRequest(BaseModel):
     is_agent: bool = Field(..., description="Whether user should be an agent")
     brokerage: str | None = Field(
@@ -3047,10 +3081,6 @@ class UpdateEventRequestStatusRequest(BaseModel):
         ...,
         description="New status for the event request (pending cannot be set manually)",
     )
-
-
-class UpdateLoggerConfigRequest(BaseModel):
-    updates: dict[str, Any] = Field(..., description="Partial logger config updates")
 
 
 class UpdateNotInterestedRequest(BaseModel):
@@ -3281,6 +3311,53 @@ class RevShareStepViewRequest(BaseModel):
     transaction_id: str
 
 
+class RevShareStepViewResponse(BaseModel):
+    success: bool
+    data: dict[str, Any]
+
+
+class Workspace(Enum):
+    buyer = "buyer"
+    seller = "seller"
+    agent = "agent"
+    brokerage = "brokerage"
+    integration_partner = "integration_partner"
+
+
+class PartnerPlacementsQueryParams(BaseModel):
+    step_id: str
+    workspace: Workspace
+    transaction_id: str | None = Field(
+        None,
+        description="Optional; used only to fill embed URL placeholders when the partner template includes them",
+    )
+
+
+class Bucket(Enum):
+    day = "day"
+    week = "week"
+
+
+class RevShareAnalyticsQueryParams(BaseModel):
+    partner_id: str
+    step_id: str | None = None
+    date_from: AwareDatetime | None = None
+    date_to: AwareDatetime | None = None
+    agent_id: str | None = None
+    brokerage: str | None = None
+    bucket: Bucket | None = "day"
+
+
+class RevShareRedirectQueryParams(BaseModel):
+    buyer_id: str | None = None
+    transaction_id: str | None = None
+    step_id: str | None = None
+    session_id: str | None = None
+    utm_source: str | None = None
+    utm_medium: str | None = None
+    utm_campaign: str | None = None
+
+
 class Placement(BaseModel):
     partner: Partner
     link_id: str
@@ -3430,7 +3507,7 @@ class User(BaseModel):
     )
     brokerage_org_ids: list[str] | None = Field(
         None,
-        description="Brokerage organization ids this user may administer under brokerage workspace. Omitted or null until brokerage roster membership is populated server-side.\n",
+        description="Brokerage organization ids from `user_org_memberships` for attribution and admin scope.\n",
     )
 
 
@@ -3727,8 +3804,40 @@ class UserProfile(User):
     """
 
 
-class GetLoggerConfigResponse(SuccessResponse):
-    config: ServerLoggerConfig | None = None
+class ClientLoggerConfig(BaseModel):
+    """
+    Frontend logger category toggles with nested API subcategories plus logLevel.
+
+    """
+
+    polling: bool
+    pages: bool
+    hooks: bool
+    auth: bool
+    http: bool
+    api: bool | ClientApiSubcategoryConfig
+    errors: bool
+    security: bool
+    search: bool | None = None
+    polygonSearch: bool | None = None
+    mapRendering: bool | None = None
+    propertyDetails: bool | None = None
+    negotiation: bool | None = None
+    checklists: bool | None = None
+    calendar: bool | None = None
+    dashboard: bool | None = None
+    messages: bool | None = None
+    feed: bool | None = None
+    routing: bool | None = None
+    docusign: bool | None = None
+    documents: bool | None = None
+    profilePreferences: bool | None = None
+    logLevel: LogLevel
+
+
+class DeploymentLoggerConfigUpdates(BaseModel):
+    client: ClientLoggerConfig | None = None
+    server: ServerLoggerConfig | None = None
 
 
 class GoogleEventReminders(BaseModel):
@@ -3900,6 +4009,10 @@ class Checklist(BaseModel):
 
 class UpdateChecklistRequest(BaseModel):
     checklist: Checklist = Field(..., description="Checklist data with items and checkedIds")
+
+
+class UpdateLoggerConfigRequest(BaseModel):
+    updates: DeploymentLoggerConfigUpdates
 
 
 class UpdateRoutingOrderResponse(SuccessResponse):
@@ -4079,6 +4192,11 @@ class GetDashboardResponse(SuccessResponse):
     user: UserProfile
 
 
+class DeploymentLoggerConfig(BaseModel):
+    client: ClientLoggerConfig
+    server: ServerLoggerConfig
+
+
 class GoogleEvent(BaseModel):
     """
     Google Calendar API event subset used by Silver Key for scheduling and messaging.
@@ -4179,6 +4297,10 @@ class UpdateTaskChecklistRequest(BaseModel):
 
 class ChecklistResponse(SuccessResponse):
     checklist: TaskChecklistResponse | None = None
+
+
+class GetLoggerConfigResponse(SuccessResponse):
+    config: DeploymentLoggerConfig | None = None
 
 
 class GoogleCalendarEventCreateBody(GoogleEvent):

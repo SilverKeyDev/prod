@@ -1,86 +1,72 @@
-import { useState } from "react";
+import { useEffect } from "react";
+
+import type { UseMutationResult } from "@tanstack/react-query";
 
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import { log, LOG_CATEGORIES, type LoggerConfig } from "packages/logger";
+import {
+  API_SUBCATEGORY_CONFIG_KEYS,
+  FRONTEND_LOGGER_BOOLEAN_KEYS,
+} from "packages/logger/config/adminLoggerKeys.generated";
+import type { components } from "packages/types/api.generated";
 import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { AccessibleCheckboxInput, BodyText, Dropdown, Label, Title } from "@/components/ui";
 
-type FrontendLoggerConfigState = LoggerConfig;
+type ClientLoggerConfig = components["schemas"]["ClientLoggerConfig"];
+type DeploymentLoggerConfig = components["schemas"]["DeploymentLoggerConfig"];
+type DeploymentLoggerConfigUpdates = components["schemas"]["DeploymentLoggerConfigUpdates"];
 
-type BooleanConfigKey = Exclude<keyof FrontendLoggerConfigState, "logLevel" | "api" | string>;
+type BooleanConfigKey = (typeof FRONTEND_LOGGER_BOOLEAN_KEYS)[number];
 
-const BOOLEAN_KEYS: BooleanConfigKey[] = [
-  "polling",
-  "pages",
-  "hooks",
-  "auth",
-  "http",
-  "search",
-  "polygonSearch",
-  "mapRendering",
-  "propertyDetails",
-  "negotiation",
-  "checklists",
-  "calendar",
-  "dashboard",
-  "messages",
-  "feed",
-  "routing",
-  "docusign",
-  "documents",
-  "profilePreferences",
-  "errors",
-  "security",
-];
+const LOG_LEVELS: LoggerConfig["logLevel"][] = ["DEBUG", "INFO", "WARN", "ERROR"];
 
-const LOG_LEVELS: FrontendLoggerConfigState["logLevel"][] = ["DEBUG", "INFO", "WARN", "ERROR"];
+type AdminFrontendLoggerSectionProps = AdminSectionBaseProps & {
+  clientConfig: ClientLoggerConfig;
+  mutation: UseMutationResult<
+    DeploymentLoggerConfig,
+    Error,
+    DeploymentLoggerConfigUpdates,
+    unknown
+  >;
+};
 
 export function AdminFrontendLoggerSection({
   scope: _scope = DEFAULT_ADMIN_SCOPE,
-}: AdminSectionBaseProps) {
-  const [frontendConfig, setFrontendConfig] = useState<FrontendLoggerConfigState | null>(() => {
-    try {
-      return log.getConfig();
-    } catch {
-      return null;
-    }
-  });
-  const [frontendSaving, setFrontendSaving] = useState(false);
+  clientConfig,
+  mutation,
+}: AdminFrontendLoggerSectionProps) {
+  useEffect(() => {
+    log.updateConfig(clientConfig as Partial<LoggerConfig>);
+  }, [clientConfig]);
 
   const apiConfig =
-    frontendConfig && typeof frontendConfig.api === "object" ? frontendConfig.api : undefined;
+    clientConfig && typeof clientConfig.api === "object" ? clientConfig.api : undefined;
 
-  const applyPartial = (partial: Partial<FrontendLoggerConfigState>) => {
-    if (!frontendConfig) return;
-    setFrontendSaving(true);
+  const applyPartial = (partial: Partial<LoggerConfig>) => {
     try {
-      log.updateConfig(partial);
+      mutation.mutate({ client: partial as ClientLoggerConfig });
       log.security(LOG_CATEGORIES.SECURITY, "[ADMIN_PAGE] Updated frontend logger config", {
         fields: Object.keys(partial),
       });
-      setFrontendConfig(log.getConfig() as FrontendLoggerConfigState);
     } catch (error) {
       log.error(
         LOG_CATEGORIES.ERRORS,
         "[ADMIN_PAGE] Failed to update frontend logger config",
         error
       );
-    } finally {
-      setFrontendSaving(false);
     }
   };
 
   const handleToggleBoolean = (key: BooleanConfigKey) => {
-    if (!frontendConfig) return;
-    applyPartial({ [key]: !frontendConfig[key] });
+    applyPartial({ [key]: !clientConfig[key] });
   };
 
-  const handleApiToggle = (key: keyof NonNullable<FrontendLoggerConfigState["api"]>) => {
-    if (!frontendConfig?.api || typeof frontendConfig.api !== "object") return;
-    const currentApi = frontendConfig.api as NonNullable<FrontendLoggerConfigState["api"]>;
+  const handleApiToggle = (key: keyof NonNullable<LoggerConfig["api"]>) => {
+    if (!clientConfig?.api || typeof clientConfig.api !== "object") return;
+    const currentApi = clientConfig.api as NonNullable<LoggerConfig["api"]>;
     applyPartial({
       api: {
         ...currentApi,
@@ -89,20 +75,10 @@ export function AdminFrontendLoggerSection({
     });
   };
 
-  const handleLogLevelChange = (value: FrontendLoggerConfigState["logLevel"]) => {
-    if (!frontendConfig || frontendConfig.logLevel === value) return;
+  const handleLogLevelChange = (value: LoggerConfig["logLevel"]) => {
+    if (clientConfig.logLevel === value) return;
     applyPartial({ logLevel: value });
   };
-
-  if (!frontendConfig) {
-    return (
-      <Card border="light" padding="lg" className="w-full">
-        <BodyText size="sm" muted>
-          Unable to read frontend logger config.
-        </BodyText>
-      </Card>
-    );
-  }
 
   return (
     <Card border="light" padding="lg" className="w-full">
@@ -110,9 +86,9 @@ export function AdminFrontendLoggerSection({
         Frontend logger
       </Title>
       <BodyText size="sm" muted className="mb-4">
-        Enable console logging categories for this browser tab. In development, categories default
-        off except errors and security. PostHog log export runs in production only unless explicitly
-        opted in. Production builds keep all categories enabled regardless of these toggles.
+        Deployment logger settings for the client. Changes persist to the database and apply to this
+        browser tab when you open this page. In production builds, category guards still force
+        categories on regardless of these toggles.
       </BodyText>
 
       <Box className="grid gap-4 md:grid-cols-2">
@@ -120,11 +96,11 @@ export function AdminFrontendLoggerSection({
           <Title size="sm" as="h3" className="mb-1">
             Categories
           </Title>
-          {BOOLEAN_KEYS.map((key) => (
+          {FRONTEND_LOGGER_BOOLEAN_KEYS.map((key) => (
             <Label key={String(key)} size="sm" className="flex items-center gap-2">
               <AccessibleCheckboxInput
-                checked={Boolean(frontendConfig[key])}
-                disabled={frontendSaving}
+                checked={Boolean(clientConfig[key])}
+                disabled={mutation.isPending}
                 className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
                 label={`Toggle ${String(key)}`}
                 onChange={() => handleToggleBoolean(key)}
@@ -144,13 +120,13 @@ export function AdminFrontendLoggerSection({
               label="Log level"
               hideLabel
               size="sm"
-              disabled={frontendSaving}
+              disabled={mutation.isPending}
               options={LOG_LEVELS.map((lvl) => ({ value: lvl, label: lvl }))}
-              value={frontendConfig.logLevel}
+              value={clientConfig.logLevel}
               onChange={handleLogLevelChange}
             />
             <BodyText size="xs" muted className="mt-3">
-              Checkbox and level changes apply immediately when toggled.
+              Checkbox and level changes persist to deployment config when toggled.
             </BodyText>
           </Box>
 
@@ -159,11 +135,11 @@ export function AdminFrontendLoggerSection({
               <Title size="sm" as="h3" className="mb-1">
                 API subcategories
               </Title>
-              {(["initialLoad", "polling", "pageMount", "other"] as const).map((k) => (
+              {API_SUBCATEGORY_CONFIG_KEYS.map((k) => (
                 <Label key={k} size="sm" className="flex items-center gap-2">
                   <AccessibleCheckboxInput
                     checked={Boolean(apiConfig[k])}
-                    disabled={frontendSaving}
+                    disabled={mutation.isPending}
                     className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
                     label={`Toggle API ${k}`}
                     onChange={() => handleApiToggle(k)}
@@ -177,6 +153,11 @@ export function AdminFrontendLoggerSection({
           )}
         </Box>
       </Box>
+      {mutation.isError ? (
+        <BodyText size="xs" className="mt-4 text-red-600">
+          {mutation.error instanceof Error ? mutation.error.message : "Update failed"}
+        </BodyText>
+      ) : null}
     </Card>
   );
 }

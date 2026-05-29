@@ -10,7 +10,7 @@ import {
 
 describe("adminNavConfig", () => {
   it("ADMIN_ROUTE_SEGMENTS uses kebab-case segments", () => {
-    expect(ADMIN_ROUTE_SEGMENTS.operations).toBe("operations");
+    expect(ADMIN_ROUTE_SEGMENTS.logging).toBe("logging");
     expect(ADMIN_ROUTE_SEGMENTS.devPersona).toBe("dev-persona");
     expect(ADMIN_ROUTE_SEGMENTS.superadmin).toBe("superadmin");
   });
@@ -36,10 +36,11 @@ describe("adminNavConfig", () => {
     expect(withSuper.some((r) => r.key === ADMIN_ROUTE_SEGMENTS.superadmin)).toBe(true);
   });
 
-  it("ADMIN_NAV_SPEC includes operations, dev persona, and unique keys", () => {
+  it("ADMIN_NAV_SPEC includes logging, dev persona, and unique keys", () => {
     const keys = ADMIN_NAV_SPEC.map((r) => r.key);
     expect(new Set(keys).size).toBe(keys.length);
-    expect(keys).toContain(ADMIN_ROUTE_SEGMENTS.operations);
+    expect(keys).toContain(ADMIN_ROUTE_SEGMENTS.logging);
+    expect(keys).not.toContain("operations");
     expect(keys).toContain(ADMIN_ROUTE_SEGMENTS.devPersona);
     expect(keys).not.toContain("notifications");
     expect(keys).not.toContain("platform-health");

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from flask import request
-
+from app.schemas import PartnerPlacementsQueryParams, RevSharePlacementsResponse
 from app.services.rev_share.placements import get_placements_for_step
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
@@ -11,27 +10,24 @@ from app.utils.common_patterns import (
     standardize_error_response,
     standardize_success_response,
 )
+from app.utils.validation import validate_query, validate_response
 
 
 @handle_exceptions_with_logging
 @require_authenticated_user
-def get_placements(user):
-    step_id = (request.args.get("step_id") or "").strip()
-    workspace = (request.args.get("workspace") or "").strip()
-    transaction_id = (request.args.get("transaction_id") or "").strip() or None
-
-    if not step_id:
+@validate_query(PartnerPlacementsQueryParams)
+@validate_response(RevSharePlacementsResponse)
+def get_placements(user, query: PartnerPlacementsQueryParams | None = None):
+    if query is None:
         return standardize_error_response(
-            "step_id is required", status_code=400, error_code="validation_error"
+            "step_id and workspace are required",
+            status_code=400,
+            error_code="validation_error",
         )
-    if not workspace:
-        return standardize_error_response(
-            "workspace is required", status_code=400, error_code="validation_error"
-        )
-
+    params = query
     placements = get_placements_for_step(
-        step_id=step_id,
-        workspace=workspace,
-        transaction_id=transaction_id,
+        step_id=params.step_id.strip(),
+        workspace=params.workspace.value,
+        transaction_id=(params.transaction_id or "").strip() or None,
     )
     return standardize_success_response({"data": {"placements": placements}})

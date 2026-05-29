@@ -14,9 +14,13 @@ from app.schemas.generated import (
 )
 from app.services.agent import recommend_agents, search_agents, search_clients
 from app.services.agent.client_service import get_connected_agent_ids_for_client
-from app.services.auth import SecurityException, get_current_user
-from app.utils.common_patterns import handle_exceptions_with_logging, require_agent_access
-from app.utils.security import SecurityError, rate_limit, security_error_response
+from app.services.auth import SecurityException
+from app.utils.common_patterns import (
+    handle_exceptions_with_logging,
+    require_agent_access,
+    require_authenticated_user,
+)
+from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.validation import validate_query, validate_response
 
@@ -26,12 +30,10 @@ logger = logging.getLogger(__name__)
 @rate_limit(max_requests=100, window_seconds=60)
 @validate_query(AgentSearchQueryParams)
 @validate_response(SearchAgentsResponse)
-def search_agents_endpoint(query: AgentSearchQueryParams | None = None):
+@require_authenticated_user
+def search_agents_endpoint(user, query: AgentSearchQueryParams | None = None):
     """Search for agents (for clients)"""
     try:
-        user = get_current_user()
-        if not user:
-            return security_error_response(SecurityError.UNAUTHORIZED)
         params = query or AgentSearchQueryParams()
         search_query = (params.q or "").strip()
         limit = params.limit or 20
@@ -50,12 +52,10 @@ def search_agents_endpoint(query: AgentSearchQueryParams | None = None):
 @rate_limit(max_requests=100, window_seconds=60)
 @validate_query(AgentRecommendQueryParams)
 @validate_response(RecommendedAgentsResponse)
-def recommended_agents_endpoint(query: AgentRecommendQueryParams | None = None):
+@require_authenticated_user
+def recommended_agents_endpoint(user, query: AgentRecommendQueryParams | None = None):
     """Recommend agents for the current user from optional buyer/search context."""
     try:
-        user = get_current_user()
-        if not user:
-            return security_error_response(SecurityError.UNAUTHORIZED)
         params = query or AgentRecommendQueryParams()
         zip_code = (params.zip or "").strip() or None
         state = (params.state or "").strip() or None

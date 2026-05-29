@@ -2,7 +2,7 @@ import PostHog from "posthog-react-native";
 
 import { getEnv } from "packages/config/env";
 
-import { POSTHOG_API_HOST, POSTHOG_APP_URL } from "./posthogConstants";
+import { POSTHOG_APP_URL, POSTHOG_HOST } from "./posthogConstants";
 
 let posthogClient: PostHog | null = null;
 let initialized = false;
@@ -28,7 +28,7 @@ export function initPostHogClient(): boolean {
   }
 
   posthogClient = new PostHog(key, {
-    host: POSTHOG_API_HOST,
+    host: POSTHOG_HOST,
     logs: {
       serviceName: "silverkey-mobile",
     },

@@ -85,8 +85,7 @@ properties:
       type: string
     nullable: true
     description: >
-      Brokerage organization ids this user may administer under brokerage workspace.
-      Omitted or null until brokerage roster membership is populated server-side.
+      Brokerage organization ids from `user_org_memberships` for attribution and admin scope.
 example:
   id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   email: "jane.buyer@example.com"

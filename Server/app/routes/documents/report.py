@@ -1,25 +1,24 @@
 import os
-import time
 import traceback
 
 from flask import Blueprint, Response, jsonify, request
 from jose.exceptions import ExpiredSignatureError, JWTError
-from sqlalchemy import or_
 
+from app import db
+from app.models import Document, DocumentLibraryItem
 from app.schemas import DeleteReportRequest, DeleteReportResponse, DocumentLibraryResponse
+from app.services.auth import SecurityException
+from app.services.documents import DocumentService, s3_service
+from app.services.research.report_listing import list_reports_for_user
+from app.utils.common_patterns import require_authenticated_user, resolve_agent_scoped_user_id
 from app.utils.db.orm_lookup import get_model
 from app.utils.http.pagination import build_pagination, parse_query_pagination_args
+from app.utils.security import rate_limit
 from app.utils.security.app_logging import get_logger
 from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES
 from logger import log as category_log
 
-from ... import db
-from ...models import Document, DocumentLibraryItem
-from ...services.auth import SecurityException, get_current_user
-from ...services.documents import DocumentService, s3_service
-from ...utils.common_patterns import require_authenticated_user, resolve_agent_scoped_user_id
-from ...utils.security import rate_limit
 from .report_document_library_rows import document_library_rows_for_agent_request
 
 # Get logger using centralized utility
@@ -31,92 +30,12 @@ report_bp = Blueprint("report", __name__, url_prefix="/api/v1/report")
 
 @report_bp.route("/list", methods=["GET"])
 @rate_limit(max_requests=50, window_seconds=60)
-def list_reports():
+@require_authenticated_user
+def list_reports(user):
     try:
-        reports_list = []
-        seen_names = set()
-        user = get_current_user()
-        if not user:
-            return jsonify({"error": "User not found", "success": False}), 404
-
-        # Get generating and processed reports from database
-        generating_reports = Document.query.filter(
-            Document.user_id == user.id,
-            or_(Document.status == "generating", Document.status == "error"),
-        ).all()
-
-        for report in generating_reports:
-            # Map 'processed' status to 'completed' for frontend compatibility
-            status = "completed" if report.status == "processed" else report.status
-            reports_list.append(
-                {
-                    "id": report.id,
-                    "status": status,
-                    "generatedAt": int(report.created_at.timestamp()),
-                    "address": os.path.splitext(os.path.basename(report.filename))[0],
-                    "s3Key": report.file_path,
-                }
-            )
-
-        # Get completed reports from S3 using service layer
-        s3_objects = DocumentService.list_user_reports(user.id)
-
-        for obj in s3_objects:
-            s3_key = obj.get("Key") if isinstance(obj, dict) else getattr(obj, "Key", None)
-            if not s3_key:
-                continue
-            file_name = os.path.basename(s3_key)
-
-            if file_name in seen_names:
-                continue  # skip duplicate
-
-            if not file_name.endswith(".pdf"):
-                continue
-
-            # Try to find the corresponding database record to get the proper UUID
-            db_report = Document.query.filter(
-                Document.user_id == user.id, Document.file_path == s3_key
-            ).first()
-
-            # Use database ID if found, otherwise fall back to filename (for legacy reports)
-            report_id = db_report.id if db_report else file_name
-
-            presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=file_name)
-
-            # Handle LastModified timestamp
-            last_modified = (
-                obj.get("LastModified")
-                if isinstance(obj, dict)
-                else getattr(obj, "LastModified", None)
-            )
-            if last_modified and hasattr(last_modified, "timestamp"):
-                generated_at = int(last_modified.timestamp())
-            else:
-                generated_at = int(time.time())
-
-            reports_list.append(
-                {
-                    "id": report_id,
-                    "status": "completed",
-                    "generatedAt": generated_at,
-                    "pdfUrl": presigned_url,
-                    "address": os.path.splitext(file_name)[0],
-                    "s3Key": s3_key,
-                }
-            )
-
-        if not s3_objects and not s3_service.s3_client:
-            logger.warning("S3 client not initialized, cannot list bucket")
-
-        # Sort reports with generating ones first, using default timestamp if missing
-        reports_list.sort(
-            key=lambda x: (x["status"] != "generating", x.get("generatedAt", 0)), reverse=True
-        )
-
+        reports_list = list_reports_for_user(str(user.id))
         return jsonify({"success": True, "reports": reports_list})
 
-    except (SecurityException, ExpiredSignatureError, JWTError):
-        return jsonify({"success": False, "error": "Authentication required"}), 401
     except Exception as e:
         logger.error(f"Error listing reports: {str(e)}")
         logger.error(traceback.format_exc())

@@ -49,6 +49,7 @@ class TestSigningService:
         with app.app_context():
             agreement = Agreement(
                 id="agreement-123",
+                transaction_id="tx-docusign-fixture",
                 agent_id="agent-456",
                 buyer_id="buyer-789",
                 title="Test Agreement",

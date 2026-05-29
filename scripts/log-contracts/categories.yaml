@@ -1,0 +1,35 @@
+# Single source of truth for SilverKey log categories.
+# Edit this file, then run: make log-contracts
+
+alwaysEnabled:
+  - ERRORS
+  - SECURITY
+
+categories:
+  - name: POLLING
+  - name: PAGES
+  - name: HOOKS
+  - name: AUTH
+  - name: HTTP
+  - name: API
+    subcategories:
+      - name: INITIAL_LOAD
+      - name: POLLING
+      - name: PAGE_MOUNT
+      - name: OTHER
+  - name: ERRORS
+  - name: SECURITY
+  - name: SEARCH
+  - name: POLYGON_SEARCH
+  - name: MAP_RENDERING
+  - name: PROPERTY_DETAILS
+  - name: NEGOTIATION
+  - name: CHECKLISTS
+  - name: CALENDAR
+  - name: DASHBOARD
+  - name: MESSAGES
+  - name: FEED
+  - name: ROUTING
+  - name: DOCUSIGN
+  - name: DOCUMENTS
+  - name: PROFILE_PREFERENCES

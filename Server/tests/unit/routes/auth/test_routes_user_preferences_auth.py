@@ -39,9 +39,7 @@ class TestPreferencesAuthAndDelete:
             db_session.session.commit()
 
             with (
-                patch(
-                    "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
-                ) as mock_prefs_get,
+                patch("app.services.auth.get_current_user") as mock_prefs_get,
                 patch("app.services.auth.get_current_user") as mock_auth_get,
             ):
                 mock_prefs_get.return_value = user
@@ -113,9 +111,7 @@ class TestPreferencesAuthAndDelete:
             }
 
             with (
-                patch(
-                    "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
-                ) as mock_prefs_get,
+                patch("app.services.auth.get_current_user") as mock_prefs_get,
                 patch("app.services.auth.get_current_user") as mock_auth_get,
             ):
                 mock_prefs_get.return_value = agent

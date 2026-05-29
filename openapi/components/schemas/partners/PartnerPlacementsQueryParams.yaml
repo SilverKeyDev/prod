@@ -1,0 +1,18 @@
+type: object
+required:
+  - step_id
+  - workspace
+properties:
+  step_id:
+    type: string
+  workspace:
+    type: string
+    enum:
+      - buyer
+      - seller
+      - agent
+      - brokerage
+      - integration_partner
+  transaction_id:
+    type: string
+    description: Optional; used only to fill embed URL placeholders when the partner template includes them

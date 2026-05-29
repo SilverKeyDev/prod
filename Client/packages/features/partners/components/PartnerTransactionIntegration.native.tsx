@@ -19,7 +19,7 @@ import Subtitle from "packages/ui/components/text/Subtitle";
  */
 export default function PartnerTransactionIntegration({
   stepId,
-  transactionSubjectId,
+  transactionId,
   placements = [],
   placementsLoading = false,
 }: ChecklistIntegrationComponentProps) {
@@ -27,7 +27,7 @@ export default function PartnerTransactionIntegration({
   const rows = usePartnerPlacementPresentation({
     placements,
     stepId,
-    transactionSubjectId,
+    transactionId,
   });
 
   if (placementsLoading) {

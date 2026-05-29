@@ -36,9 +36,7 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch(
-                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
-            ) as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.post(
@@ -67,9 +65,7 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch(
-                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
-            ) as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 partial_prefs = {
@@ -102,9 +98,7 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch(
-                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
-            ) as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 # First create preferences
@@ -140,9 +134,7 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch(
-                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
-            ) as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.get(
@@ -173,9 +165,7 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch(
-                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
-            ) as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 # Create initial preferences
@@ -216,9 +206,7 @@ class TestPreferences:
             db_session.session.add(user)
             db_session.session.commit()
 
-            with patch(
-                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
-            ) as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 response = client.post(
@@ -251,9 +239,7 @@ class TestPreferences:
                 "why_joining_silverkey": ["buying_house", "selling_house"],
             }
 
-            with patch(
-                "app.routes.auth.handlers.preferences.preferences_preferences.get_current_user"
-            ) as mock_get:
+            with patch("app.services.auth.get_current_user") as mock_get:
                 mock_get.return_value = user
 
                 post = client.post(

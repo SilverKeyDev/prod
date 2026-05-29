@@ -31,8 +31,28 @@ def is_signature_step_satisfied(agreement: Agreement | None) -> bool:
     return str(agreement.status) == "completed"
 
 
-def links_for_step(*, buyer_user_id: str, category: str, item_id: int) -> list[AgreementLink]:
-    """AgreementLinks for a checklist step, scoped to agreements owned by this buyer."""
+def links_for_step(
+    *,
+    transaction_id: str,
+    category: str,
+    item_id: int,
+) -> list[AgreementLink]:
+    """AgreementLinks for a checklist step on this transaction."""
+    lid = _linked_item_key(category, item_id)
+    return AgreementLink.query.filter_by(
+        transaction_id=str(transaction_id),
+        linked_item_type="checklist_item",
+        linked_item_id=lid,
+    ).all()
+
+
+def links_for_step_by_buyer(
+    *,
+    buyer_user_id: str,
+    category: str,
+    item_id: int,
+) -> list[AgreementLink]:
+    """Legacy buyer-scoped link lookup (prefer transaction_id)."""
     lid = _linked_item_key(category, item_id)
     rows = AgreementLink.query.filter_by(
         linked_item_type="checklist_item",
@@ -47,8 +67,13 @@ def links_for_step(*, buyer_user_id: str, category: str, item_id: int) -> list[A
     return out
 
 
-def step_has_non_void_agreement(*, buyer_user_id: str, category: str, item_id: int) -> bool:
-    for link in links_for_step(buyer_user_id=buyer_user_id, category=category, item_id=item_id):
+def step_has_non_void_agreement(
+    *,
+    transaction_id: str,
+    category: str,
+    item_id: int,
+) -> bool:
+    for link in links_for_step(transaction_id=transaction_id, category=category, item_id=item_id):
         ag = link.agreement
         if ag is None:
             continue
@@ -58,8 +83,13 @@ def step_has_non_void_agreement(*, buyer_user_id: str, category: str, item_id: i
     return False
 
 
-def is_signature_step_complete(*, buyer_user_id: str, category: str, item_id: int) -> bool:
-    for link in links_for_step(buyer_user_id=buyer_user_id, category=category, item_id=item_id):
+def is_signature_step_complete(
+    *,
+    transaction_id: str,
+    category: str,
+    item_id: int,
+) -> bool:
+    for link in links_for_step(transaction_id=transaction_id, category=category, item_id=item_id):
         if is_signature_step_satisfied(link.agreement):
             return True
     return False
@@ -92,11 +122,18 @@ def apply_signature_based_checked_ids(
     buyer_user_id: str,
     category: str,
     checked: set[int],
+    *,
+    transaction_id: str | None = None,
 ) -> None:
     """
     Mutate checked: signature_based ids are only present when a linked agreement is completed;
     manual checks for those ids are stripped otherwise.
     """
+    from app.services.transactions.ensure import ensure_transaction
+
+    tx_id = transaction_id
+    if not tx_id:
+        tx_id = ensure_transaction(buyer_id=str(buyer_user_id)).id
     sorted_items = sort_task_checklist_items(list(items))
     for item in sorted_items:
         if not _is_signature_based_item(item):
@@ -104,7 +141,7 @@ def apply_signature_based_checked_ids(
         iid = _item_id(item)
         if iid is None:
             continue
-        if is_signature_step_complete(buyer_user_id=buyer_user_id, category=category, item_id=iid):
+        if is_signature_step_complete(transaction_id=str(tx_id), category=category, item_id=iid):
             checked.add(iid)
         else:
             checked.discard(iid)
@@ -125,8 +162,12 @@ def run_signature_step_auto_send(
     checklist_category: str,
     effective_checked_ids: set[int],
     items_raw: list[dict[str, Any]],
+    transaction_id: str | None = None,
 ) -> None:
     """When a signature_based step is unlocked, send one DocuSign envelope (idempotent)."""
+    from app.services.transactions.ensure import ensure_transaction
+
+    tx_id = transaction_id or ensure_transaction(buyer_id=str(buyer_user_id)).id
     agent_id = resolve_agent_id_for_buyer(str(buyer_user_id))
     if not agent_id:
         logger.debug(
@@ -145,13 +186,13 @@ def run_signature_step_auto_send(
         if iid is None:
             continue
         if is_signature_step_complete(
-            buyer_user_id=buyer_user_id,
+            transaction_id=str(tx_id),
             category=checklist_category,
             item_id=iid,
         ):
             continue
         if step_has_non_void_agreement(
-            buyer_user_id=buyer_user_id,
+            transaction_id=str(tx_id),
             category=checklist_category,
             item_id=iid,
         ):
@@ -197,6 +238,7 @@ def run_signature_step_auto_send(
                 section=str(checklist_category),
                 item_id=int(iid),
                 optional_message=note,
+                transaction_id=str(tx_id),
             )
         except Exception as e:
             logger.error(
@@ -227,9 +269,10 @@ def sync_checklist_for_completed_agreement(agreement: Agreement) -> None:
         if category:
             categories.add(category)
     buyer_id = str(agreement.buyer_id)
+    tx_id = str(agreement.transaction_id)
     for category in categories:
         try:
-            recompute_and_persist_buyer_checklist(buyer_id, category)
+            recompute_and_persist_buyer_checklist(tx_id, category)
         except Exception as e:
             logger.error(
                 LOG_CATEGORIES["ERRORS"],

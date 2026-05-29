@@ -20,8 +20,12 @@ export type { ChecklistType };
 
 export type UseChecklistDataOptions = {
   /**
-   * Buyer user id whose checklist is read/written (`/transactions/:id/tasks`).
-   * Omit for the authenticated user (`/api/v1/tasks`).
+   * Revenue spine id (`transactions.id`) for `/transactions/:id/tasks`.
+   * Omit to use GET /api/v1/tasks for the authenticated buyer.
+   */
+  transactionId?: string | null;
+  /**
+   * @deprecated Use `transactionId`. Kept briefly for call-site migration.
    */
   checklistSubjectUserId?: string | null;
   /**
@@ -62,15 +66,16 @@ export function useChecklistData(
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
   const checklistSubjectUserId = options?.checklistSubjectUserId;
+  const transactionId = options?.transactionId ?? checklistSubjectUserId;
   const isAgentViewer = options?.isAgentViewer === true;
 
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
-  const subjectCacheKey = checklistSubjectUserId ?? "self";
+  const subjectCacheKey = transactionId ?? "self";
   const queryEnabled =
     shouldLoadData &&
     options?.enabled !== false &&
-    (checklistSubjectUserId == null || checklistSubjectUserId.length > 0);
+    (transactionId == null || transactionId.length > 0);
 
   const queryKey = useMemo(
     () => ["checklists", type, subjectCacheKey] as const,
@@ -85,9 +90,7 @@ export function useChecklistData(
   } = useQuery({
     queryKey,
     queryFn: () =>
-      checklistSubjectUserId
-        ? getTaskChecklistForSubject(checklistSubjectUserId, type)
-        : getTaskChecklist(type),
+      transactionId ? getTaskChecklistForSubject(transactionId, type) : getTaskChecklist(type),
     enabled: queryEnabled,
     placeholderData: (previousValue) => {
       const cached = queryClient.getQueryData<TaskChecklistResponse>(queryKey);
@@ -100,8 +103,8 @@ export function useChecklistData(
 
   const updateChecklistMutation = useMutation({
     mutationFn: async (ids: number[]) =>
-      checklistSubjectUserId
-        ? updateTaskChecklistForSubject(checklistSubjectUserId, type, ids)
+      transactionId
+        ? updateTaskChecklistForSubject(transactionId, type, ids)
         : updateTaskChecklist(type, ids),
     onMutate: async (ids: number[]) => {
       const previous = queryClient.getQueryData<TaskChecklistResponse>(queryKey);

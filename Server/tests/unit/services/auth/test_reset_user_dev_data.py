@@ -23,6 +23,8 @@ from app.models import (
     User,
 )
 from app.services.auth.user.reset_user_dev_data import reset_user_dev_data
+from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
+from app.services.transactions.ensure import ensure_transaction
 
 
 def _create_user(*, email: str, cognito_id: str) -> User:
@@ -54,10 +56,17 @@ class TestResetUserDevData:
             buyer = _create_user(email="buyer-steps@example.com", cognito_id="reset-buyer-steps")
             agent = _create_user(email="agent-steps@example.com", cognito_id="reset-agent-steps")
             tx_id = str(uuid.uuid4())
-            db.session.add(Transaction(id=tx_id, buyer_id=buyer.id, primary_agent_id=agent.id))
-            db.session.add(buyer)
+            db.session.add(
+                Transaction(
+                    id=tx_id,
+                    buyer_id=buyer.id,
+                    primary_agent_id=agent.id,
+                    brokerage_org_id=DEFAULT_BROKERAGE_ORG_ID,
+                )
+            )
             db.session.add(
                 TransactionTask(
+                    transaction_id=tx_id,
                     user_id=buyer.id,
                     category="search",
                     title="Step 1",
@@ -67,6 +76,7 @@ class TestResetUserDevData:
             )
             db.session.add(
                 TransactionAddress(
+                    transaction_id=tx_id,
                     user_id=buyer.id,
                     address="123 Main St",
                     city="Atlanta",
@@ -94,6 +104,7 @@ class TestResetUserDevData:
         with app.app_context():
             user = _create_user(email="s3@example.com", cognito_id="reset-s3")
             user.profile_picture = "profile_pictures/s3-user/avatar.jpg"
+            tx = ensure_transaction(buyer_id=str(user.id))
             li = DocumentLibraryItem(
                 user_id=user.id,
                 kind="upload",
@@ -105,6 +116,7 @@ class TestResetUserDevData:
             doc = Document(
                 id=str(uuid.uuid4()),
                 user_id=user.id,
+                transaction_id=tx.id,
                 library_item_id=li.id,
                 filename="report.pdf",
                 file_path=f"documents/{user.id}/report.pdf",
@@ -199,8 +211,10 @@ class TestResetUserDevData:
         with app.app_context():
             user = _create_user(email="combo@example.com", cognito_id="reset-combo")
             user.has_preferences = True
+            tx = ensure_transaction(buyer_id=str(user.id))
             db.session.add(
                 TransactionTask(
+                    transaction_id=tx.id,
                     user_id=user.id,
                     category="offer",
                     title="Offer step",

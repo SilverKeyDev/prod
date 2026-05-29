@@ -1,5 +1,6 @@
 """Tests for signature-based checklist merge and helpers."""
 
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from app.services.transactions.checklist_signature_completion import (
@@ -27,10 +28,16 @@ def test_apply_signature_based_strips_without_agreement(_mock_complete):
         {"id": 6, "order": 5, "completion_type": "signature_based"},
     ]
     checked = {1, 6}
-    apply_signature_based_checked_ids(items, "buyer-1", "search", checked)
+    apply_signature_based_checked_ids(
+        items, "buyer-1", "search", checked, transaction_id="tx-sig-1"
+    )
     assert checked == {1}
 
 
+@patch(
+    "app.services.transactions.ensure.ensure_transaction",
+    return_value=SimpleNamespace(id="tx-auto-1"),
+)
 @patch("app.services.transactions.checklist_signature_completion.ChecklistItemDispatchSetting")
 @patch(
     "app.services.transactions.checklist_signature_completion.FormsService.send_form_via_docusign"
@@ -53,6 +60,7 @@ def test_run_signature_step_auto_send_skips_when_locked(
     _agent,
     _docusign,
     _dispatch_model,
+    _mock_tx,
 ):
     _dispatch_model.query.filter_by.return_value.first.return_value = None
     items_raw = [
@@ -74,6 +82,10 @@ def test_run_signature_step_auto_send_skips_when_locked(
     _docusign.assert_not_called()
 
 
+@patch(
+    "app.services.transactions.ensure.ensure_transaction",
+    return_value=SimpleNamespace(id="tx-auto-1"),
+)
 @patch("app.services.transactions.checklist_signature_completion.ChecklistItemDispatchSetting")
 @patch(
     "app.services.transactions.checklist_signature_completion.FormsService.send_form_via_docusign"
@@ -101,6 +113,7 @@ def test_run_signature_step_auto_send_invokes_docusign_when_unlocked(
     _first_form,
     _docusign,
     _dispatch_model,
+    _mock_tx,
 ):
     _dispatch_model.query.filter_by.return_value.first.return_value = None
     items_raw = [

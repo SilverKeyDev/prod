@@ -1295,6 +1295,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/transactions/me": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the authenticated buyer's transaction row
+     * @description Ensures a `transactions` row exists for the current user (v1 one deal per buyer) and returns its id for checklist and rev-share APIs.
+     */
+    get: operations["getMyTransaction"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/transactions/address": {
     parameters: {
       query?: never;
@@ -1322,7 +1342,7 @@ export interface paths {
     };
     /**
      * Task checklist progress summary for a transaction subject
-     * @description Returns per-category completion counts and overall journey progress for the buyer user id given by transaction_id. Same auth as GET .../tasks.
+     * @description Returns per-category completion counts and overall journey progress for the deal identified by `transactions.id`. Same auth as GET .../tasks.
      */
     get: operations["getTransactionTaskChecklistProgressSummary"];
     put?: never;
@@ -1342,12 +1362,12 @@ export interface paths {
     };
     /**
      * Task checklist for a transaction subject (buyer self or agent client)
-     * @description Returns the same payload as GET /api/v1/tasks for the given transaction_id (buyer user id). Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
+     * @description Returns the same payload as GET /api/v1/tasks for the given `transactions.id`. Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
      */
     get: operations["getTransactionTaskChecklist"];
     /**
      * Replace task checklist progress for a transaction subject
-     * @description Same semantics as PUT /api/v1/tasks for the buyer user id given by transaction_id. Buyers may update their own checklist; agents may update a managed client's checklist.
+     * @description Same semantics as PUT /api/v1/tasks for the deal identified by `transactions.id`. Buyers may update their own checklist; agents may update a managed client's checklist.
      */
     put: operations["putTransactionTaskChecklist"];
     post?: never;
@@ -1362,7 +1382,7 @@ export interface paths {
       query?: never;
       header?: never;
       path: {
-        /** @description Hub client user id (same as checklist forms routes). */
+        /** @description Revenue spine id (`transactions.id`) for the deal. */
         transaction_id: string;
         /** @description Checklist category (e.g. escrow, financing). */
         section: string;
@@ -1387,7 +1407,7 @@ export interface paths {
       query?: never;
       header?: never;
       path: {
-        /** @description Hub client user id (same as checklist forms routes). */
+        /** @description Revenue spine id (`transactions.id`) for the deal. */
         transaction_id: string;
         /** @description Checklist category (e.g. escrow, financing). */
         section: string;
@@ -1914,10 +1934,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Get server logger configuration */
+    /** Get deployment logger configuration (client + server) */
     get: operations["adminGetLoggerConfig"];
     put?: never;
-    /** Update server logger configuration */
+    /** Update deployment logger configuration (client and/or server) */
     post: operations["adminUpdateLoggerConfig"];
     delete?: never;
     options?: never;
@@ -2778,6 +2798,7 @@ export interface components {
      *     `profile_picture` is a storage key unless a route explicitly expands to a URL.
      * @example {
      *       "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+     *       "transaction_id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
      *       "name": "Jordan Client",
      *       "email": "jordan.client@example.com",
      *       "phone": "+15551112222",
@@ -2793,6 +2814,11 @@ export interface components {
     AgentClient: {
       /** @description Application user id for the client. */
       id: string;
+      /**
+       * @description Revenue spine id (`transactions.id`) for this client's deal. Use for checklist,
+       *     forms, documents, and rev-share APIs — not the buyer user id.
+       */
+      transaction_id: string;
       /** @description Display name shown in agent UI and shared documents. */
       name: string;
       /**
@@ -4155,7 +4181,50 @@ export interface components {
       user: components["schemas"]["UserProfile"];
     };
     GetLoggerConfigResponse: components["schemas"]["SuccessResponse"] & {
-      config?: components["schemas"]["ServerLoggerConfig"];
+      config?: components["schemas"]["DeploymentLoggerConfig"];
+    };
+    /** @description Frontend logger category toggles with nested API subcategories plus logLevel. */
+    ClientLoggerConfig: {
+      polling: boolean;
+      pages: boolean;
+      hooks: boolean;
+      auth: boolean;
+      http: boolean;
+      api: boolean | components["schemas"]["ClientApiSubcategoryConfig"];
+      errors: boolean;
+      security: boolean;
+      search?: boolean;
+      polygonSearch?: boolean;
+      mapRendering?: boolean;
+      propertyDetails?: boolean;
+      negotiation?: boolean;
+      checklists?: boolean;
+      calendar?: boolean;
+      dashboard?: boolean;
+      messages?: boolean;
+      feed?: boolean;
+      routing?: boolean;
+      docusign?: boolean;
+      documents?: boolean;
+      profilePreferences?: boolean;
+      /** @enum {string} */
+      logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR";
+    } & {
+      [key: string]: boolean | string | components["schemas"]["ClientApiSubcategoryConfig"];
+    };
+    ClientApiSubcategoryConfig: {
+      initialLoad: boolean;
+      polling: boolean;
+      pageMount: boolean;
+      other: boolean;
+    };
+    DeploymentLoggerConfig: {
+      client: components["schemas"]["ClientLoggerConfig"];
+      server: components["schemas"]["ServerLoggerConfig"];
+    };
+    DeploymentLoggerConfigUpdates: {
+      client?: components["schemas"]["ClientLoggerConfig"];
+      server?: components["schemas"]["ServerLoggerConfig"];
     };
     GetSenderViewUrlResponse: components["schemas"]["SuccessResponse"] & {
       /** Format: uri */
@@ -5869,6 +5938,40 @@ export interface components {
     TransactionAddressResponse: components["schemas"]["SuccessResponse"] & {
       data?: components["schemas"]["TransactionAddressData"];
     };
+    /**
+     * @description Revenue spine row for a buyer deal (v1 one row per buyer).
+     * @example {
+     *       "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+     *       "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+     *       "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+     *       "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+     *     }
+     */
+    Transaction: {
+      /** @description Primary key (`transactions.id`); use as `transaction_id` on checklist and rev-share APIs. */
+      id: string;
+      /** @description Buyer user id for this deal. */
+      buyer_id: string;
+      /** @description Primary agent user id when linked via agent_conversations. */
+      primary_agent_id?: string | null;
+      /** @description Attribution org for brokerage revenue (not tenant isolation). */
+      brokerage_org_id: string;
+    };
+    /**
+     * @example {
+     *       "success": true,
+     *       "data": {
+     *         "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+     *         "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+     *         "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+     *         "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+     *       }
+     *     }
+     */
+    TransactionMeResponse: {
+      success: boolean;
+      data?: components["schemas"]["Transaction"];
+    };
     UpdateAgentStatusRequest: {
       /** @description Whether user should be an agent */
       is_agent: boolean;
@@ -5920,10 +6023,7 @@ export interface components {
       status: "accepted" | "cancelled";
     };
     UpdateLoggerConfigRequest: {
-      /** @description Partial logger config updates */
-      updates: {
-        [key: string]: unknown;
-      };
+      updates: components["schemas"]["DeploymentLoggerConfigUpdates"];
     };
     UpdateNotInterestedRequest: {
       address: string;
@@ -6060,7 +6160,7 @@ export interface components {
       profile_picture_url?: string | null;
       /** @description Role names from user_roles; typically present on GET /user/profile. */
       roles?: string[];
-      /** @description Brokerage organization ids this user may administer under brokerage workspace. Omitted or null until brokerage roster membership is populated server-side. */
+      /** @description Brokerage organization ids from `user_org_memberships` for attribution and admin scope. */
       brokerage_org_ids?: string[] | null;
     };
     UserAgentsResponse: components["schemas"]["SuccessResponse"] & {
@@ -6237,6 +6337,43 @@ export interface components {
     RevShareStepViewRequest: {
       step_id: string;
       transaction_id: string;
+    };
+    RevShareStepViewResponse: {
+      success: boolean;
+      data: {
+        [key: string]: unknown;
+      };
+    };
+    PartnerPlacementsQueryParams: {
+      step_id: string;
+      /** @enum {string} */
+      workspace: "buyer" | "seller" | "agent" | "brokerage" | "integration_partner";
+      /** @description Optional; used only to fill embed URL placeholders when the partner template includes them */
+      transaction_id?: string;
+    };
+    RevShareAnalyticsQueryParams: {
+      partner_id: string;
+      step_id?: string;
+      /** Format: date-time */
+      date_from?: string;
+      /** Format: date-time */
+      date_to?: string;
+      agent_id?: string;
+      brokerage?: string;
+      /**
+       * @default day
+       * @enum {string}
+       */
+      bucket: "day" | "week";
+    };
+    RevShareRedirectQueryParams: {
+      buyer_id?: string;
+      transaction_id?: string;
+      step_id?: string;
+      session_id?: string;
+      utm_source?: string;
+      utm_medium?: string;
+      utm_campaign?: string;
     };
     RevSharePlacementsResponse: {
       success: boolean;
@@ -10169,6 +10306,35 @@ export interface operations {
       };
     };
   };
+  getMyTransaction: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["TransactionMeResponse"];
+        };
+      };
+      /** @description HTTP 401 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
   getTransactionAddress: {
     parameters: {
       query?: never;
@@ -10254,7 +10420,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description Buyer / hub client user id whose checklist progress is returned. */
+        /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is returned. */
         transaction_id: string;
       };
       cookie?: never;
@@ -10298,7 +10464,7 @@ export interface operations {
       };
       header?: never;
       path: {
-        /** @description Buyer / hub client user id whose checklist progress is returned. */
+        /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is returned. */
         transaction_id: string;
       };
       cookie?: never;
@@ -10351,7 +10517,7 @@ export interface operations {
       };
       header?: never;
       path: {
-        /** @description Buyer / hub client user id whose checklist progress is updated. */
+        /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is updated. */
         transaction_id: string;
       };
       cookie?: never;
@@ -10405,7 +10571,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description Hub client user id (same as checklist forms routes). */
+        /** @description Revenue spine id (`transactions.id`) for the deal. */
         transaction_id: string;
         /** @description Checklist category (e.g. escrow, financing). */
         section: string;
@@ -10450,7 +10616,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description Hub client user id (same as checklist forms routes). */
+        /** @description Revenue spine id (`transactions.id`) for the deal. */
         transaction_id: string;
         /** @description Checklist category (e.g. escrow, financing). */
         section: string;
@@ -10508,7 +10674,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description Hub client user id (same as checklist forms routes). */
+        /** @description Revenue spine id (`transactions.id`) for the deal. */
         transaction_id: string;
         /** @description Checklist category (e.g. escrow, financing). */
         section: string;
@@ -10562,7 +10728,7 @@ export interface operations {
       query?: never;
       header?: never;
       path: {
-        /** @description Hub client user id (same as checklist forms routes). */
+        /** @description Revenue spine id (`transactions.id`) for the deal. */
         transaction_id: string;
         /** @description Checklist category (e.g. escrow, financing). */
         section: string;
@@ -13640,6 +13806,7 @@ export interface operations {
     parameters: {
       query: {
         step_id: string;
+        /** @description Revenue spine id (`transactions.id`) for attribution. */
         transaction_id: string;
       };
       header?: never;

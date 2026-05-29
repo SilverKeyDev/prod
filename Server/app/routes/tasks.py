@@ -14,13 +14,15 @@ from app.utils.validation import validate_query, validate_request, validate_resp
 
 from ..services.transactions.checklist_support.checklist_constants import coerce_checklist_type
 from ..services.transactions.unified_task_checklist_progress_summary import (
-    build_task_checklist_progress_summary,
+    build_task_checklist_progress_summary_for_buyer,
 )
 from ..services.transactions.unified_task_checklist_read import (
     TASK_CATEGORIES,
-    build_task_checklist_data,
+    build_task_checklist_data_for_buyer,
 )
-from ..services.transactions.unified_task_checklist_write import perform_task_checklist_put
+from ..services.transactions.unified_task_checklist_write import (
+    perform_task_checklist_put_for_buyer,
+)
 from ..utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/api/v1/tasks")
@@ -32,11 +34,10 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/api/v1/tasks")
 @require_authenticated_user
 @validate_query(ChecklistTypeQueryParams)
 def get_task_checklist(user, query: ChecklistTypeQueryParams | None = None):
-    """GET /api/v1/tasks?type=escrow|financing|closing|insurance. Returns items (definitions) + checkedIds."""
     checklist_type = coerce_checklist_type(
         (query.type if query is not None else None) or request.args.get("type")
     )
-    data = build_task_checklist_data(str(user.id), checklist_type)
+    data = build_task_checklist_data_for_buyer(str(user.id), checklist_type)
     if data is None:
         return jsonify({"success": False, "error": "Invalid checklist type"}), 400
 
@@ -48,8 +49,7 @@ def get_task_checklist(user, query: ChecklistTypeQueryParams | None = None):
 @handle_exceptions_with_logging
 @require_authenticated_user
 def get_task_checklist_progress_summary(user):
-    """GET /api/v1/tasks/progress-summary — per-category counts + overall journey progress."""
-    data = build_task_checklist_progress_summary(str(user.id))
+    data = build_task_checklist_progress_summary_for_buyer(str(user.id))
     return jsonify({"success": True, "data": data})
 
 
@@ -65,7 +65,6 @@ def put_task_checklist(
     data: UpdateTaskChecklistRequest | None = None,
     query: ChecklistTypeQueryParams | None = None,
 ):
-    """PUT /api/v1/tasks?type=... Body (OpenAPI): {\"data\": {\"items\": [], \"checkedIds\": number[]}}. Legacy flat {\"checkedIds\": []} is coerced in validation."""
     checklist_type = coerce_checklist_type(
         (query.type if query is not None else None) or request.args.get("type")
     )
@@ -87,8 +86,8 @@ def put_task_checklist(
 
         coerced = [int(x) for x in ids if isinstance(x, int | float)]
         correlation_id = (request.headers.get("X-Request-ID") or "").strip() or str(uuid.uuid4())
-        payload, _merge_diag = perform_task_checklist_put(
-            subject_user_id=str(user.id),
+        payload, _merge_diag = perform_task_checklist_put_for_buyer(
+            buyer_user_id=str(user.id),
             checklist_type=checklist_type,
             coerced_ids=coerced,
             actor_user_id=str(user.id),
@@ -100,5 +99,5 @@ def put_task_checklist(
     except Exception as e:
         from flask import current_app
 
-        current_app.logger.error("Failed to update %s checklist: %s", checklist_type, e)
+        current_app.logger.error("Failed to update task checklist: %s", e)
         return jsonify({"success": False, "error": "Server error"}), 500

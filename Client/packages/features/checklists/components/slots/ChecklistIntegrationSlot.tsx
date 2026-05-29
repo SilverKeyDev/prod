@@ -13,7 +13,7 @@ type ChecklistIntegrationSlotProps = {
   onComplete: () => void;
   roadmapTab: ChecklistTab;
   itemId: number;
-  transactionSubjectId?: string | null;
+  transactionId?: string | null;
 };
 
 /** Checklist keys that render partner placements as the primary integration UI. */
@@ -25,13 +25,13 @@ export default function ChecklistIntegrationSlot({
   onComplete,
   roadmapTab,
   itemId,
-  transactionSubjectId,
+  transactionId,
 }: ChecklistIntegrationSlotProps) {
   const active = Boolean(componentKey && isCurrent);
   const stepId = active ? buildStepId(roadmapTab, itemId) : undefined;
   const { data: placements = [], isLoading } = usePartnerPlacements(
     stepId,
-    transactionSubjectId ?? undefined
+    transactionId ?? undefined
   );
 
   if (!active) return null;
@@ -46,7 +46,7 @@ export default function ChecklistIntegrationSlot({
       {!isPartnerTransactionIntegration ? (
         <PartnerRevSharePlacement
           stepId={stepId!}
-          transactionSubjectId={transactionSubjectId}
+          transactionId={transactionId}
           placements={placements}
           isLoading={isLoading}
         />
@@ -54,7 +54,7 @@ export default function ChecklistIntegrationSlot({
       <Component
         onComplete={onComplete}
         stepId={stepId}
-        transactionSubjectId={transactionSubjectId}
+        transactionId={transactionId}
         placements={placements}
         placementsLoading={isLoading}
       />

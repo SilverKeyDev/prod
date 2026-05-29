@@ -7,8 +7,8 @@ from app.models.partners.partner import CHECKLIST_WORKSPACES, DEFAULT_INTEGRATIO
 from app.services.rev_share.admin.partner_logo import enrich_partner_dict_logo
 from app.services.rev_share.link_provisioning import ensure_link_for_partner
 from app.services.rev_share.partner_steps import list_active_partners_for_step
+from app.services.transactions.lookup import get_transaction_by_id
 
-from .transaction_resolve import resolve_transaction
 from .url_template import interpolate_destination_url
 
 
@@ -18,7 +18,7 @@ def _resolve_destination_url(
     link: RevShareLink,
     transaction_id: str | None,
 ) -> str:
-    tx = resolve_transaction(transaction_id) if transaction_id else None
+    tx = get_transaction_by_id(transaction_id) if transaction_id else None
     return interpolate_destination_url(
         partner.destination_url_template,
         link_id=link.id,
@@ -40,12 +40,12 @@ def _resolve_embed_src(
     template = (partner.embed_url_template or partner.destination_url_template or "").strip()
     if not template:
         return None
-    tx = resolve_transaction(transaction_id) if transaction_id else None
+    tx = get_transaction_by_id(transaction_id) if transaction_id else None
     return interpolate_destination_url(
         template,
         link_id=link.id,
         buyer_id=tx.buyer_id if tx else None,
-        transaction_id=tx.id if tx else transaction_id,
+        transaction_id=tx.id if tx else None,
         partner_slug=partner.slug,
     )
 

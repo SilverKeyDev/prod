@@ -1,25 +1,17 @@
 """Shared helpers for DocuSign route unit tests."""
 
-from contextlib import ExitStack, contextmanager
+from contextlib import contextmanager
 from unittest.mock import Mock, patch
 
-from app.models import User
+from app.models import Transaction, User, UserRole
+from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
 
-_DOCUSIGN_GET_CURRENT_USER_TARGETS = (
-    "app.routes.documents.docusign.handlers.templates.get_current_user",
-    "app.routes.documents.docusign.handlers.agreement_routes.crud.get_current_user",
-    "app.routes.documents.docusign.handlers.agreement_routes.participants.get_current_user",
-    "app.routes.documents.docusign.handlers.agreement_routes.signing_urls.get_current_user",
-    "app.routes.documents.docusign.handlers.agreement_actions.get_current_user",
-    "app.routes.documents.docusign.handlers.oauth.get_current_user",
-)
+DOCUSIGN_FIXTURE_TRANSACTION_ID = "tx-docusign-fixture"
 
 
 @contextmanager
 def patch_docusign_get_current_user(user: Mock):
-    with ExitStack() as stack:
-        for target in _DOCUSIGN_GET_CURRENT_USER_TARGETS:
-            stack.enter_context(patch(target, return_value=user))
+    with patch("app.services.auth.get_current_user", return_value=user):
         yield
 
 
@@ -37,16 +29,27 @@ def seed_agent_buyer(db_session) -> tuple[User, User]:
         cognito_id="cognito-agent-ds",
         email="agent-ds@example.com",
         name="DocuSign Agent",
-        is_agent=True,
+        is_active=True,
     )
     buyer = User(
         id="buyer-789",
         cognito_id="cognito-buyer-ds",
         email="buyer-ds@example.com",
         name="DocuSign Buyer",
-        is_agent=False,
+        is_active=True,
     )
     db_session.session.add(agent)
     db_session.session.add(buyer)
+    db_session.session.add(UserRole(user_id="agent-456", role="agent"))
+    db_session.session.add(UserRole(user_id="buyer-789", role="buyer"))
+    if Transaction.query.filter_by(id=DOCUSIGN_FIXTURE_TRANSACTION_ID).first() is None:
+        db_session.session.add(
+            Transaction(
+                id=DOCUSIGN_FIXTURE_TRANSACTION_ID,
+                buyer_id="buyer-789",
+                primary_agent_id="agent-456",
+                brokerage_org_id=DEFAULT_BROKERAGE_ORG_ID,
+            )
+        )
     db_session.session.commit()
     return agent, buyer

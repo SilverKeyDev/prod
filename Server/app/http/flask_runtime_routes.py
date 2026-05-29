@@ -78,7 +78,7 @@ def register_flask_runtime_routes(
             request_id = header_rid
         else:
             request_id = f"req_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
-        g.start_time = time.time()
+        g._request_start_perf = time.perf_counter()
         g.request_id = request_id
         g.gpc_opt_out = request.headers.get("Sec-GPC", "").strip() == "1"
         if request.endpoint and "auth" in request.endpoint:

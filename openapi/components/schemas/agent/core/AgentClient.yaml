@@ -6,10 +6,16 @@ required:
   - id
   - name
   - email
+  - transaction_id
 properties:
   id:
     type: string
     description: Application user id for the client.
+  transaction_id:
+    type: string
+    description: |
+      Revenue spine id (`transactions.id`) for this client's deal. Use for checklist,
+      forms, documents, and rev-share APIs — not the buyer user id.
   name:
     type: string
     description: Display name shown in agent UI and shared documents.
@@ -84,6 +90,7 @@ properties:
       True when the agent must sign a non-void agreement for this client (client has signed; agent has not).
 example:
   id: "c3d4e5f6-a7b8-9012-cdef-345678901234"
+  transaction_id: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
   name: "Jordan Client"
   email: "jordan.client@example.com"
   phone: "+15551112222"

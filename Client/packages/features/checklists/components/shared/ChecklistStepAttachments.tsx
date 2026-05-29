@@ -10,7 +10,7 @@ type ChecklistStepAttachmentsProps = {
   expanded: boolean;
   hideIntegrationComponents?: boolean;
   roadmapTab: ChecklistTab;
-  transactionSubjectId?: string | null;
+  transactionId?: string | null;
   onIntegrationComplete: () => void;
   renderItemAgentFooter?: ReactNode;
   renderItemFooter?: ReactNode;
@@ -22,7 +22,7 @@ export function ChecklistStepAttachments({
   expanded,
   hideIntegrationComponents = false,
   roadmapTab,
-  transactionSubjectId,
+  transactionId,
   onIntegrationComplete,
   renderItemAgentFooter,
   renderItemFooter,
@@ -44,7 +44,7 @@ export function ChecklistStepAttachments({
             onComplete={onIntegrationComplete}
             roadmapTab={roadmapTab}
             itemId={item.id}
-            transactionSubjectId={transactionSubjectId}
+            transactionId={transactionId}
           />
         </Box>
       ) : null}

@@ -3,8 +3,7 @@
 
 Requires env:
 
-    POSTHOG_PERSONAL_API_KEY
-    POSTHOG_PROJECT_ID
+    POSTHOG_QUERY_API_KEY   Personal API key with query:read (PostHog user settings)
 
 Usage:
 
@@ -24,9 +23,10 @@ except ImportError:
     sys.stderr.write("check_dead_endpoints: the 'requests' package is required.\n")
     sys.exit(1)
 
+from app.services.analytics.posthog_constants import POSTHOG_QUERY_URL
+
 SERVER_DIR = Path(__file__).resolve().parents[2]
 INVENTORY_PATH = SERVER_DIR / "endpoints.json"
-POSTHOG_QUERY_URL = "https://us.posthog.com/api/projects/{project_id}/query/"
 
 HOGQL = """
 SELECT DISTINCT properties.endpoint
@@ -82,8 +82,8 @@ def compute_dead_endpoints(
     return sorted(dead)
 
 
-def _query_posthog_endpoints(api_key: str, project_id: str) -> set[str]:
-    url = POSTHOG_QUERY_URL.format(project_id=project_id)
+def _query_posthog_endpoints(api_key: str) -> set[str]:
+    url = POSTHOG_QUERY_URL
     response = requests.post(
         url,
         headers={
@@ -125,11 +125,10 @@ def _query_posthog_endpoints(api_key: str, project_id: str) -> set[str]:
 
 
 def main() -> int:
-    api_key = _require_env("POSTHOG_PERSONAL_API_KEY")
-    project_id = _require_env("POSTHOG_PROJECT_ID")
+    api_key = _require_env("POSTHOG_QUERY_API_KEY")
 
     inventory = _load_inventory()
-    observed = _query_posthog_endpoints(api_key, project_id)
+    observed = _query_posthog_endpoints(api_key)
     dead = compute_dead_endpoints(inventory, observed)
     allowlisted = sorted(set(inventory) & DEAD_ENDPOINT_ALLOWLIST)
 

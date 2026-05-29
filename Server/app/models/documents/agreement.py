@@ -30,7 +30,10 @@ class Agreement(db.Model):
     title: Mapped[str] = mapped_column(db.String(255))
     description: Mapped[str | None] = mapped_column(db.Text)
 
-    # Parties
+    # Parties and deal spine
+    transaction_id: Mapped[str] = mapped_column(
+        db.ForeignKey("transactions.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     agent_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
     buyer_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
 

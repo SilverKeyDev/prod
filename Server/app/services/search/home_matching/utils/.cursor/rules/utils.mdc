@@ -1,8 +1,0 @@
----
-description: Home matching utilities rules
-globs:
-  - "Server/app/home_matching/utils/**"
-alwaysApply: false
----
-- Keep feature engineering and preprocessing pure and testable.
-- IO helpers should validate file types/sizes and handle errors securely.

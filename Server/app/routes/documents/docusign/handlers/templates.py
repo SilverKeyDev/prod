@@ -18,10 +18,10 @@ from app.schemas import (
     DocusignTemplateRoleInfo,
     SyncTemplatesResponse,
 )
-from app.services.auth import get_current_user
 from app.services.docusign import DocusignClient
 from app.services.docusign.errors import DocusignAPIError
 from app.services.docusign.utils.permissions import is_agent
+from app.utils.common_patterns import require_authenticated_user
 from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.validation import validate_response
@@ -36,14 +36,14 @@ _MAX_PDF_BYTES = 25 * 1024 * 1024
 def register_template_routes(bp):
     @bp.route("/templates", methods=["GET"])
     @rate_limit(max_requests=50, window_seconds=60)
-    def list_templates():
+    @require_authenticated_user
+    def list_templates(user):
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 log.warn(
                     LOG_CATEGORIES["DOCUSIGN"],
                     "Non-agent attempted to list templates",
-                    {"user_id": user.id if user else None},
+                    {"user_id": user.id},
                 )
                 return jsonify({"success": False, "error": "Agent access required"}), 403
             log.debug(
@@ -62,15 +62,15 @@ def register_template_routes(bp):
 
     @bp.route("/templates/sync", methods=["POST"])
     @rate_limit(max_requests=5, window_seconds=60)
+    @require_authenticated_user
     @validate_response(SyncTemplatesResponse)
-    def sync_templates():
+    def sync_templates(user):
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 log.warn(
                     LOG_CATEGORIES["DOCUSIGN"],
                     "Non-agent attempted to sync templates",
-                    {"user_id": user.id if user else None},
+                    {"user_id": user.id},
                 )
                 return jsonify({"error": "Agent access required"}), 403
             log.debug(LOG_CATEGORIES["DOCUSIGN"], "Starting template sync", {"user_id": user.id})
@@ -91,12 +91,12 @@ def register_template_routes(bp):
 
     @bp.route("/templates", methods=["POST"])
     @rate_limit(max_requests=20, window_seconds=60)
+    @require_authenticated_user
     @validate_response(DocusignCreateTemplateResponse)
-    def create_template():
+    def create_template(user):
         """Multipart: metadata (JSON) + files[] PDFs."""
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 return jsonify({"success": False, "error": "Agent access required"}), 403
             raw_meta = request.form.get("metadata")
             if not raw_meta:
@@ -192,11 +192,11 @@ def register_template_routes(bp):
 
     @bp.route("/templates/<template_id>", methods=["GET"])
     @rate_limit(max_requests=100, window_seconds=60)
+    @require_authenticated_user
     @validate_response(DocusignGetTemplateDetailResponse)
-    def get_template_detail(template_id: str):
+    def get_template_detail(user, template_id: str):
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 return jsonify({"success": False, "error": "Agent access required"}), 403
             client = DocusignClient(auth_type="jwt")
             detail = client.get_template(template_id)
@@ -227,11 +227,11 @@ def register_template_routes(bp):
 
     @bp.route("/templates/<template_id>", methods=["DELETE"])
     @rate_limit(max_requests=20, window_seconds=60)
+    @require_authenticated_user
     @validate_response(DocusignDeleteTemplateResponse)
-    def delete_template(template_id: str):
+    def delete_template(user, template_id: str):
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 return jsonify({"success": False, "error": "Agent access required"}), 403
             client = DocusignClient(auth_type="jwt")
             try:
@@ -258,11 +258,11 @@ def register_template_routes(bp):
 
     @bp.route("/templates/<template_id>/edit-url", methods=["GET"])
     @rate_limit(max_requests=30, window_seconds=60)
+    @require_authenticated_user
     @validate_response(DocusignGetTemplateEditUrlResponse)
-    def get_template_edit_url(template_id: str):
+    def get_template_edit_url(user, template_id: str):
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 return jsonify({"success": False, "error": "Agent access required"}), 403
             return_base = get_frontend_url().rstrip("/")
             return_url = f"{return_base}/docusign/template-editor-return"

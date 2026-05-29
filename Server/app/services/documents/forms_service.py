@@ -104,6 +104,7 @@ class FormsService:
         section: str,
         item_id: int,
         optional_message: str | None = None,
+        transaction_id: str | None = None,
     ) -> dict:
         """
         Create a draft agreement from the checklist PDF, attach as first revision, send for signature.
@@ -117,6 +118,14 @@ class FormsService:
         optional_message = _bound_optional_message(optional_message)
         from app.services.docusign import AgreementLifecycleService
         from app.services.docusign.agreements.revisions import RevisionService
+        from app.services.transactions.ensure import ensure_transaction
+
+        tx_id = (
+            transaction_id
+            or ensure_transaction(
+                buyer_id=str(buyer_user_id), primary_agent_id=str(agent_user_id)
+            ).id
+        )
 
         file_content = s3_service.get_pdf(form.s3_template_path)
         if not file_content:
@@ -129,6 +138,7 @@ class FormsService:
             title,
             "checklist_form",
             description=(optional_message or None),
+            transaction_id=str(tx_id),
         )
         filename = f"{form.form_key}.pdf"
         RevisionService.create_revision(
@@ -146,7 +156,7 @@ class FormsService:
         )
         linked_item_id = f"{section}.{item_id}"
         existing = AgreementLink.query.filter_by(
-            transaction_id=str(buyer_user_id),
+            transaction_id=str(tx_id),
             agreement_id=agreement.id,
             linked_item_type="checklist_item",
             linked_item_id=linked_item_id,
@@ -154,7 +164,7 @@ class FormsService:
         if not existing:
             db.session.add(
                 AgreementLink(
-                    transaction_id=str(buyer_user_id),
+                    transaction_id=str(tx_id),
                     agreement_id=agreement.id,
                     linked_item_type="checklist_item",
                     linked_item_id=linked_item_id,

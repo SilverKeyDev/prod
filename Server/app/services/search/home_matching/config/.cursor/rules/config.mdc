@@ -1,8 +1,0 @@
----
-description: Home matching configuration rules
-globs:
-  - "Server/app/home_matching/config/**"
-alwaysApply: false
----
-- Centralize model paths, thresholds, and feature flags here.
-- Avoid hardcoding file system paths in code; use env/config.

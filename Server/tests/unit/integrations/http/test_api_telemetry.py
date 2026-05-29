@@ -77,3 +77,26 @@ def test_api_telemetry_hook_never_raises_when_posthog_raises(client):
     ):
         response = client.get("/api/v1/public/agent-profile/test-user")
     assert response.status_code in (200, 404)
+
+
+def test_api_telemetry_captures_once_on_handled_route(client):
+    with patch(CAPTURE_PATH) as mock_capture:
+        response = client.get("/api/v1/public/agent-profile/test-user")
+    assert response.status_code in (200, 404)
+    mock_capture.assert_called_once()
+
+
+def test_api_telemetry_teardown_captures_unhandled_exception(app):
+    @app.route("/api/v1/test-telemetry-unhandled", methods=["GET"])
+    def _raise_unhandled():
+        raise RuntimeError("telemetry test boom")
+
+    with patch(CAPTURE_PATH) as mock_capture:
+        with app.test_request_context("/api/v1/test-telemetry-unhandled", method="GET"):
+            app.preprocess_request()
+            for func in reversed(app.teardown_request_funcs.get(None, [])):
+                func(RuntimeError("telemetry test boom"))
+
+    mock_capture.assert_called_once()
+    captured_response = mock_capture.call_args[0][1]
+    assert captured_response.status_code == 500

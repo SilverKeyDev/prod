@@ -104,17 +104,23 @@ def _effective_checked_ids(user_id: str, category: str) -> set[int]:
     from app.services.transactions.checklist_support.checklist_rules import (
         merge_task_checklist_checked_ids,
     )
+    from app.services.transactions.ensure import ensure_transaction
     from app.services.transactions.retrieval import get_checklist_definition
-    from app.services.transactions.unified_task_checklist_read import get_checked_ids_for_user
+    from app.services.transactions.unified_task_checklist_read import (
+        get_checked_ids_for_transaction,
+    )
 
     items = get_checklist_definition(category)
     if not items:
         return set()
-    raw_checked = get_checked_ids_for_user(str(user_id), category)
+    tx = ensure_transaction(buyer_id=str(user_id))
+    raw_checked = get_checked_ids_for_transaction(str(tx.id), category)
     old_set = {int(x) for x in raw_checked}
     pre_signature = merge_task_checklist_checked_ids(items, raw_checked, old_set)
     checked_set = set(pre_signature)
-    apply_signature_based_checked_ids(items, str(user_id), category, checked_set)
+    apply_signature_based_checked_ids(
+        items, str(user_id), category, checked_set, transaction_id=str(tx.id)
+    )
     return checked_set
 
 

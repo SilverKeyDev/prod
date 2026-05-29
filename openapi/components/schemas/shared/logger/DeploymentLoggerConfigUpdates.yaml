@@ -1,0 +1,6 @@
+type: object
+properties:
+  client:
+    $ref: './ClientLoggerConfig.yaml'
+  server:
+    $ref: './ServerLoggerConfig.yaml'

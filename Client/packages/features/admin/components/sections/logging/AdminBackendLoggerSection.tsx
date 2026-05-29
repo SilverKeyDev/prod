@@ -1,61 +1,48 @@
-import type { ServerLoggerConfig } from "packages/api/admin";
+import type { UseMutationResult } from "@tanstack/react-query";
+
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import {
-  useAdminLoggerConfig,
-  useUpdateAdminLoggerConfig,
-} from "packages/hooks/data/admin/useAdminLoggerConfig";
+  SERVER_CORE_LOGGER_BOOLEAN_KEYS,
+  SERVER_EXTRA_LOGGER_BOOLEAN_KEYS,
+} from "packages/logger/config/adminLoggerKeys.generated";
+import type { components } from "packages/types/api.generated";
 import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { AccessibleCheckboxInput, BodyText, Dropdown, Label, Title } from "@/components/ui";
 
-const CORE_BOOL_KEYS: (keyof ServerLoggerConfig)[] = [
-  "polling",
-  "pages",
-  "hooks",
-  "auth",
-  "http",
-  "api",
-  "errors",
-  "security",
-];
+type ServerLoggerConfig = components["schemas"]["ServerLoggerConfig"];
+type DeploymentLoggerConfig = components["schemas"]["DeploymentLoggerConfig"];
+type DeploymentLoggerConfigUpdates = components["schemas"]["DeploymentLoggerConfigUpdates"];
+
+const CORE_BOOL_KEYS =
+  SERVER_CORE_LOGGER_BOOLEAN_KEYS satisfies readonly (keyof ServerLoggerConfig)[];
 
 const LEVELS: ServerLoggerConfig["logLevel"][] = ["DEBUG", "INFO", "WARN", "ERROR"];
 
+type AdminBackendLoggerSectionProps = AdminSectionBaseProps & {
+  serverConfig: ServerLoggerConfig;
+  mutation: UseMutationResult<
+    DeploymentLoggerConfig,
+    Error,
+    DeploymentLoggerConfigUpdates,
+    unknown
+  >;
+};
+
 export function AdminBackendLoggerSection({
   scope: _scope = DEFAULT_ADMIN_SCOPE,
-}: AdminSectionBaseProps) {
-  const { config, isLoading, error } = useAdminLoggerConfig();
-  const mutation = useUpdateAdminLoggerConfig();
-
-  if (isLoading) {
-    return (
-      <Card border="light" padding="lg" className="w-full">
-        <BodyText size="sm" muted>
-          Loading server logger config…
-        </BodyText>
-      </Card>
-    );
-  }
-
-  if (error || !config) {
-    return (
-      <Card border="light" padding="lg" className="w-full">
-        <BodyText size="sm" muted>
-          {error instanceof Error ? error.message : "Failed to load server logger config"}
-        </BodyText>
-      </Card>
-    );
-  }
-
-  const extras = (Object.keys(config) as (keyof ServerLoggerConfig & string)[]).filter(
-    (k) => typeof config[k] === "boolean" && !CORE_BOOL_KEYS.includes(k as keyof ServerLoggerConfig)
+  serverConfig,
+  mutation,
+}: AdminBackendLoggerSectionProps) {
+  const extras = SERVER_EXTRA_LOGGER_BOOLEAN_KEYS.filter(
+    (key) => typeof serverConfig[key] === "boolean"
   );
 
   const toggle = (key: keyof ServerLoggerConfig) => {
-    if (typeof config[key] !== "boolean") return;
-    mutation.mutate({ [key]: !config[key] } as Partial<ServerLoggerConfig>);
+    if (typeof serverConfig[key] !== "boolean") return;
+    mutation.mutate({ server: { [key]: !serverConfig[key] } as Partial<ServerLoggerConfig> });
   };
 
   return (
@@ -64,9 +51,9 @@ export function AdminBackendLoggerSection({
         Server logger
       </Title>
       <BodyText size="sm" muted className="mb-4">
-        Updates run through the authenticated admin logger-config API for this deployment. PostHog
-        receives all server log categories and levels when POSTHOG_PROJECT_TOKEN is set; fields
-        below persist deployment preferences but do not gate PostHog export.
+        Deployment logger settings for the API process. Changes persist to the database and apply on
+        the next server restart (and immediately in this running process). PostHog receives all
+        server log categories when POSTHOG_PROJECT_TOKEN is set.
       </BodyText>
 
       <Box className="grid gap-4 md:grid-cols-2">
@@ -77,7 +64,7 @@ export function AdminBackendLoggerSection({
           {CORE_BOOL_KEYS.map((key) => (
             <Label key={key} size="sm" className="flex items-center gap-2">
               <AccessibleCheckboxInput
-                checked={Boolean(config[key])}
+                checked={Boolean(serverConfig[key])}
                 disabled={mutation.isPending}
                 className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
                 label={`Toggle server ${String(key)}`}
@@ -91,7 +78,7 @@ export function AdminBackendLoggerSection({
           {extras.map((key) => (
             <Label key={key} size="sm" className="flex items-center gap-2">
               <AccessibleCheckboxInput
-                checked={Boolean(config[key])}
+                checked={Boolean(serverConfig[key])}
                 disabled={mutation.isPending}
                 className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
                 label={`Toggle server ${String(key)}`}
@@ -112,11 +99,11 @@ export function AdminBackendLoggerSection({
             size="sm"
             disabled={mutation.isPending}
             options={LEVELS.map((lvl) => ({ value: lvl, label: lvl }))}
-            value={config.logLevel}
-            onChange={(value) => mutation.mutate({ logLevel: value })}
+            value={serverConfig.logLevel}
+            onChange={(value) => mutation.mutate({ server: { logLevel: value } })}
           />
           <BodyText size="xs" muted className="mt-3">
-            Checkbox and level changes persist immediately when toggled.
+            Checkbox and level changes persist to deployment config when toggled.
           </BodyText>
         </Box>
       </Box>

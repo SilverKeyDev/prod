@@ -64,6 +64,22 @@ def app() -> Generator[Flask, None, None]:
         from app import db
 
         db.create_all()
+        from app.models.brokerage import BrokerageOrg
+        from app.services.brokerage.constants import (
+            DEFAULT_BROKERAGE_ORG_ID,
+            DEFAULT_BROKERAGE_ORG_NAME,
+            DEFAULT_BROKERAGE_ORG_SLUG,
+        )
+
+        if not BrokerageOrg.query.filter_by(id=DEFAULT_BROKERAGE_ORG_ID).first():
+            db.session.add(
+                BrokerageOrg(
+                    id=DEFAULT_BROKERAGE_ORG_ID,
+                    name=DEFAULT_BROKERAGE_ORG_NAME,
+                    slug=DEFAULT_BROKERAGE_ORG_SLUG,
+                )
+            )
+            db.session.commit()
         yield test_app
         db.session.remove()
         db.drop_all()
@@ -216,10 +232,26 @@ def sample_user():
 
 
 @pytest.fixture
-def sample_agreement():
-    """Create sample agreement data"""
+def sample_agreement(db_session):
+    """Create sample agreement data (seeds fixture transaction row)."""
+    from app.models import Transaction
+    from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
+
+    tx_id = "tx-docusign-fixture"
+    if Transaction.query.filter_by(id=tx_id).first() is None:
+        db_session.session.add(
+            Transaction(
+                id=tx_id,
+                buyer_id="buyer-789",
+                primary_agent_id="agent-456",
+                brokerage_org_id=DEFAULT_BROKERAGE_ORG_ID,
+            )
+        )
+        db_session.session.commit()
+
     return {
         "id": "agreement-123",
+        "transaction_id": tx_id,
         "agent_id": "agent-456",
         "buyer_id": "buyer-789",
         "title": "Purchase Agreement",

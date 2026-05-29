@@ -29,7 +29,6 @@ class User(db.Model):
     is_active: Mapped[bool | None] = mapped_column(db.Boolean, default=True)
 
     mls_id: Mapped[str | None] = mapped_column(db.String(100))
-    brokerage: Mapped[str | None] = mapped_column(db.String(200))
     #: Unique slug for short public profile URLs (`/a/{slug}`); agents only.
     public_profile_slug: Mapped[str | None] = mapped_column(db.String(64), unique=True)
 

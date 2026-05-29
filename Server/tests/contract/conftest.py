@@ -23,7 +23,6 @@ def contract_user(app: Flask) -> Generator[User, None, None]:
             email="openapi-contract@example.com",
             name="OpenAPI Contract User",
             is_active=True,
-            is_agent=False,
             cognito_id="contract-cognito-sub",
         )
         db.session.add(user)
@@ -50,14 +49,8 @@ def authenticated_client(
     def _current_user() -> User | None:
         return db.session.get(User, uid)
 
-    with (
-        patch(
-            "app.services.auth.get_current_user",
-            side_effect=_current_user,
-        ),
-        patch(
-            "app.routes.agent.handlers.search.get_current_user",
-            side_effect=_current_user,
-        ),
+    with patch(
+        "app.services.auth.get_current_user",
+        side_effect=_current_user,
     ):
         yield client

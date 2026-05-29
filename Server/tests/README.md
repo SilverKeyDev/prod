@@ -57,14 +57,11 @@ pytest tests/unit/test_auth_login.py
 pytest tests/unit/test_auth_signup.py
 pytest tests/unit/test_auth_refresh.py
 
-# DocuSign tests
-pytest tests/unit/test_docusign_lifecycle.py
-pytest tests/unit/test_docusign_signing.py
-pytest tests/unit/test_docusign_webhooks.py
+# DocuSign integration tests
+pytest tests/unit/integrations/docusign/
 
-# Calendar tests
-pytest tests/unit/test_calendar_events.py
-pytest tests/unit/test_calendar_management.py
+# Calendar integration tests
+pytest tests/unit/integrations/calendar/
 
 # Home matching tests
 pytest tests/unit/test_home_matching_score.py
@@ -115,15 +112,8 @@ pytest tests/unit/test_auth_login.py::TestLoginFlow::test_successful_login
   - `test_auth_verification.py` - Email verification tests
   - `test_auth_oauth.py` - OAuth callback tests
 
-- **DocuSign**: `test_docusign_*.py`
-  - `test_docusign_lifecycle.py` - Agreement lifecycle tests
-  - `test_docusign_signing.py` - Envelope signing tests
-  - `test_docusign_webhooks.py` - Webhook processing tests
-  - `test_docusign_templates.py` - Template sync tests
-
-- **Calendar**: `test_calendar_*.py`
-  - `test_calendar_events.py` - Event operations tests
-  - `test_calendar_management.py` - Calendar and sharing tests
+- **DocuSign** (`tests/unit/integrations/docusign/`): service-layer integration tests
+- **Calendar** (`tests/unit/integrations/calendar/`): Google Calendar service tests
 
 - **Home Matching**: `test_home_matching_*.py`
   - `test_home_matching_score.py` - MCDA scoring tests

@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from decimal import Decimal
 
-from sqlalchemy import Index
+from sqlalchemy import Date, Index, Numeric, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
@@ -38,6 +39,12 @@ class RevShareLinkClick(db.Model):
     clicked_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(timezone.utc), nullable=False, index=True
     )
+    payout_per_conversion: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2), nullable=False, default=Decimal("0")
+    )
+    payout_type: Mapped[str] = mapped_column(db.String(32), nullable=False, default="on_click")
+    session_id: Mapped[str | None] = mapped_column(db.String(64), nullable=True)
+    click_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     ip_address_hash: Mapped[str | None] = mapped_column(db.String(64))
     user_agent: Mapped[str | None] = mapped_column(db.Text)
     referrer: Mapped[str | None] = mapped_column(db.Text)
@@ -58,6 +65,12 @@ class RevShareLinkClick(db.Model):
     __table_args__ = (
         Index("idx_rev_share_clicks_partner_clicked", "partner_id", "clicked_at"),
         Index("idx_rev_share_clicks_step_clicked", "step_id", "clicked_at"),
+        UniqueConstraint(
+            "link_id",
+            "session_id",
+            "click_date",
+            name="uq_rev_share_clicks_link_session_day",
+        ),
     )
 
     def to_dict(self, *, include_pii: bool = False) -> dict:
@@ -70,6 +83,8 @@ class RevShareLinkClick(db.Model):
             "transaction_id": self.transaction_id,
             "step_id": self.step_id,
             "clicked_at": self.clicked_at.isoformat() if self.clicked_at else None,
+            "payout_per_conversion": float(self.payout_per_conversion),
+            "payout_type": self.payout_type,
             "utm_source": self.utm_source,
             "utm_medium": self.utm_medium,
             "utm_campaign": self.utm_campaign,

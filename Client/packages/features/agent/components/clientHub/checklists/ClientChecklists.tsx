@@ -25,6 +25,7 @@ const TAB_TO_CHECKLIST_TYPE = CHECKLIST_TAB_TO_TYPE;
 
 type ClientChecklistsProps = {
   userId: string;
+  transactionId: string;
   activeTab: ChecklistTab;
   /** When true (e.g. agent viewing a client), checklist integration UIs are not rendered. */
   hideIntegrationComponents?: boolean;
@@ -35,6 +36,7 @@ type ClientChecklistsProps = {
 
 export default function ClientChecklists({
   userId,
+  transactionId,
   activeTab,
   hideIntegrationComponents = false,
   onTabChange,
@@ -60,8 +62,8 @@ export default function ClientChecklists({
   );
 
   const checklistSubjectOptions = useMemo(
-    () => ({ checklistSubjectUserId: userId, isAgentViewer: isAgentWorkspace }),
-    [userId, isAgentWorkspace]
+    () => ({ transactionId, isAgentViewer: isAgentWorkspace }),
+    [transactionId, isAgentWorkspace]
   );
 
   const {
@@ -179,7 +181,7 @@ export default function ClientChecklists({
         onRoadmapTabNavigate={setTab}
         hideIntegrationComponents={hideIntegrationComponents}
         isChecklistUpdatePending={isChecklistUpdatePending}
-        transactionSubjectId={userId}
+        transactionId={transactionId}
         hubClientUserId={isAgentWorkspace ? userId : null}
         checklistCategory={isAgentWorkspace ? checklistType : null}
         isAgent={isAgentWorkspace}
@@ -193,7 +195,7 @@ export default function ClientChecklists({
             ? (item) =>
                 activeItemIds.includes(item.id) ? (
                   <ChecklistStepForms
-                    transactionId={userId}
+                    transactionId={transactionId}
                     section={checklistType}
                     itemId={item.id}
                     isAgent={isAgentWorkspace}

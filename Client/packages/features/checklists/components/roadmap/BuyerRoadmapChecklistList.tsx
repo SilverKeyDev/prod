@@ -75,7 +75,7 @@ export type BuyerRoadmapChecklistListProps = {
   /** Navigates roadmap phase tabs (e.g. Search → Offer) when a section or row is gated. */
   onRoadmapTabNavigate?: (tab: ChecklistTab) => void;
   /** Transaction subject for rev-share placement and integration context. */
-  transactionSubjectId?: string | null;
+  transactionId?: string | null;
 };
 
 type TabDisclosure = { futureOpen: boolean; completedOpen: boolean };
@@ -108,7 +108,7 @@ export function BuyerRoadmapChecklistList({
   sectionProgress,
   onRoadmapTabNavigate,
   isChecklistUpdatePending = false,
-  transactionSubjectId,
+  transactionId,
 }: BuyerRoadmapChecklistListProps) {
   const { t } = useLocalization();
   const [dispatchModalItemId, setDispatchModalItemId] = useState<number | null>(null);
@@ -237,7 +237,7 @@ export function BuyerRoadmapChecklistList({
     onRoadmapTabNavigate,
     onRevealRoadmapItem: revealRoadmapItem,
     isChecklistUpdatePending,
-    transactionSubjectId,
+    transactionId,
   };
 
   return (

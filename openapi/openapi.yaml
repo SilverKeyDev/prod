@@ -361,6 +361,14 @@ components:
       $ref: "./components/schemas/shared/dashboard/GetDashboardResponse.yaml"
     GetLoggerConfigResponse:
       $ref: "./components/schemas/shared/logger/GetLoggerConfigResponse.yaml"
+    ClientLoggerConfig:
+      $ref: "./components/schemas/shared/logger/ClientLoggerConfig.yaml"
+    ClientApiSubcategoryConfig:
+      $ref: "./components/schemas/shared/logger/ClientApiSubcategoryConfig.yaml"
+    DeploymentLoggerConfig:
+      $ref: "./components/schemas/shared/logger/DeploymentLoggerConfig.yaml"
+    DeploymentLoggerConfigUpdates:
+      $ref: "./components/schemas/shared/logger/DeploymentLoggerConfigUpdates.yaml"
     GetSenderViewUrlResponse:
       $ref: "./components/schemas/agreements/agreements/GetSenderViewUrlResponse.yaml"
     GetSigningUrlRequest:
@@ -587,6 +595,10 @@ components:
       $ref: "./components/schemas/search/properties/TransactionAddressData.yaml"
     TransactionAddressResponse:
       $ref: "./components/schemas/search/properties/TransactionAddressResponse.yaml"
+    Transaction:
+      $ref: "./components/schemas/transactions/Transaction.yaml"
+    TransactionMeResponse:
+      $ref: "./components/schemas/transactions/TransactionMeResponse.yaml"
     UpdateAgentStatusRequest:
       $ref: "./components/schemas/admin/UpdateAgentStatusRequest.yaml"
     UpdateAgentStatusResponse:
@@ -656,6 +668,14 @@ components:
       $ref: "./components/schemas/partners/PartnerLogoUploadResponse.yaml"
     RevShareStepViewRequest:
       $ref: "./components/schemas/partners/RevShareStepViewRequest.yaml"
+    RevShareStepViewResponse:
+      $ref: "./components/schemas/partners/RevShareStepViewResponse.yaml"
+    PartnerPlacementsQueryParams:
+      $ref: "./components/schemas/partners/PartnerPlacementsQueryParams.yaml"
+    RevShareAnalyticsQueryParams:
+      $ref: "./components/schemas/partners/RevShareAnalyticsQueryParams.yaml"
+    RevShareRedirectQueryParams:
+      $ref: "./components/schemas/partners/RevShareRedirectQueryParams.yaml"
     RevSharePlacementsResponse:
       $ref: "./components/schemas/partners/RevSharePlacementsResponse.yaml"
     RevShareAnalyticsResponse:
@@ -3737,6 +3757,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/transactions/me:
+    get:
+      tags: [ Transactions ]
+      summary: Get the authenticated buyer's transaction row
+      description: >
+        Ensures a `transactions` row exists for the current user (v1 one deal per buyer)
+        and returns its id for checklist and rev-share APIs.
+      operationId: getMyTransaction
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionMeResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/transactions/address:
     get:
       tags: [ Tasks ]
@@ -3802,7 +3846,7 @@ paths:
       summary: Task checklist progress summary for a transaction subject
       description: >
         Returns per-category completion counts and overall journey progress for the
-        buyer user id given by transaction_id. Same auth as GET .../tasks.
+        deal identified by `transactions.id`. Same auth as GET .../tasks.
       operationId: getTransactionTaskChecklistProgressSummary
       security:
         - sessionCookie: []
@@ -3813,7 +3857,7 @@ paths:
           required: true
           schema:
             type: string
-          description: Buyer / hub client user id whose checklist progress is returned.
+          description: Revenue spine id (`transactions.id`) for the deal whose checklist progress is returned.
       responses:
         "200":
           description: HTTP 200
@@ -3838,9 +3882,9 @@ paths:
       tags: [ Tasks ]
       summary: Task checklist for a transaction subject (buyer self or agent client)
       description: >
-        Returns the same payload as GET /api/v1/tasks for the given transaction_id
-        (buyer user id). Callers may read their own checklist or, when authorized,
-        a client checklist (agent must manage the client).
+        Returns the same payload as GET /api/v1/tasks for the given `transactions.id`.
+        Callers may read their own checklist or, when authorized, a client checklist
+        (agent must manage the client).
       operationId: getTransactionTaskChecklist
       security:
         - sessionCookie: []
@@ -3851,7 +3895,7 @@ paths:
           required: true
           schema:
             type: string
-          description: Buyer / hub client user id whose checklist progress is returned.
+          description: Revenue spine id (`transactions.id`) for the deal whose checklist progress is returned.
         - name: type
           in: query
           required: false
@@ -3888,7 +3932,7 @@ paths:
       tags: [ Tasks ]
       summary: Replace task checklist progress for a transaction subject
       description: >
-        Same semantics as PUT /api/v1/tasks for the buyer user id given by transaction_id.
+        Same semantics as PUT /api/v1/tasks for the deal identified by `transactions.id`.
         Buyers may update their own checklist; agents may update a managed client's checklist.
       operationId: putTransactionTaskChecklist
       security:
@@ -3900,7 +3944,7 @@ paths:
           required: true
           schema:
             type: string
-          description: Buyer / hub client user id whose checklist progress is updated.
+          description: Revenue spine id (`transactions.id`) for the deal whose checklist progress is updated.
         - name: type
           in: query
           required: false
@@ -3946,7 +3990,7 @@ paths:
         required: true
         schema:
           type: string
-        description: Hub client user id (same as checklist forms routes).
+        description: Revenue spine id (`transactions.id`) for the deal.
       - name: section
         in: path
         required: true
@@ -4030,7 +4074,7 @@ paths:
         required: true
         schema:
           type: string
-        description: Hub client user id (same as checklist forms routes).
+        description: Revenue spine id (`transactions.id`) for the deal.
       - name: section
         in: path
         required: true
@@ -5121,7 +5165,7 @@ paths:
   /api/v1/admin/logger-config:
     get:
       tags: [ Admin ]
-      summary: Get server logger configuration
+      summary: Get deployment logger configuration (client + server)
       operationId: adminGetLoggerConfig
       security:
         - sessionCookie: []
@@ -5141,7 +5185,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
     post:
       tags: [ Admin ]
-      summary: Update server logger configuration
+      summary: Update deployment logger configuration (client and/or server)
       operationId: adminUpdateLoggerConfig
       security:
         - sessionCookie: []
@@ -6571,6 +6615,7 @@ paths:
           required: true
           schema:
             type: string
+          description: Revenue spine id (`transactions.id`) for attribution.
       responses:
         "200":
           description: Placements

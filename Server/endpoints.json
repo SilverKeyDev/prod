@@ -80,6 +80,7 @@
   "GET /api/v1/tasks",
   "GET /api/v1/tasks/progress-summary",
   "GET /api/v1/transactions/address",
+  "GET /api/v1/transactions/me",
   "GET /api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/dispatch-automation",
   "GET /api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/documents",
   "GET /api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/forms",

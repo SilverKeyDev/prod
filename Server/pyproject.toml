@@ -64,6 +64,7 @@ ignore = [
 "scripts/validate-schema-coverage.py" = ["T201"]
 "scripts/endpoints/extract_routes.py" = ["T201", "E402"]
 "scripts/endpoints/check_dead_endpoints.py" = ["T201"]
+"scripts/endpoints/sync_inventory_posthog.py" = ["T201"]
 "scripts/seed_georgia_forms.py" = ["T201", "E402"]
 
 [tool.ruff.lint.isort]
@@ -86,7 +87,8 @@ line-ending = "auto"
 typeCheckingMode = "off"
 venvPath = "."
 venv = ".venv"
-# Run from Server/ so "app" resolves to ./app
+# Run from Server/ so "app" resolves to ./app; ../scripts for log_contracts codegen helpers
+extraPaths = ["../scripts"]
 reportMissingImports = true
 reportMissingModuleSource = true
 reportUndefinedVariable = true

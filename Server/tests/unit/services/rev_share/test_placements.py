@@ -2,6 +2,7 @@
 
 from app import db
 from app.models import Partner, RevShareLink, Transaction, User
+from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
 from app.services.rev_share.placements import get_placements_for_step
 
 
@@ -39,7 +40,12 @@ def test_placements_require_matching_step_and_workspace(app, db_session):
 
         buyer = User(email="buyer-pl@test.com", name="Buyer", is_agent=False)
         db.session.add(buyer)
-        tx = Transaction(id="tx-pl", buyer_id=buyer.id, primary_agent_id=None)
+        tx = Transaction(
+            id="tx-pl",
+            buyer_id=buyer.id,
+            primary_agent_id=None,
+            brokerage_org_id=DEFAULT_BROKERAGE_ORG_ID,
+        )
         db.session.add(tx)
         db.session.commit()
 

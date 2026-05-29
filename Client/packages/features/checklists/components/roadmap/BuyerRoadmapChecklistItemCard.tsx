@@ -68,7 +68,7 @@ export type BuyerRoadmapChecklistItemCardProps = {
   onRevealRoadmapItem?: (itemId: number) => void;
   /** When true, row checkbox and integration complete are disabled (checklist PUT in flight). */
   isChecklistUpdatePending?: boolean;
-  transactionSubjectId?: string | null;
+  transactionId?: string | null;
 };
 
 function BuyerRoadmapChecklistItemCardInner({
@@ -94,7 +94,7 @@ function BuyerRoadmapChecklistItemCardInner({
   onRoadmapTabNavigate,
   onRevealRoadmapItem,
   isChecklistUpdatePending = false,
-  transactionSubjectId,
+  transactionId,
 }: BuyerRoadmapChecklistItemCardProps) {
   const { t } = useLocalization();
   const checked = checkedIds.includes(item.id);
@@ -295,7 +295,7 @@ function BuyerRoadmapChecklistItemCardInner({
       expanded={expanded}
       hideIntegrationComponents={hideIntegrationComponents}
       roadmapTab={currentTab}
-      transactionSubjectId={transactionSubjectId}
+      transactionId={transactionId}
       onIntegrationComplete={handleIntegrationComplete}
       renderItemAgentFooter={agentFooter}
       renderItemFooter={itemFooter}

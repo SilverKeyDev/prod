@@ -17,11 +17,15 @@ describe("adminApi", () => {
 
   describe("getLoggerConfig", () => {
     it("returns config on success", async () => {
+      const deployment = {
+        client: { logLevel: "ERROR", errors: true, security: true },
+        server: { logLevel: "INFO", errors: true, security: true },
+      };
       vi.mocked(apiGet).mockResolvedValueOnce({
         success: true,
-        config: { logLevel: "INFO" },
+        config: deployment,
       });
-      await expect(adminApi.getLoggerConfig()).resolves.toEqual({ logLevel: "INFO" });
+      await expect(adminApi.getLoggerConfig()).resolves.toEqual(deployment);
       expect(apiGet).toHaveBeenCalledWith("/api/v1/admin/logger-config");
     });
 
@@ -42,15 +46,19 @@ describe("adminApi", () => {
 
   describe("updateLoggerConfig", () => {
     it("returns merged config on success", async () => {
+      const deployment = {
+        client: { logLevel: "ERROR", errors: true, security: true },
+        server: { logLevel: "DEBUG", errors: true, security: true },
+      };
       vi.mocked(apiPost).mockResolvedValueOnce({
         success: true,
-        config: { logLevel: "DEBUG" },
+        config: deployment,
       });
-      await expect(adminApi.updateLoggerConfig({ polling: true })).resolves.toEqual({
-        logLevel: "DEBUG",
-      });
+      await expect(adminApi.updateLoggerConfig({ server: { polling: true } })).resolves.toEqual(
+        deployment
+      );
       expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/logger-config", {
-        updates: { polling: true },
+        updates: { server: { polling: true } },
       });
     });
   });

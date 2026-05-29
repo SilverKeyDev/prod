@@ -143,7 +143,6 @@ basics/flask/
 
 ```example
 POSTHOG_PROJECT_TOKEN=<ph_project_token>
-POSTHOG_HOST=https://us.i.posthog.com
 FLASK_SECRET_KEY=your-secret-key-here
 FLASK_DEBUG=True
 POSTHOG_DISABLED=False
@@ -179,7 +178,7 @@ def create_app(config_name="default"):
     # Initialize PostHog
     if not app.config["POSTHOG_DISABLED"]:
         posthog.api_key = app.config["POSTHOG_PROJECT_TOKEN"]
-        posthog.host = app.config["POSTHOG_HOST"]
+        posthog.host = app.config["POSTHOG_HOST"]  # hardcoded US cloud in Config, not env
         posthog.debug = app.config["DEBUG"]
 
     # Import models after db is initialized
@@ -331,7 +330,7 @@ class Config:
 
     # PostHog configuration
     POSTHOG_PROJECT_TOKEN = os.environ.get("POSTHOG_PROJECT_TOKEN", "<ph_project_token>")
-    POSTHOG_HOST = os.environ.get("POSTHOG_HOST", "https://us.i.posthog.com")
+    POSTHOG_HOST = "https://us.i.posthog.com"
     POSTHOG_DISABLED = os.environ.get("POSTHOG_DISABLED", "False").lower() == "true"
 
 

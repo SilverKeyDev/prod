@@ -4,80 +4,18 @@ import type {
   LogLevel,
 } from "packages/logger/core/loggerTypes";
 
+import {
+  buildEnvironmentDefaults,
+  buildProductionApiConfig,
+  DEFAULT_API_CONFIG_EXPORT,
+  LOGGER_BOOLEAN_KEYS,
+  type LoggerBooleanKey,
+} from "./loggerContract.generated";
 import { isLoggerProduction, isLoggerVerboseDev, parseDevCategoryOverrides } from "./loggerEnv";
 
-export const LOGGER_BOOLEAN_KEYS = [
-  "polling",
-  "pages",
-  "hooks",
-  "auth",
-  "http",
-  "errors",
-  "security",
-  "polygonSearch",
-  "docusign",
-  "documents",
-  "mapRendering",
-  "propertyDetails",
-  "profilePreferences",
-  "dashboard",
-  "messages",
-  "routing",
-  "search",
-  "negotiation",
-  "checklists",
-  "calendar",
-  "feed",
-] as const;
+export { LOGGER_BOOLEAN_KEYS, type LoggerBooleanKey };
 
-export type LoggerBooleanKey = (typeof LOGGER_BOOLEAN_KEYS)[number];
-
-const DEFAULT_API_CONFIG: ApiSubcategoryConfig = {
-  initialLoad: false,
-  polling: false,
-  pageMount: false,
-  other: false,
-};
-
-export function buildEnvironmentDefaults(isProd: boolean): LoggerConfig {
-  const boolValue = isProd;
-  const apiValue: ApiSubcategoryConfig | boolean = isProd
-    ? {
-        initialLoad: true,
-        polling: true,
-        pageMount: true,
-        other: true,
-      }
-    : { ...DEFAULT_API_CONFIG };
-
-  const config: LoggerConfig = {
-    polling: boolValue,
-    pages: boolValue,
-    hooks: boolValue,
-    auth: boolValue,
-    http: boolValue,
-    api: apiValue,
-    errors: true,
-    security: true,
-    polygonSearch: boolValue,
-    docusign: boolValue,
-    documents: boolValue,
-    mapRendering: boolValue,
-    propertyDetails: boolValue,
-    profilePreferences: boolValue,
-    dashboard: boolValue,
-    messages: boolValue,
-    routing: boolValue,
-    search: boolValue,
-    negotiation: boolValue,
-    checklists: boolValue,
-    calendar: boolValue,
-    feed: boolValue,
-    logLevel: isProd ? "INFO" : "ERROR",
-  };
-
-  return config;
-}
+const DEFAULT_API_CONFIG: ApiSubcategoryConfig = DEFAULT_API_CONFIG_EXPORT;
 
 function mergeApiConfig(
   base: LoggerConfig["api"],
@@ -88,12 +26,7 @@ function mergeApiConfig(
   }
   if (typeof override === "boolean") {
     if (override) {
-      return {
-        initialLoad: true,
-        polling: true,
-        pageMount: true,
-        other: true,
-      };
+      return buildProductionApiConfig();
     }
     return { ...DEFAULT_API_CONFIG };
   }
@@ -111,12 +44,7 @@ function applyDevCategoryOverrides(config: LoggerConfig, keys: string[]): Logger
   const next = { ...config };
   for (const key of keys) {
     if (key === "api") {
-      next.api = {
-        initialLoad: true,
-        polling: true,
-        pageMount: true,
-        other: true,
-      };
+      next.api = buildProductionApiConfig();
       continue;
     }
     if (LOGGER_BOOLEAN_KEYS.includes(key as LoggerBooleanKey)) {
@@ -134,12 +62,7 @@ function applyDevVerbose(config: LoggerConfig): LoggerConfig {
     }
     (next as Record<string, unknown>)[key] = true;
   }
-  next.api = {
-    initialLoad: true,
-    polling: true,
-    pageMount: true,
-    other: true,
-  };
+  next.api = buildProductionApiConfig();
   next.logLevel = "DEBUG";
   return next;
 }
@@ -151,14 +74,11 @@ export function applyProductionGuard(config: LoggerConfig): LoggerConfig {
   }
   next.errors = true;
   next.security = true;
-  next.api = {
-    initialLoad: true,
-    polling: true,
-    pageMount: true,
-    other: true,
-  };
+  next.api = buildProductionApiConfig();
   return next;
 }
+
+export { buildEnvironmentDefaults };
 
 export function resolveLoggerConfig(overrides?: Partial<LoggerConfig>): LoggerConfig {
   const isProd = isLoggerProduction();

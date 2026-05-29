@@ -4,6 +4,9 @@ import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 // Re-export types from generated schema
 export type ServerLoggerConfig = components["schemas"]["ServerLoggerConfig"];
+export type ClientLoggerConfig = components["schemas"]["ClientLoggerConfig"];
+export type DeploymentLoggerConfig = components["schemas"]["DeploymentLoggerConfig"];
+export type DeploymentLoggerConfigUpdates = components["schemas"]["DeploymentLoggerConfigUpdates"];
 export type DeleteUserResponse = components["schemas"]["DeleteUserResponse"];
 
 /** Narrowed success payloads derived from OpenAPI response schemas (field names match the wire contract). */
@@ -39,7 +42,7 @@ type UpdateLoggerConfigRequest = components["schemas"]["UpdateLoggerConfigReques
 type UpdateLoggerConfigResponse = GetLoggerConfigResponse;
 
 export const adminApi = {
-  getLoggerConfig: async (): Promise<ServerLoggerConfig> => {
+  getLoggerConfig: async (): Promise<DeploymentLoggerConfig> => {
     const response = await apiGet<GetLoggerConfigResponse>("/api/v1/admin/logger-config");
     if (!response.success || !response.config) {
       throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch logger config"));
@@ -47,7 +50,9 @@ export const adminApi = {
     return response.config;
   },
 
-  updateLoggerConfig: async (updates: Partial<ServerLoggerConfig>): Promise<ServerLoggerConfig> => {
+  updateLoggerConfig: async (
+    updates: DeploymentLoggerConfigUpdates
+  ): Promise<DeploymentLoggerConfig> => {
     const response = await apiPost<UpdateLoggerConfigResponse, UpdateLoggerConfigRequest>(
       "/api/v1/admin/logger-config",
       { updates }

@@ -16,11 +16,9 @@ from app.services.aggregation import (
     write_preferences_from_payload,
 )
 from app.services.aggregation.clear_user_preferences import clear_user_preferences
-from app.services.auth import SecurityException, get_current_user
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.security.app_logging import get_logger
 from app.utils.security.secure_errors import SecureErrorHandler
-from app.utils.security.security import security_error_response
 from app.utils.validation import validate_request
 
 if TYPE_CHECKING:
@@ -29,20 +27,11 @@ if TYPE_CHECKING:
 logger = get_logger()
 
 
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_request(CreatePreferencesRequest)
-def create_or_update_preferences(data: CreatePreferencesRequest | None = None):
+def create_or_update_preferences(user: UserModel, data: CreatePreferencesRequest | None = None):
     log = current_app.logger
-    try:
-        user = get_current_user()
-        if not user:
-            log.warning("Unauthorized request: user not found in token")
-            return jsonify({"error": "Unauthorized", "success": False}), 401
-    except SecurityException as se:
-        log.warning("Security exception in create_or_update_preferences: %s", se.error_tuple)
-        return security_error_response(se.error_tuple)
-    except Exception as e:
-        log.error("Failed to get current user: %s", str(e), exc_info=True)
-        return jsonify({"success": False, "error": "Authorization failure"}), 500
     try:
         if data is not None:
             request_data = data.model_dump()
@@ -70,19 +59,9 @@ def create_or_update_preferences(data: CreatePreferencesRequest | None = None):
         )
 
 
-def get_preferences():
-    log = current_app.logger
-    try:
-        user = get_current_user()
-        if not user:
-            log.warning("Unauthorized request: user not found in token")
-            return jsonify({"error": "Unauthorized", "success": False}), 401
-    except SecurityException as se:
-        log.warning("Security exception in get_preferences: %s", se.error_tuple)
-        return security_error_response(se.error_tuple)
-    except Exception as e:
-        log.error("Failed to get current user: %s", str(e), exc_info=True)
-        return jsonify({"success": False, "error": "Authorization failure"}), 500
+@handle_exceptions_with_logging
+@require_authenticated_user
+def get_preferences(user: UserModel):
     try:
         preferences = get_preferences_dict_optional(str(user.id))
         return jsonify(
@@ -121,21 +100,20 @@ def delete_preferences(user: UserModel):
         )
 
 
-def get_user_preferences_by_id(user_id):
+@handle_exceptions_with_logging
+@require_authenticated_user
+def get_user_preferences_by_id(user: UserModel, user_id):
     """Get preferences for a specific user by user ID. Used by agents to view client preferences."""
     try:
-        current_user = get_current_user()
-        if not current_user:
-            return jsonify({"success": False, "error": "Authentication required"}), 401
-        if not current_user.is_agent:
+        if not user.is_agent:
             return jsonify({"success": False, "error": "Agent access required"}), 403
         from app.services.agent.client_service import agent_may_access_client
 
         target_id = str(user_id).strip()
-        if not agent_may_access_client(str(current_user.id), target_id):
+        if not agent_may_access_client(str(user.id), target_id):
             logger.warning(
                 "Agent %s attempted to access preferences for user %s who is not their client",
-                current_user.id,
+                user.id,
                 target_id,
             )
             return jsonify(
@@ -153,18 +131,10 @@ def get_user_preferences_by_id(user_id):
         return jsonify({"success": False, "error": "Failed to get user preferences"}), 500
 
 
-def get_clients_preferences():
+@handle_exceptions_with_logging
+@require_authenticated_user
+def get_clients_preferences(user: UserModel):
     log = current_app.logger
-    try:
-        user = get_current_user()
-        if not user:
-            log.warning("Unauthorized request: user not found in token")
-            return jsonify({"error": "Unauthorized", "success": False}), 401
-    except SecurityException as e:
-        return security_error_response(e.error_tuple)
-    except Exception as e:
-        log.error("Failed to get current user: %s", str(e), exc_info=True)
-        return jsonify({"success": False, "error": "Authorization failure"}), 500
     try:
         from app.services.agent.client_service import get_agent_client_ids
 

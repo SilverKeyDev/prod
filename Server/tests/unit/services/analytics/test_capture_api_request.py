@@ -35,7 +35,9 @@ def test_capture_api_request_2xx_properties(app):
     assert props["status_class"] == "2xx"
     assert props["is_error"] is False
     assert props["is_server_error"] is False
+    assert "duration_ms" in props
     assert "latency_ms" in props
+    assert props["duration_ms"] == props["latency_ms"]
     assert props["is_slow"] is False
 
 
@@ -136,7 +138,7 @@ def test_capture_api_request_swallows_posthog_errors(app):
         ):
             with app.test_request_context("/api/v1/public/agent-profile/user-1", method="GET"):
                 app.preprocess_request()
-                g.start_time = time.time()
+                g._request_start_perf = time.perf_counter()
                 posthog_events.capture_api_request(None, app.response_class(status=200))
 
 
@@ -149,7 +151,7 @@ def test_capture_api_request_slow_when_latency_over_one_second(app):
         ):
             with app.test_request_context("/api/v1/public/agent-profile/user-1", method="GET"):
                 app.preprocess_request()
-                g.start_time = time.time() - 1.5
+                g._request_start_perf = time.perf_counter() - 1.5
                 posthog_events.capture_api_request(None, app.response_class(status=200))
 
     assert mock_client.capture.call_args.kwargs["properties"]["is_slow"] is True

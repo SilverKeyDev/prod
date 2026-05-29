@@ -36,7 +36,7 @@ def register_after_request_headers(app):
 
     @app.after_request
     def add_security_headers(response):
-        if hasattr(g, "request_id") and hasattr(g, "start_time"):
+        if hasattr(g, "request_id") and hasattr(g, "_request_start_perf"):
             is_pdf_viewer = request.endpoint and (
                 "view_pdf_inline" in str(request.endpoint)
                 or "/view" in request.path

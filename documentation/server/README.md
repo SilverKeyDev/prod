@@ -17,6 +17,7 @@ Backend (Python/Flask) canonical docs. Lightweight module READMEs stay under `Se
 |-----|-------------|
 | [flask-architecture.md](./flask-architecture.md) | App factory, blueprints, auth pipeline |
 | [sqlalchemy-patterns.md](./sqlalchemy-patterns.md) | Models, relationships, sessions |
+| [sqlalchemy-mapped-migration.md](./sqlalchemy-mapped-migration.md) | Historical SQLAlchemy 2.0 `Mapped[]` migration reference |
 | [api-conventions.md](./api-conventions.md) | Routes, validation, pagination |
 | [input-validation.md](./input-validation.md) | Request/query validation rollout |
 | [openapi-workflow.md](./openapi-workflow.md) | Edit `openapi/` → regenerate types |

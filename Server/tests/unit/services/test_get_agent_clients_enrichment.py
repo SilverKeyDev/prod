@@ -11,6 +11,19 @@ from app.models import (
     UserRole,
 )
 from app.services.agent.client_service import get_agent_clients
+from app.services.transactions.ensure import ensure_transaction
+
+
+def _task(*, user_id: str, transaction_id: str, **kwargs) -> TransactionTask:
+    defaults = {
+        "transaction_id": transaction_id,
+        "user_id": user_id,
+        "title": "Done",
+        "status": "done",
+        "order_index": 0,
+    }
+    defaults.update(kwargs)
+    return TransactionTask(**defaults)
 
 
 def _link(agent_id: str, client_id: str) -> AgentConnections:
@@ -77,6 +90,7 @@ def test_get_agent_clients_client_kind_from_roles(db_session):
     assert by_id["c-none"]["client_kind"] == "unknown"
     for row in out:
         assert row["pipeline_stage"] == "search"
+        assert row["transaction_id"]
 
 
 def test_get_agent_clients_pipeline_stage_most_recent_category(db_session):
@@ -104,27 +118,27 @@ def test_get_agent_clients_pipeline_stage_most_recent_category(db_session):
     db_session.session.add_all([agent, c1, c2])
     db_session.session.add_all([_link("agent-e2", "c1"), _link("agent-e2", "c2")])
 
+    tx_c1 = ensure_transaction(buyer_id="c1", primary_agent_id="agent-e2")
+    ensure_transaction(buyer_id="c2", primary_agent_id="agent-e2")
+    db_session.session.flush()
+
     older = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
     newer = datetime(2024, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
 
     db_session.session.add(
-        TransactionTask(
+        _task(
             user_id="c1",
+            transaction_id=tx_c1.id,
             category="search",
-            title="Done",
-            status="done",
-            order_index=0,
             task_metadata={"templateId": 1},
             updated_at=older,
         )
     )
     db_session.session.add(
-        TransactionTask(
+        _task(
             user_id="c1",
+            transaction_id=tx_c1.id,
             category="offer",
-            title="Done",
-            status="done",
-            order_index=0,
             task_metadata={"templateId": 2},
             updated_at=newer,
         )
@@ -180,25 +194,25 @@ def test_get_agent_clients_pipeline_stage_tie_breaks_on_rank_when_same_timestamp
     )
     db_session.session.add_all([agent, cu])
     db_session.session.add(_link("agent-e3", "c-tie"))
+    tx_tie = ensure_transaction(buyer_id="c-tie", primary_agent_id="agent-e3")
+    db_session.session.flush()
     same = datetime(2024, 6, 15, 12, 0, 0, tzinfo=timezone.utc)
     db_session.session.add(
-        TransactionTask(
+        _task(
             user_id="c-tie",
+            transaction_id=tx_tie.id,
             category="search",
             title="Done search",
-            status="done",
-            order_index=0,
             task_metadata={"templateId": 1},
             updated_at=same,
         )
     )
     db_session.session.add(
-        TransactionTask(
+        _task(
             user_id="c-tie",
+            transaction_id=tx_tie.id,
             category="offer",
             title="Done offer",
-            status="done",
-            order_index=0,
             task_metadata={"templateId": 2},
             updated_at=same,
         )
@@ -286,12 +300,15 @@ def test_get_agent_clients_requires_signature_when_client_signed_agent_not(db_se
     )
     db_session.session.add_all([agent, client_u])
     db_session.session.add(_link("agent-sign", "c-sign"))
+    tx_sign = ensure_transaction(buyer_id="c-sign", primary_agent_id="agent-sign")
+    db_session.session.flush()
     agreement = Agreement(
         id="agr-1",
         status="sent",
         title="Buyer broker agreement",
         agent_id="agent-sign",
         buyer_id="c-sign",
+        transaction_id=tx_sign.id,
         agreement_type="buyer_broker",
     )
     db_session.session.add(agreement)

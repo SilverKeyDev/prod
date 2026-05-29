@@ -53,7 +53,7 @@ export default function CloseLayout({
   containerClassName = "py-0",
   showMinLoadingText = false,
   setClosePageHeaderData,
-  transactionSubjectId,
+  transactionId,
 }: CloseLayoutProps) {
   const { t } = useLocalization();
   const checklistType = useMemo(
@@ -72,7 +72,7 @@ export default function CloseLayout({
     toggleItem,
     getItemToggleEligibility,
   } = useChecklistProgress({
-    checklistSubjectUserId: transactionSubjectId ?? undefined,
+    transactionId: transactionId ?? undefined,
     activeSection: roadmapTab,
   });
 
@@ -311,7 +311,7 @@ export default function CloseLayout({
                               commitToggleItem={toggleItem}
                               toggleExpand={toggleExpand}
                               isExpanded={isExpanded}
-                              transactionSubjectId={transactionSubjectId}
+                              transactionId={transactionId}
                               renderItemFooter={renderSigningFooter}
                             />
                           );
@@ -332,7 +332,7 @@ export default function CloseLayout({
                           commitToggleItem={toggleItem}
                           toggleExpand={toggleExpand}
                           isExpanded={isExpanded}
-                          transactionSubjectId={transactionSubjectId}
+                          transactionId={transactionId}
                           renderItemFooter={renderSigningFooter}
                         />
                       ))}

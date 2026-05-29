@@ -9,10 +9,11 @@ import {
   sortTaskChecklistItems,
   useAutoCompleteChecklistIntegrations,
   useChecklistProgress,
+  useResolvedTransactionId,
 } from "packages/features/checklists";
 import { ChecklistSigningModals } from "packages/features/checklists/components/shared/ChecklistSigningModals";
 import { useChecklistStepSigningFooter } from "packages/features/checklists/hooks/useChecklistStepSigningFooter";
-import { useTransactionShellConfig } from "packages/hooks/store";
+import { useIsAgent, useTransactionShellConfig } from "packages/hooks/store";
 import { useAuthStore, useViewStore, type ViewState } from "packages/store";
 import ClientSelector from "packages/ui/components/button/propertyActions/ClientSelector";
 import { Box } from "packages/ui/components/primitives";
@@ -25,11 +26,17 @@ export default function DashboardChecklists() {
   const transactionShell = useTransactionShellConfig();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const authUserId = useAuthStore((s) => s.user?.id ?? null);
+  const isAgent = useIsAgent();
+  const clientUserIdForTx = selectedClientId ?? (!isAgent ? authUserId : null);
+  const { transactionId, isLoading: transactionIdLoading } =
+    useResolvedTransactionId(clientUserIdForTx);
   const checklistSubjectOptions = useMemo(
     () => ({
-      checklistSubjectUserId: (selectedClientId ?? authUserId) || undefined,
+      transactionId: transactionId ?? undefined,
+      isAgentViewer: isAgent && selectedClientId != null,
+      enabled: !transactionIdLoading && (transactionId != null || !isAgent),
     }),
-    [selectedClientId, authUserId]
+    [transactionId, transactionIdLoading, isAgent, selectedClientId]
   );
   const setDropdownSelection = useViewStore((s: ViewState) => s.setDropdownSelection);
   const hasInitializedTabRef = useRef(false);
@@ -67,7 +74,6 @@ export default function DashboardChecklists() {
   }, [activeTab, setDropdownSelection]);
 
   const checklistType = useMemo(() => CHECKLIST_TAB_TO_TYPE[activeTab], [activeTab]);
-  const transactionSubjectId = selectedClientId ?? authUserId;
 
   const {
     renderSigningFooter,
@@ -154,7 +160,7 @@ export default function DashboardChecklists() {
         sectionProgress={sectionProgress}
         onRoadmapTabNavigate={handleTabChange}
         isChecklistUpdatePending={isChecklistUpdatePending}
-        transactionSubjectId={transactionSubjectId}
+        transactionId={transactionId}
         renderItemFooter={renderSigningFooter}
         subtitle={
           <BodyText size="sm" className="text-text-secondary mb-4" as="p">

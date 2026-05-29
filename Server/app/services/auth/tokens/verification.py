@@ -12,7 +12,11 @@ from jose import jwk
 from jose import jwt as jose_jwt
 from jose.exceptions import JWTError
 
+from app.config.aws import AWS_COGNITO_CLIENT_ID as _CONFIG_COGNITO_CLIENT_ID
+from app.config.aws import AWS_COGNITO_USER_POOL_ID as _CONFIG_COGNITO_POOL_ID
+from app.config.aws import AWS_REGION
 from app.utils.security.security import log_security_event
+from app.utils.testing_mode import is_testing
 
 from ..core.minimal_token_service import minimal_token_service
 
@@ -20,18 +24,36 @@ logger = logging.getLogger(__name__)
 
 # =========================
 # Cognito Configuration (derive region from pool id)
+# Values come from app.config.aws; production startup validates via validate_and_raise().
 # =========================
-AWS_COGNITO_POOL_ID = os.getenv("AWS_COGNITO_USER_POOL_ID")
-if not AWS_COGNITO_POOL_ID:
-    raise RuntimeError("AWS_COGNITO_USER_POOL_ID must be set")
+_TEST_COGNITO_POOL_ID = "us-east-2_pytestStubPoolId"
+_TEST_COGNITO_CLIENT_ID = "pytest-stub-cognito-client-id"
+
+
+def _resolve_cognito_pool_id() -> str:
+    if _CONFIG_COGNITO_POOL_ID:
+        return _CONFIG_COGNITO_POOL_ID
+    if is_testing():
+        return _TEST_COGNITO_POOL_ID
+    return ""
+
+
+def _resolve_cognito_client_id() -> str:
+    if _CONFIG_COGNITO_CLIENT_ID:
+        return _CONFIG_COGNITO_CLIENT_ID
+    if is_testing():
+        return _TEST_COGNITO_CLIENT_ID
+    return ""
+
+
+AWS_COGNITO_POOL_ID = _resolve_cognito_pool_id()
+AWS_COGNITO_CLIENT_ID = _resolve_cognito_client_id()
 
 # Pool id format: 'us-east-2_abcdef...'
-_pool_region = AWS_COGNITO_POOL_ID.split("_", 1)[0]
-AWS_COGNITO_REGION = os.getenv("AWS_COGNITO_REGION", os.getenv("AWS_REGION", _pool_region))
-
-AWS_COGNITO_CLIENT_ID = os.getenv("AWS_COGNITO_CLIENT_ID")
-if not AWS_COGNITO_CLIENT_ID:
-    raise RuntimeError("AWS_COGNITO_CLIENT_ID must be set")
+_pool_region = (
+    AWS_COGNITO_POOL_ID.split("_", 1)[0] if AWS_COGNITO_POOL_ID else (AWS_REGION or "us-east-2")
+)
+AWS_COGNITO_REGION = os.getenv("AWS_COGNITO_REGION") or AWS_REGION or _pool_region
 
 AWS_COGNITO_ISSUER = f"https://cognito-idp.{AWS_COGNITO_REGION}.amazonaws.com/{AWS_COGNITO_POOL_ID}"
 AWS_COGNITO_KEYS_URL = f"{AWS_COGNITO_ISSUER}/.well-known/jwks.json"

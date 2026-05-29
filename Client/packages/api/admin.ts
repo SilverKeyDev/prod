@@ -1,7 +1,10 @@
 export {
   adminApi,
+  type ClientLoggerConfig,
   type DeleteUserByIdResult,
   type DeleteUserResponse,
+  type DeploymentLoggerConfig,
+  type DeploymentLoggerConfigUpdates,
   type ServerLoggerConfig,
   type UpdateAgentStatusRequest,
   type UpdateAgentStatusResponse,

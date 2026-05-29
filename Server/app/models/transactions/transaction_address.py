@@ -1,4 +1,4 @@
-"""TransactionAddress model - user's saved transaction/finding-home address."""
+"""TransactionAddress model - saved transaction/finding-home address."""
 
 import uuid
 from datetime import datetime, timezone
@@ -9,12 +9,18 @@ from app import db
 
 
 class TransactionAddress(db.Model):
-    """User's saved address for the 'Decide on a home' / transaction step."""
+    """Saved address for the 'Decide on a home' / transaction step."""
 
     __tablename__ = "transaction_addresses"
 
     id: Mapped[str] = mapped_column(
         db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    transaction_id: Mapped[str] = mapped_column(
+        db.ForeignKey("transactions.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+        index=True,
     )
     user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"), index=True)
     address: Mapped[str] = mapped_column(db.String(500))

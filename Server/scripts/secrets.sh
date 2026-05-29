@@ -14,7 +14,7 @@
 #     (b) dotenv text -> KEY=VALUE lines (even if \n-escaped in SecretString)
 #     (c) scalar -> falls back to SECRET_NAME=<value>
 # - Rewrites ./.env (real values) and ./.env.example (same keys, empty placeholder values)
-# TO IMPLEMENT: merge any EXPO_* keys into ../../Client/.env (Vite / Expo; see Client/.env.example)
+# - Moves EXPO_PUBLIC_* keys into ../../Client/.env and Client/.env.example (see lib/client-env-from-secrets.sh)
 
 set -eu
 
@@ -99,49 +99,6 @@ env_lines_to_example_template() {
     printf '%s\n' "${key}=\"\""
   done
 }
-
-# TO IMPLEMENT: merge EXPO_* assignments from fetched secrets into Client/.env (replace prior EXPO_* lines).
-# REPO_ROOT="$(cd "$SERVER_DIR/.." && pwd)"
-# CLIENT_ENV="$REPO_ROOT/Client/.env"
-#
-# write_client_env_expo_keys() {
-#   source_env="$1"
-#   client_env="$2"
-#   tmp_expo="$(mktemp)"
-#   tmp_preserved="$(mktemp)"
-#   tmp_out="$(mktemp)"
-#
-#   grep -E '^EXPO_[A-Za-z0-9_]*=' "$source_env" >"$tmp_expo" 2>/dev/null || true
-#   if [ ! -s "$tmp_expo" ]; then
-#     log "No EXPO_* keys in fetched secrets; Client/.env unchanged"
-#     rm -f "$tmp_expo" "$tmp_preserved" "$tmp_out"
-#     return 0
-#   fi
-#
-#   mkdir -p "$(dirname "$client_env")"
-#   if [ -f "$client_env" ]; then
-#     grep -Ev '^EXPO_[A-Za-z0-9_]*=' "$client_env" >"$tmp_preserved" 2>/dev/null || true
-#   else
-#     : >"$tmp_preserved"
-#   fi
-#
-#   stamp_client="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-#   {
-#     if [ -s "$tmp_preserved" ]; then
-#       cat "$tmp_preserved"
-#       printf '\n'
-#     fi
-#     echo "# EXPO_* keys from AWS Secrets Manager (Server/scripts/secrets.sh on $stamp_client)"
-#     echo "# Region: $REGION"
-#     cat "$tmp_expo"
-#     printf '\n'
-#   } >"$tmp_out"
-#
-#   mv "$tmp_out" "$client_env"
-#   chmod 600 "$client_env" 2>/dev/null || true
-#   log "Merged EXPO_* keys into Client/.env"
-#   rm -f "$tmp_expo" "$tmp_preserved"
-# }
 
 # List all secret names (paginated). Uses jq when available; otherwise Python + AWS CLI.
 list_secret_names() {
@@ -307,8 +264,11 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
   fi
 done
 
-# ---- rewrite .env and .env.example ----
-# TO IMPLEMENT: write_client_env_expo_keys "$tmp_env" "$CLIENT_ENV"
+# ---- split EXPO_PUBLIC_* to Client, then rewrite Server .env files ----
+# shellcheck source=lib/client-env-from-secrets.sh
+. "$SCRIPT_DIR/lib/client-env-from-secrets.sh"
+split_client_public_env_from_server "$tmp_env" "$tmp_example" "$ROOT/Client" "$REGION" "$stamp"
+
 mv "$tmp_env" .env
 mv "$tmp_example" .env.example
 chmod 600 .env || true

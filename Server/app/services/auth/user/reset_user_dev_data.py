@@ -116,7 +116,6 @@ def _reset_profile(uid: str, user: User) -> None:
     profile_picture_key = user.profile_picture
     UserAgentProfile.query.filter_by(user_id=uid).delete(synchronize_session=False)
     user.mls_id = None
-    user.brokerage = None
     user.public_profile_slug = None
     user.profile_picture = None
     db.session.add(user)

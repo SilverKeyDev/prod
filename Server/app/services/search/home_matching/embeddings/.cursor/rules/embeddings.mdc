@@ -1,9 +1,0 @@
----
-description: Embeddings and encoders rules
-globs:
-  - "Server/app/home_matching/embeddings/**"
-alwaysApply: false
----
-- Keep model loading isolated in `model_loader.py`; reuse across encoders.
-- Define feature configuration in `feature_config.py` and version it.
-- Ensure reproducibility: seed randomness; avoid nondeterministic operations where possible.

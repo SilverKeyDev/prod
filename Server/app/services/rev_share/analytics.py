@@ -50,8 +50,15 @@ def _click_base_query(filters: RevShareAnalyticsFilters, step_ids: list[str] | N
     if filters.agent_id:
         q = q.filter(RevShareLinkClick.agent_id == filters.agent_id)
     if filters.brokerage:
-        q = q.join(User, RevShareLinkClick.agent_id == User.id).filter(
-            User.brokerage == filters.brokerage
+        from app.models import Transaction
+        from app.models.brokerage import BrokerageOrg
+
+        q = (
+            q.join(Transaction, RevShareLinkClick.transaction_id == Transaction.id)
+            .join(BrokerageOrg, Transaction.brokerage_org_id == BrokerageOrg.id)
+            .filter(
+                (BrokerageOrg.slug == filters.brokerage) | (BrokerageOrg.name == filters.brokerage)
+            )
         )
     return q
 
@@ -130,7 +137,12 @@ def get_rev_share_analytics(filters: RevShareAnalyticsFilters) -> dict:
     payout = float(partner.payout_per_conversion or 0)
     payout_type = partner.payout_type or "on_click"
     if payout_type == "on_click":
-        estimated_revenue = round(total_clicks * payout, 2)
+        revenue_sum = (
+            click_q.filter(RevShareLinkClick.payout_type == "on_click")
+            .with_entities(func.coalesce(func.sum(RevShareLinkClick.payout_per_conversion), 0))
+            .scalar()
+        )
+        estimated_revenue = round(float(revenue_sum or 0), 2)
     else:
         # Close attribution not wired yet — no conversion-rate estimate
         estimated_revenue = 0.0

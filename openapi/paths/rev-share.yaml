@@ -318,6 +318,10 @@
         in: query
         schema:
           type: string
+      - name: session_id
+        in: query
+        schema:
+          type: string
       - name: utm_source
         in: query
         schema:

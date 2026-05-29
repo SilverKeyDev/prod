@@ -45,7 +45,7 @@ export type ChecklistLayoutItemRowProps = {
   commitToggleItem: (id: number) => void | Promise<void>;
   toggleExpand: (id: number) => void;
   isExpanded: (id: number) => boolean;
-  transactionSubjectId?: string | null;
+  transactionId?: string | null;
   renderItemFooter?: (item: TaskChecklistItem) => ReactNode;
 };
 
@@ -61,7 +61,7 @@ function ChecklistLayoutItemRowInner({
   commitToggleItem,
   toggleExpand,
   isExpanded,
-  transactionSubjectId,
+  transactionId,
   renderItemFooter,
 }: ChecklistLayoutItemRowProps) {
   const rowChecked = !!checkedById[item.id];
@@ -199,7 +199,7 @@ function ChecklistLayoutItemRowInner({
           item={item}
           expanded={expanded}
           roadmapTab={roadmapTab}
-          transactionSubjectId={transactionSubjectId}
+          transactionId={transactionId}
           onIntegrationComplete={handleIntegrationComplete}
           renderItemFooter={renderItemFooter?.(item) ?? null}
           integrationClassName="mt-2 px-1 pb-2"

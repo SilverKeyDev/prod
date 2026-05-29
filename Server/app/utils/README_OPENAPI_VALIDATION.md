@@ -325,6 +325,10 @@ from Server.app.schemas import LoginData
 from validation import validate_request
 ```
 
+## Exceptions (no response body validation)
+
+- **Server-Sent Events (SSE)** — e.g. `app/routes/agent/handlers/chats_stream.py` streams tokens/events without a JSON response envelope; do not apply `@validate_response` to the stream endpoint.
+
 ## Best Practices
 
 1. **Always check schema exists** before migrating route

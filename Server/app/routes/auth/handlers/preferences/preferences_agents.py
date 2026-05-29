@@ -13,7 +13,6 @@ from app.schemas import (
     UserAgentsResponse,
 )
 from app.services.agent.client_service import get_connected_agent_ids_for_client
-from app.services.auth import get_current_user
 from app.services.auth.tokens import (
     AWS_COGNITO_ISSUER,
 )
@@ -25,6 +24,7 @@ from app.services.auth.user_role_helpers import (
     user_is_agent,
     users_with_role_query,
 )
+from app.utils.common_patterns import require_authenticated_user
 from app.utils.security.app_logging import get_logger
 from app.utils.validation import validate_response
 
@@ -127,15 +127,12 @@ def set_as_agent():
         return jsonify({"success": False, "error": "Failed to assign agent"}), 500
 
 
+@require_authenticated_user
 @validate_response(UserAgentsResponse)
-def get_user_agents():
+def get_user_agents(user):
     """Get all agents linked to the authenticated user via ``agent_conversations``."""
     try:
-        current_user = get_current_user()
-        if not current_user:
-            logger.error("User not found")
-            return jsonify({"success": False, "error": "User not found"}), 404
-        agent_ids = list(get_connected_agent_ids_for_client(current_user.id))
+        agent_ids = list(get_connected_agent_ids_for_client(user.id))
         if not agent_ids:
             return jsonify({"success": True, "agents": [], "count": 0}), 200
         agents = users_with_role_query("agent").filter(User.id.in_(agent_ids)).all()  # pyright: ignore[reportAttributeAccessIssue]

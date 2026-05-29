@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from flask import request
-
+from app.schemas import RevShareStepViewRequest, RevShareStepViewResponse
 from app.services.analytics.posthog_events import capture_product_event
 from app.services.rev_share.partner_steps import list_active_partners_for_step
 from app.services.rev_share.step_views import record_buyer_step_view
@@ -14,6 +13,7 @@ from app.utils.common_patterns import (
     standardize_success_response,
 )
 from app.utils.security.admin_roles import user_has_admin_role
+from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, log
 
 
@@ -30,16 +30,17 @@ def _partner_ids_for_step(step_id: str) -> list[str]:
 
 @handle_exceptions_with_logging
 @require_authenticated_user
-def post_step_view(user):
-    data = request.get_json(silent=True) or {}
-    step_id = (data.get("step_id") or "").strip()
-    transaction_id = (data.get("transaction_id") or "").strip()
-    if not step_id or not transaction_id:
+@validate_request(RevShareStepViewRequest)
+@validate_response(RevShareStepViewResponse)
+def post_step_view(user, data: RevShareStepViewRequest | None = None):
+    if data is None:
         return standardize_error_response(
             "step_id and transaction_id are required",
             status_code=400,
             error_code="validation_error",
         )
+    step_id = data.step_id.strip()
+    transaction_id = data.transaction_id.strip()
     if not _is_buyer_user(user):
         return standardize_error_response(
             "Buyer access required", status_code=403, error_code="authorization_failed"

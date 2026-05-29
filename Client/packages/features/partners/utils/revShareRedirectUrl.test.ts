@@ -9,11 +9,13 @@ describe("buildRevShareRedirectUrl", () => {
       buyerId: "buyer-1",
       transactionId: "tx-9",
       stepId: "closing:13",
+      sessionId: "sess-abc",
     });
     expect(url).toContain("/r/abc-123");
     expect(url).toContain("buyer_id=buyer-1");
     expect(url).toContain("transaction_id=tx-9");
     expect(url).toContain("step_id=closing%3A13");
+    expect(url).toContain("session_id=sess-abc");
   });
 });
 

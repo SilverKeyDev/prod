@@ -1,6 +1,6 @@
 # Compare committed Server/endpoints.json against PostHog api_request traffic (7d).
 # Informational: exits 0 when dead endpoints exist; fails only on script/API errors.
-# Requires repository secrets: POSTHOG_PERSONAL_API_KEY, POSTHOG_PROJECT_ID
+# Requires repository secret: POSTHOG_QUERY_API_KEY (query:read; project id in posthog_constants.py)
 name: PostHog dead endpoints check
 
 on:
@@ -31,6 +31,5 @@ jobs:
 
       - name: Diff inventory vs PostHog api_request (7d)
         env:
-          POSTHOG_PERSONAL_API_KEY: ${{ secrets.POSTHOG_PERSONAL_API_KEY }}
-          POSTHOG_PROJECT_ID: ${{ secrets.POSTHOG_PROJECT_ID }}
+          POSTHOG_QUERY_API_KEY: ${{ secrets.POSTHOG_QUERY_API_KEY }}
         run: python3 Server/scripts/endpoints/check_dead_endpoints.py

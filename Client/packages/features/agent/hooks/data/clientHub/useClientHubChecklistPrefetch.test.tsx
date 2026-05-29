@@ -39,7 +39,7 @@ describe("useClientHubChecklistPrefetch", () => {
       .spyOn(QueryClient.prototype, "prefetchQuery")
       .mockResolvedValue(undefined);
 
-    renderHook(() => useClientHubChecklistPrefetch("client-1"), { wrapper });
+    renderHook(() => useClientHubChecklistPrefetch("tx-client-1"), { wrapper });
 
     await waitFor(() => {
       expect(prefetchSpy).toHaveBeenCalled();
@@ -49,7 +49,7 @@ describe("useClientHubChecklistPrefetch", () => {
     for (const type of checklistTypes) {
       expect(prefetchSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          queryKey: ["checklists", type, "client-1"],
+          queryKey: ["checklists", type, "tx-client-1"],
         })
       );
     }
@@ -58,7 +58,7 @@ describe("useClientHubChecklistPrefetch", () => {
       queryFn: () => Promise<unknown>;
     };
     await firstPrefetch.queryFn();
-    expect(getTaskChecklistForSubject).toHaveBeenCalledWith("client-1", "search");
+    expect(getTaskChecklistForSubject).toHaveBeenCalledWith("tx-client-1", "search");
 
     prefetchSpy.mockRestore();
   });

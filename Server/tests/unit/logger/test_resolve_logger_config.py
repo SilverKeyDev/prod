@@ -2,7 +2,7 @@
 
 import pytest
 
-from logger.resolve_logger_config import (
+from logger.config.resolve_logger_config import (
     apply_production_guard,
     build_environment_defaults,
     resolve_logger_config,

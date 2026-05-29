@@ -1,5 +1,6 @@
 from ..extensions import db
 from .agent import AgentConnectionRequest, AgentConnections, ChatHistory, Todo
+from .brokerage import BrokerageOrg, UserOrgMembership
 from .calendar import CalendarEvent, CalendarShare
 from .documents import (
     Agreement,
@@ -27,6 +28,7 @@ from .property import (
     UserPropertyLink,
     UserScoreWeights,
 )
+from .system import DeploymentLoggerConfig
 from .transactions import (
     ChecklistItemDispatchSetting,
     Transaction,
@@ -58,6 +60,8 @@ def init_db():
 
 
 __all__ = [
+    "BrokerageOrg",
+    "UserOrgMembership",
     "Partner",
     "RevShareLink",
     "RevShareLinkClick",
@@ -67,6 +71,7 @@ __all__ = [
     "Transaction",
     "TransactionAddress",
     "TransactionTask",
+    "DeploymentLoggerConfig",
     "Document",
     "DocumentLibraryItem",
     "ChecklistForm",

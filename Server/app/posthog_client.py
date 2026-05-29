@@ -5,7 +5,7 @@ import os
 
 from posthog import Posthog
 
-from app.services.analytics.posthog_constants import POSTHOG_API_HOST
+from app.services.analytics.posthog_constants import POSTHOG_HOST
 
 _client: Posthog | None = None
 
@@ -21,7 +21,7 @@ def init_posthog() -> Posthog | None:
         return None
     _client = Posthog(
         project_api_key=api_key,
-        host=POSTHOG_API_HOST,
+        host=POSTHOG_HOST,
         enable_exception_autocapture=True,
     )
     atexit.register(_client.shutdown)

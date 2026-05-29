@@ -38,6 +38,7 @@ Keep always-on bodies short; deep detail belongs in `documentation/` or `CLAUDE.
 | [shared/openapi-editing-patterns.mdc](shared/openapi-editing-patterns.mdc) | Editing OpenAPI sources |
 | [shared/monorepo.mdc](shared/monorepo.mdc) | Repo-wide tooling |
 | [shared/logging.mdc](shared/logging.mdc) | `Client/**`, `Server/**` |
+| [shared/api-instrumentation.mdc](shared/api-instrumentation.mdc) | `Server/app/http/**`, `Server/app/routes/**`, endpoint scripts |
 | [shared/cross-platform-component-reuse.mdc](shared/cross-platform-component-reuse.mdc) | Client TS/TSX |
 | [shared/code-organization.mdc](shared/code-organization.mdc) | File/folder structure |
 | [shared/package-feature-structure.mdc](shared/package-feature-structure.mdc) | Feature package layout |

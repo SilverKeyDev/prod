@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import os
 
+from app.services.analytics.posthog_constants import POSTHOG_APP_URL, POSTHOG_HOST
+
 
 def build_content_security_policy() -> str:
     """Return a single-line Content-Security-Policy value for the main SPA."""
@@ -35,8 +37,8 @@ def build_content_security_policy() -> str:
         "https://*.docusign.net",
         "https://account-d.docusign.com",
         "https://account.docusign.com",
-        "https://us.i.posthog.com",
-        "https://us.posthog.com",
+        POSTHOG_HOST,
+        POSTHOG_APP_URL,
     ]
     for part in connect_extra.split(","):
         s = part.strip()

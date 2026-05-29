@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy import Index, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -29,6 +30,7 @@ class BuyerStepView(db.Model):
     viewed_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(timezone.utc), nullable=False, index=True
     )
+    partner_payout_snapshot: Mapped[list[dict[str, Any]] | None] = mapped_column(db.JSON)
 
     buyer = relationship("User", foreign_keys=[buyer_id])
     transaction = relationship("Transaction")
@@ -50,4 +52,5 @@ class BuyerStepView(db.Model):
             "step_id": self.step_id,
             "transaction_id": self.transaction_id,
             "viewed_at": self.viewed_at.isoformat() if self.viewed_at else None,
+            "partner_payout_snapshot": self.partner_payout_snapshot,
         }

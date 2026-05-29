@@ -1,368 +1,40 @@
 from __future__ import annotations
 
-import json
-import logging
-import os
-import traceback
-import uuid
-from datetime import datetime, timezone
-
 from flask import Blueprint, current_app, jsonify, request
 
 from app.schemas import NegotiationStrategyRequest, NegotiationStrategyResponse
+from app.services.negotiation.strategy_route_service import build_negotiation_strategy_payload
+from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.validation import validate_request, validate_response
 
-from ..services.agent.client_service import agent_may_access_client
-from ..services.auth import get_current_user
-from ..services.search.data import get_property_detail
-from ..utils.security.secure_errors import SecureErrorHandler
-from ..utils.security.security import security_error_response
-
-# Initialize logger
-logger = logging.getLogger(__name__)
-
-# Create Blueprint
 offer_bp = Blueprint("offer", __name__, url_prefix="/api/v1/offer")
 
 
 @offer_bp.route("/generate-strategy", methods=["POST"])
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_request(NegotiationStrategyRequest)
 @validate_response(NegotiationStrategyResponse)
-def generate_negotiation_strategy(data: NegotiationStrategyRequest | None = None):
-    """
-    Generate a negotiation strategy for a specific property.
+def generate_negotiation_strategy(user, data: NegotiationStrategyRequest | None = None):
+    """Generate a negotiation strategy for a specific property."""
+    if data is not None:
+        address = data.address
+        target_user_id = data.user_id
+    else:
+        request_data = request.get_json(silent=True)
+        if not request_data:
+            current_app.logger.error("No JSON data provided in request")
+            return jsonify({"error": "No data provided", "success": False}), 400
+        address = request_data.get("address")
+        target_user_id = request_data.get("user_id")
 
-    Follows the same pattern as the report generation endpoint with proper
-    authentication, user/agent logic, and service layer integration.
+    if not address:
+        current_app.logger.error("No address provided in request data")
+        return jsonify({"error": "Address is required", "success": False}), 400
 
-    Expected payload:
-    {
-        "user_id": "user-uuid",  # Optional - for agent client selection
-        "address": "123 Main St, City, State 12345"
-    }
-    """
-    try:
-        # Get current user with proper error handling
-        from app.services.auth import SecurityException
-
-        try:
-            user = get_current_user()
-        except SecurityException as se:
-            current_app.logger.error(
-                f"🔐 [NEGOTIATION_STRATEGY] Authentication failed: {se.error_tuple}"
-            )
-            return security_error_response(se.error_tuple)
-        except Exception as e:
-            current_app.logger.error(f"🔐 [NEGOTIATION_STRATEGY] Unexpected auth error: {e}")
-            return jsonify({"error": "Authentication failed", "success": False}), 401
-
-        if data is not None:
-            request_data = data.model_dump()
-            address = request_data.get("address")
-            target_user_id = request_data.get("user_id")
-        else:
-            request_data = request.get_json(silent=True)
-            if not request_data:
-                current_app.logger.error("No JSON data provided in request")
-                return jsonify({"error": "No data provided", "success": False}), 400
-            address = request_data.get("address")
-            target_user_id = request_data.get("user_id", None)
-
-        if not address:
-            current_app.logger.error("No address provided in request data")
-            return jsonify({"error": "Address is required", "success": False}), 400
-
-        # Determine which user's preferences to use for strategy generation
-        preferences_user_id = user.id  # Default to authenticated user
-
-        if target_user_id:
-            # Agent is generating strategy for a client
-
-            # Verify the agent has access to this client
-            if not user.is_agent:
-                current_app.logger.warning(
-                    f"Non-agent user {user.id} attempted to generate strategy for another user {target_user_id}"
-                )
-                return jsonify(
-                    {
-                        "error": "Only agents can generate strategies for other users",
-                        "success": False,
-                    }
-                ), 403
-
-            target_s = str(target_user_id).strip()
-            if not agent_may_access_client(str(user.id), target_s):
-                current_app.logger.warning(
-                    f"Agent {user.id} attempted to access client {target_s} who is not in their list"
-                )
-                return jsonify(
-                    {"error": "Access denied: User is not your client", "success": False}
-                ), 403
-
-            preferences_user_id = target_s
-
-        # Import the strategy generation service
-        try:
-            from ..services.negotiation import generate_negotiation_strategy
-        except ImportError as e:
-            current_app.logger.error(f"Failed to import strategy generation service: {str(e)}")
-            return SecureErrorHandler.handle_external_api_error(
-                e, "Strategy Generation Service", {"operation": "import_service"}
-            )
-
-        # Generate unique filename for the strategy
-        strategy_id = str(uuid.uuid4())
-        filename = f"negotiation_strategy_{strategy_id}.json"
-
-        user_preferences = None
-        try:
-            from ..services.aggregation import get_preferences_dict_optional
-
-            user_preferences = get_preferences_dict_optional(str(preferences_user_id))
-            if not user_preferences:
-                current_app.logger.warning(
-                    f"⚠️ [NEGOTIATION_STRATEGY] No user preferences found for user {preferences_user_id}"
-                )
-        except Exception as e:
-            current_app.logger.error(
-                f"❌ [NEGOTIATION_STRATEGY] Failed to load user preferences: {str(e)}"
-            )
-            # Continue without preferences - service will use defaults
-
-        # Fetch detailed property information using get_property_via_address logic
-        property_data = None
-        commute_data = None
-        property_analysis = None
-
-        try:
-            # Import necessary modules for property data fetching
-            from app.services.research.perplexity import analyze_property_with_sonar_pro
-
-            from ..services.research.graphs.graphic_generation import (
-                GOOGLE_MAPS_ID,
-                fetch_directions_leg,
-                generate_static_map_url,
-            )
-
-            GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
-
-            property_data, prop_err = get_property_detail(address=address.strip())
-
-            if property_data:
-                property_address = address.strip()
-                if isinstance(property_data, dict):
-                    street = property_data.get("streetAddress", "")
-                    city = property_data.get("city", "")
-                    state = property_data.get("state", "")
-                    zipcode = property_data.get("zipcode", "")
-                    if street and city and state:
-                        property_address = f"{street}, {city}, {state} {zipcode}".strip()
-
-                if user_preferences and GOOGLE_MAPS_API_KEY:
-                    commute_data = {"travel_times": [], "property_address": property_address}
-
-                    important_locations = []
-                    locations_data = user_preferences.get("important_locations", [])
-
-                    if isinstance(locations_data, str):
-                        try:
-                            locations_data = json.loads(locations_data)
-                        except json.JSONDecodeError:
-                            locations_data = []
-
-                    if isinstance(locations_data, list):
-                        important_locations = locations_data
-
-                    secondary_locations = []
-
-                    for i, location in enumerate(important_locations):
-                        if isinstance(location, dict) and "address" in location:
-                            location_address = location["address"]
-                            location_name = (
-                                location.get("name")
-                                or location.get("label")
-                                or location_address[:40]
-                                or f"Location {i + 1}"
-                            )
-
-                            leg = fetch_directions_leg(
-                                property_address, location_address, GOOGLE_MAPS_API_KEY
-                            )
-                            travel_time = leg.get("duration_text") if leg else None
-                            encoded_polyline = leg.get("encoded_polyline") if leg else None
-
-                            commute_data["travel_times"].append(
-                                {
-                                    "name": location_name,
-                                    "address": location_address,
-                                    "travel_time": travel_time,
-                                    "commute_tolerance": location.get("commute_tolerance", 30),
-                                    "encoded_polyline": encoded_polyline,
-                                }
-                            )
-
-                            secondary_locations.append(
-                                {"name": location_name, "address": location_address}
-                            )
-
-                    map_url = None
-                    if secondary_locations:
-                        try:
-                            map_url = generate_static_map_url(
-                                property_address,
-                                secondary_locations,
-                                GOOGLE_MAPS_API_KEY,
-                                map_id=GOOGLE_MAPS_ID,
-                            )
-                        except Exception as e:
-                            current_app.logger.error(f"🗺️ [OFFER] Error generating map URL: {e}")
-
-                    commute_data["map_url"] = map_url
-
-                if user_preferences and isinstance(property_data, dict):
-                    home_object = {
-                        "address": property_address,
-                        "price": property_data.get("price", property_data.get("listPrice", 0)),
-                        "bedrooms": property_data.get("bedrooms", property_data.get("beds", 0)),
-                        "bathrooms": property_data.get("bathrooms", property_data.get("baths", 0)),
-                        "livingArea": property_data.get("livingArea", property_data.get("sqft", 0)),
-                        "propertyType": property_data.get(
-                            "propertyType", property_data.get("homeType", "Unknown")
-                        ),
-                        "lotAreaValue": property_data.get("lotAreaValue"),
-                        "lotAreaUnit": property_data.get("lotAreaUnit"),
-                        "listingStatus": property_data.get("listingStatus"),
-                        "city": property_data.get("city"),
-                        "state": property_data.get("state"),
-                        "zipcode": property_data.get("zipcode"),
-                    }
-
-                    from app.services.search.home_matching.mcda.score import get_mcda_config
-                    from app.services.search.scoring import (
-                        adjust_pros_cons_counts,
-                        compute_listing_match_score,
-                        highlights_context_payload,
-                    )
-
-                    _cfg = get_mcda_config()
-                    _lo = float(_cfg["output_display_min"])
-                    _hi = float(_cfg["output_display_max"])
-                    _mscore = compute_listing_match_score(
-                        user_preferences, property_data, config=_cfg
-                    )
-                    if _mscore is None:
-                        _p, _c = 3, 3
-                    else:
-                        _p, _c = adjust_pros_cons_counts(3, 3, _mscore, _lo, _hi)
-                    sonar_ctx = {
-                        "viewer_is_agent": bool(getattr(user, "is_agent", False)),
-                        "profile_subject": (
-                            "client" if str(preferences_user_id) != str(user.id) else "self"
-                        ),
-                        "pros_count": _p,
-                        "cons_count": _c,
-                        "bullet_style": "medium",
-                    }
-                    analysis_result = analyze_property_with_sonar_pro(
-                        user_preferences, home_object, analysis_context=sonar_ctx
-                    )
-
-                    if analysis_result:
-                        property_analysis = {
-                            "pros": analysis_result.pros,
-                            "cons": analysis_result.cons,
-                        }
-                        _hc = highlights_context_payload(_mscore)
-                        if _hc:
-                            property_analysis["highlights_context"] = _hc
-                    else:
-                        current_app.logger.warning(
-                            "⚠️ [NEGOTIATION_STRATEGY] Property analysis returned no results"
-                        )
-            else:
-                current_app.logger.warning(
-                    "⚠️ [NEGOTIATION_STRATEGY] Slipstream property fetch failed, skipping"
-                )
-
-        except Exception as e:
-            current_app.logger.error(
-                f"❌ [NEGOTIATION_STRATEGY] Error fetching property data: {str(e)}"
-            )
-            # Continue without property data - strategy will use address only
-
-        # Call the strategy generation service
-        try:
-            # Use the research service to generate negotiation strategy
-            # Enhanced with property data, commute info, and property analysis
-            enhanced_params = {
-                "strategy_type": "comprehensive",
-                "include_market_analysis": True,
-                "include_tactics": True,
-                "temperature": 0.2,
-                "max_tokens": 3000,
-                "property_data": property_data,
-                "commute_data": commute_data,
-                "property_analysis": property_analysis,
-            }
-
-            strategy_data = generate_negotiation_strategy(
-                address=address,
-                user_preferences=user_preferences,
-                property_data=property_data,
-                commute_data=commute_data,
-                property_analysis=property_analysis,
-                params=enhanced_params,
-            )
-
-            # Return the generated strategy data with enhanced property information
-            response_data = {
-                "success": True,
-                "strategy": strategy_data,
-                "property_address": address,
-                "strategy_id": strategy_id,
-                "filename": filename,
-                "generated_at": datetime.now(timezone.utc).isoformat(),
-                "generated_for_user": preferences_user_id,
-            }
-
-            # Include enhanced property data if available
-            if property_data:
-                response_data["property_data"] = property_data
-
-            if commute_data:
-                response_data["commute_data"] = commute_data
-
-            if property_analysis:
-                response_data["property_analysis"] = property_analysis
-
-            from app.services.analytics.posthog_events import capture_product_event
-
-            capture_product_event(
-                str(user.id),
-                "negotiation_strategy_generated",
-                properties={
-                    "generated_for_self": str(preferences_user_id) == str(user.id),
-                    "has_property_data": bool(property_data),
-                    "has_commute_data": bool(commute_data),
-                    "has_property_analysis": bool(property_analysis),
-                },
-            )
-
-            return jsonify(response_data), 200
-
-        except Exception as e:
-            error_msg = f"Strategy generation failed: {str(e)}"
-            current_app.logger.error(f"❌ [NEGOTIATION_STRATEGY] {error_msg}")
-            current_app.logger.error(traceback.format_exc())
-
-            return jsonify(
-                {"success": False, "error": error_msg, "traceback": traceback.format_exc()}
-            ), 500
-
-    except Exception as e:
-        error_msg = f"Failed to generate negotiation strategy: {str(e)}"
-        current_app.logger.error(f"❌ [NEGOTIATION_STRATEGY] {error_msg}")
-        current_app.logger.error(traceback.format_exc())
-        return jsonify(
-            {"success": False, "error": error_msg, "traceback": traceback.format_exc()}
-        ), 500
+    body, status = build_negotiation_strategy_payload(
+        user,
+        address=address,
+        target_user_id=target_user_id,
+    )
+    return jsonify(body), status

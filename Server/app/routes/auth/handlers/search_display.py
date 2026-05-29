@@ -9,9 +9,8 @@ from flask import current_app, jsonify, request
 from app import db
 from app.models.user.user_search_display import RESULTS_ORDER_BY_ALLOWED, UserSearchDisplaySettings
 from app.schemas import SearchDisplayPayload, SearchDisplayResponse
-from app.services.auth import SecurityException, get_current_user
+from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.security.secure_errors import SecureErrorHandler
-from app.utils.security.security import security_error_response
 from app.utils.validation import validate_request, validate_response
 
 MAP_HOME_CARDS_MIN = 1
@@ -93,20 +92,10 @@ def _get_or_create(user_id: str) -> UserSearchDisplaySettings:
     return row
 
 
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_response(SearchDisplayResponse)
-def get_search_display():
-    log = current_app.logger
-    try:
-        user = get_current_user()
-        if not user:
-            log.warning("Unauthorized request: user not found in token")
-            return jsonify({"error": "Unauthorized", "success": False}), 401
-    except SecurityException as se:
-        log.warning("Security exception in get_search_display: %s", se.error_tuple)
-        return security_error_response(se.error_tuple)
-    except Exception as e:
-        log.error("Failed to get current user: %s", str(e), exc_info=True)
-        return jsonify({"success": False, "error": "Authorization failure"}), 500
+def get_search_display(user):
     try:
         row = _get_or_create(str(user.id))
         return jsonify({"success": True, "search_display": _row_to_dict(row)})
@@ -116,21 +105,12 @@ def get_search_display():
         )
 
 
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_response(SearchDisplayResponse)
 @validate_request(SearchDisplayPayload)
-def patch_search_display(data: SearchDisplayPayload | None = None):
+def patch_search_display(user, data: SearchDisplayPayload | None = None):
     log = current_app.logger
-    try:
-        user = get_current_user()
-        if not user:
-            log.warning("Unauthorized request: user not found in token")
-            return jsonify({"error": "Unauthorized", "success": False}), 401
-    except SecurityException as se:
-        log.warning("Security exception in patch_search_display: %s", se.error_tuple)
-        return security_error_response(se.error_tuple)
-    except Exception as e:
-        log.error("Failed to get current user: %s", str(e), exc_info=True)
-        return jsonify({"success": False, "error": "Authorization failure"}), 500
     try:
         if data is not None:
             body = data.model_dump(exclude_unset=True)

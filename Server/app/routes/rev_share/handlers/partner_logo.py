@@ -8,6 +8,7 @@ from flask import current_app, jsonify, request
 
 from app import db
 from app.models import Partner
+from app.schemas import PartnerLogoUploadResponse
 from app.services.rev_share.admin.partner_logo import (
     LOGO_ALLOWED_MIME_TYPES,
     is_external_logo_reference,
@@ -16,12 +17,14 @@ from app.services.rev_share.admin.partner_logo import (
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
+from app.utils.validation import validate_response
 from logger import LOG_CATEGORIES, log
 
 
 @rate_limit(max_requests=30, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
+@validate_response(PartnerLogoUploadResponse)
 def upload_partner_logo(user, partner_id: str):
     from app.routes.rev_share.handlers.admin_partners import _require_admin
 

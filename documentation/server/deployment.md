@@ -1,6 +1,6 @@
 # Deployment
 
-> **Last verified:** 2026-05-28
+> **Last verified:** 2026-05-29
 
 ## CI/CD pointers
 
@@ -10,6 +10,7 @@
 | Lint (weekly) | `.github/workflows/lint.yml` |
 | Tests on PR | `.github/workflows/test.yml` |
 | API route inventory drift | `make routes-extract-verify` in `.github/workflows/test-callable.yml` (backend job) |
+| PostHog endpoint inventory sync | `make endpoints-sync-posthog` in `.github/workflows/test-callable.yml` (main push only) |
 | PostHog dead endpoints (weekly) | `.github/workflows/endpoints-check-dead.yml` — `make endpoints-check-dead` |
 | OpenAPI drift | `.github/workflows/openapi-sync.yml` |
 | Doc placement | `.github/workflows/doc-check.yml` |
@@ -31,9 +32,17 @@
 | ------- | ----------- | --------------- |
 | `make routes-extract` | After adding/changing Flask routes; commit `Server/endpoints.json` | **No** — inventory is code-derived and verified in CI |
 | `make routes-extract-verify` | CI on every PR/push (`test.yml` backend job) | **No** |
+| `make endpoints-sync-posthog` | CI on every push to `main`; manual with `POSTHOG_PROJECT_TOKEN` | **No** — posts `endpoint_inventory_sync` for dashboard LEFT JOIN |
 | `make endpoints-check-dead` | Weekly GitHub Actions + manual `workflow_dispatch` | **No** — needs 7 days of `api_request` traffic; new routes are expected to look “dead” right after deploy |
 
-**GitHub secrets for dead-endpoint check:** `POSTHOG_PERSONAL_API_KEY`, `POSTHOG_PROJECT_ID`.
+**PostHog config (hardcoded):** Ingest host, app URL, and project id (`441667`) live in `Server/app/services/analytics/posthog_constants.py` and `Client/packages/services/analytics/posthogConstants.ts` — not `.env` keys. Only ingest tokens and the query API key (dead-endpoint CI) are configured per environment.
+
+**GitHub secrets:**
+
+| Secret | Used by |
+| ------ | ------- |
+| `POSTHOG_PROJECT_TOKEN` | `endpoints-sync-posthog` on merge to `main` (project ingest key `phc_…`; same value as `EXPO_PUBLIC_POSTHOG_KEY` repo variable) |
+| `POSTHOG_QUERY_API_KEY` | Weekly dead-endpoint HogQL check (`make endpoints-check-dead`; personal key with `query:read`) |
 
 ## Related
 

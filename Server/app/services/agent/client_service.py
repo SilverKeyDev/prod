@@ -14,8 +14,9 @@ from app.services.agent.enrichment.client_list_enrichment import (
     batch_requires_signature,
 )
 from app.services.auth.user_role_helpers import get_user_if_agent
+from app.services.transactions.ensure import ensure_transaction
 
-from ...models import AgentConnections, User
+from ...models import AgentConnections, Transaction, User
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,10 @@ def get_agent_clients(agent_id: str) -> list[dict]:
         ordered_clients = [by_id[cid] for cid in client_id_list if cid in by_id]
 
         ordered_ids = [c.id for c in ordered_clients]
+        tx_by_buyer = {
+            str(row.buyer_id): str(row.id)
+            for row in Transaction.query.filter(Transaction.buyer_id.in_(ordered_ids)).all()
+        }
         kind_by_id = batch_client_kinds(ordered_ids)
         stage_by_id = batch_pipeline_stages(ordered_ids)
         step_by_id = batch_current_step(ordered_ids)
@@ -53,9 +58,14 @@ def get_agent_clients(agent_id: str) -> list[dict]:
         client_list = []
         for client in ordered_clients:
             cid = client.id
+            tx_id = tx_by_buyer.get(cid)
+            if not tx_id:
+                tx_id = ensure_transaction(buyer_id=cid, primary_agent_id=agent_id).id
+                tx_by_buyer[cid] = tx_id
             current_phase, current_step_label = step_by_id.get(cid, ("search", None))
             client_data = {
                 "id": cid,
+                "transaction_id": tx_id,
                 "name": client.name,
                 "email": client.email,
                 "phone": client.phone,
