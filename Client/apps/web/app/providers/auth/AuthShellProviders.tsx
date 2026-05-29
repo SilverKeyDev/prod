@@ -6,7 +6,7 @@ import { prefetchLibraryRouteQueryData } from "packages/hooks/data/polling/libra
 import { useSavedHomesStoreIntegration, useWorkspaceIdentitySync } from "packages/hooks/store";
 import { useAgentDashboardStore, useAuthStore } from "packages/store";
 
-import { useReportsStoreIntegration } from "@/features/documents/hooks/store/useReportsStoreIntegration";
+import { useReportsStoreIntegration } from "@/features/documents/hooks/store";
 
 function WorkspaceStoreIntegration() {
   useWorkspaceIdentitySync();

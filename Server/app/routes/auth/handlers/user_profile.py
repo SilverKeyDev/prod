@@ -1,4 +1,4 @@
-"""User profile and closing-mode handlers."""
+"""User profile handlers."""
 
 from __future__ import annotations
 
@@ -11,15 +11,10 @@ from flask import Response, current_app, jsonify, request
 
 from app import db
 from app.dtos.user import UserDTO
-from app.schemas import (
-    ProfilePictureResponse,
-    UpdateClosingModeRequest,
-    UpdateClosingModeResponse,
-    UserResponse,
-)
+from app.schemas import ProfilePictureResponse, UserResponse
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.security import rate_limit
-from app.utils.validation import validate_request, validate_response
+from app.utils.validation import validate_response
 
 if TYPE_CHECKING:
     from app.models.user import User
@@ -89,34 +84,6 @@ def get_user_profile(user: User) -> Response | tuple[Response, int]:
         },
     )
     return jsonify({"success": True, "data": user_data})
-
-
-@rate_limit(max_requests=100, window_seconds=60)
-@handle_exceptions_with_logging
-@require_authenticated_user
-@validate_response(UpdateClosingModeResponse)
-@validate_request(UpdateClosingModeRequest)
-def update_closing_mode(
-    user: User, data: UpdateClosingModeRequest | None = None
-) -> Response | tuple[Response, int]:
-    """Update the user's closing mode status"""
-    if data is None:
-        request_data = request.get_json(silent=True) or {}
-        if "is_closing_mode" not in request_data:
-            return jsonify({"success": False, "error": "is_closing_mode is required"}), 400
-        is_closing_mode = request_data.get("is_closing_mode")
-        if not isinstance(is_closing_mode, bool):
-            return jsonify({"success": False, "error": "is_closing_mode must be a boolean"}), 400
-    else:
-        is_closing_mode = data.is_closing_mode
-    # users.is_closing_mode was removed in DB migration bf141de1c95e; echo only for API compatibility.
-    return jsonify(
-        {
-            "success": True,
-            "data": {"is_closing_mode": is_closing_mode},
-            "is_closing_mode": is_closing_mode,
-        }
-    )
 
 
 # Allowed image types for profile picture (JPEG, PNG, GIF)

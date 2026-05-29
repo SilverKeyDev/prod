@@ -5,7 +5,7 @@ import { Icon } from "@ui/icons";
 import type { NavItem } from "packages/navigation";
 import type { IconName } from "packages/ui/types/icons";
 
-import type { OnboardingData } from "@/features/profile/types/onboarding";
+import type { OnboardingData } from "@/features/profile/types/onboarding/onboarding";
 import {
   getOnboardingSteps,
   getPersonalizationSteps,

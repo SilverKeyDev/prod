@@ -6,7 +6,7 @@ import {
   ProfileSectionGroup,
 } from "packages/features/profile/components/layout";
 import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { Box } from "packages/ui/components/primitives";
 
 import { Title } from "@/components/ui";

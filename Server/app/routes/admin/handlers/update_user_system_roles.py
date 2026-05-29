@@ -41,10 +41,14 @@ def update_user_system_roles(user, data: UpdateUserSystemRolesRequest | None = N
             "Unauthorized admin user role update attempt",
             {"actor_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Super admin access required", status_code=403)
+        return standardize_error_response(
+            "Super admin access required", status_code=403, error_code="super_admin_required"
+        )
 
     if data is None:
-        return standardize_error_response("Invalid request body", status_code=400)
+        return standardize_error_response(
+            "Invalid request body", status_code=400, error_code="validation_error"
+        )
 
     actor_id = str(getattr(user, "id", "") or "").strip()
     target_id = (data.user_id or "").strip()
@@ -54,24 +58,31 @@ def update_user_system_roles(user, data: UpdateUserSystemRolesRequest | None = N
 
     for r in grants + revokes:
         if r not in _GATE_ROLES:
-            return standardize_error_response("Invalid gate role in payload", status_code=400)
+            return standardize_error_response(
+                "Invalid gate role in payload", status_code=400, error_code="validation_error"
+            )
 
     overlap = frozenset(grants) & frozenset(revokes)
     if overlap:
         return standardize_error_response(
             "Cannot grant and revoke the same role in one request",
             status_code=400,
+            error_code="validation_error",
         )
 
     tgt = db.session.get(User, target_id)
     if tgt is None:
-        return standardize_error_response("User not found", status_code=404)
+        return standardize_error_response(
+            "User not found", status_code=404, error_code="resource_not_found"
+        )
 
     current = set(_gate_roles_for_user(target_id))
 
     if actor_id == target_id and "super_admin" in revokes:
         return standardize_error_response(
-            "You cannot remove your own super_admin role here", status_code=403
+            "You cannot remove your own super_admin role here",
+            status_code=403,
+            error_code="authorization_failed",
         )
 
     if "super_admin" in revokes and "super_admin" in current:
@@ -85,6 +96,7 @@ def update_user_system_roles(user, data: UpdateUserSystemRolesRequest | None = N
             return standardize_error_response(
                 "Refusing to remove the last remaining super_admin",
                 status_code=403,
+                error_code="authorization_failed",
             )
 
     for role in grants:

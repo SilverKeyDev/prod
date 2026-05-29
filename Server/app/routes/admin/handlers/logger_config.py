@@ -41,7 +41,9 @@ def get_logger_config(user):
             "Unauthorized admin logger config read attempt",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Admin access required", status_code=403)
+        return standardize_error_response(
+            "Admin access required", status_code=403, error_code="admin_forbidden"
+        )
 
     config = log.get_config()
     if isinstance(config, LoggerConfig):
@@ -63,7 +65,9 @@ def update_logger_config(user, data: UpdateLoggerConfigRequest | None = None):
             "Unauthorized admin logger config update attempt",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Admin access required", status_code=403)
+        return standardize_error_response(
+            "Admin access required", status_code=403, error_code="admin_forbidden"
+        )
 
     if data is None:
         request_data = request.get_json(silent=True) or {}
@@ -71,12 +75,16 @@ def update_logger_config(user, data: UpdateLoggerConfigRequest | None = None):
         request_data = data.model_dump()
     updates = request_data.get("updates") or {}
     if not isinstance(updates, dict):
-        return standardize_error_response("Invalid updates payload", status_code=400)
+        return standardize_error_response(
+            "Invalid updates payload", status_code=400, error_code="validation_error"
+        )
 
     safe_updates = {k: v for k, v in updates.items() if k in ALLOWED_LOGGER_CONFIG_KEYS}
 
     if not safe_updates:
-        return standardize_error_response("No valid logger fields to update", status_code=400)
+        return standardize_error_response(
+            "No valid logger fields to update", status_code=400, error_code="validation_error"
+        )
 
     try:
         log.update_config(safe_updates)
@@ -98,4 +106,10 @@ def update_logger_config(user, data: UpdateLoggerConfigRequest | None = None):
             "Failed to update server logger config",
             {"error": str(exc)},
         )
-        return jsonify({"success": False, "error": "Failed to update logger config"}), 500
+        return jsonify(
+            {
+                "success": False,
+                "error": "server_error",
+                "message": "Failed to update logger config",
+            }
+        ), 500

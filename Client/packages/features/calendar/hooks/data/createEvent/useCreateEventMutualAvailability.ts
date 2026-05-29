@@ -4,11 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 
 import { preferencesApi } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
-import { toBuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import { toBuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { useUserData, useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { useGoogleCalendarStore } from "packages/store";
 import { CREATE_EVENT_TIME_STEP_MINUTES } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 import { dayjs } from "packages/utils/date";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 import {
   type AvailabilityParty,
   type BuyerAvailabilityPrefs,
@@ -66,8 +68,16 @@ export function useCreateEventMutualAvailability({
   const isGoogleConnected = useGoogleCalendarStore((s) => s.isConnected);
   const { userProfile } = useUserData();
   const { userPreferences, preferencesLoading: selfPrefsLoading } = useUserPreferences();
+  const { conversations } = useAgentChats(undefined, {
+    fetchEnabled: isOpen && mode === "create" && !isAgent,
+  });
 
-  const agentIdForBuyer = userProfile?.agent_id?.trim() || null;
+  const agentIdForBuyer = useMemo(() => {
+    if (isAgent || !userProfile?.id) return null;
+    const mine = conversations.filter((c) => c.client_id === userProfile.id);
+    const list = mine.length > 0 ? mine : conversations;
+    return list[0]?.agent_id?.trim() || null;
+  }, [conversations, isAgent, userProfile?.id]);
   const otherUserId = isAgent ? selectedClientId : agentIdForBuyer;
 
   const range = useMemo(() => {
@@ -109,7 +119,7 @@ export function useCreateEventMutualAvailability({
     queryFn: async () => {
       const response = await preferencesApi.getByUserId(agentIdForBuyer!);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch preferences");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch preferences"));
       }
       return response.preferences ?? null;
     },

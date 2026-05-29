@@ -1,17 +1,3 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * API types are now generated from openapi.yaml via api.generated.ts.
- * This file contains UI-level types that augment the API schema.
- *
- * For API contract types:
- * 1. Edit openapi.yaml
- * 2. Run `pnpm generate:api-types`
- * 3. Types auto-generated in packages/types/api.generated.ts
- *
- * Feed schema for Reels-style property listings (UI-level types).
- */
-
 import type { MediaItem } from "./media";
 export type FeedListingUser = {
   id: string;

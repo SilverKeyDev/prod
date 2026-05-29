@@ -1,15 +1,15 @@
 {
-  "polling": true,
-  "pages": true,
-  "hooks": true,
-  "auth": true,
-  "http": true,
-  "api": true,
-  "errors": true,
-  "security": true,
-  "polygonSearch": true,
-  "docusign": true,
-  "documents": true,
-  "profilePreferences": true,
-  "logLevel": "DEBUG"
+  "polling": false,
+  "pages": false,
+  "hooks": false,
+  "auth": false,
+  "http": false,
+  "api": false,
+  "errors": false,
+  "security": false,
+  "polygonSearch": false,
+  "docusign": false,
+  "documents": false,
+  "profilePreferences": false,
+  "logLevel": "ERROR"
 }

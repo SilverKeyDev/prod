@@ -18,6 +18,7 @@ export { ProfileSearchPropertySection } from "./components/profileScreen/section
 export { default as LocationSection } from "./components/sections/LocationSection";
 export { ImportantLocationsInput } from "./components/settings/inputs/locations/ImportantLocationsInput";
 export { default as ProfileFeature } from "./components/settings/inputs/ProfileFeature";
+export { PersonalizationSettingsScreen } from "./components/settings/PersonalizationSettingsScreen.web";
 export type { AgentProfileFormFieldKey, ProfileStepId, ProfileUiSurface } from "./types";
 export {
   AGENT_ONLY_SECTION_IDS,
@@ -28,8 +29,8 @@ export {
   isBuyerFacingDemographicsOptionalForAgent,
   PROFILE_STEP_IDS,
 } from "./types";
-export type { BuyerPreferenceExtensions } from "./types/buyerPreferenceExtensions";
-export { toBuyerPreferenceExtensions } from "./types/buyerPreferenceExtensions";
+export type { BuyerPreferenceExtensions } from "./types/sections/buyerPreferenceExtensions";
+export { toBuyerPreferenceExtensions } from "./types/sections/buyerPreferenceExtensions";
 export type { OnboardingData, PreferencesSubmitResult } from "./utils";
 export {
   FIELD_LABELS,
@@ -42,4 +43,4 @@ export {
   userPreferencesToOnboardingData,
   validateSettingsData,
 } from "./utils";
-export { API_GET_KEYS, API_POST_KEYS } from "./utils/onboarding/fieldContract";
+export { API_GET_KEYS, API_POST_KEYS } from "./utils/onboarding/steps/fieldContract";

@@ -7,6 +7,7 @@ import { googleCalendarApi } from "packages/features/calendar/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore, useGoogleCalendarStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 
@@ -36,7 +37,7 @@ export function useGoogleCalendarStoreIntegration() {
     mutationFn: async () => {
       const response = await googleCalendarApi.revokeAccess();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to revoke access");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to revoke access"));
       }
       googleCalendarApi.clearConnectionStatus();
     },

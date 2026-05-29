@@ -8,6 +8,7 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { getInitialLoadRoutes, type RouteConfig } from "packages/services/data/dataConfig";
 import { coreUserRoutes } from "packages/services/data/dataRoutes/coreUserRoutes";
 import type { GoogleCalendar, UserProfile } from "packages/types";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
 
 import { LIBRARY_PREFETCH_ROUTE_KEYS, prefetchFormsLibrary } from "./libraryRouteDataPrefetch";
@@ -147,7 +148,7 @@ export async function prefetchChatHistory(
           limit: INITIAL_CHAT_HISTORY_LIMIT,
         });
         if (!response.success) {
-          throw new Error(response.error ?? "Failed to fetch chat history");
+          throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch chat history"));
         }
         return {
           messages: response.messages ?? [],

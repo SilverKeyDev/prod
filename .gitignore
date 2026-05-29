@@ -123,7 +123,7 @@ dist/
 # Local UI review prompt packs (optional; remove this line to commit)
 ui-review-prompts/
 
-# Local React component audit markdown (see documentation/client/react-component-audit-rubric.md)
+# Local React component audit markdown (see documentation/client/patterns/react-component-audit-rubric.md)
 audit/
 
 # OS generated files

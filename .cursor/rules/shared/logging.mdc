@@ -52,10 +52,13 @@ log.security(LOG_CATEGORIES.SECURITY, "Unauthorized access attempt", { ip: "1.2.
 - `LOG_CATEGORIES.SECURITY` - Security events (always enabled)
 
 **Configuration**:
-- Config file: `Client/packages/logger/logger.config.json`
-- Runtime config updates: `log.updateConfig({ polling: false })`
+- Config file: `Client/packages/logger/logger.config.json` (bundled overrides; env defaults win for prod/dev)
+- Environment defaults: **production** all categories on + PostHog export; **development** all off except `errors` / `security`
+- Dev opt-in: admin frontend logger toggles (`log.updateConfig`), or process env (`EXPO_PUBLIC_LOGGER_VERBOSE`, `EXPO_PUBLIC_LOGGER_CATEGORIES`, `EXPO_PUBLIC_LOGGER_POSTHOG`)
+- Runtime config updates: `log.updateConfig({ polling: true })` (prod ignores category disables)
 - Get current config: `log.getConfig()`
 - Reload config: `log.reloadConfig()`
+- Console output is gated by category + `logLevel`; PostHog export follows the same gates and runs in production (or dev when opted in)
 
 **PII Scrubbing**:
 - All log data is automatically scrubbed via `Client/packages/logger/pii.ts`
@@ -105,10 +108,13 @@ log.security(LOG_CATEGORIES["SECURITY"], "Unauthorized access attempt", {"ip": "
 - `LOG_CATEGORIES["SECURITY"]` - Security events (always enabled)
 
 **Configuration**:
-- Config file: `Server/logger/logger_config.json`
-- Runtime config updates: `log.update_config({"polling": False})`
+- Config file: `Server/logger/logger_config.json` (file overrides; env defaults win for prod/dev)
+- Environment defaults: **production** (`FLASK_ENV=production`) all categories on + PostHog OTLP; **development** all off except `errors` / `security`
+- Dev opt-in: admin `/admin/logger-config` API, or process env (`LOGGER_VERBOSE`, `LOGGER_CATEGORIES`, `LOGGER_POSTHOG`)
+- Runtime config updates: `log.update_config({"polling": True})` (prod ignores category disables)
 - Get current config: `log.get_config()`
 - Reload config: `log.reload_config()`
+- Stdout and PostHog are gated by category + `logLevel`; PostHog OTLP initializes in production (or dev when `LOGGER_POSTHOG=1`)
 
 **PII Scrubbing**:
 - All log data is automatically scrubbed via `Server/logger/pii.py`
@@ -138,12 +144,12 @@ log.security(LOG_CATEGORIES["SECURITY"], "Unauthorized access attempt", {"ip": "
 
 ### When Removing or Disabling Logging
 
-- **To disable a specific category**: Update the config file (`Client/packages/logger/logger.config.json` or `Server/logger/logger_config.json`)
-- **To disable at runtime** (frontend): `log.updateConfig({ categoryName: false })` - see `Client/packages/logger/logger.ts`
-- **To disable at runtime** (backend): `log.update_config({"categoryName": False})` - see `Server/logger/logger.py`
-- **To change log level**: Update `logLevel` in config (DEBUG, INFO, WARN, ERROR)
-- **NEVER delete log statements** - disable via config instead to maintain audit trail
-- **Note**: `ERRORS` and `SECURITY` categories cannot be disabled (always enabled) - see `Client/packages/logger/categories.ts` and `Server/logger/categories.py`
+- **Do not delete log statements** — disable via config or category defaults instead
+- **Development default is quiet** — categories are off unless opted in (admin toggles or env). `ERRORS` and `SECURITY` stay on
+- **Production default is verbose** — all categories forced on; PostHog export enabled when token is present
+- **To disable a category in dev**: `log.updateConfig({ categoryName: false })` or admin UI
+- **To change log level**: update `logLevel` in config (DEBUG, INFO, WARN, ERROR)
+- **Note**: `ERRORS` and `SECURITY` categories cannot be disabled (always enabled) — see `Client/packages/logger/categories.ts` and `Server/logger/categories.py`
 
 ### Examples of Correct Usage
 

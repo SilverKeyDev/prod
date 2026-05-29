@@ -56,9 +56,9 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
         # Parse important locations
         important_locations, loc_error = parse_important_locations(user_preferences or {})
         if loc_error:
-            current_app.logger.warning("[ISOCHRONE] %s", loc_error)
-            log.warn(
-                LOG_CATEGORIES["ERRORS"],
+            current_app.logger.info("[ISOCHRONE] %s", loc_error)
+            log.info(
+                LOG_CATEGORIES["POLYGON_SEARCH"],
                 "[ISOCHRONE] 400 NO_LOCATIONS (parse important_locations failed)",
                 {
                     "prefs_user_id": str(resolved_prefs_uid),
@@ -68,8 +68,8 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
             )
             return jsonify({"success": False, "error": "NO_LOCATIONS", "message": loc_error}), 400
         if not important_locations:
-            log.warn(
-                LOG_CATEGORIES["ERRORS"],
+            log.info(
+                LOG_CATEGORIES["POLYGON_SEARCH"],
                 "[ISOCHRONE] 400 NO_LOCATIONS (empty important_locations list)",
                 {
                     "prefs_user_id": str(resolved_prefs_uid),

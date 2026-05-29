@@ -1,5 +1,12 @@
 import type { AuthResponse } from "packages/features/homeauth/types";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { apiGet } from "packages/services/http/apiMethods";
+import type { ApiRequestOptions } from "packages/services/http/apiRequest";
+import { HttpError } from "packages/services/http/client";
+import {
+  isTransientRefreshFailure,
+  postRefreshTokenWithRetry,
+} from "packages/services/http/client/refreshTokenRetry";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
 import { getDocument, getWindow } from "packages/utils/platform";
 
@@ -9,7 +16,25 @@ const apiRequestOptions = {
   includeCredentials: true,
   includeAuth: false,
   useCors: false,
-} as unknown as import("../../../../services/http/compatibility").ApiRequestOptions;
+} as unknown as ApiRequestOptions;
+
+export type SessionVerifyResult = AuthResponse & {
+  transient?: boolean;
+};
+
+const TRANSIENT_HTTP_STATUSES = new Set([429, 502, 503, 504]);
+
+function isTransientHttpError(error: unknown): boolean {
+  if (error instanceof HttpError && TRANSIENT_HTTP_STATUSES.has(error.status)) {
+    return true;
+  }
+  if (error instanceof Error) {
+    if (error.name === "AbortError" || error.name === "TimeoutError") return true;
+    const msg = error.message.toLowerCase();
+    if (msg.includes("network") || msg.includes("fetch")) return true;
+  }
+  return false;
+}
 
 function isExpectedLoggedOutRefreshFailure(errorMessage: string): boolean {
   const normalized = errorMessage.toUpperCase();
@@ -21,7 +46,21 @@ function isExpectedLoggedOutRefreshFailure(errorMessage: string): boolean {
   );
 }
 
-export async function verifySessionHandler(): Promise<AuthResponse> {
+function mapRefreshBodyToAuthResponse(body: Record<string, unknown> | null): AuthResponse {
+  if (!body) {
+    return { success: false, error: "REFRESH_FAILED" };
+  }
+  return {
+    success: body.success === true,
+    user: body.user as AuthResponse["user"],
+    error: typeof body.error === "string" ? body.error : undefined,
+    message: typeof body.message === "string" ? body.message : undefined,
+    id_token: typeof body.id_token === "string" ? body.id_token : undefined,
+    user_sub: typeof body.user_sub === "string" ? body.user_sub : undefined,
+  };
+}
+
+export async function verifySessionHandler(): Promise<SessionVerifyResult> {
   const requestId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   const doc = getDocument();
@@ -33,8 +72,6 @@ export async function verifySessionHandler(): Promise<AuthResponse> {
     : [];
 
   try {
-    const { apiGet } = await import("../../../../services/http/compatibility");
-
     const response = await apiGet<AuthResponse & { data?: Record<string, unknown> }>(
       "/api/v1/user/profile",
       apiRequestOptions
@@ -94,6 +131,10 @@ export async function verifySessionHandler(): Promise<AuthResponse> {
       cookieCountAfterError: cookiesAfterError.length,
       currentUrl: win?.location.href,
     };
+    if (isTransientHttpError(error)) {
+      log.warn(LOG_CATEGORIES.AUTH, "Session verification transient failure", logPayload);
+      return { success: false, transient: true };
+    }
     if (hadNoSession) {
       log.debug(LOG_CATEGORIES.AUTH, "🔍 Session verification: no session (expected)", logPayload);
     } else {
@@ -103,7 +144,7 @@ export async function verifySessionHandler(): Promise<AuthResponse> {
   }
 }
 
-export async function refreshTokenHandler(): Promise<AuthResponse> {
+export async function refreshTokenHandler(): Promise<SessionVerifyResult> {
   const requestId = `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const doc = getDocument();
   const cookieCountBefore = doc
@@ -116,40 +157,41 @@ export async function refreshTokenHandler(): Promise<AuthResponse> {
   try {
     log.info(LOG_CATEGORIES.AUTH, "Starting token refresh", { requestId });
 
-    const { apiPost } = await import("../../../../services/http/compatibility");
+    const attempt = await postRefreshTokenWithRetry(3, requestId);
 
-    const response = await apiPost<AuthResponse>(
-      "/api/v1/auth/refresh-token",
-      {},
-      apiRequestOptions
-    );
-
-    if (response.success) {
-      log.info(LOG_CATEGORIES.AUTH, "Token refresh successful", {
-        requestId,
-        hasUser: !!response.user,
-      });
-    } else {
-      log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed", {
-        requestId,
-        error: response.error,
-        message: response.message,
-      });
-
-      if (
-        response.error === "REFRESH_TOKEN_EXPIRED" ||
-        response.error === "REFRESH_TOKEN_INVALID"
-      ) {
-        reportSecurityEvent({
-          type: "authentication_failure",
-          severity: "medium",
-          description: "Token refresh failed - refresh token expired or invalid",
-          metadata: { error: response.error, requestId },
+    if (attempt.success && attempt.body) {
+      const response = mapRefreshBodyToAuthResponse(attempt.body);
+      if (response.success) {
+        log.info(LOG_CATEGORIES.AUTH, "Token refresh successful", {
+          requestId,
+          hasUser: !!response.user,
         });
+        return response;
       }
     }
 
-    return response;
+    if (isTransientRefreshFailure(attempt)) {
+      log.warn(LOG_CATEGORIES.AUTH, "Token refresh transient failure", { requestId });
+      return { success: false, transient: true };
+    }
+
+    const mapped = mapRefreshBodyToAuthResponse(attempt.body);
+    log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed", {
+      requestId,
+      error: mapped.error,
+      message: mapped.message,
+    });
+
+    if (mapped.error === "REFRESH_TOKEN_EXPIRED" || mapped.error === "REFRESH_TOKEN_INVALID") {
+      reportSecurityEvent({
+        type: "authentication_failure",
+        severity: "medium",
+        description: "Token refresh failed - refresh token expired or invalid",
+        metadata: { error: mapped.error, requestId },
+      });
+    }
+
+    return mapped;
   } catch (error: unknown) {
     const err = error as Error;
     const hadNoSession = cookieCountBefore === 0;
@@ -161,6 +203,10 @@ export async function refreshTokenHandler(): Promise<AuthResponse> {
       error: errorMessage,
       errorType: err?.constructor?.name || "Unknown",
     };
+    if (isTransientHttpError(error)) {
+      log.warn(LOG_CATEGORIES.AUTH, "Token refresh transient exception", logPayload);
+      return { success: false, transient: true };
+    }
     if (expectedLoggedOutFailure) {
       log.debug(LOG_CATEGORIES.AUTH, "Token refresh: no session (expected)", logPayload);
     } else {

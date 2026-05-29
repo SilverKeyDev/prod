@@ -4,13 +4,14 @@ import logging
 from datetime import datetime, timezone
 
 from app import db
-from app.models import User, UserAgentProfile
+from app.models import User, UserAgentProfile, UserRole
 from app.services.agent.connection_request.helpers import (
     agent_row_base,
     normalize_state,
     normalize_zip,
     tokenize,
 )
+from app.services.auth.user_role_helpers import users_with_role_query, users_without_role_query
 from app.utils.format.json_string_list_parse import parse_json_or_csv_string_list
 
 logger = logging.getLogger(__name__)
@@ -38,8 +39,9 @@ def recommend_agents(
 
         rows = (
             db.session.query(User, UserAgentProfile)
+            .join(UserRole, User.id == UserRole.user_id)
+            .filter(UserRole.role == "agent")
             .outerjoin(UserAgentProfile, User.id == UserAgentProfile.user_id)
-            .filter(User.is_agent.is_(True))
             .all()
         )
 
@@ -93,7 +95,7 @@ def recommend_agents(
             return out_rows
 
         # Fallback: no signals from client — recent agents, neutral score
-        q = User.query.filter(User.is_agent.is_(True))
+        q = users_with_role_query("agent")
         if excluded:
             q = q.filter(~User.id.in_(list(excluded)))
         recent = q.order_by(User.created_at.desc()).limit(limit).all()
@@ -131,8 +133,8 @@ def search_agents(query: str, limit: int = 20) -> list[dict]:
 
         search_term = f"%{query.strip()}%"
         agents = (
-            User.query.filter(
-                User.is_agent.is_(True),
+            users_with_role_query("agent")
+            .filter(
                 db.or_(User.name.ilike(search_term), User.email.ilike(search_term)),
             )
             .limit(limit)
@@ -168,8 +170,8 @@ def search_clients(query: str, agent_id: str, limit: int = 20) -> list[dict]:
 
         search_term = f"%{query.strip()}%"
         clients = (
-            User.query.filter(
-                User.is_agent.is_(False),
+            users_without_role_query("agent")
+            .filter(
                 db.or_(User.name.ilike(search_term), User.email.ilike(search_term)),
             )
             .limit(limit)

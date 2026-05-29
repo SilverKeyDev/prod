@@ -36,10 +36,14 @@ def post_step_view(user):
     transaction_id = (data.get("transaction_id") or "").strip()
     if not step_id or not transaction_id:
         return standardize_error_response(
-            "step_id and transaction_id are required", status_code=400
+            "step_id and transaction_id are required",
+            status_code=400,
+            error_code="validation_error",
         )
     if not _is_buyer_user(user):
-        return standardize_error_response("Buyer access required", status_code=403)
+        return standardize_error_response(
+            "Buyer access required", status_code=403, error_code="authorization_failed"
+        )
 
     row, created = record_buyer_step_view(
         buyer_id=user.id,
@@ -47,7 +51,9 @@ def post_step_view(user):
         transaction_id=transaction_id,
     )
     if not row:
-        return standardize_error_response("transaction_not_found", status_code=404)
+        return standardize_error_response(
+            "Transaction not found", status_code=404, error_code="transaction_not_found"
+        )
 
     if created:
         partner_ids = _partner_ids_for_step(step_id)

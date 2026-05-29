@@ -156,6 +156,12 @@ components:
       $ref: "./components/schemas/checklists/ChecklistDispatchChannel.yaml"
     ChecklistFormSendRequest:
       $ref: "./components/schemas/checklists/ChecklistFormSendRequest.yaml"
+    ChecklistItemDocumentsResponse:
+      $ref: "./components/schemas/checklists/ChecklistItemDocumentsResponse.yaml"
+    LinkChecklistDocumentApiResponse:
+      $ref: "./components/schemas/checklists/LinkChecklistDocumentApiResponse.yaml"
+    LinkDocumentToChecklistRequest:
+      $ref: "./components/schemas/agreements/documents/LinkDocumentToChecklistRequest.yaml"
     ChecklistDispatchNoteMode:
       $ref: "./components/schemas/checklists/ChecklistDispatchNoteMode.yaml"
     ChecklistDispatchRecipientScope:
@@ -457,8 +463,6 @@ components:
       $ref: "./components/schemas/search/properties/PropertyCompsRequest.yaml"
     PropertyCompsResponse:
       $ref: "./components/schemas/search/properties/PropertyCompsResponse.yaml"
-    PropertyData:
-      $ref: "./components/schemas/search/properties/PropertyData.yaml"
     PropertyAgent:
       $ref: "./components/schemas/search/properties/PropertyAgent.yaml"
     PropertyComplete:
@@ -597,10 +601,6 @@ components:
       $ref: "./components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml"
     UpdateChecklistRequest:
       $ref: "./components/schemas/checklists/UpdateChecklistRequest.yaml"
-    UpdateClosingModeRequest:
-      $ref: "./components/schemas/auth/UpdateClosingModeRequest.yaml"
-    UpdateClosingModeResponse:
-      $ref: "./components/schemas/auth/UpdateClosingModeResponse.yaml"
     UpdateEventRequestStatusRequest:
       $ref: "./components/schemas/shared/event-requests/UpdateEventRequestStatusReque\
         st.yaml"
@@ -896,7 +896,7 @@ paths:
         - Preferences
       summary: Create or update user preferences
       description: |
-        Persists preference payload for the current user. There is no PUT /api/v1/user/profile; profile-adjacent data is updated here (and closing mode via PUT /api/v1/user/closing-mode, not documented in this core set).
+        Persists preference payload for the current user. There is no PUT /api/v1/user/profile; profile-adjacent data is updated here.
       operationId: upsertPreferences
       security:
         - sessionCookie: []
@@ -1425,47 +1425,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/user/closing-mode:
-    put:
-      tags:
-        - User
-      summary: Update closing mode status
-      description: Toggle user's closing mode (legacy API compatibility only)
-      operationId: updateClosingMode
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateClosingModeRequest"
-      responses:
-        "200":
-          description: Closing mode updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UpdateClosingModeResponse"
-        "400":
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/user/client-settings:
     get:
       tags:
@@ -1527,167 +1486,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/user/not-interested:
-    get:
-      tags:
-        - User
-      summary: List not-interested homes
-      description: Retrieve the user's list of not-interested homes
-      operationId: getNotInterestedHomes
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      responses:
-        "200":
-          description: Not-interested homes retrieved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NotInterestedHomesResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-    post:
-      tags:
-        - User
-      summary: Mark home as not interested
-      description: Add a home to the not-interested list
-      operationId: addNotInterestedHome
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddNotInterestedRequest"
-      responses:
-        "200":
-          description: Home marked as not interested
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NotInterestedHomesResponse"
-        "400":
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-    delete:
-      tags:
-        - User
-      summary: Remove home from not-interested list
-      description: Undo not-interested status for a home
-      operationId: removeNotInterestedHome
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RemoveNotInterestedRequest"
-      responses:
-        "200":
-          description: Home removed from not-interested list
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NotInterestedHomesResponse"
-        "400":
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Home not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-    patch:
-      tags:
-        - User
-      summary: Update not-interested reason
-      description: Update the reason for a not-interested home
-      operationId: updateNotInterestedHome
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateNotInterestedRequest"
-      responses:
-        "200":
-          description: Not-interested reason updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NotInterestedHomesResponse"
-        "400":
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Home not found
           content:
             application/json:
               schema:
@@ -2105,22 +1903,6 @@ paths:
       security:
         - sessionCookie: []
         - bearerAuth: []
-      parameters:
-        - name: full_scope
-          in: query
-          required: false
-          schema:
-            type: boolean
-            default: false
-          description: Request full calendar access (deprecated - all scopes always
-            requested)
-        - name: scheduling
-          in: query
-          required: false
-          schema:
-            type: boolean
-            default: false
-          description: Request scheduling scopes (deprecated - all scopes always requested)
       responses:
         "302":
           description: Redirect to Google OAuth consent screen
@@ -3829,112 +3611,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/user/timeline:
-    get:
-      tags: [ User ]
-      summary: Get timeline checklist progress
-      operationId: getTimelineChecklist
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChecklistResponse"
-        "401":
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-    put:
-      tags: [ User ]
-      summary: Replace timeline checklist progress
-      operationId: putTimelineChecklist
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateChecklistRequest"
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChecklistResponse"
-        "400":
-          description: HTTP 400
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/user/close:
-    get:
-      tags: [ User ]
-      summary: Get close checklist progress
-      operationId: getCloseChecklist
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChecklistResponse"
-        "401":
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-    put:
-      tags: [ User ]
-      summary: Replace close checklist progress
-      operationId: putCloseChecklist
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateChecklistRequest"
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChecklistResponse"
-        "400":
-          description: HTTP 400
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/user/not-interested-homes:
     get:
       tags: [ User ]
@@ -4259,6 +3935,90 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/documents:
+    parameters:
+      - name: transaction_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Hub client user id (same as checklist forms routes).
+      - name: section
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Checklist category (e.g. escrow, financing).
+      - name: item_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Checklist step id within the section.
+    get:
+      tags: [ Transactions ]
+      summary: List agreements linked to a checklist item
+      operationId: getChecklistItemDocuments
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistItemDocumentsResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ Transactions ]
+      summary: Link an agreement or uploaded document to a checklist item
+      operationId: linkAgreementToChecklistItem
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkDocumentToChecklistRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkChecklistDocumentApiResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
           content:
             application/json:
               schema:

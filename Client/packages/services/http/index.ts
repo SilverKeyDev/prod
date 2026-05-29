@@ -2,34 +2,31 @@
    HTTP Services - Main Export
    ========================= */
 
-// Core HTTP client
+export { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "./apiMethods";
+export type { ApiHeadResponse } from "./apiRequest";
+export type { ApiRequestOptions, ApiResponse, FetchJsonOpts, RetryOpts } from "./apiRequest";
+export { apiHead, apiRequest, fetchJson, fetchJsonWithRetry } from "./apiRequest";
+export { getAuthToken } from "./authToken";
 export type { HttpClientConfig, HttpClientOptions, RetryOptions } from "./client";
 export {
   AuthenticationError,
   createAbortManager,
   HttpClient,
   HttpError,
+  isAbortError,
   TimeoutError,
 } from "./client";
-
-// Configured client instance (single source of truth)
 export { configureHttpClient, httpClient } from "./client-instance";
-
-// Base URL utility - removed to avoid circular dependency
-// getBaseUrl is available from services/index.ts
-
-// Complete compatibility layer - ALL functions from /api/utils
-// Re-export from compatibility layer instead of direct api/utils
-export * from "./compatibility";
-
-/* =========================
-   Convenience Re-exports
-   ========================= */
+export { apiDownloadBlob, apiUpload } from "./fileTransfer";
+export { extractApiData, isApiResponse } from "./responseHelpers";
+export { createAuthHeaders, routeMatchesAny, routeStartsWith } from "./routeHelpers";
+export { apiAuthRequired, apiGetOptional, apiPoll } from "./specializedApi";
+export type { QueryValue } from "./urlHelpers";
+export { buildApiUrl } from "./urlHelpers";
 
 import type { RetryOptions } from "./client";
-import { httpClient } from "./config";
+import { httpClient } from "./client-instance";
 
-// Export configured client methods for direct use
 export const httpGet = (url: string, config?: RequestInit) => httpClient.get(url, config);
 export const httpPost = (url: string, data?: unknown, config?: RequestInit) =>
   httpClient.post(url, data, config);

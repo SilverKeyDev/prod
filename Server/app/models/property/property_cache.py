@@ -12,7 +12,7 @@ from app import db
 class PropertyCache(db.Model):
     """Canonical shared property record.
 
-    Unlike HomeUniversal (per-user), PropertyCache stores exactly one row per
+    Canonical listing snapshot keyed by zpid. One row per property;
     physical property identified by *zpid* or *address_normalized*.  Shared data
     (images, listing features, image features, raw API data) lives here so that
     any user viewing the same property benefits from cached API results.

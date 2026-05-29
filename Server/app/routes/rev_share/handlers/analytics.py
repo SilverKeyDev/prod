@@ -38,11 +38,15 @@ def get_admin_rev_share_analytics(user):
             "Unauthorized rev-share analytics",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Admin access required", status_code=403)
+        return standardize_error_response(
+            "Admin access required", status_code=403, error_code="admin_forbidden"
+        )
 
     partner_id = (request.args.get("partner_id") or "").strip()
     if not partner_id:
-        return standardize_error_response("partner_id is required", status_code=400)
+        return standardize_error_response(
+            "partner_id is required", status_code=400, error_code="validation_error"
+        )
 
     filters = RevShareAnalyticsFilters(
         partner_id=partner_id,
@@ -55,5 +59,10 @@ def get_admin_rev_share_analytics(user):
     )
     result = get_rev_share_analytics(filters)
     if not result.get("success"):
-        return standardize_error_response(result.get("error", "unknown"), status_code=404)
+        err = result.get("error", "unknown")
+        return standardize_error_response(
+            str(err) if err != "unknown" else "Analytics data not found",
+            status_code=404,
+            error_code="resource_not_found",
+        )
     return standardize_success_response({"data": result})

@@ -1,19 +1,6 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * This file re-exports types from the generated API contract (api.generated.ts).
- * All type definitions have been moved to openapi.yaml.
- *
- * To add/modify API types:
- * 1. Edit openapi.yaml
- * 2. Run `pnpm generate:api-types`
- * 3. Types will be auto-generated in packages/types/api.generated.ts
- *
- * This shim maintains backward compatibility for existing imports.
- */
-
-import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { apiGet, apiPost } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 // Re-export types from generated schema
 export type ServerLoggerConfig = components["schemas"]["ServerLoggerConfig"];
@@ -55,7 +42,7 @@ export const adminApi = {
   getLoggerConfig: async (): Promise<ServerLoggerConfig> => {
     const response = await apiGet<GetLoggerConfigResponse>("/api/v1/admin/logger-config");
     if (!response.success || !response.config) {
-      throw new Error(response.error ?? "Failed to fetch logger config");
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch logger config"));
     }
     return response.config;
   },
@@ -66,7 +53,7 @@ export const adminApi = {
       { updates }
     );
     if (!response.success || !response.config) {
-      throw new Error(response.error ?? "Failed to update logger config");
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to update logger config"));
     }
     return response.config;
   },
@@ -81,7 +68,7 @@ export const adminApi = {
       confirm: true,
     });
     if (!response.success || typeof response.deleted_user_id !== "string") {
-      throw new Error(response.error ?? "Failed to delete user");
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to delete user"));
     }
     return { deleted_user_id: response.deleted_user_id };
   },
@@ -99,9 +86,7 @@ export const adminApi = {
       typeof response.user_id !== "string" ||
       !Array.isArray(response.gate_roles)
     ) {
-      throw new Error(
-        typeof response.error === "string" ? response.error : "Failed to update roles"
-      );
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to update roles"));
     }
     return { user_id: response.user_id, gate_roles: response.gate_roles };
   },
@@ -119,9 +104,7 @@ export const adminApi = {
     >("/api/v1/admin/current-user-dev-workspace", body);
     if (!response.success || !response.user) {
       throw new Error(
-        typeof response.error === "string" && response.error.length > 0
-          ? response.error
-          : "Failed to update dev workspace persona"
+        resolveApiResultErrorMessage(response, "Failed to update dev workspace persona")
       );
     }
     return response.user;
@@ -139,11 +122,7 @@ export const adminApi = {
       body
     );
     if (!response.success || !response.user) {
-      throw new Error(
-        typeof response.error === "string" && response.error.length > 0
-          ? response.error
-          : "Failed to update agent status"
-      );
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to update agent status"));
     }
     return response.user;
   },
@@ -174,11 +153,7 @@ export const adminApi = {
       !response.cleared ||
       typeof response.cleared !== "object"
     ) {
-      throw new Error(
-        typeof response.error === "string" && response.error.length > 0
-          ? response.error
-          : "Failed to reset dev user data"
-      );
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to reset dev user data"));
     }
     return { target_user_id: response.target_user_id, cleared: response.cleared };
   },

@@ -8,7 +8,7 @@ from app.services.auth.user.delete_user_external_cleanup import (
 )
 
 
-def test_cleanup_calls_cognito_google_docusign_s3_and_plaid() -> None:
+def test_cleanup_calls_cognito_google_docusign_and_s3() -> None:
     user_id = "user-abc-123"
     with (
         patch(
@@ -23,10 +23,6 @@ def test_cleanup_calls_cognito_google_docusign_s3_and_plaid() -> None:
             "app.services.auth.user.delete_user_external_cleanup._revoke_docusign_oauth",
             return_value=True,
         ) as mock_docusign,
-        patch(
-            "app.services.auth.user.delete_user_external_cleanup._disconnect_plaid",
-            return_value={"items_removed": 1, "rows_deleted": 2},
-        ) as mock_plaid,
         patch(
             "app.services.auth.user.delete_user_external_cleanup._delete_user_s3_objects",
             return_value={"prefix_deleted": 3, "keys_deleted": 1},
@@ -45,7 +41,6 @@ def test_cleanup_calls_cognito_google_docusign_s3_and_plaid() -> None:
     )
     mock_google.assert_called_once_with(user_id)
     mock_docusign.assert_called_once_with(user_id)
-    mock_plaid.assert_called_once_with(user_id)
     mock_s3.assert_called_once_with(
         user_id,
         ["documents/user-abc-123/file.pdf"],
@@ -53,7 +48,6 @@ def test_cleanup_calls_cognito_google_docusign_s3_and_plaid() -> None:
     assert summary["cognito"]["deleted"] is True
     assert summary["google_revoked"] is True
     assert summary["docusign_disconnected"] is True
-    assert summary["plaid"]["items_removed"] == 1
     assert summary["s3"]["prefix_deleted"] == 3
 
 

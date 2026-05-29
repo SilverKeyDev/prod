@@ -7,4 +7,4 @@ export {
   resolveClientHubRouteClientId,
   resolveClientIdFromHubSegments,
   resolveClientIdFromLegacyHubSegment,
-} from "./clientHubSlug";
+} from "../agent/clientHubSlug";

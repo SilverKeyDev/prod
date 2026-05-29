@@ -37,12 +37,6 @@ export { ChecklistStepAttachments } from "./components/shared/ChecklistStepAttac
 export { ChecklistStepSigningFooter } from "./components/shared/ChecklistStepSigningFooter";
 export { default as ChecklistIntegrationSlot } from "./components/slots/ChecklistIntegrationSlot";
 export { default as ChecklistStepForms } from "./components/steps/ChecklistStepForms";
-export { default as ClosingMovingIn } from "./components/subheaders/ClosingMovingIn";
-export { default as EscrowLegalLogistics } from "./components/subheaders/EscrowLegalLogistics";
-export { default as FinancingInsurance } from "./components/subheaders/FinancingInsurance";
-export { default as InspectionsDueDiligence } from "./components/subheaders/InspectionsDueDiligence";
-export { default as OfferSection } from "./components/subheaders/OfferSection";
-export { default as SearchSection } from "./components/subheaders/SearchSection";
 export {
   useChecklistData,
   type UseChecklistDataOptions,
@@ -101,4 +95,3 @@ export {
 } from "./utils/rules/sectionConfig";
 export { sortTaskChecklistItems } from "./utils/sort/sortTaskChecklistItems";
 export { sortTaskChecklistItemsForDisplay } from "./utils/sort/sortTaskChecklistItemsForDisplay";
-export { PartnerTransactionIntegration as HomeConcierge } from "packages/features/partners";

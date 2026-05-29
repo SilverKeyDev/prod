@@ -1,4 +1,4 @@
-import { apiGet, apiPatch } from "packages/services/http/compatibility";
+import { apiGet, apiPatch } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
 
 export type ClientSettings = components["schemas"]["ClientSettings"];

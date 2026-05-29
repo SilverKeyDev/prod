@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { AgentShareHomesDock } from "packages/features/search/components/share/AgentShareHomesDock.web";
-import type { UseAgentSearchShareSelectionReturn } from "packages/features/search/hooks/ui/useAgentSearchShareSelection";
+import type { UseAgentSearchShareSelectionReturn } from "packages/features/search/hooks/ui/screen/useAgentSearchShareSelection";
 
 type SearchFeatureAgentShareMountProps = {
   isAgent: boolean;

@@ -129,7 +129,6 @@ class TestAgentChatsIdorIntegration:
             email="agent-unlinked@example.com",
             name="Lonely Agent",
             is_agent=True,
-            client_ids=None,
         )
         orphan = User(
             id="client-orphan",
@@ -137,7 +136,6 @@ class TestAgentChatsIdorIntegration:
             email="orphan@example.com",
             name="Orphan Client",
             is_agent=False,
-            agent_id=None,
         )
         db_session.session.add_all([agent, orphan])
         db_session.session.commit()

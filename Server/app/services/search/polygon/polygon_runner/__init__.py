@@ -7,18 +7,12 @@ Returns (response_data, status_code) or (None, (flask_response, status_code)) fo
 import time
 
 from app.services.search.data.normalizer import slim_properties_for_search_response
-from app.services.search.db.search_db import (
-    get_cached_results_with_age,
-    mark_past_search_results_as_not_current,
-)
 from app.services.search.helpers.geometry_helpers import (
-    parse_viewport_polygon_ring,
     simplify_polygon,
     to_geojson_polygon,
 )
 from app.services.search.helpers.persistence_helpers import persist_and_prune_search_results
 from app.services.search.helpers.preferences_helpers import (
-    generate_isochrone_polygon_from_preferences,
     get_user_preferences_parsed,
     map_user_preferences_to_filters,
 )
@@ -27,7 +21,12 @@ from app.services.search.helpers.search_loop_helpers import search_properties_pa
 from app.utils.http.pagination import build_pagination
 from logger import LOG_CATEGORIES, log
 
-from ..polygon_search_post_filters import apply_polygon_search_post_filters
+from ...db import (
+    get_cached_results_with_age,
+    mark_past_search_results_as_not_current,
+)
+from ..polygon_post_filters import apply_polygon_search_post_filters
+from ..resolve_search_polygon import resolve_search_polygon
 from .debug_logging import agent_debug_log
 from .preferences_helpers import (
     REQUEST_PREF_MERGE_KEYS,
@@ -187,46 +186,51 @@ def run_polygon_search(
     per_pages = max(0, min(int(30 if _raw_per_bucket is None else _raw_per_bucket), 50))
 
     viewport_raw = data.get("viewport_polygon")
-    polygon: list[dict[str, float]] | None
-    search_area_mode = "isochrone"
+    polygon, search_area_mode, vp_err = resolve_search_polygon(data, user_preferences)
 
-    if viewport_raw is not None:
-        parsed_vp, vp_err = parse_viewport_polygon_ring(viewport_raw)
-        if vp_err:
-            return (
-                {
-                    "success": False,
-                    "error": vp_err,
-                    "message": "Invalid or oversized map viewport for search",
-                },
-                400,
-            )
-        if parsed_vp is not None:
-            polygon = parsed_vp
-            search_area_mode = "viewport"
-        else:
-            polygon = None
-    else:
-        polygon = None
-
-    if polygon is None:
-        polygon = generate_isochrone_polygon_from_preferences(user_preferences)
-        search_area_mode = "isochrone"
-
-    if not polygon:
-        log.error(
-            LOG_CATEGORIES["ERRORS"],
-            "polygon_search isochrone_polygon_failed",
-            {"request_id": request_id, "user_id": user_id},
-        )
+    if vp_err:
         return (
             {
                 "success": False,
-                "error": "ISOCHRONE_FAILED",
-                "message": "Failed to generate search area",
+                "error": vp_err,
+                "message": "Invalid or oversized map viewport for search",
             },
             400,
         )
+
+    if not polygon:
+        total_time = time.time() - start_time
+        log.info(
+            _POLY,
+            "polygon_search no_search_area",
+            {
+                "request_id": request_id,
+                "user_id": user_id,
+                "had_viewport": viewport_raw is not None,
+            },
+        )
+        response_data = {
+            "success": True,
+            "properties": [],
+            "total_count": 0,
+            "has_more": False,
+            "pagination": build_pagination(page=1, per_page=TOP_N, total=0),
+            "meta": {
+                "cached": False,
+                "requestsMade": 0,
+                "deduped": 0,
+                "errors": [],
+                "status_type": status_type,
+                "pagesTried": 0,
+                "searchTime": round(total_time, 2),
+                "scored": False,
+                "requestId": request_id,
+                "limit": TOP_N,
+                "searchArea": search_area_mode,
+                "message": "No search area could be resolved; send viewport_polygon from the client.",
+            },
+        }
+        return (response_data, 200)
 
     assert polygon is not None
     if polygon[0] != polygon[-1]:

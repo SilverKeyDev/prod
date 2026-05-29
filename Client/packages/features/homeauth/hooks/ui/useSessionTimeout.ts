@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { AUTH_CONFIG } from "packages/config/auth/auth";
+import { clearSessionStorageForLogout } from "packages/features/homeauth/hooks/data/utils/logoutCleanup";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { clearAuthTokens } from "packages/utils";
 import { getDocument, getWindow } from "packages/utils/platform";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
 
 import { getErrorMessage } from "./errorMessageHelpers";
 
 type SessionTimeoutConfig = {
-  idleTimeoutMs?: number; // Default: 30 minutes
-  maxSessionMs?: number; // Default: 8 hours
-  checkIntervalMs?: number; // Default: 1 minute
+  /** Aligned with server session cookie max-age (8h). */
+  idleTimeoutMs?: number;
+  maxSessionMs?: number;
+  checkIntervalMs?: number;
   /** When provided (e.g. on React Native), called instead of window redirect on logout */
-  onLogout?: () => void;
+  onLogout?: () => void | Promise<void>;
 };
 
 type SessionTimeoutState = {
@@ -21,10 +22,14 @@ type SessionTimeoutState = {
   sessionExpired: boolean;
 };
 
-const DEFAULT_CONFIG: Required<SessionTimeoutConfig> = {
-  idleTimeoutMs: 30 * 60 * 1000, // 30 minutes
-  maxSessionMs: 8 * 60 * 60 * 1000, // 8 hours
-  checkIntervalMs: 60 * 1000, // 1 minute
+const SESSION_MAX_MS = AUTH_CONFIG.SESSION.MAX_DURATION;
+
+const DEFAULT_CONFIG: Required<Omit<SessionTimeoutConfig, "onLogout">> & {
+  onLogout?: SessionTimeoutConfig["onLogout"];
+} = {
+  idleTimeoutMs: SESSION_MAX_MS,
+  maxSessionMs: SESSION_MAX_MS,
+  checkIntervalMs: 60 * 1000,
 };
 
 const ACTIVITY_EVENTS = ["mousedown", "mousemove", "keypress", "scroll", "touchstart", "click"];
@@ -36,12 +41,18 @@ const ACTIVITY_EVENTS = ["mousedown", "mousemove", "keypress", "scroll", "touchs
 export function useSessionTimeout(config: SessionTimeoutConfig = {}): SessionTimeoutState & {
   logout: () => void;
 } {
-  // Memoize on primitive values so default {} does not change every render (avoids effect loop).
-  // Intentionally omit `config` from deps; primitive values are the stable dependency source.
+  const onLogoutRef = useRef(config.onLogout);
+  onLogoutRef.current = config.onLogout;
+
+  // Memoize on primitive values only — inline `onLogout` arrows change every render and must not
+  // be in deps (see App.tsx session timeout; causes "Maximum update depth exceeded").
   const fullConfig = useMemo(
-    () => ({ ...DEFAULT_CONFIG, ...config }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- config object reference is unstable when omitted; primitives are stable
-    [config?.idleTimeoutMs, config?.maxSessionMs, config?.checkIntervalMs, config?.onLogout]
+    () => ({
+      idleTimeoutMs: config.idleTimeoutMs ?? DEFAULT_CONFIG.idleTimeoutMs,
+      maxSessionMs: config.maxSessionMs ?? DEFAULT_CONFIG.maxSessionMs,
+      checkIntervalMs: config.checkIntervalMs ?? DEFAULT_CONFIG.checkIntervalMs,
+    }),
+    [config.idleTimeoutMs, config.maxSessionMs, config.checkIntervalMs]
   );
 
   const [state, setState] = useState<SessionTimeoutState>({
@@ -65,28 +76,29 @@ export function useSessionTimeout(config: SessionTimeoutConfig = {}): SessionTim
       idleDuration: Date.now() - lastActivityRef.current,
     });
 
-    // Clear tokens
-    clearAuthTokens();
-
-    // Clear session data
-    try {
-      const session = getSessionStorage();
-      session.removeItem("negotiationStrategy");
-      session.removeItem("negotiationSelectedHome");
-      session.clear();
-    } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.AUTH, "Error clearing session data", {
-        errorMessage: getErrorMessage(error),
-      });
-    }
-
-    // Navigate to login - use onLogout callback on RN, else window.location
-    if (fullConfig.onLogout) {
-      fullConfig.onLogout();
-    } else {
-      const win = getWindow();
-      if (win) win.location.href = "/login";
-    }
+    const runLogout = async () => {
+      try {
+        if (onLogoutRef.current) {
+          await onLogoutRef.current();
+        }
+      } catch (error: unknown) {
+        log.error(LOG_CATEGORIES.AUTH, "Session timeout onLogout failed", {
+          errorMessage: getErrorMessage(error),
+        });
+      }
+      try {
+        clearSessionStorageForLogout();
+      } catch (error: unknown) {
+        log.error(LOG_CATEGORIES.AUTH, "Error clearing session data", {
+          errorMessage: getErrorMessage(error),
+        });
+      }
+      if (!onLogoutRef.current) {
+        const win = getWindow();
+        if (win) win.location.href = "/login";
+      }
+    };
+    void runLogout();
 
     setState({
       isIdle: true,

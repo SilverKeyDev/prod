@@ -31,13 +31,7 @@ import type {
   VoidAgreementResponse,
 } from "packages/features/documents/types/docusign";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import {
-  apiDelete,
-  apiGet,
-  apiPost,
-  apiPut,
-  apiUpload,
-} from "packages/services/http/compatibility";
+import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from "packages/services/http";
 
 function resolveRevisionUploadFileName(fileName?: string): string {
   const name = fileName?.trim();

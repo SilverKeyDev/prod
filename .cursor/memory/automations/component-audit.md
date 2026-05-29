@@ -14,7 +14,7 @@
 
 ## Do
 
-1. Read `documentation/client/react-component-audit-rubric.md` for the axis in the prompt.
+1. Read `documentation/client/patterns/react-component-audit-rubric.md` for the axis in the prompt.
 2. One axis or one component cluster per run.
 3. Split UI / hooks / data per thin-app rules.
 

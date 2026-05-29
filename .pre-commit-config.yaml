@@ -77,7 +77,7 @@ repos:
   #       exclude: |
   #         (?x)^(
   #           .*\.pem\.example$|
-  #           documentation/client/docusign-integration\.md$|
+  #           documentation/client/features/docusign-integration\.md$|
   #           Server/app/services/docusign/docs/README\.md$|
   #           Server/app/services/docusign/docs/TESTING\.md$
   #         )

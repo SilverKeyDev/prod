@@ -9,8 +9,13 @@ import { type ReactNode, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 
 import { ClientSettingsBootstrap } from "packages/features/homeauth/components/ClientSettingsBootstrap";
+import {
+  applyLocalUnauthenticatedState,
+  redirectToLoginIfNeeded,
+} from "packages/services/http/client/auth";
 import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
+import { getWindow } from "packages/utils/platform";
 
 import { runAuthBootstrap } from "./authBootstrap";
 
@@ -59,11 +64,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       bc = new BroadcastChannel("auth");
       bc.onmessage = (e) => {
         if (e?.data?.type === "logout") {
-          // Perform local logout cleanup without server call
-          setStoreUser(null);
-          setIsAuthenticated(false);
-          setStoreAuthStatus("unauthenticated");
-          setStoreAuthReady(false);
+          applyLocalUnauthenticatedState();
+          redirectToLoginIfNeeded();
         }
       };
     } catch {
@@ -76,7 +78,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         /* ignore */
       }
     };
-  }, [setIsAuthenticated, setStoreAuthReady, setStoreAuthStatus, setStoreUser]);
+  }, []);
+
+  // Same-tab auth errors from HTTP layer (notifyAuthenticationError dispatches this event).
+  useEffect(() => {
+    const win = getWindow();
+    if (!win) return;
+    const onAuthenticationError = () => {
+      applyLocalUnauthenticatedState();
+    };
+    win.addEventListener("authenticationError", onAuthenticationError);
+    return () => win.removeEventListener("authenticationError", onAuthenticationError);
+  }, []);
 
   // Gate rendering on bootstrap completion
   // Only render children when auth is ready (not checking)

@@ -28,7 +28,7 @@ def require_validated_user(request_schema=None):
         @user_bp.route('/profile', methods=['GET'])
         @require_validated_user()
         def get_profile(user):
-            return jsonify({"success": True, "user": user.to_dict()})
+            return jsonify({"success": True, "user": UserDTO.to_response(user)})
     """
     from app.utils.validation import validate_request
 

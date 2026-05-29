@@ -3,7 +3,7 @@
 from app.services.search.home_matching.mcda.criteria.user_feature_match import (
     user_feature_need_matches_property,
 )
-from app.services.search.polygon.polygon_search_post_filters import (
+from app.services.search.polygon.polygon_post_filters import (
     PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT,
     apply_polygon_search_post_filters,
 )

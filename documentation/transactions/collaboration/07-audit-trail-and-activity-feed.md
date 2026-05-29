@@ -1,83 +1,26 @@
-## Audit Trail and Activity Feed
+> **Status:** Planned | **Last verified:** 2026-05-28
 
-### Problem / goal
+## Audit trail and activity feed
 
-Transactions involve many state changes over time:
-- Checklist updates.
-- Document uploads and signatures.
-- Milestone date changes.
-- Participant invites and role changes.
+There is **no transaction-level `ActivityEvent` feed**. Audit today is chat history, structured server logs, and partner exposure logging.
 
-We need a robust **audit trail** and a user-friendly **activity feed** so that:
-- Participants can see “who did what when.”
-- Compliance and support teams can reconstruct transaction history if needed.
+### What exists
 
-### Data model & invariants
+- **Messaging history:** Append-only chat messages with roles, attachments, event-request metadata.
+- **Server logging:** PII-scrubbed logs via `Server/logger` (checklist, DocuSign, API paths).
+- **Partner exposure:** RESPA-aware placement logging for marketplace/checklist embeds (see partners feature).
 
-- **ActivityEvent**
-  - `id`
-  - `transaction_id`
-  - `actor_participant_id` (or system)
-  - `event_type` (e.g. `checklist_item_completed`, `agreement_uploaded`, `agreement_signed`, `milestone_date_changed`, `participant_invited`, `participant_role_changed`, `integration_task_completed`, etc.)
-  - `created_at`
-  - `payload` (structured metadata: labels, previous/new values, etc.)
+### Planned
 
-Invariants:
-- Activity events are **append-only**:
-  - No destructive editing.
-  - Corrections are represented as new events.
-- Activity logs are **filterable** by:
-  - Event type.
-  - Participant.
-  - Time range.
+- Append-only `ActivityEvent` per transaction (checklist, documents, invites, milestones).
+- In-app "History" tab with filters and deep links.
 
-### Flows / UX
+### Code pointers
 
-1. **Event generation**
-   - Whenever a significant change happens:
-     - The responsible service (e.g. checklist, agreements, milestones, participants, integrations) emits an `ActivityEvent`.
-
-2. **In-app activity feed**
-   - Each transaction has a “History” or “Activity” tab:
-     - Chronological list of ActivityEvents.
-     - Grouped or filtered by:
-       - Category (tasks, documents, calendar, participants, integrations).
-   - Users can:
-     - Click entries to navigate to the relevant checklist item, document, or milestone.
-
-3. **Compliance and support views**
-   - Internal views (for admins/support) may show:
-     - Raw ActivityEvents with full payloads.
-     - Cross-transaction searches for troubleshooting.
-
-### Existing infrastructure to reuse / extend
-
-- **Backend logging**
-  - `Server/logger`:
-    - Already defines centralized logging and PII scrubbing.
-  - Wherever possible:
-    - The same patterns for structured logging and redaction should apply to ActivityEvents.
-
-- **Existing audit or history features**
-  - Any current models or logs that:
-    - Track document revisions.
-    - Capture chat or messaging history.
-  - Can inspire:
-    - Event payloads and access patterns without duplicating logic.
-
-### Gaps that require new work
-
-- **ActivityEvent model and service**
-  - Back-end storage and API to:
-    - Append events.
-    - Query events per transaction.
-
-- **Event emission from services**
-  - Checklist, documents, milestones, participants, and integration modules must:
-    - Emit ActivityEvents at key points.
-    - Use consistent `event_type` naming and payload schemas.
-
-- **UI for activity feed**
-  - A transaction-level activity feed component that:
-    - Supports filtering and search.
-    - Provides clear, human-readable summaries.
+| Area | Path |
+| ---- | ---- |
+| Chat history API | `Server/app/routes/agent/handlers/chats.py` — `get_chat_history` |
+| Messaging hook | `Client/packages/features/messaging/hooks/data/messaging/useMessaging.ts` |
+| Logger | `Server/logger/logger.py` |
+| Partner placement | `Client/packages/features/partners/hooks/usePartnerPlacementPresentation.ts` |
+| Feed feature (listings, not tx activity) | `Client/packages/features/feed/` |

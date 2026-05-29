@@ -20,8 +20,6 @@ const authState = {
     name: "Test",
     is_active: true,
     is_agent: true,
-    has_subscription: false,
-    subscription: null,
     has_preferences: false,
     roles: ["admin"],
   },

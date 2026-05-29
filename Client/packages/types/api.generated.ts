@@ -113,7 +113,7 @@ export interface paths {
     put?: never;
     /**
      * Create or update user preferences
-     * @description Persists preference payload for the current user. There is no PUT /api/v1/user/profile; profile-adjacent data is updated here (and closing mode via PUT /api/v1/user/closing-mode, not documented in this core set).
+     * @description Persists preference payload for the current user. There is no PUT /api/v1/user/profile; profile-adjacent data is updated here.
      */
     post: operations["upsertPreferences"];
     /**
@@ -331,26 +331,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/api/v1/user/closing-mode": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /**
-     * Update closing mode status
-     * @description Toggle user's closing mode (legacy API compatibility only)
-     */
-    put: operations["updateClosingMode"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   "/api/v1/user/client-settings": {
     parameters: {
       query?: never;
@@ -373,38 +353,6 @@ export interface paths {
      * @description Deep-merges partial JSON into stored settings; null removes a top-level key.
      */
     patch: operations["patchUserClientSettings"];
-    trace?: never;
-  };
-  "/api/v1/user/not-interested": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List not-interested homes
-     * @description Retrieve the user's list of not-interested homes
-     */
-    get: operations["getNotInterestedHomes"];
-    put?: never;
-    /**
-     * Mark home as not interested
-     * @description Add a home to the not-interested list
-     */
-    post: operations["addNotInterestedHome"];
-    /**
-     * Remove home from not-interested list
-     * @description Undo not-interested status for a home
-     */
-    delete: operations["removeNotInterestedHome"];
-    options?: never;
-    head?: never;
-    /**
-     * Update not-interested reason
-     * @description Update the reason for a not-interested home
-     */
-    patch: operations["updateNotInterestedHome"];
     trace?: never;
   };
   "/api/v1/viewings/route": {
@@ -1279,42 +1227,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/api/v1/user/timeline": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get timeline checklist progress */
-    get: operations["getTimelineChecklist"];
-    /** Replace timeline checklist progress */
-    put: operations["putTimelineChecklist"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/close": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get close checklist progress */
-    get: operations["getCloseChecklist"];
-    /** Replace close checklist progress */
-    put: operations["putCloseChecklist"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   "/api/v1/user/not-interested-homes": {
     parameters: {
       query?: never;
@@ -1439,6 +1351,31 @@ export interface paths {
      */
     put: operations["putTransactionTaskChecklist"];
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/documents": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Hub client user id (same as checklist forms routes). */
+        transaction_id: string;
+        /** @description Checklist category (e.g. escrow, financing). */
+        section: string;
+        /** @description Checklist step id within the section. */
+        item_id: string;
+      };
+      cookie?: never;
+    };
+    /** List agreements linked to a checklist item */
+    get: operations["getChecklistItemDocuments"];
+    put?: never;
+    /** Link an agreement or uploaded document to a checklist item */
+    post: operations["linkAgreementToChecklistItem"];
     delete?: never;
     options?: never;
     head?: never;
@@ -3331,6 +3268,26 @@ export interface components {
           }[]
         | null;
     };
+    ChecklistItemDocumentsResponse: {
+      success: boolean;
+      data: {
+        agreements: components["schemas"]["Agreement"][];
+      };
+      error?: string | null;
+    };
+    LinkChecklistDocumentApiResponse: {
+      success: boolean;
+      data: {
+        agreement: components["schemas"]["Agreement"];
+      };
+      error?: string | null;
+    };
+    LinkDocumentToChecklistRequest: {
+      /** @description ID of the document to link to checklist item */
+      document_id?: string | null;
+      /** @description ID of the agreement to link to checklist item */
+      agreement_id?: string | null;
+    };
     /**
      * @description How optional message text is applied per recipient for messaging (and stored on agreement description for DocuSign).
      * @enum {string}
@@ -4567,7 +4524,7 @@ export interface components {
       filename: string;
       generated_at: string;
       generated_for_user: string;
-      property_data?: components["schemas"]["PropertyData"];
+      property_data?: components["schemas"]["PropertyComplete"];
       commute_data?: components["schemas"]["CommuteData"];
       /** @description Property analysis from research endpoint (same structure as in PropertyResponse) */
       property_analysis?: {
@@ -4730,29 +4687,6 @@ export interface components {
       } | null;
       /** @enum {string} */
       source?: "slipstream_gamls";
-    };
-    /**
-     * @description DEPRECATED: Use PropertyComplete with submodels instead.
-     *     Legacy flat property data structure. Kept for backward compatibility.
-     */
-    PropertyData: {
-      streetAddress?: string | null;
-      city?: string | null;
-      state?: string | null;
-      zipcode?: string | null;
-      price?: number | null;
-      listPrice?: number | null;
-      /** @description Use this field (not beds) */
-      bedrooms?: number | null;
-      /** @description Use this field (not baths) */
-      bathrooms?: number | null;
-      /** @description Living area in sqft (use this field, not sqft) */
-      livingArea?: number | null;
-      /** @description Property type (SINGLE_FAMILY, CONDO, etc.) */
-      homeType?: string | null;
-      lotAreaValue?: number | null;
-      lotAreaUnit?: string | null;
-      listingStatus?: string | null;
     };
     /**
      * @description Agent and brokerage information
@@ -5366,7 +5300,7 @@ export interface components {
       revoked?: boolean;
     };
     /**
-     * @description A single saved or tracked listing row (`HomeUniversal.to_dict()`). Numeric facts (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether the row reflects the latest MLS snapshot the server holds.
+     * @description A single saved or tracked listing row from PropertyCache + UserPropertyLink. Numeric facts (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether the row reflects the latest MLS snapshot the server holds.
      * @example {
      *       "id": "fav-8c2e9b1a-4d3f-5e6a-7b8c-9d0e1f2a3b4c",
      *       "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -5978,14 +5912,6 @@ export interface components {
         date_finished?: string | null;
       };
     };
-    UpdateClosingModeRequest: {
-      /** @description Toggle closing mode on (true) or off (false) */
-      is_closing_mode: boolean;
-    };
-    UpdateClosingModeResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Echo of the request value for API compatibility. Not persisted on the users table (column removed); do not treat as stored user profile state. */
-      is_closing_mode?: boolean;
-    };
     UpdateEventRequestStatusRequest: {
       /**
        * @description New status for the event request (pending cannot be set manually)
@@ -6078,7 +6004,7 @@ export interface components {
       document?: components["schemas"]["SecureUploadDocumentPayload"];
     };
     /**
-     * @description Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Closing mode is not stored on users (column removed); use PUT /user/closing-mode response only.
+     * @description Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Agent status is derived from user_roles (is_agent is true when role "agent" is present).
      * @example {
      *       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
      *       "email": "jane.buyer@example.com",
@@ -6117,27 +6043,11 @@ export interface components {
        */
       last_logged_in?: string | null;
       is_active: boolean;
+      /** @description Computed from user_roles; true when the user has the agent role. */
       is_agent?: boolean | null;
-      /** @description Legacy wire shape: JSON array of client ids or a single comma-separated string. Prefer array in new clients; oneOf is required until all producers normalize. */
-      client_ids?: (string[] | string) | null;
-      /** @description Legacy wire shape: buyer agent id(s) as JSON array or string. Prefer array in new clients. */
-      agent_id?: (string[] | string) | null;
       mls_id?: string | null;
       /** @description Agent brokerage name on the users row (DB column brokerage). Replaces the legacy column name agency_name from early migrations; API wire name is always brokerage. */
       brokerage?: string | null;
-      has_subscription?: boolean | null;
-      /** @description Optional payment-provider subscription metadata. Listed properties are common; providers may add extra keys (additionalProperties allowed). */
-      subscription?:
-        | ({
-            status?: string | null;
-            plan_id?: string | null;
-            customer_id?: string | null;
-            /** Format: date-time */
-            current_period_end?: string | null;
-          } & {
-            [key: string]: unknown;
-          })
-        | null;
       has_preferences?: boolean | null;
       /** @description Legacy preferences version marker on users row. */
       preferences_version?: string | null;
@@ -7377,57 +7287,6 @@ export interface operations {
       };
     };
   };
-  updateClosingMode: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateClosingModeRequest"];
-      };
-    };
-    responses: {
-      /** @description Closing mode updated */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UpdateClosingModeResponse"];
-        };
-      };
-      /** @description Invalid request body */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
   getUserClientSettings: {
     parameters: {
       query?: never;
@@ -7499,215 +7358,6 @@ export interface operations {
       };
       /** @description Not authenticated */
       401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getNotInterestedHomes: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Not-interested homes retrieved */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["NotInterestedHomesResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  addNotInterestedHome: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["AddNotInterestedRequest"];
-      };
-    };
-    responses: {
-      /** @description Home marked as not interested */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["NotInterestedHomesResponse"];
-        };
-      };
-      /** @description Invalid request body */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  removeNotInterestedHome: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["RemoveNotInterestedRequest"];
-      };
-    };
-    responses: {
-      /** @description Home removed from not-interested list */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["NotInterestedHomesResponse"];
-        };
-      };
-      /** @description Invalid request body */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Home not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  updateNotInterestedHome: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateNotInterestedRequest"];
-      };
-    };
-    responses: {
-      /** @description Not-interested reason updated */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["NotInterestedHomesResponse"];
-        };
-      };
-      /** @description Invalid request body */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Home not found */
-      404: {
         headers: {
           [name: string]: unknown;
         };
@@ -8175,12 +7825,7 @@ export interface operations {
   };
   startGoogleOAuth: {
     parameters: {
-      query?: {
-        /** @description Request full calendar access (deprecated - all scopes always requested) */
-        full_scope?: boolean;
-        /** @description Request scheduling scopes (deprecated - all scopes always requested) */
-        scheduling?: boolean;
-      };
+      query?: never;
       header?: never;
       path?: never;
       cookie?: never;
@@ -10360,148 +10005,6 @@ export interface operations {
       };
     };
   };
-  getTimelineChecklist: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ChecklistResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  putTimelineChecklist: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateChecklistRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ChecklistResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getCloseChecklist: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ChecklistResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  putCloseChecklist: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateChecklistRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ChecklistResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
   listNotInterestedHomes: {
     parameters: {
       query?: never;
@@ -10888,6 +10391,109 @@ export interface operations {
       };
       /** @description HTTP 403 */
       403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  getChecklistItemDocuments: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Hub client user id (same as checklist forms routes). */
+        transaction_id: string;
+        /** @description Checklist category (e.g. escrow, financing). */
+        section: string;
+        /** @description Checklist step id within the section. */
+        item_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChecklistItemDocumentsResponse"];
+        };
+      };
+      /** @description HTTP 400 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 401 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  linkAgreementToChecklistItem: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Hub client user id (same as checklist forms routes). */
+        transaction_id: string;
+        /** @description Checklist category (e.g. escrow, financing). */
+        section: string;
+        /** @description Checklist step id within the section. */
+        item_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LinkDocumentToChecklistRequest"];
+      };
+    };
+    responses: {
+      /** @description HTTP 200 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["LinkChecklistDocumentApiResponse"];
+        };
+      };
+      /** @description HTTP 400 */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 401 */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description HTTP 404 */
+      404: {
         headers: {
           [name: string]: unknown;
         };

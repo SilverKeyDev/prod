@@ -1,1 +1,1 @@
-export type { ImportantLocation } from "packages/features/profile/types/onboarding";
+export type { ImportantLocation } from "packages/features/profile/types/onboarding/onboarding";

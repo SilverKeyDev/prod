@@ -13,17 +13,17 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # Import HTML renderer (optional - used only when HTML_RENDERING_AVAILABLE is True)
-convert_home_universal_to_listing_dict: Any = None
+convert_listing_to_email_dict: Any = None
 render_email_html_fn: Any = None
 try:
     from app.services.email.render_email_html import (
-        convert_home_universal_to_listing_dict as _convert_listing,
+        convert_listing_to_email_dict as _convert_listing,
     )
     from app.services.email.render_email_html import (
         render_email_html,
     )
 
-    convert_home_universal_to_listing_dict = _convert_listing
+    convert_listing_to_email_dict = _convert_listing
     render_email_html_fn = render_email_html
     HTML_RENDERING_AVAILABLE = True
 except ImportError:
@@ -188,14 +188,13 @@ class EmailFormatter:
         if (
             use_html
             and HTML_RENDERING_AVAILABLE
-            and convert_home_universal_to_listing_dict
+            and convert_listing_to_email_dict
             and render_email_html_fn
         ):
             try:
                 # Convert listings to dict format for React component
                 listing_dicts = [
-                    convert_home_universal_to_listing_dict(listing)
-                    for listing in listings[:max_items]
+                    convert_listing_to_email_dict(listing) for listing in listings[:max_items]
                 ]
 
                 # Render HTML email

@@ -71,7 +71,8 @@ vi.mock("packages/ui/components/modals", () => ({
     onCancel: () => void;
   }) =>
     isOpen ? (
-      <div role="alertdialog" aria-label={title}>
+      <div role="alertdialog">
+        <h2>{title}</h2>
         <p>{message}</p>
         <button type="button" onClick={onConfirm}>
           {confirmText ?? "Confirm"}

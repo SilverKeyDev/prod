@@ -11,7 +11,7 @@ from app import db
 class UserPropertyLink(db.Model):
     """Junction table linking a user to a shared PropertyCache row.
 
-    Replaces the per-user columns that lived on HomeUniversal (is_liked, current,
+    Replaces legacy per-user favorite columns (is_liked, current,
     score, ranking).  One row per (user, property).
     """
 

@@ -11,23 +11,23 @@ import { DASHBOARD_TRANSLATIONS } from "packages/features/dashboard/types/transl
 import { DOCUMENTS_TRANSLATIONS } from "packages/features/documents/types/translations";
 import { FEED_TRANSLATIONS } from "packages/features/feed/types/translations";
 import { AUTH_TRANSLATIONS } from "packages/features/homeauth/types/translations";
-import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
 import { NEGOTIATE_TRANSLATIONS } from "packages/features/negotiate/types/translations";
 import { partnersFeatureTranslations } from "packages/features/partners/types/translations";
-import { PROFILE_TRANSLATIONS } from "packages/features/profile/types/translations";
+import { PROFILE_TRANSLATIONS } from "packages/features/profile/types/i18n/translations";
 import { PROPERTY_DETAILS_TRANSLATIONS } from "packages/features/propertyDetails/types/translations";
 import { SAVED_TRANSLATIONS } from "packages/features/saved/types/translations";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
 import { WORKSPACE_TRANSLATIONS } from "packages/features/workspace/types/translations";
 
+import { ERRORS_TRANSLATIONS } from "./errors";
 import { SHARED_TRANSLATIONS } from "./shared";
 
 export const TRANSLATIONS: Record<string, string> = {
   ...SHARED_TRANSLATIONS,
+  ...ERRORS_TRANSLATIONS,
   ...AUTH_TRANSLATIONS,
   ...BROKERAGE_TRANSLATIONS,
-  ...INTEGRATION_PARTNER_TRANSLATIONS,
   ...WORKSPACE_TRANSLATIONS,
   ...SELLER_TRANSLATIONS,
   ...ADMIN_TRANSLATIONS,

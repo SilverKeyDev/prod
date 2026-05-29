@@ -48,8 +48,6 @@ describe("userResponseSchema", () => {
         name: "Admin",
         is_active: null,
         is_agent: null,
-        is_closing_mode: null,
-        has_subscription: null,
         has_preferences: null,
       },
     };
@@ -58,8 +56,6 @@ describe("userResponseSchema", () => {
     if (parsed.success && parsed.data.data) {
       expect(parsed.data.data.is_active).toBe(false);
       expect(parsed.data.data.is_agent).toBe(false);
-      expect(parsed.data.data.is_closing_mode).toBe(false);
-      expect(parsed.data.data.has_subscription).toBe(false);
       expect(parsed.data.data.has_preferences).toBe(false);
     }
   });

@@ -1,7 +1,0 @@
-type: object
-required:
-  - is_closing_mode
-properties:
-  is_closing_mode:
-    type: boolean
-    description: Toggle closing mode on (true) or off (false)

@@ -1,4 +1,4 @@
-import type { DropdownOption } from "packages/features/profile/types/onboarding";
+import type { DropdownOption } from "packages/features/profile/types/onboarding/onboarding";
 
 import { FIELD_LABELS } from "./labels";
 

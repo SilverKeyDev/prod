@@ -2,7 +2,8 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { dateNow } from "packages/utils/date";
 import { getDocument, getFetch } from "packages/utils/platform";
 
-import { handleAuthenticationError, isAuthEndpoint, recoverSessionAfter401 } from "./auth";
+import { notifyAuthenticationError } from "./authErrorNotify";
+import { isAuthEndpoint, recoverSessionAfter401 } from "./authRecovery";
 import { AuthenticationError, HttpError } from "./errors";
 import { normalizeUrl, sleep } from "./httpRequestHeaders";
 import { logApiRequest, logApiResponse } from "./logging";
@@ -248,7 +249,7 @@ export class HttpClient {
         logApiResponse(method, url, error.status, duration);
       } else if (error instanceof AuthenticationError) {
         logApiResponse(method, url, error.status, duration);
-        handleAuthenticationError(error);
+        notifyAuthenticationError(error);
       } else {
         logNetworkError(method, url, error, duration);
       }

@@ -15,7 +15,7 @@ from ...services.search.data.neighborhood_boundaries import (
     search_areas,
 )
 from ...services.search.helpers.preferences_helpers import get_authenticated_user
-from ...services.search.polygon.polygon_search_runner import run_polygon_search
+from ...services.search.polygon.polygon_runner import run_polygon_search
 from ...services.search.property.monthly_cost import monthly_cost_addon_estimates
 from ...services.search.scoring.research_preferences_context import (
     parse_research_request_body,

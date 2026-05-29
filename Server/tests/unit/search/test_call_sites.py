@@ -183,14 +183,14 @@ class TestGetPropertyAddress:
         assert _stream_mod.get_property_address(data, "  Use This  ") == "Use This"
 
 
-# ---- fetch_property_from_rapidapi (backward compat shim) ----
+# ---- fetch_property_detail_for_research (Slipstream) ----
 
 
-class TestFetchPropertyFromRapidapi:
+class TestFetchPropertyDetailForResearch:
     def test_delegates_to_slipstream(self):
         with patch.object(_cache_mod, "get_property_detail") as mock_detail:
             mock_detail.return_value = (_mock_detail_success(), None)
-            data, err = _cache_mod.fetch_property_from_rapidapi({"zpid": "MLS-555"})
+            data, err = _cache_mod.fetch_property_detail_for_research({"zpid": "MLS-555"})
             assert err is None
             assert data["zpid"] == "MLS-555"
             mock_detail.assert_called_once()
@@ -201,7 +201,7 @@ class TestFetchPropertyFromRapidapi:
                 None,
                 {"success": False, "error": "NOT_FOUND", "status_code": 404},
             )
-            data, err_tuple = _cache_mod.fetch_property_from_rapidapi({"zpid": "BAD"})
+            data, err_tuple = _cache_mod.fetch_property_detail_for_research({"zpid": "BAD"})
             assert data is None
             err, status = err_tuple
             assert status == 404
@@ -209,7 +209,7 @@ class TestFetchPropertyFromRapidapi:
     def test_address_lookup(self):
         with patch.object(_cache_mod, "get_property_detail") as mock_detail:
             mock_detail.return_value = (_mock_detail_success(), None)
-            data, err = _cache_mod.fetch_property_from_rapidapi({"address": "300 Pine St"})
+            data, err = _cache_mod.fetch_property_detail_for_research({"address": "300 Pine St"})
             assert err is None
             mock_detail.assert_called_once_with(listing_id=None, address="300 Pine St")
 

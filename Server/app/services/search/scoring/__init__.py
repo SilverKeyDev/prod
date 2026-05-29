@@ -1,6 +1,8 @@
 """Match scoring and research preferences context management."""
 
 from .match_score_pros_cons_counts import (
+    adjust_pros_cons_counts,
+    compute_listing_match_score,
     highlights_context_payload,
     resolve_highlights_counts_and_signature,
 )
@@ -13,7 +15,9 @@ from .research_preferences_context import (
 )
 
 __all__ = [
+    "adjust_pros_cons_counts",
     "analysis_cache_signature_matches",
+    "compute_listing_match_score",
     "highlights_context_payload",
     "resolve_highlights_counts_and_signature",
     "ResearchAnalysisOptions",

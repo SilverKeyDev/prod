@@ -166,12 +166,9 @@ def get_clients_preferences():
         log.error("Failed to get current user: %s", str(e), exc_info=True)
         return jsonify({"success": False, "error": "Authorization failure"}), 500
     try:
-        if user.client_ids:
-            clients = (
-                json.loads(user.client_ids) if isinstance(user.client_ids, str) else user.client_ids
-            )
-        else:
-            clients = []
+        from app.services.agent.client_service import get_agent_client_ids
+
+        clients = get_agent_client_ids(str(user.id))
     except (json.JSONDecodeError, TypeError) as e:
         log.error("Failed to parse client IDs JSON: %s", str(e), exc_info=True)
         return jsonify({"success": True, "preferences": [], "has_preferences": False}), 500

@@ -20,5 +20,5 @@ Instagram/TikTok-style vertical feed for property listings: instant scroll, hype
 |---|---------------|---------------|
 | Feed API | Returns empty stub | Serves pre-ranked feed from cache |
 | Ranking | Embedding similarity (EnsembleScorer) | Conversion-optimized (MTML) |
-| Cache | HomeUniversal (PostgreSQL) | Redis feed queue + vector DB retrieval |
+| Cache | PropertyCache + UserPropertyLink (PostgreSQL) | Redis feed queue + vector DB retrieval |
 | Client | Virtuoso, infinite scroll | Sliding-window prefetch, instant next item |

@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("packages/services/http/compatibility", () => ({
+vi.mock("packages/services/http", () => ({
   apiGet: vi.fn(),
   apiPost: vi.fn(),
 }));
 
-import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { apiGet, apiPost } from "packages/services/http";
 
 import { adminApi } from "./admin";
 
@@ -26,8 +26,17 @@ describe("adminApi", () => {
     });
 
     it("throws when success is false", async () => {
+      vi.mocked(apiGet).mockResolvedValueOnce({
+        success: false,
+        error: "LOGGER_CONFIG_UNAVAILABLE",
+        message: "Logger config unavailable",
+      });
+      await expect(adminApi.getLoggerConfig()).rejects.toThrow("Logger config unavailable");
+    });
+
+    it("uses fallback when success is false and error is not user-facing", async () => {
       vi.mocked(apiGet).mockResolvedValueOnce({ success: false, error: "nope" });
-      await expect(adminApi.getLoggerConfig()).rejects.toThrow("nope");
+      await expect(adminApi.getLoggerConfig()).rejects.toThrow("Failed to fetch logger config");
     });
   });
 

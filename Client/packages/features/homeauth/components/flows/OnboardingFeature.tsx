@@ -1,6 +1,6 @@
 import { PersonalizationSectionLayoutProvider } from "packages/features/profile/components/layout";
 import { renderOnboardingStep } from "packages/features/profile/components/onboarding/renderOnboardingStep.web";
-import type { ProfileStepId } from "packages/features/profile/types/profileStepIds";
+import type { ProfileStepId } from "packages/features/profile/types/onboarding/profileStepIds";
 import { useOnboardingForm } from "packages/hooks/data/auth/onboarding/useOnboardingForm";
 import { LOGO } from "packages/ui/components/asset";
 import { Box, Image } from "packages/ui/components/primitives";

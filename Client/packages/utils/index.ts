@@ -18,8 +18,8 @@ export {
 export type { ScoreColors } from "./format/scoreColors";
 export { getMatchScoreGradientColors, getScoreBasedColorForMap } from "./format/scoreColors";
 export { createBlob, getDocument, getFetch, getNavigator, getWindow } from "./platform";
-export type { PropertyData, RawHomeData } from "./saved";
-export { mapHomeUniversalToSavedHome } from "./saved";
+export type { RawHomeData, SavedHomeWire } from "./saved";
+export { mapSavedHomeWireToSavedHome } from "./saved";
 export { simpleHash } from "./storage/hash";
 export {
   getFromSessionStorage,

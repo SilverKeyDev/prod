@@ -4,7 +4,9 @@ import { calculatePropertyCardCenter } from "packages/features/search/types/sear
 import {
   adjustMapZoomByDelta,
   applyListingFocusCamera,
-} from "packages/features/search/utils/googleMaps/mapCamera";
+  DEFAULT_ZOOM,
+  SEARCH_MAP_LISTING_FOCUS_ZOOM,
+} from "packages/features/search/utils/googleMaps";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
 
@@ -16,10 +18,7 @@ export type MapZoomControllerProps = {
   currentPage: number;
 };
 
-export {
-  DEFAULT_ZOOM,
-  SEARCH_MAP_LISTING_FOCUS_ZOOM,
-} from "packages/features/search/utils/googleMaps/mapCamera";
+export { DEFAULT_ZOOM, SEARCH_MAP_LISTING_FOCUS_ZOOM };
 
 export const useMapZoomController = ({
   googleMapRef,

@@ -32,13 +32,7 @@ from .saved_properties.user_not_interested import (
 from .search_display import get_search_display, patch_search_display
 from .session import logout, refresh_token
 from .signup_verify import resend_code, signup, verify
-from .user_checklists import (
-    get_close_checklist,
-    get_timeline_checklist,
-    put_close_checklist,
-    put_timeline_checklist,
-)
-from .user_profile import get_user_profile, update_closing_mode, upload_profile_picture
+from .user_profile import get_user_profile, upload_profile_picture
 
 __all__ = [
     "signup",
@@ -64,12 +58,7 @@ __all__ = [
     "get_search_display",
     "patch_search_display",
     "get_user_profile",
-    "update_closing_mode",
     "upload_profile_picture",
-    "get_timeline_checklist",
-    "put_timeline_checklist",
-    "get_close_checklist",
-    "put_close_checklist",
     "get_favorite_homes",
     "post_favorite_homes",
     "add_favorite_home",

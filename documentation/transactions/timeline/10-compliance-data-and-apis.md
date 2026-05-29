@@ -1,64 +1,26 @@
-## Compliance Data and Timeline APIs (Timeline Perspective)
+> **Status:** Planned | **Last verified:** 2026-05-28
 
-### Problem / goal
+## Compliance data and timeline APIs
 
-From a **timeline** standpoint, we need to understand:
-- Which events and deadlines have regulatory implications.
-- Where external compliance guidance or APIs might inform:
-  - Minimum/maximum timeframes.
-  - Required disclosures and reporting windows.
+Compliance-critical deadlines are **not tagged** on milestones or checklist items. Product copy and external resource links carry regulatory context today.
 
-This complements the broader compliance strategy described in `integrations/10-compliance-data-and-apis.md`.
+### Current behavior
 
-### Data model & invariants
+- Checklist items link to CFPB, USA.gov, and similar resources in `resource.href` fields.
+- DocuSign and RESPA partner placement follow separate integration/compliance docs.
+- Server `milestones` table was dropped in migration `a02ed1527a24`; no replacement milestone API.
 
-- **Compliance-relevant milestones**
-  - Certain milestones (e.g. delivery of disclosures, closing reporting deadlines) have:
-    - Regulatory requirements for timing.
+### Planned
 
-- **Compliance annotations**
-  - Milestones and deadlines may be tagged with:
-    - `is_compliance_critical` (boolean).
-    - `compliance_reference` (optional URL or identifier into internal/external compliance docs).
+- `is_compliance_critical` and `compliance_reference` on computed deadlines.
+- Notification priority for disclosure and reporting windows.
+- Vendor/legal content feeding `JurisdictionRuleSet` (see `09-state-variation-model.md`).
 
-Invariants:
-- Compliance-critical events:
-  - Should be clearly marked and surfaced in:
-    - Checklists.
-    - Calendar views.
-    - Notifications.
+### Code pointers
 
-### Flows / UX
-
-1. **Compliance-aware timelines**
-   - Timeline views can:
-     - Highlight compliance-critical events (e.g. certain disclosures, reporting deadlines).
-   - Participants:
-     - Understand which dates are “soft” vs “must not be missed.”
-
-2. **Vendor and content provider usage**
-   - Where vendors or legal content providers supply:
-     - Guidance on timelines.
-   - Engine:
-     - Incorporates these into `JurisdictionRuleSet` values as appropriate.
-
-### Existing infrastructure to reuse / extend
-
-- **Deadline engine and rule sets**
-  - Compliance-critical attributes should:
-    - Be encoded in the same `JurisdictionRuleSet` used for general dates.
-
-- **Notifications**
-  - Compliance events should:
-    - Feed into the notification system with appropriate priority.
-
-### Gaps that require new work
-
-- **Compliance tagging**
-  - Identify which timelines and milestones:
-    - Are linked to regulatory requirements (local, state, or federal).
-
-- **Content integration**
-  - Establish:
-    - How internal legal/compliance teams or external vendors contribute:
-      - Updates to rules and tags.
+| Area | Path |
+| ---- | ---- |
+| Resource links in items | `Server/app/services/transactions/closing/items.py`, `escrow/items.py` |
+| Broader compliance doc | `documentation/transactions/integrations/10-compliance-data-and-apis.md` |
+| RESPA partner rules | `.cursor/rules/shared/respa-compliance.mdc` |
+| Notifications (messaging only today) | `documentation/transactions/collaboration/08-notification-preferences-and-routing.md` |

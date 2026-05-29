@@ -23,6 +23,15 @@
       "dockerBuildArg": true,
       "githubSecret": "EXPO_PUBLIC_GOOGLE_CLIENT_ID",
       "description": "Google OAuth client id for client-side flows (optional; web sign-in uses server redirect today)."
+    },
+    {
+      "key": "EXPO_PUBLIC_POSTHOG_KEY",
+      "required": true,
+      "dockerBuildArg": true,
+      "githubSecret": "EXPO_PUBLIC_POSTHOG_KEY",
+      "pattern": "^phc_",
+      "minLength": 10,
+      "description": "PostHog project API key (phc_…). Public client key; store as GitHub repository variable for ci_web."
     }
   ]
 }

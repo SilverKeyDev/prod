@@ -18,7 +18,7 @@
 
 ## Gates
 
-- Server: targeted `pytest` under `Server/tests/unit/routes/test_rev_share_*` and `services/rev_share/`
+- Server: targeted `pytest` under `Server/tests/unit/routes/rev_share/` and `services/rev_share/`
 - Client: `pnpm typecheck && pnpm lint` on touched packages
 
 ## Memory

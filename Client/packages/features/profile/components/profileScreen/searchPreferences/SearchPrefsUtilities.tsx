@@ -1,6 +1,6 @@
 import React from "react";
 
-import type { BuyerUtilitiesPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerUtilitiesPrefs } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import {
   FIELD_LABELS,
   HVAC_PREFERENCE_OPTIONS,

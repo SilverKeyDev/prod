@@ -4,13 +4,11 @@ import React, { useCallback, useState } from "react";
 import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/agent/hooks/data/search/useAgentSyncPreferencesWhenClientSelected";
 import { useSearchPageData } from "packages/features/search/hooks/data/page/useSearchPageData";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
-import { useSearchScreenCriteriaSummary } from "packages/features/search/hooks/ui/useSearchScreenCriteriaSummary";
-import { useSearchScreenSearchExecution } from "packages/features/search/hooks/ui/useSearchScreenSearchExecution";
+import { useSearchScreenCriteriaSummary } from "packages/features/search/hooks/ui/screen/useSearchScreenCriteriaSummary";
+import { useSearchScreenSearchExecution } from "packages/features/search/hooks/ui/screen/useSearchScreenSearchExecution";
 import type { SearchResult } from "packages/features/search/types";
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { formatAddress } from "packages/features/search/types/search/formatters/propertyDetailsFormatters";
 import { useUserPreferences } from "packages/hooks/data/user/useUserData";
-import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import {
@@ -39,7 +37,6 @@ export function SearchScreen() {
   const showCommuteOverlay = useFiltersStore((s) => s.showCommuteOverlay);
   const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);
   const preferencesStrictFilter = useFiltersStore((s) => s.preferencesStrictFilter);
-  const clearDismissedMapPreviews = useFiltersStore((s) => s.clearDismissedMapPreviews);
   const authReady = useAuthStore((s) => s.authReady);
   useSearchDisplaySettings(authReady);
 
@@ -81,6 +78,8 @@ export function SearchScreen() {
 
   const [filtersSheetOpen, setFiltersSheetOpen] = useState(false);
 
+  const locationPlaceViewportRing = useSearchContextStore((s) => s.locationPlaceViewportRing);
+
   const {
     runSearch,
     runMapAreaSearch: runMapAreaSearchCore,
@@ -93,6 +92,8 @@ export function SearchScreen() {
     searchFilterOverrides,
     preferencesStrictFilter,
     selectedClientId,
+    importantLocations: userPreferences?.important_locations,
+    locationPlaceViewportRing,
     lastMapRegion,
     setSearchSource,
     clearLocationPlaceSearchArea,
@@ -103,18 +104,11 @@ export function SearchScreen() {
     setHasSearched,
     setCurrentPage,
     setShowPropertyModals,
-    clearDismissedMapPreviews,
   });
 
   const runMapAreaSearch = useCallback(async () => {
-    if (!lastMapRegion) {
-      showWarningToast(
-        SEARCH_TRANSLATIONS["search.map_area_unavailable"] ?? "Move the map, then search this area."
-      );
-      return;
-    }
     await runMapAreaSearchCore();
-  }, [lastMapRegion, runMapAreaSearchCore]);
+  }, [runMapAreaSearchCore]);
 
   const criteriaSummary = useSearchScreenCriteriaSummary(
     userPreferences as Record<string, unknown> | null | undefined
@@ -155,21 +149,13 @@ export function SearchScreen() {
       handleCancelSearch();
       return;
     }
-    if (!hasLocations) {
-      void runMapAreaSearch();
-      return;
-    }
     void runSearch();
-  }, [isSearching, hasLocations, handleCancelSearch, runSearch, runMapAreaSearch]);
+  }, [isSearching, handleCancelSearch, runSearch]);
 
   const handleFiltersSheetApply = useCallback(async () => {
     if (isSearching) return;
-    if (!hasLocations) {
-      await runMapAreaSearch();
-      return;
-    }
     await runSearch();
-  }, [isSearching, hasLocations, runSearch, runMapAreaSearch]);
+  }, [isSearching, runSearch]);
 
   return (
     <SearchScreenBody

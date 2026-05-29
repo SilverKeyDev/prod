@@ -1,5 +1,5 @@
-import type { ProfileStep } from "packages/features/profile/types/onboarding";
-import type { ProfileStepId } from "packages/features/profile/types/profileStepIds";
+import type { ProfileStep } from "packages/features/profile/types/onboarding/onboarding";
+import type { ProfileStepId } from "packages/features/profile/types/onboarding/profileStepIds";
 import { SECTION_TITLES } from "packages/utils/domain/profile/labels";
 
 const STEP_TITLES: Record<ProfileStepId, string> = {

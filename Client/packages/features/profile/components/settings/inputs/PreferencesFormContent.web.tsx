@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import HousingSection from "packages/features/profile/components/sections/housing/HousingSection";
 import LocationSection from "packages/features/profile/components/sections/LocationSection";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { useGoogleMaps } from "packages/hooks/data";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";

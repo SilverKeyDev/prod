@@ -39,6 +39,7 @@ Run `make help` for the full list. Common targets:
 | `make test` / `make test-fe` / `make test-be` | Vitest + Server pytest |
 | `make openapi` | Regenerate TS + Python types from `openapi/` |
 | `make openapi-verify` | Regenerate, fail on git drift, contract tests |
+| `make check-docs` | Doc placement + link checks (`scripts/check-doc-*.sh`) |
 
 ---
 
@@ -71,17 +72,17 @@ cd Server && pytest       # or: make test-be from repo root
 
 - **Thin apps:** `Client/apps/web`, `Client/apps/mobile` — routing, providers, page composition only.
 - **Fat packages:** `Client/packages/` — `features/`, `hooks/`, `ui/`, `config/api/`, services, store.
-- **Workspace shells:** Buyer / seller / brokerage routes and workspace state live in **`packages/`**, not in fat app files. See [documentation/client/workspace-first-architecture.md](./documentation/client/workspace-first-architecture.md).
+- **Workspace shells:** Buyer / seller / brokerage routes and workspace state live in **`packages/`**, not in fat app files. See [documentation/client/architecture/workspace-first-architecture.md](./documentation/client/architecture/workspace-first-architecture.md).
 - **API contract:** Edit **`openapi/`** only; regenerate client/server types (never hand-edit generated files).
-- **Deeper reads:** [Client/ARCHITECTURE.md](./Client/ARCHITECTURE.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [documentation/client/thin-app-architecture.md](./documentation/client/thin-app-architecture.md).
+- **Deeper reads:** [Client/ARCHITECTURE.md](./Client/ARCHITECTURE.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [documentation/client/architecture/thin-app-architecture.md](./documentation/client/architecture/thin-app-architecture.md).
 
 ### Documentation map
 
 | Tree | Use for |
 | ---- | ------- |
 | [`documentation/`](documentation/README.md) | Canonical long-form: product flows, architecture, compliance, QA |
-| [`docs/`](docs/README.md) | Server/ops index (Celery, Redis, runbooks) — links into `documentation/server/` |
-| New cross-cutting prose | **`documentation/`** only — not repo-root `docs/` expansion (see `.cursor/rules/shared/documentation.mdc`) |
+| [`documentation/server/ops/`](documentation/server/ops/postgres.md) | Server ops (Postgres, Redis/Celery) |
+| Doc placement checks | `make check-docs` |
 
 ---
 
@@ -92,8 +93,7 @@ cd Server && pytest       # or: make test-be from repo root
 | `Client/` | pnpm workspace: `apps/*` (thin) + `packages/` (logic, UI, hooks) |
 | `Server/` | Flask API, services, tests, `scripts/` (venv, lint, secrets) |
 | `openapi/` | OpenAPI 3.1 sources → generated TS/Python types |
-| `documentation/` | Canonical human docs |
-| `docs/` | Server/ops stubs and index |
+| `documentation/` | Canonical human docs (incl. `documentation/server/ops/`) |
 | `scripts/` | `setup-local.sh`, `refresh.sh`, `run-all-linters.sh`, `run/` dev stacks |
 | `.cursor/` | Rules (`.mdc`), skills, agent personas — [.cursor/README.md](./.cursor/README.md) |
 | `.github/` | CI workflows and PR templates |
@@ -102,8 +102,8 @@ cd Server && pytest       # or: make test-be from repo root
 
 ## Conventions (pointers)
 
-- **Imports / layers:** [.cursor/rules/frontend/frontend-architecture.mdc](./.cursor/rules/frontend/frontend-architecture.mdc) + [documentation/client/layered-architecture-imports.md](./documentation/client/layered-architecture-imports.md)
-- **UI primitives:** [documentation/client/LINTING.md](./documentation/client/LINTING.md), `.cursor/rules/frontend/ui-components.mdc`
+- **Imports / layers:** [.cursor/rules/frontend/frontend-architecture.mdc](./.cursor/rules/frontend/frontend-architecture.mdc) + [documentation/client/architecture/layered-architecture-imports.md](./documentation/client/architecture/layered-architecture-imports.md)
+- **UI primitives:** [documentation/client/standards/LINTING.md](./documentation/client/standards/LINTING.md), `.cursor/rules/frontend/ui-components.mdc`
 - **CI gates (client):** typecheck, lint (incl. cycles + max-lines), format, then full `pnpm check` — [.cursor/rules/shared/ci-gates.mdc](./.cursor/rules/shared/ci-gates.mdc)
 - **Docs placement:** `documentation/HOW_WE_DOCUMENT.md`
 - **PR bar:** Same gates as CI (`pnpm check`, `./scripts/run-all-linters.sh server` or `make lint`)
@@ -114,7 +114,7 @@ cd Server && pytest       # or: make test-be from repo root
 
 | Area | Location |
 | ---- | -------- |
-| **Always-on (6)** | `security`, `thin-app-architecture`, `linting`, `documentation`, `silverkey-context`, `code-style` under `.cursor/rules/shared/` |
+| **Always-on (7)** | `security`, `thin-app-architecture`, `linting`, `documentation`, `silverkey-context`, `code-style`, `env-vars-minimal` under `.cursor/rules/shared/` |
 | **Company context** | [CLAUDE.md](CLAUDE.md) — business model, RESPA, partners, fundraising (read before partner-facing work) |
 | **Scoped rules** | `.cursor/rules/shared/`, `frontend/`, `backend/` (+ some under `Server/`) — glob-attached; see audit table |
 | **Session memory bank** | [.cursor/memory/](./.cursor/memory/) — `activeContext.md`, `progress.md`; rule: `agent-memory.mdc` |
@@ -125,7 +125,7 @@ cd Server && pytest       # or: make test-be from repo root
 
 **MCP:** Example — [.cursor/mcp.example.json](./.cursor/mcp.example.json); local config via `make setup-mcp` (install/verify, summary at end). Connectors: GitHub, Linear, Slack, Mercury (read-only banking), optional AWS/gcloud, and **`cursor-memory`** (`/memo`, `/recall`). Credentials stay local/env.
 
-**Agent memory (all layers):** [documentation/client/cursor-agent-memory.md](./documentation/client/cursor-agent-memory.md) — repo bank, Cursor Settings → Memories, Automations Memory Notes, MCP.
+**Agent memory (all layers):** [documentation/client/tooling/cursor-agent-memory.md](./documentation/client/tooling/cursor-agent-memory.md) — repo bank, Cursor Settings → Memories, Automations Memory Notes, MCP.
 
 **Commits:** `[LINEAR-ID] short description` — link the Linear ticket in PR descriptions.
 
@@ -159,6 +159,7 @@ cd Server && pytest       # or: make test-be from repo root
 | Client tests | `cd Client && pnpm test:run` or `make test-fe` |
 | Server tests | `make test-be` (venv + `TESTING=true`) |
 | Repo-wide lint | `./scripts/run-all-linters.sh all` or `make lint` |
+| Documentation | `make check-docs` (placement + internal links) |
 | OpenAPI | `make openapi` → commit generated files; `make openapi-verify` before PR |
 
 ---

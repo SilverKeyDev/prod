@@ -2,6 +2,10 @@ import type { UseMutationOptions } from "@tanstack/react-query";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { UIState } from "packages/store";
+import {
+  resolveApiResultErrorMessage,
+  resolveUserFacingMessage,
+} from "packages/utils/errorHandling";
 
 /**
  * Shared helpers for DocuSign mutations: logging and standard onSuccess/onError handlers.
@@ -13,34 +17,10 @@ export type DocusignApiResponse<T> = {
   [key: string]: unknown;
 } & T;
 
-/**
- * Map backend error messages to user-friendly messages
- */
 function getErrorMessage(error: Error): string {
-  const errorMessage = error.message.toLowerCase();
-
-  // Map backend error types to user-friendly messages
-  if (errorMessage.includes("no current revision")) {
-    return "Please add a document to the agreement before sending it for signature";
-  }
-  if (errorMessage.includes("no participants")) {
-    return "Please add a recipient to the agreement before sending";
-  }
-  if (errorMessage.includes("invalid state") || errorMessage.includes("cannot be sent")) {
-    return "This agreement cannot be sent in its current state";
-  }
-  if (errorMessage.includes("not found")) {
-    return "The agreement could not be found";
-  }
-  if (errorMessage.includes("access denied") || errorMessage.includes("forbidden")) {
-    return "You don't have permission to perform this action";
-  }
-  if (errorMessage.includes("authentication") || errorMessage.includes("unauthorized")) {
-    return "Please sign in to continue";
-  }
-
-  // Default to the error message if we don't have a specific mapping
-  return error.message || "An error occurred while processing your request";
+  return resolveUserFacingMessage(error, {
+    fallbackMessage: "An error occurred while processing your request",
+  });
 }
 
 /**
@@ -56,7 +36,7 @@ export async function runDocusignApi<T, R>(
   log.debug(LOG_CATEGORIES.DOCUSIGN, errorLabel.replace(" failed", ""), debugContext);
   const response = await apiCall();
   if (!response.success) {
-    const errorMessage = response.error ?? errorLabel;
+    const errorMessage = resolveApiResultErrorMessage(response, errorLabel);
     log.error(LOG_CATEGORIES.DOCUSIGN, errorLabel, {
       ...debugContext,
       error: errorMessage,

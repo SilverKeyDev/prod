@@ -59,7 +59,7 @@ Every **partner exposure** event (render, click-through to partner, embed open) 
 
 ### Good
 
-- **Move Concierge embed** at checklist/workflow level — partner URL + prefill from transaction context; commission model documented in product copy, not agent referral fee ([moveConciergeEmbed.ts](../../../Client/packages/features/checklists/utils/integration/moveConciergeEmbed.ts)).
+- **Move Concierge embed** at checklist/workflow level — partner URL + prefill from transaction context; commission model documented in product copy, not agent referral fee ([moveConciergeEmbed.ts](../../../Client/packages/features/partners/utils/moveConciergeEmbed.ts)).
 - **Admin partners section** — brokerage configures which partners appear; changes are admin-auditable.
 - **Financing/insurance checklist items** — transaction task completion, not "we recommend Lender X because Agent Y gets paid."
 

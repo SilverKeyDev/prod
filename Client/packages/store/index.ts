@@ -56,7 +56,7 @@ export {
   useSearchContextStore,
 } from "packages/features/search/store";
 
-// Consolidated search store (recommended for new code)
+// Consolidated search store — results, pagination, tabs, favorites, toasts
 export {
   selectFavorites,
   selectSearchData,

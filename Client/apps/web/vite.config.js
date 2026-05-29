@@ -43,6 +43,9 @@ export default defineConfig(function (_a) {
     EXPO_PUBLIC_API_URL: pickEnv("EXPO_PUBLIC_API_URL"),
     EXPO_PUBLIC_API_BASE_URL: pickEnv("EXPO_PUBLIC_API_BASE_URL"),
     EXPO_PUBLIC_POSTHOG_KEY: pickEnv("EXPO_PUBLIC_POSTHOG_KEY"),
+    EXPO_PUBLIC_LOGGER_VERBOSE: pickEnv("EXPO_PUBLIC_LOGGER_VERBOSE"),
+    EXPO_PUBLIC_LOGGER_CATEGORIES: pickEnv("EXPO_PUBLIC_LOGGER_CATEGORIES"),
+    EXPO_PUBLIC_LOGGER_POSTHOG: pickEnv("EXPO_PUBLIC_LOGGER_POSTHOG"),
   };
   // esbuild define only accepts JSON literals or identifiers; object expressions like
   // ({ env: {...} }) are rejected. Inject process via a generated shim so env.ts sees process.env.

@@ -50,21 +50,6 @@ class SuccessResponse(BaseModel):
     )
 
 
-class Subscription(BaseModel):
-    """
-    Optional payment-provider subscription metadata. Listed properties are common; providers may add extra keys (additionalProperties allowed).
-
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    status: str | None = None
-    plan_id: str | None = None
-    customer_id: str | None = None
-    current_period_end: AwareDatetime | None = None
-
-
 class Role(Enum):
     """
     Access role to grant
@@ -730,6 +715,15 @@ class ChecklistFormSendRequest(BaseModel):
     client_id: constr(max_length=64) | None = None
     message: constr(max_length=4000) | None = None
     participants: list[Participant] | None = None
+
+
+class LinkDocumentToChecklistRequest(BaseModel):
+    document_id: str | None = Field(
+        None, description="ID of the document to link to checklist item"
+    )
+    agreement_id: str | None = Field(
+        None, description="ID of the agreement to link to checklist item"
+    )
 
 
 class ClientAvailabilityRequest(BaseModel):
@@ -1576,7 +1570,7 @@ class FavoriteHomesPagination(BaseModel):
 
 class SavedHome(BaseModel):
     """
-    A single saved or tracked listing row (`HomeUniversal.to_dict()`). Numeric facts (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether the row reflects the latest MLS snapshot the server holds.
+    A single saved or tracked listing row from PropertyCache + UserPropertyLink. Numeric facts (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether the row reflects the latest MLS snapshot the server holds.
 
     """
 
@@ -2128,28 +2122,206 @@ class Strategy(BaseModel):
     market_section: MarketSection
 
 
-class PropertyData(BaseModel):
+class LotSizeUnit(Enum):
     """
-    DEPRECATED: Use PropertyComplete with submodels instead.
-    Legacy flat property data structure. Kept for backward compatibility.
-
+    Unit for lot size measurement
     """
 
-    streetAddress: str | None = None
-    city: str | None = None
-    state: str | None = None
-    zipcode: str | None = None
-    price: float | None = None
-    listPrice: float | None = None
-    bedrooms: int | None = Field(None, description="Use this field (not beds)")
-    bathrooms: float | None = Field(None, description="Use this field (not baths)")
-    livingArea: int | None = Field(
-        None, description="Living area in sqft (use this field, not sqft)"
+    sqft = "sqft"
+    acres = "acres"
+
+
+class PropertyEssentials(BaseModel):
+    """
+    Core property characteristics - bedrooms, bathrooms, size, and age
+    """
+
+    bedrooms: conint(ge=0) = Field(..., description="Number of bedrooms")
+    bathrooms: confloat(ge=0.0) = Field(
+        ..., description="Number of bathrooms (e.g., 2.5 for 2 full, 1 half)"
     )
-    homeType: str | None = Field(None, description="Property type (SINGLE_FAMILY, CONDO, etc.)")
-    lotAreaValue: float | None = None
-    lotAreaUnit: str | None = None
-    listingStatus: str | None = None
+    livingAreaSqft: conint(ge=0) | None = Field(None, description="Living area in square feet")
+    lotSizeSqft: conint(ge=0) | None = Field(None, description="Lot size in square feet")
+    lotSizeUnit: LotSizeUnit | None = Field("sqft", description="Unit for lot size measurement")
+    yearBuilt: conint(ge=1700, le=2100) | None = Field(None, description="Year property was built")
+    stories: conint(ge=1) | None = Field(None, description="Number of stories/floors")
+
+
+class PropertyLocation(BaseModel):
+    """
+    Property address and geographic information
+    """
+
+    address: str = Field(..., description="Full street address")
+    city: str = Field(..., description="City name")
+    state: str = Field(..., description="State abbreviation (e.g., CA, NY)")
+    zipcode: constr(pattern=r"^\d{5}(-\d{4})?$") = Field(
+        ..., description="ZIP code (5 or 9 digits)"
+    )
+    county: str | None = Field(None, description="County name")
+    neighborhood: str | None = Field(None, description="Neighborhood or area name")
+    latitude: confloat(ge=-90.0, le=90.0) = Field(..., description="Latitude coordinate")
+    longitude: confloat(ge=-180.0, le=180.0) = Field(..., description="Longitude coordinate")
+    boundaries: dict[str, Any] | None = Field(None, description="GeoJSON polygon boundaries")
+    schoolDistrict: str | None = Field(None, description="School district name")
+    commuteData: CommuteData | None = None
+
+
+class Event(Enum):
+    """
+    Type of price event
+    """
+
+    listed = "listed"
+    sold = "sold"
+    price_change = "price_change"
+    delisted = "delisted"
+    pending = "pending"
+
+
+class PriceHistoryItem(BaseModel):
+    eventDate: date_aliased = Field(..., description="Date of price event")
+    price: float = Field(..., description="Price at this event")
+    event: Event = Field(..., description="Type of price event")
+
+
+class PropertyFinancials(BaseModel):
+    """
+    Property pricing, taxes, and financial details
+    """
+
+    price: confloat(ge=0.0) | None = Field(None, description="Current listing price")
+    listPrice: confloat(ge=0.0) | None = Field(None, description="Original list price")
+    pricePerSqft: confloat(ge=0.0) | None = Field(None, description="Price per square foot")
+    priceHistory: list[PriceHistoryItem] | None = None
+    taxAssessedValue: confloat(ge=0.0) | None = Field(None, description="Tax assessed value")
+    annualTaxes: confloat(ge=0.0) | None = Field(None, description="Annual property taxes")
+    hoaFees: confloat(ge=0.0) | None = Field(None, description="Monthly HOA fees")
+    insurance: confloat(ge=0.0) | None = Field(None, description="Estimated monthly insurance cost")
+
+
+class PropertyAgent(BaseModel):
+    """
+    Agent and brokerage information
+    """
+
+    listingAgentId: str | None = Field(None, description="MLS or internal agent ID")
+    listingAgentName: str | None = Field(None, description="Full name of listing agent")
+    listingAgentPhone: str | None = Field(None, description="Agent phone number")
+    listingAgentEmail: EmailStr | None = Field(None, description="Agent email address")
+    brokerage: str | None = Field(None, description="Brokerage firm name")
+    mlsId: str | None = Field(None, description="MLS listing ID")
+    mlsRegion: str | None = Field(None, description="MLS region or board")
+
+
+class HomeType(Enum):
+    """
+    Type of residential property
+    """
+
+    SINGLE_FAMILY = "SINGLE_FAMILY"
+    CONDO = "CONDO"
+    TOWNHOUSE = "TOWNHOUSE"
+    MULTI_FAMILY = "MULTI_FAMILY"
+    LAND = "LAND"
+    MANUFACTURED = "MANUFACTURED"
+    CO_OP = "CO_OP"
+    OTHER = "OTHER"
+
+
+class Type7(Enum):
+    """
+    Type of parking
+    """
+
+    garage = "garage"
+    attached_garage = "attached_garage"
+    detached_garage = "detached_garage"
+    carport = "carport"
+    driveway = "driveway"
+    street = "street"
+    covered = "covered"
+    none = "none"
+
+
+class Parking(BaseModel):
+    spaces: conint(ge=0) | None = Field(None, description="Number of parking spaces")
+    type: Type7 | None = Field(None, description="Type of parking")
+
+
+class PropertyFeatures(BaseModel):
+    """
+    Property features, amenities, and characteristics
+    """
+
+    homeType: HomeType | None = Field(None, description="Type of residential property")
+    parking: Parking | None = None
+    amenities: list[str] | None = Field(
+        None, description="List of property amenities (pool, fireplace, deck, etc.)"
+    )
+    appliances: list[str] | None = Field(None, description="Included appliances")
+    heating: str | None = Field(None, description="Heating system type")
+    cooling: str | None = Field(None, description="Cooling system type")
+    flooring: list[str] | None = Field(
+        None, description="Flooring types (hardwood, carpet, tile, etc.)"
+    )
+    exterior: str | None = Field(None, description="Exterior material (brick, vinyl, stucco, etc.)")
+    roof: str | None = Field(None, description="Roof material and age")
+
+
+class Image(BaseModel):
+    url: AnyUrl = Field(..., description="Image URL")
+    caption: str | None = Field(None, description="Image caption or description")
+    order: int | None = Field(None, description="Display order (0-based)")
+    width: int | None = None
+    height: int | None = None
+
+
+class PropertyMedia(BaseModel):
+    """
+    Property photos, videos, and virtual tours
+    """
+
+    primaryImageUrl: AnyUrl | None = Field(None, description="Primary/hero image URL")
+    images: list[Image] | None = None
+    virtualTourUrl: AnyUrl | None = Field(None, description="3D virtual tour or Matterport URL")
+    videoUrl: AnyUrl | None = Field(None, description="Property video URL")
+    floorPlanUrl: AnyUrl | None = Field(None, description="Floor plan image URL")
+
+
+class ListingStatus(Enum):
+    """
+    Current listing status
+    """
+
+    FOR_SALE = "FOR_SALE"
+    PENDING = "PENDING"
+    SOLD = "SOLD"
+    OFF_MARKET = "OFF_MARKET"
+    COMING_SOON = "COMING_SOON"
+    CONTINGENT = "CONTINGENT"
+    ACTIVE = "ACTIVE"
+
+
+class PropertyMetadata(BaseModel):
+    """
+    Property listing metadata and status
+    """
+
+    zpid: str | None = Field(None, description="Property listing ID (MLS ID from Slipstream)")
+    mlsHomeId: str | None = Field(None, description="MLS listing ID")
+    listingStatus: ListingStatus | None = Field(None, description="Current listing status")
+    daysOnMarket: conint(ge=0) | None = Field(
+        None, description="Number of days property has been listed"
+    )
+    listingDate: date_aliased | None = Field(None, description="Date property was listed")
+    lastUpdated: AwareDatetime | None = Field(None, description="Last time listing was updated")
+    createdAt: AwareDatetime | None = Field(
+        None, description="When record was created in our system"
+    )
+    updatedAt: AwareDatetime | None = Field(
+        None, description="When record was last updated in our system"
+    )
 
 
 class NotInterestedHomeItem(BaseModel):
@@ -2305,208 +2477,6 @@ class PropertyCompsResponse(SuccessResponse):
         None, description="Property comparables data from Slipstream API"
     )
     source: Source | None = None
-
-
-class PropertyAgent(BaseModel):
-    """
-    Agent and brokerage information
-    """
-
-    listingAgentId: str | None = Field(None, description="MLS or internal agent ID")
-    listingAgentName: str | None = Field(None, description="Full name of listing agent")
-    listingAgentPhone: str | None = Field(None, description="Agent phone number")
-    listingAgentEmail: EmailStr | None = Field(None, description="Agent email address")
-    brokerage: str | None = Field(None, description="Brokerage firm name")
-    mlsId: str | None = Field(None, description="MLS listing ID")
-    mlsRegion: str | None = Field(None, description="MLS region or board")
-
-
-class LotSizeUnit(Enum):
-    """
-    Unit for lot size measurement
-    """
-
-    sqft = "sqft"
-    acres = "acres"
-
-
-class PropertyEssentials(BaseModel):
-    """
-    Core property characteristics - bedrooms, bathrooms, size, and age
-    """
-
-    bedrooms: conint(ge=0) = Field(..., description="Number of bedrooms")
-    bathrooms: confloat(ge=0.0) = Field(
-        ..., description="Number of bathrooms (e.g., 2.5 for 2 full, 1 half)"
-    )
-    livingAreaSqft: conint(ge=0) | None = Field(None, description="Living area in square feet")
-    lotSizeSqft: conint(ge=0) | None = Field(None, description="Lot size in square feet")
-    lotSizeUnit: LotSizeUnit | None = Field("sqft", description="Unit for lot size measurement")
-    yearBuilt: conint(ge=1700, le=2100) | None = Field(None, description="Year property was built")
-    stories: conint(ge=1) | None = Field(None, description="Number of stories/floors")
-
-
-class PropertyLocation(BaseModel):
-    """
-    Property address and geographic information
-    """
-
-    address: str = Field(..., description="Full street address")
-    city: str = Field(..., description="City name")
-    state: str = Field(..., description="State abbreviation (e.g., CA, NY)")
-    zipcode: constr(pattern=r"^\d{5}(-\d{4})?$") = Field(
-        ..., description="ZIP code (5 or 9 digits)"
-    )
-    county: str | None = Field(None, description="County name")
-    neighborhood: str | None = Field(None, description="Neighborhood or area name")
-    latitude: confloat(ge=-90.0, le=90.0) = Field(..., description="Latitude coordinate")
-    longitude: confloat(ge=-180.0, le=180.0) = Field(..., description="Longitude coordinate")
-    boundaries: dict[str, Any] | None = Field(None, description="GeoJSON polygon boundaries")
-    schoolDistrict: str | None = Field(None, description="School district name")
-    commuteData: CommuteData | None = None
-
-
-class Event(Enum):
-    """
-    Type of price event
-    """
-
-    listed = "listed"
-    sold = "sold"
-    price_change = "price_change"
-    delisted = "delisted"
-    pending = "pending"
-
-
-class PriceHistoryItem(BaseModel):
-    eventDate: date_aliased = Field(..., description="Date of price event")
-    price: float = Field(..., description="Price at this event")
-    event: Event = Field(..., description="Type of price event")
-
-
-class PropertyFinancials(BaseModel):
-    """
-    Property pricing, taxes, and financial details
-    """
-
-    price: confloat(ge=0.0) | None = Field(None, description="Current listing price")
-    listPrice: confloat(ge=0.0) | None = Field(None, description="Original list price")
-    pricePerSqft: confloat(ge=0.0) | None = Field(None, description="Price per square foot")
-    priceHistory: list[PriceHistoryItem] | None = None
-    taxAssessedValue: confloat(ge=0.0) | None = Field(None, description="Tax assessed value")
-    annualTaxes: confloat(ge=0.0) | None = Field(None, description="Annual property taxes")
-    hoaFees: confloat(ge=0.0) | None = Field(None, description="Monthly HOA fees")
-    insurance: confloat(ge=0.0) | None = Field(None, description="Estimated monthly insurance cost")
-
-
-class HomeType(Enum):
-    """
-    Type of residential property
-    """
-
-    SINGLE_FAMILY = "SINGLE_FAMILY"
-    CONDO = "CONDO"
-    TOWNHOUSE = "TOWNHOUSE"
-    MULTI_FAMILY = "MULTI_FAMILY"
-    LAND = "LAND"
-    MANUFACTURED = "MANUFACTURED"
-    CO_OP = "CO_OP"
-    OTHER = "OTHER"
-
-
-class Type7(Enum):
-    """
-    Type of parking
-    """
-
-    garage = "garage"
-    attached_garage = "attached_garage"
-    detached_garage = "detached_garage"
-    carport = "carport"
-    driveway = "driveway"
-    street = "street"
-    covered = "covered"
-    none = "none"
-
-
-class Parking(BaseModel):
-    spaces: conint(ge=0) | None = Field(None, description="Number of parking spaces")
-    type: Type7 | None = Field(None, description="Type of parking")
-
-
-class PropertyFeatures(BaseModel):
-    """
-    Property features, amenities, and characteristics
-    """
-
-    homeType: HomeType | None = Field(None, description="Type of residential property")
-    parking: Parking | None = None
-    amenities: list[str] | None = Field(
-        None, description="List of property amenities (pool, fireplace, deck, etc.)"
-    )
-    appliances: list[str] | None = Field(None, description="Included appliances")
-    heating: str | None = Field(None, description="Heating system type")
-    cooling: str | None = Field(None, description="Cooling system type")
-    flooring: list[str] | None = Field(
-        None, description="Flooring types (hardwood, carpet, tile, etc.)"
-    )
-    exterior: str | None = Field(None, description="Exterior material (brick, vinyl, stucco, etc.)")
-    roof: str | None = Field(None, description="Roof material and age")
-
-
-class Image(BaseModel):
-    url: AnyUrl = Field(..., description="Image URL")
-    caption: str | None = Field(None, description="Image caption or description")
-    order: int | None = Field(None, description="Display order (0-based)")
-    width: int | None = None
-    height: int | None = None
-
-
-class PropertyMedia(BaseModel):
-    """
-    Property photos, videos, and virtual tours
-    """
-
-    primaryImageUrl: AnyUrl | None = Field(None, description="Primary/hero image URL")
-    images: list[Image] | None = None
-    virtualTourUrl: AnyUrl | None = Field(None, description="3D virtual tour or Matterport URL")
-    videoUrl: AnyUrl | None = Field(None, description="Property video URL")
-    floorPlanUrl: AnyUrl | None = Field(None, description="Floor plan image URL")
-
-
-class ListingStatus(Enum):
-    """
-    Current listing status
-    """
-
-    FOR_SALE = "FOR_SALE"
-    PENDING = "PENDING"
-    SOLD = "SOLD"
-    OFF_MARKET = "OFF_MARKET"
-    COMING_SOON = "COMING_SOON"
-    CONTINGENT = "CONTINGENT"
-    ACTIVE = "ACTIVE"
-
-
-class PropertyMetadata(BaseModel):
-    """
-    Property listing metadata and status
-    """
-
-    zpid: str | None = Field(None, description="Property listing ID (MLS ID from Slipstream)")
-    mlsHomeId: str | None = Field(None, description="MLS listing ID")
-    listingStatus: ListingStatus | None = Field(None, description="Current listing status")
-    daysOnMarket: conint(ge=0) | None = Field(
-        None, description="Number of days property has been listed"
-    )
-    listingDate: date_aliased | None = Field(None, description="Date property was listed")
-    lastUpdated: AwareDatetime | None = Field(None, description="Last time listing was updated")
-    createdAt: AwareDatetime | None = Field(
-        None, description="When record was created in our system"
-    )
-    updatedAt: AwareDatetime | None = Field(
-        None, description="When record was last updated in our system"
-    )
 
 
 class DetailLevel(Enum):
@@ -3063,17 +3033,6 @@ class UpdateChecklistDispatchAutomationRequest(BaseModel):
     notesPerClient: dict[str, str] | None = None
 
 
-class UpdateClosingModeRequest(BaseModel):
-    is_closing_mode: bool = Field(..., description="Toggle closing mode on (true) or off (false)")
-
-
-class UpdateClosingModeResponse(SuccessResponse):
-    is_closing_mode: bool | None = Field(
-        None,
-        description="Echo of the request value for API compatibility. Not persisted on the users table (column removed); do not treat as stored user profile state.\n",
-    )
-
-
 class Status9(Enum):
     """
     New status for the event request (pending cannot be set manually)
@@ -3292,13 +3251,13 @@ class PartnerUpdateRequest(BaseModel):
     )
 
 
-class Data(BaseModel):
+class Data2(BaseModel):
     partners: list[Partner]
 
 
 class PartnerListResponse(BaseModel):
     success: bool
-    data: Data
+    data: Data2
 
 
 class PartnerResponse(BaseModel):
@@ -3306,7 +3265,7 @@ class PartnerResponse(BaseModel):
     data: Partner
 
 
-class Data1(BaseModel):
+class Data3(BaseModel):
     logo_key: str | None = None
     logo_url: str | None = None
 
@@ -3314,7 +3273,7 @@ class Data1(BaseModel):
 class PartnerLogoUploadResponse(BaseModel):
     success: bool
     logo_url: str | None = Field(None, description="Presigned view URL for the uploaded logo")
-    data: Data1 | None = None
+    data: Data3 | None = None
 
 
 class RevShareStepViewRequest(BaseModel):
@@ -3335,13 +3294,13 @@ class Placement(BaseModel):
     )
 
 
-class Data2(BaseModel):
+class Data4(BaseModel):
     placements: list[Placement]
 
 
 class RevSharePlacementsResponse(BaseModel):
     success: bool
-    data: Data2
+    data: Data4
 
 
 class Point(BaseModel):
@@ -3360,7 +3319,7 @@ class TopAgent(BaseModel):
     clicks: int | None = None
 
 
-class Data3(BaseModel):
+class Data5(BaseModel):
     partner_id: str | None = None
     total_clicks: int | None = None
     unique_buyer_clicks: int | None = None
@@ -3378,7 +3337,7 @@ class Data3(BaseModel):
 
 class RevShareAnalyticsResponse(BaseModel):
     success: bool
-    data: Data3
+    data: Data5
 
 
 class ViewingNavigateResponse(BaseModel):
@@ -3419,7 +3378,7 @@ class ActionPlanResponse(SuccessResponse):
 
 class User(BaseModel):
     """
-    Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Closing mode is not stored on users (column removed); use PUT /user/closing-mode response only.
+    Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Agent status is derived from user_roles (is_agent is true when role "agent" is present).
 
     """
 
@@ -3446,24 +3405,14 @@ class User(BaseModel):
         description="ISO 8601 timestamp of last successful session activity when tracked.",
     )
     is_active: bool
-    is_agent: bool | None = None
-    client_ids: list[str] | str | None = Field(
+    is_agent: bool | None = Field(
         None,
-        description="Legacy wire shape: JSON array of client ids or a single comma-separated string. Prefer array in new clients; oneOf is required until all producers normalize.\n",
-    )
-    agent_id: list[str] | str | None = Field(
-        None,
-        description="Legacy wire shape: buyer agent id(s) as JSON array or string. Prefer array in new clients.\n",
+        description="Computed from user_roles; true when the user has the agent role.",
     )
     mls_id: str | None = None
     brokerage: str | None = Field(
         None,
         description="Agent brokerage name on the users row (DB column brokerage). Replaces the legacy column name agency_name from early migrations; API wire name is always brokerage.\n",
-    )
-    has_subscription: bool | None = None
-    subscription: Subscription | None = Field(
-        None,
-        description="Optional payment-provider subscription metadata. Listed properties are common; providers may add extra keys (additionalProperties allowed).\n",
     )
     has_preferences: bool | None = None
     preferences_version: str | None = Field(
@@ -3818,29 +3767,6 @@ class ViewingItinerary(BaseModel):
     )
 
 
-class NegotiationStrategyResponse(SuccessResponse):
-    strategy: Strategy | None = Field(
-        None,
-        description="Generated negotiation strategy with price and market analysis",
-    )
-    property_address: str
-    strategy_id: str
-    filename: str
-    generated_at: str
-    generated_for_user: str
-    property_data: PropertyData | None = None
-    commute_data: CommuteData | None = None
-    property_analysis: dict[str, Any] | None = Field(
-        None,
-        description="Property analysis from research endpoint (same structure as in PropertyResponse)",
-    )
-    traceback: str | None = None
-
-
-class PollReportResponse(SuccessResponse):
-    report: ReportListItem | None = None
-
-
 class PropertyComplete(BaseModel):
     """
     Complete property record with all details organized into logical submodels.
@@ -3858,6 +3784,10 @@ class PropertyComplete(BaseModel):
     metadata: PropertyMetadata | None = None
     score: float | None = Field(None, description="Match score (0-100) based on user preferences")
     ranking: int | None = Field(None, description="Position in search results (1 = best match)")
+
+
+class PollReportResponse(SuccessResponse):
+    report: ReportListItem | None = None
 
 
 class PropertyRequest(PropertyResearchOptions):
@@ -4117,6 +4047,26 @@ class ChecklistDispatchAutomationApiResponse(BaseModel):
     setting: ChecklistDispatchAutomationSetting | None = None
 
 
+class Data(BaseModel):
+    agreements: list[Agreement]
+
+
+class ChecklistItemDocumentsResponse(BaseModel):
+    success: bool
+    data: Data
+    error: str | None = None
+
+
+class Data1(BaseModel):
+    agreement: Agreement
+
+
+class LinkChecklistDocumentApiResponse(BaseModel):
+    success: bool
+    data: Data1
+    error: str | None = None
+
+
 class CreateAgreementResponse(SuccessResponse):
     agreement: Agreement | None = None
 
@@ -4196,6 +4146,25 @@ class GoogleEventListResponse(BaseModel):
 
 class ListAgreementsResponse(SuccessResponse):
     agreements: list[Agreement] | None = None
+
+
+class NegotiationStrategyResponse(SuccessResponse):
+    strategy: Strategy | None = Field(
+        None,
+        description="Generated negotiation strategy with price and market analysis",
+    )
+    property_address: str
+    strategy_id: str
+    filename: str
+    generated_at: str
+    generated_for_user: str
+    property_data: PropertyComplete | None = None
+    commute_data: CommuteData | None = None
+    property_analysis: dict[str, Any] | None = Field(
+        None,
+        description="Property analysis from research endpoint (same structure as in PropertyResponse)",
+    )
+    traceback: str | None = None
 
 
 class TaskChecklistApiResponse(SuccessResponse):

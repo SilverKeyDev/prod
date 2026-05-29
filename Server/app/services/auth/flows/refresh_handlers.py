@@ -310,6 +310,80 @@ def handle_cognito_refresh(
     return resp, 200
 
 
+def handle_cognito_refresh_without_session(
+    refresh_token: str, request_id: str, start_time: float
+) -> tuple[Response, int]:
+    """
+    Refresh when the session cookie is missing but refresh_token is present (e.g. expired session).
+    Uses Cognito refresh first to recover user identity, then issues new session cookies.
+    """
+    from flask import current_app
+
+    result = AWS_COGNITO_service.refresh_access_token(refresh_token, None)
+
+    if not result["success"]:
+        duration_ms = int((time.time() - start_time) * 1000)
+        error_code = result.get("error", "REFRESH_FAILED")
+        current_app.logger.warning(
+            "AUTH_REFRESH_WITHOUT_SESSION_FAILED",
+            extra={
+                "request_id": request_id,
+                "error": error_code,
+                "duration_ms": duration_ms,
+            },
+        )
+        resp = make_response(
+            {
+                "success": False,
+                "error": error_code,
+                "message": result.get("message", "Token refresh failed. Please log in again."),
+            }
+        )
+        resp = clear_auth_cookies(resp)
+        return resp, 401
+
+    try:
+        id_token = result["tokens"]["IdToken"]
+        decoded_id_token = decode_cognito_token(id_token)
+        user_sub = decoded_id_token["sub"]
+        email_from_token = decoded_id_token.get("email")
+    except Exception as token_error:
+        duration_ms = int((time.time() - start_time) * 1000)
+        current_app.logger.error(
+            "AUTH_REFRESH_WITHOUT_SESSION_TOKEN_DECODE_ERROR",
+            extra={"request_id": request_id, "error": str(token_error), "duration_ms": duration_ms},
+        )
+        return make_response(
+            {
+                "success": False,
+                "error": "TOKEN_DECODE_ERROR",
+                "message": "Failed to process refreshed token",
+            }
+        ), 500
+
+    user = find_or_create_user_by_cognito(user_sub, email_from_token or "")
+    if not user or not user.cognito_id:
+        duration_ms = int((time.time() - start_time) * 1000)
+        current_app.logger.warning(
+            "AUTH_REFRESH_WITHOUT_SESSION_USER_NOT_FOUND",
+            extra={"request_id": request_id, "user_sub": user_sub, "duration_ms": duration_ms},
+        )
+        resp = make_response(
+            {
+                "success": False,
+                "error": "USER_NOT_FOUND",
+                "message": "User not found. Please log in again.",
+            }
+        )
+        resp = clear_auth_cookies(resp)
+        return resp, 401
+
+    user_id = str(user.id)
+    return handle_cognito_refresh(
+        user, user_id, email_from_token or user.email, request_id, start_time
+    )
+
+
 def extract_refresh_token_from_cookie() -> str | None:
     """Return refresh token from the current request cookies (used by routes + unit tests)."""
     return request.cookies.get("refresh_token")

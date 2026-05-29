@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { reportApi } from "./report";
 
-vi.mock("packages/services/http/compatibility", () => ({
+vi.mock("packages/services/http", () => ({
   apiGet: vi.fn(),
 }));
 
-import { apiGet } from "packages/services/http/compatibility";
+import { apiGet } from "packages/services/http";
 
 describe("reportApi.getDocumentLibrary", () => {
   beforeEach(() => {

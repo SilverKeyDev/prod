@@ -14,7 +14,7 @@
 3. Use generated types in TypeScript: `import type { components } from "packages/types/api.generated"`
 4. Implement backend handler with matching response structure
 
-**See:** [OPENAPI_MIGRATION.md](../../OPENAPI_MIGRATION.md) and `.cursor/rules/shared/openapi-types.mdc`
+**See:** [openapi-workflow.md](./openapi-workflow.md) and `.cursor/rules/shared/openapi-types.mdc`
 
 ## URL Structure
 
@@ -323,7 +323,7 @@ Client uploads directly to S3 using the presigned URL.
 
 DocuSign Connect must use this exact path (blueprint prefix `/api/v1/webhooks/docusign` plus route `/connect`). Implementation: [`Server/app/routes/documents/docusign/handlers/webhooks.py`](../../Server/app/routes/documents/docusign/handlers/webhooks.py) (`methods=['POST']`), registered in [`Server/app/__init__.py`](../../Server/app/__init__.py).
 
-The handler verifies HMAC (`X-DocuSign-Signature-1` and related headers), persists a [`DocusignConnectEvent`](../../Server/app/models/documents/docusign_connect_event.py), and enqueues `process_webhook_task` for async processing. See [`Server/app/services/docusign/TESTING.md`](../../Server/app/services/docusign/TESTING.md) for curl checks and 405 troubleshooting.
+The handler verifies HMAC (`X-DocuSign-Signature-1` and related headers), persists a [`DocusignConnectEvent`](../../Server/app/models/documents/docusign_connect_event.py), and enqueues `process_webhook_task` for async processing. See [`Server/app/services/docusign/docs/TESTING.md`](../../Server/app/services/docusign/docs/TESTING.md) for curl checks and 405 troubleshooting.
 
 ```text
 POST /api/v1/webhooks/docusign/connect

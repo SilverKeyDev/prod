@@ -570,7 +570,7 @@ We review this policy at least annually.
 
 ## Related Documents
 
-- [Terms of Service](./TERMS_OF_SERVICE.md) *(To be created)*
+- Terms of Service *(planned — not yet in repo)*
 - [GDPR Compliance](./GDPR.md)
 - [CCPA Compliance](./CCPA.md)
 - [Data Retention Policy](./DATA_RETENTION.md)

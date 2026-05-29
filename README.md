@@ -90,12 +90,11 @@ make help
 | [`Client/`](Client/) | pnpm workspace: **`apps/web`**, **`apps/mobile`** (thin shells), **`packages/`** (features, hooks, UI, config, store, …). |
 | [`Server/`](Server/) | Flask app, services, tests, `Server/scripts/` (venv bootstrap, secrets, lint). |
 | [`openapi/`](openapi/) | HTTP API contract; drives generated TS/Python types. |
-| [`documentation/`](documentation/) | Canonical long-form documentation. |
-| [`docs/`](docs/README.md) | Server / ops index (links into `documentation/server/`). |
+| [`documentation/`](documentation/) | Canonical long-form documentation (incl. server ops under `documentation/server/ops/`). |
 | [`scripts/`](scripts/) | `setup-local.sh`, `check-deps.sh`, `refresh.sh`, `run-all-linters.sh`, `run/` dev stacks. |
 | [`.github/`](.github/) | Workflows and templates. |
 
-**Architecture rule:** business logic and shared UI live in **`Client/packages/`**; **`Client/apps/*`** stay thin (routing, providers, page composition). See [`documentation/client/thin-app-architecture.md`](documentation/client/thin-app-architecture.md) and [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md).
+**Architecture rule:** business logic and shared UI live in **`Client/packages/`**; **`Client/apps/*`** stay thin (routing, providers, page composition). See [`documentation/client/architecture/thin-app-architecture.md`](documentation/client/architecture/thin-app-architecture.md) and [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md).
 
 ---
 
@@ -108,7 +107,7 @@ make help
 | Doc index | [`documentation/README.md`](documentation/README.md) |
 | Client (lint, packages, RN vs web) | [`documentation/client/README.md`](documentation/client/README.md) |
 | Server | [`documentation/server/README.md`](documentation/server/README.md) |
-| Ops / server stubs index | [`docs/README.md`](docs/README.md) |
+| Server ops (Postgres, Redis) | [`documentation/server/ops/`](documentation/server/ops/postgres.md) |
 
 ---
 

@@ -10,7 +10,7 @@ import type {
   SendFormResponse,
 } from "packages/features/documents/types/forms";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { apiGet, apiPost } from "packages/services/http";
 
 /**
  * Checklist forms API client.

@@ -70,6 +70,10 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
     'No homes matched with strict preferences on. Try turning off "Match all preferences strictly," or relax your filters and search again.',
   "search.invalid_search_area":
     "We couldn’t build a search area from your locations. Add or fix important locations in Filters, then try again.",
+  "search.geolocation_denied_default_market":
+    "Location access was off. Showing homes near Atlanta until you add important locations or pick an area on the map.",
+  "search.geolocation_unavailable_default_market":
+    "We couldn’t use your location. Showing homes near Atlanta until you pick an area on the map.",
   "search.viewport_search_area_invalid":
     "This map area couldn’t be searched. Zoom or move the map and try again.",
   "search.map_not_ready": "The map is still loading. Wait a moment, then search again.",

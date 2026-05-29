@@ -66,8 +66,8 @@
   {
     "id": "use-feed-scroll-container",
     "description": "Feed scroll container hook with platform-specific layout",
-    "webPath": "packages/features/feed/hooks/ui/useFeedScrollContainer.ts",
-    "nativePath": "packages/features/feed/hooks/ui/useFeedScrollContainer.native.ts",
+    "webPath": "packages/features/feed/hooks/ui/scroll/useFeedScrollContainer.ts",
+    "nativePath": "packages/features/feed/hooks/ui/scroll/useFeedScrollContainer.native.ts",
     "reason": "Different scroll container layout patterns between web and native.",
     "category": "layout"
   },
@@ -309,6 +309,14 @@
     "webPath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.web.tsx",
     "nativePath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.native.tsx",
     "reason": "Web uses BaseModal and programmatic JSON download. Native uses simpler RN layout and Linking without DOM or download APIs.",
+    "category": "layout"
+  },
+  {
+    "id": "personalization-settings-screen-layout",
+    "description": "Account personalization settings: web-only scroll + sidebar nav (no native account settings screen yet)",
+    "webPath": "packages/features/profile/components/settings/PersonalizationSettingsScreen.web.tsx",
+    "nativePath": null,
+    "reason": "Web account settings uses DOM scroll-spy, dashboard mobile header injection, and web-only profile section components. Native account settings are not implemented; thin apps/web SettingsPage composes this screen.",
     "category": "layout"
   },
   {

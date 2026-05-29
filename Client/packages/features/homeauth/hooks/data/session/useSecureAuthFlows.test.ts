@@ -4,12 +4,15 @@ import type { UserProfile } from "@/features/homeauth/types";
 
 import { performRefreshToken } from "./useSecureAuthFlows";
 
-const refreshTokenMock = vi.fn();
+const postRefreshTokenWithRetryMock = vi.fn();
 
-vi.mock("packages/config/http/api", () => ({
-  authApi: {
-    refreshToken: (...args: unknown[]) => refreshTokenMock(...args),
-  },
+vi.mock("packages/services/http/client/refreshTokenRetry", () => ({
+  postRefreshTokenWithRetry: (...args: unknown[]) => postRefreshTokenWithRetryMock(...args),
+  isTransientRefreshFailure: () => false,
+}));
+
+vi.mock("packages/services/http/client/auth", () => ({
+  applyLocalUnauthenticatedState: vi.fn(),
 }));
 
 vi.mock("packages/features/homeauth/hooks/data/utils/logoutCleanup", () => ({
@@ -28,6 +31,10 @@ vi.mock("packages/logger", () => ({
 
 const authStoreState = {
   user: null as UserProfile | null,
+  setUser: vi.fn(),
+  setIsAuthenticated: vi.fn(),
+  setAuthStatus: vi.fn(),
+  setAuthReady: vi.fn(),
 };
 
 vi.mock("packages/store", () => ({
@@ -53,8 +60,6 @@ describe("performRefreshToken", () => {
       name: "Dev",
       created_at: null,
       is_active: true,
-      has_subscription: false,
-      subscription: null,
       has_preferences: true,
       is_agent: false,
       roles: ["integration_partner", "admin"],
@@ -63,14 +68,17 @@ describe("performRefreshToken", () => {
   });
 
   it("merges refresh user patch without dropping roles", async () => {
-    refreshTokenMock.mockResolvedValue({
+    postRefreshTokenWithRetryMock.mockResolvedValue({
       success: true,
-      user: {
-        id: "u1",
-        email: "dev@usesilverkey.com",
-        name: "Dev",
-        is_agent: false,
-        auth_method: "cognito",
+      body: {
+        success: true,
+        user: {
+          id: "u1",
+          email: "dev@usesilverkey.com",
+          name: "Dev",
+          is_agent: false,
+          auth_method: "cognito",
+        },
       },
     });
 

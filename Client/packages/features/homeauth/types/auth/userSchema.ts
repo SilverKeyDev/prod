@@ -27,24 +27,11 @@ export const userSchema = z.object({
   updated_at: z.string().nullable().optional(),
   is_active: jsonBoolean(false),
   is_agent: jsonBooleanOptional(),
-  /** Not persisted on users row; may be absent on profile responses. */
-  is_closing_mode: jsonBooleanOptional(),
   google_id: z.string().nullable().optional(),
-  /** Stored as Text in DB - API returns a string (or null), not a JSON array. */
-  client_ids: z
-    .union([z.array(z.string()), z.string()])
-    .nullable()
-    .optional(),
-  agent_id: z
-    .union([z.array(z.string()), z.string()])
-    .nullable()
-    .optional(),
   mls_id: z.string().nullable().optional(),
   brokerage: z.string().nullable().optional(),
   preferences_version: z.string().nullable().optional(),
   roles: z.array(z.string()).optional(),
-  has_subscription: jsonBooleanOptional(),
-  subscription: z.unknown().optional(),
   has_preferences: jsonBooleanOptional(),
   profile_picture: z.string().nullable().optional(),
   profile_picture_url: z.string().nullable().optional(),

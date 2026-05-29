@@ -104,7 +104,7 @@ def test_post_logger_config_rejects_unknown_keys(client, mock_logger) -> None:
     assert response.status_code == 400
     data = response.get_json()
     assert data["success"] is False
-    assert "No valid logger fields" in data.get("error", "")
+    assert "No valid logger fields" in data.get("message", "")
     mock_logger.update_config.assert_not_called()
 
 

@@ -30,8 +30,6 @@ const authState = {
     name: "Test",
     is_active: true,
     is_agent: false,
-    has_subscription: false,
-    subscription: null,
     has_preferences: false,
     roles: ["buyer"],
   },

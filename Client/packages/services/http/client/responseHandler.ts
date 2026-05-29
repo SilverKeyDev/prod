@@ -3,7 +3,7 @@ import { dateNow } from "packages/utils/date";
 import { asError } from "packages/utils/errorHandling/error";
 import { getDocument, getWindow } from "packages/utils/platform";
 
-import { isAuthEndpoint } from "./auth";
+import { isAuthEndpoint } from "./authRecovery";
 import { AuthenticationError, HttpError } from "./errors";
 
 export function handleHttpResponse<T>(
@@ -95,11 +95,16 @@ export function handleHttpResponse<T>(
             log.error(LOG_CATEGORIES.HTTP, "❌ AUTH_ERROR_401", logPayload);
           }
 
+          const credentialsIncluded = requestOptions.credentials === "include";
           const isKnownAuthError =
             authErrorCodes.includes(errorBody.error) ||
             errorBody.error === "ACCESS_TOKEN_MISSING" ||
             errorBody.error === "Authentication required" ||
-            errorBody.error === "Unauthorized";
+            errorBody.error === "Unauthorized" ||
+            (credentialsIncluded &&
+              !isAuthEndpoint(url) &&
+              typeof errorBody.error === "string" &&
+              errorBody.error.length > 0);
           if (isKnownAuthError) {
             // Auth endpoints (e.g. /api/v1/user/profile during bootstrap): throw HttpError
             // so callers can return { success: false } without triggering global logout/redirect

@@ -2,7 +2,7 @@
 
 Manual pass before shipping user-facing web or mobile changes. Pair with automated checks: `pnpm test:run` (jest-axe), `pnpm a11y:critical-path` (Playwright + axe on logged-in routes), and `pnpm lint`.
 
-Standards reference: [accessibility-standards.md](../accessibility-standards.md).
+Standards reference: [accessibility-standards.md](../standards/accessibility-standards.md).
 
 ---
 

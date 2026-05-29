@@ -15,7 +15,8 @@ PYTEST_ARGS ?=
 	pre-commit precommit \
 	lint lint-all lint-client lint-server \
 	typecheck check-client openapi openapi-verify generate-api \
-	format-client format-check mobile
+	format-client format-check mobile \
+	routes-extract endpoints-check-dead routes-extract-verify
 
 help:
 	@echo "SilverKey Makefile (see also ./scripts/setup-local.sh and ./scripts/refresh.sh)"
@@ -38,11 +39,15 @@ help:
 	@echo "  make lint-server      ./scripts/run-all-linters.sh server"
 	@echo "  make typecheck        cd Client && pnpm typecheck"
 	@echo "  make check-client     cd Client && pnpm check"
+	@echo "  make check-docs       doc placement + internal .md link checks"
 	@echo "  make openapi          Regenerate client + server types from openapi/ (bundle + codegen)"
 	@echo "  make openapi-verify   Regenerate, fail if git drift, run contract tests + typecheck"
 	@echo "  make format-client    cd Client && pnpm format"
 	@echo "  make format-check     cd Client && pnpm format:check"
 	@echo "  make mobile           cd Client && pnpm dev:mobile"
+	@echo "  make routes-extract   Write Server/endpoints.json from Flask url_map"
+	@echo "  make routes-extract-verify  Regenerate endpoints.json; fail if git drift (CI)"
+	@echo "  make endpoints-check-dead  Diff inventory vs PostHog api_request (7d; scheduled ops)"
 
 setup:
 	bash "$(ROOT)/scripts/setup-local.sh" $(ARGS)
@@ -114,6 +119,10 @@ typecheck:
 check-client:
 	cd "$(ROOT)/Client" && pnpm check
 
+check-docs:
+	bash "$(ROOT)/scripts/check-doc-placement.sh"
+	bash "$(ROOT)/scripts/check-doc-links.sh"
+
 openapi:
 	npm run openapi:generate --prefix "$(ROOT)"
 
@@ -131,3 +140,12 @@ format-check:
 
 mobile:
 	cd "$(ROOT)/Client" && pnpm dev:mobile
+
+routes-extract:
+	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/extract_routes.py
+
+routes-extract-verify: routes-extract
+	cd "$(ROOT)" && git diff --exit-code Server/endpoints.json
+
+endpoints-check-dead:
+	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/check_dead_endpoints.py

@@ -81,7 +81,10 @@ def perform_task_checklist_put(
     )
 
     effective_set = set(merge_diag.effective_ids)
-    apply_signature_based_checked_ids(items, str(subject_user_id), checklist_type, effective_set)
+    if not bypass_progress_gates:
+        apply_signature_based_checked_ids(
+            items, str(subject_user_id), checklist_type, effective_set
+        )
     effective_ids = sorted(effective_set)
     run_signature_step_auto_send(
         buyer_user_id=str(subject_user_id),

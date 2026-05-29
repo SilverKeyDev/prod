@@ -1,27 +1,26 @@
 /**
- * Centralized Logger with PII scrubbing and always-on PostHog export.
+ * Centralized Logger with PII scrubbing and environment-aware sinks.
  *
  * Adding New Log Categories:
- * 1. Add the category to logger.config.json (e.g., "search": true)
- *    - Categories can be added to config JSON even before code exists
- *    - The logger will handle unknown categories gracefully
- * 2. When implementing logging code:
- *    - Add to categories.ts: LogCategory type and LOG_CATEGORIES object
- *    - Add mapping in categoryToConfigKey function (categories.ts)
- *    - Add to LoggerConfig interface in loggerTypes.ts (optional, for type safety)
- * 3. Use the category in code: log.info(LOG_CATEGORIES.SEARCH, "message", data)
+ * 1. Add the category to logger.config.json (e.g., "search": false)
+ * 2. Add to categories.ts, categoryToConfigKey, LOGGER_BOOLEAN_KEYS in resolveLoggerConfig.ts
+ * 3. Use: log.info(LOG_CATEGORIES.SEARCH, "message", data)
  *
- * PostHog: all categories and levels are always exported when PostHog is initialized.
+ * Defaults: prod all categories on + PostHog export; dev all off except ERRORS/SECURITY.
+ * Dev opt-in: admin toggles, EXPO_PUBLIC_LOGGER_VERBOSE, EXPO_PUBLIC_LOGGER_CATEGORIES.
  */
 
 import type { ApiSubcategory, LogCategory } from "./categories";
 import { formatLogMessage } from "./formatLogMessage";
 import { loadLoggerConfigFromBundled } from "./loadLoggerConfig";
+import { shouldExportLogsToPostHog } from "./loggerEnv";
 import type { LoggerConfig } from "./loggerTypes";
 import type { LogLevel } from "./loggerTypes";
 import { createSafeLogObject } from "./pii";
 import { emitPostHogLog } from "./posthogLogSink";
 import type { PostHogLogLevel } from "./posthogLogSink.types";
+import { mergeLoggerConfigUpdate, resolveLoggerConfig } from "./resolveLoggerConfig";
+import { shouldEmitLog } from "./shouldEmitLog";
 
 export type { ApiSubcategoryConfig, LoggerConfig } from "./loggerTypes";
 
@@ -54,8 +53,8 @@ class Logger {
     try {
       const response = await fetch("/logger/logger.config.json");
       if (response.ok) {
-        const config = await response.json();
-        this.config = { ...this.config, ...config };
+        const config = (await response.json()) as Partial<LoggerConfig>;
+        this.config = resolveLoggerConfig(config);
       }
     } catch (error) {
       this.originalConsole.warn("[Logger] Failed to reload config, using current config", error);
@@ -63,7 +62,7 @@ class Logger {
   }
 
   updateConfig(updates: Partial<LoggerConfig>): void {
-    this.config = { ...this.config, ...updates };
+    this.config = mergeLoggerConfigUpdate(this.config, updates);
   }
 
   getConfig(): Readonly<LoggerConfig> {
@@ -91,10 +90,16 @@ class Logger {
     data?: unknown,
     subcategory?: ApiSubcategory
   ): void {
+    if (!shouldEmitLog(this.config, level, category, subcategory)) {
+      return;
+    }
+
     const categoryLabel = this.categoryLabel(category, subcategory);
     const scrubbedData = data !== undefined ? createSafeLogObject(data) : undefined;
 
-    emitPostHogLog(posthogLevel, categoryLabel, message, scrubbedData, subcategory);
+    if (shouldExportLogsToPostHog()) {
+      emitPostHogLog(posthogLevel, categoryLabel, message, scrubbedData, subcategory);
+    }
 
     try {
       const formatted = this.formatMessage(level, categoryLabel, message, scrubbedData);

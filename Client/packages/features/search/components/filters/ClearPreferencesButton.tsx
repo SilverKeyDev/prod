@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { useClearUserPreferences } from "packages/hooks/data/user/useClearUserPreferences";
+import { useIsAgent } from "packages/hooks/store";
 import { Button } from "packages/ui";
 
 import type { OnboardingData } from "@/features/profile/utils";
@@ -24,6 +25,7 @@ export function ClearPreferencesButton({
   className,
 }: ClearPreferencesButtonProps): React.ReactElement {
   const { t } = useLocalization();
+  const isAgent = useIsAgent();
   const { clearPreferences, isClearing, buildEmptyFormSnapshot } = useClearUserPreferences({
     selectedClientId,
     onClientChange,
@@ -39,6 +41,10 @@ export function ClearPreferencesButton({
       /* toast handled in hook */
     }
   }, [buildEmptyFormSnapshot, cancelPendingSave, clearPreferences, replaceFormData]);
+
+  if (!isAgent) {
+    return <></>;
+  }
 
   return (
     <Button

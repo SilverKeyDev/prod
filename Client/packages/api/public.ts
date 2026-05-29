@@ -1,4 +1,4 @@
-import { apiGet } from "packages/services/http/compatibility";
+import { apiGet } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
 
 export type PublicAgentProfileResponse = components["schemas"]["PublicAgentProfileResponse"];

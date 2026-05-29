@@ -256,7 +256,7 @@ response_dict = UserDTO.to_response(
 - `.cursor/openapi-full-adoption-summary.md` (this file)
 - `.cursor/openapi-audit-fixes-summary.md` (detailed audit fixes)
 - `Server/docs/validation-strict-mode-rollout.md`
-- `documentation/client/document-schema-naming.md`
+- `documentation/client/architecture/document-schema-naming.md`
 
 ### OpenAPI Schemas (24 enhanced, 4 new)
 - Enhanced: User, UserProfile, AuthResponse, SavedHome, Agreement, TodoItem, etc.

@@ -10,13 +10,51 @@ import {
 } from "packages/features/homeauth/hooks/data/utils/userMapping";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { ROUTES } from "packages/navigation/types/routes";
+import { applyLocalUnauthenticatedState } from "packages/services/http/client/auth";
+import {
+  isTransientRefreshFailure,
+  postRefreshTokenWithRetry,
+} from "packages/services/http/client/refreshTokenRetry";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
-import { resetWorkspaceStore, useDevAppPersonaStore } from "packages/store";
+import {
+  resetWorkspaceStore,
+  useAuthStore,
+  useDevAppPersonaStore,
+  useUserStore,
+} from "packages/store";
 import { asError, getWindow } from "packages/utils";
+import { resolveUserFacingMessage } from "packages/utils/errorHandling";
 
 import type { UserProfile } from "@/features/homeauth/types";
 
 const REFRESH_AFTER_VERIFY_COOLDOWN_MS = 90_000;
+
+function clearAuthStateAfterRefreshFailure(setters: RefreshSetters): void {
+  setters.setAccessToken(null);
+  setters.setUser(null);
+  setters.setStoreUser(null);
+  setters.setStoreIsAuthenticated(false);
+  setters.setStoreAuthStatus("unauthenticated");
+  applyLocalUnauthenticatedState();
+  resetWorkspaceStore();
+  useDevAppPersonaStore.setState({ serverIdentityTouched: false });
+}
+
+/** Server logout using current Zustand auth store setters (web + native). */
+export async function logoutFromAuthStore(): Promise<void> {
+  const store = useAuthStore.getState();
+  const setUserProfile = useUserStore.getState().setUserProfile;
+  await performLogout({
+    setAccessToken: () => {},
+    setUser: store.setUser,
+    setStoreUser: store.setUser,
+    setStoreIsAuthenticated: store.setIsAuthenticated,
+    setStoreAuthStatus: store.setAuthStatus,
+    setStoreAuthReady: store.setAuthReady,
+    setStorePostAuthRedirectPath: store.setPostAuthRedirectPath,
+    setUserProfile,
+  });
+}
 
 type LoginSetters = {
   setUser: (u: UserProfile | null) => void;
@@ -129,17 +167,21 @@ export async function performLogin(
       return { success: false, needsVerification: true };
     }
     setNeedsVerification(false);
-    setError(response.error ?? "Login failed");
+    setError(
+      resolveUserFacingMessage(response, {
+        fallbackMessage: response.message ?? "Login failed",
+      })
+    );
     setLoginRef(false);
     return { success: false };
   } catch (err: unknown) {
-    const errObj = asError(err);
-    setError(errObj.message);
+    const userMessage = resolveUserFacingMessage(err, { fallbackMessage: "Login failed" });
+    setError(userMessage);
     reportSecurityEvent({
       type: "authentication_failure",
       severity: "high",
       description: "Secure login attempt failed",
-      metadata: { email, error: errObj.message },
+      metadata: { email, error: userMessage },
     });
     setLoginRef(false);
     return { success: false };
@@ -224,47 +266,47 @@ export async function performRefreshToken(setters: RefreshSetters): Promise<bool
   }
   log.info(LOG_CATEGORIES.AUTH, "Attempting token refresh");
   try {
-    const { authApi: api } = await import("packages/config/http/api");
-    const response = await api.refreshToken();
-    if (response.success) {
-      setters.setAccessToken("authenticated");
-      if (response.user) {
-        const prev = setters.currentUser;
-        const nextUser = prev
-          ? mergeSessionRefreshUserIntoAuthProfile(prev, response.user)
-          : mapAuthResponseToUserProfile(response.user, response.user_sub);
-        setters.setUser(nextUser);
-        setters.setStoreUser(nextUser);
+    const attempt = await postRefreshTokenWithRetry();
+    if (attempt.success && attempt.body) {
+      const response = attempt.body as {
+        success?: boolean;
+        user?: Record<string, unknown>;
+        user_sub?: string;
+      };
+      if (response.success) {
+        setters.setAccessToken("authenticated");
+        if (response.user) {
+          const prev = setters.currentUser;
+          const nextUser = prev
+            ? mergeSessionRefreshUserIntoAuthProfile(prev, response.user)
+            : mapAuthResponseToUserProfile(response.user, response.user_sub);
+          setters.setUser(nextUser);
+          setters.setStoreUser(nextUser);
+        }
+        log.info(LOG_CATEGORIES.AUTH, "Token refresh successful");
+        return true;
       }
-      log.info(LOG_CATEGORIES.AUTH, "Token refresh successful");
-      return true;
     }
-    if (
-      response.error === "REFRESH_TOKEN_EXPIRED" ||
-      response.error === "REFRESH_TOKEN_INVALID" ||
-      response.error === "REFRESH_TOKEN_MISSING"
-    ) {
-      log.warn(LOG_CATEGORIES.AUTH, "Refresh token expired or invalid - user must log in again", {
-        error: response.error,
+
+    if (isTransientRefreshFailure(attempt)) {
+      log.warn(LOG_CATEGORIES.AUTH, "Token refresh transient failure (will retry on next cycle)", {
+        status: attempt.status,
       });
-      setters.setAccessToken(null);
-      setters.setUser(null);
-      setters.setStoreUser(null);
-      setters.setStoreIsAuthenticated(false);
-      setters.setStoreAuthStatus("unauthenticated");
-      resetWorkspaceStore();
-      useDevAppPersonaStore.setState({ serverIdentityTouched: false });
-    } else {
-      log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed", {
-        error: response.error,
-        message: response.message,
-      });
+      return false;
     }
+
+    const errorCode =
+      typeof attempt.body?.error === "string" ? attempt.body.error : "REFRESH_FAILED";
+    log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed - clearing auth state", {
+      error: errorCode,
+    });
+    clearAuthStateAfterRefreshFailure(setters);
     return false;
   } catch (error) {
     log.error(LOG_CATEGORIES.AUTH, "Token refresh exception", {
       error: asError(error).message,
     });
+    clearAuthStateAfterRefreshFailure(setters);
     return false;
   }
 }

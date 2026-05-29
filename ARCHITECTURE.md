@@ -58,7 +58,7 @@ All logic lives in **`packages/`**:
 - `packages/utils/`: Pure utility functions
 - `packages/config/`: API clients and configuration
 
-See: `documentation/client/thin-app-architecture.md`, `Client/ARCHITECTURE.md`
+See: `documentation/client/architecture/thin-app-architecture.md`, `Client/ARCHITECTURE.md`
 
 ### 2. Layered Backend
 
@@ -101,10 +101,10 @@ See: `.cursor/rules/shared/security.mdc`, `documentation/security/SECURITY.md`
 ### Client (Frontend)
 
 - **Overview**: `Client/ARCHITECTURE.md`
-- **Thin App Pattern**: `documentation/client/thin-app-architecture.md`
-- **Shared Packages**: `documentation/client/shared-packages.md`
-- **Mobile Structure**: `documentation/client/mobile-app-structure.md`
-- **Cross-Platform**: `documentation/client/react-vs-react-native-packages.md`
+- **Thin App Pattern**: `documentation/client/architecture/thin-app-architecture.md`
+- **Shared Packages**: `documentation/client/architecture/shared-packages.md`
+- **Mobile Structure**: `documentation/client/platform/mobile-app-structure.md`
+- **Cross-Platform**: `documentation/client/platform/react-vs-react-native-packages.md`
 - **Rules**: `.cursor/rules/frontend/`
 
 ### Server (Backend)
@@ -118,7 +118,7 @@ See: `.cursor/rules/shared/security.mdc`, `documentation/security/SECURITY.md`
 ### Data and APIs
 
 - **User Preferences**: `.cursor/rules/shared/user-preferences-schema.mdc`
-- **DocuSign Integration**: `documentation/client/docusign-integration.md`
+- **DocuSign Integration**: `documentation/client/features/docusign-integration.md`
 - **Transactions**: `documentation/transactions/`
 - **Search**: Property search and polygon algorithms in `Server/app/services/search/`
 

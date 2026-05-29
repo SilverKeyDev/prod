@@ -23,9 +23,18 @@ Loose notes under `.cursor/` should be rare. Prefer `documentation/` or `documen
 
 ---
 
+## Documentation placement
+
+- **Canonical tree:** `documentation/` only for long-form SilverKey prose.
+- **Forbidden:** repo-root `docs/` (CI fails if it exists).
+- **Checks:** `make check-docs` or `./scripts/check-doc-placement.sh` + `./scripts/check-doc-links.sh`.
+- **Skill:** [skills/documentation-placement/SKILL.md](skills/documentation-placement/SKILL.md).
+
+---
+
 ## Always-on vs scoped rules
 
-**Six rules use `alwaysApply: true`:**
+**Seven rules use `alwaysApply: true`:**
 
 1. `rules/shared/security.mdc`
 2. `rules/shared/thin-app-architecture.mdc`
@@ -33,10 +42,11 @@ Loose notes under `.cursor/` should be rare. Prefer `documentation/` or `documen
 4. `rules/shared/documentation.mdc` (canonical doc tree is `documentation/`, not repo-root `docs/`)
 5. `rules/shared/silverkey-context.mdc` (company, RESPA reflex, partners — see [CLAUDE.md](../CLAUDE.md))
 6. `rules/shared/code-style.mdc` (stack, Linear commits, verification)
+7. `rules/shared/env-vars-minimal.mdc` (do not add `.env` keys unless a new integration requires it)
 
 **Index:** [rules/README.md](rules/README.md) lists all rules and when they attach.
 
-Everything else attaches via **`globs`** (path patterns) or **agent-requested** / manual `@`-reference. Adding a seventh always-on rule requires team agreement and demoting or merging an existing one.
+Everything else attaches via **`globs`** (path patterns) or **agent-requested** / manual `@`-reference. New always-on rules should stay short; prefer scoped `globs` for deep detail.
 
 ---
 
@@ -82,7 +92,7 @@ Short body. Link to `documentation/**` for long prose.
 2. **Distinct role** from the default agent (otherwise don’t add).
 3. Keep **&lt; ~500 lines**; link to rules/skills this agent must follow.
 4. Team policy: **commit** shared agents; don’t commit personal experiments (or use a separate branch).
-5. **Post–component-audit fixes:** use the `silverkey-audit-axis*` and `silverkey-audit-architecture-remediation` personas ([`documentation/client/react-component-audit-rubric.md`](../documentation/client/react-component-audit-rubric.md) — *Remediation subagents* table).
+5. **Post–component-audit fixes:** use the `silverkey-audit-axis*` and `silverkey-audit-architecture-remediation` personas ([`documentation/client/patterns/react-component-audit-rubric.md`](../documentation/client/patterns/react-component-audit-rubric.md) — *Remediation subagents* table).
 
 ---
 
@@ -165,7 +175,7 @@ Rule of thumb: if the model never needs a path unless you explicitly attach it, 
 
 ## Agent memory (four layers)
 
-Full setup: [documentation/client/cursor-agent-memory.md](../documentation/client/cursor-agent-memory.md).
+Full setup: [documentation/client/tooling/cursor-agent-memory.md](../documentation/client/tooling/cursor-agent-memory.md).
 
 | Layer | Where |
 | ----- | ----- |

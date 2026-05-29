@@ -9,54 +9,49 @@ from app import db
 from datetime import datetime
 from sqlalchemy import Index
 
-class Property(db.Model):
+class PropertyCache(db.Model):
     """
-    Property listing from MLS data.
+    Shared listing snapshot — one row per physical property.
 
     Relationships:
-    - saved_by: Many-to-many with User via SavedHome
-    - search_results: One-to-many with PropertySearchResult
+    - user_links: One-to-many with UserPropertyLink (per-user rank, like, current)
     """
-    __tablename__ = 'properties'
+    __tablename__ = 'property_cache'
 
-    # Primary key
-    id = db.Column(db.String(50), primary_key=True)  # MLS listing ID
+    id = db.Column(db.String(36), primary_key=True)
+    zpid = db.Column(db.String(64), unique=True, index=True)
+    address = db.Column(db.String(500))
+    city = db.Column(db.String(120))
+    state = db.Column(db.String(64))
+    price = db.Column(db.String(36))
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
+    images = db.Column(db.JSON)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    # Core attributes
-    address = db.Column(db.String(500), nullable=False, index=True)
-    city = db.Column(db.String(100), nullable=False, index=True)
-    state = db.Column(db.String(2), nullable=False, index=True)
-    zip_code = db.Column(db.String(10), nullable=False, index=True)
-    price = db.Column(db.Integer, nullable=False, index=True)
-    bedrooms = db.Column(db.Integer, nullable=True, index=True)
-    bathrooms = db.Column(db.Float, nullable=True)
-    sqft = db.Column(db.Integer, nullable=True, index=True)
-
-    # Metadata
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relationships
-    saved_by = db.relationship('SavedHome', back_populates='property', cascade='all, delete-orphan')
-
-    # Composite indexes
-    __table_args__ = (
-        Index('idx_location', 'city', 'state'),
-        Index('idx_price_beds', 'price', 'bedrooms'),
+    user_links = db.relationship(
+        'UserPropertyLink', back_populates='property', cascade='all, delete-orphan'
     )
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'address': self.address,
-            'city': self.city,
-            'state': self.state,
-            'zip_code': self.zip_code,
-            'price': self.price,
-            'bedrooms': self.bedrooms,
-            'bathrooms': self.bathrooms,
-            'sqft': self.sqft,
-        }
+class UserPropertyLink(db.Model):
+    """Per-user relationship to a PropertyCache row (favorites, ranking, search state)."""
+    __tablename__ = 'user_property_link'
+
+    id = db.Column(db.String(36), primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, index=True)
+    property_id = db.Column(
+        db.String(36), db.ForeignKey('property_cache.id'), nullable=False, index=True
+    )
+    is_liked = db.Column(db.Boolean, default=False)
+    current = db.Column(db.Boolean, default=True)
+    score = db.Column(db.Float)
+    ranking = db.Column(db.Integer)
+
+    property = db.relationship('PropertyCache', back_populates='user_links')
+
+    __table_args__ = (
+        Index('idx_user_property', 'user_id', 'property_id'),
+    )
 ```
 
 ## Relationships
@@ -278,7 +273,7 @@ users = User.query.filter(User.full_name == 'John Doe').all()
 1. **Use `back_populates`** instead of `backref` for clarity
 2. **Index foreign keys** always
 3. **Validate before commit** at application level
-4. **Use `to_dict()`** for serialization
+4. **Use DTOs** for HTTP serialization (see `app/dtos/`); avoid new `to_dict()` on models
 5. **Lazy loading strategy**: Choose appropriate for each relationship
 6. **Transaction isolation**: Use `db_transaction` for atomic operations
 

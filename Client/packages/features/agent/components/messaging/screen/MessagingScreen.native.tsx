@@ -20,7 +20,6 @@ import { useAuthStore } from "packages/store";
 
 import { useAgentAutoSelectClient } from "@/features/agent/hooks/ui/useAgentAutoSelectClient";
 import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/types";
-import { resolvePrimaryAgentId } from "@/features/messaging/utils";
 
 import { MessagingAgentListSubview } from "./MessagingAgentListSubview.native";
 import { MessagingClientEmptyState } from "./MessagingClientEmptyState.native";
@@ -37,10 +36,7 @@ export function MessagingScreenNative() {
   const { clients, isLoading: isLoadingClients } = useAgentClients();
   const { conversations: agentConversations } = useAgentChats();
 
-  const agentId = useMemo(
-    () => resolvePrimaryAgentId(userProfile?.agent_id),
-    [userProfile?.agent_id]
-  );
+  const agentId = useMemo(() => null, []);
 
   const clientMessaging = useMessaging({
     mode: "client",

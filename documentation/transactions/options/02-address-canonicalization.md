@@ -1,109 +1,35 @@
-## Option: Address Canonicalization Strategy
+> **Status:** Partial — Places autocomplete + `place_id` storage; strict server gate and lat/lng not complete.  
+> **Last verified:** 2026-05-28
 
-This document compares approaches for handling property addresses when starting a new transaction.
+## Problem
 
-### Problem
+Collect a property address when starting checklist-driven work: canonical geo data for jurisdiction, risk, and timeline rules; handle provider outages and edge addresses.
 
-When a user starts a transaction “from the checklists frame,” they must enter an address. We need to decide:
-- How strictly to enforce **canonical, geo-codable addresses**.
-- How to handle edge cases (new construction, rural properties, partial matches).
-- What happens when address providers (e.g. Google Places) are unavailable.
+## Settled decisions
 
-The product requirement is to be **strict in v1**: users cannot use checklists for a new transaction until they provide a canonical address.
+| Decision | Choice |
+| -------- | ------ |
+| v1 default | **Option A** — require a provider-backed selection (`place_id`, structured fields); design fallbacks for pin/map when Places fails. |
+| Lenient free-text + background geocode (**Option B**) | Rejected for v1 — weak jurisdiction data. |
+| External brokerage record as primary source (**Option C**) | Future cross-check only, not primary capture. |
 
-### Existing infrastructure to check
+## Code today
 
-- Places/Maps usage in:
-  - `Client/packages/features/calendar/components/view/CreateEventModal.tsx` (location autocomplete).
-  - Any existing geo search or maps components in `Client/packages/features/search` or `packages/hooks/data/useGoogleMaps`.
-- Property details or search schemas that already store:
-  - Address breakdown (street, city, state, zip).
-  - Lat/lng or placeId.
+| Area | What exists | Pointers |
+| ---- | ----------- | -------- |
+| API | GET/POST `/api/v1/transactions/address` per authenticated user. | `Server/app/routes/transactions.py`, `Server/app/models/transactions/transaction_address.py` |
+| Storage | `TransactionAddress`: `address`, structured fields, `place_id` (no `lat`/`lng` columns). | `transaction_address.py` |
+| Client — Finding home step | Google Places autocomplete; prefers `selectedAddress` payload with `place_id`; **can** POST `{ address: trimmed }` without selection. | `Client/packages/features/checklists/components/integrations/findingHome/FindingHome.tsx`, `findingHomeAddressChanges.ts` |
+| Shared autocomplete | Reused in calendar create flow. | `Client/packages/features/calendar/components/view/CreateEventModal.tsx`, `packages/ui/components/form/AddressInput/` |
+| Maps loader | `useGoogleMapsStore` / Places scripts. | `packages/store`, checklist `FindingHome` |
 
-We should **reuse** existing client-side autocomplete patterns and **align** server-side address storage with existing schemas.
+## Gaps
 
----
+- Server does not require `place_id` on POST.
+- No lat/lng persistence on `TransactionAddress`; no jurisdiction enrichment service.
+- Address not linked to `transactions.id` (still per `user_id`).
 
-### Option A – Strict canonicalization (chosen)
+## Rejected / deferred
 
-**Idea:** User must select an address from a provider like Google Places; free text cannot complete transaction creation.
-
-- **Pros**
-  - High data quality: every transaction has a geo-codable address (placeId + lat/lng).
-  - Makes **location enrichment and jurisdiction rules** straightforward.
-  - Simplifies deduplication and cross-feature linking (e.g. property search, maps).
-- **Cons**
-  - Edge cases where Places coverage is limited (rural, new construction) need careful UX:
-    - Allow “pin on map” or a fallback flow that still yields lat/lng and a stable identifier.
-  - Dependency on external provider uptime; need explicit error states and retries.
-
-**Implementation sketch**
-- Client:
-  - Address input auto-completes using Places.
-  - “Confirm address” button is only enabled when a canonical suggestion is chosen.
-- Server:
-  - Transaction creation endpoint expects:
-    - `placeId`, `normalizedAddress`, `lat`, `lng`, and structured fields where possible.
-  - Validates basic shape and stores in `PropertyAddress`.
-
-**Recommendation:** **Use strict canonicalization as the default**, with carefully designed fallback states.
-
----
-
-### Option B – Lenient free-text with background geocoding
-
-**Idea:** Allow users to type any address and start a transaction; system tries to geocode in the background and warns on failure.
-
-- **Pros**
-  - Fewer hard stops for the user; can capture intent even with partial data.
-  - More forgiving for edge-case addresses or provider outages.
-- **Cons**
-  - Degrades data quality:
-    - Harder to compute jurisdiction and compliance rules reliably.
-    - More likely to break later integrations that assume precise geo data.
-  - Complicates engine logic:
-    - Every enrichment step must handle “address not yet canonicalized.”
-
-**Conclusion:** Not aligned with v1 requirement to be strict; might be introduced later as a fallback if needed.
-
----
-
-### Option C – Brokerage transaction record as address source
-
-**Idea:** Use the address associated with an external brokerage transaction record (e.g. a future Dotloop-linked deal) as the canonical source for addresses.
-
-- **Pros**
-  - Aligns transaction addresses with what the brokerage already uses for forms and compliance.
-  - Could avoid mismatches between forms and internal representation.
-- **Cons**
-  - Tightly couples transaction creation to an external platform:
-    - Hard for buyers in self-service contexts or before an agent is engaged.
-  - Not all workflows will have an external record at the point when checklists should start.
-
-**Conclusion:** Useful **as a sync/check** (ensure our address matches the brokerage record), but not as the primary way to collect addresses.
-
----
-
-### Recommended approach
-
-Adopt **Option A (strict canonicalization)** with explicit fallback handling:
-
-- **Primary path**
-  - Require users to select an address from a reliable autocomplete provider.
-  - Capture and store:
-    - `placeId`, `normalizedAddress`, structured components, `lat`, `lng`.
-  - Use this data as the foundation for:
-    - Jurisdiction (state/county) rules.
-    - Flood and risk lookups.
-    - Timeline and compliance calculations.
-
-- **Fallbacks and resilience**
-  - If Places fails temporarily:
-    - Show clear error messaging and allow retry, not silent failures.
-  - For edge-case addresses:
-    - Consider a “drop a pin” or “confirm approximate location” flow that still returns lat/lng and basic components.
-
-- **Integration with external brokerage records**
-  - If/when a brokerage platform integration is connected:
-    - Cross-validate addresses.
-    - Alert if there is a significant discrepancy (optional v2).
+- **Option B** — may return as explicit fallback flow, not default.
+- **Option C** — Dotloop/Skyslope address sync is out of scope until brokerage integrations land (`Transaction.skyslope_file_id` is a hook only).

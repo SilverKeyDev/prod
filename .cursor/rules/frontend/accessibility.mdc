@@ -7,7 +7,7 @@ alwaysApply: false
 
 # Accessibility (WCAG 2.1 AA)
 
-**Canonical reference:** [documentation/client/accessibility-standards.md](../../../documentation/client/accessibility-standards.md).
+**Canonical reference:** [documentation/client/standards/accessibility-standards.md](../../../documentation/client/standards/accessibility-standards.md).
 
 ## Must follow
 

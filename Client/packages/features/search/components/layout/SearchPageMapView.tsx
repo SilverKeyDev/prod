@@ -1,5 +1,5 @@
 import type { PreciseStreetAddressPayload } from "packages/features/search/components/header/location-bar/SearchLocationBar.web";
-import { SearchHeaderPopoverDismissProvider } from "packages/features/search/hooks/ui/searchHeaderPopoverDismiss.web";
+import { SearchHeaderPopoverDismissProvider } from "packages/features/search/hooks/ui/popovers/searchHeaderPopoverDismiss.web";
 import { useSearchViewStore } from "packages/store";
 import { MotionView } from "packages/ui/components/adapters/motion";
 

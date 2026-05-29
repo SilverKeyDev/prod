@@ -11,9 +11,12 @@ from pathlib import Path
 from typing import Any
 
 from .categories import LogCategory
+from .check_category_enabled import should_emit_log
 from .config_model import LoggerConfig, LogLevel
+from .logger_env import should_export_logs_to_posthog
 from .pii import create_safe_log_object, mask_sensitive_data
 from .posthog_otlp import emit_structured_log
+from .resolve_logger_config import merge_logger_config_update, resolve_logger_config
 
 
 class Logger:
@@ -64,39 +67,16 @@ class Logger:
         self._py_logger.propagate = False
 
     def _load_config(self) -> LoggerConfig:
-        """
-        Load config from JSON file
-
-        Returns:
-            LoggerConfig instance
-        """
-        default_config = {
-            "polling": True,
-            "pages": True,
-            "hooks": True,
-            "auth": True,
-            "http": True,
-            "api": True,
-            "errors": True,
-            "security": True,
-            "polygonSearch": True,
-            "docusign": True,
-            "documents": True,
-            "profilePreferences": True,
-            "logLevel": "DEBUG",
-        }
-
+        """Load config from JSON file with environment-aware defaults."""
+        overrides: dict[str, Any] = {}
         try:
             if os.path.exists(self.config_path):
                 with open(self.config_path) as f:
-                    config_dict = json.load(f)
-                    # Merge with defaults
-                    default_config.update(config_dict)
+                    overrides = json.load(f)
         except Exception:
-            # If config file doesn't exist or can't be loaded, use defaults
             pass
 
-        return LoggerConfig(default_config)
+        return resolve_logger_config(overrides)
 
     def reload_config(self) -> None:
         """Reload config from file"""
@@ -113,7 +93,7 @@ class Logger:
         Args:
             updates: Dictionary of config updates
         """
-        self.config.update(updates)
+        self.config = merge_logger_config_update(self.config, updates)
         self._setup_python_logging()
 
     def get_config(self) -> dict[str, Any]:
@@ -155,11 +135,16 @@ class Logger:
         message: str,
         data: Any | None = None,
     ) -> None:
-        """Always emit to stdout and PostHog (no category/level gating)."""
+        """Emit to stdout and PostHog when category, level, and environment allow."""
+        if not should_emit_log(self.config, level, category):
+            return
+
         try:
             safe_message, scrubbed_data = self._scrubbed_payload(message, data)
             formatted = self._format_message(level, category, safe_message, scrubbed_data)
-            emit_structured_log(level, category.value, safe_message, scrubbed_data)
+
+            if should_export_logs_to_posthog():
+                emit_structured_log(level, category.value, safe_message, scrubbed_data)
 
             py_level = {
                 "DEBUG": self._py_logger.debug,

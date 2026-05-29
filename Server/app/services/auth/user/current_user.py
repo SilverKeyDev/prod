@@ -9,7 +9,7 @@ from flask import current_app, request
 from jose.exceptions import ExpiredSignatureError, JWTClaimsError
 
 from app.models import User
-from app.utils.security import SecurityError, security_error_response
+from app.utils.security import SecurityError
 from app.utils.security.security import log_security_event
 
 from ..tokens.verification import (
@@ -272,42 +272,3 @@ def get_current_user():
             raise e from e
         log_security_event("auth_unexpected_error", {"error_type": type(e).__name__})
         raise SecurityException(SecurityError.UNAUTHORIZED) from None
-
-
-# =========================
-# Decorator
-# =========================
-def require_auth(f):
-    """
-    @deprecated Use @require_authenticated_user from utils.common_patterns instead.
-    This decorator is kept for backward compatibility but should not be used in new code.
-
-    Decorator to require authentication and handle errors consistently.
-    Returns machine-readable error bodies for the frontend to react (e.g., refresh on TOKEN_EXPIRED).
-    """
-    from functools import wraps
-
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        try:
-            user = get_current_user()
-            return f(user, *args, **kwargs)
-
-        except SecurityException as se:
-            return security_error_response(se.error_tuple)
-
-        except Exception as e:
-            # Don't catch database errors - let them propagate to proper error handlers
-            from sqlalchemy.exc import SQLAlchemyError
-
-            if isinstance(e, SQLAlchemyError):
-                logger.error(
-                    "DATABASE_ERROR_IN_AUTH_DECORATOR",
-                    extra={"error_type": type(e).__name__, "error": str(e)},
-                )
-                raise  # Re-raise DB errors so they get proper 500 handling
-
-            log_security_event("auth_decorator_error", {"error": str(e)})
-            return security_error_response(SecurityError.UNAUTHORIZED)
-
-    return decorated_function

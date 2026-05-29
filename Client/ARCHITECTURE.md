@@ -85,7 +85,7 @@ Shared pure helpers live under `Client/packages/utils/` with many **top-level si
 ### Where UI components live
 
 - **Shared primitives and design system** — `Client/packages/ui/` (buttons, text, modals, cards, layout primitives, and `packages/ui/styles/` for CSS). This is what ESLint/UI rules refer to as the standardized component set.
-- **TypeScript aliases** — `Client/tsconfig.base.json` maps `@/components/ui` and `@ui` to `packages/ui/components` so existing imports stay short; **`packages/ui/...`** is the preferred spelling for new code (see `documentation/client/typescript-files.md`).
+- **TypeScript aliases** — `Client/tsconfig.base.json` maps `@/components/ui` and `@ui` to `packages/ui/components` so existing imports stay short; **`packages/ui/...`** is the preferred spelling for new code (see `documentation/client/architecture/typescript-files.md`).
 - **Web app** — `apps/web` has **no** parallel `components/ui` tree; pages and `app/` layouts compose `packages/features/*` and `packages/ui`.
 
 ## Thin App (Fat Packages) Pattern
@@ -453,10 +453,10 @@ See: `.cursor/rules/frontend/assets-and-icons.mdc`
 ## Documentation
 
 - **This file:** Client architecture overview
-- **Thin App Pattern:** `documentation/client/thin-app-architecture.md`
-- **Shared Packages:** `documentation/client/shared-packages.md`
-- **Mobile Structure:** `documentation/client/mobile-app-structure.md`
-- **Cross-Platform:** `documentation/client/react-vs-react-native-packages.md`
+- **Thin App Pattern:** `documentation/client/architecture/thin-app-architecture.md`
+- **Shared Packages:** `documentation/client/architecture/shared-packages.md`
+- **Mobile Structure:** `documentation/client/platform/mobile-app-structure.md`
+- **Cross-Platform:** `documentation/client/platform/react-vs-react-native-packages.md`
 - **Frontend Rules:** `.cursor/rules/frontend/`
 - **Shared Rules:** `.cursor/rules/shared/`
 

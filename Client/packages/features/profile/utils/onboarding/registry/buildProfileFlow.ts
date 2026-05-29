@@ -1,4 +1,4 @@
-import type { ProfileStep } from "packages/features/profile/types/onboarding";
+import type { ProfileStep } from "packages/features/profile/types/onboarding/onboarding";
 
 import { FLOW_TEMPLATE_STEP_IDS } from "./flowTemplates";
 import { profileStepsFromIds } from "./stepMeta";

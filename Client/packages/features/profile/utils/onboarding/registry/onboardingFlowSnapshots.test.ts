@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getOnboardingSteps,
   getOnboardingStepsMobile,
-} from "packages/features/profile/utils/onboarding/steps";
+} from "packages/features/profile/utils/onboarding/steps/steps";
 
 import { buildOnboardingFlowFromOptions } from "./buildProfileFlow";
 

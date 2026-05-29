@@ -1,9 +1,9 @@
-import type { OnboardingData } from "packages/features/profile/types/onboarding";
-import type { ProfileStepId } from "packages/features/profile/types/profileStepIds";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import type { ProfileStepId } from "packages/features/profile/types/onboarding/profileStepIds";
 import {
   isSelectableOnboardingRole,
   primaryOnboardingRoleFromForm,
-} from "packages/features/profile/utils/onboarding/onboardingRoleSelection";
+} from "packages/features/profile/utils/onboarding/role/onboardingRoleSelection";
 import { parseHousingTypes } from "packages/features/profile/utils/public/constants";
 
 const HOUSING_ESSENTIALS_REQUIRED_FIELDS: (keyof OnboardingData)[] = [

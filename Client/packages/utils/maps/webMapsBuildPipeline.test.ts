@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildWebGoogleMapOptions } from "packages/features/search/utils/googleMaps/buildWebGoogleMapOptions";
+import { buildWebGoogleMapOptions } from "packages/features/search/utils/googleMaps/webOptions/buildWebGoogleMapOptions";
 
 import { resolveGoogleMapsCloudMapId } from "./cloudMapId/resolveGoogleMapsCloudMapId";
 import { resolveWebGoogleMapsCloudMapId } from "./cloudMapId/resolveWebGoogleMapsCloudMapId";

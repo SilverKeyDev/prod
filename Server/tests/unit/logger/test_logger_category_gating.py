@@ -1,4 +1,4 @@
-"""Logger always-on emission and PostHog export."""
+"""Logger category and level gating."""
 
 import json
 import tempfile
@@ -24,73 +24,78 @@ _CONFIG_KEY_TO_CATEGORY: list[tuple[str, LogCategory]] = [
 ]
 
 
-def _default_config_dict() -> dict[str, object]:
-    return {
-        "polling": True,
-        "pages": True,
-        "hooks": True,
-        "auth": True,
-        "http": True,
-        "api": True,
+def _logger_with_config(overrides: dict[str, object] | None = None) -> Logger:
+    config = {
+        "polling": False,
+        "pages": False,
+        "hooks": False,
+        "auth": False,
+        "http": False,
+        "api": False,
         "errors": True,
         "security": True,
-        "polygonSearch": True,
-        "docusign": True,
-        "documents": True,
-        "profilePreferences": True,
+        "polygonSearch": False,
+        "docusign": False,
+        "documents": False,
+        "profilePreferences": False,
         "logLevel": "DEBUG",
     }
-
-
-def _logger_with_config(overrides: dict[str, object] | None = None) -> Logger:
-    config = _default_config_dict()
     if overrides:
         config.update(overrides)
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
         json.dump(config, tmp)
         tmp_path = tmp.name
     try:
-        return Logger(config_path=tmp_path)
+        with patch("logger.resolve_logger_config.is_logger_production", return_value=False):
+            return Logger(config_path=tmp_path)
     finally:
         Path(tmp_path).unlink(missing_ok=True)
 
 
 @pytest.mark.parametrize(("config_key", "category"), _CONFIG_KEY_TO_CATEGORY)
-def test_info_emitted_when_category_disabled(config_key: str, category: LogCategory) -> None:
+def test_info_not_emitted_when_category_disabled(config_key: str, category: LogCategory) -> None:
     logger = _logger_with_config({config_key: False, "logLevel": "DEBUG"})
     with (
         patch.object(logger._py_logger, "info") as mock_info,
         patch("logger.logger.emit_structured_log") as mock_posthog,
+        patch("logger.logger.should_export_logs_to_posthog", return_value=True),
     ):
-        logger.info(category, "always on message")
-        mock_info.assert_called_once()
-        mock_posthog.assert_called_once()
+        logger.info(category, "gated message")
+        mock_info.assert_not_called()
+        mock_posthog.assert_not_called()
 
 
 @pytest.mark.parametrize(("config_key", "category"), _CONFIG_KEY_TO_CATEGORY)
 def test_info_emitted_when_category_enabled(config_key: str, category: LogCategory) -> None:
     logger = _logger_with_config({config_key: True, "logLevel": "DEBUG"})
-    with patch.object(logger._py_logger, "info") as mock_info:
-        logger.info(category, "always on message")
+    with (
+        patch.object(logger._py_logger, "info") as mock_info,
+        patch("logger.logger.emit_structured_log") as mock_posthog,
+        patch("logger.logger.should_export_logs_to_posthog", return_value=True),
+    ):
+        logger.info(category, "enabled message")
         mock_info.assert_called_once()
+        mock_posthog.assert_called_once()
 
 
-def test_debug_emitted_at_info_log_level_config() -> None:
+def test_debug_not_emitted_at_info_log_level_config() -> None:
     logger = _logger_with_config({"api": True, "logLevel": "INFO"})
     with (
         patch.object(logger._py_logger, "debug") as mock_debug,
         patch("logger.logger.emit_structured_log") as mock_posthog,
+        patch("logger.logger.should_export_logs_to_posthog", return_value=True),
     ):
-        logger.debug(LogCategory.API, "debug always on")
-        mock_debug.assert_called_once()
-        mock_posthog.assert_called_once()
+        logger.debug(LogCategory.API, "debug gated by level")
+        mock_debug.assert_not_called()
+        mock_posthog.assert_not_called()
 
 
-def test_security_emits_to_posthog_when_config_bool_false() -> None:
+def test_security_emits_when_config_bool_false() -> None:
     logger = _logger_with_config({"security": False, "logLevel": "DEBUG"})
     with (
         patch.object(logger._py_logger, "warning") as mock_warning,
         patch("logger.logger.emit_structured_log") as mock_posthog,
+        patch("logger.logger.should_export_logs_to_posthog", return_value=True),
     ):
         logger.security(LogCategory.SECURITY, "security event")
         mock_warning.assert_called_once()

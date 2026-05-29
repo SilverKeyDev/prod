@@ -80,8 +80,6 @@ class UserDTO:
             "has_preferences": user.has_preferences,
             "preferences_version": user.preferences_version,
             "is_agent": bool(user.is_agent),
-            "client_ids": user.client_ids,
-            "agent_id": user.agent_id,
         }
 
         if include_roles:

@@ -7,6 +7,7 @@ import { reportApi } from "packages/features/documents/api/report";
 import type { DocumentLibraryKind } from "packages/features/documents/types/documentLibrary";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 export type AgreementParticipantData = {
   user_id: string;
@@ -52,7 +53,10 @@ export async function fetchDocumentLibraryQuery(clientId?: string): Promise<Docu
   try {
     const response = await reportApi.getDocumentLibrary(clientId);
     if (!response.success) {
-      const errorMessage = response.error ?? "Failed to fetch document library";
+      const errorMessage = resolveApiResultErrorMessage(
+        response,
+        "Failed to fetch document library"
+      );
       log.error(LOG_CATEGORIES.API, "Failed to fetch document library", {
         error: errorMessage,
       });

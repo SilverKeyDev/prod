@@ -18,11 +18,6 @@ export function getCalendarDayListHeading(dateKey: string): { title: string; sub
   return { title: d.format("dddd, MMMM D, YYYY") };
 }
 
-/** @deprecated Prefer getCalendarDayListHeading for calendar shell copy. */
-export function formatCalendarDayEventsTitle(dateKey: string): string {
-  return getCalendarDayListHeading(dateKey).title;
-}
-
 export function calendarDateToKey(d: Date): string {
   try {
     const yyyy = d.getFullYear();

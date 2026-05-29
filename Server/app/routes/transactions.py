@@ -31,6 +31,7 @@ from .checklist_dispatch_automation import (
     get_checklist_dispatch_automation,
     put_checklist_dispatch_automation,
 )
+from .checklist_documents import get_checklist_item_documents, link_agreement_to_checklist_item
 from .checklist_forms import download_form, get_checklist_item_forms, send_form
 
 transactions_bp = Blueprint("transactions", __name__, url_prefix="/api/v1/transactions")
@@ -60,7 +61,11 @@ def get_transaction_task_checklist(
     checklist_type = coerce_checklist_type(
         (query.type if query is not None else None) or request.args.get("type")
     )
-    data = build_task_checklist_data(str(transaction_id), checklist_type)
+    data = build_task_checklist_data(
+        str(transaction_id),
+        checklist_type,
+        actor_user_id=str(user.id),
+    )
     if data is None:
         return jsonify({"success": False, "error": "Invalid checklist type"}), 400
 
@@ -278,6 +283,20 @@ def save_transaction_address(user, data: TransactionAddressData | None = None):
         current_app.logger.error("Failed to save transaction address: %s", e)
         return jsonify({"success": False, "error": "Server error"}), 500
 
+
+# Checklist documents endpoints (linked agreements for checklist items)
+transactions_bp.add_url_rule(
+    "/<transaction_id>/checklist-items/<section>/<item_id>/documents",
+    "get_checklist_item_documents",
+    get_checklist_item_documents,
+    methods=["GET"],
+)
+transactions_bp.add_url_rule(
+    "/<transaction_id>/checklist-items/<section>/<item_id>/documents",
+    "link_agreement_to_checklist_item",
+    link_agreement_to_checklist_item,
+    methods=["POST"],
+)
 
 # Checklist forms endpoints (embedded in steps, visible to all authenticated users)
 transactions_bp.add_url_rule(

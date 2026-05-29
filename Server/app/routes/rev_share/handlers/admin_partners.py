@@ -30,7 +30,9 @@ def _require_admin(user):
             "Unauthorized admin partners access",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Admin access required", status_code=403)
+        return standardize_error_response(
+            "Admin access required", status_code=403, error_code="admin_forbidden"
+        )
     return None
 
 
@@ -51,7 +53,9 @@ def get_admin_partner(user, partner_id: str):
         return denied
     row = get_partner(partner_id)
     if not row:
-        return standardize_error_response("partner_not_found", status_code=404)
+        return standardize_error_response(
+            "Partner not found", status_code=404, error_code="partner_not_found"
+        )
     return standardize_success_response({"data": row})
 
 
@@ -64,7 +68,7 @@ def create_admin_partner(user):
     payload = request.get_json(silent=True) or {}
     row, err = create_partner(payload)
     if err:
-        return standardize_error_response(err, status_code=400)
+        return standardize_error_response(err, status_code=400, error_code="validation_error")
     return standardize_success_response({"data": row}, status_code=201)
 
 
@@ -77,9 +81,11 @@ def patch_admin_partner(user, partner_id: str):
     payload = request.get_json(silent=True) or {}
     row, err = update_partner(partner_id, payload)
     if err == "not_found":
-        return standardize_error_response(err, status_code=404)
+        return standardize_error_response(
+            "Partner not found", status_code=404, error_code="partner_not_found"
+        )
     if err:
-        return standardize_error_response(err, status_code=400)
+        return standardize_error_response(err, status_code=400, error_code="validation_error")
     return standardize_success_response({"data": row})
 
 
@@ -90,7 +96,9 @@ def delete_admin_partner(user, partner_id: str):
     if denied:
         return denied
     if not delete_partner(partner_id):
-        return standardize_error_response("partner_not_found", status_code=404)
+        return standardize_error_response(
+            "Partner not found", status_code=404, error_code="partner_not_found"
+        )
     return standardize_success_response(message="Partner deleted")
 
 

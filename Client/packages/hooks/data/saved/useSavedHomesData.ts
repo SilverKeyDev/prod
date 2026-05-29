@@ -10,9 +10,9 @@ import {
 } from "packages/features/saved/types/savedHomeUtils";
 import { useAuthStore } from "packages/store";
 import type { SavedHome } from "packages/types";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 // Direct type/util imports to avoid require cycle: saved barrel -> SavedFeature -> ... -> contexts
-import type { PropertyData } from "packages/utils/saved";
-import { mapHomeUniversalToSavedHome } from "packages/utils/saved";
+import { mapSavedHomeWireToSavedHome } from "packages/utils/saved";
 
 import { fetchFavoriteHomesData } from "./favoriteHomesQuery";
 
@@ -45,7 +45,7 @@ export const useSavedHomesData = (clientId?: string) => {
       if (cached && isProcessedSavedHomeList(cached)) return cached;
       if (cached && Array.isArray(cached) && cached.length > 0) {
         return cached.map((home: unknown, index: number) =>
-          mapHomeUniversalToSavedHome(home, index)
+          mapSavedHomeWireToSavedHome(home, index)
         );
       }
       return previousValue;
@@ -54,7 +54,7 @@ export const useSavedHomesData = (clientId?: string) => {
       if (!data) return [];
       if (isProcessedSavedHomeList(data)) return data;
       if (Array.isArray(data)) {
-        return data.map((home: unknown, index: number) => mapHomeUniversalToSavedHome(home, index));
+        return data.map((home: unknown, index: number) => mapSavedHomeWireToSavedHome(home, index));
       }
       return [];
     },
@@ -74,7 +74,7 @@ export const useSavedHomesData = (clientId?: string) => {
         ...(clientId ? { client_id: clientId } : {}),
       });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to save home");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to save home"));
       }
       return response;
     },
@@ -84,21 +84,7 @@ export const useSavedHomesData = (clientId?: string) => {
         queryKeys.homes.favorites(clientId)
       );
 
-      // Convert property to SavedHome format for optimistic update
-      const propertyData = property as PropertyData;
-      const optimisticHome: SavedHome = {
-        home_id: propertyData.id || propertyData.home_id || `temp_${Date.now()}`,
-        description: propertyData.address || "",
-        address: propertyData.address || "",
-        price: propertyData.price || "",
-        bedrooms: propertyData.bedrooms || 0,
-        bathrooms: propertyData.bathrooms || 0,
-        sqft: propertyData.sqft || 0,
-        lot_size: propertyData.lotSize || "",
-        image_url: propertyData.imageUrl || propertyData.image_url,
-        lat: propertyData.lat || 0,
-        lng: propertyData.lng || 0,
-      };
+      const optimisticHome = mapSavedHomeWireToSavedHome(property, 0);
 
       queryClient.setQueryData(
         queryKeys.homes.favorites(clientId),
@@ -132,7 +118,7 @@ export const useSavedHomesData = (clientId?: string) => {
         ...(clientId ? { client_id: clientId } : {}),
       });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to remove home");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to remove home"));
       }
       return response;
     },

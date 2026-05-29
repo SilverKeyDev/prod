@@ -1,86 +1,28 @@
-## Notification Preferences and Routing
+> **Status:** Partial | **Last verified:** 2026-05-28
 
-### Problem / goal
+## Notification preferences and routing
 
-Different participants in a transaction have different notification needs:
-- Buyers may want more granular updates.
-- Agents and TCs may prefer batched or higher-level alerts.
-- Loan officers and escrow officers may only need event-specific notifications.
+**In-app messaging unread counts** and realtime SSE are shipped. Per-event notification preferences and multi-channel routing (email/push/digest) for transaction events are **not**.
 
-We need a model and UX for:
-- **Per-role defaults**.
-- **Per-user preferences**.
-- Routing notifications to:
-  - Push.
-  - Email.
-  - In-app surfaces.
+### Shipped
 
-### Data model & invariants
+- **Unread counter:** `/api/v1/agent/notification-counter`; Zustand `useNotificationStore` drives nav badges.
+- **Realtime:** Redis-backed SSE fanout on `/api/v1/agent/chats/stream`; polling fallback via `useDataPolling`.
+- **Read receipts:** `mark_chat_as_read`, `acknowledgeActiveConversationAsRead` in messaging hooks.
+- **Communication prefs:** `user_communication_prefs` table exists in preferences schema (profile onboarding)—not wired to transaction event routing.
 
-- **NotificationPreference**
-  - `id`
-  - `user_id`
-  - `channel` (`email`, `push`, `in_app`)
-  - `event_type` or `event_category`
-  - `enabled` (boolean)
-  - Optional:
-    - `digest` options (immediate, daily summary, etc.).
+### Gaps
 
-Invariants:
-- Global safety rules apply:
-  - Certain security/critical alerts cannot be fully disabled.
-- Defaults are derived from:
-  - Role templates.
-  - Application-wide policies.
+- No `NotificationPreference` API for transaction event categories.
+- No role-based notification defaults (buyer vs agent vs TC).
 
-### Flows / UX
+### Code pointers
 
-1. **Defaults per role**
-   - When a user joins a transaction with a given role:
-     - System applies role-based defaults:
-       - Buyer: get granular updates for tasks and deadlines.
-       - Agent: get key milestones and review requests, fewer minor updates.
-       - TC: high volume of operational alerts.
-
-2. **User-level customization**
-   - Users can access a “Notification settings” screen to:
-     - Turn on/off certain event categories per channel.
-     - Adjust digest/batch preferences.
-
-3. **Routing**
-   - For each `NotificationEvent`:
-     - The routing layer:
-       - Looks up role-based defaults and user preferences.
-       - Determines which channels to use.
-       - Enqueues actual deliveries (email, push, in-app).
-
-### Existing infrastructure to reuse / extend
-
-- **Notification events**
-  - `integrations/08-notifications.md` defines the core event types.
-
-- **Email and push infrastructure**
-  - Any existing services that:
-    - Send emails.
-    - Deliver push notifications.
-  - These should be reused as the final delivery mechanism.
-
-- **UI for toasts and in-app messages**
-  - Existing state/hooks like:
-    - `useUIStore` and `enqueueToast`.
-  - Should be integrated so they respond to the same NotificationEvents.
-
-### Gaps that require new work
-
-- **Preferences storage and APIs**
-  - Back-end storage and endpoints to:
-    - Read/update user notification preferences.
-    - Compute effective preferences from role defaults + overrides.
-
-- **Role template definitions for notifications**
-  - Similar to permission templates, define:
-    - Which events are on/off by default per role and channel.
-
-- **Settings UI**
-  - A simple but clear UI for participants to:
-    - Adjust which transaction-related notifications they receive.
+| Area | Path |
+| ---- | ---- |
+| Notification store | `Client/packages/store/slices/notifications/notifications.slice.ts` |
+| Agent chats + unread | `Client/packages/features/messaging/hooks/data/useAgentChats.ts` |
+| Polling integration | `Client/packages/hooks/data/polling/useDataPolling.ts` |
+| SSE handler | `Server/app/routes/agent/handlers/chats_stream.py` |
+| Counter service | `Server/app/services/agent/conversation_service.py` — `get_notification_counter` |
+| Nav badges | `Client/apps/web/app/layouts/sidebar/Sidebar.web.tsx` |

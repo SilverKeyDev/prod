@@ -1,5 +1,5 @@
-import type { OnboardingData } from "packages/features/profile/types/onboarding";
-import type { ProfileStepId } from "packages/features/profile/types/profileStepIds";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import type { ProfileStepId } from "packages/features/profile/types/onboarding/profileStepIds";
 
 export type RenderOnboardingStepProps = {
   stepId: ProfileStepId;

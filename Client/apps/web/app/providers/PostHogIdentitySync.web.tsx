@@ -1,4 +1,4 @@
-import { usePostHogIdentity } from "packages/hooks/store/usePostHogIdentity.web";
+import { usePostHogIdentity } from "packages/hooks/store/integrations/usePostHogIdentity.web";
 
 export function PostHogIdentitySync() {
   usePostHogIdentity();

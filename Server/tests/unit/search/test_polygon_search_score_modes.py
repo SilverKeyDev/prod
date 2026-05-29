@@ -11,7 +11,7 @@ from app.services.search.polygon.polygon_runner import run_polygon_search
 
 MOCK_GET_PREFS = "app.services.search.polygon.polygon_runner.get_user_preferences_parsed"
 MOCK_ISOCHRONE = (
-    "app.services.search.polygon.polygon_runner.generate_isochrone_polygon_from_preferences"
+    "app.services.search.polygon.resolve_search_polygon.generate_isochrone_polygon_from_preferences"
 )
 MOCK_PAGINATED = "app.services.search.polygon.polygon_runner.search_properties_paginated"
 MOCK_MARK_PAST = (
@@ -104,6 +104,28 @@ def memory_db(flask_ctx):
 
 
 class TestPolygonSearchScoreModes:
+    @patch(MOCK_STRICT, return_value=False)
+    @patch(MOCK_PERSIST)
+    @patch(MOCK_MARK_PAST)
+    @patch(MOCK_GET_PREFS)
+    def test_force_search_without_geometry_returns_empty_200(
+        self,
+        mock_prefs,
+        mock_mark,
+        mock_persist,
+        _mock_strict,
+        flask_ctx,
+    ) -> None:
+        mock_prefs.return_value = ({}, None)
+
+        payload, status = run_polygon_search(
+            "buyer-no-area",
+            {"forceSearch": True},
+        )
+        assert status == 200
+        assert payload["properties"] == []
+        assert payload["meta"].get("searchArea") == "none"
+
     @patch(MOCK_STRICT, return_value=False)
     @patch(MOCK_PERSIST)
     @patch(MOCK_MARK_PAST)

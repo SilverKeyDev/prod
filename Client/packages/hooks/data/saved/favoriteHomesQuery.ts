@@ -4,9 +4,10 @@ import { getEnv, userApi } from "packages/config";
 import { queryKeys } from "packages/config/query/keys";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SavedHome } from "packages/types";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 import { getWindow } from "packages/utils/platform";
 import type { RawHomeData } from "packages/utils/saved";
-import { mapHomeUniversalToSavedHome } from "packages/utils/saved";
+import { mapSavedHomeWireToSavedHome } from "packages/utils/saved";
 import { getSessionStorage } from "packages/utils/storage/platformStorage";
 
 interface WindowWithGoogle {
@@ -135,7 +136,7 @@ export async function fetchFavoriteHomesData(
 
   const response = await userApi.getFavoriteHomes(clientId);
   if (!response.success) {
-    throw new Error(response.error ?? "Failed to load favorite homes");
+    throw new Error(resolveApiResultErrorMessage(response, "Failed to load favorite homes"));
   }
 
   const rawHomes = (response.favorites ?? []) as unknown as RawHomeData[];
@@ -149,5 +150,5 @@ export async function fetchFavoriteHomesData(
     rawHomes.map((home, index) => enrichRawHomeWithCoordinatesIfNeeded(home, index))
   );
 
-  return enriched.map(mapHomeUniversalToSavedHome);
+  return enriched.map((home, index) => mapSavedHomeWireToSavedHome(home, index));
 }

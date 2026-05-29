@@ -66,6 +66,14 @@ def init_posthog_otlp(service_name: str) -> bool:
         pass
 
     try:
+        from .logger_env import should_export_logs_to_posthog
+
+        if not should_export_logs_to_posthog():
+            return False
+    except Exception:
+        return False
+
+    try:
         from opentelemetry._logs import get_logger, set_logger_provider
         from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
         from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler

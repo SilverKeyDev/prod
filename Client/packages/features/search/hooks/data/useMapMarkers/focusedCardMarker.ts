@@ -176,15 +176,6 @@ function placeOneFocusedCard(
   onDone();
 }
 
-/** @deprecated Use addFocusedCardMarkers with count 1 */
-export function addFocusedCardMarker(
-  results: SearchResult[],
-  currentPage: number,
-  options: FocusedCardMarkerOptions
-): void {
-  addFocusedCardMarkers(results, currentPage, 1, options);
-}
-
 export function addFocusedCardMarkers(
   results: SearchResult[],
   startPage: number,

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Working feed from existing data: no new ML or infra. The Feed API reads from HomeUniversal (already populated by polygon search and EnsembleScorer) and returns paginated FeedListing items so the Reels UI shows real homes instead of an empty or dummy feed.
+Working feed from existing data: no new ML or infra. The Feed API reads from PropertyCache + UserPropertyLink (already populated by polygon search and EnsembleScorer) and returns paginated FeedListing items so the Reels UI shows real homes instead of an empty or dummy feed.
 
 ## Scope
 
@@ -19,7 +19,7 @@ Working feed from existing data: no new ML or infra. The Feed API reads from Hom
 
 ## Property to FeedListing mapping
 
-| FeedListing field | Source (property dict / HomeUniversal) |
+| FeedListing field | Source (property dict / PropertyCache + UserPropertyLink) |
 |-------------------|----------------------------------------|
 | `id` | `zpid` or `mls_home_id` or `id` |
 | `thumbnailUrl` | `imgSrc` or `image_url` or first of `image_urls` |

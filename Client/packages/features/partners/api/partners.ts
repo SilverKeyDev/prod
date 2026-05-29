@@ -1,10 +1,4 @@
-import {
-  apiDelete,
-  apiGet,
-  apiPatch,
-  apiPost,
-  apiUpload,
-} from "packages/services/http/compatibility";
+import { apiDelete, apiGet, apiPatch, apiPost, apiUpload } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
 import type { Workspace } from "packages/utils/workspace";
 

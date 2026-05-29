@@ -1,6 +1,6 @@
 type: object
 description: >
-  A single saved or tracked listing row (`HomeUniversal.to_dict()`). Numeric facts
+  A single saved or tracked listing row from PropertyCache + UserPropertyLink. Numeric facts
   (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored
   as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether
   the row reflects the latest MLS snapshot the server holds.

@@ -3,8 +3,9 @@
 from flask import jsonify, request
 
 from app import db
+from app.dtos.agreement import AgreementDTO
 from app.models import Agreement, AgreementLink, Document, Transaction
-from app.schemas import LinkDocumentToChecklistRequest, SuccessResponse
+from app.schemas import LinkChecklistDocumentApiResponse, LinkDocumentToChecklistRequest
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.db.orm_lookup import get_model
 from app.utils.security import rate_limit
@@ -42,7 +43,9 @@ def get_checklist_item_documents(user, transaction_id: str, section: str, item_i
     return jsonify(
         {
             "success": True,
-            "data": {"agreements": [a.to_dict() for a in agreements]},
+            "data": {
+                "agreements": [AgreementDTO.from_orm(a).model_dump(mode="json") for a in agreements]
+            },
         }
     )
 
@@ -51,7 +54,7 @@ def get_checklist_item_documents(user, transaction_id: str, section: str, item_i
 @handle_exceptions_with_logging
 @require_authenticated_user
 @validate_request(LinkDocumentToChecklistRequest)
-@validate_response(SuccessResponse)
+@validate_response(LinkChecklistDocumentApiResponse)
 def link_agreement_to_checklist_item(
     user,
     transaction_id: str,
@@ -112,7 +115,12 @@ def link_agreement_to_checklist_item(
     ).first()
 
     if existing:
-        return jsonify({"success": True, "data": {"agreement": agreement.to_dict()}})
+        return jsonify(
+            {
+                "success": True,
+                "data": {"agreement": AgreementDTO.from_orm(agreement).model_dump(mode="json")},
+            }
+        )
 
     link = AgreementLink(
         transaction_id=transaction_id,
@@ -123,4 +131,9 @@ def link_agreement_to_checklist_item(
     db.session.add(link)
     db.session.commit()
 
-    return jsonify({"success": True, "data": {"agreement": agreement.to_dict()}})
+    return jsonify(
+        {
+            "success": True,
+            "data": {"agreement": AgreementDTO.from_orm(agreement).model_dump(mode="json")},
+        }
+    )

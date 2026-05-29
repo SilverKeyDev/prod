@@ -26,10 +26,14 @@ def set_current_user_dev_workspace(user, data: SetCurrentUserDevWorkspaceRequest
             "Unauthorized admin set-current-user-dev-workspace attempt",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Admin access required", status_code=403)
+        return standardize_error_response(
+            "Admin access required", status_code=403, error_code="admin_forbidden"
+        )
 
     if data is None:
-        return standardize_error_response("workspace is required", status_code=400)
+        return standardize_error_response(
+            "workspace is required", status_code=400, error_code="validation_error"
+        )
 
     updated = apply_dev_workspace_persona(user, data.workspace)
 

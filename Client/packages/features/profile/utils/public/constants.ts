@@ -1,7 +1,10 @@
 // Shared constants for onboarding and personalization - barrel file
 // Re-exports from split domain modules in packages/utils/domain/profile/
 
-import type { DropdownOption, OnboardingData } from "packages/features/profile/types/onboarding";
+import type {
+  DropdownOption,
+  OnboardingData,
+} from "packages/features/profile/types/onboarding/onboarding";
 
 // Re-export types for convenience
 export type { DropdownOption, OnboardingData };
@@ -36,7 +39,6 @@ export {
   LOT_SIZE_OPTIONS,
   MUST_HAVE_OPTIONS,
   ONBOARDING_ROLE_COMING_SOON_LABEL,
-  ONBOARDING_ROLE_OPTIONS,
   ONBOARDING_ROLE_PICKER_OPTIONS,
   PARKING_TYPE_OPTIONS,
   PETS_OPTIONS,
@@ -67,7 +69,6 @@ export {
 
 // Re-export required fields
 export {
-  REQUIRED_FIELDS,
   REQUIRED_FIELDS_ONBOARDING,
   REQUIRED_FIELDS_ONBOARDING_MOBILE,
   REQUIRED_FIELDS_SETTINGS,

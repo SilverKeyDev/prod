@@ -5,6 +5,7 @@ import sys
 from datetime import timezone
 
 from app import db
+from app.dtos.agent_conversation import AgentConversationDTO
 from app.models import AgentConnections, ChatHistory, User
 
 server_dir = os.path.dirname(
@@ -163,7 +164,7 @@ def get_conversation(conversation_id: str, user_id: str | None = None) -> dict |
         conv = AgentConnections.query.filter_by(id=conversation_id).first()
         if not conv:
             return None
-        return conv.to_dict(user_id=user_id)
+        return AgentConversationDTO.from_orm(conv, user_id=user_id)
     except Exception as e:
         log.error(LOG_CATEGORIES["ERRORS"], f"Error fetching conversation {conversation_id}", e)
         raise

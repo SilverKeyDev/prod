@@ -1,6 +1,6 @@
 # Features Package
 
-Feature-level React modules live here. **`apps/web`** and **`apps/mobile`** stay thin: they compose exports from `packages/features/<name>/` inside pages and screens. See [thin-app-architecture.md](../../../documentation/client/thin-app-architecture.md).
+Feature-level React modules live here. **`apps/web`** and **`apps/mobile`** stay thin: they compose exports from `packages/features/<name>/` inside pages and screens. See [thin-app-architecture.md](../../../documentation/client/architecture/thin-app-architecture.md).
 
 ## Feature list (examples)
 
@@ -90,7 +90,7 @@ import { SomeComponent } from "../../../apps/web/pages/...";
 
 ## Related Documentation
 
-- [Thin App Architecture](../../../documentation/client/thin-app-architecture.md) - Overview of the thin app pattern
+- [Thin App Architecture](../../../documentation/client/architecture/thin-app-architecture.md) - Overview of the thin app pattern
 - [Frontend Architecture](../../../.cursor/rules/frontend/frontend-architecture.mdc) - Layer rules and import boundaries
 
 ## Status

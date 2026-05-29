@@ -16,19 +16,19 @@ class LoggerConfig:
     """Logger configuration dataclass"""
 
     def __init__(self, config_dict: dict[str, Any]):
-        self.polling: bool = config_dict.get("polling", True)
-        self.pages: bool = config_dict.get("pages", True)
-        self.hooks: bool = config_dict.get("hooks", True)
-        self.auth: bool = config_dict.get("auth", True)
-        self.http: bool = config_dict.get("http", True)
-        self.api: bool = config_dict.get("api", True)
+        self.polling: bool = config_dict.get("polling", False)
+        self.pages: bool = config_dict.get("pages", False)
+        self.hooks: bool = config_dict.get("hooks", False)
+        self.auth: bool = config_dict.get("auth", False)
+        self.http: bool = config_dict.get("http", False)
+        self.api: bool = config_dict.get("api", False)
         self.errors: bool = config_dict.get("errors", True)
         self.security: bool = config_dict.get("security", True)
-        self.polygonSearch: bool = config_dict.get("polygonSearch", True)
-        self.docusign: bool = config_dict.get("docusign", True)
-        self.documents: bool = config_dict.get("documents", True)
-        self.profilePreferences: bool = config_dict.get("profilePreferences", True)
-        self.logLevel: LogLevel = config_dict.get("logLevel", "DEBUG")
+        self.polygonSearch: bool = config_dict.get("polygonSearch", False)
+        self.docusign: bool = config_dict.get("docusign", False)
+        self.documents: bool = config_dict.get("documents", False)
+        self.profilePreferences: bool = config_dict.get("profilePreferences", False)
+        self.logLevel: LogLevel = config_dict.get("logLevel", "ERROR")
 
     def to_dict(self) -> dict[str, Any]:
         """Convert config to dictionary"""

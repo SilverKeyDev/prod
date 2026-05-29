@@ -21,9 +21,13 @@ def get_placements(user):
     transaction_id = (request.args.get("transaction_id") or "").strip() or None
 
     if not step_id:
-        return standardize_error_response("step_id is required", status_code=400)
+        return standardize_error_response(
+            "step_id is required", status_code=400, error_code="validation_error"
+        )
     if not workspace:
-        return standardize_error_response("workspace is required", status_code=400)
+        return standardize_error_response(
+            "workspace is required", status_code=400, error_code="validation_error"
+        )
 
     placements = get_placements_for_step(
         step_id=step_id,

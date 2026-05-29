@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { queryAvailability } from "packages/features/calendar/api/schedulingQueries";
-import { toBuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import { toBuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { log, LOG_CATEGORIES } from "packages/logger";

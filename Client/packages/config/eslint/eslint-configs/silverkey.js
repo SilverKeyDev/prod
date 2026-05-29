@@ -74,6 +74,7 @@ export default function getSilverkeyConfig({ silverkey }) {
             ignoredFirstSegments: ["brand", "neutral"],
           },
         ],
+        "silverkey/no-direct-api-error-field": "warn",
         "silverkey/no-process-env-outside-config": [
           "error",
           {

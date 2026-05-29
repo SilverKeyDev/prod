@@ -28,7 +28,7 @@ from .property_params import (
 from .property_persistence import persist_property_data
 from .property_research_cache import (
     check_cache_fast_path,
-    fetch_property_from_rapidapi,
+    fetch_property_detail_for_research,
     get_cached_details_with_pros_cons_removal,
 )
 
@@ -41,7 +41,6 @@ def process_property_data(
     cached_property_analysis: dict[str, Any] | None,
     cached_features: dict[str, Any] | None,
     google_maps_api_key: str,
-    rapidapi_key: str = "",
     log_prefix: str = "[PROPERTY]",
     skip_pros_cons: bool = False,
     analysis_options: ResearchAnalysisOptions | None = None,
@@ -58,7 +57,6 @@ def process_property_data(
         cached_property_analysis: Cached property analysis if available
         cached_features: Cached features if available
         google_maps_api_key: Google Maps API key
-        rapidapi_key: Unused (kept for backward compat)
         log_prefix: Logging prefix
         skip_pros_cons: If True, skip pros/cons generation in property analysis
 
@@ -153,7 +151,6 @@ def handle_property_request_non_streaming(
     params: dict[str, Any],
     address: str | None,
     google_maps_api_key: str,
-    rapidapi_key: str = "",
     start_time: float = 0.0,
     log_prefix: str = "[PROPERTY]",
     skip_pros_cons: bool = False,
@@ -167,7 +164,6 @@ def handle_property_request_non_streaming(
         params: API parameters dict
         address: Address string from request
         google_maps_api_key: Google Maps API key
-        rapidapi_key: Unused (kept for backward compat)
         start_time: Start time for elapsed calculation
         log_prefix: Logging prefix
         skip_pros_cons: If True, skip pros/cons generation
@@ -213,7 +209,7 @@ def handle_property_request_non_streaming(
             }
         return resp_dict, code
 
-    data, error_response = fetch_property_from_rapidapi(params)
+    data, error_response = fetch_property_detail_for_research(params)
     if error_response:
         return error_response
 

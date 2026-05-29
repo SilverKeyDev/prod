@@ -9,7 +9,7 @@ Rules live as `.mdc` files with YAML frontmatter. Cursor injects them based on *
 
 ## Always-on (every conversation)
 
-These six rules apply in **all** sessions:
+These seven rules apply in **all** sessions:
 
 | Rule | Purpose |
 | ---- | ------- |
@@ -19,6 +19,7 @@ These six rules apply in **all** sessions:
 | [shared/documentation.mdc](shared/documentation.mdc) | `documentation/` vs `docs/`, where to put prose |
 | [shared/silverkey-context.mdc](shared/silverkey-context.mdc) | Company, RESPA reflex, partners, MCP, voice |
 | [shared/code-style.mdc](shared/code-style.mdc) | Stack, Linear commits, PRs, verification |
+| [shared/env-vars-minimal.mdc](shared/env-vars-minimal.mdc) | Do not add `.env` keys unless a new integration requires it |
 
 Keep always-on bodies short; deep detail belongs in `documentation/` or `CLAUDE.md`.
 
@@ -47,7 +48,7 @@ Keep always-on bodies short; deep detail belongs in `documentation/` or `CLAUDE.
 | [shared/user-type-agent-experience.mdc](shared/user-type-agent-experience.mdc) | Agent UX by user type |
 | [shared/aws-resource-naming.mdc](shared/aws-resource-naming.mdc) | AWS naming/tags |
 | [shared/cursor-optimization.mdc](shared/cursor-optimization.mdc) | @web, MCP tips |
-| [shared/agent-memory.mdc](shared/agent-memory.mdc) | `.cursor/memory/` read/update; pairs with [cursor-agent-memory.md](../../documentation/client/cursor-agent-memory.md) |
+| [shared/agent-memory.mdc](shared/agent-memory.mdc) | `.cursor/memory/` read/update; pairs with [cursor-agent-memory.md](../../documentation/client/tooling/cursor-agent-memory.md) |
 
 ---
 

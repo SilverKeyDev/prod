@@ -1,104 +1,26 @@
-## Signing, Closing, and Funding
+> **Status:** Partial | **Last verified:** 2026-05-28
 
-### Problem / goal
+## Signing, closing, and funding
 
-The **closing phase** includes:
-- Document signing.
-- Final funds transfers.
-- Recording and key handoff.
+Closing workflow is **checklist + DocuSign**: sign documents, send funds, walkthrough, confirm recording. No closing-readiness dashboard or funding/recording milestones.
 
-We need to:
-- Map these steps into clear milestones and checklist items.
-- Reflect variations between:
-  - Attorney vs escrow closings.
-  - Same-day vs delayed funding and possession.
+### Shipped
 
-### Data model & invariants
+- Closing checklist (`closing/items.py`): walkthrough, sign closing docs (`completion_type: signature_based`), send funds, receive keys.
+- DocuSign embedded signing, webhooks, in-app agreement cards in messaging.
+- Calendar reminders on checkoff for time-sensitive closing steps.
 
-- Inputs:
-  - Scheduled closing date/time.
-  - Whether:
-    - Possession is at closing vs later.
-    - Funding is same-day vs next-day.
+### Gaps
 
-- Milestones:
-  - `closing_appointment`
-  - `funding_complete`
-  - `recording_complete`
-  - `possession_date`
+- No `closing_appointment`, `funding_complete`, or `recording_complete` milestone records.
+- No aggregated "closing readiness" view across docs/funds/title.
 
-- Checklist items:
-  - For example:
-    - “Review and sign closing documents.”
-    - “Send closing funds.”
-    - “Confirm recording and receive keys.”
+### Code pointers
 
-Invariants:
-- Every closed transaction should:
-  - Record at least:
-    - A closing appointment.
-    - Completion of funding/recording.
-
-### Flows / UX
-
-1. **Pre-closing**
-   - Milestone:
-     - `closing_appointment` set to scheduled date/time.
-   - Checklist:
-     - Reminds participants:
-       - To review closing disclosure.
-       - To confirm wire instructions.
-
-2. **Signing**
-   - Depending on jurisdiction:
-     - Signing may occur:
-       - At title/escrow office.
-       - At attorney’s office.
-       - Remotely via e-sign.
-   - Agreements and checklists:
-     - Reflect when all required documents are signed.
-
-3. **Funding and recording**
-   - After signing:
-     - Funds are disbursed.
-     - Deed is recorded.
-   - Milestones:
-     - `funding_complete`, `recording_complete`.
-   - Checklist items:
-     - Confirm closing is fully complete and safe for move-in.
-
-4. **Possession**
-   - Possession may be:
-     - At recording.
-     - At a later negotiated date.
-   - `possession_date` milestone:
-     - Drives move-in checklists and calendar events.
-
-### Existing infrastructure to reuse / extend
-
-- **Closing checklist templates**
-  - `Server/app/services/transactions/closing/items.py`:
-    - Already captures many closing and move-in tasks.
-
-- **Documents and signing**
-  - Agreement models and signature provider integration:
-    - See `integrations/07-signing-review-and-completion.md` and `integrations/09-documents-docusign-and-s3.md`.
-
-- **Calendar and notifications**
-  - Existing calendar and notification infrastructure:
-    - Should be used for closing appointments and key events.
-
-### Gaps that require new work
-
-- **Milestone definitions**
-  - Explicit milestone types and rules for:
-    - Whether funding and recording are same-day or not.
-    - When possession occurs relative to closing.
-
-- **UX for closing readiness**
-  - A clear “closing readiness” view:
-    - Aggregating whether:
-      - All required docs are signed.
-      - Funds are cleared.
-      - Title is clear.
-      - Move-in tasks are prepared.
+| Area | Path |
+| ---- | ---- |
+| Closing items | `Server/app/services/transactions/closing/items.py` |
+| Embedded signing | `Client/packages/features/documents/components/docusign/EmbeddedSigning.tsx` |
+| Webhook → messages | `Server/app/services/docusign/webhooks/processor.py` |
+| Agreement event card | `Client/packages/features/messaging/components/cards/AgreementEventCard.tsx` |
+| Closing UI | `Client/packages/features/checklists/components/subheaders/ClosingMovingIn.tsx` |

@@ -9,7 +9,7 @@ alwaysApply: false
 
 # Responsive UI (SilverKey)
 
-**Canonical reference:** [documentation/client/responsive-ui-standards.md](../../../documentation/client/responsive-ui-standards.md) — read it for WEB-1–WEB-8, RN-1–RN-10, BOTH-1–BOTH-5, SilverKey route notes, and the seven-area path map.
+**Canonical reference:** [documentation/client/standards/responsive-ui-standards.md](../../../documentation/client/standards/responsive-ui-standards.md) — read it for WEB-1–WEB-8, RN-1–RN-10, BOTH-1–BOTH-5, SilverKey route notes, and the seven-area path map.
 
 ## Must follow (summary)
 
@@ -29,4 +29,4 @@ alwaysApply: false
 
 ## After edits
 
-Run `pnpm lint` and `pnpm typecheck` in `Client/` when touching responsive code (see `documentation/client/LINTING.md`).
+Run `pnpm lint` and `pnpm typecheck` in `Client/` when touching responsive code (see `documentation/client/standards/LINTING.md`).

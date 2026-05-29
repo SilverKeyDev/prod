@@ -59,10 +59,18 @@ def get_checked_ids_for_user(user_id: str, category: str) -> list[int]:
     return sorted(ids)
 
 
-def build_task_checklist_data(subject_user_id: str, checklist_type: str) -> dict | None:
+def build_task_checklist_data(
+    subject_user_id: str,
+    checklist_type: str,
+    *,
+    actor_user_id: str | None = None,
+) -> dict | None:
     """
     Build the `data` object for GET task checklist responses.
     Returns None if checklist_type is invalid.
+
+    When actor_user_id differs from subject_user_id (agent viewing a client checklist),
+    signature-based steps reflect stored progress only — agents may override via PUT.
     """
     if checklist_type not in TASK_CATEGORIES:
         return None
@@ -71,9 +79,11 @@ def build_task_checklist_data(subject_user_id: str, checklist_type: str) -> dict
     old_set = {int(x) for x in raw_checked}
     pre_signature = merge_task_checklist_checked_ids(items, raw_checked, old_set)
     checked_set = set(pre_signature)
-    apply_signature_based_checked_ids(items, str(subject_user_id), checklist_type, checked_set)
+    enforce_signature = actor_user_id is None or str(actor_user_id) == str(subject_user_id)
+    if enforce_signature:
+        apply_signature_based_checked_ids(items, str(subject_user_id), checklist_type, checked_set)
     checked_ids = sorted(checked_set)
-    if checked_ids != sorted(pre_signature):
+    if enforce_signature and checked_ids != sorted(pre_signature):
         replace_checked_ids_for_user(str(subject_user_id), checklist_type, checked_ids)
     metadata = get_series_metadata(checklist_type)
     items_out = normalize_checklist_items_for_api(items)

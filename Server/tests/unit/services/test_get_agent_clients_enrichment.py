@@ -1,10 +1,20 @@
 """Tests for get_agent_clients enrichment (client_kind, pipeline_stage)."""
 
-import json
 from datetime import datetime, timezone
 
-from app.models import AgentConnections, TransactionTask, User, UserRole
+from app.models import (
+    AgentConnections,
+    Agreement,
+    AgreementParticipant,
+    TransactionTask,
+    User,
+    UserRole,
+)
 from app.services.agent.client_service import get_agent_clients
+
+
+def _link(agent_id: str, client_id: str) -> AgentConnections:
+    return AgentConnections(agent_id=agent_id, client_id=client_id)
 
 
 def test_get_agent_clients_client_kind_from_roles(db_session):
@@ -14,7 +24,6 @@ def test_get_agent_clients_client_kind_from_roles(db_session):
         email="a1@example.com",
         name="Agent",
         is_agent=True,
-        client_ids='["c-buyer","c-seller","c-mix"]',
     )
     c_buyer = User(
         id="c-buyer",
@@ -45,12 +54,18 @@ def test_get_agent_clients_client_kind_from_roles(db_session):
         is_agent=False,
     )
     db_session.session.add_all([agent, c_buyer, c_seller, c_mix, c_none])
+    db_session.session.add_all(
+        [
+            _link("agent-e1", "c-buyer"),
+            _link("agent-e1", "c-seller"),
+            _link("agent-e1", "c-mix"),
+            _link("agent-e1", "c-none"),
+        ]
+    )
     db_session.session.add(UserRole(user_id="c-buyer", role="buyer"))
     db_session.session.add(UserRole(user_id="c-seller", role="seller"))
     db_session.session.add(UserRole(user_id="c-mix", role="buyer"))
     db_session.session.add(UserRole(user_id="c-mix", role="seller"))
-    conn = AgentConnections(agent_id="agent-e1", client_id="c-none")
-    db_session.session.add(conn)
     db_session.session.commit()
 
     out = get_agent_clients("agent-e1")
@@ -71,7 +86,6 @@ def test_get_agent_clients_pipeline_stage_most_recent_category(db_session):
         email="a2@example.com",
         name="Agent 2",
         is_agent=True,
-        client_ids='["c1","c2"]',
     )
     c1 = User(
         id="c1",
@@ -88,6 +102,7 @@ def test_get_agent_clients_pipeline_stage_most_recent_category(db_session):
         is_agent=False,
     )
     db_session.session.add_all([agent, c1, c2])
+    db_session.session.add_all([_link("agent-e2", "c1"), _link("agent-e2", "c2")])
 
     older = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
     newer = datetime(2024, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
@@ -130,7 +145,6 @@ def test_get_agent_clients_client_kind_investor(db_session):
         email="inv-a@example.com",
         name="Agent Inv",
         is_agent=True,
-        client_ids='["c-inv"]',
     )
     client_u = User(
         id="c-inv",
@@ -140,6 +154,7 @@ def test_get_agent_clients_client_kind_investor(db_session):
         is_agent=False,
     )
     db_session.session.add_all([agent, client_u])
+    db_session.session.add(_link("agent-inv", "c-inv"))
     db_session.session.add(UserRole(user_id="c-inv", role="investor"))
     db_session.session.commit()
 
@@ -155,7 +170,6 @@ def test_get_agent_clients_pipeline_stage_tie_breaks_on_rank_when_same_timestamp
         email="a3@example.com",
         name="Agent 3",
         is_agent=True,
-        client_ids='["c-tie"]',
     )
     cu = User(
         id="c-tie",
@@ -165,6 +179,7 @@ def test_get_agent_clients_pipeline_stage_tie_breaks_on_rank_when_same_timestamp
         is_agent=False,
     )
     db_session.session.add_all([agent, cu])
+    db_session.session.add(_link("agent-e3", "c-tie"))
     same = datetime(2024, 6, 15, 12, 0, 0, tzinfo=timezone.utc)
     db_session.session.add(
         TransactionTask(
@@ -194,14 +209,13 @@ def test_get_agent_clients_pipeline_stage_tie_breaks_on_rank_when_same_timestamp
     assert out[0]["pipeline_stage"] == "offer"
 
 
-def test_get_agent_clients_syncs_connection_clients_into_client_ids(db_session):
+def test_get_agent_clients_includes_all_linked_connections(db_session):
     agent = User(
         id="agent-sync",
         cognito_id="cog-sync-a",
         email="sync-a@example.com",
         name="Agent Sync",
         is_agent=True,
-        client_ids='["c-on-list"]',
     )
     on_list = User(
         id="c-on-list",
@@ -218,46 +232,14 @@ def test_get_agent_clients_syncs_connection_clients_into_client_ids(db_session):
         is_agent=False,
     )
     db_session.session.add_all([agent, on_list, from_conn])
-    db_session.session.add(AgentConnections(agent_id="agent-sync", client_id="c-from-conn"))
+    db_session.session.add_all(
+        [_link("agent-sync", "c-on-list"), _link("agent-sync", "c-from-conn")]
+    )
     db_session.session.commit()
 
     out = get_agent_clients("agent-sync")
     ids = {row["id"] for row in out}
     assert ids == {"c-on-list", "c-from-conn"}
-
-    db_session.session.refresh(agent)
-    synced = set(json.loads(agent.client_ids))
-    assert synced == {"c-on-list", "c-from-conn"}
-
-
-def test_get_agent_clients_parses_csv_client_ids(db_session):
-    agent = User(
-        id="agent-csv",
-        cognito_id="cog-csv-a",
-        email="csv-a@example.com",
-        name="Agent CSV",
-        is_agent=True,
-        client_ids="c-a, c-b",
-    )
-    ca = User(
-        id="c-a",
-        cognito_id="cog-csv-1",
-        email="a@csv.example.com",
-        name="A",
-        is_agent=False,
-    )
-    cb = User(
-        id="c-b",
-        cognito_id="cog-csv-2",
-        email="b@csv.example.com",
-        name="B",
-        is_agent=False,
-    )
-    db_session.session.add_all([agent, ca, cb])
-    db_session.session.commit()
-
-    out = get_agent_clients("agent-csv")
-    assert {row["id"] for row in out} == {"c-a", "c-b"}
 
 
 def test_get_agent_clients_current_step_label_for_new_client(db_session):
@@ -267,7 +249,6 @@ def test_get_agent_clients_current_step_label_for_new_client(db_session):
         email="step-a@example.com",
         name="Agent Step",
         is_agent=True,
-        client_ids='["c-new"]',
     )
     client_u = User(
         id="c-new",
@@ -277,6 +258,7 @@ def test_get_agent_clients_current_step_label_for_new_client(db_session):
         is_agent=False,
     )
     db_session.session.add_all([agent, client_u])
+    db_session.session.add(_link("agent-step", "c-new"))
     db_session.session.commit()
 
     out = get_agent_clients("agent-step")
@@ -288,15 +270,12 @@ def test_get_agent_clients_current_step_label_for_new_client(db_session):
 
 
 def test_get_agent_clients_requires_signature_when_client_signed_agent_not(db_session):
-    from app.models import Agreement, AgreementParticipant
-
     agent = User(
         id="agent-sign",
         cognito_id="cog-sign-a",
         email="sign-a@example.com",
         name="Agent Sign",
         is_agent=True,
-        client_ids='["c-sign"]',
     )
     client_u = User(
         id="c-sign",
@@ -306,6 +285,7 @@ def test_get_agent_clients_requires_signature_when_client_signed_agent_not(db_se
         is_agent=False,
     )
     db_session.session.add_all([agent, client_u])
+    db_session.session.add(_link("agent-sign", "c-sign"))
     agreement = Agreement(
         id="agr-1",
         status="sent",

@@ -1,9 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import {
-  applyStoredMapCamera,
-  snapshotMapCamera,
-} from "packages/features/search/utils/googleMaps/mapCamera";
+import { applyStoredMapCamera, snapshotMapCamera } from "packages/features/search/utils/googleMaps";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useFiltersStore } from "packages/store";
 

@@ -1,34 +1,37 @@
+> **Status:** Shipped  
+> **Last verified:** 2026-05-28  
+> **Code pointers:** `Server/app/services/docusign/`; `Server/app/celery/tasks/docusign.py`; `Client/packages/features/documents/`; [`documentation/client/features/docusign-integration.md`](../../client/features/docusign-integration.md)
+
 ## Documents, DocuSign, and S3
 
 ### Roles
 
-- **DocuSign** is the **e-signature provider**: envelopes, embedded signing, template sync, and status via the Connect webhook.
-- **S3** is **blob storage** for:
-  - General user uploads (e.g. secure document upload flows).
-  - **Agreement revisions** — each revision stores an S3 key in `AgreementRevision.file_path` (`Server/app/models/documents/agreement_revision.py`).
-  - **Completed agreements** — combined signed PDF and certificate paths on `Agreement` (`signed_document_path`, `certificate_path`) after DocuSign completion processing (`Server/app/models/documents/agreement.py`).
+- **DocuSign** — e-signature: envelopes, embedded signing, template sync, Connect webhooks.
+- **S3** — blob storage for uploads, agreement revisions (`AgreementRevision.file_path`), and completed artifacts (`signed_document_path`, `certificate_path` on `Agreement`).
 
-### Flows (high level)
+### Flows
 
-1. **System / admin**: JWT-based DocuSign auth for template sync and system operations.
-2. **Agent**: OAuth connect (`/api/v1/docusign/oauth/*`); sends agreements from the agent’s DocuSign account.
-3. **Signing**: Envelope created/sent; recipients sign (including embedded signing where configured).
-4. **Status**: Connect webhooks update agreement state; Celery tasks can fetch completed documents and upload PDFs to S3 (see `Server/app/celery/tasks/docusign.py`).
+1. **System/admin:** JWT auth for template sync and system operations.
+2. **Agent:** OAuth connect (`/api/v1/docusign/oauth/*`); sends from the agent's DocuSign account.
+3. **Signing:** Envelope created/sent; embedded or email signing per recipient config.
+4. **Status:** Connect webhooks update agreement state; Celery fetches completed PDFs and writes to S3.
 
-### Implementation detail
+### Canonical backend guide
 
-For environment variables, route list, auth diagrams, and troubleshooting, use the canonical backend guide:
+Environment variables, routes, auth diagrams, troubleshooting:
 
-- [`Server/app/services/docusign/README.md`](../../../Server/app/services/docusign/README.md)
+- [`Server/app/services/docusign/docs/README.md`](../../../Server/app/services/docusign/docs/README.md)
 
-### Checklist-driven transactions
+### Checklist linkage
 
-Agreements remain the **system of record** for signature state; checklist items and milestones link to agreements via concepts described in `integrations/07-signing-review-and-completion.md` (e.g. `AgreementLink` linking `transaction_id`, `agreement_id`, and checklist/milestone targets). Completion rules stay **signature-based** or **signature plus review** as in that doc.
+Agreements are the signature source of truth. Checklist steps link via `AgreementLink` (`linked_item_id` e.g. `closing.2`); signature-based steps auto-complete when agreement status is `completed` — see [07-signing-review-and-completion.md](./07-signing-review-and-completion.md).
 
-### Form sources (v1)
-
-Brokerage-specific **form catalogs** may still be integrated via **FMLS** and/or **eXp API** where product configuration requires it. The documented v1 **documents and signing** path is **DocuSign** plus **S3**; other brokerage form vendors are out of scope unless added explicitly to the product map.
+Checklist form send from the client: `Client/packages/features/checklists/components/steps/ChecklistStepForms.tsx` → `documentsSendForSignature.ts`.
 
 ### Provider abstraction
 
-`Server/app/services/signature/base.py` defines `SignatureProvider` and `NoOpSignatureProvider` when signing is not configured. Prefer the **DocuSign service layer** under `Server/app/services/docusign/` for real sends, webhooks, and storage orchestration.
+`Server/app/services/docusign/signature/base.py` defines `SignatureProvider`; production path uses the DocuSign service layer, not a separate generic stack.
+
+### Form catalogs (out of scope unless configured)
+
+Brokerage form vendors (FMLS, eXp API, etc.) are product-specific add-ons. Default v1 path is **upload → agreement revision → DocuSign → S3**.

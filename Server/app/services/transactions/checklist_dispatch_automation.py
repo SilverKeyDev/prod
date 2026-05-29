@@ -18,7 +18,7 @@ _MAX_NOTE = 5000
 
 
 def resolve_agent_id_for_buyer(buyer_id: str) -> str | None:
-    """Primary agent for checklist automation: client.agent_id list, else transaction.primary_agent_id."""
+    """Primary agent for checklist automation via agent_conversations, else transaction.primary_agent_id."""
     client = get_model(User, buyer_id)
     if client:
         agent_id = resolve_primary_agent_id_for_client(client)

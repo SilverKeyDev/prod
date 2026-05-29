@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-13
 **Scope:** Feature packages under [`Client/packages/features/`](../../../Client/packages/features/) that are missing one or more canonical top-level folders (`api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`).
-**Rubric:** [documentation/client/react-component-audit-rubric.md](../../client/react-component-audit-rubric.md) (five axes, 1–3; fix list when total ≤ 9 or any axis = 1).
+**Rubric:** [documentation/client/patterns/react-component-audit-rubric.md](../../client/patterns/react-component-audit-rubric.md) (five axes, 1–3; fix list when total ≤ 9 or any axis = 1).
 
 ## ESLint vs “full skeleton”
 

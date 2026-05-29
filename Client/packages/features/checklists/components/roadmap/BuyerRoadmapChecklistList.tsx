@@ -182,8 +182,10 @@ export function BuyerRoadmapChecklistList({
 
   const getRoadmapItemBlocker = useCallback(
     (itemId: number) =>
-      getRoadmapChecklistItemBlockerKind(sortedItems, checkedIds, itemId, !isSectionLocked),
-    [sortedItems, checkedIds, isSectionLocked]
+      getRoadmapChecklistItemBlockerKind(sortedItems, checkedIds, itemId, !isSectionLocked, {
+        isAgentViewer: isAgent === true,
+      }),
+    [sortedItems, checkedIds, isSectionLocked, isAgent]
   );
 
   const revealRoadmapItem = useCallback(

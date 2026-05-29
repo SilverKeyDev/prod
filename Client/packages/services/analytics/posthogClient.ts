@@ -7,6 +7,16 @@ import { POSTHOG_API_HOST, POSTHOG_APP_URL } from "./posthogConstants";
 
 let initialized = false;
 
+export function buildPostHogWebInitOptions() {
+  return {
+    api_host: POSTHOG_API_HOST,
+    ui_host: POSTHOG_APP_URL,
+    person_profiles: "identified_only" as const,
+    capture_pageview: true,
+    capture_pageleave: true,
+  };
+}
+
 export function isPostHogInitialized(): boolean {
   return initialized;
 }
@@ -21,12 +31,7 @@ export function initPostHogClient(): boolean {
     return false;
   }
 
-  posthog.init(key, {
-    api_host: POSTHOG_API_HOST,
-    person_profiles: "identified_only",
-    capture_pageview: true,
-    capture_pageleave: true,
-  });
+  posthog.init(key, buildPostHogWebInitOptions());
   initialized = true;
   return true;
 }

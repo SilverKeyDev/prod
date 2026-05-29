@@ -4,8 +4,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
+import { logoutFromAuthStore } from "packages/features/homeauth/hooks/data/session/useSecureAuthFlows";
 import { useHealthCheck, useSessionTimeout } from "packages/hooks/ui";
-import { useAuthStore } from "packages/store";
 import { Text } from "packages/ui/components/primitives";
 
 import { RootNavigator } from "./navigation/RootNavigator.native";
@@ -19,17 +19,11 @@ export function AppContent() {
   const [loading, setLoading] = useState(true);
   const { maintenance, healthCheckComplete } = useHealthCheck();
 
-  const setStoreUser = useAuthStore((s) => s.setUser);
-  const setIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
-  const setStoreAuthStatus = useAuthStore((s) => s.setAuthStatus);
+  const handleSessionTimeoutLogout = useCallback(() => {
+    void logoutFromAuthStore();
+  }, []);
 
-  const onSessionLogout = useCallback(() => {
-    setStoreUser(null);
-    setIsAuthenticated(false);
-    setStoreAuthStatus("unauthenticated");
-  }, [setStoreUser, setIsAuthenticated, setStoreAuthStatus]);
-
-  useSessionTimeout({ onLogout: onSessionLogout });
+  useSessionTimeout({ onLogout: handleSessionTimeoutLogout });
 
   useEffect(() => {
     if (healthCheckComplete) {

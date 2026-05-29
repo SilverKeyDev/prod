@@ -10,8 +10,6 @@ const baseProfile: UserProfile = {
   name: "Dev Admin",
   created_at: "2026-01-01T00:00:00Z",
   is_active: true,
-  has_subscription: false,
-  subscription: null,
   has_preferences: true,
   is_agent: false,
   roles: ["seller", "admin"],

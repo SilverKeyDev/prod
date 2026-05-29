@@ -240,8 +240,8 @@
   {
     "id": "use-feed-scroll-container",
     "description": "Feed scroll container hook with platform-specific scroll API.",
-    "webPath": "packages/features/feed/hooks/ui/useFeedScrollContainer.ts",
-    "nativePath": "packages/features/feed/hooks/ui/useFeedScrollContainer.native.ts",
+    "webPath": "packages/features/feed/hooks/ui/scroll/useFeedScrollContainer.ts",
+    "nativePath": "packages/features/feed/hooks/ui/scroll/useFeedScrollContainer.native.ts",
     "reason": "Native scroll hook uses RN scroll API; web uses different scroll implementation."
   },
   {

@@ -2,7 +2,7 @@ import PostHog from "posthog-react-native";
 
 import { getEnv } from "packages/config/env";
 
-import { POSTHOG_API_HOST } from "./posthogConstants";
+import { POSTHOG_API_HOST, POSTHOG_APP_URL } from "./posthogConstants";
 
 let posthogClient: PostHog | null = null;
 let initialized = false;
@@ -78,5 +78,5 @@ export function resolvePostHogAppUrl(): string | null {
   if (!readPosthogKey()) {
     return null;
   }
-  return "https://us.posthog.com";
+  return POSTHOG_APP_URL;
 }

@@ -5,7 +5,7 @@ Intended for admin / support / local dev. Irreversible: also removes agreements 
 transactions where this user is a party (affects the counterparty's records).
 
 Before DB deletion, deletes the Cognito identity, revokes Google Calendar and DocuSign
-OAuth, disconnects Plaid when configured, and deletes user-scoped S3 objects.
+OAuth, and deletes user-scoped S3 objects.
 
 Usage (Flask shell):
 
@@ -28,24 +28,20 @@ from app.models import (
     DocusignOAuthToken,
     GoogleOAuthToken,
     HomeComment,
-    HomeLikes,
     HomeNotInterested,
     OAuthState,
     ReelLike,
     ScoringResultsTracker,
-    Search,
     Transaction,
     TransactionAddress,
     TransactionTask,
     User,
     UserAgentProfile,
-    UserCalendarConnection,
     UserClientSettings,
     UserCommunicationPrefs,
     UserDemographics,
     UserFinancials,
     UserImportantLocation,
-    UserIntegration,
     UserIntentAttribute,
     UserPropertyCommute,
     UserPropertyHighlights,
@@ -142,8 +138,6 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
 
         delete_agreements_for_user(uid)
 
-        Search.query.filter_by(user_id=uid).delete(synchronize_session=False)
-
         UserIntentAttribute.query.filter_by(user_id=uid).delete(synchronize_session=False)
         UserImportantLocation.query.filter_by(user_id=uid).delete(synchronize_session=False)
         UserRole.query.filter_by(user_id=uid).delete(synchronize_session=False)
@@ -151,9 +145,7 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
         UserDemographics.query.filter_by(user_id=uid).delete(synchronize_session=False)
         UserCommunicationPrefs.query.filter_by(user_id=uid).delete(synchronize_session=False)
         UserSearchIntent.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserCalendarConnection.query.filter_by(user_id=uid).delete(synchronize_session=False)
         UserAgentProfile.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserIntegration.query.filter_by(user_id=uid).delete(synchronize_session=False)
 
         # Google/DocuSign tokens removed during external cleanup; delete rows if any remain.
         GoogleOAuthToken.query.filter_by(user_id=uid).delete(synchronize_session=False)
@@ -162,7 +154,6 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
         UserPropertyHighlights.query.filter_by(user_id=uid).delete(synchronize_session=False)
         UserPropertyCommute.query.filter_by(user_id=uid).delete(synchronize_session=False)
         UserPropertyLink.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        HomeLikes.query.filter_by(user_id=uid).delete(synchronize_session=False)
         HomeNotInterested.query.filter_by(user_id=uid).delete(synchronize_session=False)
         HomeComment.query.filter_by(user_id=uid).delete(synchronize_session=False)
         ReelLike.query.filter_by(user_id=uid).delete(synchronize_session=False)

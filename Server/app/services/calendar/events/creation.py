@@ -2,12 +2,12 @@
 Event creation orchestration: target resolution, primary + DB creation, agent calendar duplication.
 """
 
-import json
 from datetime import datetime, timezone
 
 from app import db
-from app.models import CalendarEvent, User
+from app.models import CalendarEvent
 from app.services.agent.client_service import (
+    get_connected_agent_ids_for_client,
     get_user_agent_id,
     validate_agent_client_relationship,
 )
@@ -159,21 +159,11 @@ def create_in_agent_calendars(
     if not should_create or is_agent:
         return
 
-    client_user = User.query.filter_by(id=user_id).first()
-    agent_ids = []
-    if client_user and client_user.agent_id:
-        try:
-            if isinstance(client_user.agent_id, str):
-                try:
-                    agent_ids = json.loads(client_user.agent_id)
-                except json.JSONDecodeError:
-                    agent_ids = [
-                        aid.strip() for aid in client_user.agent_id.split(",") if aid.strip()
-                    ]
-            else:
-                agent_ids = client_user.agent_id if isinstance(client_user.agent_id, list) else []
-        except Exception as e:
-            logger.error("Error parsing agent_id for client %s: %s", user_id, e)
+    try:
+        agent_ids = list(get_connected_agent_ids_for_client(str(user_id)))
+    except Exception as e:
+        logger.error("Error resolving linked agents for client %s: %s", user_id, e)
+        agent_ids = []
 
     for agent_id in agent_ids:
         try:

@@ -7,10 +7,19 @@ describe("throwUnlessApiSuccess", () => {
     expect(() => throwUnlessApiSuccess({ success: true }, "fallback")).not.toThrow();
   });
 
-  it("throws with response.error when success is false and error is set", () => {
-    expect(() => throwUnlessApiSuccess({ success: false, error: "boom" }, "fallback")).toThrow(
-      "boom"
-    );
+  it("prefers message over error code when success is false", () => {
+    expect(() =>
+      throwUnlessApiSuccess(
+        { success: false, error: "validation_error", message: "Email is required" },
+        "fallback"
+      )
+    ).toThrow("Email is required");
+  });
+
+  it("maps error code when message is absent", () => {
+    expect(() =>
+      throwUnlessApiSuccess({ success: false, error: "validation_error" }, "fallback")
+    ).toThrow("Invalid input provided");
   });
 
   it("throws with fallback when success is false and error is empty", () => {
@@ -26,10 +35,13 @@ describe("requireApiSuccessData", () => {
     expect(requireApiSuccessData({ success: true, data: 42 }, "fallback")).toBe(42);
   });
 
-  it("throws with response.error when success is false", () => {
+  it("prefers message over error code when success is false", () => {
     expect(() =>
-      requireApiSuccessData({ success: false, error: "nope", data: null }, "fallback")
-    ).toThrow("nope");
+      requireApiSuccessData(
+        { success: false, error: "server_error", message: "Try again later", data: null },
+        "fallback"
+      )
+    ).toThrow("Try again later");
   });
 
   it("throws with fallback when data is missing", () => {

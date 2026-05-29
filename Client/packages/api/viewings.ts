@@ -1,4 +1,4 @@
-import { apiPost } from "packages/services/http/compatibility";
+import { apiPost } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
 
 export type BuildRouteRequest = components["schemas"]["BuildRouteRequest"];

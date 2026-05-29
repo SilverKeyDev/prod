@@ -1,4 +1,4 @@
-import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 
 export type PayingCashFieldUpdater = (field: keyof OnboardingData, value: unknown) => void;
 

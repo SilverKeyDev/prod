@@ -143,6 +143,14 @@ def map_user_preferences_to_filters(
     return filters
 
 
+def normalize_important_location(location: dict[str, Any]) -> dict[str, Any]:
+    """Normalize a single important location dict from DB or aggregation shapes."""
+    loc = dict(location)
+    if loc.get("commute_tolerance") is None and loc.get("max_commute_minutes") is not None:
+        loc["commute_tolerance"] = loc["max_commute_minutes"]
+    return loc
+
+
 def generate_isochrone_polygon_from_preferences(
     user_preferences: dict[str, Any],
 ) -> list[dict[str, float]] | None:
@@ -166,7 +174,9 @@ def generate_isochrone_polygon_from_preferences(
                 return None
 
         if isinstance(locations_data, list) and locations_data:
-            important_locations = locations_data
+            important_locations = [
+                normalize_important_location(loc) for loc in locations_data if isinstance(loc, dict)
+            ]
 
         if not important_locations:
             current_app.logger.warning(
@@ -298,6 +308,10 @@ def parse_important_locations(
             return None, "Invalid important locations data"
 
     if isinstance(locations_data, list) and locations_data:
-        return locations_data, None
+        normalized = [
+            normalize_important_location(loc) for loc in locations_data if isinstance(loc, dict)
+        ]
+        if normalized:
+            return normalized, None
 
     return None, "No important locations found in user preferences"

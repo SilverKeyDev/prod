@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import uuid
-import warnings
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
-from app.utils.format.datetime import to_aware_utc_iso
 
 if TYPE_CHECKING:
     from app.models.documents.agreement_revision import AgreementRevision
@@ -111,50 +109,6 @@ class Agreement(db.Model):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self, include_relationships=False):
-        warnings.warn(
-            "Agreement.to_dict() is deprecated; use app.dtos.agreement.AgreementDTO.from_orm",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        result = {
-            "id": self.id,
-            "status": self.status,
-            "title": self.title,
-            "description": self.description,
-            "agent_id": self.agent_id,
-            "buyer_id": self.buyer_id,
-            "current_revision_id": self.current_revision_id,  # derived from latest revision
-            "docusign_envelope_id": self.docusign_envelope_id,
-            "docusign_source_template_id": self.docusign_source_template_id,
-            "docusign_status": self.docusign_status,
-            "property_address": self.property_address,
-            "agreement_type": self.agreement_type,
-            "created_at": to_aware_utc_iso(self.created_at),
-            "updated_at": to_aware_utc_iso(self.updated_at),
-            "sent_at": to_aware_utc_iso(self.sent_at),
-            "completed_at": to_aware_utc_iso(self.completed_at),
-            "voided_at": to_aware_utc_iso(self.voided_at),
-            "signed_document_path": self.signed_document_path,
-            "certificate_path": self.certificate_path,
-        }
-
-        if include_relationships:
-            result["participants"] = (
-                [p.to_dict() for p in list(cast(Any, self.participants))]
-                if hasattr(self, "participants")
-                else []
-            )
-            result["events"] = (
-                [e.to_dict() for e in list(cast(Any, self.events))[:10]]
-                if hasattr(self, "events")
-                else []
-            )  # Last 10 events
-            cur_rev = self.current_revision
-            result["current_revision"] = cur_rev.to_dict() if cur_rev else None
-
-        return result
 
     def __repr__(self):
         return f"<Agreement {self.id} - {self.title}>"

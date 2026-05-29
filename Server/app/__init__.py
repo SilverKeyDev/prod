@@ -23,8 +23,6 @@ from flask import Flask
 from flask_compress import Compress  # pyright: ignore[reportMissingImports]
 from flask_cors import CORS
 from flask_executor import Executor
-from flask_login import LoginManager
-from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 
 from .config import Config
@@ -36,8 +34,6 @@ from .config.constants._constants_public_urls import (
 from .extensions import db
 
 # Initialize extensions (db from extensions; others local for create_app)
-login_manager = LoginManager()
-ma = Marshmallow()
 executor = Executor()
 compress = Compress()
 
@@ -85,8 +81,6 @@ def create_app(config=None):
 
     # Initialize extensions
     db.init_app(app)
-    login_manager.init_app(app)
-    ma.init_app(app)
     executor.init_app(app)
     compress.init_app(app)
     Migrate(app, db)
@@ -177,14 +171,6 @@ def create_app(config=None):
         vary_header=True,
     )
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        from app.models.user import User
-        from app.utils.db.orm_lookup import get_model
-
-        # User.id is String(36) UUID; do not coerce to int
-        return get_model(User, user_id)
-
     # S3 client is initialized lazily on first use via s3_service._ensure_s3_client() (avoids boto/head_bucket at boot).
 
     # Validate environment variables at startup
@@ -218,6 +204,7 @@ def create_app(config=None):
     from .routes.auth.search_display import search_display_bp
     from .routes.auth.user import user_bp
     from .routes.calendar.google_calendar import google_calendar_bp
+    from .routes.chat.chatbot import chatbot_bp
     from .routes.client_errors import client_errors_bp
     from .routes.documents.report import report_bp
     from .routes.documents.secure_upload import secure_upload_bp
@@ -248,6 +235,7 @@ def create_app(config=None):
     app.register_blueprint(google_calendar_bp)
     app.register_blueprint(viewings_bp)
     app.register_blueprint(agent_bp)
+    app.register_blueprint(chatbot_bp)
     app.register_blueprint(report_bp)
     app.register_blueprint(client_errors_bp)
     app.register_blueprint(feed_bp)
@@ -273,6 +261,10 @@ def create_app(config=None):
     from .http.flask_runtime_routes import register_flask_runtime_routes
 
     register_flask_runtime_routes(app, static_dir, healthz_is_production=_HEALTHZ_IS_PRODUCTION)
+
+    from .http.api_telemetry import register_api_telemetry
+
+    register_api_telemetry(app)
     register_after_request_headers(app)
     register_error_handlers(app)
 

@@ -71,7 +71,8 @@ def apply_dev_workspace_persona(user: User, workspace: DevWorkspacePersona) -> U
     Set exclusive workspace persona on the signed-in user.
 
     Preserves SilverKey gate roles (``admin``, ``super_admin``). Replaces all other
-    persona-managed ``user_roles``, updates ``users.is_agent``, and syncs demographics
+    persona-managed ``user_roles``, sets agent role via ``user_roles`` / ``is_agent`` property,
+    and syncs demographics
     ``why_joining_silverkey`` so preferences role sync does not fight the choice.
     """
     key = _persona_key(workspace)

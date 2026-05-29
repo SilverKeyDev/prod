@@ -1,2 +1,2 @@
-export type { PropertyData, RawHomeData } from "./mapHomeUniversalToSavedHome";
-export { mapHomeUniversalToSavedHome } from "./mapHomeUniversalToSavedHome";
+export type { RawHomeData, SavedHomeWire } from "./mapSavedHomeWireToSavedHome";
+export { mapSavedHomeWireToSavedHome } from "./mapSavedHomeWireToSavedHome";

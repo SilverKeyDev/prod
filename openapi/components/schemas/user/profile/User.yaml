@@ -1,7 +1,7 @@
 type: object
 description: >
   Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles).
-  Closing mode is not stored on users (column removed); use PUT /user/closing-mode response only.
+  Agent status is derived from user_roles (is_agent is true when role "agent" is present).
 required:
   - id
   - email
@@ -48,25 +48,7 @@ properties:
   is_agent:
     type: boolean
     nullable: true
-  client_ids:
-    oneOf:
-      - type: array
-        items:
-          type: string
-      - type: string
-    nullable: true
-    description: >
-      Legacy wire shape: JSON array of client ids or a single comma-separated string. Prefer array
-      in new clients; oneOf is required until all producers normalize.
-  agent_id:
-    oneOf:
-      - type: array
-        items:
-          type: string
-      - type: string
-    nullable: true
-    description: >
-      Legacy wire shape: buyer agent id(s) as JSON array or string. Prefer array in new clients.
+    description: Computed from user_roles; true when the user has the agent role.
   mls_id:
     type: string
     nullable: true
@@ -76,30 +58,6 @@ properties:
     description: >
       Agent brokerage name on the users row (DB column brokerage). Replaces the legacy column name
       agency_name from early migrations; API wire name is always brokerage.
-  has_subscription:
-    type: boolean
-    nullable: true
-  subscription:
-    type: object
-    nullable: true
-    description: >
-      Optional payment-provider subscription metadata. Listed properties are common; providers may add
-      extra keys (additionalProperties allowed).
-    properties:
-      status:
-        type: string
-        nullable: true
-      plan_id:
-        type: string
-        nullable: true
-      customer_id:
-        type: string
-        nullable: true
-      current_period_end:
-        type: string
-        format: date-time
-        nullable: true
-    additionalProperties: true
   has_preferences:
     type: boolean
     nullable: true

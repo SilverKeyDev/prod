@@ -12,7 +12,6 @@ from app.utils.format.address_format import normalize_address
 from app.utils.format.currency import format_currency, resolve_price
 
 from ..helpers.geometry_helpers import geocode_address_google
-from .search_db_sync import sync_to_home_likes
 
 
 def add_or_update_home_basic(
@@ -143,8 +142,6 @@ def add_or_update_home_basic(
         if parsed_score is not None:
             link.score = parsed_score
         db.session.commit()
-        if set_liked:
-            sync_to_home_likes(link, prop, action="liked")
         return link
 
     link = UserPropertyLink(
@@ -157,8 +154,6 @@ def add_or_update_home_basic(
     )
     db.session.add(link)
     db.session.commit()
-    if set_liked:
-        sync_to_home_likes(link, prop, action="liked")
     return link
 
 

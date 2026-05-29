@@ -1,6 +1,6 @@
 import type { AuthResponse, SignupData } from "packages/features/homeauth/types";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { apiPost } from "packages/services/http/compatibility";
+import { apiPost } from "packages/services/http";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
 
 export async function signupHandler(data: SignupData): Promise<AuthResponse> {

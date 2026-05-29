@@ -197,7 +197,14 @@ def test_merge_search_parallel_integrations_without_preapproval_gate():
             "allow_unordered_check": True,
         },
         {"id": 1, "order": 3, "label": "Pre-approval", "explanation": ""},
-        {"id": 3, "order": 4, "label": "Agent", "explanation": ""},
+        {
+            "id": 3,
+            "order": 4,
+            "label": "Agent",
+            "explanation": "",
+            "allow_unordered_check": True,
+            "parallel_step_group": "search_parallel_integrations",
+        },
     ]
     assert merge_task_checklist_checked_ids(items, [5], frozenset()) == [5]
     assert merge_task_checklist_checked_ids(items, [4], frozenset()) == [4]
@@ -225,6 +232,22 @@ def test_merge_drops_client_requested_signature_based_ids():
         },
     ]
     assert merge_task_checklist_checked_ids(items, [1, 6], frozenset()) == [1]
+
+
+def test_merge_keeps_signature_based_when_bypass_progress_gates():
+    items = [
+        {
+            "id": 6,
+            "order": 0,
+            "label": "Sign",
+            "explanation": "",
+            "allow_unordered_check": True,
+            "completionType": "signature_based",
+        },
+    ]
+    assert merge_task_checklist_checked_ids(
+        items, [6], frozenset(), bypass_progress_gates=True
+    ) == [6]
 
 
 def test_apply_merge_budget_without_preapproval_succeeds_when_no_selectable_gate():

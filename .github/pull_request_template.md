@@ -19,6 +19,10 @@
 - [ ] I did **not** touch `.cursor/**`, `.cursorrules`, `AGENTS.md`, `.cursorignore*`, or MCP config — **or**
 - [ ] I **did** update Cursor/agent docs and the change is intentional (rules, skills, AGENTS quickstart, ignore patterns, audit table in `documentation/internal/cursor-audit-latest.md`, and for cross-cutting work the checklist in `documentation/internal/post-major-change-checklist.md`)
 
+## Documentation
+
+- [ ] Doc changes live under `documentation/` only (not repo-root `docs/`) — `make check-docs` passes when prose changed
+
 ## Notes for reviewers
 
 <!-- Risks, follow-ups, deployment -->

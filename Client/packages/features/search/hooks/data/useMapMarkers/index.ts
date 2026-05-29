@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { renderImportantLocationMarkers } from "packages/features/search/types/search/map/importantLocationRenderer";
-import { resetMapToListingFocusZoom } from "packages/features/search/utils/googleMaps/mapCamera";
+import { resetMapToListingFocusZoom } from "packages/features/search/utils/googleMaps";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
 import type { IsochroneData } from "packages/types/domain/api";

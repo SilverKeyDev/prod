@@ -1,7 +1,7 @@
 """
 Content-Security-Policy for the Vite web SPA (HTML document responses only).
 
-Tuned for: same-origin API, AWS (Cognito, S3), Google Maps, Plaid, DocuSign,
+Tuned for: same-origin API, AWS (Cognito, S3), Google Maps, DocuSign,
 Google Fonts, listing imagery from arbitrary HTTPS hosts, map label workers
 (WASM + data URL fetches), and WebAssembly runtimes that require wasm-unsafe-eval.
 
@@ -31,11 +31,12 @@ def build_content_security_policy() -> str:
         "https://*.amazonaws.com",
         "https://*.googleapis.com",
         "https://*.gstatic.com",
-        "https://*.plaid.com",
         "https://*.docusign.com",
         "https://*.docusign.net",
         "https://account-d.docusign.com",
         "https://account.docusign.com",
+        "https://us.i.posthog.com",
+        "https://us.posthog.com",
     ]
     for part in connect_extra.split(","):
         s = part.strip()
@@ -49,7 +50,7 @@ def build_content_security_policy() -> str:
         "base-uri 'self'; "
         "form-action 'self' https:; "
         f"connect-src {connect_src}; "
-        "script-src 'self' 'wasm-unsafe-eval' https://*.googleapis.com https://*.gstatic.com https://*.plaid.com; "
+        "script-src 'self' 'wasm-unsafe-eval' https://*.googleapis.com https://*.gstatic.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "img-src 'self' data: blob: https:; "
         "font-src 'self' data: https://fonts.gstatic.com; "

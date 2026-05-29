@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change. After cross-cutting architecture or feature work, also follow [post-major-change-checklist.md](./post-major-change-checklist.md) so docs and this inventory stay aligned.
 
-**Last regenerated:** 2026-05-27 (accessibility standards doc + `frontend/accessibility.mdc`).
+**Last regenerated:** 2026-05-28 (documentation refresh: doc-check CI, documentation-placement skill, single `documentation/` tree).
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -50,6 +50,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `.cursor/agents/silverkey-audit-axis5-bundle-import-fixer.md`        |      39 | 2026-05-13         | keep   | Post–component-audit remediation |
 | `.cursor/agents/silverkey-audit-architecture-remediation.md`       |      39 | 2026-05-13         | keep   | Post–component-audit remediation |
 | `.cursor/skills/post-major-change-sync/SKILL.md`             |  (see repo) | 2026-05-15         | keep   | Docs + rules sync after major changes |
+| `.cursor/skills/documentation-placement/SKILL.md`            |  (see repo) | 2026-05-28         | keep   | Canonical `documentation/` placement; anti-`docs/` |
 | `.cursor/skills/feature-translations/SKILL.md`                |         129 | 2026-04-20         | keep   | i18n / raw keys                |
 | `.cursor/skills/platform-file-extension-choice/SKILL.md`      |          46 | 2026-05-11         | keep   | `.web` / `.tsx` choice         |
 | `.cursor/skills/react-native-migration/SKILL.md`              |          54 | 2026-02-20         | keep   | RN migration                   |
@@ -88,8 +89,8 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `frontend/platform-file-extensions.mdc`     | yes → **no**               | Client/apps/\*\*                        |                                                 |
 | `frontend/state-boundaries.mdc`             | yes → **no**               | Client/\*_/_.{ts,tsx}                   |                                                 |
 | `backend/database.mdc`                      | yes → **no**               | Server/\*\*                             |                                                 |
-| `frontend/component-audit-rubric.mdc`       | yes → **no**               | Client/\*_/_.{ts,tsx}                   | Five-axis component audits; see `documentation/client/react-component-audit-rubric.md` |
-| `frontend/accessibility.mdc`                | no → **no**                | Client/\*_/_.{ts,tsx}                   | WCAG 2.1 AA; see `documentation/client/accessibility-standards.md` |
+| `frontend/component-audit-rubric.mdc`       | yes → **no**               | Client/\*_/_.{ts,tsx}                   | Five-axis component audits; see `documentation/client/patterns/react-component-audit-rubric.md` |
+| `frontend/accessibility.mdc`                | no → **no**                | Client/\*_/_.{ts,tsx}                   | WCAG 2.1 AA; see `documentation/client/standards/accessibility-standards.md` |
 
 Other `.mdc` files were already `alwaysApply: false` or unchanged in scope. **No duplicate filenames:** do not add `* 2.mdc` copies alongside a canonical rule—Cursor may load both and waste context.
 

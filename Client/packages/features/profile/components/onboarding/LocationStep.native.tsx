@@ -5,7 +5,7 @@ import { SearchPrefsNeighborhood } from "packages/features/profile/components/pr
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
 import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
 import { ImportantLocationsInput } from "packages/features/profile/components/settings/inputs/locations/ImportantLocationsInput";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import {
   AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT,
   effectiveIsAgentForOptionalBuyerUi,

@@ -1,4 +1,4 @@
-import type { PrimaryOnboardingRole } from "packages/features/profile/utils/onboarding/onboardingRoleSelection";
+import type { PrimaryOnboardingRole } from "packages/features/profile/utils/onboarding/role/onboardingRoleSelection";
 
 /** Primary role for flow resolution; includes future brokerage signup (no public picker yet). */
 export type OnboardingFlowPrimaryRole = PrimaryOnboardingRole | "brokerage";

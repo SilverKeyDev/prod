@@ -9,6 +9,7 @@ from typing import Any
 from sqlalchemy import and_, or_
 
 from app import db
+from app.dtos.agent_conversation import AgentConversationDTO
 from app.models import AgentConnections, ChatHistory
 
 server_dir = os.path.dirname(
@@ -147,7 +148,7 @@ def get_conversation_history(
             message_list = [_chat_message_to_dict(m, conversation, user_id) for m in messages]
             return {
                 "messages": message_list,
-                "conversation": conversation.to_dict(user_id=user_id),
+                "conversation": AgentConversationDTO.from_orm(conversation, user_id=user_id),
                 "has_more_older": False,
                 "has_more_newer": False,
             }
@@ -225,7 +226,7 @@ def get_conversation_history(
 
         return {
             "messages": message_list,
-            "conversation": conversation.to_dict(user_id=user_id),
+            "conversation": AgentConversationDTO.from_orm(conversation, user_id=user_id),
             "has_more_older": has_more_older,
             "has_more_newer": has_more_newer,
         }

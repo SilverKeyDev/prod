@@ -783,19 +783,6 @@ Builds signature tabs using anchor-based positioning (NEW).
 ---
 
 ```python
-def build_tabs_coordinate_fallback(
-    participant: AgreementParticipant,
-    document_id: str = "1",
-    page_number: int = 1,
-    x_position: int = 100,
-    y_position: int = 400
-) -> dict[str, Any]
-```
-Builds tabs using coordinate positioning (fallback, NEW).
-
----
-
-```python
 def build_recipient_from_participant(
     participant: AgreementParticipant
 ) -> dict[str, Any]

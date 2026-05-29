@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
-import type { BuyerAvailabilityPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerAvailabilityPrefs } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import type { ExtendedGoogleEvent } from "packages/types/calendar/extendedGoogleEvent";
 import { parseHourMinute24 } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import uuid
 from unittest.mock import patch
 
@@ -56,7 +55,6 @@ class TestResetUserDevData:
             agent = _create_user(email="agent-steps@example.com", cognito_id="reset-agent-steps")
             tx_id = str(uuid.uuid4())
             db.session.add(Transaction(id=tx_id, buyer_id=buyer.id, primary_agent_id=agent.id))
-            buyer.timeline_checklist = json.dumps([1, 2])
             db.session.add(buyer)
             db.session.add(
                 TransactionTask(
@@ -90,8 +88,6 @@ class TestResetUserDevData:
             assert TransactionTask.query.filter_by(user_id=buyer.id).count() == 0
             assert TransactionAddress.query.filter_by(user_id=buyer.id).count() == 0
             assert BuyerStepView.query.filter_by(buyer_id=buyer.id).count() == 0
-            db.session.refresh(buyer)
-            assert buyer.timeline_checklist is None
             assert Transaction.query.filter_by(id=tx_id).count() == 1
 
     def test_s3_scope_deletes_documents_and_calls_s3(self, app, db_session) -> None:
@@ -133,12 +129,11 @@ class TestResetUserDevData:
             assert "profile_pictures/s3-user/avatar.jpg" in extra_keys
             assert f"documents/{user.id}/report.pdf" in extra_keys
 
-    def test_connections_scope_clears_links_and_peer_legacy_fields(self, app, db_session) -> None:
+    def test_connections_scope_clears_links(self, app, db_session) -> None:
         with app.app_context():
             agent = _create_user(email="agent-conn@example.com", cognito_id="reset-agent-conn")
+            agent.is_agent = True
             client = _create_user(email="client-conn@example.com", cognito_id="reset-client-conn")
-            agent.client_ids = json.dumps([client.id])
-            client.agent_id = json.dumps([agent.id])
             db.session.add(agent)
             db.session.add(client)
             db.session.flush()
@@ -182,10 +177,6 @@ class TestResetUserDevData:
             assert ChatHistory.query.count() == 0
             assert Todo.query.count() == 0
             assert ChecklistItemDispatchSetting.query.count() == 0
-            db.session.refresh(client)
-            assert client.agent_id is None
-            db.session.refresh(agent)
-            assert agent.client_ids is None
 
     def test_profile_deletes_profile_picture_s3_key(self, app, db_session) -> None:
         with app.app_context():

@@ -16,7 +16,7 @@ from app.schemas import (
     FavoriteHomesResponse,
     RemoveFavoriteRequest,
 )
-from app.services.search.db.search_db import add_or_update_home_basic, sync_to_home_likes
+from app.services.search.db import add_or_update_home_basic
 from app.utils.common_patterns import require_authenticated_user, resolve_agent_scoped_user_id
 from app.utils.db.orm_lookup import get_model
 from app.utils.format.address_format import normalize_address, safe_normalize_address
@@ -95,9 +95,7 @@ def post_favorite_homes(
             was_liked = link.is_liked
             link.is_liked = False
             if was_liked:
-                prop = get_model(PropertyCache, link.property_id)
-                if prop:
-                    sync_to_home_likes(link, prop, action="unliked")
+                pass
 
         for home in homes_payload:
             if not isinstance(home, dict):
@@ -212,9 +210,7 @@ def remove_favorite_home(
 
         for link in matching:
             if link.is_liked:
-                prop = get_model(PropertyCache, link.property_id)
-                if prop:
-                    sync_to_home_likes(link, prop, action="unliked")
+                pass
             link.is_liked = False
         db.session.commit()
 

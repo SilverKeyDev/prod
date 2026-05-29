@@ -1,19 +1,5 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * This file re-exports types from the generated API contract (api.generated.ts).
- * All type definitions have been moved to openapi.yaml.
- *
- * To add/modify API types:
- * 1. Edit openapi.yaml
- * 2. Run `pnpm generate:api-types`
- * 3. Types will be auto-generated in packages/types/api.generated.ts
- *
- * This shim maintains backward compatibility for existing imports.
- */
-
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { apiGet, apiPost, apiPut, apiUpload } from "packages/services/http/compatibility";
+import { apiGet, apiPost, apiUpload } from "packages/services/http";
 
 import type {
   AddFavoriteRequest,
@@ -140,16 +126,6 @@ export const userApi = {
     apiPost<FavoriteHomesResponse>("/api/v1/user/not-interested-homes/update", data),
 
   /**
-   * Get assigned agent for current user
-   */
-  getAssignedAgent: (): Promise<{
-    success: boolean;
-    data?: unknown;
-    message?: string;
-  }> =>
-    apiGet<{ success: boolean; data?: unknown; message?: string }>("/api/v1/user/assigned-agent"),
-
-  /**
    * Search for agents
    */
   searchAgents: (
@@ -174,22 +150,6 @@ export const userApi = {
    */
   removeAgent: (): Promise<{ success: boolean; message?: string }> =>
     apiPost<{ success: boolean; message?: string }>("/api/v1/user/remove-agent", {}),
-
-  /**
-   * Update user's closing mode status
-   */
-  updateClosingMode: (
-    isClosingMode: boolean
-  ): Promise<{
-    success: boolean;
-    data?: { is_closing_mode: boolean };
-    error?: string;
-  }> =>
-    apiPut<{
-      success: boolean;
-      data?: { is_closing_mode: boolean };
-      error?: string;
-    }>("/api/v1/user/closing-mode", { is_closing_mode: isClosingMode }),
 
   /**
    * Irreversibly delete the current user's account and related data.

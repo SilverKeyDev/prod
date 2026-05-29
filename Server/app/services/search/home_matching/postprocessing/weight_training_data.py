@@ -1,6 +1,6 @@
 """
 Training data extraction for weight learning.
-Extracts impressions and labels from UserPropertyLink, HomeLikes, and ScoringResultsTracker.
+Extracts impressions and labels from UserPropertyLink and ScoringResultsTracker.
 """
 
 import logging
@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 
-from app.models import HomeLikes, ScoringResultsTracker, UserPropertyLink
+from app.models import ScoringResultsTracker, UserPropertyLink
 
 logger = logging.getLogger(__name__)
 
@@ -59,15 +59,7 @@ class WeightTrainingDataExtractor:
                 )
                 return [], 0, 0
 
-            liked_homes = HomeLikes.query.filter(
-                HomeLikes.user_id == user_id, HomeLikes.is_liked.is_(True)
-            ).all()
-
-            liked_home_ids = {str(home.id) for home in liked_homes}
-
-            for imp in impressions:
-                if imp.is_liked:
-                    liked_home_ids.add(str(imp.property_id))
+            liked_home_ids = {str(imp.property_id) for imp in impressions if imp.is_liked}
 
             training_examples = []
             num_positive = 0

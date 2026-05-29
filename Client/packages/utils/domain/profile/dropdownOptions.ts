@@ -1,6 +1,4 @@
-import type { DropdownOption } from "packages/features/profile/types/onboarding";
-
-import { ONBOARDING_ROLE_PICKER_OPTIONS } from "./onboardingRolePicker";
+import type { DropdownOption } from "packages/features/profile/types/onboarding/onboarding";
 
 export type { OnboardingRolePickerOption, OnboardingRolePickerValue } from "./onboardingRolePicker";
 export {
@@ -8,9 +6,6 @@ export {
   ONBOARDING_ROLE_COMING_SOON_LABEL,
   ONBOARDING_ROLE_PICKER_OPTIONS,
 } from "./onboardingRolePicker";
-
-/** @deprecated Use {@link ONBOARDING_ROLE_PICKER_OPTIONS} — investor removed from public signup. */
-export const ONBOARDING_ROLE_OPTIONS: DropdownOption[] = ONBOARDING_ROLE_PICKER_OPTIONS;
 
 export const IS_AGENT_OPTIONS: DropdownOption[] = [
   { value: "yes", label: "Yes" },

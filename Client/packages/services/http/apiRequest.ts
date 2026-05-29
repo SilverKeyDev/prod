@@ -1,0 +1,156 @@
+import { getEnv } from "packages/config/env";
+import { getPostHogRequestHeaders } from "packages/services/analytics/posthogHeaders";
+import { handleAuthenticationError, isAuthenticationError } from "packages/services/http/apiErrors";
+import { getAuthToken } from "packages/services/http/authToken";
+import { httpClient } from "packages/services/http/client-instance";
+import type {
+  ApiRequestOptions,
+  ApiResponse,
+  FetchJsonOpts,
+  RetryOpts,
+} from "packages/types/domain/api";
+import { getFetch } from "packages/utils/platform";
+
+import { AuthenticationError } from "./client/errors";
+import { createAuthHeaders, normalizeHeaders, normalizeUrl } from "./client/httpRequestHeaders";
+
+const toPlainHeaderObject = normalizeHeaders;
+const normalizeBase = normalizeUrl;
+
+export async function fetchJson<T>(url: string, opts: FetchJsonOpts = {}): Promise<T> {
+  const { acceptStatuses, timeout, ...requestInit } = opts;
+  return httpClient.request<T>(url, {
+    ...requestInit,
+    acceptStatuses,
+    timeout,
+    baseUrl: "",
+  });
+}
+
+export async function fetchJsonWithRetry<T>(
+  url: string,
+  init: FetchJsonOpts,
+  retry: RetryOpts = {}
+): Promise<T> {
+  const { acceptStatuses, timeout, ...requestInit } = init;
+  return httpClient.requestWithRetry<T>(
+    url,
+    {
+      ...requestInit,
+      acceptStatuses,
+      timeout,
+      baseUrl: "",
+    },
+    retry
+  );
+}
+
+export async function apiRequest<T = unknown>(
+  endpoint: string,
+  options: ApiRequestOptions = {}
+): Promise<T> {
+  const {
+    includeCredentials = true,
+    includeAuth = true,
+    authToken,
+    acceptStatuses = [],
+    timeout = 30000,
+    useCors = true,
+    baseUrl,
+    retries,
+    retryOnStatuses,
+    retryDelayMs,
+    backoffFactor,
+    jitter,
+    ...fetchOptions
+  } = options;
+
+  const base = normalizeBase(baseUrl ?? getEnv().apiBaseUrl.replace(/\/+$/, ""));
+  const url = endpoint.startsWith("http")
+    ? endpoint
+    : `${base}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+
+  const token = authToken ?? (includeAuth ? getAuthToken() : null);
+  const mergedHeaders = {
+    ...createAuthHeaders(token),
+    ...getPostHogRequestHeaders(),
+    ...toPlainHeaderObject(fetchOptions.headers),
+  };
+
+  const requestOptions: RequestInit = {
+    ...fetchOptions,
+    headers: mergedHeaders,
+    mode: useCors ? "cors" : fetchOptions.mode,
+    credentials: includeCredentials ? "include" : fetchOptions.credentials,
+  };
+
+  try {
+    return await fetchJsonWithRetry<T>(
+      url,
+      { ...requestOptions, acceptStatuses, timeout },
+      { retries, retryOnStatuses, retryDelayMs, backoffFactor, jitter }
+    );
+  } catch (error: unknown) {
+    if (isAuthenticationError(error)) {
+      handleAuthenticationError(error as AuthenticationError);
+      throw error;
+    }
+    throw error;
+  }
+}
+
+export type ApiHeadResponse = {
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+};
+
+export async function apiHead(
+  endpoint: string,
+  options: Omit<ApiRequestOptions, "method" | "body"> = {}
+): Promise<ApiHeadResponse> {
+  const {
+    includeCredentials = true,
+    includeAuth = true,
+    authToken,
+    baseUrl,
+    useCors = true,
+    ...fetchOptions
+  } = options;
+
+  const base = normalizeBase(baseUrl ?? getEnv().apiBaseUrl.replace(/\/+$/, ""));
+  const url = endpoint.startsWith("http")
+    ? endpoint
+    : `${base}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+
+  const token = authToken ?? (includeAuth ? getAuthToken() : null);
+  const mergedHeaders = {
+    ...createAuthHeaders(token),
+    ...getPostHogRequestHeaders(),
+    ...toPlainHeaderObject(fetchOptions.headers),
+  };
+
+  delete mergedHeaders["Content-Type"];
+  delete mergedHeaders["content-type"];
+
+  const response = await getFetch()(url, {
+    ...fetchOptions,
+    method: "HEAD",
+    headers: mergedHeaders,
+    mode: useCors ? "cors" : fetchOptions.mode,
+    credentials: includeCredentials ? "include" : fetchOptions.credentials,
+  });
+
+  const headers: Record<string, string> = {};
+  response.headers.forEach((value, key) => {
+    headers[key.toLowerCase()] = value;
+  });
+
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  };
+}
+
+export type { ApiRequestOptions, ApiResponse, FetchJsonOpts, RetryOpts };

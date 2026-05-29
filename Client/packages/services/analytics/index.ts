@@ -1,4 +1,5 @@
 export {
+  buildPostHogWebInitOptions,
   getPostHogDistinctId,
   getPostHogSessionId,
   identifyPostHogUser,

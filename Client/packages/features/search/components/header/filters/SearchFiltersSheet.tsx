@@ -6,6 +6,7 @@ import { SearchDisplaySectionNative } from "packages/features/search/components/
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
 import { usePreferencesSubmit, useUserPreferences } from "packages/hooks/data/user/useUserData";
+import { useIsAgent } from "packages/hooks/store";
 import { useSearchContextStore } from "packages/store";
 import { Button } from "packages/ui";
 import { BaseModal } from "packages/ui/components/modals";
@@ -43,6 +44,7 @@ export function SearchFiltersSheet({
   onClientChange,
 }: SearchFiltersSheetProps): React.ReactElement {
   const { t } = useLocalization();
+  const isAgent = useIsAgent();
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const submitPreferences = usePreferencesSubmit();
   const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
@@ -133,15 +135,17 @@ export function SearchFiltersSheet({
         </Button>
       }
     >
-      <Box className="border-border mb-4 border-b pb-4">
-        <ClearPreferencesButton
-          selectedClientId={selectedClientId}
-          onClientChange={onClientChange}
-          replaceFormData={(next) => setFormData(next as Partial<SearchFiltersFormData>)}
-          onAfterClear={handleAfterClear}
-          className="w-full"
-        />
-      </Box>
+      {isAgent ? (
+        <Box className="border-border mb-4 border-b pb-4">
+          <ClearPreferencesButton
+            selectedClientId={selectedClientId}
+            onClientChange={onClientChange}
+            replaceFormData={(next) => setFormData(next as Partial<SearchFiltersFormData>)}
+            onAfterClear={handleAfterClear}
+            className="w-full"
+          />
+        </Box>
+      ) : null}
       <SearchFiltersContent
         formData={formData}
         update={update}
