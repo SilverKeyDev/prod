@@ -129,6 +129,9 @@ audit/
 # OS generated files
 Thumbs.db
 ehthumbs.db
+# macOS/iCloud/Finder conflict copies (e.g. "module 2.py" beside "module.py")
+**/* [0-9]
+**/* [0-9].*
 
 # Redis dump
 dump.rdb

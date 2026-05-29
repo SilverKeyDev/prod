@@ -12,6 +12,9 @@ cd "$REPO_ROOT"
 
 SCOPE="${1:-all}"
 
+echo "==> Repo hygiene: macOS duplicate file check"
+bash "$SCRIPT_DIR/check-macos-duplicate-files.sh"
+
 apply_client_fixes() {
   local log
   log="$(mktemp)"

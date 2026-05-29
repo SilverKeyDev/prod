@@ -86,6 +86,8 @@ Turn off AirPlay Receiver once:
 
 Confirm port 5000 is free: `lsof -i :5000` should not list `ControlCenter`. Then `curl -fsS http://127.0.0.1:5000/healthz` should succeed after the backend is running.
 
+**iCloud Desktop/Documents:** If the clone lives under an iCloud-synced folder (common on macOS), concurrent writes from Cursor, git, and formatters can produce duplicate files named like `module 2.py` beside `module.py`. Prefer cloning to a non-iCloud path (e.g. `~/Developer/SilverKey`) or disable iCloud for that folder. CI and `make lint` run `scripts/check-macos-duplicate-files.sh` to block these copies from merging.
+
 ### Debian / Ubuntu
 
 ```bash
