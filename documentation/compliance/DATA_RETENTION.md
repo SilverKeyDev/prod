@@ -180,7 +180,7 @@ This Data Retention Policy defines how long SilverKey retains personal data, whe
 | **IP Address Logs** | 90 days | Rolling 90-day window | Security, fraud prevention |
 | **Device Information** | While account active + 30 days | Account deletion | Security, compatibility |
 
-**PII Masking:** All logs are automatically scrubbed for PII via `Client/packages/logger/pii.ts` and `Server/logger/pii.py` before storage. Logs contain only anonymized or pseudonymized data.
+**PII Masking:** All logs are automatically scrubbed for PII via `Client/packages/logger/core/pii.ts` and `Server/logger/pii.py` before storage. Logs contain only anonymized or pseudonymized data.
 
 ---
 

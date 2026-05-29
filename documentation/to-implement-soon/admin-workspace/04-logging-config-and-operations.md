@@ -14,7 +14,7 @@ Two main approaches, with a recommended path for v1:
 
 ### A. Config in repo (v1-friendly)
 
-- **Current state:** `Client/logger/logger.config.json` and `Server/logger/logger_config.json` are the source of truth, read at runtime (client) or at process start (server).
+- **Current state:** `Client/packages/logger/config/logger.config.json` and `Server/logger/logger_config.json` are the source of truth, read at runtime (client) or at process start (server).
 - **Admin workspace (v1):** The workspace can *read* these configs (e.g. via an API that reads from repo or from a copy deployed with the app). Editing can be implemented as:
   - **Option 1:** Admin edits in UI → API writes to a **backing store** (e.g. S3 bucket or database table) that overrides the file-based config when present. At startup, the app loads file first, then applies overrides from the store.
   - **Option 2:** Admin proposes changes (e.g. patch or full JSON); the API creates a branch or MR with the updated file and triggers a review/deploy. The “source of truth” remains the repo; the workspace is the UI for proposing changes.
@@ -32,7 +32,7 @@ For v1, **Option 1** (backing store override) gives immediate effect without dep
 ## Schema and validation
 
 - **Schema:** Define a strict JSON schema for client and server logging config (allowed keys, types, and value ranges). Reference the existing structure in:
-  - `Client/logger/logger.config.json`
+  - `Client/packages/logger/config/logger.config.json`
   - `Server/logger/logger_config.json`
 - **Validation rules:**
   - Category names must match the known set (e.g. from `LOG_CATEGORIES`).

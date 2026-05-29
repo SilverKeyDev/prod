@@ -326,7 +326,7 @@ SilverKey implements industry-standard technical and organizational measures to 
   - Passwords in URLs or objects
   - Long alphanumeric strings (potential keys/tokens)
 - **Implementation:**
-  - Frontend: `Client/packages/logger/pii.ts`
+  - Frontend: `Client/packages/logger/core/pii.ts`
   - Backend: `Server/logger/pii.py`
 - **Sensitive Keys Redacted:** password, token, accessToken, refreshToken, idToken, authorization, secret, apiKey, credential, ssn, credit_card, cvv, pin
 

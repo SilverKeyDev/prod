@@ -6,7 +6,7 @@ The goal is to reuse as much of the current logging and deployment setup as poss
 
 ### Option A – Extend Existing Logger + Application Database
 
-**Idea:** Use the existing `Client/logger` and `Server/logger` infrastructure to emit structured events, and store high‑value events in dedicated tables in the primary application database (or a closely related reporting database).
+**Idea:** Use the existing `Client/packages/logger` and `Server/logger` infrastructure to emit structured events, and store high‑value events in dedicated tables in the primary application database (or a closely related reporting database).
 
 **How it works**
 

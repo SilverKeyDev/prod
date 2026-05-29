@@ -45,7 +45,7 @@ cat node_modules/.vite/process-shim.cjs | head
 
 ### Browser (production)
 
-1. Enable `mapRendering` in [`Client/packages/logger/logger.config.json`](../../Client/packages/logger/logger.config.json) or via admin logger config.
+1. Enable `mapRendering` in [`Client/packages/logger/config/logger.config.json`](../../../Client/packages/logger/config/logger.config.json) or via admin logger config.
 2. Open the search map; look for **Web Maps Cloud Map ID diagnostics** in logs (`configured: true`, `instanceMapIdPresent: true`).
 3. In DevTools, after the map loads: `map.getMapId?.()` should return a non-empty string.
 4. Console should not show: *The map is initialized without a valid Map ID*.

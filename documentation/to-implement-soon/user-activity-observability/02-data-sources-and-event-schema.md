@@ -19,7 +19,7 @@ Events emitted from the web app should capture:
   - Frontend errors, including relevant error type and message (scrubbed for PII).
   - Basic performance signals (e.g. slow API calls as perceived by the client).
 
-These events should be produced via the existing `Client/logger` utilities, extended to support a structured `event` category for analytics.
+These events should be produced via the existing `Client/packages/logger` utilities, extended to support a structured `event` category for analytics.
 
 #### Mobile Client (apps/mobile)
 
@@ -91,7 +91,7 @@ Events must respect our existing logging and security rules:
 - Where user identification is needed:
   - Use internal IDs (`userId`, `tenantId`) and rely on secure joins for further analysis, instead of duplicating PII into the analytics stream.
 - Leverage existing PII scrubbing logic from:
-  - `Client/logger/pii.ts`
+  - `Client/packages/logger/core/pii.ts`
   - `Server/logger/pii.py`
 
 If a new event type requires special handling, document it explicitly and extend the scrubbing rules as needed.

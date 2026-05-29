@@ -282,7 +282,7 @@ We implement industry-standard security measures to protect your personal inform
 - **Automated Masking:** All logs automatically scrubbed for sensitive data
 - **Patterns Detected:** Emails, phone numbers, SSN, credit cards, JWT tokens, API keys, passwords
 - **Implementation:**
-  - Frontend: `Client/packages/logger/pii.ts`
+  - Frontend: `Client/packages/logger/core/pii.ts`
   - Backend: `Server/logger/pii.py`
 
 #### Security Headers

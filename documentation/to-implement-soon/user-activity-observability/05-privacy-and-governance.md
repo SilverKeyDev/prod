@@ -36,7 +36,7 @@ If an event logically needs to reference a user or entity, it should do so via:
 
 The observability system must rely on and extend the existing scrubbing utilities:
 
-- **Frontend:** `Client/logger/pii.ts`
+- **Frontend:** `Client/packages/logger/core/pii.ts`
 - **Backend:** `Server/logger/pii.py`
 
 Expectations:
