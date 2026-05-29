@@ -1,11 +1,15 @@
 """PostHog analytics client — initialized once in create_app()."""
 
+from __future__ import annotations
+
 import atexit
 import os
-
-from posthog import Posthog
+from typing import TYPE_CHECKING
 
 from app.services.analytics.posthog_constants import POSTHOG_HOST
+
+if TYPE_CHECKING:
+    from posthog import Posthog
 
 _client: Posthog | None = None
 
@@ -18,6 +22,10 @@ def init_posthog() -> Posthog | None:
     global _client
     api_key = os.environ.get("POSTHOG_PROJECT_TOKEN")
     if not api_key:
+        return None
+    try:
+        from posthog import Posthog
+    except ImportError:
         return None
     _client = Posthog(
         project_api_key=api_key,

@@ -16,7 +16,15 @@ This test suite provides comprehensive coverage for:
 
 **You do not need a production `.env` or secrets from `Server/.env.example` to run pytest.**
 
-`tests/conftest.py` sets `TESTING=true` and a small set of stubs (`DATABASE_URL`, `JWT_SIGNING_SECRET`, Cognito pool/client ids for import-time reads). The app skips full `.env.example` validation in test mode. External services (Cognito, DocuSign, Google Calendar, etc.) are mocked in fixtures — use those instead of real API keys.
+`tests/conftest.py` sets `TESTING=true` and minimal stubs (`DATABASE_URL`, `JWT_SIGNING_SECRET`, Cognito pool/client ids for import-time reads). Integration API keys are force-set in [`tests/test_env_stubs.py`](test_env_stubs.py) so local runs match CI even when `Server/.env` exists or secrets are exported in your shell. The app skips full `.env.example` validation in test mode. External services (Cognito, DocuSign, Google Calendar, etc.) are mocked in fixtures — use those instead of real API keys.
+
+### CI parity (local ≡ GitHub Actions)
+
+- **`make test-be`** — day-to-day backend tests (conftest stubs apply; may inherit shell env for keys not in the stub list).
+- **`make test-be-ci-parity`** — drops inherited shell env (`env -i`) and runs pytest with only `TESTING=true` + conftest stubs, matching [`.github/workflows/test-callable.yml`](../.github/workflows/test-callable.yml). Run before pushing changes to imports, config, or env validation.
+- **`tests/unit/test_app_boot_ci_parity.py`** — regression test that `create_app()` boots with stub keys only.
+
+Client Vitest does not require a local `.env`; env behavior tests stub `process.env` explicitly (see `Client/packages/config/env.test.ts`).
 
 To exercise real third-party APIs, run optional manual/integration checks locally with your own `.env`; that is outside the default CI suite.
 

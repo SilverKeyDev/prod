@@ -17,6 +17,8 @@ import pytest
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
+from tests.test_env_stubs import apply_test_env_stubs
+
 
 def _ensure_coverage_data_dir() -> None:
     """Write coverage SQLite under Server/coverage/ (see pyproject [tool.coverage.run])."""
@@ -34,6 +36,7 @@ def _apply_minimal_test_env() -> None:
     # Auth modules read Cognito ids at import time; values are never sent to AWS in unit tests.
     os.environ.setdefault("AWS_COGNITO_USER_POOL_ID", "us-east-2_pytestStubPoolId")
     os.environ.setdefault("AWS_COGNITO_CLIENT_ID", "pytest-stub-cognito-client-id")
+    apply_test_env_stubs()
 
 
 _ensure_coverage_data_dir()

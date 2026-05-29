@@ -86,14 +86,17 @@ def create_app(config=None):
     Migrate(app, db)
     _log_boot_phase("extensions_ready")
 
-    # Initialize PostHog analytics
-    from .posthog_client import init_posthog
+    from .utils.migrate_mode import is_migrate_only
 
-    init_posthog()
+    if not is_migrate_only():
+        # Initialize PostHog analytics (not needed for Alembic-only runs)
+        from .posthog_client import init_posthog
 
-    from logger.export import init_posthog_otlp
+        init_posthog()
 
-    init_posthog_otlp("silverkey-api")
+        from logger.export import init_posthog_otlp
+
+        init_posthog_otlp("silverkey-api")
 
     # Initialize database within app context
     with app.app_context():
@@ -135,8 +138,6 @@ def create_app(config=None):
             )
 
     _log_boot_phase("db_mappers_ready")
-
-    from .utils.migrate_mode import is_migrate_only
 
     if is_migrate_only():
         logger.info(

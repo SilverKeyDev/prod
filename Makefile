@@ -10,7 +10,7 @@ PROFILE ?=
 PYTEST_ARGS ?=
 
 .PHONY: help setup setup-mcp refresh clean-caches secrets migrate \
-	test test-all test-fe test-be test-frontend test-backend \
+	test test-all test-fe test-be test-be-ci-parity test-frontend test-backend \
 	dev dev-web dev-backend \
 	pre-commit precommit \
 	lint lint-all lint-client lint-server \
@@ -31,6 +31,7 @@ help:
 	@echo "  make test / test-all Client + Server tests"
 	@echo "  make test-fe          Client Vitest (pnpm test:run)"
 	@echo "  make test-be          Server pytest"
+	@echo "  make test-be-ci-parity  Server pytest with clean env (matches CI; no shell .env)"
 	@echo "  make dev              Web + backend via scripts/run/run-web.sh"
 	@echo "  make dev-web          Vite web only"
 	@echo "  make dev-backend      Backend stack only"
@@ -84,6 +85,12 @@ test-fe test-frontend:
 
 test-be test-backend:
 	cd "$(ROOT)/Server" && mkdir -p coverage && . .venv/bin/activate && TESTING=true APP_LOG_LEVEL=ERROR pytest $(PYTEST_ARGS)
+
+test-be-ci-parity:
+	cd "$(ROOT)/Server" && mkdir -p coverage && . .venv/bin/activate && \
+	  env -i PATH="$$PATH" HOME="$$HOME" VIRTUAL_ENV="$$VIRTUAL_ENV" \
+	    TESTING=true APP_LOG_LEVEL=ERROR \
+	    pytest $(PYTEST_ARGS)
 
 dev:
 	bash "$(ROOT)/scripts/run/run-web.sh"
