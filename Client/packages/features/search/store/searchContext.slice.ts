@@ -13,10 +13,16 @@ export type SearchContextAnchor = {
 
 /** Non-persisted filter overrides sent with search request (e.g. range sliders before DB save) */
 export type SearchFilterOverrides = {
+  home_budget_min?: number;
+  home_budget_max?: number;
   preferred_bedrooms_min?: number;
   preferred_bedrooms_max?: number;
   preferred_bathrooms_min?: number;
   preferred_bathrooms_max?: number;
+  preferred_housing_type?: string;
+  listing_type?: string[];
+  preferred_sqft_min?: number;
+  preferred_sqft_max?: number;
   preferred_lot_size_min?: number;
   preferred_lot_size_max?: number;
   preferred_home_age_min?: number;
@@ -54,7 +60,7 @@ export type SearchContextState = {
   setSearchFilterOverrides: (
     overrides:
       | Partial<SearchFilterOverrides>
-      | ((prev: SearchFilterOverrides) => Partial<SearchFilterOverrides>)
+      | ((prev: SearchFilterOverrides) => Partial<SearchFilterOverrides>),
   ) => void;
   clearAnchor: () => void;
   setLocationPlaceViewportFromBar: (payload: {
@@ -70,7 +76,9 @@ export type SearchContextState = {
 
 const initialAnchor: SearchContextAnchor = {};
 
-const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) => ({
+const baseCreator: import("zustand").StateCreator<SearchContextState> = (
+  set,
+) => ({
   anchor: initialAnchor,
   filtersHash: "",
   feedCursor: undefined,
@@ -110,7 +118,8 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
       locationSearchOverlayData: overlay,
     }),
 
-  setLocationSearchOverlayData: (overlay) => set({ locationSearchOverlayData: overlay }),
+  setLocationSearchOverlayData: (overlay) =>
+    set({ locationSearchOverlayData: overlay }),
 
   clearLocationPlaceSearchArea: () =>
     set({
@@ -121,9 +130,10 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
 
   setLocationBarDraft: (locationBarDraft) => set({ locationBarDraft }),
 
-  setLocationBarExternalSubmit: (locationBarExternalSubmit) => set({ locationBarExternalSubmit }),
+  setLocationBarExternalSubmit: (locationBarExternalSubmit) =>
+    set({ locationBarExternalSubmit }),
 });
 
 export const useSearchContextStore = create<SearchContextState>()(
-  withDevtools<SearchContextState>("searchContext")(baseCreator)
+  withDevtools<SearchContextState>("searchContext")(baseCreator),
 );

@@ -31,7 +31,8 @@ vi.mock("packages/config/http/api", () => ({
 
 const mockHandlePolygonSearchResponse = vi.fn();
 vi.mock("./polygonPropertySearchResponse", () => ({
-  handlePolygonSearchResponse: (...args: unknown[]) => mockHandlePolygonSearchResponse(...args),
+  handlePolygonSearchResponse: (...args: unknown[]) =>
+    mockHandlePolygonSearchResponse(...args),
 }));
 
 function createSetters() {
@@ -62,9 +63,8 @@ describe("searchPropertiesInIsochrone", () => {
 
   it("returns early without API call when isochrone geometry is missing", async () => {
     const setters = createSetters();
-    const { warnSearchAreaInvalid } = await import(
-      "packages/features/search/utils/outcomes/searchOutcomeToast"
-    );
+    const { warnSearchAreaInvalid } =
+      await import("packages/features/search/utils/outcomes/searchOutcomeToast");
 
     await searchPropertiesInIsochrone(
       { isochrone: {} } as never,
@@ -77,7 +77,7 @@ describe("searchPropertiesInIsochrone", () => {
       setters.setShowPropertyModals,
       setters.saveSearchResultsToLocalStorage,
       {},
-      true
+      true,
     );
 
     expect(mockSearchByPolygon).not.toHaveBeenCalled();
@@ -104,7 +104,7 @@ describe("searchPropertiesInIsochrone", () => {
       setters.saveSearchResultsToLocalStorage,
       { preferred_bedrooms_min: 3 },
       false,
-      "client-42"
+      "client-42",
     );
 
     expect(mockSearchByPolygon).toHaveBeenCalledWith(
@@ -115,9 +115,45 @@ describe("searchPropertiesInIsochrone", () => {
         preferences_user_id: "client-42",
         user_preferences: { preferred_bedrooms_min: 3 },
       }),
-      expect.objectContaining({ signal: undefined })
+      expect.objectContaining({ signal: undefined }),
     );
     expect(mockHandlePolygonSearchResponse).toHaveBeenCalled();
+  });
+
+  it("passes price and home type overrides through polygon request", async () => {
+    const setters = createSetters();
+
+    await searchPropertiesInIsochrone(
+      {
+        isochrone: { geometry: { type: "Polygon", coordinates: [] } },
+        center: { lat: 30.2, lon: -97.7 },
+      } as never,
+      {},
+      setters.setSearchStage,
+      setters.setSearchResults,
+      setters.setIsSearching,
+      setters.setHasSearched,
+      setters.setCurrentPage,
+      setters.setShowPropertyModals,
+      setters.saveSearchResultsToLocalStorage,
+      {
+        home_budget_min: 1000000,
+        preferred_housing_type: "townhome",
+        listing_type: ["new_construction"],
+      },
+      true,
+    );
+
+    expect(mockSearchByPolygon).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_preferences: {
+          home_budget_min: 1000000,
+          preferred_housing_type: "townhome",
+          listing_type: ["new_construction"],
+        },
+      }),
+      expect.any(Object),
+    );
   });
 
   it("clears searching state on API error", async () => {
@@ -138,7 +174,7 @@ describe("searchPropertiesInIsochrone", () => {
       setters.setShowPropertyModals,
       setters.saveSearchResultsToLocalStorage,
       {},
-      true
+      true,
     );
 
     expect(setters.setIsSearching).toHaveBeenLastCalledWith(false);
@@ -150,14 +186,16 @@ describe("searchPropertiesInViewport", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockHandlePolygonSearchResponse.mockResolvedValue(undefined);
-    mockSearchByPolygon.mockResolvedValue({ success: true, properties: [] } as SearchByPolygonResponse);
+    mockSearchByPolygon.mockResolvedValue({
+      success: true,
+      properties: [],
+    } as SearchByPolygonResponse);
   });
 
   it("returns early when viewport polygon is too small", async () => {
     const setters = createSetters();
-    const { warnSearchAreaInvalid } = await import(
-      "packages/features/search/utils/outcomes/searchOutcomeToast"
-    );
+    const { warnSearchAreaInvalid } =
+      await import("packages/features/search/utils/outcomes/searchOutcomeToast");
 
     await searchPropertiesInViewport(
       [{ lat: 1, lng: 2 }],
@@ -169,7 +207,7 @@ describe("searchPropertiesInViewport", () => {
       setters.setCurrentPage,
       setters.setShowPropertyModals,
       {},
-      true
+      true,
     );
 
     expect(mockSearchByPolygon).not.toHaveBeenCalled();
@@ -190,7 +228,7 @@ describe("searchPropertiesInViewport", () => {
       setters.setShowPropertyModals,
       { preferred_bathrooms_min: 2 },
       true,
-      "agent-client-1"
+      "agent-client-1",
     );
 
     expect(mockSearchByPolygon).toHaveBeenCalledWith(
@@ -200,7 +238,7 @@ describe("searchPropertiesInViewport", () => {
         preferences_user_id: "agent-client-1",
         user_preferences: { preferred_bathrooms_min: 2 },
       }),
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
@@ -209,9 +247,8 @@ describe("searchPropertiesInViewport", () => {
     const abortErr = new Error("aborted");
     abortErr.name = "AbortError";
     mockSearchByPolygon.mockRejectedValue(abortErr);
-    const { warnSearchServerOrTimeout } = await import(
-      "packages/features/search/utils/outcomes/searchOutcomeToast"
-    );
+    const { warnSearchServerOrTimeout } =
+      await import("packages/features/search/utils/outcomes/searchOutcomeToast");
 
     await searchPropertiesInViewport(
       viewportPolygon,
@@ -223,7 +260,7 @@ describe("searchPropertiesInViewport", () => {
       setters.setCurrentPage,
       setters.setShowPropertyModals,
       {},
-      true
+      true,
     );
 
     expect(warnSearchServerOrTimeout).not.toHaveBeenCalled();

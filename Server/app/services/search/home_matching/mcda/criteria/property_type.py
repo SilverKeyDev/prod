@@ -32,6 +32,7 @@ def _user_pref_to_api_bucket(user_type_lower: str, status_type: str) -> str | No
         "condos": "Condos",
         "condos-co-ops": "Condos",
         "townhouse": "Townhomes",
+        "townhome": "Townhomes",
         "townhomes": "Townhomes",
         "apartment": "Apartments",
         "apartments": "Apartments",
@@ -65,7 +66,7 @@ def normalize_listing_type_key(raw: Any, status_type: str) -> str | None:
             return "Houses"
         return None
 
-    if "townhome" in key or "town home" in key:
+    if "townhome" in key or "town home" in key or "townhouse" in key or "town house" in key:
         return "Townhomes"
     if "condo" in key:
         return "Condos"

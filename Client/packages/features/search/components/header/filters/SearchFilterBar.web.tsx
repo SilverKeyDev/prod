@@ -7,9 +7,19 @@ import {
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
 import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/searchHeaderPopoverDismiss.web";
+import {
+  type SearchFilterOverrides,
+  useSearchContextStore,
+} from "packages/store";
 import { Box } from "packages/ui/components/primitives";
-import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
-import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
+import {
+  HEADER_ROW_CONTROL_HEIGHT,
+  HEADER_ROW_HEIGHT,
+} from "packages/ui/constants/layout";
+import {
+  TOUR_TARGETS_DESKTOP,
+  TOUR_TARGETS_MOBILE,
+} from "packages/utils/tour/tourTargets";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
@@ -46,6 +56,52 @@ export default function SearchFilterBar({
   const { t } = useLocalization();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const setSearchFilterOverrides = useSearchContextStore(
+    (s) => s.setSearchFilterOverrides,
+  );
+
+  const updateSearchFormData = useCallback(
+    (field: keyof OnboardingData, value: unknown) => {
+      updateFormData(field, value);
+      if (
+        field === "home_budget_min" ||
+        field === "home_budget_max" ||
+        field === "preferred_bedrooms_min" ||
+        field === "preferred_bedrooms_max" ||
+        field === "preferred_bathrooms_min" ||
+        field === "preferred_bathrooms_max" ||
+        field === "preferred_sqft_min" ||
+        field === "preferred_sqft_max" ||
+        field === "preferred_lot_size_min" ||
+        field === "preferred_lot_size_max" ||
+        field === "preferred_home_age_min" ||
+        field === "preferred_home_age_max"
+      ) {
+        setSearchFilterOverrides({
+          [field]: typeof value === "number" ? value : undefined,
+        } as Partial<SearchFilterOverrides>);
+      } else if (field === "preferred_housing_type") {
+        setSearchFilterOverrides({
+          preferred_housing_type: typeof value === "string" ? value : "",
+        });
+      } else if (field === "listing_type") {
+        setSearchFilterOverrides({
+          listing_type: Array.isArray(value) ? value.map(String) : [],
+        });
+      } else if (field === "must_have") {
+        setSearchFilterOverrides({
+          must_have: Array.isArray(value) ? value.map(String) : [],
+        });
+      } else if (field === "preferred_home_features") {
+        setSearchFilterOverrides({
+          preferred_home_features: Array.isArray(value)
+            ? value.map(String)
+            : [],
+        });
+      }
+    },
+    [setSearchFilterOverrides, updateFormData],
+  );
 
   const closePopover = useCallback(() => {
     setPopoverOpen(false);
@@ -56,7 +112,10 @@ export default function SearchFilterBar({
   if (variant === "mobile") {
     return (
       <>
-        <Box id={TOUR_TARGETS_MOBILE.preferencesControl} className="inline-flex min-w-0 shrink">
+        <Box
+          id={TOUR_TARGETS_MOBILE.preferencesControl}
+          className="inline-flex min-w-0 shrink"
+        >
           <Button
             variant="cancel"
             size="sm"
@@ -75,7 +134,7 @@ export default function SearchFilterBar({
           open={sheetOpen}
           onClose={() => setSheetOpen(false)}
           formData={formData}
-          updateFormData={updateFormData}
+          updateFormData={updateSearchFormData}
           scriptsReady={scriptsReady}
           selectedClientId={selectedClientId}
           onClientChange={onClientChange}
@@ -127,7 +186,7 @@ export default function SearchFilterBar({
         {() => (
           <SearchPreferencesContent
             formData={formData}
-            updateFormData={updateFormData}
+            updateFormData={updateSearchFormData}
             patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
             scriptsReady={scriptsReady}
             viewingClientId={selectedClientId ?? null}
