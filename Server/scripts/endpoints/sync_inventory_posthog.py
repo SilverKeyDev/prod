@@ -24,9 +24,12 @@ except ImportError:
     sys.stderr.write("sync_inventory_posthog: the 'requests' package is required.\n")
     sys.exit(1)
 
-from app.services.analytics.posthog_constants import POSTHOG_CAPTURE_URL
-
 SERVER_DIR = Path(__file__).resolve().parents[2]
+if str(SERVER_DIR) not in sys.path:
+    sys.path.insert(0, str(SERVER_DIR))
+
+from app.services.analytics.posthog_constants import POSTHOG_CAPTURE_URL  # noqa: E402
+
 INVENTORY_PATH = SERVER_DIR / "endpoints.json"
 CAPTURE_URL = POSTHOG_CAPTURE_URL
 DISTINCT_ID = "ci-deploy-pipeline"
