@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """POST full Flask route inventory to PostHog as an endpoint_inventory_sync event.
 
+Reads committed ``Server/endpoints.json`` only — no Flask app, no DATABASE_URL.
+
 Requires env:
 
     POSTHOG_PROJECT_TOKEN   Project ingest key (phc_…)
@@ -27,11 +29,11 @@ except ImportError:
 SERVER_DIR = Path(__file__).resolve().parents[2]
 if str(SERVER_DIR) not in sys.path:
     sys.path.insert(0, str(SERVER_DIR))
-
-from app.services.analytics.posthog_constants import POSTHOG_CAPTURE_URL  # noqa: E402
-
 INVENTORY_PATH = SERVER_DIR / "endpoints.json"
-CAPTURE_URL = POSTHOG_CAPTURE_URL
+
+from scripts.endpoints.posthog_constants_loader import load_posthog_constants  # noqa: E402
+
+CAPTURE_URL = load_posthog_constants().POSTHOG_CAPTURE_URL
 DISTINCT_ID = "ci-deploy-pipeline"
 EVENT_NAME = "endpoint_inventory_sync"
 

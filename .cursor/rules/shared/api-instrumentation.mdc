@@ -16,7 +16,7 @@ HTTP route telemetry is **centralized** — do not add per-route `api_request` P
 
 - After adding or changing Flask routes, run `make routes-extract` and commit [`Server/endpoints.json`](../../../Server/endpoints.json).
 - CI enforces drift via `make routes-extract-verify` in [`.github/workflows/test-callable.yml`](../../../.github/workflows/test-callable.yml).
-- On merge to `main`, CI POSTs `endpoint_inventory_sync` via [`sync_inventory_posthog.py`](../../../Server/scripts/endpoints/sync_inventory_posthog.py) (requires GitHub secret `POSTHOG_PROJECT_TOKEN`).
+- After **Test & Coverage** succeeds on `main`, [`.github/workflows/endpoints-sync-posthog.yml`](../../../.github/workflows/endpoints-sync-posthog.yml) POSTs `endpoint_inventory_sync` via [`sync_inventory_posthog.py`](../../../Server/scripts/endpoints/sync_inventory_posthog.py) (reads committed `endpoints.json` only — no `DATABASE_URL`; requires GitHub secret `POSTHOG_PROJECT_TOKEN`).
 
 ## `api_request` event contract
 

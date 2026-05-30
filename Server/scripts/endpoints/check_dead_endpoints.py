@@ -23,9 +23,13 @@ except ImportError:
     sys.stderr.write("check_dead_endpoints: the 'requests' package is required.\n")
     sys.exit(1)
 
-from app.services.analytics.posthog_constants import POSTHOG_QUERY_URL
-
 SERVER_DIR = Path(__file__).resolve().parents[2]
+if str(SERVER_DIR) not in sys.path:
+    sys.path.insert(0, str(SERVER_DIR))
+
+from scripts.endpoints.posthog_constants_loader import load_posthog_constants  # noqa: E402
+
+POSTHOG_QUERY_URL = load_posthog_constants().POSTHOG_QUERY_URL
 INVENTORY_PATH = SERVER_DIR / "endpoints.json"
 
 HOGQL = """

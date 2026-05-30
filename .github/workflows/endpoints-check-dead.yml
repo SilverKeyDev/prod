@@ -29,6 +29,9 @@ jobs:
       - name: Install requests
         run: python -m pip install --no-cache-dir requests==2.34.2
 
+      - name: Verify endpoint inventory is present
+        run: test -s Server/endpoints.json
+
       - name: Diff inventory vs PostHog api_request (7d)
         env:
           POSTHOG_QUERY_API_KEY: ${{ secrets.POSTHOG_QUERY_API_KEY }}
