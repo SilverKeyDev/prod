@@ -24,7 +24,7 @@
 ## Environment promotion
 
 - Secrets via AWS Secrets Manager / `Server/.env` (local).
-- Client build-time env: `Client/.env.example`, GitHub secrets/variables for prod maps/PostHog keys in `ci_web.yml` (PostHog `phc_` key is a repository **variable**).
+- Client build-time env: `Client/.env.example`, GitHub secrets for prod maps/PostHog keys in `ci_web.yml` (`EXPO_PUBLIC_POSTHOG_KEY` is a repository **secret**, same value as `POSTHOG_PROJECT_TOKEN`).
 
 ## PostHog API route inventory
 
@@ -41,7 +41,8 @@
 
 | Secret | Used by |
 | ------ | ------- |
-| `POSTHOG_PROJECT_TOKEN` | `endpoints-sync-posthog` on merge to `main` (project ingest key `phc_…`; same value as `EXPO_PUBLIC_POSTHOG_KEY` repo variable) |
+| `POSTHOG_PROJECT_TOKEN` | `endpoints-sync-posthog` on merge to `main` (project ingest key `phc_…`; same value as `EXPO_PUBLIC_POSTHOG_KEY` repo secret) |
+| `EXPO_PUBLIC_POSTHOG_KEY` | `ci_web.yml` prod web Docker build (project ingest key `phc_…`; same value as `POSTHOG_PROJECT_TOKEN`) |
 | `POSTHOG_QUERY_API_KEY` | Weekly dead-endpoint HogQL check (`make endpoints-check-dead`; personal key with `query:read`) |
 
 ## Related

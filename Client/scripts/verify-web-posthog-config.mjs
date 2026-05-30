@@ -93,7 +93,7 @@ if (!posthogKey) {
     "verify-web-posthog-config: EXPO_PUBLIC_POSTHOG_KEY is missing or empty in the web build."
   );
   console.error(
-    "  Set it at build time (Client/.env locally, GitHub repository variable EXPO_PUBLIC_POSTHOG_KEY for ci_web)."
+    "  Set it at build time (Client/.env locally, GitHub repository secret EXPO_PUBLIC_POSTHOG_KEY for ci_web)."
   );
   console.error(`  Shim probe: ${shim.source}${shim.key === null ? "" : " (empty)"}`);
   if (distHint === null) {

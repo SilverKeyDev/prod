@@ -31,7 +31,7 @@
       "githubSecret": "EXPO_PUBLIC_POSTHOG_KEY",
       "pattern": "^phc_",
       "minLength": 10,
-      "description": "PostHog project API key (phc_…). Public client key; store as GitHub repository variable for ci_web."
+      "description": "PostHog project API key (phc_…). Public client key; store as GitHub repository secret for ci_web."
     }
   ]
 }
