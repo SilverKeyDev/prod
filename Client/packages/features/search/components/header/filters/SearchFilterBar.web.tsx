@@ -7,19 +7,10 @@ import {
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
 import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/popovers/searchHeaderPopoverDismiss.web";
-import {
-  type SearchFilterOverrides,
-  useSearchContextStore,
-} from "packages/store";
+import { type SearchFilterOverrides, useSearchContextStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
-import {
-  HEADER_ROW_CONTROL_HEIGHT,
-  HEADER_ROW_HEIGHT,
-} from "packages/ui/constants/layout";
-import {
-  TOUR_TARGETS_DESKTOP,
-  TOUR_TARGETS_MOBILE,
-} from "packages/utils/tour/tourTargets";
+import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
@@ -62,9 +53,7 @@ export default function SearchFilterBar({
   const { t } = useLocalization();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const setSearchFilterOverrides = useSearchContextStore(
-    (s) => s.setSearchFilterOverrides,
-  );
+  const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
 
   const updateSearchFormData = useCallback(
     (field: keyof OnboardingData, value: unknown) => {
@@ -100,13 +89,11 @@ export default function SearchFilterBar({
         });
       } else if (field === "preferred_home_features") {
         setSearchFilterOverrides({
-          preferred_home_features: Array.isArray(value)
-            ? value.map(String)
-            : [],
+          preferred_home_features: Array.isArray(value) ? value.map(String) : [],
         });
       }
     },
-    [setSearchFilterOverrides, updateFormData],
+    [setSearchFilterOverrides, updateFormData]
   );
 
   const closePopover = useCallback(() => {
@@ -118,10 +105,7 @@ export default function SearchFilterBar({
   if (variant === "mobile") {
     return (
       <>
-        <Box
-          id={TOUR_TARGETS_MOBILE.preferencesControl}
-          className="inline-flex min-w-0 shrink"
-        >
+        <Box id={TOUR_TARGETS_MOBILE.preferencesControl} className="inline-flex min-w-0 shrink">
           <Button
             variant="cancel"
             size="sm"
