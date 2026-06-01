@@ -7,7 +7,7 @@
 # Install:
 #   pip install pre-commit   # or: Server/.venv via make setup
 #   git config core.hooksPath scripts/githooks
-# Hooks run on commit only (not on push). See scripts/githooks/pre-push.
+# Pre-commit hooks run on commit only. Push-time gates are in scripts/githooks/pre-push.
 #
 # Run manually: pre-commit run --all-files
 

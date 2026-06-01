@@ -1,7 +1,19 @@
 #!/usr/bin/env bash
-# Format/lint hooks run on commit only (scripts/githooks/pre-commit → .pre-commit-config.yaml).
-# Pre-push intentionally does not re-run pre-commit: push would fail after mutating files
-# (e.g. end-of-file-fixer) that were already fixed at commit time.
-#
-# Enable commit hooks for this clone: git config core.hooksPath scripts/githooks
-exit 0
+# Enforce contract and test gates before push.
+# Enable hooks for this clone: git config core.hooksPath scripts/githooks
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$REPO_ROOT" || exit 0
+
+echo "pre-push: verifying OpenAPI sync and contract gates..."
+make openapi-verify
+
+echo "pre-push: running frontend tests..."
+make test-fe
+
+echo "pre-push: running backend tests..."
+make test-be
+
+echo "pre-push: all checks passed."
