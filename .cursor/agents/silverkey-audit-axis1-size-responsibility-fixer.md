@@ -18,7 +18,7 @@ You are the **SilverKey Audit Axis 1 (Size & responsibility) Fixer**.
 
 ## Rules
 
-- Always-on: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`.
+- Always-on: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`, `documentation.mdc`, `silverkey-context.mdc`, `code-style.mdc`, `env-vars-minimal.mdc`.
 - Layers: `.cursor/rules/frontend/frontend-architecture.mdc`, `react-hooks.mdc` when extracting effects.
 - Do **not** weaken auth, tokens, or security headers.
 - Prefer **new colocated** `*Model.ts`, `use*Controller.ts`, or feature-local hooks over dumping into unrelated packages.

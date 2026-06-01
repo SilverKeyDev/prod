@@ -1,14 +1,12 @@
 ---
 description: Linting and type-check rules (blocking until all errors are fixed)
-globs:
-  - "**/*"
 alwaysApply: true
 ---
 
 # Linting and Type-Check Rules
 
-- Linter errors are blocking. Do not proceed until all reported errors are fixed.
-- Fix newly introduced errors before continuing with further edits.
+- Linter errors are blocking for the code you touch. Do not introduce new lint/type failures.
+- Fix newly introduced errors before continuing; do not expand scope into unrelated pre-existing issues unless asked.
 - Respect ESLint/Prettier/TS configs under `Client/config/` and root TS/Vite configs.
 - Use existing scripts when validating locally (full gate list: [`ci-gates.mdc`](ci-gates.mdc)):
   - From `Client/`: `pnpm lint`, `pnpm format`, `pnpm typecheck` as needed (see `Client/package.json`).

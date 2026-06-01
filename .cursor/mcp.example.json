@@ -1,5 +1,5 @@
 {
-  "_comment": "Copy to .cursor/mcp.json (gitignored). Replace YOUR_GITHUB_PAT and Mercury URL. Linear/Slack: connect via Cursor Settings → Tools & MCP. AWS/gcloud: see setup.md / make setup-mcp.",
+  "_comment": "Copy to .cursor/mcp.json (gitignored). This file is the lightweight default profile for daily coding. Replace YOUR_GITHUB_PAT. For optional finance/analytics/infra connectors, see setup.md MCP profiles.",
   "mcpServers": {
     "github": {
       "url": "https://api.githubcopilot.com/mcp/",
@@ -12,29 +12,6 @@
     },
     "slack": {
       "url": "https://mcp.slack.com/mcp"
-    },
-    "mercury": {
-      "url": "REPLACE_WITH_URL_FROM_MERCURY_DASHBOARD",
-      "_comment": "Read-only banking MCP — paste URL from Mercury dashboard; do not commit real URL in mcp.json"
-    },
-    "aws-knowledge": {
-      "url": "https://knowledge-mcp.global.api.aws"
-    },
-    "aws-api": {
-      "command": "uvx",
-      "args": ["awslabs.aws-api-mcp-server@latest"],
-      "env": {
-        "AWS_REGION": "us-east-1"
-      }
-    },
-    "gcloud": {
-      "command": "npx",
-      "args": ["-y", "@google-cloud/gcloud-mcp"]
-    },
-    "cursor-memory": {
-      "command": "npx",
-      "args": ["-y", "cursor-memory@latest"],
-      "_comment": "Local /memo /recall /forget — optional; enable in Cursor Settings → MCP. See documentation/client/tooling/cursor-agent-memory.md"
     }
   }
 }

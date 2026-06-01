@@ -9,7 +9,6 @@ globs:
   - "**/title/**"
   - "**/insurance/**"
   - "**/concierge/**"
-  - "**/integration/**"
   - "Client/packages/features/admin/**/partners/**"
   - "Client/packages/features/checklists/**/concierge/**"
   - "Client/packages/features/checklists/**/integration/**"
@@ -22,7 +21,7 @@ alwaysApply: false
 
 # RESPA compliance (partner & settlement services)
 
-Company context: [CLAUDE.md](../../../CLAUDE.md) — Regulatory boundary section.
+Company context: [silverkey-context.mdc](./silverkey-context.mdc) + [pitch-and-fundraising.mdc](./pitch-and-fundraising.mdc) for approved narrative language.
 
 ## Section 8 (summary)
 

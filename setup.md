@@ -167,26 +167,39 @@ make setup-mcp
 MCP_NO_INSTALL=true make setup-mcp
 ```
 
-### MCP servers in the example config
+### MCP profiles (recommended)
+
+The example file is intentionally a **daily baseline** to keep tool selection fast and low-noise.
+
+- **Daily coding baseline (default):** `github`, `linear`, `slack`
+- **Enable on demand:** `mercury`, `posthog`, `datadog`, `aws-*`, `gcloud`, `cursor-memory`
+- **Avoid duplicates:** enable each connector from one source only (either project `.cursor/mcp.json` or Cursor plugin, not both)
+
+### MCP servers in the default example profile
 
 | Server | Type | What you need locally |
 | ------ | ---- | --------------------- |
 | **github** | Hosted URL | Replace `YOUR_GITHUB_PAT` in `.cursor/mcp.json` with a fine-grained PAT or Copilot-compatible token |
 | **linear** | Hosted URL | Sign in via **Cursor → Settings → Tools & MCP** when prompted |
 | **slack** | Hosted URL | Connect workspace in **Tools & MCP** when prompted |
-| **aws-knowledge** | Hosted URL | No extra install (public AWS knowledge endpoint) |
-| **aws-api** | `uvx awslabs.aws-api-mcp-server@latest` | `uv` / `uvx` on PATH; `export AWS_PROFILE=...` and active SSO (`aws sso login`) — same session as step 3 |
-| **gcloud** | `npx @google-cloud/gcloud-mcp` | Node/`npx`; optional: `gcloud auth application-default login` |
 
-Region for **aws-api** in the example is `us-east-1` inside `mcp.json` `env`; align with your usual `AWS_REGION` if you change it.
+### Optional add-on connectors
+
+Add these only when the task requires them:
+
+- **Finance:** `mercury` (runway, balances)
+- **Analytics/debug:** `posthog`, `datadog`
+- **Infra/deploy:** `aws-knowledge`, `aws-api`, `awsiac`, `awspricing`, `serverless`, `amplify`, `gcloud`
+- **Memory tooling:** `cursor-memory`
+
+For local command-based servers (`uvx`/`npx`), pin explicit package versions in your local config instead of `@latest` for reproducible startup behavior.
 
 ### Finish in Cursor (manual, after the script)
 
 1. Open **Cursor → Settings → Tools & MCP** and confirm each server loads (green / connected).
 2. Set the **GitHub** Bearer token in `.cursor/mcp.json` if the script warned about `YOUR_GITHUB_PAT`.
 3. **Linear / Slack** — complete OAuth in the MCP UI when Cursor prompts you.
-4. **AWS API** — ensure `AWS_PROFILE` is set in the shell where Cursor was launched, or configure credentials Cursor can see (`~/.aws/credentials` / SSO).
-5. **gcloud** — only if you use that server: ADC via `gcloud auth application-default login`.
+4. **Optional AWS/GCP servers** — only if enabled: ensure `AWS_PROFILE`/SSO and gcloud ADC are configured.
 6. Reload the Cursor window if servers stay red after fixing the summary items.
 
 ### Reset or recreate `mcp.json`
@@ -200,11 +213,11 @@ Never commit `.cursor/mcp.json` with real tokens. The file is gitignored.
 
 ### MCP and AWS SSO
 
-Step 3 and MCP **aws-api** share the same AWS CLI session. Before `make setup-mcp`, in the same terminal (or your shell profile):
+Step 3 and optional MCP **aws-api** share the same AWS CLI session. Before `make setup-mcp`, in the same terminal (or your shell profile):
 
 ```bash
 export AWS_PROFILE=your-dev-profile-name
-export AWS_REGION=us-east-2   # optional; aws-api example uses us-east-1 in env block
+export AWS_REGION=us-east-2   # preferred SilverKey default region
 aws sso login --profile "$AWS_PROFILE"
 make setup-mcp
 ```

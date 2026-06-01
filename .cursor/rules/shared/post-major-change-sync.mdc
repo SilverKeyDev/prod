@@ -27,7 +27,7 @@ Use the full checklist: [documentation/internal/post-major-change-checklist.md](
 Minimum bar before calling the work “done”:
 
 1. **`documentation/`** — Add or update the relevant guide under `documentation/client/` or `documentation/server/`; add a row to that folder’s `README.md` when it is a new long-form doc.
-2. **`.cursor/rules/`** — If behavior is now constrained or patterned differently, update the smallest set of `.mdc` files (or add one **scoped** rule with `globs`; do **not** add a fifth `alwaysApply: true` rule without demoting another — see `.cursor/README.md`).
+2. **`.cursor/rules/`** — If behavior is now constrained or patterned differently, update the smallest set of `.mdc` files (or add one **scoped** rule with `globs`; do not increase always-on rule count without replacing an existing always-on rule — see `.cursor/README.md`).
 3. **`AGENTS.md` / `.cursor/README.md`** — Update only when onboarding or extension process changes.
 4. **`documentation/internal/cursor-audit-latest.md`** — Refresh the inventory table when rules, skills, or agents are added/removed/renamed.
 

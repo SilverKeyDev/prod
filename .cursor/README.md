@@ -40,7 +40,7 @@ Loose notes under `.cursor/` should be rare. Prefer `documentation/` or `documen
 2. `rules/shared/thin-app-architecture.mdc`
 3. `rules/shared/linting.mdc`
 4. `rules/shared/documentation.mdc` (canonical doc tree is `documentation/`, not repo-root `docs/`)
-5. `rules/shared/silverkey-context.mdc` (company, RESPA reflex, partners — see [CLAUDE.md](../CLAUDE.md))
+5. `rules/shared/silverkey-context.mdc` (company, RESPA reflex, partners; investor language in `pitch-and-fundraising.mdc`)
 6. `rules/shared/code-style.mdc` (stack, Linear commits, verification)
 7. `rules/shared/env-vars-minimal.mdc` (do not add `.env` keys unless a new integration requires it)
 
@@ -140,6 +140,15 @@ Rule of thumb: if the model never needs a path unless you explicitly attach it, 
 
 ---
 
+## MCP profiles and dedupe
+
+- Keep **daily MCP profile** lightweight (`github`, `linear`, `slack`) unless the task needs more.
+- Add optional connectors (AWS, PostHog, Datadog, Mercury, gcloud, cursor-memory) only for scoped sessions.
+- Avoid duplicate connectors across project MCP and plugins (for example, do not enable both plugin Linear and project Linear simultaneously).
+- Keep secrets in local `.cursor/mcp.json` only; never commit real tokens.
+
+---
+
 ## Commit vs ignore (team policy)
 
 | Path                                            | Commit?                                       |
@@ -182,7 +191,7 @@ Full setup: [documentation/client/tooling/cursor-agent-memory.md](../documentati
 | Repo bank | `.cursor/memory/` + rule `rules/shared/agent-memory.mdc` |
 | Cursor account | Settings → Memories |
 | Automations | Tools → Memories → **Manage** (Memory Notes); seeds in `.cursor/memory/automations/` |
-| MCP | `cursor-memory` in `.cursor/mcp.json` (from `mcp.example.json`) |
+| MCP | `cursor-memory` in local `.cursor/mcp.json` (optional add-on; not in default `mcp.example.json`) |
 
 Print paste bundle: `./scripts/print-automation-memory.sh <persona>` (e.g. `engineer-default`, `ci-pr-babysit`).
 

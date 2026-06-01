@@ -5,7 +5,7 @@ alwaysApply: true
 
 # SilverKey coding conventions
 
-Company context: [CLAUDE.md](../../../CLAUDE.md). Lint details: [linting.mdc](./linting.mdc). CI gates: [ci-gates.mdc](./ci-gates.mdc).
+Company context: [silverkey-context.mdc](./silverkey-context.mdc) and [pitch-and-fundraising.mdc](./pitch-and-fundraising.mdc). Lint details: [linting.mdc](./linting.mdc). CI gates: [ci-gates.mdc](./ci-gates.mdc).
 
 ## Stack
 

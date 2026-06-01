@@ -12,7 +12,7 @@ alwaysApply: false
 
 # Pitch and fundraising
 
-Canonical business facts: [CLAUDE.md](../../../CLAUDE.md). Do not contradict this file or invent traction.
+Canonical business facts: this rule + [silverkey-context.mdc](./silverkey-context.mdc). Do not contradict these files or invent traction.
 
 ## Tagline
 
@@ -30,7 +30,7 @@ Use verbatim unless the user explicitly asks to iterate:
 | Blended attach (target) | **~$8,600** per closed transaction (ancillary) |
 | Year-one pilot ARR (projection) | **~$500K** (~200 deals × ~$2.5K avg) |
 
-If updating numbers, update **CLAUDE.md** and this rule in the same change.
+If updating numbers, update this rule and any linked long-form documentation in the same change.
 
 ## Partner facts (do not inflate)
 
@@ -65,4 +65,4 @@ Default to **short, specific, no templates**:
 
 ## Regulatory language in decks
 
-When describing partner revenue, use **placement / platform fee / marketplace access** language — not "referral fees" or "kickbacks." Align with RESPA section in [CLAUDE.md](../../../CLAUDE.md).
+When describing partner revenue, use **placement / platform fee / marketplace access** language — not "referral fees" or "kickbacks." Align with [respa-compliance.mdc](./respa-compliance.mdc).

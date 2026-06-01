@@ -132,6 +132,7 @@ pytest tests/unit/test_auth_login.py::TestLoginFlow::test_successful_login
   - `docusign/` — DocuSign routes and shared `docusign_route_test_helpers.py`
   - `calendar/` — Google Calendar API routes (`test_routes_calendar.py`; service tests live in `tests/unit/integrations/calendar/`)
   - `rev_share/`, `user_properties/`, `transactions/`, `admin/`, `agent/`, `search/`
+  - Domain route test files use `test_routes_<domain>_<feature>.py` naming
   - Parent: `test_rate_limit_unauthenticated.py` (cross-cutting)
 
 ### Fixtures (`tests/conftest.py`)

@@ -76,6 +76,7 @@ yarn-error.log*
 .cursor/debug-*.log
 .cursor/.agent-tools/
 .cursor/mcp.json
+.mcp.json
 .claude-context/conversations.json
 
 # Editor directories and files

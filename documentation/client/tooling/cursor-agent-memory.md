@@ -93,12 +93,12 @@ Adds `/memo`, `/recall`, `/forget` with local SQLite (no cloud).
 make setup-mcp   # seeds .cursor/mcp.json from example if missing; ensures npx
 ```
 
-Ensure `.cursor/mcp.json` includes (see `.cursor/mcp.example.json`):
+Add `cursor-memory` to your local `.cursor/mcp.json` when needed (it is intentionally not in the default lightweight example profile):
 
 ```json
 "cursor-memory": {
   "command": "npx",
-  "args": ["-y", "cursor-memory@latest"]
+  "args": ["-y", "cursor-memory@<pinned-version>"]
 }
 ```
 

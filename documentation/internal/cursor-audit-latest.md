@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change. After cross-cutting architecture or feature work, also follow [post-major-change-checklist.md](./post-major-change-checklist.md) so docs and this inventory stay aligned.
 
-**Last regenerated:** 2026-05-28 (documentation refresh: doc-check CI, documentation-placement skill, single `documentation/` tree).
+**Last regenerated:** 2026-06-01 (configuration optimization pass: MCP dedupe defaults, canonical context alignment, and rule payload slimming).
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -74,7 +74,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `shared/thin-app-architecture.mdc`          | yes → **yes**              | Client/\*\*                             | Universal                                       |
 | `shared/linting.mdc`                        | yes → **yes**              | \*_/_                                   | Universal                                       |
 | `shared/documentation.mdc`                 | yes → **yes**              | `documentation/**/*.md`, `**/README.md` | Canonical doc tree vs `docs/`; see `AGENTS.md` |
-| `shared/silverkey-context.mdc`            | — → **yes**                | (always-on)                             | Company, RESPA reflex, MCP; see `CLAUDE.md`    |
+| `shared/silverkey-context.mdc`            | — → **yes**                | (always-on)                             | Company, RESPA reflex, MCP; canonical context lives in rule + pitch rule |
 | `shared/code-style.mdc`                   | — → **yes**                | (always-on)                             | Stack, Linear commits, verification            |
 | `shared/respa-compliance.mdc`             | — → **no**                 | partners, placement, concierge, financing/insurance/closing | RESPA guardrails for partner code |
 | `shared/pitch-and-fundraising.mdc`        | — → **no**                 | pitch, deck, investor, fundraising globs | Deck-aligned numbers and tone      |
@@ -114,7 +114,7 @@ Previously noted: `FORMS_*`, `openapi-adoption-checklist.md`, etc. **Not present
 
 ## Definition-of-done checklist
 
-- [x] `alwaysApply: true` count = **6** (security, thin-app, linting, documentation, silverkey-context, code-style) — see [.cursor/README.md](../../.cursor/README.md)
+- [x] `alwaysApply: true` count = **7** (security, thin-app, linting, documentation, silverkey-context, code-style, env-vars-minimal) — see [.cursor/README.md](../../.cursor/README.md)
 - [x] [CLAUDE.md](../../CLAUDE.md) — company AI context at repo root
 - [x] [.cursor/rules/README.md](../../.cursor/rules/README.md) — rules index
 - [x] `.cursor/README.md` meta-doc

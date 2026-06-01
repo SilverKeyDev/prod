@@ -1,42 +1,27 @@
 ---
 description: Thin App (Fat Packages) — apps as composition layer and delivery mechanism only
-globs:
-  - "Client/**/*.{ts,tsx,js,jsx,json}"
 alwaysApply: true
 ---
 # Thin App (Fat Packages) Architecture
 
-## Goal
-
-`apps/web` and `apps/mobile` are **composition layers and delivery mechanisms only**. They do very little actual work. All business logic, UI primitives, hooks, services, and shared features live in **`packages/`**. This is the same pattern used at scale by Meta, Uber, and Microsoft.
-
-**Think of it:** `packages/` = factory where parts are built; `apps/` = assembly line that bolts them together and delivers.
+`Client/apps/web` and `Client/apps/mobile` are composition and routing shells. Product logic belongs in `Client/packages/**`.
 
 ## What Belongs in the Thin App Folders
 
 ### Allowed in `apps/web` and `apps/mobile`
 
-1. **Configurations and entry points**
-   - Web: `vite.config.js`, `index.html`, `main.tsx`
-   - Mobile: `metro.config.js`, `app.json`, `App.tsx`
-
-2. **Environment variables**
-   - App-level `.env` (e.g. production vs staging API URLs per app)
-
+1. **Configuration and entry points**
+2. **App-level env wiring**
 3. **Routing map**
    - Web: `<BrowserRouter>` and route list (e.g. `/login`, `/dashboard`)
    - Mobile: `<Stack.Navigator>`, bottom tabs, screen registration
-   - **Workspace shells** (e.g. `/buyer/*`, `/seller/*`, `/brokerage/*`): stay thin in `apps/web`; workspace state and feature logic live in `packages/`. See [documentation/client/architecture/workspace-first-architecture.md](../../../documentation/client/architecture/workspace-first-architecture.md).
-
-4. **Page/screen composition**
-   - Thin files that **compose** shared layout and feature components from `packages/`. No data-fetching or complex logic in the page file itself — use hooks from `packages/hooks/` and components from shared packages.
-
-5. **Platform-specific wrappers**
-   - e.g. `<SafeAreaProvider>` on mobile; global `<main>` or accessibility wrappers on web.
+   - Workspace shells stay thin; workspace state/logic lives in `packages/`.
+4. **Page/screen composition** using shared components/hooks
+5. **Platform wrappers** (`SafeAreaProvider`, global layout wrappers)
 
 ### Forbidden in apps (belongs in packages)
 
-- Business logic, data-fetching logic, or non-trivial state logic (→ `packages/hooks/`, `packages/services/`, `packages/utils/`)
+- Business logic, data-fetching orchestration, or non-trivial state logic (→ `packages/hooks/`, `packages/services/`, `packages/utils/`)
 - Reusable UI primitives or feature components (→ `packages/` or shared UI)
 - Standalone `.ts` utilities or formatters under `apps/web/components/` or `apps/web/features/` (→ `packages/utils/`, `packages/schemas/`)
 
@@ -61,12 +46,7 @@ export function WebDashboard() {
 
 - **No** inline data-fetching, no complex conditionals, no new primitives. If you need a new widget or hook, add it in `packages/` and import it here.
 
-## Why This Matters
-
-- **New platforms:** Adding `apps/desktop` (e.g. Electron/Tauri) later = new entry, router, and composition only; reuse existing `packages/` logic and UI.
-- **Consistency:** Web and mobile screens compose the **same** shared feature components from `packages/`, reducing drift and duplicate logic.
-
 ## Reference
 
-- Full rationale and examples (web + mobile composing same packages): **`documentation/client/architecture/thin-app-architecture.md`**.
-- Layer rules (config → services → hooks → components): **`frontend-architecture.mdc`**.
+- Full rationale/examples: `documentation/client/architecture/thin-app-architecture.md`.
+- Layering/import constraints: `frontend-architecture.mdc`.

@@ -21,7 +21,7 @@ These seven rules apply in **all** sessions:
 | [shared/code-style.mdc](shared/code-style.mdc) | Stack, Linear commits, PRs, verification |
 | [shared/env-vars-minimal.mdc](shared/env-vars-minimal.mdc) | Do not add `.env` keys unless a new integration requires it |
 
-Keep always-on bodies short; deep detail belongs in `documentation/` or `CLAUDE.md`.
+Keep always-on bodies short; deep detail belongs in `documentation/`.
 
 ---
 
@@ -83,6 +83,6 @@ Keep always-on bodies short; deep detail belongs in `documentation/` or `CLAUDE.
 ## Adding a rule
 
 1. One concern per file under `shared/`, `frontend/`, or `backend/`.
-2. Prefer **`alwaysApply: false`** + **`globs`** unless replacing one of the six always-on rules (see [.cursor/README.md](../README.md)).
+2. Prefer **`alwaysApply: false`** + **`globs`** unless replacing one of the seven always-on rules (see [.cursor/README.md](../README.md)).
 3. Include at least one good/bad example; link to `documentation/` for long prose.
 4. Update [documentation/internal/cursor-audit-latest.md](../../documentation/internal/cursor-audit-latest.md) when the inventory changes.

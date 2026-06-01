@@ -48,8 +48,8 @@ make refresh        # after git pull
 
 This repo uses Cursor with MCP connectors and a structured rules system. On first clone:
 
-1. Copy [`.cursor/mcp.example.json`](.cursor/mcp.example.json) to `.cursor/mcp.json` and OAuth into each connector (GitHub, Linear, Slack, Mercury — see [setup.md](setup.md) or `make setup-mcp`)
-2. Read [`CLAUDE.md`](CLAUDE.md) for company context (business model, RESPA, partners, fundraising)
+1. Copy [`.cursor/mcp.example.json`](.cursor/mcp.example.json) to `.cursor/mcp.json` and OAuth into default connectors (GitHub, Linear, Slack). Add optional connectors (Mercury/AWS/analytics) only when needed — see [setup.md](setup.md) or `make setup-mcp`
+2. Read [`CLAUDE.md`](CLAUDE.md) for quick context, then use [`.cursor/rules/shared/silverkey-context.mdc`](.cursor/rules/shared/silverkey-context.mdc) and [`.cursor/rules/shared/pitch-and-fundraising.mdc`](.cursor/rules/shared/pitch-and-fundraising.mdc) for canonical partner/fundraising facts
 3. Read [`AGENTS.md`](AGENTS.md) for engineering commands and quality gates
 4. Cursor auto-loads rules from [`.cursor/rules/`](.cursor/rules/) based on which files you edit — see [`.cursor/rules/README.md`](.cursor/rules/README.md)
 
@@ -131,7 +131,7 @@ Regenerate: `make openapi` (bundle + server + client) or `cd Client && pnpm gene
 
 ## AI assistants
 
-- **Company context:** [`CLAUDE.md`](CLAUDE.md)
+- **Company context:** [`CLAUDE.md`](CLAUDE.md) plus [`.cursor/rules/shared/silverkey-context.mdc`](.cursor/rules/shared/silverkey-context.mdc)
 - **Engineering quickstart:** [`AGENTS.md`](AGENTS.md)
 - **Cursor rules index:** [`.cursor/rules/README.md`](.cursor/rules/README.md)
 - **Default subagent persona:** [`.cursor/agents/silverkey-engineer.md`](.cursor/agents/silverkey-engineer.md)

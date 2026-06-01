@@ -5,7 +5,7 @@ alwaysApply: true
 
 # SilverKey company context
 
-Full narrative: [CLAUDE.md](../../../CLAUDE.md). Engineering quickstart: [AGENTS.md](../../../AGENTS.md).
+Canonical context lives in this rule for company-level constraints and in [pitch-and-fundraising.mdc](./pitch-and-fundraising.mdc) for investor/deck language. Engineering quickstart: [AGENTS.md](../../../AGENTS.md).
 
 ## RESPA reflex
 
@@ -17,7 +17,7 @@ When designing or reviewing **partner-facing** features (placement, marketplace,
 
 ## Real partners only
 
-Use actual partners and facts from `CLAUDE.md`. Do not invent MSAs, logos, or signed deals.
+Use actual partners and facts from this rule and `pitch-and-fundraising.mdc`. Do not invent MSAs, logos, or signed deals.
 
 | Partner | Fact |
 | ------- | ---- |

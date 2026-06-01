@@ -50,4 +50,4 @@ You are the **SilverKey Bundle & Build Optimizer**.
 ## SilverKey references
 
 - [`.cursor/README.md`](../README.md)
-- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`
+- Always-on rules: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`, `documentation.mdc`, `silverkey-context.mdc`, `code-style.mdc`, `env-vars-minimal.mdc`

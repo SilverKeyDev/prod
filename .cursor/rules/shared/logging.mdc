@@ -5,216 +5,28 @@ globs:
   - "Server/**"
 alwaysApply: false
 ---
-- # Logging Utilities
+# Logging utilities
 
-- This project uses centralized logging utilities with category-based filtering and PII scrubbing for both frontend and backend. All logging MUST use these utilities instead of direct console.log or print statements.
+Use centralized logging utilities only.
 
-## Frontend Logging
+## Required usage
 
-**Location**: `Client/packages/logger/`
+- Client code: import logger from `Client/packages/logger/` (not raw `console.*`).
+- Server code: import logger from `Server/logger/` (not `print` or stdlib `logging.*` in production paths).
+- Always include an appropriate log category and safe contextual metadata.
+- Keep logs PII-safe; redaction is required for emails, phone numbers, tokens, SSN, and payment identifiers.
 
-**Main Files**:
-- `Client/packages/logger/logger.ts` - Main logger implementation with category-based filtering
-- `Client/packages/logger/pii.ts` - PII scrubbing utilities (masks emails, phones, SSN, tokens, etc.)
-- `Client/packages/logger/categories.ts` - Log category definitions and helpers
-- `Client/packages/logger/index.ts` - Public API exports
-- `Client/packages/logger/logger.config.json` - Configuration file
+## Contract updates
 
-**Usage**:
-```typescript
-import { log, LOG_CATEGORIES } from "packages/logger";
+When adding a new log category or changing logging configuration contract:
 
-// Debug logging
-log.debug(LOG_CATEGORIES.API, "API request started", { endpoint: "/api/users" });
+1. Update `scripts/log-contracts/categories.yaml`.
+2. Run `make log-contracts`.
+3. Commit generated logger contract outputs alongside the code change.
 
-// Info logging
-log.info(LOG_CATEGORIES.AUTH, "User logged in", { userId: "123" });
+## Quick checks
 
-// Warning logging
-log.warn(LOG_CATEGORIES.HTTP, "Request timeout", { url: "/api/data" });
+- `rg "console\\.(log|info|warn|error)\\(" Client`
+- `rg "\\bprint\\(" Server`
 
-// Error logging
-log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch data", error);
-
-// Security logging (always logs, cannot be disabled)
-log.security(LOG_CATEGORIES.SECURITY, "Unauthorized access attempt", { ip: "1.2.3.4" });
-```
-
-**Available Categories**:
-- `LOG_CATEGORIES.POLLING` - Polling operations
-- `LOG_CATEGORIES.INITIAL_API_CALLS` - Initial API calls on page load
-- `LOG_CATEGORIES.PAGES` - Page navigation and lifecycle
-- `LOG_CATEGORIES.HOOKS` - React hooks execution
-- `LOG_CATEGORIES.AUTH` - Authentication operations
-- `LOG_CATEGORIES.HTTP` - HTTP requests/responses
-- `LOG_CATEGORIES.API` - API client operations
-- `LOG_CATEGORIES.ERRORS` - Error handling (always enabled)
-- `LOG_CATEGORIES.SECURITY` - Security events (always enabled)
-
-**Configuration**:
-- Config file: `Client/packages/logger/logger.config.json` (bundled overrides; env defaults win for prod/dev)
-- Environment defaults: **production** all categories on + PostHog export; **development** all off except `errors` / `security`
-- Dev opt-in: admin frontend logger toggles (`log.updateConfig`), or process env (`EXPO_PUBLIC_LOGGER_VERBOSE`, `EXPO_PUBLIC_LOGGER_CATEGORIES`, `EXPO_PUBLIC_LOGGER_POSTHOG`)
-- Runtime config updates: `log.updateConfig({ polling: true })` (prod ignores category disables)
-- Get current config: `log.getConfig()`
-- Reload config: `log.reloadConfig()`
-- Console output is gated by category + `logLevel`; PostHog export follows the same gates and runs in production (or dev when opted in)
-
-**PII Scrubbing**:
-- All log data is automatically scrubbed via `Client/packages/logger/pii.ts`
-- Sensitive data (emails, phones, SSN, tokens, passwords) is automatically masked
-- Sensitive keys in objects are replaced with `[REDACTED]`
-
-## Backend Logging
-
-**Location**: `Server/logger/`
-
-**Main Files**:
-- `Server/logger/core/logger.py` - Main logger implementation with category-based filtering
-- `Server/logger/security/pii.py` - PII scrubbing utilities
-- `Server/logger/core/categories.py` - Log category definitions and helpers
-- `Server/logger/__init__.py` - Public API exports
-- `Server/logger/config/` - Contract defaults and resolve (codegen + admin DB overrides)
-
-**Usage**:
-```python
-from logger import log, LOG_CATEGORIES
-
-# Debug logging
-log.debug(LOG_CATEGORIES["API"], "API request started", {"endpoint": "/api/users"})
-
-# Info logging
-log.info(LOG_CATEGORIES["AUTH"], "User logged in", {"userId": "123"})
-
-# Warning logging
-log.warn(LOG_CATEGORIES["HTTP"], "Request timeout", {"url": "/api/data"})
-
-# Error logging
-log.error(LOG_CATEGORIES["ERRORS"], "Failed to fetch data", exception)
-
-# Security logging (always logs, cannot be disabled)
-log.security(LOG_CATEGORIES["SECURITY"], "Unauthorized access attempt", {"ip": "1.2.3.4"})
-```
-
-**Available Categories**:
-- `LOG_CATEGORIES["POLLING"]` - Polling operations
-- `LOG_CATEGORIES["INITIAL_API_CALLS"]` - Initial API calls
-- `LOG_CATEGORIES["PAGES"]` - Page-related operations
-- `LOG_CATEGORIES["HOOKS"]` - Hook execution
-- `LOG_CATEGORIES["AUTH"]` - Authentication operations
-- `LOG_CATEGORIES["HTTP"]` - HTTP requests/responses
-- `LOG_CATEGORIES["API"]` - API operations
-- `LOG_CATEGORIES["ERRORS"]` - Error handling (always enabled)
-- `LOG_CATEGORIES["SECURITY"]` - Security events (always enabled)
-
-**Configuration**:
-- Config: codegen defaults from `scripts/log-contracts/categories.yaml`; deployment overrides in `deployment_logger_config` (admin UI + server startup)
-- Environment defaults: **production** (`FLASK_ENV=production`) all categories on + PostHog OTLP; **development** all off except `errors` / `security`
-- Dev opt-in: admin `/admin/logger-config` API, or process env (`LOGGER_VERBOSE`, `LOGGER_CATEGORIES`, `LOGGER_POSTHOG`)
-- Runtime config updates: `log.update_config({"polling": True})` (prod ignores category disables)
-- Get current config: `log.get_config()`
-- Reload config: `log.reload_config()`
-- Stdout and PostHog are gated by category + `logLevel`; PostHog OTLP initializes in production (or dev when `LOGGER_POSTHOG=1`)
-
-**PII Scrubbing**:
-- All log data is automatically scrubbed via `Server/logger/security/pii.py`
-- Sensitive data (emails, phones, SSN, tokens, passwords) is automatically masked
-- Sensitive keys in objects are replaced with `[REDACTED]`
-
-## Rules for Logging
-
-### When Adding Logging
-
-- **Config must match the change (same PR / task)** — Whenever you add new `log.*` calls gated by a category, **enable** verbose logging for an area, or introduce a **new** log category:
-  - Edit **`scripts/log-contracts/categories.yaml`** and run **`make log-contracts`** (regenerates `categories.ts` / `categories.py`, JSON configs, `LOGGER_BOOLEAN_KEYS`, `LoggerConfig`, admin allowed keys, and admin UI key lists).
-  - Set new category defaults in the generated JSON if the default checkout should emit those logs (`true` vs `false`).
-  - Code defaults without a config file come from generated `buildEnvironmentDefaults` / `build_environment_defaults`.
-- **ALWAYS use the centralized logger** from `Client/packages/logger/index.ts` (frontend) or `Server/logger/__init__.py` (backend)
-- **NEVER use** `console.log()`, `console.info()`, `console.warn()`, `console.error()` directly in frontend code
-- **NEVER use** `print()`, `logging.info()`, `logging.warn()`, `logging.error()` directly in backend code
-- **ALWAYS specify a category** - use the appropriate category from `LOG_CATEGORIES`
-- **ALWAYS use PII-safe logging** - the logger automatically scrubs sensitive data via `Client/packages/logger/pii.ts` or `Server/logger/security/pii.py`, but be mindful of what you pass
-- **Use appropriate log levels**:
-  - `debug()` - Detailed debugging information
-  - `info()` - General informational messages
-  - `warn()` - Warning messages for potentially problematic situations
-  - `error()` - Error messages for error conditions
-  - `security()` - Security events (always logs, cannot be disabled)
-
-### When Removing or Disabling Logging
-
-- **Do not delete log statements** — disable via config or category defaults instead
-- **Development default is quiet** — categories are off unless opted in (admin toggles or env). `ERRORS` and `SECURITY` stay on
-- **Production default is verbose** — all categories forced on; PostHog export enabled when token is present
-- **To disable a category in dev**: `log.updateConfig({ categoryName: false })` or admin UI
-- **To change log level**: update `logLevel` in config (DEBUG, INFO, WARN, ERROR)
-- **Note**: `ERRORS` and `SECURITY` categories cannot be disabled (always enabled) — see `Client/packages/logger/categories.ts` and `Server/logger/core/categories.py`
-
-### Examples of Correct Usage
-
-**Frontend**:
-```typescript
-// ✅ CORRECT: Using centralized logger from packages/logger
-import { log, LOG_CATEGORIES } from "packages/logger";
-
-try {
-  const response = await fetch("/api/users");
-  log.info(LOG_CATEGORIES.API, "Users fetched successfully", { count: response.data.length });
-} catch (error) {
-  log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch users", error);
-}
-
-// ❌ WRONG: Direct console usage
-console.log("Users fetched", response); // FORBIDDEN
-console.error("Error:", error); // FORBIDDEN
-```
-
-**Backend**:
-```python
-# ✅ CORRECT: Using centralized logger from Server/logger/__init__.py
-from logger import log, LOG_CATEGORIES
-
-try:
-    users = get_users()
-    log.info(LOG_CATEGORIES["API"], "Users fetched successfully", {"count": len(users)})
-except Exception as e:
-    log.error(LOG_CATEGORIES["ERRORS"], "Failed to fetch users", e)
-
-# ❌ WRONG: Direct print/logging usage
-print("Users fetched", users)  # FORBIDDEN
-logging.info("Users fetched")  # FORBIDDEN
-```
-
-### Migration Guide
-
-When updating existing code:
-
-1. **Find direct console/print statements**:
-   - Search for `console.log`, `console.info`, `console.warn`, `console.error` in frontend
-   - Search for `print(`, `logging.info`, `logging.warn`, `logging.error` in backend
-
-2. **Replace with centralized logger**:
-   - Import logger from `packages/logger` (frontend) or `Server/logger/__init__.py` (backend)
-   - Choose appropriate category from `Client/packages/logger/categories.ts` or `Server/logger/categories.py`
-   - Use appropriate log level
-   - Pass data as second/third parameter (will be automatically scrubbed by `Client/packages/logger/pii.ts` or `Server/logger/pii.py`)
-
-3. **Update imports**:
-   - Frontend: `import { log, LOG_CATEGORIES } from "packages/logger";`
-   - Backend: `from logger import log, LOG_CATEGORIES` (from `Server/logger/__init__.py`)
-
-## File References
-
-### Frontend Logging Files
-- **Main Logger**: `Client/packages/logger/logger.ts`
-- **PII Scrubbing**: `Client/packages/logger/pii.ts`
-- **Categories**: `Client/packages/logger/categories.ts`
-- **Public API**: `Client/packages/logger/index.ts`
-- **Config File**: `Client/packages/logger/logger.config.json`
-
-### Backend Logging Files
-- **Main Logger**: `Server/logger/core/logger.py`
-- **PII Scrubbing**: `Server/logger/security/pii.py`
-- **Categories**: `Server/logger/core/categories.py`
-- **Public API**: `Server/logger/__init__.py`
-- **Config / contract**: `Server/logger/config/` (defaults from `make log-contracts`; deployment overrides via admin DB)
+If either query finds new production-path usage, replace with centralized logger APIs.

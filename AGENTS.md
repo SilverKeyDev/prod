@@ -115,7 +115,7 @@ cd Server && pytest       # or: make test-be from repo root
 | Area | Location |
 | ---- | -------- |
 | **Always-on (7)** | `security`, `thin-app-architecture`, `linting`, `documentation`, `silverkey-context`, `code-style`, `env-vars-minimal` under `.cursor/rules/shared/` |
-| **Company context** | [CLAUDE.md](CLAUDE.md) — business model, RESPA, partners, fundraising (read before partner-facing work) |
+| **Company context** | [CLAUDE.md](CLAUDE.md) quickstart + [.cursor/rules/shared/silverkey-context.mdc](.cursor/rules/shared/silverkey-context.mdc) and [.cursor/rules/shared/pitch-and-fundraising.mdc](.cursor/rules/shared/pitch-and-fundraising.mdc) for canonical partner/fundraising facts |
 | **Scoped rules** | `.cursor/rules/shared/`, `frontend/`, `backend/` (+ some under `Server/`) — glob-attached; see audit table |
 | **Session memory bank** | [.cursor/memory/](./.cursor/memory/) — `activeContext.md`, `progress.md`; rule: `agent-memory.mdc` |
 | **Automation memory seeds** | [.cursor/memory/automations/](./.cursor/memory/automations/) — paste into Cursor Memory Notes; `./scripts/print-automation-memory.sh <persona>` |
@@ -123,7 +123,7 @@ cd Server && pytest       # or: make test-be from repo root
 | **Subagents** | `.cursor/agents/*.md` |
 | **Extend / inventory** | [.cursor/README.md](./.cursor/README.md), [documentation/internal/cursor-audit-latest.md](./documentation/internal/cursor-audit-latest.md) |
 
-**MCP:** Example — [.cursor/mcp.example.json](./.cursor/mcp.example.json); local config via `make setup-mcp` (install/verify, summary at end). Connectors: GitHub, Linear, Slack, Mercury (read-only banking), optional AWS/gcloud, and **`cursor-memory`** (`/memo`, `/recall`). Credentials stay local/env.
+**MCP:** Example — [.cursor/mcp.example.json](./.cursor/mcp.example.json); local config via `make setup-mcp` (install/verify, summary at end). Daily default connectors: GitHub, Linear, Slack. Add-ons (enable only when needed): Mercury (read-only banking), AWS/gcloud, PostHog/Datadog, and **`cursor-memory`** (`/memo`, `/recall`). Credentials stay local/env.
 
 **Agent memory (all layers):** [documentation/client/tooling/cursor-agent-memory.md](./documentation/client/tooling/cursor-agent-memory.md) — repo bank, Cursor Settings → Memories, Automations Memory Notes, MCP.
 
