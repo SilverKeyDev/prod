@@ -2,6 +2,7 @@
 
 POSTHOG_HOST = "https://us.i.posthog.com"
 POSTHOG_APP_URL = "https://us.posthog.com"
+POSTHOG_ASSETS_HOST = "https://us-assets.i.posthog.com"
 POSTHOG_PROJECT_ID = "441667"
 
 POSTHOG_CAPTURE_URL = f"{POSTHOG_HOST}/capture/"

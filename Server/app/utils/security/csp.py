@@ -12,7 +12,11 @@ from __future__ import annotations
 
 import os
 
-from app.services.analytics.posthog_constants import POSTHOG_APP_URL, POSTHOG_HOST
+from app.services.analytics.posthog_constants import (
+    POSTHOG_APP_URL,
+    POSTHOG_ASSETS_HOST,
+    POSTHOG_HOST,
+)
 
 
 def build_content_security_policy() -> str:
@@ -39,6 +43,7 @@ def build_content_security_policy() -> str:
         "https://account.docusign.com",
         POSTHOG_HOST,
         POSTHOG_APP_URL,
+        POSTHOG_ASSETS_HOST,
     ]
     for part in connect_extra.split(","):
         s = part.strip()
@@ -52,7 +57,8 @@ def build_content_security_policy() -> str:
         "base-uri 'self'; "
         "form-action 'self' https:; "
         f"connect-src {connect_src}; "
-        "script-src 'self' 'wasm-unsafe-eval' https://*.googleapis.com https://*.gstatic.com; "
+        "script-src 'self' 'wasm-unsafe-eval' https://*.googleapis.com https://*.gstatic.com "
+        f"{POSTHOG_ASSETS_HOST}; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "img-src 'self' data: blob: https:; "
         "font-src 'self' data: https://fonts.gstatic.com; "
