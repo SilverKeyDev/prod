@@ -87,7 +87,7 @@ export const BUTTON_TEXT_COLOR_CLASSES: Record<ButtonStyleVariant, string> = {
  * justify-start (contentAlign="start"), or justify-between (icon edge layout).
  */
 export const BUTTON_BASE_CLASSES =
-  "flex min-w-0 flex-row items-center gap-2 overflow-hidden font-medium leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 web:active:translate-y-[0.5px]";
+  "flex min-w-0 flex-row items-center gap-2 overflow-hidden font-medium leading-[1.2] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 web:active:translate-y-[0.5px]";
 
 export const BUTTON_ROUNDED_CLASSES: Record<"none" | "sm" | "md" | "lg" | "xl" | "full", string> = {
   none: "rounded-none",

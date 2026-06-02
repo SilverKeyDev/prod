@@ -114,7 +114,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         {children != null &&
           (typeof children === "string" ? (
             <Text
-              className={`font-medium leading-none ${truncateLabel ? "min-w-0 shrink truncate" : "shrink-0 whitespace-nowrap"} ${textColorClass} ${
+              className={`font-medium leading-[1.2] ${truncateLabel ? "min-w-0 shrink truncate" : "shrink-0 whitespace-nowrap"} ${textColorClass} ${
                 size === "sm" ? "text-sm" : size === "lg" ? "text-base" : "text-sm"
               }`}
               numberOfLines={1}

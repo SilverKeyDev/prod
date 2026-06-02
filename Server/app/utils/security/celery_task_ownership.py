@@ -6,20 +6,43 @@ import os
 import threading
 from typing import Any
 
-from app.utils.cache.optional_redis_json_cache import _get_redis
-
 _TASK_OWNER_PREFIX = "v1:celery_task_owner:"
 _DEFAULT_TTL_SECONDS = 86400
 
 _lock = threading.Lock()
 _testing_owners: dict[str, str] = {}
+_redis_client: Any | None = None
+_redis_init_attempted = False
+
+
+def _get_redis() -> Any | None:
+    """Best-effort Redis client for task ownership; returns None when unavailable."""
+    global _redis_client, _redis_init_attempted
+
+    if _redis_init_attempted:
+        return _redis_client
+    _redis_init_attempted = True
+
+    redis_url = os.getenv("REDIS_URL", "").strip()
+    if not redis_url:
+        return None
+
+    try:
+        import redis  # type: ignore
+
+        _redis_client = redis.from_url(redis_url, decode_responses=True)
+    except Exception:
+        _redis_client = None
+    return _redis_client
 
 
 def _use_testing_memory_store() -> bool:
     return os.getenv("TESTING", "").lower() == "true" and not os.getenv("REDIS_URL", "").strip()
 
 
-def register_task_owner(task_id: str, user_id: str, ttl_seconds: int = _DEFAULT_TTL_SECONDS) -> None:
+def register_task_owner(
+    task_id: str, user_id: str, ttl_seconds: int = _DEFAULT_TTL_SECONDS
+) -> None:
     """Record which user enqueued a Celery task (required before polling task-status)."""
     tid = str(task_id).strip()
     uid = str(user_id).strip()

@@ -212,8 +212,8 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 
     const contentInnerLayoutClass =
       contentAlign === "start"
-        ? "inline-flex w-full flex-row items-center justify-start gap-2 text-left font-medium leading-none"
-        : "inline-flex flex-row items-center justify-center gap-2 text-center font-medium leading-none";
+        ? "inline-flex w-full flex-row items-center justify-start gap-2 text-left font-medium leading-[1.2]"
+        : "inline-flex flex-row items-center justify-center gap-2 text-center font-medium leading-[1.2]";
 
     const textContent = renderButtonLabelSlot({
       children,
