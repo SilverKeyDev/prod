@@ -27,7 +27,7 @@ Loose notes under `.cursor/` should be rare. Prefer `documentation/` or `documen
 
 - **Canonical tree:** `documentation/` only for long-form SilverKey prose.
 - **Forbidden:** repo-root `docs/` (CI fails if it exists).
-- **Checks:** `make check-docs` or `./scripts/check-doc-placement.sh` + `./scripts/check-doc-links.sh`.
+- **Checks:** `make check-docs` or `./scripts/ci/check-doc-placement.sh` + `./scripts/ci/check-doc-links.sh`.
 - **Skill:** [skills/documentation-placement/SKILL.md](skills/documentation-placement/SKILL.md).
 
 ---
@@ -178,7 +178,7 @@ Rule of thumb: if the model never needs a path unless you explicitly attach it, 
 - [ ] Skim `skills/**` — triggers still accurate? unused skills?
 - [ ] `.cursorignore.example` / `.cursorindexingignore` — new build outputs or huge dirs?
 - [ ] MCP servers in use still valid?
-- [ ] Diff `AGENTS.md` Quick start against `Client/package.json` and `./scripts/run-all-linters.sh`
+- [ ] Diff `AGENTS.md` Quick start against `Client/package.json` and `./scripts/ci/run-all-linters.sh`
 
 ---
 

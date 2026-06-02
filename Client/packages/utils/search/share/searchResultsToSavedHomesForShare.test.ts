@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { SearchResult } from "packages/features/search/types/domain/result";
+import type { SearchResult } from "packages/types";
 
 import { searchResultsToSavedHomesForShare } from "./searchResultsToSavedHomesForShare";
 

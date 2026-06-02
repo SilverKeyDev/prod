@@ -34,8 +34,8 @@ make refresh        # after git pull
 | If you need… | Run |
 | ------------ | --- |
 | Full setup guide | [setup.md](setup.md) |
-| Same as `setup-local.sh` | `make setup` |
-| Same as `refresh.sh` | `make refresh` |
+| Same as `scripts/setup/setup-local.sh` | `make setup` |
+| Same as `scripts/setup/refresh.sh` | `make refresh` |
 | Secrets only | `make secrets` |
 | Web only | `make dev-web` |
 | Mobile (Expo) | `make mobile` |
@@ -67,7 +67,7 @@ pnpm check          # includes build:web — full client gate
 pnpm test:run       # Vitest
 ```
 
-**Repo-wide:** `./scripts/run-all-linters.sh client|server|all` or `make lint` (all scopes).
+**Repo-wide:** `./scripts/ci/run-all-linters.sh client|server|all` or `make lint` (all scopes).
 
 **Server:** activate `Server/.venv`, then use `Server/README.md` and [`documentation/server/`](documentation/server/README.md) for `pytest` and Python linters.
 
@@ -91,7 +91,7 @@ make help
 | [`Server/`](Server/) | Flask app, services, tests, `Server/scripts/` (venv bootstrap, secrets, lint). |
 | [`openapi/`](openapi/) | HTTP API contract; drives generated TS/Python types. |
 | [`documentation/`](documentation/) | Canonical long-form documentation (incl. server ops under `documentation/server/ops/`). |
-| [`scripts/`](scripts/) | `setup-local.sh`, `check-deps.sh`, `refresh.sh`, `run-all-linters.sh`, `run/` dev stacks. |
+| [`scripts/`](scripts/) | `scripts/setup/`, `scripts/ci/`, `scripts/run/` dev stacks. |
 | [`.github/`](.github/) | Workflows and templates. |
 
 **Architecture rule:** business logic and shared UI live in **`Client/packages/`**; **`Client/apps/*`** stay thin (routing, providers, page composition). See [`documentation/client/architecture/thin-app-architecture.md`](documentation/client/architecture/thin-app-architecture.md) and [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md).

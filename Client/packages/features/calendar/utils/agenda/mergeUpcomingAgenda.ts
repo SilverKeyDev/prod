@@ -1,9 +1,9 @@
+import { getEventStartDate } from "packages/utils/calendar/parsing/eventParsing";
 import { dateParseISO } from "packages/utils/date";
 
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { UpcomingAgendaItem } from "@/features/calendar/types/upcomingAgenda";
-import { getEventStartDate } from "@/features/calendar/utils/parsing/eventParsing";
 
 export type { UpcomingAgendaItem } from "@/features/calendar/types/upcomingAgenda";
 

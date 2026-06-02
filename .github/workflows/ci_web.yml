@@ -125,7 +125,7 @@ jobs:
           ENTRYPOINT="$(docker image inspect --format='{{json .Config.Entrypoint}}' "$IMAGE_REF")"
           echo "Image CMD: $CMD"
           echo "Image Entrypoint: $ENTRYPOINT"
-          if ! echo "$CMD" | grep -q gunicorn; then
+          if ! echo "$CMD" | grep -qE 'gunicorn|gunicorn-entrypoint'; then
             echo "ERROR: Image CMD does not include gunicorn — build must use Dockerfile.web --target backend (migrate target runs flask db upgrade and exits)." >&2
             exit 1
           fi

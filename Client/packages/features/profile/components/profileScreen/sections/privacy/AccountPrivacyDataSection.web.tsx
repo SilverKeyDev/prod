@@ -4,7 +4,6 @@ import { Icon } from "@ui/icons";
 
 import { authApi } from "packages/features/homeauth/api/auth";
 import { userApi } from "packages/features/homeauth/api/user";
-import { STATIC_LEGAL_CONTACT } from "packages/features/homeauth/utils/staticLegalContact";
 import {
   ProfileSectionBody,
   ProfileSectionCallout,
@@ -18,6 +17,7 @@ import { useNavigation } from "packages/navigation/hooks/useNavigation";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";
+import { STATIC_LEGAL_CONTACT } from "packages/utils/legal/staticLegalContact";
 import { getWindow } from "packages/utils/platform";
 
 import { BodyText, Button } from "@/components/ui";

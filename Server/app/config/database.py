@@ -54,12 +54,14 @@ else:
     _is_production = os.getenv("FLASK_ENV") == "production"
     _default_connect_timeout = 300 if _is_production else 15
     _connect_timeout = int(os.getenv("DB_CONNECT_TIMEOUT", str(_default_connect_timeout)))
+    _pool_size = int(os.getenv("DB_POOL_SIZE", "5"))
+    _max_overflow = int(os.getenv("DB_MAX_OVERFLOW", "10"))
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
         "pool_recycle": 300,
         "pool_timeout": 300,
-        "pool_size": 10,
-        "max_overflow": 20,
+        "pool_size": _pool_size,
+        "max_overflow": _max_overflow,
         "connect_args": {
             "connect_timeout": _connect_timeout,
             "keepalives_idle": 600,

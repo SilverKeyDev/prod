@@ -35,13 +35,14 @@ repos:
     rev: v0.1.9
     hooks:
       - id: ruff-format
+        args: [--quiet]
         files: ^Server/
       - id: ruff
-        args: [--fix]
+        args: [--fix, --quiet]
         files: ^Server/
 
   # Mypy is not run in pre-commit: the Server gate is ruff + pyright (see
-  # scripts/run-all-linters.sh). Full-tree mypy reports hundreds of gradual-
+  # scripts/ci/run-all-linters.sh). Full-tree mypy reports hundreds of gradual-
   # typing issues; run manually: (cd Server && mypy app/).
 
   # Client: Prettier first, then ESLint --fix (avoids lint fixes fighting format)
@@ -50,7 +51,7 @@ repos:
       - id: prettier-client
         name: prettier (Client)
         language: system
-        entry: scripts/pre-commit-prettier-client.sh
+        entry: scripts/ci/pre-commit-prettier-client.sh
         files: ^Client/.*\.(ts|tsx|js|jsx|json|css|scss|md)$
         exclude: ^Client/(dist|coverage|node_modules|build)/.*
 
@@ -59,7 +60,7 @@ repos:
       - id: eslint-client
         name: eslint (Client)
         language: system
-        entry: scripts/pre-commit-eslint-client.sh
+        entry: scripts/ci/pre-commit-eslint-client.sh
         files: ^Client/.*\.(ts|tsx|js|jsx)$
         exclude: ^Client/(dist|coverage|node_modules|build)/.*
 

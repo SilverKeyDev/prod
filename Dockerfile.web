@@ -91,9 +91,10 @@
 
   EXPOSE 5000
 
-  # Start Flask with Gunicorn
-  # --preload: load application once in master before forking workers (faster boot, less duplicate import work).
-  CMD ["gunicorn", "--preload", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]
+  RUN chmod +x scripts/gunicorn-entrypoint.sh
+
+  # Env-driven Gunicorn (WEB_CONCURRENCY, GUNICORN_THREADS, GUNICORN_WORKER_CLASS, etc.)
+  CMD ["./scripts/gunicorn-entrypoint.sh"]
 
   # ----------------------------
   # Stage 3: Alembic migrations only (CI / db-migrate-main workflow)

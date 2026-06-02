@@ -222,11 +222,12 @@ start_backend() {
   if [[ "$production" == "true" ]]; then
     log "[Backend] Starting Flask server in ${RED}production${NC} mode (gunicorn @ 0.0.0.0:${FLASK_PORT})..."
     pushd "${ROOT_DIR}/Server" >/dev/null
+    export GUNICORN_BIND="0.0.0.0:${FLASK_PORT}"
     if [[ -d ".venv" ]]; then
       source .venv/bin/activate
-      gunicorn --preload -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - &
+      bash ./scripts/gunicorn-entrypoint.sh &
     else
-      python3 -m gunicorn --preload -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - &
+      bash ./scripts/gunicorn-entrypoint.sh &
     fi
     FLASK_PID=$!
     popd >/dev/null

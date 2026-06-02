@@ -4,15 +4,15 @@ import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useAdminPartnersList } from "packages/features/partners/hooks/useAdminPartners";
 import { useRevShareAnalytics } from "packages/features/partners/hooks/useRevShareAnalytics";
-import {
-  formatCtrPercent,
-  formatEstimatedRevenue,
-} from "packages/features/partners/utils/revShareRedirectUrl";
 import { DonutChart } from "packages/features/propertyDetails/components/visualizations/DonutChart";
 import { VerticalBarChart } from "packages/features/propertyDetails/components/visualizations/VerticalBarChart";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
+import {
+  formatCtrPercent,
+  formatEstimatedRevenue,
+} from "packages/utils/revShare/revShareRedirectUrl";
 
 import Card from "@/components/layout/Card.web";
 import { Dropdown, Label } from "@/components/ui";

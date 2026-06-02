@@ -9,7 +9,7 @@
 | Documented command                                                                                | Source                                                         |
 | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | `pnpm typecheck`, `pnpm lint`, `pnpm lint:cycles`, `pnpm format:check`, `pnpm check`, `pnpm test:run` | [Client/package.json](../../Client/package.json)               |
-| `./scripts/run-all-linters.sh [client\|server\|all]`, `make lint`                                  | [scripts/run-all-linters.sh](../../scripts/run-all-linters.sh), [Makefile](../../Makefile) |
+| `./scripts/ci/run-all-linters.sh [client\|server\|all]`, `make lint`                                  | [scripts/ci/run-all-linters.sh](../../scripts/ci/run-all-linters.sh), [Makefile](../../Makefile) |
 | `make setup`, `make dev`, `make test-fe`, `make test-be`, `make openapi`, `make openapi-verify`   | [Makefile](../../Makefile)                                     |
 
 Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/package.json`).

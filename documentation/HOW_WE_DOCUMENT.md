@@ -35,7 +35,7 @@ Brief guide to SilverKey's documentation approach: one canonical system plus lig
 
 - **Rules** (`monorepo.mdc`, `documentation.mdc`) point to `documentation/` for structure.
 - **Skills:** `documentation-placement` for new prose; `post-major-change-sync` after major architecture changes.
-- **Checks:** `./scripts/check-doc-placement.sh` and `./scripts/check-doc-links.sh` (also `make check-docs`).
+- **Checks:** `./scripts/ci/check-doc-placement.sh` and `./scripts/ci/check-doc-links.sh` (also `make check-docs`).
 
 ## 6. Adding or moving docs
 
@@ -56,4 +56,4 @@ Brief guide to SilverKey's documentation approach: one canonical system plus lig
 | `documentation/HOW_WE_DOCUMENT.md` | This file |
 | `documentation/internal/post-major-change-checklist.md` | After major features: sync docs + Cursor |
 | Entrypoints | Short READMEs linking to `documentation/` |
-| CI | `scripts/check-doc-placement.sh`, `scripts/check-doc-links.sh` |
+| CI | `scripts/ci/check-doc-placement.sh`, `scripts/ci/check-doc-links.sh` |

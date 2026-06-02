@@ -14,7 +14,7 @@
 #     (b) dotenv text -> KEY=VALUE lines (even if \n-escaped in SecretString)
 #     (c) scalar -> falls back to SECRET_NAME=<value>
 # - Rewrites ./.env (real values) and ./.env.example (same keys, empty placeholder values)
-# - Moves EXPO_PUBLIC_* keys into ../../Client/.env and Client/.env.example (see lib/client-env-from-secrets.sh)
+# - Moves EXPO_PUBLIC_* keys into ../../Client/.env and Client/.env.example (see scripts/lib/client-env-from-secrets.sh)
 
 set -eu
 
@@ -265,8 +265,8 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
 done
 
 # ---- split EXPO_PUBLIC_* to Client, then rewrite Server .env files ----
-# shellcheck source=lib/client-env-from-secrets.sh
-. "$SCRIPT_DIR/lib/client-env-from-secrets.sh"
+# shellcheck source=../../scripts/lib/client-env-from-secrets.sh
+. "$ROOT/scripts/lib/client-env-from-secrets.sh"
 split_client_public_env_from_server "$tmp_env" "$tmp_example" "$ROOT/Client" "$REGION" "$stamp"
 
 mv "$tmp_env" .env

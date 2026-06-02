@@ -1,4 +1,4 @@
-# Cursor MCP local config. Source from setup-local.sh (final step) or scripts/setup-mcp.sh.
+# Cursor MCP local config. Source from scripts/setup/setup-local.sh (final step) or scripts/setup/setup-mcp.sh.
 # shellcheck shell=bash
 
 MCP_NO_INSTALL="${MCP_NO_INSTALL:-false}"

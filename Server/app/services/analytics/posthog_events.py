@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import socket
 import time
 from typing import Any
 
@@ -152,6 +154,17 @@ def _build_api_request_properties(
         properties["user_role"] = user_role
     if brokerage_org_id is not None:
         properties["brokerage_org_id"] = brokerage_org_id
+
+    deploy_tag = (os.getenv("DEPLOY_IMAGE_TAG") or "").strip()
+    if deploy_tag:
+        properties["deploy_image_tag"] = deploy_tag
+    properties["host"] = socket.gethostname()
+    web_concurrency = (os.getenv("WEB_CONCURRENCY") or "").strip()
+    if web_concurrency:
+        properties["gunicorn_workers"] = web_concurrency
+    gunicorn_threads = (os.getenv("GUNICORN_THREADS") or "").strip()
+    if gunicorn_threads:
+        properties["gunicorn_threads"] = gunicorn_threads
 
     return properties, _distinct_id, brokerage_org_id
 

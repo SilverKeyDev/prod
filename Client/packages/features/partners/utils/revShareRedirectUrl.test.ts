@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { buildRevShareRedirectUrl, formatCtrPercent } from "./revShareRedirectUrl";
+import {
+  buildRevShareRedirectUrl,
+  formatCtrPercent,
+} from "packages/utils/revShare/revShareRedirectUrl";
 
 describe("buildRevShareRedirectUrl", () => {
   it("builds /r path with query params", () => {

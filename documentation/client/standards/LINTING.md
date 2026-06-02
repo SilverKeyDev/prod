@@ -25,7 +25,7 @@ If you prefer to stay at the repo root, prefix commands with `cd Client &&`.
   - Invoked automatically after ESLint as part of `pnpm lint`.
 
 - **Extra Client linters (optional, auto-discovered)**
-  - Add an **executable** shell script under `Client/scripts/lint.d/` (e.g. `10_custom.sh`). Root `scripts/run-all-linters.sh client` runs `Client/scripts/run-client-linters.sh`, which executes every `lint.d/*.sh` in sorted order, then `pnpm check`.
+  - Add an **executable** shell script under `Client/scripts/lint.d/` (e.g. `10_custom.sh`). Root `scripts/ci/run-all-linters.sh client` runs `Client/scripts/run-client-linters.sh`, which executes every `lint.d/*.sh` in sorted order, then `pnpm check`.
 
 - **Prettier**
   - Used for automatic code formatting across the client codebase.
@@ -101,7 +101,7 @@ From the `Client/` directory, you can use the following `pnpm` scripts:
   ```
 
   - Runs `pnpm typecheck && pnpm lint && pnpm format:check && pnpm lint:cycles && pnpm run audit && pnpm build:web` (see `Client/package.json`).
-  - Same spirit as the root `scripts/run-all-linters.sh client` path (`Client/scripts/run-client-linters.sh` → optional `scripts/lint.d/*.sh`, then this `pnpm check`); catches Vite resolution/transform errors (e.g. bad imports) that ESLint/TypeScript may miss.
+  - Same spirit as the root `scripts/ci/run-all-linters.sh client` path (`Client/scripts/run-client-linters.sh` → optional `scripts/lint.d/*.sh`, then this `pnpm check`); catches Vite resolution/transform errors (e.g. bad imports) that ESLint/TypeScript may miss.
 
 ---
 

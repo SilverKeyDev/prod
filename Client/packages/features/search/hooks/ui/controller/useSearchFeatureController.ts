@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef } from "react";
 
-import { useSearchRefresh } from "packages/contexts";
+import { useLocalization, useSearchRefresh } from "packages/contexts";
 import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/agent/hooks/data/search/useAgentSyncPreferencesWhenClientSelected";
 import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
 import {
@@ -22,6 +22,7 @@ import { useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { usePreActionSnapshot } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui/responsive/useMediaQuery";
+import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import {
   useAgentDashboardStore,
   useAuthStore,
@@ -49,6 +50,7 @@ export function useSearchFeatureController({
   searchRef,
 }: SearchFeatureControllerProps) {
   const isCompactHeader = useMediaQuery(screenDown("lg"));
+  const { t } = useLocalization();
   const isAgentWorkspace = useActiveWorkspace() === "agent";
   const { mode: searchViewMode } = useSearchViewIntegration();
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
@@ -56,6 +58,8 @@ export function useSearchFeatureController({
   const { invalidateSearchAndFeed } = useSearchRefreshIntegration();
   const feedScrollRef = useRef<unknown>(null);
   const setAnchor = useSearchContextStore((s) => s.setAnchor);
+  const locationBarDraft = useSearchContextStore((s) => s.locationBarDraft);
+  const locationBarExternalSubmit = useSearchContextStore((s) => s.locationBarExternalSubmit);
   const searchAbortControllerRef = useRef<AbortController | null>(null);
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
   const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
@@ -215,34 +219,58 @@ export function useSearchFeatureController({
     setSearchSource,
   ]);
 
-  const handleSearchUpdated = useCallback(async () => {
-    if (isSearching) return;
+  const handleSearchUpdated = useCallback(
+    async (options?: { skipLocationsGate?: boolean }) => {
+      if (isSearching) return;
 
-    snapshotPreSearch({
-      results: searchResults,
+      const skipLocationsGate = options?.skipLocationsGate === true;
+
+      if (!hasLocations && !skipLocationsGate) {
+        if (!locationBarDraft.trim()) {
+          showWarningToast(t("search.need_locations_or_place"));
+          return;
+        }
+        if (!locationBarExternalSubmit) {
+          showWarningToast(t("search.need_locations_or_place"));
+          return;
+        }
+        await locationBarExternalSubmit();
+        return;
+      }
+
+      setSearchSource("preferences");
+      snapshotPreSearch({
+        results: searchResults,
+        currentPage,
+        showPropertyModals,
+      });
+      searchAbortControllerRef.current?.abort();
+      searchAbortControllerRef.current = new AbortController();
+      if (onSearchProperties) {
+        setIsSearching(true);
+        setSearchStage("Preparing search...");
+        await onSearchProperties();
+      } else {
+        await map.runUnifiedSearch();
+      }
+    },
+    [
+      isSearching,
+      hasLocations,
+      locationBarDraft,
+      locationBarExternalSubmit,
+      t,
+      onSearchProperties,
+      map,
+      searchResults,
       currentPage,
       showPropertyModals,
-    });
-    searchAbortControllerRef.current?.abort();
-    searchAbortControllerRef.current = new AbortController();
-    if (onSearchProperties) {
-      setIsSearching(true);
-      setSearchStage("Preparing search...");
-      await onSearchProperties();
-    } else {
-      await map.runUnifiedSearch();
-    }
-  }, [
-    isSearching,
-    onSearchProperties,
-    map,
-    searchResults,
-    currentPage,
-    showPropertyModals,
-    snapshotPreSearch,
-    setIsSearching,
-    setSearchStage,
-  ]);
+      snapshotPreSearch,
+      setSearchSource,
+      setIsSearching,
+      setSearchStage,
+    ]
+  );
 
   const handleCancelSearch = useCallback(() => {
     searchAbortControllerRef.current?.abort();

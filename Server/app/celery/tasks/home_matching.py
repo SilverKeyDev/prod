@@ -2,7 +2,7 @@ from app.celery.celery_worker import celery
 
 
 # Home Matching Tasks
-@celery.task(name="tasks.find_best_matches_task", bind=True)
+@celery.task(name="tasks.find_best_matches_task", bind=True, queue="heavy")
 def find_best_matches_task(
     self,
     user_data,

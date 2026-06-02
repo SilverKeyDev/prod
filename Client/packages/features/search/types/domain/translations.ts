@@ -68,6 +68,8 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
     "No homes match your search yet. Try adjusting your preferences.",
   "search.empty_results_strict_preferences":
     'No homes matched with strict preferences on. Try turning off "Match all preferences strictly," or relax your filters and search again.',
+  "search.need_locations_or_place":
+    "Add important locations in Filters, or enter a city, neighborhood, or ZIP to search.",
   "search.invalid_search_area":
     "We couldn’t build a search area from your locations. Add or fix important locations in Filters, then try again.",
   "search.geolocation_denied_default_market":

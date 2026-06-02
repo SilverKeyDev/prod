@@ -4,12 +4,12 @@
 #
 # Layered install (do not use test.txt or torch here — those are for pytest only):
 #   -r ci.txt     Import surface for `from app import create_app`, Pyright, Ruff on app/
-#   ruff, pyright Linters run by Server/scripts/lint/ and scripts/run-all-linters.sh
+#   ruff, pyright Linters run by Server/scripts/lint/ and scripts/ci/run-all-linters.sh
 #
 # Where it is used:
 #   - GitHub Actions: .github/workflows/lint.yml
 #   - Local: Server/scripts/bootstrap-venv.sh --lint
-#   - Documented in scripts/run-all-linters.sh
+#   - Documented in scripts/ci/run-all-linters.sh
 #
 # Relationship to other files:
 #   - ci.txt        App/runtime pins needed at import time (no linters)

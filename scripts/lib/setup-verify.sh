@@ -1,4 +1,4 @@
-# Post-setup smoke checks. Source from setup-local.sh.
+# Post-setup smoke checks. Source from scripts/setup/setup-local.sh.
 # shellcheck shell=bash
 
 setup_verify_fail() {

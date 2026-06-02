@@ -210,6 +210,13 @@
     "reason": "RN WebView embed and Linking API for partner placements."
   },
   {
+    "id": "home-concierge-checklist",
+    "description": "Move Concierge close checklist card: web iframe embed vs native WebView and external browser.",
+    "webPath": "packages/features/checklists/components/integrations/concierge/HomeConcierge.tsx",
+    "nativePath": "packages/features/checklists/components/integrations/concierge/HomeConcierge.native.tsx",
+    "reason": "Native uses react-native-webview and Linking; web uses iframe and window.open."
+  },
+  {
     "id": "feed-item-with-gesture",
     "description": "Feed item with platform-specific gesture handling for reels.",
     "webPath": "packages/features/feed/components/Reels/components/FeedItemWithGesture.tsx",

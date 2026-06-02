@@ -10,6 +10,6 @@ alwaysApply: true
 - Respect ESLint/Prettier/TS configs under `Client/config/` and root TS/Vite configs.
 - Use existing scripts when validating locally (full gate list: [`ci-gates.mdc`](ci-gates.mdc)):
   - From `Client/`: `pnpm lint`, `pnpm format`, `pnpm typecheck` as needed (see `Client/package.json`).
-  - Repo-wide: `./scripts/run-all-linters.sh [client|server|all]`.
+  - Repo-wide: `./scripts/ci/run-all-linters.sh [client|server|all]`.
 - Do not disable rules without justification; prefer code changes over suppression.
 - **UI Component Standardization**: Ensure all buttons and text use standardized components from **`Client/packages/ui/`**. See [`ui-components.mdc`](../frontend/ui-components.mdc) for detailed rules.

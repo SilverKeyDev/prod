@@ -2,7 +2,7 @@
  * Centralized Logger with PII scrubbing and environment-aware sinks.
  *
  * Adding new log categories:
- * 1. Edit scripts/log-contracts/categories.yaml
+ * 1. Edit scripts/log_contracts/categories.yaml
  * 2. Run: make log-contracts
  * 3. Use: log.info(LOG_CATEGORIES.SEARCH, "message", data) or log.info("SEARCH", "message", data)
  *

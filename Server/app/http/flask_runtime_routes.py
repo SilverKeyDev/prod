@@ -12,6 +12,7 @@ from flask import g, jsonify, make_response, request, send_from_directory
 from sqlalchemy import text
 
 from app.extensions import db
+from app.utils.cache.redis_client import ping_shared_redis, redis_url
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -54,13 +55,42 @@ def register_flask_runtime_routes(
                 body["error"] = str(e)
             return jsonify(body), 503
 
+    def _readyz_response():
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+        except Exception as e:
+            app.logger.error(f"Readiness check failed (database): {str(e)}", exc_info=True)
+            body: dict[str, str] = {
+                "status": "error",
+                "database": "disconnected",
+                "redis": "unknown",
+            }
+            if not healthz_is_production:
+                body["error"] = str(e)
+            return jsonify(body), 503
+
+        redis_status = "not_configured"
+        if redis_url():
+            redis_status = "connected" if ping_shared_redis() else "disconnected"
+
+        if redis_status == "disconnected":
+            body = {
+                "status": "error",
+                "database": "connected",
+                "redis": "disconnected",
+            }
+            return jsonify(body), 503
+
+        return jsonify({"status": "ok", "database": "connected", "redis": redis_status}), 200
+
     @app.route("/healthz", methods=["GET", "HEAD"])
     def healthz():
         return _db_readiness_response()
 
     @app.route("/readyz", methods=["GET", "HEAD"])
     def readyz():
-        return _db_readiness_response()
+        return _readyz_response()
 
     @app.route("/livez", methods=["GET", "HEAD"])
     def livez():

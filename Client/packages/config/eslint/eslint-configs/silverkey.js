@@ -120,15 +120,7 @@ export default function getSilverkeyConfig({ silverkey }) {
           },
         ],
         // Utility consolidation: warn on value imports from another feature's utils/
-        "silverkey/no-cross-feature-utils-imports": [
-          "warn",
-          {
-            allowImportPrefixes: [
-              "packages/features/calendar/utils",
-              "packages/features/homeauth/utils",
-            ],
-          },
-        ],
+        "silverkey/no-cross-feature-utils-imports": ["warn"],
       },
     },
 

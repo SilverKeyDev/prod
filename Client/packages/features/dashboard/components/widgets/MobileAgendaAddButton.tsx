@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { defaultGoogleMeetForCreate } from "packages/features/calendar/utils/createEventModal/defaultGoogleMeetForCreate";
+import { defaultGoogleMeetForCreate } from "packages/features/calendar";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Button } from "packages/ui";
 import BaseModal from "packages/ui/components/modals/BaseModal";

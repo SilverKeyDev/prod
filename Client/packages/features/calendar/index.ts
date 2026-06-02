@@ -12,6 +12,7 @@ export {
   CALENDAR_EVENT_KINDS,
   type CalendarEventKindId,
 } from "./utils/createEventModal/calendarEventKinds";
+export { defaultGoogleMeetForCreate } from "./utils/createEventModal/defaultGoogleMeetForCreate";
 export {
   buildCreateEventGoogleStartEnd,
   googleAllDayEndExclusiveToInclusiveEndYmd,

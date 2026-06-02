@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildStepId, parseStepId } from "./stepId";
+import { buildStepId, parseStepId } from "packages/utils/checklists/stepId";
 
 describe("buildStepId", () => {
   it("joins section and item id", () => {

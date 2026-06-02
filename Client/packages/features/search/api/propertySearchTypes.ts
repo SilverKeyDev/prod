@@ -78,7 +78,7 @@ const POLYGON_SEARCH_STRING_OVERRIDE_KEYS: (keyof SearchFilterOverrides)[] = [
 
 /** Build non-empty user_preferences for polygon search when any slider override is set. */
 export function compactSearchFilterOverridesForPolygon(
-  overrides: SearchFilterOverrides,
+  overrides: SearchFilterOverrides
 ): SearchByPolygonRequest["user_preferences"] | undefined {
   const out: Record<string, number | string | string[]> = {};
   for (const k of POLYGON_SEARCH_OVERRIDE_KEYS) {

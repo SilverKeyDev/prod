@@ -35,9 +35,9 @@ description: Place new SilverKey prose in documentation/ only; never create repo
 5. Run from repo root:
 
 ```bash
-chmod +x scripts/check-doc-placement.sh scripts/check-doc-links.sh
-./scripts/check-doc-placement.sh
-./scripts/check-doc-links.sh
+chmod +x scripts/ci/check-doc-placement.sh scripts/ci/check-doc-links.sh
+./scripts/ci/check-doc-placement.sh
+./scripts/ci/check-doc-links.sh
 ```
 
 6. For cross-cutting architecture changes, also follow **post-major-change-sync** skill.

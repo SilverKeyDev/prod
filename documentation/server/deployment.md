@@ -14,7 +14,7 @@
 | PostHog dead endpoints (weekly) | `.github/workflows/endpoints-check-dead.yml` — `make endpoints-check-dead` |
 | OpenAPI drift | `.github/workflows/openapi-sync.yml` |
 | Doc placement | `.github/workflows/doc-check.yml` |
-| Deploy scripts | `scripts/deploy/` — see [scripts/deploy/README.md](../../scripts/deploy/README.md) |
+| Deploy scripts | `scripts/deploy/` — EC2 reference scripts, [local prod-parity compose](../../scripts/deploy/prod-parity/docker-compose.yml); see [scripts/deploy/README.md](../../scripts/deploy/README.md) |
 
 ## Prod web (EC2)
 
@@ -50,4 +50,6 @@
 ## Related
 
 - [aws-resources.md](./aws-resources.md)
+- [ops/scaling-playbook.md](./ops/scaling-playbook.md)
+- [ops/posthog-capacity-queries.md](./ops/posthog-capacity-queries.md)
 - [setup.md](../../setup.md)

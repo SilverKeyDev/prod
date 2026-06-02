@@ -84,6 +84,22 @@ def create_app(config=None):
     executor.init_app(app)
     compress.init_app(app)
     Migrate(app, db)
+
+    if os.getenv("TRUST_PROXY_HEADERS", "").lower() in ("1", "true", "yes"):
+        from werkzeug.middleware.proxy_fix import ProxyFix
+
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+    if not Config.SQLALCHEMY_DATABASE_URI.startswith("sqlite://"):
+        pool_opts = Config.SQLALCHEMY_ENGINE_OPTIONS
+        logger.info(
+            LOG_CATEGORIES["API"],
+            "db_pool_config "
+            f"pool_size={pool_opts.get('pool_size')} "
+            f"max_overflow={pool_opts.get('max_overflow')} "
+            f"pid={os.getpid()}",
+        )
+
     _log_boot_phase("extensions_ready")
 
     from .utils.migrate_mode import is_migrate_only

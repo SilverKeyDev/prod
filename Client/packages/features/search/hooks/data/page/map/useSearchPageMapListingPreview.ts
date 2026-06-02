@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { useSearchMapPreviewSearchLifecycle } from "packages/features/search/hooks/ui/useSearchMapPreviewSearchLifecycle";
+import { useSearchMapPreviewSearchLifecycle } from "packages/features/search/hooks/ui/screen/useSearchMapPreviewSearchLifecycle";
 import { useFiltersStore } from "packages/store";
 
 export function useSearchPageMapListingPreview() {

@@ -13,7 +13,7 @@ on:
       - "Client/ARCHITECTURE.md"
       - "Server/README.md"
       - "Server/ARCHITECTURE.md"
-      - "scripts/check-doc-*.sh"
+      - "scripts/ci/check-doc-*.sh"
       - ".cursor/rules/shared/documentation.mdc"
   workflow_dispatch:
 
@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Run doc placement check
-        run: bash scripts/check-doc-placement.sh
+        run: bash scripts/ci/check-doc-placement.sh
 
       - name: Run doc link check
-        run: bash scripts/check-doc-links.sh
+        run: bash scripts/ci/check-doc-links.sh

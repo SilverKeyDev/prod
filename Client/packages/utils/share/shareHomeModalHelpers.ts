@@ -1,8 +1,7 @@
 /**
  * Helpers for ShareHomeModal; extracted to satisfy max-lines-per-function.
  */
-import type { SearchResult } from "packages/features/search/types";
-import type { Property } from "packages/features/search/types";
+import type { Property, SearchResult } from "packages/types";
 import { formatAddress } from "packages/utils/format/property/propertyDetailsDisplayFormatters";
 
 export function getShareHomePropertyId(property: Property | SearchResult | null): string | null {

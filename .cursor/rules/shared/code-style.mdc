@@ -43,9 +43,9 @@ Before claiming complete:
 | Scope | Minimum check |
 | ----- | ---------------- |
 | Client | `pnpm typecheck`, `pnpm lint`, relevant tests; full gate: `pnpm check` or `make check-client` |
-| Server | targeted `pytest`; repo lint: `make lint` or `./scripts/run-all-linters.sh server` |
+| Server | targeted `pytest`; repo lint: `make lint` or `./scripts/ci/run-all-linters.sh server` |
 | OpenAPI | `make openapi-verify` when HTTP shapes changed |
-| Both | `./scripts/run-all-linters.sh all` or `make lint` for cross-cutting PRs |
+| Both | `./scripts/ci/run-all-linters.sh all` or `make lint` for cross-cutting PRs |
 
 Linter errors are **blocking** — see [linting.mdc](./linting.mdc). Do not disable rules without justification.
 

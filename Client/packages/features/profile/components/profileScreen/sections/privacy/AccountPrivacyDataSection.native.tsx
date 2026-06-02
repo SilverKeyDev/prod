@@ -4,7 +4,6 @@ import { Icon } from "@ui/icons";
 import { Linking } from "react-native";
 
 import { color as tokenColor } from "packages/design-tokens";
-import { STATIC_LEGAL_CONTACT } from "packages/features/homeauth/utils/staticLegalContact";
 import {
   ProfileSectionBody,
   ProfileSectionCallout,
@@ -14,6 +13,7 @@ import {
 import { SECTION_TITLES } from "packages/features/profile/utils";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";
+import { STATIC_LEGAL_CONTACT } from "packages/utils/legal/staticLegalContact";
 
 import { BodyText, Button } from "@/components/ui";
 

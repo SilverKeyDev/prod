@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_YAML_PATH = REPO_ROOT / "scripts" / "log-contracts" / "categories.yaml"
+DEFAULT_YAML_PATH = REPO_ROOT / "scripts" / "log_contracts" / "categories.yaml"
 
 SERVER_CORE_CONFIG_KEYS = (
     "polling",

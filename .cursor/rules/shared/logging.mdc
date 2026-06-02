@@ -20,7 +20,7 @@ Use centralized logging utilities only.
 
 When adding a new log category or changing logging configuration contract:
 
-1. Update `scripts/log-contracts/categories.yaml`.
+1. Update `scripts/log_contracts/categories.yaml`.
 2. Run `make log-contracts`.
 3. Commit generated logger contract outputs alongside the code change.
 

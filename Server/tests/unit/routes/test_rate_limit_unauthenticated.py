@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from app.schemas.generated import PublicAgentProfile
-from app.utils.security.security import rate_limit_storage, storage_lock
+from app.utils.security.rate_limit_backend import rate_limit_storage, storage_lock
 
 
 @pytest.fixture(autouse=True)

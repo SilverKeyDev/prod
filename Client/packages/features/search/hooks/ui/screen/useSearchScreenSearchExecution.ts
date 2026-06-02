@@ -2,7 +2,7 @@ import { useCallback, useRef } from "react";
 
 import { searchPropertiesInViewport } from "packages/features/search/api/propertySearch";
 import { searchApi } from "packages/features/search/api/search";
-import { useSearchMapPreviewSearchLifecycle } from "packages/features/search/hooks/ui/useSearchMapPreviewSearchLifecycle";
+import { useSearchMapPreviewSearchLifecycle } from "packages/features/search/hooks/ui/screen/useSearchMapPreviewSearchLifecycle";
 import type { SearchResult } from "packages/features/search/types";
 import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/map/locationBoundsOverlay";
 import { normalizeIsochroneApiData } from "packages/features/search/utils/map/normalizeIsochroneApiData";

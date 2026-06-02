@@ -1,4 +1,4 @@
-import type { SearchResult } from "packages/features/search/types/domain/result";
+import type { SearchResult } from "packages/types";
 import type { SavedHome } from "packages/types/domain/savedHome";
 
 /**

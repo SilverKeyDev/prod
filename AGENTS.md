@@ -33,13 +33,13 @@ Run `make help` for the full list. Common targets:
 | `make dev` | Web + backend (`scripts/run/run-web.sh`) |
 | `make dev-web` / `make mobile` | Vite web only / Expo mobile |
 | `make dev-backend` | Backend stack only |
-| `make lint` | `./scripts/run-all-linters.sh all` (fix phase, then checks) |
+| `make lint` | `./scripts/ci/run-all-linters.sh all` (fix phase, then checks) |
 | `make lint-client` / `make lint-server` | Client or server linters only |
 | `make typecheck` / `make check-client` | Client typecheck / full `pnpm check` |
 | `make test` / `make test-fe` / `make test-be` | Vitest + Server pytest |
 | `make openapi` | Regenerate TS + Python types from `openapi/` |
 | `make openapi-verify` | Regenerate, fail on git drift, contract tests |
-| `make check-docs` | Doc placement + link checks (`scripts/check-doc-*.sh`) |
+| `make check-docs` | Doc placement + link checks (`scripts/ci/check-doc-*.sh`) |
 
 ---
 
@@ -60,7 +60,7 @@ pnpm check                # typecheck + lint + format + cycles + audit + build:w
 cd Server && pytest       # or: make test-be from repo root
 
 # Repo-wide linters (fix first, then verify — same order as CI)
-./scripts/run-all-linters.sh client|server|all
+./scripts/ci/run-all-linters.sh client|server|all
 # equivalent: make lint
 ```
 
@@ -94,7 +94,7 @@ cd Server && pytest       # or: make test-be from repo root
 | `Server/` | Flask API, services, tests, `scripts/` (venv, lint, secrets) |
 | `openapi/` | OpenAPI 3.1 sources → generated TS/Python types |
 | `documentation/` | Canonical human docs (incl. `documentation/server/ops/`) |
-| `scripts/` | `setup-local.sh`, `refresh.sh`, `run-all-linters.sh`, `run/` dev stacks |
+| `scripts/` | `scripts/setup/`, `scripts/ci/run-all-linters.sh`, `scripts/run/` dev stacks |
 | `.cursor/` | Rules (`.mdc`), skills, agent personas — [.cursor/README.md](./.cursor/README.md) |
 | `.github/` | CI workflows and PR templates |
 
@@ -106,7 +106,7 @@ cd Server && pytest       # or: make test-be from repo root
 - **UI primitives:** [documentation/client/standards/LINTING.md](./documentation/client/standards/LINTING.md), `.cursor/rules/frontend/ui-components.mdc`
 - **CI gates (client):** typecheck, lint (incl. cycles + max-lines), format, then full `pnpm check` — [.cursor/rules/shared/ci-gates.mdc](./.cursor/rules/shared/ci-gates.mdc)
 - **Docs placement:** `documentation/HOW_WE_DOCUMENT.md`
-- **PR bar:** Same gates as CI (`pnpm check`, `./scripts/run-all-linters.sh server` or `make lint`)
+- **PR bar:** Same gates as CI (`pnpm check`, `./scripts/ci/run-all-linters.sh server` or `make lint`)
 
 ---
 
@@ -158,7 +158,7 @@ cd Server && pytest       # or: make test-be from repo root
 | Client (full) | `cd Client && pnpm check` or `make check-client` |
 | Client tests | `cd Client && pnpm test:run` or `make test-fe` |
 | Server tests | `make test-be` (venv + `TESTING=true`) |
-| Repo-wide lint | `./scripts/run-all-linters.sh all` or `make lint` |
+| Repo-wide lint | `./scripts/ci/run-all-linters.sh all` or `make lint` |
 | Documentation | `make check-docs` (placement + internal links) |
 | OpenAPI | `make openapi` → commit generated files; `make openapi-verify` before PR |
 

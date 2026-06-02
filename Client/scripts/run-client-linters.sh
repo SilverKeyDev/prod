@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Client lint entry: auto-runs every scripts/lint.d/*.sh (sorted by path), then pnpm check.
 # Add a new linter: add scripts/lint.d/20_name.sh and chmod +x (use numeric prefixes for order).
-# Auto-fix runs in scripts/run-all-linters.sh (fix:quiet) before this script; only failures are printed here.
+# Auto-fix runs in scripts/ci/run-all-linters.sh (fix:quiet) before this script; only failures are printed here.
 set -euo pipefail
 
 CLIENT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

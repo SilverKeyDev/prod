@@ -32,7 +32,7 @@ pnpm typecheck && pnpm lint
 Repo-wide when appropriate:
 
 ```bash
-./scripts/run-all-linters.sh client
+./scripts/ci/run-all-linters.sh client
 ```
 
 OpenAPI edits: follow **`.cursor/rules/shared/openapi-workflow.mdc`** (regenerate TS + Pydantic; never hand-edit generated contract files).

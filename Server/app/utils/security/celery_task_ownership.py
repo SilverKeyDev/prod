@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import threading
 
-from app.utils.cache.optional_redis_json_cache import _get_redis
+from app.utils.cache.redis_client import get_shared_redis
 
 _TASK_OWNER_PREFIX = "v1:celery_task_owner:"
 _DEFAULT_TTL_SECONDS = 86400
@@ -32,7 +32,7 @@ def register_task_owner(
             _testing_owners[tid] = uid
         return
 
-    r = _get_redis()
+    r = get_shared_redis()
     if r is None:
         return
     try:
@@ -53,7 +53,7 @@ def verify_task_owner(task_id: str, user_id: str) -> bool:
             owner = _testing_owners.get(tid)
         return owner is not None and owner == uid
 
-    r = _get_redis()
+    r = get_shared_redis()
     if r is None:
         return False
     try:

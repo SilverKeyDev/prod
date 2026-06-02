@@ -12,11 +12,11 @@ import {
   useTogglePartnerActive,
   useUpdatePartner,
 } from "packages/features/partners/hooks/useAdminPartners";
-import { formatCtrPercent } from "packages/features/partners/utils/revShareRedirectUrl";
 import { ConfirmationDialog } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
+import { formatCtrPercent } from "packages/utils/revShare/revShareRedirectUrl";
 
 import Card from "@/components/layout/Card.web";
 import { Button } from "@/components/ui";

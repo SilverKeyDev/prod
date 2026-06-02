@@ -7,13 +7,27 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 cd "$REPO_ROOT" || exit 0
 
-echo "pre-push: verifying OpenAPI sync and contract gates..."
-make openapi-verify
+echo "pre-push: verifying OpenAPI sync (contract tests deferred to test-be)..."
+make openapi-verify-pre-push
 
-echo "pre-push: running frontend tests..."
-make test-fe
+echo "pre-push: running frontend and backend tests in parallel..."
+FE_PID=""
+BE_PID=""
+FE_STATUS=0
+BE_STATUS=0
 
-echo "pre-push: running backend tests..."
-make test-be
+make test-fe &
+FE_PID=$!
+
+make test-be &
+BE_PID=$!
+
+wait "$FE_PID" || FE_STATUS=$?
+wait "$BE_PID" || BE_STATUS=$?
+
+if [[ "$FE_STATUS" -ne 0 || "$BE_STATUS" -ne 0 ]]; then
+  echo "pre-push: failed (frontend exit=$FE_STATUS, backend exit=$BE_STATUS)" >&2
+  exit 1
+fi
 
 echo "pre-push: all checks passed."

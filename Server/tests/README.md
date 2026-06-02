@@ -11,8 +11,31 @@ This test suite provides comprehensive coverage for:
 3. **Calendar Management** - Events, calendar operations, sharing, availability
 4. **API Endpoints** - Auth routes, DocuSign routes, Calendar routes
 5. **Home Matching** - MCDA scoring algorithms, blend scores
+6. **Security-critical paths** - File upload validation, transaction authz, secure upload routes
+7. **Negotiation / offer** - Strategy payload construction and agent client-scope checks
+8. **Documents / aggregation / forms** - S3 presign, preferences write, agent-only forms library
 
-## Environment variables
+## Coverage gaps (audit)
+
+Strongest areas: search/home matching (`tests/unit/search/`, `tests/unit/home_matching/`), auth, DocuSign, calendar, rev-share.
+
+Recent additions target former weak spots:
+
+| Area | Test location |
+| ---- | ------------- |
+| File upload security | `tests/unit/utils/security/test_file_security.py` |
+| Secure upload routes | `tests/unit/routes/documents/test_routes_secure_upload.py` |
+| Transaction access | `tests/unit/services/transactions/test_access.py` |
+| Negotiation / offer | `tests/unit/services/negotiation/`, `tests/unit/routes/offer/` |
+| Documents S3 presign | `tests/unit/services/documents/test_s3_presign_and_validation.py` |
+| Preferences write | `tests/unit/services/aggregation/test_preferences_aggregation_write.py` |
+| Forms library auth | `tests/unit/routes/forms/test_routes_forms_library.py` |
+| Celery tasks | `tests/unit/celery/` |
+| Research helpers | `tests/unit/services/research/` |
+| Email formatting | `tests/unit/services/email_jobs/` (not `email/` — stdlib name clash) |
+
+Still thin or untested at unit level: full research Perplexity/PDF pipeline E2E, ORM model unit tests, chatbot routes, most Celery retry/backoff edge cases. Search polygon/preference tests live under `tests/unit/search/polygon/` and `tests/unit/search/preferences/` (flat duplicates removed).
+
 
 **You do not need a production `.env` or secrets from `Server/.env.example` to run pytest.**
 
@@ -61,9 +84,7 @@ pytest tests/
 
 ```bash
 # Authentication tests
-pytest tests/unit/test_auth_login.py
-pytest tests/unit/test_auth_signup.py
-pytest tests/unit/test_auth_refresh.py
+pytest tests/unit/auth/
 
 # DocuSign integration tests
 pytest tests/unit/integrations/docusign/
@@ -72,8 +93,11 @@ pytest tests/unit/integrations/docusign/
 pytest tests/unit/integrations/calendar/
 
 # Home matching tests
-pytest tests/unit/test_home_matching_score.py
-pytest tests/unit/test_home_matching_blend.py
+pytest tests/unit/home_matching/
+
+# Search (canonical subfolders)
+pytest tests/unit/search/polygon/
+pytest tests/unit/search/preferences/
 
 # API routes tests (by domain under tests/unit/routes/)
 pytest tests/unit/routes/auth/
@@ -112,7 +136,7 @@ pytest tests/unit/test_auth_login.py::TestLoginFlow::test_successful_login
 
 ### Unit Tests (`tests/unit/`)
 
-- **Authentication**: `test_auth_*.py`
+- **Authentication** (`tests/unit/auth/`): `test_auth_*.py`
   - `test_auth_login.py` - Login flow tests
   - `test_auth_signup.py` - Signup flow tests
   - `test_auth_refresh.py` - Token refresh tests

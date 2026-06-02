@@ -35,8 +35,8 @@ Use this when shipping **cross-cutting** work (routing shells, workspace/auth mo
 
 ## Verification
 
-- [ ] **Quality gates** — `pnpm check` (Client) and/or `./scripts/run-all-linters.sh` as appropriate before merge.
-- [ ] **Documentation** — `make check-docs` when adding or moving markdown (`scripts/check-doc-placement.sh`, `scripts/check-doc-links.sh`).
+- [ ] **Quality gates** — `pnpm check` (Client) and/or `./scripts/ci/run-all-linters.sh` as appropriate before merge.
+- [ ] **Documentation** — `make check-docs` when adding or moving markdown (`scripts/ci/check-doc-placement.sh`, `scripts/ci/check-doc-links.sh`).
 
 ## Related docs
 

@@ -3,8 +3,7 @@ import { queryKeys } from "packages/config/query/keys";
 import { requireApiSuccessData } from "packages/services/data/apiRouteResponse";
 import type { RouteConfig } from "packages/services/data/dataRouteTypes";
 import type { UserProfile } from "packages/types";
-
-import { calculateCalendarDateRange } from "@/features/calendar/utils/core/date";
+import { calculateCalendarDateRange } from "packages/utils/calendar/core/date";
 
 export const calendarRoutes = {
   googleCalendarConnection: {

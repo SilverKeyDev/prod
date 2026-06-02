@@ -121,8 +121,8 @@ Use **WSL2** with Linux steps above.
 | `make clean-caches` | Remove regenerable caches only (no install) |
 | `make secrets` | Re-fetch `Server/.env` only |
 | `make dev` | Web + API |
-| `./scripts/check-deps.sh` | Check node/pnpm/python/redis (+ aws unless `--skip-secrets`) |
-| `./scripts/setup-mcp.sh` | Same as `make setup-mcp` |
+| `./scripts/setup/check-deps.sh` | Check node/pnpm/python/redis (+ aws unless `--skip-secrets`) |
+| `./scripts/setup/setup-mcp.sh` | Same as `make setup-mcp` |
 
 ### Setup flags
 
@@ -161,7 +161,7 @@ The script always runs **all four phases**, then prints one combined **summary**
 ```bash
 make setup-mcp
 # equivalent:
-./scripts/setup-mcp.sh
+./scripts/setup/setup-mcp.sh
 
 # Do not run Homebrew installs (check/verify only):
 MCP_NO_INSTALL=true make setup-mcp

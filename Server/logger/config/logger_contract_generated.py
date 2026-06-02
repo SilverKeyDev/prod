@@ -1,6 +1,6 @@
 """AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY.
 
-Modify scripts/log-contracts/categories.yaml, then run: make log-contracts
+Modify scripts/log_contracts/categories.yaml, then run: make log-contracts
 """
 
 from typing import Any

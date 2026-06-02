@@ -44,6 +44,33 @@ def _seed_agent_buyer_tx(db_session):
 
 
 @pytest.mark.api
+def test_get_transaction_tasks_forbidden_when_agent_does_not_manage_client(
+    client, app: Flask, db_session
+) -> None:
+    with app.app_context():
+        agent_id, buyer_id, tx_id = _seed_agent_buyer_tx(db_session)
+        db_session.session.commit()
+
+    actor = SimpleNamespace(id=agent_id)
+
+    with (
+        patch("app.services.auth.get_current_user", return_value=actor),
+        patch(
+            "app.routes.transactions.build_task_checklist_data",
+            side_effect=AssertionError("GET must not run when forbidden"),
+        ),
+    ):
+        resp = client.get(
+            f"/api/v1/transactions/{tx_id}/tasks?type=closing",
+            headers={"Authorization": "Bearer mock_token"},
+        )
+        assert resp.status_code == 403
+        body = resp.get_json()
+        assert body is not None
+        assert body.get("success") is False
+
+
+@pytest.mark.api
 def test_put_transaction_tasks_forbidden_when_agent_does_not_manage_client(
     client, app: Flask, db_session
 ) -> None:

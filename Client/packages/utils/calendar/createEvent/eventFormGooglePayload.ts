@@ -1,4 +1,4 @@
-import type { GoogleEvent } from "packages/features/calendar/types/googleEvent";
+import type { GoogleEvent } from "packages/types";
 import { dayjs } from "packages/utils/date";
 
 const YMD_REGEX = /^\d{4}-\d{2}-\d{2}$/;

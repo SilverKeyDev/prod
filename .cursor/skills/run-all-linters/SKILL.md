@@ -12,10 +12,10 @@ When the user asks for **linter errors**, **lint status**, **run linters**, **ch
 From repo root:
 
 ```bash
-./scripts/run-all-linters.sh all
+./scripts/ci/run-all-linters.sh all
 ```
 
-Use scope `client` or `server` only when the user specifies (e.g. "client linter errors" → `./scripts/run-all-linters.sh client`).
+Use scope `client` or `server` only when the user specifies (e.g. "client linter errors" → `./scripts/ci/run-all-linters.sh client`).
 
 ## What the script does
 

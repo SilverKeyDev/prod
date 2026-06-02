@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
-
 import {
   eventSpansMultipleLocalDays,
   getEventFirstLocalDayKey,
   getEventLocalDayKeys,
-} from "./eventParsing";
+} from "packages/utils/calendar/parsing/eventParsing";
+
+import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 
 function allDayEvent(startYmd: string, endExclusiveYmd: string): GoogleEvent {
   return {

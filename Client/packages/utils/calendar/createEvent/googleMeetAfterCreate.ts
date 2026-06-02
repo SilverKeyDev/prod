@@ -1,4 +1,3 @@
-import { getEvent } from "packages/features/calendar/api/events";
 import type { components } from "packages/types/api.generated";
 import { getNavigator } from "packages/utils/platform";
 
@@ -10,6 +9,16 @@ type ConferenceDataLike = {
   } | null;
 } | null;
 
+export type FetchGoogleEventResult = {
+  success: boolean;
+  data?: { hangoutLink?: string | null } | null;
+};
+
+export type FetchGoogleEventFn = (
+  eventId: string,
+  calendarId: string
+) => Promise<FetchGoogleEventResult>;
+
 export function isGoogleMeetProvisioningPending(event: GoogleEvent): boolean {
   const cd = event.conferenceData as ConferenceDataLike;
   return cd?.createRequest?.status?.statusCode === "pending";
@@ -20,11 +29,12 @@ const POLL_MAX_MS = 10_000;
 
 export async function pollGoogleMeetHangoutLink(
   eventId: string,
-  calendarId: string
+  calendarId: string,
+  fetchEvent: FetchGoogleEventFn
 ): Promise<string | null> {
   const deadline = Date.now() + POLL_MAX_MS;
   while (Date.now() < deadline) {
-    const res = await getEvent(eventId, calendarId);
+    const res = await fetchEvent(eventId, calendarId);
     if (!res.success || !res.data) {
       break;
     }

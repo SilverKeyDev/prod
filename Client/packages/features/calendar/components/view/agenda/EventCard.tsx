@@ -10,6 +10,7 @@ import { useUIStore } from "packages/store";
 import { Button, CancelButton } from "packages/ui";
 import DeleteModal from "packages/ui/components/modals/standalone/DeleteModal";
 import { Box, Text, TouchableBox } from "packages/ui/components/primitives";
+import { getEventEndDate, getEventStartDate } from "packages/utils/calendar/parsing/eventParsing";
 import {
   formatLocaleTime12HourEnUs,
   formatLocaleWeekdayShortMonthDayEnUs,
@@ -20,7 +21,6 @@ import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 import { calendarColorForEvent } from "@/features/calendar/utils/createEventModal/calendarEventColors";
-import { getEventEndDate, getEventStartDate } from "@/features/calendar/utils/parsing/eventParsing";
 import {
   formatViewingItinerarySummaryLines,
   itineraryCanOpenNavigation,

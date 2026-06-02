@@ -19,8 +19,7 @@ export function formatPriceRange(min: number, max: number): string {
   return `${minStr} – ${maxStr}`;
 }
 
-const formatCount = (v: number) =>
-  v === 0 ? "Any" : v >= 8 ? "8+" : String(v);
+const formatCount = (v: number) => (v === 0 ? "Any" : v >= 8 ? "8+" : String(v));
 
 /**
  * Format beds range for filter chip display (e.g. "4–8+ beds" or "Any–5 beds").
@@ -47,7 +46,7 @@ export function getBedBathSummary(
   minBeds: number,
   maxBeds: number,
   minBaths: number,
-  maxBaths: number,
+  maxBaths: number
 ): string {
   const beds = formatBedsSummary(minBeds, maxBeds);
   const baths = formatBathsSummary(minBaths, maxBaths);

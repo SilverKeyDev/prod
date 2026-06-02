@@ -1,9 +1,0 @@
-# Legacy file — superseded by `.cursor/rules/*.mdc` and [AGENTS.md](AGENTS.md).
-
-Cursor loads project rules from **`.cursor/rules/`**. Behavioral constraints (markdown, lint bar, quality) live in:
-
-- `.cursor/rules/shared/linting.mdc`
-- `.cursor/rules/shared/documentation.mdc` (canonical prose lives under **`documentation/`**, not repo-root `docs/`)
-- `.cursor/rules/shared/monorepo.mdc`
-
-See also **[`.cursor/README.md`](.cursor/README.md)** for layout and how to add rules.

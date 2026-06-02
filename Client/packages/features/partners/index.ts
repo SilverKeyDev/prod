@@ -3,5 +3,8 @@ export { AdminPartnersManageTab } from "./components/admin/AdminPartnersManageTa
 export { PartnerPlacementCard } from "./components/PartnerPlacementCard";
 export { PartnerRevSharePlacement } from "./components/PartnerRevSharePlacement";
 export { default as PartnerTransactionIntegration } from "./components/PartnerTransactionIntegration";
-export { buildRevShareRedirectUrl, formatCtrPercent } from "./utils/revShareRedirectUrl";
-export { buildStepId } from "./utils/stepId";
+export { buildStepId } from "packages/utils/checklists/stepId";
+export {
+  buildRevShareRedirectUrl,
+  formatCtrPercent,
+} from "packages/utils/revShare/revShareRedirectUrl";

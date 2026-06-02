@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   canResizeWeekTimedEvent,
   clampSnapTimedRangeForSameDay,
-} from "./calendarWeekTimedEventResize";
+} from "packages/utils/calendar/grid/calendarWeekTimedEventResize";
 
 describe("canResizeWeekTimedEvent", () => {
   it("returns false for all-day events", () => {

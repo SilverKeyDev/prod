@@ -3,6 +3,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import type { CreateTodoRequest } from "packages/features/agent/api/agent";
 import { googleCalendarApi } from "packages/features/calendar/api";
+import { getEvent } from "packages/features/calendar/api/events";
 import type { GoogleEventCreateResponse } from "packages/features/calendar/api/types";
 import { showErrorToast, showInfoToast } from "packages/hooks/ui/toast";
 import {
@@ -71,7 +72,7 @@ export async function submitAgendaItemAsGoogleCalendarEvent(
         : null;
     if (!meetLink && created.id && isGoogleMeetProvisioningPending(created)) {
       showInfoToast("Meet link generating…");
-      meetLink = await pollGoogleMeetHangoutLink(created.id, options.calendarId);
+      meetLink = await pollGoogleMeetHangoutLink(created.id, options.calendarId, getEvent);
     }
     if (meetLink) {
       const copied = await copyTextToClipboard(meetLink);

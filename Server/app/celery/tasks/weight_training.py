@@ -3,7 +3,7 @@ from logger import LOG_CATEGORIES, log
 
 
 # Weight Training Tasks
-@celery.task(name="tasks.train_user_weights_task", bind=True)
+@celery.task(name="tasks.train_user_weights_task", bind=True, queue="heavy")
 def train_user_weights_task(self, user_id: str, force: bool = False):
     """
     Celery task to train weights for a specific user.
@@ -49,7 +49,7 @@ def train_user_weights_task(self, user_id: str, force: bool = False):
         return {"success": False, "error": str(e), "user_id": user_id}
 
 
-@celery.task(name="tasks.train_all_eligible_users_task", bind=True)
+@celery.task(name="tasks.train_all_eligible_users_task", bind=True, queue="heavy")
 def train_all_eligible_users_task(self, limit: int = 100):
     """
     Celery task to train weights for all eligible users.

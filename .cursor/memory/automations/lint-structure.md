@@ -4,7 +4,7 @@
 
 ## Do
 
-1. `./scripts/run-all-linters.sh client` or `server` per touched area (or `make lint`).
+1. `./scripts/ci/run-all-linters.sh client` or `server` per touched area (or `make lint`).
 2. Fix only lint/type/format/import issues in files already in scope.
 3. Enforce thin-app, UI primitives, logging rules when touching those files.
 

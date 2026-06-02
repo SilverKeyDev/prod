@@ -29,6 +29,24 @@ STACK_IMAGE=""
 ENV_FILE=""
 DEPLOY_ENV_FILE="/root/.deploy_env"
 NETWORK_NAME="cre_network"
+STACK_CONTAINER_NAMES=(cre_app cre_worker cre_beat cre_worker_heavy redis)
+
+scale_env_docker_flags() {
+  local image_tag="${1:-}"
+  printf '%s' \
+    "-e WEB_CONCURRENCY=${WEB_CONCURRENCY:-4} " \
+    "-e GUNICORN_THREADS=${GUNICORN_THREADS:-8} " \
+    "-e GUNICORN_MAX_REQUESTS=${GUNICORN_MAX_REQUESTS:-1000} " \
+    "-e GUNICORN_WORKER_CLASS=${GUNICORN_WORKER_CLASS:-gthread} " \
+    "-e DB_POOL_SIZE=${DB_POOL_SIZE:-5} " \
+    "-e DB_MAX_OVERFLOW=${DB_MAX_OVERFLOW:-10} " \
+    "-e CELERY_CONCURRENCY=${CELERY_CONCURRENCY:-4} " \
+    "-e CELERY_WORKER_POOL=${CELERY_WORKER_POOL:-prefork} " \
+    "-e TRUST_PROXY_HEADERS=${TRUST_PROXY_HEADERS:-true} "
+  if [ -n "$image_tag" ]; then
+    printf '%s' "-e DEPLOY_IMAGE_TAG=${image_tag} "
+  fi
+}
 
 cleanup_deploy_temp_files() {
   rm -f "${ENV_BUILD:-}" "${DEPLOY_ENV_EXAMPLE:-}" 2>/dev/null || true
@@ -93,7 +111,7 @@ print_deploy_failure_report() {
   echo "ROLLBACK_IMAGE=${ROLLBACK_IMAGE:-}"
   echo ""
   local c
-  for c in cre_app cre_worker redis; do
+  for c in "${STACK_CONTAINER_NAMES[@]}"; do
     if sudo docker inspect "$c" >/dev/null 2>&1; then
       echo "--- $c (inspect) ---"
       sudo docker inspect "$c" --format 'status={{.State.Status}} exit={{.State.ExitCode}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}} cmd={{json .Config.Cmd}}' 2>/dev/null || true
@@ -122,7 +140,7 @@ verify_deploy_image_is_app_server() {
   inspect_image_cmd "$image" >/dev/null
   local cmd
   cmd=$(sudo docker image inspect --format='{{json .Config.Cmd}}' "$image" 2>/dev/null || echo "")
-  if ! echo "$cmd" | grep -q gunicorn; then
+  if ! echo "$cmd" | grep -qE 'gunicorn|gunicorn-entrypoint'; then
     echo "❌ Deploy image CMD does not include gunicorn."
     if echo "$cmd" | grep -qE 'flask|db upgrade'; then
       echo "   This image is the migrate target (flask db upgrade). It exits after Alembic and never serves /livez."
@@ -196,7 +214,7 @@ capture_rollback_snapshot() {
 
 stop_app_stack() {
   deploy_phase "BEGIN stop running stack"
-  for name in cre_app cre_worker redis; do
+  for name in "${STACK_CONTAINER_NAMES[@]}"; do
     sudo docker rm -f "$name" >/dev/null 2>&1 || true
   done
   sudo docker network rm "$NETWORK_NAME" >/dev/null 2>&1 || true
@@ -245,6 +263,7 @@ start_app_container() {
   local env_file="${2:?env file required}"
 
   echo "🚀 Starting App ($image)..."
+  # shellcheck disable=SC2046
   sudo docker run -d \
     --name cre_app \
     --network "$NETWORK_NAME" \
@@ -255,6 +274,7 @@ start_app_container() {
     -e FLASK_ENV="production" \
     -e REDIS_URL="redis://redis:6379/0" \
     -e AWS_REGION="${AWS_REGION}" \
+    $(scale_env_docker_flags "${IMAGE_TAG:-}") \
     "$image" >/dev/null
 
   deploy_phase "BEGIN App container start wait (poll up to 120s)"
@@ -315,6 +335,7 @@ start_worker_container() {
   local env_file="${2:?env file required}"
 
   echo "🚀 Starting Worker ($image)..."
+  # shellcheck disable=SC2046
   sudo docker run -d \
     --name cre_worker \
     --network "$NETWORK_NAME" \
@@ -324,8 +345,9 @@ start_worker_container() {
     -e FLASK_ENV="production" \
     -e REDIS_URL="redis://redis:6379/0" \
     -e AWS_REGION="${AWS_REGION}" \
+    $(scale_env_docker_flags "${IMAGE_TAG:-}") \
     "$image" \
-    celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1
+    celery -A app.celery.celery_worker:celery worker --loglevel=info -Q default,heavy,docusign >/dev/null 2>&1
 
   deploy_phase "BEGIN Worker container start wait (sleep 5s)"
   echo "⏳ Waiting for Worker to start..."
@@ -349,6 +371,67 @@ start_worker_container() {
   deploy_phase "END Worker Docker health wait"
 }
 
+start_beat_container() {
+  local image="${1:?image required}"
+  local env_file="${2:?env file required}"
+
+  echo "🚀 Starting Celery Beat ($image)..."
+  # shellcheck disable=SC2046
+  sudo docker run -d \
+    --name cre_beat \
+    --network "$NETWORK_NAME" \
+    --env-file "$env_file" \
+    -e FLASK_ENV="production" \
+    -e REDIS_URL="redis://redis:6379/0" \
+    -e AWS_REGION="${AWS_REGION}" \
+    $(scale_env_docker_flags "${IMAGE_TAG:-}") \
+    "$image" \
+    celery -A app.celery.celery_worker:celery beat --loglevel=info >/dev/null 2>&1
+
+  sleep 5
+  local beat_state
+  beat_state=$(sudo docker inspect --format='{{.State.Status}}' cre_beat 2>/dev/null || echo "missing")
+  if [ "$beat_state" != "running" ]; then
+    echo "❌ Celery Beat container is not running! Status: $beat_state"
+    dump_container_diagnostics cre_beat
+    return 1
+  fi
+}
+
+start_heavy_worker_container() {
+  local image="${1:?image required}"
+  local env_file="${2:?env file required}"
+
+  if [ "${DEPLOY_HEAVY_WORKER:-false}" != "true" ]; then
+    echo "ℹ️ DEPLOY_HEAVY_WORKER not true; skipping dedicated heavy worker container."
+    return 0
+  fi
+
+  echo "🚀 Starting Heavy Worker ($image)..."
+  # shellcheck disable=SC2046
+  sudo docker run -d \
+    --name cre_worker_heavy \
+    --network "$NETWORK_NAME" \
+    --health-cmd="celery -A app.celery.celery_worker:celery inspect ping || exit 1" \
+    --health-interval=60s --health-timeout=30s --health-retries=3 --health-start-period=60s \
+    --env-file "$env_file" \
+    -e FLASK_ENV="production" \
+    -e REDIS_URL="redis://redis:6379/0" \
+    -e AWS_REGION="${AWS_REGION}" \
+    $(scale_env_docker_flags "${IMAGE_TAG:-}") \
+    "$image" \
+    celery -A app.celery.celery_worker:celery worker --loglevel=info -Q heavy >/dev/null 2>&1
+
+  sleep 5
+  local heavy_state
+  heavy_state=$(sudo docker inspect --format='{{.State.Status}}' cre_worker_heavy 2>/dev/null || echo "missing")
+  if [ "$heavy_state" != "running" ]; then
+    echo "❌ Heavy worker container is not running! Status: $heavy_state"
+    dump_container_diagnostics cre_worker_heavy
+    return 1
+  fi
+}
+
 start_application_stack() {
   local image="${1:?image required}"
   local env_file="${2:?env file required}"
@@ -357,6 +440,8 @@ start_application_stack() {
   start_redis_container
   start_app_container "$image" "$env_file"
   start_worker_container "$image" "$env_file"
+  start_beat_container "$image" "$env_file"
+  start_heavy_worker_container "$image" "$env_file"
 }
 
 prune_docker_after_success() {
@@ -579,6 +664,27 @@ if [ "$WORKER_STATE" != "running" ] || [ "$WORKER_HEALTH" != "healthy" ]; then
   FAILED_CONTAINERS+=("cre_worker")
 else
   echo "✅ Worker: $WORKER_STATE ($WORKER_HEALTH)"
+fi
+
+BEAT_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_beat 2>/dev/null || echo "missing")
+if [ "$BEAT_STATE" != "running" ]; then
+  echo "❌ Celery Beat is not running! Status: $BEAT_STATE"
+  dump_container_diagnostics cre_beat
+  FAILED_CONTAINERS+=("cre_beat")
+else
+  echo "✅ Celery Beat: $BEAT_STATE"
+fi
+
+if [ "${DEPLOY_HEAVY_WORKER:-false}" = "true" ]; then
+  HEAVY_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_worker_heavy 2>/dev/null || echo "missing")
+  HEAVY_HEALTH=$(sudo docker inspect --format='{{.State.Health.Status}}' cre_worker_heavy 2>/dev/null || echo "unknown")
+  if [ "$HEAVY_STATE" != "running" ] || [ "$HEAVY_HEALTH" != "healthy" ]; then
+    echo "❌ Heavy worker is not healthy! Status: $HEAVY_STATE, Health: $HEAVY_HEALTH"
+    dump_container_diagnostics cre_worker_heavy
+    FAILED_CONTAINERS+=("cre_worker_heavy")
+  else
+    echo "✅ Heavy worker: $HEAVY_STATE ($HEAVY_HEALTH)"
+  fi
 fi
 
 if [ ${#FAILED_CONTAINERS[@]} -gt 0 ]; then

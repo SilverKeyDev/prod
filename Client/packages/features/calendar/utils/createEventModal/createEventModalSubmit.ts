@@ -5,6 +5,7 @@ import {
   buildCreateEventGoogleStartEnd,
   CREATE_EVENT_TIME_STEP_MINUTES,
 } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
+import { detectEventTypeFromTitle } from "packages/utils/calendar/parsing/detectEventTypeFromTitle";
 
 import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
@@ -25,7 +26,6 @@ import {
   viewingStopsHaveAtLeastOneAddress,
 } from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
-import { detectEventTypeFromTitle } from "./createEventModalDetectEventType";
 import {
   copyTextToClipboard,
   isGoogleMeetProvisioningPending,
