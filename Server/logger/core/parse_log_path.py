@@ -1,10 +1,10 @@
-"""Parse dot-notation and legacy log category inputs."""
+"""Parse dot-notation log category path inputs."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .categories import LOG_CATEGORIES, LOG_PATHS, LogCategory
+from .categories import LOG_PATHS, LogCategory
 
 
 @dataclass(frozen=True)
@@ -21,22 +21,12 @@ _API_SUBCATEGORIES = frozenset(
 )
 
 
-def _snake_to_camel(name: str) -> str:
-    parts = name.lower().split("_")
-    return parts[0] + "".join(part.capitalize() for part in parts[1:])
-
-
 def parse_log_path(value: LogCategory | str) -> ParsedLogPath:
     if isinstance(value, LogCategory):
-        label = value.value
-        return ParsedLogPath(
-            path=label,
-            category=value,
-            subcategory=None,
-            category_label=label,
-        )
+        normalized = value.value
+    else:
+        normalized = value.strip()
 
-    normalized = value.strip()
     if not normalized:
         raise ValueError("Log path must be a non-empty string")
 
@@ -70,14 +60,4 @@ def parse_log_path(value: LogCategory | str) -> ParsedLogPath:
                 category_label=normalized,
             )
 
-    if normalized in LOG_CATEGORIES:
-        category = LogCategory(normalized)
-        return ParsedLogPath(
-            path=normalized,
-            category=category,
-            subcategory=None,
-            category_label=normalized,
-        )
-
-    _snake_to_camel(normalized)
     raise ValueError(f"Unknown log path: {normalized}")

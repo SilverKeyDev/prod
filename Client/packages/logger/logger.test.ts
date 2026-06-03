@@ -6,7 +6,6 @@ vi.mock("./sinks/posthogLogSink", () => ({
   emitPostHogLog: posthogEmit,
 }));
 
-import { LOG_CATEGORIES } from "./core/categories";
 import type { log as LogApi } from "./logger";
 
 describe("logger emit gating", () => {
@@ -53,14 +52,14 @@ describe("logger emit gating", () => {
   });
 
   it("does not console-log disabled categories in dev", () => {
-    log.info(LOG_CATEGORIES.POLLING, "polling message");
+    log.info("POLLING", "polling message");
     expect(infoSpy).not.toHaveBeenCalled();
     expect(posthogEmit).not.toHaveBeenCalled();
   });
 
   it("console-logs enabled categories in dev", () => {
     log.updateConfig({ polling: true, logLevel: "INFO" });
-    log.info(LOG_CATEGORIES.POLLING, "polling message");
+    log.info("POLLING", "polling message");
     expect(infoSpy).toHaveBeenCalled();
     expect(posthogEmit).not.toHaveBeenCalled();
   });
@@ -68,12 +67,12 @@ describe("logger emit gating", () => {
   it("exports to PostHog in dev when opted in", () => {
     process.env.EXPO_PUBLIC_LOGGER_POSTHOG = "1";
     log.updateConfig({ polling: true, logLevel: "INFO" });
-    log.info(LOG_CATEGORIES.POLLING, "polling message");
+    log.info("POLLING", "polling message");
     expect(posthogEmit).toHaveBeenCalled();
   });
 
   it("always emits errors category in dev", () => {
-    log.error(LOG_CATEGORIES.ERRORS, "failure");
+    log.error("ERRORS", "failure");
     expect(errorSpy).toHaveBeenCalled();
   });
 

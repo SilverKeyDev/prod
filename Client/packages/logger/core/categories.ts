@@ -3,11 +3,11 @@
 
 export type { ApiSubcategory, LogCategory, LogPath } from "./categories.generated";
 export {
-  ALWAYS_ENABLED_CATEGORIES,
   API_SUBCATEGORIES,
+  ALWAYS_ENABLED_CATEGORIES,
+  LOG_CATEGORIES,
+  LOG_PATHS,
   apiSubcategoryToConfigKey,
   categoryToConfigKey,
   isAlwaysEnabled,
-  LOG_CATEGORIES,
-  LOG_PATHS,
 } from "./categories.generated";

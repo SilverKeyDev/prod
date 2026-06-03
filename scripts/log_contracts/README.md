@@ -49,6 +49,15 @@ log.info(LOG_CATEGORIES.API, "message", data, API_SUBCATEGORIES.POLLING);
 
 On the server, dot paths affect OTLP/export labels; gating still uses the top-level category (`api` boolean on server).
 
+```bash
+make log-contracts-migrate
+make log-contracts-migrate-check   # audit: exit 1 if LOG_CATEGORIES remains in log calls
+```
+
+Transforms `LOG_CATEGORIES.API` + `API_SUBCATEGORIES.POLLING` → `"API.POLLING"`, and bare categories → `"AUTH"`, etc. Review the diff before committing; dynamic API subcategory args become `` `API.${var}` ``.
+
+Client ESLint enforces the result via `silverkey/prefer-log-path` (error).
+
 ## Future ESLint migration
 
 To auto-fix legacy enums to dot notation later:

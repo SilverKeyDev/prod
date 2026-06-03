@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { LOG_CATEGORIES } from "./categories";
 import { parseLogPath } from "./parseLogPath";
 
 describe("parseLogPath", () => {
-  it("parses legacy enum category", () => {
-    const parsed = parseLogPath(LOG_CATEGORIES.AUTH);
+  it("parses top-level LogPath string", () => {
+    const parsed = parseLogPath("AUTH");
     expect(parsed).toEqual({
       path: "AUTH",
       category: "AUTH",
@@ -13,7 +12,7 @@ describe("parseLogPath", () => {
     });
   });
 
-  it("parses bare LogPath string", () => {
+  it("parses another bare LogPath string", () => {
     const parsed = parseLogPath("SEARCH");
     expect(parsed.category).toBe("SEARCH");
     expect(parsed.categoryLabel).toBe("SEARCH");
