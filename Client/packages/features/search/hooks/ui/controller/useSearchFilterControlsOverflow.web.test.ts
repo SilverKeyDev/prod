@@ -4,9 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import { useSearchFilterControlsOverflow } from "./useSearchFilterControlsOverflow.web";
 
 function createMeasuredElement(width: number): HTMLDivElement {
-  const element = document.createElement("div");
-  vi.spyOn(element, "getBoundingClientRect").mockReturnValue({ width } as DOMRect);
-  return element;
+  return {
+    getBoundingClientRect: vi.fn(() => ({ width }) as DOMRect),
+  } as unknown as HTMLDivElement;
 }
 
 function renderMeasuredOverflow({
@@ -18,10 +18,9 @@ function renderMeasuredOverflow({
   containerWidth: number;
   moreWidth: number;
 }): number {
-  const { rerender, result } = renderHook(
-    ({ width }) => useSearchFilterControlsOverflow(width),
-    { initialProps: { width: 0 } }
-  );
+  const { rerender, result } = renderHook(({ width }) => useSearchFilterControlsOverflow(width), {
+    initialProps: { width: 0 },
+  });
 
   result.current.measureRefs.current = chipWidths.map(createMeasuredElement);
   result.current.measureRefMore.current = createMeasuredElement(moreWidth);
