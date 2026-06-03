@@ -36,10 +36,10 @@ describe("getWorkspaceNavTabs", () => {
     );
   });
 
-  it("hides profile on mobile for buyer and agent", () => {
+  it("shows full mobile nav including profile for buyer and agent", () => {
     for (const ws of ["buyer", "agent"] as const) {
       const keys = getWorkspaceNavTabs(ws, true).map((t) => t.key);
-      expect(keys).not.toContain("profile");
+      expect(keys).toEqual(["dashboard", "search", "decide", "agent", "profile"]);
     }
   });
 });
