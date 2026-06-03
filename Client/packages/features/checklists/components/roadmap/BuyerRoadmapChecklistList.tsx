@@ -74,6 +74,8 @@ export type BuyerRoadmapChecklistListProps = {
   sectionProgress: Record<ChecklistTab, { isComplete: boolean }>;
   /** Navigates roadmap phase tabs (e.g. Search → Offer) when a section or row is gated. */
   onRoadmapTabNavigate?: (tab: ChecklistTab) => void;
+  /** Transaction subject for rev-share placement and integration context. */
+  transactionId?: string | null;
 };
 
 type TabDisclosure = { futureOpen: boolean; completedOpen: boolean };
@@ -106,6 +108,7 @@ export function BuyerRoadmapChecklistList({
   sectionProgress,
   onRoadmapTabNavigate,
   isChecklistUpdatePending = false,
+  transactionId,
 }: BuyerRoadmapChecklistListProps) {
   const { t } = useLocalization();
   const [dispatchModalItemId, setDispatchModalItemId] = useState<number | null>(null);
@@ -179,8 +182,10 @@ export function BuyerRoadmapChecklistList({
 
   const getRoadmapItemBlocker = useCallback(
     (itemId: number) =>
-      getRoadmapChecklistItemBlockerKind(sortedItems, checkedIds, itemId, !isSectionLocked),
-    [sortedItems, checkedIds, isSectionLocked]
+      getRoadmapChecklistItemBlockerKind(sortedItems, checkedIds, itemId, !isSectionLocked, {
+        isAgentViewer: isAgent === true,
+      }),
+    [sortedItems, checkedIds, isSectionLocked, isAgent]
   );
 
   const revealRoadmapItem = useCallback(
@@ -232,6 +237,7 @@ export function BuyerRoadmapChecklistList({
     onRoadmapTabNavigate,
     onRevealRoadmapItem: revealRoadmapItem,
     isChecklistUpdatePending,
+    transactionId,
   };
 
   return (

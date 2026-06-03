@@ -11,6 +11,7 @@ import {
   isString,
 } from "packages/utils/typeGuards";
 
+import { resolveFromApiShape, resolveGenericApiErrorFallback } from "./apiErrorShape";
 import {
   createAuthenticationError,
   createAuthorizationError,
@@ -30,12 +31,8 @@ export function normalizeError(error: unknown, context?: Record<string, unknown>
   }
 
   if (isApiError(error)) {
-    return createNetworkError(
-      error.message || error.error,
-      undefined,
-      undefined,
-      context?.url as string
-    );
+    const message = resolveFromApiShape(error) ?? resolveGenericApiErrorFallback();
+    return createNetworkError(message, undefined, undefined, context?.url as string);
   }
 
   if (isError(error)) {

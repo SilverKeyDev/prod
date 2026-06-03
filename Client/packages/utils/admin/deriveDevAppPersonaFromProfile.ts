@@ -1,3 +1,5 @@
+import type { Workspace } from "packages/utils/workspace";
+
 export type DevAppPersonaProfileInput = {
   is_agent: boolean;
   roles?: readonly string[] | undefined;
@@ -13,33 +15,54 @@ function normalizeRoles(roles: readonly string[] | undefined): Set<string> {
   return set;
 }
 
+function hasBrokerageSignals(
+  roleSet: Set<string>,
+  brokerageOrgIds: readonly string[] | null | undefined
+): boolean {
+  if (brokerageOrgIds?.some((id) => typeof id === "string" && id.trim().length > 0)) {
+    return true;
+  }
+  return (
+    roleSet.has("brokerage_admin") ||
+    roleSet.has("brokerage_administrator") ||
+    roleSet.has("broker_admin")
+  );
+}
+
+function hasIntegrationPartnerSignals(roleSet: Set<string>): boolean {
+  return (
+    roleSet.has("integration_partner") ||
+    roleSet.has("partner_integration") ||
+    roleSet.has("integration_partner_admin")
+  );
+}
+
 /**
- * Maps persisted profile (`users.is_agent` + roles / brokerage org ids) to the dev persona
- * buttons. Buyer vs seller uses `user_roles` when present; defaults to buyer for client shell.
+ * Maps persisted profile (`users.is_agent` + roles / brokerage org ids) to the active
+ * dev workspace persona. Mirrors production identity → workspace derivation for a single hat.
  */
 export function deriveDevAppPersonaFromProfile(
   user: DevAppPersonaProfileInput | null | undefined
-): "agent" | "broker" | "buyer" | "seller" | null {
+): Workspace | null {
   if (!user) return null;
 
+  const roleSet = normalizeRoles(user.roles);
+
+  if (hasIntegrationPartnerSignals(roleSet)) {
+    return "integration_partner";
+  }
+
+  if (hasBrokerageSignals(roleSet, user.brokerage_org_ids)) {
+    return "brokerage";
+  }
+
   if (user.is_agent) {
-    const roleSet = normalizeRoles(user.roles);
-    const hasBrokerageOrg =
-      user.brokerage_org_ids?.some((id) => typeof id === "string" && id.trim().length > 0) ?? false;
-    if (
-      hasBrokerageOrg ||
-      roleSet.has("brokerage_admin") ||
-      roleSet.has("brokerage_administrator") ||
-      roleSet.has("broker_admin")
-    ) {
-      return "broker";
-    }
     return "agent";
   }
 
-  const roleSet = normalizeRoles(user.roles);
-  if (roleSet.has("seller") && !roleSet.has("buyer")) return "seller";
-  if (roleSet.has("buyer") && !roleSet.has("seller")) return "buyer";
-  if (roleSet.has("seller") && roleSet.has("buyer")) return "buyer";
+  if (roleSet.has("seller") && !roleSet.has("buyer")) {
+    return "seller";
+  }
+
   return "buyer";
 }

@@ -141,7 +141,6 @@ class HomeDataRetriever:
     @staticmethod
     def enrich_with_scraping(
         home_data: dict[str, Any],
-        rapidapi_key: str | None = None,
         google_maps_api_key: str | None = None,
         user_preferences: Any | None = None,
     ) -> dict[str, Any]:
@@ -152,7 +151,6 @@ class HomeDataRetriever:
 
         Args:
             home_data: Home data dictionary to enrich
-            rapidapi_key: Unused (kept for backward compat)
             google_maps_api_key: Google Maps API key for commute data
             user_preferences: User preferences for commute calculation
 

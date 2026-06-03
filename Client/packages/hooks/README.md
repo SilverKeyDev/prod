@@ -85,7 +85,7 @@ function Component() {
 
 ```typescript
 // ✅ CORRECT: Component uses store integration hook
-import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
+import { useSavedHomesStoreIntegration } from "packages/hooks/store";
 
 function Component() {
   const { savedHomes, saveHome } = useSavedHomesStoreIntegration();

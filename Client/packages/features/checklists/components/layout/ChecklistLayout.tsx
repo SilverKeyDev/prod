@@ -4,13 +4,11 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { ChecklistUpdatePendingProvider } from "packages/features/checklists/components/roadmap/ChecklistUpdatePendingProvider";
-import {
-  type ChecklistType,
-  useChecklistData,
-} from "packages/features/checklists/hooks/data/useChecklistData";
+import { ChecklistSigningModals } from "packages/features/checklists/components/shared/ChecklistSigningModals";
 import { useAutoCompleteChecklistIntegrations } from "packages/features/checklists/hooks/useAutoCompleteChecklistIntegrations";
 import { useChecklistProgress } from "packages/features/checklists/hooks/useChecklistProgress";
 import { useChecklistStepExpansion } from "packages/features/checklists/hooks/useChecklistStepExpansion";
+import { useChecklistStepSigningFooter } from "packages/features/checklists/hooks/useChecklistStepSigningFooter";
 import type {
   ChecklistLayoutDisclosureState,
   CloseLayoutProps,
@@ -55,12 +53,14 @@ export default function CloseLayout({
   containerClassName = "py-0",
   showMinLoadingText = false,
   setClosePageHeaderData,
+  transactionId,
 }: CloseLayoutProps) {
   const { t } = useLocalization();
   const checklistType = useMemo(
     () => parseChecklistTypeFromApiEndpoint(apiEndpoint),
     [apiEndpoint]
   );
+  const roadmapTab = CHECKLIST_TYPE_TO_TAB[checklistType];
 
   const {
     items,
@@ -70,9 +70,11 @@ export default function CloseLayout({
     isLoading: loading,
     isChecklistUpdatePending,
     toggleItem,
-  } = useChecklistData(checklistType);
-  const { getItemToggleEligibility } = useChecklistProgress();
-  const roadmapTab = CHECKLIST_TYPE_TO_TAB[checklistType];
+    getItemToggleEligibility,
+  } = useChecklistProgress({
+    transactionId: transactionId ?? undefined,
+    activeSection: roadmapTab,
+  });
 
   const templateSortedItems = useMemo(() => sortTaskChecklistItems(items), [items]);
   const displaySortedItems = useMemo(
@@ -88,6 +90,17 @@ export default function CloseLayout({
     roadmapTab,
     isChecklistUpdatePending,
     isChecklistLoading: loading,
+  });
+
+  const {
+    renderSigningFooter,
+    agreementSigningSession,
+    dismissAgreementSigning,
+    onAgreementSigningComplete,
+  } = useChecklistStepSigningFooter({
+    checklistType,
+    activeItemIds,
+    isAgent: false,
   });
 
   const checkedById = React.useMemo(() => {
@@ -121,7 +134,7 @@ export default function CloseLayout({
   const { toggleExpand, isExpanded } = useChecklistStepExpansion(activeItemIds);
 
   const [disclosureByType, setDisclosureByType] = useState<
-    Partial<Record<ChecklistType, ChecklistLayoutDisclosureState>>
+    Partial<Record<string, ChecklistLayoutDisclosureState>>
   >({});
 
   const disclosure = disclosureByType[checklistType] ?? defaultDisclosure;
@@ -298,6 +311,8 @@ export default function CloseLayout({
                               commitToggleItem={toggleItem}
                               toggleExpand={toggleExpand}
                               isExpanded={isExpanded}
+                              transactionId={transactionId}
+                              renderItemFooter={renderSigningFooter}
                             />
                           );
                         }
@@ -317,6 +332,8 @@ export default function CloseLayout({
                           commitToggleItem={toggleItem}
                           toggleExpand={toggleExpand}
                           isExpanded={isExpanded}
+                          transactionId={transactionId}
+                          renderItemFooter={renderSigningFooter}
                         />
                       ))}
                   {useProgressive && disclosure.futureOpen && futureHidden > 0 ? (
@@ -338,6 +355,11 @@ export default function CloseLayout({
           </Box>
         </Box>
       </Box>
+      <ChecklistSigningModals
+        agreementSigningSession={agreementSigningSession}
+        dismissAgreementSigning={dismissAgreementSigning}
+        onAgreementSigningComplete={onAgreementSigningComplete}
+      />
     </ChecklistUpdatePendingProvider>
   );
 }

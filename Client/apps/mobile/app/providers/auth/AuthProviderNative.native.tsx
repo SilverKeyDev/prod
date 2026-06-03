@@ -4,8 +4,8 @@
  *
  * Auth / HTTP stack (shared with web): `runAuthBootstrap` → `authApi.verifySession` / `refreshToken`
  * (`packages/features/homeauth/api/handlers/session.ts`) → `apiGet` / `apiPost`
- * (`packages/services/http/compatibility`) → `HttpClient` + cookie credentials. There is no
- * `BroadcastChannel` on native; `handle401Unauthorized` logout broadcast is a no-op. `getWindow()`
+ * (`packages/services/http`) → `HttpClient` + cookie credentials. There is no
+ * `BroadcastChannel` on native; session recovery after 401 uses `recoverSessionAfter401`. `getWindow()`
  * is null here, so `handleAuthenticationError` does not set `location.href` (callers still see errors).
  */
 

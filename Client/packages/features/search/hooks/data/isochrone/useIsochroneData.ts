@@ -12,6 +12,8 @@ export type UseIsochroneDataOptions = {
   preferencesSubjectUserId?: string | null;
   /** When true, do not auto-fetch isochrone (e.g. agents until explicit search). */
   skipInitialFetch?: boolean;
+  /** When false, skip isochrone prefetch (no saved important locations). */
+  hasImportantLocations?: boolean;
 };
 
 export type UseIsochroneDataReturn = {
@@ -32,10 +34,11 @@ export function useIsochroneData(options?: UseIsochroneDataOptions): UseIsochron
   const authReady = useAuthStore((s) => s.authReady);
   const subjectId = options?.preferencesSubjectUserId ?? null;
   const skipInitialFetch = options?.skipInitialFetch ?? false;
+  const hasImportantLocations = options?.hasImportantLocations ?? true;
 
   const authAllowsFetch = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
-  const shouldAutoFetch = authAllowsFetch && !skipInitialFetch;
+  const shouldAutoFetch = authAllowsFetch && !skipInitialFetch && hasImportantLocations;
 
   const fetchIsochroneFromApi = useCallback(async (): Promise<IsochroneData | null> => {
     const response = await searchApi.getIsochrone({

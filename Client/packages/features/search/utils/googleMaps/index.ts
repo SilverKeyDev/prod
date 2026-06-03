@@ -3,12 +3,13 @@
  * Re-exports service, singleton, and ensures global types are loaded.
  */
 import "./types";
-export { GoogleMapsService } from "./GoogleMapsService";
+export { googleMapsService } from "./loader/singleton";
+export { GoogleMapsService } from "./runtime/GoogleMapsService";
 export {
   attachInlineStreetViewPanorama,
   type AttachInlineStreetViewPanoramaOptions,
   type InlineStreetViewAttachment,
-} from "./inlineStreetViewPanorama";
+} from "./runtime/inlineStreetViewPanorama";
 export {
   adjustMapZoomByDelta,
   applyListingFocusCamera,
@@ -19,5 +20,4 @@ export {
   resetMapToListingFocusZoom,
   SEARCH_MAP_LISTING_FOCUS_ZOOM,
   snapshotMapCamera,
-} from "./mapCamera";
-export { googleMapsService } from "./singleton";
+} from "./runtime/mapCamera";

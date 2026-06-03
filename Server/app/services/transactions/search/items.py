@@ -58,6 +58,8 @@ SEARCH_ITEMS = [
         "resource": None,
         "component_key": "partner_agent",
         "completion_requires_submit": True,
+        "allow_unordered_check": True,
+        "parallel_step_group": "search_parallel_integrations",
     },
     {
         "id": 6,

@@ -1,101 +1,33 @@
-## Option: Collaboration and Permissions Model
+> **Status:** Partial — agent↔client checklist access only; transaction RBAC not built.  
+> **Last verified:** 2026-05-28
 
-### Problem / goal
+## Problem
 
-We need a permissions model that:
-- Supports multiple roles per transaction (buyer, agent, TC, loan officer, etc.).
-- Is flexible enough for future expansion.
-- Is simple enough to reason about and implement reliably.
+Multiple roles per deal (buyer, agent, TC, LO, escrow) need predictable, testable permissions across checklists, calendar, and documents.
 
-### Existing infrastructure to align with
+## Settled decisions
 
-- **Global roles**
-  - Existing `User` and agent models with:
-    - High-level “agent vs client” distinctions.
+| Decision | Choice |
+| -------- | ------ |
+| Model | **Option A** — transaction-scoped RBAC via `TransactionParticipant` + role→capability maps. |
+| ABAC (**Option B**) | Deferred. |
+| Per-feature hard-coded checks (**Option C**) | Rejected as long-term foundation. |
 
-- **Feature permissions**
-  - Any current checks that:
-    - Restrict access to certain routes or features.
+## Code today
 
-For transactions, we want a **transaction-scoped permissions model** that composes with these existing global roles.
+| Area | What exists | Pointers |
+| ---- | ----------- | -------- |
+| Global roles | Agent vs client on `User`; route decorators. | `Server/app/utils/common_patterns.py` (`require_agent_access`, `require_authenticated_user`) |
+| Checklist access | Agent may read/write client checklist if client id ∈ `get_agent_client_ids`. | `Server/app/routes/transactions.py`, `Server/app/services/agent/client_service.py` |
+| Client UI | Agent hub passes `checklistSubjectUserId`; integration slot gets `transactionSubjectId`. | `Client/packages/features/checklists/hooks/data/useChecklistData.ts`, `components/slots/ChecklistIntegrationSlot.tsx` |
+| Messaging | Agent/client threads (not transaction-participant graph). | `Client/packages/features/messaging/` |
+| Participants | **No** `TransactionParticipant`, **no** `RoleTemplate` tables or APIs. | — |
 
----
+## Gaps
 
-### Option A – Role-based access control (RBAC) per transaction (recommended)
+- Invite/list participants, per-role capability matrix, assign checklist items to participants.
+- Activity feed per transaction (see `documentation/transactions/collaboration/` — mostly spec).
 
-**Idea:** Each `TransactionParticipant` has a role (buyer, agent, TC, etc.), and each role maps to:
-- A predefined set of capabilities.
-- Optional overrides at the participant or feature level.
+## Implementation note
 
-- **Pros**
-  - Intuitive and consistent:
-    - Easy to explain to product, agents, and engineers.
-  - Matches how teams think about responsibilities.
-  - Straightforward to implement:
-    - Role-to-capability maps.
-- **Cons**
-  - Some fine-grained scenarios may require:
-    - Additional override mechanisms (v2).
-
-**Recommendation:** Use this as the primary model.
-
----
-
-### Option B – Attribute-based access control (ABAC)
-
-**Idea:** Access decisions made from a flexible set of attributes:
-- User attributes (role, brokerage, license state).
-- Transaction attributes (stage, jurisdiction).
-- Resource attributes (owner, sensitivity).
-
-- **Pros**
-  - Extremely flexible.
-  - Can model nuanced policies and exceptions.
-- **Cons**
-  - More complex to:
-    - Implement.
-    - Test.
-    - Explain to stakeholders.
-
-**Conclusion:** Overkill for v1; RBAC is sufficient and easier to manage.
-
----
-
-### Option C – Hard-coded per-feature permissions
-
-**Idea:** Each feature (checklists, docs, calendar) defines its own logic:
-- “If user is agent or TC, allow X; if buyer, allow Y…”
-
-- **Pros**
-  - Fast to get something working.
-- **Cons**
-  - Quickly becomes inconsistent and brittle.
-  - Difficult to apply cross-cutting changes or reason about overall access.
-
-**Conclusion:** Not recommended as a long-term foundation.
-
----
-
-### Recommended v1 path
-
-Adopt **Option A (transaction-scoped RBAC)**:
-
-- **Backend**
-  - `TransactionParticipant` with role and optional metadata per transaction.
-  - `RoleTemplate` definitions that map roles to:
-    - Capabilities across:
-      - Checklists.
-      - Calendar.
-      - Documents.
-      - Invites and activity.
-
-- **Frontend**
-  - UI should:
-    - Derive capabilities from:
-      - Transaction-scoped roles.
-    - Avoid repeating permission logic; rely on backend signals where possible.
-
-- **Evolution**
-  - Where necessary, add:
-    - Small, explicit overrides (e.g. restricting a specific doc or task).
-  - Consider ABAC or policy-as-code only if/when transaction complexity demands it.
+Frontend should consume capability flags from the API when RBAC lands; avoid duplicating role matrices in components.

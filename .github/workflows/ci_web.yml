@@ -6,7 +6,6 @@ on:
 env:
   REGION: us-east-2
   REPO: cre
-  IMAGE_TAG: latest
 
 jobs:
   build-and-deploy:
@@ -14,25 +13,32 @@ jobs:
     timeout-minutes: 60
     concurrency:
       group: prod-deploy
-      cancel-in-progress: true
+      cancel-in-progress: false
     permissions:
       contents: read
       actions: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
+      - name: Set immutable image tag (git SHA)
+        run: |
+          set -euo pipefail
+          IMAGE_TAG="${GITHUB_SHA::12}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "Deploy image tag: $IMAGE_TAG (from ${GITHUB_SHA})"
+
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.REGION }}
 
       - name: Set up Docker Buildx (container driver)
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
         with:
           driver: docker-container
 
@@ -48,20 +54,29 @@ jobs:
           df -h
 
       - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@v2.1.5
 
-      - name: Build & push to ECR
+      - name: Assert bundle build secrets
         env:
-          # GitHub Actions: add repository secrets EXPO_PUBLIC_* (Plaid Link / Maps / OAuth client IDs for the web bundle).
+          # GitHub Actions: repository secrets EXPO_PUBLIC_* (Maps / Plaid / OAuth / PostHog for the web bundle).
           EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
           EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
           EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
+          EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
+        run: node Client/scripts/assert-github-bundle-secrets.mjs Client
+
+      - name: Build & push to ECR
+        env:
+          EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
+          EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
+          EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
+          EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
         run: |
           set -euo pipefail
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
 
-          IMAGE_TAG="${IMAGE_TAG:-latest}"
+          IMAGE_TAG="${IMAGE_TAG:?IMAGE_TAG must be set (git SHA)}"
           BASE_REF="$ACCOUNT_ID.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}"
           IMAGE_REF="$BASE_REF:$IMAGE_TAG"
           CACHE_REF="$BASE_REF:buildcache"
@@ -72,15 +87,53 @@ jobs:
           docker buildx build \
             --platform linux/amd64 \
             -f Dockerfile.web \
+            --target backend \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
             --build-arg EXPO_PUBLIC_GOOGLE_MAPS_ID="$EXPO_PUBLIC_GOOGLE_MAPS_ID" \
             --build-arg EXPO_PUBLIC_GOOGLE_CLIENT_ID="$EXPO_PUBLIC_GOOGLE_CLIENT_ID" \
             --build-arg EXPO_PUBLIC_PLAID_CLIENT_ID="$EXPO_PUBLIC_PLAID_CLIENT_ID" \
+            --build-arg EXPO_PUBLIC_POSTHOG_KEY="$EXPO_PUBLIC_POSTHOG_KEY" \
             --tag "$IMAGE_REF" \
             --tag "$WEB_PROD_REF" \
             --cache-from type=registry,ref="$CACHE_REF" \
             --cache-to type=registry,ref="$CACHE_REF",mode=max \
             --push \
             .
+
+          IMAGE_DIGEST="$(aws ecr describe-images \
+            --region "${{ env.REGION }}" \
+            --repository-name "${{ env.REPO }}" \
+            --image-ids "imageTag=${IMAGE_TAG}" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+          if [ -z "$IMAGE_DIGEST" ] || [ "$IMAGE_DIGEST" = "None" ]; then
+            echo "ERROR: Could not resolve ECR digest for tag ${IMAGE_TAG}" >&2
+            exit 1
+          fi
+          echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_ENV"
+          echo "Pushed $IMAGE_REF ($IMAGE_DIGEST)"
+
+      - name: Verify production image CMD (gunicorn, not migrate)
+        run: |
+          set -euo pipefail
+          ACCOUNT_ID="${ACCOUNT_ID:?}"
+          IMAGE_TAG="${IMAGE_TAG:?}"
+          IMAGE_REF="${ACCOUNT_ID}.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:${IMAGE_TAG}"
+          docker pull "$IMAGE_REF" >/dev/null
+          CMD="$(docker image inspect --format='{{json .Config.Cmd}}' "$IMAGE_REF")"
+          ENTRYPOINT="$(docker image inspect --format='{{json .Config.Entrypoint}}' "$IMAGE_REF")"
+          echo "Image CMD: $CMD"
+          echo "Image Entrypoint: $ENTRYPOINT"
+          if ! echo "$CMD" | grep -qE 'gunicorn|gunicorn-entrypoint'; then
+            echo "ERROR: Image CMD does not include gunicorn — build must use Dockerfile.web --target backend (migrate target runs flask db upgrade and exits)." >&2
+            exit 1
+          fi
+          if echo "$CMD" | grep -qE 'flask|db upgrade'; then
+            echo "ERROR: Image CMD looks like a migration-only image." >&2
+            exit 1
+          fi
+          echo "✅ Production image uses gunicorn (backend target)"
 
       - name: Prune Buildx cache (safe)
         run: |
@@ -89,7 +142,7 @@ jobs:
 
       - name: Copy deploy scripts to EC2
         if: ${{ success() }}
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
@@ -122,18 +175,20 @@ jobs:
 
       - name: SSH into EC2 and Deploy Container + Copy Frontend
         if: ${{ success() }}
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.2.5
         env:
           ACCOUNT_ID: ${{ env.ACCOUNT_ID }}
           AWS_REGION: ${{ env.REGION }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          IMAGE_DIGEST: ${{ env.IMAGE_DIGEST }}
           REPO: ${{ env.REPO }}
           DB_URL_SECRET_ID: ${{ env.DB_URL_SECRET_ID }}
+          DEPLOY_DEBUG: "1"
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ACCOUNT_ID,AWS_REGION,IMAGE_TAG,REPO,DB_URL_SECRET_ID
+          envs: ACCOUNT_ID,AWS_REGION,IMAGE_TAG,IMAGE_DIGEST,REPO,DB_URL_SECRET_ID,DEPLOY_DEBUG
           script: |
             mkdir -p /tmp/deploy
             chmod +x /tmp/deploy/ec2-deploy.sh

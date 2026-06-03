@@ -2,6 +2,7 @@ import { useLocalization } from "packages/contexts";
 import { MatchPill } from "packages/ui/components/match/MatchPill";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
+import { formatMatchScoreDisplayPercent } from "packages/utils/format/matchScore";
 
 type CardMatchScoreProps = {
   /** Match score (0-100) */
@@ -28,11 +29,7 @@ export default function CardMatchScore({
 }: CardMatchScoreProps) {
   const { t } = useLocalization();
 
-  const safeScore =
-    typeof score === "number" && Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0;
-  const safeMaxScore =
-    typeof maxScore === "number" && Number.isFinite(maxScore) && maxScore > 0 ? maxScore : 100;
-  const displayPercent = Math.round((safeScore / safeMaxScore) * 100);
+  const displayPercent = formatMatchScoreDisplayPercent(score, maxScore);
 
   const getSizeClasses = () => {
     switch (size) {

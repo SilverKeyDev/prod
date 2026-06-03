@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { defaultGoogleMeetForCreate } from "packages/features/calendar/utils/createEventModal/defaultGoogleMeetForCreate";
+import { defaultGoogleMeetForCreate } from "packages/features/calendar";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Button } from "packages/ui";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box, Pressable, PrimitiveInput, Text } from "packages/ui/components/primitives";
 import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
-import { parseAgendaDeadlineTime } from "packages/utils/calendar/agentAgendaEvent";
+import { parseAgendaDeadlineTime } from "packages/utils/calendar/agenda/agentAgendaEvent";
 import { dayjs } from "packages/utils/date";
 
 export type MobileAgendaAddButtonProps = {

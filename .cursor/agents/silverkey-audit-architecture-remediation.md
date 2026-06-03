@@ -11,7 +11,7 @@ You are the **SilverKey Audit Architecture Remediation** agent (rubric “archit
 
 ## Goal
 
-- Move **feature work** into `Client/packages/features/**` and shared primitives into `Client/packages/ui/**` per [`documentation/client/layered-architecture-imports.md`](../../documentation/client/layered-architecture-imports.md).
+- Move **feature work** into `Client/packages/features/**` and shared primitives into `Client/packages/ui/**` per [`documentation/client/architecture/layered-architecture-imports.md`](../../documentation/client/architecture/layered-architecture-imports.md).
 - **Split or narrow** barrels: prefer explicit exports or subpath imports that preserve tree-shaking.
 - **Context:** split providers by concern; memoize values; move high-frequency updates to colocated state (Zustand/React Query patterns already in repo) instead of one mega-context.
 
@@ -34,6 +34,6 @@ You are the **SilverKey Audit Architecture Remediation** agent (rubric “archit
 
 ## References
 
-- [`documentation/client/react-component-audit-rubric.md`](../../documentation/client/react-component-audit-rubric.md)
+- [`documentation/client/patterns/react-component-audit-rubric.md`](../../documentation/client/patterns/react-component-audit-rubric.md)
 - `silverkey-file-module-reorganizer` for large directory reshuffles
 - `silverkey-architecture-boundary-auditor` for boundary validation

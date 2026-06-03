@@ -10,6 +10,7 @@ from flask import Flask
 
 from app import db
 from app.models import User
+from tests.jwt_test_secret import TEST_JWT_HMAC_SECRET
 
 
 class TestRefreshFlow:
@@ -43,7 +44,9 @@ class TestRefreshFlow:
 
         user_id = self._seed_cognito_user(app)
         try:
-            token = jwt.encode({"sub": user_id, "email": "refresh-test@example.com"}, "secret")
+            token = jwt.encode(
+                {"sub": user_id, "email": "refresh-test@example.com"}, TEST_JWT_HMAC_SECRET
+            )
             with app.app_context():
                 with patch.object(
                     refresh_mod.jwt,
@@ -81,7 +84,9 @@ class TestRefreshFlow:
                 "error": "NotAuthorizedException",
                 "message": "Invalid refresh token",
             }
-            token = jwt.encode({"sub": user_id, "email": "refresh-test@example.com"}, "secret")
+            token = jwt.encode(
+                {"sub": user_id, "email": "refresh-test@example.com"}, TEST_JWT_HMAC_SECRET
+            )
             with app.app_context():
                 with patch.object(
                     refresh_mod.jwt,
@@ -113,7 +118,9 @@ class TestRefreshFlow:
                 "error": "NotAuthorizedException",
                 "message": "Refresh token has expired",
             }
-            token = jwt.encode({"sub": user_id, "email": "refresh-test@example.com"}, "secret")
+            token = jwt.encode(
+                {"sub": user_id, "email": "refresh-test@example.com"}, TEST_JWT_HMAC_SECRET
+            )
             with app.app_context():
                 with patch.object(
                     refresh_mod.jwt,
@@ -140,7 +147,9 @@ class TestRefreshFlow:
 
         user_id = self._seed_cognito_user(app)
         try:
-            token = jwt.encode({"sub": user_id, "email": "refresh-test@example.com"}, "secret")
+            token = jwt.encode(
+                {"sub": user_id, "email": "refresh-test@example.com"}, TEST_JWT_HMAC_SECRET
+            )
             with app.app_context():
                 with patch.object(
                     refresh_mod.jwt,
@@ -171,6 +180,50 @@ class TestRefreshFlow:
                                 mock_set_cookies.assert_called()
         finally:
             self._cleanup_user(app, user_id)
+
+    def test_refresh_with_refresh_token_only_no_session(self, app: Flask, mock_cognito_service):
+        """Session cookie absent; Cognito refresh_token cookie can still refresh."""
+        from app.services.auth.flows.refresh import handle_refresh_token
+
+        user_id = self._seed_cognito_user(app)
+        try:
+            with app.app_context():
+                with patch(
+                    "app.services.auth.flows.refresh_handlers.decode_cognito_token",
+                    return_value={
+                        "sub": "cognito-sub-refresh",
+                        "email": "refresh-test@example.com",
+                    },
+                ):
+                    with patch(
+                        "app.services.auth.utils.token_creation.create_minimal_tokens"
+                    ) as mock_create_tokens:
+                        mock_create_tokens.return_value = ("new_access_token", "new_id_token")
+                        with app.test_request_context(
+                            "/",
+                            headers={"Cookie": "refresh_token=mock_refresh_token"},
+                        ):
+                            response, status_code = handle_refresh_token("req-123")
+
+                            assert status_code == 200
+                            response_json = response.get_json()
+                            assert response_json["success"] is True
+                            mock_cognito_service.refresh_access_token.assert_called()
+        finally:
+            self._cleanup_user(app, user_id)
+
+    def test_refresh_missing_session_and_refresh_token(self, app: Flask):
+        """No auth cookies returns ACCESS_TOKEN_MISSING."""
+        from app.services.auth.flows.refresh import handle_refresh_token
+
+        with app.app_context():
+            with app.test_request_context("/"):
+                response, status_code = handle_refresh_token("req-123")
+
+                assert status_code == 401
+                response_json = response.get_json()
+                assert response_json["success"] is False
+                assert response_json["error"] == "ACCESS_TOKEN_MISSING"
 
 
 class TestRefreshHandlers:

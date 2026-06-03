@@ -4,7 +4,7 @@ import { PropertyDetailsBody } from "packages/features/propertyDetails/component
 import { PropertyImageGallery } from "packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGallery.native";
 import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
 import type { PropertyDetailsModalProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import { useSavedHomesStoreIntegration } from "packages/hooks/store/useSavedHomesStoreIntegration";
+import { useSavedHomesStoreIntegration } from "packages/hooks/store/integrations/useSavedHomesStoreIntegration";
 import Cover from "packages/ui/components/modals/cover";
 
 export const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({

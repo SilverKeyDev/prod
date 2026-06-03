@@ -8,7 +8,7 @@ import {
 } from "react";
 
 import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
-import { localYOffsetToRoundedMinutesFromMidnight } from "packages/utils/calendar/calendarQuickCreateSnap";
+import { localYOffsetToRoundedMinutesFromMidnight } from "packages/utils/calendar/grid/calendarQuickCreateSnap";
 import { dayjs } from "packages/utils/date";
 import { getDocument, getWindow } from "packages/utils/platform";
 

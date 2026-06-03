@@ -12,6 +12,7 @@ This is the **execution order** and index for pre-release and hardening. Detaile
 6. **Payments (if live):** [FLOW_PAYMENTS.md](./FLOW_PAYMENTS.md) with Stripe test cards.
 7. **Account deletion:** [ACCOUNT_DELETION.md](./ACCOUNT_DELETION.md) — process or **admin** staging only until self-serve API ships.
 8. **404 / error UI:** [ERROR_PAGES_404_500.md](./ERROR_PAGES_404_500.md) — manual checks.
+9. **Accessibility (WCAG 2.1 AA):** [ACCESSIBILITY_CHECKLIST.md](./ACCESSIBILITY_CHECKLIST.md) — keyboard, screen reader, zoom; run jest-axe + optional Playwright axe script.
 
 ## Automation (web)
 
@@ -33,4 +34,5 @@ There is **no** in-repo Playwright or Cypress E2E suite. Rely on **manual** step
 | [ACCOUNT_DELETION.md](./ACCOUNT_DELETION.md) | Self-serve gap; admin; process |
 | [ERROR_STATES.md](./ERROR_STATES.md) | API down, 5xx, 429, payments, auth |
 | [ERROR_PAGES_404_500.md](./ERROR_PAGES_404_500.md) | Not found, route errors, CDN vs SPA |
+| [ACCESSIBILITY_CHECKLIST.md](./ACCESSIBILITY_CHECKLIST.md) | WCAG 2.1 AA keyboard, screen reader, zoom, automated axe |
 | [EMAIL_DELIVERABILITY.md](./EMAIL_DELIVERABILITY.md) | SPF, DKIM, DMARC, inbox smokes |

@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'Server/migrations/**'
+      - 'Server/requirements/migrate.txt'
+      - 'Dockerfile.web'
       - '.github/scripts/gh-db-upgrade.sh'
       - '.github/workflows/db-migrate-main.yml'
   workflow_dispatch:
@@ -25,12 +27,12 @@ jobs:
       actions: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -56,7 +58,7 @@ jobs:
           fi
           rm -f "$tmp"
 
-      - name: Run Alembic upgrade (Docker backend stage)
+      - name: Run Alembic upgrade (Docker migrate stage)
         run: |
           set -euo pipefail
           chmod +x .github/scripts/gh-db-upgrade.sh

@@ -62,58 +62,6 @@ def build_tabs_for_recipient(
     return tabs
 
 
-def build_tabs_coordinate_fallback(
-    participant: AgreementParticipant,
-    document_id: str = "1",
-    page_number: int = 1,
-    x_position: int = 100,
-    y_position: int = 400,
-) -> dict[str, Any]:
-    """
-    Build signature tabs using coordinate-based positioning (fallback method).
-
-    Use this when PDFs don't have anchor text. Coordinates are in pixels from
-    top-left corner of the page.
-
-    Note: Coordinate-based tabs are fragile if PDF layout changes. Prefer PDF AcroForm
-    fields with ``transformPdfFields`` on the document, or anchor-based tabs via
-    ``tab_prefill``, unless you intentionally need this legacy helper.
-
-    Args:
-        participant: AgreementParticipant model
-        document_id: Document ID in the envelope (default "1")
-        page_number: Page number for signature (default 1)
-        x_position: X coordinate in pixels from left (default 100)
-        y_position: Y coordinate in pixels from top (default 400)
-
-    Returns:
-        Dictionary of tabs for this recipient
-    """
-    tabs = {
-        "signHereTabs": [
-            {
-                "documentId": document_id,
-                "recipientId": str(participant.id),
-                "pageNumber": str(page_number),
-                "xPosition": str(x_position),
-                "yPosition": str(y_position),
-            }
-        ],
-        "dateSignedTabs": [
-            {
-                "documentId": document_id,
-                "recipientId": str(participant.id),
-                "pageNumber": str(page_number),
-                "xPosition": str(x_position + 200),
-                "yPosition": str(y_position),
-                "fontSize": "size9",
-            }
-        ],
-    }
-
-    return tabs
-
-
 def build_recipient_from_participant(
     participant: AgreementParticipant,
     *,

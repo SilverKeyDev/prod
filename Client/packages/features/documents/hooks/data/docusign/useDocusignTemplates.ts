@@ -7,6 +7,7 @@ import { docusignApi } from "packages/features/documents/api/docusign";
 import type { DocusignTemplate } from "packages/features/documents/types/docusign";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 export type UseDocusignTemplatesReturn = {
   templates: DocusignTemplate[];
@@ -43,7 +44,7 @@ export function useDocusignTemplates(): UseDocusignTemplatesReturn {
       try {
         const response = await docusignApi.listTemplates();
         if (!response.success) {
-          const errorMessage = response.error ?? "Failed to fetch templates";
+          const errorMessage = resolveApiResultErrorMessage(response, "Failed to fetch templates");
           log.error(LOG_CATEGORIES.API, "Failed to fetch templates", {
             error: errorMessage,
           });

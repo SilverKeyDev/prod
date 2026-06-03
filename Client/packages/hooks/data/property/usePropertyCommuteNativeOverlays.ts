@@ -1,14 +1,14 @@
 import { useMemo } from "react";
 
 import type { IsochroneData } from "packages/types/domain/api";
-import { decodeGoogleEncodedPolyline } from "packages/utils/maps/decodeGoogleEncodedPolyline";
-import { parseIsochroneForNativeMap } from "packages/utils/maps/parseIsochroneForNativeMap";
-import { PROPERTY_COMMUTE_NATIVE_ROUTE_COLORS } from "packages/utils/maps/propertyCommuteNative.constants";
+import { parseIsochroneForNativeMap } from "packages/utils/maps/native/parseIsochroneForNativeMap";
+import { PROPERTY_COMMUTE_NATIVE_ROUTE_COLORS } from "packages/utils/maps/native/propertyCommuteNative.constants";
 import type {
   IsochronePolygonsNative,
   NativeDestinationMarker,
   NativeRouteOverlay,
-} from "packages/utils/maps/propertyCommuteNative.types";
+} from "packages/utils/maps/native/propertyCommuteNative.types";
+import { decodeGoogleEncodedPolyline } from "packages/utils/maps/polyline/decodeGoogleEncodedPolyline";
 import { commuteDestinationsForMap } from "packages/utils/propertyDetails/location/commuteMapDestinations";
 
 type TravelTimeRow = {

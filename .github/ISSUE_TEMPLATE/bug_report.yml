@@ -1,0 +1,136 @@
+name: Bug report
+description: Report a defect with reproduction steps and implementer context
+title: "[Bug]: "
+labels: ["type:bug", "needs:repro"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: read [AGENTS.md](https://github.com/SilverKeyDev/prod/blob/main/AGENTS.md) for repo layout and quality gates.
+
+        **Do not include secrets, JWTs, passwords, or PII** in this issue. See [security.mdc](https://github.com/SilverKeyDev/prod/blob/main/.cursor/rules/shared/security.mdc).
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the monorepo is affected?
+      options:
+        - client-web
+        - client-mobile
+        - client-packages
+        - server
+        - full-stack
+        - openapi
+        - infra
+    validations:
+      required: true
+
+  - type: dropdown
+    id: workspace
+    attributes:
+      label: Workspace
+      description: Product shell (see documentation/client/architecture/workspace-first-architecture.md)
+      options:
+        - buyer
+        - seller
+        - agent
+        - brokerage
+        - admin
+        - n/a
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - web
+        - ios
+        - android
+        - n/a
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps a triager or agent can follow
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: input
+    id: route_url
+    attributes:
+      label: Route / URL (optional)
+      description: e.g. /search, /dashboard/messaging
+      placeholder: /search
+
+  - type: input
+    id: api_endpoint
+    attributes:
+      label: API method + path (optional)
+      description: e.g. GET /api/v1/users/me
+      placeholder: GET /api/v1/...
+
+  - type: textarea
+    id: implementer_context
+    attributes:
+      label: Context for implementers
+      description: Repo map, paths, environment, and verification already run
+      placeholder: |
+        ### Repo map (check what you touched)
+        - [ ] Client/apps/web — thin routes/layouts
+        - [ ] Client/apps/mobile — thin screens
+        - [ ] Client/packages/ — features, hooks, ui, store, utils
+        - [ ] Server/app/ — routes, services, models
+        - [ ] openapi/ — contract source (not generated files)
+        - [ ] .github/workflows/ — CI/deploy
+
+        ### Paths & symbols
+        - File paths (e.g. Client/packages/features/.../Foo.tsx)
+        - Related docs: documentation/... links
+
+        ### Environment
+        - local | staging | prod
+        - Branch / commit SHA
+
+        ### Verification already run
+        - Commands (e.g. cd Client && pnpm check, pytest Server/tests/...)
+        - Pass/fail + relevant output (no tokens, no PII)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I reproduced this on `main` (or specified branch above)
+          required: true
+        - label: I can reproduce on the latest `main`
+          required: true
+        - label: This description contains no secrets, JWTs, or PII
+          required: true
+    validations:
+      required: true

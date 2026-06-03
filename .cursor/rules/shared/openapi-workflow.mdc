@@ -167,17 +167,17 @@ git commit -m "Add UserNotifications schema
 ## Quick Commands
 
 ```bash
+# Full local sync (bundle + regenerate + drift check + contract tests + typecheck)
+make openapi-verify
+
+# Regenerate only (bundle + server + client)
+make openapi
+
 # Validate spec
-swagger-cli validate openapi/openapi.yaml
+npm run openapi:validate
 
-# Regenerate client types
-cd Client && pnpm generate:api-types
-
-# Regenerate server schemas
-cd Server && bash scripts/generate-pydantic-models.sh
-
-# Run all checks
-cd Client && pnpm typecheck && pnpm lint
+# Route coverage audit (backend vs documented paths)
+python3 openapi/compare_routes.py
 ```
 
 ## Pre-commit Checklist

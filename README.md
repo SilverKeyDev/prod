@@ -10,8 +10,7 @@ Monorepo for the SilverKey product: **React** (web + **React Native**) in [`Clie
 ## Contents
 
 - [Quick start](#quick-start)
-- [Requirements](#requirements)
-- [Local development](#local-development)
+- [For AI assistants and new engineers](#for-ai-assistants-and-new-engineers)
 - [Quality gates & CI](#quality-gates--ci)
 - [Makefile](#makefile)
 - [Repository structure](#repository-structure)
@@ -24,30 +23,19 @@ Monorepo for the SilverKey product: **React** (web + **React Native**) in [`Clie
 
 ## Quick start
 
-**AWS (for default setup):** Install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) and sign in to the **dev account** with credentials that can **read Secrets Manager** in the region you use (default `us-east-2`; override with `AWS_REGION`). Typical flows: `aws sso login --profile <your-profile>` then `export AWS_PROFILE=<your-profile>`, or use access keys your team documents. Confirm the session with `aws sts get-caller-identity`. Without AWS, use `make setup ARGS='--skip-secrets'` and maintain `Server/.env` yourself (see `Server/.env.example`).
+**First-time setup:** run **`make setup`** — installs missing tools (or prints commands), builds Client/Server env, AWS SSO login, fetches secrets, verifies, and seeds Cursor MCP config. Details: **[setup.md](setup.md)**.
 
 ```bash
-git clone https://github.com/SilverKeyDev/prod.git
-cd prod   # GitHub default folder name; use your checkout directory if different
-
-make setup                            # same as ./scripts/setup-local.sh — Client, Server/.venv, secrets
-# make setup ARGS='--skip-secrets'    # skip Secrets Manager if AWS is not ready yet
-
-make dev                              # web + API (see make help)
-# or: cd Client && pnpm dev:web
-```
-
-After every `git pull`:
-
-```bash
-make refresh                          # same as ./scripts/refresh.sh — refresh pnpm + pip
-# make refresh ARGS='--secrets'       # also refresh Server/.env from AWS
+make setup          # deps → build → AWS SSO → secrets → verify → MCP
+make dev            # web + API (after setup)
+make refresh        # after git pull
 ```
 
 | If you need… | Run |
 | ------------ | --- |
-| Same as `setup-local.sh` | `make setup` |
-| Same as `refresh.sh` | `make refresh` |
+| Full setup guide | [setup.md](setup.md) |
+| Same as `scripts/setup/setup-local.sh` | `make setup` |
+| Same as `scripts/setup/refresh.sh` | `make refresh` |
 | Secrets only | `make secrets` |
 | Web only | `make dev-web` |
 | Mobile (Expo) | `make mobile` |
@@ -56,32 +44,20 @@ make refresh                          # same as ./scripts/refresh.sh — refresh
 
 ---
 
-## Requirements
+## For AI assistants and new engineers
 
-| Tool | Notes |
-| ---- | ----- |
-| **Node.js** | 20+ (CI uses newer Node with pnpm cache; local 20+ matches `AGENTS.md`). |
-| **pnpm** | **9.x** — pinned via `packageManager` in [`Client/package.json`](Client/package.json). `corepack enable` then `corepack prepare pnpm@9.0.0 --activate`. |
-| **Python** | **3.10–3.13** for [`Server/.venv`](Server/README.md). Newer versions may break wheels; use e.g. `PYTHON=python3.12` with `Server/scripts/bootstrap-venv.sh`. |
-| **AWS CLI** | Needed for default `make setup` / `./scripts/setup-local.sh` (secrets → `Server/.env`). Requires an **authenticated** session (SSO or keys) with Secrets Manager access in the target account/region. Use `make setup ARGS='--skip-secrets'` without AWS. |
-| **PostgreSQL** | For a full local API stack; see `Server/.env.example` and server docs. |
-| **Docker** | Optional (containers / CI parity). |
+This repo uses Cursor with MCP connectors and a structured rules system. On first clone:
 
----
-
-## Local development
-
-1. **Bootstrap once** — `make setup` (same as [`scripts/setup-local.sh`](scripts/setup-local.sh)) runs `pnpm install` in `Client/`, bootstraps **`Server/.venv`**, and fetches secrets unless `ARGS='--skip-secrets'`. If `.venv` already exists and you only need dependency refresh, use **`make refresh`** instead. Recreate the venv: `make setup ARGS='--force-venv'`.
-
-2. **Editor (optional)** — Copy [`.cursorignore.example`](.cursorignore.example) to `.cursorignore` at the repo root to trim indexing noise. Team rules live under [`.cursor/`](.cursor/).
-
-3. **Run apps** — From `Client/`: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web`, `pnpm preview:web`. From repo root: `make help` for `dev`, `dev-web`, `dev-backend`, etc.
+1. Copy [`.cursor/mcp.example.json`](.cursor/mcp.example.json) to `.cursor/mcp.json` and OAuth into default connectors (GitHub, Linear, Slack). Add optional connectors (Mercury/AWS/analytics) only when needed — see [setup.md](setup.md) or `make setup-mcp`
+2. Read [`CLAUDE.md`](CLAUDE.md) for quick context, then use [`.cursor/rules/shared/silverkey-context.mdc`](.cursor/rules/shared/silverkey-context.mdc) and [`.cursor/rules/shared/pitch-and-fundraising.mdc`](.cursor/rules/shared/pitch-and-fundraising.mdc) for canonical partner/fundraising facts
+3. Read [`AGENTS.md`](AGENTS.md) for engineering commands and quality gates
+4. Cursor auto-loads rules from [`.cursor/rules/`](.cursor/rules/) based on which files you edit — see [`.cursor/rules/README.md`](.cursor/rules/README.md)
 
 ---
 
 ## Quality gates & CI
 
-PRs are expected to stay green with the same checks CI runs (see [`.github/workflows/lint.yml`](.github/workflows/lint.yml) and [`.cursor/rules/shared/ci-gates.mdc`](.cursor/rules/shared/ci-gates.mdc)).
+Run lint gates locally before merge (`make lint`, `pnpm check`). CI runs the same linters **weekly on Mondays** (see [`.github/workflows/lint.yml`](.github/workflows/lint.yml) and [`.cursor/rules/shared/ci-gates.mdc`](.cursor/rules/shared/ci-gates.mdc)); tests still run on every PR via [`.github/workflows/test.yml`](.github/workflows/test.yml).
 
 **Client** (from `Client/`):
 
@@ -91,7 +67,7 @@ pnpm check          # includes build:web — full client gate
 pnpm test:run       # Vitest
 ```
 
-**Repo-wide:** `./scripts/run-all-linters.sh client|server|all` or `make lint` (all scopes).
+**Repo-wide:** `./scripts/ci/run-all-linters.sh client|server|all` or `make lint` (all scopes).
 
 **Server:** activate `Server/.venv`, then use `Server/README.md` and [`documentation/server/`](documentation/server/README.md) for `pytest` and Python linters.
 
@@ -114,12 +90,11 @@ make help
 | [`Client/`](Client/) | pnpm workspace: **`apps/web`**, **`apps/mobile`** (thin shells), **`packages/`** (features, hooks, UI, config, store, …). |
 | [`Server/`](Server/) | Flask app, services, tests, `Server/scripts/` (venv bootstrap, secrets, lint). |
 | [`openapi/`](openapi/) | HTTP API contract; drives generated TS/Python types. |
-| [`documentation/`](documentation/) | Canonical long-form documentation. |
-| [`docs/`](docs/README.md) | Server / ops index (links into `documentation/server/`). |
-| [`scripts/`](scripts/) | `setup-local.sh`, `refresh.sh`, `run-all-linters.sh`, `run/` dev stacks. |
+| [`documentation/`](documentation/) | Canonical long-form documentation (incl. server ops under `documentation/server/ops/`). |
+| [`scripts/`](scripts/) | `scripts/setup/`, `scripts/ci/`, `scripts/run/` dev stacks. |
 | [`.github/`](.github/) | Workflows and templates. |
 
-**Architecture rule:** business logic and shared UI live in **`Client/packages/`**; **`Client/apps/*`** stay thin (routing, providers, page composition). See [`documentation/client/thin-app-architecture.md`](documentation/client/thin-app-architecture.md) and [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md).
+**Architecture rule:** business logic and shared UI live in **`Client/packages/`**; **`Client/apps/*`** stay thin (routing, providers, page composition). See [`documentation/client/architecture/thin-app-architecture.md`](documentation/client/architecture/thin-app-architecture.md) and [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md).
 
 ---
 
@@ -127,11 +102,12 @@ make help
 
 | Need | Start here |
 | ---- | ---------- |
+| **Local machine setup** | **[setup.md](setup.md)** |
 | Agent / engineer quickstart | [`AGENTS.md`](AGENTS.md) |
 | Doc index | [`documentation/README.md`](documentation/README.md) |
 | Client (lint, packages, RN vs web) | [`documentation/client/README.md`](documentation/client/README.md) |
 | Server | [`documentation/server/README.md`](documentation/server/README.md) |
-| Ops / server stubs index | [`docs/README.md`](docs/README.md) |
+| Server ops (Postgres, Redis) | [`documentation/server/ops/`](documentation/server/ops/postgres.md) |
 
 ---
 
@@ -142,7 +118,7 @@ Edit **`openapi/`** only; regenerate types instead of editing:
 - `Client/packages/types/api.generated.ts`
 - `Server/app/schemas/generated.py`
 
-Regenerate: `make openapi` or `cd Client && pnpm generate:api-types`. Workflow: [`.cursor/rules/shared/openapi-workflow.mdc`](.cursor/rules/shared/openapi-workflow.mdc).
+Regenerate: `make openapi` (bundle + server + client) or `cd Client && pnpm generate:api-types`. Before a PR: `make openapi-verify` (regenerates, checks git drift, contract tests, typecheck). Workflow: [`.cursor/rules/shared/openapi-workflow.mdc`](.cursor/rules/shared/openapi-workflow.mdc).
 
 ---
 
@@ -155,4 +131,9 @@ Regenerate: `make openapi` or `cd Client && pnpm generate:api-types`. Workflow: 
 
 ## AI assistants
 
-Start at [`AGENTS.md`](AGENTS.md) for commands, directory map, OpenAPI rules, and Cursor configuration.
+- **Company context:** [`CLAUDE.md`](CLAUDE.md) plus [`.cursor/rules/shared/silverkey-context.mdc`](.cursor/rules/shared/silverkey-context.mdc)
+- **Engineering quickstart:** [`AGENTS.md`](AGENTS.md)
+- **Cursor rules index:** [`.cursor/rules/README.md`](.cursor/rules/README.md)
+- **Default subagent persona:** [`.cursor/agents/silverkey-engineer.md`](.cursor/agents/silverkey-engineer.md)
+
+File bugs and requests via **GitHub Issues** — templates auto-load area, workspace, paths, and verification context for triagers and AI agents.

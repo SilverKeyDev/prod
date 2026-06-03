@@ -7,6 +7,13 @@ import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
 import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
 import { screenUp } from "packages/ui/types/screens";
+import {
+  calendarDateToKey,
+  getCalendarDayListHeading,
+} from "packages/utils/calendar/core/calendarDateKeys";
+import { calculateCalendarDateRange, stepFocusedDate } from "packages/utils/calendar/core/date";
+import { formatCalendarToolbarLabel } from "packages/utils/calendar/grid/calendarToolbarLabel";
+import { buildWeekTimedEventResizeGoogleEvent } from "packages/utils/calendar/grid/calendarWeekTimedEventResize";
 import { dateNow, dayjs } from "packages/utils/date";
 import { getDocument } from "packages/utils/platform";
 
@@ -16,13 +23,6 @@ import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/sto
 import { useCalendarQuickCreateSession } from "@/features/calendar/hooks/ui/useCalendarQuickCreateSession";
 import { useCalendarSwipe } from "@/features/calendar/hooks/ui/useCalendarSwipe";
 import type { CalendarViewType, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
-import {
-  calendarDateToKey,
-  getCalendarDayListHeading,
-} from "@/features/calendar/utils/core/calendarDateKeys";
-import { calculateCalendarDateRange, stepFocusedDate } from "@/features/calendar/utils/core/date";
-import { formatCalendarToolbarLabel } from "@/features/calendar/utils/grid/calendarToolbarLabel";
-import { buildWeekTimedEventResizeGoogleEvent } from "@/features/calendar/utils/grid/calendarWeekTimedEventResize";
 
 import { buildCalendarEventsByDay, buildCalendarMonthDayCells } from "./calendarScreenEventLayout";
 import { useCalendarErrorToasts } from "./useCalendarErrorToasts";
@@ -42,6 +42,7 @@ export function useCalendarScreen({
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const {
     isConnected,
+    connectionStatusLoading,
     calendars,
     calendarsLoading,
     calendarsError,
@@ -314,13 +315,20 @@ export function useCalendarScreen({
   }, [connectGoogleCalendar]);
 
   const shouldShowConnectionPrompt = useMemo(() => {
-    if (isClientView) return false;
+    if (isClientView || connectionStatusLoading) return false;
     if (!isConnected) return true;
     if (isConnected && permissions !== null) {
       if (!hasRequiredPermissions || isPartiallyEnabled) return true;
     }
     return false;
-  }, [isClientView, isConnected, permissions, hasRequiredPermissions, isPartiallyEnabled]);
+  }, [
+    isClientView,
+    connectionStatusLoading,
+    isConnected,
+    permissions,
+    hasRequiredPermissions,
+    isPartiallyEnabled,
+  ]);
 
   const permissionsReady = isClientView || (!permissionsLoading && permissions !== undefined);
 
@@ -332,6 +340,7 @@ export function useCalendarScreen({
     silverKeyCalendarId,
     defaultCalendarId,
     calendarsLoading,
+    connectionStatusLoading,
     permissionsReady,
     clientEventsQuery,
     shouldShowConnectionPrompt,

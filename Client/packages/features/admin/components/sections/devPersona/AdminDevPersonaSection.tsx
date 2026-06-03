@@ -3,64 +3,51 @@ import { useCallback, useMemo, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
-import { useSetCurrentUserAgentStatusMutation } from "packages/hooks/data/admin/useSetCurrentUserAgentStatusMutation";
-import type { AppDevPersona } from "packages/store";
-import { useAuthStore, useDevAppPersonaStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { useSetCurrentUserDevWorkspaceMutation } from "packages/hooks/data/admin/useSetCurrentUserDevWorkspaceMutation";
+import { useAuthStore } from "packages/store";
+import { Region } from "packages/ui/components/accessibility";
 import { deriveDevAppPersonaFromProfile } from "packages/utils/admin/deriveDevAppPersonaFromProfile";
+import { ALL_WORKSPACES, type Workspace } from "packages/utils/workspace";
+import { workspaceSwitcherLabelKey } from "packages/utils/workspace/workspaceNavConfig";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, Title } from "@/components/ui";
 
 import { AdminDevDataResetSection } from "./AdminDevDataResetSection";
 
-const PERSONAS: readonly AppDevPersona[] = ["buyer", "seller", "agent", "broker"] as const;
-
-function personaToIsAgent(persona: AppDevPersona): boolean {
-  return persona === "agent" || persona === "broker";
-}
-
 export function AdminDevPersonaSection({
   scope: _scope = DEFAULT_ADMIN_SCOPE,
 }: AdminSectionBaseProps) {
   const { t } = useLocalization();
   const user = useAuthStore((s) => s.user);
-  const setActivePersona = useDevAppPersonaStore((s) => s.setActivePersona);
-
-  const mutation = useSetCurrentUserAgentStatusMutation();
+  const mutation = useSetCurrentUserDevWorkspaceMutation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const activePersona = useMemo(() => deriveDevAppPersonaFromProfile(user ?? undefined), [user]);
-
-  const personaLabel = useCallback(
-    (p: AppDevPersona) => {
-      switch (p) {
-        case "agent":
-          return t("admin.dev_persona.persona_agent");
-        case "broker":
-          return t("admin.dev_persona.persona_broker");
-        case "buyer":
-          return t("admin.dev_persona.persona_buyer");
-        case "seller":
-          return t("admin.dev_persona.persona_seller");
-        default:
-          return p;
-      }
-    },
-    [t]
+  const activePersona = useMemo(
+    () =>
+      deriveDevAppPersonaFromProfile(
+        user
+          ? {
+              is_agent: Boolean(user.is_agent),
+              roles: user.roles,
+              brokerage_org_ids: user.brokerage_org_ids,
+            }
+          : null
+      ),
+    [user]
   );
 
-  const handleSelectPersona = useCallback(
-    async (p: AppDevPersona) => {
+  const handleSetPersona = useCallback(
+    async (workspace: Workspace) => {
+      if (workspace === activePersona) return;
       setErrorMessage(null);
       try {
-        await mutation.mutateAsync({ is_agent: personaToIsAgent(p) });
-        setActivePersona(p);
+        await mutation.mutateAsync({ workspace });
       } catch (e) {
         setErrorMessage(e instanceof Error ? e.message : "Request failed");
       }
     },
-    [mutation, setActivePersona]
+    [activePersona, mutation]
   );
 
   const busy = mutation.isPending;
@@ -70,35 +57,44 @@ export function AdminDevPersonaSection({
       <Title size="lg" as="h2" className="mb-2">
         {t("admin.dev_persona.title")}
       </Title>
-      <BodyText size="sm" muted className="mb-4">
+      <BodyText size="sm" muted className="mb-6">
         {t("admin.dev_persona.description")}
       </BodyText>
+
+      <Title size="md" as="h3" className="mb-2">
+        {t("admin.dev_persona.persona_title")}
+      </Title>
+      <BodyText size="sm" muted className="mb-3">
+        {t("admin.dev_persona.persona_description")}
+      </BodyText>
       <BodyText size="sm" className="mb-4 text-amber-800 dark:text-amber-200">
-        {t("admin.dev_persona.warning")}
+        {t("admin.dev_persona.persona_warning")}
       </BodyText>
 
-      <Box className="mb-4 flex flex-wrap gap-2">
-        {PERSONAS.map((p) => (
-          <Button
-            key={p}
-            variant={activePersona === p ? "primary" : "secondary"}
-            size="sm"
-            disabled={busy}
-            onPress={() => void handleSelectPersona(p)}
-          >
-            {personaLabel(p)}
-          </Button>
-        ))}
-      </Box>
-
-      {activePersona === "broker" ? (
-        <BodyText size="xs" muted className="mb-4">
-          {t("admin.dev_persona.broker_note")}
-        </BodyText>
-      ) : null}
+      <Region
+        className="mb-4 flex flex-wrap gap-2"
+        role="group"
+        label={t("admin.dev_persona.persona_title")}
+      >
+        {ALL_WORKSPACES.map((workspace) => {
+          const selected = workspace === activePersona;
+          return (
+            <Button
+              key={workspace}
+              variant={selected ? "primary" : "secondary"}
+              size="sm"
+              disabled={busy}
+              onPress={() => void handleSetPersona(workspace)}
+              accessibilityState={{ selected }}
+            >
+              {t(workspaceSwitcherLabelKey(workspace))}
+            </Button>
+          );
+        })}
+      </Region>
 
       {errorMessage ? (
-        <BodyText size="sm" className="text-rose-700 dark:text-rose-300">
+        <BodyText size="sm" className="mb-4 text-rose-700 dark:text-rose-300">
           {errorMessage}
         </BodyText>
       ) : null}

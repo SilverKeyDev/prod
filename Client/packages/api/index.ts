@@ -1,18 +1,3 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * This file re-exports types from the generated API contract (api.generated.ts).
- * All type definitions have been moved to openapi.yaml.
- *
- * To add/modify API types:
- * 1. Edit openapi.yaml
- * 2. Run `pnpm generate:api-types`
- * 3. Types will be auto-generated in packages/types/api.generated.ts
- *
- * Central API exports for SilverKey application.
- * All API clients use the centralized utilities.
- */
-
 export { adminApi } from "./admin";
 export { dashboardApi } from "./dashboard";
 export { mapsApi } from "./maps";
@@ -46,7 +31,7 @@ export {
   apiPut,
   apiRequest,
   apiUpload,
-} from "packages/services/http/compatibility";
+} from "packages/services/http";
 
 // Re-export types from individual API modules
 export type { DashboardResponse, ReportsResponse, WorkflowDocumentRecord } from "./dashboard";
@@ -55,7 +40,7 @@ export type {
   CommuteData,
   NegotiationStrategyRequest,
   NegotiationStrategyResponse,
-  PropertyData,
+  PropertyComplete,
 } from "./offer";
 export type {
   BuildRouteRequest,

@@ -47,7 +47,8 @@ function MessagingTabBarIcon({
       <TabBarIcon name={TAB_ICONS.Messaging} focused={focused} color={iconColor} size={size} />
       {hasUnread ? (
         <View
-          accessibilityLabel="Unread messages"
+          importantForAccessibility="no"
+          accessibilityElementsHidden
           style={{
             position: "absolute",
             top: 0,

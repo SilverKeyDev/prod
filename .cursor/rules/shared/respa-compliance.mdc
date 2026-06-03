@@ -1,0 +1,73 @@
+---
+description: RESPA compliance guardrails for partner placement, referral, and ancillary service code
+globs:
+  - "**/partners/**"
+  - "**/placement/**"
+  - "**/marketplace/**"
+  - "**/referral/**"
+  - "**/lender/**"
+  - "**/title/**"
+  - "**/insurance/**"
+  - "**/concierge/**"
+  - "Client/packages/features/admin/**/partners/**"
+  - "Client/packages/features/checklists/**/concierge/**"
+  - "Client/packages/features/checklists/**/integration/**"
+  - "Client/packages/features/checklists/components/integrations/**"
+  - "Server/app/services/transactions/financing/**"
+  - "Server/app/services/transactions/insurance/**"
+  - "Server/app/services/transactions/closing/**"
+alwaysApply: false
+---
+
+# RESPA compliance (partner & settlement services)
+
+Company context: [silverkey-context.mdc](./silverkey-context.mdc) + [pitch-and-fundraising.mdc](./pitch-and-fundraising.mdc) for approved narrative language.
+
+## Section 8 (summary)
+
+RESPA prohibits **kickbacks and unearned fees** for referrals to settlement services (mortgage, title, insurance, etc.). SilverKey must not implement flows that look like: *agent/brokerage steers buyer → partner pays agent/brokerage per referral*.
+
+## SilverKey model (compliant threading)
+
+- **Brokerage** hosts a **placement marketplace**; partners pay for **access/placement**, not per-buyer referral to an agent.
+- Revenue to the brokerage is a **technology platform fee**, not a referral fee for steering a specific buyer.
+- Surfacing is **brokerage- or workflow-level** (e.g. checklist integration, admin partner config), with **auditable** exposure — not opaque agent kickbacks.
+
+## Required: RESPA comment block
+
+Any function that **selects, ranks, orders, or exposes** partners to users must include a block like this directly above the function:
+
+```typescript
+/**
+ * RESPA: <one sentence — e.g. brokerage-configured checklist embed; no per-buyer referral fee;
+ * partner pays platform placement; exposure logged via <event/hook>>.
+ */
+```
+
+Python: use an equivalent docstring block.
+
+## Required: auditable partner exposure
+
+Every **partner exposure** event (render, click-through to partner, embed open) must be traceable:
+
+- Prefer structured logging via `packages/logger` (client) or `Server/logger` (backend).
+- Include: partner id/slug, surface (e.g. `checklist.close.concierge`), transaction/workspace context if applicable, timestamp.
+- Do not log PII beyond what product already allows; mask per [security.mdc](./security.mdc).
+
+## Patterns
+
+### Good
+
+- **Move Concierge embed** at checklist/workflow level — partner URL + prefill from transaction context; commission model documented in product copy, not agent referral fee ([moveConciergeEmbed.ts](../../../Client/packages/features/partners/utils/moveConciergeEmbed.ts)).
+- **Admin partners section** — brokerage configures which partners appear; changes are admin-auditable.
+- **Financing/insurance checklist items** — transaction task completion, not "we recommend Lender X because Agent Y gets paid."
+
+### Bad
+
+- Ranking partners by **agent-specific** payout or hidden kickback tables.
+- **Buyer-personalized** "best lender for you" flows driven by referral economics.
+- Silent partner rotation without logging exposure.
+
+## When unsure
+
+Stop and ask. Do not ship partner surfacing logic without the comment block and a logging plan. Long-form legal/product notes may live under `documentation/compliance/` when added — link from here, do not duplicate in this rule.

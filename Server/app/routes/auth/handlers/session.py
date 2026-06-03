@@ -34,6 +34,7 @@ def refresh_token():
         return jsonify(error_response), status_code
 
 
+@rate_limit(max_requests=30, window_seconds=60)
 @validate_response(SuccessResponse)
 def logout():
     """Logout user and clear HttpOnly cookies"""

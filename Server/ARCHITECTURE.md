@@ -37,25 +37,26 @@ Server/
 │   │   ├── security/             # Security, admin role checks (admin_roles.py)
 │   │   └── ...
 │   └── __init__.py               # Flask app factory
-├── config/                       # Configuration files
-│   └── .env.example              # Environment variable template
+├── app/config/                   # Flask config (Config, URLs, constants)
 ├── migrations/                   # Alembic database migrations
 │   └── versions/                 # Migration scripts (DO NOT EDIT)
 ├── requirements/                 # Pinned Python deps (runtime, ci, dev, test, codegen)
-└── app.py                        # Application entry point
+├── .env.example                  # Environment variable template (validated at startup)
+├── run.py                        # Development entry point
+└── logger/                       # Centralized logging package
 ```
 
 ## Flask Application Factory
 
-**Entry point:** `Server/app.py`
+**Entry point:** [`Server/run.py`](run.py)
 
 ```python
 from app import create_app
 
 app = create_app()
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
 ```
 
 **Factory:** `Server/app/__init__.py`
@@ -464,7 +465,7 @@ See: `.cursor/rules/shared/aws-resource-naming.mdc`
 
 ### Environment Variables
 
-**Required** (see `Server/.env.example` and `Server/config/.env.example`):
+**Required** (see [`Server/.env.example`](.env.example); Flask config in `app/config/`):
 
 ```bash
 # Database
@@ -489,7 +490,7 @@ PLAID_SECRET=<secret>
 
 ### Flask Config
 
-**Location:** `Server/config/config.py`
+**Location:** `Server/app/config/` (`Config` in `_config.py`)
 
 Loads environment variables and sets Flask/SQLAlchemy configuration.
 
@@ -598,20 +599,19 @@ source .venv/bin/activate  # or `.venv\Scripts\activate` on Windows
 # Install dependencies
 pip install -r requirements/runtime.txt
 
-# Set up environment
-cp config/.env.example .env
+# Set up environment (from repo root: make setup, or copy Server/.env.example → Server/.env)
+cp .env.example .env
 # Edit .env with your configuration
 
 # Run development server
-flask run
-# Or: python app.py
+python run.py
 ```
 
 ### Common Commands
 
 ```bash
 # Run server
-flask run
+python run.py
 
 # Run tests
 pytest

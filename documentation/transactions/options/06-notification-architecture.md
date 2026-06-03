@@ -1,99 +1,33 @@
-## Option: Notification Architecture
+> **Status:** Planned — no central `NotificationEvent` bus; feature-local delivery today.  
+> **Last verified:** 2026-05-28
 
-### Problem / goal
+## Problem
 
-Transactions will generate many events (checklist changes, deadline warnings, signatures, reviews, integrations).
-We need a notification architecture that:
-- Reuses existing email/push infrastructure.
-- Supports role-based defaults and user preferences.
-- Avoids duplicated or noisy notifications.
+Checklist, deadline, signature, and integration events must share one routing layer (roles, preferences, dedupe) instead of N ad-hoc senders.
 
-### Existing infrastructure to align with
+## Settled decisions
 
-- **Notifications design docs**
-  - `documentation/to-implement-soon/notifications/delivery-email.md` and related files.
+| Decision | Choice |
+| -------- | ------ |
+| Architecture | **Option A** — central event schema + routing service; producers emit events only. |
+| Per-feature direct send (**Option B**) | Rejected at scale. |
+| Transaction-only parallel stack (**Option C**) | Rejected. |
 
-- **Backend email/push services**
-  - Any utilities under `Server/app/services/*` that handle:
-    - Email delivery.
-    - Push notifications.
+## Code today
 
-- **Frontend in-app notifications**
-  - Toasts and banners via:
-    - `useUIStore` and `enqueueToast`.
+| Area | What exists | Pointers |
+| ---- | ----------- | -------- |
+| In-app toasts | Global UI store enqueue. | `Client/packages/store/slices/ui/ui.slice.ts` (`enqueueToast`), calendar hooks e.g. `useCalendarScreen.ts` |
+| DocuSign → messaging | Agreement notifications into agent/client conversations. | `Server/app/services/docusign/notifications/messaging.py` |
+| Partner exposure | Structured log for placement views (RESPA-auditable). | `Server/app/routes/rev_share/handlers/step_views.py` |
+| Email/push | Backend delivery utilities exist; not unified under one transaction event type. | Search `Server/app/services/` for notification/email modules when extending |
 
-We must treat transaction notifications as **first-class event types** flowing through the same system.
+## Gaps
 
----
+- No shared `NotificationEvent` type consumed by checklists, deadlines, and integrations.
+- No `NotificationPreference` merge with role templates for transaction events.
+- Long-form delivery design still under `documentation/to-implement-soon/notifications/` — treat as spec, not shipped pipeline.
 
-### Option A – Central event bus + routing layer (recommended)
+## Target v1 shape (unchanged intent)
 
-**Idea:** Emit structured `NotificationEvent`s into a central service that handles:
-- Routing (which users, which channels).
-- Deduplication and batching.
-- Logging and metrics.
-
-- **Pros**
-  - Single place to manage:
-    - New event types.
-    - Routing rules.
-    - Preferences and rate limits.
-  - Decouples event producers (checklists, deadlines, agreements, integrations) from delivery mechanisms.
-- **Cons**
-  - Requires an abstraction layer and clear event schemas.
-
-**Recommendation:** Use this as the pattern; transaction modules only emit events.
-
----
-
-### Option B – Per-feature direct delivery
-
-**Idea:** Each feature (checklists, agreements, integrations) sends its own emails and push notifications directly.
-
-- **Pros**
-  - Simpler to implement in the short term.
-- **Cons**
-  - Quickly leads to:
-    - Duplicated logic.
-    - Inconsistent behavior.
-    - Harder user preference management.
-
-**Conclusion:** Not recommended for a system of this scope.
-
----
-
-### Option C – Transaction-only notification stack
-
-**Idea:** Stand up a separate notifications pipeline just for transactions.
-
-- **Pros**
-  - Allows experimentation without touching existing notifications.
-- **Cons**
-  - Violates the “single notifications system” principle.
-  - Increases operational overhead.
-
-**Conclusion:** Avoid; better to evolve the existing system.
-
----
-
-### Recommended v1 path
-
-Adopt **Option A (central event bus + routing)**:
-
-- **Backend**
-  - Define a `NotificationEvent` schema shared by:
-    - Checklist engine.
-    - Deadline engine.
-    - Signing and integrations.
-  - Central service:
-    - Applies role-based defaults (per role template).
-    - Merges with user-specific preferences (`NotificationPreference`).
-    - Sends via existing email/push mechanisms.
-
-- **Frontend**
-  - In-app notifications:
-    - React to the same events where relevant.
-
-- **Operations**
-  - Monitor notification volumes and error rates.
-  - Introduce batching/digesting where needed (e.g. daily summary of upcoming deadlines).
+Producers → router (defaults + user prefs) → existing email/push + in-app surfaces; batching/digest later.

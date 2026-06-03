@@ -8,9 +8,16 @@ export type ChecklistComponentKey =
   | "partner_agent"
   | "review_comparables";
 
+import type { PartnerPlacement } from "packages/features/partners/api/partners";
+
 /** Props expected by checklist integration components. */
 export type ChecklistIntegrationComponentProps = {
   onComplete?: () => void;
+  stepId?: string;
+  transactionId?: string | null;
+  /** Active rev-share placements for this checklist step (from ChecklistIntegrationSlot). */
+  placements?: PartnerPlacement[];
+  placementsLoading?: boolean;
 };
 
 const VALID_KEYS: ChecklistComponentKey[] = [

@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useFiltersStore } from "packages/store";
+import { useConsolidatedSearchStore } from "packages/store";
 import type { SearchResult } from "packages/types";
 
 import { useSearchResults } from "./useSearchResults";
@@ -40,7 +40,7 @@ describe("useSearchResults", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Default store state
-    vi.mocked(useFiltersStore).mockImplementation(
+    vi.mocked(useConsolidatedSearchStore).mockImplementation(
       (selector: (state: Record<string, unknown>) => unknown) => {
         const state = {
           favoriteAddresses: [],
@@ -69,9 +69,9 @@ describe("useSearchResults", () => {
       expect(result.current.isLocalStorageLoaded).toBe(true);
     });
 
-    it("should provide filter store state", () => {
+    it("should provide consolidated search store state", () => {
       const mockFavoriteAddresses = ["123 Main St", "456 Oak Ave"];
-      vi.mocked(useFiltersStore).mockImplementation(
+      vi.mocked(useConsolidatedSearchStore).mockImplementation(
         (selector: (state: Record<string, unknown>) => unknown) => {
           const state = {
             favoriteAddresses: mockFavoriteAddresses,
@@ -154,7 +154,7 @@ describe("useSearchResults", () => {
 
     it("should show next page when currentPage changes", () => {
       const setCurrentPage = vi.fn();
-      vi.mocked(useFiltersStore).mockImplementation(
+      vi.mocked(useConsolidatedSearchStore).mockImplementation(
         (selector: (state: Record<string, unknown>) => unknown) => {
           const state = {
             favoriteAddresses: [],
@@ -206,7 +206,7 @@ describe("useSearchResults", () => {
       const setActiveTab = vi.fn();
       const setCurrentPage = vi.fn();
 
-      vi.mocked(useFiltersStore).mockImplementation(
+      vi.mocked(useConsolidatedSearchStore).mockImplementation(
         (selector: (state: Record<string, unknown>) => unknown) => {
           const state = {
             favoriteAddresses: [],
@@ -259,7 +259,7 @@ describe("useSearchResults", () => {
     it("should manage searching state", () => {
       const setIsSearching = vi.fn();
 
-      vi.mocked(useFiltersStore).mockImplementation(
+      vi.mocked(useConsolidatedSearchStore).mockImplementation(
         (selector: (state: Record<string, unknown>) => unknown) => {
           const state = {
             favoriteAddresses: [],
@@ -289,7 +289,7 @@ describe("useSearchResults", () => {
     it("should manage search stage", () => {
       const setSearchStage = vi.fn();
 
-      vi.mocked(useFiltersStore).mockImplementation(
+      vi.mocked(useConsolidatedSearchStore).mockImplementation(
         (selector: (state: Record<string, unknown>) => unknown) => {
           const state = {
             favoriteAddresses: [],

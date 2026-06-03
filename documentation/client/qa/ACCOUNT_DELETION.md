@@ -6,7 +6,7 @@
 
 **QA approach until an API exists:**
 
-1. **Process-based:** follow [compliance/DATA_RETENTION.md](../../../compliance/DATA_RETENTION.md) — user may request deletion via in-app (when built) or **privacy@** / support email; log ticket ID and 7-day grace if applicable.
+1. **Process-based:** follow [compliance/DATA_RETENTION.md](../../compliance/DATA_RETENTION.md) — user may request deletion via in-app (when built) or **privacy@** / support email; log ticket ID and 7-day grace if applicable.
 2. **Do not** claim “E2E account deletion” for general users in release notes when only admin tooling exists (below).
 
 ## Admin (staging / authorized operators only)

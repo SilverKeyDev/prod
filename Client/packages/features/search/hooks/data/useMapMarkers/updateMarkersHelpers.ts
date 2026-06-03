@@ -4,7 +4,7 @@
 
 import { getMapFocusedProperty } from "packages/features/search/types/search/map/mapCardFocus";
 import { calculatePropertyCardCenter } from "packages/features/search/types/search/map/propertyCardCenter";
-import { applyListingFocusCamera } from "packages/features/search/utils/googleMaps/mapCamera";
+import { applyListingFocusCamera } from "packages/features/search/utils/googleMaps";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
 import { getWindow } from "packages/utils/platform";

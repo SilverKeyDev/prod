@@ -1,6 +1,8 @@
 # Pydantic Validation Schemas
 
-Auto-generated Pydantic models from `openapi.yaml` for runtime request/response validation.
+Auto-generated Pydantic models from `openapi/` for runtime request/response validation.
+
+`generated.py` is regenerated via `make openapi` and is used in production route validation (`@validate_request`, `@validate_response`). Do not edit generated files by hand.
 
 ## Overview
 

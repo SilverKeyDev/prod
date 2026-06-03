@@ -6,7 +6,7 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout";
-import { LEGAL_PAGES_LAST_UPDATED } from "packages/features/homeauth/utils/staticLegalContact";
+import { LEGAL_PAGES_LAST_UPDATED } from "packages/utils/legal/staticLegalContact";
 
 import { TermsOfServiceContent } from "./TermsOfServiceContent";
 

@@ -266,11 +266,13 @@ See: `documentation/compliance/`
 
 **GitHub Actions:**
 - Lint and test on PR
-- Build Docker image on merge to main
-- Push to ECR
-- SSH to EC2 and run deploy (see `.github/workflows/ci_web.yml`), merging Secrets Manager secrets listed above into the app container env file
+- Build Docker image on merge to main (or manual `workflow_dispatch` via `ci_web.yml`)
+- Push to ECR with an **immutable tag** (`${GITHUB_SHA::12}`) and deploy by **digest** (`IMAGE_DIGEST`); `web-prod` is a moving convenience tag only
+- SSH to EC2 and run [`.github/scripts/ec2-deploy.sh`](../../.github/scripts/ec2-deploy.sh) — starts **redis**, **cre_app** (Gunicorn via `gunicorn-entrypoint.sh`), **cre_worker**, **cre_beat**, optional **cre_worker_heavy** (`DEPLOY_HEAVY_WORKER=true`). Scale tuning env vars documented in [ops/scaling-playbook.md](./ops/scaling-playbook.md).
 
 Optional repository variable **`DB_URL_SECRET_ID`**: overrides the default database secret name (`db_url`) for that workflow.
+
+**Note:** Terraform modules and ECS-centric descriptions elsewhere in this doc are **aspirational or historical** — the active deploy path in git is **EC2 + Docker** as above.
 
 ## Disaster Recovery
 

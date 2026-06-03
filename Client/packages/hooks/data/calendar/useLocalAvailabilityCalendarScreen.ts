@@ -12,7 +12,7 @@ import type {
   ExtendedGoogleEvent,
 } from "packages/features/calendar/types/calendar";
 import type { GoogleEvent } from "packages/features/calendar/types/googleEvent";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { expandProfileAvailabilityToEvents } from "packages/features/profile/utils/availability/expandProfileAvailabilityToEvents";
 import {
   addAvailabilityFromQuickCreate,

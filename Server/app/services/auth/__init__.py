@@ -43,7 +43,6 @@ from .user import (
     delete_user_and_all_related_data,
     find_or_create_user_by_cognito,
     get_current_user,
-    require_auth,
 )
 
 # Utilities
@@ -80,7 +79,6 @@ __all__ = [
     "delete_user_and_all_related_data",
     "find_or_create_user_by_cognito",
     "get_current_user",
-    "require_auth",
     "SecurityException",
     # Token management
     "tokens_get",

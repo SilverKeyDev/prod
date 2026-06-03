@@ -2,10 +2,10 @@
 
 from sqlalchemy.orm import selectinload
 
-from ...models import Agreement, Document, DocumentLibraryItem
+from ...models import Agreement, AgreementLink, Document, DocumentLibraryItem
 
 
-def agreement_to_library_row(ag: Agreement) -> dict:
+def agreement_to_library_row(ag: Agreement, linked_checklist_item_id: str | None = None) -> dict:
     """Shape an Agreement ORM row like a document-library item (DocuSign tab)."""
     participants_list = [
         {
@@ -36,6 +36,7 @@ def agreement_to_library_row(ag: Agreement) -> dict:
         "agent_id": ag.agent_id,
         "buyer_id": ag.buyer_id,
         "participants": participants_list,
+        "linked_checklist_item_id": linked_checklist_item_id,
     }
 
 
@@ -65,6 +66,9 @@ def document_library_rows_for_user(target_uid: str) -> list[dict]:
         if agreement_item_ids
         else []
     )
+
+    agreement_ids = [ag.id for ag in agreements]
+    linked_step_by_agreement_id = _linked_checklist_item_ids_for_agreements(agreement_ids)
 
     # Create lookup dictionaries
     docs_by_item_id = {doc.library_item_id: doc for doc in documents}
@@ -97,7 +101,7 @@ def document_library_rows_for_user(target_uid: str) -> list[dict]:
             ag = agreements_by_item_id.get(item.id)
             if not ag or ag.status in ("voided", "declined"):
                 continue
-            rows.append(agreement_to_library_row(ag))
+            rows.append(agreement_to_library_row(ag, linked_step_by_agreement_id.get(str(ag.id))))
     rows.sort(
         key=lambda r: (
             r.get("updated_at") or r.get("created_at") or "",
@@ -106,6 +110,22 @@ def document_library_rows_for_user(target_uid: str) -> list[dict]:
         reverse=True,
     )
     return rows
+
+
+def _linked_checklist_item_ids_for_agreements(agreement_ids: list[str]) -> dict[str, str]:
+    """First checklist_item link per agreement id (`{category}.{item_id}`)."""
+    if not agreement_ids:
+        return {}
+    links = AgreementLink.query.filter(
+        AgreementLink.agreement_id.in_(agreement_ids),
+        AgreementLink.linked_item_type == "checklist_item",
+    ).all()
+    out: dict[str, str] = {}
+    for link in links:
+        aid = str(link.agreement_id)
+        if aid not in out and link.linked_item_id:
+            out[aid] = str(link.linked_item_id)
+    return out
 
 
 def document_library_rows_for_agent_request(target_uid: str, acting_user) -> list[dict]:
@@ -134,7 +154,8 @@ def document_library_rows_for_agent_request(target_uid: str, acting_user) -> lis
             or ag.status in ("voided", "declined")
         ):
             continue
-        rows.append(agreement_to_library_row(ag))
+        linked_by_agreement = _linked_checklist_item_ids_for_agreements([ag.id])
+        rows.append(agreement_to_library_row(ag, linked_by_agreement.get(str(ag.id))))
         seen_agreement_ids.add(ag.id)
 
     rows.sort(

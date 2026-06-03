@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from "react";
 
-import type { ProfileUiSurface } from "packages/features/profile/types/profileVisibility";
+import type { ProfileUiSurface } from "packages/features/profile/types/visibility/profileVisibility";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";
@@ -39,12 +39,6 @@ export function PersonalizationSectionLayoutProvider({
       {children}
     </PersonalizationSectionLayoutContext.Provider>
   );
-}
-
-/** @deprecated Prefer {@link useShowPersonalizationSectionBodyTitle}. */
-// eslint-disable-next-line react-refresh/only-export-components -- hook paired with Provider above
-export function useHidePersonalizationStepHeading(): boolean {
-  return useContext(PersonalizationSectionLayoutContext).hideStepHeadings;
 }
 
 /**

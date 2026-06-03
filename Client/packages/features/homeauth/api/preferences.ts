@@ -1,24 +1,15 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * This file re-exports types from the generated API contract (api.generated.ts).
- * All type definitions have been moved to openapi.yaml.
- *
- * To add/modify API types:
- * 1. Edit openapi.yaml
- * 2. Run `pnpm generate:api-types`
- * 3. Types will be auto-generated in packages/types/api.generated.ts
- *
- * This shim maintains backward compatibility for existing imports.
- */
-
-import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { apiDelete, apiGet, apiPost } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
 
 import type { UserPreferences } from "@/features/homeauth/types";
 
 // Re-export types from generated schema
 export type PreferencesResponse = components["schemas"]["PreferencesResponse"];
+export type ClearPreferencesResponse = components["schemas"]["SuccessResponse"] & {
+  has_preferences: false;
+  preferences?: unknown;
+  message?: string;
+};
 export type ClientInfo = components["schemas"]["ClientInfo"];
 export type ClientsResponse = components["schemas"]["ClientsResponse"];
 
@@ -36,6 +27,12 @@ export const preferencesApi = {
    * Get current user's preferences
    */
   get: (): Promise<PreferencesResponse> => apiGet<PreferencesResponse>("/api/v1/preferences"),
+
+  /**
+   * Clear all preference rows for the authenticated user (never affects a client's row).
+   */
+  clear: (): Promise<ClearPreferencesResponse> =>
+    apiDelete<ClearPreferencesResponse>("/api/v1/preferences"),
 
   /**
    * Get preferences for a specific user by ID (admin/agent only)

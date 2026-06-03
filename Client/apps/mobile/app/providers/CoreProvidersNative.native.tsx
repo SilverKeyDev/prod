@@ -7,6 +7,7 @@ import { LocalizationProvider } from "packages/contexts/LocalizationContext";
 import { AuthProviderNative } from "./auth/AuthProviderNative.native";
 import { ErrorProviderNative } from "./ErrorProviderNative.native";
 import { NavigationLinkPrimitiveProvider } from "./NavigationLinkPrimitiveProvider.native";
+import { PostHogIdentitySyncNative } from "./PostHogIdentitySync.native";
 import { QueryProvider } from "./QueryProvider.native";
 import { ThemeProviderNative } from "./theme/ThemeProviderNative.native";
 
@@ -42,6 +43,7 @@ export function CoreProvidersNative({ children, onGoHome }: CoreProvidersNativeP
     <ErrorProvider onGoHome={onGoHome}>
       <ThemeProvider>
         <AuthProvider>
+          <PostHogIdentitySyncNative />
           <Query>
             <NavLinkProvider>{content}</NavLinkProvider>
           </Query>

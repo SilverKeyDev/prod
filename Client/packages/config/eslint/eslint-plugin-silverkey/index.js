@@ -10,6 +10,7 @@ module.exports = {
     "no-primitive-components": require("./rules/ui/no-primitive-components"),
     "no-console-logger": require("./rules/ui/no-console-logger"),
     "no-raw-translation-key-literal": require("./rules/ui/no-raw-translation-key-literal"),
+    "no-direct-api-error-field": require("./rules/ui/no-direct-api-error-field"),
     "no-zustand-get-state": require("./rules/hooks/no-zustand-get-state"),
     "no-async-use-effect": require("./rules/hooks/no-async-use-effect"),
     "no-focused-tests": require("./rules/ui/no-focused-tests"),
@@ -22,6 +23,7 @@ module.exports = {
     "no-raw-spacing": require("./rules/ui/no-raw-spacing"),
     "no-raw-zindex": require("./rules/ui/no-raw-zindex"),
     "no-direct-accessibility-props": require("./rules/ui/no-direct-accessibility-props"),
+    "require-interactive-label": require("./rules/ui/require-interactive-label"),
     "no-platform-feature-check": require("./rules/ui/no-platform-feature-check"),
     "no-direct-platform-libraries": require("./rules/ui/no-direct-platform-libraries"),
     "no-native-date": require("./rules/ui/no-native-date"),
@@ -38,5 +40,6 @@ module.exports = {
     "no-scrollview-children-map": require("./rules/platform/no-scrollview-children-map"),
     "no-legacy-viewport-units": require("./rules/ui/no-legacy-viewport-units"),
     "no-cross-feature-utils-imports": require("./rules/architecture/no-cross-feature-utils-imports"),
+    "no-unsafe-innerhtml": require("./rules/security/no-unsafe-innerhtml"),
   },
 };

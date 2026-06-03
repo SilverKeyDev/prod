@@ -22,8 +22,8 @@ def established_messaging_relationship(agent_id: str, client_id: str) -> bool:
     """
     True when there is an existing agent↔client link before creating a new AgentConnections row.
 
-    Uses agent-side roster / existing conversation rows, plus client's linked agents (agent_id JSON
-    and AgentConnections) so first-time client messaging matches assigned agent.
+    Uses agent-side roster / existing conversation rows, plus client's linked agents
+    via ``agent_conversations`` so first-time client messaging matches assigned agent.
     """
     if not agent_id or not client_id:
         return False

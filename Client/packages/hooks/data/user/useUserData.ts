@@ -7,6 +7,7 @@ import { queryKeys } from "packages/config/query/keys";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import type { UserPreferences, UserProfile } from "packages/types";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
 
 export type UserProfileQueryMeta = {
@@ -78,7 +79,7 @@ export function useUserData(): UseUserDataReturn {
               error: response.error,
             }
           );
-          throw new Error(response.error ?? "Failed to fetch user profile");
+          throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch user profile"));
         }
 
         const userData = response.user ?? response.data;
@@ -94,21 +95,11 @@ export function useUserData(): UseUserDataReturn {
           throw new Error("No user data received");
         }
 
-        const raw = userData as Record<string, unknown>;
-        const closing = typeof raw.is_closing_mode === "boolean" ? raw.is_closing_mode : false;
-
-        // Convert User to UserProfile by adding missing properties
         const profile: UserProfile = {
           ...userData,
-          has_subscription: userData.has_subscription ?? false,
-          subscription: userData.subscription ?? null,
           has_preferences: userData.has_preferences ?? false,
           is_agent: userData.is_agent ?? false,
-          is_closing_mode: closing,
-          client_ids: Array.isArray(userData.client_ids)
-            ? userData.client_ids.join(",")
-            : userData.client_ids,
-          roles: userData.roles ?? [], // Include roles from backend (user_roles table)
+          roles: userData.roles ?? [],
           brokerage_org_ids: userData.brokerage_org_ids ?? null,
         };
 
@@ -260,7 +251,7 @@ export function useUserPreferences(options?: UseUserPreferencesOptions): UseUser
           ? await preferencesApi.getByUserId(subjectId)
           : await preferencesApi.get();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch user preferences");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch user preferences"));
       }
       return response.preferences ?? null;
     },
@@ -278,7 +269,7 @@ export function useUserPreferences(options?: UseUserPreferencesOptions): UseUser
     mutationFn: async (preferences: Partial<UserPreferences>) => {
       const response = await preferencesApi.createOrUpdate(preferences);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to update preferences");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to update preferences"));
       }
       return response.preferences;
     },

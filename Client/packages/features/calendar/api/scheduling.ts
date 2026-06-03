@@ -2,7 +2,7 @@
  * Google Calendar free/busy and client availability/events.
  */
 
-import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { apiGet, apiPost } from "packages/services/http";
 
 import type { FreebusyRequest, FreebusyResponse } from "@/features/calendar/types/scheduling";
 

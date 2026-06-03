@@ -1,6 +1,4 @@
-"""Transaction checklist progress. One row per user/category or per completed item.
-Category: escrow, financing, closing, insurance, timeline.
-Stored in table user_tasks for backward compatibility."""
+"""Transaction checklist progress. One row per transaction/category or per completed item."""
 
 import uuid
 from datetime import datetime, timezone
@@ -17,7 +15,10 @@ class TransactionTask(db.Model):
     id: Mapped[str] = mapped_column(
         db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
-    user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    transaction_id: Mapped[str] = mapped_column(
+        db.ForeignKey("transactions.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"), index=True)
     category: Mapped[str] = mapped_column(db.String(50))
     title: Mapped[str] = mapped_column(db.String(500))
     status: Mapped[str] = mapped_column(db.String(20), default="todo")
@@ -29,6 +30,7 @@ class TransactionTask(db.Model):
         default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
 
+    transaction = db.relationship("Transaction", backref=db.backref("user_tasks", lazy="dynamic"))
     user = db.relationship("User", backref=db.backref("user_tasks", lazy="dynamic"))
 
     def __init__(self, **kwargs):

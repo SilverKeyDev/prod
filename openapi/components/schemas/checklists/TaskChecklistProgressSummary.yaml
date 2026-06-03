@@ -1,0 +1,14 @@
+type: object
+required:
+  - sections
+  - overall
+properties:
+  sections:
+    type: object
+    additionalProperties:
+      $ref: "./TaskChecklistSectionProgress.yaml"
+    description: >-
+      Per-category progress keyed by ChecklistType (search, offer, escrow,
+      insurance, financing, closing).
+  overall:
+    $ref: "./TaskChecklistOverallProgress.yaml"

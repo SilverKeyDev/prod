@@ -1,7 +1,7 @@
+import { getEventStartDate } from "packages/utils/calendar/parsing/eventParsing";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import type { UpcomingAgendaItem } from "@/features/calendar/types/upcomingAgenda";
-import { getEventStartDate } from "@/features/calendar/utils/parsing/eventParsing";
 
 export type AgendaAllDisplayMode = "chronological" | "most_recent" | "future_only";
 

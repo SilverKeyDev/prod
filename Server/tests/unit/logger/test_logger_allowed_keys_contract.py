@@ -1,7 +1,7 @@
 """Admin logger-config allowed keys must match LoggerConfig fields."""
 
-from app.routes.admin.handlers.logger_config import ALLOWED_LOGGER_CONFIG_KEYS
-from logger.config_model import LoggerConfig
+from logger.config.allowed_logger_config_keys_generated import ALLOWED_LOGGER_CONFIG_KEYS
+from logger.config.config_model import LoggerConfig
 
 
 def test_allowed_logger_config_keys_match_logger_config_to_dict() -> None:

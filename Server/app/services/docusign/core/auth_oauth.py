@@ -6,6 +6,7 @@ Implements OAuth 2.0 authentication for per-agent operations.
 
 from datetime import datetime, timedelta, timezone
 
+import requests
 from docusign_esign import ApiClient
 
 from app import db
@@ -159,9 +160,45 @@ class DocusignOAuthService:
         return token
 
     @staticmethod
+    def _revoke_token_at_provider(refresh_token: str | None) -> None:
+        """Best-effort revoke of refresh token at DocuSign (RFC 7009)."""
+        if not refresh_token or not Config.DOCUSIGN_CLIENT_ID or not Config.DOCUSIGN_CLIENT_SECRET:
+            return
+
+        token_url = (Config.DOCUSIGN_OAUTH_TOKEN_URL or "").strip()
+        if not token_url:
+            return
+
+        revoke_url = token_url.replace("/oauth/token", "/oauth/revoke")
+        try:
+            response = requests.post(
+                revoke_url,
+                data={
+                    "token": refresh_token,
+                    "token_type_hint": "refresh_token",
+                },
+                auth=(Config.DOCUSIGN_CLIENT_ID, Config.DOCUSIGN_CLIENT_SECRET),
+                timeout=15,
+            )
+            if response.status_code >= 400:
+                logger.warning(
+                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DocuSign OAuth revoke returned non-success status",
+                    {"status_code": response.status_code},
+                )
+        except Exception as e:
+            logger.warning(
+                LOG_CATEGORIES["DOCUSIGN"],
+                "DocuSign OAuth revoke request failed",
+                {"error": str(e)},
+            )
+
+    @staticmethod
     def disconnect(user_id: str):
         """
         Disconnect user's DocuSign OAuth.
+
+        Revokes tokens at DocuSign when possible, then removes the local token row.
 
         Args:
             user_id: User ID
@@ -173,6 +210,7 @@ class DocusignOAuthService:
         token = DocusignOAuthToken.query.filter_by(user_id=user_id).first()
 
         if token:
+            DocusignOAuthService._revoke_token_at_provider(token.refresh_token)
             db.session.delete(token)
             db.session.commit()
 

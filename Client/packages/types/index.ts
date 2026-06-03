@@ -1,24 +1,10 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * This file re-exports types from the generated API contract (api.generated.ts).
- * All type definitions have been moved to openapi.yaml.
- *
- * To add/modify API types:
- * 1. Edit openapi.yaml
- * 2. Run `pnpm generate:api-types`
- * 3. Types will be auto-generated in packages/types/api.generated.ts
- *
- * Shared types barrel - re-exports from feature packages and generated schema.
- */
-
 export type {
   ExtendedGoogleEvent,
   ProfileAvailabilityEventMeta,
 } from "./calendar/extendedGoogleEvent";
 export type { PropertyDetailsStreamProperty } from "./domain/propertyDetailsStream";
 export type { SavedHome, SavedHomeRecord } from "./domain/savedHome";
-export type { GoogleCalendar, GoogleEvent } from "./integrations/googleCalendar";
+export type { GoogleCalendar, GoogleEvent } from "packages/features/calendar/api/types";
 export {
   CHECKLIST_SUBTITLES,
   CHECKLIST_TITLES,

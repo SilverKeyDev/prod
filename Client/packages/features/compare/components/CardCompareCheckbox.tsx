@@ -2,7 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import Button from "packages/ui/components/button/Button";
+import IconButton from "packages/ui/components/button/core/IconButton";
 import { getCardBubbleSizeClasses } from "packages/ui/components/cards/base/styles/CardBubbleStyles";
 import { Box } from "packages/ui/components/primitives";
 export type CardCompareCheckboxProps = {
@@ -59,56 +59,41 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
   const isInlineButton =
     !position || className.includes("border") || className.includes("rounded-md");
   const unselectedGlyph = unselectedIcon === "search" ? "search" : "plus";
+  const defaultAriaLabel = isSelected ? "Remove from comparison" : "Add to comparison";
+  const resolvedAriaLabel = ariaLabel ?? defaultAriaLabel;
+
+  const toggleIcon = isSelected ? (
+    <Icon
+      name="check"
+      className={`${iconSizeClass} transition-all duration-200 group-hover:scale-110 group-hover:brightness-90`}
+    />
+  ) : (
+    <Icon
+      name={unselectedGlyph}
+      className={`${iconSizeClass} transition-all duration-200 group-hover:scale-110 group-hover:brightness-90`}
+    />
+  );
+
+  const toggleButtonClassName = `${baseButtonClasses} ${stateClasses} ${toggleClass}`;
+
+  const toggleButton = (
+    <IconButton
+      variant="ghost"
+      icon={toggleIcon}
+      onClick={handleClick}
+      aria-pressed={isSelected}
+      className={isInlineButton ? `${toggleButtonClassName} ${className}` : toggleButtonClassName}
+      label={resolvedAriaLabel}
+      title={resolvedAriaLabel}
+    />
+  );
 
   if (isInlineButton) {
-    return (
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={handleClick}
-        aria-pressed={isSelected}
-        className={`${baseButtonClasses} ${stateClasses} ${toggleClass} ${className}`}
-        label={ariaLabel ?? (isSelected ? "Remove from comparison" : "Add to comparison")}
-        title={isSelected ? "Remove from comparison" : "Add to comparison"}
-      >
-        {isSelected ? (
-          <Icon
-            name="check"
-            className={`${iconSizeClass} transition-all duration-200 group-hover:brightness-90`}
-          />
-        ) : (
-          <Icon
-            name={unselectedGlyph}
-            className={`${iconSizeClass} transition-all duration-200 group-hover:brightness-90`}
-          />
-        )}
-      </Button>
-    );
+    return toggleButton;
   }
+
   return (
-    <Box className={`absolute ${POSITION_MAP[position]} z-header ${className}`}>
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={handleClick}
-        aria-pressed={isSelected}
-        className={`${baseButtonClasses} ${stateClasses} ${toggleClass}`}
-        label={ariaLabel ?? (isSelected ? "Remove from comparison" : "Add to comparison")}
-        title={isSelected ? "Remove from comparison" : "Add to comparison"}
-      >
-        {isSelected ? (
-          <Icon
-            name="check"
-            className={`${iconSizeClass} transition-all duration-200 group-hover:scale-110 group-hover:brightness-90`}
-          />
-        ) : (
-          <Icon
-            name={unselectedGlyph}
-            className={`${iconSizeClass} transition-all duration-200 group-hover:scale-110 group-hover:brightness-90`}
-          />
-        )}
-      </Button>
-    </Box>
+    <Box className={`absolute ${POSITION_MAP[position]} z-header ${className}`}>{toggleButton}</Box>
   );
 };
 export default CardCompareCheckbox;

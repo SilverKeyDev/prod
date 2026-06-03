@@ -1,6 +1,10 @@
 from flask import jsonify, request
 
 from app.schemas import GetLoggerConfigResponse, UpdateLoggerConfigRequest
+from app.services.admin.deployment_logger_config import (
+    get_resolved_deployment_logger_config,
+    merge_and_persist,
+)
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_authenticated_user,
@@ -9,26 +13,7 @@ from app.utils.common_patterns import (
 )
 from app.utils.security.admin_roles import user_has_admin_role
 from app.utils.validation import validate_request, validate_response
-from logger import LOG_CATEGORIES, LoggerConfig, log
-
-# Keep in sync with LoggerConfig.to_dict() keys (see tests/unit/logger/test_logger_allowed_keys_contract.py).
-ALLOWED_LOGGER_CONFIG_KEYS = frozenset(
-    {
-        "polling",
-        "pages",
-        "hooks",
-        "auth",
-        "http",
-        "api",
-        "errors",
-        "security",
-        "polygonSearch",
-        "docusign",
-        "documents",
-        "profilePreferences",
-        "logLevel",
-    }
-)
+from logger import LOG_CATEGORIES, log
 
 
 @handle_exceptions_with_logging
@@ -41,15 +26,12 @@ def get_logger_config(user):
             "Unauthorized admin logger config read attempt",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Admin access required", status_code=403)
+        return standardize_error_response(
+            "Admin access required", status_code=403, error_code="admin_forbidden"
+        )
 
-    config = log.get_config()
-    if isinstance(config, LoggerConfig):
-        config_dict = config.to_dict()
-    else:
-        config_dict = dict(config)  # type: ignore[arg-type]
-
-    return standardize_success_response({"config": config_dict})
+    config = get_resolved_deployment_logger_config()
+    return standardize_success_response({"config": config})
 
 
 @handle_exceptions_with_logging
@@ -63,7 +45,9 @@ def update_logger_config(user, data: UpdateLoggerConfigRequest | None = None):
             "Unauthorized admin logger config update attempt",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Admin access required", status_code=403)
+        return standardize_error_response(
+            "Admin access required", status_code=403, error_code="admin_forbidden"
+        )
 
     if data is None:
         request_data = request.get_json(silent=True) or {}
@@ -71,31 +55,39 @@ def update_logger_config(user, data: UpdateLoggerConfigRequest | None = None):
         request_data = data.model_dump()
     updates = request_data.get("updates") or {}
     if not isinstance(updates, dict):
-        return standardize_error_response("Invalid updates payload", status_code=400)
-
-    safe_updates = {k: v for k, v in updates.items() if k in ALLOWED_LOGGER_CONFIG_KEYS}
-
-    if not safe_updates:
-        return standardize_error_response("No valid logger fields to update", status_code=400)
+        return standardize_error_response(
+            "Invalid updates payload", status_code=400, error_code="validation_error"
+        )
 
     try:
-        log.update_config(safe_updates)
+        resolved = merge_and_persist(getattr(user, "id", None), updates)
+        if resolved is None:
+            return standardize_error_response(
+                "No valid logger fields to update", status_code=400, error_code="validation_error"
+            )
+
+        changed_scopes = [
+            scope for scope in ("client", "server") if isinstance(updates.get(scope), dict)
+        ]
         log.security(
             LOG_CATEGORIES["SECURITY"],
-            "Admin updated server logger config",
-            {"user_id": getattr(user, "id", None), "fields": list(safe_updates.keys())},
+            "Admin updated deployment logger config",
+            {
+                "user_id": getattr(user, "id", None),
+                "scopes": changed_scopes,
+            },
         )
-        config = log.get_config()
-        if isinstance(config, LoggerConfig):
-            config_dict = config.to_dict()
-        else:
-            config_dict = dict(config)  # type: ignore[arg-type]
-
-        return standardize_success_response({"config": config_dict})
+        return standardize_success_response({"config": resolved})
     except Exception as exc:  # pragma: no cover - defensive
         log.error(
             LOG_CATEGORIES["ERRORS"],
-            "Failed to update server logger config",
+            "Failed to update logger config",
             {"error": str(exc)},
         )
-        return jsonify({"success": False, "error": "Failed to update logger config"}), 500
+        return jsonify(
+            {
+                "success": False,
+                "error": "server_error",
+                "message": "Failed to update logger config",
+            }
+        ), 500

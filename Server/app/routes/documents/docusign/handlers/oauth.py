@@ -2,11 +2,13 @@
 
 from flask import jsonify, redirect, request, session
 
-from app.services.auth import get_current_user
+from app.schemas import OAuthCallbackQueryParams
 from app.services.docusign import DocusignOAuthService
 from app.services.docusign.utils.permissions import is_agent
+from app.utils.common_patterns import require_authenticated_user
 from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
+from app.utils.validation import validate_query
 from logger import LOG_CATEGORIES, get_logger
 
 log = get_logger()
@@ -15,14 +17,14 @@ log = get_logger()
 def register_oauth_routes(bp):
     @bp.route("/oauth/start", methods=["GET"])
     @rate_limit(max_requests=10, window_seconds=60)
-    def oauth_start():
+    @require_authenticated_user
+    def oauth_start(user):
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 log.warn(
                     LOG_CATEGORIES["DOCUSIGN"],
                     "Non-agent attempted OAuth start",
-                    {"user_id": user.id if user else None},
+                    {"user_id": user.id},
                 )
                 return jsonify({"success": False, "error": "Agent access required"}), 403
             log.debug(
@@ -42,10 +44,11 @@ def register_oauth_routes(bp):
 
     @bp.route("/oauth/callback", methods=["GET"])
     @rate_limit(max_requests=10, window_seconds=60)
-    def oauth_callback():
+    @validate_query(OAuthCallbackQueryParams)
+    def oauth_callback(query: OAuthCallbackQueryParams | None = None):
         try:
-            code = request.args.get("code")
-            state = request.args.get("state")
+            code = query.code if query is not None else request.args.get("code")
+            state = query.state if query is not None else request.args.get("state")
             log.debug(
                 LOG_CATEGORIES["DOCUSIGN"],
                 "Received OAuth callback",

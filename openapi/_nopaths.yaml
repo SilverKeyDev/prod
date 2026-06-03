@@ -273,6 +273,14 @@ components:
       $ref: './components/schemas/shared/dashboard/GetDashboardResponse.yaml'
     GetLoggerConfigResponse:
       $ref: './components/schemas/shared/logger/GetLoggerConfigResponse.yaml'
+    ClientLoggerConfig:
+      $ref: './components/schemas/shared/logger/ClientLoggerConfig.yaml'
+    ClientApiSubcategoryConfig:
+      $ref: './components/schemas/shared/logger/ClientApiSubcategoryConfig.yaml'
+    DeploymentLoggerConfig:
+      $ref: './components/schemas/shared/logger/DeploymentLoggerConfig.yaml'
+    DeploymentLoggerConfigUpdates:
+      $ref: './components/schemas/shared/logger/DeploymentLoggerConfigUpdates.yaml'
     GetSenderViewUrlResponse:
       $ref: './components/schemas/agreements/agreements/GetSenderViewUrlResponse.yaml'
     GetSigningUrlRequest:
@@ -365,8 +373,6 @@ components:
       $ref: './components/schemas/search/properties/PropertyCompsRequest.yaml'
     PropertyCompsResponse:
       $ref: './components/schemas/search/properties/PropertyCompsResponse.yaml'
-    PropertyData:
-      $ref: './components/schemas/search/properties/PropertyData.yaml'
     PropertyRequest:
       $ref: './components/schemas/search/properties/PropertyRequest.yaml'
     PropertyResearchOptions:
@@ -461,10 +467,6 @@ components:
       $ref: './components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml'
     UpdateChecklistRequest:
       $ref: './components/schemas/checklists/UpdateChecklistRequest.yaml'
-    UpdateClosingModeRequest:
-      $ref: './components/schemas/auth/UpdateClosingModeRequest.yaml'
-    UpdateClosingModeResponse:
-      $ref: './components/schemas/auth/UpdateClosingModeResponse.yaml'
     UpdateEventRequestStatusRequest:
       $ref: './components/schemas/shared/event-requests/UpdateEventRequestStatusRequest.yaml'
     UpdateLoggerConfigRequest:

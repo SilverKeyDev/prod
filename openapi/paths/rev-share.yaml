@@ -1,0 +1,341 @@
+/api/v1/admin/partners:
+  get:
+    tags:
+      - Admin
+    summary: List rev-share partners
+    operationId: listAdminPartners
+    responses:
+      "200":
+        description: Partner list
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/partners/PartnerListResponse.yaml"
+  post:
+    tags:
+      - Admin
+    summary: Create rev-share partner
+    operationId: createAdminPartner
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/partners/PartnerCreateRequest.yaml"
+    responses:
+      "201":
+        description: Created
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/partners/PartnerResponse.yaml"
+
+/api/v1/admin/partners/checklist-steps:
+  get:
+    tags:
+      - Admin
+    summary: List checklist steps eligible for partner placement
+    operationId: listPartnerChecklistSteps
+    responses:
+      "200":
+        description: Steps
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  properties:
+                    steps:
+                      type: array
+                      items:
+                        type: object
+
+/api/v1/admin/partners/{partner_id}:
+  get:
+    tags:
+      - Admin
+    summary: Get partner by id
+    operationId: getAdminPartner
+    parameters:
+      - name: partner_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Partner
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/partners/PartnerResponse.yaml"
+  patch:
+    tags:
+      - Admin
+    summary: Update partner
+    operationId: patchAdminPartner
+    parameters:
+      - name: partner_id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/partners/PartnerUpdateRequest.yaml"
+    responses:
+      "200":
+        description: Updated
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/partners/PartnerResponse.yaml"
+  delete:
+    tags:
+      - Admin
+    summary: Delete partner
+    operationId: deleteAdminPartner
+    parameters:
+      - name: partner_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Partner deleted
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/shared/core/SuccessResponse.yaml"
+      "404":
+        description: Partner not found
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/shared/core/ErrorResponse.yaml"
+
+/api/v1/admin/partners/{partner_id}/provision-links:
+  post:
+    tags:
+      - Admin
+    summary: Provision platform rev_share link for partner
+    operationId: provisionAdminPartnerLinks
+    parameters:
+      - name: partner_id
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Provisioned
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  properties:
+                    links_created:
+                      type: integer
+
+/api/v1/admin/partners/{partner_id}/logo:
+  post:
+    tags:
+      - Admin
+    summary: Upload partner integration logo to S3
+    operationId: uploadAdminPartnerLogo
+    parameters:
+      - name: partner_id
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - file
+            properties:
+              file:
+                type: string
+                format: binary
+    responses:
+      "201":
+        description: Logo uploaded
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/partners/PartnerLogoUploadResponse.yaml"
+
+/api/v1/admin/rev-share/analytics:
+  get:
+    tags:
+      - Admin
+    summary: Rev-share analytics for a partner
+    operationId: getAdminRevShareAnalytics
+    parameters:
+      - name: partner_id
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: step_id
+        in: query
+        schema:
+          type: string
+      - name: date_from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: date_to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: agent_id
+        in: query
+        schema:
+          type: string
+      - name: brokerage
+        in: query
+        schema:
+          type: string
+      - name: bucket
+        in: query
+        schema:
+          type: string
+          enum:
+            - day
+            - week
+    responses:
+      "200":
+        description: Analytics payload
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/partners/RevShareAnalyticsResponse.yaml"
+
+/api/v1/partners/placements:
+  get:
+    tags:
+      - Transactions
+    summary: Active partner placements for a checklist step
+    operationId: getPartnerPlacements
+    parameters:
+      - name: step_id
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: transaction_id
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Optional; used only to fill embed URL placeholders when the partner template includes them
+      - name: workspace
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+            - buyer
+            - seller
+            - agent
+            - brokerage
+            - integration_partner
+        description: Active viewer workspace; v1 checklist placements only for buyer and seller
+    responses:
+      "200":
+        description: Placements
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/partners/RevSharePlacementsResponse.yaml"
+
+/api/v1/rev-share/step-views:
+  post:
+    tags:
+      - Transactions
+    summary: Record buyer step view (CTR denominator)
+    operationId: postRevShareStepView
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/partners/RevShareStepViewRequest.yaml"
+    responses:
+      "200":
+        description: Recorded
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+
+/r/{link_id}:
+  get:
+    tags:
+      - Public
+    summary: Rev-share click redirect
+    operationId: revShareRedirect
+    parameters:
+      - name: link_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: buyer_id
+        in: query
+        schema:
+          type: string
+      - name: transaction_id
+        in: query
+        schema:
+          type: string
+      - name: step_id
+        in: query
+        schema:
+          type: string
+      - name: session_id
+        in: query
+        schema:
+          type: string
+      - name: utm_source
+        in: query
+        schema:
+          type: string
+      - name: utm_medium
+        in: query
+        schema:
+          type: string
+      - name: utm_campaign
+        in: query
+        schema:
+          type: string
+    responses:
+      "302":
+        description: Redirect to partner destination
+      "404":
+        description: Link not found

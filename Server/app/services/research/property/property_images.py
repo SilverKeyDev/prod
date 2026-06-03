@@ -10,13 +10,12 @@ from flask import current_app
 from app.services.search.data import get_property_images as _slipstream_get_images
 
 
-def fetch_zillow_images(zpid: str, rapidapi_key: str | None = None) -> list[str]:
+def fetch_zillow_images(zpid: str) -> list[str]:
     """
     Fetch property images from Slipstream API.
 
     Args:
         zpid: Property / MLS listing ID
-        rapidapi_key: Unused (kept for backward compat signature)
 
     Returns:
         List of image URLs

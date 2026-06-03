@@ -8,9 +8,7 @@ import AgentProfilePage from "@/pages/misc/AgentProfilePage";
 import PropertyDetailsPage from "@/pages/property/PropertyDetailsPage";
 import AdminDevPersonaOutlet from "@/pages/workspace/admin/AdminDevPersonaOutlet";
 import AdminLoggingOutlet from "@/pages/workspace/admin/AdminLoggingOutlet";
-import AdminNotificationsOutlet from "@/pages/workspace/admin/AdminNotificationsOutlet";
 import AdminPartnersOutlet from "@/pages/workspace/admin/AdminPartnersOutlet";
-import AdminPlatformHealthOutlet from "@/pages/workspace/admin/AdminPlatformHealthOutlet";
 import AdminSuperadminOutlet from "@/pages/workspace/admin/AdminSuperadminOutlet";
 import AdminPage from "@/pages/workspace/AdminPage";
 
@@ -50,9 +48,9 @@ function useStableNonDashboardRoutes(): ReactElement[] {
     trailing.push(
       <Route key="/admin" path="/admin" element={<AdminPage />}>
         <Route index element={<Navigate to="logging" replace />} />
-        <Route path="platform-health" element={<AdminPlatformHealthOutlet />} />
-        <Route path="analytics" element={<Navigate to="/admin/logging" replace />} />
-        <Route path="notifications" element={<AdminNotificationsOutlet />} />
+        <Route path="operations" element={<Navigate to="/admin/logging" replace />} />
+        <Route path="platform-health" element={<Navigate to="/admin/logging" replace />} />
+        <Route path="notifications" element={<Navigate to="/admin/logging" replace />} />
         <Route path="logging" element={<AdminLoggingOutlet />} />
         <Route path="partners" element={<AdminPartnersOutlet />} />
         <Route path="dev-persona" element={<AdminDevPersonaOutlet />} />

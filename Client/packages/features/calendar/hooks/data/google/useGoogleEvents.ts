@@ -12,6 +12,7 @@ import { googleCalendarApi } from "packages/features/calendar/api";
 import { showErrorToast } from "packages/hooks/ui/toast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 import { buildEventsListQueryFn } from "./useGoogleEventsHelpers";
 
@@ -114,7 +115,7 @@ export function useGoogleEvents(params?: {
     mutationFn: async (event: GoogleCalendarEventCreateBody) => {
       const response = await googleCalendarApi.createEvent(event);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to create event");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to create event"));
       }
       return response.data as GoogleEventCreateResponse;
     },
@@ -136,7 +137,7 @@ export function useGoogleEvents(params?: {
     }) => {
       const response = await googleCalendarApi.updateEvent(eventId, event);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to update event");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to update event"));
       }
       return response.data as GoogleEventCreateResponse;
     },
@@ -151,7 +152,7 @@ export function useGoogleEvents(params?: {
     mutationFn: async ({ eventId, calendarId }: { eventId: string; calendarId?: string }) => {
       const response = await googleCalendarApi.deleteEvent(eventId, calendarId);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to delete event");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to delete event"));
       }
     },
     onSuccess: invalidateEvents,

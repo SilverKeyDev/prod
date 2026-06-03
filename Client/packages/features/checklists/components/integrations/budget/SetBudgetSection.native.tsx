@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import { isSetBudgetStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
-import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import Card from "packages/ui/components/cards/Card";

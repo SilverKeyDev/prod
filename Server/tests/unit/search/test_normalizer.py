@@ -8,6 +8,7 @@ persistence, post-filters, and client transforms.
 from __future__ import annotations
 
 from app.services.search.data.normalizer import normalize_listing, normalize_listings
+from app.services.search.data.search_response_slim import slim_properties_for_search_response
 
 
 def _make_raw(**overrides) -> dict:
@@ -285,3 +286,19 @@ class TestNormalizeListings:
 
     def test_empty_batch(self):
         assert normalize_listings([]) == []
+
+
+class TestNormalizerScoringFields:
+    def test_normalized_row_includes_fields_used_by_mcda(self):
+        out = normalize_listing(_make_raw())
+        assert out.get("zpid") == "MLS-12345"
+        assert out.get("price") == 350000
+        assert out.get("bedrooms") == 3
+        assert out.get("livingArea") == 1800
+
+    def test_slim_response_preserves_score(self):
+        row = normalize_listing(_make_raw())
+        row["_score"] = 67.3
+        slimmed = slim_properties_for_search_response([row])
+        assert len(slimmed) == 1
+        assert slimmed[0].get("score") == 67.3

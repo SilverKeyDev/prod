@@ -11,7 +11,7 @@ def resolve_agent_scoped_user_id(user, json_body: dict | None = None):
 
     Optional ``client_id`` may be supplied as a query param (e.g. GET) or in
     ``json_body`` (e.g. POST). Non-agents cannot pass ``client_id``. Agents may
-    only use IDs present in their ``client_ids`` roster.
+    only use client IDs linked in ``agent_conversations``.
 
     Returns:
         (target_user_id, None) on success, or

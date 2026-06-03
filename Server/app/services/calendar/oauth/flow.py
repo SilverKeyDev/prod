@@ -87,30 +87,13 @@ def build_auth_url(
     auth_endpoint: str,
     scopes: list,
     user_id: str,
-    request_full_scope: bool = False,
-    use_scheduling_scopes: bool = False,
     request_additional_scopes: list[str] | None = None,
 ) -> tuple[str, str]:
-    """Build Google OAuth authorization URL with incremental authorization
+    """Build Google OAuth authorization URL with incremental authorization.
 
     Requests scopes from permissions.constants where include_in_oauth_request is true
     (virtual full Calendar scope is never requested).
     The include_granted_scopes parameter ensures existing permissions are preserved.
-
-    Args:
-        client_id: Google OAuth client ID
-        client_secret: Google OAuth client secret (not used in URL, but kept for consistency)
-        redirect_uri: OAuth redirect URI
-        auth_endpoint: OAuth authorization endpoint
-        scopes: Default scopes list (deprecated - all scopes from constants are used)
-        user_id: User ID
-        request_full_scope: Deprecated - all scopes are always requested
-        use_scheduling_scopes: Deprecated - all scopes are always requested
-        request_additional_scopes: Optional list of additional scope URLs to ensure are included.
-                                  All scopes from permissions constants are already requested.
-
-    Returns:
-        Tuple of (auth_url, state)
     """
     state = generate_state(user_id)
 

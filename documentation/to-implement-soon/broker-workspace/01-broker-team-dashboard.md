@@ -43,7 +43,7 @@ This spec assumes we will **introduce a broker persona** (exact mechanism below)
 
 ### Single primary surface
 
-- **One route** hosts the entire v1 experience (working name: `/broker` or `/team` — pick one convention when implementing and keep web/mobile route schema aligned per [web-mobile-parity-gotchas.md](../../client/web-mobile-parity-gotchas.md)).
+- **One route** hosts the entire v1 experience (working name: `/broker` or `/team` — pick one convention when implementing and keep web/mobile route schema aligned per [web-mobile-parity-gotchas.md](../../client/platform/web-mobile-parity-gotchas.md)).
 - **Deep links** to other app areas are **out of scope for v1** unless required for legal/support; default is **land on dashboard, stay in dashboard**.
 
 ### Navigation: hide regular app pages

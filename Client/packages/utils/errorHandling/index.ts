@@ -9,6 +9,14 @@
 export { asError } from "./error";
 export { type ErrorBoundaryInfo, reportErrorBoundary } from "./errorBoundaryReport";
 export {
+  ERROR_CATALOG,
+  type ErrorCatalogEntry,
+  GENERIC_ERROR_FALLBACK_EN,
+  GENERIC_ERROR_I18N_KEY,
+  getErrorCatalogI18nKeys,
+  lookupErrorCatalogEntry,
+} from "./errorCatalog";
+export {
   createAuthenticationError,
   createAuthorizationError,
   createBusinessLogicError,
@@ -19,6 +27,13 @@ export {
 export { safeExecute, safeExecuteSync, withRetry } from "./helpers";
 export { logError, reportError } from "./logging";
 export { normalizeError } from "./normalize";
+export {
+  type ApiErrorShape,
+  looksLikeMachineErrorCode,
+  resolveApiResultErrorMessage,
+  resolveUserFacingMessage,
+  type ResolveUserFacingMessageOptions,
+} from "./resolveUserFacingMessage";
 export type {
   AppError,
   AuthenticationError,

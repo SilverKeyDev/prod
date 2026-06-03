@@ -26,10 +26,6 @@ except Exception:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-if not PERPLEXITY_API_KEY:
-    logger.critical("PERPLEXITY_API_KEY environment variable is not set.")
-    raise ValueError("PERPLEXITY_API_KEY environment variable is not set")
-
 
 def _requests_session() -> requests.Session:
     session = requests.Session()
@@ -81,6 +77,10 @@ def generate_report(
     """
     task_id = str(uuid.uuid4())
     section_name = section_type
+
+    if not PERPLEXITY_API_KEY:
+        logger.critical("PERPLEXITY_API_KEY environment variable is not set.")
+        raise ValueError("PERPLEXITY_API_KEY environment variable is not set")
 
     if not validate_address(address):
         raise ValueError("Invalid address")

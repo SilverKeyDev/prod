@@ -1,6 +1,7 @@
 import type { GoogleEvent } from "packages/api";
 import { googleCalendarApi } from "packages/features/calendar/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 /**
  * Build the queryFn for a single calendar's events list.
@@ -20,7 +21,7 @@ export function buildEventsListQueryFn(
       timeMax,
     });
     if (!response.success) {
-      throw new Error(response.error ?? "Failed to fetch events");
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch events"));
     }
     const events = (response.data?.items ?? []).map((event) => ({
       ...event,

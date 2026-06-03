@@ -13,65 +13,66 @@
 #     docs/local-development.md, Server/tests/README.md
 #
 # Not used for:
-#   - PR lint / import-smoke only → requirements/ci.txt (smaller; saves runner disk)
-#   - Default backend pytest CI → ci.txt + CPU torch + requirements/test.txt
+#   - PR lint → requirements/lint.txt (ci.txt + ruff + pyright)
+#   - Import smoke only → requirements/ci.txt
+#   - Backend pytest CI → ci.txt + CPU torch + requirements/test.txt
 #   - OpenAPI codegen jobs → requirements/codegen.txt
 #
 # If you add a package imported at app startup or in normal request paths, add it
 # here and mirror any import-time deps into ci.txt when CI must import `create_app`.
 #
 # --- Core Flask & Extensions ---
-Flask==2.3.3
-Werkzeug==2.3.7
+Flask==3.1.3
+Werkzeug==3.1.6
 flask_sqlalchemy==3.0.5
-flask_login==0.6.2
-flask_cors==4.0.0
+flask_cors==6.0.0
 flask-compress==1.15
-flask_wtf==1.1.1
+flask_wtf==1.3.0
 WTForms==3.2.1
 flask_marshmallow==0.15.0
 flask_migrate==4.0.5
 alembic==1.16.5
-Mako==1.3.10
+Mako==1.3.12
 flask_executor==1.0.0
-flask_jwt_extended==4.5.2
+flask_jwt_extended==4.7.1
 
 # --- Data & ML ---
 numpy>=1.26.0
 pandas>=2.0.0
 matplotlib>=3.8.0
-scikit-learn==1.4.2
+scikit-learn==1.5.0
 scipy==1.13.1
-torch==2.3.0
-sentence-transformers==2.6.1
-transformers==4.41.2
+torch==2.10.0
+sentence-transformers==5.3.0
+transformers==5.8.1
 openai==1.76.2
 httpx>=0.24.1
 
 # --- Geospatial ---
-shapely==2.0.4
+shapely>=2.0.6,<2.1
 
 # --- PDF, API, and Web ---
-pypdf==5.1.0
+pypdf==6.11.0
 reportlab==4.0.4
 stripe==9.4.0
-requests==2.31.0
-urllib3==2.0.7
-python-dotenv==1.0.0
-gunicorn==21.2.0
-boto3==1.28.44
-botocore==1.31.85
-s3transfer==0.6.2
+requests==2.34.2
+urllib3==2.7.0
+python-dotenv==1.2.2
+gunicorn==26.0.0
+boto3==1.34.162
+botocore==1.34.162
+s3transfer==0.10.4
 jmespath==1.0.1
-PyJWT==2.8.0
-python-jose[cryptography]==3.3.0
+PyJWT==2.12.0
+python-jose[cryptography]==3.4.0
 psycopg2-binary==2.9.9
 SQLAlchemy==2.0.43
-pyOpenSSL==24.1.0
+pyOpenSSL==26.2.0
 usaddress==0.5.10
-pillow==9.5.0
+pillow==12.2.0
 
 # --- Security Dependencies ---
+# python-magic wraps system libmagic (not pip-installable): macOS `brew install libmagic`, Debian `libmagic1`
 python-magic==0.4.27
 
 # --- DocuSign Dependencies ---
@@ -88,17 +89,21 @@ googleapis-common-protos==1.70.0
 proto-plus==1.26.1
 grpcio==1.75.0
 httplib2==0.31.0
-cryptography==41.0.7
+cryptography==48.0.0
 
 # --- Pydantic & Serialization ---
 pydantic==2.10.5
 email-validator==2.2.0
-marshmallow==3.20.2
-marshmallow-sqlalchemy==0.28.1
+marshmallow==3.26.2
+marshmallow-sqlalchemy==1.5.0
 
 # --- Background Tasks ---
 celery==5.3.4
-redis==5.0.1
+redis==7.4.0
 
 plaid-python==36.1.0
 tenacity==8.2.3
+posthog>=3.0.0
+opentelemetry-api>=1.27.0
+opentelemetry-sdk>=1.27.0
+opentelemetry-exporter-otlp-proto-http>=1.27.0

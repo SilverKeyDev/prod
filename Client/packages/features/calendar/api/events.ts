@@ -2,7 +2,7 @@
  * Google Calendar events CRUD.
  */
 
-import { apiDelete, apiGet, apiPatch, apiPost } from "packages/services/http/compatibility";
+import { apiDelete, apiGet, apiPatch, apiPost } from "packages/services/http";
 
 import { wrapGoogleCalendarError } from "./errors";
 import type {

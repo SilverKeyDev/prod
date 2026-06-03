@@ -4,13 +4,16 @@
       "enabled": true
     },
     "linear": {
-      "enabled": true
+      "enabled": false
     },
     "slack": {
-      "enabled": true
+      "enabled": false
     },
     "datadog": {
-      "enabled": true
+      "enabled": false
+    },
+    "posthog": {
+      "enabled": false
     }
   }
 }

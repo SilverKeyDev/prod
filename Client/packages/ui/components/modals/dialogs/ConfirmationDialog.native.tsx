@@ -39,6 +39,7 @@ export default function ConfirmationDialog({
           className="w-full max-w-sm rounded-2xl bg-white p-6"
           accessibilityViewIsModal
           accessibilityRole="alert"
+          accessibilityLabel={title}
         >
           <Title size="sm" className="text-center">
             {title}
@@ -52,6 +53,7 @@ export default function ConfirmationDialog({
               onPress={onConfirm}
               className="bg-primary flex-1 flex-row items-center justify-center gap-2 rounded-xl px-4 py-3"
               accessibilityRole="button"
+              accessibilityLabel={resolvedConfirmText}
             >
               {confirmIcon ? <View>{confirmIcon}</View> : null}
               <BodyText size="sm" className="font-semibold text-white">
@@ -63,6 +65,7 @@ export default function ConfirmationDialog({
               onPress={onCancel}
               className="border-border bg-background-surface flex-1 items-center justify-center rounded-xl border px-4 py-3"
               accessibilityRole="button"
+              accessibilityLabel={resolvedCancelText}
             >
               <BodyText size="sm" className="text-text-primary font-semibold">
                 {resolvedCancelText}

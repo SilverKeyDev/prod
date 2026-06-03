@@ -8,11 +8,6 @@ on:
 permissions:
   contents: read
 
-# Opt into Node 24 for JS actions (checkout, setup-node, pnpm, upload-artifact) before the
-# runner default cutover; silences Node 20 deprecation warnings on those actions.
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   frontend-test:
     name: Frontend Tests & Coverage
@@ -20,15 +15,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 9
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: "pnpm"
@@ -43,7 +38,7 @@ jobs:
         run: pnpm test:coverage
 
       - name: Upload frontend coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: frontend-coverage
@@ -57,7 +52,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Hosted runners have limited disk; full requirements/runtime.txt still pulls torch + ML wheels (~multi-GB).
       - name: Free disk space
@@ -70,7 +65,7 @@ jobs:
           df -h
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: "pip"
@@ -83,7 +78,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements/ci.txt
-          pip install --no-cache-dir torch==2.3.0 --index-url https://download.pytorch.org/whl/cpu
+          pip install --no-cache-dir torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
           pip install --no-cache-dir -r requirements/test.txt
           pip install --no-cache-dir pytest pytest-cov
 
@@ -94,14 +89,25 @@ jobs:
       # Full suite includes Server/tests/contract (OpenAPI ↔ Pydantic response checks).
       - name: Run tests with coverage
         working-directory: Server
+        env:
+          TESTING: "true"
+          APP_LOG_LEVEL: ERROR
         run: pytest
 
       - name: Check module-specific coverage thresholds
         working-directory: Server
         run: python scripts/lint/check_coverage_thresholds.py
 
+      - name: Verify Server/endpoints.json matches Flask url_map
+        working-directory: Server
+        env:
+          TESTING: "true"
+        run: |
+          python3 scripts/endpoints/extract_routes.py
+          git diff --exit-code endpoints.json
+
       - name: Upload backend coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: backend-coverage

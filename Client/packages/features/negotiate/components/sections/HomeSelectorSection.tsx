@@ -48,6 +48,7 @@ export function HomeSelectorSection({
           <Button
             variant="primary"
             hideTextBelow="md"
+            label={t("negotiate.home_selector.generate")}
             loading={isLoading}
             icon={<Icon name="lightbulb" className="mobile-icon-sm" />}
             onClick={onGenerate}

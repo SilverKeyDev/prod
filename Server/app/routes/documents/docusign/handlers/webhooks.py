@@ -34,15 +34,10 @@ def register_webhook_routes(bp):
                 },
             )
             use_org_hmac = False
-            try:
-                data_parse = request.json
-                if data_parse is not None and (
-                    data_parse.get("organizationId")
-                    or data_parse.get("accountId") in ["org-level-indicator"]
-                ):
+            if data is not None:
+                extra = data.model_extra or {}
+                if extra.get("organizationId") or extra.get("accountId") == "org-level-indicator":
                     use_org_hmac = True
-            except Exception:
-                pass
             log.debug(
                 LOG_CATEGORIES["DOCUSIGN"],
                 "Verifying webhook authenticity",
@@ -56,14 +51,14 @@ def register_webhook_routes(bp):
             ):
                 log.security(LOG_CATEGORIES["SECURITY"], "Webhook verification failed")
                 return jsonify({"error": "Webhook verification failed"}), 401
-            data = request.json
             if data is None:
                 return jsonify({"error": "Invalid payload"}), 400
-            envelope_id = data.get("envelopeId") or (data.get("data") or {}).get(
+            body = data.model_dump()
+            envelope_id = data.envelopeId or (body.get("data") or {}).get(
                 "envelopeSummary", {}
             ).get("envelopeId")
-            event_type = data.get("event") or data.get("eventType")
-            event_timestamp = data.get("generatedDateTime") or data.get("generated")
+            event_type = data.event or body.get("eventType")
+            event_timestamp = body.get("generatedDateTime") or body.get("generated")
             log.debug(
                 LOG_CATEGORIES["DOCUSIGN"],
                 "Parsed webhook data",

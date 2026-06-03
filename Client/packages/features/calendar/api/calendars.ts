@@ -2,7 +2,7 @@
  * Google Calendar list, create, and ACL operations.
  */
 
-import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { apiGet, apiPost } from "packages/services/http";
 
 import { wrapGoogleCalendarError } from "./errors";
 import type {

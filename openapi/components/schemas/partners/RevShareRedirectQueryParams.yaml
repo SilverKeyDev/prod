@@ -1,0 +1,16 @@
+type: object
+properties:
+  buyer_id:
+    type: string
+  transaction_id:
+    type: string
+  step_id:
+    type: string
+  session_id:
+    type: string
+  utm_source:
+    type: string
+  utm_medium:
+    type: string
+  utm_campaign:
+    type: string

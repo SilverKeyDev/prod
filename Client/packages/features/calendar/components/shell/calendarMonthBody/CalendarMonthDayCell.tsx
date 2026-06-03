@@ -3,6 +3,10 @@ import type { KeyboardEvent, MouseEvent } from "react";
 import { color, spacing } from "packages/design-tokens";
 import { useFeedGestureTrap } from "packages/hooks/ui";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import {
+  eventSpansMultipleLocalDays,
+  getEventFirstLocalDayKey,
+} from "packages/utils/calendar/parsing/eventParsing";
 import { dateParseISO } from "packages/utils/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
@@ -12,10 +16,6 @@ import {
   calendarColorForEvent,
   hexToRgba,
 } from "@/features/calendar/utils/createEventModal/calendarEventColors";
-import {
-  eventSpansMultipleLocalDays,
-  getEventFirstLocalDayKey,
-} from "@/features/calendar/utils/parsing/eventParsing";
 
 import type { MonthBodyDayCell } from "./calendarMonthBodyModel";
 

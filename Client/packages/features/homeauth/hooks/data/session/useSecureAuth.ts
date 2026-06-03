@@ -98,8 +98,9 @@ export function useSecureAuth(): UseSecureAuthReturn {
         setStoreUser,
         setStoreIsAuthenticated,
         setStoreAuthStatus,
+        currentUser: user,
       }),
-    [setStoreUser, setStoreIsAuthenticated, setStoreAuthStatus]
+    [setAccessToken, setUser, setStoreUser, setStoreIsAuthenticated, setStoreAuthStatus, user]
   );
   const clearError = useCallback(() => {
     setError(null);

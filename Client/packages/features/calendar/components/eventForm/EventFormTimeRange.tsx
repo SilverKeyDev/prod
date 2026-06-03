@@ -11,7 +11,7 @@ import Label from "packages/ui/components/text/Label.web";
 import {
   CREATE_EVENT_TIME_STEP_MINUTES,
   parseHourMinute24,
-} from "packages/utils/calendar/eventFormGooglePayload";
+} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 import { buildTimeOptions } from "packages/utils/scheduling/eventRequestScheduleOptions";
 
 dayjs.extend(utc);

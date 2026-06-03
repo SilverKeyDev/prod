@@ -17,22 +17,22 @@ const CLIENT_HUB_PREFETCH_CHECKLIST_TYPES: readonly ChecklistType[] = [
 
 /**
  * Prefetches checklist task payloads for the client hub roadmap tabs.
- * Keeps React Query cache warm for `["checklists", type, clientId]` keys.
+ * Keeps React Query cache warm for `["checklists", type, transactionId]` keys.
  */
-export function useClientHubChecklistPrefetch(clientId: string) {
+export function useClientHubChecklistPrefetch(transactionId: string) {
   const queryClient = useQueryClient();
   const authReady = useAuthStore((s) => s.authReady);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   useEffect(() => {
-    if (!clientId || !authReady || !isAuthenticated) return;
+    if (!transactionId || !authReady || !isAuthenticated) return;
     void Promise.all(
       CLIENT_HUB_PREFETCH_CHECKLIST_TYPES.map((type) =>
         queryClient.prefetchQuery({
-          queryKey: ["checklists", type, clientId],
-          queryFn: () => getTaskChecklistForSubject(clientId, type),
+          queryKey: ["checklists", type, transactionId],
+          queryFn: () => getTaskChecklistForSubject(transactionId, type),
         })
       )
     );
-  }, [authReady, clientId, isAuthenticated, queryClient]);
+  }, [authReady, transactionId, isAuthenticated, queryClient]);
 }

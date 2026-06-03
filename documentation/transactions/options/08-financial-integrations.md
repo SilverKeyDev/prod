@@ -1,85 +1,33 @@
-## Option: Financial Integrations (Loans, Plaid, Earnest Money)
+> **Status:** Planned — partner placement pattern shipped for Move Concierge; no `IntegrationTask` or Plaid/loan rails.  
+> **Last verified:** 2026-05-28
 
-### Problem / goal
+## Problem
 
-We want to support financial workflows (loans, earnest money, future payments) in a way that:
-- Fits naturally into checklist items and milestones.
-- Allows incremental adoption and provider diversity.
+Loans, earnest money, and partner services should complete checklist steps via provider-backed tasks without hard-coding each vendor in routes.
 
-### Existing infrastructure to align with
+## Settled decisions
 
-- **IntegrationTask concept**
-  - As defined in `integrations/12-financial-and-service-integrations.md`.
+| Decision | Choice |
+| -------- | ------ |
+| Pattern | **Option A** — generic integration task keyed by `provider_key` + small provider services. |
+| Hard-coded per provider (**Option B**) | Prototype-only. |
+| Manual-only steps (**Option C**) | Placeholder until integrations exist. |
 
-- **Documents and agreements**
-  - Loan-related docs and receipts may be stored via the existing document service.
+## Code today
 
-- **Notifications**
-  - Financial events should trigger appropriate notifications via the central system.
+| Area | What exists | Pointers |
+| ---- | ----------- | -------- |
+| Move Concierge (live partner) | Rev-share placements + redirect logging; checklist key `home_concierge` maps to **Move Concierge** UI (admin-driven URLs, not agent referral fees). | `Client/packages/features/partners/` (`PartnerTransactionIntegration.tsx`, `moveConciergeEmbed.ts`), `Server/app/routes/rev_share/`, template key in `Server/app/services/transactions/closing/items.py` (`integration_key`: `home_concierge`) |
+| RESPA | Placement at workflow level; exposure logged. | `.cursor/rules/shared/respa-compliance.mdc` |
+| Earnest / forms | Checklist PDF forms (e.g. earnest money) via forms library — not Plaid transfer automation. | `Server/app/models/documents/checklist_form.py`, `Server/app/services/documents/forms_service.py` |
+| Plaid | Client env supports `plaidClientId`; no transaction `IntegrationTask` flow. | `Client/packages/config/env.test.ts` |
+| `IntegrationTask` model | **Not present** in `Server/app/models/`. | — |
 
----
+## Gaps
 
-### Option A – Plug-in style IntegrationTask per provider (recommended)
+- `IntegrationTask` table + webhook/redirect completion → checklist state.
+- Loan status providers, Plaid earnest-money confirmation, shared financial notification events.
 
-**Idea:** Use a generic `IntegrationTask` model where each provider (loan, Plaid, payment service) is:
-- Identified by a `provider_key`.
-- Encapsulated behind a small provider-specific service.
+## Naming
 
-- **Pros**
-  - Scales to multiple providers and new use cases.
-  - Keeps checklist templates simple (just reference `integration_key`).
-  - Allows controlled rollout per integration.
-- **Cons**
-  - Requires extra abstraction layer design.
-
-**Recommendation:** Use this as the baseline for all financial integrations.
-
----
-
-### Option B – Hard-coded flows per provider
-
-**Idea:** Bake each financial provider’s logic directly into specific routes and checklist handling.
-
-- **Pros**
-  - Slightly faster to implement the first provider.
-- **Cons**
-  - Tight coupling to provider specifics.
-  - Harder to test, extend, or swap providers later.
-
-**Conclusion:** Acceptable for prototypes, but not as the production architecture.
-
----
-
-### Option C – Out-of-band financial steps only
-
-**Idea:** Keep financial tasks fully manual:
-- No API calls or integrations; just instructions and checkboxes.
-
-- **Pros**
-  - Easiest to implement.
-- **Cons**
-  - Misses major value of automation and integration.
-  - Doesn’t meet long-term product goals for a concierge-like experience.
-
-**Conclusion:** Suitable only as an initial placeholder while integration work is underway.
-
----
-
-### Recommended v1 path
-
-Adopt **Option A (plug-in style IntegrationTask)** and:
-
-- **Start with HomeConcierge**
-  - Use the same pattern as financial providers to validate the abstraction.
-
-- **Design for future loans and Plaid integration**
-  - For loans:
-    - Model key steps (application, conditional approval, clear to close) as integration-backed or status-driven checklist items.
-  - For Plaid/earnest money:
-    - Use IntegrationTask to:
-      - Start and track transfers.
-      - Confirm completion and update checklist/milestones.
-
-- **Focus on security and compliance from the start**
-  - Encapsulate financial logic in dedicated services.
-  - Follow existing patterns for secret management and logging.
+Docs and templates may still say `home_concierge`; product partner is **Move Concierge**. Prefer Move Concierge in user-facing copy; keys can stay until a coordinated rename.

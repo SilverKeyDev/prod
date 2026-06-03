@@ -1,6 +1,6 @@
-# DocuSign Integration
+# DocuSign Integration (server)
 
-This directory contains the DocuSign e-signature integration for SilverKey. The integration supports creating, sending, and managing real estate agreements with e-signature capabilities.
+**Product doc:** [documentation/client/features/docusign-integration.md](../../../../documentation/client/features/docusign-integration.md). This folder is API/ops reference for the Flask DocuSign service.
 
 ## Architecture Overview
 

@@ -3,6 +3,7 @@ import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useIsAgent } from "packages/hooks/store";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
+import { calendarDateToKey } from "packages/utils/calendar/core/calendarDateKeys";
 import { getWindow } from "packages/utils/platform";
 
 import type { CreateModalPrefilledCreateSnapshot } from "@/features/calendar/hooks/data/createEvent/useCreateEventModal.types";
@@ -13,7 +14,6 @@ import type {
   WeekTimeSlotDoubleClickPayload,
 } from "@/features/calendar/types/calendarQuickCreate";
 import type { GoogleCalendarEventCreateBody } from "@/features/calendar/types/googleEvent";
-import { calendarDateToKey } from "@/features/calendar/utils/core/calendarDateKeys";
 import { explicitEventTypeForCalendarKind } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { runCreateEventModalSubmit } from "@/features/calendar/utils/createEventModal/createEventModalSubmit";
 import {

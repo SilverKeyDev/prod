@@ -1,7 +1,7 @@
 """
-Scoped dev/test reset for profile, preferences, and DocuSign data.
+Scoped dev/test reset for profile, preferences, DocuSign, checklist progress, S3, and connections.
 
-Does not remove the user row, gate roles, connections, or transactions.
+Does not remove the user row, gate roles, or transaction rows.
 """
 
 from __future__ import annotations
@@ -10,24 +10,34 @@ import os
 
 from app import db
 from app.models import (
+    Document,
+    DocumentLibraryItem,
     DocusignOAuthToken,
     User,
     UserAgentProfile,
-    UserCommunicationPrefs,
-    UserDemographics,
-    UserFinancials,
-    UserImportantLocation,
-    UserIntentAttribute,
-    UserPropertyCommute,
-    UserPropertyHighlights,
-    UserPropertyLink,
-    UserScoreWeights,
-    UserSearchIntent,
 )
+from app.services.agent.connection_cleanup import clear_agent_client_connections
+from app.services.aggregation.clear_user_preferences import clear_user_preferences
 from app.services.auth.user.agreement_cleanup import delete_agreements_for_user
+from app.services.auth.user.user_s3_cleanup import (
+    collect_user_s3_keys,
+    delete_profile_picture_s3_key,
+    delete_user_scoped_s3_objects,
+)
+from app.services.transactions.checklist_progress_reset import clear_checklist_progress_for_user
+from app.utils.db.orm_lookup import get_model
 from logger import LOG_CATEGORIES, log
 
-VALID_SCOPES = frozenset({"profile", "preferences", "docusign"})
+VALID_SCOPES = frozenset(
+    {
+        "profile",
+        "preferences",
+        "docusign",
+        "transaction_steps",
+        "s3",
+        "connections",
+    }
+)
 
 
 def dev_user_data_reset_enabled() -> bool:
@@ -73,6 +83,18 @@ def reset_user_dev_data(user_id: str, scopes: set[str]) -> dict[str, bool] | Non
             _reset_docusign(uid)
             cleared["docusign"] = True
 
+        if "transaction_steps" in scopes:
+            clear_checklist_progress_for_user(uid, user)
+            cleared["transaction_steps"] = True
+
+        if "s3" in scopes:
+            _reset_s3(uid, user)
+            cleared["s3"] = True
+
+        if "connections" in scopes:
+            clear_agent_client_connections(uid, user)
+            cleared["connections"] = True
+
         db.session.commit()
         log.info(
             LOG_CATEGORIES["API"],
@@ -91,30 +113,31 @@ def reset_user_dev_data(user_id: str, scopes: set[str]) -> dict[str, bool] | Non
 
 
 def _reset_profile(uid: str, user: User) -> None:
+    profile_picture_key = user.profile_picture
     UserAgentProfile.query.filter_by(user_id=uid).delete(synchronize_session=False)
     user.mls_id = None
-    user.brokerage = None
     user.public_profile_slug = None
     user.profile_picture = None
     db.session.add(user)
+    delete_profile_picture_s3_key(profile_picture_key)
 
 
 def _reset_preferences(uid: str, user: User) -> None:
-    UserIntentAttribute.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserImportantLocation.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserFinancials.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserDemographics.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserCommunicationPrefs.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserSearchIntent.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserScoreWeights.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserPropertyHighlights.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserPropertyCommute.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserPropertyLink.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    user.has_preferences = False
-    user.preferences_version = None
-    db.session.add(user)
+    clear_user_preferences(uid, user=user)
 
 
 def _reset_docusign(uid: str) -> None:
     DocusignOAuthToken.query.filter_by(user_id=uid).delete(synchronize_session=False)
     delete_agreements_for_user(uid)
+
+
+def _reset_s3(uid: str, user: User) -> None:
+    extra_keys = collect_user_s3_keys(uid, user=user)
+    for doc in Document.query.filter_by(user_id=uid).all():
+        li_id = doc.library_item_id
+        db.session.delete(doc)
+        if li_id:
+            li = get_model(DocumentLibraryItem, li_id)
+            if li:
+                db.session.delete(li)
+    delete_user_scoped_s3_objects(uid, extra_s3_keys=extra_keys)

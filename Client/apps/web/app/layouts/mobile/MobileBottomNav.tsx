@@ -3,30 +3,30 @@ import { useEffect, useState } from "react";
 import { Icon } from "@ui/icons";
 import { useLocation } from "react-router-dom";
 
+import { useLocalization } from "packages/contexts";
 import { SearchNavLink } from "packages/features/search";
+import { useActiveWorkspace } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link } from "packages/navigation";
 import { useNotificationStore } from "packages/store";
+import Region from "packages/ui/components/accessibility/Region";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
 import { NotificationBadge } from "packages/ui/components/primitives/index.web";
-import { tailwindNavChromeNavText } from "packages/ui/styles/theme/navTabTypography";
+import { getWorkspaceNavTabs } from "packages/utils/workspace/workspaceNavConfig";
 
 import { useDashboardShellRoutePrefetch } from "@/app/layouts/dashboard/useDashboardShellRoutePrefetch.web";
-import { SIDEBAR_TABS, type SidebarTabKey } from "@/app/layouts/sidebar/sidebarTabs.web";
+import { SIDEBAR_TABS, type SidebarTab } from "@/app/layouts/sidebar/sidebarTabs.web";
 import type { UserProfile } from "@/features/homeauth/types";
 
 function genNavId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-const BOTTOM_NAV_KEYS: SidebarTabKey[] = ["dashboard", "search", "decide", "agent", "profile"];
-const navItems = BOTTOM_NAV_KEYS.map((k) => SIDEBAR_TABS[k]);
-
 const BAR_CLASS =
   "fixed inset-x-0 bottom-0 z-dock flex w-full min-h-[4rem] flex-col border-t border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg md:hidden";
 function linkClass(active: boolean): string {
-  return `flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-normal ease-standard ${
+  return `flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 transition-all duration-normal ease-standard ${
     active
       ? "text-sidebar-foreground"
       : "text-sidebar-muted-foreground active:text-sidebar-foreground/95"
@@ -36,12 +36,17 @@ function iconClass(active: boolean): string {
   return `h-6 w-6 transition-all duration-normal ease-standard ${active ? "scale-110" : ""}`;
 }
 function labelClass(active: boolean): string {
-  const { inactive, highlighted } = tailwindNavChromeNavText;
-  return `transition-all duration-normal ease-standard ${active ? highlighted : inactive}`;
+  const weight = active ? "!font-semibold" : "!font-medium";
+  const color = active
+    ? "text-sidebar-foreground"
+    : "text-sidebar-muted-foreground active:text-sidebar-foreground/95";
+  return `w-full max-w-full truncate text-center !text-xs leading-tight transition-all duration-normal ease-standard ${weight} ${color}`;
 }
 
+type BottomNavItem = SidebarTab & { name: string };
+
 type BottomNavItemsProps = {
-  items: typeof navItems;
+  items: BottomNavItem[];
   isActive: (href: string) => boolean;
   unreadCount: number;
   isLoaded: boolean;
@@ -78,7 +83,6 @@ function BottomNavItems({
           <SearchNavLink
             key={item.key}
             className={linkClass(active)}
-            aria-label={item.name}
             aria-current={active ? "page" : undefined}
             onNavigateClick={onSearchNavigateClick}
             onMouseEnter={() => onPrefetchHref(item.href)}
@@ -92,7 +96,6 @@ function BottomNavItems({
             key={item.key}
             to={item.href}
             className={linkClass(active)}
-            aria-label={item.name}
             aria-current={active ? "page" : undefined}
             onMouseEnter={() => onPrefetchHref(item.href)}
             onFocus={() => onPrefetchHref(item.href)}
@@ -121,6 +124,8 @@ type MobileBottomNavProps = {
 };
 
 export default function MobileBottomNav(_props: MobileBottomNavProps) {
+  const { t } = useLocalization();
+  const activeWorkspace = useActiveWorkspace();
   const location = useLocation();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const isLoaded = useNotificationStore((s) => s.isLoaded);
@@ -135,6 +140,14 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
     return currentPath === path || currentPath.startsWith(path + "/");
   };
 
+  const navItems = getWorkspaceNavTabs(activeWorkspace, true).map((tab) => {
+    const base = SIDEBAR_TABS[tab.key];
+    return {
+      ...base,
+      name: t(tab.labelKey, base.name),
+    };
+  });
+
   const handleSearchNavigateClick = (navId: string) => {
     log.info(LOG_CATEGORIES.ROUTING, "[NAV] MobileBottomNav Search click", {
       navId,
@@ -143,17 +156,17 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
   };
 
   const nav = (
-    <nav
+    <Region
+      as="nav"
+      label="Primary navigation"
       className={BAR_CLASS}
       style={{
         paddingTop: "max(env(safe-area-inset-bottom), 4px)",
         paddingBottom: "max(env(safe-area-inset-bottom), 4px)",
       }}
-      role="navigation"
-      aria-label="Primary navigation"
     >
       <Box className="flex min-h-16 flex-1 flex-col items-center justify-center">
-        <Box className="flex w-full items-center justify-around px-2">
+        <Box className="flex w-full min-w-0 items-stretch px-1">
           <BottomNavItems
             items={navItems}
             isActive={isActive}
@@ -165,7 +178,7 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
           />
         </Box>
       </Box>
-    </nav>
+    </Region>
   );
 
   if (!mounted || typeof document === "undefined") return null;

@@ -8,9 +8,9 @@ from app.schemas import (
     UpdateRoutingOrderRequest,
     UpdateRoutingOrderResponse,
 )
-from app.services.auth import get_current_user
 from app.services.docusign import AgreementLifecycleService
 from app.services.docusign.utils.permissions import can_access_agreement, is_agent
+from app.utils.common_patterns import require_authenticated_user
 from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.validation import validate_request, validate_response
@@ -22,16 +22,16 @@ log = get_logger()
 def register_participant_routes(bp):
     @bp.route("/agreements/<agreement_id>/participants", methods=["POST"])
     @rate_limit(max_requests=20, window_seconds=60)
+    @require_authenticated_user
     @validate_request(CreateParticipantRequest)
     @validate_response(CreateParticipantResponse)
-    def add_participant(agreement_id, data: CreateParticipantRequest | None = None):
+    def add_participant(user, agreement_id, data: CreateParticipantRequest | None = None):
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 log.warn(
                     LOG_CATEGORIES["DOCUSIGN"],
                     "Non-agent attempted to add participant",
-                    {"agreement_id": agreement_id, "user_id": user.id if user else None},
+                    {"agreement_id": agreement_id, "user_id": user.id},
                 )
                 return jsonify({"success": False, "error": "Agent access required"}), 403
 
@@ -99,17 +99,17 @@ def register_participant_routes(bp):
 
     @bp.route("/agreements/<agreement_id>/participants/<participant_id>", methods=["DELETE"])
     @rate_limit(max_requests=20, window_seconds=60)
-    def remove_participant(agreement_id, participant_id):
+    @require_authenticated_user
+    def remove_participant(user, agreement_id, participant_id):
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 log.warn(
                     LOG_CATEGORIES["DOCUSIGN"],
                     "Non-agent attempted to remove participant",
                     {
                         "agreement_id": agreement_id,
                         "participant_id": participant_id,
-                        "user_id": user.id if user else None,
+                        "user_id": user.id,
                     },
                 )
                 return jsonify({"success": False, "error": "Agent access required"}), 403
@@ -146,21 +146,21 @@ def register_participant_routes(bp):
         "/agreements/<agreement_id>/participants/<participant_id>/routing-order", methods=["PATCH"]
     )
     @rate_limit(max_requests=20, window_seconds=60)
+    @require_authenticated_user
     @validate_request(UpdateRoutingOrderRequest)
     @validate_response(UpdateRoutingOrderResponse)
     def update_participant_routing_order(
-        agreement_id, participant_id, data: UpdateRoutingOrderRequest | None = None
+        user, agreement_id, participant_id, data: UpdateRoutingOrderRequest | None = None
     ):
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 log.warn(
                     LOG_CATEGORIES["DOCUSIGN"],
                     "Non-agent attempted to update routing order",
                     {
                         "agreement_id": agreement_id,
                         "participant_id": participant_id,
-                        "user_id": user.id if user else None,
+                        "user_id": user.id,
                     },
                 )
                 return jsonify({"success": False, "error": "Agent access required"}), 403

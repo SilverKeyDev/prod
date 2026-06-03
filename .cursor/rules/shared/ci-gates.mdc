@@ -10,11 +10,11 @@ alwaysApply: false
 
 ## Goal
 
-Once RN exists, drift between web and shared code starts immediately. Per-PR required checks must block merge until all gates pass.
+Once RN exists, drift between web and shared code starts immediately. Run the gates locally before opening or merging PRs; CI lint runs on a weekly schedule (see Workflow below).
 
-## Required Per-PR Checks
+## Required Client Gates (local + weekly CI)
 
-These must run on every pull request (and push) for the Client:
+These must pass before merge (run locally; CI re-runs weekly on Monday):
 
 1. **Typecheck** — `pnpm typecheck` (e.g. `tsc -p apps/web/tsconfig.json`). No type errors.
 2. **Lint** — `pnpm lint` (ESLint including silverkey rules and `eslint-plugin-tailwindcss` conflicting-class detection, then Stylelint on CSS inputs). No errors.
@@ -24,10 +24,10 @@ These must run on every pull request (and push) for the Client:
 
 ## Workflow
 
-- **Single entry point:** `scripts/run-all-linters.sh` runs all linters for a scope (`client` | `server` | `all`). Server: every `Server/scripts/lint/lint_*.py` then each executable `Server/scripts/lint/lint_*.sh` (sorted). Client: every executable `Client/scripts/lint.d/*.sh` (sorted), then `pnpm check`. New linters: add a matching file under `Server/scripts/lint/`; no workflow or root script edit required.
-- **CI:** `.github/workflows/lint.yml` runs the root script for client and server (two jobs). **`ci_web.yml`** (prod web deploy) does not run lint or tests; rely on branch protection and PR checks before merging and triggering deploy.
+- **Single entry point:** `scripts/ci/run-all-linters.sh` runs all linters for a scope (`client` | `server` | `all`). **Fix phase runs first** (Client: `pnpm run fix`; Server: `ruff check --fix` + `ruff format`), then checks — same order in CI and locally. Server: every `Server/scripts/lint/lint_*.py` then each executable `Server/scripts/lint/lint_*.sh` (sorted). Client: every executable `Client/scripts/lint.d/*.sh` (sorted), then `pnpm check`. New linters: add a matching file under `Server/scripts/lint/`; no workflow or root script edit required.
+- **CI:** `.github/workflows/lint.yml` runs the root script for client and server (two jobs) on a **weekly schedule** (Monday 09:00 `America/New_York`, same as `.github/dependabot.yml` `weekly-all`) and on `workflow_dispatch`. It does **not** run on every push or pull request. **`ci_web.yml`** (prod web deploy) does not run lint or tests.
 
 ## Enforcement
 
-- Branch protection: require "Client (all linters)" (or equivalent) to pass before merge.
+- Run `./scripts/ci/run-all-linters.sh` / `make lint` (and `pnpm check` for client) locally before merge; do not rely on per-push CI for lint.
 - Do not disable or skip gates without a documented exception; fix the underlying issue instead.

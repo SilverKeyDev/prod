@@ -5,9 +5,10 @@ from unittest.mock import patch
 import jwt as pyjwt
 
 from app.models import User
+from tests.jwt_test_secret import TEST_JWT_HMAC_SECRET
 
 MOCK_JWT_TOKEN = pyjwt.encode(
-    {"sub": "test-user", "email": "test@example.com"}, "test-secret", algorithm="HS256"
+    {"sub": "test-user", "email": "test@example.com"}, TEST_JWT_HMAC_SECRET, algorithm="HS256"
 )
 
 
@@ -26,7 +27,7 @@ class TestAgentChatsRoutesHistoryAndMessages:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -81,7 +82,7 @@ class TestAgentChatsRoutesHistoryAndMessages:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -125,7 +126,7 @@ class TestAgentChatsRoutesHistoryAndMessages:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -157,7 +158,7 @@ class TestAgentChatsRoutesHistoryAndMessages:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -182,7 +183,7 @@ class TestAgentChatsRoutesHistoryAndMessages:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -212,7 +213,7 @@ class TestAgentChatsRoutesHistoryAndMessages:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -253,7 +254,7 @@ class TestAgentChatsRoutesHistoryAndMessages:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             response = client.post(
@@ -276,7 +277,7 @@ class TestAgentChatsRoutesHistoryAndMessages:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             response = client.post(
@@ -304,7 +305,7 @@ class TestAgentChatsRoutesHistoryAndMessages:
         db_session.session.add(agent)
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:

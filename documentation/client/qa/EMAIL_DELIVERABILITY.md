@@ -47,4 +47,4 @@ Use a staging **subdomain** with correct SPF/DKIM for that subdomain, or expect 
 - [FLOW_SIGNUP_AND_VERIFICATION.md](./FLOW_SIGNUP_AND_VERIFICATION.md)
 - [FLOW_PAYMENTS.md](./FLOW_PAYMENTS.md)
 - [END_TO_END_QA_RUNBOOK.md](./END_TO_END_QA_RUNBOOK.md)
-- [compliance/DATA_RETENTION.md](../../../compliance/DATA_RETENTION.md) — retention and opt-out after deletion
+- [compliance/DATA_RETENTION.md](../../compliance/DATA_RETENTION.md) — retention and opt-out after deletion

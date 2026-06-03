@@ -3,9 +3,9 @@
 from flask import jsonify
 
 from app.models import Agreement
-from app.services.auth import get_current_user
 from app.services.documents.s3_service import S3Service
 from app.services.docusign.utils.permissions import can_access_agreement
+from app.utils.common_patterns import require_authenticated_user
 from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
 from logger import LOG_CATEGORIES, get_logger
@@ -16,7 +16,8 @@ log = get_logger()
 def register_download_routes(bp):
     @bp.route("/agreements/<agreement_id>/download", methods=["GET"])
     @rate_limit(max_requests=100, window_seconds=60)
-    def get_download_url(agreement_id):
+    @require_authenticated_user
+    def get_download_url(user, agreement_id):
         """
         Get a pre-signed S3 URL for viewing or downloading the agreement PDF.
 
@@ -31,15 +32,6 @@ def register_download_routes(bp):
             500: Server error
         """
         try:
-            user = get_current_user()
-            if not user:
-                log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
-                    "Unauthenticated download attempt",
-                    {"agreement_id": agreement_id},
-                )
-                return jsonify({"success": False, "error": "Authentication required"}), 401
-
             log.debug(
                 LOG_CATEGORIES["DOCUSIGN"],
                 "Fetching download URL for agreement",

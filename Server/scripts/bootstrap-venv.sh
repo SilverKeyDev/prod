@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Create Server/.venv, install dependencies, and verify core imports.
-# Usage: from repo root: bash Server/scripts/bootstrap-venv.sh [--force] [--ci] [--refresh-deps]
+# Usage: from repo root: bash Server/scripts/bootstrap-venv.sh [--force] [--ci|--lint] [--refresh-deps]
 # Optional: PYTHON=/path/to/python3.12 to pick an interpreter (otherwise prefers 3.12 / 3.11 / 3.10 over plain python3).
 #
 # --force          Remove existing .venv and create a new one (cannot combine with --refresh-deps).
-# --ci             Install from requirements/ci.txt only (slim CI-oriented venv).
+# --ci             Install from requirements/ci.txt only (import smoke, no linters).
+# --lint           Install from requirements/lint.txt (ci.txt + ruff + pyright; matches lint.yml).
 # --refresh-deps   If .venv exists: re-run pip install in that venv (idempotent). If .venv is missing: create it and install.
 set -euo pipefail
 
@@ -13,19 +14,26 @@ SERVER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 FORCE=false
 USE_CI=false
+USE_LINT=false
 REFRESH_DEPS=false
 for arg in "$@"; do
   case "$arg" in
     --force) FORCE=true ;;
     --ci) USE_CI=true ;;
+    --lint) USE_LINT=true ;;
     --refresh-deps) REFRESH_DEPS=true ;;
     *)
       echo "Unknown option: $arg" >&2
-      echo "Usage: $0 [--force] [--ci] [--refresh-deps]" >&2
+      echo "Usage: $0 [--force] [--ci|--lint] [--refresh-deps]" >&2
       exit 1
       ;;
   esac
 done
+
+if [[ "$USE_CI" == true && "$USE_LINT" == true ]]; then
+  echo "bootstrap-venv: use only one of --ci or --lint" >&2
+  exit 1
+fi
 
 if [[ "$FORCE" == true && "$REFRESH_DEPS" == true ]]; then
   echo "bootstrap-venv: --force cannot be used with --refresh-deps" >&2
@@ -102,11 +110,23 @@ ensure_macos_pillow_deps() {
   export LDFLAGS="-L${brew_prefix}/opt/jpeg/lib -L${brew_prefix}/opt/libpng/lib ${LDFLAGS:-}"
 }
 
+ensure_pip() {
+  if python -m pip --version >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "bootstrap-venv: pip missing in venv; bootstrapping with ensurepip"
+  python -m ensurepip --upgrade
+}
+
 install_requirements() {
+  ensure_pip
   ensure_macos_pillow_deps
   export PIP_PREFER_BINARY=1
   python -m pip install --upgrade pip
-  if [[ "$USE_CI" == true ]]; then
+  if [[ "$USE_LINT" == true ]]; then
+    echo "Installing from requirements/lint.txt (--lint)"
+    pip install -r requirements/lint.txt
+  elif [[ "$USE_CI" == true ]]; then
     echo "Installing from requirements/ci.txt (--ci)"
     pip install -r requirements/ci.txt
   else

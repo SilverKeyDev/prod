@@ -1,4 +1,4 @@
-import { detectEventTypeFromTitle } from "packages/utils/calendar/detectEventTypeFromTitle";
+import { detectEventTypeFromTitle } from "packages/utils/calendar/parsing/detectEventTypeFromTitle";
 
 import {
   type CalendarEventKindId,

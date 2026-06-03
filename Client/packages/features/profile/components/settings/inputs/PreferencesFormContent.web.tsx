@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import HousingSection from "packages/features/profile/components/sections/housing/HousingSection";
 import LocationSection from "packages/features/profile/components/sections/LocationSection";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { useGoogleMaps } from "packages/hooks/data";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
@@ -46,6 +46,8 @@ type PreferencesFormContentProps = {
     scriptsReady: boolean;
     /** Persist current form to the server and await refresh (e.g. before preference-based search). */
     flushPreferencesSave: () => Promise<void>;
+    /** Cancel debounced autosave without persisting (e.g. before clear preferences). */
+    cancelPendingSave: () => void;
   }) => React.ReactNode;
   /**
    * When set, loads that user's preferences for display/editing in the form.
@@ -103,6 +105,7 @@ export default function PreferencesFormContent({
     saveStatus,
     updateFormData: updateFormDataWithAutoSave,
     autoSave,
+    cancelPendingSave,
     flushSave,
   } = useAutoSavePreferences({
     refreshUserPreferences,
@@ -240,6 +243,7 @@ export default function PreferencesFormContent({
           patchBuyerPreferenceExtensions,
           scriptsReady,
           flushPreferencesSave,
+          cancelPendingSave,
         })}
       </Box>
     );

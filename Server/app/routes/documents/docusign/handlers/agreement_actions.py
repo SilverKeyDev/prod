@@ -10,7 +10,6 @@ from app.schemas import (
     SendAgreementRequest,
     VoidAgreementRequest,
 )
-from app.services.auth import get_current_user
 from app.services.docusign import AgreementLifecycleService, RevisionService
 from app.services.docusign.envelopes.recipient_delivery import (
     resend_agreement_recipient,
@@ -36,17 +35,9 @@ def _envelope_options_from_send_payload(payload: dict) -> dict | None:
     return out or None
 
 
-def create_revision_action(agreement_id):
+def create_revision_action(user, agreement_id):
     """Handle POST /agreements/<id>/revisions."""
     try:
-        user = get_current_user()
-        if not user:
-            log.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
-                "Unauthenticated revision creation attempt",
-                {"agreement_id": agreement_id},
-            )
-            return jsonify({"success": False, "error": "Authentication required"}), 401
         agreement = AgreementLifecycleService.get_agreement(agreement_id)
         if not can_modify_agreement(user, agreement):
             log.warn(
@@ -109,17 +100,9 @@ def create_revision_action(agreement_id):
         return SecureErrorHandler.handle_error(e, "Failed to create revision")
 
 
-def send_agreement_action(agreement_id, data: SendAgreementRequest | None = None):
+def send_agreement_action(user, agreement_id, data: SendAgreementRequest | None = None):
     """Handle POST /agreements/<id>/send."""
     try:
-        user = get_current_user()
-        if not user:
-            log.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
-                "Unauthenticated send agreement attempt",
-                {"agreement_id": agreement_id},
-            )
-            return jsonify({"error": "Authentication required"}), 401
         agreement = AgreementLifecycleService.get_agreement(agreement_id)
         if not can_send_agreement(user, agreement):
             log.warn(
@@ -182,17 +165,9 @@ def send_agreement_action(agreement_id, data: SendAgreementRequest | None = None
         return SecureErrorHandler.handle_error(e, "Failed to send agreement")
 
 
-def void_agreement_action(agreement_id, data: VoidAgreementRequest | None = None):
+def void_agreement_action(user, agreement_id, data: VoidAgreementRequest | None = None):
     """Handle POST /agreements/<id>/void."""
     try:
-        user = get_current_user()
-        if not user:
-            log.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
-                "Unauthenticated void agreement attempt",
-                {"agreement_id": agreement_id},
-            )
-            return jsonify({"error": "Authentication required"}), 401
         agreement = AgreementLifecycleService.get_agreement(agreement_id)
         if not can_void_agreement(user, agreement):
             log.warn(
@@ -241,17 +216,9 @@ def void_agreement_action(agreement_id, data: VoidAgreementRequest | None = None
         return SecureErrorHandler.handle_error(e, "Failed to void agreement")
 
 
-def discard_agreement_action(agreement_id, data: VoidAgreementRequest | None = None):
+def discard_agreement_action(user, agreement_id, data: VoidAgreementRequest | None = None):
     """Handle POST /agreements/<id>/discard — agent removes from Saved (void when possible)."""
     try:
-        user = get_current_user()
-        if not user:
-            log.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
-                "Unauthenticated discard agreement attempt",
-                {"agreement_id": agreement_id},
-            )
-            return jsonify({"error": "Authentication required"}), 401
         agreement = AgreementLifecycleService.get_agreement(agreement_id)
         if not can_discard_agreement_as_agent(user, agreement):
             log.warn(
@@ -300,13 +267,10 @@ def discard_agreement_action(agreement_id, data: VoidAgreementRequest | None = N
 
 
 def resend_agreement_recipient_action(
-    agreement_id: str, data: DocusignResendRecipientRequest | None = None
+    user, agreement_id: str, data: DocusignResendRecipientRequest | None = None
 ):
     """POST /agreements/<id>/resend — DocuSign resend to a pending signer."""
     try:
-        user = get_current_user()
-        if not user:
-            return jsonify({"error": "Authentication required"}), 401
         agreement = AgreementLifecycleService.get_agreement(agreement_id)
         if not can_manage_in_flight_docusign_envelope(user, agreement):
             return jsonify({"error": "Access denied or invalid state"}), 403
@@ -327,13 +291,10 @@ def resend_agreement_recipient_action(
 
 
 def update_agreement_envelope_notification_action(
-    agreement_id: str, data: DocusignUpdateEnvelopeNotificationRequest | None = None
+    user, agreement_id: str, data: DocusignUpdateEnvelopeNotificationRequest | None = None
 ):
     """PUT /agreements/<id>/notification — update DocuSign reminder/expiration settings."""
     try:
-        user = get_current_user()
-        if not user:
-            return jsonify({"error": "Authentication required"}), 401
         agreement = AgreementLifecycleService.get_agreement(agreement_id)
         if not can_manage_in_flight_docusign_envelope(user, agreement):
             return jsonify({"error": "Access denied or invalid state"}), 403

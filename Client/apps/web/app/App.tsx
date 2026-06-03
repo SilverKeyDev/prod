@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useHealthCheck, useSessionTimeout } from "packages/hooks/ui";
 import { useAuthStore } from "packages/store";
@@ -24,12 +24,15 @@ function App() {
   // Get logout function from useAuthStoreIntegration (uses correct useSecureAuth.logout)
   const { logout: authLogout } = useAuthStoreIntegration();
 
+  const handleSessionTimeoutLogout = useCallback(() => {
+    void authLogout();
+  }, [authLogout]);
+
   // Health check
   const { maintenance, healthCheckComplete } = useHealthCheck();
 
-  // Initialize session timeout (auto-logout when timeout is reached)
-  // Uses default config from hook: 30 min idle, 8 hours max
-  useSessionTimeout();
+  // Session timeout: 8h idle/max (aligned with server session cookie); server logout on expiry
+  useSessionTimeout({ onLogout: handleSessionTimeoutLogout });
 
   // Wait for both health check and auth store to be ready before showing routes
   useEffect(() => {

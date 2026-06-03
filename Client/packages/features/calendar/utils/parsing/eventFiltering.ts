@@ -1,9 +1,7 @@
 import type { ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
+import { calculateCalendarDateRange } from "packages/utils/calendar/core/date";
+import { getEventStartDate } from "packages/utils/calendar/parsing/eventParsing";
 import { dateNow, dateParseISO } from "packages/utils/date";
-
-import { calculateCalendarDateRange } from "@/features/calendar/utils/core/date";
-
-import { getEventStartDate } from "./eventParsing";
 
 /**
  * Filter events for current 4-week period

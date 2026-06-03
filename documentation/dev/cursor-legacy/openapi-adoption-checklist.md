@@ -221,7 +221,7 @@
 - Full adoption summary: `.cursor/openapi-full-adoption-summary.md`
 - Audit fixes: `.cursor/openapi-audit-fixes-summary.md`
 - Strict validation: `Server/docs/validation-strict-mode-rollout.md`
-- Document naming: `documentation/client/document-schema-naming.md`
+- Document naming: `documentation/client/architecture/document-schema-naming.md`
 
 ### Commands
 ```bash

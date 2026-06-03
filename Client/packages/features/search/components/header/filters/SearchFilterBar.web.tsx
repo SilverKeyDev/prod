@@ -6,7 +6,8 @@ import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
-import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/searchHeaderPopoverDismiss.web";
+import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/popovers/searchHeaderPopoverDismiss.web";
+import { type SearchFilterOverrides, useSearchContextStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
@@ -30,6 +31,9 @@ export type SearchFilterBarProps = {
   patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
   scriptsReady: boolean;
   onAgentSyncPreferencesFetched?: (onboarding: Partial<OnboardingData>) => void;
+  replaceFormData?: (next: Partial<OnboardingData>) => void;
+  cancelPendingSave?: () => void;
+  onAfterClear?: () => void | Promise<void>;
 };
 
 export default function SearchFilterBar({
@@ -42,10 +46,55 @@ export default function SearchFilterBar({
   patchBuyerPreferenceExtensions,
   scriptsReady,
   onAgentSyncPreferencesFetched,
+  replaceFormData,
+  cancelPendingSave,
+  onAfterClear,
 }: SearchFilterBarProps): React.ReactElement {
   const { t } = useLocalization();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
+
+  const updateSearchFormData = useCallback(
+    (field: keyof OnboardingData, value: unknown) => {
+      updateFormData(field, value);
+      if (
+        field === "home_budget_min" ||
+        field === "home_budget_max" ||
+        field === "preferred_bedrooms_min" ||
+        field === "preferred_bedrooms_max" ||
+        field === "preferred_bathrooms_min" ||
+        field === "preferred_bathrooms_max" ||
+        field === "preferred_sqft_min" ||
+        field === "preferred_sqft_max" ||
+        field === "preferred_lot_size_min" ||
+        field === "preferred_lot_size_max" ||
+        field === "preferred_home_age_min" ||
+        field === "preferred_home_age_max"
+      ) {
+        setSearchFilterOverrides({
+          [field]: typeof value === "number" ? value : undefined,
+        } as Partial<SearchFilterOverrides>);
+      } else if (field === "preferred_housing_type") {
+        setSearchFilterOverrides({
+          preferred_housing_type: typeof value === "string" ? value : "",
+        });
+      } else if (field === "listing_type") {
+        setSearchFilterOverrides({
+          listing_type: Array.isArray(value) ? value.map(String) : [],
+        });
+      } else if (field === "must_have") {
+        setSearchFilterOverrides({
+          must_have: Array.isArray(value) ? value.map(String) : [],
+        });
+      } else if (field === "preferred_home_features") {
+        setSearchFilterOverrides({
+          preferred_home_features: Array.isArray(value) ? value.map(String) : [],
+        });
+      }
+    },
+    [setSearchFilterOverrides, updateFormData]
+  );
 
   const closePopover = useCallback(() => {
     setPopoverOpen(false);
@@ -75,12 +124,15 @@ export default function SearchFilterBar({
           open={sheetOpen}
           onClose={() => setSheetOpen(false)}
           formData={formData}
-          updateFormData={updateFormData}
+          updateFormData={updateSearchFormData}
           scriptsReady={scriptsReady}
           selectedClientId={selectedClientId}
           onClientChange={onClientChange}
           patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
           onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
+          replaceFormData={replaceFormData}
+          cancelPendingSave={cancelPendingSave}
+          onAfterClear={onAfterClear}
         />
       </>
     );
@@ -127,11 +179,15 @@ export default function SearchFilterBar({
         {() => (
           <SearchPreferencesContent
             formData={formData}
-            updateFormData={updateFormData}
+            updateFormData={updateSearchFormData}
             patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
             scriptsReady={scriptsReady}
             viewingClientId={selectedClientId ?? null}
             onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
+            onClientChange={onClientChange}
+            replaceFormData={replaceFormData}
+            cancelPendingSave={cancelPendingSave}
+            onAfterClear={onAfterClear}
           />
         )}
       </Popover>

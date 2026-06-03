@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useRef } from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -65,10 +65,8 @@ export type UnderlineTabsProps = {
  * **Accessibility:** The outer `Row` is a tab list (`role="tablist"`). Each item uses
  * `accessibilityRole="tab"` and `accessibilityState.selected` on the shared `Button`.
  *
- * **Keyboard:** Focus moves with **Tab / Shift+Tab** (default button group behavior). This is **not**
- * Radix-style roving tabindex with ArrowLeft/ArrowRight; add arrow-key handling in a wrapper if
- * product requires it. Pair with tab panels in the parent using `id` / `aria-controls` / `role="tabpanel"`
- * when applicable.
+ * **Keyboard:** ArrowLeft/ArrowRight/Home/End move focus and selection (WAI-ARIA tabs pattern).
+ * Pair with tab panels in the parent using `id` / `aria-controls` / `role="tabpanel"` when applicable.
  */
 export function UnderlineTabs({
   items,
@@ -83,6 +81,38 @@ export function UnderlineTabs({
   scrollable = false,
 }: UnderlineTabsProps): JSX.Element {
   const { t } = useLocalization();
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const focusTab = useCallback(
+    (index: number) => {
+      const item = items[index];
+      if (!item) return;
+      onChange(item.id);
+      tabRefs.current[index]?.focus();
+    },
+    [items, onChange]
+  );
+
+  const handleTabKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+      const { key } = event;
+      if (key === "ArrowLeft") {
+        event.preventDefault();
+        focusTab(index === 0 ? items.length - 1 : index - 1);
+      } else if (key === "ArrowRight") {
+        event.preventDefault();
+        focusTab(index === items.length - 1 ? 0 : index + 1);
+      } else if (key === "Home") {
+        event.preventDefault();
+        focusTab(0);
+      } else if (key === "End") {
+        event.preventDefault();
+        focusTab(items.length - 1);
+      }
+    },
+    [focusTab, items.length]
+  );
+
   const isSidebar = variant === "sidebar";
   const sizeStyles = UNDERLINE_TAB_SIZE_STYLES[tabSize];
   const scrollableRow =
@@ -107,7 +137,7 @@ export function UnderlineTabs({
 
   return (
     <Row role="tablist" className={className ? `${containerClass} ${className}` : containerClass}>
-      {items.map((item) => {
+      {items.map((item, index) => {
         const isActive = activeId === item.id;
         const isLocked = item.locked === true;
         const isJourneyPhase = phaseIndicatorId != null && phaseIndicatorId === item.id;
@@ -123,6 +153,9 @@ export function UnderlineTabs({
         return (
           <Button
             key={item.id}
+            ref={(el) => {
+              tabRefs.current[index] = el;
+            }}
             type="button"
             variant="ghost"
             size={underlineTabsButtonSize(tabSize)}
@@ -131,6 +164,8 @@ export function UnderlineTabs({
             labelSlotClassName={labelSlotTypography}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
+            tabIndex={isActive ? 0 : -1}
+            onKeyDown={(event) => handleTabKeyDown(event, index)}
             onClick={() => onChange(item.id)}
             className={`relative ${buttonLayoutClass} ${flexClass} ${HOVER_BG_CLASSES} outline-none focus:!ring-0 focus:!ring-offset-0 ${
               isSidebar

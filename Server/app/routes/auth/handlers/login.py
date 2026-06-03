@@ -2,7 +2,7 @@
 
 import traceback
 
-from flask import current_app, jsonify, request
+from flask import current_app, jsonify
 
 from app.schemas import AuthResponse, LoginData
 from app.services.auth.flows import handle_login
@@ -22,37 +22,16 @@ def login(data: LoginData | None = None):
     """
     request_id = generate_request_id("login")
     try:
-        # In gradual mode, data may be None if validation failed
-        # Fall back to manual parsing for backward compatibility
         if data is None:
-            current_app.logger.warning(
-                "AUTH_LOGIN_VALIDATION_FAILED_GRADUAL_MODE",
-                extra={"request_id": request_id, "message": "Using fallback validation"},
+            error_response, status_code = create_error_response(
+                "INVALID_REQUEST", "Invalid login payload"
             )
-            # Match validate_request (silent=True); avoid raising on empty/invalid body.
-            request_data = request.get_json(silent=True) or {}
-            if not isinstance(request_data, dict):
-                error_response, status_code = create_error_response(
-                    "MISSING_FIELDS", "Email and password are required"
-                )
-                return jsonify(error_response), status_code
-            pw = request_data.get("password")
-            if (
-                not request_data.get("email")
-                or pw is None
-                or (isinstance(pw, str) and not pw.strip())
-            ):
-                error_response, status_code = create_error_response(
-                    "MISSING_FIELDS", "Email and password are required"
-                )
-                return jsonify(error_response), status_code
-        else:
-            # Validated data from OpenAPI schema
-            # Extract SecretStr password value for Cognito
-            request_data = {
-                "email": data.email,
-                "password": data.password.get_secret_value(),
-            }
+            return jsonify(error_response), status_code
+
+        request_data = {
+            "email": data.email,
+            "password": data.password.get_secret_value(),
+        }
 
         resp, status_code = handle_login(request_data, request_id)
         return resp, status_code

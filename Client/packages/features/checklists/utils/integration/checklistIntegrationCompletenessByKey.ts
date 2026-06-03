@@ -1,10 +1,11 @@
 import type { AgentConversation } from "packages/api";
 import type { ChecklistComponentKey } from "packages/features/checklists/types/componentRegistry";
-import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 
 import {
   isChooseSearchAreaStepComplete,
   isDefineCriteriaStepComplete,
+  isFindingHomeStepComplete,
   isPartnerWithAgentStepComplete,
   isSetBudgetStepComplete,
 } from "./checklistIntegrationCompleteness";
@@ -28,7 +29,8 @@ export function isPreferenceBackedChecklistIntegrationKey(
 export function isChecklistIntegrationStepComplete(
   componentKey: ChecklistComponentKey,
   formData: Partial<OnboardingData> | null,
-  conversations: readonly AgentConversation[]
+  conversations: readonly AgentConversation[],
+  transactionAddress?: { address?: string | null } | null
 ): boolean {
   switch (componentKey) {
     case "set_budget":
@@ -39,6 +41,8 @@ export function isChecklistIntegrationStepComplete(
       return formData != null && isDefineCriteriaStepComplete(formData);
     case "partner_agent":
       return isPartnerWithAgentStepComplete([...conversations]);
+    case "finding_home":
+      return isFindingHomeStepComplete(transactionAddress);
     default:
       return false;
   }

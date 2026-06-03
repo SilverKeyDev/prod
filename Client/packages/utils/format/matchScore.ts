@@ -64,6 +64,18 @@ export function clampMatchScore(score: number): number {
   return Math.max(0, Math.min(100, score));
 }
 
+/**
+ * User-facing match percent with one decimal so nearby scores (e.g. 53.2 vs 54.8) do not
+ * collapse to the same integer label.
+ */
+export function formatMatchScoreDisplayPercent(score: number, maxScore = 100): number {
+  const safeScore = clampMatchScore(score);
+  const safeMax =
+    typeof maxScore === "number" && Number.isFinite(maxScore) && maxScore > 0 ? maxScore : 100;
+  const raw = (safeScore / safeMax) * 100;
+  return Math.round(raw * 10) / 10;
+}
+
 /** Full style for the score bucket: tier, short label, and paired bg/fg CSS variables. */
 export function getMatchStyle(score: number): MatchStyle {
   const s = clampMatchScore(score);

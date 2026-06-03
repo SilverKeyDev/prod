@@ -6,15 +6,17 @@ import { Icon } from "@ui/icons";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import Button from "packages/ui/components/button/Button";
-import type { AddressData } from "packages/ui/components/form/AddressInput/AddressInput";
 import { AddressInput } from "packages/ui/components/form/AddressInput/AddressInput";
+import {
+  placeFromAutocompleteSuggestion,
+  resolveGooglePlaceToAddressData,
+} from "packages/ui/components/form/resolveGooglePlaceToAddressData";
 import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/styles/fileUploadStyles";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { asError } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
 
-import { applyGooglePlaceSuggestionToAddress } from "./applyGooglePlaceSuggestionToAddress";
 import type { GooglePlacesAutocompleteFieldProps } from "./GooglePlacesAutocompleteField";
 import type { GooglePlacePrediction, GooglePlacesSuggestion } from "./types";
 
@@ -122,16 +124,13 @@ function GooglePlacesAutocompleteFieldWeb({
 
   const handleSelect = async (suggestion: GooglePlacesSuggestion) => {
     setHasSelected(true);
-    await applyGooglePlaceSuggestionToAddress(suggestion, {
-      setAddress: (next) => {
-        setLocalValue(next);
-        onChange(next);
-        const data: AddressData = { address: next };
-        onSelect?.(data);
-      },
-      setSuggestions,
-      setHighlightedIndex,
-    });
+    const place = placeFromAutocompleteSuggestion(suggestion);
+    const addressData = await resolveGooglePlaceToAddressData(place, localValue.trim());
+    setLocalValue(addressData.address);
+    onChange(addressData.address);
+    onSelect?.(addressData);
+    setSuggestions([]);
+    setHighlightedIndex(-1);
   };
 
   const inputDisabled = disabled ?? false;

@@ -6,6 +6,7 @@ import { useLocation } from "react-router-dom";
 import { SearchNavLink } from "packages/features/search";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link } from "packages/navigation";
+import AccessibleLink from "packages/ui/components/accessibility/AccessibleLink";
 import { Box } from "packages/ui/components/primitives";
 import { getChromeNavButtonStyles } from "packages/ui/components/sidebar/sidebarTheme";
 
@@ -84,24 +85,29 @@ export function SidebarNavSingleLink({
     });
     onLinkClick?.();
   };
-  return (
-    <Link
-      to={to}
-      className={buttonClass}
-      title={titleAttr}
-      onClick={handleClick}
-      onMouseEnter={() => onPrefetchHref(to)}
-      onFocus={() => onPrefetchHref(to)}
-      onTouchStart={() => onPrefetchHref(to)}
-      aria-label={firstItem?.name}
-      aria-current={isActive ? "page" : undefined}
-    >
-      {iconEl}
-      {expanded && (
+  const linkProps = {
+    to,
+    className: buttonClass,
+    title: titleAttr,
+    onClick: handleClick,
+    onMouseEnter: () => onPrefetchHref(to),
+    onFocus: () => onPrefetchHref(to),
+    onTouchStart: () => onPrefetchHref(to),
+    "aria-current": isActive ? ("page" as const) : undefined,
+  };
+  if (expanded) {
+    return (
+      <Link {...linkProps}>
+        {iconEl}
         <span className={isActive ? sidebarNavLabelActive : sidebarNavLabelInactive}>
           {firstItem?.name}
         </span>
-      )}
-    </Link>
+      </Link>
+    );
+  }
+  return (
+    <AccessibleLink {...linkProps} label={firstItem?.name ?? categoryKey}>
+      {iconEl}
+    </AccessibleLink>
   );
 }

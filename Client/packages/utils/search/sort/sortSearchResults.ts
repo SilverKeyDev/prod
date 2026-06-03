@@ -1,4 +1,4 @@
-import type { SearchResult } from "packages/features/search/types";
+import type { SearchResult } from "packages/types";
 import { dateNow } from "packages/utils/date";
 import { getPropertyMatchScore } from "packages/utils/search/scoring/propertyMatchScore";
 

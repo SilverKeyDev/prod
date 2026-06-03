@@ -28,7 +28,7 @@ import { getMessagingConfig } from "@/features/agent/components/messaging/screen
 import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";
 import MessagingSidebarShell from "@/features/messaging/components/layout/chrome/MessagingSidebarShell";
 import UnifiedMessageInput from "@/features/messaging/components/layout/input/UnifiedMessageInput";
-import { isSameMessagingUserId, resolvePrimaryAgentId } from "@/features/messaging/utils";
+import { isSameMessagingUserId } from "@/features/messaging/utils";
 
 import ClientMessagingConversationList from "./ClientMessagingConversationList";
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
@@ -49,10 +49,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
   useMessagingComposerStoreIntegration();
   useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "ClientMessaging");
   const { userProfile } = useUserData();
-  const agentId = useMemo(
-    () => resolvePrimaryAgentId(userProfile?.agent_id),
-    [userProfile?.agent_id]
-  );
+  const agentId = useMemo(() => null, []);
   const showFindAgentInMessagingHeader = userProfile?.is_agent !== true;
   const clientMessagingConfig = getMessagingConfig("client");
 

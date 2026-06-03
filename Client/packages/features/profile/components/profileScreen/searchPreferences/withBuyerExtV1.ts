@@ -1,4 +1,4 @@
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 
 export function withBuyerExtV1(
   prev: BuyerPreferenceExtensions | undefined

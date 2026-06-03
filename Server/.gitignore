@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .aws-sso
+config/.aws-sso
 
 # C extensions
 *.so
@@ -15,7 +16,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+/lib/
 lib64/
 parts/
 sdist/
@@ -39,6 +40,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+coverage/
 htmlcov/
 .tox/
 .nox/

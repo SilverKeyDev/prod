@@ -25,19 +25,6 @@ def _endpoint_line(prefix: str, stop: dict[str, Any]) -> str:
     return f"{prefix}: {label}"
 
 
-def format_itinerary_text_block(stops: list[dict[str, Any]]) -> str:
-    """Format property stops only (legacy helper). Prefer format_itinerary_text_block_from_plain."""
-    lines: list[str] = []
-    for i, stop in enumerate(stops, start=1):
-        label = stop.get("label") or stop.get("address") or f"Stop {i}"
-        addr = stop.get("address")
-        if addr and addr != label:
-            lines.append(f"{i}. {label} — {addr}")
-        else:
-            lines.append(f"{i}. {label}")
-    return "\n".join(lines)
-
-
 def format_itinerary_text_block_from_plain(itinerary: dict[str, Any]) -> str:
     """Human-readable itinerary including optional start/end anchors."""
     lines: list[str] = []

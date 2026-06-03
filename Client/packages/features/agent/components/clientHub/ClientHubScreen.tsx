@@ -9,6 +9,7 @@ import {
   type ChecklistTab,
   RoadmapTracker,
   useChecklistProgress,
+  useResolvedTransactionId,
 } from "packages/features/checklists";
 import { useActiveWorkspace } from "packages/features/homeauth";
 import { ProfileFeature, ProfileScreen } from "packages/features/profile";
@@ -78,13 +79,17 @@ export function ClientHubScreen({ clientId: clientIdProp }: ClientHubScreenProps
   }, [clientIdProp, parsedHubPath, clients]);
 
   const [activeTab, setActiveTab] = useState<ClientHubTab>("roadmap");
+  const { transactionId } = useResolvedTransactionId(resolvedClientId);
   const {
     currentSection,
     isSectionUnlocked,
     isLoading: checklistProgressLoading,
     overallProgress,
     sectionProgress,
-  } = useChecklistProgress({ checklistSubjectUserId: resolvedClientId ?? "" });
+  } = useChecklistProgress({
+    transactionId: transactionId ?? undefined,
+    enabled: Boolean(transactionId),
+  });
   const [checklistTab, setChecklistTab] = useState<ChecklistTab>(currentSection);
 
   useEffect(() => {
@@ -93,7 +98,7 @@ export function ClientHubScreen({ clientId: clientIdProp }: ClientHubScreenProps
     }
   }, [activeTab, currentSection]);
 
-  useClientHubChecklistPrefetch(resolvedClientId ?? "");
+  useClientHubChecklistPrefetch(transactionId ?? "");
 
   useEffect(() => {
     if (!parsedHubPath || !resolvedClientId) return;
@@ -280,6 +285,7 @@ export function ClientHubScreen({ clientId: clientIdProp }: ClientHubScreenProps
             />
             <ClientChecklists
               userId={resolvedClientId}
+              transactionId={transactionId ?? ""}
               activeTab={checklistTab}
               hideIntegrationComponents={isAgentWorkspace}
               onTabChange={setChecklistTab}

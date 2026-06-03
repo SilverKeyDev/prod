@@ -2,6 +2,8 @@
 
 Whose preferences drive Slipstream filters and scoring is determined by the **authenticated viewer** plus optional **`preferences_user_id`** on polygon/isochrone requests. The server resolves this through `resolve_preferences_user_id_for_research` (agents may only pass IDs in `client_ids`; buyers are always scoped to self).
 
+**Search area resolution** (location bar vs isochrone vs geolocation vs default market): see [search-area-resolution.md](../client/search-area-resolution.md).
+
 ## Request paths
 
 | Flow | Client | `preferences_user_id` / subject | Server prefs source |

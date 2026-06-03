@@ -15,11 +15,13 @@
   ARG EXPO_PUBLIC_GOOGLE_MAPS_ID
   ARG EXPO_PUBLIC_PLAID_CLIENT_ID
   ARG EXPO_PUBLIC_GOOGLE_CLIENT_ID
+  ARG EXPO_PUBLIC_POSTHOG_KEY
 
   # Promote to ENV
   ENV EXPO_PUBLIC_GOOGLE_MAPS_ID=${EXPO_PUBLIC_GOOGLE_MAPS_ID}
   ENV EXPO_PUBLIC_PLAID_CLIENT_ID=${EXPO_PUBLIC_PLAID_CLIENT_ID}
   ENV EXPO_PUBLIC_GOOGLE_CLIENT_ID=${EXPO_PUBLIC_GOOGLE_CLIENT_ID}
+  ENV EXPO_PUBLIC_POSTHOG_KEY=${EXPO_PUBLIC_POSTHOG_KEY}
 
   # Copy client source (package files first for better layer cache when only app code changes)
   COPY Client/package.json Client/pnpm-workspace.yaml Client/pnpm-lock.yaml ./
@@ -38,11 +40,18 @@
   RUN pnpm --reporter=silent run -s build:web -- --logLevel warn \
    && rm -rf /tmp/*
 
+  # Fail prod image build when Cloud Map ID was not passed (Advanced Markers require it)
+  ENV VERIFY_MAPS_MAP_ID=1
+  ENV VERIFY_POSTHOG=1
+  ENV NODE_ENV=production
+  RUN node scripts/verify-web-maps-map-id.mjs \
+   && node scripts/verify-web-posthog-config.mjs
+
   # Verify assets exist (build must produce Client/dist when run from WORKDIR /app/client)
   RUN test -d dist && [ "$(ls -A dist)" ] || (echo "dist missing or empty!" >&2 && exit 1)
 
   # ----------------------------
-  # Stage 2: Build Flask backend
+  # Stage 2: Build Flask backend (PRODUCTION APP — use `docker build --target backend`)
   # ----------------------------
   FROM python:3.11-slim AS backend
 
@@ -82,6 +91,32 @@
 
   EXPOSE 5000
 
-  # Start Flask with Gunicorn
-  # --preload: load application once in master before forking workers (faster boot, less duplicate import work).
-  CMD ["gunicorn", "--preload", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]
+  RUN chmod +x scripts/gunicorn-entrypoint.sh
+
+  # Env-driven Gunicorn (WEB_CONCURRENCY, GUNICORN_THREADS, GUNICORN_WORKER_CLASS, etc.)
+  CMD ["./scripts/gunicorn-entrypoint.sh"]
+
+  # ----------------------------
+  # Stage 3: Alembic migrations only (CI / db-migrate-main workflow)
+  # NOT the default build target — prod deploy MUST pass `--target backend`.
+  # ----------------------------
+  FROM python:3.11-slim AS migrate
+
+  SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+  ENV PYTHONDONTWRITEBYTECODE=1
+  ENV PYTHONUNBUFFERED=1
+  ENV SILVERKEY_MIGRATE_ONLY=1
+  ENV FLASK_APP=run:app
+
+  WORKDIR /app/Server
+
+  COPY Server/requirements/migrate.txt ./requirements/migrate.txt
+  RUN pip install --upgrade pip setuptools wheel --quiet --disable-pip-version-check \
+   && pip install --no-cache-dir --prefer-binary -r requirements/migrate.txt --quiet --disable-pip-version-check \
+   && pip cache purge >/dev/null 2>&1 \
+   && rm -rf /tmp/* /var/tmp/* ~/.cache/pip
+
+  COPY Server/ .
+
+  CMD ["flask", "db", "upgrade"]

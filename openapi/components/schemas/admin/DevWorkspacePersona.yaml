@@ -1,0 +1,8 @@
+type: string
+description: Dev-only workspace persona for admin self-impersonation (local QA).
+enum:
+  - buyer
+  - seller
+  - agent
+  - brokerage
+  - integration_partner

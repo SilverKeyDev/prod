@@ -109,7 +109,7 @@ export const selectToasts = (state: ConsolidatedSearchState) => ({
 
 export type { ActiveTab, ConsolidatedSearchState, ToastItem, ToastType } from "./types";
 
-// Search context, view, and filters (legacy slices; prefer useConsolidatedSearchStore for new code)
+// Map/display filters — extended fields not on ConsolidatedSearchState (sort, camera, overlays, etc.)
 export {
   type MapRegionSnapshot,
   type SearchSource,
@@ -117,11 +117,13 @@ export {
   useFiltersStore,
   type WebMapCameraSnapshot,
 } from "./filters.slice";
+// Ephemeral search context: anchor, location bar, filter overrides, feed cursor
 export {
   type SearchContextAnchor,
   type SearchFilterOverrides,
   useSearchContextStore,
 } from "./searchContext.slice";
+// Results vs map view mode (list/map toggle)
 export {
   SEARCH_VIEW_MODE_CHANGED_EVENT,
   type SearchViewMode,

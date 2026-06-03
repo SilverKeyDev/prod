@@ -1,0 +1,46 @@
+# POST committed Server/endpoints.json to PostHog as endpoint_inventory_sync.
+# No DATABASE_URL or Flask — reads inventory from git and POSTs via PostHog capture API.
+#
+# Triggers after Test & Coverage succeeds on main, or manual workflow_dispatch.
+# Requires repository secret: POSTHOG_PROJECT_TOKEN (project ingest key phc_…)
+name: PostHog endpoint inventory sync
+
+on:
+  workflow_run:
+    workflows: ["Test & Coverage"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  endpoints-sync-posthog:
+    name: Sync endpoint inventory to PostHog
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Verify endpoint inventory is present
+        run: test -s Server/endpoints.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install requests
+        run: python -m pip install --no-cache-dir requests==2.34.2
+
+      - name: POST endpoint_inventory_sync
+        env:
+          POSTHOG_PROJECT_TOKEN: ${{ secrets.POSTHOG_PROJECT_TOKEN }}
+          GITHUB_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+        run: python3 Server/scripts/endpoints/sync_inventory_posthog.py

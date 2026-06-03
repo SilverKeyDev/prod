@@ -62,6 +62,7 @@ def _record_send_failure_event(
     autoretry_for=(DocusignAPIError, ConnectionError),
     retry_backoff=True,
     retry_jitter=True,
+    queue="docusign",
 )
 def send_envelope_task(
     self,
@@ -263,6 +264,7 @@ def process_webhook_task(self, event_id: str):
     autoretry_for=(DocusignAPIError, ConnectionError),
     retry_backoff=True,
     retry_jitter=True,
+    queue="docusign",
 )
 def fetch_completed_documents_task(self, agreement_id: str):
     """

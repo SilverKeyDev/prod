@@ -8,18 +8,18 @@ import Popover from "packages/ui/components/popover/Popover";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Label from "packages/ui/components/text/Label.web";
+import {
+  formatDateRange,
+  getVisibleDateRange,
+  stepFocusedDate,
+} from "packages/utils/calendar/core/date";
+import { formatCalendarToolbarLabel } from "packages/utils/calendar/grid/calendarToolbarLabel";
 import { dateNow, dayjs } from "packages/utils/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { Calendar, CalendarViewType } from "@/features/calendar/types/calendar";
 import type { WeekTimeSlotDoubleClickPayload } from "@/features/calendar/types/calendarQuickCreate";
-import {
-  formatDateRange,
-  getVisibleDateRange,
-  stepFocusedDate,
-} from "@/features/calendar/utils/core/date";
 import { defaultTimedRangeFromMinutes } from "@/features/calendar/utils/grid/calendarQuickCreateDraft";
-import { formatCalendarToolbarLabel } from "@/features/calendar/utils/grid/calendarToolbarLabel";
 
 import { formatRangeButtonLabel, orderedRange } from "./calendarStyleDateRangePickerHelpers";
 import { CalendarStyleDateRangePickerPopoverBody } from "./CalendarStyleDateRangePickerPopoverBody";

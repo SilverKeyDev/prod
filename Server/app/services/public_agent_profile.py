@@ -159,7 +159,7 @@ def build_public_agent_profile(user_id: str) -> PublicAgentProfile | None:
         email=user.email,
         phone=user.phone,
         mls_id=user.mls_id,
-        brokerage=user.brokerage,
+        brokerage=None,
         public_profile_slug=public_profile_slug,
         profile_picture_url=profile_url,
         agent_bio=agent_bio,

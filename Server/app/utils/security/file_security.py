@@ -20,6 +20,7 @@ ALLOWED_MIME_TYPES = {
     "image/jpeg": [".jpg", ".jpeg"],
     "image/png": [".png"],
     "image/gif": [".gif"],
+    "image/webp": [".webp"],
     "text/plain": [".txt"],
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
     "application/msword": [".doc"],
@@ -31,6 +32,7 @@ MAX_FILE_SIZES = {
     "image/jpeg": 15 * 1024 * 1024,  # 15MB for images (e.g. profile pictures)
     "image/png": 15 * 1024 * 1024,
     "image/gif": 15 * 1024 * 1024,  # 15MB for GIFs (e.g. profile pictures)
+    "image/webp": 15 * 1024 * 1024,
     "text/plain": 1 * 1024 * 1024,  # 1MB for text files
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": 25
     * 1024
@@ -45,6 +47,7 @@ BINARY_FILE_TYPES = [
     "image/jpeg",
     "image/png",
     "image/gif",
+    "image/webp",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/msword",
 ]

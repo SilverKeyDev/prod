@@ -7,7 +7,7 @@ import {
   useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
 import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { OliveCheckbox } from "packages/ui";
 import { Box, Pressable } from "packages/ui/components/primitives";
 

@@ -3,6 +3,7 @@ import os
 from flask import Blueprint, jsonify
 
 from app.schemas import MapsScriptResponse
+from app.utils.security import rate_limit
 from app.utils.validation import validate_response
 
 from ..utils.security.app_logging import get_logger
@@ -13,6 +14,7 @@ maps_bp = Blueprint("maps", __name__, url_prefix="/api/maps")
 
 
 @maps_bp.route("/script", methods=["GET"])
+@rate_limit(max_requests=60, window_seconds=60)
 @validate_response(MapsScriptResponse)
 def get_maps_script_url():
     # Get Google Maps API key from backend environment variable

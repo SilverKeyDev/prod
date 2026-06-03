@@ -1,121 +1,26 @@
-## Signing, Review, and Checklist Completion
+> **Status:** Partial  
+> **Last verified:** 2026-05-28  
+> **Code pointers:** `Server/app/services/transactions/checklist_signature_completion.py`; `Server/app/models/documents/agreement_link.py`; `Client/packages/features/documents/`; `Client/packages/features/checklists/hooks/useChecklistStepSigningFooter.tsx`
 
-### Problem / goal
+## Signing, review, and checklist completion
 
-We want checklist items and milestones to reflect **real agreement progress**, not just manual checkboxes, by:
-- Driving completion from **agreement signature status**.
-- Optionally requiring **agent (or role-based) review** for certain items.
-- Supporting future **integration-completed** signals (e.g. from HomeConcierge or financial providers).
+### Shipped today
 
-### Data model & invariants
+- **Agreements + DocuSign:** Models in `Server/app/models/documents/agreement.py`; service layer under `Server/app/services/docusign/`; Connect webhooks update status; completed PDFs land in S3 (see [09-documents-docusign-and-s3.md](./09-documents-docusign-and-s3.md)).
+- **`AgreementLink`:** Links `transaction_id`, `agreement_id`, and checklist step (`linked_item_type=checklist_item`, `linked_item_id` like `offer.3`). Created from checklist form send and document routes (`Server/app/routes/checklist_documents.py`, `Server/app/services/documents/forms_service.py`).
+- **Signature-based checklist completion:** Items with `completion_type: signature_based` auto-check when a linked agreement reaches `status=completed` (`checklist_signature_completion.py`). Manual toggles for those steps are stripped when unsigned.
+- **Client signing UX:** Send for signature, embedded signing (`EmbeddedSigning`), checklist step signing footer, agenda signing to-dos. Integration hook: `useDocumentsDataIntegration` + `useChecklistStepSigningFooter`.
+- **In-app notifications (narrow):** DocuSign lifecycle posts deduped messages into agent–buyer chat (`Server/app/services/docusign/notifications/messaging.py`).
 
-- **Agreement** (existing)
-  - `Server/app/models/documents/agreement.py`:
-    - `id`, `status`, `title`, `agreement_type`, `buyer_id`, `agent_id`, `property_address`, and DocuSign-era fields.
-  - `AgreementParticipant`:
-    - `id`, `agreement_id`, `user_id`, `email`, `name`, `role`, `recipient_status`, and signature timestamps.
+Client detail: [`documentation/client/features/docusign-integration.md`](../../client/features/docusign-integration.md).
 
-- **AgreementLink** (new linkage concept)
-  - `id`
-  - `transaction_id`
-  - `agreement_id`
-  - `linked_item_type` (e.g. `checklist_item`, `milestone`)
-  - `linked_item_id`
+### Partial / not built
 
-- **ChecklistItemState** (see domain model)
-  - `status` (todo, in_progress, done, blocked)
-  - `completion_type` (manual, signature_based, signature_plus_review, integration_based)
-  - `review_required_role` (optional)
-  - `review_state` (not_required, pending, approved, changes_requested)
+- **`signature_plus_review`:** Present in OpenAPI/checklist item metadata; no server review-state engine or dedicated review UI yet.
+- **Integration-completed signals:** No `IntegrationTask` model; partner steps (e.g. Move Concierge) do not auto-complete the checklist from partner webhooks — see [12-financial-and-service-integrations.md](./12-financial-and-service-integrations.md).
+- **Transaction-scoped signing UX:** Flows work per buyer/agreement; not every surface passes explicit transaction context end-to-end.
 
-Invariants:
-- For `signature_based` items, **only agreement status** (and not manual ticking) should control completion, unless a specific override path is defined.
-- For `signature_plus_review` items, both:
-  - Agreement status is terminal (signed/completed).
-  - A participant with the correct role has recorded a review outcome.
+### Invariants (target)
 
-### Flows / UX
-
-1. **Attaching forms and creating agreements**
-   - Agent uses the documents UI to:
-     - Choose **DocuSign** templates and/or upload PDFs (revisions stored in **S3**); see `integrations/09-documents-docusign-and-s3.md`.
-     - Create one or more `Agreement` records linked to a `Transaction`.
-   - System creates `AgreementLink` entries and associates them with the correct checklist items/milestones.
-
-2. **Sending for signature**
-   - Agent initiates signing via:
-     - **DocuSign** (`Server/app/services/docusign/`), with `SignatureProvider` as the abstraction where used.
-   - Relevant checklist items move to `in_progress`.
-
-3. **Signature status updates**
-   - When agreements move to statuses like `sent`, `delivered`, `signed`, `completed`:
-     - Webhooks or polls update the `Agreement` records.
-     - Checklist engine:
-       - Updates `ChecklistItemState` for linked items.
-       - Marks `status = done` when conditions are met (for signature-based items).
-
-4. **Review workflows**
-   - For items with `completion_type = signature_plus_review`:
-     - Once agreements are signed:
-       - The relevant role (e.g. agent, TC) sees a “Review” action.
-     - They can mark:
-       - Approved.
-       - Changes requested (and optionally attach comments).
-   - Checklist completion reflects both signature and review state.
-
-5. **Integration-completed signals (future)**
-   - For integration-backed items:
-     - When the attached `IntegrationTask` reaches `status = completed`:
-       - Checklist items may auto-complete or move to a state where only review is pending.
-
-### Existing infrastructure to reuse / extend
-
-- **Signature abstraction**
-  - `Server/app/services/signature/base.py`:
-    - Defines `SignatureProvider`, `SignatureRequest`, and `SignatureRecipient`.
-    - Uses `NoOpSignatureProvider` when DocuSign is not fully configured.
-  - **DocuSign** is the concrete signing implementation:
-    - `Server/app/services/docusign/` and routes under `Server/app/routes/documents/docusign/`.
-
-- **Agreement models and APIs**
-  - `Server/app/models/documents/agreement.py` and `agreement_participant.py`:
-    - Already track status and participants.
-  - Any existing routes under `Server/app/routes/documents/*`:
-    - These should be extended with transaction context and additional fields needed for checklist links.
-
-- **Client documents and signature UI**
-  - `Client/packages/features/documents/hooks/data/useDocusignAgreement.ts`, `useDocusignActions.ts`, `useDocusignAgreements.ts`, and related hooks:
-    - Drive signing state and actions against DocuSign-backed APIs.
-  - `Client/packages/features/documents/components/*`:
-    - `AgreementListItem`, `AgreementCard`, `AgreementDetailModal`, etc.
-  - These should be extended with:
-    - Transaction-aware context.
-    - Review state indicators and actions.
-
-### Gaps that require new work
-
-- **AgreementLink model and API**
-  - New model and endpoints to:
-    - Link agreements to checklist items and milestones.
-    - Retrieve agreements by transaction and by linked item.
-
-- **Checklist completion engine**
-  - Logic that:
-    - Derives item completion state from agreement status and review state.
-    - Runs when:
-      - Agreement status changes.
-      - Review actions occur.
-
-- **Transaction-scoped DocuSign UX**
-  - Ensure all document/signing flows pass **transaction context** where the product requires checklist linkage end-to-end.
-
-- **Checklist ↔ agreement sync edge cases**
-  - Harden webhook/Celery ordering, retries, and idempotency so agreement status and checklist completion stay consistent.
-
-- **Review UX and APIs**
-  - Server:
-    - Endpoints to record review outcomes by role, tied to checklist items and/or agreements.
-  - Client:
-    - UI surfaces near checklist and document detail views to:
-      - Request review.
-      - Approve or request changes.
+- `signature_based` steps: completion driven by agreement status, not manual checkbox (enforced server-side on merge).
+- Future `signature_plus_review`: requires terminal agreement status **and** role-based review approval.

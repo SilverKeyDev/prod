@@ -5,6 +5,7 @@ import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { dateParseISO } from "packages/utils/date";
+import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
 export type NotificationStoreRef = {
   current: {
@@ -48,7 +49,7 @@ export async function runCheckForNewMessages(params: RunCheckForNewMessagesParam
       queryFn: async () => {
         const response = await agentApi.getChats();
         if (!response.success) {
-          throw new Error(response.error ?? "Failed to fetch conversations");
+          throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch conversations"));
         }
         return response.conversations ?? [];
       },

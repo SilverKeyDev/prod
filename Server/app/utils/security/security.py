@@ -3,21 +3,18 @@ Security utilities for authentication, authorization, rate limiting, and data re
 """
 
 import re
-import threading
 import time
-from collections import defaultdict, deque
 from functools import wraps
 from typing import Any
 
 from flask import current_app, jsonify, request
 
+from app.utils.http.client_ip import get_client_ip
+
 from .app_logging import get_logger
+from .rate_limit_backend import allow_request
 
 logger = get_logger()
-
-# Thread-safe rate limiting storage
-rate_limit_storage = defaultdict(lambda: deque())
-storage_lock = threading.Lock()
 
 # Sensitive keys that should be redacted from logs
 SENSITIVE_KEYS = {
@@ -109,43 +106,26 @@ def rate_limit(max_requests=60, window_seconds=60, per="ip"):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            # Determine the key for rate limiting
+            client_ip = get_client_ip()
             if per == "ip":
-                key = f"rate_limit:{request.remote_addr}:{request.endpoint}"
+                key = f"rate_limit:{client_ip}:{request.endpoint}"
             elif per == "user":
-                # Try to get user from auth header for user-based limiting
                 auth_header = request.headers.get("Authorization", "")
                 if auth_header.startswith("Bearer "):
-                    # Use a hash of the token for privacy
                     import hashlib
 
                     token_hash = hashlib.sha256(auth_header.encode()).hexdigest()[:16]
                     key = f"rate_limit:user:{token_hash}:{request.endpoint}"
                 else:
-                    # Fall back to IP if no auth
-                    key = f"rate_limit:{request.remote_addr}:{request.endpoint}"
+                    key = f"rate_limit:{client_ip}:{request.endpoint}"
             else:
-                key = f"rate_limit:{request.remote_addr}:{request.endpoint}"
+                key = f"rate_limit:{client_ip}:{request.endpoint}"
 
-            current_time = time.time()
-
-            with storage_lock:
-                # Get the request times for this key
-                request_times = rate_limit_storage[key]
-
-                # Remove old requests outside the window
-                while request_times and request_times[0] < current_time - window_seconds:
-                    request_times.popleft()
-
-                # Check if we've exceeded the limit
-                if len(request_times) >= max_requests:
-                    current_app.logger.warning(f"Rate limit exceeded for {key}")
-                    return security_error_response(
-                        SecurityError.RATE_LIMIT_EXCEEDED, {"retry_after": window_seconds}
-                    )
-
-                # Add current request time
-                request_times.append(current_time)
+            if not allow_request(key, max_requests, window_seconds):
+                current_app.logger.warning(f"Rate limit exceeded for {key}")
+                return security_error_response(
+                    SecurityError.RATE_LIMIT_EXCEEDED, {"retry_after": window_seconds}
+                )
 
             return f(*args, **kwargs)
 
@@ -165,7 +145,7 @@ def log_security_event(event_type, details=None, user_id=None):
     """
     log_data = {
         "event_type": event_type,
-        "ip": request.remote_addr,
+        "ip": get_client_ip(),
         "user_agent": request.headers.get("User-Agent", "Unknown"),
         "endpoint": request.endpoint,
         "method": request.method,

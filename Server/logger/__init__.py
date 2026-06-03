@@ -2,9 +2,9 @@
 Logger Public API
 """
 
-from .categories import LOG_CATEGORIES, LogCategory
-from .config_model import LoggerConfig
-from .logger import get_logger, log, logger
+from .config.config_model import LoggerConfig
+from .core.categories import LOG_CATEGORIES, LogCategory
+from .core.logger import get_logger, log, logger
 
 __all__ = [
     "log",

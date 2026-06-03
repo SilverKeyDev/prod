@@ -11,7 +11,7 @@ import { usePropertyCommuteMapUnavailableLog } from "packages/hooks/data/propert
 import { usePropertyCommuteNativeOverlays } from "packages/hooks/data/property/usePropertyCommuteNativeOverlays";
 import { Box, Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
-import { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/maps/propertyDetailsMapRegion";
+import { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/maps/native/propertyDetailsMapRegion";
 import {
   stripSectionRatingField,
   unwrapPropertyAnalysisSection,

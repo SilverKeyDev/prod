@@ -1,10 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useId } from "react";
 
 import { Z_LAYERS } from "packages/design-tokens";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+} from "packages/ui/components/adapters/headless";
 import CloseButton from "packages/ui/components/button/core/CloseButton";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
 import { getDocument } from "packages/utils/platform";
 
 import type { BaseModalProps } from "./BaseModalTypes";
@@ -19,9 +24,9 @@ const SIZE_STYLES: Record<NonNullable<BaseModalProps["size"]>, string> = {
   full: "max-w-full mx-responsive-sm",
 };
 
-type BaseModalContentProps = BaseModalProps & { zIndex: number };
-
-type BaseModalPanelProps = Omit<BaseModalContentProps, "zIndex">;
+type BaseModalPanelProps = Omit<BaseModalProps, "isOpen" | "zIndex"> & {
+  titleId: string;
+};
 
 function BaseModalPanel({
   onClose,
@@ -34,9 +39,10 @@ function BaseModalPanel({
   footerContent,
   showHeaderBorder,
   contentBackground,
+  titleId,
 }: BaseModalPanelProps) {
   return (
-    <Box
+    <DialogPanel
       className={`relative flex min-h-0 w-full max-w-full transform flex-col overflow-hidden rounded-lg text-left shadow-xl transition-all sm:rounded-xl ${
         contentBackground === "off-white" ? "bg-background-base" : "bg-background-base"
       } ${SIZE_STYLES[size ?? "md"]} ${className ?? ""}`}
@@ -54,13 +60,12 @@ function BaseModalPanel({
           >
             {headerContent ??
               (title && (
-                <Title
-                  as="h3"
-                  size="sm"
-                  className="text-text-primary truncate font-semibold leading-snug"
+                <DialogTitle
+                  id={titleId}
+                  className="text-text-primary truncate text-sm font-semibold leading-snug"
                 >
                   {title}
-                </Title>
+                </DialogTitle>
               ))}
           </Box>
           {showCloseButton && (
@@ -82,48 +87,24 @@ function BaseModalPanel({
           {footerContent}
         </Box>
       )}
-    </Box>
-  );
-}
-
-function BaseModalContent(p: BaseModalContentProps) {
-  const { onClose, closeOnBackdropClick = true, backdropClassName = "", zIndex, ...rest } = p;
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (!closeOnBackdropClick) return;
-    // Portaled pickers (e.g. date popover above this modal) can unmount mid–double-click; the
-    // trailing click may land on the backdrop and must not dismiss the parent dialog.
-    if (e.detail > 1) return;
-    onClose();
-  };
-  const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.key === "Enter" || e.key === " ") && closeOnBackdropClick) {
-      e.preventDefault();
-      onClose();
-    }
-  };
-  return (
-    <Box
-      {...{ [SILVERKEY_MODAL_ROOT_DATA_ATTR]: true }}
-      className="scrollbar-hide fixed-modal-dashboard-main overflow-y-auto overflow-x-hidden overscroll-contain"
-      style={{ zIndex }}
-    >
-      <Box className="flex min-h-[100dvh] items-center justify-center p-2 sm:p-4 md:p-6">
-        <Box
-          role="button"
-          tabIndex={0}
-          className={`bg-overlay-backdrop fixed-modal-dashboard-main transition-opacity ${backdropClassName}`}
-          aria-hidden="true"
-          onClick={closeOnBackdropClick ? handleBackdropClick : undefined}
-          onKeyDown={closeOnBackdropClick ? handleBackdropKeyDown : undefined}
-        />
-        <BaseModalPanel {...rest} onClose={onClose} />
-      </Box>
-    </Box>
+    </DialogPanel>
   );
 }
 
 const BaseModal: React.FC<BaseModalProps> = (props) => {
-  const { isOpen, onClose, closeOnEscape = true, zIndex = Z_LAYERS.modal } = props;
+  const {
+    isOpen,
+    onClose,
+    closeOnBackdropClick = true,
+    closeOnEscape = true,
+    zIndex = Z_LAYERS.modal,
+    title,
+    backdropClassName = "",
+    ...panelProps
+  } = props;
+
+  const titleId = useId();
+  const ariaLabel = title ?? "Dialog";
 
   useEffect(() => {
     if (!isOpen || !closeOnEscape) return;
@@ -147,9 +128,31 @@ const BaseModal: React.FC<BaseModalProps> = (props) => {
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handleDialogClose = () => {
+    if (closeOnBackdropClick) onClose();
+  };
+
   return (
     <Portal>
-      <BaseModalContent {...props} zIndex={zIndex} />
+      <Dialog
+        open={isOpen}
+        onClose={handleDialogClose}
+        aria-label={title ? undefined : ariaLabel}
+        aria-labelledby={title ? titleId : undefined}
+        className="relative"
+        style={{ zIndex }}
+        {...{ [SILVERKEY_MODAL_ROOT_DATA_ATTR]: true }}
+      >
+        <Box className="scrollbar-hide fixed-modal-dashboard-main fixed inset-0 overflow-y-auto overflow-x-hidden overscroll-contain">
+          <DialogBackdrop
+            className={`bg-overlay-backdrop fixed-modal-dashboard-main fixed inset-0 transition-opacity ${backdropClassName}`}
+          />
+          <Box className="flex min-h-[100dvh] items-center justify-center p-2 sm:p-4 md:p-6">
+            <BaseModalPanel {...panelProps} title={title} onClose={onClose} titleId={titleId} />
+          </Box>
+        </Box>
+      </Dialog>
     </Portal>
   );
 };

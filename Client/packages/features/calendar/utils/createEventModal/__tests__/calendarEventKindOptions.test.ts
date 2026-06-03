@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   OFFER_PURCHASE_AGREEMENT_SUBMIT_ITEM_ID,
   SEARCH_BUYER_BROKER_AGREEMENT_ITEM_ID,
-} from "packages/utils/calendar/buyerChecklistMilestones";
+} from "packages/utils/calendar/createEvent/buyerChecklistMilestones";
 
 import {
   getCalendarEventKindOptionSlice,

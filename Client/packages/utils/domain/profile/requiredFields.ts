@@ -66,16 +66,16 @@ export const REQUIRED_FIELDS_SETTINGS: Record<string, boolean> = {
   // Financial
   paying_cash: false,
   gross_income: false,
-  home_budget_min: true,
-  home_budget_max: true,
+  home_budget_min: false,
+  home_budget_max: false,
   down_payment: false,
   credit_score_range: false,
   ideal_zip_code: false,
 
   // Housing
   preferred_housing_type: false,
-  preferred_bedrooms_min: true,
-  preferred_bathrooms_min: true,
+  preferred_bedrooms_min: false,
+  preferred_bathrooms_min: false,
   preferred_lot_size: false,
   preferred_home_age: false,
   preferred_architectural_style: false,
@@ -97,7 +97,7 @@ export const REQUIRED_FIELDS_SETTINGS: Record<string, boolean> = {
   preferred_home_age_max: false,
 
   // Location
-  important_locations: true,
+  important_locations: false,
 
   // Communication
   communication_frequency: false,
@@ -110,6 +110,3 @@ export const REQUIRED_FIELDS_SETTINGS: Record<string, boolean> = {
 export const REQUIRED_FIELDS_ONBOARDING_MOBILE: Record<string, boolean> = {
   ...REQUIRED_FIELDS_ONBOARDING,
 };
-
-// Legacy export for backward compatibility (deprecated - use REQUIRED_FIELDS_ONBOARDING or REQUIRED_FIELDS_SETTINGS)
-export const REQUIRED_FIELDS = REQUIRED_FIELDS_ONBOARDING;

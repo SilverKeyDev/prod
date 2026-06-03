@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { Text } from "packages/ui/components/primitives";
+import CloseButton from "packages/ui/components/button/core/CloseButton";
 import Title from "packages/ui/components/text/Title";
 
 import type { BaseModalProps } from "./BaseModalTypes";
@@ -23,11 +23,12 @@ const BaseModal: React.FC<BaseModalProps> = (props) => {
 
   useEffect(() => {
     if (!isOpen) return;
-    // Optional: back handler on Android
     return () => {};
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const modalLabel = title ?? "Dialog";
 
   return (
     <Modal
@@ -36,10 +37,21 @@ const BaseModal: React.FC<BaseModalProps> = (props) => {
       animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent
+      accessibilityViewIsModal
     >
-      <Pressable style={styles.backdrop} onPress={closeOnBackdropClick ? onClose : undefined}>
+      <Pressable
+        style={styles.backdrop}
+        onPress={closeOnBackdropClick ? onClose : undefined}
+        accessibilityRole="none"
+        importantForAccessibility="no-hide-descendants"
+      >
         <Pressable style={styles.centered} onPress={(e) => e.stopPropagation()}>
-          <View style={styles.panel}>
+          <View
+            style={styles.panel}
+            accessibilityViewIsModal
+            accessibilityLabel={modalLabel}
+            accessibilityRole="none"
+          >
             {(title ?? headerContent ?? showCloseButton) && (
               <View style={[styles.header, showHeaderBorder && styles.headerBorder]}>
                 <View style={styles.headerContent}>
@@ -49,19 +61,14 @@ const BaseModal: React.FC<BaseModalProps> = (props) => {
                         as="h3"
                         size="sm"
                         className="text-text-primary font-semibold leading-snug"
+                        accessibilityRole="header"
                       >
                         {title}
                       </Title>
                     ) : null)}
                 </View>
                 {showCloseButton && (
-                  <Pressable
-                    onPress={onClose}
-                    style={styles.closeButton}
-                    accessibilityLabel="Close modal"
-                  >
-                    <Text style={styles.closeText}>×</Text>
-                  </Pressable>
+                  <CloseButton variant="ghost" size="sm" onClick={onClose} label="Close modal" />
                 )}
               </View>
             )}
@@ -107,14 +114,6 @@ const styles = StyleSheet.create({
   headerContent: {
     flex: 1,
     minWidth: 0,
-  },
-  closeButton: {
-    padding: 4,
-    marginLeft: 8,
-  },
-  closeText: {
-    fontSize: 24,
-    color: color("neutral.500"),
   },
   body: {
     padding: 16,

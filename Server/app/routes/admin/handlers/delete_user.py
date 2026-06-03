@@ -31,7 +31,9 @@ def delete_user_account(user, data: DeleteUserRequest | None = None):
             "Unauthorized admin delete user attempt",
             {"actor_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Super admin access required", status_code=403)
+        return standardize_error_response(
+            "Super admin access required", status_code=403, error_code="super_admin_required"
+        )
 
     if data is None:
         request_data = request.get_json(silent=True) or {}
@@ -39,6 +41,7 @@ def delete_user_account(user, data: DeleteUserRequest | None = None):
             return standardize_error_response(
                 'confirm must be true (JSON boolean). Send {"confirm": true}',
                 status_code=400,
+                error_code="validation_error",
             )
         target_id = request_data.get("user_id")
     else:
@@ -46,24 +49,33 @@ def delete_user_account(user, data: DeleteUserRequest | None = None):
             return standardize_error_response(
                 'confirm must be true (JSON boolean). Send {"confirm": true}',
                 status_code=400,
+                error_code="validation_error",
             )
         target_id = data.user_id
 
     if not isinstance(target_id, str) or not target_id.strip():
-        return standardize_error_response("user_id must be a non-empty string", status_code=400)
+        return standardize_error_response(
+            "user_id must be a non-empty string",
+            status_code=400,
+            error_code="validation_error",
+        )
 
     target_id = target_id.strip()
     actor_id = str(getattr(user, "id", "") or "")
 
     if target_id == actor_id:
         return standardize_error_response(
-            "You cannot delete your own account from this endpoint", status_code=403
+            "You cannot delete your own account from this endpoint",
+            status_code=403,
+            error_code="authorization_failed",
         )
 
     deleted = delete_user_and_all_related_data(target_id)
 
     if not deleted:
-        return standardize_error_response("User not found", status_code=404)
+        return standardize_error_response(
+            "User not found", status_code=404, error_code="resource_not_found"
+        )
 
     log.security(
         LOG_CATEGORIES["SECURITY"],

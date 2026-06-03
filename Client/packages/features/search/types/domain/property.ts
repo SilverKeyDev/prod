@@ -1,25 +1,11 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * This file re-exports types from the generated API contract (api.generated.ts).
- * All type definitions have been moved to openapi.yaml.
- *
- * To add/modify API types:
- * 1. Edit openapi.yaml
- * 2. Run `pnpm generate:api-types`
- * 3. Types will be auto-generated in packages/types/api.generated.ts
- *
- * Property-related API types and shared property shapes.
- */
-
 import type { components } from "packages/types/api.generated";
 import type { PropertyHighlightsContext } from "packages/types/domain/propertyHighlightsContext";
 import type { SavedHome } from "packages/types/domain/savedHome";
 
 import type { SearchResult } from "./result";
 
-// UI utility type (stays local)
-export type HomeUniversal = {
+/** Wire row shape for saved-home API payloads in search UI. */
+export type SavedHomeWireRow = {
   address: string;
   price?: number;
   beds?: string;

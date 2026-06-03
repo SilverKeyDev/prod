@@ -6,7 +6,7 @@ from logger import LOG_CATEGORIES, log
 
 
 # Property Research Tasks
-@celery.task(name="tasks.research_property_task", bind=True)
+@celery.task(name="tasks.research_property_task", bind=True, queue="heavy")
 def research_property_task(self, params, address=None, skip_pros_cons=False, research_body=None):
     """
     Celery task to research a property.
@@ -92,7 +92,7 @@ def research_property_task(self, params, address=None, skip_pros_cons=False, res
         }
 
 
-@celery.task(name="tasks.compare_property_task", bind=True)
+@celery.task(name="tasks.compare_property_task", bind=True, queue="heavy")
 def compare_property_task(self, params, address=None, research_body=None):
     """
     Celery task to compare a property (same as research but skips pros/cons).

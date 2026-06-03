@@ -6,6 +6,7 @@ Re-exports from security.py for backward compatibility.
 """
 
 from .csp import build_content_security_policy
+from .rate_limit_backend import rate_limit_storage, storage_lock
 
 # Import everything from security.py to maintain backward compatibility
 from .security import (
@@ -13,10 +14,8 @@ from .security import (
     auth_error_response,
     log_security_event,
     rate_limit,
-    rate_limit_storage,
     safe_user_lookup_error,
     security_error_response,
-    storage_lock,
     validate_required_fields,
 )
 

@@ -3,7 +3,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
 import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
-import { parseHourMinute24 } from "packages/utils/calendar/eventFormGooglePayload";
+import { parseHourMinute24 } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 import { dateParseISO } from "packages/utils/date";
 
 dayjs.extend(utc);

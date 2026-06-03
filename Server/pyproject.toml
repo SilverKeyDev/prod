@@ -62,6 +62,9 @@ ignore = [
 "scripts/lint/lint_*.py" = ["T201"]
 "scripts/lint/check_coverage_thresholds.py" = ["T201"]
 "scripts/validate-schema-coverage.py" = ["T201"]
+"scripts/endpoints/extract_routes.py" = ["T201", "E402"]
+"scripts/endpoints/check_dead_endpoints.py" = ["T201"]
+"scripts/endpoints/sync_inventory_posthog.py" = ["T201"]
 "scripts/seed_georgia_forms.py" = ["T201", "E402"]
 
 [tool.ruff.lint.isort]
@@ -79,15 +82,28 @@ line-ending = "auto"
 
 # --- Pyright: import resolution (catches missing modules); type checking off to avoid 600+ existing issues ---
 # pythonVersion: omit so each venv's lib/pythonX.Y/site-packages is used (pin only if you must match CI stubs).
+# Lint CI installs requirements/lint.txt (ci.txt + ruff + pyright). ML/geo pins live in ci.txt.
 [tool.pyright]
 typeCheckingMode = "off"
 venvPath = "."
 venv = ".venv"
-# Run from Server/ so "app" resolves to ./app
+# Run from Server/ so "app" resolves to ./app; ../scripts for log_contracts codegen helpers
+extraPaths = ["../scripts"]
 reportMissingImports = true
 reportMissingModuleSource = true
 reportUndefinedVariable = true
-exclude = ["venv", ".venv", "**/node_modules", "**/__pycache__", "**/.*", "migrations/versions"]
+exclude = [
+    "venv",
+    ".venv",
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "migrations/versions",
+    "tests",
+    "app/schemas/generated.py",
+    # sentence-transformers + torch: test/runtime only (requirements/test.txt), not lint CI.
+    "app/services/search/home_matching/embeddings/model_loader.py",
+]
 
 # --- Mypy: Optional gradual type checking ---
 [tool.mypy]
@@ -104,6 +120,8 @@ exclude = [
 
 # --- Coverage (pytest-cov / coverage.py): config is read from here, not pytest.ini [coverage:*] ---
 [tool.coverage.run]
+# Keep SQLite data out of Server/ root (avoids iCloud " .coverage 2" duplicates on Desktop).
+data_file = "coverage/.coverage"
 source = ["app"]
 omit = [
     "**/tests/**",
@@ -113,8 +131,6 @@ omit = [
     "**/.venv/**",
     "**/venv/**",
     "**/env/**",
-    # Legacy duplicate of app/services/search/polygon/locationPolygon.py (unused import path).
-    "app/services/search/locationPolygon.py",
 ]
 
 [tool.coverage.report]

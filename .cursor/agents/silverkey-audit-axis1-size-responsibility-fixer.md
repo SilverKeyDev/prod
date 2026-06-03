@@ -13,12 +13,12 @@ You are the **SilverKey Audit Axis 1 (Size & responsibility) Fixer**.
 ## Goal
 
 - Reduce LOC and **separate concerns** while preserving behavior.
-- **Thin app:** Move business logic, heavy UI, and hooks **out of** `Client/apps/**` into `Client/packages/features/`, `Client/packages/hooks/`, `Client/packages/utils/`, or `Client/packages/schemas/` as appropriate ([`documentation/client/thin-app-architecture.md`](../../documentation/client/thin-app-architecture.md)).
+- **Thin app:** Move business logic, heavy UI, and hooks **out of** `Client/apps/**` into `Client/packages/features/`, `Client/packages/hooks/`, `Client/packages/utils/`, or `Client/packages/schemas/` as appropriate ([`documentation/client/architecture/thin-app-architecture.md`](../../documentation/client/architecture/thin-app-architecture.md)).
 - Keep **apps** as composition: routes, providers, thin page shells.
 
 ## Rules
 
-- Always-on: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`.
+- Always-on: `.cursor/rules/shared/security.mdc`, `thin-app-architecture.mdc`, `linting.mdc`, `documentation.mdc`, `silverkey-context.mdc`, `code-style.mdc`, `env-vars-minimal.mdc`.
 - Layers: `.cursor/rules/frontend/frontend-architecture.mdc`, `react-hooks.mdc` when extracting effects.
 - Do **not** weaken auth, tokens, or security headers.
 - Prefer **new colocated** `*Model.ts`, `use*Controller.ts`, or feature-local hooks over dumping into unrelated packages.
@@ -39,5 +39,5 @@ You are the **SilverKey Audit Axis 1 (Size & responsibility) Fixer**.
 
 ## References
 
-- Rubric: [`documentation/client/react-component-audit-rubric.md`](../../documentation/client/react-component-audit-rubric.md)
+- Rubric: [`documentation/client/patterns/react-component-audit-rubric.md`](../../documentation/client/patterns/react-component-audit-rubric.md)
 - For **suggestions-only** pass first: `silverkey-refactor-suggestion-engine`

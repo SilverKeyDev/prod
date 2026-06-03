@@ -1,0 +1,111 @@
+name: Feature request
+description: Propose a product or technical change with acceptance criteria
+title: "[Feature]: "
+labels: ["type:feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Logic belongs in `Client/packages/`; `Client/apps/*` are thin composition layers.
+        See [thin-app-architecture.md](https://github.com/SilverKeyDev/prod/blob/main/documentation/client/architecture/thin-app-architecture.md).
+
+  - type: textarea
+    id: user_story
+    attributes:
+      label: User story
+      description: As a … I want … so that …
+      placeholder: |
+        As a buyer,
+        I want to …
+        so that …
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: workspaces
+    attributes:
+      label: Workspace(s) affected
+      description: Product shells (see documentation/client/architecture/workspace-first-architecture.md)
+      options:
+        - label: buyer
+        - label: seller
+        - label: agent
+        - label: brokerage
+        - label: admin
+        - label: n/a
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surfaces
+    attributes:
+      label: Surfaces
+      options:
+        - web
+        - mobile
+        - both
+        - api-only
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope
+      description: What this request explicitly does not include
+
+  - type: dropdown
+    id: openapi_impact
+    attributes:
+      label: OpenAPI / schema impact?
+      options:
+        - "Yes"
+        - "No"
+        - Unknown
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        If **Yes** or **Unknown**: edit [`openapi/`](https://github.com/SilverKeyDev/prod/tree/main/openapi) only.
+        Do **not** hand-edit `Client/packages/types/api.generated.ts` or `Server/app/schemas/generated.py`.
+        See [openapi-workflow.mdc](https://github.com/SilverKeyDev/prod/blob/main/.cursor/rules/shared/openapi-workflow.mdc).
+
+  - type: textarea
+    id: implementer_context
+    attributes:
+      label: Context for implementers
+      description: Repo map, paths, environment, and verification already run
+      placeholder: |
+        ### Repo map (check what you touched)
+        - [ ] Client/apps/web — thin routes/layouts
+        - [ ] Client/apps/mobile — thin screens
+        - [ ] Client/packages/ — features, hooks, ui, store, utils
+        - [ ] Server/app/ — routes, services, models
+        - [ ] openapi/ — contract source (not generated files)
+        - [ ] .github/workflows/ — CI/deploy
+
+        ### Paths & symbols
+        - File paths (e.g. Client/packages/features/.../Foo.tsx)
+        - Related docs: documentation/... links
+
+        ### Environment
+        - local | staging | prod
+        - Branch / commit SHA
+
+        ### Verification already run
+        - Commands (e.g. cd Client && pnpm check, pytest Server/tests/...)
+        - Pass/fail + relevant output (no tokens, no PII)
+    validations:
+      required: true

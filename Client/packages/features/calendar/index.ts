@@ -12,16 +12,17 @@ export {
   CALENDAR_EVENT_KINDS,
   type CalendarEventKindId,
 } from "./utils/createEventModal/calendarEventKinds";
+export { defaultGoogleMeetForCreate } from "./utils/createEventModal/defaultGoogleMeetForCreate";
 export {
   buildCreateEventGoogleStartEnd,
   googleAllDayEndExclusiveToInclusiveEndYmd,
   inclusiveRangeToGoogleAllDayDates,
   quantizeHourMinute,
-} from "packages/utils/calendar/eventFormGooglePayload";
+} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
 export {
   eventSpansMultipleLocalDays,
   getEventEndDate,
   getEventFirstLocalDayKey,
   getEventLocalDayKeys,
   getEventStartDate,
-} from "packages/utils/calendar/eventParsing";
+} from "packages/utils/calendar/parsing/eventParsing";

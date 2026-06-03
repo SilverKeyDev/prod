@@ -1,10 +1,12 @@
 import { lazy, type ReactNode, Suspense, useEffect, useRef } from "react";
 
+import { WorkspacePlaceholderPage } from "packages/features/workspace";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { useIsMobile } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES, type LogCategory } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { shellRouteNavigateStart, traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { isPlaceholderWorkspace } from "packages/utils/workspace";
 
 import PageErrorBoundary from "@/app/error/PageErrorBoundary";
 
@@ -40,6 +42,20 @@ const BrokerageDashboardPage = lazy(
     LOG_CATEGORIES.DASHBOARD,
     "lazy:BrokerageDashboardPage",
     () => import("@/pages/workspace/BrokerageDashboardPage")
+  )
+);
+const IntegrationPartnerDashboardPage = lazy(
+  traceLazyImport(
+    LOG_CATEGORIES.DASHBOARD,
+    "lazy:IntegrationPartnerDashboardPage",
+    () => import("@/pages/workspace/IntegrationPartnerDashboardPage")
+  )
+);
+const SellerDashboardPage = lazy(
+  traceLazyImport(
+    LOG_CATEGORIES.DASHBOARD,
+    "lazy:SellerDashboardPage",
+    () => import("@/pages/workspace/SellerDashboardPage")
   )
 );
 const DashboardPage = lazy(
@@ -121,6 +137,12 @@ export function DashboardContent({
   const activeWorkspace = useActiveWorkspace();
 
   const { activeKey, isSearch, isMessaging, widthPercent } = route;
+  const placeholderShell = isPlaceholderWorkspace(activeWorkspace);
+  const showPlaceholderForRoute =
+    placeholderShell &&
+    activeKey !== "dashboard" &&
+    activeKey !== "messaging" &&
+    activeKey !== null;
   const contentTopMargin = route.isDashboard || route.isProfile || route.isFindAgents;
   const contentBottomMargin =
     route.isDashboard ||
@@ -171,50 +193,59 @@ export function DashboardContent({
     shellRouteNavigateStart(routeKey, route.pathname);
   }, [activeKey, route.pathname]);
 
-  const content =
-    activeKey === "search" ? (
-      <PageErrorBoundary key="search" pageLabel="Search">
-        <Suspense fallback={loadingFallback}>
-          <SearchPage setMobileHeaderActions={setMobileHeaderActions} searchRef={searchPageRef} />
-        </Suspense>
-      </PageErrorBoundary>
-    ) : activeKey === "profile" ? (
+  const content = showPlaceholderForRoute ? (
+    <WorkspacePlaceholderPage workspace={activeWorkspace} />
+  ) : activeKey === "search" ? (
+    <PageErrorBoundary key="search" pageLabel="Search">
       <Suspense fallback={loadingFallback}>
-        <ProfilePage setMobileHeaderActions={setMobileHeaderActions} />
+        <SearchPage setMobileHeaderActions={setMobileHeaderActions} searchRef={searchPageRef} />
       </Suspense>
-    ) : activeKey === "library" ? (
-      <PageErrorBoundary key="library" pageLabel="Library">
-        <Suspense fallback={loadingFallback}>
-          <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
-        </Suspense>
-      </PageErrorBoundary>
-    ) : activeKey === "messaging" ? (
+    </PageErrorBoundary>
+  ) : activeKey === "profile" ? (
+    <Suspense fallback={loadingFallback}>
+      <ProfilePage setMobileHeaderActions={setMobileHeaderActions} />
+    </Suspense>
+  ) : activeKey === "library" ? (
+    <PageErrorBoundary key="library" pageLabel="Library">
+      <Suspense fallback={loadingFallback}>
+        <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
+      </Suspense>
+    </PageErrorBoundary>
+  ) : activeKey === "messaging" ? (
+    placeholderShell ? (
+      <WorkspacePlaceholderPage workspace={activeWorkspace} />
+    ) : (
       <PageErrorBoundary key="messaging" pageLabel="Messaging">
         <Suspense fallback={loadingFallback}>
           <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
         </Suspense>
       </PageErrorBoundary>
-    ) : activeKey === "dashboard" ? (
+    )
+  ) : activeKey === "dashboard" ? (
+    <Suspense fallback={loadingFallback}>
+      {activeWorkspace === "brokerage" ? (
+        <BrokerageDashboardPage />
+      ) : activeWorkspace === "integration_partner" ? (
+        <IntegrationPartnerDashboardPage />
+      ) : activeWorkspace === "seller" ? (
+        <SellerDashboardPage />
+      ) : (
+        <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
+      )}
+    </Suspense>
+  ) : activeKey === "find_agents" ? (
+    <PageErrorBoundary key="find-agents" pageLabel="Find agents">
       <Suspense fallback={loadingFallback}>
-        {activeWorkspace === "brokerage" ? (
-          <BrokerageDashboardPage />
-        ) : (
-          <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
-        )}
+        <FindAgentsPage setMobileHeaderActions={setMobileHeaderActions} />
       </Suspense>
-    ) : activeKey === "find_agents" ? (
-      <PageErrorBoundary key="find-agents" pageLabel="Find agents">
-        <Suspense fallback={loadingFallback}>
-          <FindAgentsPage setMobileHeaderActions={setMobileHeaderActions} />
-        </Suspense>
-      </PageErrorBoundary>
-    ) : activeKey === "agreement_signing_complete" ? (
-      <PageErrorBoundary key="agreement-signing-complete" pageLabel="Signing">
-        <Suspense fallback={loadingFallback}>
-          <AgreementSigningCompletePage />
-        </Suspense>
-      </PageErrorBoundary>
-    ) : null;
+    </PageErrorBoundary>
+  ) : activeKey === "agreement_signing_complete" ? (
+    <PageErrorBoundary key="agreement-signing-complete" pageLabel="Signing">
+      <Suspense fallback={loadingFallback}>
+        <AgreementSigningCompletePage />
+      </Suspense>
+    </PageErrorBoundary>
+  ) : null;
 
   const displayContent = content ?? (
     <DashboardRouteFallback variant={suspenseFallbackVariant(activeKey)} />

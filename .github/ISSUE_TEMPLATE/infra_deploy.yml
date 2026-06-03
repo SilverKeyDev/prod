@@ -1,0 +1,102 @@
+name: Infra / CI / deploy
+description: Report workflow failures, deploy issues, or migration problems
+title: "[Infra]: "
+labels: ["area:infra"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Primary AWS region: **us-east-2**.
+        See [aws-resource-naming.mdc](https://github.com/SilverKeyDev/prod/blob/main/.cursor/rules/shared/aws-resource-naming.mdc).
+
+  - type: dropdown
+    id: workflow
+    attributes:
+      label: Workflow
+      description: GitHub Actions workflow that failed
+      options:
+        - Lint
+        - Secret Scan
+        - Test & Coverage
+        - Test & Coverage (callable)
+        - OpenAPI Schema Sync
+        - Prod Deploy - Web (EC2)
+        - DB migrate (main)
+        - Sunday Newsletter
+        - Sunday Newsletter (Test - Single Email)
+    validations:
+      required: true
+
+  - type: textarea
+    id: failure_snippet
+    attributes:
+      label: Failure snippet
+      description: Log excerpt, failed job name, or error message (no secrets)
+    validations:
+      required: true
+
+  - type: input
+    id: trigger
+    attributes:
+      label: Trigger
+      description: What started the workflow?
+      placeholder: PR #123, push to main, workflow_dispatch
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - dev
+        - staging
+        - prod
+    validations:
+      required: true
+
+  - type: dropdown
+    id: db_migration
+    attributes:
+      label: DB migration involved?
+      options:
+        - "Yes"
+        - "No"
+        - Unknown
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        **DB migration policy:** Do not author or run Alembic migrations unless explicitly directed.
+        See [database.mdc](https://github.com/SilverKeyDev/prod/blob/main/.cursor/rules/backend/database.mdc).
+        Production migrations run via the **DB migrate (main)** workflow.
+
+  - type: textarea
+    id: implementer_context
+    attributes:
+      label: Context for implementers
+      description: Repo map, paths, environment, and verification already run
+      placeholder: |
+        ### Repo map (check what you touched)
+        - [ ] Client/apps/web — thin routes/layouts
+        - [ ] Client/apps/mobile — thin screens
+        - [ ] Client/packages/ — features, hooks, ui, store, utils
+        - [ ] Server/app/ — routes, services, models
+        - [ ] openapi/ — contract source (not generated files)
+        - [ ] .github/workflows/ — CI/deploy
+
+        ### Paths & symbols
+        - File paths (e.g. Client/packages/features/.../Foo.tsx)
+        - Related docs: documentation/... links
+
+        ### Environment
+        - local | staging | prod
+        - Branch / commit SHA
+
+        ### Verification already run
+        - Commands (e.g. cd Client && pnpm check, pytest Server/tests/...)
+        - Pass/fail + relevant output (no tokens, no PII)
+    validations:
+      required: true

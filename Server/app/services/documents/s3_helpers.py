@@ -58,6 +58,48 @@ def get_presigned_url_expiration() -> int:
     return expiration
 
 
+def delete_s3_objects_under_prefix(s3_client, bucket_name: str, prefix: str) -> int:
+    """
+    Delete all S3 objects whose keys start with ``prefix``.
+
+    Returns:
+        Number of objects deleted (0 if none or S3 unavailable).
+    """
+    if not s3_client or not bucket_name or not prefix:
+        logger.warning("S3 client, bucket, or prefix missing for bulk delete")
+        return 0
+
+    deleted = 0
+    try:
+        paginator = s3_client.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+            contents = page.get("Contents") or []
+            if not contents:
+                continue
+            keys = [{"Key": obj["Key"]} for obj in contents if obj.get("Key")]
+            for start in range(0, len(keys), 1000):
+                chunk = keys[start : start + 1000]
+                s3_client.delete_objects(
+                    Bucket=bucket_name,
+                    Delete={"Objects": chunk, "Quiet": True},
+                )
+                deleted += len(chunk)
+        if deleted:
+            logger.info(
+                "Deleted S3 objects under prefix",
+                extra={"prefix": prefix, "count": deleted},
+            )
+        return deleted
+    except ClientError as e:
+        error_code = e.response["Error"]["Code"]
+        error_message = e.response["Error"]["Message"]
+        logger.error(f"S3 bulk delete failed for prefix {prefix}: {error_code} - {error_message}")
+        return deleted
+    except Exception as e:
+        logger.error(f"Unexpected error deleting S3 prefix {prefix}: {str(e)}")
+        return deleted
+
+
 def list_s3_objects(s3_client, bucket_name: str, prefix: str) -> list[dict]:
     """
     List S3 objects with a given prefix.

@@ -201,6 +201,9 @@ ehthumbs.db
 .cursorignore
 .cursorindexingignore
 
+# Claude Code
+.claude/
+
 # ============================================
 # Git
 # ============================================

@@ -21,6 +21,10 @@ export type SearchFiltersSheetProps = {
   onClientChange?: (clientId: string | null) => void;
   patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
   onAgentSyncPreferencesFetched?: (onboarding: Partial<OnboardingData>) => void;
+  onClientChange?: (clientId: string | null) => void;
+  replaceFormData?: (next: Partial<OnboardingData>) => void;
+  cancelPendingSave?: () => void;
+  onAfterClear?: () => void | Promise<void>;
 };
 
 export default function SearchFiltersSheet({
@@ -32,6 +36,10 @@ export default function SearchFiltersSheet({
   selectedClientId,
   patchBuyerPreferenceExtensions,
   onAgentSyncPreferencesFetched,
+  onClientChange,
+  replaceFormData,
+  cancelPendingSave,
+  onAfterClear,
 }: SearchFiltersSheetProps): React.ReactElement {
   const { t } = useLocalization();
 
@@ -82,6 +90,10 @@ export default function SearchFiltersSheet({
                   scriptsReady={scriptsReady}
                   viewingClientId={selectedClientId ?? null}
                   onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
+                  onClientChange={onClientChange}
+                  replaceFormData={replaceFormData}
+                  cancelPendingSave={cancelPendingSave}
+                  onAfterClear={onAfterClear}
                 />
                 <Box
                   id={TOUR_TARGETS_MOBILE.displayControl}

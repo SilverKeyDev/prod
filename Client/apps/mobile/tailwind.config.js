@@ -21,9 +21,4 @@ const mobileTailwindConfig = {
   plugins: [],
 };
 
-console.info("[Tailwind] Mobile config loaded", {
-  presetsCount: mobileTailwindConfig.presets.length,
-  contentGlobs: mobileTailwindConfig.content,
-});
-
 module.exports = mobileTailwindConfig;

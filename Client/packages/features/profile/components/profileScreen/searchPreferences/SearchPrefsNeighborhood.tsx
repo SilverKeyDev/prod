@@ -1,6 +1,6 @@
 import React from "react";
 
-import type { BuyerNeighborhoodPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerNeighborhoodPrefs } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import {
   FIELD_LABELS,
   PROFILE_NOT_SPECIFIED_LABEL,

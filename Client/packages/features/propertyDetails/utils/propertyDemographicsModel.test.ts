@@ -25,4 +25,20 @@ describe("buildPropertyDemographicsViewModel", () => {
     expect(vm!.demographicsSectionRating).toBe(8);
     expect(vm!.hasAgeDistribution).toBe(false);
   });
+
+  it("handles empty distribution maps", () => {
+    const vm = buildPropertyDemographicsViewModel({
+      age_distribution: {},
+      race_distribution: {},
+    });
+    expect(vm).toBeNull();
+  });
+
+  it("builds model when income_distribution has values", () => {
+    const vm = buildPropertyDemographicsViewModel({
+      income_distribution: { "<50k": "30%", "50-100k": "40%" },
+    });
+    expect(vm).not.toBeNull();
+    expect(vm!.hasIncomeDistribution).toBe(true);
+  });
 });

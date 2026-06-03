@@ -28,7 +28,9 @@ def get_validation_stats(user):
             "Unauthorized validation stats attempt",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response("Admin access required", status_code=403)
+        return standardize_error_response(
+            "Admin access required", status_code=403, error_code="admin_forbidden"
+        )
 
     try:
         raw_days = int(request.args.get("days", 7))

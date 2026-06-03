@@ -4,6 +4,7 @@ const path = require("path");
 
 const ALLOWLIST = [
   "packages/config/env.ts",
+  "packages/logger/config/loggerEnv.ts",
   "apps/web/vite.config.js",
   "apps/web/vite.config.resolve.js",
   "vite.config.js",
@@ -19,7 +20,7 @@ module.exports = {
     type: "problem",
     docs: {
       description:
-        "Ban process.env outside config. Use getEnv() from packages/config instead. Only packages/config/env.ts and build configs may access process.env.",
+        "Ban process.env outside config. Use getEnv() from packages/config instead. Only packages/config/env.ts, packages/logger/config/loggerEnv.ts, and build configs may access process.env.",
     },
     schema: [
       {
@@ -29,13 +30,20 @@ module.exports = {
             type: "array",
             items: { type: "string" },
           },
+          exceptions: {
+            type: "object",
+            properties: {
+              testFiles: { type: "boolean" },
+            },
+            additionalProperties: false,
+          },
         },
         additionalProperties: false,
       },
     ],
     messages: {
       useGetEnv:
-        "Use getEnv() from packages/config instead of process.env. Only packages/config/env.ts and build configs may access process.env.",
+        "Use getEnv() from packages/config instead of process.env. Only packages/config/env.ts, packages/logger/config/loggerEnv.ts, and build configs may access process.env.",
     },
   },
 
@@ -44,6 +52,16 @@ module.exports = {
     const filename = rawFilename.split(path.sep).join("/");
     const opt = context.options[0] || {};
     const allowlist = opt.allowlist || ALLOWLIST;
+    const exceptions = opt.exceptions || { testFiles: true };
+
+    if (
+      exceptions.testFiles &&
+      (filename.includes(".test.") ||
+        filename.includes(".spec.") ||
+        filename.includes("/__tests__/"))
+    ) {
+      return {};
+    }
 
     const effectiveAllowlist = allowlist.length > 0 ? allowlist : ALLOWLIST;
     const allowed = effectiveAllowlist.some((pattern) => {

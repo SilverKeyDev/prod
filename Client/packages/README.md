@@ -46,7 +46,7 @@ apps/web (pages, layouts)
 - **`@/...`** — **Only** for files under **`Client/apps/web/`** (e.g. `@/pages/property/SearchPage`, `@/app/layouts/...`).
 - **`@/features/...`** — TypeScript alias for `packages/features/...`. **New code** should prefer **`packages/features/...`** so shared imports read the same everywhere.
 
-Do not import API clients or business `packages/services` from page/components; use `packages/hooks`. **Canonical API path:** `packages/api` (see [shared-packages.md](../documentation/client/shared-packages.md#api-client-import-path-canonical)).
+Do not import API clients or business `packages/services` from page/components; use `packages/hooks`. **Canonical API path:** `packages/api` (see [shared-packages.md](../documentation/client/architecture/shared-packages.md#api-client-import-path-canonical)).
 
 ## Import rules by layer
 
@@ -146,6 +146,6 @@ import type { SavedHome } from "packages/types";
 - `AGENTS.md` (repo root) — quickstart for AI assistants
 - `Client/ARCHITECTURE.md` — full client architecture
 - `documentation/client/README.md` — doc index
-- `documentation/client/shared-packages.md` — exhaustive package reference
+- `documentation/client/architecture/shared-packages.md` — exhaustive package reference
 - `features/README.md` — feature module layout
 - `.cursor/rules/frontend/frontend-architecture.mdc` — ESLint-aligned layer rules

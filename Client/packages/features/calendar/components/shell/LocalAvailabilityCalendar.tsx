@@ -3,7 +3,7 @@ import { EventList } from "packages/features/calendar/components/view/agenda/Eve
 import { CreateEventModal } from "packages/features/calendar/components/view/eventModal/CreateEventModal";
 import { CalendarToolbar } from "packages/features/calendar/components/view/toolbar/CalendarToolbar";
 import { QuickEventPopover } from "packages/features/calendar/components/view/toolbar/QuickEventPopover";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { useLocalAvailabilityCalendarScreen } from "packages/hooks/data/calendar/useLocalAvailabilityCalendarScreen";
 import { Button } from "packages/ui";
 import Card from "packages/ui/components/cards/Card";

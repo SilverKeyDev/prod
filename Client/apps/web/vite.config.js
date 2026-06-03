@@ -35,14 +35,17 @@ export default defineConfig(function (_a) {
     NODE_ENV: nodeEnv,
     DEV: nodeEnv !== "production",
     PROD: nodeEnv === "production",
-    EXPO_PUBLIC_GOOGLE_MAPS_ID:
-      pickEnv("EXPO_PUBLIC_GOOGLE_MAPS_ID") || pickEnv("VITE_GOOGLE_MAPS_ID"),
+    EXPO_PUBLIC_GOOGLE_MAPS_ID: pickEnv("EXPO_PUBLIC_GOOGLE_MAPS_ID"),
     EXPO_PUBLIC_GOOGLE_CLIENT_ID: pickEnv("EXPO_PUBLIC_GOOGLE_CLIENT_ID"),
     EXPO_PUBLIC_PLAID_CLIENT_ID: pickEnv("EXPO_PUBLIC_PLAID_CLIENT_ID"),
     EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: pickEnv("EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS"),
     EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: pickEnv("EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR"),
     EXPO_PUBLIC_API_URL: pickEnv("EXPO_PUBLIC_API_URL"),
     EXPO_PUBLIC_API_BASE_URL: pickEnv("EXPO_PUBLIC_API_BASE_URL"),
+    EXPO_PUBLIC_POSTHOG_KEY: pickEnv("EXPO_PUBLIC_POSTHOG_KEY"),
+    EXPO_PUBLIC_LOGGER_VERBOSE: pickEnv("EXPO_PUBLIC_LOGGER_VERBOSE"),
+    EXPO_PUBLIC_LOGGER_CATEGORIES: pickEnv("EXPO_PUBLIC_LOGGER_CATEGORIES"),
+    EXPO_PUBLIC_LOGGER_POSTHOG: pickEnv("EXPO_PUBLIC_LOGGER_POSTHOG"),
   };
   // esbuild define only accepts JSON literals or identifiers; object expressions like
   // ({ env: {...} }) are rejected. Inject process via a generated shim so env.ts sees process.env.
@@ -117,6 +120,11 @@ export default defineConfig(function (_a) {
       // @vitejs/plugin-basic-ssl) and open https://localhost:<WEB_DEV_PORT>, or cookies will be
       // dropped on http://localhost.
       proxy: {
+        "/r": {
+          target: process.env.WEB_API_PROXY || "http://localhost:5000",
+          changeOrigin: true,
+          secure: false,
+        },
         "/api": {
           target: process.env.WEB_API_PROXY || "http://localhost:5000",
           changeOrigin: true,
@@ -190,7 +198,7 @@ export default defineConfig(function (_a) {
       // dist lives under Client/ while Vite root is apps/web; clear it on production builds
       emptyOutDir: true,
       // Single vendor chunk is ~1.3MB minified; threshold avoids noisy Rollup reporter only
-      chunkSizeWarningLimit: 1600,
+      chunkSizeWarningLimit: 1700,
       // Configure code splitting for consistent behavior (Vite 8+: rolldownOptions)
       rolldownOptions: {
         // Third-party deps (e.g. expo-modules-core uuid shim) use direct eval; @rollup/plugin-inject

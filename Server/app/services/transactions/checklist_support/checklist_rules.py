@@ -11,6 +11,7 @@ SUBMIT_GATED_CHECKLIST_INTEGRATION_KEYS = frozenset(
         "choose_areas",
         "define_criteria",
         "partner_agent",
+        "finding_home",
     }
 )
 
@@ -133,6 +134,8 @@ def merge_task_checklist_checked_ids(
     items: list[dict[str, Any]],
     requested_ids: list[int] | list[float],
     old_checked_ids: set[int] | frozenset[int],
+    *,
+    bypass_progress_gates: bool = False,
 ) -> list[int]:
     """
     Compute authoritative checked ids: auto_complete_when, lock_uncheck_when,
@@ -154,12 +157,13 @@ def merge_task_checklist_checked_ids(
         elif isinstance(x, float) and x == int(x):
             req.add(int(x))
     req &= valid
-    for it in items:
-        if _completion_type_raw(it) == "signature_based":
-            try:
-                req.discard(int(it["id"]))
-            except (KeyError, TypeError, ValueError):
-                continue
+    if not bypass_progress_gates:
+        for it in items:
+            if _completion_type_raw(it) == "signature_based":
+                try:
+                    req.discard(int(it["id"]))
+                except (KeyError, TypeError, ValueError):
+                    continue
 
     old_checked: set[int] = set()
     for x in old_checked_ids:
@@ -175,8 +179,9 @@ def merge_task_checklist_checked_ids(
     for _ in range(len(sorted_items) * 6 + 12):
         before = frozenset(checked)
         _apply_auto_complete(checked, sorted_items)
-        _apply_locks(checked, sorted_items, old_checked)
-        _prune_selectable(checked, sorted_items)
+        if not bypass_progress_gates:
+            _apply_locks(checked, sorted_items, old_checked)
+            _prune_selectable(checked, sorted_items)
         if frozenset(checked) == before:
             break
 
@@ -224,6 +229,8 @@ def apply_task_checklist_merge(
     items: list[dict[str, Any]],
     requested_ids: list[int] | list[float],
     old_checked_ids: set[int] | frozenset[int],
+    *,
+    bypass_progress_gates: bool = False,
 ) -> TaskChecklistMergeResult:
     """
     Run merge and return effective ids plus deterministic reasons for template ids
@@ -247,7 +254,10 @@ def apply_task_checklist_merge(
     requested_valid &= valid
 
     effective_list = merge_task_checklist_checked_ids(
-        items, sorted(requested_valid), old_checked_ids
+        items,
+        sorted(requested_valid),
+        old_checked_ids,
+        bypass_progress_gates=bypass_progress_gates,
     )
     effective = frozenset(effective_list)
     stripped_sorted = sorted(x for x in requested_valid if x not in effective)

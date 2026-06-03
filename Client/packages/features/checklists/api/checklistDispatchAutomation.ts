@@ -3,7 +3,7 @@
  */
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { apiGet, apiPut } from "packages/services/http/compatibility";
+import { apiGet, apiPut } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
 
 export type ChecklistDispatchAutomationApiResponse =

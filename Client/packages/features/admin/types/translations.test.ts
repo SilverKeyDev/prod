@@ -13,9 +13,12 @@ describe("ADMIN_TRANSLATIONS", () => {
 
   it("includes dev persona keys used by admin UI", () => {
     expect(ADMIN_TRANSLATIONS["admin.dev_persona.title"]).toBeDefined();
-    expect(ADMIN_TRANSLATIONS["admin.dev_persona.persona_agent"]).toBeDefined();
+    expect(ADMIN_TRANSLATIONS["admin.dev_persona.persona_title"]).toBeDefined();
     expect(ADMIN_TRANSLATIONS["admin.dev_persona.banner_prefix"]).toBeDefined();
     expect(ADMIN_TRANSLATIONS["admin.dev_reset.title"]).toBeDefined();
     expect(ADMIN_TRANSLATIONS["admin.dev_reset.scope_preferences"]).toBeDefined();
+    expect(ADMIN_TRANSLATIONS["admin.dev_reset.scope_transaction_steps"]).toBeDefined();
+    expect(ADMIN_TRANSLATIONS["admin.dev_reset.scope_s3"]).toBeDefined();
+    expect(ADMIN_TRANSLATIONS["admin.dev_reset.scope_connections"]).toBeDefined();
   });
 });

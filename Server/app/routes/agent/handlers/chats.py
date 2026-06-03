@@ -1,6 +1,5 @@
 """Agent chat/conversation endpoints."""
 
-import json
 import logging
 from datetime import datetime
 
@@ -27,14 +26,15 @@ from app.services.agent import (
 from app.services.agent import (
     send_message as send_conversation_message,
 )
+from app.services.agent.client_service import get_user_agent_id
 from app.services.agent.conversation_access import user_may_access_conversation
-from app.services.auth import SecurityException, get_current_user
+from app.services.auth import SecurityException
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_agent_access,
     require_authenticated_user,
 )
-from app.utils.security import SecurityError, rate_limit, security_error_response
+from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, log
@@ -105,12 +105,11 @@ def create_chat(user, data: CreateConversationRequest | None = None):
 
 
 @rate_limit(max_requests=200, window_seconds=60)
-def get_chat_history(conversation_id):
+@handle_exceptions_with_logging
+@require_authenticated_user
+def get_chat_history(user, conversation_id):
     """Get chat history for a specific conversation"""
     try:
-        user = get_current_user()
-        if not user:
-            return security_error_response(SecurityError.UNAUTHORIZED)
         conversation = get_conversation(conversation_id)
         if not conversation:
             return jsonify({"success": False, "error": "Conversation not found"}), 404
@@ -151,14 +150,13 @@ def get_chat_history(conversation_id):
 
 
 @rate_limit(max_requests=100, window_seconds=60)
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_request(SendMessageRequest)
 @validate_response(SendMessageResponse)
-def send_message(data: SendMessageRequest | None = None):
+def send_message(user, data: SendMessageRequest | None = None):
     """Send a message in a conversation"""
     try:
-        user = get_current_user()
-        if not user:
-            return security_error_response(SecurityError.UNAUTHORIZED)
         if data is None:
             raw = request.get_json(silent=True) or {}
             conversation_id = raw.get("conversation_id")
@@ -209,21 +207,7 @@ def send_message(data: SendMessageRequest | None = None):
                 conversation = create_conversation(str(user.id), str(client_id))
                 conversation_id = conversation["id"]
             else:
-                agent_id = None
-                if user.agent_id:
-                    try:
-                        agent_ids = (
-                            json.loads(user.agent_id)
-                            if isinstance(user.agent_id, str)
-                            else user.agent_id
-                        )
-                        agent_id = (
-                            agent_ids[0]
-                            if isinstance(agent_ids, list) and len(agent_ids) > 0
-                            else (agent_ids if isinstance(agent_ids, str) else None)
-                        )
-                    except Exception:
-                        agent_id = user.agent_id.split(",")[0] if user.agent_id else None
+                agent_id = get_user_agent_id(str(user.id))
                 if not agent_id:
                     return jsonify(
                         {"success": False, "error": "No agent assigned. Please contact support."}
@@ -268,16 +252,15 @@ def send_message(data: SendMessageRequest | None = None):
 
 
 @rate_limit(max_requests=60, window_seconds=60)
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_request(UpdateEventRequestStatusRequest)
 @validate_response(SuccessResponse)
 def update_event_request_status_route(
-    message_id, data: UpdateEventRequestStatusRequest | None = None
+    user, message_id, data: UpdateEventRequestStatusRequest | None = None
 ):
     """Update event request status (accepted or cancelled) for a calendar event request message."""
     try:
-        user = get_current_user()
-        if not user:
-            return security_error_response(SecurityError.UNAUTHORIZED)
         if not user.id:
             return jsonify({"success": False, "error": "Invalid user session"}), 401
         if data is None:

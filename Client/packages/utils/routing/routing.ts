@@ -3,6 +3,7 @@
    ========================= */
 
 import { AuthenticationError } from "packages/services/http/client";
+import { performClientSessionLogout } from "packages/services/http/client/auth";
 import { getWindow } from "packages/utils/platform";
 
 /**
@@ -31,13 +32,5 @@ export function isAuthenticationError(error: unknown): boolean {
  * Handle authentication errors by clearing tokens and redirecting
  */
 export function handleAuthenticationError(_error: AuthenticationError) {
-  const win = getWindow() as unknown as { clearSecureTokens?: () => void };
-  if (win && typeof win.clearSecureTokens === "function") {
-    (win as { clearSecureTokens: () => void }).clearSecureTokens();
-  }
-
-  if (!routeStartsWith("/login") && !routeStartsWith("/signup")) {
-    const w = getWindow();
-    if (w) w.location.href = "/login";
-  }
+  performClientSessionLogout({ redirect: true, broadcast: true });
 }

@@ -5,7 +5,7 @@
    ========================= */
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { resolveGoogleMapsCloudMapId } from "packages/utils/maps/resolveGoogleMapsCloudMapId";
+import { resolveGoogleMapsCloudMapId } from "packages/utils/maps/cloudMapId/resolveGoogleMapsCloudMapId";
 
 function trimEnv(value: string | undefined): string {
   return (value ?? "").trim();
@@ -21,6 +21,7 @@ type EnvShape = {
   readonly EXPO_PUBLIC_PLAID_CLIENT_ID: string;
   readonly EXPO_PUBLIC_API_URL: string;
   readonly EXPO_PUBLIC_API_BASE_URL: string;
+  readonly EXPO_PUBLIC_POSTHOG_KEY: string;
   readonly EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: string;
   readonly EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: string;
   readonly DEV: boolean;
@@ -37,6 +38,7 @@ function readProcessEnv(): EnvShape {
     EXPO_PUBLIC_PLAID_CLIENT_ID: trimEnv(p.EXPO_PUBLIC_PLAID_CLIENT_ID),
     EXPO_PUBLIC_API_URL: trimEnv(p.EXPO_PUBLIC_API_URL),
     EXPO_PUBLIC_API_BASE_URL: trimEnv(p.EXPO_PUBLIC_API_BASE_URL),
+    EXPO_PUBLIC_POSTHOG_KEY: trimEnv(p.EXPO_PUBLIC_POSTHOG_KEY),
     EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: trimEnv(p.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS),
     EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: trimEnv(p.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR),
     DEV: !isProd,
@@ -96,17 +98,14 @@ class EnvConfig {
   }
 
   get googleMapsId(): string | undefined {
-    const raw = typeof process !== "undefined" ? process.env : ({} as NodeJS.ProcessEnv);
     const mapId =
       EnvConfig.STATIC.GOOGLE_MAPS_ID ||
-      resolveGoogleMapsCloudMapId(
-        this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID,
-        trimEnv(raw.VITE_GOOGLE_MAPS_ID)
-      );
+      resolveGoogleMapsCloudMapId(this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID) ||
+      resolveGoogleMapsCloudMapId(this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS);
     if (!mapId) {
       log.warn(
         LOG_CATEGORIES.API,
-        "Google Maps Cloud map ID not configured (EXPO_PUBLIC_GOOGLE_MAPS_ID) - using default map styling"
+        "Google Maps Cloud map ID not configured (EXPO_PUBLIC_GOOGLE_MAPS_ID or EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS) - using default map styling"
       );
     }
     return mapId;
@@ -159,6 +158,11 @@ class EnvConfig {
 
   get apiRetries(): number {
     return 2;
+  }
+
+  get posthogKey(): string | null {
+    const key = trimEnv(this.env.EXPO_PUBLIC_POSTHOG_KEY);
+    return key || null;
   }
 
   get isDevelopment(): boolean {

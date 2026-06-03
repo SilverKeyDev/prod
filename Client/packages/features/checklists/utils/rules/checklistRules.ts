@@ -84,19 +84,31 @@ function pruneSelectable(checked: Set<number>, sortedItems: TaskChecklistItem[])
   }
 }
 
+export type MergeTaskChecklistCheckedIdsOptions = {
+  /**
+   * When true (agent updating a client checklist), skip submit-gated pruning,
+   * lock_uncheck_when re-adds, and signature_based request stripping.
+   */
+  bypassProgressGates?: boolean;
+};
+
 /**
  * Mirrors `Server/app/services/transactions/checklist_rules.merge_task_checklist_checked_ids`.
  */
 export function mergeTaskChecklistCheckedIds(
   items: TaskChecklistItem[],
   requestedIds: readonly number[],
-  oldCheckedIds: ReadonlySet<number>
+  oldCheckedIds: ReadonlySet<number>,
+  options?: MergeTaskChecklistCheckedIdsOptions
 ): number[] {
   const valid = new Set(items.map((it) => it.id));
   const req = new Set(requestedIds.filter((id) => valid.has(id)));
-  for (const it of items) {
-    if (it.completionType === "signature_based") {
-      req.delete(it.id);
+  const bypassProgressGates = options?.bypassProgressGates === true;
+  if (!bypassProgressGates) {
+    for (const it of items) {
+      if (it.completionType === "signature_based") {
+        req.delete(it.id);
+      }
     }
   }
   const oldChecked = new Set([...oldCheckedIds].filter((id) => valid.has(id)));
@@ -108,8 +120,10 @@ export function mergeTaskChecklistCheckedIds(
   for (let n = 0; n < maxIter; n++) {
     const before = signature(checked);
     applyAutoComplete(checked, sortedItems);
-    applyLocks(checked, sortedItems, oldChecked);
-    pruneSelectable(checked, sortedItems);
+    if (!bypassProgressGates) {
+      applyLocks(checked, sortedItems, oldChecked);
+      pruneSelectable(checked, sortedItems);
+    }
     if (signature(checked) === before) break;
   }
 
@@ -153,12 +167,18 @@ function classifyStrippedId(
 export function applyTaskChecklistMerge(
   items: TaskChecklistItem[],
   requestedIds: readonly number[],
-  oldCheckedIds: ReadonlySet<number>
+  oldCheckedIds: ReadonlySet<number>,
+  options?: MergeTaskChecklistCheckedIdsOptions
 ): TaskChecklistMergeResult {
   const valid = new Set(items.map((it) => it.id));
   const requestedValid = new Set(requestedIds.filter((id) => valid.has(id)));
   const requestedSorted = [...requestedValid].sort((a, b) => a - b);
-  const effectiveList = mergeTaskChecklistCheckedIds(items, requestedSorted, oldCheckedIds);
+  const effectiveList = mergeTaskChecklistCheckedIds(
+    items,
+    requestedSorted,
+    oldCheckedIds,
+    options
+  );
   const effective = new Set(effectiveList);
   const strippedSorted = [...requestedValid].filter((x) => !effective.has(x)).sort((a, b) => a - b);
   const sortedItems = sortTaskChecklistItems([...items]);
@@ -185,15 +205,24 @@ export type ChecklistItemToggleEligibility = {
   canMarkChecked: boolean;
 };
 
+export type ChecklistItemToggleEligibilityOptions = {
+  /**
+   * Agent viewing/managing a client checklist: may manually check or uncheck any non-signature step.
+   */
+  isAgentViewer?: boolean;
+};
+
 /**
  * UX-only eligibility (server enforces on PUT). `sectionUnlocked` is ignored for toggling so
- * buyers/agents may check steps in any phase; only submit-gated integrations keep submit rules.
+ * buyers/agents may check steps in any phase; buyers cannot manually check form-type (submit-gated)
+ * or signature-based steps; agents managing a client may override those gates.
  */
 export function getChecklistItemToggleEligibility(
   items: TaskChecklistItem[],
   checkedIds: readonly number[],
   itemId: number,
-  _sectionUnlocked: boolean
+  _sectionUnlocked: boolean,
+  options?: ChecklistItemToggleEligibilityOptions
 ): ChecklistItemToggleEligibility {
   const sortedItems = sortTaskChecklistItems([...items]);
   const item = sortedItems.find((i) => i.id === itemId);
@@ -202,6 +231,14 @@ export function getChecklistItemToggleEligibility(
   }
   const checked = new Set(checkedIds);
   const isChecked = checked.has(itemId);
+
+  if (options?.isAgentViewer === true) {
+    return {
+      canCheck: !isChecked,
+      canUncheck: isChecked,
+      canMarkChecked: true,
+    };
+  }
 
   if (item.completionType === "signature_based") {
     return { canCheck: false, canUncheck: false, canMarkChecked: false };
@@ -215,7 +252,8 @@ export function getChecklistItemToggleEligibility(
 
   const lockBlocksUncheck =
     item.lock_uncheck_when != null && evaluateChecklistCondition(item.lock_uncheck_when, checked);
-  const canUncheck = isChecked && !lockBlocksUncheck && !autoWouldComplete(item, itemId, checked);
+  const canUncheck =
+    isChecked && !submitGated && !lockBlocksUncheck && !autoWouldComplete(item, itemId, checked);
 
   return { canCheck, canUncheck, canMarkChecked };
 }
@@ -270,11 +308,17 @@ function firstUnsatisfiedSelectableDependency(
  * When an unchecked step cannot be manually checked, describes what the buyer should do next.
  * Returns `null` when the row does not need the roadmap handoff pattern.
  */
+export type RoadmapChecklistBlockerOptions = {
+  /** Agent managing a client checklist: no roadmap blocker for signature-based steps. */
+  isAgentViewer?: boolean;
+};
+
 export function getRoadmapChecklistItemBlockerKind(
   sortedItems: TaskChecklistItem[],
   checkedIds: readonly number[],
   itemId: number,
-  _sectionUnlocked: boolean
+  _sectionUnlocked: boolean,
+  options?: RoadmapChecklistBlockerOptions
 ): RoadmapChecklistBlockerKind | null {
   const item = sortedItems.find((i) => i.id === itemId);
   if (item == null || checkedIds.includes(itemId)) return null;
@@ -282,6 +326,9 @@ export function getRoadmapChecklistItemBlockerKind(
   const checked = new Set(checkedIds);
 
   if (item.completionType === "signature_based") {
+    if (options?.isAgentViewer === true) {
+      return null;
+    }
     return { kind: "signature_pending" };
   }
 

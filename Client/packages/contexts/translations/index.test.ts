@@ -10,17 +10,20 @@ import { DOCUMENTS_TRANSLATIONS } from "packages/features/documents/types/transl
 import { FEED_TRANSLATIONS } from "packages/features/feed/types/translations";
 import { AUTH_TRANSLATIONS } from "packages/features/homeauth/types/translations";
 import { NEGOTIATE_TRANSLATIONS } from "packages/features/negotiate/types/translations";
-import { PROFILE_TRANSLATIONS } from "packages/features/profile/types/translations";
+import { PROFILE_TRANSLATIONS } from "packages/features/profile/types/i18n/translations";
 import { PROPERTY_DETAILS_TRANSLATIONS } from "packages/features/propertyDetails/types/translations";
 import { SAVED_TRANSLATIONS } from "packages/features/saved/types/translations";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
+import { getErrorCatalogI18nKeys } from "packages/utils/errorHandling/errorCatalog";
 import { assertKeysResolve } from "packages/utils/test/translationAssertions";
 
+import { ERRORS_TRANSLATIONS } from "./errors";
 import { TRANSLATIONS } from "./index";
 import { SHARED_TRANSLATIONS } from "./shared";
 
 const FEATURE_MODULES = {
   SHARED_TRANSLATIONS,
+  ERRORS_TRANSLATIONS,
   AUTH_TRANSLATIONS,
   BROKERAGE_TRANSLATIONS,
   ADMIN_TRANSLATIONS,
@@ -89,5 +92,9 @@ describe("TRANSLATIONS aggregator", () => {
       expect(value).not.toBe(key);
       expect(value.trim().length).toBeGreaterThan(0);
     }
+  });
+
+  it("resolves every error catalog i18n key", () => {
+    assertKeysResolve(TRANSLATIONS, getErrorCatalogI18nKeys());
   });
 });

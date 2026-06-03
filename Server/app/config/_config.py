@@ -62,7 +62,15 @@ def _optional_stripped_env(var_name: str) -> str | None:
 
 
 def _is_testing_env() -> bool:
-    return os.getenv("TESTING", "").lower() in ("true", "1", "yes")
+    from app.utils.testing_mode import is_testing
+
+    return is_testing()
+
+
+def _is_migrate_only_env() -> bool:
+    from app.utils.migrate_mode import is_migrate_only
+
+    return is_migrate_only()
 
 
 class Config:
@@ -88,8 +96,8 @@ class Config:
         "SECRET_KEY"
     )
     if not _secret_key:
-        if _is_testing_env():
-            _secret_key = "test-secret-key-not-for-production"
+        if _is_testing_env() or _is_migrate_only_env():
+            _secret_key = "migrate-only-placeholder-not-for-serving-traffic"
         else:
             raise RuntimeError(
                 "SECRET_KEY or AWS_SECRET_ACCESS_KEY environment variable must be set"
@@ -137,6 +145,7 @@ class Config:
 
     # Google Calendar Settings (OAuth client secret shared with Google sign-in)
     _google_calendar_secret = _optional_stripped_env("GOOGLE_CALENDAR_SECRET")
+    GOOGLE_CALENDAR_WEBHOOK_TOKEN = _optional_stripped_env("GOOGLE_CALENDAR_WEBHOOK_TOKEN")
     if not _google_calendar_secret and _is_testing_env():
         _google_calendar_secret = "test-google-calendar-secret-not-for-production"
     GOOGLE_CALENDAR_SECRET = _google_calendar_secret

@@ -3,7 +3,7 @@ allOf:
   - type: object
     description: >
       Favorites list returned by POST /favorite-homes (bulk replace), /favorite-homes/add,
-      and /favorite-homes/remove. Each item is HomeUniversal.to_dict(). Optional human-facing
+      and /favorite-homes/remove. Each item matches OpenAPI SavedHome (PropertyCache + UserPropertyLink).
       `message` is defined on SuccessResponse.
     properties:
       favorites:

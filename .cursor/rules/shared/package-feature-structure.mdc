@@ -48,5 +48,5 @@ packages/features/saved/
 ## References
 
 - **Feature package README:** `Client/packages/features/README.md`
-- **Lint reference:** `documentation/client/LINTING.md` (run lint; package-module-allowed-children is in ESLint)
-- **Shared packages:** `documentation/client/shared-packages.md`
+- **Lint reference:** `documentation/client/standards/LINTING.md` (run lint; package-module-allowed-children is in ESLint)
+- **Shared packages:** `documentation/client/architecture/shared-packages.md`

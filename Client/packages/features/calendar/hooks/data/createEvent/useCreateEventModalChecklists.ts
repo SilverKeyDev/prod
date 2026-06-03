@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { useQueries } from "@tanstack/react-query";
 
-import { getTaskChecklistForSubject } from "packages/features/checklists";
+import { getTaskChecklistForSubject } from "packages/features/checklists/api/checklists";
 
 import { getCalendarEventKindOptionSlice } from "@/features/calendar/utils/createEventModal/calendarEventKindOptions";
 

@@ -1,22 +1,29 @@
-# CI Scripts
+# CI helper scripts
 
-Shared scripts used by multiple GitHub Actions workflows. Run from repo root.
+Shell helpers shared by **Makefile targets**, **GitHub Actions workflows**, and **pre-commit** hooks.
 
-Deploy-specific scripts (build, EC2, cleanup) live in [scripts/deploy/](../deploy/).
+## When to add a script here
 
-## Scripts
+Add a new script under `scripts/ci/` when it is invoked from **two or more** of:
 
-| Script | Purpose | Used by | Prerequisites |
-|--------|---------|---------|---------------|
-| `load-aws-secrets.sh` | Load app env from AWS Secrets Manager into `$GITHUB_ENV` | ci_web, sunday_newsletter, sunday_newsletter_test | AWS CLI configured, jq |
-| `free-disk-runner.sh` | Free disk space on GitHub runner | ci_web, sunday_newsletter | None |
-| `run-email-orchestrator.sh` | Run email listings orchestrator, append to step summary | sunday_newsletter, sunday_newsletter_test | DATABASE_URL, PYTHONPATH=Server |
+- A `make` target
+- A `.github/workflows/*.yml` job
+- `.pre-commit-config.yaml`
+- Another CI script in this folder
 
-## Usage
+One-off ops or manual investigation scripts belong in `scripts/ops/` instead.
 
-**free-disk-runner.sh**
-- `./scripts/ci/free-disk-runner.sh --aggressive` — ci_web: buildx prune, swapoff, hostedtoolcache
-- `./scripts/ci/free-disk-runner.sh --minimal` — newsletter: dotnet, ghc, android only
+Onboarding and machine setup scripts belong in `scripts/setup/`.
 
-**run-email-orchestrator.sh**
-- Pass `TEST_EMAIL` in env for test workflow (single recipient).
+## Current inventory
+
+| Script | Purpose |
+|--------|---------|
+| `run-all-linters.sh` | Unified lint entry (`make lint`) |
+| `check-doc-placement.sh` | Doc placement gate (`make check-docs`) |
+| `check-doc-links.sh` | Internal markdown link gate (`make check-docs`) |
+| `check-macos-duplicate-files.sh` | iCloud duplicate filename check (first step of lint) |
+| `sync-openapi.sh` | OpenAPI regen + drift check (`make openapi-verify`) |
+| `run-pre-commit.sh` | Manual pre-commit runner (`make precommit`) |
+| `pre-commit-prettier-client.sh` | Prettier hook for staged Client files |
+| `pre-commit-eslint-client.sh` | ESLint hook for staged Client files |

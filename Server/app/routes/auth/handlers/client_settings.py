@@ -9,15 +9,14 @@ from flask import current_app, jsonify, request
 from app import db
 from app.models.user.user_client_settings import UserClientSettings
 from app.schemas import ClientSettingsResponse
-from app.services.auth import SecurityException, get_current_user
 from app.services.client_settings import (
     assert_settings_size,
     default_settings,
     merge_and_sanitize,
     sanitize_settings,
 )
+from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.security.secure_errors import SecureErrorHandler
-from app.utils.security.security import security_error_response
 from app.utils.validation import validate_response
 
 
@@ -41,20 +40,10 @@ def _get_or_create(user_id: str) -> UserClientSettings:
     return row
 
 
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_response(ClientSettingsResponse)
-def get_client_settings():
-    log = current_app.logger
-    try:
-        user = get_current_user()
-        if not user:
-            log.warning("Unauthorized request: user not found in token")
-            return jsonify({"error": "Unauthorized", "success": False}), 401
-    except SecurityException as se:
-        log.warning("Security exception in get_client_settings: %s", se.error_tuple)
-        return security_error_response(se.error_tuple)
-    except Exception as e:
-        log.error("Failed to get current user: %s", str(e), exc_info=True)
-        return jsonify({"success": False, "error": "Authorization failure"}), 500
+def get_client_settings(user):
     try:
         row = _get_or_create(str(user.id))
         settings = _row_settings(row)
@@ -65,21 +54,11 @@ def get_client_settings():
         )
 
 
+@handle_exceptions_with_logging
+@require_authenticated_user
 @validate_response(ClientSettingsResponse)
-def patch_client_settings():
+def patch_client_settings(user):
     log = current_app.logger
-    try:
-        user = get_current_user()
-        if not user:
-            log.warning("Unauthorized request: user not found in token")
-            return jsonify({"error": "Unauthorized", "success": False}), 401
-    except SecurityException as se:
-        log.warning("Security exception in patch_client_settings: %s", se.error_tuple)
-        return security_error_response(se.error_tuple)
-    except Exception as e:
-        log.error("Failed to get current user: %s", str(e), exc_info=True)
-        return jsonify({"success": False, "error": "Authorization failure"}), 500
-
     body = request.get_json(silent=True)
     if not body or not isinstance(body, dict):
         log.warning("No JSON object in patch_client_settings body")

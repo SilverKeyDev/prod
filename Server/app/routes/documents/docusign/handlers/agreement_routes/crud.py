@@ -5,9 +5,9 @@ from flask import jsonify, request
 from app.dtos.agreement import AgreementDTO
 from app.models import Agreement
 from app.schemas import CreateAgreementRequest, CreateAgreementResponse
-from app.services.auth import get_current_user
 from app.services.docusign import AgreementLifecycleService
 from app.services.docusign.utils.permissions import can_access_agreement, is_agent
+from app.utils.common_patterns import require_authenticated_user
 from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.validation import validate_request, validate_response
@@ -25,16 +25,16 @@ def _agreement_payload(agreement: Agreement, *, include_relationships: bool = Fa
 def register_crud_routes(bp):
     @bp.route("/agreements", methods=["POST"])
     @rate_limit(max_requests=50, window_seconds=60)
+    @require_authenticated_user
     @validate_request(CreateAgreementRequest)
     @validate_response(CreateAgreementResponse)
-    def create_agreement(data: CreateAgreementRequest | None = None):
+    def create_agreement(user, data: CreateAgreementRequest | None = None):
         try:
-            user = get_current_user()
-            if not user or not is_agent(user):
+            if not is_agent(user):
                 log.warn(
                     LOG_CATEGORIES["DOCUSIGN"],
                     "Non-agent attempted to create agreement",
-                    {"user_id": user.id if user else None},
+                    {"user_id": user.id},
                 )
                 return jsonify({"success": False, "error": "Agent access required"}), 403
             if data is None:
@@ -95,16 +95,9 @@ def register_crud_routes(bp):
 
     @bp.route("/agreements/<agreement_id>", methods=["GET"])
     @rate_limit(max_requests=100, window_seconds=60)
-    def get_agreement(agreement_id):
+    @require_authenticated_user
+    def get_agreement(user, agreement_id):
         try:
-            user = get_current_user()
-            if not user:
-                log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
-                    "Unauthenticated agreement access attempt",
-                    {"agreement_id": agreement_id},
-                )
-                return jsonify({"success": False, "error": "Authentication required"}), 401
             log.debug(
                 LOG_CATEGORIES["DOCUSIGN"],
                 "Fetching agreement",
@@ -139,13 +132,9 @@ def register_crud_routes(bp):
 
     @bp.route("/agreements", methods=["GET"])
     @rate_limit(max_requests=100, window_seconds=60)
-    def list_agreements():
+    @require_authenticated_user
+    def list_agreements(user):
         try:
-            user = get_current_user()
-            if not user:
-                log.warn(LOG_CATEGORIES["DOCUSIGN"], "Unauthenticated list agreements attempt")
-                return jsonify({"success": False, "error": "Authentication required"}), 401
-
             # Add pagination support
             limit = min(100, max(1, int(request.args.get("limit", "100"))))
             offset = max(0, int(request.args.get("offset", "0")))

@@ -5,14 +5,14 @@ Use this when shipping **cross-cutting** work (routing shells, workspace/auth mo
 ## Documentation (`documentation/`)
 
 - [ ] **New or changed behavior** is described under `documentation/client/` or `documentation/server/` (not repo-root `docs/` for cross-cutting product/architecture prose — see `.cursor/rules/shared/documentation.mdc`).
-- [ ] **Folder README** — If you added a new long-form doc, add a row to `documentation/client/README.md` or `documentation/server/README.md`.
+- [ ] **Folder README** — If you added a new long-form doc, add a row to the relevant subfolder README (`documentation/client/<area>/README.md`) and `documentation/client/README.md`, or `documentation/server/README.md`.
 - [ ] **Links** — Fix broken relative links from READMEs, rules, and other docs.
 - [ ] **Feature copy** — If you added `t("feature.*")` keys, follow `.cursor/skills/feature-translations/SKILL.md` (typed feature translation maps + aggregator).
 
 ## Cursor rules (`.cursor/rules/`)
 
 - [ ] **Constraint or pattern changed?** Update the relevant `.mdc` (prefer editing one rule per concern over duplicating guidance).
-- [ ] **New concern?** Add a **scoped** rule (`alwaysApply: false` + `globs`) unless you are explicitly replacing one of the four always-on rules (security, thin-app, linting, documentation — cap is **4**; see `.cursor/README.md`).
+- [ ] **New concern?** Add a **scoped** rule (`alwaysApply: false` + `globs`) unless you are explicitly replacing one of the seven always-on rules (security, thin-app, linting, documentation, silverkey-context, code-style, env-vars-minimal — cap is **7**; see `.cursor/README.md`).
 - [ ] **Keep rules short** — Deep examples and tables live under `documentation/`; rules link out.
 
 ## Cursor skills and agents
@@ -35,10 +35,11 @@ Use this when shipping **cross-cutting** work (routing shells, workspace/auth mo
 
 ## Verification
 
-- [ ] **Quality gates** — `pnpm check` (Client) and/or `./scripts/run-all-linters.sh` as appropriate before merge.
+- [ ] **Quality gates** — `pnpm check` (Client) and/or `./scripts/ci/run-all-linters.sh` as appropriate before merge.
+- [ ] **Documentation** — `make check-docs` when adding or moving markdown (`scripts/ci/check-doc-placement.sh`, `scripts/ci/check-doc-links.sh`).
 
 ## Related docs
 
-- [Workspace-first client architecture](../client/workspace-first-architecture.md) — example of architecture prose living under `documentation/client/`.
+- [Workspace-first client architecture](../client/architecture/workspace-first-architecture.md) — example of architecture prose living under `documentation/client/`.
 - [How we document](../HOW_WE_DOCUMENT.md) — canonical tree and README policy.
 - [Cursor meta: `.cursor/README.md`](../../.cursor/README.md) — rule vs skill vs agent.

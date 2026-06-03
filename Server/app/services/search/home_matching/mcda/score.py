@@ -47,6 +47,7 @@ from .criteria.preference_activity import (
     has_lot_preference,
     has_sqft_preference,
     has_walkability_preference,
+    normalize_preferences_for_mcda,
     preference_strength_multiplier,
 )
 
@@ -57,6 +58,9 @@ MCDA_CONFIG: dict[str, Any] = {
     "beds_baths_diminishing_k": 0.45,
     # Fraction of each dimension's weight applied to objective fallback signals.
     "objective_weight_scale": 0.34,
+    # When few preference dimensions are set, lean harder on objective listing signals.
+    "objective_weight_scale_low_coverage": 0.62,
+    "low_coverage_dimension_threshold": 1,
     # Extra multiplier on preference-driven dimensions (more prefs → wider spread).
     "preference_strength_per_dimension": 0.05,
     "preference_strength_max": 0.40,
@@ -132,10 +136,15 @@ def score_listing_mcda(
     Deterministic match score in [output_display_min, output_display_max], one decimal.
     """
     cfg = MCDA_CONFIG if config is None else {**MCDA_CONFIG, **config}
+    preferences = normalize_preferences_for_mcda(preferences)
     weights = cfg["soft_signal_weights"]
     k_bb = float(cfg.get("beds_baths_diminishing_k", 0.45))
     peak = float(cfg.get("price_peak_ratio", 0.65))
     obj_scale = float(cfg.get("objective_weight_scale", 0.34))
+    low_cov_threshold = int(cfg.get("low_coverage_dimension_threshold", 1))
+    n_pref_dims = count_active_preference_dimensions(preferences, status_type=status_type)
+    if n_pref_dims <= low_cov_threshold:
+        obj_scale = float(cfg.get("objective_weight_scale_low_coverage", 0.62))
     pref_strength = preference_strength_multiplier(
         preferences,
         status_type=status_type,

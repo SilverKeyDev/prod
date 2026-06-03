@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # _secrets-env.sh — fetch and merge AWS Secrets Manager secrets into $ENV_FILE
 # Expects: REGION, DB_SECRET_NAME, ACCOUNT_ID, ENV_FILE to be set by caller
-# Optional: ENV_EXAMPLE_VALIDATION_PATH — if set to a Server/config/.env.example file,
+# Optional: ENV_EXAMPLE_VALIDATION_PATH — if set to a Server/.env.example file,
 #           build_env_file() fails unless every KEY= in that template has a non-empty value in $ENV_FILE
 #           (same keys as Server/app/utils/config_validator.py).
 #
-# Secret *names* to merge should match Server/scripts/secrets.sh / config/.env.example:
+# Secret *names* to merge should match Server/scripts/secrets.sh / .env.example:
 # lines like "# From secret: my_secret (json)" define which Secrets Manager ids to fetch.
 # EC2 deploy (.github/scripts/ec2-deploy.sh) merges only those ids (plus DB_SECRET_NAME), not every secret in the region.
 
@@ -85,7 +85,7 @@ merge_sm_secret_into_env() {
   esac
 }
 
-# Secret ids referenced by Server/config/.env.example only ("# From secret: name ...").
+# Secret ids referenced by Server/.env.example only ("# From secret: name ...").
 # Ensures DB_SECRET_NAME is included. Prints one secret name per line (sorted, unique).
 resolve_deploy_secret_ids_from_example() {
   local example_file="$1"
@@ -112,14 +112,30 @@ resolve_deploy_secret_ids_from_example() {
   rm -f "$tmp"
 }
 
+# Client bundle keys (Vite web / Expo mobile) are baked at image build — not Flask runtime on EC2.
+is_client_bundle_env_key() {
+  case "$1" in
+    EXPO_PUBLIC_* | VITE_*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # Same key extraction as Server/app/utils/config_validator.py (KEY= lines only).
 required_env_keys_from_example_file() {
-  local f="$1"
+  local f="$1" key
   [ -f "$f" ] || return 1
-  sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$f" \
-    | grep -v '^#' \
-    | grep -v '^$' \
-    | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)[[:space:]]*=.*/\1/p'
+  while IFS= read -r key; do
+    [ -z "$key" ] && continue
+    if is_client_bundle_env_key "$key"; then
+      continue
+    fi
+    printf '%s\n' "$key"
+  done < <(
+    sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$f" \
+      | grep -v '^#' \
+      | grep -v '^$' \
+      | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)[[:space:]]*=.*/\1/p'
+  )
 }
 
 # True if env-file has KEY= with a non-empty value (after trim / simple quote strip).
@@ -139,7 +155,7 @@ env_file_has_nonempty_value() {
   [ -n "$val" ]
 }
 
-# Fail if $ENV_FILE is missing any key required by Server/config/.env.example (non-empty value).
+# Fail if $ENV_FILE is missing any key required by Server/.env.example (non-empty value).
 validate_env_file_against_example() {
   local envf="$1" exf="$2"
   local missing=()

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { clampMatchScore, getMatchStyle, getMatchTier, getMatchTierIndex } from "./matchScore";
+import {
+  clampMatchScore,
+  formatMatchScoreDisplayPercent,
+  getMatchStyle,
+  getMatchTier,
+  getMatchTierIndex,
+} from "./matchScore";
 
 describe("getMatchStyle", () => {
   it("returns CSS var bg/fg and short label", () => {
@@ -44,6 +50,20 @@ describe("clampMatchScore", () => {
     expect(clampMatchScore(NaN)).toBe(0);
     expect(clampMatchScore(150)).toBe(100);
     expect(clampMatchScore(-1)).toBe(0);
+  });
+});
+
+describe("formatMatchScoreDisplayPercent", () => {
+  it("shows one decimal so nearby scores do not collapse to the same integer", () => {
+    expect(formatMatchScoreDisplayPercent(53.2)).toBe(53.2);
+    expect(formatMatchScoreDisplayPercent(54.8)).toBe(54.8);
+    expect(formatMatchScoreDisplayPercent(53.2)).not.toBe(formatMatchScoreDisplayPercent(54.8));
+    expect(Math.round(53.2)).toBe(53);
+    expect(Math.round(54.8)).toBe(55);
+  });
+
+  it("clamps invalid input to 0", () => {
+    expect(formatMatchScoreDisplayPercent(Number.NaN)).toBe(0);
   });
 });
 

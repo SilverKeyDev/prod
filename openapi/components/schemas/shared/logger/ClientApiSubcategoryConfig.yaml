@@ -1,0 +1,15 @@
+type: object
+required:
+  - initialLoad
+  - polling
+  - pageMount
+  - other
+properties:
+  initialLoad:
+    type: boolean
+  polling:
+    type: boolean
+  pageMount:
+    type: boolean
+  other:
+    type: boolean

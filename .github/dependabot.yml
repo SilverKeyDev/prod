@@ -1,0 +1,49 @@
+version: 2
+
+multi-ecosystem-groups:
+  weekly-all:
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/New_York
+    open-pull-requests-limit: 1
+    assignees:
+      - jaycewalzer1
+    labels:
+      - dependencies
+    commit-message:
+      prefix: chore(deps)
+
+updates:
+  - package-ecosystem: npm
+    directories:
+      - /Client
+      - /
+    multi-ecosystem-group: weekly-all
+    patterns:
+      - "*"
+    ignore:
+      - dependency-name: openapi-typescript
+      - dependency-name: "@apidevtools/json-schema-ref-parser"
+      - dependency-name: react-native-svg
+      - dependency-name: react-native-maps
+      - dependency-name: nativewind
+
+  - package-ecosystem: pip
+    directory: /Server
+    multi-ecosystem-group: weekly-all
+    patterns:
+      - "*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    multi-ecosystem-group: weekly-all
+    patterns:
+      - "*"
+
+  - package-ecosystem: docker
+    directory: /
+    multi-ecosystem-group: weekly-all
+    patterns:
+      - "*"

@@ -4,9 +4,9 @@ from flask import jsonify, request
 
 from app.models import AgreementParticipant
 from app.schemas import GetSigningUrlRequest, GetSigningUrlResponse
-from app.services.auth import get_current_user
 from app.services.docusign import AgreementLifecycleService
 from app.services.docusign.utils.permissions import can_get_signing_url
+from app.utils.common_patterns import require_authenticated_user
 from app.utils.db.orm_lookup import get_model
 from app.utils.security import rate_limit
 from app.utils.security.secure_errors import SecureErrorHandler
@@ -19,18 +19,11 @@ log = get_logger()
 def register_signing_url_routes(bp):
     @bp.route("/agreements/<agreement_id>/signing-url", methods=["POST"])
     @rate_limit(max_requests=50, window_seconds=60)
+    @require_authenticated_user
     @validate_request(GetSigningUrlRequest)
     @validate_response(GetSigningUrlResponse)
-    def get_signing_url(agreement_id, data: GetSigningUrlRequest | None = None):
+    def get_signing_url(user, agreement_id, data: GetSigningUrlRequest | None = None):
         try:
-            user = get_current_user()
-            if not user:
-                log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
-                    "Unauthenticated signing URL request",
-                    {"agreement_id": agreement_id},
-                )
-                return jsonify({"success": False, "error": "Authentication required"}), 401
             if data is None:
                 request_data = request.get_json(silent=True) or {}
             else:
@@ -100,17 +93,9 @@ def register_signing_url_routes(bp):
 
     @bp.route("/agreements/<agreement_id>/sender-view", methods=["GET"])
     @rate_limit(max_requests=50, window_seconds=60)
-    def get_sender_view_url(agreement_id):
+    @require_authenticated_user
+    def get_sender_view_url(user, agreement_id):
         try:
-            user = get_current_user()
-            if not user:
-                log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
-                    "Unauthenticated sender view request",
-                    {"agreement_id": agreement_id},
-                )
-                return jsonify({"success": False, "error": "Authentication required"}), 401
-
             agreement = AgreementLifecycleService.get_agreement(agreement_id)
             if user.id != agreement.agent_id:
                 log.warn(

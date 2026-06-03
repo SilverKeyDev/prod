@@ -142,6 +142,15 @@ def handle_verification(data: dict[str, Any], request_id: str) -> tuple[Response
             },
         )
 
+        from app.services.analytics.posthog_events import capture_product_event
+
+        if user:
+            capture_product_event(
+                user_id,
+                "user_email_verified",
+                properties={"auto_login": True},
+            )
+
         return resp, 200
 
     except Exception as e:

@@ -1,24 +1,48 @@
 """
-Pytest configuration and shared fixtures for Server tests
+Pytest configuration and shared fixtures for Server tests.
+
+No production .env or secrets from .env.example are required. tests/conftest.py sets
+minimal stubs; external APIs are mocked via fixtures below. validate_and_raise() is
+skipped when TESTING=true (see app/utils/testing_mode.py).
 """
 
 import os
 from collections.abc import Generator
 from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
-# Set test environment before importing app
-os.environ["TESTING"] = "true"
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
-os.environ.setdefault("JWT_SIGNING_SECRET", "test-jwt-signing-secret-not-for-production")
-# verification.py reads Cognito env at import time; CI does not inject real pool/client IDs.
-os.environ.setdefault("AWS_COGNITO_USER_POOL_ID", "us-east-2_pytestStubPoolId")
-os.environ.setdefault("AWS_COGNITO_CLIENT_ID", "pytest-stub-cognito-client-id")
+from tests.test_env_stubs import apply_test_env_stubs
+
+
+def _ensure_coverage_data_dir() -> None:
+    """Write coverage SQLite under Server/coverage/ (see pyproject [tool.coverage.run])."""
+    cov_dir = Path(__file__).resolve().parent.parent / "coverage"
+    cov_dir.mkdir(parents=True, exist_ok=True)
+    os.environ.setdefault("COVERAGE_FILE", str(cov_dir / ".coverage"))
+
+
+def _apply_minimal_test_env() -> None:
+    """Stub env for pytest/CI only — not real credentials."""
+    os.environ["TESTING"] = "true"
+    os.environ.setdefault("APP_LOG_LEVEL", "ERROR")
+    os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+    os.environ.setdefault("JWT_SIGNING_SECRET", "test-jwt-signing-secret-not-for-production")
+    # Auth modules read Cognito ids at import time; values are never sent to AWS in unit tests.
+    os.environ.setdefault("AWS_COGNITO_USER_POOL_ID", "us-east-2_pytestStubPoolId")
+    os.environ.setdefault("AWS_COGNITO_CLIENT_ID", "pytest-stub-cognito-client-id")
+    apply_test_env_stubs()
+
+
+_ensure_coverage_data_dir()
+_apply_minimal_test_env()
+
+pytest_plugins = ["tests.fixtures.google_calendar"]
 
 
 @pytest.fixture
@@ -43,6 +67,22 @@ def app() -> Generator[Flask, None, None]:
         from app import db
 
         db.create_all()
+        from app.models.brokerage import BrokerageOrg
+        from app.services.brokerage.constants import (
+            DEFAULT_BROKERAGE_ORG_ID,
+            DEFAULT_BROKERAGE_ORG_NAME,
+            DEFAULT_BROKERAGE_ORG_SLUG,
+        )
+
+        if not BrokerageOrg.query.filter_by(id=DEFAULT_BROKERAGE_ORG_ID).first():
+            db.session.add(
+                BrokerageOrg(
+                    id=DEFAULT_BROKERAGE_ORG_ID,
+                    name=DEFAULT_BROKERAGE_ORG_NAME,
+                    slug=DEFAULT_BROKERAGE_ORG_SLUG,
+                )
+            )
+            db.session.commit()
         yield test_app
         db.session.remove()
         db.drop_all()
@@ -174,123 +214,6 @@ def mock_docusign_client():
 
 
 @pytest.fixture
-def mock_google_calendar():
-    """Mock Google Calendar API (patch `build` at each module import site)."""
-    service_mock = Mock()
-    events_mock = Mock()
-    calendars_mock = Mock()
-
-    # Events operations
-    events_mock.list = Mock(
-        return_value=Mock(
-            execute=Mock(
-                return_value={
-                    "items": [
-                        {
-                            "id": "event-123",
-                            "summary": "Test Event",
-                            "start": {"dateTime": "2024-01-01T10:00:00Z"},
-                            "end": {"dateTime": "2024-01-01T11:00:00Z"},
-                        }
-                    ]
-                }
-            )
-        )
-    )
-    events_mock.insert = Mock(
-        return_value=Mock(
-            execute=Mock(
-                return_value={
-                    "id": "new-event-123",
-                    "summary": "New Event",
-                    "htmlLink": "https://calendar.google.com/event?eid=...",
-                    "start": {"dateTime": "2024-02-01T10:00:00Z", "timeZone": "UTC"},
-                    "end": {"dateTime": "2024-02-01T11:00:00Z", "timeZone": "UTC"},
-                    "status": "confirmed",
-                }
-            )
-        )
-    )
-    events_mock.update = Mock(return_value=Mock(execute=Mock(return_value={"id": "event-123"})))
-    events_mock.delete = Mock(return_value=Mock(execute=Mock(return_value={})))
-
-    # Calendars operations (calendars().insert, calendarList().list, etc.)
-    calendars_mock.list = Mock(
-        return_value=Mock(
-            execute=Mock(
-                return_value={
-                    "items": [
-                        {
-                            "id": "primary",
-                            "summary": "Primary Calendar",
-                            "accessRole": "owner",
-                        }
-                    ]
-                }
-            )
-        )
-    )
-    calendars_mock.insert = Mock(
-        return_value=Mock(
-            execute=Mock(
-                return_value={
-                    "id": "silverkey-calendar-123",
-                    "summary": "SilverKey Calendar",
-                }
-            )
-        )
-    )
-
-    calendar_list_ops = Mock()
-    calendar_list_ops.list = calendars_mock.list
-    acl_mock = Mock()
-    acl_mock.insert = Mock(
-        return_value=Mock(execute=Mock(return_value={"id": "acl-rule-123", "role": "reader"}))
-    )
-
-    freebusy_mock = Mock()
-    freebusy_mock.query.return_value.execute.return_value = {
-        "calendars": {
-            "primary": {
-                "busy": [
-                    {
-                        "start": "2024-02-01T10:00:00Z",
-                        "end": "2024-02-01T11:00:00Z",
-                    }
-                ]
-            }
-        }
-    }
-
-    service_mock.events = Mock(return_value=events_mock)
-    service_mock.calendars = Mock(return_value=calendars_mock)
-    service_mock.calendarList = Mock(return_value=calendar_list_ops)
-    service_mock.acl = Mock(return_value=acl_mock)
-    service_mock.freebusy = Mock(return_value=freebusy_mock)
-
-    build_patch_targets = (
-        "googleapiclient.discovery.build",
-        "app.services.calendar.events.operations.build",
-        "app.services.calendar.events.operations_list_events.build",
-        "app.services.calendar.calendars.calendar_create.build",
-        "app.services.calendar.calendars.calendar_delete.build",
-        "app.services.calendar.calendars.silverkey_calendar.build",
-        "app.services.calendar.calendars.sharing.build",
-        "app.services.calendar.calendars.resolution.build",
-        "app.services.calendar.availability.freebusy.build",
-    )
-
-    with ExitStack() as stack:
-        first_patch = None
-        for target in build_patch_targets:
-            p = stack.enter_context(patch(target))
-            p.return_value = service_mock
-            if first_patch is None:
-                first_patch = p
-        yield first_patch
-
-
-@pytest.fixture
 def mock_celery_task():
     """Mock Celery task"""
     with patch("celery.Task.apply_async") as mock_task:
@@ -312,10 +235,26 @@ def sample_user():
 
 
 @pytest.fixture
-def sample_agreement():
-    """Create sample agreement data"""
+def sample_agreement(db_session):
+    """Create sample agreement data (seeds fixture transaction row)."""
+    from app.models import Transaction
+    from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
+
+    tx_id = "tx-docusign-fixture"
+    if Transaction.query.filter_by(id=tx_id).first() is None:
+        db_session.session.add(
+            Transaction(
+                id=tx_id,
+                buyer_id="buyer-789",
+                primary_agent_id="agent-456",
+                brokerage_org_id=DEFAULT_BROKERAGE_ORG_ID,
+            )
+        )
+        db_session.session.commit()
+
     return {
         "id": "agreement-123",
+        "transaction_id": tx_id,
         "agent_id": "agent-456",
         "buyer_id": "buyer-789",
         "title": "Purchase Agreement",

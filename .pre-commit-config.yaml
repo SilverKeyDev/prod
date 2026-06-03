@@ -1,12 +1,14 @@
 # Pre-commit hooks for SilverKey
 #
-# Hooks run in list order: (1) auto-fix / format, (2) read-only checks.
-# Install:
-#   pip install pre-commit
-#   pre-commit install --hook-type pre-commit
-# Optional: pre-commit install --hook-type pre-push  # also check before pushing
+# Commit hooks: auto-fix formatters/linters only (Prettier, ESLint, Ruff).
+# They report warnings/errors but do not block commits (see scripts/githooks/pre-commit).
+# Phase-2 read-only checks stay disabled locally; CI enforces the full gate (make lint).
 #
-# Resilient hooks (skip if pre-commit missing): git config core.hooksPath scripts/githooks
+# Install:
+#   pip install pre-commit   # or: Server/.venv via make setup
+#   git config core.hooksPath scripts/githooks
+# Pre-commit hooks run on commit only. Push-time gates are in scripts/githooks/pre-push.
+#
 # Run manually: pre-commit run --all-files
 
 default_stages: [pre-commit]
@@ -21,24 +23,26 @@ repos:
 
   # --- Phase 1: auto-fix and formatters (mutating; run before checks) ---
 
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
+  # Disabled locally: mutating hooks fail the commit when they touch files (re-stage loop).
+  # - repo: https://github.com/pre-commit/pre-commit-hooks
+  #   rev: v4.5.0
+  #   hooks:
+  #     - id: trailing-whitespace
+  #     - id: end-of-file-fixer
 
   # Python: Ruff formatter, then lint autofix (same as typical CI ordering)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.9
     hooks:
       - id: ruff-format
+        args: [--quiet]
         files: ^Server/
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [--fix, --quiet]
         files: ^Server/
 
   # Mypy is not run in pre-commit: the Server gate is ruff + pyright (see
-  # scripts/run-all-linters.sh). Full-tree mypy reports hundreds of gradual-
+  # scripts/ci/run-all-linters.sh). Full-tree mypy reports hundreds of gradual-
   # typing issues; run manually: (cd Server && mypy app/).
 
   # Client: Prettier first, then ESLint --fix (avoids lint fixes fighting format)
@@ -47,7 +51,7 @@ repos:
       - id: prettier-client
         name: prettier (Client)
         language: system
-        entry: scripts/pre-commit-prettier-client.sh
+        entry: scripts/ci/pre-commit-prettier-client.sh
         files: ^Client/.*\.(ts|tsx|js|jsx|json|css|scss|md)$
         exclude: ^Client/(dist|coverage|node_modules|build)/.*
 
@@ -56,28 +60,28 @@ repos:
       - id: eslint-client
         name: eslint (Client)
         language: system
-        entry: scripts/pre-commit-eslint-client.sh
+        entry: scripts/ci/pre-commit-eslint-client.sh
         files: ^Client/.*\.(ts|tsx|js|jsx)$
         exclude: ^Client/(dist|coverage|node_modules|build)/.*
 
-  # --- Phase 2: checks only (no writes) ---
+  # --- Phase 2: checks only (no writes) — disabled locally; CI enforces these ---
 
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
-    hooks:
-      - id: check-yaml
-        exclude: ^Client/apps/mobile/
-      - id: check-added-large-files
-        args: [--maxkb=500]
-      - id: check-merge-conflict
-      - id: detect-private-key
-        exclude: |
-          (?x)^(
-            .*\.pem\.example$|
-            documentation/client/docusign-integration\.md$|
-            Server/app/services/docusign/docs/README\.md$|
-            Server/app/services/docusign/docs/TESTING\.md$
-          )
+  # - repo: https://github.com/pre-commit/pre-commit-hooks
+  #   rev: v4.5.0
+  #   hooks:
+  #     - id: check-yaml
+  #       exclude: ^Client/apps/mobile/
+  #     - id: check-added-large-files
+  #       args: [--maxkb=500]
+  #     - id: check-merge-conflict
+  #     - id: detect-private-key
+  #       exclude: |
+  #         (?x)^(
+  #           .*\.pem\.example$|
+  #           documentation/client/features/docusign-integration\.md$|
+  #           Server/app/services/docusign/docs/README\.md$|
+  #           Server/app/services/docusign/docs/TESTING\.md$
+  #         )
 
   # No focused tests — disabled locally; re-enable to block it.only / describe.only in commits.
   # - repo: local

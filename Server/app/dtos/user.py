@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from app.models import User as UserModel
 from app.schemas.generated import User as UserSchema
+from app.services.brokerage.membership import brokerage_org_ids_for_user
 from logger import LOG_CATEGORIES, log
 
 _PROFILE_PICTURE_EXT_TO_MIME = {
@@ -72,7 +73,7 @@ class UserDTO:
             "phone": user.phone,
             "profile_picture": user.profile_picture,
             "mls_id": user.mls_id,
-            "brokerage": user.brokerage,
+            "brokerage": None,
             "created_at": UserDTO._iso_utc(user.created_at),
             "updated_at": UserDTO._iso_utc(user.updated_at),
             "last_logged_in": UserDTO._iso_utc(user.last_logged_in),
@@ -80,15 +81,14 @@ class UserDTO:
             "has_preferences": user.has_preferences,
             "preferences_version": user.preferences_version,
             "is_agent": bool(user.is_agent),
-            "client_ids": user.client_ids,
-            "agent_id": user.agent_id,
         }
 
         if include_roles:
             data["roles"] = [ur.role for ur in user.user_roles]
 
-        # Brokerage roster membership (optional; no DB column until brokerage admin ships).
-        data["brokerage_org_ids"] = getattr(user, "brokerage_org_ids", None)
+        # Brokerage roster membership from user_org_memberships.
+        org_ids = brokerage_org_ids_for_user(str(user.id))
+        data["brokerage_org_ids"] = org_ids if org_ids else None
 
         if presign_profile_pic:
             url = _try_presigned_profile_picture_url(user)

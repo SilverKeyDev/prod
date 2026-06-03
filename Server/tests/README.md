@@ -11,6 +11,45 @@ This test suite provides comprehensive coverage for:
 3. **Calendar Management** - Events, calendar operations, sharing, availability
 4. **API Endpoints** - Auth routes, DocuSign routes, Calendar routes
 5. **Home Matching** - MCDA scoring algorithms, blend scores
+6. **Security-critical paths** - File upload validation, transaction authz, secure upload routes
+7. **Negotiation / offer** - Strategy payload construction and agent client-scope checks
+8. **Documents / aggregation / forms** - S3 presign, preferences write, agent-only forms library
+
+## Coverage gaps (audit)
+
+Strongest areas: search/home matching (`tests/unit/search/`, `tests/unit/home_matching/`), auth, DocuSign, calendar, rev-share.
+
+Recent additions target former weak spots:
+
+| Area | Test location |
+| ---- | ------------- |
+| File upload security | `tests/unit/utils/security/test_file_security.py` |
+| Secure upload routes | `tests/unit/routes/documents/test_routes_secure_upload.py` |
+| Transaction access | `tests/unit/services/transactions/test_access.py` |
+| Negotiation / offer | `tests/unit/services/negotiation/`, `tests/unit/routes/offer/` |
+| Documents S3 presign | `tests/unit/services/documents/test_s3_presign_and_validation.py` |
+| Preferences write | `tests/unit/services/aggregation/test_preferences_aggregation_write.py` |
+| Forms library auth | `tests/unit/routes/forms/test_routes_forms_library.py` |
+| Celery tasks | `tests/unit/celery/` |
+| Research helpers | `tests/unit/services/research/` |
+| Email formatting | `tests/unit/services/email_jobs/` (not `email/` — stdlib name clash) |
+
+Still thin or untested at unit level: full research Perplexity/PDF pipeline E2E, ORM model unit tests, chatbot routes, most Celery retry/backoff edge cases. Search polygon/preference tests live under `tests/unit/search/polygon/` and `tests/unit/search/preferences/` (flat duplicates removed).
+
+
+**You do not need a production `.env` or secrets from `Server/.env.example` to run pytest.**
+
+`tests/conftest.py` sets `TESTING=true` and minimal stubs (`DATABASE_URL`, `JWT_SIGNING_SECRET`, Cognito pool/client ids for import-time reads). Integration API keys are force-set in [`tests/test_env_stubs.py`](test_env_stubs.py) so local runs match CI even when `Server/.env` exists or secrets are exported in your shell. The app skips full `.env.example` validation in test mode. External services (Cognito, DocuSign, Google Calendar, etc.) are mocked in fixtures — use those instead of real API keys.
+
+### CI parity (local ≡ GitHub Actions)
+
+- **`make test-be`** — day-to-day backend tests (conftest stubs apply; may inherit shell env for keys not in the stub list).
+- **`make test-be-ci-parity`** — drops inherited shell env (`env -i`) and runs pytest with only `TESTING=true` + conftest stubs, matching [`.github/workflows/test-callable.yml`](../.github/workflows/test-callable.yml). Run before pushing changes to imports, config, or env validation.
+- **`tests/unit/test_app_boot_ci_parity.py`** — regression test that `create_app()` boots with stub keys only.
+
+Client Vitest does not require a local `.env`; env behavior tests stub `process.env` explicitly (see `Client/packages/config/env.test.ts`).
+
+To exercise real third-party APIs, run optional manual/integration checks locally with your own `.env`; that is outside the default CI suite.
 
 ## Setup
 
@@ -45,27 +84,26 @@ pytest tests/
 
 ```bash
 # Authentication tests
-pytest tests/unit/test_auth_login.py
-pytest tests/unit/test_auth_signup.py
-pytest tests/unit/test_auth_refresh.py
+pytest tests/unit/auth/
 
-# DocuSign tests
-pytest tests/unit/test_docusign_lifecycle.py
-pytest tests/unit/test_docusign_signing.py
-pytest tests/unit/test_docusign_webhooks.py
+# DocuSign integration tests
+pytest tests/unit/integrations/docusign/
 
-# Calendar tests
-pytest tests/unit/test_calendar_events.py
-pytest tests/unit/test_calendar_management.py
+# Calendar integration tests
+pytest tests/unit/integrations/calendar/
 
 # Home matching tests
-pytest tests/unit/test_home_matching_score.py
-pytest tests/unit/test_home_matching_blend.py
+pytest tests/unit/home_matching/
 
-# API routes tests
-pytest tests/unit/test_routes_auth.py
-pytest tests/unit/test_routes_docusign.py
-pytest tests/unit/test_routes_calendar.py
+# Search (canonical subfolders)
+pytest tests/unit/search/polygon/
+pytest tests/unit/search/preferences/
+
+# API routes tests (by domain under tests/unit/routes/)
+pytest tests/unit/routes/auth/
+pytest tests/unit/routes/docusign/
+pytest tests/unit/routes/calendar/
+pytest tests/unit/routes/   # all route unit tests
 ```
 
 ### Run Tests with Coverage
@@ -98,7 +136,7 @@ pytest tests/unit/test_auth_login.py::TestLoginFlow::test_successful_login
 
 ### Unit Tests (`tests/unit/`)
 
-- **Authentication**: `test_auth_*.py`
+- **Authentication** (`tests/unit/auth/`): `test_auth_*.py`
   - `test_auth_login.py` - Login flow tests
   - `test_auth_signup.py` - Signup flow tests
   - `test_auth_refresh.py` - Token refresh tests
@@ -106,24 +144,20 @@ pytest tests/unit/test_auth_login.py::TestLoginFlow::test_successful_login
   - `test_auth_verification.py` - Email verification tests
   - `test_auth_oauth.py` - OAuth callback tests
 
-- **DocuSign**: `test_docusign_*.py`
-  - `test_docusign_lifecycle.py` - Agreement lifecycle tests
-  - `test_docusign_signing.py` - Envelope signing tests
-  - `test_docusign_webhooks.py` - Webhook processing tests
-  - `test_docusign_templates.py` - Template sync tests
-
-- **Calendar**: `test_calendar_*.py`
-  - `test_calendar_events.py` - Event operations tests
-  - `test_calendar_management.py` - Calendar and sharing tests
+- **DocuSign** (`tests/unit/integrations/docusign/`): service-layer integration tests
+- **Calendar** (`tests/unit/integrations/calendar/`): Google Calendar service tests
 
 - **Home Matching**: `test_home_matching_*.py`
   - `test_home_matching_score.py` - MCDA scoring tests
   - `test_home_matching_blend.py` - Blend score tests
 
-- **API Routes**: `test_routes_*.py`
-  - `test_routes_auth.py` - Auth endpoint tests
-  - `test_routes_docusign.py` - DocuSign endpoint tests
-  - `test_routes_calendar.py` - Calendar endpoint tests
+- **API Routes** (`tests/unit/routes/<domain>/`): HTTP blueprint tests grouped by domain
+  - `auth/` — auth, profile, preferences (`test_routes_auth.py`, `test_routes_user_*.py`)
+  - `docusign/` — DocuSign routes and shared `docusign_route_test_helpers.py`
+  - `calendar/` — Google Calendar API routes (`test_routes_calendar.py`; service tests live in `tests/unit/integrations/calendar/`)
+  - `rev_share/`, `user_properties/`, `transactions/`, `admin/`, `agent/`, `search/`
+  - Domain route test files use `test_routes_<domain>_<feature>.py` naming
+  - Parent: `test_rate_limit_unauthenticated.py` (cross-cutting)
 
 ### Fixtures (`tests/conftest.py`)
 
@@ -270,7 +304,7 @@ Shared test fixtures:
 
 ### 5. API Endpoints (68 tests)
 
-**Auth Routes** (`test_routes_auth.py`):
+**Auth Routes** (`routes/auth/test_routes_auth.py`):
 - POST `/api/v1/auth/login`
 - POST `/api/v1/auth/signup`
 - POST `/api/v1/auth/refresh`
@@ -281,7 +315,7 @@ Shared test fixtures:
 - GET `/api/v1/auth/google/callback`
 - GET `/api/v1/auth/user`
 
-**DocuSign Routes** (`test_routes_docusign.py`):
+**DocuSign Routes** (`routes/docusign/test_routes_docusign.py`):
 - GET `/api/v1/documents/docusign/templates`
 - POST `/api/v1/documents/docusign/agreements`
 - GET `/api/v1/documents/docusign/agreements/:id`
@@ -292,7 +326,7 @@ Shared test fixtures:
 - POST `/api/v1/documents/docusign/webhook`
 - GET `/api/v1/documents/docusign/oauth/connect`
 
-**Calendar Routes** (`test_routes_calendar.py`):
+**Calendar Routes** (`routes/calendar/test_routes_calendar.py`):
 - GET `/api/v1/calendar/events`
 - POST `/api/v1/calendar/events`
 - PUT `/api/v1/calendar/events/:event_id`

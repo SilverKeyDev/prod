@@ -5,7 +5,7 @@ import { PropertyImageGallery } from "packages/features/propertyDetails/componen
 import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
 import type { PropertyDetailsModalProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { usePropertyDetailsSectionScroll } from "packages/features/propertyDetails/hooks/usePropertyDetailsSectionScroll.web";
-import { useSavedHomesStoreIntegration } from "packages/hooks/store/useSavedHomesStoreIntegration";
+import { useSavedHomesStoreIntegration } from "packages/hooks/store/integrations/useSavedHomesStoreIntegration";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import Cover from "packages/ui/components/modals/cover";
 import { Box } from "packages/ui/components/primitives";

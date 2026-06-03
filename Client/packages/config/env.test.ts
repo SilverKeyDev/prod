@@ -2,7 +2,6 @@
  * EnvConfig is a singleton. Each case uses vi.resetModules() + dynamic import("./env")
  * after stubbing process.env so getters read fresh values.
  */
-/* eslint-disable silverkey/no-process-env-outside-config -- tests must stub process.env before loading env.ts */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockWarn = vi.hoisted(() => vi.fn());
@@ -21,7 +20,6 @@ const ENV_KEYS = [
   "EXPO_PUBLIC_API_BASE_URL",
   "EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS",
   "EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR",
-  "VITE_GOOGLE_MAPS_ID",
 ] as const;
 
 const originalEnvSnapshot: Record<string, string | undefined> = {};
@@ -87,16 +85,26 @@ describe("EnvConfig", () => {
       expect(getEnv().googleMapsId).toBe("cloud-map-123");
     });
 
-    it("falls back to VITE_GOOGLE_MAPS_ID when EXPO_PUBLIC is empty", async () => {
+    it("falls back to EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS when web id is empty", async () => {
       applyEnv({
         NODE_ENV: "development",
-        VITE_GOOGLE_MAPS_ID: "legacy-vite-id",
+        EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: "  ios-cloud-map  ",
       });
       const { getEnv } = await loadFreshEnv();
-      expect(getEnv().googleMapsId).toBe("legacy-vite-id");
+      expect(getEnv().googleMapsId).toBe("ios-cloud-map");
     });
 
-    it("returns undefined when neither map id is configured", async () => {
+    it("prefers EXPO_PUBLIC_GOOGLE_MAPS_ID over iOS when both are set", async () => {
+      applyEnv({
+        NODE_ENV: "development",
+        EXPO_PUBLIC_GOOGLE_MAPS_ID: "web-map",
+        EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: "ios-map",
+      });
+      const { getEnv } = await loadFreshEnv();
+      expect(getEnv().googleMapsId).toBe("web-map");
+    });
+
+    it("returns undefined when map id is not configured", async () => {
       applyEnv({ NODE_ENV: "development" });
       const { getEnv } = await loadFreshEnv();
       expect(getEnv().googleMapsId).toBeUndefined();

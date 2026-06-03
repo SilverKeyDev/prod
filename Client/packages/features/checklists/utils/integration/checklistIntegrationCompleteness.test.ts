@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { AgentConversation } from "packages/api";
-import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 
 import {
   isChooseSearchAreaStepComplete,

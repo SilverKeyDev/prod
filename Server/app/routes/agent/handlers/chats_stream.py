@@ -9,9 +9,9 @@ from collections.abc import Generator
 from flask import Response, jsonify, stream_with_context
 
 from app.services.agent.messaging_realtime import CHANNEL_PREFIX, messaging_redis_url
+from app.utils.cache.redis_client import get_pubsub_redis
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.security import rate_limit
-from logger import LOG_CATEGORIES, log
 
 _SSE_HEADERS = {
     "Cache-Control": "no-cache",
@@ -30,24 +30,13 @@ def _messaging_sse_generator(user_id: str) -> Generator[str, None, None]:
             yield ": ping\n\n"
             time.sleep(25.0)
 
-    try:
-        import redis
-    except ImportError:
-        log.warn(
-            LOG_CATEGORIES["API"],
-            "redis package missing; messaging SSE using heartbeat only",
-        )
+    channel = f"{CHANNEL_PREFIX}{user_id}"
+    client = get_pubsub_redis()
+    if client is None:
         while True:
             yield ": ping\n\n"
             time.sleep(25.0)
 
-    channel = f"{CHANNEL_PREFIX}{user_id}"
-    client = redis.Redis.from_url(
-        url,
-        decode_responses=True,
-        socket_connect_timeout=3.0,
-        socket_timeout=None,
-    )
     pubsub = client.pubsub()
     try:
         pubsub.subscribe(channel)

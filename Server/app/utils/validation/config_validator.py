@@ -41,9 +41,8 @@ def _load_env_example_keys() -> set[str]:
                 match = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=", line)
                 if match:
                     key = match.group(1)
-                    # Client bundle vars (Expo/Vite) are listed in Server/.env.example for
-                    # secrets.sh but are not required to boot the Flask API.
-                    if key.startswith("EXPO_PUBLIC_"):
+                    # Client bundle vars (Expo/Vite) live in Client/.env — skip if ever present here.
+                    if key.startswith(("EXPO_PUBLIC_", "VITE_")):
                         continue
                     env_keys.add(key)
 
@@ -117,6 +116,21 @@ def validate_and_raise() -> None:
     Required variables are loaded from .env.example file.
     This should be called at application startup.
     """
+    from app.utils.migrate_mode import is_migrate_only
+    from app.utils.testing_mode import is_testing
+
+    if is_migrate_only():
+        logger.info(
+            "Skipping .env.example validation (SILVERKEY_MIGRATE_ONLY); migrations need DATABASE_URL only"
+        )
+        return
+
+    if is_testing():
+        logger.info(
+            "Skipping .env.example validation (TESTING); pytest uses stubs in tests/conftest.py"
+        )
+        return
+
     is_valid, missing_vars = validate_environment()
 
     if not is_valid:

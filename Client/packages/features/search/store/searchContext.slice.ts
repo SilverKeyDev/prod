@@ -13,10 +13,16 @@ export type SearchContextAnchor = {
 
 /** Non-persisted filter overrides sent with search request (e.g. range sliders before DB save) */
 export type SearchFilterOverrides = {
+  home_budget_min?: number;
+  home_budget_max?: number;
   preferred_bedrooms_min?: number;
   preferred_bedrooms_max?: number;
   preferred_bathrooms_min?: number;
   preferred_bathrooms_max?: number;
+  preferred_housing_type?: string;
+  listing_type?: string[];
+  preferred_sqft_min?: number;
+  preferred_sqft_max?: number;
   preferred_lot_size_min?: number;
   preferred_lot_size_max?: number;
   preferred_home_age_min?: number;
@@ -56,6 +62,7 @@ export type SearchContextState = {
       | Partial<SearchFilterOverrides>
       | ((prev: SearchFilterOverrides) => Partial<SearchFilterOverrides>)
   ) => void;
+  resetSearchFilterOverrides: () => void;
   clearAnchor: () => void;
   setLocationPlaceViewportFromBar: (payload: {
     ring: ViewportPolygonPoint[];
@@ -100,6 +107,8 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
             }
           : { ...s.searchFilterOverrides, ...overrides },
     })),
+
+  resetSearchFilterOverrides: () => set({ searchFilterOverrides: {} }),
 
   clearAnchor: () => set({ anchor: initialAnchor }),
 

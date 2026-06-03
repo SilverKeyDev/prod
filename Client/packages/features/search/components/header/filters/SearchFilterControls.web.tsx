@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { SEARCH_HEADER_PANEL_MAX_HEIGHT } from "packages/features/search/components/header/searchHeaderConstants";
-import { useSearchFilterControlsOverflow } from "packages/features/search/hooks/ui/useSearchFilterControlsOverflow.web";
+import { useSearchFilterControlsOverflow } from "packages/features/search/hooks/ui/controller/useSearchFilterControlsOverflow.web";
 import {
   formatPriceRange,
   getBedBathSummary,

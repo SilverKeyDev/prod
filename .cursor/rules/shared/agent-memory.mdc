@@ -1,0 +1,57 @@
+---
+description: Read and update .cursor/memory for session continuity; use with Cursor Memories, Automations memory tool, and MCP memory when configured
+globs:
+  - ".cursor/memory/**"
+  - "documentation/client/tooling/cursor-agent-memory.md"
+alwaysApply: false
+---
+
+# Agent memory (SilverKey)
+
+## Layers (use the right one)
+
+| Layer | Where | Use for |
+| ----- | ----- | ------- |
+| **Repo memory bank** | `.cursor/memory/*.md` (this rule) | Team-visible session focus, progress, stable project notes |
+| **Project rules** | `.cursor/rules/*.mdc` | Enforced always/never patterns |
+| **AGENTS.md + company rules** | Repo root + `.cursor/rules/shared/*` | Quickstart, company context, RESPA |
+| **Cursor Settings → Memories** | Cursor app (account) | Personal preferences across projects |
+| **Automations → Memories → Manage** | Cursor cloud per automation | Memory-tool files for scheduled agents |
+| **MCP `cursor-memory`** | `.cursor/mcp.json` | Optional `/memo`, `/recall` (local SQLite) |
+
+Do not duplicate long prose from `AGENTS.md` or rules into memory files — link or one-line point.
+
+## When to read `.cursor/memory/`
+
+Before continuing the same workstream (or when explicitly asked for memory context), read:
+
+- `projectbrief.md` — scope and compliance reflex
+- `techContext.md` — commands and version pins
+- `activeContext.md` — what we are doing now
+- `progress.md` — recent shipped work
+
+## When to update
+
+After completing a feature, significant refactor, or architecture change:
+
+1. Update `activeContext.md` (current focus / open questions).
+2. Append a dated entry to `progress.md` (what shipped, gates run, follow-ups).
+3. If stack or conventions changed, update `techContext.md`.
+4. For cross-cutting doc/rule changes, follow `documentation/internal/post-major-change-checklist.md`.
+
+## MCP memory (if enabled)
+
+When `cursor-memory` MCP is enabled in Cursor Settings → MCP:
+
+- Use `/recall` (or tool search) before re-deriving prior decisions.
+- Use `/memo` when the user asks to remember something ad hoc (not already in rules).
+
+## Automations
+
+Cursor Automations store memory on Cursor’s servers (not git). **Optimized seeds** live in `.cursor/memory/automations/`:
+
+- **`_core.md`** — prepend to every automation memory file
+- **`<persona>.md`** — match automation purpose (see `automations/README.md`)
+- **Print for paste:** `./scripts/print-automation-memory.sh <persona>` from repo root
+
+After each automation run, append a **Run log** block per `_core.md` (keep last five).

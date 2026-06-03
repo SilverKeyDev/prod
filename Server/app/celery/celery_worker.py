@@ -20,6 +20,12 @@ from logger import (  # noqa: E402 -- logger requires Server on sys.path when ru
 # Load environment variables from .env file
 load_dotenv()
 
+_celery_worker_pool = os.getenv("CELERY_WORKER_POOL", "").strip()
+if not _celery_worker_pool:
+    # macOS Objective-C fork issue — threads locally; prefork on Linux prod
+    _celery_worker_pool = "threads" if sys.platform == "darwin" else "prefork"
+_celery_concurrency = int(os.getenv("CELERY_CONCURRENCY", "4"))
+
 # Create Celery instance with basic configuration
 # Flask app will be initialized lazily to avoid circular imports
 celery = Celery("silverkey")
@@ -38,9 +44,19 @@ celery.conf.update(
         # Default caps for all tasks (override per-task if needed)
         "task_soft_time_limit": 300,
         "task_time_limit": 360,
-        # Fix for macOS Objective-C fork issue - use threads instead of prefork
-        "worker_pool": "threads",
-        "worker_concurrency": 4,  # Number of threads
+        "worker_pool": _celery_worker_pool,
+        "worker_concurrency": _celery_concurrency,
+        "task_routes": {
+            "tasks.find_best_matches_task": {"queue": "heavy"},
+            "tasks.research_property_task": {"queue": "heavy"},
+            "tasks.compare_property_task": {"queue": "heavy"},
+            "tasks.train_user_weights_task": {"queue": "heavy"},
+            "tasks.train_all_eligible_users_task": {"queue": "heavy"},
+            "docusign.send_envelope": {"queue": "docusign"},
+            "docusign.fetch_completed_documents": {"queue": "docusign"},
+            "docusign.process_webhook": {"queue": "default"},
+            "docusign.sync_templates": {"queue": "default"},
+        },
         # Celery Beat schedule for periodic tasks
         "beat_schedule": {
             "train-all-user-weights-daily": {
@@ -136,6 +152,9 @@ celery.Task = ContextTask
 # Optional lifecycle logging
 @worker_process_init.connect
 def worker_started(**_):
+    from logger.export import init_posthog_otlp
+
+    init_posthog_otlp("silverkey-celery")
     log.info(LOG_CATEGORIES["API"], "Celery worker process started")
 
 

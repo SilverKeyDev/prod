@@ -1,5 +1,5 @@
 import type { AgentConversation } from "packages/api";
-import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { parseHousingTypes } from "packages/utils/domain/profile/fieldHelpers";
 
 export type ConnectedAgentSummary = {
@@ -106,4 +106,11 @@ export function isDefineCriteriaStepComplete(formData: Partial<OnboardingData>):
     return false;
   }
   return parseHousingTypes(formData.preferred_housing_type).length > 0;
+}
+
+/** Offer checklist: saved transaction address with non-empty text. */
+export function isFindingHomeStepComplete(
+  transactionAddress: { address?: string | null } | null | undefined
+): boolean {
+  return nonEmptyTrimmed(transactionAddress?.address);
 }

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import json
-import os
 from typing import Any
 
+from app.utils.cache.redis_client import get_shared_redis, redis_url
 from logger import LOG_CATEGORIES, log
 
 CHANNEL_PREFIX = "sk:messaging:user:"
@@ -13,23 +13,14 @@ CHANNEL_PREFIX = "sk:messaging:user:"
 
 def messaging_redis_url() -> str | None:
     """Prefer dedicated REDIS_URL; fall back to Celery broker URL."""
-    raw = (os.environ.get("REDIS_URL") or os.environ.get("CELERY_URL") or "").strip()
-    return raw or None
+    return redis_url()
 
 
 def publish_messaging_user_payload(user_id: str, payload: dict[str, Any]) -> None:
-    url = messaging_redis_url()
-    if not url:
+    client = get_shared_redis()
+    if client is None:
         return
     try:
-        import redis
-
-        client = redis.Redis.from_url(
-            url,
-            decode_responses=True,
-            socket_connect_timeout=2.0,
-            socket_timeout=2.0,
-        )
         client.publish(f"{CHANNEL_PREFIX}{user_id}", json.dumps(payload))
     except Exception as e:
         log.warn(

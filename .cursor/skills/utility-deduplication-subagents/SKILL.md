@@ -11,7 +11,7 @@ Use this skill when scanning for reimplemented helpers, cross-feature `packages/
 
 - **Shared pure helpers:** `Client/packages/utils/` (framework-agnostic; see [AGENTS.md](../../../AGENTS.md)).
 - **Feature-local helpers:** `Client/packages/features/<name>/utils/` only when not shared.
-- **Docs:** [Features README](../../../Client/packages/features/README.md) discourages feature-to-feature imports; [shared-packages.md](../../../documentation/client/shared-packages.md) describes package layers.
+- **Docs:** [Features README](../../../Client/packages/features/README.md) discourages feature-to-feature imports; [shared-packages.md](../../../documentation/client/architecture/shared-packages.md) describes package layers.
 - **After moves:** Update every import site; follow [folder-decomposition.mdc](../../rules/shared/folder-decomposition.mdc).
 
 ## Phase 1 — Launch 2–4 `explore` subagents (readonly)

@@ -4,19 +4,28 @@
 #   bash Server/scripts/secrets.sh [region] [profile]
 #
 # Behavior:
-# - If AWS_* env vars are not set and no profile is given, will source ./config/.aws-sso (under Server/).
+# - Profile/region: optional [profile] arg, then shell AWS_* env, then Server/config/.aws-sso
+#   (copy aws-sso.example → .aws-sso; gitignored). SSO still lives in ~/.aws/config.
+# - Expired SSO on an interactive terminal: runs `aws sso login` automatically (same as make setup).
+#   Set AWS_SSO_NO_AUTO_LOGIN=1 to only print the command (CI / non-TTY).
 # - Lists every secret in the account for the chosen region (paginated); no hardcoded names.
 # - Each secret may be:
 #     (a) flat JSON object -> expands to KEY=VALUE lines
 #     (b) dotenv text -> KEY=VALUE lines (even if \n-escaped in SecretString)
 #     (c) scalar -> falls back to SECRET_NAME=<value>
 # - Rewrites ./.env (real values) and ./.env.example (same keys, empty placeholder values)
+# - Moves EXPO_PUBLIC_* keys into ../../Client/.env and Client/.env.example (see scripts/lib/client-env-from-secrets.sh)
 
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SERVER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ROOT="$(cd "$SERVER_DIR/.." && pwd)"
 cd "$SERVER_DIR" || exit 1
+
+# shellcheck source=../../scripts/lib/aws-sso-env.sh
+. "$ROOT/scripts/lib/aws-sso-env.sh"
+aws_sso_source_repo_config "$ROOT"
 
 REGION="${1:-${AWS_REGION:-us-east-2}}"
 PROFILE="${2:-${AWS_PROFILE:-}}"
@@ -144,20 +153,20 @@ PY
   fi
 }
 
-# ---- credentials ----
-if [ -z "${AWS_ACCESS_KEY_ID:-}" ] && [ -z "${PROFILE:-}" ]; then
-  if [ -f "config/.aws-sso" ]; then
-    # shellcheck disable=SC1091
-    . ./config/.aws-sso
-    log "Loaded AWS SSO config from ./config/.aws-sso"
-  fi
-fi
-
+# ---- credentials (~/.aws/config SSO; profile from env, .aws-sso, or arg) ----
 have_cmd aws || die "aws CLI not found."
+
+if [ -z "${PROFILE:-}" ]; then
+  die "AWS profile not set. Copy Server/config/aws-sso.example to Server/config/.aws-sso, or export AWS_PROFILE, or: make secrets PROFILE=<name>"
+fi
 
 AWS_ARGS="--region $REGION"
 if [ -z "${AWS_ACCESS_KEY_ID:-}" ] && [ -n "${PROFILE:-}" ]; then
   AWS_ARGS="$AWS_ARGS --profile $PROFILE"
+fi
+
+if ! aws_sso_ensure_session "$REGION" "$PROFILE"; then
+  exit 1
 fi
 
 # ---- assemble fresh .env ----
@@ -255,7 +264,11 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
   fi
 done
 
-# ---- rewrite .env and .env.example ----
+# ---- split EXPO_PUBLIC_* to Client, then rewrite Server .env files ----
+# shellcheck source=../../scripts/lib/client-env-from-secrets.sh
+. "$ROOT/scripts/lib/client-env-from-secrets.sh"
+split_client_public_env_from_server "$tmp_env" "$tmp_example" "$ROOT/Client" "$REGION" "$stamp"
+
 mv "$tmp_env" .env
 mv "$tmp_example" .env.example
 chmod 600 .env || true

@@ -33,6 +33,7 @@ export default function Popover({
   className = "",
   triggerWrapperClassName = "",
   panelStack = "page",
+  label,
 }: PopoverProps): React.ReactElement {
   const panelZ = PANEL_Z_BY_STACK[panelStack];
   const { open, onToggle, onClose } = usePopoverState(controlledOpen, onOpenChange);
@@ -168,7 +169,7 @@ export default function Popover({
       id={panelId}
       role="dialog"
       aria-modal="true"
-      aria-labelledby={`${panelId}-title`}
+      {...(label ? { "aria-label": label } : { "aria-labelledby": `${panelId}-title` })}
       className={`border-border bg-background-surface ${panelZ} overflow-y-auto rounded-lg border shadow-lg ${panelClassName}`}
       style={panelStyle}
     >

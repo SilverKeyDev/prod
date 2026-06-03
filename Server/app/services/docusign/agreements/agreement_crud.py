@@ -48,10 +48,17 @@ def create_agreement(
         },
     )
 
+    from app.services.transactions.ensure import ensure_transaction
+
+    transaction_id = kwargs.get("transaction_id")
+    if not transaction_id:
+        transaction_id = ensure_transaction(buyer_id=buyer_id, primary_agent_id=agent_id).id
+
     agreement = Agreement(
         id=str(uuid.uuid4()),
         agent_id=agent_id,
         buyer_id=buyer_id,
+        transaction_id=str(transaction_id),
         title=title,
         agreement_type=agreement_type,
         status="draft",

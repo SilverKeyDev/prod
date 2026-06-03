@@ -68,11 +68,41 @@ _MUST_HAVE_SYNONYMS: dict[str, tuple[str, ...]] = {
         "water view",
         "waterview",
     ),
+    "fenced_in_backyard": (
+        "fenced backyard",
+        "fenced back yard",
+        "fenced-in backyard",
+        "fenced in backyard",
+        "fenced yard",
+        "fully fenced",
+        "privacy fence",
+        "private fenced",
+        "backyard fence",
+        "back yard fence",
+    ),
+    "fenced_backyard": (
+        "fenced backyard",
+        "fenced back yard",
+        "fenced-in backyard",
+        "fenced in backyard",
+        "fenced yard",
+        "fully fenced",
+        "privacy fence",
+        "private fenced",
+    ),
+    "fenced_yard": (
+        "fenced yard",
+        "fenced backyard",
+        "fenced back yard",
+        "fully fenced",
+        "privacy fence",
+        "private fenced",
+    ),
 }
 
 
 def _normalize_need_key(need: str) -> str:
-    return str(need).strip().lower().replace("-", "_")
+    return re.sub(r"\s+", "_", str(need).strip().lower().replace("-", "_"))
 
 
 def _flatten_values(obj: Any) -> list[str]:
