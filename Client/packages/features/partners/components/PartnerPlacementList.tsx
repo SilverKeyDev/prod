@@ -19,6 +19,7 @@ export function PartnerPlacementList({ rows, className }: PartnerPlacementListPr
     <Box className={className ?? "gap-responsive-sm flex flex-col"}>
       {rows.map(({ placement, href, displayMode, embedSrc }) => {
         const partner = placement.partner;
+        const isMoveConcierge = partner.slug === "move-concierge";
         return (
           <PartnerIntegrationExperience
             key={partner.id}
@@ -28,7 +29,11 @@ export function PartnerPlacementList({ rows, className }: PartnerPlacementListPr
             integrationDisplayMode={displayMode}
             embedSrc={embedSrc}
             href={href}
-            ctaLabel={t("partners.placement.open_partner")}
+            ctaLabel={
+              isMoveConcierge
+                ? t("close.home_concierge.open_in_new_tab")
+                : t("partners.placement.open_partner")
+            }
             iframeTitle={partner.name}
           />
         );
