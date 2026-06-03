@@ -49,7 +49,18 @@ python_supported() {
 
 PYTHON_CMD="${PYTHON:-}"
 if [[ -z "$PYTHON_CMD" ]]; then
-  for c in python3.12 python3.11 python3.10 python3; do
+  python_candidates=(
+    python3.13 python3.12 python3.11 python3.10 python3
+  )
+  for prefix in /opt/homebrew/bin /usr/local/bin; do
+    python_candidates+=(
+      "${prefix}/python3.13"
+      "${prefix}/python3.12"
+      "${prefix}/python3.11"
+      "${prefix}/python3.10"
+    )
+  done
+  for c in "${python_candidates[@]}"; do
     command -v "$c" >/dev/null 2>&1 || continue
     if python_supported "$c"; then
       PYTHON_CMD="$c"
@@ -59,16 +70,45 @@ if [[ -z "$PYTHON_CMD" ]]; then
 fi
 
 if [[ -z "$PYTHON_CMD" ]] || ! command -v "$PYTHON_CMD" >/dev/null 2>&1; then
-  echo "bootstrap-venv: set PYTHON to a Python 3.10–3.13 executable (e.g. export PYTHON=python3.12)." >&2
+  echo "bootstrap-venv: need Python 3.10–3.13 (macOS system python3 is often 3.9)." >&2
+  if command -v python3 >/dev/null 2>&1; then
+    echo "bootstrap-venv: found $(command -v python3) → $(python3 -c 'import sys; print("%s.%s" % sys.version_info[:2])' 2>/dev/null || echo unknown)" >&2
+  fi
+  echo "bootstrap-venv: install Python 3.12, then re-run setup:" >&2
+  echo "  brew install python@3.12" >&2
+  echo "  export PYTHON=/opt/homebrew/bin/python3.12   # Apple Silicon" >&2
+  echo "  export PYTHON=/usr/local/bin/python3.12      # Intel Mac" >&2
+  echo "  make setup ARGS='--force-venv'" >&2
   exit 1
 fi
 
 if ! python_supported "$PYTHON_CMD"; then
   echo "bootstrap-venv: interpreter $(command -v "$PYTHON_CMD") is $( "$PYTHON_CMD" -c 'import sys; print("%s.%s" % sys.version_info[:2])' ) — need Python >=3.10 and <3.14 for current requirements/runtime.txt wheels." >&2
+  echo "bootstrap-venv: export PYTHON=python3.12 (or brew install python@3.12), then: make setup ARGS='--force-venv'" >&2
   exit 1
 fi
 
 echo "Using Python: $(command -v "$PYTHON_CMD") ($("$PYTHON_CMD" -c 'import sys; print("%s.%s" % sys.version_info[:2])'))"
+
+ensure_macos_pillow_deps() {
+  [[ "$(uname -s)" == Darwin ]] || return 0
+  command -v brew >/dev/null 2>&1 || return 0
+  local -a pkgs=(jpeg zlib libpng libtiff little-cms2 openjpeg webp)
+  local -a missing=()
+  local pkg
+  for pkg in "${pkgs[@]}"; do
+    brew list "$pkg" &>/dev/null || missing+=("$pkg")
+  done
+  if ((${#missing[@]})); then
+    echo "bootstrap-venv: installing Homebrew libs for Pillow (if pip still builds from source): ${missing[*]}"
+    brew install "${missing[@]}"
+  fi
+  local brew_prefix
+  brew_prefix="$(brew --prefix)"
+  export PKG_CONFIG_PATH="${brew_prefix}/opt/jpeg/lib/pkgconfig:${brew_prefix}/opt/libpng/lib/pkgconfig:${brew_prefix}/opt/libtiff/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+  export CPPFLAGS="-I${brew_prefix}/opt/jpeg/include -I${brew_prefix}/opt/libpng/include ${CPPFLAGS:-}"
+  export LDFLAGS="-L${brew_prefix}/opt/jpeg/lib -L${brew_prefix}/opt/libpng/lib ${LDFLAGS:-}"
+}
 
 ensure_pip() {
   if python -m pip --version >/dev/null 2>&1; then
@@ -80,6 +120,8 @@ ensure_pip() {
 
 install_requirements() {
   ensure_pip
+  ensure_macos_pillow_deps
+  export PIP_PREFER_BINARY=1
   python -m pip install --upgrade pip
   if [[ "$USE_LINT" == true ]]; then
     echo "Installing from requirements/lint.txt (--lint)"

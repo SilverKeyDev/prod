@@ -221,7 +221,7 @@ def send_envelope_task(
         return {"success": False, "error": error_msg, "retryable": False}
 
 
-@celery.task(name="docusign.process_webhook", bind=True, max_retries=5)
+@celery.task(name="docusign.process_webhook", bind=True, max_retries=5, queue="default")
 def process_webhook_task(self, event_id: str):
     """
     Process DocuSign Connect webhook event.
@@ -363,7 +363,7 @@ def fetch_completed_documents_task(self, agreement_id: str):
         return {"success": False, "error": str(exc)}
 
 
-@celery.task(name="docusign.sync_templates")
+@celery.task(name="docusign.sync_templates", queue="default")
 def sync_templates_task():
     """Sync templates from DocuSign"""
     try:

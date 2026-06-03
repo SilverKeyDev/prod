@@ -38,7 +38,7 @@ function buildCollapsedLabelRowClass(
     "items-center",
     "gap-2",
     "font-medium",
-    "leading-none",
+    "leading-[1.2]",
     `${showLabelAt}:inline-flex`,
     contentAlign === "start" ? wide.start : wide.center,
     textVisibilityClass,

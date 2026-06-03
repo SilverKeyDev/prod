@@ -91,7 +91,9 @@ def test_admin_cannot_reset_other_user(client, reset_enabled, mock_reset_service
         )
 
     assert response.status_code == 403
-    assert "Super admin" in response.get_json().get("error", "")
+    body = response.get_json()
+    assert body.get("error") == "super_admin_required"
+    assert "Super admin" in body.get("message", "")
     mock_reset_service.assert_not_called()
 
 
