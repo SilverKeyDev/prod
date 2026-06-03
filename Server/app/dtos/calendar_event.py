@@ -39,9 +39,20 @@ _CREATE_METADATA_FIELDS = frozenset(
 
 def _coerce_viewing_itinerary_enums(model: ViewingItinerary) -> ViewingItinerary:
     """Coerce string enum fields from legacy DB JSON before JSON serialization."""
+    updates: dict[str, ViewingRouteEndMode] = {}
     if isinstance(model.end_mode, str):
-        return model.model_copy(update={"end_mode": ViewingRouteEndMode(model.end_mode)})
+        updates["end_mode"] = ViewingRouteEndMode(model.end_mode)
+    elif model.end_mode is None:
+        # Legacy rows omit end_mode; API contract treats that as last_property.
+        updates["end_mode"] = ViewingRouteEndMode.last_property
+    if updates:
+        return model.model_copy(update=updates)
     return model
+
+
+def _viewing_itinerary_response_dict(model: ViewingItinerary) -> dict[str, Any]:
+    """Serialize ViewingItinerary with legacy defaults applied for API responses."""
+    return _coerce_viewing_itinerary_enums(model).model_dump(mode="json", warnings=False)
 
 
 def _itinerary_for_response(raw: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -49,8 +60,7 @@ def _itinerary_for_response(raw: dict[str, Any] | None) -> dict[str, Any] | None
     if not raw:
         return None
     try:
-        model = _coerce_viewing_itinerary_enums(ViewingItinerary.model_validate(raw))
-        return model.model_dump(mode="json", warnings=False)
+        return _viewing_itinerary_response_dict(ViewingItinerary.model_validate(raw))
     except ValidationError as e:
         log.warn(
             "HTTP",
@@ -124,7 +134,7 @@ class CalendarEventDTO:
         validated = _validate_event_payload(payload, create=create)
         if validated is not None:
             if validated.itinerary is not None:
-                payload["itinerary"] = validated.itinerary.model_dump(mode="json")
+                payload["itinerary"] = _viewing_itinerary_response_dict(validated.itinerary)
             if validated.silverKeyEventType is not None:
                 payload["silverKeyEventType"] = validated.silverKeyEventType
 

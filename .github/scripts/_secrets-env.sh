@@ -213,7 +213,8 @@ build_client_bundle_env_file() {
   : >"$merged_tmp"
   : >"$bundle_tmp"
 
-  local prev_env_file="$ENV_FILE"
+  # fetch-client-bundle-env.sh does not set ENV_FILE; use a temp merge target only.
+  local prev_env_file="${ENV_FILE:-}"
   ENV_FILE="$merged_tmp"
   export ENV_FILE
 
@@ -221,7 +222,11 @@ build_client_bundle_env_file() {
   mapfile -t secret_ids < <(resolve_deploy_secret_ids_from_example "$example_file")
   build_merged_env_file "${secret_ids[@]}"
 
-  ENV_FILE="$prev_env_file"
+  if [ -n "$prev_env_file" ]; then
+    ENV_FILE="$prev_env_file"
+  else
+    unset ENV_FILE
+  fi
 
   awk -F= '
     /^EXPO_PUBLIC_[A-Za-z0-9_]*=/ || /^VITE_[A-Za-z0-9_]*=/ {
