@@ -16,6 +16,7 @@ def _run_pool_config_snippet(
     env = os.environ.copy()
     env["PYTHONPATH"] = str(SERVER_DIR)
     env["DATABASE_URL"] = "postgresql://user:pass@localhost:5432/silverkey_test"
+    env["SECRET_KEY"] = "test-pool-config-secret"
     env["TESTING"] = "false"
     env.pop("DB_POOL_SIZE", None)
     env.pop("DB_MAX_OVERFLOW", None)

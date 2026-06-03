@@ -75,7 +75,7 @@ def test_gunicorn_entrypoint_gthread_passes_threads(tmp_path):
     )
     assert result.returncode == 0, result.stderr
     args = capture_file.read_text().splitlines()
-    assert "gunicorn" in args[0] or args[0] == "gunicorn"
+    assert args[0] == "--preload"
     assert "-w" in args and "2" in args
     assert "--worker-class" in args and "gthread" in args
     assert "--threads" in args and "6" in args
