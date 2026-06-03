@@ -15,6 +15,8 @@ vi.mock("packages/hooks/data/admin/useAdminLoggerConfig", () => ({
         api: { initialLoad: false, polling: false, pageMount: false, other: false },
         errors: true,
         security: true,
+        search: false,
+        feed: false,
         logLevel: "ERROR",
       },
       server: {
@@ -26,6 +28,8 @@ vi.mock("packages/hooks/data/admin/useAdminLoggerConfig", () => ({
         api: true,
         errors: true,
         security: true,
+        search: false,
+        feed: false,
         logLevel: "INFO",
       },
     },

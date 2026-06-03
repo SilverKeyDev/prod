@@ -1,0 +1,12 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    required:
+      - download_url
+      - form
+    properties:
+      download_url:
+        type: string
+        format: uri
+      form:
+        $ref: './ChecklistForm.yaml'

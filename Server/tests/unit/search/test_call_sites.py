@@ -222,12 +222,11 @@ class TestResearchPropertyImages:
     def test_delegates_to_slipstream(self, mock_imgs):
         mock_imgs.return_value = ["a.jpg", "b.jpg"]
 
-        with patch("app.services.research.property.property_images.current_app", MagicMock()):
-            from app.services.research.property.property_images import fetch_zillow_images
+        from app.services.research.property.property_images import fetch_zillow_images
 
-            imgs = fetch_zillow_images("MLS-123")
-            assert imgs == ["a.jpg", "b.jpg"]
-            mock_imgs.assert_called_once_with("MLS-123")
+        imgs = fetch_zillow_images("MLS-123")
+        assert imgs == ["a.jpg", "b.jpg"]
+        mock_imgs.assert_called_once_with("MLS-123")
 
     def test_extract_primary_image_from_list(self):
         from app.services.research.property.property_images import extract_primary_image

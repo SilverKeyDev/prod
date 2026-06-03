@@ -4,7 +4,6 @@
  */
 
 export { createGuardedSetter } from "./array";
-export { clearAuthTokens, getAuthToken, hasValidAuthToken } from "./auth";
 export { asError } from "./errorHandling";
 export { formatCompactCount, formatCompactNumber, formatNumber, formatUSD } from "./format";
 export { getMapPinColorsForScoreAndStatus } from "./format/mapMatchPinColors";
@@ -16,7 +15,7 @@ export {
   getMatchTierIndex,
 } from "./format/matchScore";
 export type { ScoreColors } from "./format/scoreColors";
-export { getMatchScoreGradientColors, getScoreBasedColorForMap } from "./format/scoreColors";
+export { getMatchScoreGradientColors } from "./format/scoreColors";
 export { createBlob, getDocument, getFetch, getNavigator, getWindow } from "./platform";
 export type { RawHomeData, SavedHomeWire } from "./saved";
 export { mapSavedHomeWireToSavedHome } from "./saved";

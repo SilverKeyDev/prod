@@ -1,7 +1,8 @@
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Index
+from sqlalchemy import Index, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
@@ -53,23 +54,6 @@ class UserScoreWeights(db.Model):
         if not self.id:
             self.id = str(uuid.uuid4())
 
-    def to_dict(self):
-        """Convert model to dictionary."""
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "cohort_id": self.cohort_id,
-            "embedding_weight": self.embedding_weight,
-            "llm_weight": self.llm_weight,
-            "training_samples_count": self.training_samples_count,
-            "last_trained_at": self.last_trained_at.isoformat() if self.last_trained_at else None,
-            "model_version": self.model_version,
-            "training_accuracy": self.training_accuracy,
-            "training_auc": self.training_auc,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
-
     @classmethod
     def create_or_update(
         cls,
@@ -101,10 +85,10 @@ class UserScoreWeights(db.Model):
 
         # Find existing record
         if user_id:
-            existing = cls.query.filter_by(user_id=user_id).first()
+            existing = db.session.scalar(select(cls).where(cls.user_id == user_id))
         else:
             assert cohort_id is not None  # guaranteed by validation above
-            existing = cls.query.filter_by(cohort_id=cohort_id).first()
+            existing = db.session.scalar(select(cls).where(cls.cohort_id == cohort_id))
 
         if existing:
             # Update existing

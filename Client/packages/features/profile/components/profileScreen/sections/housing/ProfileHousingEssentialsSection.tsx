@@ -27,7 +27,7 @@ export function ProfileHousingEssentialsSection({
   updateField,
 }: ProfileHousingEssentialsSectionProps) {
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
-  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData);
 
   return (
     <ProfileSectionBody>

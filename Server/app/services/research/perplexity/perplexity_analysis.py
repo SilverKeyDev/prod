@@ -7,7 +7,6 @@ Re-exports generate_report_sections_for_property and generate_report_sections_fo
 from __future__ import annotations
 
 import json
-import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -16,10 +15,9 @@ from typing import Any
 import requests
 
 from app.config.llm_models import perplexity_model_analysis
+from logger import log
 
 from .perplexity_config import PERPLEXITY_API_KEY, PERPLEXITY_HEADERS, PERPLEXITY_URL
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -174,7 +172,7 @@ def analyze_property_with_sonar_pro(
         bullet_style: "short" | "medium" | "long"
     """
     if not PERPLEXITY_API_KEY:
-        logger.error("Cannot analyze property: PERPLEXITY_API_KEY not configured")
+        log.error("ERRORS", "Cannot analyze property: PERPLEXITY_API_KEY not configured")
         return None
 
     ctx = analysis_context or {}
@@ -321,5 +319,5 @@ def analyze_property_with_sonar_pro(
                 return None
         return None
     except Exception as e:
-        logger.error("Failed to analyze property: %s", e)
+        log.error("ERRORS", "Failed to analyze property:", {"detail": str(e)})
         return None

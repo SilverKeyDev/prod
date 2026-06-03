@@ -5,6 +5,7 @@ Authorization checks for DocuSign operations.
 """
 
 from app.models import Agreement, AgreementParticipant, User
+from app.services.auth.user_role_helpers import user_is_agent
 
 
 def can_access_agreement(user: User, agreement: Agreement) -> bool:
@@ -165,22 +166,6 @@ def can_create_revision(user: User, agreement: Agreement) -> bool:
     return user.id == agreement.agent_id
 
 
-def is_agent(user: User | None) -> bool:
-    """
-    Check if user is an agent.
-
-    Args:
-        user: User to check
-
-    Returns:
-        True if user is an agent, False otherwise
-    """
-    if not user:
-        return False
-
-    return getattr(user, "is_agent", False)
-
-
 def can_access_oauth(user: User | None) -> bool:
     """
     Check if user can access DocuSign OAuth features.
@@ -192,4 +177,4 @@ def can_access_oauth(user: User | None) -> bool:
         True if user can access OAuth, False otherwise
     """
     # Only agents can connect OAuth
-    return is_agent(user)
+    return user_is_agent(user)

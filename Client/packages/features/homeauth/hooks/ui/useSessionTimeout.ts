@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AUTH_CONFIG } from "packages/config/auth/auth";
 import { clearSessionStorageForLogout } from "packages/features/homeauth/hooks/data/utils/logoutCleanup";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import { getErrorMessage } from "./errorMessageHelpers";
@@ -69,7 +69,7 @@ export function useSessionTimeout(config: SessionTimeoutConfig = {}): SessionTim
 
   // Force logout and cleanup
   const logout = useCallback(() => {
-    log.warn(LOG_CATEGORIES.AUTH, "Session timeout - logging out user", {
+    log.warn("AUTH", "Session timeout - logging out user", {
       reason: "session_timeout",
       currentPath: getWindow()?.location.pathname ?? "",
       sessionDuration: Date.now() - sessionStartRef.current,
@@ -82,14 +82,14 @@ export function useSessionTimeout(config: SessionTimeoutConfig = {}): SessionTim
           await onLogoutRef.current();
         }
       } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.AUTH, "Session timeout onLogout failed", {
+        log.error("AUTH", "Session timeout onLogout failed", {
           errorMessage: getErrorMessage(error),
         });
       }
       try {
         clearSessionStorageForLogout();
       } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.AUTH, "Error clearing session data", {
+        log.error("AUTH", "Error clearing session data", {
           errorMessage: getErrorMessage(error),
         });
       }
@@ -128,14 +128,14 @@ export function useSessionTimeout(config: SessionTimeoutConfig = {}): SessionTim
 
       // Check absolute session limit
       if (timeSinceStart >= fullConfig.maxSessionMs) {
-        log.warn(LOG_CATEGORIES.AUTH, "Maximum session duration exceeded");
+        log.warn("AUTH", "Maximum session duration exceeded");
         logout();
         return;
       }
 
       // Check idle timeout
       if (timeSinceActivity >= fullConfig.idleTimeoutMs) {
-        log.warn(LOG_CATEGORIES.AUTH, "Idle timeout exceeded - auto-logging out");
+        log.warn("AUTH", "Idle timeout exceeded - auto-logging out");
         logout();
         return;
       }

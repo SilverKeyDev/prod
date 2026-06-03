@@ -15,7 +15,7 @@ Usage (Flask shell):
 
 from __future__ import annotations
 
-from sqlalchemy import or_
+from sqlalchemy import delete, or_, select
 
 from app import db
 from app.models import (
@@ -57,7 +57,7 @@ from app.services.auth.user.delete_user_external_cleanup import (
 )
 from app.services.auth.user.user_s3_cleanup import collect_user_s3_keys
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 def delete_user_and_all_related_data(user_id: str) -> bool:
@@ -70,13 +70,13 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
         True if a user was found and deleted, False if no such user exists.
     """
     if not user_id or not str(user_id).strip():
-        log.warn(LOG_CATEGORIES["API"], "delete_user_and_all_related_data: empty user_id")
+        log.warn("API", "delete_user_and_all_related_data: empty user_id")
         return False
 
     uid = str(user_id).strip()
-    user = User.query.filter_by(id=uid).one_or_none()
+    user = db.session.scalar(select(User).where(User.id == uid))
     if user is None:
-        log.info(LOG_CATEGORIES["API"], "delete_user_and_all_related_data: user not found", {})
+        log.info("API", "delete_user_and_all_related_data: user not found", {})
         return False
 
     extra_s3_keys = collect_user_s3_keys(uid, user=user)
@@ -90,7 +90,7 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
         )
     except Exception as exc:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             f"delete_user: external cleanup raised user_id={uid}",
             exc,
         )
@@ -98,37 +98,42 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
     try:
         clear_agent_client_connections(uid, user)
 
-        CalendarShare.query.filter(
-            or_(
-                CalendarShare.calendar_owner_id == uid,
-                CalendarShare.shared_with_user_id == uid,
+        db.session.execute(
+            delete(CalendarShare).where(
+                or_(
+                    CalendarShare.calendar_owner_id == uid,
+                    CalendarShare.shared_with_user_id == uid,
+                )
             )
-        ).delete(synchronize_session=False)
+        )
 
-        CalendarEvent.query.filter(
-            or_(
-                CalendarEvent.user_id == uid,
-                CalendarEvent.creator_id == uid,
-                CalendarEvent.target_user_id == uid,
+        db.session.execute(
+            delete(CalendarEvent).where(
+                or_(
+                    CalendarEvent.user_id == uid,
+                    CalendarEvent.creator_id == uid,
+                    CalendarEvent.target_user_id == uid,
+                )
             )
-        ).delete(synchronize_session=False)
+        )
 
-        TransactionTask.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        TransactionAddress.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        db.session.execute(delete(TransactionTask).where(TransactionTask.user_id == uid))
+        db.session.execute(delete(TransactionAddress).where(TransactionAddress.user_id == uid))
 
-        tx_ids = [
-            row[0]
-            for row in db.session.query(Transaction.id).filter(
-                or_(Transaction.buyer_id == uid, Transaction.primary_agent_id == uid)
-            )
-        ]
+        tx_ids = list(
+            db.session.scalars(
+                select(Transaction.id).where(
+                    or_(Transaction.buyer_id == uid, Transaction.primary_agent_id == uid)
+                )
+            ).all()
+        )
         if tx_ids:
-            AgreementLink.query.filter(AgreementLink.transaction_id.in_(tx_ids)).delete(
-                synchronize_session=False
+            db.session.execute(
+                delete(AgreementLink).where(AgreementLink.transaction_id.in_(tx_ids))
             )
-            Transaction.query.filter(Transaction.id.in_(tx_ids)).delete(synchronize_session=False)
+            db.session.execute(delete(Transaction).where(Transaction.id.in_(tx_ids)))
 
-        for d in Document.query.filter_by(user_id=uid).all():
+        for d in db.session.scalars(select(Document).where(Document.user_id == uid)).all():
             li_id = d.library_item_id
             db.session.delete(d)
             if li_id:
@@ -138,43 +143,51 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
 
         delete_agreements_for_user(uid)
 
-        UserIntentAttribute.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserImportantLocation.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserRole.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserFinancials.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserDemographics.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserCommunicationPrefs.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserSearchIntent.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserAgentProfile.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        db.session.execute(delete(UserIntentAttribute).where(UserIntentAttribute.user_id == uid))
+        db.session.execute(
+            delete(UserImportantLocation).where(UserImportantLocation.user_id == uid)
+        )
+        db.session.execute(delete(UserRole).where(UserRole.user_id == uid))
+        db.session.execute(delete(UserFinancials).where(UserFinancials.user_id == uid))
+        db.session.execute(delete(UserDemographics).where(UserDemographics.user_id == uid))
+        db.session.execute(
+            delete(UserCommunicationPrefs).where(UserCommunicationPrefs.user_id == uid)
+        )
+        db.session.execute(delete(UserSearchIntent).where(UserSearchIntent.user_id == uid))
+        db.session.execute(delete(UserAgentProfile).where(UserAgentProfile.user_id == uid))
 
         # Google/DocuSign tokens removed during external cleanup; delete rows if any remain.
-        GoogleOAuthToken.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        DocusignOAuthToken.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        db.session.execute(delete(GoogleOAuthToken).where(GoogleOAuthToken.user_id == uid))
+        db.session.execute(delete(DocusignOAuthToken).where(DocusignOAuthToken.user_id == uid))
 
-        UserPropertyHighlights.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserPropertyCommute.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserPropertyLink.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        HomeNotInterested.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        HomeComment.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        ReelLike.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        ScoringResultsTracker.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        UserScoreWeights.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        db.session.execute(
+            delete(UserPropertyHighlights).where(UserPropertyHighlights.user_id == uid)
+        )
+        db.session.execute(delete(UserPropertyCommute).where(UserPropertyCommute.user_id == uid))
+        db.session.execute(delete(UserPropertyLink).where(UserPropertyLink.user_id == uid))
+        db.session.execute(delete(HomeNotInterested).where(HomeNotInterested.user_id == uid))
+        db.session.execute(delete(HomeComment).where(HomeComment.user_id == uid))
+        db.session.execute(delete(ReelLike).where(ReelLike.user_id == uid))
+        db.session.execute(
+            delete(ScoringResultsTracker).where(ScoringResultsTracker.user_id == uid)
+        )
+        db.session.execute(delete(UserScoreWeights).where(UserScoreWeights.user_id == uid))
 
-        OAuthState.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        db.session.execute(delete(OAuthState).where(OAuthState.user_id == uid))
 
-        ChatHistory.query.filter(
-            or_(ChatHistory.user_id == uid, ChatHistory.sender_id == uid)
-        ).delete(synchronize_session=False)
+        db.session.execute(
+            delete(ChatHistory).where(or_(ChatHistory.user_id == uid, ChatHistory.sender_id == uid))
+        )
 
         # user_client_settings.user_id is the primary key, so SQLAlchemy cannot
         # null it out via the backref when the User row is deleted. Delete it
         # explicitly before removing the User.
-        UserClientSettings.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        db.session.execute(delete(UserClientSettings).where(UserClientSettings.user_id == uid))
 
         db.session.delete(user)
         db.session.commit()
         log.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "delete_user_and_all_related_data: user deleted",
             {"user_id": uid},
         )
@@ -182,7 +195,7 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
     except Exception as exc:
         db.session.rollback()
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             f"delete_user_and_all_related_data failed user_id={uid}",
             exc,
         )

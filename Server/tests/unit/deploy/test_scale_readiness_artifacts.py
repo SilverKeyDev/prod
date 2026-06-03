@@ -54,7 +54,7 @@ def test_gunicorn_entrypoint_gthread_passes_threads(tmp_path):
     capture_file = tmp_path / "args.txt"
     gunicorn_stub = fake_bin / "gunicorn"
     gunicorn_stub.write_text(
-        "#!/usr/bin/env bash\n" 'printf "%s\\n" "$@" > "$GUNICORN_CAPTURE_FILE"\n',
+        '#!/usr/bin/env bash\nprintf "%s\\n" "$@" > "$GUNICORN_CAPTURE_FILE"\n',
     )
     gunicorn_stub.chmod(0o755)
 
@@ -88,7 +88,7 @@ def test_gunicorn_entrypoint_sync_omits_threads(tmp_path):
     capture_file = tmp_path / "args.txt"
     gunicorn_stub = fake_bin / "gunicorn"
     gunicorn_stub.write_text(
-        "#!/usr/bin/env bash\n" 'printf "%s\\n" "$@" > "$GUNICORN_CAPTURE_FILE"\n',
+        '#!/usr/bin/env bash\nprintf "%s\\n" "$@" > "$GUNICORN_CAPTURE_FILE"\n',
     )
     gunicorn_stub.chmod(0o755)
 

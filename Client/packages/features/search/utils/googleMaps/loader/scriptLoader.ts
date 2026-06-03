@@ -1,6 +1,6 @@
 import { mapsApi, type MapsScriptResponse } from "packages/api/maps";
 import { env } from "packages/config";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { asError } from "packages/utils";
 import { logWebMapsEnvDiagnostics } from "packages/utils/maps/cloudMapId/logWebMapsEnvDiagnostics";
 import { getDocument, getWindow } from "packages/utils/platform";
@@ -27,7 +27,7 @@ export class ScriptLoader {
       }
       return mapId;
     } catch {
-      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Could not load config, using fallback");
+      log.warn("MAP_RENDERING", "Could not load config, using fallback");
       return undefined;
     }
   }
@@ -59,7 +59,7 @@ export class ScriptLoader {
           resolve();
         } else if (attempts >= maxAttempts) {
           const errorMsg = "Google Maps initialization timeout after 35 seconds";
-          log.error(LOG_CATEGORIES.MAP_RENDERING, "Google Maps initialization timeout", {
+          log.error("MAP_RENDERING", "Google Maps initialization timeout", {
             errorMsg,
           });
           this.error = "Google Maps initialization timeout. Please refresh the page.";
@@ -78,19 +78,13 @@ export class ScriptLoader {
     if (win?.google?.maps?.importLibrary) {
       win.google.maps
         .importLibrary("marker")
-        .catch((err: unknown) =>
-          log.warn(LOG_CATEGORIES.MAP_RENDERING, "Failed to import marker library", err)
-        );
+        .catch((err: unknown) => log.warn("MAP_RENDERING", "Failed to import marker library", err));
       win.google.maps
         .importLibrary("places")
-        .catch((err: unknown) =>
-          log.warn(LOG_CATEGORIES.MAP_RENDERING, "Failed to import places library", err)
-        );
+        .catch((err: unknown) => log.warn("MAP_RENDERING", "Failed to import places library", err));
       win.google.maps
         .importLibrary("routes")
-        .catch((err: unknown) =>
-          log.warn(LOG_CATEGORIES.MAP_RENDERING, "Failed to import routes library", err)
-        );
+        .catch((err: unknown) => log.warn("MAP_RENDERING", "Failed to import routes library", err));
     }
   }
 
@@ -142,15 +136,13 @@ export class ScriptLoader {
         win.removeEventListener("error", errorListener);
         const errorMessage = error instanceof ErrorEvent ? error.message : String(error);
         if (errorMessage.includes("gen_204") || errorMessage.includes("ERR_CONNECTION_CLOSED")) {
-          log.warn(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "Google Maps CSP test endpoint error (non-critical)",
-            { errorMessage }
-          );
+          log.warn("MAP_RENDERING", "Google Maps CSP test endpoint error (non-critical)", {
+            errorMessage,
+          });
           resolve();
           return;
         }
-        log.error(LOG_CATEGORIES.MAP_RENDERING, "Failed to load Google Maps script", {
+        log.error("MAP_RENDERING", "Failed to load Google Maps script", {
           error,
           scriptUrl,
         });
@@ -172,11 +164,7 @@ export class ScriptLoader {
         await this.waitForGoogleMapsReady();
         return;
       } catch (error: unknown) {
-        log.error(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Google Maps failed to wait for existing script",
-          error
-        );
+        log.error("MAP_RENDERING", "Google Maps failed to wait for existing script", error);
         throw error;
       }
     }
@@ -202,7 +190,7 @@ export class ScriptLoader {
         const data: MapsScriptResponse = await mapsApi.getScriptUrl();
         if (!data.success || !data.script_url) {
           const errorMsg = data.error ?? "No script URL received from server";
-          log.error(LOG_CATEGORIES.MAP_RENDERING, "Google Maps failed to get script URL", {
+          log.error("MAP_RENDERING", "Google Maps failed to get script URL", {
             errorMsg,
           });
           this.error = errorMsg;
@@ -226,7 +214,7 @@ export class ScriptLoader {
         await this.waitForGoogleMapsReady();
       } catch (err: unknown) {
         const error = asError(err);
-        log.error(LOG_CATEGORIES.MAP_RENDERING, "Error loading Google Maps", {
+        log.error("MAP_RENDERING", "Error loading Google Maps", {
           errorMsg: error.message,
         });
         this.error = error.message;

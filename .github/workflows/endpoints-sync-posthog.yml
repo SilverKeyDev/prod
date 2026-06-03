@@ -1,15 +1,41 @@
-# POST committed Server/endpoints.json to PostHog as endpoint_inventory_sync.
-# No DATABASE_URL or Flask — reads inventory from git and POSTs via PostHog capture API.
+# Sync Flask route inventory + dead-route coverage to PostHog.
 #
-# Triggers after Test & Coverage succeeds on main, or manual workflow_dispatch.
-# Requires repository secret: POSTHOG_PROJECT_TOKEN (project ingest key phc_…)
+# ## Why this workflow exists
+#
+# Runtime ``api_request`` events tell us which routes prod actually hit. The committed
+# ``Server/endpoints.json`` file is the full expected surface (every Flask route we ship).
+# Routes in inventory with zero ``api_request`` hits in the last 7 days are **dead routes**:
+# unused features, admin-only paths, OAuth callbacks, newly merged code not yet exercised,
+# or broken client wiring / telemetry gaps.
+#
+# Knowing dead routes matters because:
+# - Unused API surface is maintenance and security debt (auth, OpenAPI, tests) with no payoff
+# - A core route showing as dead after a deploy is a regression signal (client or telemetry)
+# - New routes should eventually leave the dead list once real users hit them
+#
+# ## What gets sent to PostHog
+#
+# 1. ``endpoint_inventory_sync`` — full inventory + summary counts + ``dead_endpoints`` array
+# 2. ``endpoint_dead_route`` — one event per dead route (easy to table/filter in insights)
+#
+# ## Failure policy
+#
+# This job **must fail** (not succeed quietly) when:
+# - ``POSTHOG_PROJECT_TOKEN`` or ``POSTHOG_QUERY_API_KEY`` is missing/placeholder
+# - HogQL cannot read ``api_request`` traffic (bad query key or wrong project)
+# - Capture/batch ingest returns an error
+# - Ingest verification cannot find the sync events for this ``deploy_sha`` within ~30s
+#
+# No DATABASE_URL or Flask boot — reads ``Server/endpoints.json`` from git only.
+#
+# Triggers after Test & Coverage succeeds on main/prod, or manual workflow_dispatch.
 name: PostHog endpoint inventory sync
 
 on:
   workflow_run:
     workflows: ["Test & Coverage"]
     types: [completed]
-    branches: [main]
+    branches: [main, prod]
   workflow_dispatch:
 
 permissions:
@@ -31,6 +57,22 @@ jobs:
       - name: Verify endpoint inventory is present
         run: test -s Server/endpoints.json
 
+      - name: Require PostHog secrets
+        env:
+          POSTHOG_PROJECT_TOKEN: ${{ secrets.POSTHOG_PROJECT_TOKEN }}
+          POSTHOG_QUERY_API_KEY: ${{ secrets.POSTHOG_QUERY_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${POSTHOG_PROJECT_TOKEN}" ]; then
+            echo "::error::POSTHOG_PROJECT_TOKEN is not set. Add the project ingest key (phc_…) in repo Secrets → Actions."
+            exit 1
+          fi
+          if [ -z "${POSTHOG_QUERY_API_KEY}" ]; then
+            echo "::error::POSTHOG_QUERY_API_KEY is not set. Add a personal API key with query:read in repo Secrets → Actions."
+            exit 1
+          fi
+          echo "PostHog secrets present (values not printed)."
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -39,8 +81,12 @@ jobs:
       - name: Install requests
         run: python -m pip install --no-cache-dir requests==2.34.2
 
-      - name: POST endpoint_inventory_sync
+      - name: Sync inventory and dead routes to PostHog
         env:
           POSTHOG_PROJECT_TOKEN: ${{ secrets.POSTHOG_PROJECT_TOKEN }}
+          POSTHOG_QUERY_API_KEY: ${{ secrets.POSTHOG_QUERY_API_KEY }}
           GITHUB_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
-        run: python3 Server/scripts/endpoints/sync_inventory_posthog.py
+        run: |
+          set -euo pipefail
+          python3 Server/scripts/endpoints/sync_inventory_posthog.py
+          echo "PostHog endpoint sync completed successfully."

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { showErrorToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
@@ -73,7 +73,7 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
       void queryClient.invalidateQueries({ queryKey: queryKeys.agent.all });
     },
     onError: (error) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Create todo failed", error);
+      log.error("ERRORS", "Create todo failed", error);
       showErrorToast("Failed to create todo. Please try again.");
     },
   });
@@ -91,7 +91,7 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
       void queryClient.invalidateQueries({ queryKey: queryKeys.agent.all });
     },
     onError: (error) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Update todo failed", error);
+      log.error("ERRORS", "Update todo failed", error);
       showErrorToast("Failed to update todo. Please try again.");
     },
   });

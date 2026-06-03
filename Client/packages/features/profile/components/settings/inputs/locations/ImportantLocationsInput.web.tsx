@@ -4,7 +4,7 @@ import Input from "@ui/form/Input";
 import { Icon } from "@ui/icons";
 
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/styles/fileUploadStyles";
 import { Box } from "packages/ui/components/primitives";
@@ -92,7 +92,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
         setSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
-        log.error(LOG_CATEGORIES.ERRORS, "Autocomplete fetch error", error);
+        log.error("ERRORS", "Autocomplete fetch error", error);
         setSuggestions([]);
         setAutocompleteError("Address search unavailable. You can type an address manually.");
       }
@@ -206,7 +206,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
     setHasSupportedLocationSelection(false);
   };
   const handleRemoveLocation = (index: number) => {
-    log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "importantLocationsInput.remove", {
+    log.info("PROFILE_PREFERENCES", "importantLocationsInput.remove", {
       index,
       countBefore: locations.length,
       editingIndex,
@@ -215,7 +215,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
       handleCancel();
     }
     const updatedLocations = locations.filter((_, i) => i !== index);
-    log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "importantLocationsInput.remove.filtered", {
+    log.info("PROFILE_PREFERENCES", "importantLocationsInput.remove.filtered", {
       countAfter: updatedLocations.length,
     });
     onChange(updatedLocations);

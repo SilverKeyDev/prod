@@ -9,6 +9,9 @@ import json
 from datetime import datetime
 from typing import Any
 
+from sqlalchemy import select
+
+from app import db
 from app.models import (
     User,
     UserAgentProfile,
@@ -24,6 +27,7 @@ from app.services.aggregation.extended_buyer_preferences import (
     coerce_extension_value,
     normalize_stored_document,
 )
+from app.services.auth.user_role_helpers import user_is_agent
 from app.utils.db.orm_lookup import get_model
 
 
@@ -32,8 +36,6 @@ def apply_canonical_housing_preference_keys(out: dict[str, Any]) -> None:
     Mutate aggregated prefs so map_user_preferences_to_filters and MCDA see canonical keys.
     Safe to call on any flat dict shaped like _build_preferences_dict output.
     """
-    if out.get("preferred_bedrooms") is None and out.get("preferred_bedrooms_min") is not None:
-        out["preferred_bedrooms"] = out["preferred_bedrooms_min"]
     if out.get("preferred_bathrooms") is None and out.get("preferred_bathrooms_min") is not None:
         out["preferred_bathrooms"] = out["preferred_bathrooms_min"]
     ht = out.get("housing_type")
@@ -49,14 +51,14 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
 
     out: dict[str, Any] = {}
 
-    # User-level: is_agent, name (name stored on User; exposed here so profile "About you" gets it)
-    out["is_agent"] = "yes" if getattr(user, "is_agent", False) else "no"
+    # User-level: name (stored on User; exposed here so profile "About you" gets it)
     out["name"] = getattr(user, "name", None) or ""
+    out["has_preferences"] = bool(getattr(user, "has_preferences", False))
+    out["preferences_version"] = getattr(user, "preferences_version", None)
 
     # Financials
-    fin = (
-        getattr(user, "user_financials", None)
-        or UserFinancials.query.filter_by(user_id=user_id).first()
+    fin = getattr(user, "user_financials", None) or db.session.scalar(
+        select(UserFinancials).where(UserFinancials.user_id == user_id)
     )
     if fin:
         out["home_budget_min"] = fin.home_budget_min
@@ -66,9 +68,8 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         out["down_payment"] = fin.down_payment
 
     # Demographics
-    demo = (
-        getattr(user, "user_demographics", None)
-        or UserDemographics.query.filter_by(user_id=user_id).first()
+    demo = getattr(user, "user_demographics", None) or db.session.scalar(
+        select(UserDemographics).where(UserDemographics.user_id == user_id)
     )
     if demo:
         out["age"] = demo.age
@@ -80,9 +81,8 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         )
 
     # Communication prefs (has_buyers_agent, looking_for_buyers_agent, etc.)
-    comm = (
-        getattr(user, "user_communication_prefs", None)
-        or UserCommunicationPrefs.query.filter_by(user_id=user_id).first()
+    comm = getattr(user, "user_communication_prefs", None) or db.session.scalar(
+        select(UserCommunicationPrefs).where(UserCommunicationPrefs.user_id == user_id)
     )
     if comm:
         out["communication_frequency"] = comm.communication_frequency
@@ -91,9 +91,8 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         out["looking_for_buyers_agent"] = comm.looking_for_buyers_agent
 
     # Search intent
-    intent = (
-        getattr(user, "user_search_intent", None)
-        or UserSearchIntent.query.filter_by(user_id=user_id).first()
+    intent = getattr(user, "user_search_intent", None) or db.session.scalar(
+        select(UserSearchIntent).where(UserSearchIntent.user_id == user_id)
     )
     if intent:
         out["housing_type"] = intent.housing_type
@@ -114,7 +113,7 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         raw_ext = getattr(intent, "extended_buyer_preferences", None)
         ext = coerce_extension_value(raw_ext)
         if isinstance(ext, dict):
-            include_availability = bool(getattr(user, "is_agent", False))
+            include_availability = user_is_agent(user)
             norm = normalize_stored_document(ext, include_availability=include_availability)
             if len(norm) > 1:
                 out["extended_buyer_preferences"] = norm
@@ -127,7 +126,9 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         loc_list = (
             list(locations_rel)
             if locations_rel
-            else UserImportantLocation.query.filter_by(user_id=user_id).all()
+            else db.session.scalars(
+                select(UserImportantLocation).where(UserImportantLocation.user_id == user_id)
+            ).all()
         )
     out["important_locations"] = [
         {
@@ -157,7 +158,9 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         attr_list = (
             list(attrs_rel)
             if attrs_rel
-            else UserIntentAttribute.query.filter_by(user_id=user_id).all()
+            else db.session.scalars(
+                select(UserIntentAttribute).where(UserIntentAttribute.user_id == user_id)
+            ).all()
         )
     if attr_list is not None:
         features = []
@@ -203,12 +206,11 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
     apply_canonical_housing_preference_keys(out)
     apply_extended_buyer_preference_canonical_keys(out)
 
-    # Agent profile (only when user.is_agent is True)
-    if getattr(user, "is_agent", False):
+    # Agent profile (only when user has agent role)
+    if user_is_agent(user):
         out["public_profile_slug"] = getattr(user, "public_profile_slug", None)
-        agent = (
-            getattr(user, "user_agent_profile", None)
-            or UserAgentProfile.query.filter_by(user_id=user_id).first()
+        agent = getattr(user, "user_agent_profile", None) or db.session.scalar(
+            select(UserAgentProfile).where(UserAgentProfile.user_id == user_id)
         )
         if agent:
             out["agent_physical_mailing_address"] = agent.physical_mailing_address
@@ -278,24 +280,30 @@ def get_preferences_updated_at(user_id: str) -> datetime | None:
     candidates: list[datetime] = []
     if getattr(user, "updated_at", None):
         candidates.append(user.updated_at)
-    fin = UserFinancials.query.filter_by(user_id=user_id).first()
+    fin = db.session.scalar(select(UserFinancials).where(UserFinancials.user_id == user_id))
     if fin and getattr(fin, "updated_at", None):
         candidates.append(fin.updated_at)
-    demo = UserDemographics.query.filter_by(user_id=user_id).first()
+    demo = db.session.scalar(select(UserDemographics).where(UserDemographics.user_id == user_id))
     if demo and getattr(demo, "updated_at", None):
         candidates.append(demo.updated_at)
-    intent = UserSearchIntent.query.filter_by(user_id=user_id).first()
+    intent = db.session.scalar(select(UserSearchIntent).where(UserSearchIntent.user_id == user_id))
     if intent and getattr(intent, "updated_at", None):
         candidates.append(intent.updated_at)
-    comm = UserCommunicationPrefs.query.filter_by(user_id=user_id).first()
+    comm = db.session.scalar(
+        select(UserCommunicationPrefs).where(UserCommunicationPrefs.user_id == user_id)
+    )
     if comm and getattr(comm, "updated_at", None):
         candidates.append(comm.updated_at)
     # UserImportantLocation: max updated_at among all locations for this user
-    loc_list = UserImportantLocation.query.filter_by(user_id=user_id).all()
+    loc_list = db.session.scalars(
+        select(UserImportantLocation).where(UserImportantLocation.user_id == user_id)
+    ).all()
     for loc in loc_list:
         if getattr(loc, "updated_at", None):
             candidates.append(loc.updated_at)
-    agent_prof = UserAgentProfile.query.filter_by(user_id=user_id).first()
+    agent_prof = db.session.scalar(
+        select(UserAgentProfile).where(UserAgentProfile.user_id == user_id)
+    )
     if agent_prof and getattr(agent_prof, "updated_at", None):
         candidates.append(agent_prof.updated_at)
     if not candidates:

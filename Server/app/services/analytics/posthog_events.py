@@ -10,13 +10,14 @@ from typing import Any
 from flask import Response, g, has_request_context, request
 
 from app.posthog_client import get_posthog_client
+from app.services.analytics.api_request_error_semantics import classify_api_request
 from app.services.analytics.posthog_constants import (
     POSTHOG_DISTINCT_ID_HEADER,
     POSTHOG_SESSION_ID_HEADER,
 )
 from app.services.auth.user_role_helpers import user_role_names
 from app.utils.http.route_pattern import normalize_flask_route_rule
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 def _resolve_distinct_id(fallback: str) -> str:
@@ -55,7 +56,7 @@ def capture_product_event(
         )
     except Exception as exc:
         log.debug(
-            LOG_CATEGORIES["API"],
+            "API",
             "posthog_capture_failed",
             {"event": event, "error_type": type(exc).__name__},
         )
@@ -71,7 +72,7 @@ def set_person_properties(distinct_id: str, properties: dict[str, Any]) -> None:
         ph.set(distinct_id=resolved_id, properties=properties)
     except Exception as exc:
         log.debug(
-            LOG_CATEGORIES["API"],
+            "API",
             "posthog_set_person_failed",
             {"error_type": type(exc).__name__},
         )
@@ -135,6 +136,12 @@ def _build_api_request_properties(
     gpc_opt_out = bool(getattr(g, "gpc_opt_out", False))
     _distinct_id, user_role, brokerage_org_id = _resolve_api_request_identity(gpc_opt_out)
 
+    error_kind, expected_client_error = classify_api_request(
+        _method=request.method,
+        route_pattern=route_pattern,
+        status_code=status_code,
+    )
+
     properties: dict[str, Any] = {
         "endpoint": f"{request.method} {route_pattern}",
         "method": request.method,
@@ -144,6 +151,8 @@ def _build_api_request_properties(
         "status_class": _status_class(status_code),
         "is_error": status_code >= 400,
         "is_server_error": status_code >= 500,
+        "error_kind": error_kind,
+        "expected_client_error": expected_client_error,
         "request_id": getattr(g, "request_id", None),
     }
     if duration_ms is not None:
@@ -194,7 +203,7 @@ def capture_api_request(_request, response: Response) -> None:
         ph.capture(**capture_kwargs)
     except Exception as exc:
         log.debug(
-            LOG_CATEGORIES["API"],
+            "API",
             "posthog_api_request_failed",
             {"error_type": type(exc).__name__},
         )

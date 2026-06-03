@@ -19,9 +19,8 @@ const authState = {
     email: "a@b.c",
     name: "Test",
     is_active: true,
-    is_agent: true,
     has_preferences: false,
-    roles: ["admin"],
+    roles: ["agent", "admin"],
   },
 };
 

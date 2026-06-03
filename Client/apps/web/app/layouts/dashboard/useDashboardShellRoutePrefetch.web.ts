@@ -14,7 +14,7 @@ export function useDashboardShellRoutePrefetch(): (href: string) => void {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
 
-  const isAgent = user?.is_agent;
+  const isAgent = (user?.roles ?? []).includes("agent");
 
   return useCallback(
     (href: string) => {

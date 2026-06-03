@@ -4,9 +4,9 @@ from app.services.search.helpers.listing_type_match import (
     listing_type_prefs_are_owner_posted_only,
     property_matches_listing_type_prefs,
 )
-from logger import LOG_CATEGORIES, log
+from logger import log
 
-_POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
+_POLY = "POLYGON_SEARCH"
 
 
 def apply_listing_type_filter(

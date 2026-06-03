@@ -1,6 +1,6 @@
 import type { UseMutationOptions } from "@tanstack/react-query";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 import {
   resolveApiResultErrorMessage,
@@ -33,25 +33,21 @@ export async function runDocusignApi<T, R>(
   apiCall: () => Promise<DocusignApiResponse<R>>,
   getData: (response: DocusignApiResponse<R>) => T
 ): Promise<T> {
-  log.debug(LOG_CATEGORIES.DOCUSIGN, errorLabel.replace(" failed", ""), debugContext);
+  log.debug("DOCUSIGN", errorLabel.replace(" failed", ""), debugContext);
   const response = await apiCall();
   if (!response.success) {
     const errorMessage = resolveApiResultErrorMessage(response, errorLabel);
-    log.error(LOG_CATEGORIES.DOCUSIGN, errorLabel, {
+    log.error("DOCUSIGN", errorLabel, {
       ...debugContext,
       error: errorMessage,
       success: false,
     });
     throw new Error(errorMessage);
   }
-  log.debug(
-    LOG_CATEGORIES.DOCUSIGN,
-    `${errorLabel.replace(" failed", "")} completed successfully`,
-    {
-      ...debugContext,
-      success: true,
-    }
-  );
+  log.debug("DOCUSIGN", `${errorLabel.replace(" failed", "")} completed successfully`, {
+    ...debugContext,
+    success: true,
+  });
   return getData(response);
 }
 
@@ -68,14 +64,14 @@ export function getDocusignMutationHandlers(
   return {
     onSuccess: async () => {
       onSuccessInvalidate();
-      log.info(LOG_CATEGORIES.DOCUSIGN, successLabel);
+      log.info("DOCUSIGN", successLabel);
       enqueueToast({
         type: "success",
         message: successLabel,
       });
     },
     onError: async (error: Error) => {
-      log.error(LOG_CATEGORIES.DOCUSIGN, errorLabel, {
+      log.error("DOCUSIGN", errorLabel, {
         error: error.message,
         errorName: error.name,
       });
@@ -100,14 +96,14 @@ export function getDocusignMutationHandlersWithVars<TVariables>(
   return {
     onSuccess: async (_: unknown, variables: TVariables) => {
       onSuccessInvalidate(variables);
-      log.info(LOG_CATEGORIES.DOCUSIGN, successLabel, variables as Record<string, unknown>);
+      log.info("DOCUSIGN", successLabel, variables as Record<string, unknown>);
       enqueueToast({
         type: "success",
         message: successLabel,
       });
     },
     onError: async (error: Error, variables: TVariables) => {
-      log.error(LOG_CATEGORIES.DOCUSIGN, errorLabel, {
+      log.error("DOCUSIGN", errorLabel, {
         error: error.message,
         errorName: error.name,
         variables: variables as Record<string, unknown>,

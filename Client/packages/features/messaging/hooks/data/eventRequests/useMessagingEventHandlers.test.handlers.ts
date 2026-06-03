@@ -1,7 +1,7 @@
 import type { Mock } from "vitest";
 
 import type { EventRequestPayload } from "packages/features/messaging";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 export type AcceptMocks = {
   mockUpdateEventRequestStatus: Mock;
@@ -64,7 +64,7 @@ export function createHandleAcceptEventRequest(
         message: "Event added to your calendar and invite sent.",
       });
     } catch (error) {
-      log.error(LOG_CATEGORIES.CALENDAR, "Error creating event from request", error);
+      log.error("CALENDAR", "Error creating event from request", error);
       mockEnqueueToast({
         type: "error",
         message: "Could not add event. Connect Google Calendar in Settings.",
@@ -101,7 +101,7 @@ export function createHandleCancelEventRequest(mocks: {
         });
       }
     } catch (error) {
-      log.error(LOG_CATEGORIES.CALENDAR, "Error cancelling event request", error);
+      log.error("CALENDAR", "Error cancelling event request", error);
       mockEnqueueToast({
         type: "error",
         message: "Could not cancel event request. Please try again.",

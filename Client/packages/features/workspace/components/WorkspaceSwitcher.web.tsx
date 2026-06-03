@@ -12,14 +12,9 @@ import { workspaceSwitcherLabelKey } from "packages/utils/workspace/workspaceNav
 type WorkspaceSwitcherProps = {
   /** When true, render even with a single allowed workspace (local dev harness). */
   forceVisible?: boolean;
-  /** Admin dev harness: allow any shell and persist selection across identity sync. */
-  devPreview?: boolean;
 };
 
-export function WorkspaceSwitcher({
-  forceVisible = false,
-  devPreview = false,
-}: WorkspaceSwitcherProps) {
+export function WorkspaceSwitcher({ forceVisible = false }: WorkspaceSwitcherProps) {
   const { t } = useLocalization();
   const allowed = useAllowedWorkspaces();
   const active = useActiveWorkspace();
@@ -46,7 +41,7 @@ export function WorkspaceSwitcher({
             type="button"
             size="sm"
             variant={selected ? "primary" : "secondary"}
-            onPress={() => setActive(workspace, devPreview ? { devPreview: true } : undefined)}
+            onPress={() => setActive(workspace)}
             label={t(workspaceSwitcherLabelKey(workspace))}
             accessibilityState={{ selected }}
           >

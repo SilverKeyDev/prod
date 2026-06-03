@@ -6,10 +6,7 @@ import type { UserProfile } from "packages/features/homeauth/types/index";
 import { useAuthStore, useDevAppPersonaStore, useWorkspaceStore } from "packages/store";
 import type { components } from "packages/types/api.generated";
 import type { Workspace } from "packages/utils/workspace";
-import {
-  writeDevWorkspacePreviewEnabled,
-  writePersistedActiveWorkspace,
-} from "packages/utils/workspace/workspaceSessionStorage";
+import { writePersistedActiveWorkspace } from "packages/utils/workspace/workspaceSessionStorage";
 
 /** Merge admin dev-workspace wire `User` into the in-memory auth profile. */
 function mergeWireUserIntoAuthProfile(
@@ -27,7 +24,6 @@ function mergeWireUserIntoAuthProfile(
     created_at: wire.created_at ?? prev.created_at,
     updated_at: wire.updated_at ?? prev.updated_at,
     is_active: wire.is_active,
-    is_agent: wire.is_agent ?? false,
     mls_id: wire.mls_id ?? prev.mls_id,
     brokerage: wire.brokerage ?? prev.brokerage,
     has_preferences: wire.has_preferences ?? prev.has_preferences,
@@ -48,9 +44,7 @@ export function useSetCurrentUserDevWorkspaceMutation() {
     onSuccess: (wireUser, variables) => {
       const workspace = variables.workspace as Workspace;
 
-      writeDevWorkspacePreviewEnabled(false);
       writePersistedActiveWorkspace(workspace);
-      useWorkspaceStore.getState().setDevPreviewAllWorkspaces(false);
 
       const prev = useAuthStore.getState().user;
       const merged = prev ? mergeWireUserIntoAuthProfile(prev, wireUser) : null;

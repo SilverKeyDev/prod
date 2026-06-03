@@ -1,8 +1,11 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -87,17 +90,20 @@ class CalendarEvent(db.Model):
         default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
 
-    # Relationships
-    user = db.relationship(
-        "User", foreign_keys=[user_id], backref=db.backref("calendar_events", lazy=True)
+    user: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[user_id],
+        back_populates="calendar_events",
     )
-    creator = db.relationship(
-        "User", foreign_keys=[creator_id], backref=db.backref("created_events", lazy=True)
+    creator: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[creator_id],
+        back_populates="created_events",
     )
-    target_user = db.relationship(
+    target_user: Mapped["User | None"] = relationship(
         "User",
         foreign_keys=[target_user_id],
-        backref=db.backref("target_calendar_events", lazy=True),
+        back_populates="target_calendar_events",
     )
 
     def __init__(self, **kwargs):
@@ -117,37 +123,6 @@ class CalendarEvent(db.Model):
             self.duration_minutes = int(delta.total_seconds() / 60)
             return self.duration_minutes
         return None
-
-    def to_dict(self):
-        """Convert event to dictionary"""
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "calendar_id": self.calendar_id,
-            "google_event_id": self.google_event_id,
-            "summary": self.summary,
-            "description": self.description,
-            "location": self.location,
-            "itinerary": self.itinerary,
-            "meet_url": self.meet_url,
-            "conference_status": self.conference_status,
-            "event_type": self.event_type,
-            "creator_id": self.creator_id,
-            "target_user_id": self.target_user_id,
-            "shared_with_user_ids": self.shared_with_user_ids,
-            "start_datetime": self.start_datetime.isoformat() if self.start_datetime else None,
-            "end_datetime": self.end_datetime.isoformat() if self.end_datetime else None,
-            "timezone": self.timezone,
-            "duration_minutes": self.duration_minutes,
-            "attendees": self.attendees,
-            "reminders": self.reminders,
-            "status": self.status,
-            "is_synced": self.is_synced,
-            "last_synced_at": self.last_synced_at.isoformat() if self.last_synced_at else None,
-            "sync_source": self.sync_source,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
 
     def __repr__(self):
         return f"<CalendarEvent {self.summary} - {self.start_datetime}>"

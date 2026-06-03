@@ -4,7 +4,7 @@ import traceback
 
 import requests
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from .constants import CENSUS_API_KEY
 
@@ -50,7 +50,7 @@ def fetch_census_data_by_zip(
     try:
         response = requests.get(base, params=params)
         log.debug(
-            LOG_CATEGORIES["API"],
+            "API",
             "Census request",
             {
                 "url": str(response.url),
@@ -66,8 +66,6 @@ def fetch_census_data_by_zip(
             raise Exception(f"❌ Census API returned empty response for ZIP {zip_code}")
         return response.json()
     except Exception as e:
-        log.error(
-            LOG_CATEGORIES["ERRORS"], "Census API error", {"error": str(e), "zip_code": zip_code}
-        )
+        log.error("ERRORS", "Census API error", {"error": str(e), "zip_code": zip_code})
         traceback.print_exc()
         raise

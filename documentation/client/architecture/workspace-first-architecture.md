@@ -1,6 +1,6 @@
 # Workspace-first client architecture
 
-SilverKey distinguishes **who the user is on the server** (identity: `is_agent`, roles, brokerage membership) from **which product shell they are using in the UI** (workspace: `buyer` | `seller` | `agent` | `brokerage` | `integration_partner`). Navigation and many gates should follow **`useActiveWorkspace()`**, not `useIsAgent()`, when the question is “which shell or tab?” — keep **`useIsAgent()`** / `user.is_agent` when the question is “can this session call agent-only APIs?”.
+SilverKey distinguishes **who the user is on the server** (identity: `user_roles`, brokerage membership) from **which product shell they are using in the UI** (workspace: `buyer` | `seller` | `agent` | `brokerage` | `integration_partner`). Navigation and many gates should follow **`useActiveWorkspace()`**, not `useIsAgent()`, when the question is “which shell or tab?” — keep **`useIsAgent()`** when the question is “does this session have the agent role?” (agent-only APIs and agent UX).
 
 ## Status legend
 
@@ -16,13 +16,13 @@ SilverKey distinguishes **who the user is on the server** (identity: `is_agent`,
 | **`Workspace`** | UX mode for routing, sidebar, and feature composition (`buyer` \| `seller` \| `agent` \| `brokerage` \| `integration_partner`). |
 | **`allowedWorkspaces`** | Derived from identity (and optional `brokerage_org_ids` / roles); defines which workspace tabs the user may pick. |
 | **`activeWorkspace`** | Persisted per browser session; canonical hook **`useActiveWorkspace()`** in `packages/hooks/store/`. |
-| **`useIsAgent()`** | Server identity flag; use for API eligibility and demographics, not primary nav shell selection. |
+| **`useIsAgent()`** | True when `roles` includes `"agent"`; use for API eligibility and agent UX, not primary nav shell selection. |
 | **`isPlaceholderWorkspace()`** | `true` for seller, brokerage, integration_partner — barren nav and route guards. |
-| **`devPreviewAllWorkspaces`** | Legacy session flag (`silverkey_dev_workspace_preview_v1`); unlocks all five shells for local QA until logout. Admin dev persona no longer enables this — use server-backed persona switch instead. |
+| **Admin dev persona** | Server-backed workspace QA via **`/admin/dev-persona`** (replaces session `devPreviewAllWorkspaces`). |
 
 ## Identity sync
 
-**What it is:** A client-side reconciler that keeps **`allowedWorkspaces`** and **`activeWorkspace`** aligned with the signed-in user’s server identity (`users.is_agent`, `user_roles`, `brokerage_org_ids`). It does **not** change the server — it reads auth/profile and updates the Zustand workspace store.
+**What it is:** A client-side reconciler that keeps **`allowedWorkspaces`** and **`activeWorkspace`** aligned with the signed-in user’s server identity (`user_roles`, `brokerage_org_ids`). It does **not** change the server — it reads auth/profile and updates the Zustand workspace store.
 
 **How it works:**
 
@@ -30,9 +30,9 @@ SilverKey distinguishes **who the user is on the server** (identity: `is_agent`,
 2. On auth user or profile role changes, it calls **`syncFromIdentity`** on the workspace store.
 3. **`deriveAllowedWorkspaces`** computes which shells identity permits (e.g. agent-only account → `["agent"]`; buyer+seller roles → both).
 4. **`pickInitialActive`** picks `activeWorkspace`: prefers session-persisted value when allowed; otherwise first allowed shell.
-5. **Dev preview bypass:** When `devPreviewAllWorkspaces` is true (legacy session flag), identity sync still runs but all five shells stay available and the persisted admin selection is kept. Prefer **`/admin/dev-persona`** server-backed persona switch for prod-like QA.
+5. **Dev persona:** Use **`/admin/dev-persona`** for prod-like multi-workspace QA (server-backed identity).
 
-Dashboard URLs are **role- and workspace-agnostic** (for example `/search`, `/messaging`, `/dashboard/...`). Which shell the user sees is driven by **`activeWorkspace`** and related store state, not by path prefixes. Legacy **`/buyer/*`** and **`/brokerage/*`** URLs still resolve: they redirect to the equivalent canonical path so bookmarks continue to work.
+Dashboard URLs are **role- and workspace-agnostic** (for example `/search`, `/messaging`, `/dashboard/...`). Which shell the user sees is driven by **`activeWorkspace`** and related store state, not by path prefixes.
 
 ## Key code paths (web)
 
@@ -42,7 +42,7 @@ Dashboard URLs are **role- and workspace-agnostic** (for example `/search`, `/me
 | Placeholder workspace guard | `Client/packages/utils/workspace/isPlaceholderWorkspace.ts` |
 | Workspace Zustand slice | `Client/packages/store/slices/workspace/workspace.slice.ts` |
 | Sync from auth + profile | `Client/packages/hooks/store/integrations/useWorkspaceIdentitySync.ts` |
-| Legacy `/buyer/*`, `/brokerage/*` → canonical URLs | `Client/apps/web/app/routes/LegacyWorkspaceShellPrefixRedirect.tsx`, `stripWorkspaceShellPrefix` in `Client/packages/utils/layout/dashboardLayoutConfig.ts`, `Client/apps/web/app/routes/ShellCanonicalPathRedirect.tsx` |
+| Path normalization (`stripWorkspaceShellPrefix`) | `Client/packages/utils/layout/dashboardLayoutConfig.ts` (layout keys only; no shell-prefix redirects) |
 | Dashboard area resolution | `Client/packages/utils/layout/dashboardLayoutConfig.ts`, `Client/apps/web/app/layouts/dashboard/useDashboardRoute.ts` |
 | Transaction party config | `Client/packages/utils/workspace/transactionShell.ts` + `useTransactionShellConfig` in `packages/hooks/store/` |
 | Per-workspace nav labels / visibility | `Client/packages/utils/workspace/workspaceNavConfig.ts` |
@@ -52,7 +52,7 @@ Dashboard URLs are **role- and workspace-agnostic** (for example `/search`, `/me
 
 ## Server alignment
 
-- **`user.is_agent`** remains the source for **`@require_agent_access`** (and similar agent APIs).
+- **Agent role** in `user_roles` is the source for **`@require_agent_access`** (via `user_is_agent()`).
 - **Brokerage scope** — parallel decorator **`require_brokerage_scope`** in `Server/app/utils/common_patterns.py`; OpenAPI **`User.brokerage_org_ids`** for future roster-backed membership. Regenerate types from `openapi/` after schema changes.
 
 ## Thin app note
@@ -90,7 +90,7 @@ Canonical routes are shared; **nav visibility**, **labels**, **onboarding**, and
 | **Dashboard (`/dashboard`)** | `DashboardPage` → `DashboardFeature` with `activeWorkspace === "agent"` branches (client hub, agent calendar) |
 | **Messaging** | `AgentPage` / Client Hub surfaces |
 | **Post-onboarding** | `/search` |
-| **API identity** | `useIsAgent()` / `user.is_agent` for agent-only endpoints |
+| **API identity** | `useIsAgent()` — agent role in `user.roles` for agent-only endpoints |
 
 ### Seller — **Placeholder (shell only)**
 
@@ -132,7 +132,7 @@ Canonical routes are shared; **nav visibility**, **labels**, **onboarding**, and
 
 ## Identity → workspace
 
-- POST `/api/v1/preferences` syncs **`user_roles`** from `why_joining_silverkey` via `Server/app/services/auth/user_roles_sync.py` (buyer / seller / investor tags; agent via `is_agent`).
+- POST `/api/v1/preferences` syncs **`user_roles`** from `why_joining_silverkey` via `Server/app/services/auth/user_roles_sync.py` (buyer / seller / investor tags); agent role is granted from `primary_onboarding_role: "agent"` on first write (immutable after grant).
 - `deriveAllowedWorkspaces` reads `user.roles` from profile bootstrap (including `integration_partner` when provisioned).
 - **`WorkspaceSwitcher`** — admin only at **`/admin/dev-persona`** (`AdminDevPersonaSection`): sets exclusive server-backed persona via `POST /api/v1/admin/current-user-dev-workspace`. Workspace UX follows identity like production; not mounted in the main dashboard.
 - Seller onboarding success sets `activeWorkspace` to `seller` and navigates to `/dashboard` (see `postOnboardingPathForForm`).

@@ -58,10 +58,10 @@ const iconForStepId = (id: ProfileStepId): StepWithIcon["icon"] => {
 const withIcons = (steps: ProfileStep[]): StepWithIcon[] =>
   steps.map((step) => ({ ...step, icon: iconForStepId(step.id) }));
 
-/** Onboarding steps with optional agent step; pass formData to include agent when is_agent is yes/am_agent. */
+/** Onboarding steps with optional agent step; pass formData to include agent when primary role is agent. */
 export const getOnboardingStepsUi = (formData?: OnboardingData): StepWithIcon[] => {
-  const isAgent = formData?.is_agent === "yes" || formData?.is_agent === "am_agent";
   const primaryRole = formData ? primaryOnboardingRoleFromForm(formData) : undefined;
+  const isAgent = primaryRole === "agent";
   return withIcons(getOnboardingSteps({ excludeFinancial: true, isAgent, primaryRole }));
 };
 

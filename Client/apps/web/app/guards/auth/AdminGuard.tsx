@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { authUtils, PERMISSIONS, UserRole } from "packages/config/auth/auth";
 import { useUserData } from "packages/hooks/data/user/useUserData";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 
@@ -38,7 +38,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
       ].join("|");
       if (lastClearLogSigRef.current !== clearSig) {
         lastClearLogSigRef.current = clearSig;
-        log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_GUARD] gate cleared — rendering admin subtree", {
+        log.info("ROUTING", "[ADMIN_GUARD] gate cleared — rendering admin subtree", {
           authStatus,
           authReady,
           isAuthenticated,
@@ -74,7 +74,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
     if (lastGateLogSigRef.current === sig) return;
     lastGateLogSigRef.current = sig;
 
-    log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_GUARD] gate blocking (Loading admin access…)", {
+    log.info("ROUTING", "[ADMIN_GUARD] gate blocking (Loading admin access…)", {
       reason: blockingChecking ? "auth_status_checking" : "profile_initial_load",
       authStatus,
       authReady,
@@ -152,7 +152,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
   if (!isAuthorized) {
     if (user?.id) {
-      log.security(LOG_CATEGORIES.SECURITY, "[ADMIN_GUARD] Unauthorized admin access attempt", {
+      log.security("SECURITY", "[ADMIN_GUARD] Unauthorized admin access attempt", {
         userId: user.id,
         roles,
       });

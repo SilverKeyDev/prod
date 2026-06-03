@@ -8,6 +8,7 @@ import type { UserProfileForSync } from "packages/features/profile/types/form/pr
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { toBuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 
+import { primaryOnboardingRoleFromForm } from "@/features/profile/utils/onboarding/role/onboardingRoleSelection";
 import { parseUserPreferencesArray } from "@/features/profile/utils/onboarding/validation/preferencesUtils";
 
 export type { UserProfileForSync } from "packages/features/profile/types/form/profileFormSync";
@@ -78,8 +79,6 @@ function toRecordString(value: unknown): Record<string, string> | undefined {
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
-const IS_AGENT_VALUES = new Set(["yes", "am_agent", "true", "1"]);
-
 /**
  * Bump "major.minor" for preferences_version (profile/onboarding saves stay aligned).
  */
@@ -119,18 +118,20 @@ export function mergeOnboardingServerAndDraft(
   };
 }
 
-function isAgentFormData(formData: OnboardingData): boolean {
-  const v = formData.is_agent;
-  return typeof v === "string" && IS_AGENT_VALUES.has(v.toLowerCase());
+function isAgentFormData(formData: OnboardingData, userProfile?: UserProfileForSync): boolean {
+  return primaryOnboardingRoleFromForm(formData, { roles: userProfile?.roles }) === "agent";
 }
 
 /**
  * Builds the payload to send to the preferences API. Includes name so the backend
  * can persist it to User (single source of truth); GET preferences returns name from User.
- * When formData.is_agent is not yes/am_agent, agent_* fields are omitted.
+ * When the user is not an agent (draft role or auth roles), agent_* fields are omitted.
  * Maps form keys to backend-expected keys (housing_type, preferred_*_min/max, important_locations, extended_buyer_preferences).
  */
-export function formDataToPreferencesPayload(formData: OnboardingData): Record<string, unknown> {
+export function formDataToPreferencesPayload(
+  formData: OnboardingData,
+  userProfile?: UserProfileForSync
+): Record<string, unknown> {
   const { name, important_locations, ...rest } = formData;
   const payload = {
     ...rest,
@@ -165,14 +166,13 @@ export function formDataToPreferencesPayload(formData: OnboardingData): Record<s
     delete payload.buyerPreferenceExtensions;
   }
 
-  if (!isAgentFormData(formData)) {
+  if (!isAgentFormData(formData, userProfile)) {
     for (const key of Object.keys(payload)) {
       if (key.startsWith("agent_")) delete payload[key];
     }
   }
   delete payload.public_profile_slug;
   delete payload.agent_professional_headshot_url;
-  delete payload.primary_onboarding_role;
   return payload;
 }
 
@@ -206,13 +206,12 @@ export function userPreferencesToOnboardingData(
       : undefined
   );
 
-  return {
+  const data: OnboardingData = {
     // Metadata
     preferences_version: toString(get("preferences_version")),
 
     // Demographics — name from user profile (auth) when available, else from preferences
     name: nameFromProfile ?? toString(get("name")),
-    is_agent: toString(get("is_agent")),
     pets: toString(get("pets")),
     age: toNumber(get("age")),
     why_joining_silverkey: toStringArray(get("why_joining_silverkey")),
@@ -232,8 +231,7 @@ export function userPreferencesToOnboardingData(
     // Housing — map backend keys (housing_type, preferred_*_min/max) to form keys
     preferred_housing_type:
       toString(get("preferred_housing_type")) ?? toString(get("housing_type")),
-    preferred_bedrooms_min:
-      toNumber(get("preferred_bedrooms")) ?? toNumber(get("preferred_bedrooms_min")),
+    preferred_bedrooms_min: toNumber(get("preferred_bedrooms_min")),
     preferred_bedrooms_max: toNumber(get("preferred_bedrooms_max")),
     preferred_bathrooms_min:
       toNumber(get("preferred_bathrooms")) ?? toNumber(get("preferred_bathrooms_min")),
@@ -286,7 +284,7 @@ export function userPreferencesToOnboardingData(
     has_buyers_agent: toString(get("has_buyers_agent")),
     looking_for_buyers_agent: toBool(get("looking_for_buyers_agent")),
 
-    // Agent profile (when user is agent; API returns these only when is_agent)
+    // Agent profile (when user has agent role; API returns these only for agents)
     agent_physical_mailing_address: toString(get("agent_physical_mailing_address")),
     agent_licensed_states: toStringArray(get("agent_licensed_states")),
     agent_license_types: toStringArray(get("agent_license_types")),
@@ -304,4 +302,11 @@ export function userPreferencesToOnboardingData(
     agent_social_links: toRecordString(get("agent_social_links")),
     public_profile_slug: toString(get("public_profile_slug")),
   };
+
+  const primaryRole = primaryOnboardingRoleFromForm(data, { roles: userProfile?.roles });
+  if (primaryRole) {
+    data.primary_onboarding_role = primaryRole;
+  }
+
+  return data;
 }

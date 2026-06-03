@@ -1,7 +1,10 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -25,14 +28,15 @@ class CalendarShare(db.Model):
         default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
 
-    # Relationships
-    calendar_owner = db.relationship(
-        "User", foreign_keys=[calendar_owner_id], backref=db.backref("shared_calendars", lazy=True)
+    calendar_owner: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[calendar_owner_id],
+        back_populates="shared_calendars",
     )
-    shared_with_user = db.relationship(
+    shared_with_user: Mapped["User"] = relationship(
         "User",
         foreign_keys=[shared_with_user_id],
-        backref=db.backref("calendars_shared_with_me", lazy=True),
+        back_populates="calendars_shared_with_me",
     )
 
     # Unique constraint: one calendar can only be shared with a user once
@@ -46,18 +50,6 @@ class CalendarShare(db.Model):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        """Convert share to dictionary"""
-        return {
-            "id": self.id,
-            "calendar_owner_id": self.calendar_owner_id,
-            "shared_with_user_id": self.shared_with_user_id,
-            "calendar_id": self.calendar_id,
-            "role": self.role,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
 
     def __repr__(self):
         return (

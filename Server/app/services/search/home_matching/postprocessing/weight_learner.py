@@ -2,7 +2,6 @@
 Logistic regression-based weight learner for subscore blending.
 """
 
-import logging
 from typing import Any
 
 import numpy as np
@@ -11,8 +10,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 
 from app import db
 from app.models import UserScoreWeights
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 class WeightLearner:
@@ -84,9 +82,10 @@ class WeightLearner:
                 # If only one class in y, AUC is undefined
                 auc = 0.5
 
-            logger.info(
+            log.info(
+                "SEARCH",
                 f"Trained model: embedding_weight={embedding_weight:.3f}, "
-                f"llm_weight={llm_weight:.3f}, accuracy={accuracy:.3f}, auc={auc:.3f}"
+                f"llm_weight={llm_weight:.3f}, accuracy={accuracy:.3f}, auc={auc:.3f}",
             )
 
             return (
@@ -97,7 +96,7 @@ class WeightLearner:
             )
 
         except Exception as e:
-            logger.error(f"Error training weight learner: {e}", exc_info=True)
+            log.error("ERRORS", f"Error training weight learner: {e}")
             # Return default weights on error
             return (0.5, 0.5, 0.0, 0.5)
 
@@ -130,7 +129,7 @@ class WeightLearner:
         """
         try:
             if not training_examples:
-                logger.warning(f"No training examples for user {user_id}")
+                log.warn("SEARCH", f"No training examples for user {user_id}")
                 return None
 
             # Train model
@@ -150,15 +149,16 @@ class WeightLearner:
             db.session.add(weights)
             db.session.commit()
 
-            logger.info(
+            log.info(
+                "SEARCH",
                 f"Updated weights for user {user_id}: "
-                f"embedding={embedding_weight:.3f}, llm={llm_weight:.3f}"
+                f"embedding={embedding_weight:.3f}, llm={llm_weight:.3f}",
             )
 
             return weights
 
         except Exception as e:
-            logger.error(f"Error updating weights for user {user_id}: {e}", exc_info=True)
+            log.error("ERRORS", f"Error updating weights for user {user_id}: {e}")
             db.session.rollback()
             return None
 
@@ -178,7 +178,7 @@ class WeightLearner:
         """
         try:
             if not training_examples:
-                logger.warning(f"No training examples for cohort {cohort_id}")
+                log.warn("SEARCH", f"No training examples for cohort {cohort_id}")
                 return None
 
             # Train model
@@ -198,15 +198,16 @@ class WeightLearner:
             db.session.add(weights)
             db.session.commit()
 
-            logger.info(
+            log.info(
+                "SEARCH",
                 f"Updated weights for cohort {cohort_id}: "
-                f"embedding={embedding_weight:.3f}, llm={llm_weight:.3f}"
+                f"embedding={embedding_weight:.3f}, llm={llm_weight:.3f}",
             )
 
             return weights
 
         except Exception as e:
-            logger.error(f"Error updating weights for cohort {cohort_id}: {e}", exc_info=True)
+            log.error("ERRORS", f"Error updating weights for cohort {cohort_id}: {e}")
             db.session.rollback()
             return None
 

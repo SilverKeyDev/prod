@@ -5,5 +5,6 @@ export {
   type AdminNavSpecItem,
   type AdminRouteSegment,
   segmentFromPath,
+  superadminOnlyRouteSegments,
   visibleAdminNavSpec,
 } from "./adminNavConfig";

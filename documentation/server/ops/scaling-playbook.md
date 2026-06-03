@@ -20,7 +20,7 @@ flowchart LR
   Beat --> RedisC
 ```
 
-Canonical deploy: [`.github/scripts/ec2-deploy.sh`](../../../.github/scripts/ec2-deploy.sh) (not the legacy `scripts/deploy/ec2/*.sh` step scripts).
+**Canonical deploy:** [`.github/scripts/ec2-deploy.sh`](../../../.github/scripts/ec2-deploy.sh) (invoked from [`.github/workflows/ci_web.yml`](../../../.github/workflows/ci_web.yml) on the EC2 host).
 
 Containers:
 

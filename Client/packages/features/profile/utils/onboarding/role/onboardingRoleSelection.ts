@@ -4,7 +4,7 @@ import {
   type OnboardingRolePickerValue,
 } from "packages/utils/domain/profile/onboardingRolePicker";
 
-/** Values accepted by onboarding role picker; maps to `is_agent` and `why_joining_silverkey`. */
+/** Values accepted by onboarding role picker; maps to `why_joining_silverkey` and role sync. */
 export type PrimaryOnboardingRole = OnboardingRolePickerValue;
 
 /** Canonical WHY_JOIN tags when role is buyer / seller (legacy investor tag still read). */
@@ -19,8 +19,8 @@ export function isSelectableOnboardingRole(role: PrimaryOnboardingRole): boolean
 }
 
 /**
- * First-screen onboarding role: sets draft `primary_onboarding_role`,
- * `is_agent`, and `why_joining_silverkey` for demographics sync.
+ * First-screen onboarding role: sets draft `primary_onboarding_role` and
+ * `why_joining_silverkey` for demographics / server role sync.
  */
 export function applyOnboardingRoleSelection(
   role: PrimaryOnboardingRole,
@@ -34,27 +34,24 @@ export function applyOnboardingRoleSelection(
 
   switch (role) {
     case "agent":
-      updateFormData("is_agent", "yes");
       updateFormData("why_joining_silverkey", []);
       break;
     case "buyer":
-      updateFormData("is_agent", "no");
       updateFormData("why_joining_silverkey", [WHY_JOIN_FOR_ROLE.buyer]);
       break;
     case "seller":
-      updateFormData("is_agent", "no");
       updateFormData("why_joining_silverkey", [WHY_JOIN_FOR_ROLE.buyer, WHY_JOIN_FOR_ROLE.seller]);
       break;
     case "integration_partner":
-      updateFormData("is_agent", "no");
       updateFormData("why_joining_silverkey", []);
       break;
   }
 }
 
-/** UI selection state from draft and/or synced preferences. */
+/** UI selection state from draft and/or synced preferences / auth roles. */
 export function primaryOnboardingRoleFromForm(
-  formData: OnboardingData
+  formData: OnboardingData,
+  options?: { roles?: readonly string[] }
 ): PrimaryOnboardingRole | undefined {
   const fromDraft = formData.primary_onboarding_role;
   if (fromDraft === "investor") {
@@ -68,9 +65,9 @@ export function primaryOnboardingRoleFromForm(
   ) {
     return fromDraft;
   }
-  const ia = formData.is_agent?.toLowerCase();
-  const isAgent = ia === "yes" || ia === "am_agent" || ia === "true" || ia === "1";
-  if (isAgent) return "agent";
+  if (options?.roles?.includes("agent")) {
+    return "agent";
+  }
   const w = formData.why_joining_silverkey;
   if (!Array.isArray(w)) return undefined;
   if (w.includes(WHY_JOIN_FOR_ROLE.seller)) return "seller";

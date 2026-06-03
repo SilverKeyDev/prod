@@ -1,9 +1,12 @@
 """User roles for multi-role support (agent, buyer, seller, investor, etc.). Replaces long-term reliance on is_agent and similar flags."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -20,15 +23,7 @@ class UserRole(db.Model):
 
     __table_args__ = (db.UniqueConstraint("user_id", "role", name="uq_user_roles_user_id_role"),)
 
-    user = db.relationship(
-        "User",
-        backref=db.backref(
-            "user_roles",
-            lazy="dynamic",
-            cascade="all, delete-orphan",
-            passive_deletes=True,
-        ),
-    )
+    user: Mapped["User"] = relationship("User", back_populates="user_roles")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

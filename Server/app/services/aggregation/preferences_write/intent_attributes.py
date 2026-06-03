@@ -2,6 +2,8 @@
 
 from typing import Any
 
+from sqlalchemy import delete
+
 from app import db
 from app.models import UserIntentAttribute
 
@@ -22,14 +24,18 @@ def write_intent_attributes_from_payload(user_id: str, data: dict[str, Any]) -> 
                 breakers.append(key_stripped)
             else:
                 features.append(key_stripped)
-        UserIntentAttribute.query.filter(
-            UserIntentAttribute.user_id == user_id,
-            UserIntentAttribute.attribute_type.in_(["feature", "nice_to_have"]),
-        ).delete(synchronize_session=False)
-        UserIntentAttribute.query.filter(
-            UserIntentAttribute.user_id == user_id,
-            UserIntentAttribute.attribute_type == "deal_breaker",
-        ).delete(synchronize_session=False)
+        db.session.execute(
+            delete(UserIntentAttribute).where(
+                UserIntentAttribute.user_id == user_id,
+                UserIntentAttribute.attribute_type.in_(["feature", "nice_to_have"]),
+            )
+        )
+        db.session.execute(
+            delete(UserIntentAttribute).where(
+                UserIntentAttribute.user_id == user_id,
+                UserIntentAttribute.attribute_type == "deal_breaker",
+            )
+        )
         for f in features:
             db.session.add(
                 UserIntentAttribute(user_id=user_id, attribute_type="feature", attribute_key=f)
@@ -41,10 +47,12 @@ def write_intent_attributes_from_payload(user_id: str, data: dict[str, Any]) -> 
     else:
         features = data.get("preferred_home_features")
         if isinstance(features, list):
-            UserIntentAttribute.query.filter(
-                UserIntentAttribute.user_id == user_id,
-                UserIntentAttribute.attribute_type.in_(["feature", "nice_to_have"]),
-            ).delete(synchronize_session=False)
+            db.session.execute(
+                delete(UserIntentAttribute).where(
+                    UserIntentAttribute.user_id == user_id,
+                    UserIntentAttribute.attribute_type.in_(["feature", "nice_to_have"]),
+                )
+            )
             for f in features:
                 key = f if isinstance(f, str) else str(f)
                 if key:
@@ -55,10 +63,12 @@ def write_intent_attributes_from_payload(user_id: str, data: dict[str, Any]) -> 
                     )
         breakers = data.get("deal_breakers")
         if isinstance(breakers, list):
-            UserIntentAttribute.query.filter(
-                UserIntentAttribute.user_id == user_id,
-                UserIntentAttribute.attribute_type == "deal_breaker",
-            ).delete(synchronize_session=False)
+            db.session.execute(
+                delete(UserIntentAttribute).where(
+                    UserIntentAttribute.user_id == user_id,
+                    UserIntentAttribute.attribute_type == "deal_breaker",
+                )
+            )
             for b in breakers:
                 key = b if isinstance(b, str) else str(b)
                 if key:
@@ -71,10 +81,12 @@ def write_intent_attributes_from_payload(user_id: str, data: dict[str, Any]) -> 
     # must_have and listing_type (always from payload when present)
     must_have = data.get("must_have")
     if isinstance(must_have, list):
-        UserIntentAttribute.query.filter(
-            UserIntentAttribute.user_id == user_id,
-            UserIntentAttribute.attribute_type == "must_have",
-        ).delete(synchronize_session=False)
+        db.session.execute(
+            delete(UserIntentAttribute).where(
+                UserIntentAttribute.user_id == user_id,
+                UserIntentAttribute.attribute_type == "must_have",
+            )
+        )
         for m in must_have:
             key = m if isinstance(m, str) else str(m)
             if key:
@@ -85,10 +97,12 @@ def write_intent_attributes_from_payload(user_id: str, data: dict[str, Any]) -> 
                 )
     listing_type = data.get("listing_type")
     if isinstance(listing_type, list):
-        UserIntentAttribute.query.filter(
-            UserIntentAttribute.user_id == user_id,
-            UserIntentAttribute.attribute_type == "listing_type",
-        ).delete(synchronize_session=False)
+        db.session.execute(
+            delete(UserIntentAttribute).where(
+                UserIntentAttribute.user_id == user_id,
+                UserIntentAttribute.attribute_type == "listing_type",
+            )
+        )
         for lt in listing_type:
             key = lt if isinstance(lt, str) else str(lt)
             if key:
@@ -104,10 +118,12 @@ def write_intent_attributes_from_payload(user_id: str, data: dict[str, Any]) -> 
         ("renovation_preference", "renovation_preference"),
         ("intended_property_use", "intended_property_use"),
     ]:
-        UserIntentAttribute.query.filter(
-            UserIntentAttribute.user_id == user_id,
-            UserIntentAttribute.attribute_type == attr_type,
-        ).delete(synchronize_session=False)
+        db.session.execute(
+            delete(UserIntentAttribute).where(
+                UserIntentAttribute.user_id == user_id,
+                UserIntentAttribute.attribute_type == attr_type,
+            )
+        )
         val = data.get(payload_key)
         if val is not None and str(val).strip():
             db.session.add(
@@ -120,10 +136,12 @@ def write_intent_attributes_from_payload(user_id: str, data: dict[str, Any]) -> 
 
     # paying_cash: boolean as UserIntentAttribute (attribute_key "yes" when true; absent when false)
     if "paying_cash" in data:
-        UserIntentAttribute.query.filter(
-            UserIntentAttribute.user_id == user_id,
-            UserIntentAttribute.attribute_type == "paying_cash",
-        ).delete(synchronize_session=False)
+        db.session.execute(
+            delete(UserIntentAttribute).where(
+                UserIntentAttribute.user_id == user_id,
+                UserIntentAttribute.attribute_type == "paying_cash",
+            )
+        )
         raw = data["paying_cash"]
         truthy = raw is True or (
             isinstance(raw, str) and str(raw).strip().lower() in ("true", "1", "yes")

@@ -17,8 +17,8 @@ import OptionTagInput from "@/features/profile/components/settings/inputs/tags/O
 import {
   effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
-  IS_AGENT_OPTIONS,
   type OnboardingData,
+  primaryOnboardingRoleFromForm,
   PROFILE_NOT_SPECIFIED_LABEL,
   profileFieldValueClassName,
   WHY_JOINING_SILVERKEY_OPTIONS,
@@ -33,12 +33,6 @@ type DemographicsSectionProps = {
   hideProfilePictureWhenOnboarding?: boolean;
   /** When true, hide the name field (onboarding only; name remains in regular settings). Default false. */
   hideNameWhenOnboarding?: boolean;
-  /**
-   * When false, hide the agent/buyer choice. Agent status is immutable once set during onboarding;
-   * the choice is only shown during onboarding, not in settings or profile.
-   * Default true for onboarding flows.
-   */
-  showAgentChoice?: boolean;
   /** When false, hides the "Why are you joining SilverKey?" field. Default true. */
   showWhyJoiningQuestion?: boolean;
 };
@@ -62,14 +56,13 @@ export default function DemographicsSection({
   updateFormData,
   hideProfilePictureWhenOnboarding = false,
   hideNameWhenOnboarding = false,
-  showAgentChoice = true,
   showWhyJoiningQuestion = true,
 }: DemographicsSectionProps) {
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
   const authIsAgent = useIsAgent();
   const showBuyerFacingDemographics = !effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
-    formIsAgent: formData.is_agent,
+    formPrimaryRole: primaryOnboardingRoleFromForm(formData),
   });
   return (
     <>
@@ -143,66 +136,40 @@ export default function DemographicsSection({
           />
         )}
 
-        {/* Are you a real estate agent? + Age (when name hidden) - agent choice only shown during onboarding */}
-        <AlignedRow
-          {...PROFILE_FIELDS_ROW_PROPS}
-          items={[
-            ...(showAgentChoice
-              ? [
-                  {
-                    title: <Label>{FIELD_LABELS.IS_AGENT}</Label>,
-                    content: isEditMode ? (
-                      <Dropdown
-                        value={formData.is_agent ?? ""}
-                        onChange={(value) => updateFormData("is_agent", value)}
-                        options={IS_AGENT_OPTIONS}
-                        placeholder="Select whether you are an agent"
-                      />
-                    ) : (
-                      <Box
-                        className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                          formData.is_agent
-                        )}`}
-                      >
-                        {getOptionLabel(IS_AGENT_OPTIONS, formData.is_agent)}
-                      </Box>
-                    ),
-                  },
-                ]
-              : []),
-            ...(hideNameWhenOnboarding
-              ? [
-                  {
-                    title: <Label>{FIELD_LABELS.AGE}</Label>,
-                    content: isEditMode ? (
-                      <Input
-                        type="number"
-                        value={formData.age?.toString() ?? ""}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          updateFormData(
-                            "age",
-                            e.target.value ? parseInt(e.target.value, 10) : undefined
-                          )
-                        }
-                        placeholder="Enter your age"
-                        min={18}
-                        max={100}
-                        className="w-full"
-                      />
-                    ) : (
-                      <Box
-                        className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                          formData.age
-                        )}`}
-                      >
-                        {formData.age ?? PROFILE_NOT_SPECIFIED_LABEL}
-                      </Box>
-                    ),
-                  },
-                ]
-              : []),
-          ]}
-        />
+        {hideNameWhenOnboarding ? (
+          <AlignedRow
+            {...PROFILE_FIELDS_ROW_PROPS}
+            items={[
+              {
+                title: <Label>{FIELD_LABELS.AGE}</Label>,
+                content: isEditMode ? (
+                  <Input
+                    type="number"
+                    value={formData.age?.toString() ?? ""}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      updateFormData(
+                        "age",
+                        e.target.value ? parseInt(e.target.value, 10) : undefined
+                      )
+                    }
+                    placeholder="Enter your age"
+                    min={18}
+                    max={100}
+                    className="w-full"
+                  />
+                ) : (
+                  <Box
+                    className={`mobile-input bg-background-base ${profileFieldValueClassName(
+                      formData.age
+                    )}`}
+                  >
+                    {formData.age ?? PROFILE_NOT_SPECIFIED_LABEL}
+                  </Box>
+                ),
+              },
+            ]}
+          />
+        ) : null}
 
         {showBuyerFacingDemographics ? (
           <>

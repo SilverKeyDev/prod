@@ -1,5 +1,7 @@
 """Tests for partner admin create/update validation."""
 
+from sqlalchemy import func, select
+
 from app import db
 from app.models import Partner, RevShareLink, RevShareLinkClick
 from app.services.rev_share.admin.partners_admin import (
@@ -113,9 +115,23 @@ def test_delete_partner_removes_links_and_clicks(app, db_session):
         db.session.commit()
 
         assert delete_partner(partner.id) is True
-        assert Partner.query.filter_by(id=partner.id).first() is None
-        assert RevShareLink.query.filter_by(partner_id=partner.id).count() == 0
-        assert RevShareLinkClick.query.filter_by(partner_id=partner.id).count() == 0
+        assert db.session.scalar(select(Partner).where(Partner.id == partner.id)) is None
+        assert (
+            db.session.scalar(
+                select(func.count())
+                .select_from(RevShareLink)
+                .where(RevShareLink.partner_id == partner.id)
+            )
+            == 0
+        )
+        assert (
+            db.session.scalar(
+                select(func.count())
+                .select_from(RevShareLinkClick)
+                .where(RevShareLinkClick.partner_id == partner.id)
+            )
+            == 0
+        )
 
 
 def test_delete_partner_missing_returns_false(app, db_session):

@@ -179,27 +179,37 @@ Services contain business logic and orchestration:
 
 ```python
 # app/services/example/profile_service.py
+from sqlalchemy import select
+
 from app import db
+from app.dtos.user import UserDTO
 from app.models import User, UserDemographics, UserFinancials
 
 class ProfileService:
     def get_profile(self, user_id: str) -> dict:
         """Get user profile with all related data"""
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             raise ValueError("User not found")
 
-        demographics = UserDemographics.query.filter_by(user_id=user_id).first()
-        financials = UserFinancials.query.filter_by(user_id=user_id).first()
+        demographics = db.session.scalar(
+            select(UserDemographics).where(UserDemographics.user_id == user_id)
+        )
+        financials = db.session.scalar(
+            select(UserFinancials).where(UserFinancials.user_id == user_id)
+        )
 
         return {
-            'user': user.to_dict(),
-            'demographics': demographics.to_dict() if demographics else None,
-            'financials': financials.to_dict() if financials else None,
+            "user": UserDTO.to_response(user, include_roles=True),
+            # Use domain DTOs or explicit dict builders for related tables — not model.to_dict()
+            "demographics": demographics,  # map via DTO when exposing over HTTP
+            "financials": financials,
         }
 
 profile_service = ProfileService()  # Singleton instance
 ```
+
+HTTP responses should use DTOs under `app/dtos/` (validated against `app.schemas.generated`). See `app/dtos/README.md`.
 
 ### Service Patterns
 
@@ -214,64 +224,103 @@ See: `.cursor/rules/backend/backend-patterns.mdc`
 
 ### Model Definition
 
+SQLAlchemy 2.0 style: typed columns with `Mapped[]` + `mapped_column`, typed relationships, no `to_dict()` on ORM classes.
+
 ```python
-# app/models/user/user.py
-from app import db
-from datetime import datetime
+# app/models/user/user.py (excerpt)
+from __future__ import annotations
+
 import uuid
+from datetime import datetime, timezone
+
+from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
+
+from app import db
+
 
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    name = db.Column(db.String(100), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    email: Mapped[str] = mapped_column(db.String(120), unique=True)
+    name: Mapped[str] = mapped_column(db.String(100))
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
-    # Relationships
-    demographics = db.relationship('UserDemographics', back_populates='user', uselist=False)
-    financials = db.relationship('UserFinancials', back_populates='user', uselist=False)
+    user_demographics: Mapped["UserDemographics | None"] = relationship(
+        "UserDemographics",
+        back_populates="user",
+        uselist=False,
+    )
+    org_memberships: DynamicMapped["UserOrgMembership"] = relationship(
+        "UserOrgMembership",
+        back_populates="user",
+        lazy="dynamic",
+    )
+```
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'email': self.email,
-            'name': self.name,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-        }
+**Forbidden in `app/models/`:** `db.Column`, `backref=`, and `to_dict()` — CI enforces the first two via `Server/scripts/lint/lint_sqlalchemy_legacy_models.py`.
+
+### API serialization (DTOs)
+
+Routes and services return JSON built from `app/dtos/*`, not ORM helpers:
+
+```python
+from app.dtos.user import UserDTO
+
+profile = UserDTO.to_response(user, include_roles=True, presign_profile_pic=True)
 ```
 
 ### Relationships
 
-Use `back_populates` (preferred) instead of `backref`:
+Use `back_populates` with explicit `Mapped` / `DynamicMapped` types. Do not use `backref`:
 
 ```python
-# Parent
+# Parent (one-to-one)
 class User(db.Model):
-    demographics = db.relationship('UserDemographics', back_populates='user', uselist=False)
+    user_demographics: Mapped["UserDemographics | None"] = relationship(
+        "UserDemographics", back_populates="user", uselist=False
+    )
 
 # Child
 class UserDemographics(db.Model):
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), unique=True, nullable=False)
-    user = db.relationship('User', back_populates='demographics')
+    user_id: Mapped[str] = mapped_column(
+        db.String(36), db.ForeignKey("users.id"), unique=True, nullable=False
+    )
+    user: Mapped["User"] = relationship("User", back_populates="user_demographics")
 ```
 
 ### Query Patterns
 
+Use SQLAlchemy 2.0 style (`select()` + session helpers). Legacy `Model.query` and `db.session.query()` are blocked in CI via `Server/scripts/lint/lint_legacy_orm_query.py`.
+
 ```python
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+
+from app import db
+from app.models import Property, User
+
 # Simple query
-user = User.query.filter_by(email='user@example.com').first()
+user = db.session.scalar(select(User).where(User.email == "user@example.com"))
 
 # Eager loading (avoid N+1)
-from sqlalchemy.orm import joinedload
-users = User.query.options(joinedload(User.demographics)).all()
+users = db.session.scalars(
+    select(User).options(joinedload(User.user_demographics))
+).all()
 
 # Filtering
-properties = Property.query.filter(
-    Property.price >= min_price,
-    Property.price <= max_price,
-    Property.bedrooms >= min_beds
+properties = db.session.scalars(
+    select(Property).where(
+        Property.price >= min_price,
+        Property.price <= max_price,
+        Property.bedrooms >= min_beds,
+    )
 ).all()
 ```
 
@@ -396,7 +445,7 @@ See: `.cursor/rules/shared/user-preferences-schema.mdc`
 **Allowed:**
 - ✅ Edit model definitions in `Server/app/models/` (when explicitly requested)
 - ✅ Add new models (without migration)
-- ✅ Change model methods (e.g., `to_dict()`)
+- ✅ Add or change DTOs in `Server/app/dtos/` for API shape changes
 
 See: `.cursor/rules/backend/database.mdc`
 
@@ -577,7 +626,7 @@ See: `.cursor/rules/shared/code-organization.mdc`
 
 - **Logging:** Automatic PII scrubbing via `Server/logger/pii.py`
 - **Error responses:** Use `SecureErrorHandler` to avoid leaking sensitive data
-- **Database:** Mask sensitive fields in `to_dict()` methods where appropriate
+- **API payloads:** Mask or omit sensitive fields in DTOs (`app/dtos/`) before `jsonify`
 
 ### Access Control
 

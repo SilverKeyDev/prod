@@ -6,18 +6,11 @@ Provides utilities for checking and validating OAuth permissions
 import requests
 
 from app.services.auth.tokens import tokens_get
-from app.utils.security.app_logging import get_logger
+from logger import log
 
 from .constants import permissions
 
-logger = get_logger()
-
-# Google OAuth tokeninfo endpoint - authoritative source for token scopes
 TOKENINFO_ENDPOINT = "https://oauth2.googleapis.com/tokeninfo"
-
-# Tokeninfo and some responses use OIDC short scope names; the refresh-token response uses
-# full URLs. google.oauth2.credentials compares those as strings, which logs spurious
-# "missing scopes email, profile" warnings unless we normalize.
 _GOOGLE_OIDC_SHORT_TO_CANONICAL: dict[str, str] = {
     "email": permissions["userinfo_email"]["scope_url"],
     "profile": permissions["userinfo_profile"]["scope_url"],
@@ -70,32 +63,28 @@ def get_scopes_from_tokeninfo(access_token: str) -> str | None:
         }
     """
     if not access_token:
-        logger.warning("Cannot get scopes from tokeninfo: access_token is empty")
+        log.warn("CALENDAR", "Cannot get scopes from tokeninfo: access_token is empty")
         return None
-
     try:
         response = requests.get(
             TOKENINFO_ENDPOINT, params={"access_token": access_token}, timeout=10
         )
-
         if response.status_code != 200:
-            logger.warning(
-                f"Tokeninfo endpoint returned status {response.status_code}: {response.text[:200]}"
+            log.warn(
+                "CALENDAR",
+                f"Tokeninfo endpoint returned status {response.status_code}: {response.text[:200]}",
             )
             return None
-
         token_info = response.json()
         scopes = token_info.get("scope", "")
         normalized = normalize_google_oauth_scope_string(scopes)
-
-        logger.info(f"Retrieved scopes from tokeninfo: {normalized}")
+        log.info("CALENDAR", f"Retrieved scopes from tokeninfo: {normalized}")
         return normalized
-
     except requests.exceptions.RequestException as e:
-        logger.warning(f"Failed to call tokeninfo endpoint: {str(e)}")
+        log.warn("CALENDAR", f"Failed to call tokeninfo endpoint: {str(e)}")
         return None
     except (ValueError, KeyError) as e:
-        logger.warning(f"Failed to parse tokeninfo response: {str(e)}")
+        log.warn("CALENDAR", f"Failed to parse tokeninfo response: {str(e)}")
         return None
 
 
@@ -110,7 +99,6 @@ def parse_scopes_to_permissions(scopes: str) -> dict[str, bool]:
     """
     if not scopes:
         return dict.fromkeys(permissions.keys(), False)
-
     scope_list = normalize_google_oauth_scope_list(
         [s.strip() for s in scopes.split() if s.strip()]
         if isinstance(scopes, str)
@@ -118,7 +106,6 @@ def parse_scopes_to_permissions(scopes: str) -> dict[str, bool]:
     )
     scope_set = set(scope_list)
     result = {}
-
     for perm_name, perm_data in permissions.items():
         scope_url = perm_data["scope_url"]
         implied_by = perm_data.get("implied_by", [])
@@ -128,7 +115,6 @@ def parse_scopes_to_permissions(scopes: str) -> dict[str, bool]:
             result[perm_name] = True
         else:
             result[perm_name] = False
-
     return result
 
 
@@ -143,13 +129,11 @@ def check_permission(user_id: str, permission: str) -> bool:
         True if user has permission, False otherwise
     """
     if permission not in permissions:
-        logger.warning(f"Unknown permission: {permission}")
+        log.warn("CALENDAR", f"Unknown permission: {permission}")
         return False
-
     token_data = tokens_get(user_id)
     if not token_data:
         return False
-
     permission_field = permissions[permission].get("field_name")
     if not permission_field:
         scope_url = permissions[permission]["scope_url"]
@@ -158,7 +142,6 @@ def check_permission(user_id: str, permission: str) -> bool:
             [s.strip() for s in raw.split() if s.strip()]
         )
         return scope_url in set(scope_list)
-
     return token_data.get(permission_field, False)
 
 
@@ -178,18 +161,12 @@ def require_permission(
         If has_permission is False, error_response_dict contains error response
     """
     has_permission = check_permission(user_id, permission)
-
     if has_permission:
         return (True, None)
-
-    # Build error response
     perm_data = permissions.get(permission, {})
     perm_data.get("scope_url", "")
     description = perm_data.get("description", "")
-
-    # Determine reconnect URL based on permission
     reconnect_url = _build_reconnect_url(permission)
-
     error_response = {
         "success": False,
         "error": "permission_required",
@@ -198,7 +175,6 @@ def require_permission(
         "reconnect_url": reconnect_url,
         "missing_permissions": [permission],
     }
-
     return (False, error_response)
 
 
@@ -251,14 +227,10 @@ def check_multiple_permissions(
         Tuple of (all_permissions_present, error_response_dict)
     """
     missing = get_missing_permissions(user_id, required_permissions)
-
     if not missing:
         return (True, None)
-
-    # Build error response with all missing permissions
     missing_descriptions = [permissions.get(perm, {}).get("description", perm) for perm in missing]
     reconnect_url = _build_reconnect_url(missing[0]) if missing else "/api/v1/google/oauth/start"
-
     error_response = {
         "success": False,
         "error": "permission_required",
@@ -267,5 +239,4 @@ def check_multiple_permissions(
         "reconnect_url": reconnect_url,
         "missing_permissions": missing,
     }
-
     return (False, error_response)

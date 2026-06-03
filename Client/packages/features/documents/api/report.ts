@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { apiDelete, apiGet, apiHead, apiPost } from "packages/services/http";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
 import { captureError } from "packages/services/security/errorReporting";
@@ -67,14 +67,14 @@ export const reportApi = {
    * Share document using Web Share API or fallback to URL sharing
    */
   shareDocument: async (documentId: string, documentName: string): Promise<ShareDocumentResult> => {
-    log.info(LOG_CATEGORIES.DOCUMENTS, "Document share started", {
+    log.info("DOCUMENTS", "Document share started", {
       documentId,
       documentName,
     });
     try {
       const viewResponse = await reportApi.getViewUrl(documentId);
       if (!viewResponse.success || !viewResponse.viewUrl) {
-        log.info(LOG_CATEGORIES.DOCUMENTS, "Document share: view URL not available", {
+        log.info("DOCUMENTS", "Document share: view URL not available", {
           documentId,
           documentName,
           viewUrlSuccess: viewResponse.success,
@@ -82,7 +82,7 @@ export const reportApi = {
         return { success: false, message: "Unable to generate shareable link" };
       }
 
-      log.info(LOG_CATEGORIES.DOCUMENTS, "Document share: presigned view URL obtained", {
+      log.info("DOCUMENTS", "Document share: presigned view URL obtained", {
         documentId,
         documentName,
       });
@@ -100,7 +100,7 @@ export const reportApi = {
       });
 
       if (shareResult === "shared") {
-        log.info(LOG_CATEGORIES.DOCUMENTS, "Document share completed", {
+        log.info("DOCUMENTS", "Document share completed", {
           documentId,
           documentName,
           channel: "web_share",
@@ -110,7 +110,7 @@ export const reportApi = {
       }
 
       if (shareResult === "aborted") {
-        log.info(LOG_CATEGORIES.DOCUMENTS, "Document share cancelled by user", {
+        log.info("DOCUMENTS", "Document share cancelled by user", {
           documentId,
           documentName,
           channel: "web_share",
@@ -118,18 +118,14 @@ export const reportApi = {
         return { success: false, message: "Share cancelled" };
       }
 
-      log.info(
-        LOG_CATEGORIES.DOCUMENTS,
-        "Document share: Web Share unavailable or failed, trying clipboard",
-        {
-          documentId,
-          documentName,
-        }
-      );
+      log.info("DOCUMENTS", "Document share: Web Share unavailable or failed, trying clipboard", {
+        documentId,
+        documentName,
+      });
 
       const success = await secureClipboardCopy(shareUrl);
       if (success) {
-        log.info(LOG_CATEGORIES.DOCUMENTS, "Document share completed", {
+        log.info("DOCUMENTS", "Document share completed", {
           documentId,
           documentName,
           channel: "clipboard",
@@ -137,14 +133,14 @@ export const reportApi = {
         });
         return { success: true, message: "Report link copied to clipboard" };
       }
-      log.info(LOG_CATEGORIES.DOCUMENTS, "Document share failed: clipboard copy unsuccessful", {
+      log.info("DOCUMENTS", "Document share failed: clipboard copy unsuccessful", {
         documentId,
         documentName,
         channel: "clipboard",
       });
       return { success: false, message: "Failed to copy link to clipboard" };
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Document share failed", error);
+      log.error("ERRORS", "Document share failed", error);
       captureError(asError(error), { context: "shareDocument", documentName });
       return {
         success: false,

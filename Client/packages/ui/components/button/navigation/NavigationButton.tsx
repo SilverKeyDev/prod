@@ -2,7 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/core/Button";
 import { Box } from "packages/ui/components/primitives";
@@ -96,7 +96,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
     .filter(Boolean)
     .join(" ");
   const handleClick = () => {
-    log.debug(LOG_CATEGORIES.HOOKS, "NavigationButton clicked", {
+    log.debug("HOOKS", "NavigationButton clicked", {
       children: typeof children === "string" ? children : "React element",
       disabled,
       loading,
@@ -105,10 +105,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
     if (!disabled && !loading) {
       onClick();
     } else {
-      log.debug(
-        LOG_CATEGORIES.HOOKS,
-        "NavigationButton click ignored - button disabled or loading"
-      );
+      log.debug("HOOKS", "NavigationButton click ignored - button disabled or loading");
     }
   };
   return (

@@ -66,13 +66,14 @@ type ApiResponse<T> = {
 ### Basic API Call
 
 ```typescript
+import { log } from "packages/logger";
 import { userApi } from "../../../packages/config/api/user";
 
 const response = await userApi.getProfile();
 if (response.success && response.user) {
-  console.log(response.user);
+  log.info('API', 'Profile loaded', { userId: response.user?.id });
 } else {
-  console.error(response.error);
+  log.error('API', 'Profile request failed', { error: response.error });
 }
 ```
 

@@ -1,12 +1,11 @@
 """Fetch images from SERP API for PDF (e.g. home_image_prompt, community images)."""
 
-import logging
 import os
 from urllib.parse import quote_plus
 
 import requests
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 SERP_API_KEY = os.getenv("SERP_API")
 SERP_API_ENDPOINT = "https://serpapi.com/search.json"
@@ -75,7 +74,7 @@ BAD_IMAGE_DOMAINS = [
 def fetch_image_from_serp(prompt: str) -> str:
     """Return first usable image URL for the given prompt, or empty string."""
     if not SERP_API_KEY:
-        logger.warning("SERP_API_KEY not set; cannot fetch images.")
+        log.warn("API", "SERP_API_KEY not set; cannot fetch images")
         return ""
     try:
         params = {
@@ -97,7 +96,7 @@ def fetch_image_from_serp(prompt: str) -> str:
                 if any(domain in candidate for domain in BAD_IMAGE_DOMAINS):
                     continue
                 return candidate
-        logger.warning("SERP API returned no usable image for prompt: '%s'", prompt)
+        log.warn("API", "SERP API returned no usable image", {"prompt": prompt})
     except Exception as e:
-        logger.warning("SERP API error for prompt '%s': %s", prompt, e)
+        log.warn("API", "SERP API error", {"prompt": prompt, "error": str(e)})
     return ""

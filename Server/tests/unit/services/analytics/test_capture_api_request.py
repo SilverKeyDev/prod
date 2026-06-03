@@ -35,6 +35,8 @@ def test_capture_api_request_2xx_properties(app):
     assert props["status_class"] == "2xx"
     assert props["is_error"] is False
     assert props["is_server_error"] is False
+    assert props["error_kind"] == "none"
+    assert props["expected_client_error"] is False
     assert "duration_ms" in props
     assert "latency_ms" in props
     assert props["duration_ms"] == props["latency_ms"]
@@ -47,6 +49,8 @@ def test_capture_api_request_4xx_properties(app):
     assert props["status_class"] == "4xx"
     assert props["is_error"] is True
     assert props["is_server_error"] is False
+    assert props["error_kind"] == "not_found"
+    assert props["expected_client_error"] is True
 
 
 def test_capture_api_request_5xx_properties(app):
@@ -54,6 +58,8 @@ def test_capture_api_request_5xx_properties(app):
     props = mock_client.capture.call_args.kwargs["properties"]
     assert props["status_class"] == "5xx"
     assert props["is_server_error"] is True
+    assert props["error_kind"] == "server"
+    assert props["expected_client_error"] is False
 
 
 def test_capture_api_request_prefers_authenticated_user(app):

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from flask import current_app
+from sqlalchemy import select
 
 from app.services.transactions.checklist_signature_completion import (
     apply_signature_based_checked_ids,
@@ -25,7 +25,7 @@ from app.services.transactions.unified_task_checklist_read import (
     get_checked_ids_for_transaction,
     replace_checked_ids_for_transaction,
 )
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 def log_checklist_put_outcome(
@@ -40,7 +40,7 @@ def log_checklist_put_outcome(
     newly_checked: set[int],
 ) -> None:
     log.info(
-        LOG_CATEGORIES["API"],
+        "API",
         "checklist_put",
         {
             "correlation_id": correlation_id,
@@ -64,9 +64,10 @@ def perform_task_checklist_put(
     actor_user_id: str,
     correlation_id: str,
 ) -> tuple[dict[str, Any], TaskChecklistMergeResult]:
+    from app import db
     from app.models import Transaction
 
-    tx = Transaction.query.filter_by(id=str(transaction_id)).first()
+    tx = db.session.scalar(select(Transaction).where(Transaction.id == str(transaction_id)))
     if tx is None or not tx.buyer_id:
         raise ValueError("Transaction not found")
     buyer_user_id = str(tx.buyer_id)
@@ -118,12 +119,15 @@ def perform_task_checklist_put(
                 buyer_user_id, checklist_type, item_id, checkoff_time
             )
         except Exception as e:
-            current_app.logger.warning(
-                "Checklist calendar event creation failed: transaction=%s type=%s item_id=%s error=%s",
-                transaction_id,
-                checklist_type,
-                item_id,
-                e,
+            log.warn(
+                "CHECKLISTS",
+                "Checklist calendar event creation failed",
+                {
+                    "transaction_id": transaction_id,
+                    "checklist_type": checklist_type,
+                    "item_id": item_id,
+                    "error": str(e),
+                },
             )
 
     from app.services.transactions import checklist_dispatch_automation

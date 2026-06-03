@@ -35,9 +35,9 @@ export default function AgentProfilePage() {
   }>();
   const routeSlug = publicSlug?.trim() ?? "";
 
-  const { agentUserId, legacyUuidFirst } = useMemo(() => {
+  const { agentUserId } = useMemo(() => {
     if (routeSlug) {
-      return { agentUserId: null, legacyUuidFirst: false };
+      return { agentUserId: null };
     }
     return resolveAgentProfileRouteParams(nameSegment, briefSlug);
   }, [routeSlug, nameSegment, briefSlug]);
@@ -89,22 +89,13 @@ export default function AgentProfilePage() {
 
     if (!canonicalNameSlug || !agentId) return;
     const pathName = nameSegment?.trim();
-    if (legacyUuidFirst || (pathName && pathName !== canonicalNameSlug)) {
+    if (pathName && pathName !== canonicalNameSlug) {
       navigateToPath(buildAgentProfileUrl(agent.id, agent.name), {
         replace: true,
         state,
       });
     }
-  }, [
-    agent,
-    agentId,
-    canonicalNameSlug,
-    getCurrentRoute,
-    legacyUuidFirst,
-    nameSegment,
-    navigateToPath,
-    pathname,
-  ]);
+  }, [agent, agentId, canonicalNameSlug, getCurrentRoute, nameSegment, navigateToPath, pathname]);
 
   useEffect(() => {
     if (!agent?.name?.trim()) {

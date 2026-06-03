@@ -3,9 +3,7 @@ Google Calendar OAuth Routes
 Handles OAuth flow and Calendar API operations
 """
 
-from typing import cast
-
-from flask import Blueprint, Response
+from flask import Blueprint
 
 from .handlers.availability import query_client_availability, query_freebusy
 from .handlers.calendars import (
@@ -49,13 +47,8 @@ google_calendar_bp.route("/calendars", methods=["POST"])(create_calendar)
 google_calendar_bp.route("/calendars/<calendar_id>/acl", methods=["POST"])(add_calendar_acl)
 
 
-def _silverkey_calendar_route() -> Response | tuple[Response, int]:
-    """Wrapper so route() receives a handler with a return type that excludes None."""
-    return cast(Response | tuple[Response, int], get_or_create_silverkey_calendar())
-
-
 google_calendar_bp.route("/me/silverkey-calendar", methods=["GET", "POST"])(
-    _silverkey_calendar_route
+    get_or_create_silverkey_calendar
 )
 
 # Event endpoints
@@ -73,13 +66,8 @@ google_calendar_bp.route("/me/permissions", methods=["PUT"])(put_calendar_permis
 google_calendar_bp.route("/me/freebusy", methods=["POST"])(query_freebusy)
 
 
-def _client_availability_route(client_id: str) -> Response | tuple[Response, int]:
-    """Wrapper so route() receives a handler with a return type that excludes None."""
-    return cast(Response | tuple[Response, int], query_client_availability(client_id))
-
-
 google_calendar_bp.route("/clients/<client_id>/availability", methods=["POST"])(
-    _client_availability_route
+    query_client_availability
 )
 
 # Client events endpoint

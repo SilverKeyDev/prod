@@ -4,7 +4,7 @@ import traceback
 
 import requests
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from .constants import GOOGLE_MAPS_API_KEY
 
@@ -33,7 +33,7 @@ def get_zip_from_address(address):
 
     try:
         res = requests.get(endpoint, params=params)
-        log.debug(LOG_CATEGORIES["API"], "Geocode request URL", {"url": str(res.url)})
+        log.debug("API", "Geocode request URL", {"url": str(res.url)})
         data = res.json()
         if data["status"] != "OK":
             raise Exception(f"❌ Geocoding failed: {data['status']}")
@@ -42,11 +42,11 @@ def get_zip_from_address(address):
         for comp in components:
             if "postal_code" in comp["types"]:
                 zip_code = comp["long_name"]
-                log.debug(LOG_CATEGORIES["API"], "Found ZIP code", {"zip_code": zip_code})
+                log.debug("API", "Found ZIP code", {"zip_code": zip_code})
                 return zip_code
 
         raise Exception("❌ ZIP code not found in geocoding result.")
     except Exception as e:
-        log.error(LOG_CATEGORIES["ERRORS"], "Geocoding error", {"error": str(e)})
+        log.error("ERRORS", "Geocoding error", {"error": str(e)})
         traceback.print_exc()
         raise

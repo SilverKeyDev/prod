@@ -28,10 +28,10 @@ def _patch_google_calendar_load_credentials():
         yield
 
 
-def _auth_user(user_id: str = "user-123", *, is_agent: bool = False) -> Mock:
+def _auth_user(user_id: str = "user-123", *, has_agent_role: bool = False) -> Mock:
     user = Mock()
     user.id = user_id
-    user.is_agent = is_agent
+    user._test_has_agent_role = has_agent_role
     user.email = "user@example.com"
     return user
 
@@ -72,7 +72,6 @@ class TestCalendarRoutes:
                 cognito_id="cognito-cal-1",
                 email="caluser@example.com",
                 name="Cal User",
-                is_agent=False,
             )
         )
         db_session.session.commit()
@@ -325,3 +324,88 @@ class TestCalendarRoutes:
 
         response = client.get("/api/v1/google/me/calendars")
         assert response.status_code == 401
+
+    def test_create_event_itinerary_validation_returns_secure_envelope(
+        self, client, mock_google_calendar, db_session
+    ):
+        """Invalid itinerary must return ErrorResponse envelope without leaking exception text."""
+        db_session.session.add(
+            User(
+                id="user-123",
+                cognito_id="cognito-cal-2",
+                email="caluser2@example.com",
+                name="Cal User 2",
+            )
+        )
+        db_session.session.commit()
+
+        with patch("app.services.calendar.core.auth_helpers.get_current_user") as mock_get:
+            mock_get.return_value = _auth_user()
+            with patch(
+                "app.routes.calendar.handlers.events.require_permission",
+                return_value=(True, None),
+            ):
+                with patch(
+                    "app.routes.calendar.handlers.events.resolve_itinerary_with_route",
+                    side_effect=ValueError("At least one property stop is required"),
+                ):
+                    response = client.post(
+                        "/api/v1/google/me/events",
+                        headers={"Authorization": "Bearer mock_access_token"},
+                        json={
+                            "calendarId": "primary",
+                            "summary": "Viewing",
+                            "start": {"dateTime": "2024-02-01T10:00:00Z"},
+                            "end": {"dateTime": "2024-02-01T11:00:00Z"},
+                            "itinerary": {
+                                "stops": [
+                                    {"address": "100 Main St, Austin, TX"},
+                                    {"address": "200 Oak Ave, Austin, TX"},
+                                ]
+                            },
+                        },
+                    )
+
+        assert response.status_code == 400
+        body = response.get_json()
+        assert body is not None
+        assert body.get("success") is False
+        assert body.get("error") == "validation_error"
+        assert "error_id" in body
+        assert body.get("message") == "Invalid input provided"
+        assert "At least one property stop is required" not in str(body)
+
+    def test_health_check_upstream_failure_returns_503_envelope(self, client):
+        with patch(
+            "app.routes.calendar.handlers.health.google_calendar_service.is_healthy",
+            side_effect=RuntimeError("Google API unreachable"),
+        ):
+            response = client.get("/api/v1/google/health")
+
+        assert response.status_code == 503
+        body = response.get_json()
+        assert body is not None
+        assert body.get("success") is False
+        assert body.get("error") == "external_api_error"
+        assert "error_id" in body
+        assert "Google API unreachable" not in str(body)
+
+    def test_connection_status_failure_returns_server_error_envelope(self, client):
+        with patch("app.services.calendar.core.auth_helpers.get_current_user") as mock_get:
+            mock_get.return_value = _auth_user()
+            with patch(
+                "app.routes.calendar.handlers.health.tokens_get",
+                side_effect=RuntimeError("token store down"),
+            ):
+                response = client.get(
+                    "/api/v1/google/connection-status",
+                    headers={"Authorization": "Bearer mock_access_token"},
+                )
+
+        assert response.status_code == 500
+        body = response.get_json()
+        assert body is not None
+        assert body.get("success") is False
+        assert body.get("error") == "database_error"
+        assert "error_id" in body
+        assert "token store down" not in str(body)

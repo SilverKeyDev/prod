@@ -1,21 +1,20 @@
 from __future__ import annotations
 
-import json
 from typing import Any, Protocol, cast
 
-from flask import Blueprint, Response, current_app, jsonify, stream_with_context
+from flask import Blueprint, Response, jsonify, stream_with_context
 from flask import request as req
 
 from app.schemas import PropertyRequest
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.utils.route.http_errors import forbidden, invalid_request, server_error
 from app.utils.security.celery_task_ownership import register_task_owner, verify_task_owner
 from app.utils.validation import validate_request
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from ...celery.celery_worker import celery
 from ...celery.tasks import compare_property_task, research_property_task
 from ...services.research.property.property_params import build_property_params
-from ...utils.security.secure_errors import SecureErrorHandler
 
 
 class _CeleryTaskWithDelay(Protocol):
@@ -29,20 +28,14 @@ research_bp = Blueprint("research", __name__, url_prefix="/api/v1/research")
 
 
 def _forbidden_task_access():
-    return jsonify(
-        {
-            "success": False,
-            "error": "FORBIDDEN",
-            "message": "Access denied to this task",
-        }
-    ), 403
+    return forbidden()
 
 
 @research_bp.route("/property", methods=["POST"])
 @handle_exceptions_with_logging
 @require_authenticated_user
 @validate_request(PropertyRequest)
-def get_property_via_address(user, data: PropertyRequest | None = None):
+def get_property_via_address(user, data: PropertyRequest):
     """
     Fetch property detail using exactly one of:
     zpid, property_url, or address (address-only is fine).
@@ -50,10 +43,7 @@ def get_property_via_address(user, data: PropertyRequest | None = None):
     Supports streaming via ?stream=true query parameter.
     Non-streaming requests are processed via Celery tasks.
     """
-    if data is None:
-        body = req.get_json(silent=True) or {}
-    else:
-        body = data.model_dump()
+    body = data.model_dump()
     zpid = body.get("zpid")
     property_url = body.get("property_url")
     address = body.get("address")
@@ -65,13 +55,7 @@ def get_property_via_address(user, data: PropertyRequest | None = None):
 
     params = build_property_params(zpid=zpid, property_url=property_url, address=address)
     if params is None:
-        return jsonify(
-            {
-                "success": False,
-                "error": "BAD_REQUEST",
-                "message": "Provide one of: zpid, property_url, or address",
-            }
-        ), 400
+        return invalid_request("Provide one of: zpid, property_url, or address")
 
     if stream_mode:
         from ...services.search.property.property_stream import generate_property_stream
@@ -105,23 +89,26 @@ def get_property_via_address(user, data: PropertyRequest | None = None):
 @handle_exceptions_with_logging
 @require_authenticated_user
 @validate_request(PropertyRequest)
-def compare_property(user, data: PropertyRequest | None = None):
+def compare_property(user, data: PropertyRequest):
     """
     Compare property endpoint - same as /property but skips pros/cons generation.
     Optimized for comparison use cases where pros/cons are not needed.
     Supports streaming via ?stream=true query parameter.
     Non-streaming requests are processed via Celery tasks.
     """
-    if data is None:
-        body = req.get_json(silent=True) or {}
-    else:
-        body = data.model_dump()
+    body = data.model_dump()
     zpid = body.get("zpid")
     property_url = body.get("property_url")
     address = body.get("address")
 
-    current_app.logger.info(
-        f"[COMPARE] Request received - zpid: {zpid}, property_url: {property_url}, address: {address}"
+    log.info(
+        "SEARCH",
+        "compare_property_request",
+        {
+            "has_zpid": bool(zpid),
+            "has_property_url": bool(property_url),
+            "has_address": bool(address),
+        },
     )
 
     stream_mode = (
@@ -131,20 +118,11 @@ def compare_property(user, data: PropertyRequest | None = None):
 
     params = build_property_params(zpid=zpid, property_url=property_url, address=address)
     if params is None:
-        error_response = {
-            "success": False,
-            "error": "BAD_REQUEST",
-            "message": "Provide one of: zpid, property_url, or address",
-        }
-        current_app.logger.warning(
-            f"[COMPARE] Invalid request - missing parameters. Full error response: {json.dumps(error_response)}"
-        )
-        return jsonify(error_response), 400
+        log.warn("SEARCH", "compare_property_invalid_request", None)
+        return invalid_request("Provide one of: zpid, property_url, or address")
 
     if stream_mode:
-        current_app.logger.info(
-            "[COMPARE] Streaming mode enabled - response will be streamed incrementally"
-        )
+        log.info("SEARCH", "compare_property_streaming_enabled", None)
         from ...services.search.property.property_stream import generate_property_stream_compare
 
         return Response(
@@ -191,10 +169,10 @@ def get_task_status(user, task_id: str):
     }
     """
     if not verify_task_owner(task_id, str(user.id)):
-        current_app.logger.warning(
-            "[RESEARCH] Task status denied: user %s task %s",
-            user.id,
-            task_id,
+        log.warn(
+            "AUTH",
+            "research_task_status_denied",
+            {"user_id": str(user.id), "task_id": task_id},
         )
         return _forbidden_task_access()
 
@@ -240,9 +218,11 @@ def get_task_status(user, task_id: str):
 
     except Exception as e:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             "Error getting task status",
             {"task_id": task_id, "error": str(e), "endpoint": "get_task_status"},
         )
-        response, status = SecureErrorHandler.create_secure_response("server_error", 500)
+        response, status = server_error(
+            e, context={"endpoint": "get_task_status", "task_id": task_id}
+        )
         return response, status

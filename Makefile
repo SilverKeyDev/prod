@@ -5,20 +5,24 @@ MAKEFLAGS += --no-print-directory
 .DEFAULT_GOAL := help
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+SERVER_VENV := $(ROOT)/Server/.venv
+SERVER_PYTHON := $(SERVER_VENV)/bin/python3
+SERVER_PYTEST := $(SERVER_VENV)/bin/pytest
+SERVER_FLASK := $(SERVER_VENV)/bin/flask
 PROD_PARITY_COMPOSE := $(ROOT)/scripts/deploy/prod-parity/docker-compose.yml
 REGION ?= us-east-2
 PROFILE ?=
 PYTEST_ARGS ?=
 
-.PHONY: help setup setup-mcp refresh clean-caches secrets migrate \
+.PHONY: help setup setup-mcp refresh check-deps clean-caches secrets migrate \
 	test test-all test-fe test-be test-be-ci-parity test-frontend test-backend \
 	dev dev-web dev-backend \
-	pre-commit precommit \
+	pre-commit precommit pre-push-check \
 	lint lint-all lint-client lint-server \
 	typecheck check-client openapi openapi-verify openapi-verify-pre-push generate-api \
 	format-client format-check mobile \
 	routes-extract endpoints-check-dead routes-extract-verify endpoints-sync-posthog \
-	log-contracts log-contracts-verify \
+	log-contracts log-contracts-migrate log-contracts-migrate-check log-contracts-lint log-contracts-verify \
 	prod-parity prod-parity-build
 
 help:
@@ -27,6 +31,7 @@ help:
 	@echo "  make setup            First-time setup — see setup.md (optional: ARGS='--skip-secrets')"
 	@echo "  make setup-mcp        Cursor MCP only (seed mcp.json, install uv/npx, verify)"
 	@echo "  make refresh          After git pull: clear caches + pnpm + pip (ARGS='--secrets' | '--no-clean' | '--aggressive-clean')"
+	@echo "  make check-deps       Scan node/pnpm/python/redis/libmagic (ARGS='--skip-secrets' | '--no-install')"
 	@echo "  make clean-caches     Remove regenerable dev caches only (ARGS='--aggressive')"
 	@echo "  make secrets          AWS Secrets Manager -> Server/.env (uses AWS_PROFILE / ~/.aws/config)"
 	@echo "  make migrate          flask db upgrade (operators only; see warning in recipe)"
@@ -37,24 +42,28 @@ help:
 	@echo "  make dev              Web + backend via scripts/run/run-web.sh"
 	@echo "  make dev-web          Vite web only"
 	@echo "  make dev-backend      Backend stack only"
-	@echo "  make precommit        pre-commit run --all-files"
+	@echo "  make precommit        pre-commit run --all-files (manual; same hooks as git commit)"
+	@echo "  make pre-push-check   typecheck + contract tests (blocking; git push is advisory only)"
 	@echo "  make lint / lint-all  ./scripts/ci/run-all-linters.sh all"
 	@echo "  make lint-client      cd Client && pnpm lint"
 	@echo "  make lint-server      ./scripts/ci/run-all-linters.sh server"
 	@echo "  make typecheck        cd Client && pnpm typecheck"
 	@echo "  make check-client     cd Client && pnpm check"
-	@echo "  make check-docs       doc placement + internal .md link checks"
+	@echo "  make check-docs       script path refs + doc placement + internal .md link checks"
 	@echo "  make openapi          Regenerate client + server types from openapi/ (bundle + codegen)"
 	@echo "  make openapi-verify   Regenerate, fail if git drift, run contract tests + typecheck"
-	@echo "  make openapi-verify-pre-push  Same without contract pytest (pre-push; test-be covers them)"
+	@echo "  make openapi-verify-pre-push  Regen + drift only (manual; drift when OpenAPI paths commit)"
 	@echo "  make format-client    cd Client && pnpm format"
 	@echo "  make format-check     cd Client && pnpm format:check"
 	@echo "  make mobile           cd Client && pnpm dev:mobile"
 	@echo "  make routes-extract   Write Server/endpoints.json from Flask url_map"
 	@echo "  make routes-extract-verify  Regenerate endpoints.json; fail if git drift (CI)"
-	@echo "  make endpoints-check-dead  Diff inventory vs PostHog api_request (7d; needs POSTHOG_QUERY_API_KEY)"
-	@echo "  make endpoints-sync-posthog  POST endpoint_inventory_sync to PostHog (needs POSTHOG_PROJECT_TOKEN)"
+	@echo "  make endpoints-check-dead  Print dead routes (7d HogQL diff; needs POSTHOG_QUERY_API_KEY)"
+	@echo "  make endpoints-sync-posthog  POST inventory + endpoint_dead_route events (needs POSTHOG_PROJECT_TOKEN + POSTHOG_QUERY_API_KEY)"
 	@echo "  make log-contracts        Regenerate Client/Server log category contracts"
+	@echo "  make log-contracts-migrate  Migrate LOG_CATEGORIES call sites to dot-notation paths"
+	@echo "  make log-contracts-migrate-check  Fail if LOG_CATEGORIES remains in log calls"
+	@echo "  make log-contracts-lint           Lint log paths + legacy category usage (CI)"
 	@echo "  make log-contracts-verify Regenerate log contracts; fail if git drift"
 	@echo "  make prod-parity-build    Build local prod-parity Docker stack (app + Redis + Celery)"
 	@echo "  make prod-parity          Run local prod-parity stack (requires Server/.env)"
@@ -68,6 +77,9 @@ setup-mcp:
 refresh:
 	bash "$(ROOT)/scripts/setup/refresh.sh" $(ARGS)
 
+check-deps:
+	bash "$(ROOT)/scripts/setup/check-deps.sh" $(ARGS)
+
 clean-caches:
 	bash "$(ROOT)/scripts/lib/clean-caches.sh" $(ARGS)
 
@@ -79,7 +91,7 @@ migrate:
 	@echo "WARNING: Only run migrations if you own this workflow. Most contributors"
 	@echo "should NOT run Alembic commands (see .cursor/rules/backend/database.mdc)."
 	@echo "-----------------------------------------------------------------"
-	cd "$(ROOT)/Server" && . .venv/bin/activate && export FLASK_APP=run:app && flask db upgrade
+	cd "$(ROOT)/Server" && FLASK_APP=run:app "$(SERVER_FLASK)" db upgrade
 
 test: test-all
 
@@ -89,13 +101,13 @@ test-fe test-frontend:
 	cd "$(ROOT)/Client" && pnpm test:run
 
 test-be test-backend:
-	cd "$(ROOT)/Server" && mkdir -p coverage && . .venv/bin/activate && TESTING=true APP_LOG_LEVEL=ERROR pytest $(PYTEST_ARGS)
+	cd "$(ROOT)/Server" && mkdir -p coverage && TESTING=true APP_LOG_LEVEL=ERROR "$(SERVER_PYTEST)" $(PYTEST_ARGS)
 
 test-be-ci-parity:
-	cd "$(ROOT)/Server" && mkdir -p coverage && . .venv/bin/activate && \
-	  env -i PATH="$$PATH" HOME="$$HOME" VIRTUAL_ENV="$$VIRTUAL_ENV" \
+	cd "$(ROOT)/Server" && mkdir -p coverage && \
+	  env -i PATH="$(SERVER_VENV)/bin:$$PATH" HOME="$$HOME" \
 	    TESTING=true APP_LOG_LEVEL=ERROR \
-	    pytest $(PYTEST_ARGS)
+	    "$(SERVER_PYTEST)" $(PYTEST_ARGS)
 
 dev:
 	bash "$(ROOT)/scripts/run/run-web.sh"
@@ -108,6 +120,9 @@ dev-backend:
 
 pre-commit precommit:
 	@bash "$(ROOT)/scripts/ci/run-pre-commit.sh"
+
+pre-push-check:
+	bash "$(ROOT)/scripts/ci/pre-push-check.sh"
 
 lint lint-all:
 	bash "$(ROOT)/scripts/ci/run-all-linters.sh" all
@@ -125,6 +140,7 @@ check-client:
 	cd "$(ROOT)/Client" && pnpm check
 
 check-docs:
+	bash "$(ROOT)/scripts/ci/check-script-references.sh"
 	bash "$(ROOT)/scripts/ci/check-doc-placement.sh"
 	bash "$(ROOT)/scripts/ci/check-doc-links.sh"
 
@@ -150,19 +166,28 @@ mobile:
 	cd "$(ROOT)/Client" && pnpm dev:mobile
 
 routes-extract:
-	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/endpoints/extract_routes.py
+	cd "$(ROOT)/Server" && "$(SERVER_PYTHON)" scripts/endpoints/extract_routes.py
 
 routes-extract-verify: routes-extract
 	cd "$(ROOT)" && git diff --exit-code Server/endpoints.json
 
 endpoints-check-dead:
-	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/endpoints/check_dead_endpoints.py
+	cd "$(ROOT)/Server" && "$(SERVER_PYTHON)" scripts/endpoints/check_dead_endpoints.py
 
 endpoints-sync-posthog:
-	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/endpoints/sync_inventory_posthog.py
+	cd "$(ROOT)/Server" && "$(SERVER_PYTHON)" scripts/endpoints/sync_inventory_posthog.py
 
 log-contracts:
 	python3 "$(ROOT)/scripts/log_contracts/generate.py"
+
+log-contracts-migrate:
+	python3 "$(ROOT)/scripts/log_contracts/migrate_log_paths.py"
+
+log-contracts-migrate-check:
+	python3 "$(ROOT)/scripts/log_contracts/migrate_log_paths.py" --check
+
+log-contracts-lint:
+	python3 "$(ROOT)/scripts/log_contracts/lint_log_paths.py"
 
 log-contracts-verify:
 	bash "$(ROOT)/scripts/log_contracts/verify.sh"

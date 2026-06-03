@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { reportApi } from "packages/features/documents/api/report";
 import type { DocumentLibraryKind } from "packages/features/documents/types/documentLibrary";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
@@ -57,7 +57,7 @@ export async function fetchDocumentLibraryQuery(clientId?: string): Promise<Docu
         response,
         "Failed to fetch document library"
       );
-      log.error(LOG_CATEGORIES.API, "Failed to fetch document library", {
+      log.error("API", "Failed to fetch document library", {
         error: errorMessage,
       });
       throw new Error(errorMessage);
@@ -85,7 +85,7 @@ export async function fetchDocumentLibraryQuery(clientId?: string): Promise<Docu
         null,
     }));
   } catch (err) {
-    log.error(LOG_CATEGORIES.ERRORS, "Error fetching documents", err);
+    log.error("ERRORS", "Error fetching documents", err);
     throw err;
   }
 }

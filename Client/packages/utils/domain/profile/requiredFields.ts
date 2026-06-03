@@ -3,7 +3,6 @@
 export const REQUIRED_FIELDS_ONBOARDING: Record<string, boolean> = {
   // Demographics
   name: false,
-  is_agent: true,
   age: true,
   why_joining_silverkey: false,
   marital_status: false,
@@ -55,7 +54,6 @@ export const REQUIRED_FIELDS_ONBOARDING: Record<string, boolean> = {
 export const REQUIRED_FIELDS_SETTINGS: Record<string, boolean> = {
   // Demographics
   name: false,
-  is_agent: false,
   age: false,
   why_joining_silverkey: false,
   gender: false,

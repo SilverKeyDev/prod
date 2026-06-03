@@ -12,7 +12,6 @@ import AdminPartnersOutlet from "@/pages/workspace/admin/AdminPartnersOutlet";
 import AdminSuperadminOutlet from "@/pages/workspace/admin/AdminSuperadminOutlet";
 import AdminPage from "@/pages/workspace/AdminPage";
 
-import { LegacyWorkspaceShellPrefixRedirect } from "./LegacyWorkspaceShellPrefixRedirect";
 import { createProtectedRoute } from "./RouteConfig";
 import { ROUTE_CONFIGS } from "./routeConfigExports";
 
@@ -20,13 +19,6 @@ function SettingsRedirect() {
   const location = useLocation();
   const newPath = `/profile${location.pathname.replace(/^\/settings/, "")}`;
   return <Navigate to={newPath} replace />;
-}
-
-function LegacySavedPathRedirect() {
-  const location = useLocation();
-  const suffix = location.pathname === "/saved" ? "" : location.pathname.slice("/saved".length);
-  const to = `/library${suffix}${location.search ?? ""}`;
-  return <Navigate to={to} replace />;
 }
 
 type DynamicRoutesProps = {
@@ -90,32 +82,11 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
   const stableLeadingRoutes = useMemo(
     () => [
       <Route
-        key="legacy-buyer-shell-exact"
-        path="/buyer"
-        element={<LegacyWorkspaceShellPrefixRedirect />}
-      />,
-      <Route
-        key="legacy-buyer-shell"
-        path="/buyer/*"
-        element={<LegacyWorkspaceShellPrefixRedirect />}
-      />,
-      <Route
-        key="legacy-brokerage-shell-exact"
-        path="/brokerage"
-        element={<LegacyWorkspaceShellPrefixRedirect />}
-      />,
-      <Route
-        key="legacy-brokerage-shell"
-        path="/brokerage/*"
-        element={<LegacyWorkspaceShellPrefixRedirect />}
-      />,
-      <Route
         key="buyer-checklists-redirect"
         path="/buyer-checklists"
         element={<Navigate to="/dashboard" replace />}
       />,
       <Route key="settings-redirect" path="/settings/*" element={<SettingsRedirect />} />,
-      <Route key="legacy-saved-to-library" path="/saved/*" element={<LegacySavedPathRedirect />} />,
     ],
     []
   );

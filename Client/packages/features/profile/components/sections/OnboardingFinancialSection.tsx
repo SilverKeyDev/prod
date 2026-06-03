@@ -44,7 +44,7 @@ export default function OnboardingFinancialSection({
   isAffordabilityCollapsed,
   setIsAffordabilityCollapsed,
 }: OnboardingFinancialSectionProps) {
-  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData);
   const showAffordability =
     homePriceLoading !== undefined &&
     homePriceError !== undefined &&

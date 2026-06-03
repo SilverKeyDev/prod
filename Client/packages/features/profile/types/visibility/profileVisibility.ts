@@ -35,14 +35,14 @@ export function isBuyerFacingDemographicsOptionalForAgent(surface: ProfileUiSurf
 export function shouldShowAgentOptionalBuyerCallout(options: {
   surface: ProfileUiSurface;
   authIsAgent: boolean;
-  formIsAgent?: string;
+  formPrimaryRole?: PrimaryOnboardingRole;
 }): boolean {
   if (options.surface !== "onboarding") {
     return false;
   }
   return effectiveIsAgentForOptionalBuyerUi({
     authIsAgent: options.authIsAgent,
-    formIsAgent: options.formIsAgent,
+    formPrimaryRole: options.formPrimaryRole,
   });
 }
 

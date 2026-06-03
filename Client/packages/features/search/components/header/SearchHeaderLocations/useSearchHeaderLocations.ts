@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui/toast/useToast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { LOCATION_SAVE_DEBOUNCE_MS } from "./constants";
 import type { SearchImportantLocation } from "./types";
@@ -34,7 +34,7 @@ export function useSearchHeaderLocations(onPreferencesChanged?: () => void | Pro
     (field: string | number | symbol, value: unknown) => {
       const next = Array.isArray(value) ? (value as SearchImportantLocation[]) : [];
       if (field === "important_locations") {
-        log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "searchHeaderLocations.update", {
+        log.info("PROFILE_PREFERENCES", "searchHeaderLocations.update", {
           nextLen: next.length,
         });
       }

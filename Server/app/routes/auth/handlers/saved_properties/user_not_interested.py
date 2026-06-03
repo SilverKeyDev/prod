@@ -5,9 +5,11 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
-from flask import Response, current_app, jsonify, request
+from flask import Response, jsonify
+from sqlalchemy import select
 
 from app import db
+from app.dtos.saved_home import NotInterestedHomeDTO
 from app.models import HomeNotInterested, PropertyCache, UserPropertyLink
 from app.schemas import (
     AddNotInterestedRequest,
@@ -16,43 +18,67 @@ from app.schemas import (
     UpdateNotInterestedRequest,
 )
 from app.services.search.db import add_or_update_home_basic, sync_to_home_not_interested
-from app.utils.common_patterns import require_authenticated_user
+from app.utils.common_patterns import (
+    not_found,
+    require_authenticated_user,
+    server_error,
+    validation,
+)
 from app.utils.db.orm_lookup import get_model
 from app.utils.format.address_format import normalize_address, safe_normalize_address
 from app.utils.validation import validate_request, validate_response
+from logger import log
 
 if TYPE_CHECKING:
+    from app.models.property.home_not_interested import HomeNotInterested as HomeNotInterestedModel
     from app.models.user import User
+
+
+def _not_interested_payload(homes: list[HomeNotInterestedModel]) -> list[dict]:
+    return [NotInterestedHomeDTO.to_response(h) for h in homes]
+
+
+def _active_not_interested_homes(user_id: str) -> list[HomeNotInterestedModel]:
+    return db.session.scalars(
+        select(HomeNotInterested).where(
+            HomeNotInterested.user_id == user_id,
+            HomeNotInterested.is_not_interested.is_(True),
+        )
+    ).all()
+
+
+def _all_not_interested_homes(user_id: str) -> list[HomeNotInterestedModel]:
+    return db.session.scalars(
+        select(HomeNotInterested).where(HomeNotInterested.user_id == user_id)
+    ).all()
 
 
 @require_authenticated_user
 @validate_response(NotInterestedHomesResponse)
 def not_interested_homes(user: User) -> Response | tuple[Response, int]:
     """Retrieve the user's list of not-interested homes."""
-    homes = HomeNotInterested.query.filter_by(user_id=str(user.id), is_not_interested=True).all()
-    return jsonify({"success": True, "notInterested": [home.to_dict() for home in homes]})
+    homes = _active_not_interested_homes(str(user.id))
+    return jsonify({"success": True, "notInterested": _not_interested_payload(homes)})
 
 
 @require_authenticated_user
 @validate_response(NotInterestedHomesResponse)
 @validate_request(AddNotInterestedRequest)
 def add_not_interested_home(
-    user: User, data: AddNotInterestedRequest | None = None
+    user: User, data: AddNotInterestedRequest
 ) -> Response | tuple[Response, int]:
     """Mark a single home as not interested."""
     try:
-        if data is not None:
-            payload = data.model_dump(mode="json", by_alias=True)
-        else:
-            payload = request.get_json(force=True) or {}
+        payload = data.model_dump(mode="json", by_alias=True)
         home = payload.get("home")
         if not home or not isinstance(home, dict):
-            return jsonify({"success": False, "error": "Home object is required"}), 400
+            return validation("Home object is required", field_errors={"home": "Required"})
         address = home.get("address")
         if not address or not isinstance(address, str):
-            return jsonify(
-                {"success": False, "error": "Address is required and must be a string"}
-            ), 400
+            return validation(
+                "Address is required and must be a string",
+                field_errors={"address": "Required"},
+            )
         link = add_or_update_home_basic(user_id=str(user.id), home=home, set_liked=False)
         prop = get_model(PropertyCache, link.property_id)
         why = payload.get("why")
@@ -61,42 +87,36 @@ def add_not_interested_home(
         else:
             why = None
         sync_to_home_not_interested(link, prop, action="not_interested", why=why)
-        homes = HomeNotInterested.query.filter_by(
-            user_id=str(user.id), is_not_interested=True
-        ).all()
-        not_interested = [h.to_dict() for h in homes]
+        homes = _active_not_interested_homes(str(user.id))
         return jsonify(
             {
                 "success": True,
                 "message": "Home marked as not interested",
-                "notInterested": not_interested,
+                "notInterested": _not_interested_payload(homes),
             }
         )
     except Exception as e:
-        current_app.logger.error("Failed to add not-interested home: %s", e)
-        return jsonify({"success": False, "error": "Server error"}), 500
+        log.error("AUTH", "not_interested_add_failed", e)
+        return server_error(e, context={"function": "add_not_interested_home"})
 
 
 @require_authenticated_user
 @validate_response(NotInterestedHomesResponse)
 @validate_request(RemoveNotInterestedRequest)
 def remove_not_interested_home(
-    user: User, data: RemoveNotInterestedRequest | None = None
+    user: User, data: RemoveNotInterestedRequest
 ) -> Response | tuple[Response, int]:
     """Undo not-interested status for a single home."""
     try:
-        if data is not None:
-            address = data.address
-        else:
-            request_data = request.get_json(force=True) or {}
-            address = request_data.get("address")
+        address = data.address
         if not address or not isinstance(address, str):
-            return jsonify(
-                {"success": False, "error": "Address is required and must be a string"}
-            ), 400
+            return validation(
+                "Address is required and must be a string",
+                field_errors={"address": "Required"},
+            )
         normalized_target = safe_normalize_address(address)
         existing_home = None
-        for h in HomeNotInterested.query.filter_by(user_id=str(user.id)).all():
+        for h in _all_not_interested_homes(str(user.id)):
             if not h.address:
                 continue
             try:
@@ -107,17 +127,18 @@ def remove_not_interested_home(
                 existing_home = h
                 break
         if not existing_home:
-            return jsonify(
-                {"success": False, "error": "Home not found in not-interested list"}
-            ), 404
+            return not_found("Home not found in not-interested list")
 
         # Find the PropertyCache + UserPropertyLink for undo sync
         prop = _find_property_by_address(normalized_target)
         link = None
         if prop:
-            link = UserPropertyLink.query.filter_by(
-                user_id=str(user.id), property_id=prop.id
-            ).first()
+            link = db.session.scalar(
+                select(UserPropertyLink).where(
+                    UserPropertyLink.user_id == str(user.id),
+                    UserPropertyLink.property_id == prop.id,
+                )
+            )
 
         existing_home.is_not_interested = False
         db.session.commit()
@@ -125,51 +146,39 @@ def remove_not_interested_home(
         if link and prop:
             sync_to_home_not_interested(link, prop, action="undo")
 
-        homes = HomeNotInterested.query.filter_by(
-            user_id=str(user.id), is_not_interested=True
-        ).all()
-        not_interested = [h.to_dict() for h in homes]
+        homes = _active_not_interested_homes(str(user.id))
         return jsonify(
             {
                 "success": True,
                 "message": "Home removed from not-interested list",
-                "notInterested": not_interested,
+                "notInterested": _not_interested_payload(homes),
             }
         )
     except Exception as e:
-        current_app.logger.error("Failed to remove not-interested home: %s", e)
-        return jsonify({"success": False, "error": "Server error"}), 500
+        log.error("AUTH", "not_interested_remove_failed", e)
+        return server_error(e, context={"function": "remove_not_interested_home"})
 
 
 @require_authenticated_user
 @validate_response(NotInterestedHomesResponse)
 @validate_request(UpdateNotInterestedRequest)
 def update_not_interested_home(
-    user: User, data: UpdateNotInterestedRequest | None = None
+    user: User, data: UpdateNotInterestedRequest
 ) -> Response | tuple[Response, int]:
     """Update the reason for a not-interested home."""
     try:
-        if data is not None:
-            address = data.address
-            why = data.why.strip() if isinstance(data.why, str) else ""
-        else:
-            request_data = request.get_json(force=True) or {}
-            address = request_data.get("address")
-            why_raw = request_data.get("why")
-            if not why_raw or not isinstance(why_raw, str):
-                return jsonify(
-                    {"success": False, "error": "Why is required and must be a string"}
-                ), 400
-            why = why_raw.strip()
+        address = data.address
+        why = data.why.strip() if isinstance(data.why, str) else ""
         if not address or not isinstance(address, str):
-            return jsonify(
-                {"success": False, "error": "Address is required and must be a string"}
-            ), 400
+            return validation(
+                "Address is required and must be a string",
+                field_errors={"address": "Required"},
+            )
         if not why:
-            return jsonify({"success": False, "error": "Why cannot be empty"}), 400
+            return validation("Why cannot be empty", field_errors={"why": "Required"})
         normalized_target = safe_normalize_address(address)
         existing_home = None
-        for h in HomeNotInterested.query.filter_by(user_id=str(user.id)).all():
+        for h in _all_not_interested_homes(str(user.id)):
             if not h.address:
                 continue
             try:
@@ -180,9 +189,7 @@ def update_not_interested_home(
                 existing_home = h
                 break
         if not existing_home:
-            return jsonify(
-                {"success": False, "error": "Home not found in not-interested list"}
-            ), 404
+            return not_found("Home not found in not-interested list")
         existing_home.why = why
         if existing_home.not_interested_history is None:
             existing_home.not_interested_history = []
@@ -201,22 +208,21 @@ def update_not_interested_home(
                 }
             )
         db.session.commit()
-        homes = HomeNotInterested.query.filter_by(
-            user_id=str(user.id), is_not_interested=True
-        ).all()
-        not_interested = [h.to_dict() for h in homes]
+        homes = _active_not_interested_homes(str(user.id))
         return jsonify(
             {
                 "success": True,
                 "message": "Not-interested reason updated",
-                "notInterested": not_interested,
+                "notInterested": _not_interested_payload(homes),
             }
         )
     except Exception as e:
-        current_app.logger.error("Failed to update not-interested home: %s", e)
-        return jsonify({"success": False, "error": "Server error"}), 500
+        log.error("AUTH", "not_interested_update_failed", e)
+        return server_error(e, context={"function": "update_not_interested_home"})
 
 
 def _find_property_by_address(normalized_address: str) -> PropertyCache | None:
     """Look up a PropertyCache record by normalized address."""
-    return PropertyCache.query.filter_by(address_normalized=normalized_address).first()
+    return db.session.scalar(
+        select(PropertyCache).where(PropertyCache.address_normalized == normalized_address)
+    )

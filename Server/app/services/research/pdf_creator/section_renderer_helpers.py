@@ -2,7 +2,6 @@
 Helpers for section_renderer: chart and image block rendering.
 """
 
-import logging
 from io import BytesIO
 from typing import Any
 
@@ -10,6 +9,8 @@ import requests
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
+
+from logger import log
 
 from ..graphs.graphic_generation import (
     generate_horizontal_bar_chart,
@@ -21,8 +22,6 @@ from .image_utils import (
     resize_image_to_fit,
 )
 from .serp_images import fetch_image_from_serp
-
-logger = logging.getLogger(__name__)
 
 CHARTABLE_FIELDS = {
     "demographics",
@@ -171,11 +170,15 @@ def try_render_home_image(key, v, elements, styles):
                 elements.append(table)
                 elements.append(Spacer(1, 15))
             else:
-                logger.warning("Failed to fetch home image, status code: %s", response.status_code)
-        except Exception as e:
-            logger.warning("Failed to fetch home image from URL %s: %s", image_url, e)
+                log.warn(
+                    "API",
+                    "Failed to fetch home image, status code:",
+                    {"detail": str(response.status_code)},
+                )
+        except Exception:
+            log.warn("API", "Failed to fetch home image from URL :", {"detail": str(image_url)})
     else:
-        logger.warning("No image URL returned for home image prompt: %s", v)
+        log.warn("API", "No image URL returned for home image prompt:", {"detail": str(v)})
     return True
 
 
@@ -191,8 +194,8 @@ def _fetch_images_side_by_side(prompt_1, prompt_2=None):
                 if response.status_code == 200:
                     img_data = BytesIO(response.content)
                     images.append(resize_image_for_side_by_side(img_data, is_chart=False))
-            except Exception as e:
-                logger.warning("Failed to fetch image from URL %s: %s", url, e)
+            except Exception:
+                log.warn("API", "Failed to fetch image from URL :", {"detail": str(url)})
     return images
 
 

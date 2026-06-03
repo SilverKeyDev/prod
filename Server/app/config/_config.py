@@ -1,6 +1,7 @@
-import logging
 import os
 from datetime import timedelta
+
+from logger import log
 
 from ._urls import (
     get_docusign_oauth_redirect_uri,
@@ -48,8 +49,6 @@ from .database import (
     database_url,
 )
 from .error_codes import build_error_codes
-
-logger = logging.getLogger(__name__)
 
 
 def _optional_stripped_env(var_name: str) -> str | None:
@@ -191,11 +190,13 @@ class Config:
     )
     # Demo OAuth (account-d) issues tokens that prod REST (*.docusign.net except demo) rejects.
     if not _docusign_is_production and "demo.docusign.net" not in _raw_docusign_base_url.lower():
-        logger.warning(
-            "DOCUSIGN_BASE_URL %s does not match demo OAuth; using %s (set DOCUSIGN_BASE_URL in "
-            "production with FLASK_ENV=production for regional prod REST).",
-            _raw_docusign_base_url,
-            DOCUSIGN_REST_BASE_URL_DEMO,
+        log.warn(
+            "DOCUSIGN",
+            "DOCUSIGN_BASE_URL does not match demo OAuth; using demo REST base URL",
+            {
+                "configured_base_url": _raw_docusign_base_url,
+                "resolved_base_url": DOCUSIGN_REST_BASE_URL_DEMO,
+            },
         )
         DOCUSIGN_BASE_URL = DOCUSIGN_REST_BASE_URL_DEMO
     else:

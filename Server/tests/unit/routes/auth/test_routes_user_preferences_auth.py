@@ -27,6 +27,8 @@ class TestPreferencesAuthAndDelete:
     ):
         """DELETE /api/v1/preferences removes preference rows for the authenticated user."""
         with app.app_context():
+            from sqlalchemy import func, select
+
             from app.models import User, UserFinancials
 
             user = User(
@@ -68,21 +70,29 @@ class TestPreferencesAuthAndDelete:
                 db_session.session.refresh(user)
                 assert user.has_preferences is False
                 assert user.preferences_version is None
-                assert UserFinancials.query.filter_by(user_id=str(user.id)).count() == 0
+                assert (
+                    db_session.session.scalar(
+                        select(func.count())
+                        .select_from(UserFinancials)
+                        .where(UserFinancials.user_id == str(user.id))
+                    )
+                    == 0
+                )
 
     def test_delete_preferences_does_not_clear_client_rows(
         self, client, app: Flask, db_session, sample_preferences
     ):
         """Agent DELETE clears only the agent row; client preference rows remain."""
         with app.app_context():
-            from app.models import AgentConnections, User, UserFinancials
+            from sqlalchemy import select
+
+            from app.models import AgentConnections, User, UserFinancials, UserRole
 
             agent = User(
                 cognito_id="agent-cognito-del",
                 email="agent-del@example.com",
                 name="Agent Delete",
                 is_active=True,
-                is_agent=True,
             )
             client_user = User(
                 cognito_id="client-cognito-del",
@@ -91,6 +101,7 @@ class TestPreferencesAuthAndDelete:
                 is_active=True,
             )
             db_session.session.add(agent)
+            db_session.session.add(UserRole(user_id=agent.id, role="agent"))
             db_session.session.add(client_user)
             db_session.session.commit()
 
@@ -140,8 +151,12 @@ class TestPreferencesAuthAndDelete:
                 )
                 assert response.status_code == 200
 
-                agent_fin = UserFinancials.query.filter_by(user_id=str(agent.id)).first()
-                client_fin = UserFinancials.query.filter_by(user_id=str(client_user.id)).first()
+                agent_fin = db_session.session.scalar(
+                    select(UserFinancials).where(UserFinancials.user_id == str(agent.id))
+                )
+                client_fin = db_session.session.scalar(
+                    select(UserFinancials).where(UserFinancials.user_id == str(client_user.id))
+                )
                 assert agent_fin is None
                 assert client_fin is not None
                 assert client_fin.home_budget_min == 111000

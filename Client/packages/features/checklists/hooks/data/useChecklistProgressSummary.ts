@@ -27,7 +27,10 @@ export function useChecklistProgressSummary(
 
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
   const subjectCacheKey = transactionId ?? "self";
-  const queryEnabled = shouldLoadData && (transactionId == null || transactionId.length > 0);
+  const queryEnabled =
+    shouldLoadData &&
+    options?.enabled !== false &&
+    (transactionId == null || transactionId.length > 0);
 
   const queryKey = useMemo(
     () => ["checklists", "progress-summary", subjectCacheKey] as const,

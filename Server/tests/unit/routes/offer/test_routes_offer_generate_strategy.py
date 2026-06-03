@@ -12,13 +12,12 @@ from app import db
 from app.models import User
 
 
-def _user(db_session, *, is_agent: bool = False) -> User:
+def _user(db_session) -> User:
     user = User(
         cognito_id=f"cognito-{uuid.uuid4().hex[:8]}",
         email=f"offer-{uuid.uuid4().hex[:8]}@example.com",
         name="Offer User",
         is_active=True,
-        is_agent=is_agent,
     )
     db.session.add(user)
     db.session.commit()
@@ -42,12 +41,14 @@ def test_generate_strategy_missing_address_returns_400(client, app: Flask, db_se
             resp = client.post(
                 "/api/v1/offer/generate-strategy",
                 headers={"Authorization": "Bearer mock_token"},
-                json={},
+                json={"address": ""},
             )
     assert resp.status_code == 400
     body = resp.get_json()
     assert body is not None
     assert body.get("success") is False
+    assert body.get("error") == "INVALID_REQUEST"
+    assert body.get("message") == "Address is required"
 
 
 @pytest.mark.api

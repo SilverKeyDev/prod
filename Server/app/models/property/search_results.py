@@ -1,9 +1,12 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -27,19 +30,9 @@ class Search(db.Model):
     mls_home_id: Mapped[str | None] = mapped_column(db.String(64))
     created_at: Mapped[datetime | None] = mapped_column(default=lambda: datetime.now(timezone.utc))
 
-    # relationships
-    user = db.relationship("User", backref=db.backref("search_sessions", lazy="dynamic"))
+    user: Mapped["User"] = relationship("User", back_populates="search_sessions")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "query_params": self.query_params,
-            "mls_home_id": self.mls_home_id,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-        }

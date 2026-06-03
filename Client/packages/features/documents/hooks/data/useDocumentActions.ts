@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 
 import { getBaseUrl } from "packages/config";
 import { showErrorToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { asError } from "packages/utils";
 import { getDocument, getWindow } from "packages/utils/platform";
 
@@ -36,7 +36,7 @@ export type PdfModalHooks = {
   ) => Promise<{ success: boolean; message: string }>;
 };
 
-export const usePdfModal = (): PdfModalHooks => {
+export const useDocumentActions = (): PdfModalHooks => {
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
   const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
   const [currentDocumentName, setCurrentDocumentName] = useState<string | null>(null);
@@ -79,12 +79,12 @@ export const usePdfModal = (): PdfModalHooks => {
       }
       if (win) win.open(url, "_blank", "noopener,noreferrer");
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Download failed", error);
+      log.error("ERRORS", "Download failed", error);
       try {
         if (win) win.open(url, "_blank", "noopener,noreferrer");
       } catch (fallbackError: unknown) {
         const fallbackErr = asError(fallbackError);
-        log.error(LOG_CATEGORIES.ERRORS, "Fallback download failed", fallbackErr);
+        log.error("ERRORS", "Fallback download failed", fallbackErr);
       }
     }
   }, []);
@@ -107,13 +107,13 @@ export const usePdfModal = (): PdfModalHooks => {
         return viewUrl;
       }
 
-      log.warn(LOG_CATEGORIES.API, "Unable to determine base URL for report view", {
+      log.warn("API", "Unable to determine base URL for report view", {
         documentId,
       });
       return null;
     } catch (err: unknown) {
       const error = asError(err);
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to get fresh view URL", {
+      log.error("ERRORS", "Failed to get fresh view URL", {
         error,
         documentId,
       });
@@ -127,7 +127,7 @@ export const usePdfModal = (): PdfModalHooks => {
       return response.success ? (response.downloadUrl ?? null) : null;
     } catch (err: unknown) {
       const error = asError(err);
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to get fresh download URL", {
+      log.error("ERRORS", "Failed to get fresh download URL", {
         error,
         documentId,
       });
@@ -144,7 +144,7 @@ export const usePdfModal = (): PdfModalHooks => {
           const filename = `${documentName.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`;
           downloadFile(downloadUrl, filename);
         } else {
-          log.error(LOG_CATEGORIES.ERRORS, "Failed to get PDF download URL", {
+          log.error("ERRORS", "Failed to get PDF download URL", {
             documentId,
             documentName,
           });
@@ -181,14 +181,14 @@ export const usePdfModal = (): PdfModalHooks => {
         if (pdfUrl) {
           openPdfModal(pdfUrl, documentName, documentId);
         } else {
-          log.error(LOG_CATEGORIES.ERRORS, "Failed to get PDF view URL", {
+          log.error("ERRORS", "Failed to get PDF view URL", {
             documentId,
             documentName,
           });
           showErrorToast("Unable to view document. Please try again later.");
         }
       } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.ERRORS, "Error viewing document", {
+        log.error("ERRORS", "Error viewing document", {
           error,
           documentId,
           documentName,
@@ -204,7 +204,7 @@ export const usePdfModal = (): PdfModalHooks => {
       try {
         await downloadDocument(documentId, documentName);
       } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.ERRORS, "Error downloading document", {
+        log.error("ERRORS", "Error downloading document", {
           error,
           documentId,
           documentName,
@@ -217,13 +217,13 @@ export const usePdfModal = (): PdfModalHooks => {
 
   const handleShareDocument = useCallback(
     async (documentId: string, documentName: string) => {
-      log.info(LOG_CATEGORIES.DOCUMENTS, "handleShareDocument invoked", {
+      log.info("DOCUMENTS", "handleShareDocument invoked", {
         documentId,
         documentName,
       });
       try {
         const result = await shareDocument(documentId, documentName);
-        log.info(LOG_CATEGORIES.DOCUMENTS, "handleShareDocument finished", {
+        log.info("DOCUMENTS", "handleShareDocument finished", {
           documentId,
           documentName,
           success: result.success,
@@ -231,7 +231,7 @@ export const usePdfModal = (): PdfModalHooks => {
         });
         return result;
       } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.ERRORS, "Error sharing document", {
+        log.error("ERRORS", "Error sharing document", {
           error,
           documentId,
           documentName,
@@ -275,6 +275,3 @@ export const usePdfModal = (): PdfModalHooks => {
     handleShareDocument,
   };
 };
-
-// Legacy export for backward compatibility
-export const useDocumentActions = usePdfModal;

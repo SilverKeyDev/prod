@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useUIStore } from "packages/store";
 import type { components } from "packages/types/api.generated";
 import type { SavedHome } from "packages/types/domain/savedHome";
@@ -61,7 +61,7 @@ export function useMessagingHandlers({
         await sendSharedHomes(homes);
         setShowSelectHomeModal(false);
       } catch (error) {
-        log.error(LOG_CATEGORIES.MESSAGES, "Error sharing home", error);
+        log.error("MESSAGES", "Error sharing home", error);
       }
     },
     [canShare, sendSharedHomes, setShowSelectHomeModal]
@@ -71,14 +71,10 @@ export function useMessagingHandlers({
     async (document: DocumentData) => {
       if (!canShare) {
         if (mode === "client") {
-          log.error(
-            LOG_CATEGORIES.MESSAGES,
-            "Cannot share document: missing conversation or agent",
-            {
-              hasActiveConversationId: !!activeConversationId,
-              hasAgentId: !!agentId,
-            }
-          );
+          log.error("MESSAGES", "Cannot share document: missing conversation or agent", {
+            hasActiveConversationId: !!activeConversationId,
+            hasAgentId: !!agentId,
+          });
         }
         return;
       }
@@ -86,14 +82,14 @@ export function useMessagingHandlers({
       try {
         await sendSharedDocument(document);
         if (mode === "client") {
-          log.info(LOG_CATEGORIES.MESSAGES, "Document shared successfully", {
+          log.info("MESSAGES", "Document shared successfully", {
             documentId: document.id,
             conversationId,
           });
         }
         setShowSelectDocumentModal(false);
       } catch (error) {
-        log.error(LOG_CATEGORIES.MESSAGES, "Error sharing document", {
+        log.error("MESSAGES", "Error sharing document", {
           error,
           documentId: document.id,
           conversationId,
@@ -157,7 +153,7 @@ export function useMessagingHandlers({
           message: "Event added to your calendar and invite sent.",
         });
       } catch (error) {
-        log.error(LOG_CATEGORIES.CALENDAR, "Error creating event from request", error);
+        log.error("CALENDAR", "Error creating event from request", error);
         enqueueToast({
           type: "error",
           message: "Could not add event. Connect Google Calendar in Settings.",
@@ -193,7 +189,7 @@ export function useMessagingHandlers({
           });
         }
       } catch (error) {
-        log.error(LOG_CATEGORIES.CALENDAR, "Error cancelling event request", error);
+        log.error("CALENDAR", "Error cancelling event request", error);
         enqueueToast({
           type: "error",
           message: "Could not cancel event request.",

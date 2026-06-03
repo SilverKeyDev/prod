@@ -5,7 +5,7 @@ import { usePdfModalDiagnostics } from "packages/features/documents/hooks/ui/pdf
 import { generateOptimizedPdfUrl } from "packages/features/documents/utils/pdf";
 import { formatFilenameToAddress } from "packages/features/search/types/search/formatters/address";
 import { useResponsive } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import ModalPortal from "packages/ui/components/modals/ModalPortal";
 import type { PdfModalProps } from "packages/ui/components/modals/PdfModal/PdfModal.types";
 import { PdfModalContent } from "packages/ui/components/modals/PdfModal/PdfModalContent";
@@ -33,7 +33,7 @@ const DocumentPdfModal: React.FC<PdfModalProps> = ({
 
   useEffect(() => {
     if (currentPdf || currentReportAddress || reportId) {
-      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Props updated", {
+      log.debug("HTTP", "[PdfModal] Props updated", {
         currentPdf: currentPdf ? `${currentPdf.substring(0, 50)}...` : null,
         currentReportAddress,
         reportId,
@@ -112,7 +112,7 @@ const DocumentPdfModal: React.FC<PdfModalProps> = ({
 
   useEffect(() => {
     if (optimizedPdfUrl) {
-      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Generated optimized URL for iframe", {
+      log.debug("HTTP", "[PdfModal] Generated optimized URL for iframe", {
         originalUrl: currentPdf,
         optimizedUrl: optimizedPdfUrl,
         reportId,

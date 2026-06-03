@@ -2,7 +2,7 @@
 
 import traceback
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from .constants import AGE_GROUP_KEYS, CENSUS_API_KEY
 from .geocoding import get_zip_from_address
@@ -42,7 +42,7 @@ def fetch_age_table_by_zip(zip_code):
     try:
         response = requests.get(base, params=params)
         log.debug(
-            LOG_CATEGORIES["API"],
+            "API",
             "Census request",
             {"url": str(response.url), "status_code": response.status_code},
         )
@@ -54,9 +54,7 @@ def fetch_age_table_by_zip(zip_code):
             raise Exception(f"❌ Census API returned empty response for ZIP {zip_code}")
         return response.json()
     except Exception as e:
-        log.error(
-            LOG_CATEGORIES["ERRORS"], "Census API error", {"error": str(e), "zip_code": zip_code}
-        )
+        log.error("ERRORS", "Census API error", {"error": str(e), "zip_code": zip_code})
         traceback.print_exc()
         raise
 
@@ -73,27 +71,25 @@ def parse_age_distribution(data):
     Raises:
         Exception: If parsing fails
     """
-    log.debug(LOG_CATEGORIES["API"], "Parsing age distribution")
+    log.debug("API", "Parsing age distribution")
     try:
         header = data[0]
         row = data[1]
         row_dict = dict(zip(header, row, strict=False))
 
         total_population = float(row_dict["S0101_C01_001E"])
-        log.debug(LOG_CATEGORIES["API"], "Total Population", {"total_population": total_population})
+        log.debug("API", "Total Population", {"total_population": total_population})
 
         age_buckets = {}
         for group, keys in AGE_GROUP_KEYS.items():
             total = sum(float(row_dict.get(k, 0)) for k in keys)
             pct = round((total / total_population) * 100)
             age_buckets[group] = int(pct)
-            log.debug(
-                LOG_CATEGORIES["API"], "Age group percentage", {"group": group, "percentage": pct}
-            )
+            log.debug("API", "Age group percentage", {"group": group, "percentage": pct})
 
         return age_buckets
     except Exception as e:
-        log.error(LOG_CATEGORIES["ERRORS"], "Error parsing age distribution", {"error": str(e)})
+        log.error("ERRORS", "Error parsing age distribution", {"error": str(e)})
         traceback.print_exc()
         raise
 
@@ -108,17 +104,17 @@ def get_age_distribution(address: str) -> dict:
         dict: Age group labels mapped to percentage values, or error dict
     """
     try:
-        log.info(LOG_CATEGORIES["API"], "Starting Age Distribution Lookup", {"address": address})
+        log.info("API", "Starting Age Distribution Lookup", {"address": address})
 
         zip_code = get_zip_from_address(address)
         raw_data = fetch_age_table_by_zip(zip_code)
         distribution = parse_age_distribution(raw_data)
 
-        log.info(LOG_CATEGORIES["API"], "Final Age Distribution", distribution)
+        log.info("API", "Final Age Distribution", distribution)
         return distribution
     except Exception as e:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             "Failed to get age distribution",
             {"address": address, "error": str(e)},
         )
@@ -135,7 +131,7 @@ def get_population_total(address: str) -> dict:
         dict: Contains 'total_population' key with population count, or error dict
     """
     try:
-        log.info(LOG_CATEGORIES["API"], "Starting Total Population Lookup", {"address": address})
+        log.info("API", "Starting Total Population Lookup", {"address": address})
 
         zip_code = get_zip_from_address(address)
         raw_data = fetch_age_table_by_zip(zip_code)
@@ -146,7 +142,7 @@ def get_population_total(address: str) -> dict:
         total_population = int(float(row_dict["S0101_C01_001E"]))
 
         log.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "Total Population in ZIP",
             {"zip_code": zip_code, "total_population": total_population},
         )
@@ -155,7 +151,7 @@ def get_population_total(address: str) -> dict:
 
     except Exception as e:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             "Failed to get population",
             {"address": address, "error": str(e)},
         )

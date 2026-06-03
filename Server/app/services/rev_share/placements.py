@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from sqlalchemy import select
+
+from app import db
+from app.dtos.partner import PartnerDTO
 from app.models import Partner, RevShareLink
 from app.models.partners.partner import CHECKLIST_WORKSPACES, DEFAULT_INTEGRATION_DISPLAY_MODE
 from app.services.rev_share.admin.partner_logo import enrich_partner_dict_logo
@@ -72,12 +76,16 @@ def get_placements_for_step(
             continue
 
         ensure_link_for_partner(partner.id)
-        link = RevShareLink.query.filter_by(partner_id=partner.id, is_active=True).first()
+        link = db.session.scalar(
+            select(RevShareLink).where(
+                RevShareLink.partner_id == partner.id, RevShareLink.is_active.is_(True)
+            )
+        )
         if not link:
             continue
         out.append(
             {
-                "partner": enrich_partner_dict_logo(partner.to_dict()),
+                "partner": enrich_partner_dict_logo(PartnerDTO.to_response(partner)),
                 "link_id": link.id,
                 "destination_url": _resolve_destination_url(
                     partner=partner,

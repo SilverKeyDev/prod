@@ -8,6 +8,7 @@ import pytest
 
 import app.utils.cache.redis_client as redis_client_module
 from app.utils.cache.redis_client import (
+    create_messaging_pubsub_client,
     get_pubsub_redis,
     get_shared_redis,
     ping_shared_redis,
@@ -62,6 +63,18 @@ class TestSharedRedisClient:
         mock_from_url.return_value = MagicMock()
         get_pubsub_redis()
         _, kwargs = mock_from_url.call_args
+        assert kwargs["socket_timeout"] is None
+
+    @patch("redis.Redis.from_url")
+    def test_create_messaging_pubsub_client_is_not_singleton(self, mock_from_url, monkeypatch):
+        monkeypatch.setenv("REDIS_URL", "redis://localhost:6379/0")
+        mock_from_url.side_effect = [MagicMock(), MagicMock()]
+        first = create_messaging_pubsub_client()
+        second = create_messaging_pubsub_client()
+        assert first is not second
+        assert mock_from_url.call_count == 2
+        _, kwargs = mock_from_url.call_args
+        assert kwargs["max_connections"] == 1
         assert kwargs["socket_timeout"] is None
 
     @patch("redis.Redis.from_url")

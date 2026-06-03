@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { screenUp } from "packages/ui/types/screens";
 import { dateNow } from "packages/utils/date";
 import { getWindow } from "packages/utils/platform";
@@ -60,7 +60,7 @@ export function useMapInitAndResize(params: {
       }
 
       // Map is in wrong container, recreate it
-      log.debug(LOG_CATEGORIES.POLLING, "[MAP_RESIZE] Map in wrong container, recreating", {
+      log.debug("POLLING", "[MAP_RESIZE] Map in wrong container, recreating", {
         currentContainer: mapDiv.parentElement,
         targetContainer: container,
         timestamp: dateNow().toISOString(),
@@ -69,15 +69,11 @@ export function useMapInitAndResize(params: {
       // Check if the target container already has a map
       const existingMap = googleMapsService.getMapForContainer(container);
       if (existingMap) {
-        log.debug(
-          LOG_CATEGORIES.POLLING,
-          "[MAP_RESIZE] Target container already has a map, reusing",
-          {
-            existingMap,
-            container,
-            timestamp: dateNow().toISOString(),
-          }
-        );
+        log.debug("POLLING", "[MAP_RESIZE] Target container already has a map, reusing", {
+          existingMap,
+          container,
+          timestamp: dateNow().toISOString(),
+        });
         googleMapRef.current = existingMap;
       } else {
         const map = stableParams.createMap(container);
@@ -115,7 +111,7 @@ export function useMapInitAndResize(params: {
     // Check if container already has a map instance
     const existingMap = googleMapsService.getMapForContainer(container);
     if (existingMap) {
-      log.debug(LOG_CATEGORIES.POLLING, "[MAP_INIT] Container already has a map, reusing", {
+      log.debug("POLLING", "[MAP_INIT] Container already has a map, reusing", {
         existingMap,
         container,
         timestamp: dateNow().toISOString(),
@@ -164,7 +160,7 @@ export function useMapInitAndResize(params: {
     // Check if container already has a map instance
     const existingMap = googleMapsService.getMapForContainer(container);
     if (existingMap) {
-      log.debug(LOG_CATEGORIES.POLLING, "[ENSURE_MAP] Container already has a map, reusing", {
+      log.debug("POLLING", "[ENSURE_MAP] Container already has a map, reusing", {
         existingMap,
         container,
         timestamp: dateNow().toISOString(),

@@ -7,7 +7,7 @@ import { searchDisplayApi } from "packages/features/search/api/searchDisplay";
 import type { LastSearchContext } from "packages/features/search/types/domain/searchDisplay";
 import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/map/locationBoundsOverlay";
 import { centroidOfViewportRing } from "packages/features/search/utils/map/mapViewport";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useFiltersStore, useSearchContextStore } from "packages/store";
 import type { ViewportPolygonPoint } from "packages/types/domain/api";
 import { dateNow } from "packages/utils/date";
@@ -42,7 +42,7 @@ export function useLastSearchPersistence(): {
     if (!ctx) return;
 
     hydratedRef.current = true;
-    log.info(LOG_CATEGORIES.SEARCH, "Hydrating last search context from DB", {
+    log.info("SEARCH", "Hydrating last search context from DB", {
       source: ctx.search_source,
       hasRing: Boolean(ctx.viewport_ring),
       label: ctx.place_label ?? null,
@@ -77,7 +77,7 @@ export function useLastSearchPersistence(): {
   const saveLastSearchContext = useCallback(
     (ctx: LastSearchContext) => {
       const payload = { ...ctx, searched_at: dateNow().toISOString() };
-      log.info(LOG_CATEGORIES.SEARCH, "Saving last search context", {
+      log.info("SEARCH", "Saving last search context", {
         source: payload.search_source,
         hasRing: Boolean(payload.viewport_ring),
         label: payload.place_label ?? null,
@@ -90,7 +90,7 @@ export function useLastSearchPersistence(): {
           }
         })
         .catch((err: unknown) => {
-          log.error(LOG_CATEGORIES.API, "Failed to save last search context", err);
+          log.error(`API.${err}`, "Failed to save last search context");
         });
     },
     [queryClient]

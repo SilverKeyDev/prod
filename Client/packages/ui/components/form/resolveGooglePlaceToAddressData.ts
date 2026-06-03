@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { hasProperty, isFunction, isObject } from "packages/utils";
 
 import type { AddressData } from "./AddressInput/AddressInput";
@@ -61,7 +61,7 @@ export async function resolveGooglePlaceToAddressData(
       });
     }
   } catch (error) {
-    log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields", error);
+    log.warn("ERRORS", "Error fetching place fields", error);
   }
 
   const placeRecord = place as PlaceLike;

@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import { buildSharedHomesAttachmentMessage } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
 import type { SearchResult } from "packages/features/search/types/domain/result";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { searchResultsToSavedHomesForShare } from "packages/utils/search/share/searchResultsToSavedHomesForShare";
 import { getShareHomeConversationId } from "packages/utils/share";
 
@@ -36,7 +36,7 @@ export function useAgentSearchShareBundleSend(): {
         await sendMessage(conversationId, messageBody, clientIdToPass, sharedHomeId);
         return true;
       } catch (error) {
-        log.error(LOG_CATEGORIES.MESSAGES, "Error sending shared home bundle from search", error);
+        log.error("MESSAGES", "Error sending shared home bundle from search", error);
         return false;
       } finally {
         setIsSending(false);

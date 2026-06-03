@@ -442,7 +442,6 @@ class AgreementRevision(BaseModel):
     id: str
     agreement_id: str
     version_number: int
-    revision_number: int | None = Field(None, description="Legacy field")
     filename: str
     file_name: str | None = Field(None, description="Alternative field name")
     file_path: str
@@ -505,7 +504,10 @@ class AuthSessionUser(BaseModel):
         description="Application user id when the row exists; null if not yet linked.",
     )
     phone: str | None = None
-    is_agent: bool
+    roles: list[str] = Field(
+        ...,
+        description="Role names from user_roles; empty when user row is not linked yet.",
+    )
     auth_method: AuthMethod = Field(
         ...,
         description="How the session authenticated relative to linked identities on the user row:\n- `unknown`: Could not classify (legacy or transitional row)\n- `cognito`: Cognito username/password or hosted UI session\n- `google`: Google OAuth identity supplied the tokens\n- `both`: User has linked Cognito and Google identities\n",
@@ -562,7 +564,7 @@ class ViewingRouteEndpoint(BaseModel):
 
 class ViewingRouteEndMode(Enum):
     """
-    How the route finishes after the last property when a start location is set. Ignored when start is omitted (legacy open tour across properties only).
+    How the route finishes after the last property when a start location is set. Ignored when start is omitted (open tour across property stops only).
 
     """
 
@@ -721,6 +723,38 @@ class ChecklistFormSendRequest(BaseModel):
     participants: list[Participant] | None = None
 
 
+class Step(Enum):
+    messaging = "messaging"
+    docusign = "docusign"
+
+
+class ChecklistFormPartialStepError(BaseModel):
+    step: Step
+    error: str = Field(..., description="Stable error code (e.g. VALIDATION_ERROR, FORBIDDEN).")
+    message: str = Field(..., description="Safe user-facing message for the failed step.")
+
+
+class ChecklistForm(BaseModel):
+    id: str
+    form_key: str = Field(..., description="Stable key (e.g. earnest_money, wire_instructions).")
+    title: str
+    description: str | None = None
+    s3_template_path: str = Field(..., description="S3 object key for the PDF template.")
+    category: str | None = Field(None, description="Library folder (e.g. escrow, financing).")
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class ChecklistFormWithDownload(ChecklistForm):
+    download_url: AnyUrl | None = Field(
+        ..., description="Presigned S3 URL; null when URL generation fails."
+    )
+    deadline: str | None = Field(
+        None,
+        description="ISO date deadline derived from checklist step timing when available.",
+    )
+
+
 class LinkDocumentToChecklistRequest(BaseModel):
     document_id: str | None = Field(
         None, description="ID of the document to link to checklist item"
@@ -794,6 +828,27 @@ class PreferencesResponse(BaseModel):
     model_config = ConfigDict(
         extra="allow",
     )
+
+
+class HasPreferences(Enum):
+    boolean_False = False
+
+
+class DeletePreferencesApiResponse(SuccessResponse):
+    has_preferences: HasPreferences
+    preferences: Any | None = None
+    message: str | None = Field(None, description="Confirmation copy after clearing preferences.")
+
+
+class GetPreferencesApiResponse(SuccessResponse):
+    preferences: PreferencesResponse | None = None
+    has_preferences: bool | None = Field(
+        None, description="True when the user has persisted preference rows."
+    )
+
+
+class GetUserPreferencesByIdApiResponse(SuccessResponse):
+    preferences: PreferencesResponse | None = None
 
 
 class ClientsResponse(BaseModel):
@@ -1158,8 +1213,7 @@ class DeleteMyAccountRequest(BaseModel):
 
 
 class DeleteReportRequest(BaseModel):
-    s3_key: str | None = Field(None, description="Optional S3 key for the report to delete")
-    file_path: str | None = Field(None, description="Optional legacy file path (alias of s3_key)")
+    s3_key: str | None = Field(None, description="S3 key for the report to delete")
 
 
 class DeleteReportResponse(RootModel[SuccessResponse]):
@@ -1169,11 +1223,14 @@ class DeleteReportResponse(RootModel[SuccessResponse]):
 class DeleteUserRequest(BaseModel):
     user_id: str = Field(..., description="ID of user to delete")
     confirm: bool = Field(..., description="Must be true to confirm deletion")
-    confirmation: str | None = Field(None, description="Legacy confirmation text (optional)")
 
 
 class DeleteUserResponse(SuccessResponse):
     deleted_user_id: str | None = None
+
+
+class DownloadChecklistFormResponse(SuccessResponse):
+    download_url: AnyUrl
 
 
 class Scope1(Enum):
@@ -1284,7 +1341,7 @@ class Pagination(BaseModel):
 
 class Status3(Enum):
     """
-    Pipeline state for the stored file (DB allows additional legacy values).
+    Pipeline state for the stored file (DB allows additional values).
     """
 
     uploaded = "uploaded"
@@ -1309,7 +1366,7 @@ class UploadedDocumentRecord(BaseModel):
     file_path: str
     status: Status3 = Field(
         ...,
-        description="Pipeline state for the stored file (DB allows additional legacy values).",
+        description="Pipeline state for the stored file (DB allows additional values).",
     )
     user_id: str
     created_at: str | None = None
@@ -1386,6 +1443,17 @@ class DocuSignParticipantTabPrefillInput(BaseModel):
     checkboxes: list[DocuSignPrefillCheckboxTabInput] | None = Field(None, max_length=50)
 
 
+class DocusignAgreementDownloadUrlResponse(SuccessResponse):
+    download_url: AnyUrl = Field(
+        ...,
+        description="Pre-signed S3 URL for viewing or downloading the agreement PDF.",
+    )
+    expires_at: str | None = Field(
+        None,
+        description="Optional expiration timestamp for the pre-signed URL. Handler currently returns null.\n",
+    )
+
+
 class DocusignCreateTemplateMetadataInput(BaseModel):
     name: str = Field(..., description="Display name for the DocuSign template.")
     description: str | None = None
@@ -1394,6 +1462,20 @@ class DocusignCreateTemplateMetadataInput(BaseModel):
         description="Ordered signer role names (e.g. Agent, Buyer). Must match the number of signers you will assign in DocuSign after opening the template editor.\n",
         max_length=20,
         min_length=1,
+    )
+
+
+class DocusignCreateTemplateMultipartRequest(BaseModel):
+    metadata: str = Field(
+        ...,
+        description="JSON string for DocusignCreateTemplateMetadataInput (name, description, roles).\n",
+    )
+    files: list[bytes] = Field(
+        ..., description="One or more PDF files (document order matches upload order)."
+    )
+    file: bytes | None = Field(
+        None,
+        description="Optional singular alias for a single PDF; backend also accepts file instead of files.\n",
     )
 
 
@@ -1452,10 +1534,6 @@ class DocusignResendRecipientResponse(SuccessResponse):
     )
 
 
-class DocusignSyncTemplatesResponse(SuccessResponse):
-    task_id: str | None = None
-
-
 class DocusignTemplate(BaseModel):
     id: str
     template_id: str
@@ -1511,6 +1589,13 @@ class EarnestMoneyRequest(BaseModel):
     escrow_company: str
 
 
+class EmptyRequest(BaseModel):
+    """
+    Empty JSON body for POST/PUT/PATCH routes with no request fields (cookie auth, path-only, or multipart file handled outside OpenAPI body validation). Client may send {}.
+
+    """
+
+
 class Success1(Enum):
     boolean_False = False
 
@@ -1543,11 +1628,11 @@ class ErrorResponse(BaseModel):
     )
     validation_errors: dict[str, Any] | None = Field(
         None,
-        description="Optional alternate validation map when included via secure error additional_info. Values are usually strings or lists of strings (same shape as field_errors); additionalProperties stays open for legacy or nested payloads from some validators.\n",
+        deprecated=True,
+        description="Deprecated — use `field_errors`. Removed from SecureErrorHandler output; retained one release for client backward compatibility.\n",
     )
     details: str | dict[str, Any] | None = Field(
-        None,
-        description="Additional context as plain text or structured map (e.g. legacy Marshmallow validate_request).",
+        None, description="Additional context as plain text or structured map."
     )
     status_code: int | None = Field(
         None,
@@ -1712,6 +1797,20 @@ class ForgotPasswordData(BaseModel):
     email: EmailStr = Field(..., description="Email address for password reset")
 
 
+class FormsLibraryCategory(BaseModel):
+    name: str = Field(..., description="Category folder name (e.g. escrow).")
+    forms: list[ChecklistFormWithDownload]
+
+
+class FormsLibraryDownloadResponse(SuccessResponse):
+    download_url: AnyUrl
+    form: ChecklistForm
+
+
+class FormsLibraryResponse(SuccessResponse):
+    categories: list[FormsLibraryCategory] | None = None
+
+
 class Item(BaseModel):
     id: str = Field(..., description="Calendar ID")
 
@@ -1752,6 +1851,10 @@ class GenerateReportResponse(SuccessResponse):
     document_id: str | None = None
 
 
+class GetChecklistItemFormsResponse(SuccessResponse):
+    forms: list[ChecklistFormWithDownload] | None = None
+
+
 class LogLevel(Enum):
     DEBUG = "DEBUG"
     INFO = "INFO"
@@ -1768,10 +1871,13 @@ class ClientApiSubcategoryConfig(BaseModel):
 
 class ServerLoggerConfig(BaseModel):
     """
-    Logger category toggles (booleans) plus logLevel. additionalProperties allows future category keys to be boolean or string without breaking older clients when the server adds flags.
+    Resolved server logger category toggles plus logLevel.
 
     """
 
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     polling: bool
     pages: bool
     hooks: bool
@@ -1780,7 +1886,66 @@ class ServerLoggerConfig(BaseModel):
     api: bool
     errors: bool
     security: bool
+    search: bool
+    polygonSearch: bool
+    mapRendering: bool
+    propertyDetails: bool
+    negotiation: bool
+    checklists: bool
+    calendar: bool
+    dashboard: bool
+    messages: bool
+    feed: bool
+    routing: bool
+    docusign: bool
+    documents: bool
+    profilePreferences: bool
     logLevel: LogLevel
+
+
+class ClientApiSubcategoryConfigPatch(BaseModel):
+    """
+    Partial API subcategory toggles for admin logger config updates.
+    """
+
+    initialLoad: bool | None = None
+    polling: bool | None = None
+    pageMount: bool | None = None
+    other: bool | None = None
+
+
+class ServerLoggerConfigPatch(BaseModel):
+    """
+    Partial server logger config for admin updates. All fields optional; server deep-merges into stored deployment overrides.
+
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    polling: bool | None = None
+    pages: bool | None = None
+    hooks: bool | None = None
+    auth: bool | None = None
+    http: bool | None = None
+    api: bool | None = None
+    errors: bool | None = None
+    security: bool | None = None
+    search: bool | None = None
+    polygonSearch: bool | None = None
+    mapRendering: bool | None = None
+    propertyDetails: bool | None = None
+    negotiation: bool | None = None
+    checklists: bool | None = None
+    calendar: bool | None = None
+    dashboard: bool | None = None
+    messages: bool | None = None
+    feed: bool | None = None
+    routing: bool | None = None
+    docusign: bool | None = None
+    documents: bool | None = None
+    profilePreferences: bool | None = None
+    logLevel: LogLevel | None = None
 
 
 class GetSenderViewUrlResponse(SuccessResponse):
@@ -1894,6 +2059,17 @@ class GoogleCalendarPermissionsResponse(BaseModel):
     permissions: dict[str, GoogleCalendarPermission]
     scopes: str
     last_updated: str | None = None
+
+
+class GoogleCalendarWebhookBody(BaseModel):
+    """
+    Optional JSON body on Google Calendar push notifications. Header verification (X-Goog-Channel-Token, etc.) is authoritative; body shape varies by Google.
+
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
 
 
 class Creator(BaseModel):
@@ -2025,25 +2201,8 @@ class IsochroneGeometry(BaseModel):
     coordinates: list[list[list[float]]]
 
 
-class IsochroneData2(BaseModel):
-    """
-    Legacy field
-    """
-
-    type: str | None = None
-    coordinates: list[list[list[float]]] | None = None
-
-
-class Location1(BaseModel):
-    address: str | None = None
-    commute_tolerance: float | None = None
-    name: str | None = None
-
-
 class IsochroneResponse(SuccessResponse):
     data: IsochroneData | None = None
-    isochrone_data: IsochroneData2 | None = Field(None, description="Legacy field")
-    locations: list[Location1] | None = Field(None, description="Legacy field")
 
 
 class IsochroneQueryParams(BaseModel):
@@ -2410,6 +2569,13 @@ class OfferDocumentGenerationResponse(SuccessResponse):
     filename: str | None = None
 
 
+class UpsertPreferencesApiResponse(SuccessResponse):
+    preferences: PreferencesResponse | None = None
+    message: str | None = Field(
+        None, description="Confirmation copy (e.g. Preferences saved successfully)."
+    )
+
+
 class ProfilePictureResponse(SuccessResponse):
     profile_picture_url: AnyUrl | None = Field(
         None, description="Public URL of the uploaded profile picture"
@@ -2431,7 +2597,10 @@ class PublicAgentProfile(BaseModel):
     email: EmailStr
     phone: str | None = None
     mls_id: str | None = None
-    brokerage: str | None = Field(None, description="Legacy brokerage name on the users row.")
+    brokerage: str | None = Field(
+        None,
+        description="Brokerage name from the users row (prefer `brokerage_name` when both are set).",
+    )
     profile_picture_url: AnyUrl | None = Field(
         None,
         description="Presigned URL for the user's profile picture when stored in S3.",
@@ -2459,7 +2628,7 @@ class PublicAgentProfile(BaseModel):
     social_links: dict[str, str] | None = None
     public_profile_slug: str | None = Field(
         None,
-        description="Unique slug for the short public profile URL path `/a/{public_profile_slug}`. Omitted or null only for legacy rows before backfill; clients should fall back to the long id-based URL.\n",
+        description="Unique slug for the short public profile URL path `/a/{public_profile_slug}`. Omitted or null before slug backfill; clients should fall back to the long id-based URL.\n",
     )
 
 
@@ -2588,7 +2757,7 @@ class Essentials(BaseModel):
     yearBuilt: int | None = None
 
 
-class Location2(BaseModel):
+class Location1(BaseModel):
     """
     Property location
     """
@@ -2647,7 +2816,7 @@ class PropertySearchResult(BaseModel):
 
     id: str = Field(..., description="Property ID (ZPID or internal)")
     essentials: Essentials = Field(..., description="Core property characteristics")
-    location: Location2 = Field(..., description="Property location")
+    location: Location1 = Field(..., description="Property location")
     financials: Financials | None = Field(None, description="Pricing information")
     media: Media | None = Field(None, description="Property images")
     metadata: Metadata | None = Field(None, description="Listing metadata")
@@ -2672,9 +2841,6 @@ class ReportDocumentsListResponse(SuccessResponse):
     documents: list[UploadedDocumentRecord] | None = Field(
         None, description="Rows from GET /api/v1/report/documents"
     )
-    reports: list[UploadedDocumentRecord] | None = Field(
-        None, description="Legacy alias for documents (backward compatibility)"
-    )
     count: int | None = None
     total: int | None = Field(None, description="Total matching rows when paginated")
     limit: int | None = None
@@ -2690,7 +2856,7 @@ class ReportsResponse(SuccessResponse):
     documents: list[UploadedDocumentRecord] | None = None
     reports: list[ReportListItem] | None = Field(
         None,
-        description="Property report list entries (GET /api/v1/report/list shape); legacy clients may have conflated this with upload rows.",
+        description="Property report list entries (GET /api/v1/report/list shape).",
     )
 
 
@@ -2867,6 +3033,17 @@ class SearchDisplayResponse(SuccessResponse):
     search_display: SearchDisplayPayload | None = None
 
 
+class SecureUploadDocumentForm(BaseModel):
+    """
+    Multipart form fields for POST /api/v1/upload/document (excluding binary `file`, which is validated via file_security). Maps to the `address` part of SecureUploadDocumentRequest.
+
+    """
+
+    address: str | None = Field(
+        None, description="Optional property address associated with the upload."
+    )
+
+
 class SecureUploadDocumentPayload(BaseModel):
     """
     Nested payload returned by POST /api/v1/upload/document (field `document` on `UploadResponse`). Immediate upload metadata; not the full `UploadedDocumentRecord` (no `user_id` / pipeline status in body).
@@ -2879,6 +3056,36 @@ class SecureUploadDocumentPayload(BaseModel):
     type: str | None = Field(None, description="Validated MIME type of the uploaded file")
     hash: str | None = None
     uploaded_at: str | None = None
+
+
+class SecureUploadDocumentRequest(BaseModel):
+    file: bytes = Field(
+        ...,
+        description="Document file (PDF, DOCX, or allowed image types per handler validation).",
+    )
+    address: str | None = Field(
+        None, description="Optional property address associated with the upload."
+    )
+
+
+class SecureUploadImagePayload(BaseModel):
+    """
+    Nested payload returned by POST /api/v1/upload/image (field `image` on UploadResponse).
+
+    """
+
+    filename: str
+    size: int | None = Field(
+        None,
+        description="File size in bytes; may be null after temp file is removed post-S3 upload.",
+    )
+    type: str | None = Field(None, description="Validated MIME type of the uploaded image.")
+    hash: str | None = None
+    url: AnyUrl | None = Field(None, description="S3 URL when configured; otherwise null.")
+
+
+class SecureUploadImageRequest(BaseModel):
+    file: bytes = Field(..., description="Image file (JPEG, PNG, or GIF per handler validation).")
 
 
 class SigningMethod(Enum):
@@ -2938,6 +3145,13 @@ class SignupData(BaseModel):
         description="Optional `users.brokerage` for agents at signup; shown on agent-facing surfaces.",
         examples=["Silver Key Realty"],
     )
+
+
+class SyncTemplatesRequest(BaseModel):
+    """
+    Empty JSON body for POST /api/v1/docusign/templates/sync. Client may send {}. No fields are required or read by the handler.
+
+    """
 
 
 class SyncTemplatesResponse(SuccessResponse):
@@ -3032,7 +3246,10 @@ class TransactionMeResponse(BaseModel):
 
 
 class UpdateAgentStatusRequest(BaseModel):
-    is_agent: bool = Field(..., description="Whether user should be an agent")
+    agent_role_enabled: bool = Field(
+        ...,
+        description="When true, ensure the agent role in user_roles; when false, remove it.",
+    )
     brokerage: str | None = Field(
         None,
         description="Optional users.brokerage when toggling agent status (if used by client).",
@@ -3114,6 +3331,28 @@ class UpdateTodoResponse(SuccessResponse):
     todo: TodoItem | None = None
 
 
+class GateRole(Enum):
+    admin = "admin"
+    super_admin = "super_admin"
+
+
+class AdminGateUser(BaseModel):
+    user_id: str = Field(..., description="User primary key (UUID).")
+    email: str = Field(..., description="User email address.")
+    name: str = Field(..., description="Display name.")
+    gate_roles: list[GateRole] = Field(
+        ...,
+        description="SilverKey gate roles assigned to this user (`admin`, `super_admin`).",
+    )
+
+
+class ListAdminGateUsersResponse(SuccessResponse):
+    admins: list[AdminGateUser] = Field(
+        ...,
+        description="Users with at least one SilverKey gate role (`admin` or `super_admin`).",
+    )
+
+
 class GrantEnum(Enum):
     admin = "admin"
     super_admin = "super_admin"
@@ -3148,6 +3387,7 @@ class UploadResponse(SuccessResponse):
     file_size: int | None = None
     content_type: str | None = None
     document: SecureUploadDocumentPayload | None = None
+    image: SecureUploadImagePayload | None = None
 
 
 class UserDataExportResponse(SuccessResponse):
@@ -3226,6 +3466,38 @@ class Partner(BaseModel):
     total_clicks: int | None = None
     click_through_rate: float | None = None
     unique_buyer_step_views: int | None = None
+
+
+class BuyerStepView(BaseModel):
+    id: str
+    buyer_id: str
+    step_id: str
+    transaction_id: str
+    viewed_at: AwareDatetime
+    partner_payout_snapshot: list[dict[str, Any]] | None = None
+
+
+class RevShareRecentClick(BaseModel):
+    id: str
+    partner_id: str
+    link_id: str
+    agent_id: str | None = None
+    buyer_id: str | None = None
+    transaction_id: str | None = None
+    step_id: str
+    clicked_at: AwareDatetime
+    payout_per_conversion: float
+    payout_type: str
+    utm_source: str | None = None
+    utm_medium: str | None = None
+    utm_campaign: str | None = None
+    geo_city: str | None = None
+    geo_zip: str | None = None
+    geo_region: str | None = None
+    device_class: str | None = None
+    referrer: str | None = None
+    buyer_name: str | None = None
+    agent_name: str | None = None
 
 
 class PayoutType1(Enum):
@@ -3313,7 +3585,7 @@ class RevShareStepViewRequest(BaseModel):
 
 class RevShareStepViewResponse(BaseModel):
     success: bool
-    data: dict[str, Any]
+    data: BuyerStepView
 
 
 class Workspace(Enum):
@@ -3409,7 +3681,7 @@ class Data5(BaseModel):
     geo_breakdown: list[dict[str, Any]] | None = None
     device_breakdown: list[dict[str, Any]] | None = None
     referrer_breakdown: list[dict[str, Any]] | None = None
-    recent_clicks: list[dict[str, Any]] | None = None
+    recent_clicks: list[RevShareRecentClick] | None = None
 
 
 class RevShareAnalyticsResponse(BaseModel):
@@ -3455,7 +3727,7 @@ class ActionPlanResponse(SuccessResponse):
 
 class User(BaseModel):
     """
-    Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Agent status is derived from user_roles (is_agent is true when role "agent" is present).
+    Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Agent identity is determined by the presence of role "agent" in user_roles (exposed as roles).
 
     """
 
@@ -3482,18 +3754,15 @@ class User(BaseModel):
         description="ISO 8601 timestamp of last successful session activity when tracked.",
     )
     is_active: bool
-    is_agent: bool | None = Field(
-        None,
-        description="Computed from user_roles; true when the user has the agent role.",
-    )
     mls_id: str | None = None
     brokerage: str | None = Field(
         None,
-        description="Agent brokerage name on the users row (DB column brokerage). Replaces the legacy column name agency_name from early migrations; API wire name is always brokerage.\n",
+        description="Agent brokerage name on the users row (DB column brokerage). API wire name is always brokerage.\n",
     )
     has_preferences: bool | None = None
     preferences_version: str | None = Field(
-        None, description="Legacy preferences version marker on users row."
+        None,
+        description="Preferences schema version marker on users row (e.g. v1); null when unset.",
     )
     profile_picture: str | None = Field(
         None, description="S3 object key for the profile image when stored server-side."
@@ -3503,7 +3772,7 @@ class User(BaseModel):
     )
     roles: list[str] | None = Field(
         None,
-        description="Role names from user_roles; typically present on GET /user/profile.",
+        description="Role names from user_roles (e.g. agent, buyer, seller). Agent UX uses roles includes agent.",
     )
     brokerage_org_ids: list[str] | None = Field(
         None,
@@ -3594,13 +3863,13 @@ class BuildRouteRequest(BaseModel):
     )
     start: ViewingRouteEndpoint | None = Field(
         None,
-        description="Optional starting location (e.g. home or current position). When set, the route begins here and only property stops are reordered. When omitted, legacy behavior optimizes across property stops only (open tour, best first listing).\n",
+        description="Optional starting location (e.g. home or current position). When set, the route begins here and only property stops are reordered. When omitted, the route optimizes across property stops only (open tour, best first listing).\n",
     )
     end: ViewingRouteEndpoint | None = Field(
         None,
         description="Required when end_mode is fixed; ignored for last_property and return_to_start.",
     )
-    end_mode: ViewingRouteEndMode | None = "last_property"
+    end_mode: ViewingRouteEndMode | None = None
     optimize_order: bool | None = Field(
         True,
         description="When true, reorder property stops to reduce driving time (subject to start/end_mode). When false, visit properties in request order between anchors.\n",
@@ -3675,6 +3944,19 @@ class ChecklistDispatchAutomationSetting(BaseModel):
     )
     updatedAt: AwareDatetime | None = Field(
         None, description="Last update time when a row exists in the database."
+    )
+
+
+class ChecklistFormSendResponse(BaseModel):
+    success: bool
+    message_id: str | None = Field(
+        None, description="Messaging attachment message id when messaging succeeded."
+    )
+    agreement_id: str | None = Field(
+        None, description="DocuSign agreement id when signing flow succeeded."
+    )
+    partial_errors: list[ChecklistFormPartialStepError] | None = Field(
+        None, description="Per-step failures when method is both and one leg failed."
     )
 
 
@@ -3806,10 +4088,13 @@ class UserProfile(User):
 
 class ClientLoggerConfig(BaseModel):
     """
-    Frontend logger category toggles with nested API subcategories plus logLevel.
+    Resolved frontend logger category toggles with nested API subcategories plus logLevel.
 
     """
 
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     polling: bool
     pages: bool
     hooks: bool
@@ -3818,6 +4103,40 @@ class ClientLoggerConfig(BaseModel):
     api: bool | ClientApiSubcategoryConfig
     errors: bool
     security: bool
+    search: bool
+    polygonSearch: bool
+    mapRendering: bool
+    propertyDetails: bool
+    negotiation: bool
+    checklists: bool
+    calendar: bool
+    dashboard: bool
+    messages: bool
+    feed: bool
+    routing: bool
+    docusign: bool
+    documents: bool
+    profilePreferences: bool
+    logLevel: LogLevel
+
+
+class ClientLoggerConfigPatch(BaseModel):
+    """
+    Partial frontend logger config for admin updates. All fields optional; server deep-merges into stored deployment overrides.
+
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    polling: bool | None = None
+    pages: bool | None = None
+    hooks: bool | None = None
+    auth: bool | None = None
+    http: bool | None = None
+    api: bool | ClientApiSubcategoryConfigPatch | None = None
+    errors: bool | None = None
+    security: bool | None = None
     search: bool | None = None
     polygonSearch: bool | None = None
     mapRendering: bool | None = None
@@ -3832,12 +4151,12 @@ class ClientLoggerConfig(BaseModel):
     docusign: bool | None = None
     documents: bool | None = None
     profilePreferences: bool | None = None
-    logLevel: LogLevel
+    logLevel: LogLevel | None = None
 
 
 class DeploymentLoggerConfigUpdates(BaseModel):
-    client: ClientLoggerConfig | None = None
-    server: ServerLoggerConfig | None = None
+    client: ClientLoggerConfigPatch | None = None
+    server: ServerLoggerConfigPatch | None = None
 
 
 class GoogleEventReminders(BaseModel):
@@ -3871,8 +4190,8 @@ class ViewingItinerary(BaseModel):
         None, description="Required when `end_mode` is `fixed`; ignored otherwise."
     )
     end_mode: ViewingRouteEndMode | None = Field(
-        "last_property",
-        description="How the tour ends after the last property. Omitted or `last_property` for legacy itineraries.\n",
+        None,
+        description="How the tour ends after the last property. Omitted or `last_property` when no end anchor is set.\n",
     )
 
 
@@ -4061,8 +4380,7 @@ class Agreement(BaseModel):
     """
     DocuSign-backed agreement between an agent and buyer, including envelope metadata,
     participant list, optional revisions/history, and denormalized names for list views.
-    `docusign_envelope_id` is the primary correlation key with DocuSign; `envelope_id`
-    is legacy and may duplicate or diverge on older rows.
+    `docusign_envelope_id` is the primary correlation key with DocuSign.
 
     """
 
@@ -4079,7 +4397,6 @@ class Agreement(BaseModel):
         None,
         description="Free-text summary or internal notes shown on agreement detail.",
     )
-    envelope_id: str | None = Field(None, description="Legacy field")
     docusign_envelope_id: str | None = Field(
         None,
         description="Current DocuSign envelope UUID used for API callbacks and deep links.",

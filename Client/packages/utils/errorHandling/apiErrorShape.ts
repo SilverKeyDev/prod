@@ -7,6 +7,7 @@ import {
   GENERIC_ERROR_I18N_KEY,
   lookupErrorCatalogEntry,
 } from "./errorCatalog";
+import { extractFirstValidationMessage } from "./extractValidationDetail";
 
 const MACHINE_CODE_RE = /^[A-Z0-9_]+$/;
 const SNAKE_CASE_CODE_RE = /^[a-z][a-z0-9_]*$/;
@@ -15,6 +16,8 @@ export type ApiErrorShape = {
   success?: boolean;
   error?: string | null;
   message?: string | null;
+  field_errors?: Record<string, string | string[]> | null;
+  validation_errors?: Record<string, unknown> | string[] | null;
 };
 
 export type ResolveApiErrorShapeOptions = {
@@ -59,6 +62,9 @@ export function resolveFromApiShape(
 ): string | undefined {
   const message = readTrimmedString(shape.message);
   if (message) return message;
+
+  const fromValidation = extractFirstValidationMessage(shape as Record<string, unknown>);
+  if (fromValidation) return fromValidation;
 
   const code = readTrimmedString(shape.error);
   if (code) {

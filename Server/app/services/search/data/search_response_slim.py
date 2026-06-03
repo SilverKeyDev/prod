@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 _SEARCH_RESPONSE_KEYS = frozenset(
     {
@@ -295,7 +295,7 @@ def slim_properties_for_search_response(properties: list[dict]) -> list[dict]:
 
     if missing_coords_ids:
         log.info(
-            LOG_CATEGORIES["POLYGON_SEARCH"],
+            "POLYGON_SEARCH",
             "search_response_listings_missing_map_coordinates",
             {
                 "missing_count": len(missing_coords_ids),

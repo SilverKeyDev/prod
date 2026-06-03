@@ -1,7 +1,10 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -40,10 +43,15 @@ class Todo(db.Model):
         default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
 
-    # Relationships
-    agent = db.relationship("User", foreign_keys=[agent_id], backref=db.backref("todos", lazy=True))
-    client = db.relationship(
-        "User", foreign_keys=[client_id], backref=db.backref("client_todos", lazy=True)
+    agent: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[agent_id],
+        back_populates="todos",
+    )
+    client: Mapped["User | None"] = relationship(
+        "User",
+        foreign_keys=[client_id],
+        back_populates="client_todos",
     )
 
     def __init__(self, **kwargs):

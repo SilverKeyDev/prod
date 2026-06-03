@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { hasProperty, isFunction, isObject } from "packages/utils";
 
 import type { GooglePlacesSuggestion } from "./types";
@@ -38,7 +38,7 @@ export async function applyGooglePlaceSuggestionToAddress(
         });
       }
     } catch (error) {
-      log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields", error);
+      log.warn("ERRORS", "Error fetching place fields", error);
     }
     if (hasProperty(place, "formattedAddress") && typeof place.formattedAddress === "string") {
       setAddress(place.formattedAddress);

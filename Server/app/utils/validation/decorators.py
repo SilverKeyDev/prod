@@ -5,6 +5,7 @@ Provides request and response validation against Pydantic schemas
 generated from openapi.yaml. Supports gradual rollout mode.
 """
 
+import json
 import os
 from collections.abc import Callable
 from functools import wraps
@@ -15,10 +16,17 @@ from pydantic import BaseModel, ValidationError
 
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.validation.domain_strict import is_strict_for_request_path
-from logger import LOG_CATEGORIES, log
+from app.utils.validation.helpers import (
+    format_validation_errors,
+    sanitize_validation_errors_for_log,
+)
+from logger import log
 
 # Validation mode: gradual (log + accept) or strict (reject invalid)
 VALIDATION_MODE = os.getenv("OPENAPI_VALIDATION_MODE", "gradual")
+
+OPENAPI_VALIDATE_REQUEST_ATTR = "_openapi_validate_request_schema"
+OPENAPI_VALIDATE_FORM_ATTR = "_openapi_validate_form_schema"
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -66,31 +74,27 @@ def _coerce_json_body_for_schema(schema: type[BaseModel], json_data: Any) -> dic
                         elif isinstance(x, float) and x.is_integer():
                             coerced_ids.append(int(x))
                     return {"data": {"items": [], "checkedIds": coerced_ids}}
+        if name in ("AddFeedLikeRequest", "AddCommentRequest"):
+            if "home_id" not in d or d.get("home_id") in (None, ""):
+                hid = d.get("homeId") or d.get("home_id")
+                if hid is not None:
+                    d = {**d, "home_id": str(hid).strip() if hid else ""}
+        if name == "ClientErrorReport":
+            out = dict(d)
+            if not out.get("error_message"):
+                msg = out.get("message") or out.get("name") or ""
+                if not msg and out.get("stack"):
+                    msg = str(out["stack"])[:2000]
+                out["error_message"] = msg if msg else "(no message)"
+            if "user_agent" not in out and out.get("userAgent"):
+                out["user_agent"] = out["userAgent"]
+            return out
         return d
     # Match OpenAPI-generated class names without importing app.schemas (heavy import graph).
     if schema.__name__ == "UpdateChecklistRequest" and isinstance(json_data, list):
         return {"checklist": {"checkedIds": json_data}}
     if schema.__name__ == "BulkUpdateFavoritesRequest" and isinstance(json_data, list):
         return {"favorites": json_data}
-    if schema.__name__ in ("AddFeedLikeRequest", "AddCommentRequest") and isinstance(
-        json_data, dict
-    ):
-        out = dict(json_data)
-        if "home_id" not in out or out.get("home_id") in (None, ""):
-            hid = out.get("homeId") or out.get("home_id")
-            if hid is not None:
-                out["home_id"] = str(hid).strip() if hid else ""
-        return out
-    if schema.__name__ == "ClientErrorReport" and isinstance(json_data, dict):
-        out = dict(json_data)
-        if not out.get("error_message"):
-            msg = out.get("message") or out.get("name") or ""
-            if not msg and out.get("stack"):
-                msg = str(out["stack"])[:2000]
-            out["error_message"] = msg if msg else "(no message)"
-        if "user_agent" not in out and out.get("userAgent"):
-            out["user_agent"] = out["userAgent"]
-        return out
     # Non-dict bodies cannot be passed as **kwargs to the schema
     return {}
 
@@ -133,32 +137,26 @@ def validate_request(schema: type[BaseModel]) -> Callable[[F], F]:
 
                 # Log detailed validation failure
                 log.warn(
-                    LOG_CATEGORIES["ERRORS"],
+                    "ERRORS",
                     f"OpenAPI validation failed [{error_id}]",
                     {
                         "route": request.path,
                         "method": request.method,
                         "schema": schema.__name__,
-                        "errors": e.errors(),
+                        "errors": sanitize_validation_errors_for_log(e.errors()),
                         "mode": VALIDATION_MODE,
                         "error_id": error_id,
                     },
                 )
 
                 if is_strict_for_request_path(request.path, VALIDATION_MODE):
-                    # Reject request with structured validation errors
-                    field_errors = {}
-                    for err in e.errors():
-                        # Get field name from error location
-                        field = ".".join(str(loc) for loc in err["loc"])
-                        field_errors[field] = err["msg"]
-
+                    field_errors = format_validation_errors(e.errors())
                     return SecureErrorHandler.handle_validation_error(e, field_errors)
                 else:
                     # Gradual mode: log but continue with None data
                     # Route handler must handle data=None case
                     log.info(
-                        LOG_CATEGORIES["ERRORS"],
+                        "ERRORS",
                         f"Gradual mode: accepting request despite validation failure [{error_id}]",
                         {"route": request.path},
                     )
@@ -168,7 +166,7 @@ def validate_request(schema: type[BaseModel]) -> Callable[[F], F]:
                 # Unexpected error during validation
                 error_id = SecureErrorHandler.generate_error_id()
                 log.error(
-                    LOG_CATEGORIES["ERRORS"],
+                    "ERRORS",
                     f"Unexpected error in request validation [{error_id}]",
                     {"route": request.path, "error": str(e)},
                 )
@@ -176,6 +174,92 @@ def validate_request(schema: type[BaseModel]) -> Callable[[F], F]:
                     e, context={"function": "validate_request", "schema": schema.__name__}
                 )
 
+        setattr(wrapper, OPENAPI_VALIDATE_REQUEST_ATTR, schema)
+        return wrapper  # type: ignore
+
+    return decorator
+
+
+def validate_form_request(
+    schema: type[BaseModel],
+    *,
+    form_key: str | None = None,
+    parse_json: bool = False,
+) -> Callable[[F], F]:
+    """Validate multipart or form-encoded fields against a Pydantic schema."""
+
+    def decorator(f: F) -> F:
+        @wraps(f)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                if form_key is not None:
+                    raw_value = request.form.get(form_key)
+                    if parse_json:
+                        if not raw_value:
+                            validated_data = schema.model_validate({})
+                        else:
+                            validated_data = schema.model_validate_json(raw_value)
+                    else:
+                        validated_data = schema.model_validate({form_key: raw_value})
+                else:
+                    field_names = list(schema.model_fields.keys())
+                    payload = {
+                        name: request.form.get(name) for name in field_names if name in request.form
+                    }
+                    validated_data = schema.model_validate(payload)
+
+                return f(*args, data=validated_data, **kwargs)
+
+            except ValidationError as e:
+                error_id = SecureErrorHandler.generate_error_id()
+                log.warn(
+                    "ERRORS",
+                    f"OpenAPI form validation failed [{error_id}]",
+                    {
+                        "route": request.path,
+                        "method": request.method,
+                        "schema": schema.__name__,
+                        "errors": sanitize_validation_errors_for_log(e.errors()),
+                        "mode": VALIDATION_MODE,
+                        "error_id": error_id,
+                    },
+                )
+                if is_strict_for_request_path(request.path, VALIDATION_MODE):
+                    field_errors = format_validation_errors(e.errors())
+                    return SecureErrorHandler.handle_validation_error(e, field_errors)
+                log.info(
+                    "ERRORS",
+                    f"Gradual mode: accepting form despite validation failure [{error_id}]",
+                    {"route": request.path},
+                )
+                return f(*args, data=None, **kwargs)
+
+            except json.JSONDecodeError as e:
+                error_id = SecureErrorHandler.generate_error_id()
+                log.warn(
+                    "ERRORS",
+                    f"Invalid JSON in form field [{error_id}]",
+                    {"route": request.path, "form_key": form_key, "error": str(e)},
+                )
+                return SecureErrorHandler.create_secure_response(
+                    "validation_error",
+                    400,
+                    additional_info={"message": "Invalid JSON in form field"},
+                )
+
+            except Exception as e:
+                error_id = SecureErrorHandler.generate_error_id()
+                log.error(
+                    "ERRORS",
+                    f"Unexpected error in form validation [{error_id}]",
+                    {"route": request.path, "error": str(e)},
+                )
+                return SecureErrorHandler.handle_error(
+                    e,
+                    context={"function": "validate_form_request", "schema": schema.__name__},
+                )
+
+        setattr(wrapper, OPENAPI_VALIDATE_FORM_ATTR, schema)
         return wrapper  # type: ignore
 
     return decorator
@@ -246,7 +330,7 @@ def validate_response(schema: type[BaseModel]) -> Callable[[F], F]:
                     "method": request.method,
                     "schema": schema.__name__,
                     "status_code": status_code,
-                    "errors": e.errors(),
+                    "errors": sanitize_validation_errors_for_log(e.errors()),
                     "error_id": error_id,
                 }
                 if schema.__name__ == "SearchByPolygonResponse" and isinstance(json_data, dict):
@@ -260,7 +344,7 @@ def validate_response(schema: type[BaseModel]) -> Callable[[F], F]:
                     )
                 # Log response validation failure (server bug!)
                 log.error(
-                    LOG_CATEGORIES["ERRORS"],
+                    "ERRORS",
                     f"Response validation failed [{error_id}] - server returned invalid data",
                     payload,
                 )
@@ -273,7 +357,7 @@ def validate_response(schema: type[BaseModel]) -> Callable[[F], F]:
                 # Unexpected error during validation
                 error_id = SecureErrorHandler.generate_error_id()
                 log.error(
-                    LOG_CATEGORIES["ERRORS"],
+                    "ERRORS",
                     f"Unexpected error in response validation [{error_id}]",
                     {"route": request.path, "error": str(e)},
                 )
@@ -304,13 +388,13 @@ def validate_query(schema: type[BaseModel]) -> Callable[[F], F]:
             except ValidationError as e:
                 error_id = SecureErrorHandler.generate_error_id()
                 log.warn(
-                    LOG_CATEGORIES["ERRORS"],
+                    "ERRORS",
                     f"OpenAPI query validation failed [{error_id}]",
                     {
                         "route": request.path,
                         "method": request.method,
                         "schema": schema.__name__,
-                        "errors": e.errors(),
+                        "errors": sanitize_validation_errors_for_log(e.errors()),
                         "mode": VALIDATION_MODE,
                         "error_id": error_id,
                     },
@@ -324,7 +408,7 @@ def validate_query(schema: type[BaseModel]) -> Callable[[F], F]:
                     return SecureErrorHandler.handle_validation_error(e, field_errors)
 
                 log.info(
-                    LOG_CATEGORIES["ERRORS"],
+                    "ERRORS",
                     f"Gradual mode: accepting query despite validation failure [{error_id}]",
                     {"route": request.path},
                 )
@@ -333,7 +417,7 @@ def validate_query(schema: type[BaseModel]) -> Callable[[F], F]:
             except Exception as e:
                 error_id = SecureErrorHandler.generate_error_id()
                 log.error(
-                    LOG_CATEGORIES["ERRORS"],
+                    "ERRORS",
                     f"Unexpected error in query validation [{error_id}]",
                     {"route": request.path, "error": str(e)},
                 )
@@ -346,27 +430,35 @@ def validate_query(schema: type[BaseModel]) -> Callable[[F], F]:
     return decorator
 
 
-def has_validation_decorator(func: Callable) -> bool:
+def has_request_validation_decorator(func: Callable[..., Any]) -> bool:
+    """Return True if the view has @validate_request or @validate_form_request applied."""
+    current: Callable[..., Any] | None = func
+    seen: set[int] = set()
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if getattr(current, OPENAPI_VALIDATE_REQUEST_ATTR, None) is not None:
+            return True
+        if getattr(current, OPENAPI_VALIDATE_FORM_ATTR, None) is not None:
+            return True
+        current = getattr(current, "__wrapped__", None)
+    return False
+
+
+def has_validation_decorator(func: Callable[..., Any]) -> bool:
     """
-    Check if a function has validation decorators applied.
+    Check if a function has request or response validation decorators applied.
 
-    Used by contract tests to verify all routes have validation.
-
-    Args:
-        func: Route handler function
-
-    Returns:
-        True if function has @validate_request or @validate_response
+    Prefer has_request_validation_decorator for POST/PUT/PATCH body coverage checks.
     """
-    # Check if function has validation wrappers in its closure
-    if hasattr(func, "__wrapped__"):
-        return has_validation_decorator(func.__wrapped__)
+    if has_request_validation_decorator(func):
+        return True
 
-    # Check function name (decorator wrappers retain name via @wraps)
-    if hasattr(func, "__name__"):
-        # Look for validation decorator markers in closure
-        if hasattr(func, "__closure__") and func.__closure__:
-            for cell in func.__closure__:
+    current: Callable[..., Any] | None = func
+    seen: set[int] = set()
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if hasattr(current, "__closure__") and current.__closure__:
+            for cell in current.__closure__:
                 try:
                     if isinstance(cell.cell_contents, type) and issubclass(
                         cell.cell_contents, BaseModel
@@ -374,5 +466,5 @@ def has_validation_decorator(func: Callable) -> bool:
                         return True
                 except (TypeError, AttributeError):
                     continue
-
+        current = getattr(current, "__wrapped__", None)
     return False

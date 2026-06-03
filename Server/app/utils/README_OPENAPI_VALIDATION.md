@@ -11,15 +11,17 @@ This directory contains the core infrastructure for runtime OpenAPI contract val
 Core validation decorators for Flask routes.
 
 **Decorators:**
-- `@validate_request(schema)` - Validates request body against Pydantic schema
+- `@validate_request(schema)` - Validates JSON request body against Pydantic schema
+- `@validate_form_request(schema, form_key=..., parse_json=...)` - Validates multipart/form fields (not binary files)
+- `@validate_query(schema)` - Validates query string parameters
 - `@validate_response(schema)` - Validates response matches schema (logs only)
-- `has_validation_decorator(func)` - Checks if function has validation
+- `has_request_validation_decorator(func)` - Checks for request validation decorators (contract tests)
+- `has_validation_decorator(func)` - Legacy helper; includes response decorators
 
 **Features:**
-- Gradual and strict validation modes
+- Strict request/query/form validation (invalid bodies return 400)
 - Integrates with `SecureErrorHandler` for consistent error responses
 - Automatic PII scrubbing via centralized logger
-- Zero-impact validation failures in gradual mode
 
 **Example:**
 ```python
@@ -27,16 +29,8 @@ from app.schemas import LoginData
 from app.utils.validation import validate_request
 
 @validate_request(LoginData)
-def login(data: LoginData | None = None):
-    """Login with OpenAPI validation."""
-    if data is None:
-        # Gradual mode fallback
-        data = request.get_json()
-    else:
-        # Validated Pydantic model
-        data = data.model_dump()
-
-    return handle_login(data)
+def login(data: LoginData):
+    return handle_login(data.model_dump(mode="json"))
 ```
 
 ### `validation/helpers.py`
@@ -48,7 +42,7 @@ Helper utilities for working with Pydantic validation errors.
 - `validate_response_data(data, schema)` - Validate without raising exceptions
 - `get_validation_summary(errors)` - Human-readable error summary
 - `extract_required_fields(schema)` - Get required field names from schema
-- `create_validation_error_response(e, path)` - Standardized error response
+- `create_validation_error_response(e, path)` - Legacy dict builder; prefer `SecureErrorHandler.handle_validation_error` + `format_validation_errors` instead
 
 **Example:**
 ```python
@@ -77,42 +71,14 @@ from app.utils.common_patterns import require_validated_agent  # or app.utils.ro
 
 @agent_bp.route('/todos', methods=['POST'])
 @require_validated_agent(CreateTodoRequest)
-def create_todo(user, data: CreateTodoRequest | None = None):
+def create_todo(user, data: CreateTodoRequest):
     """Agent endpoint with validation."""
-    # user: authenticated agent
-    # data: validated or None (gradual mode)
     return create_todo_handler(user, data)
 ```
 
-## Validation Modes
+## Validation mode
 
-### Gradual Mode (Default)
-
-**Configuration**: `OPENAPI_VALIDATION_MODE=gradual`
-
-**Behavior:**
-- Log validation failures with detailed error info
-- Accept requests even if validation fails
-- Pass `data=None` to route handler on failure
-- Route provides fallback handling
-
-**Use Case:**
-- Development and staging environments
-- During migration period to identify schema issues
-- Observation period before strict enforcement
-
-**Example Log:**
-```
-[WARN] OpenAPI validation failed [abc123ef]
-route: /api/v1/auth/login
-schema: LoginData
-errors: [{"loc": ["email"], "msg": "field required"}]
-mode: gradual
-```
-
-### Strict Mode (Production)
-
-**Configuration**: `OPENAPI_VALIDATION_MODE=strict`
+**Configuration**: `OPENAPI_VALIDATION_MODE=strict` (default when unset)
 
 **Behavior:**
 - Reject invalid requests with 400 error
@@ -127,8 +93,7 @@ mode: gradual
 
 **Prerequisites:**
 - All routes migrated to use validation decorators
-- < 1% failure rate in gradual mode for 1 week
-- All schema mismatches resolved
+- All schema mismatches resolved (watch `ERRORS` logs during soak)
 
 ## Migration Guide
 
@@ -156,24 +121,15 @@ from app.utils.validation import validate_request
 
 @auth_bp.route('/login', methods=['POST'])
 @validate_request(LoginData)
-def login(data: LoginData | None = None):
+def login(data: LoginData):
     # ...
 ```
 
-### Step 3: Handle Data
-
-Support both validated data and fallback:
+### Step 3: Use validated data in the handler
 
 ```python
-def login(data: LoginData | None = None):
-    if data is None:
-        # Gradual mode: validation failed, use fallback
-        request_data = request.get_json()
-        # Manual validation if needed
-    else:
-        # Validated Pydantic model
-        request_data = data.model_dump()
-
+def login(data: LoginData):
+    request_data = data.model_dump()
     return handle_login(request_data)
 ```
 
@@ -207,7 +163,7 @@ curl -X POST http://localhost:5000/api/v1/auth/login \
   -d '{"email": "test@example.com"}'
 ```
 
-Check logs for validation messages in gradual mode.
+Invalid requests should return 400; check `ERRORS` logs if clients report failures.
 
 ## Checking Migration Progress
 
@@ -295,20 +251,14 @@ grep "OpenAPI validation failed" app.log
 3. Update `openapi.yaml` to match actual contract
 4. Regenerate schemas: `bash scripts/generate-pydantic-models.sh`
 
-### Issue: Route handler gets None data
+### Issue: Route handler never runs (400 validation_error)
 
-**Cause:** Running in gradual mode with validation failures
+**Cause:** Request body does not match the OpenAPI schema
 
 **Solution:**
-1. Check logs for validation errors
-2. Fix schema in `openapi.yaml`
-3. Or add fallback handling:
-   ```python
-   def handler(data: Schema | None = None):
-       if data is None:
-           # Fallback for gradual mode
-           data = request.get_json()
-   ```
+1. Check logs for validation errors (`OpenAPI request validation failed`)
+2. Fix schema in `openapi/` or align the client payload
+3. Regenerate: `make openapi`
 
 ### Issue: Validation decorator not found
 
@@ -325,18 +275,55 @@ from Server.app.schemas import LoginData
 from validation import validate_request
 ```
 
-## Exceptions (no response body validation)
+## Exceptions and special cases
 
-- **Server-Sent Events (SSE)** — e.g. `app/routes/agent/handlers/chats_stream.py` streams tokens/events without a JSON response envelope; do not apply `@validate_response` to the stream endpoint.
+### Request validation
+
+| Case | Approach |
+| ---- | -------- |
+| **No JSON body** (cookie auth, path-only POST) | `@validate_request(EmptyRequest)` |
+| **Multipart metadata** (e.g. DocuSign template create) | `@validate_form_request(Schema, form_key="metadata", parse_json=True)` |
+| **Multipart form fields only** (e.g. upload `address`) | `@validate_form_request(SecureUploadDocumentForm)`; binary `file` via `file_security` |
+| **Multipart file + notes** (agreement revision) | `@validate_request(EmptyRequest)` on route; PDF/notes validated in handler |
+| **GET-only route modules** | No `@validate_request` required; coverage script skips files without POST/PUT/PATCH |
+
+### Webhooks
+
+| Endpoint | Body validation | Trust boundary |
+| -------- | ---------------- | -------------- |
+| DocuSign Connect | `@validate_request(DocusignWebhookPayload)` | HMAC `X-DocuSign-Signature-1` |
+| Google Calendar push | `@validate_request(GoogleCalendarWebhookBody)` (optional JSON) | `X-Goog-Channel-Token` + channel headers |
+
+### Response validation
+
+`@validate_response` is **log-only**: invalid 2xx JSON is logged under `ERRORS` and the handler response is still returned unchanged. Use it on routes whose success body matches a generated Pydantic model from `openapi/openapi.yaml`.
+
+#### Do not apply `@validate_response`
+
+| Route / area | Response type | Notes |
+| ------------ | ------------- | ----- |
+| `GET /api/v1/agent/chats/stream` | `text/event-stream` (SSE) | Request body may still use `@validate_request`; stream chunks are not a single JSON envelope. Same telemetry exclusion as [api-instrumentation.mdc](../../../.cursor/rules/shared/api-instrumentation.mdc). |
+| Research property streams (`/api/v1/search`, research routes) | SSE | e.g. `stream_with_context` + `mimetype="text/event-stream"` in `Server/app/routes/search/research.py`. |
+| Google Calendar `GET /api/v1/google/oauth/start`, `.../oauth/enhance`, `.../oauth/callback` | `302` redirect or non-envelope JSON errors | No `{ success, ... }` JSON success body to validate. |
+| DocuSign `GET /api/v1/docusign/oauth/callback` | HTTP redirect | OAuth completion redirect; not a typed JSON envelope. |
+| Report `GET /api/v1/report/<id>/view` (and similar) | `application/pdf` inline | Binary body; only JSON URL/list endpoints use `@validate_response`. |
+| Agreement/report file download via presigned URL | JSON URL wrapper only | Apply `@validate_response` on JSON endpoints (e.g. `GET .../agreements/{id}/download`, report `download-url` / `view-url`), not on following the presigned URL or raw PDF bytes. |
+
+#### SSE pattern (reference)
+
+- **Agent messaging stream:** `Server/app/routes/agent/handlers/chats_stream.py`
+- **Property research stream:** `Server/app/routes/search/research.py`
+
+For SSE routes, validate the **incoming JSON request** when applicable; skip response validation on the stream itself.
 
 ## Best Practices
 
 1. **Always check schema exists** before migrating route
-2. **Support gradual mode** with fallback handling
+2. **Use required `data: Schema`** in handlers (no `request.get_json()` fallbacks)
 3. **Log validation failures** for debugging
 4. **Remove legacy validation** after migration
 5. **Test both valid and invalid** requests
-6. **Monitor failure rates** before strict mode
+6. **Monitor failure rates** in staging before production deploy
 7. **Update schemas first** if validation fails
 
 ## Resources

@@ -39,4 +39,4 @@ properties:
   end_mode:
     $ref: ./ViewingRouteEndMode.yaml
     description: >
-      How the tour ends after the last property. Omitted or `last_property` for legacy itineraries.
+      How the tour ends after the last property. Omitted or `last_property` when no end anchor is set.

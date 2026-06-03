@@ -7,7 +7,7 @@ import { queryAvailability } from "packages/features/calendar/api/schedulingQuer
 import { toBuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
 import { useGoogleCalendarStore } from "packages/store";
 import { dayjs } from "packages/utils/date";
@@ -91,7 +91,7 @@ export function useEventRequestScheduleAvailability({
       return;
     }
     log.warn(
-      LOG_CATEGORIES.CALENDAR,
+      "CALENDAR",
       "Event request availability: free/busy failed; hints ignore calendar busy until retry",
       busyQuery.error
     );

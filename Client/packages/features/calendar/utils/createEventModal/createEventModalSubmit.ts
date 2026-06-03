@@ -1,6 +1,6 @@
 import type { ViewingItinerary } from "packages/api/viewings";
 import type { GoogleEventCreateResponse } from "packages/features/calendar/api/types";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import {
   buildCreateEventGoogleStartEnd,
   CREATE_EVENT_TIME_STEP_MINUTES,
@@ -137,7 +137,7 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
       p.onEventCreated?.();
       p.onClose();
     } catch (error) {
-      log.error(LOG_CATEGORIES.CALENDAR, "Error adding agenda item", error);
+      log.error("CALENDAR", "Error adding agenda item", error);
       p.enqueueToast({
         type: "error",
         message: error instanceof Error ? error.message : "Failed to add item",
@@ -281,7 +281,7 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
     p.onEventCreated?.();
     p.onClose();
   } catch (error) {
-    log.error(LOG_CATEGORIES.CALENDAR, "Error creating event", error);
+    log.error("CALENDAR", "Error creating event", error);
     p.enqueueToast({
       type: "error",
       message: error instanceof Error ? error.message : "Failed to create event",

@@ -18,7 +18,6 @@ export const coreUserRoutes = {
       return {
         ...userData,
         has_preferences: userData.has_preferences ?? false,
-        is_agent: userData.is_agent ?? false,
       };
     },
     shouldPoll: false,

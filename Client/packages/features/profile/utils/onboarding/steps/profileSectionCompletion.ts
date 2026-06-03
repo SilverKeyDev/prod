@@ -7,6 +7,7 @@ import type {
 import { parseHousingTypes } from "packages/features/profile/utils/public/constants";
 
 import { isAgentFormSelection } from "@/features/profile/utils/onboarding/role/agentFormSelection";
+import { primaryOnboardingRoleFromForm } from "@/features/profile/utils/onboarding/role/onboardingRoleSelection";
 
 function preferenceExtensionSectionHasAny(section: unknown): boolean {
   if (section == null || typeof section !== "object" || Array.isArray(section)) return false;
@@ -30,10 +31,11 @@ function demographicsPair(formData: OnboardingData): { any: boolean; complete: b
   const name = (formData.name ?? "").toString().trim();
   const hasAny =
     name.length > 0 ||
-    formData.is_agent != null ||
+    primaryOnboardingRoleFromForm(formData) != null ||
     formData.age != null ||
     (formData.marital_status ?? "").toString().trim().length > 0;
-  return { any: hasAny, complete: name.length > 0 && Boolean(formData.is_agent) };
+  const ageOk = formData.age != null && formData.age > 0;
+  return { any: hasAny, complete: name.length > 0 && ageOk };
 }
 
 function housingEssentialsPair(formData: OnboardingData): { any: boolean; complete: boolean } {
@@ -114,7 +116,7 @@ function tagArrayAny(v: unknown): boolean {
 }
 
 function agentBrokeragePair(formData: OnboardingData): { any: boolean; complete: boolean } {
-  const isAgent = isAgentFormSelection(formData.is_agent);
+  const isAgent = isAgentFormSelection(primaryOnboardingRoleFromForm(formData));
   const hasAny =
     isAgent &&
     (nonEmptyStr(formData.agent_brokerage_name) ||
@@ -127,7 +129,7 @@ function agentBrokeragePair(formData: OnboardingData): { any: boolean; complete:
 }
 
 function agentLicensingPair(formData: OnboardingData): { any: boolean; complete: boolean } {
-  const isAgent = isAgentFormSelection(formData.is_agent);
+  const isAgent = isAgentFormSelection(primaryOnboardingRoleFromForm(formData));
   const hasAny =
     isAgent &&
     (tagArrayAny(formData.agent_licensed_states) ||
@@ -138,7 +140,7 @@ function agentLicensingPair(formData: OnboardingData): { any: boolean; complete:
 }
 
 function agentProfilePair(formData: OnboardingData): { any: boolean; complete: boolean } {
-  const isAgent = isAgentFormSelection(formData.is_agent);
+  const isAgent = isAgentFormSelection(primaryOnboardingRoleFromForm(formData));
   const hasAny =
     isAgent &&
     (nonEmptyStr(formData.agent_bio) ||
@@ -148,7 +150,7 @@ function agentProfilePair(formData: OnboardingData): { any: boolean; complete: b
 }
 
 function availabilityPair(formData: OnboardingData): { any: boolean; complete: boolean } {
-  const isAgent = isAgentFormSelection(formData.is_agent);
+  const isAgent = isAgentFormSelection(primaryOnboardingRoleFromForm(formData));
   if (!isAgent) {
     return { any: false, complete: true };
   }

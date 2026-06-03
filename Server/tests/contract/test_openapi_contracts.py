@@ -14,11 +14,15 @@ from flask.testing import FlaskClient
 
 from app.models import User
 from app.schemas.generated import (
+    AgentConversationsResponse,
     AgentSearchResult,
     AuthResponse,
     ErrorResponse,
     FavoriteHomesResponse,
+    GetPreferencesApiResponse,
+    GetTodosResponse,
     LoginData,
+    NotInterestedHomesResponse,
     RecommendedAgentResult,
     RecommendedAgentsResponse,
     SearchAgentsResponse,
@@ -73,6 +77,34 @@ class TestOpenAPIContracts:
         assert response.status_code == 200
         FavoriteHomesResponse.model_validate(response.get_json())
 
+    def test_not_interested_homes_response_matches_schema(
+        self, authenticated_client: FlaskClient
+    ) -> None:
+        response = authenticated_client.get("/api/v1/user/not-interested-homes")
+        assert response.status_code == 200
+        NotInterestedHomesResponse.model_validate(response.get_json())
+
+    def test_get_preferences_response_matches_schema(
+        self, authenticated_client: FlaskClient
+    ) -> None:
+        response = authenticated_client.get("/api/v1/preferences")
+        assert response.status_code == 200
+        GetPreferencesApiResponse.model_validate(response.get_json())
+
+    def test_get_agent_todos_response_matches_schema(
+        self, authenticated_client: FlaskClient
+    ) -> None:
+        response = authenticated_client.get("/api/v1/agent/todos")
+        assert response.status_code == 200
+        GetTodosResponse.model_validate(response.get_json())
+
+    def test_get_agent_chats_response_matches_schema(
+        self, authenticated_client: FlaskClient
+    ) -> None:
+        response = authenticated_client.get("/api/v1/agent/chats")
+        assert response.status_code == 200
+        AgentConversationsResponse.model_validate(response.get_json())
+
     def test_search_agents_empty_matches_schema(self, authenticated_client: FlaskClient) -> None:
         response = authenticated_client.get("/api/v1/agent/search-agents?q=ab")
         assert response.status_code == 200
@@ -89,12 +121,14 @@ class TestOpenAPIContracts:
                 email="agent-contract@example.com",
                 name="Agent Contract",
                 is_active=True,
-                is_agent=True,
                 cognito_id="agent-contract-cognito",
             )
             db.session.add(agent)
             db.session.commit()
             aid = agent.id
+            from tests.support.user_roles import seed_user_roles
+
+            seed_user_roles(str(aid), "agent")
         try:
             response = authenticated_client.get("/api/v1/agent/search-agents?q=Agent%20Con")
             assert response.status_code == 200
@@ -122,7 +156,7 @@ class TestOpenAPIContracts:
             mock_user = Mock()
             mock_user.id = "login-contract-user"
             mock_user.name = "Login Contract"
-            mock_user.is_agent = False
+            mock_user.user_roles = []
             mock_user.cognito_id = "cognito-login-contract"
             mock_user.google_id = None
             mock_user.phone = None
@@ -151,6 +185,19 @@ class TestOpenAPIContracts:
         )
         assert response.status_code == 401
         ErrorResponse.model_validate(response.get_json())
+
+    def test_login_missing_password_returns_field_errors_not_validation_errors(
+        self, client: FlaskClient
+    ) -> None:
+        response = client.post(
+            "/api/v1/auth/login",
+            json={"email": "missing-password@example.com"},
+        )
+        assert response.status_code == 400
+        body = response.get_json()
+        ErrorResponse.model_validate(body)
+        assert isinstance(body.get("field_errors"), dict)
+        assert body.get("validation_errors") is None
 
     def test_profile_unauthorized_matches_error_schema(self, client: FlaskClient) -> None:
         response = client.get("/api/v1/user/profile")
@@ -187,7 +234,6 @@ class TestOpenAPIContracts:
                 email="rec-agent@example.com",
                 name="Rec Agent",
                 is_active=True,
-                is_agent=True,
                 cognito_id="rec-agent-cognito",
             )
             db.session.add(agent)
@@ -202,6 +248,9 @@ class TestOpenAPIContracts:
             db.session.add(prof)
             db.session.commit()
             aid = agent.id
+            from tests.support.user_roles import seed_user_roles
+
+            seed_user_roles(str(aid), "agent")
         try:
             response = authenticated_client.get(
                 "/api/v1/agent/recommended-agents?zip=90210&state=CA&intent=condo%20buyer"
@@ -233,7 +282,6 @@ class TestOpenAPIContracts:
                 email="connected-rec-agent@example.com",
                 name="Connected Rec Agent",
                 is_active=True,
-                is_agent=True,
                 cognito_id="connected-rec-cognito",
             )
             db.session.add(agent)

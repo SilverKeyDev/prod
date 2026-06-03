@@ -7,7 +7,7 @@ import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { color } from "packages/design-tokens";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Text } from "packages/ui/components/primitives";
 
 import { runPlatformBootstrap } from "@/bootstrap/platformBootstrap.native";
@@ -76,7 +76,7 @@ export function AppRoot() {
     runPlatformBootstrap()
       .then(() => setBootstrapped(true))
       .catch((err) => {
-        log.error(LOG_CATEGORIES.ERRORS, "Platform bootstrap failed", err);
+        log.error("ERRORS", "Platform bootstrap failed", err);
         setBootstrapped(true);
       });
   }, []);
@@ -103,7 +103,7 @@ export function AppRoot() {
       error.message.includes("children") &&
       error.message.includes("null")
     ) {
-      log.error(LOG_CATEGORIES.ERRORS, "AppRoot: children-of-null TypeError", {
+      log.error("ERRORS", "AppRoot: children-of-null TypeError", {
         message: error.message,
         name: error.name,
         stack: error.stack,

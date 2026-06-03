@@ -12,9 +12,7 @@ from datetime import datetime, timezone
 import jwt
 
 from app.config import Config
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def _is_strict_webhook_env() -> bool:
@@ -46,8 +44,8 @@ def verify_hmac(payload: str, signature: str | None, use_org_secret: bool = Fals
         secret = Config.DOCUSIGN_USER_CONNECT_HMAC_SECRET
         secret_name = "DOCUSIGN_USER_CONNECT_HMAC_SECRET"
 
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Verifying webhook HMAC signature",
         {
             "has_signature": bool(signature),
@@ -58,18 +56,16 @@ def verify_hmac(payload: str, signature: str | None, use_org_secret: bool = Fals
 
     if not secret:
         if _is_strict_webhook_env():
-            logger.security(
-                LOG_CATEGORIES["SECURITY"],
+            log.security(
+                "SECURITY",
                 f"{secret_name} not configured in non-development environment",
             )
             return False
-        logger.warn(
-            LOG_CATEGORIES["SECURITY"], f"{secret_name} not configured, skipping HMAC verification"
-        )
+        log.warn("SECURITY", f"{secret_name} not configured, skipping HMAC verification")
         return True
 
     if not signature:
-        logger.warn(LOG_CATEGORIES["SECURITY"], "No HMAC signature provided in webhook")
+        log.warn("SECURITY", "No HMAC signature provided in webhook")
         return False
 
     try:
@@ -82,14 +78,14 @@ def verify_hmac(payload: str, signature: str | None, use_org_secret: bool = Fals
         is_valid = hmac.compare_digest(expected, signature)
 
         if is_valid:
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "Webhook HMAC verification successful",
                 {"secret_type": "org-level" if use_org_secret else "account-level"},
             )
         else:
-            logger.security(
-                LOG_CATEGORIES["SECURITY"],
+            log.security(
+                "SECURITY",
                 "Webhook HMAC verification failed",
                 {
                     "secret_type": "org-level" if use_org_secret else "account-level",
@@ -101,7 +97,7 @@ def verify_hmac(payload: str, signature: str | None, use_org_secret: bool = Fals
         return is_valid
 
     except Exception as e:
-        logger.error(LOG_CATEGORIES["ERRORS"], "HMAC verification error", {"error": str(e)})
+        log.error("ERRORS", "HMAC verification error", {"error": str(e)})
         return False
 
 
@@ -123,8 +119,8 @@ def verify_oauth_token(authorization_header: str | None) -> bool:
         return True
 
     if not authorization_header:
-        logger.warn(
-            LOG_CATEGORIES["SECURITY"],
+        log.warn(
+            "SECURITY",
             "OAuth for Connect enabled but no Authorization header provided",
         )
         return False
@@ -133,8 +129,8 @@ def verify_oauth_token(authorization_header: str | None) -> bool:
         # Extract token from "Bearer {token}"
         parts = authorization_header.split(" ")
         if len(parts) != 2 or parts[0].lower() != "bearer":
-            logger.security(
-                LOG_CATEGORIES["SECURITY"],
+            log.security(
+                "SECURITY",
                 "Invalid Authorization header format",
                 {"header": authorization_header[:20] + "..."},
             )
@@ -156,8 +152,8 @@ def verify_oauth_token(authorization_header: str | None) -> bool:
         # Verify issuer (your OAuth server)
         if Config.DOCUSIGN_CONNECT_OAUTH_ISSUER:
             if decoded.get("iss") != Config.DOCUSIGN_CONNECT_OAUTH_ISSUER:
-                logger.security(
-                    LOG_CATEGORIES["SECURITY"],
+                log.security(
+                    "SECURITY",
                     "OAuth token issuer mismatch",
                     {
                         "expected": Config.DOCUSIGN_CONNECT_OAUTH_ISSUER,
@@ -171,29 +167,27 @@ def verify_oauth_token(authorization_header: str | None) -> bool:
             audience = decoded.get("aud")
             if isinstance(audience, list):
                 if Config.DOCUSIGN_CONNECT_OAUTH_AUDIENCE not in audience:
-                    logger.security(LOG_CATEGORIES["SECURITY"], "OAuth token audience mismatch")
+                    log.security("SECURITY", "OAuth token audience mismatch")
                     return False
             elif audience != Config.DOCUSIGN_CONNECT_OAUTH_AUDIENCE:
-                logger.security(LOG_CATEGORIES["SECURITY"], "OAuth token audience mismatch")
+                log.security("SECURITY", "OAuth token audience mismatch")
                 return False
 
         # Verify expiration
         exp = decoded.get("exp")
         if exp:
             if datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(timezone.utc):
-                logger.security(LOG_CATEGORIES["SECURITY"], "OAuth token expired")
+                log.security("SECURITY", "OAuth token expired")
                 return False
 
-        logger.info(LOG_CATEGORIES["SECURITY"], "OAuth token verified successfully")
+        log.info("SECURITY", "OAuth token verified successfully")
         return True
 
     except jwt.DecodeError as e:
-        logger.security(
-            LOG_CATEGORIES["SECURITY"], "Failed to decode OAuth token", {"error": str(e)}
-        )
+        log.security("SECURITY", "Failed to decode OAuth token", {"error": str(e)})
         return False
     except Exception as e:
-        logger.error(LOG_CATEGORIES["ERRORS"], "OAuth token verification error", {"error": str(e)})
+        log.error("ERRORS", "OAuth token verification error", {"error": str(e)})
         return False
 
 
@@ -229,8 +223,8 @@ def verify_webhook(
     if Config.DOCUSIGN_CONNECT_OAUTH_ENABLED:
         is_valid = hmac_valid and oauth_valid
         if not is_valid:
-            logger.security(
-                LOG_CATEGORIES["SECURITY"],
+            log.security(
+                "SECURITY",
                 "Webhook verification failed",
                 {"hmac_valid": hmac_valid, "oauth_valid": oauth_valid},
             )

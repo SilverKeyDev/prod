@@ -22,7 +22,7 @@ import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePict
 import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { showErrorToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { Box, Loading, ScrollView, Text } from "packages/ui/components/primitives";
 import { UnderlineTabs } from "packages/ui/components/tabs";
@@ -69,7 +69,7 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
   const isAgentForProfileUi = useMemo(
     () =>
       agentSubject != null
-        ? isAgentIdentityForProfileUi(false, { is_agent: false })
+        ? isAgentIdentityForProfileUi(false, { roles: [] })
         : isAgentIdentityForProfileUi(isAgent, userProfile),
     [agentSubject, isAgent, userProfile]
   );
@@ -158,7 +158,7 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
       (validationResult.missingFields.length > 0 || validationResult.errors.length > 0)
     ) {
       const message = [...validationResult.missingFields, ...validationResult.errors].join("\n");
-      log.warn(LOG_CATEGORIES.ERRORS, "Profile validation issues", { message });
+      log.warn("ERRORS", "Profile validation issues", { message });
       setShowValidationWarning(false);
     }
   }, [showValidationWarning, validationResult]);

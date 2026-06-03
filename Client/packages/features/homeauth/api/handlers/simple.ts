@@ -1,5 +1,5 @@
 import type { AuthResponse, SignupData } from "packages/features/homeauth/types";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { apiPost } from "packages/services/http";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
 
@@ -50,7 +50,7 @@ export async function resetPasswordHandler(
   });
 
   if (response.success) {
-    log.security(LOG_CATEGORIES.AUTH, "Password reset successful", { email });
+    log.security("AUTH", "Password reset successful", { email });
   } else {
     reportSecurityEvent({
       type: "authentication_failure",
@@ -68,9 +68,9 @@ export async function logoutHandler(): Promise<AuthResponse> {
     const response = await apiPost<AuthResponse>("/api/v1/auth/logout", {});
 
     if (response.success) {
-      log.info(LOG_CATEGORIES.AUTH, "Logout successful - cookies cleared");
+      log.info("AUTH", "Logout successful - cookies cleared");
     } else {
-      log.warn(LOG_CATEGORIES.AUTH, "Logout request failed", {
+      log.warn("AUTH", "Logout request failed", {
         error: response.error,
       });
     }
@@ -78,7 +78,7 @@ export async function logoutHandler(): Promise<AuthResponse> {
     return response;
   } catch (error: unknown) {
     const err = error as Error;
-    log.error(LOG_CATEGORIES.AUTH, "Logout request failed with exception", {
+    log.error("AUTH", "Logout request failed with exception", {
       errorMessage: err?.message || "Unknown error",
     });
     return {

@@ -6,18 +6,32 @@ import json
 import time
 from collections.abc import Generator
 
-from flask import Response, jsonify, stream_with_context
+from flask import Response, stream_with_context
 
 from app.services.agent.messaging_realtime import CHANNEL_PREFIX, messaging_redis_url
-from app.utils.cache.redis_client import get_pubsub_redis
-from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.utils.cache.redis_client import create_messaging_pubsub_client
+from app.utils.common_patterns import (
+    handle_exceptions_with_logging,
+    require_authenticated_user,
+    unauthorized,
+)
 from app.utils.security import rate_limit
+from logger import log
 
 _SSE_HEADERS = {
     "Cache-Control": "no-cache",
     "X-Accel-Buffering": "no",
     "Connection": "keep-alive",
 }
+
+_HEARTBEAT_INTERVAL_S = 25.0
+_PUBSUB_POLL_TIMEOUT_S = 20.0
+
+
+def _heartbeat_loop() -> Generator[str, None, None]:
+    while True:
+        yield ": ping\n\n"
+        time.sleep(_HEARTBEAT_INTERVAL_S)
 
 
 def _messaging_sse_generator(user_id: str) -> Generator[str, None, None]:
@@ -26,22 +40,42 @@ def _messaging_sse_generator(user_id: str) -> Generator[str, None, None]:
     yield f"data: {hello}\n\n"
 
     if not url:
-        while True:
-            yield ": ping\n\n"
-            time.sleep(25.0)
+        yield from _heartbeat_loop()
+        return
 
     channel = f"{CHANNEL_PREFIX}{user_id}"
-    client = get_pubsub_redis()
+    client = create_messaging_pubsub_client()
     if client is None:
-        while True:
-            yield ": ping\n\n"
-            time.sleep(25.0)
+        yield from _heartbeat_loop()
+        return
 
     pubsub = client.pubsub()
     try:
-        pubsub.subscribe(channel)
+        try:
+            pubsub.subscribe(channel)
+        except Exception as exc:
+            log.warn(
+                "API",
+                "messaging_sse subscribe failed; heartbeats only",
+                {"user_id": user_id, "channel": channel, "error": str(exc)},
+            )
+            yield from _heartbeat_loop()
+            return
+
         while True:
-            msg = pubsub.get_message(ignore_subscribe_messages=True, timeout=20.0)
+            try:
+                msg = pubsub.get_message(
+                    ignore_subscribe_messages=True, timeout=_PUBSUB_POLL_TIMEOUT_S
+                )
+            except Exception as exc:
+                log.warn(
+                    "API",
+                    "messaging_sse pubsub read failed; sending heartbeat",
+                    {"user_id": user_id, "channel": channel, "error": str(exc)},
+                )
+                yield ": ping\n\n"
+                continue
+
             if msg and msg.get("type") == "message" and msg.get("data"):
                 yield f"data: {msg['data']}\n\n"
             else:
@@ -63,7 +97,7 @@ def _messaging_sse_generator(user_id: str) -> Generator[str, None, None]:
 @require_authenticated_user
 def stream_agent_chat_events(user):
     if not user.id:
-        return jsonify({"success": False, "error": "Invalid user session"}), 401
+        return unauthorized()
 
     uid = str(user.id)
     return Response(

@@ -7,7 +7,7 @@
  * in packages/services/security/errorReporting.ts via the "react-error" event.
  */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { dateNow } from "packages/utils/date";
 import { getWindow } from "packages/utils/platform";
 
@@ -23,7 +23,7 @@ export type ErrorBoundaryInfo = {
 export function reportErrorBoundary(error: Error, errorInfo: ErrorBoundaryInfo): void {
   try {
     // Log the error with centralized logging
-    log.error(LOG_CATEGORIES.ERRORS, "React Error Boundary caught error", {
+    log.error("ERRORS", "React Error Boundary caught error", {
       message: error.message,
       name: error.name,
       stack: error.stack,
@@ -45,13 +45,13 @@ export function reportErrorBoundary(error: Error, errorInfo: ErrorBoundaryInfo):
         win.dispatchEvent(reactErrorEvent);
       } catch (eventError) {
         // Fail silently if event dispatch fails
-        log.debug(LOG_CATEGORIES.ERRORS, "Failed to dispatch react-error event", {
+        log.debug("ERRORS", "Failed to dispatch react-error event", {
           error: eventError instanceof Error ? eventError.message : String(eventError),
         });
       }
     }
   } catch (reportingError) {
-    log.error(LOG_CATEGORIES.ERRORS, "Error boundary reporting failed", {
+    log.error("ERRORS", "Error boundary reporting failed", {
       error: reportingError instanceof Error ? reportingError.message : String(reportingError),
     });
   }

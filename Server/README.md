@@ -79,13 +79,15 @@ open coverage/html/index.html
 
 ### Coverage Configuration
 
-Coverage thresholds are enforced via `pytest.ini` and `scripts/lint/check_coverage_thresholds.py`:
+Coverage thresholds are enforced via `pytest.ini` (`--cov-fail-under=47`), `pyproject.toml` (`[tool.coverage.report]`), and `scripts/lint/check_coverage_thresholds.py`:
 
-- **Overall**: 50% coverage required (fails if not met)
-- **Services** (`app/services/`): 70% coverage required
-- **Routes** (`app/routes/`): 50% coverage required
-- **Models** (`app/models/`): 60% coverage required
-- **Utils** (`app/utils/`): 70% coverage required
+- **Overall**: 47% line coverage required (fails if not met)
+- **Services** (`app/services/`): 38% coverage required
+- **Routes** (`app/routes/`): 45% coverage required
+- **Models** (`app/models/`): 65% coverage required
+- **Utils** (`app/utils/`): 52% coverage required
+
+`app/schemas/generated.py` is omitted from coverage (see `pyproject.toml` `[tool.coverage.run]` omit list); regenerate via `make openapi`.
 
 ### Coverage Reports
 

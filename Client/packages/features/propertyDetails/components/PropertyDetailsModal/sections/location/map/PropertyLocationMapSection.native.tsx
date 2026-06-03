@@ -8,7 +8,7 @@ import { color } from "packages/design-tokens";
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Button } from "packages/ui";
 import { Box, Loading } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
@@ -67,7 +67,7 @@ export function PropertyLocationMapSection({
     }:${diagnostics.fields.lng}:${diagnostics.fields.longitude}`;
     if (loggedLocationUnavailableKeyRef.current === dedupeKey) return;
     loggedLocationUnavailableKeyRef.current = dedupeKey;
-    log.info(LOG_CATEGORIES.PROPERTY_DETAILS, "Property location map unavailable", {
+    log.info("PROPERTY_DETAILS", "Property location map unavailable", {
       listingId,
       ...diagnostics,
     });
@@ -96,7 +96,7 @@ export function PropertyLocationMapSection({
   const mapIdApplied = useGoogleMapsProvider && !!googleMapId;
   useEffect(() => {
     if (mapIdApplied) {
-      log.info(LOG_CATEGORIES.PROPERTY_DETAILS, "Property details native map using Cloud Map ID", {
+      log.info("PROPERTY_DETAILS", "Property details native map using Cloud Map ID", {
         googleMapId,
       });
     }
@@ -128,7 +128,7 @@ export function PropertyLocationMapSection({
     if (!enabled || !initialRegion) {
       return;
     }
-    log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "PropertyDetailsMapSection native map shell", {
+    log.debug("PROPERTY_DETAILS", "PropertyDetailsMapSection native map shell", {
       listingId,
       layoutWidth,
       hasValidSize,

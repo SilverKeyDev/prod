@@ -2,15 +2,14 @@
 Home encoder that combines home and neighborhood data into embeddings.
 """
 
-import logging
 from typing import Any
 
 import numpy as np
 
+from logger import log
+
 from ..preprocessing.models.embedding_input import EmbeddingHomeInput
 from .model_loader import model_loader
-
-logger = logging.getLogger(__name__)
 
 
 class HomeEncoder:
@@ -54,7 +53,7 @@ class HomeEncoder:
             return combined_embedding
 
         except Exception as e:
-            logger.error(f"Error encoding home data: {e}")
+            log.error("ERRORS", f"Error encoding home data: {e}")
             raise
 
     def encode_homes_batch(self, homes_data: list[dict[str, Any]]) -> list[np.ndarray]:
@@ -105,7 +104,7 @@ class HomeEncoder:
             return embeddings
 
         except Exception as e:
-            logger.error(f"Error encoding homes batch: {e}")
+            log.error("ERRORS", f"Error encoding homes batch: {e}")
             raise
 
     def get_embedding_dimension(self) -> int:
@@ -116,5 +115,5 @@ class HomeEncoder:
             dimensions = FeatureConfig.get_embedding_dimension(self.embedding_provider, self.model)
             return dimensions["home_total_dimension"]
         except Exception as e:
-            logger.error(f"Error getting embedding dimension: {e}")
+            log.error("ERRORS", f"Error getting embedding dimension: {e}")
             return 398  # Fallback dimension (384 + 14)

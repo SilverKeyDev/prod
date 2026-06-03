@@ -89,7 +89,6 @@ export function renderProfileFeatureSectionContent({
           formData={formData}
           isEditMode={isEditMode}
           updateFormData={updateFormData}
-          showAgentChoice={false}
         />
       );
 

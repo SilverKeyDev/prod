@@ -4,7 +4,7 @@ import type {
   DocumentCategory,
   WorkflowDocument,
 } from "packages/features/documents/types/documents";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 type DocumentsData = {
   // Documents data
@@ -139,40 +139,37 @@ export const useDocumentsStore = create<DocumentsState>((set, get) => ({
   // Async actions will be implemented by hooks that use this store
   uploadDocument: () => {
     // This will be implemented by useDocuments hook
-    log.warn(LOG_CATEGORIES.ERRORS, "uploadDocument should be implemented by useDocuments hook");
+    log.warn("ERRORS", "uploadDocument should be implemented by useDocuments hook");
     throw new Error("Not implemented");
   },
   deleteDocument: () => {
     // This will be implemented by useDocuments hook
-    log.warn(LOG_CATEGORIES.ERRORS, "deleteDocument should be implemented by useDocuments hook");
+    log.warn("ERRORS", "deleteDocument should be implemented by useDocuments hook");
     return Promise.resolve();
   },
   updateDocumentStatus: () => {
     // This will be implemented by useDocuments hook
-    log.warn(
-      LOG_CATEGORIES.ERRORS,
-      "updateDocumentStatus should be implemented by useDocuments hook"
-    );
+    log.warn("ERRORS", "updateDocumentStatus should be implemented by useDocuments hook");
     return Promise.resolve();
   },
   signDocument: () => {
     // This will be implemented by useDocuments hook
-    log.warn(LOG_CATEGORIES.ERRORS, "signDocument should be implemented by useDocuments hook");
+    log.warn("ERRORS", "signDocument should be implemented by useDocuments hook");
     return Promise.resolve();
   },
   downloadDocument: () => {
     // This will be implemented by useDocuments hook
-    log.warn(LOG_CATEGORIES.ERRORS, "downloadDocument should be implemented by useDocuments hook");
+    log.warn("ERRORS", "downloadDocument should be implemented by useDocuments hook");
     return Promise.resolve();
   },
   refreshDocuments: () => {
     // This will be implemented by useDocuments hook
-    log.warn(LOG_CATEGORIES.ERRORS, "refreshDocuments should be implemented by useDocuments hook");
+    log.warn("ERRORS", "refreshDocuments should be implemented by useDocuments hook");
     return Promise.resolve();
   },
   refreshCategories: () => {
     // This will be implemented by useDocuments hook
-    log.warn(LOG_CATEGORIES.ERRORS, "refreshCategories should be implemented by useDocuments hook");
+    log.warn("ERRORS", "refreshCategories should be implemented by useDocuments hook");
     return Promise.resolve();
   },
 

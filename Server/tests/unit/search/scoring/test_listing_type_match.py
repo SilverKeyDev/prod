@@ -68,9 +68,9 @@ class TestPropertyMatchesListingTypePrefs(unittest.TestCase):
         prop = {"listingStatus": "foreclosure"}
         self.assertTrue(property_matches_listing_type_prefs(prop, ["foreclosure_action"]))
 
-    def test_legacy_unknown_pref_substring(self) -> None:
+    def test_unknown_pref_does_not_substring_match(self) -> None:
         prop = {"listingStatus": "custom_special_status"}
-        self.assertTrue(property_matches_listing_type_prefs(prop, ["special"]))
+        self.assertFalse(property_matches_listing_type_prefs(prop, ["special"]))
 
     def test_bulk_for_sale_survives_agent_listed_filter(self) -> None:
         """Regression: polygon post-filter must not drop all MLS for_sale rows."""

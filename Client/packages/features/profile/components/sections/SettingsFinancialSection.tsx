@@ -43,7 +43,7 @@ export function SettingsFinancialSection({
   patchBuyerPreferenceExtensions,
 }: SettingsFinancialSectionProps) {
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
-  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData);
 
   const patch = useCallback(
     (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {

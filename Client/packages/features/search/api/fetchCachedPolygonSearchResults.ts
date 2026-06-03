@@ -1,6 +1,6 @@
 import type { SearchResult } from "packages/features/search/types/domain/result";
 import { transformSearchResponse } from "packages/features/search/utils/transform/searchTransform";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { searchApi } from "./search";
 
@@ -21,7 +21,7 @@ export async function fetchCachedPolygonSearchResults(
   const verboseLog = options?.verboseLog ?? false;
   try {
     if (verboseLog) {
-      log.debug(LOG_CATEGORIES.POLYGON_SEARCH, "Fetching search results from database");
+      log.debug("POLYGON_SEARCH", "Fetching search results from database");
     }
     const response = await searchApi.searchByPolygon({
       perBucketPages: 20,
@@ -33,7 +33,7 @@ export async function fetchCachedPolygonSearchResults(
 
     if (!response.success) {
       if (verboseLog) {
-        log.warn(LOG_CATEGORIES.POLYGON_SEARCH, "Search API returned unsuccessful response", {
+        log.warn("POLYGON_SEARCH", "Search API returned unsuccessful response", {
           error: response.error,
         });
       }
@@ -42,7 +42,7 @@ export async function fetchCachedPolygonSearchResults(
 
     if (verboseLog) {
       const rawLen = Array.isArray(response.properties) ? response.properties.length : 0;
-      log.info(LOG_CATEGORIES.POLYGON_SEARCH, "onlyCached DB load: API response before transform", {
+      log.info("POLYGON_SEARCH", "onlyCached DB load: API response before transform", {
         propertiesCount: rawLen,
         totalCount: response.total_count,
         metaCached: response.meta?.cached,
@@ -53,18 +53,18 @@ export async function fetchCachedPolygonSearchResults(
 
     if (verboseLog) {
       if (transformedResults.length > 0) {
-        log.info(LOG_CATEGORIES.POLYGON_SEARCH, "Loaded search results from database", {
+        log.info("POLYGON_SEARCH", "Loaded search results from database", {
           count: transformedResults.length,
         });
       } else {
-        log.info(LOG_CATEGORIES.POLYGON_SEARCH, "No search results in database, returned empty");
+        log.info("POLYGON_SEARCH", "No search results in database, returned empty");
       }
     }
 
     return transformedResults;
   } catch (error) {
     if (verboseLog) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch search results from database", error);
+      log.error("ERRORS", "Failed to fetch search results from database", error);
     }
     return [];
   }

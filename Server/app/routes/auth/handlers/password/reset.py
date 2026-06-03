@@ -4,50 +4,37 @@ import time
 import traceback
 from typing import cast
 
-from flask import Response, current_app, jsonify, request
+from flask import Response, jsonify
 
 from app.schemas import AuthResponse, ResetPasswordData
 from app.services.auth.core import AWS_COGNITO_service
 from app.services.auth.utils import (
-    create_error_response,
     generate_request_id,
     mask_email,
 )
+from app.utils.common_patterns import handle_exceptions_with_logging
+from app.utils.route import http_errors
 from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
+from logger import log
 
 
 @rate_limit(max_requests=10, window_seconds=60)
+@handle_exceptions_with_logging
 @validate_request(ResetPasswordData)
 @validate_response(AuthResponse)
-def reset_password(data: ResetPasswordData | None = None):
+def reset_password(data: ResetPasswordData):
     """Confirm forgot password with code, set new password, and auto-login"""
     request_id = generate_request_id("reset_password")
     start_time = time.time()
-    if data is None:
-        request_data = request.get_json()
-        if not request_data or not all(
-            k in request_data for k in ["email", "code", "new_password"]
-        ):
-            error_response, status_code = create_error_response(
-                "MISSING_FIELDS", "Email, code, and new password are required"
-            )
-            return jsonify(error_response), status_code
-    else:
-        # Extract SecretStr new_password value for Cognito
-        email = data.email
-        code = data.code
-        new_password = data.new_password.get_secret_value()
-        request_data = {
-            "email": email,
-            "code": code,
-            "new_password": new_password,
-        }
+    request_data = {
+        "email": data.email,
+        "code": data.code,
+        "new_password": data.new_password.get_secret_value(),
+    }
     email = request_data["email"]
     masked_email = mask_email(email)
-    current_app.logger.info(
-        "RESET_PASSWORD_START", extra={"request_id": request_id, "email": masked_email}
-    )
+    log.info("AUTH", "reset_password_start", {"request_id": request_id, "email": masked_email})
     result = AWS_COGNITO_service.confirm_forgot_password(
         username=email,
         confirmation_code=request_data["code"],
@@ -55,9 +42,10 @@ def reset_password(data: ResetPasswordData | None = None):
     )
     if not result["success"]:
         duration_ms = int((time.time() - start_time) * 1000)
-        current_app.logger.warning(
-            "RESET_PASSWORD_CONFIRM_FAILED",
-            extra={
+        log.warn(
+            "AUTH",
+            "reset_password_confirm_failed",
+            {
                 "request_id": request_id,
                 "email": masked_email,
                 "error": result.get("error"),
@@ -65,13 +53,19 @@ def reset_password(data: ResetPasswordData | None = None):
                 "duration_ms": duration_ms,
             },
         )
-        err = result.get("error", "RESET_PASSWORD_FAILED")
-        msg = result.get("message", "Failed to reset password")
-        error_response, status_code = create_error_response(
-            str(err) if err is not None else "RESET_PASSWORD_FAILED",
-            str(msg) if msg is not None else "Failed to reset password",
+        err = str(result.get("error", "") or "")
+        msg = str(result.get("message", "") or "").lower()
+        if err == "ExpiredCodeException" or "expired" in msg:
+            return http_errors.validation("Verification code has expired")
+        if err == "CodeMismatchException" or ("invalid" in msg and "expired" not in msg):
+            return http_errors.validation("Invalid verification code")
+        if err == "InvalidPasswordException" or "password" in msg:
+            return http_errors.validation("Password does not meet requirements")
+        return http_errors.external_unavailable(
+            Exception("reset_password_failed"),
+            api_name="cognito",
+            context={"request_id": request_id, "error_code": err},
         )
-        return jsonify(error_response), status_code
     try:
         from app.services.auth.user.lookup import find_or_create_user_by_cognito
         from app.services.auth.utils.cookies import set_auth_cookies
@@ -86,9 +80,10 @@ def reset_password(data: ResetPasswordData | None = None):
         )
         if not login_result["success"]:
             duration_ms = int((time.time() - start_time) * 1000)
-            current_app.logger.warning(
-                "RESET_PASSWORD_LOGIN_FAILED",
-                extra={"request_id": request_id, "email": masked_email, "duration_ms": duration_ms},
+            log.warn(
+                "AUTH",
+                "reset_password_login_failed",
+                {"request_id": request_id, "email": masked_email, "duration_ms": duration_ms},
             )
             return jsonify(
                 {
@@ -126,16 +121,18 @@ def reset_password(data: ResetPasswordData | None = None):
             request_id=request_id,
         )
         duration_ms = int((time.time() - start_time) * 1000)
-        current_app.logger.info(
-            "RESET_PASSWORD_SUCCESS",
-            extra={"request_id": request_id, "email": masked_email, "duration_ms": duration_ms},
+        log.info(
+            "AUTH",
+            "reset_password_success",
+            {"request_id": request_id, "email": masked_email, "duration_ms": duration_ms},
         )
         return resp, 200
     except Exception as e:
         duration_ms = int((time.time() - start_time) * 1000)
-        current_app.logger.error(
-            "RESET_PASSWORD_EXCEPTION",
-            extra={
+        log.error(
+            "AUTH",
+            "reset_password_exception",
+            {
                 "request_id": request_id,
                 "email": masked_email,
                 "error": str(e),

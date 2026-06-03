@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import type { ViewingStop } from "packages/api/viewings";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import {
   CREATE_EVENT_TIME_STEP_MINUTES,
   googleAllDayEndExclusiveToInclusiveEndYmd,
@@ -228,7 +228,7 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
 
   useEffect(() => {
     if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      log.error("ERRORS", "Google Maps loading error", googleMapsError);
       setLoadError("Failed to load Google Maps script.");
       return;
     }

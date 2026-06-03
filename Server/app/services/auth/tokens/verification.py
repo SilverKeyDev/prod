@@ -2,7 +2,6 @@
 Token verification and classification utilities.
 """
 
-import logging
 import os
 import time
 from typing import Any
@@ -17,15 +16,10 @@ from app.config.aws import AWS_COGNITO_USER_POOL_ID as _CONFIG_COGNITO_POOL_ID
 from app.config.aws import AWS_REGION
 from app.utils.security.security import log_security_event
 from app.utils.testing_mode import is_testing
+from logger import log
 
 from ..core.minimal_token_service import minimal_token_service
 
-logger = logging.getLogger(__name__)
-
-# =========================
-# Cognito Configuration (derive region from pool id)
-# Values come from app.config.aws; production startup validates via validate_and_raise().
-# =========================
 _TEST_COGNITO_POOL_ID = "us-east-2_pytestStubPoolId"
 _TEST_COGNITO_CLIENT_ID = "pytest-stub-cognito-client-id"
 
@@ -48,37 +42,29 @@ def _resolve_cognito_client_id() -> str:
 
 AWS_COGNITO_POOL_ID = _resolve_cognito_pool_id()
 AWS_COGNITO_CLIENT_ID = _resolve_cognito_client_id()
-
-# Pool id format: 'us-east-2_abcdef...'
 _pool_region = (
-    AWS_COGNITO_POOL_ID.split("_", 1)[0] if AWS_COGNITO_POOL_ID else (AWS_REGION or "us-east-2")
+    AWS_COGNITO_POOL_ID.split("_", 1)[0] if AWS_COGNITO_POOL_ID else AWS_REGION or "us-east-2"
 )
 AWS_COGNITO_REGION = os.getenv("AWS_COGNITO_REGION") or AWS_REGION or _pool_region
-
 AWS_COGNITO_ISSUER = f"https://cognito-idp.{AWS_COGNITO_REGION}.amazonaws.com/{AWS_COGNITO_POOL_ID}"
 AWS_COGNITO_KEYS_URL = f"{AWS_COGNITO_ISSUER}/.well-known/jwks.json"
-
-# =========================
-# JWKS Cache (with TTL)
-# =========================
 _JWKS = None
 _JWKS_TS = 0.0
-_JWKS_TTL = 60 * 60  # 1 hour
+_JWKS_TTL = 60 * 60
 
 
 def _load_jwks(force: bool = False):
     """Load JWKS with a simple TTL cache to handle key rotations gracefully."""
     global _JWKS, _JWKS_TS
     now = time.time()
-    if force or _JWKS is None or (now - _JWKS_TS) > _JWKS_TTL:
+    if force or _JWKS is None or now - _JWKS_TS > _JWKS_TTL:
         try:
             resp = requests.get(AWS_COGNITO_KEYS_URL, timeout=3)
             resp.raise_for_status()
             _JWKS = resp.json()
             _JWKS_TS = now
         except Exception as e:
-            # Don't break startup; retry on demand
-            logger.warning("JWKS fetch failed (will retry on demand): %s", e)
+            log.warn("AUTH", f"JWKS fetch failed (will retry on demand): {e}")
             if _JWKS is None:
                 _JWKS = {"keys": []}
     return _JWKS
@@ -98,31 +84,23 @@ def get_signing_key_for_cognito_rs256(token: str):
     """
     try:
         headers = jose_jwt.get_unverified_header(token)
-
-        # Pin algorithm to prevent header tampering for Cognito path
         alg = headers.get("alg")
         if alg != "RS256":
             log_security_event("auth_invalid_alg", {"alg": alg})
             raise JWTError("Invalid JWT alg for Cognito (expected RS256)")
-
         key_id = headers.get("kid")
         if not key_id:
             raise JWTError("Missing kid in token header")
-
         jwks = _load_jwks()
         key = _find_key(jwks, key_id)
-
         if not key:
-            # Refresh once on miss (rotation)
             jwks = _load_jwks(force=True)
             key = _find_key(jwks, key_id)
-
         if not key:
             raise JWTError("Public key not found in JWKS")
-
         return jwk.construct(key)
     except Exception as e:
-        logger.error("Error getting signing key: %s", e)
+        log.error("ERRORS", f"Error getting signing key: {e}", e)
         raise JWTError("Invalid token header") from e
 
 
@@ -140,7 +118,6 @@ def decode_with_leeway(
     """
     base_opts = {"verify_aud": verify_aud, "verify_iss": True, "verify_signature": True}
     try:
-        # Newer versions accept leeway kwarg
         return jose_jwt.decode(
             token,
             key=key,
@@ -148,10 +125,9 @@ def decode_with_leeway(
             issuer=issuer,
             options=base_opts,
             audience=audience,
-            leeway=leeway_seconds,  # type: ignore[call-arg]
+            leeway=leeway_seconds,
         )
     except TypeError:
-        # Fallback: older versions expect 'leeway' inside options
         opts: dict[str, Any] = dict(base_opts)
         opts["leeway"] = leeway_seconds
         return jose_jwt.decode(
@@ -165,27 +141,19 @@ def classify_token(token: str) -> str:
     Returns: 'minimal', 'cognito', 'reject_cognito_alg', or 'unknown'
     """
     try:
-        # Use jose_jwt for consistent header/claims reading
         header = jose_jwt.get_unverified_header(token)
         alg = header.get("alg")
-
         try:
             claims = jose_jwt.get_unverified_claims(token)
             iss = claims.get("iss")
             typ = claims.get("type")
         except Exception:
-            iss, typ = None, None
-
-        # Check for Cognito tokens first
+            iss, typ = (None, None)
         if iss and "cognito-idp." in iss:
             return "cognito" if alg == "RS256" else "reject_cognito_alg"
-
-        # Check for minimal tokens
-        if (typ == "access" and iss == "silverkey:minimal") or alg == "HS256":
+        if typ == "access" and iss == "silverkey:minimal" or alg == "HS256":
             return "minimal"
-
         return "unknown"
-
     except Exception:
         return "unknown"
 
@@ -197,10 +165,9 @@ def peek_claims_unverified(token: str) -> dict:
     """
     try:
         claims = jose_jwt.get_unverified_claims(token)
-        return dict(claims)  # Ensure dict return type (jose returns Mapping)
+        return dict(claims)
     except Exception as e:
-        # Return empty dict so caller falls back to Cognito path
-        logger.debug("Unverified claims peek failed: %s", e)
+        log.debug("AUTH", f"Unverified claims peek failed: {e}")
         return {}
 
 

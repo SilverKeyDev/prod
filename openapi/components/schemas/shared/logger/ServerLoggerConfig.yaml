@@ -1,11 +1,9 @@
+# AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Modify scripts/log_contracts/categories.yaml, then run: make log-contracts
 type: object
 description: >
-  Logger category toggles (booleans) plus logLevel. additionalProperties allows future category keys
-  to be boolean or string without breaking older clients when the server adds flags.
-additionalProperties:
-  oneOf:
-    - type: boolean
-    - type: string
+  Resolved server logger category toggles plus logLevel.
+additionalProperties: false
 required:
   - polling
   - pages
@@ -15,6 +13,20 @@ required:
   - api
   - errors
   - security
+  - search
+  - polygonSearch
+  - mapRendering
+  - propertyDetails
+  - negotiation
+  - checklists
+  - calendar
+  - dashboard
+  - messages
+  - feed
+  - routing
+  - docusign
+  - documents
+  - profilePreferences
   - logLevel
 properties:
   polling:
@@ -32,6 +44,34 @@ properties:
   errors:
     type: boolean
   security:
+    type: boolean
+  search:
+    type: boolean
+  polygonSearch:
+    type: boolean
+  mapRendering:
+    type: boolean
+  propertyDetails:
+    type: boolean
+  negotiation:
+    type: boolean
+  checklists:
+    type: boolean
+  calendar:
+    type: boolean
+  dashboard:
+    type: boolean
+  messages:
+    type: boolean
+  feed:
+    type: boolean
+  routing:
+    type: boolean
+  docusign:
+    type: boolean
+  documents:
+    type: boolean
+  profilePreferences:
     type: boolean
   logLevel:
     type: string

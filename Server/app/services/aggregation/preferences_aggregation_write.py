@@ -5,9 +5,15 @@ Write user preferences from API payload to User and related models (façade).
 import json
 from typing import Any
 
+from sqlalchemy import delete, select
+
 from app import db
 from app.models import User, UserAgentProfile
-from app.services.auth.user_roles_sync import sync_client_roles_from_preferences
+from app.services.auth.user_role_helpers import ensure_user_role, user_is_agent
+from app.services.auth.user_roles_sync import (
+    primary_onboarding_role_is_agent,
+    sync_client_roles_from_preferences,
+)
 from app.services.public_profile_slug import ensure_public_profile_slug
 from app.utils.db.orm_lookup import get_model
 from app.utils.validation.service_boundary import assert_preferences_payload_bounds
@@ -40,11 +46,9 @@ def write_preferences_from_payload(
     if not u:
         raise ValueError(f"User not found: {user_id}")
 
-    # User.is_agent: immutable once set
-    if "is_agent" in data:
-        if not getattr(u, "is_agent", False):
-            val = data["is_agent"]
-            u.is_agent = bool(val and str(val).lower() in ("yes", "true", "1", "am_agent"))
+    # Agent role: grant from primary_onboarding_role once (immutable after first grant)
+    if primary_onboarding_role_is_agent(data) and not user_is_agent(u):
+        ensure_user_role(str(u.id), "agent")
 
     # User.name: when profile "About you" sends name, persist to User
     if "name" in data and data["name"] is not None:
@@ -60,16 +64,18 @@ def write_preferences_from_payload(
     write_important_locations_from_payload(user_id, data)
     write_intent_attributes_from_payload(user_id, data)
 
-    # Agent profile (when user.is_agent is True and agent fields present)
-    if getattr(u, "is_agent", False):
-        agent = UserAgentProfile.query.filter_by(user_id=user_id).first()
+    # Agent profile (when user has agent role and agent fields present)
+    if user_is_agent(u):
+        agent = db.session.scalar(
+            select(UserAgentProfile).where(UserAgentProfile.user_id == user_id)
+        )
         if agent is None:
             agent = UserAgentProfile(user_id=user_id)
             db.session.add(agent)
         write_agent_profile_from_payload(agent, data)
     else:
         # Remove agent profile when user is no longer an agent
-        UserAgentProfile.query.filter_by(user_id=user_id).delete()
+        db.session.execute(delete(UserAgentProfile).where(UserAgentProfile.user_id == user_id))
 
     why_join_raw = data.get("why_joining_silverkey")
     if why_join_raw is None and demo is not None:
@@ -83,11 +89,16 @@ def write_preferences_from_payload(
     sync_client_roles_from_preferences(
         user_id,
         why_join_raw if isinstance(why_join_raw, list) else None,
-        is_agent=bool(getattr(u, "is_agent", False)),
+        grant_agent_role=user_is_agent(u),
     )
 
     ensure_public_profile_slug(u)
     u.has_preferences = True
+    raw_version = data.get("preferences_version")
+    if raw_version is not None and str(raw_version).strip():
+        u.preferences_version = str(raw_version).strip()[:10]
+    elif not u.preferences_version:
+        u.preferences_version = "1.0"
     db.session.commit()
     from app.services.aggregation.preferences_aggregation import get_preferences_dict_optional
 

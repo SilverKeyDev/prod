@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { dateNow } from "packages/utils/date";
 import { getDocument, getFetch } from "packages/utils/platform";
 
@@ -71,7 +71,7 @@ function logNetworkError(method: string, url: string, error: unknown, duration: 
       error.message.includes("CORS") ||
       error.message.includes("load failed"));
 
-  log.error(LOG_CATEGORIES.HTTP, `${method} ${sanitizedUrl} - Network Error`, {
+  log.error("HTTP", `${method} ${sanitizedUrl} - Network Error`, {
     method,
     url: sanitizedUrl,
     originalUrl: url,
@@ -209,7 +209,7 @@ export class HttpClient {
           (errCode === "NO_LOCATIONS" || errCode === "NO_VALID_LOCATIONS");
         if (!expectedMissingCommute) {
           log.warn(
-            LOG_CATEGORIES.ERRORS,
+            "ERRORS",
             "GET /api/v1/search/isochrone failed (unexpected status or error code)",
             diag
           );
@@ -217,7 +217,7 @@ export class HttpClient {
       }
 
       if (url.includes("/auth/") || response.status === 401) {
-        log.debug(LOG_CATEGORIES.HTTP, "🔐 AUTH_RESPONSE_DETECTED", {
+        log.debug("HTTP", "🔐 AUTH_RESPONSE_DETECTED", {
           url,
           status: response.status,
           cookiesBefore: allCookies,

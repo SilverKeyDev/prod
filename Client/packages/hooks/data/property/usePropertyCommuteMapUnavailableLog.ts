@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { ListingCoordsInput } from "packages/utils/propertyDetails/location/listingCoords";
 import { getListingCoordsUnavailableDiagnostics } from "packages/utils/propertyDetails/location/listingCoords";
 
@@ -41,13 +41,9 @@ export function usePropertyCommuteMapUnavailableLog(params: {
     }`;
     if (loggedCommuteMapUnavailableKeyRef.current === dedupeKey) return;
     loggedCommuteMapUnavailableKeyRef.current = dedupeKey;
-    log.info(
-      LOG_CATEGORIES.PROPERTY_DETAILS,
-      "Property commute map unavailable (no listing coords)",
-      {
-        listingId,
-        ...diagnostics,
-      }
-    );
+    log.info("PROPERTY_DETAILS", "Property commute map unavailable (no listing coords)", {
+      listingId,
+      ...diagnostics,
+    });
   }, [commute, hasTravelTimes, listingCoords, property]);
 }

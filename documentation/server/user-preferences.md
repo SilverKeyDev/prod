@@ -340,6 +340,27 @@ def agent_search_for_client(user):
     return jsonify({'success': True, 'properties': results})
 ```
 
+## preferences_version backfill
+
+`write_preferences_from_payload` persists `preferences_version` from the client payload when present; otherwise sets `"1.0"` on first save when the column is NULL.
+
+**One-time operator SQL** (run after deploy; not an Alembic migration):
+
+```sql
+UPDATE users
+SET preferences_version = '1.0'
+WHERE has_preferences = TRUE
+  AND preferences_version IS NULL;
+```
+
+Verify:
+
+```sql
+SELECT COUNT(*) FROM users WHERE has_preferences = TRUE AND preferences_version IS NULL;
+```
+
+GET `/api/v1/preferences` includes `preferences_version` and `has_preferences` on the aggregated preferences object.
+
 ## Best Practices
 
 1. **Atomic writes**: Use `db_transaction` for preference updates

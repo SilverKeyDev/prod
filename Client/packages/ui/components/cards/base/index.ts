@@ -18,6 +18,3 @@ export {
   default as CardHeartSave,
   CardHeartSaveWithProps,
 } from "@ui/button/propertyActions/HeartSave";
-
-// Legacy re-exports for components that may have been moved (stub or remove when callers are updated)
-// CardCarousel, CardPriceBubble, CardContentContainer are not in this folder; import from the specific feature if needed

@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
+from sqlalchemy import select
+
 from app import db
 from app.models import Partner, RevShareLink
 
 
 def ensure_link_for_partner(partner_id: str) -> int:
     """Create the platform link for one partner when missing."""
-    partner = Partner.query.filter_by(id=partner_id).first()
+    partner = db.session.scalar(select(Partner).where(Partner.id == partner_id))
     if not partner:
         return 0
 
-    existing = RevShareLink.query.filter_by(partner_id=partner_id).first()
+    existing = db.session.scalar(select(RevShareLink).where(RevShareLink.partner_id == partner_id))
     if existing:
         if not existing.is_active and partner.is_active:
             existing.is_active = True
@@ -32,6 +34,6 @@ def ensure_links_for_partner(partner_id: str) -> int:
 def ensure_links_for_all_active_partners() -> int:
     """Ensure every active partner has a platform link."""
     created = 0
-    for partner in Partner.query.filter_by(is_active=True).all():
+    for partner in db.session.scalars(select(Partner).where(Partner.is_active.is_(True))).all():
         created += ensure_link_for_partner(partner.id)
     return created

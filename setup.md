@@ -86,7 +86,7 @@ Turn off AirPlay Receiver once:
 
 Confirm port 5000 is free: `lsof -i :5000` should not list `ControlCenter`. Then `curl -fsS http://127.0.0.1:5000/healthz` should succeed after the backend is running.
 
-**iCloud Desktop/Documents:** If the clone lives under an iCloud-synced folder (common on macOS), concurrent writes from Cursor, git, and formatters can produce duplicate files named like `module 2.py` beside `module.py`. Prefer cloning to a non-iCloud path (e.g. `~/Developer/SilverKey`) or disable iCloud for that folder. CI and `make lint` run `scripts/check-macos-duplicate-files.sh` to block these copies from merging.
+**iCloud Desktop/Documents:** If the clone lives under an iCloud-synced folder (common on macOS), concurrent writes from Cursor, git, and formatters can produce duplicate files named like `module 2.py` beside `module.py`. Prefer cloning to a non-iCloud path (e.g. `~/Developer/SilverKey`) or disable iCloud for that folder. CI and `make lint` run `scripts/ci/check-macos-duplicate-files.sh` to block these copies from merging.
 
 ### Debian / Ubuntu
 
@@ -117,7 +117,8 @@ Use **WSL2** with Linux steps above.
 | ------- | ------- |
 | `make setup` | Full first-time flow (steps 1–6) |
 | `make setup-mcp` | Cursor MCP only — install tools, seed/verify `.cursor/mcp.json`, print summary |
-| `make refresh` | Clear stale caches + refresh deps after `git pull` |
+| `make refresh` | Clear stale caches + refresh deps after `git pull` (auto-starts Redis if installed; skips AWS check) |
+| `make check-deps` | Same as `./scripts/setup/check-deps.sh` — prerequisite scan only |
 | `make clean-caches` | Remove regenerable caches only (no install) |
 | `make secrets` | Re-fetch `Server/.env` only |
 | `make dev` | Web + API |
@@ -237,7 +238,8 @@ See also [.cursor/README.md](.cursor/README.md) and [AGENTS.md](AGENTS.md).
 | SSO login failed | `aws sso login --profile <profile>` then `make setup` |
 | No SSO profile yet | Run `aws configure sso`, then `export AWS_PROFILE=...` and re-run `make setup` |
 | Wrong Python / broken venv | `export PYTHON=python3.12` then `make setup` (recreates `Server/.venv`) |
-| After `git pull` only | `make refresh` (clears `.turbo`, Vite/pytest caches, etc.; keeps venv; refreshes pip/pnpm). Skip cache clear: `make refresh ARGS='--no-clean'`. Deeper clean (Expo/Playwright): `make refresh ARGS='--aggressive-clean'` |
+| After `git pull` only | `make refresh` (clears `.turbo`, Vite/pytest caches, etc.; keeps venv; refreshes pip/pnpm; starts Redis if installed). Skip cache clear: `make refresh ARGS='--no-clean'`. Deeper clean (Expo/Playwright): `make refresh ARGS='--aggressive-clean'` |
+| `make refresh` fails on Redis | Usually auto-fixed on re-run. Manual: `brew services start redis` or `redis-server --daemonize yes`. With `ARGS='--no-install'`, refresh does not auto-start Redis — start it manually first. |
 | Invalid security token / secrets profile error | `aws sso login --profile <name>`; set profile via `Server/config/.aws-sso` or `export AWS_PROFILE=...` (not stale `~/.aws/credentials` default) |
 | `Token has expired and refresh failed` | On an interactive terminal, `make secrets` runs `aws sso login` for the profile in `Server/config/.aws-sso`. If it still fails, run login manually. CI: set `AWS_SSO_NO_AUTO_LOGIN=1` and provide credentials another way. |
 | `AWS profile not set` on `make secrets` | `cp Server/config/aws-sso.example Server/config/.aws-sso` or `export AWS_PROFILE=...` |
@@ -259,10 +261,26 @@ See also [.cursor/README.md](.cursor/README.md) and [AGENTS.md](AGENTS.md).
 
 ## Quality gates
 
+`make setup` enables git hooks (`git config core.hooksPath scripts/githooks`).
+
+| When | What runs | Blocks? |
+| ---- | ----------- | ------- |
+| **Commit** | Prettier, ESLint, Ruff autofix; OpenAPI type drift (`make openapi` if drift fails) | Yes |
+| **Push** | Client typecheck + OpenAPI contract tests | Yes |
+| **PR (CI)** | Full lint, `pnpm check`, Vitest, pytest | Yes (merge) |
+
+```bash
+make precommit          # run commit hooks on all files (manual)
+make pre-push-check     # same as git pre-push
+make openapi-verify     # full OpenAPI gate before opening a PR
+SKIP=1 git commit ...   # skip commit hooks once
+git push --no-verify    # skip push hooks once (emergency only)
+```
+
 ```bash
 cd Client && pnpm typecheck && pnpm lint && pnpm check
 make lint
 cd Server && . .venv/bin/activate && pytest
 ```
 
-See also [README.md](README.md), [AGENTS.md](AGENTS.md), [Makefile](Makefile) (`make help`).
+See also [README.md](README.md), [AGENTS.md](AGENTS.md), [Makefile](Makefile) (`make help`), [documentation/server/ops/scripts-guide.md](documentation/server/ops/scripts-guide.md).

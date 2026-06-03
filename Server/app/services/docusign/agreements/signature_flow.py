@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from app import db
 from app.models import AgreementEvent
 from app.utils.db import transactional
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..core.client import DocusignClient
 from ..errors import AgreementStateError, DocusignAuthError
@@ -19,8 +19,6 @@ from .send_envelope_validation import (
     validate_send_envelope_options,
     validate_template_agreement_send,
 )
-
-logger = get_logger()
 
 
 def _autofill_single_role_template_map_if_needed(agreement, opts: dict) -> None:
@@ -68,8 +66,8 @@ def send_for_signature(
         envelope_options: Optional DocuSign send extras (notification, tab_prefill, envelope_prefill_tabs)
     """
     opts = envelope_options or {}
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Preparing to send agreement for signature",
         {
             "agreement_id": agreement_id,
@@ -84,8 +82,8 @@ def send_for_signature(
 
     # Validate can send
     if agreement.status != "draft":
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.warn(
+            "DOCUSIGN",
             "Cannot send agreement - invalid status",
             {"agreement_id": agreement_id, "current_status": agreement.status},
         )
@@ -93,8 +91,8 @@ def send_for_signature(
 
     is_template_send = bool(agreement.docusign_source_template_id)
     if not is_template_send and not agreement.current_revision_id:
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.warn(
+            "DOCUSIGN",
             "Cannot send agreement - no revision",
             {"agreement_id": agreement_id},
         )
@@ -103,8 +101,8 @@ def send_for_signature(
     selected_participant_user_id = participant_user_id or agreement.buyer_id
 
     # Defensive logging to diagnose missing participants
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Participant selection for send",
         {
             "agreement_id": agreement_id,
@@ -131,8 +129,8 @@ def send_for_signature(
         db.session.expire(agreement, ["participants"])
 
     if not agreement.participants:
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.warn(
+            "DOCUSIGN",
             "Cannot send agreement - no participants",
             {
                 "agreement_id": agreement_id,
@@ -168,8 +166,8 @@ def send_for_signature(
 
     # RelationshipProperty resolves to collection at runtime; Pyright does not treat it as Iterable
     participants_list = list(agreement.participants)  # pyright: ignore[reportArgumentType]
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Enqueueing send agreement task",
         {
             "agreement_id": agreement_id,
@@ -185,8 +183,8 @@ def send_for_signature(
     try:
         DocusignClient(auth_type="jwt")
     except DocusignAuthError:
-        logger.error(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.error(
+            "DOCUSIGN",
             "DocuSign JWT preflight failed; send aborted (transaction will roll back)",
             {"agreement_id": agreement_id, "actor_id": actor_id},
         )
@@ -197,8 +195,8 @@ def send_for_signature(
 
     task = send_envelope_task.delay(agreement_id, signing_method, actor_id, opts)  # type: ignore[union-attr]
 
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Send agreement task enqueued successfully",
         {"agreement_id": agreement_id, "task_id": task.id},
     )
@@ -219,8 +217,8 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
         reason: Void reason
         actor_id: User voiding
     """
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Voiding agreement",
         {"agreement_id": agreement_id, "reason": reason, "actor_id": actor_id},
     )
@@ -228,8 +226,8 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
     agreement = get_agreement(agreement_id)
 
     if agreement.status in ["completed", "voided"]:
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.warn(
+            "DOCUSIGN",
             "Cannot void agreement - invalid status",
             {"agreement_id": agreement_id, "current_status": agreement.status},
         )
@@ -239,8 +237,8 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
 
     if not agreement.docusign_envelope_id:
         # Just mark as voided locally
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Voiding agreement locally (no envelope)",
             {"agreement_id": agreement_id},
         )
@@ -248,8 +246,8 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
         agreement.voided_at = datetime.now(timezone.utc)
     else:
         # Void in DocuSign (only Sent/Delivered are voidable; voided is idempotent)
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Voiding agreement in DocuSign",
             {"agreement_id": agreement_id, "envelope_id": agreement.docusign_envelope_id},
         )
@@ -259,8 +257,8 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
         ds_status = (env_info.get("status") or "").strip().lower()
 
         if ds_status == "voided":
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "Envelope already voided in DocuSign; syncing local state only",
                 {"agreement_id": agreement_id, "envelope_id": envelope_id},
             )
@@ -291,8 +289,8 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
 
     delete_agreement_library_item(agreement)
 
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Agreement voided successfully",
         {"agreement_id": agreement_id, "had_envelope": has_envelope, "reason": reason},
     )
@@ -308,8 +306,8 @@ def strip_agreement_from_saved_library(agreement_id: str, actor_id: str, descrip
     """
     agreement = get_agreement(agreement_id)
     if str(agreement.agent_id) != str(actor_id):
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.warn(
+            "DOCUSIGN",
             "strip_agreement_from_saved_library denied",
             {"agreement_id": agreement_id, "actor_id": actor_id},
         )
@@ -324,8 +322,8 @@ def strip_agreement_from_saved_library(agreement_id: str, actor_id: str, descrip
             actor_id=actor_id,
         )
     )
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Agreement stripped from Saved library",
         {"agreement_id": agreement_id, "actor_id": actor_id},
     )
@@ -338,8 +336,8 @@ def discard_agreement_as_agent(agreement_id: str, reason: str, actor_id: str) ->
     """
     agreement = get_agreement(agreement_id)
     if str(agreement.agent_id) != str(actor_id):
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.warn(
+            "DOCUSIGN",
             "discard_agreement_as_agent denied",
             {"agreement_id": agreement_id, "actor_id": actor_id},
         )

@@ -1,6 +1,5 @@
 """Chart generation for research reports (matplotlib)."""
 
-import logging
 from io import BytesIO
 from typing import cast
 
@@ -8,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 # Consistent font sizes for all charts
 TITLE_FONTSIZE = 16
@@ -40,14 +39,18 @@ def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO | None:
                 else:
                     sizes.append(float(val))
             except Exception as e:
-                logger.error(
-                    f"❌ Skipping non-numeric value in vertical lollipop chart for '{title}': {val} - {e}"
+                log.error(
+                    "ERRORS",
+                    "Skipping non-numeric value in vertical lollipop chart",
+                    {"title": title, "value": val, "error": str(e)},
                 )
                 return None
 
         if not sizes or sum(sizes) == 0:
-            logger.error(
-                f"❌ Skipping vertical lollipop chart for '{title}' due to empty or invalid data."
+            log.error(
+                "ERRORS",
+                "Skipping vertical lollipop chart due to empty or invalid data",
+                {"title": title},
             )
             return None
 
@@ -71,7 +74,11 @@ def generate_vertical_lollipop_chart(data: dict, title: str) -> BytesIO | None:
         img_buffer.seek(0)
         return img_buffer
     except Exception as e:
-        logger.error(f"❌ Failed to generate vertical lollipop chart for {title}: {e}")
+        log.error(
+            "ERRORS",
+            "Failed to generate vertical lollipop chart",
+            {"title": title, "error": str(e)},
+        )
         return None
 
 
@@ -87,13 +94,19 @@ def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO | None:
                 else:
                     sizes.append(float(val))
             except Exception as e:
-                logger.error(
-                    f"❌ Skipping non-numeric value in bar chart for '{title}': {val} - {e}"
+                log.error(
+                    "ERRORS",
+                    "Skipping non-numeric value in bar chart",
+                    {"title": title, "value": val, "error": str(e)},
                 )
                 return None
 
         if not sizes or sum(sizes) == 0:
-            logger.error(f"❌ Skipping bar chart for '{title}' due to empty or invalid data.")
+            log.error(
+                "ERRORS",
+                "Skipping bar chart due to empty or invalid data",
+                {"title": title},
+            )
             return None
 
         fig, ax = plt.subplots(figsize=(6, 0.4 * len(labels) + 1))
@@ -113,7 +126,11 @@ def generate_horizontal_bar_chart(data: dict, title: str) -> BytesIO | None:
         img_buffer.seek(0)
         return img_buffer
     except Exception as e:
-        logger.error(f"❌ Failed to generate horizontal bar chart for {title}: {e}")
+        log.error(
+            "ERRORS",
+            "Failed to generate horizontal bar chart",
+            {"title": title, "error": str(e)},
+        )
         return None
 
 
@@ -129,13 +146,19 @@ def generate_donut_chart(data: dict, title: str) -> BytesIO | None:
                 else:
                     sizes.append(float(val))
             except Exception as e:
-                logger.warning(
-                    f"Skipping non-numeric value in donut chart for '{title}': {val} - {e}"
+                log.warn(
+                    "ERRORS",
+                    "Skipping non-numeric value in donut chart",
+                    {"title": title, "value": val, "error": str(e)},
                 )
                 return None
 
         if not sizes or sum(sizes) == 0:
-            logger.warning(f"Skipping donut chart for '{title}' due to empty or invalid data.")
+            log.warn(
+                "ERRORS",
+                "Skipping donut chart due to empty or invalid data",
+                {"title": title},
+            )
             return None
 
         fig, ax = plt.subplots()
@@ -175,7 +198,11 @@ def generate_donut_chart(data: dict, title: str) -> BytesIO | None:
         img_buffer.seek(0)
         return img_buffer
     except Exception as e:
-        logger.warning(f"Failed to generate donut chart for {title}: {e}")
+        log.warn(
+            "ERRORS",
+            "Failed to generate donut chart",
+            {"title": title, "error": str(e)},
+        )
         return None
 
 
@@ -191,13 +218,19 @@ def generate_lollipop_chart(data: dict, title: str) -> BytesIO | None:
                 else:
                     sizes.append(float(val))
             except Exception as e:
-                logger.warning(
-                    f"Skipping non-numeric value in lollipop chart for '{title}': {val} - {e}"
+                log.warn(
+                    "ERRORS",
+                    "Skipping non-numeric value in lollipop chart",
+                    {"title": title, "value": val, "error": str(e)},
                 )
                 return None
 
         if not sizes or sum(sizes) == 0:
-            logger.warning(f"Skipping lollipop chart for '{title}' due to empty or invalid data.")
+            log.warn(
+                "ERRORS",
+                "Skipping lollipop chart due to empty or invalid data",
+                {"title": title},
+            )
             return None
 
         fig, ax = plt.subplots(figsize=(6, 0.4 * len(labels) + 1))
@@ -220,7 +253,11 @@ def generate_lollipop_chart(data: dict, title: str) -> BytesIO | None:
         img_buffer.seek(0)
         return img_buffer
     except Exception as e:
-        logger.warning(f"Failed to generate lollipop chart for {title}: {e}")
+        log.warn(
+            "ERRORS",
+            "Failed to generate lollipop chart",
+            {"title": title, "error": str(e)},
+        )
         return None
 
 
@@ -236,13 +273,19 @@ def generate_pie_chart(data: dict, title: str) -> BytesIO | None:
                 else:
                     sizes.append(float(val))
             except Exception as e:
-                logger.warning(
-                    f"Skipping non-numeric value in pie chart for '{title}': {val} - {e}"
+                log.warn(
+                    "ERRORS",
+                    "Skipping non-numeric value in pie chart",
+                    {"title": title, "value": val, "error": str(e)},
                 )
                 return None
 
         if not sizes or sum(sizes) == 0:
-            logger.warning(f"Skipping pie chart for '{title}' due to empty or invalid data.")
+            log.warn(
+                "ERRORS",
+                "Skipping pie chart due to empty or invalid data",
+                {"title": title},
+            )
             return None
 
         pie_colors = [
@@ -280,5 +323,9 @@ def generate_pie_chart(data: dict, title: str) -> BytesIO | None:
         img_buffer.seek(0)
         return img_buffer
     except Exception as e:
-        logger.warning(f"Failed to generate pie chart for {title}: {e}")
+        log.warn(
+            "ERRORS",
+            "Failed to generate pie chart",
+            {"title": title, "error": str(e)},
+        )
         return None

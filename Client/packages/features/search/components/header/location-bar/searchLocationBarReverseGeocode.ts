@@ -6,7 +6,7 @@ import {
   centroidOfViewportRing,
 } from "packages/features/search/utils/map/mapViewport";
 import { warnUnsupportedServiceArea } from "packages/features/search/utils/outcomes/searchOutcomeToast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getWindow } from "packages/utils/platform";
 import {
   isSupportedServiceAreaAddressComponents,
@@ -37,7 +37,7 @@ export async function reverseGeocodeAndSearchForLocationBar(
   const geocoder = win?.google?.maps?.Geocoder ? new win.google.maps.Geocoder() : null;
 
   if (!isSupportedServiceAreaCoordinates({ lat, lng })) {
-    log.warn(LOG_CATEGORIES.SEARCH, "Blocked current location outside supported service area");
+    log.warn("SEARCH", "Blocked current location outside supported service area");
     warnUnsupportedServiceArea();
     setSuggestions([]);
     setIsFocused(false);
@@ -59,13 +59,9 @@ export async function reverseGeocodeAndSearchForLocationBar(
         label = best.formatted_address;
 
         if (!isSupportedServiceAreaAddressComponents(best.address_components)) {
-          log.warn(
-            LOG_CATEGORIES.SEARCH,
-            "Blocked reverse geocode outside supported service area",
-            {
-              label,
-            }
-          );
+          log.warn("SEARCH", "Blocked reverse geocode outside supported service area", {
+            label,
+          });
           warnUnsupportedServiceArea();
           setSuggestions([]);
           setIsFocused(false);
@@ -107,7 +103,7 @@ export async function reverseGeocodeAndSearchForLocationBar(
 
               if (!isSupportedServiceAreaCoordinates(center)) {
                 log.warn(
-                  LOG_CATEGORIES.SEARCH,
+                  "SEARCH",
                   "Blocked current location boundary outside supported service area",
                   {
                     searchName,
@@ -132,7 +128,7 @@ export async function reverseGeocodeAndSearchForLocationBar(
               });
               resolvedViaSlipstream = true;
 
-              log.info(LOG_CATEGORIES.SEARCH, "Current location resolved via Slipstream", {
+              log.info("SEARCH", "Current location resolved via Slipstream", {
                 searchName,
                 areaId: topArea.id,
                 areaLabel,
@@ -140,11 +136,11 @@ export async function reverseGeocodeAndSearchForLocationBar(
             }
           }
         } catch (err: unknown) {
-          log.warn(LOG_CATEGORIES.ERRORS, "Slipstream fallback for current location failed", err);
+          log.warn("ERRORS", "Slipstream fallback for current location failed", err);
         }
       }
     } catch (err: unknown) {
-      log.warn(LOG_CATEGORIES.ERRORS, "Reverse geocode failed for current location", err);
+      log.warn("ERRORS", "Reverse geocode failed for current location", err);
     }
   }
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { prefetchAgentMessagingFeatureChunks } from "packages/features/agent/components/loading/prefetchAgentMessagingChunks";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { ROUTES } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
@@ -45,14 +45,10 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
         return;
       }
       didPrefetchRef.current = true;
-      log.info(
-        LOG_CATEGORIES.ROUTING,
-        "[PERF] Authenticated heavy route chunk prefetch batch starting",
-        {
-          pathname,
-        }
-      );
-      const shellOpts = { isAgent: user.is_agent };
+      log.info("ROUTING", "[PERF] Authenticated heavy route chunk prefetch batch starting", {
+        pathname,
+      });
+      const shellOpts = { isAgent: (user.roles ?? []).includes("agent") };
       // Prewarm both heavy chunks; skip the one we're already on.
       if (!pathname.startsWith("/dashboard")) {
         prefetchDashboardShellRoute("/dashboard", shellOpts);
@@ -63,11 +59,11 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
         // Cold load or refresh on /messaging: outer route prefetch is skipped above; still
         // prewarm AgentPage + the correct AgentFeature lazy branch in parallel with other work.
         traceDynamicImport(
-          LOG_CATEGORIES.MESSAGES,
+          "MESSAGES",
           "idlePrefetch:AgentPage",
           import("@/pages/workspace/AgentPage")
         );
-        const branch = user.is_agent === true ? "agent" : "client";
+        const branch = (user.roles ?? []).includes("agent") ? "agent" : "client";
         prefetchAgentMessagingFeatureChunks(branch);
       }
     };

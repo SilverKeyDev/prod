@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app import db
@@ -14,7 +15,7 @@ from app.services.rev_share.geo_ip import lookup_geo_for_ip
 from app.services.rev_share.ip_hash import hash_client_ip
 from app.services.rev_share.url_template import append_query_params, interpolate_destination_url
 from app.services.transactions.lookup import get_transaction_by_id
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 @dataclass(frozen=True)
@@ -40,10 +41,14 @@ def _normalize_session_id(session_id: str | None) -> str | None:
 
 
 def _resolve_link(link_id: str) -> tuple[RevShareLink, Partner] | None:
-    link = RevShareLink.query.filter_by(id=link_id, is_active=True).first()
+    link = db.session.scalar(
+        select(RevShareLink).where(RevShareLink.id == link_id, RevShareLink.is_active.is_(True))
+    )
     if not link:
         return None
-    partner = Partner.query.filter_by(id=link.partner_id, is_active=True).first()
+    partner = db.session.scalar(
+        select(Partner).where(Partner.id == link.partner_id, Partner.is_active.is_(True))
+    )
     if not partner:
         return None
     return link, partner
@@ -74,7 +79,7 @@ def _click_attribution_ids(ctx: RedirectClickContext) -> tuple[str | None, str |
     if tx:
         return tx.buyer_id, tx.id
     buyer_id = (ctx.buyer_id or "").strip() or None
-    if buyer_id and User.query.filter_by(id=buyer_id).first():
+    if buyer_id and db.session.scalar(select(User).where(User.id == buyer_id)):
         return buyer_id, None
     return None, None
 
@@ -131,11 +136,13 @@ def _find_or_create_click(
     click_date = now.date()
 
     if session_id:
-        existing = RevShareLinkClick.query.filter_by(
-            link_id=link.id,
-            session_id=session_id,
-            click_date=click_date,
-        ).first()
+        existing = db.session.scalar(
+            select(RevShareLinkClick).where(
+                RevShareLinkClick.link_id == link.id,
+                RevShareLinkClick.session_id == session_id,
+                RevShareLinkClick.click_date == click_date,
+            )
+        )
         if existing:
             return existing, False
 
@@ -160,11 +167,13 @@ def _find_or_create_click(
     except IntegrityError:
         db.session.rollback()
         if session_id:
-            existing = RevShareLinkClick.query.filter_by(
-                link_id=link.id,
-                session_id=session_id,
-                click_date=click_date,
-            ).first()
+            existing = db.session.scalar(
+                select(RevShareLinkClick).where(
+                    RevShareLinkClick.link_id == link.id,
+                    RevShareLinkClick.session_id == session_id,
+                    RevShareLinkClick.click_date == click_date,
+                )
+            )
             if existing:
                 return existing, False
         return None, False
@@ -194,7 +203,7 @@ def record_click_and_get_destination(link_id: str, ctx: RedirectClickContext) ->
 
     if created and click is not None:
         log.info(
-            LOG_CATEGORIES["SECURITY"],
+            "SECURITY",
             "rev_share_click",
             {
                 "partner_slug": partner.slug,

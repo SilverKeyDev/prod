@@ -1,6 +1,9 @@
 # SilverKey `.cursor/` directory
 
-Human-oriented map of **Cursor** configuration: rules, skills, agents, and how to extend them without sprawl.
+Human-oriented map of **Cursor** configuration: rules, skills, agents, and how to extend them without sprawl. This tree is **canonical**; other AI tools use thin adapters:
+
+- **[`.claude/`](../.claude/)** — Claude Code (`@` stubs to `.cursor/`)
+- **[`.codex/`](../.codex/)** (`rules/`, `agents/`) + **[`.agents/skills/`](../.agents/skills/)** — OpenAI Codex (rule stubs, TOML subagents, repo skills → `.cursor/`)
 
 **Audit / inventory:** [documentation/internal/cursor-audit-latest.md](../documentation/internal/cursor-audit-latest.md)
 

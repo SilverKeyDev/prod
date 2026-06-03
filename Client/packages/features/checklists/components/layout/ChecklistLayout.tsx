@@ -5,6 +5,7 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { ChecklistUpdatePendingProvider } from "packages/features/checklists/components/roadmap/ChecklistUpdatePendingProvider";
 import { ChecklistSigningModals } from "packages/features/checklists/components/shared/ChecklistSigningModals";
+import { useResolvedTransactionId } from "packages/features/checklists/hooks/data/useResolvedTransactionId";
 import { useAutoCompleteChecklistIntegrations } from "packages/features/checklists/hooks/useAutoCompleteChecklistIntegrations";
 import { useChecklistProgress } from "packages/features/checklists/hooks/useChecklistProgress";
 import { useChecklistStepExpansion } from "packages/features/checklists/hooks/useChecklistStepExpansion";
@@ -26,7 +27,7 @@ import {
 import { sortTaskChecklistItems } from "packages/features/checklists/utils/sort/sortTaskChecklistItems";
 import { sortTaskChecklistItemsForDisplay } from "packages/features/checklists/utils/sort/sortTaskChecklistItemsForDisplay";
 import { showErrorToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/primitives/divider/dividerStyles";
@@ -47,20 +48,31 @@ export default function CloseLayout({
   title,
   subtitle,
   sectionTitle: sectionTitleText,
+  checklistType: checklistTypeProp,
   apiEndpoint,
   children,
   showLoadingScreen = false,
   containerClassName = "py-0",
   showMinLoadingText = false,
   setClosePageHeaderData,
-  transactionId,
+  transactionId: transactionIdProp,
 }: CloseLayoutProps) {
   const { t } = useLocalization();
-  const checklistType = useMemo(
-    () => parseChecklistTypeFromApiEndpoint(apiEndpoint),
-    [apiEndpoint]
-  );
+  const checklistType = useMemo(() => {
+    if (checklistTypeProp) {
+      return checklistTypeProp;
+    }
+    if (apiEndpoint) {
+      return parseChecklistTypeFromApiEndpoint(apiEndpoint);
+    }
+    return "search" as const;
+  }, [checklistTypeProp, apiEndpoint]);
   const roadmapTab = CHECKLIST_TYPE_TO_TAB[checklistType];
+
+  const { transactionId: resolvedTransactionId, isLoading: transactionIdLoading } =
+    useResolvedTransactionId();
+  const effectiveTransactionId = transactionIdProp ?? resolvedTransactionId;
+  const waitForResolvedTransaction = transactionIdProp == null;
 
   const {
     items,
@@ -72,7 +84,8 @@ export default function CloseLayout({
     toggleItem,
     getItemToggleEligibility,
   } = useChecklistProgress({
-    transactionId: transactionId ?? undefined,
+    transactionId: effectiveTransactionId ?? undefined,
+    enabled: !waitForResolvedTransaction || !transactionIdLoading,
     activeSection: roadmapTab,
   });
 
@@ -120,7 +133,7 @@ export default function CloseLayout({
       try {
         await toggleItem(id);
       } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to update checklist item", error);
+        log.error("ERRORS", "Failed to update checklist item", error);
         showErrorToast(
           t("checklists.update_error", {
             defaultValue: "Could not update this step. Please try again.",
@@ -311,7 +324,7 @@ export default function CloseLayout({
                               commitToggleItem={toggleItem}
                               toggleExpand={toggleExpand}
                               isExpanded={isExpanded}
-                              transactionId={transactionId}
+                              transactionId={effectiveTransactionId}
                               renderItemFooter={renderSigningFooter}
                             />
                           );
@@ -332,7 +345,7 @@ export default function CloseLayout({
                           commitToggleItem={toggleItem}
                           toggleExpand={toggleExpand}
                           isExpanded={isExpanded}
-                          transactionId={transactionId}
+                          transactionId={effectiveTransactionId}
                           renderItemFooter={renderSigningFooter}
                         />
                       ))}

@@ -6,22 +6,23 @@ import os
 import time
 from typing import Any
 
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 
+from app import db
 from app.models import Document
 from app.services.documents import DocumentService, s3_service
-from app.utils.security.app_logging import get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def list_reports_for_user(user_id: str) -> list[dict[str, Any]]:
     reports_list: list[dict[str, Any]] = []
     seen_names: set[str] = set()
 
-    generating_reports = Document.query.filter(
-        Document.user_id == user_id,
-        or_(Document.status == "generating", Document.status == "error"),
+    generating_reports = db.session.scalars(
+        select(Document).where(
+            Document.user_id == user_id,
+            or_(Document.status == "generating", Document.status == "error"),
+        )
     ).all()
 
     for report in generating_reports:
@@ -50,9 +51,9 @@ def list_reports_for_user(user_id: str) -> list[dict[str, Any]]:
         if not file_name.endswith(".pdf"):
             continue
 
-        db_report = Document.query.filter(
-            Document.user_id == user_id, Document.file_path == s3_key
-        ).first()
+        db_report = db.session.scalar(
+            select(Document).where(Document.user_id == user_id, Document.file_path == s3_key)
+        )
 
         report_id = db_report.id if db_report else file_name
         presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=file_name)
@@ -77,7 +78,7 @@ def list_reports_for_user(user_id: str) -> list[dict[str, Any]]:
         )
 
     if not s3_objects and not s3_service.s3_client:
-        logger.warning("S3 client not initialized, cannot list bucket")
+        log.warn("PROPERTY_DETAILS", "S3 client not initialized, cannot list bucket")
 
     reports_list.sort(
         key=lambda x: (x["status"] != "generating", x.get("generatedAt", 0)), reverse=True

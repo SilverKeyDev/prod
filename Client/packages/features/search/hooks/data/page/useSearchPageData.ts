@@ -4,7 +4,7 @@ import { getEnv } from "packages/config";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { useActiveWorkspace } from "packages/hooks/store";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import {
   useAgentDashboardStore,
   useConsolidatedSearchStore,
@@ -117,7 +117,7 @@ export function useSearchPageData() {
 
   const convertSavedHomeToSearchResult = useCallback((savedHome: SavedHome): SearchResult => {
     const isDev = getEnv().isDevelopment;
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Converting SavedHome to SearchResult for map", {
+    log.debug("MAP_RENDERING", "Converting SavedHome to SearchResult for map", {
       environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
       homeId: savedHome.home_id,
       address: savedHome.address,
@@ -199,7 +199,7 @@ export function useSearchPageData() {
 
   useEffect(() => {
     const hidden = searchResults.length - notInterestedFiltered.length;
-    log.info(LOG_CATEGORIES.SEARCH, "Search UI pipeline: results vs not-interested filter", {
+    log.info("SEARCH", "Search UI pipeline: results vs not-interested filter", {
       searchResultsCount: searchResults.length,
       filteredSearchResultsCount: filteredSearchResults.length,
       hiddenByNotInterested: hidden,
@@ -241,7 +241,7 @@ export function useSearchPageData() {
   const savedHomes = useMemo(() => {
     const converted = savedHomesRaw.map(convertSavedHomeToSearchResult);
     const isDev = getEnv().isDevelopment;
-    log.info(LOG_CATEGORIES.MAP_RENDERING, "Saved homes converted for map rendering", {
+    log.info("MAP_RENDERING", "Saved homes converted for map rendering", {
       environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
       rawCount: savedHomesRaw.length,
       convertedCount: converted.length,

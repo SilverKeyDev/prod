@@ -1,6 +1,8 @@
-/** True when demographics `is_agent` marks a real estate agent (aligns with server / useIsAgent). */
-export function isAgentFormSelection(is_agent: string | undefined): boolean {
-  return is_agent === "yes" || is_agent === "am_agent";
+import type { PrimaryOnboardingRole } from "./onboardingRoleSelection";
+
+/** True when draft primary onboarding role is agent (aligns with `user_roles` / `useIsAgent`). */
+export function isAgentFormSelection(primaryRole: PrimaryOnboardingRole | undefined): boolean {
+  return primaryRole === "agent";
 }
 
 /**
@@ -9,7 +11,7 @@ export function isAgentFormSelection(is_agent: string | undefined): boolean {
  */
 export function effectiveIsAgentForOptionalBuyerUi(options: {
   authIsAgent: boolean;
-  formIsAgent?: string;
+  formPrimaryRole?: PrimaryOnboardingRole;
 }): boolean {
-  return options.authIsAgent || isAgentFormSelection(options.formIsAgent);
+  return options.authIsAgent || isAgentFormSelection(options.formPrimaryRole);
 }

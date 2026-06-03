@@ -1,4 +1,3 @@
-import logging
 import traceback
 from copy import deepcopy
 from typing import Any
@@ -13,8 +12,7 @@ from app.services.research.models import (
     Investment,
     Neighborhood,
 )
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 # Common section model mapping for all modes
 SECTION_MODEL_MAP = {
@@ -152,8 +150,14 @@ def _process_schema_common_steps(
                     filtered_properties[key] = original_properties[key].copy()
                     filtered_properties[key]["description"] = desc
                 else:
-                    logger.warning(
-                        f"⚠️ {description_method}() returned description for field '{key}' that doesn't exist in {section_name} model"
+                    log.warn(
+                        "PROPERTY_DETAILS",
+                        "Schema description references unknown field",
+                        {
+                            "section_name": section_name,
+                            "field": key,
+                            "description_method": description_method,
+                        },
                     )
 
             # In comparison mode, only keep fields that have comparison descriptions (rating + up to 2 key fields)
@@ -162,8 +166,13 @@ def _process_schema_common_steps(
                 schema["required"] = [
                     r for r in schema.get("required", []) if r in filtered_properties
                 ]
-                logger.info(
-                    f"📊 [SCHEMA] Comparison mode: filtered to {len(filtered_properties)} fields for {section_name}"
+                log.info(
+                    "PROPERTY_DETAILS",
+                    "Comparison mode schema filtered",
+                    {
+                        "section_name": section_name,
+                        "field_count": len(filtered_properties),
+                    },
                 )
             else:
                 # In report mode, use all fields but update descriptions
@@ -173,12 +182,23 @@ def _process_schema_common_steps(
                         schema["properties"][key]["description"] = desc
 
         except Exception as e:
-            logger.warning(
-                f"⚠️ Failed to add descriptions to {section_name} schema: {e}\n{traceback.format_exc()}"
+            log.warn(
+                "PROPERTY_DETAILS",
+                "Failed to add descriptions to schema",
+                {
+                    "section_name": section_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                },
             )
     else:
-        logger.warning(
-            f"⚠️ Model {section_name} does not have {description_method}() method - descriptions will be missing"
+        log.warn(
+            "PROPERTY_DETAILS",
+            "Model missing description method",
+            {
+                "section_name": section_name,
+                "description_method": description_method,
+            },
         )
 
     # Ensure required schema structure
@@ -213,10 +233,15 @@ def _process_schema_common_steps(
     disallowed_keys = ["$ref", "oneOf", "anyOf", "example", "default", "schema"]
     for key in disallowed_keys:
         if key in clean_schema:
-            logger.warning(f"⚠️ Disallowed key '{key}' found at root of schema for {section_name}")
-        for prop_name, prop in clean_schema.get("properties", {}).items():
+            log.warn(
+                "PROPERTY_DETAILS",
+                "Disallowed key '{key}' found at root of schema for {section_name}",
+            )
+        for _prop_name, prop in clean_schema.get("properties", {}).items():
             if isinstance(prop, dict) and key in prop:
-                logger.warning(f"⚠️ Disallowed key '{key}' found in property '{prop_name}'")
+                log.warn(
+                    "PROPERTY_DETAILS", "Disallowed key '{key}' found in property '{prop_name}'"
+                )
 
     return final_schema
 
@@ -268,12 +293,20 @@ def _filter_schema_by_recent_data(
     # If we filtered out all properties, keep original (regenerate everything)
     if filtered_properties:
         schema["properties"] = filtered_properties
-        logger.info(
-            f"📊 [SCHEMA] Filtered schema for {section_name}: {len(filtered_properties)}/{len(original_properties)} fields (recent data exists)"
+        log.info(
+            "PROPERTY_DETAILS",
+            "Filtered schema (recent data exists)",
+            {
+                "section_name": section_name,
+                "filtered_fields": len(filtered_properties),
+                "original_fields": len(original_properties),
+            },
         )
     else:
-        logger.info(
-            f"📊 [SCHEMA] Keeping full schema for {section_name} (high priority or all fields need update)"
+        log.info(
+            "PROPERTY_DETAILS",
+            "Keeping full schema",
+            {"section_name": section_name},
         )
 
     return schema
@@ -308,8 +341,9 @@ def _reduce_schema_for_low_priority(
         schema["properties"] = {
             k: v for k, v in schema.get("properties", {}).items() if k in key_fields
         }
-        logger.info(
-            f"📊 [SCHEMA] Reduced schema for low-priority section {section_name} to key fields"
+        log.info(
+            "PROPERTY_DETAILS",
+            "📊 [SCHEMA] Reduced schema for low-priority section {section_name} to key fields",
         )
 
     return schema
@@ -345,7 +379,7 @@ def get_individual_section_schema(
     model_class = SECTION_MODEL_MAP.get(section_name)
 
     if not model_class:
-        logger.error(f"❌ No model class found for section: {section_name} in mode: {mode}")
+        log.error("ERRORS", "No model class found for section: {section_name} in mode: {mode}")
         return {"error": f"No model class found for section: {section_name}"}
 
     # Deepcopy to avoid modifying the original schema
@@ -387,5 +421,5 @@ def get_individual_section_schema(
         )
 
     else:
-        logger.error(f"❌ Unknown mode: {mode}")
+        log.error("ERRORS", "Unknown mode: {mode}")
         return {"error": f"Unknown mode: {mode}"}

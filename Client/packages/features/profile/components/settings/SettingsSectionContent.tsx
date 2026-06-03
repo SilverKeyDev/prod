@@ -134,7 +134,6 @@ export function SettingsSectionContent({
           formData={formData}
           isEditMode={isEditMode}
           updateFormData={updateFormData}
-          showAgentChoice={false}
         />
       );
 

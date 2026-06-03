@@ -22,7 +22,6 @@ function mergeWireUserIntoAuthProfile(
     created_at: wire.created_at ?? prev.created_at,
     updated_at: wire.updated_at ?? prev.updated_at,
     is_active: wire.is_active,
-    is_agent: wire.is_agent ?? false,
     mls_id: wire.mls_id ?? prev.mls_id,
     brokerage: wire.brokerage ?? prev.brokerage,
     has_preferences: wire.has_preferences ?? prev.has_preferences,

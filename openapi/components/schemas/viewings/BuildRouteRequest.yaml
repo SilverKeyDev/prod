@@ -15,8 +15,8 @@ properties:
     nullable: true
     description: >
       Optional starting location (e.g. home or current position). When set, the route
-      begins here and only property stops are reordered. When omitted, legacy behavior
-      optimizes across property stops only (open tour, best first listing).
+      begins here and only property stops are reordered. When omitted, the route optimizes
+      across property stops only (open tour, best first listing).
   end:
     allOf:
       - $ref: ./ViewingRouteEndpoint.yaml

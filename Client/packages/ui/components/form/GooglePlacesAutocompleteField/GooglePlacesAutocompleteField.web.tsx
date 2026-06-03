@@ -3,7 +3,7 @@ import React, { useEffect, useId, useState } from "react";
 import Input from "@ui/form/Input";
 import { Icon } from "@ui/icons";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import Button from "packages/ui/components/button/Button";
 import { AddressInput } from "packages/ui/components/form/AddressInput/AddressInput";
@@ -85,7 +85,7 @@ function GooglePlacesAutocompleteFieldWeb({
         setSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
-        log.error(LOG_CATEGORIES.ERRORS, "Autocomplete fetch error", error);
+        log.error("ERRORS", "Autocomplete fetch error", error);
         setSuggestions([]);
         setAutocompleteError("Address search unavailable. You can type an address manually.");
       }

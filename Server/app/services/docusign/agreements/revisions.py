@@ -5,16 +5,16 @@ Agreement revision management
 import io
 import uuid
 
+from sqlalchemy import func, select
+
 from app import db
 from app.models import Agreement, AgreementEvent, AgreementRevision
 from app.services.documents.s3_service import s3_service
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..errors import InvalidRevisionFileError
 from ..utils.idempotency import generate_file_hash
-
-logger = get_logger()
 
 _PYPDF_WARNED_MISSING = False
 
@@ -33,8 +33,8 @@ def _assert_readable_pdf(file_content: bytes) -> None:
     except ImportError:
         if not _PYPDF_WARNED_MISSING:
             _PYPDF_WARNED_MISSING = True
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "pypdf not installed; only PDF magic-byte check runs. "
                 "Install dependencies (pip install -r requirements/runtime.txt) for full validation.",
                 {},
@@ -48,8 +48,8 @@ def _assert_readable_pdf(file_content: bytes) -> None:
     except InvalidRevisionFileError:
         raise
     except Exception as e:
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.warn(
+            "DOCUSIGN",
             "Revision upload failed PDF validation",
             {"error": str(e)},
         )
@@ -82,8 +82,8 @@ class RevisionService:
         """
         from ..errors import AgreementNotFoundError
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Creating agreement revision",
             {
                 "agreement_id": agreement_id,
@@ -96,8 +96,8 @@ class RevisionService:
 
         agreement = get_model(Agreement, agreement_id)
         if not agreement:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Agreement not found for revision",
                 {"agreement_id": agreement_id},
             )
@@ -106,11 +106,18 @@ class RevisionService:
         _assert_readable_pdf(file_content)
 
         # Calculate version number
-        existing_revisions = AgreementRevision.query.filter_by(agreement_id=agreement_id).count()
+        existing_revisions = (
+            db.session.scalar(
+                select(func.count())
+                .select_from(AgreementRevision)
+                .where(AgreementRevision.agreement_id == agreement_id)
+            )
+            or 0
+        )
         version_number = existing_revisions + 1
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Calculated revision version",
             {
                 "agreement_id": agreement_id,
@@ -122,8 +129,8 @@ class RevisionService:
         # Generate file hash
         file_hash = generate_file_hash(file_content)
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Generated file hash",
             {"agreement_id": agreement_id, "file_hash": file_hash[:16] + "..."},
         )
@@ -131,8 +138,8 @@ class RevisionService:
         # Upload to S3
         s3_key = f"agreements/{agreement_id}/revisions/{version_number}/{filename}"
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Uploading revision to S3",
             {
                 "agreement_id": agreement_id,
@@ -143,15 +150,15 @@ class RevisionService:
 
         uploaded_key = s3_service.upload_pdf(file_content, s3_key, content_type="application/pdf")
         if not uploaded_key:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 "Failed to upload revision to S3",
                 {"agreement_id": agreement_id, "s3_key": s3_key},
             )
             raise Exception("Failed to upload document to S3")
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Revision uploaded to S3 successfully",
             {"agreement_id": agreement_id, "uploaded_key": uploaded_key},
         )
@@ -185,8 +192,8 @@ class RevisionService:
 
         db.session.commit()
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Agreement revision created successfully",
             {
                 "agreement_id": agreement_id,

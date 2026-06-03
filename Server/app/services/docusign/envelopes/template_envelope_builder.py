@@ -13,14 +13,12 @@ from docusign_esign import (
 
 from app.models import Agreement, AgreementParticipant
 from app.schemas.generated import DocuSignEnvelopeNotificationInput, DocusignTemplateRoleMapEntry
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..errors import AgreementStateError
 from ..utils.recipients import validate_participants
 from .notification_settings import build_notification_for_envelope_create
 from .tab_prefill import build_prefill_tabs_model, prefill_tabs_nonempty
-
-logger = get_logger()
 
 
 class TemplateEnvelopeBuilder:
@@ -89,8 +87,8 @@ class TemplateEnvelopeBuilder:
                 tr.client_user_id = str(p.id)
             template_roles.append(tr)
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Built template envelope definition",
             {
                 "agreement_id": self.agreement.id,

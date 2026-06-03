@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from flask import Blueprint, jsonify, request
+from sqlalchemy import delete, select
 
 from app import db
 from app.models import HomeComment, ReelLike, User
@@ -15,7 +16,12 @@ from app.schemas import (
     SuccessResponse,
 )
 from app.services.auth import get_current_user
-from app.utils.common_patterns import require_authenticated_user
+from app.utils.common_patterns import (
+    invalid_request,
+    require_authenticated_user,
+    server_error,
+    validation,
+)
 from app.utils.db.orm_lookup import get_model
 from app.utils.security import rate_limit
 from app.utils.validation import validate_query, validate_request, validate_response
@@ -83,12 +89,11 @@ def get_feed_likes(query: FeedLikesQueryParams | None = None):
         from sqlalchemy import func
 
         # Batch count all likes with a single aggregated query
-        like_counts = (
-            db.session.query(ReelLike.home_id, func.count(ReelLike.id).label("count"))
-            .filter(ReelLike.home_id.in_(home_ids))
+        like_counts = db.session.execute(
+            select(ReelLike.home_id, func.count(ReelLike.id).label("count"))
+            .where(ReelLike.home_id.in_(home_ids))
             .group_by(ReelLike.home_id)
-            .all()
-        )
+        ).all()
 
         counts = {home_id: {"count": 0, "isLikedByMe": False} for home_id in home_ids}
         for home_id, count in like_counts:
@@ -97,35 +102,33 @@ def get_feed_likes(query: FeedLikesQueryParams | None = None):
         user = get_current_user()
         if user:
             user_id = str(user.id)
-            liked = ReelLike.query.filter(
-                ReelLike.home_id.in_(home_ids), ReelLike.user_id == user_id
+            liked = db.session.scalars(
+                select(ReelLike).where(ReelLike.home_id.in_(home_ids), ReelLike.user_id == user_id)
             ).all()
             for rec in liked:
                 counts[rec.home_id]["isLikedByMe"] = True
 
         return jsonify({"likes": counts})
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return server_error(e, context={"function": "get_feed_likes"})
 
 
 @feed_bp.route("/likes", methods=["POST"])
 @require_authenticated_user
 @validate_request(AddFeedLikeRequest)
 @validate_response(SuccessResponse)
-def post_feed_like(user, data: AddFeedLikeRequest | None = None):
+def post_feed_like(user, data: AddFeedLikeRequest):
     """POST /api/v1/feed/likes body { homeId }. Like a reel by home_id."""
-    if data is None:
-        request_data = request.get_json(silent=True) or {}
-        home_id = str(request_data.get("homeId") or request_data.get("home_id") or "").strip()
-    else:
-        request_data = data.model_dump()
-        home_id = str(request_data.get("home_id") or "").strip()
+    request_data = data.model_dump()
+    home_id = str(request_data.get("home_id") or "").strip()
     if not home_id:
-        return jsonify({"success": False, "error": "homeId is required"}), 400
+        return validation("homeId is required", field_errors={"homeId": "Required"})
 
     try:
         user_id = str(user.id)
-        existing = ReelLike.query.filter_by(user_id=user_id, home_id=home_id).first()
+        existing = db.session.scalar(
+            select(ReelLike).where(ReelLike.user_id == user_id, ReelLike.home_id == home_id)
+        )
         if existing:
             return jsonify({"success": True})
         rec = ReelLike(user_id=user_id, home_id=home_id)
@@ -134,7 +137,7 @@ def post_feed_like(user, data: AddFeedLikeRequest | None = None):
         return jsonify({"success": True})
     except Exception as e:
         db.session.rollback()
-        return jsonify({"success": False, "error": str(e)}), 500
+        return server_error(e, context={"function": "post_feed_like", "user_id": str(user.id)})
 
 
 @feed_bp.route("/likes/<home_id>", methods=["DELETE"])
@@ -143,16 +146,18 @@ def delete_feed_like(user, home_id):
     """DELETE /api/v1/feed/likes/<home_id>. Unlike a reel."""
     home_id = (home_id or "").strip()
     if not home_id:
-        return jsonify({"success": False, "error": "home_id required"}), 400
+        return invalid_request("home_id required")
 
     try:
         user_id = str(user.id)
-        ReelLike.query.filter_by(user_id=user_id, home_id=home_id).delete()
+        db.session.execute(
+            delete(ReelLike).where(ReelLike.user_id == user_id, ReelLike.home_id == home_id)
+        )
         db.session.commit()
         return jsonify({"success": True})
     except Exception as e:
         db.session.rollback()
-        return jsonify({"success": False, "error": str(e)}), 500
+        return server_error(e, context={"function": "delete_feed_like", "user_id": str(user.id)})
 
 
 @feed_bp.route("/comments/<home_id>", methods=["GET"])
@@ -164,15 +169,17 @@ def get_feed_comments(home_id):
         return jsonify({"comments": []})
 
     try:
-        comments = (
-            HomeComment.query.filter_by(home_id=home_id)
+        comments = db.session.scalars(
+            select(HomeComment)
+            .where(HomeComment.home_id == home_id)
             .order_by(HomeComment.created_at.asc())
-            .all()
-        )
+        ).all()
 
         # Batch load all users for comments
         user_ids = [c.user_id for c in comments if c.user_id]
-        users = User.query.filter(User.id.in_(user_ids)).all() if user_ids else []
+        users = (
+            db.session.scalars(select(User).where(User.id.in_(user_ids))).all() if user_ids else []
+        )
         users_by_id = {str(u.id): u for u in users}
 
         # Serialize comments with batch-loaded users
@@ -196,27 +203,22 @@ def get_feed_comments(home_id):
 
         return jsonify({"comments": comment_dicts})
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        return server_error(e, context={"function": "get_feed_comments", "home_id": home_id})
 
 
 @feed_bp.route("/comments", methods=["POST"])
 @require_authenticated_user
 @validate_request(AddCommentRequest)
 @validate_response(AddCommentResponse)
-def post_feed_comment(user, data: AddCommentRequest | None = None):
+def post_feed_comment(user, data: AddCommentRequest):
     """POST /api/v1/feed/comments body { homeId, text }. Add a comment."""
-    if data is None:
-        request_data = request.get_json(silent=True) or {}
-        home_id = str(request_data.get("homeId") or request_data.get("home_id") or "").strip()
-        text = str(request_data.get("text") or "").strip()
-    else:
-        request_data = data.model_dump()
-        home_id = str(request_data.get("home_id") or "").strip()
-        text = str(request_data.get("text") or "").strip()
+    request_data = data.model_dump()
+    home_id = str(request_data.get("home_id") or "").strip()
+    text = str(request_data.get("text") or "").strip()
     if not home_id:
-        return jsonify({"success": False, "error": "homeId is required"}), 400
+        return validation("homeId is required", field_errors={"homeId": "Required"})
     if not text:
-        return jsonify({"success": False, "error": "text is required"}), 400
+        return validation("text is required", field_errors={"text": "Required"})
 
     try:
         rec = HomeComment(home_id=home_id, user_id=str(user.id), text=text)
@@ -229,4 +231,4 @@ def post_feed_comment(user, data: AddCommentRequest | None = None):
         )
     except Exception as e:
         db.session.rollback()
-        return jsonify({"success": False, "error": str(e)}), 500
+        return server_error(e, context={"function": "post_feed_comment", "user_id": str(user.id)})

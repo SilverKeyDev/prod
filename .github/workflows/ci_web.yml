@@ -56,23 +56,58 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2.1.5
 
-      - name: Assert bundle build secrets
+      # Load optional repo variable DB_URL_SECRET_ID without ${{ vars.* }} (IDE language service flags unknown var names).
+      - name: Load DB_URL_SECRET_ID from repository variables
         env:
-          # GitHub Actions: repository secrets EXPO_PUBLIC_* (Maps / Plaid / OAuth / PostHog for the web bundle).
-          EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
-          EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
-          EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
-          EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
-        run: node Client/scripts/assert-github-bundle-secrets.mjs Client
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/variables/DB_URL_SECRET_ID"
+          tmp="$(mktemp)"
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$api")"
+          if [ "$code" = "200" ]; then
+            value="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("value") or "")' < "$tmp")"
+            printf '%s\n' "DB_URL_SECRET_ID=${value}" >> "$GITHUB_ENV"
+          else
+            echo "DB_URL_SECRET_ID=" >> "$GITHUB_ENV"
+          fi
+          rm -f "$tmp"
+
+      - name: Install jq (Secrets Manager bundle env)
+        run: sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y jq >/dev/null 2>&1
+
+      - name: Load client bundle env from AWS Secrets Manager
+        env:
+          AWS_REGION: ${{ env.REGION }}
+          DB_URL_SECRET_ID: ${{ env.DB_URL_SECRET_ID }}
+        run: bash .github/scripts/fetch-client-bundle-env.sh
+
+      - name: Apply GitHub bundle env fallback
+        env:
+          # Planned for removal: repository secrets used only when AWS SM omits a bundle key.
+          GITHUB_FALLBACK_EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
+        run: bash .github/scripts/apply-bundle-env-github-fallback.sh
+
+      - name: Assert bundle build secrets
+        run: node Client/scripts/assert-bundle-secrets.mjs Client
 
       - name: Build & push to ECR
         env:
-          EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
-          EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
-          EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
-          EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
+          # Planned for removal: GitHub repository secrets as fallback (see apply-bundle-env-github-fallback.sh).
+          GITHUB_FALLBACK_EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
         run: |
           set -euo pipefail
+          bash .github/scripts/apply-bundle-env-github-fallback.sh
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
 
@@ -82,18 +117,18 @@ jobs:
           CACHE_REF="$BASE_REF:buildcache"
           WEB_PROD_REF="$BASE_REF:web-prod"
 
+          BUILD_ARGS="$(node Client/scripts/export-bundle-docker-build-args.mjs Client)"
+
           export DOCKER_BUILDKIT=1
           export BUILDKIT_PROGRESS=plain
+          # shellcheck disable=SC2086
           docker buildx build \
             --platform linux/amd64 \
             -f Dockerfile.web \
             --target backend \
             --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
             --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
-            --build-arg EXPO_PUBLIC_GOOGLE_MAPS_ID="$EXPO_PUBLIC_GOOGLE_MAPS_ID" \
-            --build-arg EXPO_PUBLIC_GOOGLE_CLIENT_ID="$EXPO_PUBLIC_GOOGLE_CLIENT_ID" \
-            --build-arg EXPO_PUBLIC_PLAID_CLIENT_ID="$EXPO_PUBLIC_PLAID_CLIENT_ID" \
-            --build-arg EXPO_PUBLIC_POSTHOG_KEY="$EXPO_PUBLIC_POSTHOG_KEY" \
+            $BUILD_ARGS \
             --tag "$IMAGE_REF" \
             --tag "$WEB_PROD_REF" \
             --cache-from type=registry,ref="$CACHE_REF" \
@@ -150,28 +185,6 @@ jobs:
           source: ".github/scripts/ec2-deploy.sh,.github/scripts/_secrets-env.sh"
           target: "/tmp/deploy/"
           strip_components: 2
-
-      # Load optional repo variable DB_URL_SECRET_ID without ${{ vars.* }} (IDE language service flags unknown var names).
-      - name: Load DB_URL_SECRET_ID from repository variables
-        if: ${{ success() }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/variables/DB_URL_SECRET_ID"
-          tmp="$(mktemp)"
-          code="$(curl -sS -o "$tmp" -w '%{http_code}' \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "$api")"
-          if [ "$code" = "200" ]; then
-            value="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("value") or "")' < "$tmp")"
-            printf '%s\n' "DB_URL_SECRET_ID=${value}" >> "$GITHUB_ENV"
-          else
-            echo "DB_URL_SECRET_ID=" >> "$GITHUB_ENV"
-          fi
-          rm -f "$tmp"
 
       - name: SSH into EC2 and Deploy Container + Copy Frontend
         if: ${{ success() }}

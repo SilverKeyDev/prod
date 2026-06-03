@@ -50,7 +50,7 @@ export function useResumePendingAgentPublicConnect(): void {
         const { alreadyPending } = await createRequestAsInitiator(
           userProfile.id,
           pending,
-          userProfile.is_agent ?? false,
+          (userProfile.roles ?? []).includes("agent"),
           undefined
         );
         clearPendingPublicAgentConnect();

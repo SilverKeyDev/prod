@@ -5,6 +5,10 @@ import {
   SERVER_CORE_LOGGER_BOOLEAN_KEYS,
   SERVER_EXTRA_LOGGER_BOOLEAN_KEYS,
 } from "packages/logger/config/adminLoggerKeys.generated";
+import {
+  ADMIN_LOGGER_UI_GROUPS,
+  LOGGER_CONFIG_KEY_TO_LOG_PATH,
+} from "packages/logger/config/adminLoggerUiMeta.generated";
 import type { components } from "packages/types/api.generated";
 
 import { AdminBackendLoggerSection } from "./AdminBackendLoggerSection";
@@ -62,10 +66,26 @@ describe("AdminBackendLoggerSection", () => {
       />
     );
 
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: new RegExp(`Toggle server polling`, "i") })
-    );
+    fireEvent.click(screen.getByRole("checkbox", { name: "Toggle POLLING" }));
     expect(mutation.mutate).toHaveBeenCalledWith({ server: { polling: false } });
+  });
+
+  it.each(
+    ADMIN_LOGGER_UI_GROUPS.alwaysEnabled.keys.map(
+      (key) => [key, LOGGER_CONFIG_KEY_TO_LOG_PATH[key] ?? key] as const
+    )
+  )("always-on %s stays checked and does not mutate when clicked", (key, label) => {
+    const mutation = createMutationMock();
+    const config = {
+      ...defaultServerConfig(),
+      [key]: false,
+    };
+    render(<AdminBackendLoggerSection serverConfig={config} mutation={mutation as never} />);
+
+    const checkbox = screen.getByRole("checkbox", { name: `Toggle ${label}` });
+    expect(checkbox).toBeChecked();
+    fireEvent.click(checkbox);
+    expect(mutation.mutate).not.toHaveBeenCalled();
   });
 
   it("forwards log level change to mutation", () => {

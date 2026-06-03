@@ -22,7 +22,6 @@ example:
     email: "jane.buyer@example.com"
     name: "Jane Buyer"
     is_active: true
-    is_agent: false
     roles:
       - buyer
   data: null

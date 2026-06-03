@@ -5,25 +5,26 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from flask import current_app
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from app import db
 from app.models import PropertyCache, UserPropertyLink
+from logger import log
 
 
 def get_cached_search_results(user_id: str) -> list[dict[str, Any]]:
     """Retrieve cached search results from PropertyCache + UserPropertyLink."""
     try:
-        links = (
-            UserPropertyLink.query.options(joinedload(UserPropertyLink.property))
-            .filter(
+        links = db.session.scalars(
+            select(UserPropertyLink)
+            .options(joinedload(UserPropertyLink.property))
+            .where(
                 UserPropertyLink.user_id == str(user_id),
                 UserPropertyLink.current.is_(True),
             )
             .order_by(UserPropertyLink.ranking.asc())
-            .all()
-        )
+        ).all()
 
         results = []
         for link in links:
@@ -130,14 +131,18 @@ def get_cached_search_results(user_id: str) -> list[dict[str, Any]]:
 
             results.append(property_dict)
 
-        current_app.logger.debug(
-            "[CACHE] Retrieved %d cached results for user %s", len(results), user_id
+        log.debug(
+            "SEARCH",
+            "Retrieved cached search results",
+            {"count": len(results), "user_id": user_id},
         )
         return results
 
     except Exception as e:
-        current_app.logger.error(
-            "[CACHE] Error retrieving cached results for user %s: %s", user_id, e, exc_info=True
+        log.error(
+            "ERRORS",
+            "Error retrieving cached search results",
+            {"user_id": user_id, "error": str(e)},
         )
         return []
 
@@ -148,13 +153,13 @@ def get_cached_results_with_age(user_id: str) -> tuple[list[dict[str, Any]], int
     if not results:
         return [], None
 
-    most_recent_link = (
-        UserPropertyLink.query.filter(
+    most_recent_link = db.session.scalar(
+        select(UserPropertyLink)
+        .where(
             UserPropertyLink.user_id == str(user_id),
             UserPropertyLink.current.is_(True),
         )
         .order_by(UserPropertyLink.updated_at.desc())
-        .first()
     )
 
     cache_age_days = None
@@ -171,9 +176,11 @@ def get_cached_results_with_age(user_id: str) -> tuple[list[dict[str, Any]], int
 def mark_past_search_results_as_not_current(user_id: str) -> int:
     """Mark all past search results for a user as not current."""
     try:
-        current_links = UserPropertyLink.query.filter(
-            UserPropertyLink.user_id == str(user_id),
-            UserPropertyLink.current.is_(True),
+        current_links = db.session.scalars(
+            select(UserPropertyLink).where(
+                UserPropertyLink.user_id == str(user_id),
+                UserPropertyLink.current.is_(True),
+            )
         ).all()
 
         count = len(current_links)
@@ -181,17 +188,18 @@ def mark_past_search_results_as_not_current(user_id: str) -> int:
             for link in current_links:
                 link.current = False
             db.session.commit()
-            current_app.logger.debug(
-                "[CACHE] Marked %d past results as not current for user %s", count, user_id
+            log.debug(
+                "SEARCH",
+                "Marked past search results as not current",
+                {"count": count, "user_id": user_id},
             )
         return count
 
     except Exception as e:
-        current_app.logger.error(
-            "[CACHE] Error marking past results as not current for user %s: %s",
-            user_id,
-            e,
-            exc_info=True,
+        log.error(
+            "ERRORS",
+            "Error marking past search results as not current",
+            {"user_id": user_id, "error": str(e)},
         )
         db.session.rollback()
         return 0

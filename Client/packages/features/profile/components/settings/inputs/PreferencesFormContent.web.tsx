@@ -8,7 +8,7 @@ import { useGoogleMaps } from "packages/hooks/data";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useResponsive } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import Box from "packages/ui/components/primitives/box/Box";
 import { getWindow } from "packages/utils/platform";
 
@@ -149,7 +149,7 @@ export default function PreferencesFormContent({
     const syncKey = `${subjectKey}:${String(version)}`;
     const remoteIl = userPreferences.important_locations;
     const skipped = appliedRemoteSyncKeyRef.current === syncKey;
-    log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "preferencesFormContent.remoteSync", {
+    log.info("PROFILE_PREFERENCES", "preferencesFormContent.remoteSync", {
       syncKey,
       skipped,
       remoteImportantLocationsLen: Array.isArray(remoteIl) ? remoteIl.length : null,
@@ -162,7 +162,7 @@ export default function PreferencesFormContent({
       userPreferences as Record<string, unknown>,
       userProfile ?? undefined
     );
-    log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "preferencesFormContent.remoteSync.apply", {
+    log.info("PROFILE_PREFERENCES", "preferencesFormContent.remoteSync.apply", {
       formImportantLocationsLen: Array.isArray(nextForm.important_locations)
         ? nextForm.important_locations.length
         : null,
@@ -200,13 +200,9 @@ export default function PreferencesFormContent({
         const nextLocations = Array.isArray(value)
           ? (value as NonNullable<OnboardingData["important_locations"]>)
           : [];
-        log.info(
-          LOG_CATEGORIES.PROFILE_PREFERENCES,
-          "preferencesFormContent.updateImportantLocations",
-          {
-            nextLen: nextLocations.length,
-          }
-        );
+        log.info("PROFILE_PREFERENCES", "preferencesFormContent.updateImportantLocations", {
+          nextLen: nextLocations.length,
+        });
         updateFormDataWithAutoSave(formData, setFormData, field, nextLocations);
         return;
       }

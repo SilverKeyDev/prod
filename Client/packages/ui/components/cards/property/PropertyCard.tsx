@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import { useWhyRender } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import type { PropertyCardProps } from "./PropertyCard.types";
 import { PropertyCardMainView } from "./PropertyCardMainView";
@@ -30,7 +30,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
       await onSelectNotInterestedReason(why);
       setShowReasonCard(false);
     } catch (error) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to update reason", error);
+      log.error("ERRORS", "Failed to update reason", error);
       throw error;
     }
   };
@@ -41,7 +41,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
       await onUndoNotInterested();
       setShowReasonCard(false);
     } catch (error) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to undo", error);
+      log.error("ERRORS", "Failed to undo", error);
       throw error;
     }
   };

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from ..client import slipstream_get
 from ..config import SLIPSTREAM_MARKET
@@ -88,7 +88,7 @@ def get_property_comps(
         raw_listings = (body.get("result") or {}).get("listings") or []
 
         log.debug(
-            LOG_CATEGORIES["API"],
+            "API",
             "Slipstream /ws/listings/inactive/search full response (property comps)",
             {
                 "caller": "get_property_comps",

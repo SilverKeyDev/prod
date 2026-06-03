@@ -31,10 +31,10 @@ export function migrateFiltersStorePersisted(persisted: unknown, oldVersion: num
     oldVersion >= 4 && typeof p.resultsOrderBy === "string" && isResultsOrderBy(p.resultsOrderBy)
       ? p.resultsOrderBy
       : DEFAULT_RESULTS_ORDER_BY;
+  const hasValidSortDirection =
+    typeof p.resultsSortDirection === "string" && isResultsSortDirection(p.resultsSortDirection);
   const resultsSortDirection =
-    oldVersion >= 6 &&
-    typeof p.resultsSortDirection === "string" &&
-    isResultsSortDirection(p.resultsSortDirection)
+    oldVersion >= 7 && hasValidSortDirection
       ? p.resultsSortDirection
       : legacyDefaultSortDirection(resultsOrderBy);
   const preferencesStrictFilter =

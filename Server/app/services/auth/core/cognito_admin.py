@@ -1,14 +1,13 @@
 """Cognito admin API: admin_create_user, admin_delete_user, admin_get_user, admin_get_user_status, admin_set_user_password, admin_reset_user_password."""
 
-import logging
 import secrets
 import string
 
 from botocore.exceptions import ClientError
 
-from ..utils.code_delivery import normalize_cognito_code_delivery
+from logger import log
 
-logger = logging.getLogger(__name__)
+from ..utils.code_delivery import normalize_cognito_code_delivery
 
 
 def admin_create_user(
@@ -51,9 +50,10 @@ def admin_create_user(
                 break
         if not user_sub:
             user_sub = response.get("User", {}).get("Username")
-        logger.info(
+        log.info(
+            "AUTH",
             "Admin created user in Cognito",
-            extra={
+            {
                 "username": username[:3] + "***" + username[-3:] if username else "missing",
                 "user_sub": user_sub[:8] + "..." if user_sub else "unknown",
             },
@@ -63,9 +63,10 @@ def admin_create_user(
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
         if error_code == "UsernameExistsException" and admin_get_user_fn:
-            logger.warning(
+            log.warn(
+                "AUTH",
                 "User already exists in Cognito, attempting to retrieve",
-                extra={"username": username[:3] + "***" + username[-3:] if username else "missing"},
+                {"username": username[:3] + "***" + username[-3:] if username else "missing"},
             )
             get_result = admin_get_user_fn(username)
             if get_result.get("success"):
@@ -75,18 +76,10 @@ def admin_create_user(
                     "temporary_password": None,
                     "already_exists": True,
                 }
-        logger.error(
-            "Error creating user in Cognito: %s",
-            e,
-            extra={
-                "error_code": error_code,
-                "error_message": error_message,
-                "username": username[:3] + "***" + username[-3:] if username else "missing",
-            },
-        )
+        log.error("ERRORS", f"Error creating user in Cognito: {e}", e)
         return {"success": False, "error": error_code, "message": error_message}
     except Exception as e:
-        logger.error("Unexpected error creating user in Cognito: %s", e, exc_info=True)
+        log.error("ERRORS", f"Unexpected error creating user in Cognito: {e}", e)
         return {
             "success": False,
             "error": "INTERNAL_ERROR",
@@ -102,39 +95,28 @@ def admin_delete_user(client, user_pool_id: str, username):
             "error": "INVALID_INPUT",
             "message": "user_pool_id and username are required",
         }
-
     try:
         client.admin_delete_user(UserPoolId=user_pool_id, Username=username)
-        logger.info(
+        log.info(
+            "AUTH",
             "Admin deleted user from Cognito",
-            extra={
-                "username": username[:3] + "***" + username[-3:] if username else "missing",
-            },
+            {"username": username[:3] + "***" + username[-3:] if username else "missing"},
         )
         return {"success": True}
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
         if error_code == "UserNotFoundException":
-            logger.info(
+            log.info(
+                "AUTH",
                 "Cognito user already absent during delete",
-                extra={
-                    "username": username[:3] + "***" + username[-3:] if username else "missing",
-                },
+                {"username": username[:3] + "***" + username[-3:] if username else "missing"},
             )
             return {"success": True, "already_absent": True}
-        logger.error(
-            "Error deleting user from Cognito: %s",
-            e,
-            extra={
-                "error_code": error_code,
-                "error_message": error_message,
-                "username": username[:3] + "***" + username[-3:] if username else "missing",
-            },
-        )
+        log.error("ERRORS", f"Error deleting user from Cognito: {e}", e)
         return {"success": False, "error": error_code, "message": error_message}
     except Exception as e:
-        logger.error("Unexpected error deleting user from Cognito: %s", e, exc_info=True)
+        log.error("ERRORS", f"Unexpected error deleting user from Cognito: {e}", e)
         return {
             "success": False,
             "error": "INTERNAL_ERROR",
@@ -153,9 +135,10 @@ def admin_get_user(client, user_pool_id: str, username):
                 break
         if not user_sub:
             user_sub = response.get("Username")
-        logger.info(
+        log.info(
+            "AUTH",
             "Retrieved user from Cognito",
-            extra={
+            {
                 "username": username[:3] + "***" + username[-3:] if username else "missing",
                 "user_sub": user_sub,
             },
@@ -164,18 +147,10 @@ def admin_get_user(client, user_pool_id: str, username):
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(
-            "Error retrieving user from Cognito: %s",
-            e,
-            extra={
-                "error_code": error_code,
-                "error_message": error_message,
-                "username": username[:3] + "***" + username[-3:] if username else "missing",
-            },
-        )
+        log.error("ERRORS", f"Error retrieving user from Cognito: {e}", e)
         return {"success": False, "error": error_code, "message": error_message}
     except Exception as e:
-        logger.error("Unexpected error retrieving user from Cognito: %s", e, exc_info=True)
+        log.error("ERRORS", f"Unexpected error retrieving user from Cognito: {e}", e)
         return {
             "success": False,
             "error": "INTERNAL_ERROR",
@@ -196,9 +171,10 @@ def admin_get_user_status(client, user_pool_id: str, username):
                 email_verified = attr.get("Value", "false").lower() == "true"
             elif attr.get("Name") == "email":
                 email_address = attr.get("Value")
-        logger.info(
+        log.info(
+            "AUTH",
             "Admin retrieved user status from Cognito",
-            extra={
+            {
                 "username": username[:3] + "***" + username[-3:] if username else "missing",
                 "user_status": user_status,
                 "email_verified": email_verified,
@@ -214,18 +190,10 @@ def admin_get_user_status(client, user_pool_id: str, username):
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(
-            "Error retrieving user status from Cognito: %s",
-            e,
-            extra={
-                "error_code": error_code,
-                "error_message": error_message,
-                "username": username[:3] + "***" + username[-3:] if username else "missing",
-            },
-        )
+        log.error("ERRORS", f"Error retrieving user status from Cognito: {e}", e)
         return {"success": False, "error": error_code, "message": error_message}
     except Exception as e:
-        logger.error("Unexpected error retrieving user status from Cognito: %s", e, exc_info=True)
+        log.error("ERRORS", f"Unexpected error retrieving user status from Cognito: {e}", e)
         return {
             "success": False,
             "error": "INTERNAL_ERROR",
@@ -237,14 +205,12 @@ def admin_set_user_password(client, user_pool_id: str, username, password, perma
     """Set user password using admin privileges."""
     try:
         client.admin_set_user_password(
-            UserPoolId=user_pool_id,
-            Username=username,
-            Password=password,
-            Permanent=permanent,
+            UserPoolId=user_pool_id, Username=username, Password=password, Permanent=permanent
         )
-        logger.info(
+        log.info(
+            "AUTH",
             "ADMIN_SET_USER_PASSWORD_SUCCESS",
-            extra={
+            {
                 "username": username[:3] + "***" + username[-3:] if username else "missing",
                 "permanent": permanent,
             },
@@ -253,9 +219,10 @@ def admin_set_user_password(client, user_pool_id: str, username, password, perma
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(
+        log.error(
+            "ERRORS",
             "ADMIN_SET_USER_PASSWORD_ERROR",
-            extra={
+            {
                 "error_code": error_code,
                 "error_message": error_message,
                 "username": username[:3] + "***" + username[-3:] if username else "missing",
@@ -264,14 +231,14 @@ def admin_set_user_password(client, user_pool_id: str, username, password, perma
         )
         return {"success": False, "error": error_code, "message": error_message}
     except Exception as e:
-        logger.error(
+        log.error(
+            "ERRORS",
             "ADMIN_SET_USER_PASSWORD_UNEXPECTED_ERROR",
-            extra={
+            {
                 "username": username[:3] + "***" + username[-3:] if username else "missing",
                 "error_type": type(e).__name__,
                 "error_message": str(e),
             },
-            exc_info=True,
         )
         return {
             "success": False,
@@ -284,9 +251,10 @@ def admin_reset_user_password(client, user_pool_id: str, username):
     """Reset user password using admin privileges and send reset code via email."""
     try:
         response = client.admin_reset_user_password(UserPoolId=user_pool_id, Username=username)
-        logger.info(
+        log.info(
+            "AUTH",
             "Admin reset user password in Cognito",
-            extra={"username": username[:3] + "***" + username[-3:] if username else "missing"},
+            {"username": username[:3] + "***" + username[-3:] if username else "missing"},
         )
         return {
             "success": True,
@@ -295,18 +263,10 @@ def admin_reset_user_password(client, user_pool_id: str, username):
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(
-            "Error resetting user password in Cognito: %s",
-            e,
-            extra={
-                "error_code": error_code,
-                "error_message": error_message,
-                "username": username[:3] + "***" + username[-3:] if username else "missing",
-            },
-        )
+        log.error("ERRORS", f"Error resetting user password in Cognito: {e}", e)
         return {"success": False, "error": error_code, "message": error_message}
     except Exception as e:
-        logger.error("Unexpected error resetting user password in Cognito: %s", e, exc_info=True)
+        log.error("ERRORS", f"Unexpected error resetting user password in Cognito: {e}", e)
         return {
             "success": False,
             "error": "INTERNAL_ERROR",

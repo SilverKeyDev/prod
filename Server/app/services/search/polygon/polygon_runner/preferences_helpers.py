@@ -1,9 +1,12 @@
 """Preferences resolution helpers for polygon search."""
 
-from app.models.user.user_search_display import UserSearchDisplaySettings
-from logger import LOG_CATEGORIES, log
+from sqlalchemy import select
 
-_POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
+from app import db
+from app.models.user.user_search_display import UserSearchDisplaySettings
+from logger import log
+
+_POLY = "POLYGON_SEARCH"
 
 # Preference keys for polygon debug logs (numeric / enums only; no addresses)
 PREF_LOG_KEYS = (
@@ -47,7 +50,9 @@ def resolve_strict_preference_filter(user_id: str, data: dict) -> bool:
     """Resolve strict_preference_filter from request body or user settings."""
     if "preferences_strict_filter" in data:
         return bool(data.get("preferences_strict_filter"))
-    row = UserSearchDisplaySettings.query.filter_by(user_id=user_id).first()
+    row = db.session.scalar(
+        select(UserSearchDisplaySettings).where(UserSearchDisplaySettings.user_id == user_id)
+    )
     if row is None:
         return False
     return bool(getattr(row, "preferences_strict_filter", False))

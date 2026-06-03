@@ -39,31 +39,21 @@ describe("parseAgentProfileUrl", () => {
 const SAMPLE_UUID = "550e8400-e29b-41d4-a716-446655440000";
 
 describe("resolveAgentProfileRouteParams", () => {
-  it("uses second segment as user id for current name-first URLs", () => {
+  it("uses second segment as user id for name-first URLs", () => {
     expect(resolveAgentProfileRouteParams("jane-agent", SAMPLE_UUID)).toEqual({
       agentUserId: SAMPLE_UUID,
-      legacyUuidFirst: false,
-    });
-  });
-
-  it("uses first segment as user id for legacy id-first URLs", () => {
-    expect(resolveAgentProfileRouteParams(SAMPLE_UUID, "jane-agent")).toEqual({
-      agentUserId: SAMPLE_UUID,
-      legacyUuidFirst: true,
     });
   });
 
   it("returns null when a segment is missing", () => {
     expect(resolveAgentProfileRouteParams("", SAMPLE_UUID)).toEqual({
       agentUserId: null,
-      legacyUuidFirst: false,
     });
   });
 
   it("uses opaque second segment when neither segment is a UUID", () => {
     expect(resolveAgentProfileRouteParams("jane-agent", "uuid-1")).toEqual({
       agentUserId: "uuid-1",
-      legacyUuidFirst: false,
     });
   });
 });

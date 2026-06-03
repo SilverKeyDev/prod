@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from ..client import slipstream_get
 from ..config import SLIPSTREAM_MARKET
@@ -41,7 +41,7 @@ def get_property_images(listing_id: str) -> list[str]:
         listings = (body.get("result") or {}).get("listings") or []
 
         log.debug(
-            LOG_CATEGORIES["API"],
+            "API",
             "Slipstream /ws/listings/get full response (property images)",
             {
                 "caller": "get_property_images",

@@ -3,10 +3,7 @@
  *
  * Web routes use `/agent-profile/{nameSlug}/{userId}` (name segment first, then agent user id),
  * or the short form `/a/{publicProfileSlug}` when `users.public_profile_slug` is set.
- * Legacy URLs used `/agent-profile/{userId}/{nameSlug}`; {@link resolveAgentProfileRouteParams} maps both.
  */
-
-import { isLikelyUserUuid } from "./pendingPublicAgentConnect";
 
 export function generateAgentProfileSlug(displayName: string): string {
   return displayName
@@ -59,32 +56,24 @@ export function parseAgentProfileUrl(url: string): {
 
 /**
  * Maps React Router params to the agent user id used by `GET /api/v1/public/agent-profile/{userId}`.
- *
- * - Current URLs: first segment = display-name slug, second = user id.
- * - Legacy URLs: first segment = RFC4122 user id, second = display-name slug; still accepted for shared links.
+ * Current URLs: first segment = display-name slug, second = user id.
  */
 export function resolveAgentProfileRouteParams(
   nameParam: string | undefined,
   briefSlugParam: string | undefined
 ): {
   agentUserId: string | null;
-  /** True when the path matched the legacy id-first segment order. */
-  legacyUuidFirst: boolean;
 } {
   const first = nameParam?.trim() ?? "";
   const second = briefSlugParam?.trim() ?? "";
   if (!first || !second) {
-    return { agentUserId: null, legacyUuidFirst: false };
-  }
-  if (isLikelyUserUuid(first) && !isLikelyUserUuid(second)) {
-    return { agentUserId: first, legacyUuidFirst: true };
+    return { agentUserId: null };
   }
   try {
     return {
       agentUserId: decodeURIComponent(second) || null,
-      legacyUuidFirst: false,
     };
   } catch {
-    return { agentUserId: second || null, legacyUuidFirst: false };
+    return { agentUserId: second || null };
   }
 }

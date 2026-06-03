@@ -30,7 +30,7 @@ const withReset = withResettable<FiltersState>(baseCreator, (set, get, _store) =
 
 const withPersist = persistSafe<FiltersState>(withReset, {
   name: "filters-store",
-  version: 6,
+  version: 7,
   storage: getLocalStorage() as import("zustand/middleware").StateStorage,
   partialize: (state: FiltersState) => ({
     activeTab: state.activeTab,

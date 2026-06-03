@@ -41,7 +41,7 @@ export function PublicAgentProfileConnect({
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const initiatorId = userProfile?.id ?? authUser?.id ?? null;
-  const initiatorIsAgent = userProfile?.is_agent ?? authUser?.is_agent ?? false;
+  const initiatorIsAgent = (userProfile?.roles ?? authUser?.roles ?? []).includes("agent");
 
   const sendConnectRequest = useCallback(async () => {
     if (!initiatorId) {

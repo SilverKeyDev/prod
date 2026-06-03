@@ -1,9 +1,12 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import json
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -45,8 +48,10 @@ class ChatHistory(db.Model):
         default=False, server_default=db.text("false")
     )  # Simple boolean flag if message was read
 
-    # Relationship to agent conversation
-    conversation = db.relationship("AgentConnections", backref=db.backref("messages", lazy=True))
+    conversation: Mapped["AgentConnections | None"] = relationship(
+        "AgentConnections",
+        back_populates="messages",
+    )
 
     def mark_as_read(self, user_id: str):
         """Mark this message as read by a user"""

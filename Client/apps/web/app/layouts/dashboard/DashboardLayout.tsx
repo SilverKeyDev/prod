@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 
 import { SearchRefreshProvider } from "packages/contexts";
 import { useIsMobile } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { screenUp } from "packages/ui/types/screens";
 import {
@@ -60,7 +60,7 @@ export default function DashboardLayout({
     const from = prevRef.current;
     const toPathname = location.pathname;
     const toActiveKey = route.activeKey;
-    log.debug(LOG_CATEGORIES.ROUTING, "[NAV] DashboardLayout mounted or location changed", {
+    log.debug("ROUTING", "[NAV] DashboardLayout mounted or location changed", {
       from: from.pathname,
       to: toPathname,
       fromActiveKey: from.activeKey,

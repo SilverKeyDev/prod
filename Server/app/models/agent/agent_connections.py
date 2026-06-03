@@ -1,8 +1,11 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import json
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -28,12 +31,20 @@ class AgentConnections(db.Model):
         db.Text
     )  # JSON: {"agent_id": "2024-01-01T00:00:00", "client_id": "2024-01-01T00:00:00"}
 
-    # Relationships
-    agent = db.relationship(
-        "User", foreign_keys=[agent_id], backref=db.backref("agent_conversations", lazy=True)
+    agent: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[agent_id],
+        back_populates="agent_conversations",
     )
-    client = db.relationship(
-        "User", foreign_keys=[client_id], backref=db.backref("client_conversations", lazy=True)
+    client: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[client_id],
+        back_populates="client_conversations",
+    )
+    messages: Mapped[list["ChatHistory"]] = relationship(
+        "ChatHistory",
+        back_populates="conversation",
+        lazy=True,
     )
 
     def update_last_read(self, user_id: str):
@@ -80,34 +91,6 @@ class AgentConnections(db.Model):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self, user_id: str | None = None):
-        # Helper function to format datetime as timezone-aware UTC ISO string
-        def format_timestamp(dt):
-            if not dt:
-                return None
-            if dt.tzinfo is None:
-                # Naive datetime - assume UTC and make it timezone-aware
-                dt_aware = dt.replace(tzinfo=timezone.utc)
-            else:
-                dt_aware = dt.astimezone(timezone.utc)
-            return dt_aware.isoformat()
-
-        result = {
-            "id": self.id,
-            "agent_id": self.agent_id,
-            "client_id": self.client_id,
-            "created_at": format_timestamp(self.created_at),
-            "updated_at": format_timestamp(self.updated_at),
-            "last_message_at": format_timestamp(self.last_message_at),
-        }
-
-        # Include last_read_at for the requesting user if provided
-        if user_id:
-            last_read = self.get_last_read(user_id)
-            result["last_read_at"] = format_timestamp(last_read)
-
-        return result
 
     def __repr__(self):
         return f"<AgentConnections {self.id} - Agent: {self.agent_id}, Client: {self.client_id}>"

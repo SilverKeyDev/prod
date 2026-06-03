@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { dateParseISO } from "packages/utils/date";
 import { getLocalStorage } from "packages/utils/storage";
 
@@ -69,7 +69,7 @@ export function useAgentAutoSelectClient(
 
         setHasAutoSelected(true);
       } catch (error) {
-        log.warn(LOG_CATEGORIES.DASHBOARD, "Error in auto-selection", error);
+        log.warn("DASHBOARD", "Error in auto-selection", error);
 
         if (conversations.length > 0) {
           setSelectedClientId(conversations[0].client_id);

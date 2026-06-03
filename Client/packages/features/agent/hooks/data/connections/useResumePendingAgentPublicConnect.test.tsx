@@ -18,7 +18,7 @@ vi.mock("packages/contexts", () => ({
 
 vi.mock("packages/hooks/data/user/useUserData", () => ({
   useUserData: () => ({
-    userProfile: { id: "client-1", is_agent: false },
+    userProfile: { id: "client-1", roles: [] },
     userProfileLoading: false,
   }),
 }));

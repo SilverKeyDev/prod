@@ -1,15 +1,14 @@
-# Pre-commit hooks for SilverKey
+# Pre-commit hooks for SilverKey (advisory local auto-fix)
 #
-# Commit hooks: auto-fix formatters/linters only (Prettier, ESLint, Ruff).
-# They report warnings/errors but do not block commits (see scripts/githooks/pre-commit).
-# Phase-2 read-only checks stay disabled locally; CI enforces the full gate (make lint).
+# On commit (never blocks): Ruff/Prettier/ESLint --fix; OpenAPI regen when spec/generated paths change.
+# scripts/githooks/pre-commit re-stages fixes and always exits 0.
+# On push: scoped typecheck / contract tests — advisory only (scripts/githooks/pre-push).
+# CI on PR: tests + path-scoped OpenAPI; full lint via make lint / weekly workflow.
 #
-# Install:
-#   pip install pre-commit   # or: Server/.venv via make setup
-#   git config core.hooksPath scripts/githooks
-# Pre-commit hooks run on commit only. Push-time gates are in scripts/githooks/pre-push.
-#
-# Run manually: pre-commit run --all-files
+# Install: make setup  (sets git config core.hooksPath scripts/githooks)
+# Skip once: SKIP=1 git commit ...
+# Run all hooks manually: make precommit
+# Strict push check: PRE_PUSH_BLOCKING=1 make pre-push-check
 
 default_stages: [pre-commit]
 
@@ -63,6 +62,15 @@ repos:
         entry: scripts/ci/pre-commit-eslint-client.sh
         files: ^Client/.*\.(ts|tsx|js|jsx)$
         exclude: ^Client/(dist|coverage|node_modules|build)/.*
+
+  - repo: local
+    hooks:
+      - id: openapi-drift
+        name: OpenAPI generated types drift
+        language: system
+        entry: scripts/ci/pre-commit-openapi-drift.sh
+        pass_filenames: false
+        files: ^(openapi/|openapi\.yaml|Client/packages/types/api\.generated\.ts|Server/app/schemas/generated\.py)
 
   # --- Phase 2: checks only (no writes) — disabled locally; CI enforces these ---
 

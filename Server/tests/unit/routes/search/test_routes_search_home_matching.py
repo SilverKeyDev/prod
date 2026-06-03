@@ -18,7 +18,6 @@ class TestHomeMatchingRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -75,7 +74,6 @@ class TestHomeMatchingRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -98,7 +96,7 @@ class TestHomeMatchingRoutes:
             assert response.status_code == 400
             data = response.get_json()
             assert data["success"] is False
-            assert "user_data" in data["error"]
+            assert "User Data" in data.get("field_errors", {})
 
     def test_find_matches_empty_homes_data(self, client, db_session):
         """Test POST /api/home-matching/find-matches with empty homes_data"""
@@ -107,7 +105,6 @@ class TestHomeMatchingRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -129,7 +126,8 @@ class TestHomeMatchingRoutes:
             assert response.status_code == 400
             data = response.get_json()
             assert data["success"] is False
-            assert "cannot be empty" in data["error"]
+            assert "field_errors" in data
+            assert "Homes Data" in data["field_errors"]
 
     def test_find_matches_requires_auth(self, client):
         """Test POST /api/home-matching/find-matches requires authentication"""
@@ -152,7 +150,6 @@ class TestHomeMatchingRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()

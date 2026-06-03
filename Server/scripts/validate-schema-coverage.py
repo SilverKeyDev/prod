@@ -15,31 +15,45 @@ import re
 import sys
 from pathlib import Path
 
+_MUTATING_METHODS_RE = re.compile(
+    r"methods=\[[^\]]*[\"'](?:POST|PUT|PATCH)[\"']",
+    re.IGNORECASE,
+)
+_ROUTE_LINE_RE = re.compile(r"\.route\([^)]*methods=\[[^\]]*[\"'](?:POST|PUT|PATCH)[\"']")
+_REQUEST_VALIDATION_DECORATOR_RE = re.compile(r"@validate_(?:request|form_request)\b")
+
+
+def _file_has_mutating_routes(content: str) -> bool:
+    return bool(_MUTATING_METHODS_RE.search(content))
+
+
+def _file_has_request_validation(content: str) -> bool:
+    return bool(_REQUEST_VALIDATION_DECORATOR_RE.search(content))
+
 
 def _route_handlers_missing_request_validation(content: str) -> list[str]:
-    """Return handler names for POST/PUT/PATCH routes without @validate_request above them."""
+    """Return handler names for POST/PUT/PATCH routes without request validation decorators."""
     lines = content.splitlines()
     missing: list[str] = []
     i = 0
     while i < len(lines):
         line = lines[i]
-        route_match = re.search(
-            r"\.route\([^)]*methods=\[[^\]]*[\"'](?:POST|PUT|PATCH)[\"']",
-            line,
-            re.IGNORECASE,
-        )
-        if route_match:
-            # Walk upward for decorators; find def name within next 15 lines
-            has_validate = False
-            handler_name = "unknown"
-            for j in range(max(0, i - 8), min(len(lines), i + 12)):
-                if "@validate_request" in lines[j]:
-                    has_validate = True
-                fn_match = re.match(r"\s*def\s+(\w+)\s*\(", lines[j])
-                if fn_match:
-                    handler_name = fn_match.group(1)
-            if not has_validate:
-                missing.append(handler_name)
+        if not _ROUTE_LINE_RE.search(line):
+            i += 1
+            continue
+
+        has_validate = False
+        handler_name = "unknown"
+        for j in range(i, min(len(lines), i + 16)):
+            if _REQUEST_VALIDATION_DECORATOR_RE.search(lines[j]):
+                has_validate = True
+            fn_match = re.match(r"\s*def\s+(\w+)\s*\(", lines[j])
+            if fn_match:
+                handler_name = fn_match.group(1)
+                break
+
+        if not has_validate:
+            missing.append(handler_name)
         i += 1
     return missing
 
@@ -83,8 +97,8 @@ def analyze_route_coverage(strict: bool = False):
             continue
 
         total_routes += 1
-
-        has_validation = "@validate_request" in content
+        has_mutating = _file_has_mutating_routes(content)
+        has_validation = _file_has_request_validation(content) if has_mutating else True
 
         if has_validation:
             validated_routes += 1
@@ -111,7 +125,9 @@ def analyze_route_coverage(strict: bool = False):
     print(f"Coverage: {coverage:.1f}%\n")
 
     if unvalidated_files:
-        print("⚠️  Route files without OpenAPI validation imports/decorators:")
+        print(
+            "⚠️  Route files with mutating handlers but no @validate_request / @validate_form_request:"
+        )
         for file_path in unvalidated_files[:10]:
             print(f"  - {file_path}")
         if len(unvalidated_files) > 10:
@@ -119,7 +135,7 @@ def analyze_route_coverage(strict: bool = False):
         print()
 
     if mutating_gaps:
-        print("⚠️  POST/PUT/PATCH handlers missing @validate_request:")
+        print("⚠️  POST/PUT/PATCH handlers missing request validation decorators:")
         for file_path, handlers in mutating_gaps[:10]:
             print(f"  - {file_path}: {', '.join(handlers)}")
         if len(mutating_gaps) > 10:

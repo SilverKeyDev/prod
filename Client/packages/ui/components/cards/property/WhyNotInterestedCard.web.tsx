@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import Button from "packages/ui/components/button/Button";
 import { StyledImage } from "packages/ui/components/cards/base/index.web";
 import { Textarea } from "packages/ui/components/form/field/FormField";
@@ -284,7 +284,7 @@ export default function WhyNotInterestedCard({
     try {
       await onUndo();
     } catch (error) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to undo", error);
+      log.error("ERRORS", "Failed to undo", error);
     } finally {
       setIsUndoing(false);
     }
@@ -297,7 +297,7 @@ export default function WhyNotInterestedCard({
     try {
       await onSelectReason(why);
     } catch (error) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to submit reason", error);
+      log.error("ERRORS", "Failed to submit reason", error);
     } finally {
       setIsSubmitting(false);
     }

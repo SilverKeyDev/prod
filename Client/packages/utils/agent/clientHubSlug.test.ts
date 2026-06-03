@@ -38,28 +38,19 @@ describe("buildClientHubPath", () => {
 describe("parseClientHubPathname", () => {
   it("parses two-segment hub URLs", () => {
     expect(parseClientHubPathname("/dashboard/client/jordan-client/446655440000")).toEqual({
-      kind: "segments",
       nameSlug: "jordan-client",
       idSlug: "446655440000",
     });
   });
 
-  it("parses legacy single-segment URLs", () => {
-    expect(parseClientHubPathname(`/dashboard/client/${SAMPLE_UUID}`)).toEqual({
-      kind: "legacy",
-      segment: SAMPLE_UUID,
-    });
+  it("returns null for legacy single-segment UUID URLs", () => {
+    expect(parseClientHubPathname(`/dashboard/client/${SAMPLE_UUID}`)).toBeNull();
   });
 });
 
 describe("resolveClientHubRouteClientId", () => {
   it("resolves canonical segments", () => {
     const parsed = parseClientHubPathname("/dashboard/client/jordan-client/446655440000");
-    expect(parsed && resolveClientHubRouteClientId(CLIENTS, parsed)).toBe(SAMPLE_UUID);
-  });
-
-  it("resolves legacy uuid segment", () => {
-    const parsed = parseClientHubPathname(`/dashboard/client/${SAMPLE_UUID}`);
     expect(parsed && resolveClientHubRouteClientId(CLIENTS, parsed)).toBe(SAMPLE_UUID);
   });
 

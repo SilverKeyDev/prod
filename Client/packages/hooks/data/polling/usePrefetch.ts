@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { ROUTES, useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 
@@ -35,7 +35,7 @@ export function usePrefetch() {
 
     // Prefetch all initial data
     prefetchAllInitialData({ user, queryClient }).catch((error) => {
-      log.error(LOG_CATEGORIES.HOOKS, "Prefetch failed", error);
+      log.error("HOOKS", "Prefetch failed", error);
     });
   }, [authReady, isAuthenticated, user, route.pathname, queryClient]);
 

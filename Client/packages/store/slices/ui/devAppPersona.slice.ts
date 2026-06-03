@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { withDevtools } from "packages/store/middleware/devtools";
 
 export type DevAppPersonaState = {
-  /** Set after admin toggles `users.is_agent` this session; drives reminder banner. */
+  /** Set after admin toggles agent role this session; drives reminder banner. */
   serverIdentityTouched: boolean;
   markServerIdentityTouched: () => void;
   clearServerIdentityTouched: () => void;

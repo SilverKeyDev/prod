@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { getEnv } from "packages/config/env";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import type { HideTextBelowBreakpoint } from "./textVisibility";
 
@@ -29,7 +29,7 @@ export function warnButtonCollapseA11yIfNeeded(args: {
     args.derivedAccessibleLabel == null
   ) {
     log.warn(
-      LOG_CATEGORIES.ERRORS,
+      "ERRORS",
       "[Button] Icon collapse uses JSX children — provide label or aria-label for accessibility when the label hides at narrow widths."
     );
   }

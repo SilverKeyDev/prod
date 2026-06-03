@@ -1,3 +1,5 @@
+import { log } from "packages/logger";
+
 /**
  * Match score from search/saved listing payloads (`_score`), when present.
  * Same numeric scale the backend uses for MCDA display when populated.
@@ -29,6 +31,7 @@ export function isListingFullCriteriaMatch(property: { _score?: number | null })
   }
   // Fallback if API ever sends a 0–100 style score
   if (v > MCDA_DISPLAY_MAX && v <= 100) {
+    log.debug("SEARCH", "legacy_property_match_score_scale", { score: v });
     return v >= 99.5;
   }
   return false;

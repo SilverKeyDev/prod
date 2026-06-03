@@ -1,0 +1,26 @@
+type: object
+required:
+  - id
+  - buyer_id
+  - step_id
+  - transaction_id
+  - viewed_at
+properties:
+  id:
+    type: string
+  buyer_id:
+    type: string
+  step_id:
+    type: string
+  transaction_id:
+    type: string
+  viewed_at:
+    type: string
+    format: date-time
+    nullable: true
+  partner_payout_snapshot:
+    type: array
+    nullable: true
+    items:
+      type: object
+      additionalProperties: true

@@ -16,7 +16,7 @@ import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUse
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { useResponsive } from "packages/hooks/ui";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation/hooks/useNavigation";
 import { useAuthStore } from "packages/store";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
@@ -60,7 +60,7 @@ export default function ProfileFeature({
   const isAgentForProfileUi = useMemo(
     () =>
       agentSubject != null
-        ? isAgentIdentityForProfileUi(false, { is_agent: false })
+        ? isAgentIdentityForProfileUi(false, { roles: [] })
         : isAgentIdentityForProfileUi(isAgent, userProfile),
     [agentSubject, isAgent, userProfile]
   );
@@ -177,10 +177,10 @@ export default function ProfileFeature({
         setFormData(updatedFormData);
         setOriginalData(updatedFormData);
         setIsEditMode(false);
-        log.info(LOG_CATEGORIES.API, "Preferences saved successfully");
+        log.info("API", "Preferences saved successfully");
       },
       onError: (error) => {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to update preferences", error);
+        log.error("ERRORS", "Failed to update preferences", error);
         showErrorToast("Failed to update preferences. Please try again.");
       },
     });

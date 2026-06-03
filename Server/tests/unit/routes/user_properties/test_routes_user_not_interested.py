@@ -66,6 +66,17 @@ class TestNotInterestedHomes:
                 assert data["success"] is True
                 assert "notInterested" in data
                 assert len(data["notInterested"]) == 2
+                for item in data["notInterested"]:
+                    assert "isNotInterested" not in item
+                    assert "why" not in item
+                    assert set(item.keys()) <= {
+                        "id",
+                        "address",
+                        "latitude",
+                        "longitude",
+                        "zpid",
+                        "mls_home_id",
+                    }
 
     def test_add_not_interested_home(self, client, app: Flask, db_session):
         """Test POST /api/v1/user/not-interested-homes/add"""
@@ -134,7 +145,8 @@ class TestNotInterestedHomes:
                 assert response.status_code == 400
                 data = response.get_json()
                 assert data["success"] is False
-                assert "address" in data["error"].lower()
+                assert data["error"] == "validation_error"
+                assert "Address" in (data.get("field_errors") or {})
 
     def test_remove_not_interested_home(self, client, app: Flask, db_session):
         """Test POST /api/v1/user/not-interested-homes/remove"""

@@ -1,3 +1,4 @@
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 
@@ -48,20 +49,6 @@ class DocusignConnectEvent(db.Model):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "envelope_id": self.envelope_id,
-            "event_type": self.event_type,
-            "event_timestamp": self.event_timestamp.isoformat() if self.event_timestamp else None,
-            "processed": self.processed,
-            "processed_at": self.processed_at.isoformat() if self.processed_at else None,
-            "processing_error": self.processing_error,
-            "retry_count": self.retry_count,
-            "hmac_verified": self.hmac_verified,
-            "received_at": self.received_at.isoformat() if self.received_at else None,
-        }
 
     def __repr__(self):
         return f"<DocusignConnectEvent {self.envelope_id} - {self.event_type}>"

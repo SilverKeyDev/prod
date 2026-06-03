@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 type VerifyFn = (
   email: string,
@@ -20,24 +20,24 @@ export async function performVerify(
   options?: { postSuccessPath?: string }
 ): Promise<void> {
   const storedPassword = getStoredPassword();
-  log.debug(LOG_CATEGORIES.AUTH, "Verification retrieved stored data", {
+  log.debug("AUTH", "Verification retrieved stored data", {
     hasEmail: !!userEmail,
     hasPassword: !!storedPassword,
     email: userEmail,
   });
 
   if (!userEmail || !storedPassword) {
-    log.error(LOG_CATEGORIES.AUTH, "Verification missing email or password");
+    log.error("AUTH", "Verification missing email or password");
     throw new Error("Email or password not found. Please go back and sign up again.");
   }
 
-  log.debug(LOG_CATEGORIES.AUTH, "Verification calling authApi.verify");
+  log.debug("AUTH", "Verification calling authApi.verify");
   const {
     success,
     error: apiError,
     message,
   } = await verify(userEmail, verificationCode, storedPassword);
-  log.debug(LOG_CATEGORIES.AUTH, "Verification authApi.verify response", {
+  log.debug("AUTH", "Verification authApi.verify response", {
     success,
     error: apiError,
     message,
@@ -47,7 +47,7 @@ export async function performVerify(
     throw new Error(apiError ?? message ?? "Failed to verify email. Please try again.");
   }
 
-  log.debug(LOG_CATEGORIES.AUTH, "Verification successful, clearing storage and navigating");
+  log.debug("AUTH", "Verification successful, clearing storage and navigating");
   clearSignupStorage();
   const postSuccessPath = options?.postSuccessPath ?? "/onboarding";
   setTimeout(() => void navigate(postSuccessPath), 500);

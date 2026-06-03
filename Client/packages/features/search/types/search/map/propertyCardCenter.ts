@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { screenPx } from "packages/ui/types/screens";
 import { getWindow } from "packages/utils/platform";
 
@@ -55,7 +55,7 @@ export const calculatePropertyCardCenter = (lat: number, lng: number, propertyId
     lng: lng + randomLngOffset, // Random east/west offset
   };
 
-  log.debug(LOG_CATEGORIES.MAP_RENDERING, "🗺️ [CENTER CALCULATION]", {
+  log.debug("MAP_RENDERING", "🗺️ [CENTER CALCULATION]", {
     propertyId: propertyId || "none",
     baseLat: lat,
     baseLng: lng,

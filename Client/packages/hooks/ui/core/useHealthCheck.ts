@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { healthApi } from "packages/api/health";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 /**
  * Hook to check application health status
@@ -21,14 +21,14 @@ export function useHealthCheck() {
             setMaintenance(false);
           } else {
             setMaintenance(true);
-            log.warn(LOG_CATEGORIES.ERRORS, "/healthz returned unexpected data");
+            log.warn("ERRORS", "/healthz returned unexpected data");
           }
         }
       })
       .catch((err) => {
         if (isMounted) {
           setMaintenance(true);
-          log.error(LOG_CATEGORIES.ERRORS, "Error fetching /healthz", err);
+          log.error("ERRORS", "Error fetching /healthz", err);
         }
       })
       .finally(() => {

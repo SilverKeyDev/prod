@@ -4,14 +4,21 @@ from __future__ import annotations
 
 from typing import Any
 
-from flask import current_app, jsonify, request
+from flask import jsonify
+from sqlalchemy import select
 
 from app import db
 from app.models.user.user_search_display import RESULTS_ORDER_BY_ALLOWED, UserSearchDisplaySettings
 from app.schemas import SearchDisplayPayload, SearchDisplayResponse
-from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
-from app.utils.security.secure_errors import SecureErrorHandler
+from app.utils.common_patterns import (
+    handle_exceptions_with_logging,
+    invalid_request,
+    require_authenticated_user,
+    server_error,
+    validation,
+)
 from app.utils.validation import validate_request, validate_response
+from logger import log
 
 MAP_HOME_CARDS_MIN = 1
 MAP_HOME_CARDS_MAX = 5
@@ -78,7 +85,9 @@ def _row_to_dict(row: UserSearchDisplaySettings) -> dict[str, Any]:
 
 
 def _get_or_create(user_id: str) -> UserSearchDisplaySettings:
-    row = UserSearchDisplaySettings.query.filter_by(user_id=user_id).first()
+    row = db.session.scalar(
+        select(UserSearchDisplaySettings).where(UserSearchDisplaySettings.user_id == user_id)
+    )
     if row is None:
         row = UserSearchDisplaySettings(
             user_id=user_id,
@@ -100,8 +109,9 @@ def get_search_display(user):
         row = _get_or_create(str(user.id))
         return jsonify({"success": True, "search_display": _row_to_dict(row)})
     except Exception as e:
-        return SecureErrorHandler.handle_database_error(
-            e, {"function": "get_search_display", "user_id": getattr(user, "id", "unknown")}
+        return server_error(
+            e,
+            context={"function": "get_search_display", "user_id": getattr(user, "id", "unknown")},
         )
 
 
@@ -109,73 +119,45 @@ def get_search_display(user):
 @require_authenticated_user
 @validate_response(SearchDisplayResponse)
 @validate_request(SearchDisplayPayload)
-def patch_search_display(user, data: SearchDisplayPayload | None = None):
-    log = current_app.logger
-    try:
-        if data is not None:
-            body = data.model_dump(exclude_unset=True)
-        else:
-            body = request.get_json()
-            if not body or not isinstance(body, dict):
-                log.warning("No JSON object in patch_search_display body")
-                return jsonify({"success": False, "error": "No data provided"}), 400
-    except Exception as e:
-        log.error("Failed to parse JSON body: %s", str(e), exc_info=True)
-        return jsonify({"success": False, "error": "Invalid JSON format"}), 400
+def patch_search_display(user, data: SearchDisplayPayload):
+    body = data.model_dump(exclude_unset=True)
 
     if not body:
-        log.warning("No JSON object in patch_search_display body")
-        return jsonify({"success": False, "error": "No data provided"}), 400
+        log.warn("AUTH", "patch_search_display_empty_body", None)
+        return invalid_request("No data provided")
 
     try:
         row = _get_or_create(str(user.id))
         if "show_commute_overlay" in body:
             v = body["show_commute_overlay"]
             if v is None:
-                return jsonify(
-                    {"success": False, "error": "show_commute_overlay cannot be null"}
-                ), 400
+                return validation("show_commute_overlay cannot be null")
             row.show_commute_overlay = bool(v)
         if "map_home_cards_count" in body:
             v = body["map_home_cards_count"]
             if v is None:
-                return jsonify(
-                    {"success": False, "error": "map_home_cards_count cannot be null"}
-                ), 400
+                return validation("map_home_cards_count cannot be null")
             try:
                 n = int(v)
             except (TypeError, ValueError):
-                return jsonify(
-                    {"success": False, "error": "map_home_cards_count must be an integer"}
-                ), 400
+                return validation("map_home_cards_count must be an integer")
             if n < MAP_HOME_CARDS_MIN or n > MAP_HOME_CARDS_MAX:
-                return (
-                    jsonify(
-                        {
-                            "success": False,
-                            "error": f"map_home_cards_count must be between {MAP_HOME_CARDS_MIN} and {MAP_HOME_CARDS_MAX}",
-                        }
-                    ),
-                    400,
+                return validation(
+                    f"map_home_cards_count must be between {MAP_HOME_CARDS_MIN} and {MAP_HOME_CARDS_MAX}"
                 )
             row.map_home_cards_count = n
         if "results_order_by" in body:
             v = body["results_order_by"]
             if v is None or (isinstance(v, str) and not v.strip()):
-                return jsonify({"success": False, "error": "results_order_by cannot be empty"}), 400
+                return validation("results_order_by cannot be empty")
             key = str(v).strip().lower()
             if key not in RESULTS_ORDER_BY_ALLOWED:
-                return jsonify({"success": False, "error": "Invalid results_order_by"}), 400
+                return validation("Invalid results_order_by")
             row.results_order_by = key
         if "preferences_strict_filter" in body:
             v = body["preferences_strict_filter"]
             if v is None:
-                return (
-                    jsonify(
-                        {"success": False, "error": "preferences_strict_filter cannot be null"}
-                    ),
-                    400,
-                )
+                return validation("preferences_strict_filter cannot be null")
             row.preferences_strict_filter = bool(v)
 
         if "last_search_context" in body:
@@ -185,7 +167,7 @@ def patch_search_display(user, data: SearchDisplayPayload | None = None):
             else:
                 sanitized = _sanitize_last_search_context(raw_ctx)
                 if sanitized is None:
-                    return jsonify({"success": False, "error": "Invalid last_search_context"}), 400
+                    return validation("Invalid last_search_context")
                 row.last_search_context = sanitized
 
         db.session.add(row)
@@ -199,6 +181,7 @@ def patch_search_display(user, data: SearchDisplayPayload | None = None):
         )
     except Exception as e:
         db.session.rollback()
-        return SecureErrorHandler.handle_database_error(
-            e, {"function": "patch_search_display", "user_id": getattr(user, "id", "unknown")}
+        return server_error(
+            e,
+            context={"function": "patch_search_display", "user_id": getattr(user, "id", "unknown")},
         )

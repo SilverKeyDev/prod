@@ -3,7 +3,6 @@ Enhanced file upload security utilities with content validation and virus scanni
 """
 
 import hashlib
-import logging
 import os
 import re
 import subprocess
@@ -12,7 +11,7 @@ import tempfile
 import magic
 from werkzeug.datastructures import FileStorage
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 # Allowed MIME types for file uploads
 ALLOWED_MIME_TYPES = {
@@ -129,7 +128,7 @@ def validate_file_content(file_path: str, expected_mime_type: str) -> bool:
         return True
 
     except Exception as e:
-        logger.error(f"File content validation failed: {str(e)}")
+        log.error("SECURITY", "File content validation failed", {"error": str(e)})
         raise FileSecurityError(f"Content validation failed: {str(e)}") from e
 
 
@@ -167,7 +166,7 @@ def scan_for_malicious_patterns(file_path: str, mime_type: str) -> bool:
     except FileSecurityError as e:
         raise e from e
     except Exception as e:
-        logger.error(f"Pattern scanning failed: {str(e)}")
+        log.error("SECURITY", "Pattern scanning failed", {"error": str(e)})
         raise FileSecurityError(f"Pattern scanning failed: {str(e)}") from e
 
 
@@ -189,7 +188,7 @@ def scan_with_clamav(file_path: str) -> bool:
         result = subprocess.run(["which", "clamdscan"], capture_output=True, text=True, timeout=5)
 
         if result.returncode != 0:
-            logger.warning("ClamAV not available - skipping virus scan")
+            log.warn("SECURITY", "ClamAV not available - skipping virus scan")
             return True
 
         # Run virus scan
@@ -200,22 +199,26 @@ def scan_with_clamav(file_path: str) -> bool:
         if result.returncode == 0:
             return True
         elif result.returncode == 1:
-            logger.error(f"Virus detected in file {file_path}: {result.stdout}")
+            log.security(
+                "SECURITY",
+                "virus_detected",
+                {"file_path": file_path, "scan_output": result.stdout[:200]},
+            )
             raise FileSecurityError("Virus detected in uploaded file")
         else:
-            logger.error(f"ClamAV scan error: {result.stderr}")
+            log.error("SECURITY", "ClamAV scan error", {"stderr": result.stderr[:200]})
             raise FileSecurityError("Virus scan failed")
 
     except subprocess.TimeoutExpired as e:
-        logger.error("ClamAV scan timeout")
+        log.error("SECURITY", "ClamAV scan timeout")
         raise FileSecurityError("Virus scan timeout") from e
     except FileNotFoundError:
-        logger.warning("ClamAV not installed - skipping virus scan")
+        log.warn("SECURITY", "ClamAV not installed - skipping virus scan")
         return True
     except Exception as e:
-        logger.error(f"Virus scanning failed: {str(e)}")
+        log.error("SECURITY", "Virus scanning failed", {"error": str(e)})
         # Don't fail upload if virus scanner has issues, but log it
-        logger.warning("Proceeding without virus scan due to scanner error")
+        log.warn("SECURITY", "Proceeding without virus scan due to scanner error")
         return True
 
 

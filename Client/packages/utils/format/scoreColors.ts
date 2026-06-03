@@ -44,8 +44,3 @@ export function getMatchScoreGradientColors(score: number): ScoreColors {
     textColor: textHex || "#8C3D2A",
   };
 }
-
-/** Same as `getMatchScoreGradientColors` — legacy name used by map pin helpers. */
-export function getScoreBasedColorForMap(score: number): ScoreColors {
-  return getMatchScoreGradientColors(score);
-}

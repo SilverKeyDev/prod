@@ -1,3 +1,5 @@
+# AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Modify scripts/log_contracts/categories.yaml, then run: make log-contracts
 type: object
 required:
   - initialLoad

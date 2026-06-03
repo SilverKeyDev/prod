@@ -1,13 +1,19 @@
-"""PropertyCache + UserPropertyLink -> OpenAPI `SavedHome` schema."""
+"""PropertyCache + UserPropertyLink / HomeNotInterested -> OpenAPI schemas."""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
+from pydantic import ValidationError
+
+from app.schemas.generated import NotInterestedHomeItem as NotInterestedHomeItemSchema
 from app.schemas.generated import SavedHome as SavedHomeSchema
+from app.utils.db.orm_lookup import get_model
+from logger import log
 
 if TYPE_CHECKING:
+    from app.models.property.home_not_interested import HomeNotInterested as HomeNotInterestedModel
     from app.models.property.property_cache import PropertyCache as PropertyCacheModel
     from app.models.property.user_property_link import UserPropertyLink as UserPropertyLinkModel
 
@@ -80,3 +86,71 @@ class SavedHomeDTO:
             commute_data=None,
             raw_data=prop.raw_data,
         )
+
+    @classmethod
+    def from_orm(cls, link: UserPropertyLinkModel) -> SavedHomeSchema:
+        """Load PropertyCache from link and build SavedHome schema."""
+        from app.models import PropertyCache as PropertyCacheModel
+
+        prop = get_model(PropertyCacheModel, link.property_id)
+        if not prop:
+            raise ValueError(f"PropertyCache not found for link property_id={link.property_id}")
+        return cls.from_property_cache(prop, link)
+
+    @classmethod
+    def to_response(cls, link: UserPropertyLinkModel) -> dict:
+        """Validated SavedHome dict for JSON responses."""
+        return cls.from_orm(link).model_dump(mode="json")
+
+
+class NotInterestedHomeDTO:
+    """Maps HomeNotInterested to OpenAPI NotInterestedHomeItem (HTTP) or export rows."""
+
+    @staticmethod
+    def _iso_utc(dt: datetime | None) -> str | None:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
+
+    @classmethod
+    def to_response(cls, row: HomeNotInterestedModel) -> dict:
+        """HTTP payload: documented NotInterestedHomeItem fields only."""
+        data = {
+            "id": row.id,
+            "address": row.address,
+            "latitude": row.latitude,
+            "longitude": row.longitude,
+            "zpid": row.zpid,
+            "mls_home_id": row.mls_home_id,
+        }
+        try:
+            validated = NotInterestedHomeItemSchema.model_validate(data)
+        except ValidationError as e:
+            log.error(
+                "ERRORS",
+                f"NotInterestedHome DTO validation failed: {e}",
+                e,
+            )
+            raise ValueError(f"Invalid not-interested home data: {e}") from e
+        return validated.model_dump(mode="json")
+
+    @classmethod
+    def to_export_row(cls, row: HomeNotInterestedModel) -> dict:
+        """GDPR export: full portability fields (not constrained to NotInterestedHomeItem)."""
+        return {
+            "id": row.id,
+            "user_id": row.user_id,
+            "address": row.address,
+            "isNotInterested": row.is_not_interested,
+            "not_interested_history": row.not_interested_history,
+            "why": row.why,
+            "score": row.score,
+            "created_at": cls._iso_utc(row.created_at),
+            "updated_at": cls._iso_utc(row.updated_at),
+            "zpid": row.zpid,
+            "mls_home_id": row.mls_home_id,
+            "latitude": row.latitude,
+            "longitude": row.longitude,
+        }

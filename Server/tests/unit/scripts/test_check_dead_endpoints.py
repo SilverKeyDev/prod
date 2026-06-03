@@ -1,8 +1,8 @@
-"""Tests for Server/scripts/endpoints/check_dead_endpoints.py."""
+"""Tests for endpoint coverage dead-route computation."""
 
 from __future__ import annotations
 
-from scripts.endpoints.check_dead_endpoints import DEAD_ENDPOINT_ALLOWLIST, compute_dead_endpoints
+from scripts.endpoints.endpoint_coverage import DEAD_ENDPOINT_ALLOWLIST, compute_dead_endpoints
 
 
 def test_compute_dead_endpoints_subtracts_observed():

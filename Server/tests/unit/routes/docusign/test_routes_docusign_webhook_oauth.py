@@ -30,10 +30,12 @@ class TestDocuSignRoutesWebhookOauth:
             )
 
             assert response.status_code == 200
+            data = response.get_json()
+            assert data.get("success") is True
 
     def test_oauth_start_endpoint(self, client):
         """Test GET /api/v1/docusign/oauth/start"""
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             with patch(
                 "app.routes.documents.docusign.handlers.oauth.DocusignOAuthService.build_auth_url",
                 return_value=("https://account-d.docusign.com/oauth/auth?...", "state-abc"),

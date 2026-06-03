@@ -1,5 +1,5 @@
 import { color } from "packages/design-tokens";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { DOCUMENT_ACTION_LABELS } from "packages/utils/domain/actionLabels";
 import { getDocument, getWindow } from "packages/utils/platform";
 
@@ -20,47 +20,29 @@ export function inspectIframeContentAfterLoad(
           bodyText.includes("ERR_") ||
           bodyText.toLowerCase().includes("this document cannot be displayed");
 
-        log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] iframe content accessible", {
+        log.debug("HTTP", "[PdfModal] iframe content accessible", {
           bodyHTMLLength,
           hasError,
         });
 
         if (hasError) {
-          log.error(
-            LOG_CATEGORIES.ERRORS,
-            "[PdfModal] Browser blocked or failed to load PDF content"
-          );
-          log.warn(LOG_CATEGORIES.HTTP, "[PdfModal] User can use Open in New Tab to view PDF");
+          log.error("ERRORS", "[PdfModal] Browser blocked or failed to load PDF content");
+          log.warn("HTTP", "[PdfModal] User can use Open in New Tab to view PDF");
         } else if (bodyHTMLLength === 0 && bodyText.length === 0) {
           log.warn(
-            LOG_CATEGORIES.HTTP,
+            "HTTP",
             "[PdfModal] iframe content is empty; PDF may still be loading or failed silently"
           );
-          log.debug(
-            LOG_CATEGORIES.HTTP,
-            "[PdfModal] If PDF is blank, check backend PDF generation/retrieval"
-          );
+          log.debug("HTTP", "[PdfModal] If PDF is blank, check backend PDF generation/retrieval");
         } else {
-          log.debug(
-            LOG_CATEGORIES.HTTP,
-            "[PdfModal] iframe content detected; PDF viewer should be active"
-          );
+          log.debug("HTTP", "[PdfModal] iframe content detected; PDF viewer should be active");
         }
       } else {
-        log.debug(
-          LOG_CATEGORIES.HTTP,
-          "[PdfModal] iframe is cross-origin or PDF plugin is handling rendering"
-        );
+        log.debug("HTTP", "[PdfModal] iframe is cross-origin or PDF plugin is handling rendering");
       }
     } catch {
-      log.debug(
-        LOG_CATEGORIES.HTTP,
-        "[PdfModal] Cannot access iframe content (PDF plugin rendering)"
-      );
-      log.debug(
-        LOG_CATEGORIES.HTTP,
-        "[PdfModal] If PDF is blank, verify backend + headers + non-empty PDF"
-      );
+      log.debug("HTTP", "[PdfModal] Cannot access iframe content (PDF plugin rendering)");
+      log.debug("HTTP", "[PdfModal] If PDF is blank, verify backend + headers + non-empty PDF");
     }
   }, 500);
 }
@@ -71,7 +53,7 @@ export function injectPdfErrorUI(iframe: HTMLIFrameElement, currentPdf: string |
     canAccessContent = iframe?.contentDocument?.body != null;
   } catch {
     log.debug(
-      LOG_CATEGORIES.HTTP,
+      "HTTP",
       "[PdfModal] Cannot access iframe content (cross-origin); skipping error UI injection"
     );
   }

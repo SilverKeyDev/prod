@@ -189,18 +189,99 @@ ensure_database_url_alias() {
   done
 }
 
-build_env_file() {
+# Merge Secrets Manager payloads into $ENV_FILE (caller must set ENV_FILE).
+build_merged_env_file() {
   local secret_ids=("$@")
   local id
   if [ "${DEPLOY_LOG_TIMING:-}" = "1" ]; then
-    echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') build_env_file: GetSecretValue merge starting (${#secret_ids[@]} secret(s))"
+    echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') build_merged_env_file: GetSecretValue merge starting (${#secret_ids[@]} secret(s))"
   fi
   for id in "${secret_ids[@]}"; do
     merge_sm_secret_into_env "$id"
   done
   if [ "${DEPLOY_LOG_TIMING:-}" = "1" ]; then
-    echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') build_env_file: GetSecretValue merge finished (${#secret_ids[@]} secret(s))"
+    echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') build_merged_env_file: GetSecretValue merge finished (${#secret_ids[@]} secret(s))"
   fi
+}
+
+# Fetch deploy secrets and write EXPO_PUBLIC_* / VITE_* lines to a temp file; prints its path.
+build_client_bundle_env_file() {
+  local example_file="$1"
+  local merged_tmp bundle_tmp
+  merged_tmp="$(mktemp)"
+  bundle_tmp="$(mktemp)"
+  : >"$merged_tmp"
+  : >"$bundle_tmp"
+
+  local prev_env_file="$ENV_FILE"
+  ENV_FILE="$merged_tmp"
+  export ENV_FILE
+
+  local secret_ids=()
+  mapfile -t secret_ids < <(resolve_deploy_secret_ids_from_example "$example_file")
+  build_merged_env_file "${secret_ids[@]}"
+
+  ENV_FILE="$prev_env_file"
+
+  awk -F= '
+    /^EXPO_PUBLIC_[A-Za-z0-9_]*=/ || /^VITE_[A-Za-z0-9_]*=/ {
+      key = $1
+      lines[key] = $0
+    }
+    END {
+      for (k in lines) print lines[k]
+    }
+  ' "$merged_tmp" >"$bundle_tmp"
+
+  rm -f "$merged_tmp"
+  printf '%s\n' "$bundle_tmp"
+}
+
+# Append KEY=VALUE lines from env_file to $GITHUB_ENV (heredoc-safe). Optional prefix: client|all.
+append_env_file_to_github_env() {
+  local env_file="$1"
+  local filter="${2:-all}"
+  local github_env="${GITHUB_ENV:-}"
+  local line key val delim
+
+  if [ -z "$github_env" ]; then
+    echo "ERROR: GITHUB_ENV is not set (append_env_file_to_github_env requires GitHub Actions)." >&2
+    return 1
+  fi
+  if [ ! -f "$env_file" ] || [ ! -s "$env_file" ]; then
+    return 0
+  fi
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    [ -z "$line" ] && continue
+    key="${line%%=*}"
+    val="${line#*=}"
+    case "$filter" in
+      client)
+        is_client_bundle_env_key "$key" || continue
+        ;;
+      all) ;;
+      *)
+        echo "ERROR: append_env_file_to_github_env: unknown filter '$filter'" >&2
+        return 1
+        ;;
+    esac
+    val="${val%$'\r'}"
+    case "$val" in
+      \"*\") val="${val#\"}"; val="${val%\"}" ;;
+      \'*\') val="${val#\'}"; val="${val%\'}" ;;
+    esac
+    delim="BUNDLE_ENV_${key}_EOF"
+    {
+      echo "${key}<<${delim}"
+      printf '%s\n' "$val"
+      echo "${delim}"
+    } >>"$github_env"
+  done <"$env_file"
+}
+
+build_env_file() {
+  build_merged_env_file "$@"
   ensure_database_url_alias
 
   if ! grep -q '^DATABASE_URL=' "$ENV_FILE"; then

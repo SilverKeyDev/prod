@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 
 import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
@@ -161,7 +161,7 @@ export function useCreateEventModalSubmitFlow(params: {
         onSuccess?.();
         onClose();
       } catch (error) {
-        log.error(LOG_CATEGORIES.CALENDAR, "Error sending calendar event request", error);
+        log.error("CALENDAR", "Error sending calendar event request", error);
       } finally {
         setIsSendingCalendarRequest(false);
       }

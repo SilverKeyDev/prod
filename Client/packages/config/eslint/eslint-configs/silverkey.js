@@ -65,6 +65,9 @@ export default function getSilverkeyConfig({ silverkey }) {
             },
           },
         ],
+        "silverkey/no-secure-logger": "error",
+        "silverkey/prefer-log-path": "error",
+        "silverkey/valid-log-path": "error",
         "silverkey/no-unsafe-innerhtml": "error",
         "silverkey/no-raw-translation-key-literal": [
           "warn",

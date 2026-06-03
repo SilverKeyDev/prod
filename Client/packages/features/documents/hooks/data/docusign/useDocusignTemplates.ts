@@ -5,7 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { docusignApi } from "packages/features/documents/api/docusign";
 import type { DocusignTemplate } from "packages/features/documents/types/docusign";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
@@ -25,7 +26,7 @@ export type UseDocusignTemplatesReturn = {
 export function useDocusignTemplates(): UseDocusignTemplatesReturn {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
-  const isAgent = useAuthStore((s) => s.user?.user_type === "agent");
+  const isAgent = useIsAgent();
 
   // Gate loading on auth readiness, authentication, and agent status
   const shouldLoadData = useMemo(
@@ -45,14 +46,14 @@ export function useDocusignTemplates(): UseDocusignTemplatesReturn {
         const response = await docusignApi.listTemplates();
         if (!response.success) {
           const errorMessage = resolveApiResultErrorMessage(response, "Failed to fetch templates");
-          log.error(LOG_CATEGORIES.API, "Failed to fetch templates", {
+          log.error("API", "Failed to fetch templates", {
             error: errorMessage,
           });
           throw new Error(errorMessage);
         }
         return response.templates ?? [];
       } catch (err) {
-        log.error(LOG_CATEGORIES.ERRORS, "Error fetching templates", err);
+        log.error("ERRORS", "Error fetching templates", err);
         throw err;
       }
     },

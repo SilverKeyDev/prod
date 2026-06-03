@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 import { getEnv } from "packages/config";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useFiltersStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
@@ -40,7 +40,7 @@ export function useSearchPageHandlers({
   const handleViewPropertyDetails = useCallback(
     async (property: SearchResult) => {
       const isDev = getEnv().isDevelopment;
-      log.debug(LOG_CATEGORIES.SEARCH, "handleViewPropertyDetails called", {
+      log.debug("SEARCH", "handleViewPropertyDetails called", {
         environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
         propertyId: property.id,
         address: property.address?.substring(0, 30) + "...",
@@ -56,7 +56,7 @@ export function useSearchPageHandlers({
       };
 
       try {
-        log.debug(LOG_CATEGORIES.SEARCH, "Calling fetchPropertyDetails", {
+        log.debug("SEARCH", "Calling fetchPropertyDetails", {
           environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
           propertyId: propertyForDetails.id,
           timestamp: dateNow().toISOString(),
@@ -64,13 +64,13 @@ export function useSearchPageHandlers({
 
         await fetchPropertyDetails(propertyForDetails);
 
-        log.debug(LOG_CATEGORIES.SEARCH, "fetchPropertyDetails completed successfully", {
+        log.debug("SEARCH", "fetchPropertyDetails completed successfully", {
           environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
           propertyId: propertyForDetails.id,
           timestamp: dateNow().toISOString(),
         });
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch property details", {
+        log.error("ERRORS", "Failed to fetch property details", {
           environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
           propertyId: property.id,
           error: error instanceof Error ? error.message : String(error),
@@ -94,7 +94,7 @@ export function useSearchPageHandlers({
 
   const handleNavigateToProperty = useCallback(
     (property: SearchResult) => {
-      log.debug(LOG_CATEGORIES.SEARCH, "handleNavigateToProperty called", {
+      log.debug("SEARCH", "handleNavigateToProperty called", {
         propertyId: property.id,
       });
       const address =
@@ -114,7 +114,7 @@ export function useSearchPageHandlers({
       const propertyUrl = propertyDetailsPathFromListing(listingInput);
 
       if (!propertyUrl) {
-        log.error(LOG_CATEGORIES.SEARCH, "No provider listing id for property URL", {
+        log.error("SEARCH", "No provider listing id for property URL", {
           propertyId: property.id,
           timestamp: dateNow().toISOString(),
         });
@@ -125,7 +125,7 @@ export function useSearchPageHandlers({
       }
 
       try {
-        log.debug(LOG_CATEGORIES.SEARCH, "Navigating to property URL", {
+        log.debug("SEARCH", "Navigating to property URL", {
           address: address.substring(0, 50),
           url: propertyUrl,
           timestamp: dateNow().toISOString(),
@@ -133,7 +133,7 @@ export function useSearchPageHandlers({
 
         navigateToPath(propertyUrl);
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to navigate to property", {
+        log.error("ERRORS", "Failed to navigate to property", {
           propertyId: property.id,
           error: error instanceof Error ? error.message : String(error),
           timestamp: dateNow().toISOString(),
@@ -154,7 +154,7 @@ export function useSearchPageHandlers({
         // Navigate to the property URL instead of opening modal
         handleNavigateToProperty(property);
       } else {
-        log.error(LOG_CATEGORIES.SEARCH, "MAP MODAL: Property not found with ID", {
+        log.error("SEARCH", "MAP MODAL: Property not found with ID", {
           propertyId,
           availableProperties: currentData.map((p) => ({
             id: p.id,

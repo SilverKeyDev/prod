@@ -15,9 +15,7 @@ from docusign_esign import (
 )
 from docusign_esign.client.api_exception import ApiException
 
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def _handle(handle_exception: Callable[[ApiException, str], None], e: ApiException, op: str):
@@ -49,8 +47,8 @@ def list_templates(
 ) -> list[dict[str, Any]]:
     """List available templates."""
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Listing DocuSign templates",
             {"account_id": account_id},
         )
@@ -68,8 +66,8 @@ def list_templates(
                         "created": tmpl.created,
                     }
                 )
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Templates listed successfully",
             {"count": len(templates), "account_id": account_id},
         )
@@ -87,15 +85,15 @@ def get_template(
 ) -> dict[str, Any]:
     """Get template details including signer role names."""
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Getting template details",
             {"template_id": template_id, "account_id": account_id},
         )
         templates_api = TemplatesApi(api_client)
         template = templates_api.get(account_id=account_id, template_id=template_id)
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Template details retrieved",
             {"template_id": template_id, "template_name": template.name},
         )
@@ -160,8 +158,8 @@ def create_template_from_pdfs(
             account_id=account_id, envelope_template=envelope_template
         )
         tid = getattr(result, "template_id", None) if result else None
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "DocuSign template created",
             {"account_id": account_id, "template_id": tid},
         )
@@ -193,8 +191,8 @@ def delete_template(
             auth_settings=[],
             _preload_content=True,
         )
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "DocuSign template deleted",
             {"account_id": account_id, "template_id": template_id},
         )
@@ -219,8 +217,8 @@ def create_template_edit_view(
         url = getattr(view, "url", None) if view else None
         if not url:
             raise RuntimeError("DocuSign did not return template edit URL")
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Template edit view created",
             {"account_id": account_id, "template_id": template_id},
         )

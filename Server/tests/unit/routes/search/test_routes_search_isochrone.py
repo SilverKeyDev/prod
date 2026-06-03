@@ -24,7 +24,6 @@ class TestIsochroneRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -82,7 +81,6 @@ class TestIsochroneRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -122,7 +120,6 @@ class TestIsochroneRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -152,7 +149,6 @@ class TestIsochroneRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -190,7 +186,6 @@ class TestIsochroneRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -252,13 +247,12 @@ class TestIsochroneRoutes:
                                 assert len(call_addresses) == 2
 
     def test_isochrone_generation_failure(self, client, db_session):
-        """Geometry generation errors return 500 ISOCHRONE_GENERATION_FAILED."""
+        """Geometry generation errors return secure 500 without exception text."""
         user = User(
             id="user-123",
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -300,5 +294,7 @@ class TestIsochroneRoutes:
 
                                 assert response.status_code == 500
                                 data = response.get_json()
-                                assert data["error"] == "ISOCHRONE_GENERATION_FAILED"
-                                assert create_collection_msg in data["message"]
+                                assert data["success"] is False
+                                assert data["error"] in {"database_error", "server_error"}
+                                assert "error_id" in data
+                                assert create_collection_msg not in data.get("message", "")

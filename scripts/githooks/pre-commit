@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Run auto-fix linters on commit; report warnings/errors but never block the commit.
-# Re-stages files that hooks fixed so fixes land in the same commit.
+# Advisory commit hooks: format/lint autofix + OpenAPI regen when relevant paths change.
+# Never blocks the commit; re-stages auto-fixes. CI / make lint are merge gates.
 #
 # Enable for this clone: git config core.hooksPath scripts/githooks
-set -u
+# Disable for one commit: SKIP=1 git commit ...
+set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 cd "$REPO_ROOT" || exit 0
@@ -43,12 +44,13 @@ if [ "${#PC_CMD[@]}" -eq 0 ]; then
   fi
 fi
 
-STATUS=0
-if [ "${#PC_CMD[@]}" -gt 0 ]; then
-  run_hooks "${PC_CMD[@]}" || STATUS=$?
-else
-  echo "warning: pre-commit not found; skipping commit hooks. Install in Server/.venv: pip install pre-commit" >&2
+if [ "${#PC_CMD[@]}" -eq 0 ]; then
+  echo "pre-commit: skipped (pre-commit not installed). Run: make setup" >&2
+  exit 0
 fi
+
+STATUS=0
+run_hooks "${PC_CMD[@]}" || STATUS=$?
 
 # Re-stage paths that were in the index before hooks ran (captures auto-fixes).
 if [ -n "$STAGED_FILES" ]; then
@@ -59,9 +61,16 @@ if [ -n "$STAGED_FILES" ]; then
   done <<< "$STAGED_FILES"
 fi
 
+# OpenAPI hook may refresh generated types outside the original staged set.
+git add -- \
+  Client/packages/types/api.generated.ts \
+  Server/app/schemas/generated.py \
+  2>/dev/null || true
+
 if [ "$STATUS" -ne 0 ]; then
   echo "" >&2
-  echo "pre-commit: hooks reported problems above (commit was not blocked). Review before push; full gate: make lint" >&2
+  echo "pre-commit: auto-fixes or checks reported issues (commit not blocked)." >&2
+  echo "pre-commit: review above; before merge run: make lint | make openapi-verify" >&2
 fi
 
 exit 0

@@ -1,43 +1,21 @@
 /**
- * Checklist forms types.
- * Forms are pre-defined documents (stored in S3 /forms/) that agents can download or send to clients.
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * Checklist form types re-exported from the generated API contract (api.generated.ts).
+ * To add/modify API types: edit openapi/openapi.yaml, run `pnpm generate:api-types`.
  */
 
-export type ChecklistForm = {
-  id: string;
-  form_key: string; // e.g. "earnest_money", "wire_instructions"
-  title: string;
-  description?: string;
-  download_url: string; // Presigned S3 URL
-  deadline?: string; // ISO date string
-  category?: string; // e.g. "escrow", "financing"
-  s3_template_path: string;
-  created_at?: string;
-  updated_at?: string;
-};
+import type { components } from "packages/types/api.generated";
 
-export type SendFormRequest = {
-  method: "docusign" | "messaging" | "both";
-  /** Required for messaging; use `"new"` with `client_id` to create a thread. */
-  conversation_id?: string;
-  /** Required when `conversation_id` is `"new"`. */
-  client_id?: string;
-  participants?: Array<{
-    email: string;
-    name: string;
-  }>; // Optional for DocuSign
-  message?: string; // Optional message text
-};
+export type ChecklistForm = components["schemas"]["ChecklistFormWithDownload"];
+export type ChecklistFormRecord = components["schemas"]["ChecklistForm"];
 
-export type GetFormsResponse = {
-  success: boolean;
-  forms: ChecklistForm[];
-};
+export type SendFormRequest = components["schemas"]["ChecklistFormSendRequest"];
 
-export type DownloadFormResponse = {
-  success: boolean;
-  download_url: string;
-};
+export type GetFormsResponse = components["schemas"]["GetChecklistItemFormsResponse"];
+export type DownloadFormResponse = components["schemas"]["DownloadChecklistFormResponse"];
+export type FormsLibraryResponse = components["schemas"]["FormsLibraryResponse"];
+export type FormsLibraryDownloadResponse = components["schemas"]["FormsLibraryDownloadResponse"];
 
 export type SendFormResponse = {
   success: boolean;
@@ -45,4 +23,5 @@ export type SendFormResponse = {
   message?: string;
   message_id?: string;
   agreement_id?: string;
+  partial_errors?: Array<{ step: string; error: string }> | null;
 };

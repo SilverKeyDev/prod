@@ -17,10 +17,16 @@ from logger.config.resolve_logger_config import resolve_logger_config
 
 CLIENT_API_SUBCATEGORY_KEYS = ("initialLoad", "polling", "pageMount", "other")
 VALID_LOG_LEVELS = frozenset(LOG_LEVELS.keys())
+# ERRORS and SECURITY are always enabled at runtime; never persist admin toggles for them.
+ALWAYS_ON_LOGGER_CONFIG_KEYS = frozenset({"errors", "security"})
 
 
 def _empty_stored_document() -> dict[str, dict[str, Any]]:
     return {"client": {}, "server": {}}
+
+
+def _strip_always_on_keys(scope: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in scope.items() if key not in ALWAYS_ON_LOGGER_CONFIG_KEYS}
 
 
 def _normalize_stored_config(raw: Any) -> dict[str, dict[str, Any]]:
@@ -29,8 +35,8 @@ def _normalize_stored_config(raw: Any) -> dict[str, dict[str, Any]]:
     client = raw.get("client")
     server = raw.get("server")
     return {
-        "client": dict(client) if isinstance(client, dict) else {},
-        "server": dict(server) if isinstance(server, dict) else {},
+        "client": _strip_always_on_keys(dict(client) if isinstance(client, dict) else {}),
+        "server": _strip_always_on_keys(dict(server) if isinstance(server, dict) else {}),
     }
 
 
@@ -142,6 +148,8 @@ def _normalize_log_level(value: Any, fallback: str) -> str:
 def _filter_server_updates(updates: dict[str, Any]) -> dict[str, Any]:
     safe: dict[str, Any] = {}
     for key, value in updates.items():
+        if key in ALWAYS_ON_LOGGER_CONFIG_KEYS:
+            continue
         if key not in ALLOWED_LOGGER_CONFIG_KEYS:
             continue
         if key == "logLevel":
@@ -156,6 +164,8 @@ def _filter_server_updates(updates: dict[str, Any]) -> dict[str, Any]:
 def _filter_client_updates(updates: dict[str, Any]) -> dict[str, Any]:
     safe: dict[str, Any] = {}
     for key, value in updates.items():
+        if key in ALWAYS_ON_LOGGER_CONFIG_KEYS:
+            continue
         if key == "logLevel":
             if isinstance(value, str) and value in VALID_LOG_LEVELS:
                 safe[key] = value
@@ -213,9 +223,13 @@ def merge_and_persist(
     stored = _normalize_stored_config(row.config)
 
     if client_filtered:
-        stored["client"] = _deep_merge_scope(stored["client"], client_filtered)
+        stored["client"] = _strip_always_on_keys(
+            _deep_merge_scope(stored["client"], client_filtered)
+        )
     if server_filtered:
-        stored["server"] = _deep_merge_scope(stored["server"], server_filtered)
+        stored["server"] = _strip_always_on_keys(
+            _deep_merge_scope(stored["server"], server_filtered)
+        )
 
     row.config = stored
     row.updated_by_user_id = user_id

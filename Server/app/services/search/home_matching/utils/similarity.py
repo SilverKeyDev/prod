@@ -2,13 +2,12 @@
 Similarity computation utilities for cosine and dot product scoring.
 """
 
-import logging
 from typing import Any
 
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 def cosine_similarity_score(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
@@ -23,7 +22,7 @@ def cosine_similarity_score(embedding1: np.ndarray, embedding2: np.ndarray) -> f
         similarity = cosine_similarity(embedding1, embedding2)[0, 0]
         return float(similarity)
     except Exception as e:
-        logger.error(f"Error calculating cosine similarity: {e}")
+        log.error("ERRORS", f"Error calculating cosine similarity: {e}")
         return 0.0
 
 
@@ -43,7 +42,7 @@ def dot_product_score(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
         dot_product = np.dot(normalized1, normalized2)
         return float(dot_product)
     except Exception as e:
-        logger.error(f"Error calculating dot product: {e}")
+        log.error("ERRORS", f"Error calculating dot product: {e}")
         return 0.0
 
 
@@ -56,7 +55,7 @@ def euclidean_distance_score(embedding1: np.ndarray, embedding2: np.ndarray) -> 
         similarity = np.exp(-distance)
         return float(similarity)
     except Exception as e:
-        logger.error(f"Error calculating euclidean distance: {e}")
+        log.error("ERRORS", f"Error calculating euclidean distance: {e}")
         return 0.0
 
 
@@ -68,7 +67,7 @@ def manhattan_distance_score(embedding1: np.ndarray, embedding2: np.ndarray) -> 
         similarity = np.exp(-distance / len(embedding1))
         return float(similarity)
     except Exception as e:
-        logger.error(f"Error calculating manhattan distance: {e}")
+        log.error("ERRORS", f"Error calculating manhattan distance: {e}")
         return 0.0
 
 
@@ -90,7 +89,7 @@ def batch_cosine_similarity(
         similarities = cosine_similarity(user_embedding, home_matrix)[0]
         return similarities.tolist()
     except Exception as e:
-        logger.error(f"Error in batch cosine similarity: {e}")
+        log.error("ERRORS", f"Error in batch cosine similarity: {e}")
         return [0.0] * len(home_embeddings)
 
 
@@ -108,7 +107,7 @@ def weighted_similarity_score(similarities: list[float], weights: list[float]) -
 
         return weighted_sum / weight_sum
     except Exception as e:
-        logger.error(f"Error calculating weighted similarity: {e}")
+        log.error("ERRORS", f"Error calculating weighted similarity: {e}")
         return 0.0
 
 
@@ -125,7 +124,7 @@ def rank_by_similarity(
 
         return sorted_pairs
     except Exception as e:
-        logger.error(f"Error ranking by similarity: {e}")
+        log.error("ERRORS", f"Error ranking by similarity: {e}")
         return list(zip(items, similarities, strict=False))
 
 
@@ -167,7 +166,7 @@ def normalize_scores(scores: list[float], method: str = "minmax") -> list[float]
         return normalized.tolist()
 
     except Exception as e:
-        logger.error(f"Error normalizing scores: {e}")
+        log.error("ERRORS", f"Error normalizing scores: {e}")
         return scores
 
 
@@ -190,7 +189,7 @@ class SimilarityCalculator:
         method = method or self.default_method
 
         if method not in self.methods:
-            logger.warning(f"Unknown method {method}, using {self.default_method}")
+            log.warn("SEARCH", f"Unknown method {method}, using {self.default_method}")
             method = self.default_method
 
         return self.methods[method](embedding1, embedding2)

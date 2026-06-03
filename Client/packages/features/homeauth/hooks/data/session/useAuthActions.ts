@@ -5,7 +5,7 @@
 
 import { useCallback, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import {
   resolveApiResultErrorMessage,
   resolveUserFacingMessage,
@@ -36,7 +36,7 @@ export function useSignup() {
         if (!response.success) {
           const errorMessage = resolveApiResultErrorMessage(response, "Signup failed");
           setError(errorMessage);
-          log.warn(LOG_CATEGORIES.AUTH, "Signup failed", {
+          log.warn("AUTH", "Signup failed", {
             email: data.email,
             error: response.error,
             message: errorMessage,
@@ -48,7 +48,7 @@ export function useSignup() {
           };
         }
 
-        log.info(LOG_CATEGORIES.AUTH, "Signup successful", {
+        log.info("AUTH", "Signup successful", {
           email: data.email,
           needsVerification: response.needs_verification,
         });
@@ -59,7 +59,7 @@ export function useSignup() {
       } catch (err: unknown) {
         const errorMessage = resolveUserFacingMessage(err, { fallbackMessage: "Signup failed" });
         setError(errorMessage);
-        log.error(LOG_CATEGORIES.AUTH, "Signup error", err);
+        log.error("AUTH", "Signup error", err);
         return { success: false, error: errorMessage };
       } finally {
         setIsLoading(false);
@@ -87,7 +87,7 @@ export function useForgotPassword() {
       if (!response.success) {
         const errorMessage = resolveApiResultErrorMessage(response, "Failed to send reset code");
         setError(errorMessage);
-        log.warn(LOG_CATEGORIES.AUTH, "Forgot password failed", {
+        log.warn("AUTH", "Forgot password failed", {
           email,
           error: response.error,
           message: errorMessage,
@@ -95,14 +95,14 @@ export function useForgotPassword() {
         return { success: false, error: errorMessage };
       }
 
-      log.info(LOG_CATEGORIES.AUTH, "Password reset code sent", { email });
+      log.info("AUTH", "Password reset code sent", { email });
       return { success: true };
     } catch (err: unknown) {
       const errorMessage = resolveUserFacingMessage(err, {
         fallbackMessage: "Failed to send reset code",
       });
       setError(errorMessage);
-      log.error(LOG_CATEGORIES.AUTH, "Forgot password error", err);
+      log.error("AUTH", "Forgot password error", err);
       return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
@@ -128,7 +128,7 @@ export function useResetPassword() {
       if (!response.success) {
         const errorMessage = resolveApiResultErrorMessage(response, "Failed to reset password");
         setError(errorMessage);
-        log.warn(LOG_CATEGORIES.AUTH, "Reset password failed", {
+        log.warn("AUTH", "Reset password failed", {
           email,
           error: response.error,
           message: errorMessage,
@@ -136,7 +136,7 @@ export function useResetPassword() {
         return { success: false, error: errorMessage };
       }
 
-      log.info(LOG_CATEGORIES.AUTH, "Password reset successful", { email });
+      log.info("AUTH", "Password reset successful", { email });
       return {
         success: true,
         user: response.user,
@@ -147,7 +147,7 @@ export function useResetPassword() {
         fallbackMessage: "Failed to reset password",
       });
       setError(errorMessage);
-      log.error(LOG_CATEGORIES.AUTH, "Reset password error", err);
+      log.error("AUTH", "Reset password error", err);
       return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);

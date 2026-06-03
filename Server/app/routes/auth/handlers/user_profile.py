@@ -11,10 +11,18 @@ from flask import Response, current_app, jsonify, request
 
 from app import db
 from app.dtos.user import UserDTO
-from app.schemas import ProfilePictureResponse, UserResponse
-from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.schemas import EmptyRequest, ProfilePictureResponse, UserResponse
+from app.services.auth.user_role_helpers import user_is_agent
+from app.utils.common_patterns import (
+    configuration_unavailable,
+    handle_exceptions_with_logging,
+    require_authenticated_user,
+    server_error,
+    validation,
+)
 from app.utils.security import rate_limit
-from app.utils.validation import validate_response
+from app.utils.validation import validate_request, validate_response
+from logger import log
 
 if TYPE_CHECKING:
     from app.models.user import User
@@ -48,13 +56,14 @@ def get_user_profile(user: User) -> Response | tuple[Response, int]:
     """Get the current user's profile information"""
     request_id = getattr(request, "request_id", f"profile_{int(time.time() * 1000)}")
     start_time = time.time()
-    current_app.logger.info(
-        "BACKEND_PROFILE_REQUEST",
-        extra={
+    log.info(
+        "AUTH",
+        "profile_request",
+        {
             "request_id": request_id,
             "user_id": str(user.id),
             "email": (user.email[:3] + "***" + user.email[-3:]) if user.email else "missing",
-            "is_agent": getattr(user, "is_agent", False),
+            "has_agent_role": user_is_agent(user),
             "endpoint": "profile",
             "method": "GET",
         },
@@ -74,9 +83,10 @@ def get_user_profile(user: User) -> Response | tuple[Response, int]:
     )
     # #endregion
     duration_ms = int((time.time() - start_time) * 1000)
-    current_app.logger.debug(
-        "BACKEND_PROFILE_RESPONSE",
-        extra={
+    log.debug(
+        "AUTH",
+        "profile_response",
+        {
             "request_id": request_id,
             "user_id": str(user.id),
             "duration_ms": duration_ms,
@@ -97,15 +107,17 @@ _PROFILE_PICTURE_ALLOWED_TYPES = {
 @rate_limit(max_requests=20, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
+@validate_request(EmptyRequest)
 @validate_response(ProfilePictureResponse)
-def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
+def upload_profile_picture(
+    user: User, data: EmptyRequest | None = None
+) -> Response | tuple[Response, int]:
     """
     Upload profile picture: validate image, upload to S3, update user.profile_picture,
     return presigned URL.
     """
     from app.config.constants import UPLOAD_FOLDER_DEFAULT
     from app.services.documents import s3_service
-    from app.utils.security.app_logging import get_logger
     from app.utils.security.file_security import (
         FileSecurityError,
         create_secure_upload_directory,
@@ -113,27 +125,22 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
     )
     from app.utils.security.secure_errors import SecureErrorHandler
 
-    logger = get_logger()
-
     if "file" not in request.files:
-        return SecureErrorHandler.create_secure_response(
-            "file_upload_error", 400, additional_info={"message": "No file provided"}
-        )
+        return validation("No file provided", field_errors={"file": "Required"})
 
     file = request.files["file"]
     if not file or file.filename == "":
-        return SecureErrorHandler.create_secure_response(
-            "file_upload_error", 400, additional_info={"message": "No file selected"}
-        )
+        return validation("No file selected", field_errors={"file": "Required"})
 
     try:
         safe_filename, validated_mime_type = validate_file_upload(
             file, allowed_types=_PROFILE_PICTURE_ALLOWED_TYPES
         )
     except FileSecurityError as e:
-        logger.warning(
-            "Profile picture validation failed",
-            extra={"user_id": str(user.id), "error": str(e)},
+        log.warn(
+            "AUTH",
+            "profile_picture_validation_failed",
+            {"user_id": str(user.id), "error": str(e)},
         )
         return SecureErrorHandler.handle_file_upload_error(
             e, {"user_id": str(user.id), "original_filename": file.filename}
@@ -151,11 +158,7 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
             # #region agent log
             _agent_debug_log("upload_profile_picture s3_unavailable", {}, "E")
             # #endregion
-            return SecureErrorHandler.create_secure_response(
-                "configuration_error",
-                503,
-                additional_info={"message": "File storage not available"},
-            )
+            return configuration_unavailable(context={"feature": "profile_picture_storage"})
 
         _, ext = os.path.splitext(safe_filename.lower())
         s3_key = f"profile_pictures/{user.id}/avatar{ext}"
@@ -165,38 +168,40 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
             temp_file_path, s3_key, content_type=validated_mime_type
         )
         if not uploaded_key:
-            return SecureErrorHandler.create_secure_response("server_error", 500)
+            return server_error(
+                RuntimeError("profile_picture_upload_failed"),
+                context={"function": "upload_profile_picture", "user_id": str(user.id)},
+            )
 
         profile_picture_url = s3_service.generate_view_url(
             uploaded_key, content_type=validated_mime_type
         )
         if not profile_picture_url:
-            logger.error(
-                "Profile picture presigned URL generation failed after S3 upload",
-                extra={"user_id": str(user.id), "s3_key": uploaded_key},
+            log.error(
+                "AUTH",
+                "profile_picture_presign_failed",
+                {"user_id": str(user.id), "s3_key": uploaded_key},
             )
             try:
                 s3_service.delete_pdf(uploaded_key)
             except Exception as cleanup_err:
-                logger.warning(
-                    "Failed to delete profile picture object after presign failure",
-                    extra={"user_id": str(user.id), "error": str(cleanup_err)},
+                log.warn(
+                    "AUTH",
+                    "profile_picture_cleanup_after_presign_failed",
+                    {"user_id": str(user.id), "error": str(cleanup_err)},
                 )
-            return SecureErrorHandler.create_secure_response(
-                "configuration_error",
-                503,
-                additional_info={
-                    "message": "Could not create a secure link for the image. Storage signing may be misconfigured.",
-                },
+            return configuration_unavailable(
+                context={"feature": "profile_picture_presign", "user_id": str(user.id)},
             )
 
         if previous_picture_key and previous_picture_key != uploaded_key:
             try:
                 s3_service.delete_pdf(previous_picture_key)
             except Exception as e:
-                logger.warning(
-                    "Failed to delete old profile picture",
-                    extra={"user_id": str(user.id), "error": str(e)},
+                log.warn(
+                    "AUTH",
+                    "profile_picture_old_delete_failed",
+                    {"user_id": str(user.id), "error": str(e)},
                 )
 
         user.profile_picture = uploaded_key
@@ -224,8 +229,11 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
             }
         ), 201
     except Exception as e:
-        logger.error("Profile picture upload failed: %s", str(e))
-        return SecureErrorHandler.create_secure_response("server_error", 500)
+        log.error("AUTH", "profile_picture_upload_failed", e)
+        return server_error(
+            e,
+            context={"function": "upload_profile_picture", "user_id": str(user.id)},
+        )
     finally:
         try:
             if os.path.exists(temp_file_path):

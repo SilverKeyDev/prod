@@ -1,9 +1,12 @@
 """Queryable lists: must_have, deal_breaker, nice_to_have, listing_type, feature. Indexes: (user_id, attribute_type), (attribute_type, attribute_key)."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -25,7 +28,7 @@ class UserIntentAttribute(db.Model):
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )
 
-    user = db.relationship("User", backref=db.backref("user_intent_attributes", lazy="dynamic"))
+    user: Mapped["User"] = relationship("User", back_populates="user_intent_attributes")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

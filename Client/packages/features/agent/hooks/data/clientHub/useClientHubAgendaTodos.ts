@@ -6,7 +6,7 @@ import {
   completedSigningAgendaTodosForViewer,
   pendingSigningAgendaTodosAsClient,
 } from "packages/hooks/data/agenda/signingAgendaFromDocuments";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { mapTodosToAgendaDTO } from "@/features/agent/utils/mapTodosToAgendaDTO";
 
@@ -46,7 +46,7 @@ export function useClientHubAgendaTodos(clientId: string): {
       try {
         await updateTodo(id, { completed: !todo.completed });
       } catch (error) {
-        log.error(LOG_CATEGORIES.DASHBOARD, "Failed to update todo", error);
+        log.error("DASHBOARD", "Failed to update todo", error);
       }
     },
     [clientTodos, updateTodo]

@@ -29,7 +29,7 @@ See also: [Client/ARCHITECTURE.md](../../../Client/ARCHITECTURE.md), [documentat
 ```typescript
 // ✅ CORRECT: config/api/auth.ts
 import { apiPost, apiGet } from "../../services/http/compatibility";
-import { log } from "../../services/security/secureLogger";
+import { log } from "packages/logger";
 
 export const authApi = {
   login: async (data: LoginData) => {

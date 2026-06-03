@@ -13,7 +13,6 @@ from .permissions import (
     can_modify_agreement,
     can_send_agreement,
     can_void_agreement,
-    is_agent,
 )
 from .recipients import (
     build_carbon_copies,
@@ -33,7 +32,6 @@ __all__ = [
     "can_get_signing_url",
     "can_add_participants",
     "can_create_revision",
-    "is_agent",
     "can_access_oauth",
     # Idempotency
     "generate_envelope_key",

@@ -5,7 +5,6 @@ Low-level DocuSign API client wrapper with automatic retry logic.
 """
 
 import json
-import logging
 from typing import Any, cast
 
 from docusign_esign import (
@@ -23,14 +22,15 @@ from tenacity import (
     wait_exponential,
 )
 
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
+from logger.bootstrap.infrastructure import INFRA_LOG_INFO, get_infrastructure_logger
 
 from ..errors import AgreementStateError, DocusignAPIError, DocusignAuthError
 from . import envelope_ops, template_ops
 from .auth_jwt import get_jwt_auth
 from .auth_oauth import DocusignOAuthService
 
-logger = get_logger()
+_tenacity_logger = get_infrastructure_logger("app.docusign.retry")
 
 
 def _docusign_api_error_payload(body: object) -> dict[str, Any]:
@@ -66,7 +66,7 @@ retry_config = {
     | retry_if_exception(lambda e: isinstance(e, ConnectionError)),
     "stop": stop_after_attempt(3),
     "wait": wait_exponential(multiplier=1, min=1, max=10),
-    "before_sleep": before_sleep_log(logger, logging.INFO),
+    "before_sleep": before_sleep_log(_tenacity_logger, INFRA_LOG_INFO),
     "reraise": True,
 }
 
@@ -94,8 +94,8 @@ class DocusignClient:
         self.auth_type = auth_type
         self.user_id = user_id
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Initializing DocuSign client",
             {"auth_type": auth_type, "user_id": user_id},
         )
@@ -105,8 +105,8 @@ class DocusignClient:
             self.api_client = self.jwt_auth.get_api_client()
             self.account_id = self.jwt_auth.get_account_id()
 
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "DocuSign client initialized with JWT",
                 {"account_id": self.account_id},
             )
@@ -121,8 +121,8 @@ class DocusignClient:
             self.api_client = DocusignOAuthService.api_client_for_token(token)
             self.account_id = token.account_id
 
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "DocuSign client initialized with OAuth",
                 {"user_id": user_id, "account_id": self.account_id},
             )
@@ -140,8 +140,8 @@ class DocusignClient:
             message = payload.get("message") or (
                 "Only envelopes in the Sent or Delivered states may be voided."
             )
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "DocuSign void rejected: invalid envelope state",
                 {
                     "operation": operation,
@@ -152,8 +152,8 @@ class DocusignClient:
             )
             raise AgreementStateError(message)
 
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             f"DocuSign API error: {operation}",
             {
                 "operation": operation,

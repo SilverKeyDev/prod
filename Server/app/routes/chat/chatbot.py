@@ -1,6 +1,7 @@
 """Property-report chatbot routes (send message, fetch history)."""
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
+from sqlalchemy import select
 
 from app import db
 from app.models import ChatHistory, Document
@@ -10,11 +11,15 @@ from app.services.chatbot.chatbot_utils import (
     get_preferences,
     summarize_user_message,
 )
-from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
-from app.utils.security.app_logging import get_logger
+from app.utils.common_patterns import (
+    handle_exceptions_with_logging,
+    not_found,
+    require_authenticated_user,
+    server_error,
+    validation,
+)
 from app.utils.validation import validate_request, validate_response
-
-logger = get_logger()
+from logger import log
 
 chatbot_bp = Blueprint("chatbot", __name__)
 
@@ -24,31 +29,31 @@ chatbot_bp = Blueprint("chatbot", __name__)
 @require_authenticated_user
 @validate_request(ChatbotSendRequest)
 @validate_response(ChatbotResponse)
-def chat_for_address(user, report_id: str, data: ChatbotSendRequest | None = None):
+def chat_for_address(user, report_id: str, data: ChatbotSendRequest):
     user_id = str(user.id)
 
-    if data is None:
-        raw = request.get_json(silent=True) or {}
-        user_message = str(raw.get("message") or "").strip()
-    else:
-        user_message = str(data.message or "").strip()
+    user_message = str(data.message or "").strip()
 
     if not user_message:
-        logger.warning(f"[CHAT_ROUTE] Empty message received from user {user_id}")
-        return jsonify({"error": "Message cannot be empty"}), 400
+        log.warn("MESSAGES", "chat_empty_message", {"user_id": user_id})
+        return validation("Message cannot be empty", field_errors={"message": "Required"})
 
     message_summary = summarize_user_message(user_message)
 
-    pdf_doc = Document.query.filter_by(id=report_id, user_id=user_id).first()
+    pdf_doc = db.session.scalar(
+        select(Document).where(Document.id == report_id, Document.user_id == user_id)
+    )
     if not pdf_doc:
-        logger.warning(
-            f"[CHAT_ROUTE] PDF document not found for report_id: {report_id}, user_id: {user_id}"
+        log.warn(
+            "MESSAGES",
+            "chat_report_not_found",
+            {"report_id": report_id, "user_id": user_id},
         )
-        return jsonify({"error": f"Report not found: {report_id}"}), 404
+        return not_found()
 
     address = getattr(pdf_doc, "primary_address", None) or "Unknown Address"
     if not pdf_doc.primary_address:
-        logger.warning(f"[CHAT_ROUTE] PDF document {report_id} has no primary_address set")
+        log.warn("MESSAGES", "chat_report_missing_primary_address", {"report_id": report_id})
 
     report_data = None
     try:
@@ -69,7 +74,11 @@ def chat_for_address(user, report_id: str, data: ChatbotSendRequest | None = Non
 
         report_data = _download_json_from_s3(json_s3_key)
     except Exception as report_error:
-        logger.warning(f"[CHAT_ROUTE] Failed to fetch full report data: {str(report_error)}")
+        log.warn(
+            "MESSAGES",
+            "chat_report_data_unavailable",
+            {"report_id": report_id, "error": str(report_error)},
+        )
         report_data = {
             "address": address,
             "type": "property_report",
@@ -91,13 +100,20 @@ def chat_for_address(user, report_id: str, data: ChatbotSendRequest | None = Non
             address=address,
         )
     except Exception as ai_error:
-        logger.error(f"[CHAT_ROUTE] AI service error: {str(ai_error)}")
+        log.error("MESSAGES", "chat_ai_service_error", ai_error)
         reply = "I'm sorry, the AI service is currently unavailable. Please try again later."
         function_call = None
 
     ai_chat = ChatHistory(user_id=user_id, report_id=report_id, role="assistant", message=reply)
     db.session.add(ai_chat)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return server_error(
+            e,
+            context={"function": "chat_for_address", "user_id": user_id, "report_id": report_id},
+        )
 
     return jsonify(
         {
@@ -115,11 +131,11 @@ def chat_for_address(user, report_id: str, data: ChatbotSendRequest | None = Non
 def get_chat_history(user, report_id: str):
     """Get chat history for a specific property report."""
     user_id = str(user.id)
-    chat_history = (
-        ChatHistory.query.filter_by(user_id=user_id, report_id=report_id)
+    chat_history = db.session.scalars(
+        select(ChatHistory)
+        .where(ChatHistory.user_id == user_id, ChatHistory.report_id == report_id)
         .order_by(ChatHistory.timestamp.asc())
-        .all()
-    )
+    ).all()
 
     messages = [
         {

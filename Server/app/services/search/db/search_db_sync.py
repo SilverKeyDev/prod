@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from app import db
 from app.models import HomeNotInterested
 from app.utils.format.address_format import normalize_address
@@ -31,7 +33,9 @@ def sync_to_home_not_interested(
         except Exception:
             norm = prop.address.strip().lower()
 
-        for rec in HomeNotInterested.query.filter_by(user_id=str(link.user_id)).all():
+        for rec in db.session.scalars(
+            select(HomeNotInterested).where(HomeNotInterested.user_id == str(link.user_id))
+        ).all():
             if not rec.address:
                 continue
             try:

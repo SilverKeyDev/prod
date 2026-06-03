@@ -12,23 +12,21 @@ import {
 } from "./onboardingRoleSelection";
 
 describe("applyOnboardingRoleSelection", () => {
-  it("maps agent to is_agent yes and clears why_joining", () => {
+  it("maps agent to primary_onboarding_role and clears why_joining", () => {
     const patches: Record<string, unknown> = {};
     applyOnboardingRoleSelection("agent", (k, v) => {
       patches[String(k)] = v;
     });
     expect(patches.primary_onboarding_role).toBe("agent");
-    expect(patches.is_agent).toBe("yes");
     expect(patches.why_joining_silverkey).toEqual([]);
   });
 
-  it("maps buyer to is_agent no and buying_house", () => {
+  it("maps buyer to primary_onboarding_role and buying_house", () => {
     const patches: Record<string, unknown> = {};
     applyOnboardingRoleSelection("buyer", (k, v) => {
       patches[String(k)] = v;
     });
     expect(patches.primary_onboarding_role).toBe("buyer");
-    expect(patches.is_agent).toBe("no");
     expect(patches.why_joining_silverkey).toEqual([WHY_JOIN_FOR_ROLE.buyer]);
   });
 
@@ -54,19 +52,17 @@ describe("primaryOnboardingRoleFromForm", () => {
     expect(
       primaryOnboardingRoleFromForm({
         primary_onboarding_role: "seller",
-        is_agent: "no",
       })
     ).toBe("seller");
   });
 
-  it("infers agent from is_agent yes", () => {
-    expect(primaryOnboardingRoleFromForm({ is_agent: "yes" })).toBe("agent");
+  it("infers agent from auth roles when draft role missing", () => {
+    expect(primaryOnboardingRoleFromForm({}, { roles: ["agent"] })).toBe("agent");
   });
 
   it("infers buyer from why_joining", () => {
     expect(
       primaryOnboardingRoleFromForm({
-        is_agent: "no",
         why_joining_silverkey: ["buying_house"],
       })
     ).toBe("buyer");
@@ -75,7 +71,6 @@ describe("primaryOnboardingRoleFromForm", () => {
   it("infers seller when buyer and seller intents both exist", () => {
     expect(
       primaryOnboardingRoleFromForm({
-        is_agent: "no",
         why_joining_silverkey: [WHY_JOIN_FOR_ROLE.buyer, WHY_JOIN_FOR_ROLE.seller],
       })
     ).toBe("seller");
@@ -83,12 +78,11 @@ describe("primaryOnboardingRoleFromForm", () => {
 });
 
 describe("formDataToPreferencesPayload", () => {
-  it("omits draft-only primary_onboarding_role", () => {
+  it("includes primary_onboarding_role for server role sync", () => {
     const payload = formDataToPreferencesPayload({
-      is_agent: "no",
       primary_onboarding_role: "buyer",
     } as OnboardingData);
-    expect(Object.prototype.hasOwnProperty.call(payload, "primary_onboarding_role")).toBe(false);
+    expect(payload.primary_onboarding_role).toBe("buyer");
   });
 });
 
@@ -106,7 +100,6 @@ describe("legacy investor draft", () => {
     expect(
       primaryOnboardingRoleFromForm({
         primary_onboarding_role: "investor",
-        is_agent: "no",
       })
     ).toBe("buyer");
   });

@@ -8,8 +8,7 @@ import { getWindow } from "packages/utils/platform";
 
 import { BodyText, Title } from "@/components/ui";
 
-/** Cached template row from GET /docusign/templates (may include legacy `docusign_template_id`). */
-export type ListDocusignTemplate = DocusignTemplate & { docusign_template_id?: string };
+export type ListDocusignTemplate = DocusignTemplate;
 
 export type DocuSignWidgetSavedTemplatesSectionProps = {
   savedTemplates: ListDocusignTemplate[];
@@ -40,7 +39,7 @@ export function DocuSignWidgetSavedTemplatesSection({
       <Box className="space-y-2">
         {savedTemplates.map((tmpl) => {
           const row = tmpl;
-          const tid = row.template_id || row.docusign_template_id || "";
+          const tid = row.template_id ?? "";
           const label = row.name || tid;
           return (
             <Box

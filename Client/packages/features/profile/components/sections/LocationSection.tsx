@@ -46,7 +46,7 @@ export default function LocationSection({
   titleId,
 }: LocationSectionProps) {
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
-  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData);
 
   const patch = useCallback(
     (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {

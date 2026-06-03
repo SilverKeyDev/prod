@@ -1,7 +1,6 @@
 import type { Workspace } from "packages/utils/workspace";
 
 export type DevAppPersonaProfileInput = {
-  is_agent: boolean;
   roles?: readonly string[] | undefined;
   brokerage_org_ids?: readonly string[] | null | undefined;
 };
@@ -38,7 +37,7 @@ function hasIntegrationPartnerSignals(roleSet: Set<string>): boolean {
 }
 
 /**
- * Maps persisted profile (`users.is_agent` + roles / brokerage org ids) to the active
+ * Maps persisted profile (roles / brokerage org ids) to the active
  * dev workspace persona. Mirrors production identity → workspace derivation for a single hat.
  */
 export function deriveDevAppPersonaFromProfile(
@@ -56,7 +55,7 @@ export function deriveDevAppPersonaFromProfile(
     return "brokerage";
   }
 
-  if (user.is_agent) {
+  if (user.roles?.includes("agent")) {
     return "agent";
   }
 

@@ -10,7 +10,8 @@ import zlib
 from typing import Any, cast
 
 import redis
-from flask import current_app
+
+from logger import log
 
 from ..home_matching.config.match import find_best_matches
 from ..home_matching.mcda import MCDA_CONFIG, score_listing_mcda
@@ -162,7 +163,7 @@ def score_and_sort_properties(
         return _sort_with_python(properties, score_map)
 
     except Exception as e:
-        current_app.logger.error(f"⚠️ Property scoring failed: {str(e)}")
+        log.error("ERRORS", "Property scoring failed", e)
         # Return properties with default scores
         for prop in properties:
             prop["_score"] = 0.0
@@ -209,8 +210,10 @@ def _sort_with_redis(
         return scored_properties
 
     except Exception as redis_error:
-        current_app.logger.warning(
-            f"⚠️ Redis sorting failed: {str(redis_error)}, falling back to Python sort"
+        log.warn(
+            "SEARCH",
+            "Redis sorting failed; falling back to Python sort",
+            {"error": str(redis_error)},
         )
         return []
 

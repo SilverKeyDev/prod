@@ -6,7 +6,6 @@ export {
   type ParsedClientHubPath,
   resolveClientHubRouteClientId,
   resolveClientIdFromHubSegments,
-  resolveClientIdFromLegacyHubSegment,
 } from "./clientHubSlug";
 export {
   type AgentPublicProfileLinkAgent,

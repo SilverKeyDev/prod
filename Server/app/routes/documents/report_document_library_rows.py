@@ -1,6 +1,10 @@
 """Shared document-library row shaping for report routes."""
 
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+
+from app import db
+from app.services.auth.user_role_helpers import user_is_agent
 
 from ...models import Agreement, AgreementLink, Document, DocumentLibraryItem
 
@@ -42,11 +46,11 @@ def agreement_to_library_row(ag: Agreement, linked_checklist_item_id: str | None
 
 def document_library_rows_for_user(target_uid: str) -> list[dict]:
     """Unified list: file uploads and DocuSign agreements for Saved / documents."""
-    items = (
-        DocumentLibraryItem.query.filter_by(user_id=target_uid)
+    items = db.session.scalars(
+        select(DocumentLibraryItem)
+        .where(DocumentLibraryItem.user_id == target_uid)
         .order_by(DocumentLibraryItem.updated_at.desc().nulls_last())
-        .all()
-    )
+    ).all()
 
     if not items:
         return []
@@ -57,12 +61,16 @@ def document_library_rows_for_user(target_uid: str) -> list[dict]:
 
     # Batch load all documents and agreements
     documents = (
-        Document.query.filter(Document.library_item_id.in_(upload_item_ids)).all()
+        db.session.scalars(
+            select(Document).where(Document.library_item_id.in_(upload_item_ids))
+        ).all()
         if upload_item_ids
         else []
     )
     agreements = (
-        Agreement.query.filter(Agreement.library_item_id.in_(agreement_item_ids)).all()
+        db.session.scalars(
+            select(Agreement).where(Agreement.library_item_id.in_(agreement_item_ids))
+        ).all()
         if agreement_item_ids
         else []
     )
@@ -116,9 +124,11 @@ def _linked_checklist_item_ids_for_agreements(agreement_ids: list[str]) -> dict[
     """First checklist_item link per agreement id (`{category}.{item_id}`)."""
     if not agreement_ids:
         return {}
-    links = AgreementLink.query.filter(
-        AgreementLink.agreement_id.in_(agreement_ids),
-        AgreementLink.linked_item_type == "checklist_item",
+    links = db.session.scalars(
+        select(AgreementLink).where(
+            AgreementLink.agreement_id.in_(agreement_ids),
+            AgreementLink.linked_item_type == "checklist_item",
+        )
     ).all()
     out: dict[str, str] = {}
     for link in links:
@@ -135,18 +145,18 @@ def document_library_rows_for_agent_request(target_uid: str, acting_user) -> lis
     under the buyer's user_id.
     """
     rows = document_library_rows_for_user(target_uid)
-    if not getattr(acting_user, "is_agent", False):
+    if not user_is_agent(acting_user):
         return rows
     if str(acting_user.id) != str(target_uid):
         return rows
 
     seen_agreement_ids = {r["id"] for r in rows if r.get("library_kind") == "agreement"}
-    extra = (
-        Agreement.query.options(selectinload(Agreement.participants))
-        .filter(Agreement.agent_id == acting_user.id)
+    extra = db.session.scalars(
+        select(Agreement)
+        .options(selectinload(Agreement.participants))
+        .where(Agreement.agent_id == acting_user.id)
         .order_by(Agreement.updated_at.desc().nulls_last())
-        .all()
-    )
+    ).all()
     for ag in extra:
         if (
             ag.id in seen_agreement_ids

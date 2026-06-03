@@ -1,8 +1,11 @@
 """Financial profile (queried a lot). Indexes: (home_budget_min, home_budget_max), credit_score_range in migration."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -25,6 +28,4 @@ class UserFinancials(db.Model):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    user = db.relationship(
-        "User", backref=db.backref("user_financials", uselist=False, lazy="select")
-    )
+    user: Mapped["User"] = relationship("User", back_populates="user_financials")

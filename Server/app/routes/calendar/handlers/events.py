@@ -3,15 +3,22 @@ Event CRUD endpoints for Google Calendar
 """
 
 from flask import jsonify, make_response, request
+from sqlalchemy import select
 
 from app import db
+from app.dtos.calendar_event import CalendarEventDTO
 from app.models import AgentConnections, User
 from app.models.calendar.calendar_event import CalendarEvent
+from app.routes.calendar.handlers.errors import (
+    calendar_permission_response,
+    itinerary_resolution_error,
+)
 from app.schemas import (
     DeleteEventResponse,
     GoogleCalendarApiResponse,
     GoogleCalendarEventCreateBody,
 )
+from app.services.auth.user_role_helpers import user_is_agent
 from app.services.calendar.core import (
     get_authenticated_user_id,
     google_calendar_service,
@@ -34,19 +41,17 @@ from app.services.calendar.viewing_itinerary import (
     merge_viewing_itinerary_into_event_data,
     resolve_itinerary_with_route,
 )
-from app.utils.security.app_logging import get_logger
+from app.utils.route import http_errors
 from app.utils.security.security import (
     rate_limit,
     validate_event_data,
 )
 from app.utils.validation import validate_request, validate_response
-
-from .event_response_enrichment import enrich_events_with_db_itinerary
-
-logger = get_logger()
+from logger import log
 
 
 @rate_limit(max_requests=100, window_seconds=60)
+@validate_response(GoogleCalendarApiResponse)
 def list_events():
     """List events from user's Google calendar
 
@@ -75,10 +80,14 @@ def list_events():
         if events is None:
             events = []
         elif not isinstance(events, list):
-            logger.warning(f"Unexpected events format for user {user_id}: {type(events)}")
+            log.warn(
+                "CALENDAR",
+                "events_unexpected_format",
+                {"user_id": str(user_id), "events_type": str(type(events))},
+            )
             events = []
 
-        enrich_events_with_db_itinerary(user_id, events)
+        events = CalendarEventDTO.enrich_events(user_id, events)
 
         return jsonify({"success": True, "data": {"items": events}})
 
@@ -101,28 +110,26 @@ def fetch_single_calendar_event(event_id: str):
             user_id, "calendar_app_created", context="get events"
         )
         if not has_permission:
-            return jsonify(perm_err), 403
+            return calendar_permission_response(perm_err)
 
         calendar_id = request.args.get("calendarId", "primary")
-        row = CalendarEvent.query.filter_by(google_event_id=event_id).first()
+        row = db.session.scalar(
+            select(CalendarEvent).where(CalendarEvent.google_event_id == event_id)
+        )
         target_user_id = None
         if row:
             if row.user_id != user_id and row.creator_id != user_id:
-                return jsonify(
-                    {"success": False, "error": "You do not have access to this event"}
-                ), 403
+                return http_errors.forbidden()
             if row.user_id != user_id:
                 target_user_id = row.user_id
 
         event = google_calendar_service.get_event(
             user_id, event_id, calendar_id, target_user_id=target_user_id
         )
-        body = {**event} if isinstance(event, dict) else dict(event)
-        if row:
-            if row.itinerary:
-                body["itinerary"] = row.itinerary
-            if row.event_type:
-                body["silverKeyEventType"] = row.event_type
+        body = CalendarEventDTO.to_response(
+            event if isinstance(event, dict) else dict(event),
+            calendar_event_row=row,
+        )
         return jsonify({"success": True, "data": body}), 200
 
     except Exception as e:
@@ -132,7 +139,7 @@ def fetch_single_calendar_event(event_id: str):
 @rate_limit(max_requests=50, window_seconds=60)
 @validate_response(GoogleCalendarApiResponse)
 @validate_request(GoogleCalendarEventCreateBody)
-def create_event(data: GoogleCalendarEventCreateBody | None = None):
+def create_event(data: GoogleCalendarEventCreateBody):
     """Create a new event in user's Google calendar and save to database
 
     Supports cross-calendar event creation for agent-client relationships:
@@ -147,22 +154,20 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
         return make_response(("Unauthorized", 401))
 
     try:
-        event_data = request.get_json(silent=True)
-        if not event_data:
-            return make_response(("Request body is required", 400))
+        event_data = dict(data.model_dump(mode="json", by_alias=True))
         add_google_meet = bool(event_data.pop("addGoogleMeet", False))
         event_data.pop("conferenceData", None)
         if not validate_event_data(event_data):
-            return make_response(("Invalid event data", 400))
+            return http_errors.validation("Invalid event data")
 
         has_permission, error_response = require_permission(
             user_id, "calendar_app_created", context="create events"
         )
         if not has_permission:
-            return jsonify(error_response), 403
+            return calendar_permission_response(error_response)
 
         calendar_id = extract_calendar_id_from_request(event_data)
-        event_type = event_data.pop("eventType", None)
+        event_type = event_data.pop("eventType", None) or event_data.pop("silverKeyEventType", None)
 
         itinerary_raw = event_data.pop("itinerary", None)
         itinerary_plain = itinerary_for_db(itinerary_raw)
@@ -170,14 +175,11 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
         if itinerary_plain:
             try:
                 itinerary_db = resolve_itinerary_with_route(itinerary_plain)
-            except ValueError as e:
-                return jsonify({"success": False, "error": str(e)}), 400
-            except RuntimeError as e:
-                logger.error("Viewing itinerary route resolution failed: %s", e)
-                return jsonify({"success": False, "error": str(e)}), 503
+            except (ValueError, RuntimeError) as e:
+                return itinerary_resolution_error(e)
             merge_viewing_itinerary_into_event_data(event_data, itinerary_db)
 
-        current_user = User.query.filter_by(id=user_id).first()
+        current_user = db.session.scalar(select(User).where(User.id == user_id))
         result = resolve_create_event_target(user_id, event_data, current_user)
         event_data.pop("target_user_id", None)
         event_data.pop("create_in_agent_calendar", True)
@@ -186,7 +188,7 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
             return make_response((result[0], result[1])), result[1]
 
         primary_target, should_create_in_agent_calendar = result
-        is_agent = current_user.is_agent
+        is_agent = user_is_agent(current_user)
 
         google_event, calendar_event = create_primary_event_and_db(
             user_id,
@@ -210,15 +212,20 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
         )
 
         db.session.commit()
-        logger.info(
-            "Event created and saved to database: %s for user %s, target: %s",
-            calendar_event.id,
-            user_id,
-            primary_target,
+        log.info(
+            "CALENDAR",
+            "event_created",
+            {
+                "event_id": str(calendar_event.id),
+                "user_id": str(user_id),
+                "primary_target": primary_target,
+            },
         )
-        response_body = {**google_event} if isinstance(google_event, dict) else dict(google_event)
-        if calendar_event.itinerary:
-            response_body["itinerary"] = calendar_event.itinerary
+        response_body = CalendarEventDTO.to_response(
+            google_event if isinstance(google_event, dict) else dict(google_event),
+            calendar_event_row=calendar_event,
+            create=True,
+        )
         return jsonify({"success": True, "data": response_body}), 201
 
     except Exception as e:
@@ -229,7 +236,7 @@ def create_event(data: GoogleCalendarEventCreateBody | None = None):
 @rate_limit(max_requests=50, window_seconds=60)
 @validate_response(GoogleCalendarApiResponse)
 @validate_request(GoogleCalendarEventCreateBody)
-def update_event(event_id, data: GoogleCalendarEventCreateBody | None = None):
+def update_event(event_id, data: GoogleCalendarEventCreateBody):
     """Update an existing event in user's Google calendar"""
     user_id, error_response = get_authenticated_user_id()
     if error_response:
@@ -243,15 +250,13 @@ def update_event(event_id, data: GoogleCalendarEventCreateBody | None = None):
             user_id, "calendar_app_created", context="update events"
         )
         if not has_permission:
-            return jsonify(error_response), 403
+            return calendar_permission_response(error_response)
 
-        # Validate event data
-        event_data = request.get_json(silent=True)
-        if not event_data:
-            return make_response(("Request body is required", 400))
+        event_data = dict(data.model_dump(mode="json", by_alias=True))
         event_data.pop("addGoogleMeet", None)
+        event_data.pop("conferenceData", None)
         if not validate_event_data(event_data):
-            return make_response(("Invalid event data", 400))
+            return http_errors.validation("Invalid event data")
 
         itinerary_raw = event_data.pop("itinerary", None)
         itinerary_plain = itinerary_for_db(itinerary_raw)
@@ -259,11 +264,8 @@ def update_event(event_id, data: GoogleCalendarEventCreateBody | None = None):
         if itinerary_plain:
             try:
                 itinerary_db = resolve_itinerary_with_route(itinerary_plain)
-            except ValueError as e:
-                return jsonify({"success": False, "error": str(e)}), 400
-            except RuntimeError as e:
-                logger.error("Viewing itinerary route resolution failed: %s", e)
-                return jsonify({"success": False, "error": str(e)}), 503
+            except (ValueError, RuntimeError) as e:
+                return itinerary_resolution_error(e)
             merge_viewing_itinerary_into_event_data(event_data, itinerary_db)
 
         calendar_id = extract_calendar_id_from_request(event_data)
@@ -272,10 +274,16 @@ def update_event(event_id, data: GoogleCalendarEventCreateBody | None = None):
         # Sync the updated event to the database
         sync_event_to_db(event_id, event, user_id, itinerary=itinerary_db)
 
-        response_body = {**event} if isinstance(event, dict) else dict(event)
-        row = CalendarEvent.query.filter_by(google_event_id=event_id, user_id=user_id).first()
-        if row and row.itinerary:
-            response_body["itinerary"] = row.itinerary
+        row = db.session.scalar(
+            select(CalendarEvent).where(
+                CalendarEvent.google_event_id == event_id,
+                CalendarEvent.user_id == user_id,
+            )
+        )
+        response_body = CalendarEventDTO.to_response(
+            event if isinstance(event, dict) else dict(event),
+            calendar_event_row=row,
+        )
 
         return jsonify({"success": True, "data": response_body}), 200
 
@@ -299,7 +307,7 @@ def delete_event(event_id):
             user_id, "calendar_app_created", context="delete events"
         )
         if not has_permission:
-            return jsonify(error_response), 403
+            return calendar_permission_response(error_response)
         calendar_id = request.args.get("calendarId", "primary")
         success = google_calendar_service.delete_event(user_id, event_id, calendar_id)
 
@@ -314,6 +322,7 @@ def delete_event(event_id):
 
 
 @rate_limit(max_requests=100, window_seconds=60)
+@validate_response(GoogleCalendarApiResponse)
 def list_client_events(client_id: str):
     """List events from a client's Google calendar
 
@@ -328,36 +337,25 @@ def list_client_events(client_id: str):
 
     try:
         # Verify requesting user is an agent
-        agent_user = User.query.filter_by(id=agent_id).first()
-        if not agent_user or not agent_user.is_agent:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "unauthorized",
-                    "message": "Only agents can access client events",
-                }
-            ), 403
+        agent_user = db.session.scalar(select(User).where(User.id == agent_id))
+        if not agent_user or not user_is_agent(agent_user):
+            return http_errors.forbidden()
 
         # Verify client exists and is connected to this agent
-        client_user = User.query.filter_by(id=client_id).first()
+        client_user = db.session.scalar(select(User).where(User.id == client_id))
         if not client_user:
-            return jsonify(
-                {"success": False, "error": "client_not_found", "message": "Client not found"}
-            ), 404
+            return http_errors.not_found("Client not found")
 
         # Check if agent has connection with client
-        connection = AgentConnections.query.filter_by(
-            agent_id=agent_id, client_id=client_id
-        ).first()
+        connection = db.session.scalar(
+            select(AgentConnections).where(
+                AgentConnections.agent_id == agent_id,
+                AgentConnections.client_id == client_id,
+            )
+        )
 
         if not connection:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "unauthorized",
-                    "message": "You do not have access to this client's calendar",
-                }
-            ), 403
+            return http_errors.forbidden()
 
         # Get request parameters
         calendar_id = request.args.get("calendarId", "primary")
@@ -366,11 +364,11 @@ def list_client_events(client_id: str):
         max_results = validate_max_results(request.args.get("maxResults", "100"))
 
         if not time_min or not time_max:
-            return make_response(("timeMin and timeMax are required", 400))
+            return http_errors.validation("timeMin and timeMax are required")
 
         perm_error = get_client_events_permission_error(client_id)
         if perm_error:
-            return jsonify(perm_error), 403
+            return calendar_permission_response(perm_error)
 
         # List events for client's calendar (using client's user_id, not agent's)
         # This will use the client's credentials and resolve their calendar IDs
@@ -382,10 +380,14 @@ def list_client_events(client_id: str):
         if events is None:
             events = []
         elif not isinstance(events, list):
-            logger.warning(f"Unexpected events format for client {client_id}: {type(events)}")
+            log.warn(
+                "CALENDAR",
+                "client_events_unexpected_format",
+                {"client_id": str(client_id), "events_type": str(type(events))},
+            )
             events = []
 
-        enrich_events_with_db_itinerary(client_id, events)
+        events = CalendarEventDTO.enrich_events(client_id, events)
 
         return jsonify({"success": True, "data": {"items": events}})
 

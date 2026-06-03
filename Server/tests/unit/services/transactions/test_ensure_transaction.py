@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from sqlalchemy import func, select
 
 from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
 
@@ -21,14 +22,12 @@ def test_ensure_transaction_creates_and_is_idempotent(app, db_session):
             cognito_id="cog-et1",
             email="agent-et1@test.com",
             name="Agent",
-            is_agent=True,
         )
         buyer = User(
             id="buyer-et1",
             cognito_id="cog-bet1",
             email="buyer-et1@test.com",
             name="Buyer",
-            is_agent=False,
         )
         db.session.add_all([agent, buyer])
         ensure_org_membership(str(agent.id), role="agent")
@@ -43,5 +42,19 @@ def test_ensure_transaction_creates_and_is_idempotent(app, db_session):
         assert tx1.buyer_id == str(buyer.id)
         assert tx1.primary_agent_id == str(agent.id)
         assert tx1.brokerage_org_id == DEFAULT_BROKERAGE_ORG_ID
-        assert Transaction.query.filter_by(buyer_id=str(buyer.id)).count() == 1
-        assert UserOrgMembership.query.filter_by(user_id=str(buyer.id)).count() >= 0
+        assert (
+            db.session.scalar(
+                select(func.count())
+                .select_from(Transaction)
+                .where(Transaction.buyer_id == str(buyer.id))
+            )
+            == 1
+        )
+        assert (
+            db.session.scalar(
+                select(func.count())
+                .select_from(UserOrgMembership)
+                .where(UserOrgMembership.user_id == str(buyer.id))
+            )
+            >= 0
+        )

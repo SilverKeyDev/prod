@@ -7,7 +7,7 @@ import { ChecklistStepSigningFooter } from "packages/features/checklists/compone
 import { useDocumentsDataIntegration } from "packages/features/documents";
 import { signingTodosForChecklistStep } from "packages/hooks/data/agenda/signingTodosForChecklistStep";
 import { useSigningTodos } from "packages/hooks/data/agenda/useSigningTodos";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 type UseChecklistStepSigningFooterArgs = {
   checklistType: ChecklistType;
@@ -36,7 +36,7 @@ export function useChecklistStepSigningFooter({
       try {
         await signAgreementNow(doc);
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Checklist step DocuSign signing failed", error);
+        log.error("ERRORS", "Checklist step DocuSign signing failed", error);
       }
     },
     [documents, signAgreementNow]

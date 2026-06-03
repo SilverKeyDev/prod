@@ -38,7 +38,7 @@ export function useProfileFinancialSectionModel(
     homePriceError,
   } = props;
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
-  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData);
   const showAffordabilityBlock =
     homePriceLoading !== undefined || homePriceError !== undefined || homePriceResult !== undefined;
 

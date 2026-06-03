@@ -1,11 +1,11 @@
-import { log, LOG_CATEGORIES, type LogCategory } from "packages/logger";
+import { log, type LogCategory } from "packages/logger";
 
 export type ShellPerfRoute = "dashboard" | "messaging";
 
 const pending = new Map<ShellPerfRoute, { startMs: number; pathname: string }>();
 
 function categoryForShellRoute(route: ShellPerfRoute): LogCategory {
-  return route === "messaging" ? LOG_CATEGORIES.MESSAGES : LOG_CATEGORIES.DASHBOARD;
+  return route === "messaging" ? "MESSAGES" : "DASHBOARD";
 }
 
 /**
@@ -84,7 +84,7 @@ export function traceDynamicImport(
 /**
  * Wraps a lazy() loader so we time the import() promise the first time React
  * resolves the lazy module (separate from prefetch). Use as:
- *   const Foo = lazy(traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:Foo", () => import("./Foo")));
+ *   const Foo = lazy(traceLazyImport("MESSAGES", "lazy:Foo", () => import("./Foo")));
  */
 export function traceLazyImport<T>(
   category: LogCategory,

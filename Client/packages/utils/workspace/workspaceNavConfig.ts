@@ -36,7 +36,10 @@ function labelKeyForTab(workspace: Workspace, key: WorkspaceNavTabKey): string {
   }
 }
 
-function isTabVisible(workspace: Workspace, key: WorkspaceNavTabKey, _isMobile: boolean): boolean {
+function isTabVisible(workspace: Workspace, key: WorkspaceNavTabKey, isMobile: boolean): boolean {
+  if (key === "profile" && isMobile) {
+    return false;
+  }
   if (isPlaceholderWorkspace(workspace)) {
     return key === "dashboard" || key === "agent";
   }

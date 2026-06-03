@@ -1,10 +1,10 @@
 """Generate report sections for property analysis (batch and streaming)."""
 
-import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 from app.config.llm_models import perplexity_model_report
+from logger import log
 
 from .perplexity_config import PERPLEXITY_API_KEY
 from .perplexity_report_sections_worker import (
@@ -15,8 +15,6 @@ from .perplexity_report_sections_worker import (
     _build_section_payloads,
     _process_section,
 )
-
-logger = logging.getLogger(__name__)
 
 
 def generate_report_sections_for_property(
@@ -47,16 +45,21 @@ def generate_report_sections_for_property(
             mode,
         )
         if not payloads:
-            logger.warning("⚠️ [PROPERTY_ANALYSIS] No valid payloads generated")
+            log.warn("PROPERTY_DETAILS", "⚠️ [PROPERTY_ANALYSIS] No valid payloads generated")
             return {}
 
         newly_generated_sections = {}
         rate_limiter = RateLimiter(RPM_LIMIT)
 
         # Process sections concurrently with rate limiting
-        logger.info(
-            f"🚀 [PROPERTY_ANALYSIS] Processing {len(payloads)} sections with "
-            f"{MAX_CONCURRENT} concurrent workers (rate limit: {RPM_LIMIT} RPM)"
+        log.info(
+            "PROPERTY_DETAILS",
+            "Processing property analysis sections",
+            {
+                "section_count": len(payloads),
+                "max_concurrent": MAX_CONCURRENT,
+                "rpm_limit": RPM_LIMIT,
+            },
         )
 
         with ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as executor:
@@ -77,34 +80,54 @@ def generate_report_sections_for_property(
                     result = future.result()
                     if result["success"]:
                         newly_generated_sections.update(result["data"])
-                        logger.info(
-                            f"✅ [PROPERTY_ANALYSIS] Section {section_name} completed "
-                            f"({completed}/{len(payloads)})"
+                        log.info(
+                            "PROPERTY_DETAILS",
+                            "Section completed",
+                            {
+                                "section_name": section_name,
+                                "completed": completed,
+                                "total": len(payloads),
+                            },
                         )
                     else:
-                        logger.warning(
-                            f"⚠️ [PROPERTY_ANALYSIS] Section {section_name} failed: "
-                            f"{result.get('error')} ({completed}/{len(payloads)})"
+                        log.warn(
+                            "PROPERTY_DETAILS",
+                            "Section failed",
+                            {
+                                "section_name": section_name,
+                                "error": result.get("error"),
+                                "completed": completed,
+                                "total": len(payloads),
+                            },
                         )
                 except Exception as e:
-                    logger.error(
-                        f"❌ [PROPERTY_ANALYSIS] Exception processing section {section_name}: {e}"
+                    log.error(
+                        "ERRORS",
+                        "Exception processing section",
+                        {"section_name": section_name, "error": str(e)},
                     )
 
         if recent_sections:
             synthesized = synthesize_property_analysis_sections(
                 recent_sections, newly_generated_sections
             )
-            logger.info(
-                "✅ [PROPERTY_ANALYSIS] Synthesized %s sections (merged %s new with %s existing)",
-                len(synthesized),
-                len(newly_generated_sections),
-                len(recent_sections),
+            log.info(
+                "PROPERTY_DETAILS",
+                "Synthesized property analysis sections",
+                {
+                    "synthesized_count": len(synthesized),
+                    "new_count": len(newly_generated_sections),
+                    "existing_count": len(recent_sections),
+                },
             )
             return synthesized
         return newly_generated_sections
     except Exception as e:
-        logger.error("❌ [PROPERTY_ANALYSIS] Error generating report sections: %s", e)
+        log.error(
+            "ERRORS",
+            "Error generating report sections",
+            {"error": str(e)},
+        )
         return {}
 
 
@@ -134,9 +157,10 @@ def generate_report_sections_for_property_streaming(
                 if existing_sections and section_name in existing_sections:
                     existing_data = existing_sections[section_name]
                     if existing_data is not None and existing_data != {}:
-                        logger.info(
-                            "⏭️ [PROPERTY_ANALYSIS] Skipping %s (already exists, not regenerating)",
-                            section_name,
+                        log.info(
+                            "PROPERTY_DETAILS",
+                            "Skipping section (already exists, not regenerating)",
+                            {"section_name": section_name},
                         )
                         yield {
                             "section_name": section_name,
@@ -154,9 +178,10 @@ def generate_report_sections_for_property_streaming(
                             else 999
                         )
                         if priority_index >= 5 and len(recent_data) >= 3:
-                            logger.info(
-                                "⏭️ [PROPERTY_ANALYSIS] Skipping %s (recent complete data exists, low priority)",
-                                section_name,
+                            log.info(
+                                "PROPERTY_DETAILS",
+                                "Skipping section (recent complete data exists, low priority)",
+                                {"section_name": section_name},
                             )
                             yield {
                                 "section_name": section_name,
@@ -172,10 +197,10 @@ def generate_report_sections_for_property_streaming(
                     section_priorities=section_priorities,
                 )
                 if "error" in section_schema:
-                    logger.warning(
-                        "⚠️ [PROPERTY_ANALYSIS] Skipping section %s: %s",
-                        section_name,
-                        section_schema.get("error"),
+                    log.warn(
+                        "PROPERTY_DETAILS",
+                        "Skipping section (schema error)",
+                        {"section_name": section_name},
                     )
                     continue
                 payload = {
@@ -198,21 +223,26 @@ def generate_report_sections_for_property_streaming(
                 }
                 payloads.append((payload, section_name))
             except Exception as e:
-                logger.error(
-                    "❌ [PROPERTY_ANALYSIS] Error building payload for section %s: %s",
-                    section_name,
-                    e,
+                log.error(
+                    "ERRORS",
+                    "Error building payload for section",
+                    {"section_name": section_name, "error": str(e)},
                 )
         if not payloads:
-            logger.warning("⚠️ [PROPERTY_ANALYSIS] No valid payloads generated")
+            log.warn("PROPERTY_DETAILS", "⚠️ [PROPERTY_ANALYSIS] No valid payloads generated")
             return
 
         rate_limiter = RateLimiter(RPM_LIMIT)
 
         # Process sections concurrently with rate limiting and yield as they complete
-        logger.info(
-            f"🚀 [PROPERTY_ANALYSIS] Processing {len(payloads)} sections with "
-            f"{MAX_CONCURRENT} concurrent workers (rate limit: {RPM_LIMIT} RPM)"
+        log.info(
+            "PROPERTY_DETAILS",
+            "Processing property analysis sections (streaming)",
+            {
+                "section_count": len(payloads),
+                "max_concurrent": MAX_CONCURRENT,
+                "rpm_limit": RPM_LIMIT,
+            },
         )
 
         with ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as executor:
@@ -233,9 +263,14 @@ def generate_report_sections_for_property_streaming(
                     result = future.result()
                     if result["success"]:
                         section_data = result["data"][section_name]
-                        logger.info(
-                            f"✅ [PROPERTY_ANALYSIS] Section {section_name} completed "
-                            f"({completed}/{len(payloads)})"
+                        log.info(
+                            "PROPERTY_DETAILS",
+                            "Section completed (streaming)",
+                            {
+                                "section_name": section_name,
+                                "completed": completed,
+                                "total": len(payloads),
+                            },
                         )
                         yield {
                             "section_name": section_name,
@@ -243,13 +278,25 @@ def generate_report_sections_for_property_streaming(
                             "from_cache": False,
                         }
                     else:
-                        logger.warning(
-                            f"⚠️ [PROPERTY_ANALYSIS] Section {section_name} failed: "
-                            f"{result.get('error')} ({completed}/{len(payloads)})"
+                        log.warn(
+                            "PROPERTY_DETAILS",
+                            "Section failed (streaming)",
+                            {
+                                "section_name": section_name,
+                                "error": result.get("error"),
+                                "completed": completed,
+                                "total": len(payloads),
+                            },
                         )
                 except Exception as e:
-                    logger.error(
-                        f"❌ [PROPERTY_ANALYSIS] Exception processing section {section_name}: {e}"
+                    log.error(
+                        "ERRORS",
+                        "Exception processing section (streaming)",
+                        {"section_name": section_name, "error": str(e)},
                     )
     except Exception as e:
-        logger.error("❌ [PROPERTY_ANALYSIS] Error generating report sections: %s", e)
+        log.error(
+            "ERRORS",
+            "Error generating report sections (streaming)",
+            {"error": str(e)},
+        )

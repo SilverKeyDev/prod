@@ -63,4 +63,4 @@ properties:
       recent_clicks:
         type: array
         items:
-          type: object
+          $ref: "./RevShareRecentClick.yaml"

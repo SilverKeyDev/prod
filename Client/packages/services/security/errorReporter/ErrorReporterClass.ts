@@ -1,8 +1,7 @@
 import { getEnv } from "packages/config/env";
-import { log as centralLog, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { ClientErrorPayload } from "packages/services/security/reportClientErrors";
 import { clientErrorsApi } from "packages/services/security/reportClientErrors";
-import { log } from "packages/services/security/secureLogger";
 import { dateNow } from "packages/utils/date";
 import { asError } from "packages/utils/errorHandling/error";
 import { getNavigator, getWindow } from "packages/utils/platform";
@@ -39,7 +38,7 @@ export class ErrorReporter {
 
       this.isInitialized = true;
       if (log && typeof log.info === "function") {
-        log.info("ERROR_REPORTER", "Error reporting initialized", {
+        log.info("ERRORS", "Error reporting initialized", {
           environment: this.isProduction ? "production" : "development",
           buildVersion: typeof this.buildVersion === "string" ? this.buildVersion : "unknown",
           sessionId: typeof this.sessionId === "string" ? this.sessionId : "unknown",
@@ -47,7 +46,7 @@ export class ErrorReporter {
       }
     } catch (error: unknown) {
       if (log && typeof log.error === "function") {
-        log.error("ERROR_REPORTER", "Failed to initialize error reporting", error);
+        log.error("ERRORS", "Failed to initialize error reporting", error);
       }
     }
   }
@@ -58,13 +57,13 @@ export class ErrorReporter {
   private initializeSentry(dsn: string): void {
     try {
       if (log && typeof log.info === "function") {
-        log.info("ERROR_REPORTER", "Sentry initialized", {
+        log.info("ERRORS", "Sentry initialized", {
           dsn: `${dsn.substring(0, 20)}...`,
         });
       }
     } catch (error: unknown) {
       if (log && typeof log.error === "function") {
-        log.error("ERROR_REPORTER", "Failed to initialize Sentry", error);
+        log.error("ERRORS", "Failed to initialize Sentry", error);
       }
     }
   }
@@ -121,7 +120,7 @@ export class ErrorReporter {
       const errorContext = this.buildErrorContext(context);
 
       if (log && typeof log.error === "function") {
-        log.error("ERROR_CAPTURE", "Error captured", {
+        log.error("ERRORS", "Error captured", {
           error: this.serializeError(error),
           context: errorContext,
         });
@@ -132,7 +131,7 @@ export class ErrorReporter {
       }
     } catch (reportingError: unknown) {
       const error = asError(reportingError);
-      centralLog.error(LOG_CATEGORIES.ERRORS, "Error reporting failed", error);
+      log.error("ERRORS", "Error reporting failed", error);
     }
   }
 
@@ -148,7 +147,7 @@ export class ErrorReporter {
       });
 
       if (log && typeof log.security === "function") {
-        log.security("SECURITY_EVENT", `${event.type}: ${event.description}`, {
+        log.security("SECURITY", `${event.type}: ${event.description}`, {
           severity: event.severity,
           metadata: event.metadata,
           context,
@@ -160,7 +159,7 @@ export class ErrorReporter {
       }
     } catch (error: unknown) {
       if (log && typeof log.error === "function") {
-        log.error("ERROR_REPORTER", "Failed to report security event", error);
+        log.error("ERRORS", "Failed to report security event", error);
       }
     }
   }
@@ -176,7 +175,7 @@ export class ErrorReporter {
       });
 
       if (log && typeof log.info === "function") {
-        log.info("USER_FEEDBACK", "User feedback captured", {
+        log.info("ERRORS", "User feedback captured", {
           message,
           error: error ? this.serializeError(error) : null,
           context,
@@ -189,7 +188,7 @@ export class ErrorReporter {
     } catch (reportingError: unknown) {
       const error = asError(reportingError);
       if (log && typeof log.error === "function") {
-        log.error("ERROR_REPORTER", "Failed to capture user feedback", error);
+        log.error("ERRORS", "Failed to capture user feedback", error);
       }
     }
   }
@@ -205,7 +204,7 @@ export class ErrorReporter {
     }
 
     if (log && typeof log.info === "function") {
-      log.info("ERROR_REPORTER", "User context updated", { userId });
+      log.info("ERRORS", "User context updated", { userId });
     }
   }
 
@@ -216,7 +215,7 @@ export class ErrorReporter {
     this.userId = undefined;
 
     if (log && typeof log.info === "function") {
-      log.info("ERROR_REPORTER", "User context cleared");
+      log.info("ERRORS", "User context cleared");
     }
   }
 
@@ -300,7 +299,7 @@ export class ErrorReporter {
   private sendSecurityAlert(event: SecurityEvent, context: ErrorContext): void {
     try {
       if (log && typeof log.debug === "function") {
-        log.debug("ERROR_REPORTER", "Would send security alert", {
+        log.debug("ERRORS", "Would send security alert", {
           eventType: event.type,
           severity: event.severity,
         });
@@ -318,7 +317,7 @@ export class ErrorReporter {
   private sendUserFeedback(message: string, error: Error | undefined, context: ErrorContext): void {
     try {
       if (log && typeof log.debug === "function") {
-        log.debug("ERROR_REPORTER", "Would send user feedback", {
+        log.debug("ERRORS", "Would send user feedback", {
           hasMessage: !!message,
           hasError: !!error,
         });

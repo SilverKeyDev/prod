@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useGoogleMaps } from "packages/hooks/data";
 import { useResponsive } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 
@@ -48,7 +48,7 @@ export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
 
   useEffect(() => {
     if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      log.error("ERRORS", "Google Maps loading error", googleMapsError);
       setLoadError("Failed to load Google Maps script.");
       return;
     }

@@ -4,12 +4,10 @@ Agreement signing URL operations: get signing URL and sender view URL.
 
 from app.models import AgreementParticipant
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..envelopes.signing import SigningService
 from .agreement_crud import get_agreement
-
-logger = get_logger()
 
 
 def get_signing_url(agreement_id: str, participant_id: str) -> str:
@@ -23,8 +21,8 @@ def get_signing_url(agreement_id: str, participant_id: str) -> str:
     Returns:
         Signing URL
     """
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Getting signing URL",
         {"agreement_id": agreement_id, "participant_id": participant_id},
     )
@@ -33,8 +31,8 @@ def get_signing_url(agreement_id: str, participant_id: str) -> str:
 
     participant = get_model(AgreementParticipant, participant_id)
     if not participant or participant.agreement_id != agreement_id:
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.warn(
+            "DOCUSIGN",
             "Participant not found for signing URL",
             {"agreement_id": agreement_id, "participant_id": participant_id},
         )
@@ -42,8 +40,8 @@ def get_signing_url(agreement_id: str, participant_id: str) -> str:
 
         raise ParticipantNotFoundError(f"Participant {participant_id} not found")
 
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Generating signing URL via SigningService",
         {
             "agreement_id": agreement_id,
@@ -54,8 +52,8 @@ def get_signing_url(agreement_id: str, participant_id: str) -> str:
 
     signing_url = SigningService.get_signing_url(agreement, participant)
 
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Signing URL generated successfully",
         {"agreement_id": agreement_id, "participant_id": participant_id},
     )
@@ -73,8 +71,8 @@ def get_sender_view_url(agreement_id: str) -> str:
     Returns:
         Sender view URL
     """
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Getting sender view URL",
         {"agreement_id": agreement_id},
     )
@@ -82,8 +80,8 @@ def get_sender_view_url(agreement_id: str) -> str:
     agreement = get_agreement(agreement_id)
     sender_url = SigningService.get_sender_view_url(agreement)
 
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Sender view URL generated successfully",
         {"agreement_id": agreement_id},
     )

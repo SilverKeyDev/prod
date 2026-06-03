@@ -6,7 +6,7 @@ import { PropertyHeader } from "packages/features/propertyDetails/components/Pro
 import type { PropertyDetailsModalProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { usePropertyDetailsSectionScroll } from "packages/features/propertyDetails/hooks/usePropertyDetailsSectionScroll.web";
 import { useSavedHomesStoreIntegration } from "packages/hooks/store/integrations/useSavedHomesStoreIntegration";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import Cover from "packages/ui/components/modals/cover";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
@@ -34,7 +34,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
     const scrollParent = parent?.parentElement;
     const scrollRect = scrollParent?.getBoundingClientRect();
     const vw = getWindow()?.innerWidth ?? 0;
-    log.debug(LOG_CATEGORIES.PAGES, "[PropertyDetailsModal] Full-bleed audit", {
+    log.debug("PAGES", "[PropertyDetailsModal] Full-bleed audit", {
       fullBleedWidth: rect.width,
       fullBleedLeft: rect.left,
       fullBleedRight: rect.right,

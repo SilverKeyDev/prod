@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from ..client import slipstream_get
 from ..config import SLIPSTREAM_MARKET
@@ -68,7 +68,7 @@ def search_active_listings(
         paging = result.get("paging") or {}
 
         log.debug(
-            LOG_CATEGORIES["API"],
+            "API",
             "Slipstream /ws/listings/search response (active, first home only)",
             {
                 "caller": "search_active_listings",

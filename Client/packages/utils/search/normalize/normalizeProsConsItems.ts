@@ -1,3 +1,5 @@
+import { log } from "packages/logger";
+
 const DEFAULT_SCORE = 3;
 
 type LoosePro = { text?: unknown; score?: unknown };
@@ -28,6 +30,7 @@ export function normalizeProEntry(raw: unknown): {
   score: number;
 } {
   if (typeof raw === "string") {
+    log.debug("SEARCH", "legacy_pro_con_string_payload", { kind: "pro" });
     const text = raw.trim();
     return { text, score: DEFAULT_SCORE };
   }
@@ -46,6 +49,7 @@ export function normalizeConEntry(raw: unknown): {
   score: number;
 } {
   if (typeof raw === "string") {
+    log.debug("SEARCH", "legacy_pro_con_string_payload", { kind: "con" });
     const text = raw.trim();
     return { text, severity: "warning", score: DEFAULT_SCORE };
   }

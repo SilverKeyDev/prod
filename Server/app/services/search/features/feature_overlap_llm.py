@@ -5,7 +5,6 @@ LLM helper functions to check overlap between property features and user prefere
 from __future__ import annotations
 
 import json
-import logging
 import os
 import re
 import time
@@ -14,8 +13,7 @@ from typing import Any, cast
 from openai import APIError, OpenAI, RateLimitError
 
 from app.config.llm_models import openai_chat_token_limit_params, openai_model_feature_overlap
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 def _extract_retry_after_time(error_message: str) -> float | None:
@@ -48,37 +46,40 @@ def _make_openai_request_with_retry(client, request_func, max_retries: int = 3):
 
             if wait_time is None:
                 wait_time = 2**attempt
-                logger.warning(
-                    f"⏳ Rate limit hit on attempt {attempt + 1}, using exponential backoff: {wait_time}s"
+                log.warn(
+                    "SEARCH",
+                    f"⏳ Rate limit hit on attempt {attempt + 1}, using exponential backoff: {wait_time}s",
                 )
             else:
                 wait_time = max(wait_time + 0.1, 0.1)
-                logger.warning(
-                    f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time:.3f}s (as requested by API)..."
+                log.warn(
+                    "SEARCH",
+                    f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time:.3f}s (as requested by API)...",
                 )
 
             if attempt < max_retries - 1:
                 time.sleep(wait_time)
             else:
-                logger.error(f"❌ Rate limit exceeded after {max_retries} attempts: {e}")
+                log.error("ERRORS", f"❌ Rate limit exceeded after {max_retries} attempts: {e}")
                 raise
         except APIError as e:
             wait_time = 2**attempt
             if attempt < max_retries - 1:
-                logger.warning(
-                    f"⚠️ API error on attempt {attempt + 1}: {e}, waiting {wait_time}s before retry..."
+                log.warn(
+                    "SEARCH",
+                    f"⚠️ API error on attempt {attempt + 1}: {e}, waiting {wait_time}s before retry...",
                 )
                 time.sleep(wait_time)
             else:
-                logger.error(f"❌ API error after {max_retries} attempts: {e}")
+                log.error("ERRORS", f"❌ API error after {max_retries} attempts: {e}")
                 raise
         except Exception as e:
             if attempt == max_retries - 1:
-                logger.error(f"❌ Unexpected error after {max_retries} attempts: {e}")
+                log.error("ERRORS", f"❌ Unexpected error after {max_retries} attempts: {e}")
                 raise
             else:
-                logger.warning(
-                    f"⚠️ Unexpected error on attempt {attempt + 1}: {e}, retrying in 1s..."
+                log.warn(
+                    "SEARCH", f"⚠️ Unexpected error on attempt {attempt + 1}: {e}, retrying in 1s..."
                 )
                 time.sleep(1)
 
@@ -217,7 +218,7 @@ def check_feature_overlap(
         return overlapping_filtered
 
     except Exception as e:
-        logger.error(f"[FEATURE_OVERLAP] Error checking feature overlap: {e}", exc_info=True)
+        log.error("ERRORS", f"[FEATURE_OVERLAP] Error checking feature overlap: {e}")
         return []
 
 

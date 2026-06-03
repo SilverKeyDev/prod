@@ -9,7 +9,7 @@ import {
   type InlineStreetViewAttachment,
   PROPERTY_DETAILS_NEIGHBORHOOD_ZOOM,
 } from "packages/features/search/utils/googleMaps";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getWindow } from "packages/utils/platform";
 
 import { useGoogleMaps } from "./useGoogleMaps";
@@ -79,7 +79,7 @@ export function usePropertyDetailsLocationMap(params: UsePropertyDetailsLocation
   useEffect(() => {
     if (!enabled || !isLoaded || !mapContainer || !streetViewContainer) {
       if (enabled) {
-        log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "Property details map: init waiting", {
+        log.debug("PROPERTY_DETAILS", "Property details map: init waiting", {
           isLoaded,
           hasMapContainer: mapContainer != null,
           hasStreetViewContainer: streetViewContainer != null,
@@ -92,14 +92,10 @@ export function usePropertyDetailsLocationMap(params: UsePropertyDetailsLocation
 
     const win = getWindow() as (Window & { google?: typeof google }) | null;
     if (!win?.google?.maps?.event) {
-      log.debug(
-        LOG_CATEGORIES.PROPERTY_DETAILS,
-        "Property details map: google.maps.event missing",
-        {
-          lat,
-          lng,
-        }
-      );
+      log.debug("PROPERTY_DETAILS", "Property details map: google.maps.event missing", {
+        lat,
+        lng,
+      });
       return;
     }
 
@@ -146,7 +142,7 @@ export function usePropertyDetailsLocationMap(params: UsePropertyDetailsLocation
 
     const setup = () => {
       if (cancelled || !container.isConnected) {
-        log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "Property details map: setup skipped", {
+        log.debug("PROPERTY_DETAILS", "Property details map: setup skipped", {
           cancelled,
           containerConnected: container.isConnected,
         });
@@ -158,15 +154,11 @@ export function usePropertyDetailsLocationMap(params: UsePropertyDetailsLocation
       });
       if (!map || cancelled) {
         if (!cancelled) {
-          log.warn(
-            LOG_CATEGORIES.PROPERTY_DETAILS,
-            "Property details map: createMap returned null",
-            {
-              containerConnected: container.isConnected,
-              lat,
-              lng,
-            }
-          );
+          log.warn("PROPERTY_DETAILS", "Property details map: createMap returned null", {
+            containerConnected: container.isConnected,
+            lat,
+            lng,
+          });
         }
         return;
       }
@@ -199,15 +191,11 @@ export function usePropertyDetailsLocationMap(params: UsePropertyDetailsLocation
         streetViewRef.current = streetView;
         streetView.panorama.setVisible(streetViewOpenRef.current);
       } else {
-        log.debug(
-          LOG_CATEGORIES.PROPERTY_DETAILS,
-          "Property details map: inline Street View not attached",
-          {
-            streetViewContainerConnected: streetViewContainer.isConnected,
-            lat,
-            lng,
-          }
-        );
+        log.debug("PROPERTY_DETAILS", "Property details map: inline Street View not attached", {
+          streetViewContainerConnected: streetViewContainer.isConnected,
+          lat,
+          lng,
+        });
       }
 
       const MarkerCtor = getAdvancedMarkerElement();
@@ -222,24 +210,17 @@ export function usePropertyDetailsLocationMap(params: UsePropertyDetailsLocation
           }) as unknown as GoogleAdvancedMarkerElement;
           markerRef.current = marker;
         } catch (e) {
-          log.warn(
-            LOG_CATEGORIES.PROPERTY_DETAILS,
-            "Property details map: failed to create marker",
-            e
-          );
+          log.warn("PROPERTY_DETAILS", "Property details map: failed to create marker", e);
         }
       } else {
-        log.warn(
-          LOG_CATEGORIES.PROPERTY_DETAILS,
-          "Property details map: AdvancedMarkerElement not available"
-        );
+        log.warn("PROPERTY_DETAILS", "Property details map: AdvancedMarkerElement not available");
       }
 
       triggerResize();
       requestAnimationFrame(triggerResize);
       setTimeout(triggerResize, 150);
 
-      log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "Property details map: init complete", {
+      log.debug("PROPERTY_DETAILS", "Property details map: init complete", {
         lat,
         lng,
         zoom: PROPERTY_DETAILS_NEIGHBORHOOD_ZOOM,

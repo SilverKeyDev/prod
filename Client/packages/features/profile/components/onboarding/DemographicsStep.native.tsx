@@ -12,6 +12,7 @@ import {
   effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   type OnboardingData,
+  primaryOnboardingRoleFromForm,
 } from "@/features/profile/utils";
 
 type DemographicsStepProps = {
@@ -29,7 +30,7 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
   const authIsAgent = useIsAgent();
   const showBuyerFacingDemographics = !effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
-    formIsAgent: formData.is_agent,
+    formPrimaryRole: primaryOnboardingRoleFromForm(formData),
   });
   const toggleLookingForAgent = () => {
     updateFormData("looking_for_buyers_agent", !formData.looking_for_buyers_agent);

@@ -1,0 +1,17 @@
+type: object
+required:
+  - step
+  - error
+  - message
+properties:
+  step:
+    type: string
+    enum:
+      - messaging
+      - docusign
+  error:
+    type: string
+    description: Stable error code (e.g. VALIDATION_ERROR, FORBIDDEN).
+  message:
+    type: string
+    description: Safe user-facing message for the failed step.

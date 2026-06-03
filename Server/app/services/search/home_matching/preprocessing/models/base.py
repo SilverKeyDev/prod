@@ -4,11 +4,10 @@ Base model class for preprocessing input models.
 Provides common functionality like to_dict(), validation, and type checking.
 """
 
-import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 class BaseInputModel(ABC):
@@ -52,11 +51,11 @@ class BaseInputModel(ABC):
             required_fields = getattr(self, "_required_fields", [])
             for field in required_fields:
                 if not hasattr(self, field) or getattr(self, field) is None:
-                    logger.warning(f"Missing required field: {field}")
+                    log.warn("SEARCH", f"Missing required field: {field}")
                     return False
             return True
         except Exception as e:
-            logger.error(f"Validation error: {e}")
+            log.error("ERRORS", f"Validation error: {e}")
             return False
 
     @classmethod

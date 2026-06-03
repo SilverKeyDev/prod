@@ -18,7 +18,7 @@ class TestDocuSignRoutes:
 
     def test_list_templates_endpoint(self, client, mock_docusign_client):
         """Test GET /api/v1/docusign/templates"""
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             response = client.get(
                 "/api/v1/docusign/templates",
                 headers={"Authorization": "Bearer mock_access_token"},
@@ -33,7 +33,7 @@ class TestDocuSignRoutes:
         """Test POST /api/v1/docusign/agreements"""
         seed_agent_buyer(db_session)
 
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             with patch(
                 "app.services.documents.document_library_items.attach_library_item_to_agreement"
             ):
@@ -57,7 +57,7 @@ class TestDocuSignRoutes:
         """Test GET /api/v1/docusign/agreements/:id"""
         seed_agent_buyer(db_session)
 
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             agreement = Agreement(**sample_agreement)
             db_session.session.add(agreement)
             db_session.session.commit()
@@ -81,11 +81,10 @@ class TestDocuSignRoutes:
             cognito_id="cognito-signer",
             email="signer@example.com",
             name="Signer User",
-            is_agent=False,
         )
         db_session.session.add(signer)
 
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             agreement = Agreement(**sample_agreement)
             db_session.session.add(agreement)
             db_session.session.commit()
@@ -93,7 +92,13 @@ class TestDocuSignRoutes:
             response = client.post(
                 f"/api/v1/docusign/agreements/{agreement.id}/participants",
                 headers={"Authorization": "Bearer mock_access_token"},
-                json={"user_id": "signer-123", "role": "signer", "routing_order": 1},
+                json={
+                    "user_id": "signer-123",
+                    "email": "signer@example.com",
+                    "name": "Signer User",
+                    "role": "signer",
+                    "routing_order": 1,
+                },
             )
 
             assert response.status_code == 201
@@ -112,11 +117,10 @@ class TestDocuSignRoutes:
             cognito_id="cognito-signer-send",
             email="signer@example.com",
             name="Signer User",
-            is_agent=False,
         )
         db_session.session.add(signer)
 
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             agreement = Agreement(**sample_agreement)
             db_session.session.add(agreement)
             db_session.session.flush()
@@ -168,11 +172,10 @@ class TestDocuSignRoutes:
             cognito_id="cognito-signer-opts",
             email="signer@example.com",
             name="Signer User",
-            is_agent=False,
         )
         db_session.session.add(signer)
 
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             agreement = Agreement(**sample_agreement)
             db_session.session.add(agreement)
             db_session.session.flush()

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from sqlalchemy import select
+
+from app import db
 from app.models import Partner
 
 
@@ -16,5 +19,7 @@ def list_active_partners_for_step(step_id: str) -> list[Partner]:
     if not normalized:
         return []
 
-    partners = Partner.query.filter_by(is_active=True).order_by(Partner.name).all()
+    partners = db.session.scalars(
+        select(Partner).where(Partner.is_active.is_(True)).order_by(Partner.name)
+    ).all()
     return [p for p in partners if normalized in p.resolved_step_ids()]

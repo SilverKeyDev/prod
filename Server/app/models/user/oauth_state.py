@@ -1,6 +1,8 @@
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import delete
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
@@ -46,9 +48,10 @@ class OAuthState(db.Model):
             Number of records deleted
         """
         cutoff = datetime.now(timezone.utc) - timedelta(hours=older_than_hours)
-        deleted = cls.query.filter((cls.expires_at < cutoff) | (cls.used.is_(True))).delete(
-            synchronize_session=False
+        result = db.session.execute(
+            delete(cls).where((cls.expires_at < cutoff) | (cls.used.is_(True)))
         )
+        deleted = result.rowcount
         db.session.commit()
         return deleted
 

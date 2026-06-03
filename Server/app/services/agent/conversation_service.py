@@ -6,6 +6,8 @@ Re-exports from conversation_list, conversation_messages, event_request_handlers
 import os
 import sys
 
+from sqlalchemy import select
+
 from app import db
 from app.dtos.agent_conversation import AgentConversationDTO
 from app.models import AgentConnections, User
@@ -32,7 +34,6 @@ server_dir = os.path.dirname(
 if server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 from logger import (  # noqa: E402 -- logger requires Server on sys.path when run outside app context
-    LOG_CATEGORIES,
     log,
 )
 
@@ -46,11 +47,16 @@ def create_conversation(agent_id: str, client_id: str) -> dict:
         agent = get_user_if_agent(agent_id)
         if not agent:
             raise ValueError(f"Agent {agent_id} not found or not an agent")
-        client = User.query.filter_by(id=client_id).first()
+        client = db.session.scalar(select(User).where(User.id == client_id))
         if not client:
             raise ValueError(f"Client {client_id} not found")
 
-        existing = AgentConnections.query.filter_by(agent_id=agent_id, client_id=client_id).first()
+        existing = db.session.scalar(
+            select(AgentConnections).where(
+                AgentConnections.agent_id == agent_id,
+                AgentConnections.client_id == client_id,
+            )
+        )
         if existing:
             return AgentConversationDTO.from_orm(existing)
 
@@ -67,7 +73,7 @@ def create_conversation(agent_id: str, client_id: str) -> dict:
 
     except Exception as e:
         db.session.rollback()
-        log.error(LOG_CATEGORIES["ERRORS"], "Error creating conversation", e)
+        log.error("ERRORS", "Error creating conversation", e)
         raise e from e
 
 
@@ -75,7 +81,7 @@ def get_notification_counter(user_id: str, is_agent: bool) -> int:
     """Get total notification count (unread messages + pending connection requests)."""
     try:
         if not user_id:
-            log.warn(LOG_CATEGORIES["API"], "get_notification_counter called with empty user_id")
+            log.warn("API", "get_notification_counter called with empty user_id")
             return 0
         conversations = get_conversations(user_id, is_agent)
         total_unread_messages = sum(conv.get("unread_count", 0) for conv in conversations)
@@ -86,7 +92,7 @@ def get_notification_counter(user_id: str, is_agent: bool) -> int:
         return total_unread_messages + pending_requests_count
     except Exception as e:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             f"Error calculating notification counter for user {user_id}",
             e,
         )

@@ -5,7 +5,6 @@ import { Icon } from "@ui/icons";
 import type { AgentClient, AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
 import AgentClientListRow from "packages/features/agent/components/clientList/AgentClientListRow";
-import { getMessagePreview } from "packages/features/messaging/utils/messagePreview";
 import { Box } from "packages/ui/components/primitives";
 import { SidebarInsetListSelectionStripe } from "packages/ui/components/sidebar/SidebarInsetListSelectionStripe";
 import {
@@ -15,6 +14,7 @@ import {
   sidebarInsetListRowClass,
   sidebarInsetListRowSelectedProps,
 } from "packages/ui/components/sidebar/sidebarTheme";
+import { getMessagePreview } from "packages/utils/messaging/messagePreview";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
 import { sortAgentClients } from "@/features/agent/utils/agentClientListSort";

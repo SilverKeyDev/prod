@@ -15,7 +15,7 @@ import {
   useCompletedSigningTodos,
   useSigningTodos,
 } from "packages/hooks/data/agenda/useSigningTodos";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
@@ -67,7 +67,7 @@ export function DashboardScreen() {
     try {
       await updateTodo(id, { completed: !todo.completed });
     } catch (error) {
-      log.error(LOG_CATEGORIES.DASHBOARD, "Failed to update todo", error);
+      log.error("DASHBOARD", "Failed to update todo", error);
     }
   };
 
@@ -91,7 +91,7 @@ export function DashboardScreen() {
           queryClient,
         });
       } catch (error) {
-        log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create agenda item", error);
+        log.error("DASHBOARD", "Failed to create agenda item", error);
         throw error;
       }
       return;
@@ -106,7 +106,7 @@ export function DashboardScreen() {
           queryClient,
         });
       } catch (error) {
-        log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create agenda to-do", error);
+        log.error("DASHBOARD", "Failed to create agenda to-do", error);
         throw error;
       }
       return;
@@ -130,7 +130,7 @@ export function DashboardScreen() {
         }
       );
     } catch (error) {
-      log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create calendar event", error);
+      log.error("DASHBOARD", "Failed to create calendar event", error);
       throw error;
     }
   };

@@ -5,6 +5,7 @@ from __future__ import annotations
 from flask import request
 
 from app.schemas import (
+    EmptyRequest,
     PartnerCreateRequest,
     PartnerListResponse,
     PartnerResponse,
@@ -25,20 +26,23 @@ from app.utils.common_patterns import (
     standardize_error_response,
     standardize_success_response,
 )
-from app.utils.security.admin_roles import user_has_admin_role
+from app.utils.route import not_found
+from app.utils.security.admin_roles import user_has_super_admin_role
 from app.utils.validation import validate_request, validate_response
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
-def _require_admin(user):
-    if not user_has_admin_role(user):
+def _require_super_admin(user):
+    if not user_has_super_admin_role(user):
         log.security(
-            LOG_CATEGORIES["SECURITY"],
+            "SECURITY",
             "Unauthorized admin partners access",
             {"user_id": getattr(user, "id", None)},
         )
         return standardize_error_response(
-            "Admin access required", status_code=403, error_code="admin_forbidden"
+            "Super admin access required",
+            status_code=403,
+            error_code="super_admin_required",
         )
     return None
 
@@ -47,7 +51,7 @@ def _require_admin(user):
 @require_authenticated_user
 @validate_response(PartnerListResponse)
 def list_admin_partners(user):
-    denied = _require_admin(user)
+    denied = _require_super_admin(user)
     if denied:
         return denied
     return standardize_success_response({"data": {"partners": list_partners()}})
@@ -57,14 +61,12 @@ def list_admin_partners(user):
 @require_authenticated_user
 @validate_response(PartnerResponse)
 def get_admin_partner(user, partner_id: str):
-    denied = _require_admin(user)
+    denied = _require_super_admin(user)
     if denied:
         return denied
     row = get_partner(partner_id)
     if not row:
-        return standardize_error_response(
-            "Partner not found", status_code=404, error_code="partner_not_found"
-        )
+        return not_found()
     return standardize_success_response({"data": row})
 
 
@@ -72,13 +74,11 @@ def get_admin_partner(user, partner_id: str):
 @require_authenticated_user
 @validate_request(PartnerCreateRequest)
 @validate_response(PartnerResponse)
-def create_admin_partner(user, data: PartnerCreateRequest | None = None):
-    denied = _require_admin(user)
+def create_admin_partner(user, data: PartnerCreateRequest):
+    denied = _require_super_admin(user)
     if denied:
         return denied
-    payload = (
-        data.model_dump(mode="json") if data is not None else (request.get_json(silent=True) or {})
-    )
+    payload = data.model_dump(mode="json", warnings=False)
     row, err = create_partner(payload)
     if err:
         return standardize_error_response(err, status_code=400, error_code="validation_error")
@@ -89,20 +89,14 @@ def create_admin_partner(user, data: PartnerCreateRequest | None = None):
 @require_authenticated_user
 @validate_request(PartnerUpdateRequest)
 @validate_response(PartnerResponse)
-def patch_admin_partner(user, partner_id: str, data: PartnerUpdateRequest | None = None):
-    denied = _require_admin(user)
+def patch_admin_partner(user, partner_id: str, data: PartnerUpdateRequest):
+    denied = _require_super_admin(user)
     if denied:
         return denied
-    payload = (
-        data.model_dump(mode="json", exclude_none=True)
-        if data is not None
-        else (request.get_json(silent=True) or {})
-    )
+    payload = data.model_dump(mode="json", exclude_none=True, warnings=False)
     row, err = update_partner(partner_id, payload)
     if err == "not_found":
-        return standardize_error_response(
-            "Partner not found", status_code=404, error_code="partner_not_found"
-        )
+        return not_found()
     if err:
         return standardize_error_response(err, status_code=400, error_code="validation_error")
     return standardize_success_response({"data": row})
@@ -111,20 +105,19 @@ def patch_admin_partner(user, partner_id: str, data: PartnerUpdateRequest | None
 @handle_exceptions_with_logging
 @require_authenticated_user
 def delete_admin_partner(user, partner_id: str):
-    denied = _require_admin(user)
+    denied = _require_super_admin(user)
     if denied:
         return denied
     if not delete_partner(partner_id):
-        return standardize_error_response(
-            "Partner not found", status_code=404, error_code="partner_not_found"
-        )
+        return not_found()
     return standardize_success_response(message="Partner deleted")
 
 
 @handle_exceptions_with_logging
 @require_authenticated_user
-def provision_admin_partner_links(user, partner_id: str):
-    denied = _require_admin(user)
+@validate_request(EmptyRequest)
+def provision_admin_partner_links(user, partner_id: str, data: EmptyRequest | None = None):
+    denied = _require_super_admin(user)
     if denied:
         return denied
     created = ensure_links_for_partner(partner_id)
@@ -134,7 +127,7 @@ def provision_admin_partner_links(user, partner_id: str):
 @handle_exceptions_with_logging
 @require_authenticated_user
 def list_checklist_steps(user):
-    denied = _require_admin(user)
+    denied = _require_super_admin(user)
     if denied:
         return denied
     role = request.args.get("role", "buyer")

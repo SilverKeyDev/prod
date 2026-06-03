@@ -6,9 +6,8 @@ Handles generating commute data from user preferences.
 import json
 from typing import Any
 
-from flask import current_app
-
 from app.services.auth import SecurityException, get_current_user
+from logger import log
 
 from ..graphs.graphic_generation import (
     GOOGLE_MAPS_ID,
@@ -43,7 +42,7 @@ def generate_commute_data(
             try:
                 locations_data = json.loads(locations_data)
             except json.JSONDecodeError:
-                current_app.logger.error("🗺️ [PROPERTY] Failed to parse important_locations JSON")
+                log.error("ERRORS", "Failed to parse important_locations JSON")
                 locations_data = []
         if isinstance(locations_data, list):
             important_locations = locations_data
@@ -97,12 +96,12 @@ def generate_commute_data(
                 )
                 commute_data["map_url"] = map_url
             except Exception as e:
-                current_app.logger.error(f"🗺️ [PROPERTY] Error generating map URL: {e}")
+                log.error("API", "Error generating map URL", {"error": str(e)})
 
         commute_data["property_address"] = property_address
 
     except Exception as e:
-        current_app.logger.error(f"🗺️ [PROPERTY] Error calculating commute data: {e}")
+        log.error("ERRORS", "Error calculating commute data", {"error": str(e)})
         commute_data = {"error": "Failed to calculate commute data"}
 
     return commute_data
@@ -128,7 +127,7 @@ def get_commute_data_for_property(
     """
     # Use cached data if available
     if cached_commute_data:
-        current_app.logger.info("[PROPERTY] ⏭️ Skipping commute_data generation, using cached data")
+        log.info("PROPERTY_DETAILS", "Skipping commute_data generation, using cached data")
         return cached_commute_data
 
     # Generate new commute data
@@ -164,5 +163,5 @@ def get_commute_data_for_property(
         return generate_commute_data(property_address, user_preferences, google_maps_api_key)
 
     except Exception as e:
-        current_app.logger.error(f"🗺️ [PROPERTY] Error calculating commute data: {e}")
+        log.error("ERRORS", "Error calculating commute data", {"error": str(e)})
         return {"error": "Failed to calculate commute data"}

@@ -36,37 +36,34 @@ def test_get_agent_clients_client_kind_from_roles(db_session):
         cognito_id="cog-a1",
         email="a1@example.com",
         name="Agent",
-        is_agent=True,
     )
     c_buyer = User(
         id="c-buyer",
         cognito_id="cog-b1",
         email="b1@example.com",
         name="Buyer",
-        is_agent=False,
     )
     c_seller = User(
         id="c-seller",
         cognito_id="cog-s1",
         email="s1@example.com",
         name="Seller",
-        is_agent=False,
     )
     c_mix = User(
         id="c-mix",
         cognito_id="cog-m1",
         email="m1@example.com",
         name="Mix",
-        is_agent=False,
     )
     c_none = User(
         id="c-none",
         cognito_id="cog-n1",
         email="n1@example.com",
         name="No roles",
-        is_agent=False,
     )
     db_session.session.add_all([agent, c_buyer, c_seller, c_mix, c_none])
+
+    db_session.session.add(UserRole(user_id=agent.id, role="agent"))
     db_session.session.add_all(
         [
             _link("agent-e1", "c-buyer"),
@@ -99,23 +96,22 @@ def test_get_agent_clients_pipeline_stage_most_recent_category(db_session):
         cognito_id="cog-a2",
         email="a2@example.com",
         name="Agent 2",
-        is_agent=True,
     )
     c1 = User(
         id="c1",
         cognito_id="cog-c1",
         email="c1@example.com",
         name="One",
-        is_agent=False,
     )
     c2 = User(
         id="c2",
         cognito_id="cog-c2",
         email="c2@example.com",
         name="Two",
-        is_agent=False,
     )
     db_session.session.add_all([agent, c1, c2])
+
+    db_session.session.add(UserRole(user_id=agent.id, role="agent"))
     db_session.session.add_all([_link("agent-e2", "c1"), _link("agent-e2", "c2")])
 
     tx_c1 = ensure_transaction(buyer_id="c1", primary_agent_id="agent-e2")
@@ -158,16 +154,16 @@ def test_get_agent_clients_client_kind_investor(db_session):
         cognito_id="cog-inv-a",
         email="inv-a@example.com",
         name="Agent Inv",
-        is_agent=True,
     )
     client_u = User(
         id="c-inv",
         cognito_id="cog-inv-c",
         email="inv-c@example.com",
         name="Investor Client",
-        is_agent=False,
     )
     db_session.session.add_all([agent, client_u])
+
+    db_session.session.add(UserRole(user_id=agent.id, role="agent"))
     db_session.session.add(_link("agent-inv", "c-inv"))
     db_session.session.add(UserRole(user_id="c-inv", role="investor"))
     db_session.session.commit()
@@ -183,16 +179,16 @@ def test_get_agent_clients_pipeline_stage_tie_breaks_on_rank_when_same_timestamp
         cognito_id="cog-a3",
         email="a3@example.com",
         name="Agent 3",
-        is_agent=True,
     )
     cu = User(
         id="c-tie",
         cognito_id="cog-tie",
         email="tie@example.com",
         name="Tie",
-        is_agent=False,
     )
     db_session.session.add_all([agent, cu])
+
+    db_session.session.add(UserRole(user_id=agent.id, role="agent"))
     db_session.session.add(_link("agent-e3", "c-tie"))
     tx_tie = ensure_transaction(buyer_id="c-tie", primary_agent_id="agent-e3")
     db_session.session.flush()
@@ -229,23 +225,22 @@ def test_get_agent_clients_includes_all_linked_connections(db_session):
         cognito_id="cog-sync-a",
         email="sync-a@example.com",
         name="Agent Sync",
-        is_agent=True,
     )
     on_list = User(
         id="c-on-list",
         cognito_id="cog-on",
         email="on@example.com",
         name="On list",
-        is_agent=False,
     )
     from_conn = User(
         id="c-from-conn",
         cognito_id="cog-conn",
         email="conn@example.com",
         name="From connection",
-        is_agent=False,
     )
     db_session.session.add_all([agent, on_list, from_conn])
+
+    db_session.session.add(UserRole(user_id=agent.id, role="agent"))
     db_session.session.add_all(
         [_link("agent-sync", "c-on-list"), _link("agent-sync", "c-from-conn")]
     )
@@ -262,16 +257,16 @@ def test_get_agent_clients_current_step_label_for_new_client(db_session):
         cognito_id="cog-step-a",
         email="step-a@example.com",
         name="Agent Step",
-        is_agent=True,
     )
     client_u = User(
         id="c-new",
         cognito_id="cog-step-c",
         email="new@example.com",
         name="New Client",
-        is_agent=False,
     )
     db_session.session.add_all([agent, client_u])
+
+    db_session.session.add(UserRole(user_id=agent.id, role="agent"))
     db_session.session.add(_link("agent-step", "c-new"))
     db_session.session.commit()
 
@@ -289,16 +284,16 @@ def test_get_agent_clients_requires_signature_when_client_signed_agent_not(db_se
         cognito_id="cog-sign-a",
         email="sign-a@example.com",
         name="Agent Sign",
-        is_agent=True,
     )
     client_u = User(
         id="c-sign",
         cognito_id="cog-sign-c",
         email="sign-c@example.com",
         name="Sign Client",
-        is_agent=False,
     )
     db_session.session.add_all([agent, client_u])
+
+    db_session.session.add(UserRole(user_id=agent.id, role="agent"))
     db_session.session.add(_link("agent-sign", "c-sign"))
     tx_sign = ensure_transaction(buyer_id="c-sign", primary_agent_id="agent-sign")
     db_session.session.flush()

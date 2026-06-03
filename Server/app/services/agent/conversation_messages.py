@@ -6,7 +6,7 @@ import sys
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, exists, func, or_, select
 
 from app import db
 from app.dtos.agent_conversation import AgentConversationDTO
@@ -18,7 +18,6 @@ server_dir = os.path.dirname(
 if server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 from logger import (  # noqa: E402 -- logger requires Server on sys.path when run outside app context
-    LOG_CATEGORIES,
     log,
 )
 
@@ -84,14 +83,19 @@ def _has_more_older(
     if oldest_ts is None or oldest_id is None:
         return False
     cts = _normalize_utc(oldest_ts)
-    q = ChatHistory.query.filter(
-        ChatHistory.conversation_id == conversation_id,
-        or_(
-            ChatHistory.timestamp < cts,
-            and_(ChatHistory.timestamp == cts, ChatHistory.id < oldest_id),
-        ),
+    return bool(
+        db.session.scalar(
+            select(
+                exists().where(
+                    ChatHistory.conversation_id == conversation_id,
+                    or_(
+                        ChatHistory.timestamp < cts,
+                        and_(ChatHistory.timestamp == cts, ChatHistory.id < oldest_id),
+                    ),
+                )
+            )
+        )
     )
-    return db.session.query(q.exists()).scalar() or False
 
 
 def _has_more_newer(
@@ -100,14 +104,19 @@ def _has_more_newer(
     if newest_ts is None or newest_id is None:
         return False
     cts = _normalize_utc(newest_ts)
-    q = ChatHistory.query.filter(
-        ChatHistory.conversation_id == conversation_id,
-        or_(
-            ChatHistory.timestamp > cts,
-            and_(ChatHistory.timestamp == cts, ChatHistory.id > newest_id),
-        ),
+    return bool(
+        db.session.scalar(
+            select(
+                exists().where(
+                    ChatHistory.conversation_id == conversation_id,
+                    or_(
+                        ChatHistory.timestamp > cts,
+                        and_(ChatHistory.timestamp == cts, ChatHistory.id > newest_id),
+                    ),
+                )
+            )
+        )
     )
-    return db.session.query(q.exists()).scalar() or False
 
 
 def get_conversation_history(
@@ -127,7 +136,9 @@ def get_conversation_history(
     With limit and/or cursors: returns a page plus has_more_older / has_more_newer.
     """
     try:
-        conversation = AgentConnections.query.filter_by(id=conversation_id).first()
+        conversation = db.session.scalar(
+            select(AgentConnections).where(AgentConnections.id == conversation_id)
+        )
         if not conversation:
             raise ValueError(f"Conversation {conversation_id} not found")
 
@@ -140,11 +151,11 @@ def get_conversation_history(
         )
 
         if not use_page:
-            messages = (
-                ChatHistory.query.filter_by(conversation_id=conversation_id)
+            messages = db.session.scalars(
+                select(ChatHistory)
+                .where(ChatHistory.conversation_id == conversation_id)
                 .order_by(ChatHistory.timestamp.asc(), ChatHistory.id.asc())
-                .all()
-            )
+            ).all()
             message_list = [_chat_message_to_dict(m, conversation, user_id) for m in messages]
             return {
                 "messages": message_list,
@@ -165,14 +176,14 @@ def get_conversation_history(
             raise ValueError("limit must be at least 1")
         eff_limit = min(eff_limit, MAX_HISTORY_PAGE_LIMIT)
 
-        base = ChatHistory.query.filter_by(conversation_id=conversation_id)
+        base = select(ChatHistory).where(ChatHistory.conversation_id == conversation_id)
 
         if after_timestamp is not None and after_message_id is not None:
             page_limit = limit if limit is not None else DEFAULT_NEWER_PAGE_LIMIT
             page_limit = min(max(page_limit, 1), MAX_HISTORY_PAGE_LIMIT)
             ats = _normalize_utc(after_timestamp)
-            messages = (
-                base.filter(
+            messages = db.session.scalars(
+                base.where(
                     or_(
                         ChatHistory.timestamp > ats,
                         and_(ChatHistory.timestamp == ats, ChatHistory.id > after_message_id),
@@ -180,14 +191,13 @@ def get_conversation_history(
                 )
                 .order_by(ChatHistory.timestamp.asc(), ChatHistory.id.asc())
                 .limit(page_limit)
-                .all()
-            )
+            ).all()
         elif before_timestamp is not None and before_message_id is not None:
             page_limit = limit if limit is not None else DEFAULT_OLDER_PAGE_LIMIT
             page_limit = min(max(page_limit, 1), MAX_HISTORY_PAGE_LIMIT)
             bts = _normalize_utc(before_timestamp)
-            messages = (
-                base.filter(
+            messages = db.session.scalars(
+                base.where(
                     or_(
                         ChatHistory.timestamp < bts,
                         and_(ChatHistory.timestamp == bts, ChatHistory.id < before_message_id),
@@ -195,16 +205,13 @@ def get_conversation_history(
                 )
                 .order_by(ChatHistory.timestamp.desc(), ChatHistory.id.desc())
                 .limit(page_limit)
-                .all()
-            )
+            ).all()
             messages.reverse()
         else:
             page_limit = eff_limit
-            messages = (
-                base.order_by(ChatHistory.timestamp.desc(), ChatHistory.id.desc())
-                .limit(page_limit)
-                .all()
-            )
+            messages = db.session.scalars(
+                base.order_by(ChatHistory.timestamp.desc(), ChatHistory.id.desc()).limit(page_limit)
+            ).all()
             messages.reverse()
 
         message_list = [_chat_message_to_dict(m, conversation, user_id) for m in messages]
@@ -235,7 +242,7 @@ def get_conversation_history(
         raise
     except Exception as e:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             f"Error fetching conversation history for {conversation_id}",
             e,
         )
@@ -262,7 +269,9 @@ def send_message(
         if not (message or "").strip() and not has_attachment:
             raise ValueError("message is required unless sharing a home or document")
 
-        conversation = AgentConnections.query.filter_by(id=conversation_id).first()
+        conversation = db.session.scalar(
+            select(AgentConnections).where(AgentConnections.id == conversation_id)
+        )
         if not conversation:
             raise ValueError(f"Conversation {conversation_id} not found")
         if str(sender_id) != str(conversation.agent_id) and str(sender_id) != str(
@@ -304,14 +313,16 @@ def send_message(
 
     except Exception as e:
         db.session.rollback()
-        log.error(LOG_CATEGORIES["ERRORS"], "Error sending message", e)
+        log.error("ERRORS", "Error sending message", e)
         raise
 
 
 def get_unread_count(conversation_id: str, user_id: str) -> int:
     """Get the number of unread messages for a user in a conversation."""
     try:
-        conversation = AgentConnections.query.filter_by(id=conversation_id).first()
+        conversation = db.session.scalar(
+            select(AgentConnections).where(AgentConnections.id == conversation_id)
+        )
         if not conversation:
             return 0
 
@@ -324,16 +335,21 @@ def get_unread_count(conversation_id: str, user_id: str) -> int:
         else:
             return 0
 
-        query = ChatHistory.query.filter_by(
-            conversation_id=conversation_id, sender_id=other_user_id
+        count_stmt = (
+            select(func.count())
+            .select_from(ChatHistory)
+            .where(
+                ChatHistory.conversation_id == conversation_id,
+                ChatHistory.sender_id == other_user_id,
+            )
         )
         if last_read:
-            query = query.filter(ChatHistory.timestamp > last_read)
-        return query.count()
+            count_stmt = count_stmt.where(ChatHistory.timestamp > last_read)
+        return db.session.scalar(count_stmt) or 0
 
     except Exception as e:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             f"Error calculating unread count for conversation {conversation_id}, user {user_id}",
             e,
         )
@@ -343,7 +359,9 @@ def get_unread_count(conversation_id: str, user_id: str) -> int:
 def mark_messages_as_read(conversation_id: str, user_id: str) -> dict:
     """Mark all messages in a conversation as read by a user. Returns success and marked_count."""
     try:
-        conversation = AgentConnections.query.filter_by(id=conversation_id).first()
+        conversation = db.session.scalar(
+            select(AgentConnections).where(AgentConnections.id == conversation_id)
+        )
         if not conversation:
             raise ValueError(f"Conversation {conversation_id} not found")
         if str(user_id) != str(conversation.agent_id) and str(user_id) != str(
@@ -356,8 +374,11 @@ def mark_messages_as_read(conversation_id: str, user_id: str) -> dict:
         else:
             other_user_id = conversation.agent_id
 
-        messages = ChatHistory.query.filter_by(
-            conversation_id=conversation_id, sender_id=other_user_id
+        messages = db.session.scalars(
+            select(ChatHistory).where(
+                ChatHistory.conversation_id == conversation_id,
+                ChatHistory.sender_id == other_user_id,
+            )
         ).all()
 
         marked_count = 0
@@ -380,5 +401,5 @@ def mark_messages_as_read(conversation_id: str, user_id: str) -> dict:
 
     except Exception as e:
         db.session.rollback()
-        log.error(LOG_CATEGORIES["ERRORS"], "Error marking messages as read", e)
+        log.error("ERRORS", "Error marking messages as read", e)
         raise

@@ -125,7 +125,7 @@ class TestAgreementLifecycle:
 
     def test_add_participant_agent_as_signer_error(self, app: Flask, db_session, sample_agreement):
         """Test agent cannot be signer on their own agreement"""
-        from app.models import Agreement, User
+        from app.models import Agreement, User, UserRole
         from app.services.docusign.agreements.lifecycle import (
             AgreementLifecycleService,
         )
@@ -142,6 +142,7 @@ class TestAgreementLifecycle:
                 name="Agent User",
             )
             db_session.session.add(agent)
+            db_session.session.add(UserRole(user_id=agent.id, role="agent"))
             db_session.session.commit()
 
             with pytest.raises(AgreementStateError):
@@ -310,7 +311,6 @@ class TestAgreementLifecycle:
                     cognito_id="c-agent-discard",
                     email="agent-discard@example.com",
                     name="Agent",
-                    is_agent=True,
                 )
             )
             db_session.session.add(
@@ -319,7 +319,6 @@ class TestAgreementLifecycle:
                     cognito_id="c-buyer-discard",
                     email="buyer-discard@example.com",
                     name="Buyer",
-                    is_agent=False,
                 )
             )
             lib_id = str(uuid.uuid4())
@@ -362,7 +361,6 @@ class TestAgreementLifecycle:
                     cognito_id="c-agent-draft",
                     email="agent-draft@example.com",
                     name="Agent",
-                    is_agent=True,
                 )
             )
             db_session.session.add(
@@ -371,7 +369,6 @@ class TestAgreementLifecycle:
                     cognito_id="c-buyer-draft",
                     email="buyer-draft@example.com",
                     name="Buyer",
-                    is_agent=False,
                 )
             )
             with patch("app.services.documents.document_library_items.sync_agreement_library_item"):

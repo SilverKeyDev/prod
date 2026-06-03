@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { getMatchStyle } from "./matchScore";
-import { getMatchScoreGradientColors, getScoreBasedColorForMap } from "./scoreColors";
+import { getMatchScoreGradientColors } from "./scoreColors";
 
 describe("getMatchScoreGradientColors", () => {
   it("is constant within a tier band", () => {
@@ -32,9 +32,5 @@ describe("getMatchScoreGradientColors", () => {
     const top = getMatchScoreGradientColors(100);
     const over = getMatchScoreGradientColors(200);
     expect(top.fillColor).toBe(over.fillColor);
-  });
-
-  it("getScoreBasedColorForMap matches canonical helper", () => {
-    expect(getScoreBasedColorForMap(37).fillColor).toBe(getMatchScoreGradientColors(37).fillColor);
   });
 });

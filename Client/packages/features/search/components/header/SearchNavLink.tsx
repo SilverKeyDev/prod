@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { pathFor } from "packages/navigation/router/paths";
 import { useSearchViewStore } from "packages/store";
@@ -48,7 +48,7 @@ export function SearchNavLink({
   const handleClick = () => {
     const navId = genNavId();
     onNavigateClick?.(navId);
-    log.info(LOG_CATEGORIES.ROUTING, "[NAV] SearchNavLink click", {
+    log.info("ROUTING", "[NAV] SearchNavLink click", {
       navId,
       target: searchHref,
       prevPathname: route.pathname,

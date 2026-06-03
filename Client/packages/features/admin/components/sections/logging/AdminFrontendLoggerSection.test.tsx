@@ -1,10 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { API_SUBCATEGORY_CONFIG_KEYS } from "packages/logger/config/adminLoggerKeys.generated";
 import {
-  API_SUBCATEGORY_CONFIG_KEYS,
-  FRONTEND_LOGGER_BOOLEAN_KEYS,
-} from "packages/logger/config/adminLoggerKeys.generated";
+  ADMIN_LOGGER_UI_GROUPS,
+  LOGGER_CONFIG_KEY_TO_LOG_PATH,
+} from "packages/logger/config/adminLoggerUiMeta.generated";
 import type { components } from "packages/types/api.generated";
 
 import { AdminFrontendLoggerSection } from "./AdminFrontendLoggerSection";
@@ -38,9 +39,15 @@ vi.mock("packages/logger", () => ({
 }));
 
 function defaultClientConfig(): ClientLoggerConfig {
-  const booleans = Object.fromEntries(
-    FRONTEND_LOGGER_BOOLEAN_KEYS.map((key) => [key, true])
-  ) as Record<string, boolean>;
+  const togglableKeys = [
+    ...ADMIN_LOGGER_UI_GROUPS.core.keys,
+    ...ADMIN_LOGGER_UI_GROUPS.features.keys,
+    ...ADMIN_LOGGER_UI_GROUPS.alwaysEnabled.keys,
+  ];
+  const booleans = Object.fromEntries(togglableKeys.map((key) => [key, true])) as Record<
+    string,
+    boolean
+  >;
 
   return {
     logLevel: "INFO",
@@ -65,7 +72,27 @@ describe("AdminFrontendLoggerSection", () => {
     vi.clearAllMocks();
   });
 
-  it.each(FRONTEND_LOGGER_BOOLEAN_KEYS)("toggling %s calls mutation with client scope", (key) => {
+  const togglableKeys = [
+    ...ADMIN_LOGGER_UI_GROUPS.core.keys,
+    ...ADMIN_LOGGER_UI_GROUPS.features.keys,
+  ];
+
+  it.each(
+    ADMIN_LOGGER_UI_GROUPS.alwaysEnabled.keys.map(
+      (key) => [key, LOGGER_CONFIG_KEY_TO_LOG_PATH[key] ?? key] as const
+    )
+  )("always-on %s stays checked and does not mutate when clicked", (key, label) => {
+    const mutation = createMutationMock();
+    const config = { ...defaultClientConfig(), [key]: false };
+    render(<AdminFrontendLoggerSection clientConfig={config} mutation={mutation as never} />);
+
+    const checkbox = screen.getByRole("checkbox", { name: `Toggle ${label}` });
+    expect(checkbox).toBeChecked();
+    fireEvent.click(checkbox);
+    expect(mutation.mutate).not.toHaveBeenCalled();
+  });
+
+  it.each(togglableKeys)("toggling %s calls mutation with client scope", (key) => {
     const mutation = createMutationMock();
     render(
       <AdminFrontendLoggerSection
@@ -74,9 +101,8 @@ describe("AdminFrontendLoggerSection", () => {
       />
     );
 
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: new RegExp(`Toggle ${String(key)}`, "i") })
-    );
+    const label = LOGGER_CONFIG_KEY_TO_LOG_PATH[key] ?? key;
+    fireEvent.click(screen.getByRole("checkbox", { name: `Toggle ${label}` }));
     expect(mutation.mutate).toHaveBeenCalledWith({
       client: expect.objectContaining({ [key]: false }),
     });
@@ -93,9 +119,7 @@ describe("AdminFrontendLoggerSection", () => {
         />
       );
 
-      fireEvent.click(
-        screen.getByRole("checkbox", { name: new RegExp(`Toggle API ${subKey}`, "i") })
-      );
+      fireEvent.click(screen.getByRole("checkbox", { name: `Toggle API ${subKey}` }));
       const call = mutation.mutate.mock.calls[0][0] as { client: { api: Record<string, boolean> } };
       expect(call.client.api[subKey]).toBe(false);
     }

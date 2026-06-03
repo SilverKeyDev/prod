@@ -1,9 +1,12 @@
 """Transaction model - represents a real estate transaction."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
 
 from app import db
 
@@ -30,6 +33,12 @@ class Transaction(db.Model):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+
+    user_tasks: DynamicMapped["TransactionTask"] = relationship(
+        "TransactionTask",
+        back_populates="transaction",
+        lazy="dynamic",
     )
 
     def __init__(self, **kwargs):

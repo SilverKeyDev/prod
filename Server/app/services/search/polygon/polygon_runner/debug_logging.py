@@ -3,7 +3,7 @@
 import json
 import time
 
-from flask import current_app
+from logger import log
 
 _AGENT_DEBUG_LOG_PRIMARY = "/Users/jaycewalzer/Desktop/SilverKey/.cursor/debug-8adfea.log"
 _AGENT_DEBUG_LOG_FALLBACK = "/tmp/silverkey-debug-8adfea.log"
@@ -21,7 +21,7 @@ def agent_debug_log(message: str, data: dict, hypothesis_id: str) -> None:
     }
     line = json.dumps(payload, default=str) + "\n"
     try:
-        current_app.logger.info("SILVERKEY_AGENT_DEBUG %s", line.strip())
+        log.info("POLYGON_SEARCH", "SILVERKEY_AGENT_DEBUG", {"line": line.strip()})
     except RuntimeError:
         pass
     for path in (_AGENT_DEBUG_LOG_PRIMARY, _AGENT_DEBUG_LOG_FALLBACK):

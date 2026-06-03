@@ -1,58 +1,49 @@
-"""Admin-only endpoint to set the current user's is_agent flag (for testing/development)."""
-
-from flask import request
+"""Admin-only endpoint to set the current user's agent role (for testing/development)."""
 
 from app.dtos.user import UserDTO
 from app.schemas import UpdateAgentStatusRequest, UpdateAgentStatusResponse
+from app.services.auth.user_role_helpers import set_user_is_agent
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_authenticated_user,
-    standardize_error_response,
     standardize_success_response,
 )
 from app.utils.security.admin_roles import user_has_admin_role
 from app.utils.validation import validate_request, validate_response
-from logger import LOG_CATEGORIES, log
+from logger import log
+
+from ._errors import admin_access_denied, validation
 
 
 @handle_exceptions_with_logging
 @require_authenticated_user
 @validate_request(UpdateAgentStatusRequest)
 @validate_response(UpdateAgentStatusResponse)
-def set_current_user_agent_status(user, data: UpdateAgentStatusRequest | None = None):
-    """Set the signed-in user's is_agent flag. Admin only."""
+def set_current_user_agent_status(user, data: UpdateAgentStatusRequest):
+    """Set the signed-in user's agent role. Admin only."""
     if not user_has_admin_role(user):
         log.security(
-            LOG_CATEGORIES["SECURITY"],
+            "SECURITY",
             "Unauthorized admin set-current-user-agent attempt",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response(
-            "Admin access required", status_code=403, error_code="admin_forbidden"
-        )
+        return admin_access_denied()
 
-    if data is None:
-        request_data = request.get_json(silent=True) or {}
-        is_agent = request_data.get("is_agent")
-    else:
-        is_agent = data.is_agent
+    agent_role_enabled = data.agent_role_enabled
 
-    if not isinstance(is_agent, bool):
-        return standardize_error_response(
-            "is_agent must be a boolean",
-            status_code=400,
-            error_code="validation_error",
-        )
+    if not isinstance(agent_role_enabled, bool):
+        return validation("agent_role_enabled must be a boolean")
 
-    user.is_agent = is_agent
+    set_user_is_agent(str(user.id), agent_role_enabled)
     from app import db
 
     db.session.commit()
+    db.session.refresh(user)
 
     log.info(
-        LOG_CATEGORIES["AUTH"],
-        "Admin set current user is_agent",
-        {"user_id": getattr(user, "id", None), "is_agent": is_agent},
+        "AUTH",
+        "Admin set current user agent role",
+        {"user_id": getattr(user, "id", None), "agent_role_enabled": agent_role_enabled},
     )
 
     return standardize_success_response({"user": UserDTO.to_response(user)})

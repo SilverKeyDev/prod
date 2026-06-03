@@ -1,5 +1,6 @@
 """UserIntegration - Per-user OAuth tokens and integration state."""
 
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 

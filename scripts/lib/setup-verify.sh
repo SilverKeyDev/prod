@@ -61,7 +61,11 @@ setup_verify_redis() {
     setup_verify_ok "Redis responds to ping (localhost:6379)"
     return 0
   fi
-  if command -v redis-server >/dev/null 2>&1; then
+  if command -v redis-server >/dev/null 2>&1 && command -v redis-cli >/dev/null 2>&1; then
+    if declare -F deps_try_start_redis >/dev/null 2>&1 && deps_try_start_redis; then
+      setup_verify_ok "Redis started (localhost:6379, redis-cli ping → PONG)"
+      return 0
+    fi
     setup_verify_fail "Redis installed but not running — brew services start redis  OR  redis-server --daemonize yes"
   else
     setup_verify_fail "redis-server not found — see setup.md (brew install redis / apt install redis-server)"

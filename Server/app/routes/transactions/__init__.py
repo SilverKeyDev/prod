@@ -2,7 +2,8 @@
 
 import uuid
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, jsonify, request
+from sqlalchemy import select
 
 from app import db
 from app.models import Transaction, TransactionAddress
@@ -25,7 +26,15 @@ from app.services.transactions.unified_task_checklist_read import (
     build_task_checklist_data,
 )
 from app.services.transactions.unified_task_checklist_write import perform_task_checklist_put
-from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.utils.common_patterns import (
+    forbidden,
+    handle_exceptions_with_logging,
+    invalid_request,
+    not_found,
+    require_authenticated_user,
+    server_error,
+    validation,
+)
 from app.utils.security import rate_limit
 from app.utils.validation import validate_query, validate_request, validate_response
 
@@ -72,23 +81,19 @@ def get_my_transaction(user):
 @handle_exceptions_with_logging
 @require_authenticated_user
 @validate_query(ChecklistTypeQueryParams)
-def get_transaction_task_checklist(
-    user, transaction_id: str, query: ChecklistTypeQueryParams | None = None
-):
+def get_transaction_task_checklist(user, transaction_id: str, query: ChecklistTypeQueryParams):
     tx = _resolve_authorized_transaction(user, transaction_id)
     if tx is None:
-        return jsonify({"success": False, "error": "Access denied"}), 403
+        return forbidden()
 
-    checklist_type = coerce_checklist_type(
-        (query.type if query is not None else None) or request.args.get("type")
-    )
+    checklist_type = coerce_checklist_type(query.type)
     data = build_task_checklist_data(
         tx.id,
         checklist_type,
         actor_user_id=str(user.id),
     )
     if data is None:
-        return jsonify({"success": False, "error": "Invalid checklist type"}), 400
+        return invalid_request("Invalid checklist type")
 
     return jsonify({"success": True, "data": data})
 
@@ -100,7 +105,7 @@ def get_transaction_task_checklist(
 def get_transaction_task_checklist_progress_summary(user, transaction_id: str):
     tx = _resolve_authorized_transaction(user, transaction_id)
     if tx is None:
-        return jsonify({"success": False, "error": "Access denied"}), 403
+        return forbidden()
 
     data = build_task_checklist_progress_summary(tx.id)
     return jsonify({"success": True, "data": data})
@@ -116,31 +121,26 @@ def get_transaction_task_checklist_progress_summary(user, transaction_id: str):
 def put_transaction_task_checklist(
     user,
     transaction_id: str,
-    data: UpdateTaskChecklistRequest | None = None,
-    query: ChecklistTypeQueryParams | None = None,
+    data: UpdateTaskChecklistRequest,
+    query: ChecklistTypeQueryParams,
 ):
     tx = _resolve_authorized_transaction(user, transaction_id)
     if tx is None:
-        return jsonify({"success": False, "error": "Access denied"}), 403
+        return forbidden()
 
-    checklist_type = coerce_checklist_type(
-        (query.type if query is not None else None) or request.args.get("type")
-    )
+    checklist_type = coerce_checklist_type(query.type)
     if checklist_type not in TASK_CATEGORIES:
-        return jsonify({"success": False, "error": "Invalid checklist type"}), 400
+        return invalid_request("Invalid checklist type")
 
     try:
-        if data is None:
-            request_data = request.get_json(silent=True)
-            if not isinstance(request_data, dict):
-                return jsonify({"success": False, "error": "Expected JSON object"}), 400
-            ids = request_data.get("checkedIds")
-        else:
-            payload = data.model_dump()
-            inner = payload.get("data") or {}
-            ids = inner.get("checkedIds")
+        payload = data.model_dump()
+        inner = payload.get("data") or {}
+        ids = inner.get("checkedIds")
         if not isinstance(ids, list):
-            return jsonify({"success": False, "error": "checkedIds must be an array"}), 400
+            return validation(
+                "checkedIds must be an array",
+                field_errors={"checkedIds": "Must be an array"},
+            )
 
         coerced = [int(x) for x in ids if isinstance(x, int | float)]
         correlation_id = (request.headers.get("X-Request-ID") or "").strip() or str(uuid.uuid4())
@@ -166,10 +166,17 @@ def put_transaction_task_checklist(
 
         return jsonify(payload)
     except ValueError as e:
-        return jsonify({"success": False, "error": str(e)}), 400
+        if str(e) == "Transaction not found":
+            return not_found()
+        return validation(str(e))
     except Exception as e:
-        current_app.logger.error("Failed to update transaction %s checklist: %s", transaction_id, e)
-        return jsonify({"success": False, "error": "Server error"}), 500
+        return server_error(
+            e,
+            context={
+                "function": "put_transaction_task_checklist",
+                "transaction_id": transaction_id,
+            },
+        )
 
 
 @transactions_bp.route("/address", methods=["GET"])
@@ -179,10 +186,10 @@ def put_transaction_task_checklist(
 def get_transaction_address(user):
     tx = ensure_transaction(buyer_id=str(user.id))
     db.session.commit()
-    addr = (
-        TransactionAddress.query.filter_by(transaction_id=tx.id)
+    addr = db.session.scalar(
+        select(TransactionAddress)
+        .where(TransactionAddress.transaction_id == tx.id)
         .order_by(TransactionAddress.updated_at.desc())
-        .first()
     )
     if not addr:
         return jsonify({"success": True, "data": {"address": None}})
@@ -208,24 +215,27 @@ def get_transaction_address(user):
 @require_authenticated_user
 @validate_request(TransactionAddressData)
 @validate_response(TransactionAddressResponse)
-def save_transaction_address(user, data: TransactionAddressData | None = None):
+def save_transaction_address(user, data: TransactionAddressData):
     try:
-        if data is None:
-            request_data = request.get_json(silent=True)
-            if not isinstance(request_data, dict):
-                return jsonify({"success": False, "error": "Expected JSON object"}), 400
-        else:
-            request_data = data.model_dump()
+        request_data = data.model_dump()
         address = request_data.get("address")
         if not address or not isinstance(address, str):
-            return jsonify({"success": False, "error": "address is required"}), 400
+            return validation(
+                "address is required",
+                field_errors={"address": "Required"},
+            )
         address = str(address).strip()
         if not address:
-            return jsonify({"success": False, "error": "address cannot be empty"}), 400
+            return validation(
+                "address cannot be empty",
+                field_errors={"address": "Cannot be empty"},
+            )
 
         tx = ensure_transaction(buyer_id=str(user.id))
         user_id = str(user.id)
-        addr = TransactionAddress.query.filter_by(transaction_id=tx.id).first()
+        addr = db.session.scalar(
+            select(TransactionAddress).where(TransactionAddress.transaction_id == tx.id)
+        )
         if addr:
             addr.address = address
             addr.street = (
@@ -303,8 +313,7 @@ def save_transaction_address(user, data: TransactionAddressData | None = None):
             }
         )
     except Exception as e:
-        current_app.logger.error("Failed to save transaction address: %s", e)
-        return jsonify({"success": False, "error": "Server error"}), 500
+        return server_error(e, context={"function": "save_transaction_address"})
 
 
 transactions_bp.add_url_rule(

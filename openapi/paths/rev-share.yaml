@@ -2,7 +2,7 @@
   get:
     tags:
       - Admin
-    summary: List rev-share partners
+    summary: List rev-share partners (super_admin only)
     operationId: listAdminPartners
     responses:
       "200":
@@ -14,7 +14,7 @@
   post:
     tags:
       - Admin
-    summary: Create rev-share partner
+    summary: Create rev-share partner (super_admin only)
     operationId: createAdminPartner
     requestBody:
       required: true
@@ -34,7 +34,7 @@
   get:
     tags:
       - Admin
-    summary: List checklist steps eligible for partner placement
+    summary: List checklist steps eligible for partner placement (super_admin only)
     operationId: listPartnerChecklistSteps
     responses:
       "200":
@@ -58,7 +58,7 @@
   get:
     tags:
       - Admin
-    summary: Get partner by id
+    summary: Get partner by id (super_admin only)
     operationId: getAdminPartner
     parameters:
       - name: partner_id
@@ -73,10 +73,16 @@
           application/json:
             schema:
               $ref: "../components/schemas/partners/PartnerResponse.yaml"
+      "404":
+        description: Partner not found
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/shared/core/ErrorResponse.yaml"
   patch:
     tags:
       - Admin
-    summary: Update partner
+    summary: Update partner (super_admin only)
     operationId: patchAdminPartner
     parameters:
       - name: partner_id
@@ -97,10 +103,16 @@
           application/json:
             schema:
               $ref: "../components/schemas/partners/PartnerResponse.yaml"
+      "404":
+        description: Partner not found
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/shared/core/ErrorResponse.yaml"
   delete:
     tags:
       - Admin
-    summary: Delete partner
+    summary: Delete partner (super_admin only)
     operationId: deleteAdminPartner
     parameters:
       - name: partner_id
@@ -126,7 +138,7 @@
   post:
     tags:
       - Admin
-    summary: Provision platform rev_share link for partner
+    summary: Provision platform rev_share link for partner (super_admin only)
     operationId: provisionAdminPartnerLinks
     parameters:
       - name: partner_id
@@ -154,7 +166,7 @@
   post:
     tags:
       - Admin
-    summary: Upload partner integration logo to S3
+    summary: Upload partner integration logo to S3 (super_admin only)
     operationId: uploadAdminPartnerLogo
     parameters:
       - name: partner_id
@@ -181,6 +193,24 @@
           application/json:
             schema:
               $ref: "../components/schemas/partners/PartnerLogoUploadResponse.yaml"
+      "400":
+        description: Invalid file upload
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/shared/core/ErrorResponse.yaml"
+      "404":
+        description: Partner not found
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/shared/core/ErrorResponse.yaml"
+      "503":
+        description: File storage unavailable
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/shared/core/ErrorResponse.yaml"
 
 /api/v1/admin/rev-share/analytics:
   get:
@@ -230,6 +260,12 @@
           application/json:
             schema:
               $ref: "../components/schemas/partners/RevShareAnalyticsResponse.yaml"
+      "404":
+        description: Partner not found
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/shared/core/ErrorResponse.yaml"
 
 /api/v1/partners/placements:
   get:
@@ -293,6 +329,12 @@
                   type: boolean
                 data:
                   type: object
+      "404":
+        description: Transaction not found
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/shared/core/ErrorResponse.yaml"
 
 /r/{link_id}:
   get:
@@ -338,4 +380,8 @@
       "302":
         description: Redirect to partner destination
       "404":
-        description: Link not found
+        description: Rev-share link not found
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/shared/core/ErrorResponse.yaml"

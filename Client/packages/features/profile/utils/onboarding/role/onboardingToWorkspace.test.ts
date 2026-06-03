@@ -15,7 +15,7 @@ describe("onboarding role to workspace derivation", () => {
     const why = patches.why_joining_silverkey as string[];
     if (why?.includes("buying_house")) roles.push("buyer");
 
-    const allowed = deriveAllowedWorkspaces({ isAgent: false, roles });
+    const allowed = deriveAllowedWorkspaces({ roles });
     expect(allowed).toContain("buyer");
   });
 
@@ -25,7 +25,9 @@ describe("onboarding role to workspace derivation", () => {
       patches[k] = v;
     });
 
-    const allowed = deriveAllowedWorkspaces({ isAgent: true, roles: [] });
+    expect(patches.primary_onboarding_role).toBe("agent");
+
+    const allowed = deriveAllowedWorkspaces({ roles: ["agent"] });
     expect(allowed).toContain("agent");
   });
 });

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { defaultGoogleMeetForCreate } from "packages/features/calendar";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Button } from "packages/ui";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box, Pressable, PrimitiveInput, Text } from "packages/ui/components/primitives";
@@ -86,7 +86,7 @@ export function MobileAgendaAddButton({
       });
       closeModal();
     } catch (error) {
-      log.error(LOG_CATEGORIES.DASHBOARD, "Failed to add agenda item (mobile)", error);
+      log.error("DASHBOARD", "Failed to add agenda item (mobile)", error);
     }
   }, [
     addGoogleMeet,

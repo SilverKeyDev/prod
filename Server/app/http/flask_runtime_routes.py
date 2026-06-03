@@ -13,10 +13,10 @@ from sqlalchemy import text
 
 from app.extensions import db
 from app.utils.cache.redis_client import ping_shared_redis, redis_url
+from logger import log
 
 if TYPE_CHECKING:
     from flask import Flask
-
 _CACHE_IMMUTABLE_WEB_ASSETS = "public, max-age=31536000, immutable"
 _CACHE_SPA_INDEX = "no-cache, no-store, must-revalidate"
 _CACHE_DIST_UNHASHED = "public, max-age=86400"
@@ -47,20 +47,20 @@ def register_flask_runtime_routes(
         try:
             with db.engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
-            return jsonify({"status": "ok", "database": "connected"}), 200
+            return (jsonify({"status": "ok", "database": "connected"}), 200)
         except Exception as e:
-            app.logger.error(f"Health check failed: {str(e)}", exc_info=True)
+            log.error("ERRORS", "Health check failed", e)
             body = {"status": "error", "database": "disconnected"}
             if not healthz_is_production:
                 body["error"] = str(e)
-            return jsonify(body), 503
+            return (jsonify(body), 503)
 
     def _readyz_response():
         try:
             with db.engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
         except Exception as e:
-            app.logger.error(f"Readiness check failed (database): {str(e)}", exc_info=True)
+            log.error("ERRORS", "Readiness check failed (database)", e)
             body: dict[str, str] = {
                 "status": "error",
                 "database": "disconnected",
@@ -68,21 +68,14 @@ def register_flask_runtime_routes(
             }
             if not healthz_is_production:
                 body["error"] = str(e)
-            return jsonify(body), 503
-
+            return (jsonify(body), 503)
         redis_status = "not_configured"
         if redis_url():
             redis_status = "connected" if ping_shared_redis() else "disconnected"
-
         if redis_status == "disconnected":
-            body = {
-                "status": "error",
-                "database": "connected",
-                "redis": "disconnected",
-            }
-            return jsonify(body), 503
-
-        return jsonify({"status": "ok", "database": "connected", "redis": redis_status}), 200
+            body = {"status": "error", "database": "connected", "redis": "disconnected"}
+            return (jsonify(body), 503)
+        return (jsonify({"status": "ok", "database": "connected", "redis": redis_status}), 200)
 
     @app.route("/healthz", methods=["GET", "HEAD"])
     def healthz():
@@ -95,7 +88,7 @@ def register_flask_runtime_routes(
     @app.route("/livez", methods=["GET", "HEAD"])
     def livez():
         """Process liveness only (no DB). Use for Docker/orchestrator probes."""
-        return jsonify({"status": "ok"}), 200
+        return (jsonify({"status": "ok"}), 200)
 
     @app.before_request
     def log_request_info():
@@ -103,7 +96,7 @@ def register_flask_runtime_routes(
         if (
             header_rid
             and isinstance(header_rid, str)
-            and re.fullmatch(r"[A-Za-z0-9._-]{8,128}", header_rid)
+            and re.fullmatch("[A-Za-z0-9._-]{8,128}", header_rid)
         ):
             request_id = header_rid
         else:
@@ -125,8 +118,10 @@ def register_flask_runtime_routes(
                             else:
                                 sanitized_data[key] = str(value)[:100]
             except Exception as e:
-                app.logger.warning(
-                    "AUTH_REQUEST_DATA_ERROR", extra={"request_id": request_id, "error": str(e)}
+                log.warn(
+                    "AUTH",
+                    "AUTH_REQUEST_DATA_ERROR",
+                    {"request_id": request_id, "error": str(e)},
                 )
 
     @app.route("/favicon.ico")
@@ -147,8 +142,7 @@ def register_flask_runtime_routes(
             "readyz",
             "favicon.ico",
         ):
-            return jsonify({"error": "Not Found"}), 404
-
+            return (jsonify({"error": "Not Found"}), 404)
         try:
             requested_file = os.path.join(static_dir, path)
             if os.path.commonpath([static_dir, requested_file]) == static_dir and os.path.isfile(
@@ -161,12 +155,7 @@ def register_flask_runtime_routes(
                 )
                 return out
         except (ValueError, OSError) as exc:
-            app.logger.warning(
-                "SPA catch_all static path resolution failed: %s",
-                exc,
-                exc_info=True,
-            )
-
+            log.warn("API", f"SPA catch_all static path resolution failed: {exc}")
         out = make_response(send_from_directory(static_dir, "index.html"))
         out.headers["Cache-Control"] = _CACHE_SPA_INDEX
         return out

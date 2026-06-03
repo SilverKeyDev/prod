@@ -16,7 +16,7 @@ import { ActivityIndicator, Linking, StyleSheet, View } from "react-native";
 import { color } from "packages/design-tokens";
 import { runAuthBootstrap } from "packages/features/homeauth";
 import { ClientSettingsBootstrap } from "packages/features/homeauth/components/ClientSettingsBootstrap";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { Text } from "packages/ui/components/primitives";
 import { getSessionStorage } from "packages/utils/storage/platformStorage";
@@ -59,7 +59,7 @@ export function AuthProviderNative({ children }: AuthProviderNativeProps) {
         const url = await Linking.getInitialURL();
         setInitialPath(getInitialPathFromUrl(url));
       } catch (err) {
-        log.error(LOG_CATEGORIES.ERRORS, "AuthProvider getInitialURL failed", err);
+        log.error("ERRORS", "AuthProvider getInitialURL failed", err);
         setInitialPath("/");
       }
     };
@@ -78,7 +78,7 @@ export function AuthProviderNative({ children }: AuthProviderNativeProps) {
       setIsAuthenticated,
       getAuthStatusRef: () => authStatusRef.current,
     }).catch((err) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Auth bootstrap unexpected rejection", err);
+      log.error("ERRORS", "Auth bootstrap unexpected rejection", err);
     });
   }, [initialPath, setStoreAuthStatus, setStoreAuthReady, setStoreUser, setIsAuthenticated]);
 

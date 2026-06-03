@@ -1,10 +1,13 @@
 """Per-user client UI settings (JSON document for layout, calendar view, drafts)."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -26,6 +29,4 @@ class UserClientSettings(db.Model):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    user = db.relationship(
-        "User", backref=db.backref("user_client_settings", uselist=False, lazy="select")
-    )
+    user: Mapped["User"] = relationship("User", back_populates="user_client_settings")

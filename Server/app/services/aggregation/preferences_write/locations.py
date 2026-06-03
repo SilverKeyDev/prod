@@ -2,16 +2,18 @@
 
 from typing import Any
 
+from sqlalchemy import delete
+
 from app import db
 from app.models import UserImportantLocation
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 def write_important_locations_from_payload(user_id: str, data: dict[str, Any]) -> None:
     """Write UserImportantLocation rows from preferences payload."""
     if "important_locations" not in data:
         log.info(
-            LOG_CATEGORIES["PROFILE_PREFERENCES"],
+            "PROFILE_PREFERENCES",
             "write_important_locations_from_payload skipped (key absent)",
             {"user_id_len": len(user_id) if isinstance(user_id, str) else None},
         )
@@ -30,14 +32,16 @@ def write_important_locations_from_payload(user_id: str, data: dict[str, Any]) -
             if isinstance(loc, dict) and (loc.get("address") or "").strip() != ideal_zip
         ]
     log.info(
-        LOG_CATEGORIES["PROFILE_PREFERENCES"],
+        "PROFILE_PREFERENCES",
         "write_important_locations_from_payload replacing rows",
         {
             "user_id_len": len(user_id) if isinstance(user_id, str) else None,
             "incoming_len": len(locs),
         },
     )
-    UserImportantLocation.query.filter_by(user_id=user_id).delete()
+    db.session.execute(
+        delete(UserImportantLocation).where(UserImportantLocation.user_id == user_id)
+    )
     for loc in locs:
         if isinstance(loc, dict):
             row = UserImportantLocation(

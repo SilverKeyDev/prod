@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getWindow } from "packages/utils/platform";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
@@ -25,7 +25,7 @@ export function useLocalStorage<T>(key: string, defaultValue: T): UseLocalStorag
       const item = getLocalStorage().getItem(key);
       return item ? (JSON.parse(item) as T) : defaultValue;
     } catch (error: unknown) {
-      log.warn(LOG_CATEGORIES.HOOKS, "Error reading localStorage", {
+      log.warn("HOOKS", "Error reading localStorage", {
         key,
         error,
       });
@@ -47,7 +47,7 @@ export function useLocalStorage<T>(key: string, defaultValue: T): UseLocalStorag
           return value;
         });
       } catch (error: unknown) {
-        log.warn(LOG_CATEGORIES.HOOKS, "Error setting localStorage", {
+        log.warn("HOOKS", "Error setting localStorage", {
           key,
           error,
         });
@@ -62,7 +62,7 @@ export function useLocalStorage<T>(key: string, defaultValue: T): UseLocalStorag
       getLocalStorage().removeItem(key);
       setStoredValue(defaultValue);
     } catch (error: unknown) {
-      log.warn(LOG_CATEGORIES.HOOKS, "Error removing localStorage", {
+      log.warn("HOOKS", "Error removing localStorage", {
         key,
         error,
       });
@@ -75,7 +75,7 @@ export function useLocalStorage<T>(key: string, defaultValue: T): UseLocalStorag
         try {
           setStoredValue(JSON.parse(e.newValue) as T);
         } catch (error: unknown) {
-          log.warn(LOG_CATEGORIES.HOOKS, "Error parsing localStorage change", {
+          log.warn("HOOKS", "Error parsing localStorage change", {
             key,
             errorMessage: storageParseErrorMessage(error),
           });

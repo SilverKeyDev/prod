@@ -129,6 +129,8 @@ class TestPropertyCompsRoutes:
 
                 response = client.get("/api/v1/search/propertyComps?address=123 Main St")
 
-                assert response.status_code in [500, 502, 503]
+                assert response.status_code == 503
                 data = response.get_json()
                 assert data["success"] is False
+                assert data["error"] == "external_api_error"
+                assert "error_id" in data

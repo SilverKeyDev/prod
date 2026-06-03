@@ -10,7 +10,7 @@ import { authUtils } from "packages/config/auth/auth";
 import { useResumePendingAgentPublicConnect } from "packages/features/agent/hooks/data/connections/useResumePendingAgentPublicConnect";
 import { useDataInitialization } from "packages/hooks/data/polling/useDataInitialization";
 import { useDataPolling } from "packages/hooks/data/polling/useDataPolling";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 import { getActiveDashboardKey } from "packages/utils/layout/dashboardLayoutConfig";
@@ -124,17 +124,13 @@ function AppLayout() {
       return;
     }
     if (prevOutletKeyRef.current !== outletKey) {
-      log.info(
-        LOG_CATEGORIES.ROUTING,
-        "[APP_LAYOUT] outlet remount key changed (full subtree remount)",
-        {
-          from: prevOutletKeyRef.current,
-          to: outletKey,
-          pathname: location.pathname,
-          search: location.search ?? "",
-          routerKey: location.key,
-        }
-      );
+      log.info("ROUTING", "[APP_LAYOUT] outlet remount key changed (full subtree remount)", {
+        from: prevOutletKeyRef.current,
+        to: outletKey,
+        pathname: location.pathname,
+        search: location.search ?? "",
+        routerKey: location.key,
+      });
       prevOutletKeyRef.current = outletKey;
     }
   }, [outletKey, location.pathname, location.search, location.key]);
@@ -176,7 +172,7 @@ function useBrowserLocationOverride(routerLocation: Location) {
       if (winPath !== routerPath || winSearch !== routerSearch) {
         setOverride((prev) => {
           if (prev && prev.pathname === winPath && prev.search === winSearch) return prev;
-          log.debug(LOG_CATEGORIES.ROUTING, "[NAV] Router URL sync: using browser location", {
+          log.debug("ROUTING", "[NAV] Router URL sync: using browser location", {
             routerPath,
             browserPath: winPath,
           });
@@ -218,7 +214,7 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
     : location;
 
   useEffect(() => {
-    log.debug(LOG_CATEGORIES.ROUTING, "[NAV] AppRoutes location changed", {
+    log.debug("ROUTING", "[NAV] AppRoutes location changed", {
       pathname: effectiveLocation.pathname,
       search: effectiveLocation.search || undefined,
       isFullHeightRoute: isFullHeightRoute(effectiveLocation.pathname),
@@ -241,7 +237,7 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
               {/* Protected Routes */}
               {DynamicRoutes({ user, handleLogout })}
 
-              {/* Legacy redirect */}
+              {/* Canonical shortcut: /app → buyer search */}
               <Route path={ROUTES.APP} element={<Navigate to={ROUTES.SEARCH} replace />} />
 
               {/* 404 catch-all */}

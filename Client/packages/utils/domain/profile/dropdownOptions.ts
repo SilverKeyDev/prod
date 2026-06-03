@@ -7,11 +7,6 @@ export {
   ONBOARDING_ROLE_PICKER_OPTIONS,
 } from "./onboardingRolePicker";
 
-export const IS_AGENT_OPTIONS: DropdownOption[] = [
-  { value: "yes", label: "Yes" },
-  { value: "no", label: "No" },
-];
-
 export const WHY_JOINING_SILVERKEY_OPTIONS: DropdownOption[] = [
   { value: "browsing_houses", label: "Browsing houses" },
   { value: "buying_house", label: "Buying a house" },

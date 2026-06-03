@@ -18,7 +18,7 @@ import {
 import { useSavedFeatureSignatureFlow } from "packages/features/saved/hooks/useSavedFeatureSignatureFlow";
 import type { SavedFeatureProps } from "packages/features/saved/types/savedFeatureProps";
 import { useIsMobile, useSavedPageEffects, useSavedPageModals } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAgentDashboardStore, useAuthStore, useUIStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
 import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
@@ -79,7 +79,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   );
 
   const user = useAuthStore((s) => s.user);
-  const isAgent = user?.is_agent ?? false;
+  const isAgent = (user?.roles ?? []).includes("agent");
 
   useEffect(() => {
     if (!isAgent && viewType === "forms-library") {
@@ -175,7 +175,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
 
   useEffect(() => {
     if (currentPdf) {
-      log.debug(LOG_CATEGORIES.PAGES, "Library currentPdf updated", {
+      log.debug("PAGES", "Library currentPdf updated", {
         currentPdf,
         currentDocumentId,
         currentDocumentName,

@@ -7,9 +7,11 @@ from datetime import datetime, timedelta, timezone
 from typing import cast
 
 from flask import Response, make_response, request
+from sqlalchemy import select
 
 from app import db
 from app.models import GoogleOAuthToken, User
+from logger import log
 
 from ..core.cognito_service import AWS_COGNITO_service
 from ..core.google_oauth_service import google_oauth_service
@@ -25,16 +27,15 @@ def handle_google_refresh(
     """
     Handle Google OAuth token refresh.
     """
-    from flask import current_app
-
-    # Get Google refresh token from database
-    google_token = GoogleOAuthToken.query.filter_by(user_id=user_id).first()
-
+    google_token = db.session.scalar(
+        select(GoogleOAuthToken).where(GoogleOAuthToken.user_id == user_id)
+    )
     if not google_token or not google_token.refresh_token:
         duration_ms = int((time.time() - start_time) * 1000)
-        current_app.logger.warning(
+        log.warn(
+            "AUTH",
             "AUTH_REFRESH_GOOGLE_TOKEN_MISSING",
-            extra={
+            {
                 "request_id": request_id,
                 "user_id": user_id,
                 "has_token_record": bool(google_token),
@@ -42,7 +43,6 @@ def handle_google_refresh(
                 "duration_ms": duration_ms,
             },
         )
-
         resp = make_response(
             {
                 "success": False,
@@ -51,24 +51,16 @@ def handle_google_refresh(
             }
         )
         resp = clear_auth_cookies(resp)
-        return resp, 401
-
-    # Call Google refresh
+        return (resp, 401)
     result = google_oauth_service.refresh_access_token(google_token.refresh_token)
-
     if not result["success"]:
         duration_ms = int((time.time() - start_time) * 1000)
         error_code = result.get("error", "GOOGLE_REFRESH_FAILED")
-
-        # Transient network error: do not clear cookies or token so client can retry
         if error_code == "GOOGLE_REFRESH_NETWORK_ERROR":
-            current_app.logger.warning(
+            log.warn(
+                "AUTH",
                 "AUTH_REFRESH_GOOGLE_NETWORK_ERROR",
-                extra={
-                    "request_id": request_id,
-                    "user_id": user_id,
-                    "duration_ms": duration_ms,
-                },
+                {"request_id": request_id, "user_id": user_id, "duration_ms": duration_ms},
             )
             resp = make_response(
                 {
@@ -78,19 +70,17 @@ def handle_google_refresh(
                     "retryable": True,
                 }
             )
-            return resp, 503
-
-        current_app.logger.warning(
+            return (resp, 503)
+        log.warn(
+            "AUTH",
             "AUTH_REFRESH_GOOGLE_FAILED",
-            extra={
+            {
                 "request_id": request_id,
                 "user_id": user_id,
                 "error": error_code,
                 "duration_ms": duration_ms,
             },
         )
-
-        # Clear cookies on refresh failure
         resp = make_response(
             {
                 "success": False,
@@ -101,54 +91,46 @@ def handle_google_refresh(
             }
         )
         resp = clear_auth_cookies(resp)
-
-        # If refresh token is expired/invalid, clear it from database
         if error_code in ["GOOGLE_REFRESH_TOKEN_EXPIRED", "GOOGLE_REFRESH_TOKEN_INVALID"]:
             try:
                 google_token.refresh_token = None
                 db.session.commit()
-                current_app.logger.info(
+                log.info(
+                    "AUTH",
                     "AUTH_REFRESH_GOOGLE_TOKEN_CLEARED",
-                    extra={"request_id": request_id, "user_id": user_id},
+                    {"request_id": request_id, "user_id": user_id},
                 )
             except Exception as e:
-                current_app.logger.error(
+                log.error(
+                    "ERRORS",
                     "AUTH_REFRESH_GOOGLE_TOKEN_CLEAR_ERROR",
-                    extra={"request_id": request_id, "user_id": user_id, "error": str(e)},
+                    {"request_id": request_id, "user_id": user_id, "error": str(e)},
                 )
-
-        return resp, 401
-
-    # Update GoogleOAuthToken record with new access token
+        return (resp, 401)
     try:
         google_token.access_token = result["access_token"]
-        # Preserve refresh token (Google may not return new one)
         if result.get("refresh_token"):
             google_token.refresh_token = result["refresh_token"]
-        # Update expiry if provided
         if result.get("expires_in"):
             google_token.expiry = datetime.now(timezone.utc) + timedelta(
                 seconds=result["expires_in"]
             )
         db.session.commit()
-
-        # Downgrade token update log to debug to reduce INFO noise
-        current_app.logger.debug(
+        log.debug(
+            "AUTH",
             "AUTH_REFRESH_GOOGLE_TOKEN_UPDATED",
-            extra={
+            {
                 "request_id": request_id,
                 "user_id": user_id,
                 "has_new_refresh_token": bool(result.get("refresh_token")),
             },
         )
     except Exception as e:
-        current_app.logger.error(
+        log.error(
+            "ERRORS",
             "AUTH_REFRESH_GOOGLE_TOKEN_UPDATE_ERROR",
-            extra={"request_id": request_id, "user_id": user_id, "error": str(e)},
+            {"request_id": request_id, "user_id": user_id, "error": str(e)},
         )
-        # Continue anyway - token refresh succeeded
-
-    # Create new minimal tokens
     user_name = user.name if user else "Unknown User"
     minimal_access_token, minimal_id_token = create_minimal_tokens(
         user_id=user_id,
@@ -156,20 +138,16 @@ def handle_google_refresh(
         user_name=user_name,
         expires_in_hours=8,
         fallback_access_token=result["access_token"],
-        fallback_id_token=None,  # Google doesn't provide ID tokens in refresh response
+        fallback_id_token=None,
     )
-
-    # Create response
     resp = create_auth_response(
         user=user,
-        user_sub=user_id,  # For Google users, user_id is the sub
+        user_sub=user_id,
         email=email or user.email or "",
         access_token=minimal_access_token,
         id_token=minimal_id_token,
         message="Token refreshed successfully",
     )
-
-    # Set new cookies (preserve refresh token from database)
     refresh_token_for_cookie = google_token.refresh_token or request.cookies.get(
         "refresh_token", ""
     )
@@ -179,15 +157,13 @@ def handle_google_refresh(
         refresh_token=refresh_token_for_cookie,
         request_id=request_id,
     )
-
     duration_ms = int((time.time() - start_time) * 1000)
-    # Downgrade success log to debug to avoid noisy INFO spam on each refresh
-    current_app.logger.debug(
+    log.debug(
+        "AUTH",
         "AUTH_REFRESH_GOOGLE_SUCCESS",
-        extra={"request_id": request_id, "user_id": user_id, "duration_ms": duration_ms},
+        {"request_id": request_id, "user_id": user_id, "duration_ms": duration_ms},
     )
-
-    return resp, 200
+    return (resp, 200)
 
 
 def handle_cognito_refresh(
@@ -196,15 +172,13 @@ def handle_cognito_refresh(
     """
     Handle Cognito token refresh.
     """
-    from flask import current_app
-
-    # Get refresh token from cookie
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
         duration_ms = int((time.time() - start_time) * 1000)
-        current_app.logger.warning(
+        log.warn(
+            "AUTH",
             "AUTH_REFRESH_COGNITO_MISSING_TOKEN",
-            extra={"request_id": request_id, "user_id": user_id, "duration_ms": duration_ms},
+            {"request_id": request_id, "user_id": user_id, "duration_ms": duration_ms},
         )
         resp = make_response(
             {
@@ -214,29 +188,22 @@ def handle_cognito_refresh(
             }
         )
         resp = clear_auth_cookies(resp)
-        return resp, 401
-
-    # Get username for Cognito refresh
+        return (resp, 401)
     username = email or user.email
-
-    # Call Cognito refresh
     result = AWS_COGNITO_service.refresh_access_token(refresh_token, username)
-
     if not result["success"]:
         duration_ms = int((time.time() - start_time) * 1000)
         error_code = result.get("error", "REFRESH_FAILED")
-
-        current_app.logger.warning(
+        log.warn(
+            "AUTH",
             "AUTH_REFRESH_COGNITO_FAILED",
-            extra={
+            {
                 "request_id": request_id,
                 "user_id": user_id,
                 "error": error_code,
                 "duration_ms": duration_ms,
             },
         )
-
-        # Clear cookies on refresh failure
         resp = make_response(
             {
                 "success": False,
@@ -245,10 +212,7 @@ def handle_cognito_refresh(
             }
         )
         resp = clear_auth_cookies(resp)
-
-        return resp, 401
-
-    # Extract user info from new tokens
+        return (resp, 401)
     try:
         id_token = result["tokens"]["IdToken"]
         decoded_id_token = decode_cognito_token(id_token)
@@ -256,24 +220,24 @@ def handle_cognito_refresh(
         email_from_token = decoded_id_token.get("email")
     except Exception as token_error:
         duration_ms = int((time.time() - start_time) * 1000)
-        current_app.logger.error(
+        log.error(
+            "ERRORS",
             "AUTH_REFRESH_COGNITO_TOKEN_DECODE_ERROR",
-            extra={"request_id": request_id, "error": str(token_error), "duration_ms": duration_ms},
+            {"request_id": request_id, "error": str(token_error), "duration_ms": duration_ms},
         )
-        return make_response(
-            {
-                "success": False,
-                "error": "TOKEN_DECODE_ERROR",
-                "message": "Failed to process refreshed token",
-            }
-        ), 500
-
-    # Find or update user
+        return (
+            make_response(
+                {
+                    "success": False,
+                    "error": "TOKEN_DECODE_ERROR",
+                    "message": "Failed to process refreshed token",
+                }
+            ),
+            500,
+        )
     user = find_or_create_user_by_cognito(user_sub, email_from_token or email or "")
     user_id = str(user.id) if user else user_sub
     user_name = user.name if user else "Unknown User"
-
-    # Create new minimal tokens
     minimal_access_token, minimal_id_token = create_minimal_tokens(
         user_id=user_id,
         user_email=email_from_token or email or "",
@@ -282,8 +246,6 @@ def handle_cognito_refresh(
         fallback_access_token=result["tokens"]["AccessToken"],
         fallback_id_token=result["tokens"]["IdToken"],
     )
-
-    # Create response
     resp = create_auth_response(
         user=user,
         user_sub=user_sub,
@@ -292,22 +254,19 @@ def handle_cognito_refresh(
         id_token=minimal_id_token,
         message="Token refreshed successfully",
     )
-
-    # Set new cookies (refresh token doesn't change, but we update access token)
     resp = set_auth_cookies(
         cast(Response, resp),
         access_token=minimal_access_token,
-        refresh_token=refresh_token,  # Refresh token stays the same
+        refresh_token=refresh_token,
         request_id=request_id,
     )
-
     duration_ms = int((time.time() - start_time) * 1000)
-    current_app.logger.info(
+    log.info(
+        "AUTH",
         "AUTH_REFRESH_COGNITO_SUCCESS",
-        extra={"request_id": request_id, "user_id": user_id, "duration_ms": duration_ms},
+        {"request_id": request_id, "user_id": user_id, "duration_ms": duration_ms},
     )
-
-    return resp, 200
+    return (resp, 200)
 
 
 def handle_cognito_refresh_without_session(
@@ -317,20 +276,14 @@ def handle_cognito_refresh_without_session(
     Refresh when the session cookie is missing but refresh_token is present (e.g. expired session).
     Uses Cognito refresh first to recover user identity, then issues new session cookies.
     """
-    from flask import current_app
-
     result = AWS_COGNITO_service.refresh_access_token(refresh_token, None)
-
     if not result["success"]:
         duration_ms = int((time.time() - start_time) * 1000)
         error_code = result.get("error", "REFRESH_FAILED")
-        current_app.logger.warning(
+        log.warn(
+            "AUTH",
             "AUTH_REFRESH_WITHOUT_SESSION_FAILED",
-            extra={
-                "request_id": request_id,
-                "error": error_code,
-                "duration_ms": duration_ms,
-            },
+            {"request_id": request_id, "error": error_code, "duration_ms": duration_ms},
         )
         resp = make_response(
             {
@@ -340,8 +293,7 @@ def handle_cognito_refresh_without_session(
             }
         )
         resp = clear_auth_cookies(resp)
-        return resp, 401
-
+        return (resp, 401)
     try:
         id_token = result["tokens"]["IdToken"]
         decoded_id_token = decode_cognito_token(id_token)
@@ -349,24 +301,28 @@ def handle_cognito_refresh_without_session(
         email_from_token = decoded_id_token.get("email")
     except Exception as token_error:
         duration_ms = int((time.time() - start_time) * 1000)
-        current_app.logger.error(
+        log.error(
+            "ERRORS",
             "AUTH_REFRESH_WITHOUT_SESSION_TOKEN_DECODE_ERROR",
-            extra={"request_id": request_id, "error": str(token_error), "duration_ms": duration_ms},
+            {"request_id": request_id, "error": str(token_error), "duration_ms": duration_ms},
         )
-        return make_response(
-            {
-                "success": False,
-                "error": "TOKEN_DECODE_ERROR",
-                "message": "Failed to process refreshed token",
-            }
-        ), 500
-
+        return (
+            make_response(
+                {
+                    "success": False,
+                    "error": "TOKEN_DECODE_ERROR",
+                    "message": "Failed to process refreshed token",
+                }
+            ),
+            500,
+        )
     user = find_or_create_user_by_cognito(user_sub, email_from_token or "")
     if not user or not user.cognito_id:
         duration_ms = int((time.time() - start_time) * 1000)
-        current_app.logger.warning(
+        log.warn(
+            "AUTH",
             "AUTH_REFRESH_WITHOUT_SESSION_USER_NOT_FOUND",
-            extra={"request_id": request_id, "user_sub": user_sub, "duration_ms": duration_ms},
+            {"request_id": request_id, "user_sub": user_sub, "duration_ms": duration_ms},
         )
         resp = make_response(
             {
@@ -376,8 +332,7 @@ def handle_cognito_refresh_without_session(
             }
         )
         resp = clear_auth_cookies(resp)
-        return resp, 401
-
+        return (resp, 401)
     user_id = str(user.id)
     return handle_cognito_refresh(
         user, user_id, email_from_token or user.email, request_id, start_time

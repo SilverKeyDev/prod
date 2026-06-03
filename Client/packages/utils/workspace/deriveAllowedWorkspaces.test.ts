@@ -4,19 +4,19 @@ import { deriveAllowedWorkspaces } from "./deriveAllowedWorkspaces";
 
 describe("deriveAllowedWorkspaces", () => {
   it("defaults non-agent without roles to buyer only", () => {
-    expect(deriveAllowedWorkspaces({ isAgent: false })).toEqual(["buyer"]);
+    expect(deriveAllowedWorkspaces({})).toEqual(["buyer"]);
   });
 
-  it("defaults agent without roles to agent only", () => {
-    expect(deriveAllowedWorkspaces({ isAgent: true })).toEqual(["agent"]);
+  it("defaults agent without other roles to agent only", () => {
+    expect(deriveAllowedWorkspaces({ roles: ["agent"] })).toEqual(["agent"]);
   });
 
   it("includes seller when user_roles has seller", () => {
-    expect(deriveAllowedWorkspaces({ isAgent: false, roles: ["seller"] })).toEqual(["seller"]);
+    expect(deriveAllowedWorkspaces({ roles: ["seller"] })).toEqual(["seller"]);
   });
 
   it("includes buyer and seller for dual client roles", () => {
-    const list = deriveAllowedWorkspaces({ isAgent: false, roles: ["buyer", "seller"] });
+    const list = deriveAllowedWorkspaces({ roles: ["buyer", "seller"] });
     expect(list).toContain("buyer");
     expect(list).toContain("seller");
   });
@@ -24,7 +24,6 @@ describe("deriveAllowedWorkspaces", () => {
   it("includes brokerage from org ids", () => {
     expect(
       deriveAllowedWorkspaces({
-        isAgent: false,
         roles: ["buyer"],
         brokerageOrgIds: ["org-1"],
       })
@@ -34,8 +33,7 @@ describe("deriveAllowedWorkspaces", () => {
   it("includes brokerage from brokerage_admin role", () => {
     expect(
       deriveAllowedWorkspaces({
-        isAgent: true,
-        roles: ["brokerage_admin"],
+        roles: ["agent", "brokerage_admin"],
       })
     ).toContain("brokerage");
   });
@@ -43,7 +41,6 @@ describe("deriveAllowedWorkspaces", () => {
   it("includes integration_partner from integration_partner role without buyer fallback", () => {
     expect(
       deriveAllowedWorkspaces({
-        isAgent: false,
         roles: ["integration_partner"],
       })
     ).toEqual(["integration_partner"]);
@@ -52,14 +49,13 @@ describe("deriveAllowedWorkspaces", () => {
   it("brokerage_admin-only persona allows brokerage without buyer fallback", () => {
     expect(
       deriveAllowedWorkspaces({
-        isAgent: false,
         roles: ["brokerage_admin"],
       })
     ).toEqual(["brokerage"]);
   });
 
   it("agent with buyer role gets buyer and agent workspaces", () => {
-    const list = deriveAllowedWorkspaces({ isAgent: true, roles: ["buyer"] });
+    const list = deriveAllowedWorkspaces({ roles: ["agent", "buyer"] });
     expect(list).toContain("agent");
     expect(list).toContain("buyer");
   });

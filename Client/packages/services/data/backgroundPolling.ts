@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UserProfile } from "packages/types";
 import { getDocument } from "packages/utils/platform";
 
@@ -41,7 +41,7 @@ export class BackgroundPolling {
    */
   start(user: UserProfile | null, pathname: string = "/"): void {
     if (this.isPolling) {
-      log.info(LOG_CATEGORIES.POLLING, "Already polling, skipping start");
+      log.info("POLLING", "Already polling, skipping start");
       return;
     }
 
@@ -51,9 +51,9 @@ export class BackgroundPolling {
 
     const routes = getPollingRoutes(user);
 
-    log.info(LOG_CATEGORIES.POLLING, "🚀 Starting background polling", {
+    log.info("POLLING", "🚀 Starting background polling", {
       userId: user?.id,
-      isAgent: user?.is_agent ?? false,
+      isAgent: (user?.roles ?? []).includes("agent"),
       pathname,
       routeCount: routes.length,
     });
@@ -108,7 +108,7 @@ export class BackgroundPolling {
       if (!this.user) return;
 
       // Check if route should be polled based on user type
-      if (route.userType === "agent" && !this.user.is_agent) {
+      if (route.userType === "agent" && !(this.user.roles ?? []).includes("agent")) {
         return;
       }
 
@@ -129,7 +129,7 @@ export class BackgroundPolling {
           staleTime: 0, // Always fetch fresh when polling
         });
       } catch (error) {
-        log.error(LOG_CATEGORIES.POLLING, `❌ ${route.key} poll failed`, error);
+        log.error("POLLING", `❌ ${route.key} poll failed`, error);
       }
     };
 

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useMediaQuery } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
 import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
@@ -233,7 +233,7 @@ export function useCalendarScreen({
         await updateEvent(payload.event.id, body, payload.event.calendarId);
         await refetchEvents();
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Week grid time resize failed", error);
+        log.error("ERRORS", "Week grid time resize failed", error);
         enqueueToast({
           type: "error",
           message: "Could not update event time",

@@ -3,7 +3,7 @@
  * For log + send-to-backend, use reportErrorWithCapture from packages/services/security/errorReporting.
  */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { normalizeError } from "./normalize";
 import type { AppError } from "./types";
@@ -23,20 +23,20 @@ export function logError(error: AppError, context?: Record<string, unknown>): vo
 
   switch (error.name) {
     case "ValidationError":
-      log.warn(LOG_CATEGORIES.ERRORS, errorPrefix, errorDetails);
+      log.warn("ERRORS", errorPrefix, errorDetails);
       break;
     case "AuthenticationError":
     case "AuthorizationError":
-      log.warn(LOG_CATEGORIES.AUTH, errorPrefix, errorDetails);
+      log.warn("AUTH", errorPrefix, errorDetails);
       break;
     case "NetworkError":
-      log.error(LOG_CATEGORIES.HTTP, errorPrefix, errorDetails);
+      log.error("HTTP", errorPrefix, errorDetails);
       break;
     case "BusinessLogicError":
-      log.error(LOG_CATEGORIES.ERRORS, errorPrefix, errorDetails);
+      log.error("ERRORS", errorPrefix, errorDetails);
       break;
     default:
-      log.error(LOG_CATEGORIES.ERRORS, errorPrefix, errorDetails);
+      log.error("ERRORS", errorPrefix, errorDetails);
   }
 }
 

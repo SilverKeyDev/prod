@@ -2,7 +2,7 @@ import React, { type RefObject } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { PasswordValidation } from "@/components/feedback/PasswordValidation";
 import { Button, Input, VerificationCodeInput } from "@/components/ui";
@@ -70,7 +70,7 @@ export function ResetPasswordForm({
             onChange={setCode}
             onComplete={(completedCode) => {
               setCode(completedCode);
-              log.debug(LOG_CATEGORIES.AUTH, "Verification code input completed", {
+              log.debug("AUTH", "Verification code input completed", {
                 code: completedCode,
               });
             }}

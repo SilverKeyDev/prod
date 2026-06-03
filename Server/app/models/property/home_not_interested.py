@@ -1,3 +1,4 @@
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -51,20 +52,3 @@ class HomeNotInterested(db.Model):
         super().__init__(**kwargs)
         if self.not_interested_history is None:
             self.not_interested_history = []
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "address": self.address,
-            "isNotInterested": self.is_not_interested,
-            "not_interested_history": self.not_interested_history,
-            "why": self.why,
-            "score": self.score,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "zpid": self.zpid,
-            "mls_home_id": self.mls_home_id,
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-        }

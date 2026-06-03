@@ -1,13 +1,12 @@
 """Cognito sign-up and confirm sign-up flows."""
 
-import logging
 from collections.abc import Callable
 
 from botocore.exceptions import ClientError
 
-from ..utils.code_delivery import normalize_cognito_code_delivery
+from logger import log
 
-logger = logging.getLogger(__name__)
+from ..utils.code_delivery import normalize_cognito_code_delivery
 
 
 def sign_up(
@@ -33,7 +32,7 @@ def sign_up(
             "code_delivery": normalize_cognito_code_delivery(response["CodeDeliveryDetails"]),
         }
     except ClientError as e:
-        logger.error("Error signing up user: %s", e)
+        log.error("ERRORS", f"Error signing up user: {e}", e)
         return {
             "success": False,
             "error": e.response["Error"]["Code"],
@@ -54,7 +53,7 @@ def confirm_sign_up(
         )
         return {"success": True}
     except ClientError as e:
-        logger.error("Error confirming sign up: %s", e)
+        log.error("ERRORS", f"Error confirming sign up: {e}", e)
         return {
             "success": False,
             "error": e.response["Error"]["Code"],

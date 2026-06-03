@@ -5,9 +5,7 @@ from io import BytesIO
 
 from botocore.exceptions import ClientError, ParamValidationError
 
-from app.utils.security.app_logging import get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def upload_pdf(
@@ -31,7 +29,7 @@ def upload_pdf(
         The S3 key (path) of the uploaded file, or None if upload failed
     """
     if not file_data or not filename or len(file_data) == 0:
-        logger.error("Invalid file data or filename provided for upload")
+        log.error("DOCUMENTS", "Invalid file data or filename provided for upload")
         return None
 
     try:
@@ -50,13 +48,25 @@ def upload_pdf(
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(f"Failed to upload PDF to S3: {filename} - {error_code}: {error_message}")
+        log.error(
+            "DOCUMENTS",
+            "Failed to upload PDF to S3",
+            {"filename": filename, "error_code": error_code, "error_message": error_message},
+        )
         return None
     except ParamValidationError as e:
-        logger.error(f"Parameter validation error uploading PDF: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Parameter validation error uploading PDF",
+            {"error": str(e)},
+        )
         return None
     except Exception as e:
-        logger.error(f"Unexpected error uploading PDF to S3: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Unexpected error uploading PDF to S3",
+            {"error": str(e)},
+        )
         return None
 
 
@@ -77,7 +87,7 @@ def upload_file(
         The S3 key if successful, None otherwise
     """
     if not os.path.exists(file_path):
-        logger.error(f"File not found: {file_path}")
+        log.error("DOCUMENTS", "File not found for S3 upload", {"file_path": file_path})
         return None
 
     try:
@@ -92,10 +102,18 @@ def upload_file(
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(f"Failed to upload file to S3: {s3_key} - {error_code}: {error_message}")
+        log.error(
+            "DOCUMENTS",
+            "Failed to upload file to S3",
+            {"s3_key": s3_key, "error_code": error_code, "error_message": error_message},
+        )
         return None
     except Exception as e:
-        logger.error(f"Unexpected error uploading file to S3: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Unexpected error uploading file to S3",
+            {"error": str(e)},
+        )
         return None
 
 
@@ -112,7 +130,7 @@ def delete_file(s3_client, bucket_name: str, s3_key: str) -> bool:
         True if deletion was successful, False otherwise
     """
     if not s3_key:
-        logger.error("No S3 key provided for deletion")
+        log.error("DOCUMENTS", "No S3 key provided for deletion")
         return False
 
     try:
@@ -122,18 +140,34 @@ def delete_file(s3_client, bucket_name: str, s3_key: str) -> bool:
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(f"Failed to delete file from S3: {s3_key} - {error_code}: {error_message}")
+        log.error(
+            "DOCUMENTS",
+            "Failed to delete file from S3",
+            {"s3_key": s3_key, "error_code": error_code, "error_message": error_message},
+        )
 
         if error_code == "NoSuchKey":
-            logger.warning(f"S3 object '{s3_key}' does not exist (already deleted?)")
+            log.warn(
+                "DOCUMENTS",
+                "S3 object does not exist (already deleted?)",
+                {"s3_key": s3_key},
+            )
             return True  # Consider this a success since the goal is achieved
 
         return False
     except ParamValidationError as e:
-        logger.error(f"Parameter validation error deleting file: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Parameter validation error deleting file",
+            {"error": str(e)},
+        )
         return False
     except Exception as e:
-        logger.error(f"Unexpected error deleting file from S3: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Unexpected error deleting file from S3",
+            {"error": str(e)},
+        )
         return False
 
 
@@ -150,7 +184,7 @@ def file_exists(s3_client, bucket_name: str, s3_key: str) -> bool:
         True if file exists, False otherwise
     """
     if not s3_key:
-        logger.error("No S3 key provided for existence check")
+        log.error("DOCUMENTS", "No S3 key provided for existence check")
         return False
 
     try:
@@ -161,14 +195,19 @@ def file_exists(s3_client, bucket_name: str, s3_key: str) -> bool:
         error_code = e.response["Error"]["Code"]
         if error_code == "404" or error_code == "NoSuchKey":
             return False
-        else:
-            error_message = e.response["Error"]["Message"]
-            logger.error(
-                f"Error checking if file exists in S3: {s3_key} - {error_code}: {error_message}"
-            )
-            return False
+        error_message = e.response["Error"]["Message"]
+        log.error(
+            "DOCUMENTS",
+            "Error checking if file exists in S3",
+            {"s3_key": s3_key, "error_code": error_code, "error_message": error_message},
+        )
+        return False
     except Exception as e:
-        logger.error(f"Unexpected error checking file existence: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Unexpected error checking file existence",
+            {"error": str(e)},
+        )
         return False
 
 
@@ -185,7 +224,7 @@ def download_file(s3_client, bucket_name: str, s3_key: str) -> bytes | None:
         The file contents as bytes, or None if download fails
     """
     if not s3_key:
-        logger.error("No S3 key provided for download")
+        log.error("DOCUMENTS", "No S3 key provided for download")
         return None
 
     try:
@@ -197,8 +236,16 @@ def download_file(s3_client, bucket_name: str, s3_key: str) -> bytes | None:
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(f"Failed to download file from S3: {s3_key} - {error_code}: {error_message}")
+        log.error(
+            "DOCUMENTS",
+            "Failed to download file from S3",
+            {"s3_key": s3_key, "error_code": error_code, "error_message": error_message},
+        )
         return None
     except Exception as e:
-        logger.error(f"Unexpected error downloading file from S3: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Unexpected error downloading file from S3",
+            {"error": str(e)},
+        )
         return None

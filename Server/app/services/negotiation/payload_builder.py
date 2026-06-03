@@ -2,9 +2,7 @@
 Perplexity API payload construction for negotiation strategy generation.
 """
 
-import logging
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 def _response_format_for(section_type: str) -> dict:
@@ -27,7 +25,7 @@ def _response_format_for(section_type: str) -> dict:
                 },
             }
         except ImportError as e:
-            logger.error(f"Failed to import strategy_model: {e}")
+            log.error("NEGOTIATION", "Failed to import strategy_model", {"error": str(e)})
             return {"type": "json_object"}
     return {"type": "json_object"}
 

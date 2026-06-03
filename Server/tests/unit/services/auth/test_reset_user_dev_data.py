@@ -6,6 +6,7 @@ import uuid
 from unittest.mock import patch
 
 import pytest
+from sqlalchemy import func, select
 
 from app import db
 from app.models import (
@@ -95,10 +96,36 @@ class TestResetUserDevData:
 
             cleared = reset_user_dev_data(buyer.id, {"transaction_steps"})
             assert cleared == {"transaction_steps": True}
-            assert TransactionTask.query.filter_by(user_id=buyer.id).count() == 0
-            assert TransactionAddress.query.filter_by(user_id=buyer.id).count() == 0
-            assert BuyerStepView.query.filter_by(buyer_id=buyer.id).count() == 0
-            assert Transaction.query.filter_by(id=tx_id).count() == 1
+            assert (
+                db.session.scalar(
+                    select(func.count())
+                    .select_from(TransactionTask)
+                    .where(TransactionTask.user_id == buyer.id)
+                )
+                == 0
+            )
+            assert (
+                db.session.scalar(
+                    select(func.count())
+                    .select_from(TransactionAddress)
+                    .where(TransactionAddress.user_id == buyer.id)
+                )
+                == 0
+            )
+            assert (
+                db.session.scalar(
+                    select(func.count())
+                    .select_from(BuyerStepView)
+                    .where(BuyerStepView.buyer_id == buyer.id)
+                )
+                == 0
+            )
+            assert (
+                db.session.scalar(
+                    select(func.count()).select_from(Transaction).where(Transaction.id == tx_id)
+                )
+                == 1
+            )
 
     def test_s3_scope_deletes_documents_and_calls_s3(self, app, db_session) -> None:
         with app.app_context():
@@ -132,8 +159,20 @@ class TestResetUserDevData:
                 cleared = reset_user_dev_data(user.id, {"s3"})
 
             assert cleared == {"s3": True}
-            assert Document.query.filter_by(user_id=user.id).count() == 0
-            assert DocumentLibraryItem.query.filter_by(id=li.id).count() == 0
+            assert (
+                db.session.scalar(
+                    select(func.count()).select_from(Document).where(Document.user_id == user.id)
+                )
+                == 0
+            )
+            assert (
+                db.session.scalar(
+                    select(func.count())
+                    .select_from(DocumentLibraryItem)
+                    .where(DocumentLibraryItem.id == li.id)
+                )
+                == 0
+            )
             mock_s3.assert_called_once()
             call_args = mock_s3.call_args
             assert call_args[0][0] == user.id
@@ -144,7 +183,9 @@ class TestResetUserDevData:
     def test_connections_scope_clears_links(self, app, db_session) -> None:
         with app.app_context():
             agent = _create_user(email="agent-conn@example.com", cognito_id="reset-agent-conn")
-            agent.is_agent = True
+            from app.services.auth.user_role_helpers import ensure_user_role
+
+            ensure_user_role(str(agent.id), "agent")
             client = _create_user(email="client-conn@example.com", cognito_id="reset-client-conn")
             db.session.add(agent)
             db.session.add(client)
@@ -184,11 +225,14 @@ class TestResetUserDevData:
 
             cleared = reset_user_dev_data(client.id, {"connections"})
             assert cleared == {"connections": True}
-            assert AgentConnectionRequest.query.count() == 0
-            assert AgentConnections.query.count() == 0
-            assert ChatHistory.query.count() == 0
-            assert Todo.query.count() == 0
-            assert ChecklistItemDispatchSetting.query.count() == 0
+            assert db.session.scalar(select(func.count()).select_from(AgentConnectionRequest)) == 0
+            assert db.session.scalar(select(func.count()).select_from(AgentConnections)) == 0
+            assert db.session.scalar(select(func.count()).select_from(ChatHistory)) == 0
+            assert db.session.scalar(select(func.count()).select_from(Todo)) == 0
+            assert (
+                db.session.scalar(select(func.count()).select_from(ChecklistItemDispatchSetting))
+                == 0
+            )
 
     def test_profile_deletes_profile_picture_s3_key(self, app, db_session) -> None:
         with app.app_context():
@@ -234,6 +278,13 @@ class TestResetUserDevData:
                 )
 
             assert cleared == {"preferences": True, "transaction_steps": True}
-            assert TransactionTask.query.filter_by(user_id=user.id).count() == 0
+            assert (
+                db.session.scalar(
+                    select(func.count())
+                    .select_from(TransactionTask)
+                    .where(TransactionTask.user_id == user.id)
+                )
+                == 0
+            )
             db.session.refresh(user)
             assert user.has_preferences is False

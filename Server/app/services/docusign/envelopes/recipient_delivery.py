@@ -7,14 +7,12 @@ from __future__ import annotations
 from app.models import AgreementParticipant
 from app.schemas.generated import DocusignUpdateEnvelopeNotificationRequest
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..agreements.agreement_crud import get_agreement
 from ..core.client import DocusignClient
 from ..errors import AgreementStateError
 from .notification_settings import build_envelope_notification_request_for_update
-
-logger = get_logger()
 
 
 def resend_agreement_recipient(agreement_id: str, participant_id: str, note: str | None) -> dict:
@@ -48,8 +46,8 @@ def resend_agreement_recipient(agreement_id: str, participant_id: str, note: str
         note=note_clean or None,
     )
     client = DocusignClient(auth_type="jwt")
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Resending DocuSign envelope to participant",
         {"agreement_id": agreement_id, "participant_id": participant_id},
     )
@@ -70,8 +68,8 @@ def update_agreement_envelope_notification(
 
     req = build_envelope_notification_request_for_update(body)
     client = DocusignClient(auth_type="jwt")
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Updating DocuSign envelope notification settings",
         {"agreement_id": agreement_id},
     )

@@ -1,9 +1,12 @@
 """Calendar connections (1:N). Replaces disabled_calendars JSON."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -25,7 +28,7 @@ class UserCalendarConnection(db.Model):
         default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
 
-    user = db.relationship("User", backref=db.backref("user_calendar_connections", lazy="dynamic"))
+    user: Mapped["User"] = relationship("User", back_populates="user_calendar_connections")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

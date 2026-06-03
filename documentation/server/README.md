@@ -12,7 +12,10 @@ Backend (Python/Flask) canonical docs. Lightweight module READMEs stay under `Se
 | [ops/redis-celery.md](./ops/redis-celery.md) | Redis broker, Celery workers, troubleshooting |
 | [ops/scaling-playbook.md](./ops/scaling-playbook.md) | Capacity tuning, env vars, multi-instance checklist |
 | [ops/posthog-capacity-queries.md](./ops/posthog-capacity-queries.md) | HogQL templates for `api_request` latency and volume |
+| [ops/posthog-api-error-semantics.md](./ops/posthog-api-error-semantics.md) | `error_kind`, `expected_client_error`, and SLO vs 4xx noise |
+| [ops/posthog-dead-routes-table.md](./ops/posthog-dead-routes-table.md) | PostHog insight/table for CI `endpoint_dead_route` events |
 | [ops/scripts-guide.md](./ops/scripts-guide.md) | Master script inventory, caller map, naming conventions, add/deprecate guide |
+| [ops/viewing-itinerary-migration.md](./ops/viewing-itinerary-migration.md) | Backfill legacy `calendar_events.itinerary` to ViewingItinerary shape |
 
 ### Architecture and API
 
@@ -31,6 +34,12 @@ Backend (Python/Flask) canonical docs. Lightweight module READMEs stay under `Se
 | [celery-tasks.md](./celery-tasks.md) | Celery task overview |
 | [deployment.md](./deployment.md) | CI/CD and deploy pointers |
 | [messaging-sse.md](./messaging-sse.md) | Messaging SSE architecture |
+
+### Standards
+
+| Doc | Description |
+|-----|-------------|
+| [standards/http-error-codes.md](./standards/http-error-codes.md) | HTTP status matrix, ErrorResponse envelope, route helpers |
 
 ## Related
 

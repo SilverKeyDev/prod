@@ -30,9 +30,10 @@ def get_resource(user):
     """Get resource for authenticated user"""
     # user is automatically provided by decorator
     resource = get_resource_for_user(user.id)
+    from app.dtos.user import UserDTO
     return jsonify({
         'success': True,
-        'data': resource.to_dict()
+        'data': UserDTO.to_response(user),
     })
 ```
 
@@ -81,7 +82,8 @@ def create_resource(user, data):
     """Create resource with combined decorators"""
     # user and data are automatically provided
     resource = create_resource_for_user(user.id, data)
-    return jsonify({'success': True, 'data': resource.to_dict()})
+    from app.dtos.user import UserDTO
+    return jsonify({'success': True, 'data': UserDTO.to_response(user)})
 ```
 
 ## Error Handling Patterns

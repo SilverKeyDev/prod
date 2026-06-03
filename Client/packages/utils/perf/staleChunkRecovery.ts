@@ -1,5 +1,5 @@
 import { isProduction } from "packages/config/env";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 const STALE_CHUNK_PATTERNS = [
   /failed to fetch dynamically imported module/i,
@@ -33,7 +33,7 @@ export function tryReloadForStaleChunkError(error: unknown, context: string): bo
     return false;
   }
   reloadAttempted = true;
-  log.info(LOG_CATEGORIES.ERRORS, "[PERF] Reloading for stale lazy chunk", { context });
+  log.info("ERRORS", "[PERF] Reloading for stale lazy chunk", { context });
   if (typeof location !== "undefined" && typeof location.reload === "function") {
     location.reload();
   }

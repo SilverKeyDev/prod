@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from sqlalchemy import Select, func, select
+
+from logger import log
+
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Query
+    from sqlalchemy.orm import Session
 
 
 def clamp_per_page(per_page: int, *, maximum: int = 100) -> int:
@@ -69,14 +73,25 @@ def parse_query_pagination_args(
         return clamp_page(page), per_page
 
     if legacy_limit_default is not None:
+        log.info(
+            "API",
+            "legacy_favorite_homes_pagination_default",
+            {"per_page": legacy_limit_default},
+        )
         return 1, clamp_per_page(legacy_limit_default)
     return 1, clamp_per_page(default_per_page)
 
 
-def paginate(query: Query[Any], page: int, per_page: int) -> tuple[list[Any], dict[str, Any]]:
-    """Apply offset/limit to a SQLAlchemy query; return (items, pagination metadata)."""
-    total = query.count()
+def paginate(
+    session: Session,
+    stmt: Select[Any],
+    page: int,
+    per_page: int,
+) -> tuple[list[Any], dict[str, Any]]:
+    """Apply offset/limit to a SQLAlchemy 2.0 select(); return (items, pagination metadata)."""
     per_page = clamp_per_page(per_page)
     page = clamp_page(page)
-    items = query.offset((page - 1) * per_page).limit(per_page).all()
+    count_stmt = select(func.count()).select_from(stmt.order_by(None).subquery())
+    total = int(session.scalar(count_stmt) or 0)
+    items = list(session.scalars(stmt.offset((page - 1) * per_page).limit(per_page)).all())
     return items, build_pagination(page=page, per_page=per_page, total=total)

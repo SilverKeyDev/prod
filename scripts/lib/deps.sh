@@ -400,6 +400,8 @@ deps_run_scan() {
   deps_log_step redis "checking…"
   if deps_check_redis_ping; then
     deps_log_step redis "OK (PONG)"
+  elif deps_check_redis_binaries && deps_try_start_redis; then
+    deps_log_step redis "OK (started redis-server, redis-cli ping → PONG)"
   elif deps_check_redis_binaries; then
     deps_log_step redis "installed but not running — try: brew services start redis  OR  redis-server --daemonize yes"
     failed=true

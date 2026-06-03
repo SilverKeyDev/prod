@@ -1,0 +1,65 @@
+type: object
+required:
+  - id
+  - partner_id
+  - link_id
+  - step_id
+  - clicked_at
+  - payout_per_conversion
+  - payout_type
+properties:
+  id:
+    type: string
+  partner_id:
+    type: string
+  link_id:
+    type: string
+  agent_id:
+    type: string
+    nullable: true
+  buyer_id:
+    type: string
+    nullable: true
+  transaction_id:
+    type: string
+    nullable: true
+  step_id:
+    type: string
+  clicked_at:
+    type: string
+    format: date-time
+    nullable: true
+  payout_per_conversion:
+    type: number
+  payout_type:
+    type: string
+  utm_source:
+    type: string
+    nullable: true
+  utm_medium:
+    type: string
+    nullable: true
+  utm_campaign:
+    type: string
+    nullable: true
+  geo_city:
+    type: string
+    nullable: true
+  geo_zip:
+    type: string
+    nullable: true
+  geo_region:
+    type: string
+    nullable: true
+  device_class:
+    type: string
+    nullable: true
+  referrer:
+    type: string
+    nullable: true
+  buyer_name:
+    type: string
+    nullable: true
+  agent_name:
+    type: string
+    nullable: true

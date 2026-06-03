@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getWindow } from "packages/utils/platform";
 
 /** Monotonic counter so logs can show Strict Mode / double effect ordering (dev). */
@@ -28,13 +28,13 @@ export function attachInlineStreetViewPanorama(
 ): InlineStreetViewAttachment | null {
   const win = getWindow() as (Window & { google?: typeof google }) | null;
   if (!win?.google?.maps?.StreetViewPanorama) {
-    log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "Street View: StreetViewPanorama API missing");
+    log.debug("PROPERTY_DETAILS", "Street View: StreetViewPanorama API missing");
     return null;
   }
 
   if (!container.isConnected) {
     log.debug(
-      LOG_CATEGORIES.PROPERTY_DETAILS,
+      "PROPERTY_DETAILS",
       "Street View: overlay container not in document; skip attach (pegman may open externally)"
     );
     return null;
@@ -57,7 +57,7 @@ export function attachInlineStreetViewPanorama(
 
   map.setStreetView(panorama);
   const attachCallSeq = ++attachInlineStreetViewPanoramaCallSeq;
-  log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "Street View: linked panorama to map", {
+  log.debug("PROPERTY_DETAILS", "Street View: linked panorama to map", {
     attachCallSeq,
     hint: "Two quick logs in dev usually mean React 18 Strict Mode (effect mount, cleanup, remount).",
   });

@@ -110,7 +110,6 @@ describe("useUserData", () => {
       expect(result.current.userProfile).toEqual({
         ...partialUserFromApi,
         has_preferences: false,
-        is_agent: false,
         roles: [],
         brokerage_org_ids: null,
       });

@@ -2,13 +2,15 @@
 
 from typing import Any
 
+from sqlalchemy import select
+
 from app import db
 from app.models import UserFinancials
 
 
 def write_financials_from_payload(user_id: str, data: dict[str, Any]) -> UserFinancials:
     """Write UserFinancials from preferences payload."""
-    fin = UserFinancials.query.filter_by(user_id=user_id).first()
+    fin = db.session.scalar(select(UserFinancials).where(UserFinancials.user_id == user_id))
     if fin is None:
         fin = UserFinancials(user_id=user_id)
         db.session.add(fin)

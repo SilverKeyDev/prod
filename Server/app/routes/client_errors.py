@@ -10,11 +10,12 @@ from functools import wraps
 from flask import Blueprint, jsonify, request
 
 from app.schemas import ClientErrorReport, SuccessResponse
-from app.utils.security import SecurityError, rate_limit, security_error_response
+from app.utils.common_patterns import invalid_request, validation
+from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 
 # Centralized logger (category-based, PII scrubbing)
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 client_errors_bp = Blueprint("client_errors", __name__, url_prefix="/api/v1/client")
 
@@ -63,7 +64,7 @@ def _enforce_max_body_bytes(max_bytes: int):
         def wrapped(*args, **kwargs):
             content_length = request.content_length
             if content_length is not None and content_length > max_bytes:
-                return security_error_response(SecurityError.INVALID_REQUEST)
+                return invalid_request("Request body too large")
             return f(*args, **kwargs)
 
         return wrapped
@@ -76,39 +77,25 @@ def _enforce_max_body_bytes(max_bytes: int):
 @_enforce_max_body_bytes(MAX_BODY_BYTES)
 @validate_request(ClientErrorReport)
 @validate_response(SuccessResponse)
-def report_client_error(data: ClientErrorReport | None = None):
+def report_client_error(data: ClientErrorReport):
     """
     POST /api/v1/client/errors
     Body (JSON): client error report. At least one of 'message' or 'name' expected.
     Unauthenticated allowed so pre-login errors can be reported.
     """
-    if not request.is_json:
-        return security_error_response(SecurityError.INVALID_REQUEST)
+    body = data.model_dump()
+    message = body.get("message") or body.get("error_message")
+    name = body.get("name")
+    if not message and not name:
+        return validation(
+            "message or name is required",
+            field_errors={"message": "Provide message or name"},
+        )
 
-    if data is None:
-        try:
-            body = request.get_json(force=True, silent=False)
-        except Exception:
-            return security_error_response(SecurityError.INVALID_REQUEST)
-        if not isinstance(body, dict):
-            return security_error_response(SecurityError.INVALID_REQUEST)
-        message = body.get("message")
-        name = body.get("name")
-        if not message and not name:
-            return security_error_response(SecurityError.MISSING_FIELDS)
-    else:
-        body = request.get_json(silent=True)
-        if not isinstance(body, dict):
-            body = data.model_dump()
-        message = body.get("message")
-        name = body.get("name")
-        if not message and not name and not (data.error_message or "").strip():
-            return security_error_response(SecurityError.MISSING_FIELDS)
-
-    payload = _sanitize_payload(body if isinstance(body, dict) else {})
+    payload = _sanitize_payload(body)
     # Log with centralized logger (PII scrubbing happens in logger)
     log.error(
-        LOG_CATEGORIES["ERRORS"],
+        "ERRORS",
         "Client error reported",
         payload,
     )

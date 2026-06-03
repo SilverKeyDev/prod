@@ -61,7 +61,6 @@ describe("performRefreshToken", () => {
       created_at: null,
       is_active: true,
       has_preferences: true,
-      is_agent: false,
       roles: ["integration_partner", "admin"],
       brokerage_org_ids: null,
     };
@@ -76,7 +75,6 @@ describe("performRefreshToken", () => {
           id: "u1",
           email: "dev@usesilverkey.com",
           name: "Dev",
-          is_agent: false,
           auth_method: "cognito",
         },
       },
@@ -96,6 +94,5 @@ describe("performRefreshToken", () => {
     expect(setStoreUser).toHaveBeenCalledWith(setUser.mock.calls[0][0]);
     const merged = setUser.mock.calls[0][0] as UserProfile;
     expect(merged.roles).toEqual(["integration_partner", "admin"]);
-    expect(merged.is_agent).toBe(false);
   });
 });

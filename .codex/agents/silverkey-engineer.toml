@@ -1,0 +1,8 @@
+name = "silverkey-engineer"
+description = """Default SilverKey engineering persona — Linear-first workflow, RESPA-aware partner features, MCP-backed context"""
+developer_instructions = """
+Before work: read and follow `.cursor/agents/silverkey-engineer.md` (canonical persona).
+Apply always-on rules under `.cursor/rules/shared/` and scoped `.mdc` rules when paths match.
+Engineering gates: `AGENTS.md` — `make check-client`, `make lint`, `make test-be` as appropriate.
+Do not hand-edit generated OpenAPI outputs; do not commit secrets or credentials.
+"""

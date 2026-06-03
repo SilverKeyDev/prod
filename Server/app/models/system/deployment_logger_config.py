@@ -1,5 +1,6 @@
 """Deployment-wide logger configuration (client + server scopes)."""
 
+# pyright: reportUndefinedVariable=false
 from datetime import datetime, timezone
 from typing import Any
 

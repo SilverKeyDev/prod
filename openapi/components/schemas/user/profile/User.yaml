@@ -1,7 +1,7 @@
 type: object
 description: >
   Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles).
-  Agent status is derived from user_roles (is_agent is true when role "agent" is present).
+  Agent identity is determined by the presence of role "agent" in user_roles (exposed as roles).
 required:
   - id
   - email
@@ -45,10 +45,6 @@ properties:
     description: ISO 8601 timestamp of last successful session activity when tracked.
   is_active:
     type: boolean
-  is_agent:
-    type: boolean
-    nullable: true
-    description: Computed from user_roles; true when the user has the agent role.
   mls_id:
     type: string
     nullable: true
@@ -56,15 +52,14 @@ properties:
     type: string
     nullable: true
     description: >
-      Agent brokerage name on the users row (DB column brokerage). Replaces the legacy column name
-      agency_name from early migrations; API wire name is always brokerage.
+      Agent brokerage name on the users row (DB column brokerage). API wire name is always brokerage.
   has_preferences:
     type: boolean
     nullable: true
   preferences_version:
     type: string
     nullable: true
-    description: Legacy preferences version marker on users row.
+    description: Preferences schema version marker on users row (e.g. v1); null when unset.
   profile_picture:
     type: string
     nullable: true
@@ -78,7 +73,7 @@ properties:
     type: array
     items:
       type: string
-    description: Role names from user_roles; typically present on GET /user/profile.
+    description: Role names from user_roles (e.g. agent, buyer, seller). Agent UX uses roles includes agent.
   brokerage_org_ids:
     type: array
     items:
@@ -94,7 +89,6 @@ example:
   phone: "+15551234567"
   cognito_id: "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   google_id: null
-  is_agent: false
   has_preferences: true
   roles:
     - buyer

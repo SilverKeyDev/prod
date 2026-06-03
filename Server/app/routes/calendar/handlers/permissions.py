@@ -3,10 +3,11 @@ Permission management endpoints for Google Calendar
 """
 
 from flask import jsonify, request
+from sqlalchemy import select
 
 from app import db
 from app.models import GoogleOAuthToken
-from app.schemas import GoogleCalendarPermissionsResponse
+from app.schemas import EmptyRequest, GoogleCalendarPermissionsResponse
 from app.services.calendar.core import get_authenticated_user_id
 from app.services.calendar.permissions import (
     PERMISSION_DESCRIPTIONS,
@@ -16,14 +17,10 @@ from app.services.calendar.permissions import (
     get_scopes_from_tokeninfo,
     update_token_permissions_from_scopes,
 )
-from app.utils.security.app_logging import get_logger
-from app.utils.security.security import (
-    rate_limit,
-    sanitize_error_message,
-)
-from app.utils.validation import validate_response
-
-logger = get_logger()
+from app.utils.route import http_errors
+from app.utils.security.security import rate_limit
+from app.utils.validation import validate_request, validate_response
+from logger import log
 
 
 def _permissions_payload_from_token(token_record: GoogleOAuthToken) -> dict:
@@ -50,17 +47,14 @@ def get_calendar_permissions():
         return error_response
 
     try:
-        token_record = GoogleOAuthToken.query.filter_by(user_id=user_id).first()
+        token_record = db.session.scalar(
+            select(GoogleOAuthToken).where(GoogleOAuthToken.user_id == user_id)
+        )
 
         if not token_record:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "not_connected",
-                    "message": "Google Calendar is not connected. Please connect your account first.",
-                    "reconnect_url": "/api/v1/google/oauth/start",
-                }
-            ), 404
+            return http_errors.not_found(
+                "Google Calendar is not connected. Please connect your account first."
+            )
 
         permissions = _permissions_payload_from_token(token_record)
 
@@ -78,37 +72,30 @@ def get_calendar_permissions():
         )
 
     except Exception as e:
-        error_msg = sanitize_error_message(e)
-        logger.error(f"Error managing permissions for user {user_id}: {error_msg}", exc_info=True)
-        return jsonify(
-            {
-                "success": False,
-                "error": "permission_update_failed",
-                "message": f"Failed to manage permissions: {error_msg}",
-            }
-        ), 500
+        log.error("CALENDAR", "permissions_read_error", e)
+        return http_errors.server_error(
+            e, context={"operation": "get_calendar_permissions", "user_id": user_id}
+        )
 
 
 @rate_limit(max_requests=50, window_seconds=60)
+@validate_request(EmptyRequest)
 @validate_response(GoogleCalendarPermissionsResponse)
-def put_calendar_permissions():
+def put_calendar_permissions(data: EmptyRequest | None = None):
     """Update permissions from stored scopes (backfill / after OAuth)."""
     user_id, error_response = get_authenticated_user_id()
     if error_response:
         return error_response
 
     try:
-        token_record = GoogleOAuthToken.query.filter_by(user_id=user_id).first()
+        token_record = db.session.scalar(
+            select(GoogleOAuthToken).where(GoogleOAuthToken.user_id == user_id)
+        )
 
         if not token_record:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "not_connected",
-                    "message": "Google Calendar is not connected. Please connect your account first.",
-                    "reconnect_url": "/api/v1/google/oauth/start",
-                }
-            ), 404
+            return http_errors.not_found(
+                "Google Calendar is not connected. Please connect your account first."
+            )
 
         verify_from_token = request.args.get("verify", "false").lower() == "true"
 
@@ -116,16 +103,20 @@ def put_calendar_permissions():
             actual_scopes = get_scopes_from_tokeninfo(token_record.access_token)
             if actual_scopes:
                 token_record.scopes = actual_scopes
-                logger.info(f"Updated scopes from tokeninfo for user {user_id}: {actual_scopes}")
+                log.info(
+                    "CALENDAR",
+                    "permissions_scopes_from_tokeninfo",
+                    {"user_id": str(user_id), "scope_count": len(actual_scopes)},
+                )
             else:
-                logger.warning(f"Tokeninfo failed for user {user_id}, using stored scopes")
+                log.warn("CALENDAR", "permissions_tokeninfo_failed", {"user_id": str(user_id)})
 
         update_token_permissions_from_scopes(token_record, token_record.scopes)
         db.session.commit()
 
         permissions = _permissions_payload_from_token(token_record)
 
-        logger.info(f"Updated permissions for user {user_id} from stored scopes")
+        log.info("CALENDAR", "permissions_updated_from_stored", {"user_id": str(user_id)})
 
         return jsonify(
             {
@@ -138,12 +129,7 @@ def put_calendar_permissions():
         )
 
     except Exception as e:
-        error_msg = sanitize_error_message(e)
-        logger.error(f"Error managing permissions for user {user_id}: {error_msg}", exc_info=True)
-        return jsonify(
-            {
-                "success": False,
-                "error": "permission_update_failed",
-                "message": f"Failed to manage permissions: {error_msg}",
-            }
-        ), 500
+        log.error("CALENDAR", "permissions_update_error", e)
+        return http_errors.server_error(
+            e, context={"operation": "put_calendar_permissions", "user_id": user_id}
+        )

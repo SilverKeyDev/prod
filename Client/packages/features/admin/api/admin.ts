@@ -1,4 +1,5 @@
 import { apiGet, apiPost } from "packages/services/http";
+import { buildApiUrl } from "packages/services/http/urlHelpers";
 import type { components } from "packages/types/api.generated";
 import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
@@ -17,8 +18,15 @@ export type DeleteUserByIdResult = Required<
 export type UpdateUserSystemRolesRequest = components["schemas"]["UpdateUserSystemRolesRequest"];
 export type UpdateUserSystemRolesResponse = components["schemas"]["UpdateUserSystemRolesResponse"];
 
+export type AdminGateUser = components["schemas"]["AdminGateUser"];
+export type ListAdminGateUsersResponse = components["schemas"]["ListAdminGateUsersResponse"];
+
 export type UpdateUserSystemRolesResult = Required<
   Pick<components["schemas"]["UpdateUserSystemRolesResponse"], "user_id" | "gate_roles">
+>;
+
+export type ListAdminGateUsersResult = Required<
+  Pick<components["schemas"]["ListAdminGateUsersResponse"], "admins">
 >;
 
 export type UpdateAgentStatusRequest = components["schemas"]["UpdateAgentStatusRequest"];
@@ -35,6 +43,10 @@ export type DevUserDataResetScope = DevUserDataResetRequest["scopes"][number];
 
 export type DevUserDataResetResult = Required<
   Pick<DevUserDataResetResponse, "target_user_id" | "cleared">
+>;
+
+export type ValidationStatsResult = Required<
+  Pick<components["schemas"]["ValidationStatsApiResponse"], "data">
 >;
 
 type GetLoggerConfigResponse = components["schemas"]["GetLoggerConfigResponse"];
@@ -96,6 +108,15 @@ export const adminApi = {
     return { user_id: response.user_id, gate_roles: response.gate_roles };
   },
 
+  /** Super_admin only — list users with `admin` or `super_admin` gate roles. */
+  listGateRoleUsers: async (): Promise<ListAdminGateUsersResult> => {
+    const response = await apiGet<ListAdminGateUsersResponse>("/api/v1/admin/users/gate-roles");
+    if (!response.success || !Array.isArray(response.admins)) {
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to list gate role users"));
+    }
+    return { admins: response.admins };
+  },
+
   /**
    * Admin only — sets exclusive dev workspace persona on the signed-in user (testing / dev preview).
    * Returns the updated user row from the server.
@@ -116,7 +137,7 @@ export const adminApi = {
   },
 
   /**
-   * Admin only — sets the signed-in user's `users.is_agent` (testing / dev persona).
+   * Admin only — toggles the signed-in user's agent role in user_roles (testing / dev persona).
    * Returns the updated user row from the server.
    */
   setCurrentUserAgentStatus: async (
@@ -161,5 +182,17 @@ export const adminApi = {
       throw new Error(resolveApiResultErrorMessage(response, "Failed to reset dev user data"));
     }
     return { target_user_id: response.target_user_id, cleared: response.cleared };
+  },
+
+  /** Admin only — OpenAPI validation stats snapshot for the rolling window. */
+  getValidationStats: async (days: number): Promise<ValidationStatsResult> => {
+    const url = buildApiUrl("/api/v1/admin/validation-stats", { days });
+    const response = await apiGet<components["schemas"]["ValidationStatsApiResponse"]>(url);
+    if (!response.success || !response.data || typeof response.data !== "object") {
+      throw new Error(
+        resolveApiResultErrorMessage(response, "Failed to fetch validation statistics")
+      );
+    }
+    return { data: response.data };
   },
 };

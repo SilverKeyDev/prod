@@ -2,11 +2,8 @@
 
 import json
 import os
-import traceback
 from datetime import datetime, timedelta, timezone
 from typing import Any
-
-from flask import current_app
 
 from app import db
 from app.services.aggregation import get_preferences_dict_optional
@@ -45,6 +42,7 @@ from app.services.search.scoring import (
     public_property_analysis,
     resolve_highlights_counts_and_signature,
 )
+from logger import log
 
 from .property_stream_internal_tail import iter_stream_tail_after_analysis
 from .property_stream_steps import (
@@ -103,7 +101,7 @@ def _generate_property_stream_internal(
             # If we have a shared cache hit, use cached raw_data as fallback
             if cached_prop and cached_prop.raw_data:
                 data = cached_prop.raw_data
-                current_app.logger.info("[PROPERTY] API fetch failed but using cached raw_data")
+                log.info("PROPERTY_DETAILS", "Using cached raw_data after API fetch failure")
             else:
                 yield _sse("error", err)
                 return
@@ -124,9 +122,7 @@ def _generate_property_stream_internal(
             update_property_price(prop_record, fresh_price)
             db.session.commit()
         except Exception as cache_err:
-            current_app.logger.warning(
-                "[PROPERTY] Failed to upsert PropertyCache: %s", cache_err, exc_info=True
-            )
+            log.warn("ERRORS", "Failed to upsert PropertyCache", cache_err)
             db.session.rollback()
             prop_record = cached_prop  # fall back to whatever we found earlier
 
@@ -138,7 +134,7 @@ def _generate_property_stream_internal(
             cached_commute = get_user_commute(user_id_str, prop_record.id)
             if cached_commute and cached_commute.commute_data:
                 commute_data = cached_commute.commute_data
-                current_app.logger.info("[PROPERTY] Using cached commute for user")
+                log.info("PROPERTY_DETAILS", "Using cached commute for user")
             else:
                 commute_prefs = (analysis_options.preferences if analysis_options else None) or None
                 try:
@@ -151,7 +147,7 @@ def _generate_property_stream_internal(
                     if not commute_data and property_address:
                         commute_data["property_address"] = property_address
                 except Exception as e:
-                    current_app.logger.error("[PROPERTY] Error calculating commute: %s", e)
+                    log.error("ERRORS", "Error calculating commute", e)
                     commute_data = {"error": "Failed to calculate commute data"}
                 # persist
                 try:
@@ -171,7 +167,7 @@ def _generate_property_stream_internal(
                 if not commute_data and property_address:
                     commute_data["property_address"] = property_address
             except Exception as e:
-                current_app.logger.error("[PROPERTY] Error calculating commute: %s", e)
+                log.error("ERRORS", "Error calculating commute", e)
                 commute_data = {"error": "Failed to calculate commute data"}
 
         yield _sse("commute_data", commute_data)
@@ -255,9 +251,7 @@ def _generate_property_stream_internal(
                                         "highlights_context"
                                     ] = cached_hl.highlights_context
                                 highlights_from_cache = True
-                                current_app.logger.info(
-                                    "[PROPERTY] Using cached highlights for user"
-                                )
+                                log.info("PROPERTY_DETAILS", "Using cached highlights for user")
 
                     if not highlights_from_cache:
                         home_object = {
@@ -363,8 +357,7 @@ def _generate_property_stream_internal(
                     if property_analysis and "error" not in property_analysis:
                         property_analysis = attach_analysis_cache_meta(property_analysis, adj_sig)
             except Exception as e:
-                current_app.logger.error("[PROPERTY] Error during property analysis: %s", e)
-                current_app.logger.error(traceback.format_exc())
+                log.error("ERRORS", "Error during property analysis", e)
                 property_analysis = {"error": "Failed to analyze property"}
 
         property_analysis = finalize_property_analysis_payload(
@@ -390,6 +383,5 @@ def _generate_property_stream_internal(
         )
 
     except Exception as e:
-        current_app.logger.error("[PROPERTY] Streaming error: %s", e, exc_info=True)
-        current_app.logger.error(traceback.format_exc())
+        log.error("ERRORS", "Property streaming error", e)
         yield _sse("error", {"error": str(e)})

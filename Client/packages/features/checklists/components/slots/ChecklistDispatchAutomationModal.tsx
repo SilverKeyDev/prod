@@ -11,7 +11,7 @@ import {
   useChecklistDispatchAutomationSave,
 } from "packages/features/checklists/hooks/data/useChecklistDispatchAutomation";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { components } from "packages/types/api.generated";
 import { AccessibleCheckboxInput, AccessibleRadioInput, Button, Textarea } from "packages/ui";
 import BaseModal from "packages/ui/components/modals/BaseModal";
@@ -117,7 +117,7 @@ export default function ChecklistDispatchAutomationModal({
       );
       onClose();
     } catch (e) {
-      log.error(LOG_CATEGORIES.ERRORS, "dispatch_automation_save_failed", e);
+      log.error("ERRORS", "dispatch_automation_save_failed", e);
       showErrorToast(
         t("checklists.dispatch_automation.save_error", {
           defaultValue: "Could not save settings. Try again.",

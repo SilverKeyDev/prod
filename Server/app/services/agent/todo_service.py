@@ -6,9 +6,12 @@ import os
 import sys
 from datetime import datetime, timezone
 
-from ... import db
-from ...dtos.todo import TodoDTO
-from ...models import Todo, User
+from sqlalchemy import nullslast, select
+
+from app import db
+from app.dtos.todo import TodoDTO
+from app.models import Todo, User
+
 from ...services.agent.client_service import get_connected_agent_ids_for_client
 from ...services.auth.user_role_helpers import get_user_if_agent
 
@@ -19,7 +22,6 @@ server_dir = os.path.dirname(
 if server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 from logger import (  # noqa: E402 -- logger requires Server on sys.path when run outside app context
-    LOG_CATEGORIES,
     log,
 )
 
@@ -36,21 +38,14 @@ def get_agent_todos(agent_id: str, include_completed: bool = False) -> list[dict
         List of todo dictionaries
     """
     try:
-        query = Todo.query.filter_by(agent_id=agent_id)
-
+        stmt = select(Todo).where(Todo.agent_id == agent_id)
         if not include_completed:
-            query = query.filter_by(completed=False)
-
+            stmt = stmt.where(Todo.completed.is_(False))
         # Order by due_date, handling potential None values by putting them last
-        # Use nullslast() to handle any edge cases where due_date might be None
         try:
-            from sqlalchemy import nullslast
-
-            todos = query.order_by(nullslast(Todo.due_date.asc())).all()
+            todos = db.session.scalars(stmt.order_by(nullslast(Todo.due_date.asc()))).all()
         except (ImportError, AttributeError):
-            # Fallback for older SQLAlchemy versions or if nullslast is not available
-            # Since due_date is nullable=False in the model, this should rarely be needed
-            todos = query.order_by(Todo.due_date.asc()).all()
+            todos = db.session.scalars(stmt.order_by(Todo.due_date.asc())).all()
 
         # Convert todos to dictionaries, handling any potential serialization errors
         result = []
@@ -58,14 +53,14 @@ def get_agent_todos(agent_id: str, include_completed: bool = False) -> list[dict
             try:
                 result.append(TodoDTO.from_orm(todo).model_dump(mode="json"))
             except Exception as e:
-                log.error(LOG_CATEGORIES["ERRORS"], f"Error serializing todo {todo.id} to dict", e)
+                log.error("ERRORS", f"Error serializing todo {todo.id} to dict", e)
                 # Continue with other todos even if one fails
                 continue
 
         return result
 
     except Exception as e:
-        log.error(LOG_CATEGORIES["ERRORS"], f"Error getting todos for agent {agent_id}", e)
+        log.error("ERRORS", f"Error getting todos for agent {agent_id}", e)
         raise
 
 
@@ -95,30 +90,26 @@ def resolve_primary_agent_id_for_client(client_user: User) -> str | None:
 def get_client_todos(client_user_id: str, include_completed: bool = False) -> list[dict]:
     """To-dos assigned to this client (same rows the agent sees when filtered by client_id)."""
     try:
-        query = Todo.query.filter_by(client_id=client_user_id)
-
+        stmt = select(Todo).where(Todo.client_id == client_user_id)
         if not include_completed:
-            query = query.filter_by(completed=False)
-
+            stmt = stmt.where(Todo.completed.is_(False))
         try:
-            from sqlalchemy import nullslast
-
-            todos = query.order_by(nullslast(Todo.due_date.asc())).all()
+            todos = db.session.scalars(stmt.order_by(nullslast(Todo.due_date.asc()))).all()
         except (ImportError, AttributeError):
-            todos = query.order_by(Todo.due_date.asc()).all()
+            todos = db.session.scalars(stmt.order_by(Todo.due_date.asc())).all()
 
         result = []
         for todo in todos:
             try:
                 result.append(TodoDTO.from_orm(todo).model_dump(mode="json"))
             except Exception as e:
-                log.error(LOG_CATEGORIES["ERRORS"], f"Error serializing todo {todo.id} to dict", e)
+                log.error("ERRORS", f"Error serializing todo {todo.id} to dict", e)
                 continue
 
         return result
 
     except Exception as e:
-        log.error(LOG_CATEGORIES["ERRORS"], f"Error getting todos for client {client_user_id}", e)
+        log.error("ERRORS", f"Error getting todos for client {client_user_id}", e)
         raise
 
 
@@ -164,7 +155,7 @@ def create_todo(
 
     except Exception as e:
         db.session.rollback()
-        log.error(LOG_CATEGORIES["ERRORS"], "Error creating todo", e)
+        log.error("ERRORS", "Error creating todo", e)
         raise
 
 
@@ -196,9 +187,13 @@ def update_todo(
         effective.pop("client_id", None)
     try:
         if acting_agent_id is not None:
-            todo = Todo.query.filter_by(id=todo_id, agent_id=acting_agent_id).first()
+            todo = db.session.scalar(
+                select(Todo).where(Todo.id == todo_id, Todo.agent_id == acting_agent_id)
+            )
         else:
-            todo = Todo.query.filter_by(id=todo_id, client_id=acting_client_id).first()
+            todo = db.session.scalar(
+                select(Todo).where(Todo.id == todo_id, Todo.client_id == acting_client_id)
+            )
         if not todo:
             raise ValueError(f"Todo {todo_id} not found")
 
@@ -227,7 +222,7 @@ def update_todo(
 
     except Exception as e:
         db.session.rollback()
-        log.error(LOG_CATEGORIES["ERRORS"], f"Error updating todo {todo_id}", e)
+        log.error("ERRORS", f"Error updating todo {todo_id}", e)
         raise
 
 
@@ -254,9 +249,13 @@ def delete_todo(
         raise ValueError("Specify exactly one of acting_agent_id or acting_client_id")
     try:
         if acting_agent_id is not None:
-            todo = Todo.query.filter_by(id=todo_id, agent_id=acting_agent_id).first()
+            todo = db.session.scalar(
+                select(Todo).where(Todo.id == todo_id, Todo.agent_id == acting_agent_id)
+            )
         else:
-            todo = Todo.query.filter_by(id=todo_id, client_id=acting_client_id).first()
+            todo = db.session.scalar(
+                select(Todo).where(Todo.id == todo_id, Todo.client_id == acting_client_id)
+            )
         if not todo:
             raise ValueError(f"Todo {todo_id} not found")
 
@@ -267,5 +266,5 @@ def delete_todo(
 
     except Exception as e:
         db.session.rollback()
-        log.error(LOG_CATEGORIES["ERRORS"], f"Error deleting todo {todo_id}", e)
+        log.error("ERRORS", f"Error deleting todo {todo_id}", e)
         raise

@@ -2,7 +2,7 @@
    Authentication Configuration Constants
    ========================= */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getLocalStorage, getSessionStorage } from "packages/utils/storage/platformStorage";
 
 /**
@@ -326,7 +326,7 @@ export const authUtils = {
         (AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS as readonly string[]).includes(key)
       ) {
         log.warn(
-          LOG_CATEGORIES.AUTH,
+          "AUTH",
           "[AUTH_CONFIG] Attempted to store forbidden key in localStorage. Use sessionStorage instead.",
           { key }
         );

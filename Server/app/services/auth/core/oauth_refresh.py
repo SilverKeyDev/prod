@@ -7,17 +7,11 @@ import uuid
 
 import requests
 
-from app.utils.security.app_logging import get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def refresh_google_access_token(
-    session,
-    token_endpoint: str,
-    client_id: str,
-    client_secret: str,
-    refresh_token: str,
+    session, token_endpoint: str, client_id: str, client_secret: str, refresh_token: str
 ) -> dict:
     """
     Refresh Google OAuth access token using refresh token.
@@ -25,12 +19,12 @@ def refresh_google_access_token(
     """
     request_id = str(uuid.uuid4())[:8]
     start_time = time.time()
-
     try:
         if not refresh_token:
-            logger.error(
+            log.error(
+                "ERRORS",
                 "GOOGLE_REFRESH_VALIDATION_ERROR",
-                extra={
+                {
                     "request_id": request_id,
                     "error": "Missing refresh token",
                     "duration_ms": int((time.time() - start_time) * 1000),
@@ -42,14 +36,12 @@ def refresh_google_access_token(
                 "message": "Refresh token is required",
                 "refresh_failed": True,
             }
-
         token_data = {
             "client_id": client_id,
             "client_secret": client_secret,
             "refresh_token": refresh_token,
             "grant_type": "refresh_token",
         }
-
         response = None
         for attempt in range(2):
             try:
@@ -60,9 +52,10 @@ def refresh_google_access_token(
                     time.sleep(1.0)
                     continue
                 duration_ms = int((time.time() - start_time) * 1000)
-                logger.warning(
+                log.warn(
+                    "AUTH",
                     "GOOGLE_REFRESH_NETWORK_ERROR",
-                    extra={
+                    {
                         "request_id": request_id,
                         "error_type": type(e).__name__,
                         "error_message": str(e),
@@ -76,9 +69,7 @@ def refresh_google_access_token(
                     "refresh_failed": True,
                     "retryable": True,
                 }
-
         duration_ms = int((time.time() - start_time) * 1000)
-
         if response is None:
             return {
                 "success": False,
@@ -92,13 +83,12 @@ def refresh_google_access_token(
                 error_data = response.json()
             except Exception:
                 error_data = {"error": response.text[:200]}
-
             error_code = error_data.get("error", "UNKNOWN_ERROR")
             error_description = error_data.get("error_description", response.text[:200])
-
-            logger.error(
+            log.error(
+                "ERRORS",
                 "GOOGLE_REFRESH_FAILED",
-                extra={
+                {
                     "request_id": request_id,
                     "status_code": response.status_code,
                     "error_code": error_code,
@@ -106,7 +96,6 @@ def refresh_google_access_token(
                     "duration_ms": duration_ms,
                 },
             )
-
             if error_code == "invalid_grant":
                 return {
                     "success": False,
@@ -127,13 +116,11 @@ def refresh_google_access_token(
                 "message": f"Google token refresh failed: {error_description}",
                 "refresh_failed": True,
             }
-
         tokens = response.json()
-
-        # Downgrade to debug to avoid noisy INFO logs on every successful refresh
-        logger.debug(
+        log.debug(
+            "AUTH",
             "GOOGLE_REFRESH_SUCCESS",
-            extra={
+            {
                 "request_id": request_id,
                 "has_access_token": bool(tokens.get("access_token")),
                 "has_refresh_token": bool(tokens.get("refresh_token")),
@@ -141,7 +128,6 @@ def refresh_google_access_token(
                 "duration_ms": duration_ms,
             },
         )
-
         return {
             "success": True,
             "access_token": tokens.get("access_token"),
@@ -149,18 +135,17 @@ def refresh_google_access_token(
             "expires_in": tokens.get("expires_in", 3600),
             "token_type": tokens.get("token_type", "Bearer"),
         }
-
     except Exception as e:
         duration_ms = int((time.time() - start_time) * 1000)
-        logger.error(
+        log.error(
+            "ERRORS",
             "GOOGLE_REFRESH_UNEXPECTED_ERROR",
-            extra={
+            {
                 "request_id": request_id,
                 "error_type": type(e).__name__,
                 "error_message": str(e),
                 "duration_ms": duration_ms,
             },
-            exc_info=True,
         )
         return {
             "success": False,

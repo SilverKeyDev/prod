@@ -28,8 +28,10 @@ make log-contracts-verify
 | `Server/logger/config/logger_contract_generated.py` | Server `LOGGER_BOOLEAN_KEYS` + defaults |
 | `Server/logger/config/config_model.py` | `LoggerConfig` fields |
 | `Server/logger/config/allowed_logger_config_keys_generated.py` | Admin API allowed keys |
+| `Client/packages/logger/config/adminLoggerUiMeta.generated.ts` | Admin Logging UI groups and log-path labels |
+| `openapi/components/schemas/shared/logger/*.yaml` | OpenAPI logger config + patch schemas for admin API |
 
-Deployment overrides persist in `deployment_logger_config` (admin UI + server startup). Codegen defaults replace removed JSON config files.
+Deployment overrides persist in `deployment_logger_config` (admin UI + server startup). Admin **client** toggles apply only to the admin’s open browser tab (personal debugging); **server** toggles apply to the API process. Codegen defaults replace removed JSON config files.
 
 Hand-written merge logic stays in `resolveLoggerConfig.ts` and `resolve_logger_config.py`.
 
@@ -57,6 +59,28 @@ make log-contracts-migrate-check   # audit: exit 1 if LOG_CATEGORIES remains in 
 Transforms `LOG_CATEGORIES.API` + `API_SUBCATEGORIES.POLLING` → `"API.POLLING"`, and bare categories → `"AUTH"`, etc. Review the diff before committing; dynamic API subcategory args become `` `API.${var}` ``.
 
 Client ESLint enforces the result via `silverkey/prefer-log-path` (error).
+
+## Lint (CI + local)
+
+```bash
+make log-contracts-lint
+# or: python3 scripts/log_contracts/lint_log_paths.py
+```
+
+Checks:
+
+1. No `LOG_CATEGORIES` / `API_SUBCATEGORIES` in `log.*` / `logger.*` call sites (same rules as `make log-contracts-migrate-check`).
+2. Static dot-notation `LogPath` string literals must match `LOG_PATHS` from codegen (`categories.yaml` → `make log-contracts`).
+
+Client ESLint also enforces (2) for TypeScript via `silverkey/valid-log-path` during `pnpm lint`.
+
+Wired into `./scripts/ci/run-all-linters.sh` (all scopes) and `Server/scripts/lint/lint_log_contracts.py`.
+
+## Server product logging (no legacy stack)
+
+- Product logs: `from logger import log` then `log.info("SEARCH", "message", {"key": value})`.
+- Legacy `app.utils.security.app_logging` and stdlib `logging.getLogger` in `Server/app/` are **removed** — CI enforces via `Server/scripts/lint/lint_no_stdlib_logging.py` and `scripts/ci/check-no-app-logging.sh`.
+- Flask/third-party stdlib tuning lives in `Server/logger/bootstrap/` only (`configure_flask_stdlib_logging`, `get_infrastructure_logger` for library hooks).
 
 ## Future ESLint migration
 

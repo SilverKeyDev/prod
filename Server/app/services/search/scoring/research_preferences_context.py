@@ -12,6 +12,7 @@ from typing import Any, Literal
 
 from app.services.agent.client_service import agent_may_access_client
 from app.services.aggregation import get_preferences_dict_optional
+from app.services.auth.user_role_helpers import user_is_agent
 
 ProfileSubject = Literal["self", "client"]
 BulletStyle = Literal["short", "medium", "long"]
@@ -89,7 +90,7 @@ def resolve_preferences_user_id_for_research(
     if not requested_id or str(requested_id).strip() == "" or str(requested_id) == uid:
         return uid, None
 
-    if not getattr(user, "is_agent", False):
+    if not user_is_agent(user):
         # Buyers: ignore other users' ids (no privilege escalation probe)
         return uid, None
 
@@ -168,7 +169,7 @@ def build_research_analysis_options(
     if not prefs:
         prefs = {}
 
-    viewer_is_agent = bool(getattr(user, "is_agent", False))
+    viewer_is_agent = user_is_agent(user)
     profile_subject: ProfileSubject = "client" if resolved_id != str(user.id) else "self"
 
     pros_count, cons_count, bullet_style = merge_pros_cons_counts(parsed, prefs)

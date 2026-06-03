@@ -6,7 +6,7 @@ import Pdf from "react-native-pdf";
 
 import { color } from "packages/design-tokens";
 import { docusignApi } from "packages/features/documents/api/docusign";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
 import { Box } from "packages/ui/components/primitives";
@@ -99,7 +99,7 @@ export default function ViewSignedDocument({
 
   // Handle PDF load error
   const handlePdfError = (err: Error) => {
-    log.error(LOG_CATEGORIES.ERRORS, "PDF load error", err);
+    log.error("ERRORS", "PDF load error", err);
     setPdfError(err.message || "Failed to load PDF");
     enqueueToast({
       type: "error",
@@ -121,7 +121,7 @@ export default function ViewSignedDocument({
           });
         }
       } catch (err) {
-        log.error(LOG_CATEGORIES.ERRORS, "Error opening URL", err);
+        log.error("ERRORS", "Error opening URL", err);
         enqueueToast({
           type: "error",
           message: "Failed to open document",

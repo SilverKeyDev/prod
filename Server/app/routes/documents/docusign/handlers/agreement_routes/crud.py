@@ -1,19 +1,29 @@
 """Agreement CRUD routes: create, get, list."""
 
 from flask import jsonify, request
+from sqlalchemy import func, select
 
+from app import db
 from app.dtos.agreement import AgreementDTO
 from app.models import Agreement
-from app.schemas import CreateAgreementRequest, CreateAgreementResponse
+from app.schemas import (
+    CreateAgreementRequest,
+    CreateAgreementResponse,
+    GetAgreementResponse,
+    ListAgreementsResponse,
+)
+from app.services.auth.user_role_helpers import user_is_agent
 from app.services.docusign import AgreementLifecycleService
-from app.services.docusign.utils.permissions import can_access_agreement, is_agent
-from app.utils.common_patterns import require_authenticated_user
+from app.services.docusign.utils.permissions import can_access_agreement
+from app.utils.common_patterns import (
+    forbidden,
+    require_authenticated_user,
+    server_error,
+    validation,
+)
 from app.utils.security import rate_limit
-from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.validation import validate_request, validate_response
-from logger import LOG_CATEGORIES, get_logger
-
-log = get_logger()
+from logger import log
 
 
 def _agreement_payload(agreement: Agreement, *, include_relationships: bool = False) -> dict:
@@ -28,23 +38,18 @@ def register_crud_routes(bp):
     @require_authenticated_user
     @validate_request(CreateAgreementRequest)
     @validate_response(CreateAgreementResponse)
-    def create_agreement(user, data: CreateAgreementRequest | None = None):
+    def create_agreement(user, data: CreateAgreementRequest):
         try:
-            if not is_agent(user):
+            if not user_is_agent(user):
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "Non-agent attempted to create agreement",
                     {"user_id": user.id},
                 )
-                return jsonify({"success": False, "error": "Agent access required"}), 403
-            if data is None:
-                request_data = request.get_json(silent=True)
-                if request_data is None:
-                    return jsonify({"success": False, "error": "Request body required"}), 400
-            else:
-                request_data = data.model_dump(mode="json")
+                return forbidden()
+            request_data = data.model_dump(mode="json")
             log.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Creating agreement",
                 {
                     "agent_id": user.id,
@@ -57,13 +62,14 @@ def register_crud_routes(bp):
             for field in required_fields:
                 if field not in request_data:
                     log.warn(
-                        LOG_CATEGORIES["DOCUSIGN"],
+                        "DOCUSIGN",
                         "Missing required field",
                         {"field": field, "agent_id": user.id},
                     )
-                    return jsonify(
-                        {"success": False, "error": f"Missing required field: {field}"}
-                    ), 400
+                    return validation(
+                        f"Missing required field: {field}",
+                        field_errors={field: "Required"},
+                    )
             agreement = AgreementLifecycleService.create_agreement(
                 agent_id=user.id,
                 buyer_id=request_data["buyer_id"],
@@ -74,7 +80,7 @@ def register_crud_routes(bp):
                 docusign_source_template_id=request_data.get("docusign_source_template_id"),
             )
             log.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Agreement created successfully",
                 {
                     "agreement_id": agreement.id,
@@ -90,29 +96,30 @@ def register_crud_routes(bp):
                 }
             ), 201
         except Exception as e:
-            log.error(LOG_CATEGORIES["ERRORS"], "Failed to create agreement", {"error": str(e)})
-            return SecureErrorHandler.handle_error(e, "Failed to create agreement")
+            log.error("ERRORS", "Failed to create agreement", {"error": str(e)})
+            return server_error(e, context={"function": "create_agreement", "user_id": user.id})
 
     @bp.route("/agreements/<agreement_id>", methods=["GET"])
     @rate_limit(max_requests=100, window_seconds=60)
     @require_authenticated_user
+    @validate_response(GetAgreementResponse)
     def get_agreement(user, agreement_id):
         try:
             log.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Fetching agreement",
                 {"agreement_id": agreement_id, "user_id": user.id},
             )
             agreement = AgreementLifecycleService.get_agreement(agreement_id)
             if not can_access_agreement(user, agreement):
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "User denied access to agreement",
                     {"agreement_id": agreement_id, "user_id": user.id},
                 )
-                return jsonify({"success": False, "error": "Access denied"}), 403
+                return forbidden()
             log.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Agreement retrieved successfully",
                 {"agreement_id": agreement_id, "user_id": user.id, "status": agreement.status},
             )
@@ -124,15 +131,18 @@ def register_crud_routes(bp):
             ), 200
         except Exception as e:
             log.error(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Failed to get agreement",
                 {"agreement_id": agreement_id, "error": str(e)},
             )
-            return SecureErrorHandler.handle_error(e, "Failed to get agreement")
+            return server_error(
+                e, context={"function": "get_agreement", "agreement_id": agreement_id}
+            )
 
     @bp.route("/agreements", methods=["GET"])
     @rate_limit(max_requests=100, window_seconds=60)
     @require_authenticated_user
+    @validate_response(ListAgreementsResponse)
     def list_agreements(user):
         try:
             # Add pagination support
@@ -140,31 +150,34 @@ def register_crud_routes(bp):
             offset = max(0, int(request.args.get("offset", "0")))
 
             log.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Listing agreements",
-                {"user_id": user.id, "is_agent": is_agent(user), "limit": limit, "offset": offset},
+                {
+                    "user_id": user.id,
+                    "has_agent_role": user_is_agent(user),
+                    "limit": limit,
+                    "offset": offset,
+                },
             )
 
-            if is_agent(user):
-                query = Agreement.query.filter_by(agent_id=user.id).order_by(
-                    Agreement.updated_at.desc()
-                )
+            if user_is_agent(user):
+                base_stmt = select(Agreement).where(Agreement.agent_id == user.id)
             else:
-                query = Agreement.query.filter_by(buyer_id=user.id).order_by(
-                    Agreement.updated_at.desc()
-                )
+                base_stmt = select(Agreement).where(Agreement.buyer_id == user.id)
 
-            total_count = query.count()
-            agreements = query.limit(limit).offset(offset).all()
+            total_count = db.session.scalar(select(func.count()).select_from(base_stmt.subquery()))
+            agreements = db.session.scalars(
+                base_stmt.order_by(Agreement.updated_at.desc()).limit(limit).offset(offset)
+            ).all()
 
             log.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Agreements listed successfully",
                 {
                     "user_id": user.id,
                     "count": len(agreements),
                     "total": total_count,
-                    "is_agent": is_agent(user),
+                    "has_agent_role": user_is_agent(user),
                 },
             )
 
@@ -184,5 +197,5 @@ def register_crud_routes(bp):
                 200,
             )
         except Exception as e:
-            log.error(LOG_CATEGORIES["ERRORS"], "Failed to list agreements", {"error": str(e)})
-            return SecureErrorHandler.handle_error(e, "Failed to list agreements")
+            log.error("ERRORS", "Failed to list agreements", {"error": str(e)})
+            return server_error(e, context={"function": "list_agreements", "user_id": user.id})

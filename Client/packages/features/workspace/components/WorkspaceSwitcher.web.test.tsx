@@ -32,12 +32,6 @@ describe("WorkspaceSwitcher", () => {
   it("calls setActiveWorkspace when another workspace is selected", () => {
     render(<WorkspaceSwitcher forceVisible />);
     fireEvent.click(screen.getByRole("button", { name: "workspace.switcher.seller" }));
-    expect(mockSetActive).toHaveBeenCalledWith("seller", undefined);
-  });
-
-  it("passes devPreview when admin harness is enabled", () => {
-    render(<WorkspaceSwitcher forceVisible devPreview />);
-    fireEvent.click(screen.getByRole("button", { name: "workspace.switcher.brokerage" }));
-    expect(mockSetActive).toHaveBeenCalledWith("brokerage", { devPreview: true });
+    expect(mockSetActive).toHaveBeenCalledWith("seller");
   });
 });

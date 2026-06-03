@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getWindow } from "packages/utils/platform";
 
 import {
@@ -106,7 +106,7 @@ export function usePerformanceMonitoring({
       }));
 
       if (enableLogging && memoryUsage > finalThresholds.maxMemoryUsage) {
-        log.warn(LOG_CATEGORIES.PAGES, "High memory usage", {
+        log.warn("PAGES", "High memory usage", {
           componentName,
           memoryUsageMB: (memoryUsage / 1024 / 1024).toFixed(2),
           thresholdMB: (finalThresholds.maxMemoryUsage / 1024 / 1024).toFixed(2),
@@ -177,7 +177,7 @@ export function useOperationTimer(operationName: string) {
       setOperationTime(duration);
       setIsRunning(false);
 
-      log.debug(LOG_CATEGORIES.PAGES, "Operation completed", {
+      log.debug("PAGES", "Operation completed", {
         operationName,
         durationMs: duration.toFixed(2),
       });

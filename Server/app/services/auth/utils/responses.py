@@ -5,11 +5,13 @@ Response creation utilities for authentication.
 from flask import Response, make_response
 
 from app.models import User
+from app.services.auth.user_role_helpers import user_role_names
+from logger import log
 
 
 def create_error_response(error: str, message: str, status_code: int = 400) -> tuple:
     """Create standardized error response."""
-    return {"success": False, "error": error, "message": message}, status_code
+    return ({"success": False, "error": error, "message": message}, status_code)
 
 
 def create_auth_response(
@@ -24,7 +26,6 @@ def create_auth_response(
     """
     Create a standardized authentication response with user data and cookies.
     """
-    # Determine auth_method based on user's authentication setup
     auth_method = "unknown"
     if user:
         has_cognito = bool(user.cognito_id)
@@ -35,7 +36,8 @@ def create_auth_response(
             auth_method = "google"
         elif has_cognito:
             auth_method = "cognito"
-
+    if auth_method == "unknown":
+        log.info("AUTH", f"auth_method_unknown_session has_user_row={user is not None}")
     response_data = {
         "success": True,
         "user": {
@@ -45,16 +47,13 @@ def create_auth_response(
             "name": user.name if user else "Unknown User",
             "id": str(user.id) if user else None,
             "phone": user.phone if user else None,
-            "is_agent": bool(user.is_agent) if user else False,
+            "roles": user_role_names(user) if user else [],
             "auth_method": auth_method,
         },
     }
-
     if message:
         response_data["message"] = message
-
     if include_id_token:
         response_data["id_token"] = id_token
-
     resp = make_response(response_data)
     return resp

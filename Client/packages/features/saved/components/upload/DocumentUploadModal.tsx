@@ -191,7 +191,7 @@ export default function DocumentUploadModal({
 }: DocumentUploadModalProps) {
   const { t } = useLocalization();
   const user = useAuthStore((s) => s.user);
-  const isAgent = user?.is_agent ?? false;
+  const isAgent = (user?.roles ?? []).includes("agent");
   const [activeTab, setActiveTab] = useState<UploadTab>("upload");
   const [WebUpload, setWebUpload] = useState<React.ComponentType<{
     onUploadSuccess?: () => void | Promise<unknown>;

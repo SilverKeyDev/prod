@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import { UpcomingEvents } from "packages/features/calendar";
 import { useDocumentActions, useDocumentsDataIntegration } from "packages/features/documents";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
@@ -52,7 +52,7 @@ export function ClientHubAgenda({ clientId }: ClientHubAgendaProps) {
       try {
         await signAgreementNow(doc);
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Agenda DocuSign signing failed", error);
+        log.error("ERRORS", "Agenda DocuSign signing failed", error);
         enqueueToast({
           type: "error",
           message: error instanceof Error ? error.message : "Signing could not start.",

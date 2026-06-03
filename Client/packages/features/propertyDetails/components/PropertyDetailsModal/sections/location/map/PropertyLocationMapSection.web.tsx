@@ -5,7 +5,7 @@ import { SectionTintWrapper } from "packages/features/propertyDetails/components
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import { usePropertyDetailsLocationMap } from "packages/hooks/data/property/usePropertyDetailsLocationMap.web";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Button } from "packages/ui";
 import { Box, Loading } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
@@ -61,7 +61,7 @@ export function PropertyLocationMapSection({
     }:${diagnostics.fields.lng}:${diagnostics.fields.longitude}`;
     if (loggedLocationUnavailableKeyRef.current === dedupeKey) return;
     loggedLocationUnavailableKeyRef.current = dedupeKey;
-    log.info(LOG_CATEGORIES.PROPERTY_DETAILS, "Property location map unavailable", {
+    log.info("PROPERTY_DETAILS", "Property location map unavailable", {
       listingId,
       ...diagnostics,
     });
@@ -75,7 +75,7 @@ export function PropertyLocationMapSection({
       mapHost && typeof mapHost.getBoundingClientRect === "function"
         ? mapHost.getBoundingClientRect()
         : null;
-    log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "PropertyDetailsMapSection web hosts", {
+    log.debug("PROPERTY_DETAILS", "PropertyDetailsMapSection web hosts", {
       listingId,
       hasMapHost: mapHost != null,
       hasStreetViewHost: streetViewHost != null,

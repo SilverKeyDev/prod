@@ -1,0 +1,5 @@
+type: object
+description: >
+  Optional JSON body on Google Calendar push notifications. Header verification
+  (X-Goog-Channel-Token, etc.) is authoritative; body shape varies by Google.
+additionalProperties: true

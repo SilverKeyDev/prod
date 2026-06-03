@@ -7,7 +7,7 @@ import {
   formatDate,
   formatFilenameToAddress,
 } from "packages/features/search/types/search/formatters/address";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { Report } from "packages/types";
 import StatusBadge from "packages/ui/components/asset/StatusBadge";
 import Button from "packages/ui/components/button/Button";
@@ -144,7 +144,7 @@ function ReportCardCompletedActions({
   deleteTitle: string;
 }) {
   const handleView = () => {
-    log.debug(LOG_CATEGORIES.PAGES, "[ReportCard] View button clicked", {
+    log.debug("PAGES", "[ReportCard] View button clicked", {
       reportId: report.id,
       address: report.address,
       s3Key: report.s3Key,

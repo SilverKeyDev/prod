@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Run pre-commit hooks for manual use (make pre-commit). Surfaces hook warnings/errors
-# but does not fail the Make target — same philosophy as scripts/githooks/pre-commit.
+# Run pre-commit hooks for manual use (make precommit). Surfaces hook warnings/errors
+# but does not fail the Make target — same hooks as git commit (also non-blocking).
 set -u
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"

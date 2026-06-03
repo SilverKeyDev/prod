@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import type { ClientSettings } from "packages/features/homeauth/api/clientSettings";
 import { clientSettingsApi } from "packages/features/homeauth/api/clientSettings";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import {
   deepMergeRecords,
@@ -51,7 +51,7 @@ export function useClientSettings() {
       queryClient.setQueryData(queryKeys.user.clientSettings(userId), data);
     },
     onError: (err) => {
-      log.error(LOG_CATEGORIES.API, "client settings patch failed", err);
+      log.error(`API.${err}`, "client settings patch failed");
     },
   });
 

@@ -26,7 +26,7 @@ module.exports = {
     ],
     messages: {
       useLogger:
-        "Use the centralized logger instead of console.{{method}}. Import: import { log, LOG_CATEGORIES } from '../../logger' (adjust path as needed). Example: log.info(LOG_CATEGORIES.API, 'message', data)",
+        'Use the centralized logger instead of console.{{method}}. Import: import { log } from "packages/logger". Example: log.info("API.POLLING", "message", data)',
     },
   },
 

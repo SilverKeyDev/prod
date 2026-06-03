@@ -3,13 +3,15 @@
 import json
 from typing import Any
 
+from sqlalchemy import select
+
 from app import db
 from app.models import UserCommunicationPrefs, UserDemographics
 
 
 def write_demographics_from_payload(user_id: str, data: dict[str, Any]) -> UserDemographics:
     """Write UserDemographics from preferences payload."""
-    demo = UserDemographics.query.filter_by(user_id=user_id).first()
+    demo = db.session.scalar(select(UserDemographics).where(UserDemographics.user_id == user_id))
     if demo is None:
         demo = UserDemographics(user_id=user_id)
         db.session.add(demo)
@@ -35,7 +37,9 @@ def write_communication_prefs_from_payload(
     user_id: str, data: dict[str, Any]
 ) -> UserCommunicationPrefs:
     """Write UserCommunicationPrefs from preferences payload."""
-    comm = UserCommunicationPrefs.query.filter_by(user_id=user_id).first()
+    comm = db.session.scalar(
+        select(UserCommunicationPrefs).where(UserCommunicationPrefs.user_id == user_id)
+    )
     if comm is None:
         comm = UserCommunicationPrefs(user_id=user_id)
         db.session.add(comm)

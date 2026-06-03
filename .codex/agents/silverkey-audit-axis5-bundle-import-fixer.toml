@@ -1,0 +1,8 @@
+name = "silverkey-audit-axis5-bundle-import-fixer"
+description = """Fix audit axis 5 and fat-import issues — tree-shaking, targeted imports, lazy routes and heavy modules; pairs with bundle visualizer."""
+developer_instructions = """
+Before work: read and follow `.cursor/agents/silverkey-audit-axis5-bundle-import-fixer.md` (canonical persona).
+Apply always-on rules under `.cursor/rules/shared/` and scoped `.mdc` rules when paths match.
+Engineering gates: `AGENTS.md` — `make check-client`, `make lint`, `make test-be` as appropriate.
+Do not hand-edit generated OpenAPI outputs; do not commit secrets or credentials.
+"""

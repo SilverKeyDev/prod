@@ -8,7 +8,7 @@ export const ADMIN_TRANSLATIONS: Record<string, string> = {
   "admin.dev_persona.persona_description":
     "Choose buyer, seller, agent, brokerage, or integration partner. Only one persona is active at a time.",
   "admin.dev_persona.persona_warning":
-    "Warning: this updates your real database user (`users.is_agent`, `user_roles`, and onboarding demographics). Reload or revisit profile if other UI does not reflect the server immediately.",
+    "Warning: this updates your real database user (`user_roles`, and onboarding demographics). Reload or revisit profile if other UI does not reflect the server immediately.",
   "admin.dev_persona.persona_unknown": "Unknown persona",
   "admin.dev_persona.banner_prefix": "Dev persona:",
   "admin.dev_persona.open_settings": "Open dev preview",

@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 const MESSAGING_NAV_MARK = "silverkey-shell-messaging-nav-start";
 
@@ -16,11 +16,11 @@ function getLatestMessagingNavMarkStartMs(): number | null {
 export function logMessagingCheckpointSinceLatestShellMark(label: string): void {
   const markStart = getLatestMessagingNavMarkStartMs();
   if (markStart === null) {
-    log.debug(LOG_CATEGORIES.MESSAGES, "[PERF] Messaging route checkpoint (no shell nav mark)", {
+    log.debug("MESSAGES", "[PERF] Messaging route checkpoint (no shell nav mark)", {
       label,
     });
     return;
   }
   const sinceNavMs = Math.round((performance.now() - markStart) * 100) / 100;
-  log.debug(LOG_CATEGORIES.MESSAGES, "[PERF] Messaging route checkpoint", { label, sinceNavMs });
+  log.debug("MESSAGES", "[PERF] Messaging route checkpoint", { label, sinceNavMs });
 }

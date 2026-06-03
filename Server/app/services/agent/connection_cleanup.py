@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import or_
+from sqlalchemy import delete, or_, select
 
 from app import db
 from app.models import (
@@ -21,36 +21,35 @@ def clear_agent_client_connections(user_id: str, user: User) -> None:
     """
     uid = str(user_id).strip()
 
-    AgentConnectionRequest.query.filter(
-        or_(
-            AgentConnectionRequest.agent_id == uid,
-            AgentConnectionRequest.client_id == uid,
+    db.session.execute(
+        delete(AgentConnectionRequest).where(
+            or_(
+                AgentConnectionRequest.agent_id == uid,
+                AgentConnectionRequest.client_id == uid,
+            )
         )
-    ).delete(synchronize_session=False)
-
-    conv_ids = [
-        row[0]
-        for row in db.session.query(AgentConnections.id).filter(
-            or_(AgentConnections.agent_id == uid, AgentConnections.client_id == uid)
-        )
-    ]
-    if conv_ids:
-        ChatHistory.query.filter(ChatHistory.conversation_id.in_(conv_ids)).delete(
-            synchronize_session=False
-        )
-        AgentConnections.query.filter(AgentConnections.id.in_(conv_ids)).delete(
-            synchronize_session=False
-        )
-
-    Todo.query.filter(or_(Todo.agent_id == uid, Todo.client_id == uid)).delete(
-        synchronize_session=False
     )
 
-    ChecklistItemDispatchSetting.query.filter(
-        or_(
-            ChecklistItemDispatchSetting.agent_user_id == uid,
-            ChecklistItemDispatchSetting.client_user_id == uid,
+    conv_ids = list(
+        db.session.scalars(
+            select(AgentConnections.id).where(
+                or_(AgentConnections.agent_id == uid, AgentConnections.client_id == uid)
+            )
+        ).all()
+    )
+    if conv_ids:
+        db.session.execute(delete(ChatHistory).where(ChatHistory.conversation_id.in_(conv_ids)))
+        db.session.execute(delete(AgentConnections).where(AgentConnections.id.in_(conv_ids)))
+
+    db.session.execute(delete(Todo).where(or_(Todo.agent_id == uid, Todo.client_id == uid)))
+
+    db.session.execute(
+        delete(ChecklistItemDispatchSetting).where(
+            or_(
+                ChecklistItemDispatchSetting.agent_user_id == uid,
+                ChecklistItemDispatchSetting.client_user_id == uid,
+            )
         )
-    ).delete(synchronize_session=False)
+    )
 
     db.session.add(user)

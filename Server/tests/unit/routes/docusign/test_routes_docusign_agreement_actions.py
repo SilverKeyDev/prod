@@ -23,11 +23,10 @@ class TestDocuSignRoutesAgreementActions:
             cognito_id="cognito-signer-rs",
             email="signer@example.com",
             name="Signer User",
-            is_agent=False,
         )
         db_session.session.add(signer)
 
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             agreement = Agreement(**sample_agreement)
             agreement.status = "sent"
             agreement.docusign_envelope_id = "env-abc"
@@ -69,7 +68,7 @@ class TestDocuSignRoutesAgreementActions:
         """PUT /agreements/:id/notification updates DocuSign reminder settings."""
         seed_agent_buyer(db_session)
 
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             agreement = Agreement(**sample_agreement)
             agreement.status = "delivered"
             agreement.docusign_envelope_id = "env-def"
@@ -97,7 +96,7 @@ class TestDocuSignRoutesAgreementActions:
         """Test POST /api/v1/docusign/agreements/:id/void"""
         seed_agent_buyer(db_session)
 
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
                 agreement = Agreement(**sample_agreement)
                 agreement.status = "draft"
@@ -122,7 +121,7 @@ class TestDocuSignRoutesAgreementActions:
         """Test POST /api/v1/docusign/agreements/:id/discard"""
         seed_agent_buyer(db_session)
 
-        with patch_docusign_get_current_user(mock_docusign_user("agent-456", is_agent=True)):
+        with patch_docusign_get_current_user(mock_docusign_user("agent-456", has_agent_role=True)):
             with patch("app.services.documents.document_library_items.sync_agreement_library_item"):
                 agreement = Agreement(**sample_agreement)
                 agreement.status = "draft"
@@ -152,11 +151,10 @@ class TestDocuSignRoutesAgreementActions:
             cognito_id="cognito-signer-su",
             email="signer@example.com",
             name="Signer User",
-            is_agent=False,
         )
         db_session.session.add(signer)
 
-        with patch_docusign_get_current_user(mock_docusign_user("signer-123", is_agent=False)):
+        with patch_docusign_get_current_user(mock_docusign_user("signer-123")):
             with patch(
                 "app.routes.documents.docusign.handlers.agreement_routes.signing_urls.AgreementLifecycleService.get_signing_url",
                 return_value="https://demo.docusign.net/Signing/StartInSession.aspx?...",

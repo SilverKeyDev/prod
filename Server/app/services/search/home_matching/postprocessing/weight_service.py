@@ -3,16 +3,17 @@ Weight retrieval and management service.
 Handles getting weights for users with cohort fallback.
 """
 
-import logging
 from datetime import datetime, timezone
 
+from sqlalchemy import select
+
+from app import db
 from app.models import UserScoreWeights
+from logger import log
 
 from .cohort_assigner import cohort_assigner
 from .weight_learner import weight_learner
 from .weight_training_data import training_data_extractor
-
-logger = logging.getLogger(__name__)
 
 
 class WeightService:
@@ -42,7 +43,9 @@ class WeightService:
         """
         try:
             # Try to get user-specific weights
-            user_weights = UserScoreWeights.query.filter_by(user_id=user_id).first()
+            user_weights = db.session.scalar(
+                select(UserScoreWeights).where(UserScoreWeights.user_id == user_id)
+            )
 
             if user_weights:
                 return {
@@ -53,10 +56,14 @@ class WeightService:
             # Fall back to cohort weights if enabled
             if use_cohort_fallback:
                 cohort_id = cohort_assigner.get_user_cohort(user_id)
-                cohort_weights = UserScoreWeights.query.filter_by(cohort_id=cohort_id).first()
+                cohort_weights = db.session.scalar(
+                    select(UserScoreWeights).where(UserScoreWeights.cohort_id == cohort_id)
+                )
 
                 if cohort_weights:
-                    logger.debug(f"Using cohort weights for user {user_id} (cohort: {cohort_id})")
+                    log.debug(
+                        "SEARCH", f"Using cohort weights for user {user_id} (cohort: {cohort_id})"
+                    )
                     return {
                         "embedding_weight": cohort_weights.embedding_weight,
                         "llm_weight": cohort_weights.llm_weight,
@@ -66,7 +73,7 @@ class WeightService:
             return None
 
         except Exception as e:
-            logger.error(f"Error getting weights for user {user_id}: {e}")
+            log.error("ERRORS", f"Error getting weights for user {user_id}: {e}")
             return None
 
     def should_retrain_user(self, user_id: str) -> bool:
@@ -81,7 +88,9 @@ class WeightService:
         """
         try:
             # Get last training time
-            user_weights = UserScoreWeights.query.filter_by(user_id=user_id).first()
+            user_weights = db.session.scalar(
+                select(UserScoreWeights).where(UserScoreWeights.user_id == user_id)
+            )
 
             if not user_weights:
                 # No weights exist, check if we have enough data to train
@@ -110,7 +119,7 @@ class WeightService:
             return False
 
         except Exception as e:
-            logger.error(f"Error checking if user {user_id} should retrain: {e}")
+            log.error("ERRORS", f"Error checking if user {user_id} should retrain: {e}")
             return False
 
     def get_or_compute_weights(
@@ -138,7 +147,9 @@ class WeightService:
 
                 if not training_examples:
                     # No data, try cohort fallback
-                    logger.debug(f"No training data for user {user_id}, using cohort fallback")
+                    log.debug(
+                        "SEARCH", f"No training data for user {user_id}, using cohort fallback"
+                    )
                     return self.get_weights_for_user(user_id, use_cohort_fallback=True)
 
                 # Train and update weights
@@ -157,7 +168,7 @@ class WeightService:
                 return self.get_weights_for_user(user_id, use_cohort_fallback=True)
 
         except Exception as e:
-            logger.error(f"Error getting/computing weights for user {user_id}: {e}", exc_info=True)
+            log.error("ERRORS", f"Error getting/computing weights for user {user_id}: {e}")
             return None
 
     def initialize_cohort_weights(
@@ -182,7 +193,7 @@ class WeightService:
             ) = training_data_extractor.extract_cohort_training_data(cohort_id, user_ids)
 
             if not training_examples:
-                logger.warning(f"No training data for cohort {cohort_id}")
+                log.warn("SEARCH", f"No training data for cohort {cohort_id}")
                 return None
 
             # Train and update weights
@@ -197,7 +208,7 @@ class WeightService:
             return None
 
         except Exception as e:
-            logger.error(f"Error initializing cohort weights for {cohort_id}: {e}", exc_info=True)
+            log.error("ERRORS", f"Error initializing cohort weights for {cohort_id}: {e}")
             return None
 
     def get_default_weights(self) -> dict[str, float]:

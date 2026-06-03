@@ -6,6 +6,7 @@ from app.schemas.generated import PublicAgentProfileResponse, Success
 from app.services.public_agent_profile import build_public_agent_profile
 from app.services.public_profile_slug import lookup_agent_user_id_by_public_slug
 from app.utils.http.cache import apply_edge_cache
+from app.utils.route import not_found
 from app.utils.security import rate_limit
 from app.utils.validation import validate_response
 
@@ -19,10 +20,10 @@ def get_public_agent_profile_by_slug(public_profile_slug: str):
     """Public agent profile by ``users.public_profile_slug`` (used by short ``/a/{slug}`` links)."""
     user_id = lookup_agent_user_id_by_public_slug(public_profile_slug.strip().lower())
     if user_id is None:
-        return jsonify({"success": False, "error": "not_found", "message": None}), 404
+        return not_found()
     agent = build_public_agent_profile(user_id)
     if agent is None:
-        return jsonify({"success": False, "error": "not_found", "message": None}), 404
+        return not_found()
     payload = PublicAgentProfileResponse(
         success=Success.boolean_True,
         message=None,
@@ -44,7 +45,7 @@ def get_public_agent_profile(user_id: str):
     """
     agent = build_public_agent_profile(user_id)
     if agent is None:
-        return jsonify({"success": False, "error": "not_found", "message": None}), 404
+        return not_found()
     payload = PublicAgentProfileResponse(
         success=Success.boolean_True,
         message=None,

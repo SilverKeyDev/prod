@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { useAuthVerification } from "packages/hooks/data/auth/useAuthVerification";
 import { useCountdown } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { ROUTES } from "packages/navigation/types/routes";
 import { dateNow } from "packages/utils/date";
@@ -54,7 +54,7 @@ export function VerificationFeature() {
       setActiveStep("code");
       startCountdown();
     } catch (err: unknown) {
-      log.error(LOG_CATEGORIES.AUTH, "Resend code error", err);
+      log.error("AUTH", "Resend code error", err);
       setError(
         err instanceof Error ? err.message : "Failed to send verification code. Please try again."
       );
@@ -69,7 +69,7 @@ export function VerificationFeature() {
       setError("Please enter a 6-digit code");
       return;
     }
-    log.debug(LOG_CATEGORIES.AUTH, "Verification handleVerify called", {
+    log.debug("AUTH", "Verification handleVerify called", {
       codeLength: verificationCode.length,
       email,
       timestamp: dateNow().toISOString(),
@@ -92,7 +92,7 @@ export function VerificationFeature() {
         { postSuccessPath: locationState?.fromLogin ? ROUTES.SEARCH : "/onboarding" }
       );
     } catch (err: unknown) {
-      log.error(LOG_CATEGORIES.AUTH, "Verification error", err);
+      log.error("AUTH", "Verification error", err);
       setError(err instanceof Error ? err.message : "Invalid verification code. Please try again.");
       setCode(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
@@ -115,7 +115,7 @@ export function VerificationFeature() {
       setCode(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     } catch (err: unknown) {
-      log.error(LOG_CATEGORIES.AUTH, "Resend code error", err);
+      log.error("AUTH", "Resend code error", err);
       setError(
         err instanceof Error ? err.message : "Failed to resend verification code. Please try again."
       );

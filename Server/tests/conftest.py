@@ -16,6 +16,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import select
 
 from tests.test_env_stubs import apply_test_env_stubs
 
@@ -32,6 +33,7 @@ def _apply_minimal_test_env() -> None:
     os.environ["TESTING"] = "true"
     os.environ.setdefault("APP_LOG_LEVEL", "ERROR")
     os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+    os.environ.setdefault("OPENAPI_VALIDATION_MODE", "strict")
     os.environ.setdefault("JWT_SIGNING_SECRET", "test-jwt-signing-secret-not-for-production")
     # Auth modules read Cognito ids at import time; values are never sent to AWS in unit tests.
     os.environ.setdefault("AWS_COGNITO_USER_POOL_ID", "us-east-2_pytestStubPoolId")
@@ -74,7 +76,9 @@ def app() -> Generator[Flask, None, None]:
             DEFAULT_BROKERAGE_ORG_SLUG,
         )
 
-        if not BrokerageOrg.query.filter_by(id=DEFAULT_BROKERAGE_ORG_ID).first():
+        if not db.session.scalar(
+            select(BrokerageOrg).where(BrokerageOrg.id == DEFAULT_BROKERAGE_ORG_ID)
+        ):
             db.session.add(
                 BrokerageOrg(
                     id=DEFAULT_BROKERAGE_ORG_ID,
@@ -237,11 +241,12 @@ def sample_user():
 @pytest.fixture
 def sample_agreement(db_session):
     """Create sample agreement data (seeds fixture transaction row)."""
+    from app import db
     from app.models import Transaction
     from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
 
     tx_id = "tx-docusign-fixture"
-    if Transaction.query.filter_by(id=tx_id).first() is None:
+    if db.session.scalar(select(Transaction).where(Transaction.id == tx_id)) is None:
         db_session.session.add(
             Transaction(
                 id=tx_id,

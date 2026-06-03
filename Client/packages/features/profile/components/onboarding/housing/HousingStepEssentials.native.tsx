@@ -13,6 +13,7 @@ import {
   MUST_HAVE_OPTIONS,
   type OnboardingData,
   parseHousingTypes,
+  primaryOnboardingRoleFromForm,
   SECTION_TITLES,
   serializeHousingTypes,
 } from "@/features/profile/utils";
@@ -28,7 +29,7 @@ export function HousingStepEssentials({ formData, updateFormData }: Props) {
   const authIsAgent = useIsAgent();
   const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
-    formIsAgent: formData.is_agent,
+    formPrimaryRole: primaryOnboardingRoleFromForm(formData),
   });
   const housingTypes = parseHousingTypes(formData.preferred_housing_type ?? "");
   const mustHave = Array.isArray(formData.must_have) ? formData.must_have : [];

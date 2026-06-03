@@ -10,19 +10,20 @@ from app.utils.common_patterns import (
     standardize_error_response,
     standardize_success_response,
 )
+from app.utils.route import not_found
 from app.utils.security.admin_roles import user_has_admin_role
 from app.utils.validation import validate_query, validate_response
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 @handle_exceptions_with_logging
 @require_authenticated_user
 @validate_query(RevShareAnalyticsQueryParams)
 @validate_response(RevShareAnalyticsResponse)
-def get_admin_rev_share_analytics(user, query: RevShareAnalyticsQueryParams | None = None):
+def get_admin_rev_share_analytics(user, query: RevShareAnalyticsQueryParams):
     if not user_has_admin_role(user):
         log.security(
-            LOG_CATEGORIES["SECURITY"],
+            "SECURITY",
             "Unauthorized rev-share analytics",
             {"user_id": getattr(user, "id", None)},
         )
@@ -30,12 +31,14 @@ def get_admin_rev_share_analytics(user, query: RevShareAnalyticsQueryParams | No
             "Admin access required", status_code=403, error_code="admin_forbidden"
         )
 
-    if query is None:
-        return standardize_error_response(
-            "partner_id is required", status_code=400, error_code="validation_error"
-        )
     params = query
-    bucket = params.bucket.value if params.bucket else "day"
+    raw_bucket = params.bucket
+    if raw_bucket is None:
+        bucket = "day"
+    elif hasattr(raw_bucket, "value"):
+        bucket = raw_bucket.value
+    else:
+        bucket = str(raw_bucket)
     filters = RevShareAnalyticsFilters(
         partner_id=params.partner_id.strip(),
         step_id=(params.step_id or "").strip() or None,
@@ -47,10 +50,5 @@ def get_admin_rev_share_analytics(user, query: RevShareAnalyticsQueryParams | No
     )
     result = get_rev_share_analytics(filters)
     if not result.get("success"):
-        err = result.get("error", "unknown")
-        return standardize_error_response(
-            str(err) if err != "unknown" else "Analytics data not found",
-            status_code=404,
-            error_code="resource_not_found",
-        )
+        return not_found()
     return standardize_success_response({"data": result})

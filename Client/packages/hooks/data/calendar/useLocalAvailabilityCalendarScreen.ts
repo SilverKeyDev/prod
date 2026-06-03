@@ -20,7 +20,7 @@ import {
   updateAvailabilityFromEditedEvent,
 } from "packages/features/profile/utils/availability/profileAvailabilityMutations";
 import { useMediaQuery } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
 import { screenUp } from "packages/ui/types/screens";
 import {
@@ -302,7 +302,7 @@ export function useLocalAvailabilityCalendarScreen({
         );
         await updateEvent(payload.event.id, body);
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Week grid time resize failed", error);
+        log.error("ERRORS", "Week grid time resize failed", error);
       }
     },
     [updateEvent]

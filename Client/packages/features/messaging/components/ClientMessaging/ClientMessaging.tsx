@@ -16,7 +16,6 @@ import {
   useMessageScroll,
   useMessagingHandlers,
 } from "packages/hooks/ui";
-import { LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { screenUp } from "packages/ui/types/screens";
 import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
@@ -34,11 +33,7 @@ import ClientMessagingConversationList from "./ClientMessagingConversationList";
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
 
 const UnifiedMessagesList = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.MESSAGES,
-    "lazy:UnifiedMessagesList(client)",
-    loadUnifiedMessagesListModule
-  )
+  traceLazyImport("MESSAGES", "lazy:UnifiedMessagesList(client)", loadUnifiedMessagesListModule)
 );
 
 type ClientMessagingProps = {
@@ -47,10 +42,10 @@ type ClientMessagingProps = {
 
 export default function ClientMessaging({ setMobileHeaderActions }: ClientMessagingProps = {}) {
   useMessagingComposerStoreIntegration();
-  useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "ClientMessaging");
+  useFirstRenderCommitTimer("MESSAGES", "ClientMessaging");
   const { userProfile } = useUserData();
   const agentId = useMemo(() => null, []);
-  const showFindAgentInMessagingHeader = userProfile?.is_agent !== true;
+  const showFindAgentInMessagingHeader = !(userProfile?.roles ?? []).includes("agent");
   const clientMessagingConfig = getMessagingConfig("client");
 
   const {

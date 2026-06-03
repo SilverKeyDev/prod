@@ -4,7 +4,6 @@ import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 import { useActiveWorkspace, useIsAgent } from "packages/features/homeauth";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
-import { LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
@@ -19,10 +18,10 @@ import {
 } from "./loading/agentFeatureDynamicImports";
 
 const ClientMessaging = lazy(
-  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:ClientMessaging", loadClientMessagingModule)
+  traceLazyImport("MESSAGES", "lazy:ClientMessaging", loadClientMessagingModule)
 );
 const AgentDashboard = lazy(
-  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:AgentDashboard", loadAgentDashboardModule)
+  traceLazyImport("MESSAGES", "lazy:AgentDashboard", loadAgentDashboardModule)
 );
 
 const messagingBranchFallback = (
@@ -36,7 +35,7 @@ type AgentFeatureProps = {
 };
 
 export default function AgentFeature({ setMobileHeaderActions }: AgentFeatureProps = {}) {
-  useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "AgentFeature");
+  useFirstRenderCommitTimer("MESSAGES", "AgentFeature");
   const authReady = useAuthStore((s) => s.authReady);
   const isAgentIdentity = useIsAgent();
   const activeWorkspace = useActiveWorkspace();

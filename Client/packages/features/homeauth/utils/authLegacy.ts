@@ -9,7 +9,7 @@
  */
 
 import type { LogoutResult } from "packages/features/homeauth/types/auth/logout";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 export type { LogoutResult } from "packages/features/homeauth/types/auth/logout";
 
@@ -23,7 +23,7 @@ export const authService = {
    */
   logout: (): LogoutResult => {
     log.warn(
-      LOG_CATEGORIES.AUTH,
+      "AUTH",
       "authService.logout is deprecated. Use useSecureAuth().logout or authApi.logout() instead."
     );
     return { success: false, error: "Use useSecureAuth().logout instead" };

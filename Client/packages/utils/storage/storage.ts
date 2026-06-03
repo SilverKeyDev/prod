@@ -3,7 +3,7 @@
  * Uses platform storage abstraction so shared packages stay React Native–safe.
  */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { getLocalStorage, getSessionStorage, type KeyValueStorage } from "./platformStorage";
 
@@ -25,7 +25,7 @@ export const getFromStorage = <T>(key: string, options: StorageOptions<T> = {}):
     }
     return JSON.parse(item) as T;
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.API, "Error reading localStorage", {
+    log.error("API", "Error reading localStorage", {
       key,
       errorPrefix,
       error,
@@ -48,7 +48,7 @@ export const setToStorage = (
     getLocalStorage().setItem(key, JSON.stringify(value));
     return true;
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.API, "Error setting localStorage", {
+    log.error("API", "Error setting localStorage", {
       key,
       errorPrefix,
       error,
@@ -67,7 +67,7 @@ export const removeFromStorage = (key: string, options: StorageOptions = {}): bo
     getLocalStorage().removeItem(key);
     return true;
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.API, "Error removing localStorage", {
+    log.error("API", "Error removing localStorage", {
       key,
       errorPrefix,
       error,
@@ -124,7 +124,7 @@ export const setMultipleToStorage = <T extends Record<string, unknown>>(
     return true;
   } catch (error: unknown) {
     const { errorPrefix = "❌" } = options;
-    log.error(LOG_CATEGORIES.API, "Error setting multiple localStorage items", {
+    log.error("API", "Error setting multiple localStorage items", {
       errorPrefix,
       error,
     });
@@ -143,7 +143,7 @@ export const createStorageHelpers = (storage: KeyValueStorage) => ({
       if (item === null) return defaultValue;
       return JSON.parse(item) as T;
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.API, "Error reading storage", {
+      log.error("API", "Error reading storage", {
         key,
         errorPrefix,
         error,
@@ -157,7 +157,7 @@ export const createStorageHelpers = (storage: KeyValueStorage) => ({
       storage.setItem(key, JSON.stringify(value));
       return true;
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.API, "Error setting storage", {
+      log.error("API", "Error setting storage", {
         key,
         errorPrefix,
         error,
@@ -171,7 +171,7 @@ export const createStorageHelpers = (storage: KeyValueStorage) => ({
       storage.removeItem(key);
       return true;
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.API, "Error removing storage", {
+      log.error("API", "Error removing storage", {
         key,
         errorPrefix,
         error,

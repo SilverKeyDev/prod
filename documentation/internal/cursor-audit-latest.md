@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change. After cross-cutting architecture or feature work, also follow [post-major-change-checklist.md](./post-major-change-checklist.md) so docs and this inventory stay aligned.
 
-**Last regenerated:** 2026-06-01 (configuration optimization pass: MCP dedupe defaults, canonical context alignment, and rule payload slimming).
+**Last regenerated:** 2026-06-02 (Codex adapter: `.codex/rules/`, `.codex/agents/`, `.agents/skills/`, `CODEX.md`).
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -101,6 +101,22 @@ Other `.mdc` files were already `alwaysApply: false` or unchanged in scope. **No
 | [`documentation/internal/component-audit/README.md`](./component-audit/README.md) | Tracked markdown outputs and triage (`TRIAGE.md`, per-axis tables). |
 | Repo root `audit/` (gitignored) | Local-only scratch audit tables; see rubric doc. |
 
+## Codex adapter (`.codex/` + `.agents/skills/`)
+
+Canonical content stays in `.cursor/`. Codex loads project config when the repo is **trusted**.
+
+| Path | Count | Status | Notes |
+| ---- | ----- | ------ | ----- |
+| `.codex/README.md` | 1 | keep | Adapter map; edit `.cursor/` first |
+| `.codex/config.toml` | 1 | keep | `file_opener`, `project_doc_max_bytes`, `[agents]` |
+| `.codex/rules/*.md` | 42 | keep | `@` stub → `.cursor/rules/**/*.mdc`; mirrors `.claude/rules/` |
+| `.codex/rules/README.md` | 1 | keep | Adapter index |
+| `.codex/agents/*.toml` | 19 | keep | `developer_instructions` → `.cursor/agents/<name>.md`; 8 read-only audit personas |
+| `.agents/skills/*/SKILL.md` | 14 | keep | `@` stub → `.cursor/skills/<name>/SKILL.md` |
+| `CODEX.md` (repo root) | 1 | keep | Codex quickstart; `@AGENTS.md` |
+
+See [`.codex/README.md`](../../.codex/README.md) and [CODEX.md](../../CODEX.md).
+
 ## Loose markdown under `.cursor/` (historical)
 
 Previously noted: `FORMS_*`, `openapi-adoption-checklist.md`, etc. **Not present** in the current workspace listing. If reintroduced, default **move** to `documentation/internal/` or domain docs per plan.
@@ -115,7 +131,9 @@ Previously noted: `FORMS_*`, `openapi-adoption-checklist.md`, etc. **Not present
 ## Definition-of-done checklist
 
 - [x] `alwaysApply: true` count = **7** (security, thin-app, linting, documentation, silverkey-context, code-style, env-vars-minimal) — see [.cursor/README.md](../../.cursor/README.md)
-- [x] [CLAUDE.md](../../CLAUDE.md) — company AI context at repo root
+- [x] [CLAUDE.md](../../CLAUDE.md) — Claude Code quickstart at repo root
+- [x] [CODEX.md](../../CODEX.md) — Codex quickstart at repo root
+- [x] `.codex/` + `.agents/skills/` — Codex adapters (2026-06-02)
 - [x] [.cursor/rules/README.md](../../.cursor/rules/README.md) — rules index
 - [x] `.cursor/README.md` meta-doc
 - [x] `documentation/internal/cursor-audit-latest.md` (this file)

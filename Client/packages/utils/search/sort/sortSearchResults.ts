@@ -1,3 +1,8 @@
+import type {
+  ResultsOrderBy,
+  ResultsSortDirection,
+} from "packages/features/search/types/domain/searchDisplay";
+import { legacyDefaultSortDirection } from "packages/features/search/types/domain/searchDisplay";
 import type { SearchResult } from "packages/types";
 import { dateNow } from "packages/utils/date";
 import { getPropertyMatchScore } from "packages/utils/search/scoring/propertyMatchScore";
@@ -9,20 +14,10 @@ import {
   resolveDistanceSortMode,
 } from "./displaySortAnchor";
 
-export type ResultsOrderBy =
-  | "match_score"
-  | "price"
-  | "distance"
-  | "bedrooms"
-  | "bathrooms"
-  | "lot_size"
-  | "home_age";
-
-export type ResultsSortDirection = "asc" | "desc";
-
-function legacyDefaultSortDirection(orderBy: ResultsOrderBy): ResultsSortDirection {
-  return orderBy === "price" || orderBy === "distance" ? "asc" : "desc";
-}
+export type {
+  ResultsOrderBy,
+  ResultsSortDirection,
+} from "packages/features/search/types/domain/searchDisplay";
 
 export function parsePriceForSort(price: string | number | undefined): number | null {
   if (price == null) return null;

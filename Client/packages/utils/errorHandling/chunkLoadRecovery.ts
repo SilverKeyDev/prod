@@ -1,5 +1,5 @@
 import { getEnv } from "packages/config/env";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getWindow } from "packages/utils/platform";
 import { getSessionStorage } from "packages/utils/storage/platformStorage";
 
@@ -58,7 +58,7 @@ export function tryRecoverFromStaleDeployChunk(error: unknown): boolean {
     return false;
   }
   markStaleChunkReloadAttempted();
-  log.info(LOG_CATEGORIES.ROUTING, "Reloading after stale deploy chunk load failure", {
+  log.info("ROUTING", "Reloading after stale deploy chunk load failure", {
     message: error instanceof Error ? error.message : String(error),
   });
   getWindow()?.location.reload();

@@ -11,7 +11,7 @@ import {
   warnSearchServerOrTimeout,
 } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { usePreActionSnapshot } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { SearchFilterOverrides } from "packages/store";
 import type { IsochroneData } from "packages/types/domain/api";
 
@@ -93,7 +93,7 @@ export function useSearchScreenSearchExecution({
     setIsSearching(true);
     setSearchStage("Preparing search...");
     setSearchResults([]);
-    log.info(LOG_CATEGORIES.SEARCH, "Mobile unified search start", {});
+    log.info("SEARCH", "Mobile unified search start", {});
 
     try {
       const mapBoundsRing = lastMapRegion ? viewportRingFromMapRegion(lastMapRegion) : null;
@@ -138,14 +138,14 @@ export function useSearchScreenSearchExecution({
         controller.signal,
         mapPreviewSearchLifecycle
       );
-      log.info(LOG_CATEGORIES.SEARCH, "Mobile unified search success", { mode: resolved.mode });
+      log.info("SEARCH", "Mobile unified search success", { mode: resolved.mode });
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         return;
       }
       setSearchStage("");
       warnSearchServerOrTimeout(error);
-      log.error(LOG_CATEGORIES.SEARCH, "Mobile unified search failed", error);
+      log.error("SEARCH", "Mobile unified search failed", error);
     } finally {
       searchAbortControllerRef.current = null;
       setIsSearching(false);

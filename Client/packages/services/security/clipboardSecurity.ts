@@ -2,7 +2,7 @@
  * Secure clipboard operations
  */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getDocument, getNavigator, getWindow } from "packages/utils/platform";
 
 /**
@@ -30,7 +30,7 @@ export async function secureClipboardCopy(text: string): Promise<boolean> {
     doc.body.removeChild(textArea);
     return result;
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.API, "Failed to copy to clipboard", error);
+    log.error(`API.${error}`, "Failed to copy to clipboard");
     return false;
   }
 }

@@ -1,12 +1,13 @@
 """Chart and image block rendering for research PDF sections (delegated from pdf_section_rendering)."""
 
-import logging
 from io import BytesIO
 
 import requests
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
+
+from logger import log
 
 from ..graphs.graphic_generation import (
     generate_horizontal_bar_chart,
@@ -18,8 +19,6 @@ from .pdf_image_utils import (
     resize_image_to_fit,
 )
 from .pdf_serp_images import fetch_image_from_serp
-
-logger = logging.getLogger(__name__)
 
 CHARTABLE_FIELDS = {
     "demographics",
@@ -152,13 +151,17 @@ def try_add_home_image_block(elements, k, v, styles):
     elements.append(Spacer(1, 20))
     image_url = fetch_image_from_serp(v)
     if not image_url:
-        logger.warning("No image URL returned for home image prompt: %s", v[:80])
+        log.warn("API", "No image URL returned for home image prompt:", {"detail": str(v[:80])})
         return True
 
     try:
         response = requests.get(image_url, timeout=30)
         if response.status_code != 200:
-            logger.warning("Failed to fetch home image, status code: %s", response.status_code)
+            log.warn(
+                "API",
+                "Failed to fetch home image, status code:",
+                {"detail": str(response.status_code)},
+            )
             return True
         img_data = BytesIO(response.content)
         home_img = resize_image_for_home_hero(img_data)
@@ -179,8 +182,8 @@ def try_add_home_image_block(elements, k, v, styles):
         )
         elements.append(table)
         elements.append(Spacer(1, 15))
-    except Exception as e:
-        logger.warning("Failed to fetch home image from URL %s: %s", image_url, e)
+    except Exception:
+        log.warn("API", "Failed to fetch home image from URL :", {"detail": str(image_url)})
     return True
 
 
@@ -193,8 +196,8 @@ def _fetch_and_resize_side_by_side(url):
         if response.status_code != 200:
             return None
         return resize_image_for_side_by_side(BytesIO(response.content), is_chart=False)
-    except Exception as e:
-        logger.warning("Failed to fetch image from URL %s: %s", url, e)
+    except Exception:
+        log.warn("API", "Failed to fetch image from URL :", {"detail": str(url)})
         return None
 
 

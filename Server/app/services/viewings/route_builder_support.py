@@ -10,9 +10,7 @@ import httpx
 from app.utils.geo.google_polyline import decode as decode_polyline
 from app.utils.geo.google_polyline import encode as encode_polyline
 from app.utils.geo.google_polyline import haversine_meters
-from app.utils.security.app_logging import get_logger
-
-logger = get_logger()
+from logger import log
 
 # Google Directions allows up to 25 intermediate waypoints (origin + dest + 25 mids → 27 stops).
 MAX_PATH_NODES = 27
@@ -89,7 +87,7 @@ def _duration_matrix_seconds(
                 elif i != j:
                     matrix[i][j] = _fallback_duration(coords[i], coords[j])
     except Exception as e:
-        logger.warning("Distance Matrix failed, using haversine fallback: %s", e)
+        log.warn("API", "Distance Matrix failed; using haversine fallback", {"error": str(e)})
         for i in range(n):
             for j in range(n):
                 if i != j:
@@ -267,7 +265,7 @@ def _leg_polyline_and_metrics(
         r.raise_for_status()
         data = r.json()
         if data.get("status") != "OK" or not data.get("routes"):
-            logger.warning("Directions API status: %s", data.get("status"))
+            log.warn("API", "Directions API returned non-OK status", {"status": data.get("status")})
             return [], None
         route = data["routes"][0]
         legs_out: list[dict[str, Any]] = []
@@ -289,7 +287,7 @@ def _leg_polyline_and_metrics(
             )
         return legs_out, None
     except Exception as e:
-        logger.error("Directions request failed: %s", e, exc_info=True)
+        log.error("ERRORS", "Directions request failed", {"error": str(e)})
         return [], str(e)
 
 

@@ -30,7 +30,8 @@
 - `Server/`: Flask application, services, models, routes, tests
 - `openapi/`: API contract source, downstream generation entrypoint
 - `documentation/`: canonical long-form documentation
-- `.claude/`: Claude skills, agents, rules, and settings
+- `.claude/`: Claude Code adapter (stubs → `.cursor/`)
+- `.codex/`, `.agents/skills/`: Codex adapter (`rules/`, TOML subagents, repo skills → `.cursor/`)
 
 ## Universal Conventions
 

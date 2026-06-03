@@ -78,13 +78,12 @@ describe("profileFormSync", () => {
       expect(result.preferred_bedrooms_max).toBe(4);
     });
 
-    it("maps legacy mirrored preferred_bedrooms from API when present (search/MCDA canonical key)", () => {
+    it("does not map legacy preferred_bedrooms when min/max are canonical", () => {
       const fixture = {
         preferred_bedrooms: 3,
-        [API_GET_KEYS.preferred_bedrooms_min]: 3,
       };
       const result = userPreferencesToOnboardingData(fixture);
-      expect(result.preferred_bedrooms_min).toBe(3);
+      expect(result.preferred_bedrooms_min).toBeUndefined();
     });
 
     it("maps preferred_bathrooms_min/max to form preferred_bathrooms_min and preferred_bathrooms_max", () => {

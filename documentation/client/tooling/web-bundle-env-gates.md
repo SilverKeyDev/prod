@@ -4,13 +4,25 @@ SilverKey bakes client-visible configuration into the web bundle at **Docker bui
 
 Canonical manifest: [`Client/config/required-bundle-env.json`](../../Client/config/required-bundle-env.json)
 
+## CI sourcing (prod)
+
+| Source | Role |
+| ------ | ---- |
+| AWS Secrets Manager | **Primary** — `fetch-client-bundle-env.sh` merges deploy secrets (same ids as `Server/.env.example`) and exports `EXPO_PUBLIC_*` |
+| GitHub repository secrets | **Fallback** — `apply-bundle-env-github-fallback.sh` fills keys SM omits (`GITHUB_FALLBACK_*` in `ci_web.yml`); **planned for removal** after SM verified in prod |
+
+Local dev: `make secrets` → `Client/.env` (via `Server/scripts/secrets.sh` + `client-env-from-secrets.sh`).
+
 ## Gates (no new workflows)
 
 | Gate | When | What it checks |
 | ---- | ---- | -------------- |
-| `assert-github-bundle-secrets.mjs` | `ci_web` before Docker build | Required GitHub secrets are non-empty (length only in logs) |
+| `fetch-client-bundle-env.sh` | `ci_web` before Docker build | Loads bundle keys from AWS SM into `GITHUB_ENV` |
+| `apply-bundle-env-github-fallback.sh` | `ci_web` after SM fetch | Fills missing keys from GitHub secrets (fallback) |
+| `assert-bundle-secrets.mjs` | `ci_web` before Docker build | Required bundle env non-empty + manifest validation (length only in logs) |
+| `export-bundle-docker-build-args.mjs` | `ci_web` Docker build | Emits `--build-arg` from manifest + resolved env |
 | `verify-web-bundle-env.mjs` | `Dockerfile.web` after `build:web` | Required keys inlined in shim / dist |
-| `prod-deploy-smoke.sh` | `ci_web` after EC2 deploy | `GET /livez`, `/healthz`, `/api/maps/script` on prod URL |
+| `prod-deploy-smoke.sh` | Manual post-deploy | `GET /livez`, `/healthz`, `/api/maps/script` on prod URL |
 
 Maps-specific setup: [`google-maps-web-setup.md`](../features/google-maps-web-setup.md).
 
@@ -18,14 +30,16 @@ Maps-specific setup: [`google-maps-web-setup.md`](../features/google-maps-web-se
 
 1. Add to [`Client/apps/web/vite.config.js`](../../Client/apps/web/vite.config.js) `envVars`.
 2. Add `ARG` / `ENV` in [`Dockerfile.web`](../../Dockerfile.web).
-3. Wire CI: GitHub **secret** or **variable** (PostHog `phc_` key uses a repository variable — see `ci_web.yml`) plus `--build-arg` in [`.github/workflows/ci_web.yml`](../../.github/workflows/ci_web.yml).
-4. Add an entry to [`required-bundle-env.json`](../../Client/config/required-bundle-env.json) with `"required": true`.
+3. Add the key to the appropriate AWS Secrets Manager JSON secret (and run `make secrets` locally).
+4. Add an entry to [`required-bundle-env.json`](../../Client/config/required-bundle-env.json) with `"dockerBuildArg": true` and `"required": true` as needed.
+5. Optional fallback (planned for removal): GitHub repository secret + `GITHUB_FALLBACK_*` in [`.github/workflows/ci_web.yml`](../../.github/workflows/ci_web.yml).
 
 ## Local verification
 
 ```bash
+make secrets
 cd Client
-EXPO_PUBLIC_GOOGLE_MAPS_ID="<cloud-map-id>" pnpm build:web
+pnpm build:web
 VERIFY_CLIENT_BUNDLE_ENV=1 pnpm verify:web:bundle
 ```
 

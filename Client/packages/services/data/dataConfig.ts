@@ -26,7 +26,7 @@ export const DATA_ROUTES = {
  * Get all routes that should be loaded initially
  */
 export function getInitialLoadRoutes(user: UserProfile | null): RouteConfig[] {
-  const isAgent = user?.is_agent ?? false;
+  const isAgent = (user?.roles ?? []).includes("agent");
   const authed = Boolean(user);
   return Object.values(DATA_ROUTES).filter((route) => {
     if (!route.initialLoad) {
@@ -43,7 +43,7 @@ export function getInitialLoadRoutes(user: UserProfile | null): RouteConfig[] {
  * Get all routes that should be polled
  */
 export function getPollingRoutes(user: UserProfile | null): RouteConfig[] {
-  const isAgent = user?.is_agent ?? false;
+  const isAgent = (user?.roles ?? []).includes("agent");
   return Object.values(DATA_ROUTES).filter(
     (route) =>
       route.shouldPoll && (route.userType === "all" || (route.userType === "agent" && isAgent))

@@ -8,14 +8,13 @@ This module now uses the preprocessing models internally but maintains backward
 compatibility by returning dictionaries.
 """
 
-import logging
 from typing import Any
 
 from app.models import User
 from app.services.aggregation import get_preferences_dict_optional
+from app.services.auth.user_role_helpers import user_is_agent
 from app.utils.db.orm_lookup import get_model
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 def get_user_data_from_db(user_id: str) -> dict[str, Any] | None:
@@ -27,11 +26,11 @@ def get_user_data_from_db(user_id: str) -> dict[str, Any] | None:
     try:
         user = get_model(User, user_id)
         if not user:
-            logger.warning(f"User not found for user_id {user_id}")
+            log.warn("SEARCH", f"User not found for user_id {user_id}")
             return None
         user_preferences_dict = get_preferences_dict_optional(user_id)
         if not user_preferences_dict:
-            logger.warning(f"User preferences not found for user {user_id}")
+            log.warn("SEARCH", f"User preferences not found for user {user_id}")
             return None
         formatted_data = format_user_data_for_matching(user, user_preferences_dict)
 
@@ -39,7 +38,7 @@ def get_user_data_from_db(user_id: str) -> dict[str, Any] | None:
         return formatted_data
 
     except Exception as e:
-        logger.error(f"Error retrieving user data for {user_id}: {e}")
+        log.error("ERRORS", f"Error retrieving user data for {user_id}: {e}")
         return None
 
 
@@ -108,7 +107,7 @@ def format_user_data_for_matching(user: User, user_preferences: dict[str, Any]) 
         "preferences": preferences,
         # Additional metadata
         "has_preferences": user.has_preferences,
-        "is_agent": user.is_agent,
+        "has_agent_role": user_is_agent(user),
     }
 
     # Add lifestyle description if available
@@ -150,7 +149,7 @@ def get_user_data_from_dict(user_data_dict: dict[str, Any]) -> dict[str, Any]:
     }
 
     # Copy over any additional fields
-    for key in ["email", "name", "has_preferences", "is_agent"]:
+    for key in ["email", "name", "has_preferences", "has_agent_role"]:
         if key in user_data_dict:
             formatted[key] = user_data_dict[key]
 
@@ -239,5 +238,5 @@ def get_user_data(
     elif user_id:
         return get_user_data_from_db(user_id)
     else:
-        logger.warning("Either user_id or user_data_dict must be provided")
+        log.warn("SEARCH", "Either user_id or user_data_dict must be provided")
         return None

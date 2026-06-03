@@ -36,6 +36,9 @@ class TestPreferences:
                 assert data["success"] is True
                 assert "preferences" in data
                 assert data["message"] == "Preferences saved successfully"
+                db_session.session.refresh(user)
+                assert user.preferences_version == "1.0"
+                assert data["preferences"].get("preferences_version") == "1.0"
 
     def test_create_preferences_partial_data(self, client, app: Flask, db_session):
         """Test POST /api/v1/preferences with partial data"""
@@ -69,6 +72,34 @@ class TestPreferences:
                 assert response.status_code == 200
                 data = response.get_json()
                 assert data["success"] is True
+                db_session.session.refresh(user)
+                assert user.preferences_version == "1.0"
+
+    def test_create_preferences_respects_explicit_version(self, client, app: Flask, db_session):
+        with app.app_context():
+            from app.models import User
+
+            user = User(
+                cognito_id="test-cognito-version",
+                email="versionuser@example.com",
+                name="Version User",
+                is_active=True,
+            )
+            db_session.session.add(user)
+            db_session.session.commit()
+
+            with patch("app.services.auth.get_current_user") as mock_get:
+                mock_get.return_value = user
+
+                response = client.post(
+                    "/api/v1/preferences",
+                    headers={"Authorization": "Bearer mock_token"},
+                    json={"preferences_version": "2.3", "home_budget_min": 100000},
+                )
+
+                assert response.status_code == 200
+                db_session.session.refresh(user)
+                assert user.preferences_version == "2.3"
 
     def test_get_preferences(self, client, app: Flask, db_session, sample_preferences):
         """Test GET /api/v1/preferences"""
@@ -105,6 +136,7 @@ class TestPreferences:
                 assert data["success"] is True
                 assert "preferences" in data
                 assert data["has_preferences"] is True
+                assert data["preferences"].get("preferences_version") == "1.0"
 
     def test_get_preferences_none_set(self, client, app: Flask, db_session):
         """Test GET /api/v1/preferences when no explicit preferences exist (returns user defaults)"""
@@ -131,7 +163,7 @@ class TestPreferences:
                 assert response.status_code == 200
                 data = response.get_json()
                 assert data["success"] is True
-                # has_preferences is True because the function returns user defaults (name, is_agent)
+                # has_preferences is True because the function returns user defaults (name, roles)
                 assert data["has_preferences"] is True
                 assert "preferences" in data
                 # Should have at least user defaults
@@ -221,7 +253,6 @@ class TestPreferences:
             db_session.session.commit()
 
             seller_prefs = {
-                "is_agent": "no",
                 "why_joining_silverkey": ["buying_house", "selling_house"],
             }
 
@@ -267,6 +298,8 @@ class TestPreferences:
     ):
         """DELETE /api/v1/preferences removes preference rows for authenticated user."""
         with app.app_context():
+            from sqlalchemy import func, select
+
             from app.models import User, UserFinancials
 
             user = User(
@@ -304,7 +337,14 @@ class TestPreferences:
                 db_session.session.refresh(user)
                 assert user.has_preferences is False
                 assert user.preferences_version is None
-                assert UserFinancials.query.filter_by(user_id=str(user.id)).count() == 0
+                assert (
+                    db_session.session.scalar(
+                        select(func.count())
+                        .select_from(UserFinancials)
+                        .where(UserFinancials.user_id == str(user.id))
+                    )
+                    == 0
+                )
 
     def test_delete_preferences_does_not_clear_client_rows(
         self, client, app: Flask, db_session, sample_preferences
@@ -313,14 +353,15 @@ class TestPreferences:
         with app.app_context():
             import json as json_mod
 
-            from app.models import User, UserFinancials
+            from sqlalchemy import select
+
+            from app.models import User, UserFinancials, UserRole
 
             agent = User(
                 cognito_id="agent-cognito-del",
                 email="agent-del@example.com",
                 name="Agent Delete",
                 is_active=True,
-                is_agent=True,
             )
             client_user = User(
                 cognito_id="client-cognito-del",
@@ -329,6 +370,7 @@ class TestPreferences:
                 is_active=True,
             )
             db_session.session.add(agent)
+            db_session.session.add(UserRole(user_id=agent.id, role="agent"))
             db_session.session.add(client_user)
             db_session.session.commit()
 
@@ -371,8 +413,12 @@ class TestPreferences:
                 )
                 assert response.status_code == 200
 
-                agent_fin = UserFinancials.query.filter_by(user_id=str(agent.id)).first()
-                client_fin = UserFinancials.query.filter_by(user_id=str(client_user.id)).first()
+                agent_fin = db_session.session.scalar(
+                    select(UserFinancials).where(UserFinancials.user_id == str(agent.id))
+                )
+                client_fin = db_session.session.scalar(
+                    select(UserFinancials).where(UserFinancials.user_id == str(client_user.id))
+                )
                 assert agent_fin is None
                 assert client_fin is not None
                 assert client_fin.home_budget_min == 111000

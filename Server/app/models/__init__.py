@@ -1,3 +1,4 @@
+# pyright: reportUndefinedVariable=false
 from ..extensions import db
 from .agent import AgentConnectionRequest, AgentConnections, ChatHistory, Todo
 from .brokerage import BrokerageOrg, UserOrgMembership
@@ -23,6 +24,7 @@ from .property import (
     PropertyCache,
     ReelLike,
     ScoringResultsTracker,
+    Search,
     UserPropertyCommute,
     UserPropertyHighlights,
     UserPropertyLink,
@@ -42,6 +44,7 @@ from .user import (
     OAuthState,
     User,
     UserAgentProfile,
+    UserCalendarConnection,
     UserClientSettings,
     UserCommunicationPrefs,
     UserDemographics,
@@ -100,6 +103,7 @@ __all__ = [
     "UserPropertyHighlights",
     "UserPropertyLink",
     "UserScoreWeights",
+    "Search",
     "AgentConnections",
     "AgentConnectionRequest",
     "ChatHistory",
@@ -107,6 +111,7 @@ __all__ = [
     "CalendarEvent",
     "CalendarShare",
     "GoogleOAuthToken",
+    "UserCalendarConnection",
     "OAuthState",
     "DocusignConnectEvent",
     "DocusignOAuthToken",

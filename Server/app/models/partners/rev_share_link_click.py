@@ -1,5 +1,6 @@
 """Logged outbound clicks on rev-share attribution links."""
 
+# pyright: reportUndefinedVariable=false
 from __future__ import annotations
 
 import uuid
@@ -56,11 +57,11 @@ class RevShareLinkClick(db.Model):
     geo_region: Mapped[str | None] = mapped_column(db.String(64))
     device_class: Mapped[str | None] = mapped_column(db.String(32))
 
-    partner = relationship("Partner", back_populates="clicks")
-    link = relationship("RevShareLink", back_populates="clicks")
-    agent = relationship("User", foreign_keys=[agent_id])
-    buyer = relationship("User", foreign_keys=[buyer_id])
-    transaction = relationship("Transaction")
+    partner: Mapped["Partner"] = relationship("Partner", back_populates="clicks")
+    link: Mapped["RevShareLink"] = relationship("RevShareLink", back_populates="clicks")
+    agent: Mapped["User | None"] = relationship("User", foreign_keys=[agent_id])
+    buyer: Mapped["User | None"] = relationship("User", foreign_keys=[buyer_id])
+    transaction: Mapped["Transaction | None"] = relationship("Transaction")
 
     __table_args__ = (
         Index("idx_rev_share_clicks_partner_clicked", "partner_id", "clicked_at"),
@@ -72,28 +73,3 @@ class RevShareLinkClick(db.Model):
             name="uq_rev_share_clicks_link_session_day",
         ),
     )
-
-    def to_dict(self, *, include_pii: bool = False) -> dict:
-        out = {
-            "id": self.id,
-            "partner_id": self.partner_id,
-            "link_id": self.link_id,
-            "agent_id": self.agent_id,
-            "buyer_id": self.buyer_id,
-            "transaction_id": self.transaction_id,
-            "step_id": self.step_id,
-            "clicked_at": self.clicked_at.isoformat() if self.clicked_at else None,
-            "payout_per_conversion": float(self.payout_per_conversion),
-            "payout_type": self.payout_type,
-            "utm_source": self.utm_source,
-            "utm_medium": self.utm_medium,
-            "utm_campaign": self.utm_campaign,
-            "geo_city": self.geo_city,
-            "geo_zip": self.geo_zip,
-            "geo_region": self.geo_region,
-            "device_class": self.device_class,
-            "referrer": self.referrer,
-        }
-        if include_pii:
-            out["ip_address_hash"] = self.ip_address_hash
-        return out

@@ -13,7 +13,7 @@ import React from "react";
 
 import { render } from "@react-email/render";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 // Dynamically import email templates
 const templateMap: Record<
@@ -28,9 +28,9 @@ async function main() {
   const [templateName, propsJson] = process.argv.slice(2);
 
   if (!templateName) {
-    log.error(LOG_CATEGORIES.API, "Usage: tsx render-email.ts <TemplateName> '<jsonProps>'");
+    log.error("API", "Usage: tsx render-email.ts <TemplateName> '<jsonProps>'");
     log.error(
-      LOG_CATEGORIES.API,
+      "API",
       '\nExample: tsx render-email.ts ListingsEmail \'{"recipientEmail":"user@example.com","listings":[]}\''
     );
     process.exit(1);
@@ -39,8 +39,8 @@ async function main() {
   const templateLoader = templateMap[templateName];
 
   if (!templateLoader) {
-    log.error(LOG_CATEGORIES.API, "Unknown template", { templateName });
-    log.error(LOG_CATEGORIES.API, "Available templates", {
+    log.error("API", "Unknown template", { templateName });
+    log.error("API", "Available templates", {
       templates: Object.keys(templateMap).join(", "),
     });
     process.exit(1);
@@ -62,15 +62,15 @@ async function main() {
     // Output HTML to stdout
     process.stdout.write(html);
   } catch (error) {
-    log.error(LOG_CATEGORIES.API, "Error rendering email", error);
+    log.error(`API.${error}`, "Error rendering email");
     if (error instanceof Error) {
-      log.error(LOG_CATEGORIES.ERRORS, error.message, { stack: error.stack });
+      log.error("ERRORS", error.message, { stack: error.stack });
     }
     process.exit(1);
   }
 }
 
 main().catch((error) => {
-  log.error(LOG_CATEGORIES.ERRORS, "Fatal error", error);
+  log.error("ERRORS", "Fatal error", error);
   process.exit(1);
 });

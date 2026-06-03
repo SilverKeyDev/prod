@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from sqlalchemy import select
+
 from app import db
 from app.models import BuyerStepView
 from app.services.transactions.lookup import get_transaction_by_id
@@ -32,11 +34,13 @@ def record_buyer_step_view(
     if not tx:
         return None, False
     txn_id = tx.id
-    existing = BuyerStepView.query.filter_by(
-        buyer_id=buyer_id,
-        step_id=step_id,
-        transaction_id=txn_id,
-    ).first()
+    existing = db.session.scalar(
+        select(BuyerStepView).where(
+            BuyerStepView.buyer_id == buyer_id,
+            BuyerStepView.step_id == step_id,
+            BuyerStepView.transaction_id == txn_id,
+        )
+    )
     if existing:
         return existing, False
 

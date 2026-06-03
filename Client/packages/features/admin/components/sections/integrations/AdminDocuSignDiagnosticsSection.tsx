@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { adminApi } from "packages/api/admin";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
@@ -36,7 +36,7 @@ export function AdminDocuSignDiagnosticsSection({
     } catch (err) {
       const message = err instanceof Error ? err.message : "DocuSign OAuth start failed";
       setDocusignOAuthError(message);
-      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_PAGE] docusignOAuthStart failed", err);
+      log.error("ERRORS", "[ADMIN_PAGE] docusignOAuthStart failed", err);
     } finally {
       setDocusignOAuthLoading(false);
     }
@@ -52,7 +52,7 @@ export function AdminDocuSignDiagnosticsSection({
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to list templates";
       setDocusignTemplatesError(message);
-      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_PAGE] docusignListTemplates failed", err);
+      log.error("ERRORS", "[ADMIN_PAGE] docusignListTemplates failed", err);
     } finally {
       setDocusignTemplatesLoading(false);
     }
@@ -68,7 +68,7 @@ export function AdminDocuSignDiagnosticsSection({
     } catch (err) {
       const message = err instanceof Error ? err.message : "Template sync failed";
       setDocusignSyncError(message);
-      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_PAGE] docusignSyncTemplates failed", err);
+      log.error("ERRORS", "[ADMIN_PAGE] docusignSyncTemplates failed", err);
     } finally {
       setDocusignSyncLoading(false);
     }

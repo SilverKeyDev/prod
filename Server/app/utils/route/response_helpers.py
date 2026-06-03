@@ -2,6 +2,8 @@
 
 from flask import jsonify
 
+from app.utils.security.secure_errors import SecureErrorHandler
+
 
 def standardize_success_response(data=None, message="Success", status_code=200):
     """
@@ -33,6 +35,7 @@ def standardize_error_response(
         "success": False,
         "error": error_code,
         "message": message,
+        "error_id": SecureErrorHandler.generate_error_id(),
     }
 
     return jsonify(response), status_code

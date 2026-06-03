@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { asError } from "packages/utils";
 import { dateNow } from "packages/utils/date";
 import { logWebMapsEnvDiagnostics } from "packages/utils/maps/cloudMapId/logWebMapsEnvDiagnostics";
@@ -27,7 +27,7 @@ export class MapInstanceManager {
     if (!win?.google?.maps?.Map) return null;
 
     const effectiveMapId = mapId ?? undefined;
-    log.info(LOG_CATEGORIES.MAP_RENDERING, "Applying map ID to Google Map instance", {
+    log.info("MAP_RENDERING", "Applying map ID to Google Map instance", {
       mapId: effectiveMapId ?? "(none - default styling)",
       willUseCloudStyling: !!effectiveMapId,
     });
@@ -41,14 +41,14 @@ export class MapInstanceManager {
       MapInstanceManager.mapInstanceCount++;
       MapInstanceManager.activeMapInstances.add(map);
       logWebMapsEnvDiagnostics({ phase: "map_instance", map });
-      log.info(LOG_CATEGORIES.MAP_RENDERING, "Google Map created successfully", {
+      log.info("MAP_RENDERING", "Google Map created successfully", {
         mapIdApplied: !!effectiveMapId,
         activeInstances: MapInstanceManager.activeMapInstances.size,
       });
       return map;
     } catch (err: unknown) {
       const error = asError(err);
-      log.error(LOG_CATEGORIES.MAP_RENDERING, "Error creating Google Map", {
+      log.error("MAP_RENDERING", "Error creating Google Map", {
         error,
         mapIdAttempted: effectiveMapId ?? "(none)",
       });
@@ -64,7 +64,7 @@ export class MapInstanceManager {
   }
 
   cleanupMapInstance(map: google.maps.Map): void {
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleaning up map instance", {
+    log.debug("MAP_RENDERING", "Cleaning up map instance", {
       mapInstanceCount: MapInstanceManager.mapInstanceCount,
       activeMapInstancesCount: MapInstanceManager.activeMapInstances.size,
       timestamp: dateNow().toISOString(),
@@ -74,27 +74,27 @@ export class MapInstanceManager {
       const win = getWindow() as Window & { google?: typeof google };
       if (win?.google?.maps?.event) {
         win.google.maps.event.clearInstanceListeners(map);
-        log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleared all event listeners");
+        log.debug("MAP_RENDERING", "Cleared all event listeners");
       }
 
       if (MapInstanceManager.activeMapInstances.has(map)) {
         MapInstanceManager.activeMapInstances.delete(map);
-        log.debug(LOG_CATEGORIES.MAP_RENDERING, "Map instance removed from tracking", {
+        log.debug("MAP_RENDERING", "Map instance removed from tracking", {
           remainingInstances: MapInstanceManager.activeMapInstances.size,
           timestamp: dateNow().toISOString(),
         });
       } else {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map instance not found in tracking", {
+        log.warn("MAP_RENDERING", "Map instance not found in tracking", {
           timestamp: dateNow().toISOString(),
         });
       }
     } catch (error) {
-      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Error during map cleanup", error);
+      log.warn("MAP_RENDERING", "Error during map cleanup", error);
     }
   }
 
   cleanupContainerMaps(container: HTMLElement): void {
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleaning up all maps for container", {
+    log.debug("MAP_RENDERING", "Cleaning up all maps for container", {
       timestamp: dateNow().toISOString(),
     });
 
@@ -102,7 +102,7 @@ export class MapInstanceManager {
       (map) => map.getDiv() === container
     );
 
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Found maps to cleanup", {
+    log.debug("MAP_RENDERING", "Found maps to cleanup", {
       count: mapsToCleanup.length,
     });
 

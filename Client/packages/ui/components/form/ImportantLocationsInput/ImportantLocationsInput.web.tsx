@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Input from "@ui/form/Input";
 import { Icon } from "@ui/icons";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
@@ -92,7 +92,7 @@ function ImportantLocationsInputAutocomplete({
         setSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
-        log.error(LOG_CATEGORIES.ERRORS, "Autocomplete fetch error", error);
+        log.error("ERRORS", "Autocomplete fetch error", error);
         setSuggestions([]);
       }
     };
@@ -128,7 +128,7 @@ function ImportantLocationsInputAutocomplete({
           });
         }
       } catch (error) {
-        log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields", error);
+        log.warn("ERRORS", "Error fetching place fields", error);
       }
       if (hasProperty(place, "formattedAddress") && typeof place.formattedAddress === "string") {
         setLocationAddress(place.formattedAddress);

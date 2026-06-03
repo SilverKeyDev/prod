@@ -12,6 +12,7 @@ export type TaskChecklistProgressSummaryResponse =
 export type TaskChecklistSectionProgress = components["schemas"]["TaskChecklistSectionProgress"];
 export type ChecklistType = components["schemas"]["ChecklistType"];
 
+/** @deprecated Prefer `getTaskChecklistForSubject` with a transaction id. Tier D gate: PostHog ~0 on `/api/v1/tasks`. */
 export async function getTaskChecklist(type: ChecklistType): Promise<TaskChecklistResponse> {
   const response = await apiGet<TaskChecklistApiResponse>(`/api/v1/tasks?type=${type}`);
   if (!response.success || !response.data) {
@@ -20,6 +21,7 @@ export async function getTaskChecklist(type: ChecklistType): Promise<TaskCheckli
   return response.data;
 }
 
+/** @deprecated Prefer `getTaskChecklistProgressSummaryForSubject`. */
 export async function getTaskChecklistProgressSummary(): Promise<TaskChecklistProgressSummary> {
   const response = await apiGet<TaskChecklistProgressSummaryResponse>(
     "/api/v1/tasks/progress-summary"
@@ -66,6 +68,7 @@ export async function getTaskChecklistForSubject(
   return response.data;
 }
 
+/** @deprecated Prefer `updateTaskChecklistForSubject`. */
 export async function updateTaskChecklist(
   type: ChecklistType,
   checkedIds: number[]

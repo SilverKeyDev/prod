@@ -56,6 +56,20 @@ _DEFAULT_CLIENT = {
     },
     "errors": True,
     "security": True,
+    "search": False,
+    "polygonSearch": False,
+    "mapRendering": False,
+    "propertyDetails": False,
+    "negotiation": False,
+    "checklists": False,
+    "calendar": False,
+    "dashboard": False,
+    "messages": False,
+    "feed": False,
+    "routing": False,
+    "docusign": False,
+    "documents": False,
+    "profilePreferences": False,
     "logLevel": "ERROR",
 }
 
@@ -112,7 +126,7 @@ def test_post_logger_config_updates_server_scope(
         response = client.post(
             "/api/v1/admin/logger-config",
             headers={"Authorization": "Bearer mock_token"},
-            json={"updates": {"server": {config_key: value}}},
+            json={"updates": {"server": {**_DEFAULT_SERVER, config_key: value}}},
         )
 
     assert response.status_code == 200
@@ -120,6 +134,26 @@ def test_post_logger_config_updates_server_scope(
     assert data["success"] is True
     assert data["config"]["server"][config_key] == value
     mock_merge.assert_called_once()
+
+
+def test_post_logger_config_partial_client_patch(client, mock_deployment_service) -> None:
+    _, mock_merge = mock_deployment_service
+    updated_client = {**_DEFAULT_CLIENT, "search": False}
+    mock_merge.return_value = {"client": updated_client, "server": _DEFAULT_SERVER}
+
+    with patch("app.services.auth.get_current_user", return_value=_ADMIN_USER):
+        response = client.post(
+            "/api/v1/admin/logger-config",
+            headers={"Authorization": "Bearer mock_token"},
+            json={"updates": {"client": {"search": False}}},
+        )
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["success"] is True
+    mock_merge.assert_called_once()
+    call_updates = mock_merge.call_args[0][1]
+    assert call_updates["client"]["search"] is False
 
 
 def test_post_logger_config_updates_client_scope(client, mock_deployment_service) -> None:
@@ -131,7 +165,7 @@ def test_post_logger_config_updates_client_scope(client, mock_deployment_service
         response = client.post(
             "/api/v1/admin/logger-config",
             headers={"Authorization": "Bearer mock_token"},
-            json={"updates": {"client": {"polling": True}}},
+            json={"updates": {"client": {**_DEFAULT_CLIENT, "polling": True}}},
         )
 
     assert response.status_code == 200
@@ -142,7 +176,6 @@ def test_post_logger_config_updates_client_scope(client, mock_deployment_service
 
 def test_post_logger_config_rejects_unknown_server_keys(client, mock_deployment_service) -> None:
     _, mock_merge = mock_deployment_service
-    mock_merge.return_value = None
 
     with patch("app.services.auth.get_current_user", return_value=_ADMIN_USER):
         response = client.post(
@@ -154,7 +187,8 @@ def test_post_logger_config_rejects_unknown_server_keys(client, mock_deployment_
     assert response.status_code == 400
     data = response.get_json()
     assert data["success"] is False
-    assert "No valid logger fields" in data.get("message", "")
+    assert data.get("error") == "validation_error"
+    mock_merge.assert_not_called()
 
 
 def test_get_logger_config_forbidden_for_non_admin(client, mock_deployment_service) -> None:
@@ -167,6 +201,8 @@ def test_get_logger_config_forbidden_for_non_admin(client, mock_deployment_servi
     assert response.status_code == 403
     data = response.get_json()
     assert data["success"] is False
+    assert data["error"] == "FORBIDDEN"
+    assert "message" in data
 
 
 def test_post_logger_config_forbidden_for_non_admin(client, mock_deployment_service) -> None:
@@ -174,9 +210,29 @@ def test_post_logger_config_forbidden_for_non_admin(client, mock_deployment_serv
         response = client.post(
             "/api/v1/admin/logger-config",
             headers={"Authorization": "Bearer mock_token"},
-            json={"updates": {"server": {"polling": False}}},
+            json={"updates": {"server": {**_DEFAULT_SERVER, "polling": False}}},
         )
 
     assert response.status_code == 403
     data = response.get_json()
     assert data["success"] is False
+    assert data["error"] == "FORBIDDEN"
+
+
+def test_post_logger_config_server_error_envelope(client, mock_deployment_service) -> None:
+    _, mock_merge = mock_deployment_service
+    mock_merge.side_effect = RuntimeError("db connection lost")
+
+    with patch("app.services.auth.get_current_user", return_value=_ADMIN_USER):
+        response = client.post(
+            "/api/v1/admin/logger-config",
+            headers={"Authorization": "Bearer mock_token"},
+            json={"updates": {"server": {**_DEFAULT_SERVER, "polling": False}}},
+        )
+
+    assert response.status_code == 500
+    data = response.get_json()
+    assert data["success"] is False
+    assert data["error"] == "database_error"
+    assert "error_id" in data
+    assert "db connection lost" not in str(data)

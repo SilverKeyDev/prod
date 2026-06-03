@@ -38,7 +38,7 @@ export function ProfileLocationSection({
   patchBuyerPreferenceExtensions,
 }: ProfileLocationSectionProps) {
   const showSectionTitle = useShowPersonalizationSectionBodyTitle();
-  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData);
   const locations = Array.isArray(formData.important_locations) ? formData.important_locations : [];
 
   const patch = useCallback(

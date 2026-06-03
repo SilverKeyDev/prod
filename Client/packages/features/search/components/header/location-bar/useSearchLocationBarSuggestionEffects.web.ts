@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { searchApi } from "packages/features/search/api/search";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import { asError } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
@@ -64,7 +64,7 @@ export function useSearchLocationBarSuggestionEffects({
           }
         } catch (err: unknown) {
           if (ac.signal.aborted) return;
-          log.warn(LOG_CATEGORIES.ERRORS, "Slipstream area suggestion error", err);
+          log.warn("ERRORS", "Slipstream area suggestion error", err);
         }
       })();
     }, 300);
@@ -119,7 +119,7 @@ export function useSearchLocationBarSuggestionEffects({
         });
       } catch (err: unknown) {
         const error = asError(err);
-        log.error(LOG_CATEGORIES.ERRORS, "Search location autocomplete error", error);
+        log.error("ERRORS", "Search location autocomplete error", error);
       }
     };
     const debounceTimer = setTimeout(() => void fetchSuggestions(), 400);

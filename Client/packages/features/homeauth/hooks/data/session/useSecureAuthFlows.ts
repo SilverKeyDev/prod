@@ -8,7 +8,7 @@ import {
   mapAuthResponseToUserProfile,
   toUserStoreProfile,
 } from "packages/features/homeauth/hooks/data/utils/userMapping";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { ROUTES } from "packages/navigation/types/routes";
 import { applyLocalUnauthenticatedState } from "packages/services/http/client/auth";
 import {
@@ -66,7 +66,7 @@ function applyLoginSuccess(
     setLoginRef,
   } = setters;
   setAccessToken("authenticated");
-  log.info(LOG_CATEGORIES.AUTH, "Authentication successful via HTTP-only cookies", {
+  log.info("AUTH", "Authentication successful via HTTP-only cookies", {
     storageMethod: "http_only_cookies",
     authMethod: "cookie_based",
     note: "All tokens in secure HTTP-only cookies",
@@ -75,7 +75,7 @@ function applyLoginSuccess(
     const mappedUser = mapAuthResponseToUserProfile(response.user, response.user_sub);
     const userStoreProfile = toUserStoreProfile(mappedUser);
     if (getEnv().isDevelopment) {
-      log.debug(LOG_CATEGORIES.AUTH, "User mapping", {
+      log.debug("AUTH", "User mapping", {
         responseUserId: response.user.id,
         responseUserSub: "user_sub" in response.user ? response.user.user_sub : undefined,
         responseUserSubTop: response.user_sub,
@@ -92,7 +92,7 @@ function applyLoginSuccess(
     setStorePostAuthRedirectPath(ROUTES.SEARCH);
     setUserProfile(userStoreProfile);
     if (getEnv().isDevelopment) {
-      log.debug(LOG_CATEGORIES.AUTH, "User state after login", {
+      log.debug("AUTH", "User state after login", {
         localUser: mappedUser,
         localUserId: mappedUser.id,
         localUserEmail: mappedUser.email,
@@ -106,12 +106,12 @@ function applyLoginSuccess(
   }
   setLoginRef(false);
   if (getEnv().isDevelopment) {
-    log.security(LOG_CATEGORIES.AUTH, "Auth state updated synchronously", {
+    log.security("AUTH", "Auth state updated synchronously", {
       authenticated: true,
       hasUser: !!response.user,
       authMethod: "http-only-cookies",
     });
-    log.security(LOG_CATEGORIES.AUTH, "Login successful", {
+    log.security("AUTH", "Login successful", {
       userId:
         response.user?.id ??
         (response.user && "user_sub" in response.user ? response.user.user_sub : undefined),
@@ -181,12 +181,12 @@ type LogoutSetters = {
 };
 
 export async function performLogout(setters: LogoutSetters): Promise<void> {
-  log.info(LOG_CATEGORIES.AUTH, "Logout initiated");
+  log.info("AUTH", "Logout initiated");
   try {
     await authApi.logout();
-    log.info(LOG_CATEGORIES.AUTH, "Server logout successful");
+    log.info("AUTH", "Server logout successful");
   } catch (error) {
-    log.warn(LOG_CATEGORIES.AUTH, "Server logout failed, continuing with client cleanup", {
+    log.warn("AUTH", "Server logout failed, continuing with client cleanup", {
       error: asError(error).message,
     });
   }
@@ -211,8 +211,8 @@ export async function performLogout(setters: LogoutSetters): Promise<void> {
   resetWorkspaceStore();
   useDevAppPersonaStore.setState({ serverIdentityTouched: false });
   clearSessionStorageForLogout();
-  log.security(LOG_CATEGORIES.AUTH, "User logged out - HTTP-only cookies cleared by server");
-  log.info(LOG_CATEGORIES.AUTH, "Logout complete, navigating to /login");
+  log.security("AUTH", "User logged out - HTTP-only cookies cleared by server");
+  log.info("AUTH", "Logout complete, navigating to /login");
   const win = getWindow();
   if (win) win.location.href = "/login";
 }
@@ -232,18 +232,14 @@ export async function performRefreshToken(setters: RefreshSetters): Promise<bool
   if (lastVerifyAt) {
     const elapsed = Date.now() - parseInt(lastVerifyAt, 10);
     if (elapsed < REFRESH_AFTER_VERIFY_COOLDOWN_MS) {
-      log.debug(
-        LOG_CATEGORIES.AUTH,
-        "Skipping token refresh (within cooldown after session verify)",
-        {
-          elapsedMs: elapsed,
-          cooldownMs: REFRESH_AFTER_VERIFY_COOLDOWN_MS,
-        }
-      );
+      log.debug("AUTH", "Skipping token refresh (within cooldown after session verify)", {
+        elapsedMs: elapsed,
+        cooldownMs: REFRESH_AFTER_VERIFY_COOLDOWN_MS,
+      });
       return true;
     }
   }
-  log.info(LOG_CATEGORIES.AUTH, "Attempting token refresh");
+  log.info("AUTH", "Attempting token refresh");
   try {
     const attempt = await postRefreshTokenWithRetry();
     if (attempt.success && attempt.body) {
@@ -262,13 +258,13 @@ export async function performRefreshToken(setters: RefreshSetters): Promise<bool
           setters.setUser(nextUser);
           setters.setStoreUser(nextUser);
         }
-        log.info(LOG_CATEGORIES.AUTH, "Token refresh successful");
+        log.info("AUTH", "Token refresh successful");
         return true;
       }
     }
 
     if (isTransientRefreshFailure(attempt)) {
-      log.warn(LOG_CATEGORIES.AUTH, "Token refresh transient failure (will retry on next cycle)", {
+      log.warn("AUTH", "Token refresh transient failure (will retry on next cycle)", {
         status: attempt.status,
       });
       return false;
@@ -276,13 +272,13 @@ export async function performRefreshToken(setters: RefreshSetters): Promise<bool
 
     const errorCode =
       typeof attempt.body?.error === "string" ? attempt.body.error : "REFRESH_FAILED";
-    log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed - clearing auth state", {
+    log.warn("AUTH", "Token refresh failed - clearing auth state", {
       error: errorCode,
     });
     clearAuthStateAfterRefreshFailure(setters);
     return false;
   } catch (error) {
-    log.error(LOG_CATEGORIES.AUTH, "Token refresh exception", {
+    log.error("AUTH", "Token refresh exception", {
       error: asError(error).message,
     });
     clearAuthStateAfterRefreshFailure(setters);

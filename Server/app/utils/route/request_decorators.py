@@ -4,9 +4,7 @@ from functools import wraps
 
 from flask import jsonify, request
 
-from app.utils.security.app_logging import get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def validate_json_request(required_fields=None):
@@ -23,21 +21,25 @@ def validate_json_request(required_fields=None):
         def decorated_function(*args, **kwargs):
             # Check if request has JSON data
             if not request.is_json:
-                logger.warning(f"🚫 Non-JSON request to {f.__name__}")
+                log.warn("API", "Non-JSON request", {"route": f.__name__})
                 return jsonify(
                     {"error": "Content-Type must be application/json", "success": False}
                 ), 400
 
             data = request.get_json()
             if not data:
-                logger.warning(f"🚫 Empty JSON data in request to {f.__name__}")
+                log.warn("API", "Empty JSON body", {"route": f.__name__})
                 return jsonify({"error": "No data provided", "success": False}), 400
 
             # Validate required fields
             if required_fields:
                 missing_fields = [field for field in required_fields if not data.get(field)]
                 if missing_fields:
-                    logger.warning(f"🚫 Missing required fields in {f.__name__}: {missing_fields}")
+                    log.warn(
+                        "API",
+                        "Missing required fields",
+                        {"route": f.__name__, "missing_fields": missing_fields},
+                    )
                     return jsonify(
                         {
                             "error": f"Missing required fields: {', '.join(missing_fields)}",

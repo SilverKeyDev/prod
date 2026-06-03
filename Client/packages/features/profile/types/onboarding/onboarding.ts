@@ -12,7 +12,6 @@ export type OnboardingData = {
   /** Draft-only: first-screen role selection; stripped from preferences API payload. */
   primary_onboarding_role?: "buyer" | "seller" | "agent" | "integration_partner" | "investor";
   name?: string;
-  is_agent?: string;
   pets?: string;
   age?: number;
   why_joining_silverkey?: string[];
@@ -76,7 +75,7 @@ export type OnboardingData = {
   has_buyers_agent?: string; // 'yes' | 'no'
   looking_for_buyers_agent?: boolean;
 
-  // Agent profile (only when is_agent is yes/am_agent)
+  // Agent profile (only when user has agent role / primary_onboarding_role is agent)
   agent_physical_mailing_address?: string;
   agent_licensed_states?: string[];
   agent_license_types?: string[];

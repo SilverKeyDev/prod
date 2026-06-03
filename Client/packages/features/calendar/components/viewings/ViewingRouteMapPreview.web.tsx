@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { color } from "packages/design-tokens";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
@@ -21,7 +21,7 @@ export function ViewingRouteMapPreview({ legs }: ViewingRouteMapPreviewProps) {
 
     const geometry = win.google.maps.geometry;
     if (!geometry?.encoding?.decodePath) {
-      log.warn(LOG_CATEGORIES.HOOKS, "Maps geometry library missing for route preview");
+      log.warn("HOOKS", "Maps geometry library missing for route preview");
       return;
     }
 
@@ -37,7 +37,7 @@ export function ViewingRouteMapPreview({ legs }: ViewingRouteMapPreviewProps) {
         const path = decodePath(enc);
         path.forEach((ll) => allPoints.push({ lat: ll.lat(), lng: ll.lng() }));
       } catch (e) {
-        log.warn(LOG_CATEGORIES.ERRORS, "Polyline decode failed", e);
+        log.warn("ERRORS", "Polyline decode failed", e);
       }
     }
 

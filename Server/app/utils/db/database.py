@@ -3,9 +3,7 @@
 from functools import wraps
 
 from app import db
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def transactional(func):
@@ -30,8 +28,8 @@ def transactional(func):
             return result
         except Exception as e:
             db.session.rollback()
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 f"Transaction rolled back in {func.__name__}",
                 {"error": str(e), "function": func.__name__},
             )

@@ -4,13 +4,14 @@ from io import BytesIO
 from unittest.mock import Mock, patch
 
 from flask import Flask
+from sqlalchemy import select
 
 from app import db
 from app.models import Partner, User
 
 
 def _admin_user(db_session):
-    user = User(email="admin-logo@test.com", name="Admin", is_agent=False)
+    user = User(email="admin-logo@test.com", name="Admin")
     db.session.add(user)
     db.session.commit()
     return user
@@ -39,7 +40,7 @@ def test_upload_partner_logo_success(client, app: Flask, db_session):
 
         with patch("app.services.auth.get_current_user", return_value=user):
             with patch(
-                "app.routes.rev_share.handlers.admin_partners.user_has_admin_role",
+                "app.routes.rev_share.handlers.admin_partners.user_has_super_admin_role",
                 return_value=True,
             ):
                 with patch("app.services.documents.s3_service") as mock_s3:
@@ -67,7 +68,7 @@ def test_upload_partner_logo_success(client, app: Flask, db_session):
         assert data["logo_url"] == "https://signed.example/logo.png"
         assert data["data"]["logo_key"] == "integration-logos/logo-partner/logo.png"
 
-        stored = Partner.query.filter_by(id=partner_id).first()
+        stored = db.session.scalar(select(Partner).where(Partner.id == partner_id))
         assert stored.logo_url == "integration-logos/logo-partner/logo.png"
 
 
@@ -80,7 +81,7 @@ def test_upload_partner_logo_validation_error_returns_message(client, app: Flask
 
         with patch("app.services.auth.get_current_user", return_value=user):
             with patch(
-                "app.routes.rev_share.handlers.admin_partners.user_has_admin_role",
+                "app.routes.rev_share.handlers.admin_partners.user_has_super_admin_role",
                 return_value=True,
             ):
                 with patch(
@@ -97,7 +98,9 @@ def test_upload_partner_logo_validation_error_returns_message(client, app: Flask
         assert response.status_code == 400
         data = response.get_json()
         assert data["success"] is False
-        assert "heic" in (data.get("message") or "").lower()
+        assert data["error"] == "file_upload_error"
+        assert "heic" not in (data.get("message") or "").lower()
+        assert data.get("error_id")
 
 
 def test_upload_partner_logo_no_file(client, app: Flask, db_session):
@@ -107,7 +110,7 @@ def test_upload_partner_logo_no_file(client, app: Flask, db_session):
 
         with patch("app.services.auth.get_current_user", return_value=user):
             with patch(
-                "app.routes.rev_share.handlers.admin_partners.user_has_admin_role",
+                "app.routes.rev_share.handlers.admin_partners.user_has_super_admin_role",
                 return_value=True,
             ):
                 response = client.post(
@@ -133,6 +136,6 @@ def test_update_partner_ignores_presigned_logo_url_in_payload(app, db_session):
         assert err is None
         assert row is not None
 
-        refreshed = Partner.query.filter_by(id=partner.id).first()
+        refreshed = db.session.scalar(select(Partner).where(Partner.id == partner.id))
         assert refreshed.name == "Renamed"
         assert refreshed.logo_url == "integration-logos/logo-partner/logo.png"

@@ -13,7 +13,7 @@ class TestCalendarEvents:
 
     def test_list_events(self, app: Flask, mock_google_calendar):
         """Test listing events from calendar"""
-        from app.services.calendar.events.operations import list_events
+        from app.services.calendar.events.operations_list_events import list_events
 
         with app.app_context():
             with patch("app.services.calendar.events.operations_list_events.load_credentials"):
@@ -41,7 +41,7 @@ class TestCalendarEvents:
 
     def test_list_events_empty_response(self, app: Flask, mock_google_calendar):
         """Test listing events with no results"""
-        from app.services.calendar.events.operations import list_events
+        from app.services.calendar.events.operations_list_events import list_events
 
         with app.app_context():
             with patch("app.services.calendar.events.operations_list_events.load_credentials"):
@@ -160,7 +160,7 @@ class TestCalendarEvents:
 
     def test_list_events_with_time_range(self, app: Flask, mock_google_calendar):
         """Test listing events with specific time range"""
-        from app.services.calendar.events.operations import list_events
+        from app.services.calendar.events.operations_list_events import list_events
 
         with app.app_context():
             with patch("app.services.calendar.events.operations_list_events.load_credentials"):
@@ -308,7 +308,7 @@ class TestCalendarEvents:
 
     def test_list_events_handles_api_errors(self, app: Flask, mock_google_calendar):
         """Test listing events handles Google Calendar API errors"""
-        from app.services.calendar.events.operations import list_events
+        from app.services.calendar.events.operations_list_events import list_events
 
         with app.app_context():
             with patch("app.services.calendar.events.operations_list_events.load_credentials"):

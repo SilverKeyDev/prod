@@ -19,7 +19,6 @@ import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui";
 import { useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
-import { LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { screenUp } from "packages/ui/types/screens";
 import { logMessagingCheckpointSinceLatestShellMark } from "packages/utils/perf/messagingRoutePerf";
@@ -31,11 +30,7 @@ import AgentMessagingClientList from "@/features/agent/components/messaging/chro
 import MessagingSidebarShell from "@/features/messaging/components/layout/chrome/MessagingSidebarShell";
 
 const UnifiedMessagesList = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.MESSAGES,
-    "lazy:UnifiedMessagesList(agent)",
-    loadUnifiedMessagesListModule
-  )
+  traceLazyImport("MESSAGES", "lazy:UnifiedMessagesList(agent)", loadUnifiedMessagesListModule)
 );
 
 type AgentMessagingProps = {
@@ -44,7 +39,7 @@ type AgentMessagingProps = {
 
 export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagingProps) {
   useMessagingComposerStoreIntegration();
-  useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "AgentMessaging");
+  useFirstRenderCommitTimer("MESSAGES", "AgentMessaging");
 
   const { clients, isLoading: isLoadingClients } = useAgentClients();
   const agentChats = useAgentChats();

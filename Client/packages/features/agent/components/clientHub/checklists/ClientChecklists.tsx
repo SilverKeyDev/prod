@@ -16,7 +16,7 @@ import {
 import { useActiveWorkspace } from "packages/features/homeauth";
 import { useTransactionShellConfig } from "packages/hooks/store";
 import { showErrorToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import type { TransactionShellConfig } from "packages/utils/workspace";
@@ -108,7 +108,7 @@ export default function ClientChecklists({
       try {
         await toggleItem(id);
       } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to update checklist item", error);
+        log.error("ERRORS", "Failed to update checklist item", error);
         showErrorToast(
           t("checklists.update_error", {
             defaultValue: "Could not update this step. Please try again.",

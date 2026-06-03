@@ -13,8 +13,8 @@ import Label from "@ui/text/Label.web";
 import Title from "@ui/text/Title";
 
 import { useLocalization } from "packages/contexts";
+import { log } from "packages/logger";
 import { formatFileSize, processImage } from "packages/services/security/imageProcessor";
-import { log } from "packages/services/security/secureLogger";
 import { DROP_ZONE_BORDER_BASE } from "packages/ui/components/form/styles/fileUploadStyles";
 import { Box, Image } from "packages/ui/components/primitives";
 import { buildSecureFileValidationErrors } from "packages/ui/components/security/secureFileUpload/secureFileUploadValidation";
@@ -69,7 +69,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       setProcessing(true);
       setError(null);
       try {
-        log.info("SECURE_UPLOAD", "Processing files", {
+        log.security("SECURITY", "Secure upload processing files", {
           count: fileList.length,
         });
         const validationErrors: string[] = [];
@@ -91,7 +91,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
               stripAllMetadata: true,
             });
           } catch (error: unknown) {
-            log.error("SECURE_UPLOAD", "Image processing failed", error);
+            log.error("SECURITY", "Secure upload image processing failed", error);
             return {
               file,
               originalSize: file.size,
@@ -110,7 +110,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         if (autoProcess) {
           onFilesProcessed(processedFiles);
         }
-        log.info("SECURE_UPLOAD", "Files processed successfully", {
+        log.security("SECURITY", "Secure upload files processed successfully", {
           totalFiles: processedFiles.length,
           totalSizeReduction: processedFiles.reduce(
             (acc, f) => acc + (f.originalSize - f.processedSize),
@@ -118,7 +118,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
           ),
         });
       } catch (error: unknown) {
-        log.error("SECURE_UPLOAD", "File processing failed", error);
+        log.error("SECURITY", "Secure upload file processing failed", error);
         setError(`Processing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
       } finally {
         setProcessing(false);

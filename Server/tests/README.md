@@ -392,7 +392,7 @@ def test_login_success(self, app, mock_cognito_service):
 ## Continuous Integration
 
 These tests should be run:
-- Before every commit (pre-commit hook)
+- On commit when OpenAPI/spec/generated types change (pre-commit drift hook); on push when OpenAPI paths change (contract tests)
 - On every pull request (CI pipeline)
 - Before deployment
 

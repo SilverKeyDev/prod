@@ -1,6 +1,6 @@
 """Educational attainment distribution data retrieval and processing."""
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from .census_client import fetch_census_data_by_zip
 from .constants import EDUCATION_KEYS
@@ -17,9 +17,7 @@ def get_education_distribution(address: str) -> dict:
         dict: Education level labels mapped to percentage values, or error dict
     """
     try:
-        log.info(
-            LOG_CATEGORIES["API"], "Starting Education Distribution Lookup", {"address": address}
-        )
+        log.info("API", "Starting Education Distribution Lookup", {"address": address})
 
         zip_code = get_zip_from_address(address)
         variable_keys = list(EDUCATION_KEYS.values())
@@ -37,17 +35,17 @@ def get_education_distribution(address: str) -> dict:
             percentage = (value / total_population * 100) if total_population > 0 else 0
             education_distribution[label] = int(round(percentage))
             log.debug(
-                LOG_CATEGORIES["API"],
+                "API",
                 "Education percentage",
                 {"level": label, "percentage": education_distribution[label]},
             )
 
-        log.info(LOG_CATEGORIES["API"], "Final Education Distribution", education_distribution)
+        log.info("API", "Final Education Distribution", education_distribution)
         return education_distribution
 
     except Exception as e:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             "Failed to get education distribution",
             {"address": address, "error": str(e)},
         )

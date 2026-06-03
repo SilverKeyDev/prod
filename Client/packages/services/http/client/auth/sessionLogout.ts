@@ -4,11 +4,9 @@ import { useAuthStore } from "packages/store";
 import { broadcastAuthLogout } from "./authBroadcast";
 import { notifyAuthenticationError } from "./authErrorNotify";
 import { redirectToLoginIfNeeded } from "./authRedirect";
-import { clearLegacyAuthStorage } from "./authStorage";
 
 export { broadcastAuthLogout, getAuthBC } from "./authBroadcast";
 export { redirectToLoginIfNeeded } from "./authRedirect";
-export { clearLegacyAuthStorage } from "./authStorage";
 
 /** Clears client auth state but keeps authReady true so bootstrap does not re-lock the UI. */
 export function applyLocalUnauthenticatedState(): void {
@@ -26,7 +24,6 @@ export type ClientSessionLogoutOptions = {
 
 export function performClientSessionLogout(options: ClientSessionLogoutOptions = {}): void {
   const { redirect = false, broadcast = true } = options;
-  clearLegacyAuthStorage();
   applyLocalUnauthenticatedState();
   if (broadcast) {
     broadcastAuthLogout();

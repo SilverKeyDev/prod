@@ -1,4 +1,3 @@
-import logging
 import traceback
 from io import BytesIO
 
@@ -18,21 +17,21 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from logger import log
+
 matplotlib.use("Agg")
 
 from app.services.documents.s3_service import s3_service
 
 from .pdf_section_rendering import FLATTENED_FIELD_PATTERNS
 
-logger = logging.getLogger(__name__)
-
 
 def _pdf(report: dict, address: str, filename: str, title: str) -> str:
     if not report:
-        logger.error("No report data provided")
+        log.error("ERRORS", "No report data provided")
         raise ValueError("Report data is required")
     if not address:
-        logger.error("No address provided")
+        log.error("ERRORS", "No address provided")
         raise ValueError("Address is required")
 
     try:
@@ -196,7 +195,7 @@ def _pdf(report: dict, address: str, filename: str, title: str) -> str:
 
                 s3_service.upload_pdf(json_data, json_filename, "application/json")
             except Exception as e:
-                logger.error(f"Failed to save raw JSON to S3: {str(e)}")
+                log.error("ERRORS", "Failed to save raw JSON to S3", {"error": str(e)})
 
         if s3_key:
             presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=filename)
@@ -205,9 +204,16 @@ def _pdf(report: dict, address: str, filename: str, title: str) -> str:
         return ""
 
     except Exception as e:
-        logger.error(f"Error creating PDF for address {address}: {str(e)}")
-        logger.error(f"Exception type: {type(e).__name__}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
+        log.error(
+            "ERRORS",
+            "Error creating PDF",
+            {
+                "address": address,
+                "error": str(e),
+                "exception_type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            },
+        )
         raise
 
 

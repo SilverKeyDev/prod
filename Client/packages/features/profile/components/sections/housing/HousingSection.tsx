@@ -46,7 +46,7 @@ export default function HousingSection({
   patchBuyerPreferenceExtensions,
 }: HousingSectionProps) {
   void _isDesktop;
-  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData.is_agent);
+  const showAgentOptionalBuyerCallout = useAgentOptionalBuyerCalloutVisibility(formData);
   return (
     <>
       <Title size="md" className="mb-2">

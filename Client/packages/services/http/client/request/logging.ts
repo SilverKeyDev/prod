@@ -1,4 +1,4 @@
-import { API_SUBCATEGORIES, log, LOG_CATEGORIES } from "packages/logger";
+import { API_SUBCATEGORIES, log } from "packages/logger";
 
 const POLLING_ENDPOINTS = [
   "/api/v1/agent/notification-counter",
@@ -31,9 +31,9 @@ export function logApiRequest(method: string, url: string): void {
   const sanitizedUrl = sanitizeUrlForLog(url);
   const apiSubcategory = getApiSubcategory(url);
   if (apiSubcategory) {
-    log.info(LOG_CATEGORIES.API, `${method} ${sanitizedUrl}`, undefined, apiSubcategory);
+    log.info(`API.${apiSubcategory}`, `${method} ${sanitizedUrl}`);
   } else {
-    log.info(LOG_CATEGORIES.HTTP, `${method} ${sanitizedUrl}`);
+    log.info("HTTP", `${method} ${sanitizedUrl}`);
   }
 }
 
@@ -47,13 +47,8 @@ export function logApiResponse(
   const durationText = duration ? ` (${duration}ms)` : "";
   const apiSubcategory = getApiSubcategory(url);
   if (apiSubcategory) {
-    log.info(
-      LOG_CATEGORIES.API,
-      `${method} ${sanitizedUrl} - ${status}${durationText}`,
-      undefined,
-      apiSubcategory
-    );
+    log.info(`API.${apiSubcategory}`, `${method} ${sanitizedUrl} - ${status}${durationText}`);
   } else {
-    log.info(LOG_CATEGORIES.HTTP, `${method} ${sanitizedUrl} - ${status}${durationText}`);
+    log.info("HTTP", `${method} ${sanitizedUrl} - ${status}${durationText}`);
   }
 }

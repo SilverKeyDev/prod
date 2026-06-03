@@ -5,7 +5,7 @@ import { Icon } from "@ui/icons";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useUIStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
 import { ARIA_LABELS } from "packages/utils/domain/actionLabels";
@@ -56,7 +56,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      log.error(LOG_CATEGORIES.SEARCH, "Error updating favorites", {
+      log.error("SEARCH", "Error updating favorites", {
         propertyId: property.id,
         address: propertyAddress,
         action: isSaved ? "remove" : "add",

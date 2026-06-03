@@ -16,7 +16,7 @@ import type {
   AgentChatHistoryCacheEntry,
   GetAgentChatHistoryOptions,
 } from "packages/features/messaging/hooks/data/useAgentChats.types";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 export type GetChatHistoryRef = (
   conversationId: string,
@@ -49,7 +49,7 @@ function markReadAndUpdateTimestamp(
 ): void {
   markConversationRead(conversationId);
   void agentApi.markMessagesAsRead(conversationId).catch((err) => {
-    log.error(LOG_CATEGORIES.MESSAGES, "Failed to mark messages as read", err);
+    log.error("MESSAGES", "Failed to mark messages as read", err);
   });
   if (messages.length > 0) {
     const latest = messages[messages.length - 1];

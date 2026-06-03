@@ -1,10 +1,14 @@
 """Tests for GET /r/<link_id> redirect handler."""
 
-from datetime import date
+from datetime import datetime, timezone
 from decimal import Decimal
+
+from sqlalchemy import func, select
 
 from app import db
 from app.models import Partner, RevShareLink, RevShareLinkClick, Transaction, User
+
+from .conftest import assert_resource_not_found
 
 
 def test_redirect_logs_click_and_returns_302(app, client, db_session):
@@ -30,12 +34,21 @@ def test_redirect_logs_click_and_returns_302(app, client, db_session):
     assert "partner.example" in resp.headers.get("Location", "")
 
     with app.app_context():
-        assert RevShareLinkClick.query.filter_by(link_id=link_id).count() == 1
-        click = RevShareLinkClick.query.filter_by(link_id=link_id).one()
+        assert (
+            db.session.scalar(
+                select(func.count())
+                .select_from(RevShareLinkClick)
+                .where(RevShareLinkClick.link_id == link_id)
+            )
+            == 1
+        )
+        click = db.session.scalar(
+            select(RevShareLinkClick).where(RevShareLinkClick.link_id == link_id)
+        )
         assert click.payout_per_conversion == Decimal("5.50")
         assert click.payout_type == "on_click"
         assert click.session_id == "sess-1"
-        assert click.click_date == date.today()
+        assert click.click_date == datetime.now(timezone.utc).date()
 
 
 def test_redirect_dedupes_same_session_same_day(app, client, db_session):
@@ -59,12 +72,19 @@ def test_redirect_dedupes_same_session_same_day(app, client, db_session):
         assert resp.status_code == 302
 
     with app.app_context():
-        assert RevShareLinkClick.query.filter_by(link_id=link_id).count() == 1
+        assert (
+            db.session.scalar(
+                select(func.count())
+                .select_from(RevShareLinkClick)
+                .where(RevShareLinkClick.link_id == link_id)
+            )
+            == 1
+        )
 
 
 def test_redirect_inactive_link_404(app, client, db_session):
     resp = client.get("/r/nonexistent-link")
-    assert resp.status_code == 404
+    assert_resource_not_found(resp)
 
 
 def test_redirect_stores_transaction_id_when_valid(app, client, db_session):
@@ -72,7 +92,7 @@ def test_redirect_stores_transaction_id_when_valid(app, client, db_session):
     from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
 
     with app.app_context():
-        buyer = User(email="buyer-r@test.com", name="Buyer", is_agent=False)
+        buyer = User(email="buyer-r@test.com", name="Buyer")
         db.session.add(buyer)
         db.session.flush()
         tx = Transaction(
@@ -102,6 +122,8 @@ def test_redirect_stores_transaction_id_when_valid(app, client, db_session):
     assert resp.headers.get("Location", "").startswith("https://partner.example")
 
     with app.app_context():
-        click = RevShareLinkClick.query.filter_by(link_id=link_id).one()
+        click = db.session.scalar(
+            select(RevShareLinkClick).where(RevShareLinkClick.link_id == link_id)
+        )
         assert click.buyer_id == buyer_id
         assert click.transaction_id == tx_id

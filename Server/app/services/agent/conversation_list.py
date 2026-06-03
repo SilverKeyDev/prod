@@ -4,6 +4,8 @@ import os
 import sys
 from datetime import timezone
 
+from sqlalchemy import and_, func, select
+
 from app import db
 from app.dtos.agent_conversation import AgentConversationDTO
 from app.models import AgentConnections, ChatHistory, User
@@ -14,7 +16,6 @@ server_dir = os.path.dirname(
 if server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 from logger import (  # noqa: E402 -- logger requires Server on sys.path when run outside app context
-    LOG_CATEGORIES,
     log,
 )
 
@@ -36,19 +37,23 @@ def get_conversations(user_id: str, is_agent: bool) -> list[dict]:
     """
     try:
         if not user_id:
-            log.warn(LOG_CATEGORIES["API"], "get_conversations called with empty user_id")
+            log.warn("API", "get_conversations called with empty user_id")
             return []
 
         if is_agent:
-            conversations = AgentConnections.query.filter_by(agent_id=user_id).all()
+            conversations = db.session.scalars(
+                select(AgentConnections).where(AgentConnections.agent_id == user_id)
+            ).all()
         else:
-            conversations = AgentConnections.query.filter_by(client_id=user_id).all()
+            conversations = db.session.scalars(
+                select(AgentConnections).where(AgentConnections.client_id == user_id)
+            ).all()
 
         if not conversations:
             log.info(
-                LOG_CATEGORIES["API"],
+                "API",
                 "get_conversations",
-                {"user_id": user_id, "is_agent": is_agent, "count": 0},
+                {"user_id": user_id, "has_agent_role": is_agent, "count": 0},
             )
             return []
 
@@ -58,34 +63,32 @@ def get_conversations(user_id: str, is_agent: bool) -> list[dict]:
             all_user_ids.add(conv.client_id)
             all_user_ids.add(conv.agent_id)
 
-        users = User.query.filter(User.id.in_(all_user_ids)).all()
+        users = db.session.scalars(select(User).where(User.id.in_(all_user_ids))).all()
         users_by_id = {str(u.id): u for u in users}
 
         # Batch load last messages for all conversations
         conversation_ids = [conv.id for conv in conversations]
-        from sqlalchemy import func
 
         # Get last message per conversation using a subquery
         subq = (
-            db.session.query(
-                ChatHistory.conversation_id, func.max(ChatHistory.timestamp).label("max_timestamp")
+            select(
+                ChatHistory.conversation_id,
+                func.max(ChatHistory.timestamp).label("max_timestamp"),
             )
-            .filter(ChatHistory.conversation_id.in_(conversation_ids))
+            .where(ChatHistory.conversation_id.in_(conversation_ids))
             .group_by(ChatHistory.conversation_id)
             .subquery()
         )
 
-        last_messages = (
-            db.session.query(ChatHistory)
-            .join(
+        last_messages = db.session.scalars(
+            select(ChatHistory).join(
                 subq,
-                db.and_(
+                and_(
                     ChatHistory.conversation_id == subq.c.conversation_id,
                     ChatHistory.timestamp == subq.c.max_timestamp,
                 ),
             )
-            .all()
-        )
+        ).all()
         last_messages_by_conv = {msg.conversation_id: msg for msg in last_messages}
 
         # Batch calculate unread counts
@@ -99,15 +102,20 @@ def get_conversations(user_id: str, is_agent: bool) -> list[dict]:
             else:
                 other_user_id = conv.agent_id
 
-            query = db.session.query(
-                ChatHistory.conversation_id, func.count(ChatHistory.id).label("count")
-            ).filter(ChatHistory.conversation_id == conv.id, ChatHistory.sender_id == other_user_id)
+            unread_stmt = (
+                select(ChatHistory.conversation_id, func.count(ChatHistory.id).label("count"))
+                .where(
+                    ChatHistory.conversation_id == conv.id,
+                    ChatHistory.sender_id == other_user_id,
+                )
+                .group_by(ChatHistory.conversation_id)
+            )
 
             last_read = last_reads.get(conv.id)
             if last_read:
-                query = query.filter(ChatHistory.timestamp > last_read)
+                unread_stmt = unread_stmt.where(ChatHistory.timestamp > last_read)
 
-            result_row = query.group_by(ChatHistory.conversation_id).first()
+            result_row = db.session.execute(unread_stmt).first()
             unread_counts[conv.id] = result_row.count if result_row else 0
 
         result = []
@@ -147,24 +155,26 @@ def get_conversations(user_id: str, is_agent: bool) -> list[dict]:
             }
             result.append(conv_dict)
         log.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "get_conversations",
-            {"user_id": user_id, "is_agent": is_agent, "count": len(result)},
+            {"user_id": user_id, "has_agent_role": is_agent, "count": len(result)},
         )
         return result
 
     except Exception as e:
-        log.error(LOG_CATEGORIES["ERRORS"], f"Error fetching conversations for user {user_id}", e)
+        log.error("ERRORS", f"Error fetching conversations for user {user_id}", e)
         raise
 
 
 def get_conversation(conversation_id: str, user_id: str | None = None) -> dict | None:
     """Get a specific conversation by ID. Returns conversation dict or None."""
     try:
-        conv = AgentConnections.query.filter_by(id=conversation_id).first()
+        conv = db.session.scalar(
+            select(AgentConnections).where(AgentConnections.id == conversation_id)
+        )
         if not conv:
             return None
         return AgentConversationDTO.from_orm(conv, user_id=user_id)
     except Exception as e:
-        log.error(LOG_CATEGORIES["ERRORS"], f"Error fetching conversation {conversation_id}", e)
+        log.error("ERRORS", f"Error fetching conversation {conversation_id}", e)
         raise

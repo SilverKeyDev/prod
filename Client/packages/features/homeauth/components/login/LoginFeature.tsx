@@ -9,7 +9,7 @@ import AuthLink from "packages/features/homeauth/components/core/Link";
 import AuthPageLayout from "packages/features/homeauth/components/core/PageLayout";
 import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAuth";
 import { applyLoginResult } from "packages/features/homeauth/utils/applyLoginResult";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
@@ -29,7 +29,7 @@ export function LoginFeature() {
     clearError();
     const result = await login(email, password);
     if (!result.success && !result.needsVerification) {
-      log.error(LOG_CATEGORIES.AUTH, "Login failed, not navigating");
+      log.error("AUTH", "Login failed, not navigating");
       return;
     }
     const from =

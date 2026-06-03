@@ -5,6 +5,10 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
+from sqlalchemy import select
+
+from app import db
+from app.dtos.saved_home import NotInterestedHomeDTO
 from app.dtos.user import UserDTO
 from app.models import HomeNotInterested, UserPropertyLink
 from app.models.user.user_client_settings import UserClientSettings
@@ -34,7 +38,7 @@ def build_user_data_export(user: User) -> dict[str, Any]:
     for key in _PROFILE_SENSITIVE_KEYS:
         profile.pop(key, None)
 
-    row = UserClientSettings.query.filter_by(user_id=uid).first()
+    row = db.session.scalar(select(UserClientSettings).where(UserClientSettings.user_id == uid))
     if row is None:
         client_settings = dict(default_settings())
     else:
@@ -44,12 +48,16 @@ def build_user_data_export(user: User) -> dict[str, Any]:
         else:
             client_settings = sanitize_settings(raw)
 
-    liked_links = (
-        UserPropertyLink.query.filter_by(user_id=uid, current=True, is_liked=True)
+    liked_links = db.session.scalars(
+        select(UserPropertyLink)
+        .where(
+            UserPropertyLink.user_id == uid,
+            UserPropertyLink.current.is_(True),
+            UserPropertyLink.is_liked.is_(True),
+        )
         .order_by(UserPropertyLink.updated_at.desc())
         .limit(2000)
-        .all()
-    )
+    ).all()
     favorite_homes: list[dict[str, Any]] = []
     for link in liked_links:
         favorite_homes.append(
@@ -60,10 +68,13 @@ def build_user_data_export(user: User) -> dict[str, Any]:
             }
         )
 
-    not_interested_rows = HomeNotInterested.query.filter_by(
-        user_id=uid, is_not_interested=True
+    not_interested_rows = db.session.scalars(
+        select(HomeNotInterested).where(
+            HomeNotInterested.user_id == uid,
+            HomeNotInterested.is_not_interested.is_(True),
+        )
     ).all()
-    not_interested = [h.to_dict() for h in not_interested_rows]
+    not_interested = [NotInterestedHomeDTO.to_export_row(h) for h in not_interested_rows]
 
     return {
         "format_version": 1,

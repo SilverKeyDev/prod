@@ -3,7 +3,7 @@ import { lazy, type ReactNode, Suspense, useEffect, useRef } from "react";
 import { WorkspacePlaceholderPage } from "packages/features/workspace";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { useIsMobile } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES, type LogCategory } from "packages/logger";
+import { log, type LogCategory } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { shellRouteNavigateStart, traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 import { isPlaceholderWorkspace } from "packages/utils/workspace";
@@ -17,74 +17,54 @@ import {
 import { type DashboardAreaKey, useDashboardRoute } from "./useDashboardRoute";
 
 const SearchPage = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
-    "lazy:SearchPage",
-    () => import("@/pages/property/SearchPage")
-  )
+  traceLazyImport("ROUTING", "lazy:SearchPage", () => import("@/pages/property/SearchPage"))
 );
 const SavedHomes = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
-    "lazy:LibraryPage",
-    () => import("@/pages/property/LibraryPage")
-  )
+  traceLazyImport("ROUTING", "lazy:LibraryPage", () => import("@/pages/property/LibraryPage"))
 );
 const ProfilePage = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
-    "lazy:ProfilePage",
-    () => import("@/pages/account/ProfilePage")
-  )
+  traceLazyImport("ROUTING", "lazy:ProfilePage", () => import("@/pages/account/ProfilePage"))
 );
 const BrokerageDashboardPage = lazy(
   traceLazyImport(
-    LOG_CATEGORIES.DASHBOARD,
+    "DASHBOARD",
     "lazy:BrokerageDashboardPage",
     () => import("@/pages/workspace/BrokerageDashboardPage")
   )
 );
 const IntegrationPartnerDashboardPage = lazy(
   traceLazyImport(
-    LOG_CATEGORIES.DASHBOARD,
+    "DASHBOARD",
     "lazy:IntegrationPartnerDashboardPage",
     () => import("@/pages/workspace/IntegrationPartnerDashboardPage")
   )
 );
 const SellerDashboardPage = lazy(
   traceLazyImport(
-    LOG_CATEGORIES.DASHBOARD,
+    "DASHBOARD",
     "lazy:SellerDashboardPage",
     () => import("@/pages/workspace/SellerDashboardPage")
   )
 );
 const DashboardPage = lazy(
   traceLazyImport(
-    LOG_CATEGORIES.DASHBOARD,
+    "DASHBOARD",
     "lazy:DashboardPage",
     () => import("@/pages/workspace/DashboardPage")
   )
 );
 const AgreementSigningCompletePage = lazy(
   traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
+    "ROUTING",
     "lazy:AgreementSigningCompletePage",
     () => import("@/pages/workspace/AgreementSigningCompletePage")
   )
 );
 const FindAgentsPage = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
-    "lazy:FindAgentsPage",
-    () => import("@/pages/misc/FindAgentsPage")
-  )
+  traceLazyImport("ROUTING", "lazy:FindAgentsPage", () => import("@/pages/misc/FindAgentsPage"))
 );
 const AgentPage = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.MESSAGES,
-    "lazy:AgentPage",
-    () => import("@/pages/workspace/AgentPage")
-  )
+  traceLazyImport("MESSAGES", "lazy:AgentPage", () => import("@/pages/workspace/AgentPage"))
 );
 
 type DashboardContentProps = {
@@ -107,9 +87,9 @@ function suspenseFallbackVariant(
 }
 
 function logCategoryForSuspenseVariant(variant: DashboardRouteFallbackVariant): LogCategory {
-  if (variant === "messaging") return LOG_CATEGORIES.MESSAGES;
-  if (variant === "dashboard") return LOG_CATEGORIES.DASHBOARD;
-  return LOG_CATEGORIES.ROUTING;
+  if (variant === "messaging") return "MESSAGES";
+  if (variant === "dashboard") return "DASHBOARD";
+  return "ROUTING";
 }
 
 function ReportingSuspenseFallback({ variant }: { variant: DashboardRouteFallbackVariant }) {

@@ -8,6 +8,8 @@ import sys
 import uuid
 from pathlib import Path
 
+from sqlalchemy import select
+
 # Add parent directory to path so we can import from app
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -169,7 +171,9 @@ def seed_georgia_forms():
 
     for form_data in forms:
         # Check if form already exists
-        existing = ChecklistForm.query.filter_by(form_key=form_data["form_key"]).first()
+        existing = db.session.scalar(
+            select(ChecklistForm).where(ChecklistForm.form_key == form_data["form_key"])
+        )
 
         if existing:
             print(f"⏭️  SKIP: {form_data['form_key']} (already exists)")

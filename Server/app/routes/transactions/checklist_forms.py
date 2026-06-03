@@ -1,31 +1,40 @@
 """Checklist forms API – endpoints for forms embedded in checklist steps."""
 
-from flask import jsonify, request
-from pydantic import ValidationError
+from flask import jsonify
 
 from app.models import ChecklistForm
-from app.schemas import ChecklistFormSendRequest
+from app.schemas import (
+    ChecklistFormSendRequest,
+    DownloadChecklistFormResponse,
+    GetChecklistItemFormsResponse,
+)
+from app.services.auth.user_role_helpers import user_is_agent
 from app.services.documents.forms_service import FormsService
 from app.services.transactions.access import can_access_transaction
 from app.services.transactions.lookup import get_transaction_by_id
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.db.orm_lookup import get_model
+from app.utils.route.http_errors import external_unavailable, forbidden, invalid_request, not_found
 from app.utils.security import rate_limit
-from app.utils.security.app_logging import get_logger
-from app.utils.validation import validate_request
+from app.utils.validation import validate_request, validate_response
+from logger import log
 
-logger = get_logger()
+from ._route_errors import (
+    forms_value_error_response,
+    invalid_request_with_details,
+    partial_step_failure,
+)
 
 
 def _require_agent(user):
     """Check if user is an agent, return error response if not."""
-    if not user.is_agent:
-        logger.security(
-            "security",
-            "Non-agent attempted to access agent-only forms endpoint",
-            {"user_id": user.id, "is_agent": user.is_agent},
+    if not user_is_agent(user):
+        log.security(
+            "SECURITY",
+            "non_agent_checklist_forms_access",
+            {"user_id": str(user.id), "has_agent_role": user_is_agent(user)},
         )
-        return jsonify({"success": False, "error": "Unauthorized - agent access required"}), 403
+        return forbidden()
     return None
 
 
@@ -36,18 +45,19 @@ def _require_agent_manages_transaction(user, transaction_id: str):
         return auth_error, None
     tx = get_transaction_by_id(str(transaction_id))
     if tx is None or not can_access_transaction(user, tx):
-        logger.security(
-            "security",
-            "Agent attempted checklist forms access for unauthorized transaction",
-            {"user_id": user.id, "transaction_id": transaction_id},
+        log.security(
+            "SECURITY",
+            "unauthorized_checklist_forms_transaction",
+            {"user_id": str(user.id), "transaction_id": transaction_id},
         )
-        return jsonify({"success": False, "error": "Access denied"}), 403, None
+        return forbidden(), None
     return None, tx
 
 
 @rate_limit(max_requests=100, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
+@validate_response(GetChecklistItemFormsResponse)
 def get_checklist_item_forms(user, transaction_id: str, section: str, item_id: str):
     """
     GET /api/v1/transactions/<tid>/checklist-items/<section>/<item_id>/forms
@@ -62,7 +72,7 @@ def get_checklist_item_forms(user, transaction_id: str, section: str, item_id: s
     try:
         item_id_int = int(item_id)
     except (TypeError, ValueError):
-        return jsonify({"success": False, "error": "Invalid item_id"}), 400
+        return invalid_request("Invalid item_id")
 
     transaction_start_date = None
     if tx and hasattr(tx, "start_date"):
@@ -70,11 +80,12 @@ def get_checklist_item_forms(user, transaction_id: str, section: str, item_id: s
 
     forms = FormsService.get_forms_for_step(section, item_id_int, transaction_start_date)
 
-    logger.info(
-        "agent_forms",
-        f"Agent {user.id} fetched forms for step {section}.{item_id}",
+    log.info(
+        "DOCUMENTS",
+        "checklist_forms_fetched",
         {
-            "transaction_id": tx.id if tx else transaction_id,
+            "agent_id": str(user.id),
+            "transaction_id": str(tx.id) if tx else transaction_id,
             "section": section,
             "item_id": item_id_int,
             "forms_count": len(forms),
@@ -87,6 +98,7 @@ def get_checklist_item_forms(user, transaction_id: str, section: str, item_id: s
 @rate_limit(max_requests=100, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
+@validate_response(DownloadChecklistFormResponse)
 def download_form(user, transaction_id: str, section: str, item_id: str, form_id: str):
     """
     GET /api/v1/transactions/<tid>/checklist-items/<section>/<item_id>/forms/<form_id>/download
@@ -99,7 +111,7 @@ def download_form(user, transaction_id: str, section: str, item_id: str, form_id
 
     form = get_model(ChecklistForm, form_id)
     if not form:
-        return jsonify({"success": False, "error": "Form not found"}), 404
+        return not_found()
 
     # Generate presigned URL
     from app.services.documents.s3_service import s3_service
@@ -109,24 +121,27 @@ def download_form(user, transaction_id: str, section: str, item_id: str, form_id
     )
 
     if not download_url:
-        logger.error(
-            "errors",
-            f"Failed to generate presigned URL for form {form_id}",
+        log.error(
+            "ERRORS",
+            "checklist_form_presign_failed",
             {"form_id": form_id, "s3_path": form.s3_template_path},
         )
-        return (
-            jsonify({"success": False, "error": "Failed to generate download URL"}),
-            500,
+        return external_unavailable(
+            RuntimeError("presigned_url_unavailable"),
+            api_name="s3",
+            context={"form_id": form_id},
         )
 
-    logger.info(
-        "agent_forms",
-        f"Agent {user.id} downloaded form {form.form_key}",
+    log.info(
+        "DOCUMENTS",
+        "checklist_form_downloaded",
         {
+            "agent_id": str(user.id),
             "transaction_id": transaction_id,
             "section": section,
             "item_id": item_id,
             "form_id": form_id,
+            "form_key": form.form_key,
         },
     )
 
@@ -172,28 +187,22 @@ def send_form(
     # Get form
     form = get_model(ChecklistForm, form_id)
     if not form:
-        return jsonify({"success": False, "error": "Form not found"}), 404
+        return not_found()
 
-    if data is None:
-        try:
-            payload = ChecklistFormSendRequest.model_validate(request.get_json(silent=True) or {})
-        except ValidationError as exc:
-            return jsonify(
-                {"success": False, "error": "Invalid request", "details": exc.errors()}
-            ), 400
-    else:
-        payload = data
+    payload = data
 
     method = payload.method
 
-    logger.info(
-        "agent_forms",
-        f"Agent {user.id} attempted to send form {form.form_key} via {method}",
+    log.info(
+        "DOCUMENTS",
+        "checklist_form_send_attempt",
         {
+            "agent_id": str(user.id),
             "transaction_id": transaction_id,
             "section": section,
             "item_id": item_id,
             "form_id": form_id,
+            "form_key": form.form_key,
             "method": method,
         },
     )
@@ -201,7 +210,7 @@ def send_form(
     try:
         item_id_int = int(item_id)
     except (TypeError, ValueError):
-        return jsonify({"success": False, "error": "Invalid item_id"}), 400
+        return invalid_request("Invalid item_id")
 
     if method == "messaging":
         try:
@@ -214,7 +223,7 @@ def send_form(
             )
             return jsonify({"success": True, "message_id": result["message_id"]})
         except ValueError as e:
-            return jsonify({"success": False, "error": str(e)}), 400
+            return forms_value_error_response(e)
 
     if method == "docusign":
         try:
@@ -229,7 +238,7 @@ def send_form(
             )
             return jsonify({"success": True, "agreement_id": result["agreement_id"]})
         except ValueError as e:
-            return jsonify({"success": False, "error": str(e)}), 400
+            return forms_value_error_response(e)
 
     # both
     partial_errors: list[dict] = []
@@ -245,7 +254,7 @@ def send_form(
         )
         message_id_out = msg.get("message_id")
     except ValueError as e:
-        partial_errors.append({"step": "messaging", "error": str(e)})
+        partial_errors.append(partial_step_failure("messaging", e))
     try:
         ds = FormsService.send_form_via_docusign(
             form=form,
@@ -258,18 +267,12 @@ def send_form(
         )
         agreement_id_out = ds.get("agreement_id")
     except ValueError as e:
-        partial_errors.append({"step": "docusign", "error": str(e)})
+        partial_errors.append(partial_step_failure("docusign", e))
 
     if message_id_out is None and agreement_id_out is None:
-        return (
-            jsonify(
-                {
-                    "success": False,
-                    "error": "Both messaging and DocuSign failed",
-                    "details": partial_errors,
-                }
-            ),
-            400,
+        return invalid_request_with_details(
+            "Both messaging and DocuSign failed",
+            partial_errors,
         )
 
     return jsonify(

@@ -85,6 +85,26 @@ describe("resolveUserFacingMessage", () => {
     expect(resolveUserFacingMessage(err)).toBe("Email is required");
   });
 
+  it("prefers field_errors when message is absent", () => {
+    expect(
+      resolveUserFacingMessage({
+        success: false,
+        error: "validation_error",
+        field_errors: { Password: "This field is required" },
+      })
+    ).toBe("This field is required");
+  });
+
+  it("supports deprecated validation_errors array for one release", () => {
+    expect(
+      resolveUserFacingMessage({
+        success: false,
+        error: "validation_error",
+        validation_errors: ["File type image/heic not allowed"],
+      })
+    ).toBe("File type image/heic not allowed");
+  });
+
   it("parses AuthenticationError with catalog", () => {
     const err = new AuthenticationError("REFRESH_TOKEN_EXPIRED", "Authentication error", 401);
     expect(resolveUserFacingMessage(err)).toBe("Your session has expired. Please log in again.");

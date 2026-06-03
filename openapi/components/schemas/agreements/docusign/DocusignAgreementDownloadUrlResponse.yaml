@@ -1,0 +1,16 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    required:
+      - download_url
+    properties:
+      download_url:
+        type: string
+        format: uri
+        description: Pre-signed S3 URL for viewing or downloading the agreement PDF.
+      expires_at:
+        type: string
+        nullable: true
+        x-unverified: true
+        description: >
+          Optional expiration timestamp for the pre-signed URL. Handler currently returns null.

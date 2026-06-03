@@ -5,7 +5,7 @@ from functools import wraps
 from flask import jsonify, request
 
 from app.utils.security.secure_errors import SecureErrorHandler
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 def handle_exceptions_with_logging(f):
@@ -20,7 +20,7 @@ def handle_exceptions_with_logging(f):
             return f(*args, **kwargs)
         except ValueError as e:
             log.warn(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Validation error in decorated handler",
                 {"function": f.__name__, "error": str(e)},
             )
@@ -28,7 +28,7 @@ def handle_exceptions_with_logging(f):
             return jsonify({"error": str(e), "success": False}), 400
         except Exception as e:
             log.error(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Unexpected error in decorated handler",
                 {"function": f.__name__, "endpoint": request.endpoint, "error": str(e)},
             )

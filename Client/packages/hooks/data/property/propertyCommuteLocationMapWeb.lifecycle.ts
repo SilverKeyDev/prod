@@ -16,7 +16,7 @@ import {
   type InlineStreetViewAttachment,
   PROPERTY_DETAILS_NEIGHBORHOOD_ZOOM,
 } from "packages/features/search/utils/googleMaps";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { IsochroneData } from "packages/types/domain/api";
 import { getWindow } from "packages/utils/platform";
 import type { CommuteMapDestination } from "packages/utils/propertyDetails/location/commuteMapDestinations";
@@ -178,11 +178,11 @@ export async function runCommuteMapWebSetup(params: CommuteMapWebSetupParams): P
       }) as unknown as GoogleAdvancedMarkerElement;
       homeMarkerRef.current = marker;
     } catch (e) {
-      log.warn(LOG_CATEGORIES.PROPERTY_DETAILS, "Commute map: failed to create home marker", e);
+      log.warn("PROPERTY_DETAILS", "Commute map: failed to create home marker", e);
     }
   } else {
     log.warn(
-      LOG_CATEGORIES.PROPERTY_DETAILS,
+      "PROPERTY_DETAILS",
       "Commute map: AdvancedMarkerElement not available for home marker"
     );
   }
@@ -196,7 +196,7 @@ export async function runCommuteMapWebSetup(params: CommuteMapWebSetupParams): P
         focusOnCurrentProperty: () => {},
       });
     } catch (e) {
-      log.warn(LOG_CATEGORIES.PROPERTY_DETAILS, "Commute map: isochrone overlay failed", e);
+      log.warn("PROPERTY_DETAILS", "Commute map: isochrone overlay failed", e);
     }
   }
 
@@ -238,7 +238,7 @@ export async function runCommuteMapWebSetup(params: CommuteMapWebSetupParams): P
         }) as unknown as GoogleAdvancedMarkerElement;
         destinationMarkersRef.current.push(dMarker);
       } catch (e) {
-        log.warn(LOG_CATEGORIES.PROPERTY_DETAILS, "Commute map: destination marker failed", e);
+        log.warn("PROPERTY_DETAILS", "Commute map: destination marker failed", e);
       }
     }
 

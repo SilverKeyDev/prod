@@ -4,12 +4,9 @@ Embedding input models for user and home data.
 These models define the data structures passed to the embedding scorer.
 """
 
-import logging
 from typing import Any
 
 from .base import BaseInputModel
-
-logger = logging.getLogger(__name__)
 
 
 class EmbeddingUserInput(BaseInputModel):
@@ -24,7 +21,7 @@ class EmbeddingUserInput(BaseInputModel):
         email: str | None = None,
         name: str | None = None,
         has_preferences: bool | None = None,
-        is_agent: bool | None = None,
+        has_agent_role: bool | None = None,
         **kwargs,
     ):
         """Initialize embedding user input."""
@@ -33,7 +30,7 @@ class EmbeddingUserInput(BaseInputModel):
         self.email = email
         self.name = name
         self.has_preferences = has_preferences
-        self.is_agent = is_agent
+        self.has_agent_role = has_agent_role
 
         # Store any additional fields
         for key, value in kwargs.items():
@@ -47,7 +44,7 @@ class EmbeddingUserInput(BaseInputModel):
             "email": self.email,
             "name": self.name,
             "has_preferences": self.has_preferences,
-            "is_agent": self.is_agent,
+            "has_agent_role": self.has_agent_role,
         }
 
     def extract_text_features(self) -> str:

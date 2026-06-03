@@ -19,7 +19,7 @@ from app.services.search.helpers.preferences_helpers import (
 from app.services.search.helpers.scoring_helpers import score_and_sort_properties
 from app.services.search.helpers.search_loop_helpers import search_properties_paginated
 from app.utils.http.pagination import build_pagination
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from ...db import (
     get_cached_results_with_age,
@@ -37,7 +37,7 @@ from .preferences_helpers import (
 COLLECTION_LIMIT = 500
 TOP_N = 40
 
-_POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
+_POLY = "POLYGON_SEARCH"
 
 
 def _resolve_polygon_request_id(correlation_id: str | None, start_time: float) -> str:

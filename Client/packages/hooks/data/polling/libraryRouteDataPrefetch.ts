@@ -3,7 +3,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { checklistFormsApi } from "packages/features/documents/api/checklistForms";
 import { fetchDocumentLibraryQuery } from "packages/features/documents/hooks/data/useDocumentsData";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAgentDashboardStore } from "packages/store";
 import type { UserProfile } from "packages/types";
 
@@ -32,7 +32,7 @@ export async function prefetchFormsLibrary(queryClient: QueryClient): Promise<vo
       staleTime: FORMS_STALE_MS,
     });
   } catch (error) {
-    log.warn(LOG_CATEGORIES.API, "Failed to prefetch forms library", {
+    log.warn("API", "Failed to prefetch forms library", {
       error: error instanceof Error ? error.message : String(error),
     });
   }
@@ -55,7 +55,7 @@ export async function prefetchLibraryRouteQueryData(
     }),
   ]);
 
-  if (options?.includeFormsLibrary && (user.is_agent ?? false)) {
+  if (options?.includeFormsLibrary && (user.roles ?? []).includes("agent")) {
     await prefetchFormsLibrary(queryClient);
   }
 }
@@ -73,6 +73,6 @@ export function prefetchLibraryRouteDataIfNeeded(
   if (!isLibraryShellPath(path)) return;
   const clientId = useAgentDashboardStore.getState().selectedClientId ?? undefined;
   void prefetchLibraryRouteQueryData(queryClient, user, clientId, {
-    includeFormsLibrary: user.is_agent ?? false,
+    includeFormsLibrary: (user.roles ?? []).includes("agent"),
   });
 }

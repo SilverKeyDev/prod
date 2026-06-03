@@ -67,7 +67,6 @@ class AgreementRevisionDTO:
             id=revision.id,
             agreement_id=revision.agreement_id,
             version_number=revision.version_number,
-            revision_number=None,
             filename=revision.filename,
             file_name=revision.filename,
             file_path=revision.file_path,
@@ -96,6 +95,14 @@ class AgreementEventDTO:
             created_at=to_aware_utc_iso(event.created_at) or "",
             actor_name=None,
         )
+
+
+def participant_payload(participant: AgreementParticipantModel) -> dict:
+    return AgreementParticipantDTO.from_orm(participant).model_dump(mode="json")
+
+
+def revision_payload(revision: AgreementRevisionModel) -> dict:
+    return AgreementRevisionDTO.from_orm(revision).model_dump(mode="json")
 
 
 class AgreementDTO:
@@ -139,7 +146,6 @@ class AgreementDTO:
             status=cast(Any, agreement.status),
             property_address=agreement.property_address,
             description=agreement.description,
-            envelope_id=agreement.docusign_envelope_id,
             docusign_envelope_id=agreement.docusign_envelope_id,
             docusign_source_template_id=agreement.docusign_source_template_id,
             docusign_status=agreement.docusign_status,

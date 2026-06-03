@@ -12,4 +12,4 @@ allOf:
         items:
           $ref: './ReportListItem.yaml'
         nullable: true
-        description: Property report list entries (GET /api/v1/report/list shape); legacy clients may have conflated this with upload rows.
+        description: Property report list entries (GET /api/v1/report/list shape).

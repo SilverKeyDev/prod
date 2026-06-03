@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { normalizeUrl } from "packages/services/http/client/request/httpRequestHeaders";
 import { createHttpRequestId } from "packages/services/http/client/request/requestId";
 import { getFetch, getWindow } from "packages/utils/platform";
@@ -28,7 +28,7 @@ async function executeRefreshRecoveryChain(correlationId: string): Promise<boole
   try {
     const refreshResult = await postRefreshTokenWithRetry(3, correlationId);
     if (!refreshResult.success) {
-      log.warn(LOG_CATEGORIES.AUTH, "401 recovery: refresh-token did not succeed", {
+      log.warn("AUTH", "401 recovery: refresh-token did not succeed", {
         correlationId,
         status: refreshResult.status,
         retryable: refreshResult.retryable,
@@ -43,13 +43,13 @@ async function executeRefreshRecoveryChain(correlationId: string): Promise<boole
 
     const recovered = profileJson.success === true;
     if (!recovered) {
-      log.warn(LOG_CATEGORIES.AUTH, "401 recovery: profile verification failed after refresh", {
+      log.warn("AUTH", "401 recovery: profile verification failed after refresh", {
         correlationId,
       });
     }
     return recovered;
   } catch {
-    log.warn(LOG_CATEGORIES.AUTH, "401 recovery: refresh chain threw", { correlationId });
+    log.warn("AUTH", "401 recovery: refresh chain threw", { correlationId });
     return false;
   }
 }
@@ -78,7 +78,7 @@ export async function recoverSessionAfter401(): Promise<boolean> {
   verifyingPromise = (async () => {
     const ok = await executeRefreshRecoveryChain(correlationId);
     if (!ok) {
-      log.warn(LOG_CATEGORIES.AUTH, "401 recovery refresh chain failed; broadcasting logout", {
+      log.warn("AUTH", "401 recovery refresh chain failed; broadcasting logout", {
         correlationId,
       });
       notifySessionRecoveryFailed();

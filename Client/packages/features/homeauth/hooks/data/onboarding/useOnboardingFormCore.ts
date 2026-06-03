@@ -17,7 +17,7 @@ import {
 import { getOnboardingDraftFromStorage, persistOnboardingDraft } from "./useOnboardingForm.helpers";
 
 export type UseOnboardingFormCoreOptions = {
-  /** Steps depend on formData so agent steps can be included when is_agent is yes/am_agent. */
+  /** Steps depend on formData so agent steps apply when primary_onboarding_role is agent. */
   getSteps: (formData: OnboardingData) => ProfileStep[];
   /** When provided, called on successful submit instead of navigate (e.g. React Native). */
   onSubmitSuccess?: () => void;

@@ -121,6 +121,8 @@ cd Server && pytest       # or: make test-be from repo root
 | **Automation memory seeds** | [.cursor/memory/automations/](./.cursor/memory/automations/) — paste into Cursor Memory Notes; `./scripts/print-automation-memory.sh <persona>` |
 | **Skills** | `.cursor/skills/*/SKILL.md` (e.g. `run-all-linters`, `post-major-change-sync`) |
 | **Subagents** | `.cursor/agents/*.md` |
+| **Codex** | [CODEX.md](CODEX.md) quickstart; [`.codex/`](.codex/) (`config.toml`, [`rules/`](.codex/rules/) → `.cursor/rules/`, `agents/*.toml` → `.cursor/agents/`); repo skills [`.agents/skills/`](.agents/skills/) → `.cursor/skills/` |
+| **Claude Code** | [CLAUDE.md](CLAUDE.md); [`.claude/`](.claude/) stubs → `.cursor/` |
 | **Extend / inventory** | [.cursor/README.md](./.cursor/README.md), [documentation/internal/cursor-audit-latest.md](./documentation/internal/cursor-audit-latest.md) |
 
 **MCP:** Example — [.cursor/mcp.example.json](./.cursor/mcp.example.json); local config via `make setup-mcp` (install/verify, summary at end). Daily default connectors: GitHub, Linear, Slack. Add-ons (enable only when needed): Mercury (read-only banking), AWS/gcloud, PostHog/Datadog, and **`cursor-memory`** (`/memo`, `/recall`). Credentials stay local/env.

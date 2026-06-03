@@ -4,7 +4,7 @@ import { Linking } from "react-native";
 
 import { viewingsApi } from "packages/api/viewings";
 import { CreateEventModal } from "packages/features/calendar/components/view/eventModal/CreateEventModal";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
 import { Button, CancelButton } from "packages/ui";
@@ -117,7 +117,7 @@ export function EventCard({
         });
       }
     } catch (error) {
-      log.error(LOG_CATEGORIES.CALENDAR, "Viewing navigation link failed", error);
+      log.error("CALENDAR", "Viewing navigation link failed", error);
       enqueueToast({
         type: "error",
         message: error instanceof Error ? error.message : "Could not open maps",

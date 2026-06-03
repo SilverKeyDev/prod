@@ -4,21 +4,24 @@ from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from sqlalchemy import func, select
+
 from app import db
 from app.models import BuyerStepView, Partner, Transaction, User
 from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
 
+from .conftest import assert_resource_not_found
+
 _BUYER = SimpleNamespace(
     id="buyer-1",
-    is_agent=False,
     user_roles=[SimpleNamespace(role="buyer")],
 )
 
 
 def test_step_view_idempotent(client, app, db_session):
     with app.app_context():
-        buyer = User(id="buyer-1", email="buyer@v.com", name="B", is_agent=False)
-        agent = User(id="agent-1", email="ag@v.com", name="A", is_agent=True)
+        buyer = User(id="buyer-1", email="buyer@v.com", name="B")
+        agent = User(id="agent-1", email="ag@v.com", name="A")
         db.session.add_all([buyer, agent])
         db.session.commit()
         tx = Transaction(
@@ -40,13 +43,13 @@ def test_step_view_idempotent(client, app, db_session):
             assert resp.status_code == 200
 
     with app.app_context():
-        assert BuyerStepView.query.count() == 1
+        assert db.session.scalar(select(func.count()).select_from(BuyerStepView)) == 1
 
 
 def test_step_view_snapshots_partner_payout_on_create(client, app, db_session):
     with app.app_context():
-        buyer = User(id="buyer-1", email="buyer@v.com", name="B", is_agent=False)
-        agent = User(id="agent-1", email="ag@v.com", name="A", is_agent=True)
+        buyer = User(id="buyer-1", email="buyer@v.com", name="B")
+        agent = User(id="agent-1", email="ag@v.com", name="A")
         partner = Partner(
             name="Snap Partner",
             slug="snap-partner",
@@ -79,7 +82,7 @@ def test_step_view_snapshots_partner_payout_on_create(client, app, db_session):
         assert resp.status_code == 200
 
     with app.app_context():
-        row = BuyerStepView.query.one()
+        row = db.session.scalar(select(BuyerStepView))
         assert row.partner_payout_snapshot == [
             {
                 "partner_id": partner_id,
@@ -91,8 +94,8 @@ def test_step_view_snapshots_partner_payout_on_create(client, app, db_session):
 
 def test_step_view_posthog_only_on_first_create(client, app, db_session):
     with app.app_context():
-        buyer = User(id="buyer-1", email="buyer@v.com", name="B", is_agent=False)
-        agent = User(id="agent-1", email="ag@v.com", name="A", is_agent=True)
+        buyer = User(id="buyer-1", email="buyer@v.com", name="B")
+        agent = User(id="agent-1", email="ag@v.com", name="A")
         db.session.add_all([buyer, agent])
         db.session.commit()
         tx = Transaction(
@@ -121,8 +124,8 @@ def test_step_view_posthog_only_on_first_create(client, app, db_session):
 
 def test_step_view_exposure_includes_partners_on_secondary_step_id(client, app, db_session):
     with app.app_context():
-        buyer = User(id="buyer-1", email="buyer@v.com", name="B", is_agent=False)
-        agent = User(id="agent-1", email="ag@v.com", name="A", is_agent=True)
+        buyer = User(id="buyer-1", email="buyer@v.com", name="B")
+        agent = User(id="agent-1", email="ag@v.com", name="A")
         partner = Partner(
             name="RON Partner",
             slug="ron-partner",
@@ -162,3 +165,14 @@ def test_step_view_exposure_includes_partners_on_secondary_step_id(client, app, 
     )
     assert props["step_id"] == "closing:13"
     assert partner_id in props["partner_ids"]
+
+
+def test_step_view_unknown_transaction_returns_resource_not_found(client, app):
+    with patch("app.services.auth.get_current_user", return_value=_BUYER):
+        resp = client.post(
+            "/api/v1/rev-share/step-views",
+            headers={"Authorization": "Bearer mock"},
+            json={"step_id": "closing:13", "transaction_id": "missing-tx"},
+        )
+
+    assert_resource_not_found(resp)

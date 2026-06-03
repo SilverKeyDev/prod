@@ -1,6 +1,7 @@
 """GET/PUT checklist dispatch automation settings (agent-only)."""
 
 from flask import jsonify
+from sqlalchemy import select
 
 from app import db
 from app.models import ChecklistItemDispatchSetting
@@ -18,6 +19,7 @@ from app.services.transactions.checklist_dispatch_automation import (
 )
 from app.services.transactions.retrieval import VALID_CATEGORIES
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.utils.route.http_errors import forbidden, invalid_request
 from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
 
@@ -63,27 +65,27 @@ def get_checklist_dispatch_automation(user, transaction_id: str, section: str, i
         return auth_error
 
     if section not in VALID_CATEGORIES:
-        return jsonify({"success": False, "error": "Invalid checklist section"}), 400
+        return invalid_request("Invalid checklist section")
 
     try:
         item_id_int = int(item_id)
     except (TypeError, ValueError):
-        return jsonify({"success": False, "error": "Invalid item_id"}), 400
+        return invalid_request("Invalid item_id")
 
     if not item_supports_dispatch_automation(section, item_id_int):
-        return jsonify(
-            {"success": False, "error": "Dispatch automation is not available for this step"}
-        ), 400
+        return invalid_request("Dispatch automation is not available for this step")
 
     if not _agent_manages_client(str(user.id), str(transaction_id)):
-        return jsonify({"success": False, "error": "Access denied"}), 403
+        return forbidden()
 
-    row = ChecklistItemDispatchSetting.query.filter_by(
-        agent_user_id=str(user.id),
-        client_user_id=str(transaction_id),
-        category=str(section),
-        item_id=item_id_int,
-    ).first()
+    row = db.session.scalar(
+        select(ChecklistItemDispatchSetting).where(
+            ChecklistItemDispatchSetting.agent_user_id == str(user.id),
+            ChecklistItemDispatchSetting.client_user_id == str(transaction_id),
+            ChecklistItemDispatchSetting.category == str(section),
+            ChecklistItemDispatchSetting.item_id == item_id_int,
+        )
+    )
 
     setting = _row_to_setting_model(row) if row else _defaults_setting()
     body = ChecklistDispatchAutomationApiResponse(
@@ -102,63 +104,52 @@ def put_checklist_dispatch_automation(
     transaction_id: str,
     section: str,
     item_id: str,
-    data: UpdateChecklistDispatchAutomationRequest | None = None,
+    data: UpdateChecklistDispatchAutomationRequest,
 ):
     auth_error = _require_agent(user)
     if auth_error:
         return auth_error
 
     if section not in VALID_CATEGORIES:
-        return jsonify({"success": False, "error": "Invalid checklist section"}), 400
+        return invalid_request("Invalid checklist section")
 
     try:
         item_id_int = int(item_id)
     except (TypeError, ValueError):
-        return jsonify({"success": False, "error": "Invalid item_id"}), 400
+        return invalid_request("Invalid item_id")
 
     if not item_supports_dispatch_automation(section, item_id_int):
-        return jsonify(
-            {"success": False, "error": "Dispatch automation is not available for this step"}
-        ), 400
+        return invalid_request("Dispatch automation is not available for this step")
 
     if not _agent_manages_client(str(user.id), str(transaction_id)):
-        return jsonify({"success": False, "error": "Access denied"}), 403
-
-    if data is None:
-        return jsonify({"success": False, "error": "Request body required"}), 400
+        return forbidden()
 
     if data.recipientScope == ChecklistDispatchRecipientScope.selected_clients and (
         not data.selectedClientIds or len(data.selectedClientIds) == 0
     ):
-        return (
-            jsonify(
-                {
-                    "success": False,
-                    "error": "selectedClientIds is required when recipientScope is selected_clients",
-                }
-            ),
-            400,
+        return invalid_request(
+            "selectedClientIds is required when recipientScope is selected_clients"
         )
 
     allowed = set(get_agent_client_ids(str(user.id)))
     if data.recipientScope == ChecklistDispatchRecipientScope.selected_clients:
         for cid in data.selectedClientIds or []:
             if str(cid) not in allowed:
-                return jsonify({"success": False, "error": f"Invalid client id: {cid}"}), 400
+                return invalid_request("Invalid client id")
 
     if data.noteMode == ChecklistDispatchNoteMode.per_client and data.notesPerClient:
         for cid in data.notesPerClient:
             if str(cid) not in allowed:
-                return jsonify(
-                    {"success": False, "error": f"Invalid client id in notes: {cid}"}
-                ), 400
+                return invalid_request("Invalid client id in notes")
 
-    row = ChecklistItemDispatchSetting.query.filter_by(
-        agent_user_id=str(user.id),
-        client_user_id=str(transaction_id),
-        category=str(section),
-        item_id=item_id_int,
-    ).first()
+    row = db.session.scalar(
+        select(ChecklistItemDispatchSetting).where(
+            ChecklistItemDispatchSetting.agent_user_id == str(user.id),
+            ChecklistItemDispatchSetting.client_user_id == str(transaction_id),
+            ChecklistItemDispatchSetting.category == str(section),
+            ChecklistItemDispatchSetting.item_id == item_id_int,
+        )
+    )
 
     if row is None:
         row = ChecklistItemDispatchSetting(

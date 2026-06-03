@@ -1,5 +1,5 @@
 from app.celery.celery_worker import celery
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 # Weight Training Tasks
@@ -33,7 +33,7 @@ def train_user_weights_task(self, user_id: str, force: bool = False):
         self.update_state(state="PROGRESS", meta={"status": "Training complete", "progress": 100})
 
         log.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "Weight training Celery task completed for user",
             {"user_id": user_id, "success": result.get("success")},
         )
@@ -42,7 +42,7 @@ def train_user_weights_task(self, user_id: str, force: bool = False):
 
     except Exception as e:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             f"Weight training Celery task failed for user {user_id}",
             e,
         )
@@ -79,7 +79,7 @@ def train_all_eligible_users_task(self, limit: int = 100):
         )
 
         log.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "Batch weight training Celery task completed",
             {
                 "trained": result.get("trained", 0),
@@ -91,7 +91,7 @@ def train_all_eligible_users_task(self, limit: int = 100):
         return result
 
     except Exception as e:
-        log.error(LOG_CATEGORIES["ERRORS"], "Batch weight training Celery task failed", e)
+        log.error("ERRORS", "Batch weight training Celery task failed", e)
         return {
             "success": False,
             "error": str(e),

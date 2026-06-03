@@ -38,7 +38,7 @@ def test_placements_require_matching_step_and_workspace(app, db_session):
         partner.embed_url_template = "https://embed.example/{transaction_id}"
         db.session.commit()
 
-        buyer = User(email="buyer-pl@test.com", name="Buyer", is_agent=False)
+        buyer = User(email="buyer-pl@test.com", name="Buyer")
         db.session.add(buyer)
         tx = Transaction(
             id="tx-pl",

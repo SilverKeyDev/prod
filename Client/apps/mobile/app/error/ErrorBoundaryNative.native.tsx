@@ -8,7 +8,7 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
 import { Text } from "packages/ui/components/primitives";
 import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows/shadows.native";
@@ -43,7 +43,7 @@ export class ErrorBoundaryNative extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ error, errorInfo });
-    log.error(LOG_CATEGORIES.ERRORS, "ErrorBoundaryNative caught error", {
+    log.error("ERRORS", "ErrorBoundaryNative caught error", {
       message: error.message,
       name: error.name,
       stack: error.stack,

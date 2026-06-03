@@ -2,14 +2,13 @@
 Secure error handling utilities to prevent information disclosure.
 """
 
-import logging
 import traceback
 import uuid
 from typing import Any
 
 from flask import jsonify
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 # Generic error messages that don't leak system information
 GENERIC_ERROR_MESSAGES = {
@@ -51,18 +50,11 @@ class SecureErrorHandler:
         if hasattr(error, "__traceback__") and error.__traceback__:
             tb_lines = traceback.format_exception(type(error), error, error.__traceback__)
 
-        # Log with full details
         error_msg = f"Error {error_id} [{type(error).__name__}]: {str(error)}{context_str}"
+        payload: dict[str, Any] = {"error_id": error_id, "context": context}
         if tb_lines:
-            logger.error(f"{error_msg}\n{'=' * 80}\n{''.join(tb_lines)}{'=' * 80}")
-        else:
-            # Try to use exc_info if we're still in exception context
-            import sys
-
-            if sys.exc_info()[0] is not None:
-                logger.error(error_msg, exc_info=True)
-            else:
-                logger.error(error_msg)
+            payload["traceback"] = "".join(tb_lines)
+        log.error("ERRORS", error_msg, error if isinstance(error, Exception) else payload)
 
     @staticmethod
     def create_secure_response(
@@ -98,7 +90,6 @@ class SecureErrorHandler:
         if additional_info:
             safe_keys = [
                 "field_errors",
-                "validation_errors",
                 "retry_after",
                 "allowed_types",
                 "message",

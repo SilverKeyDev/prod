@@ -15,6 +15,7 @@
   "GET /api/v1/admin/partners/checklist-steps",
   "GET /api/v1/admin/partners/{partner_id}",
   "GET /api/v1/admin/rev-share/analytics",
+  "GET /api/v1/admin/users/gate-roles",
   "GET /api/v1/admin/validation-stats",
   "GET /api/v1/agent/chats",
   "GET /api/v1/agent/chats/stream",

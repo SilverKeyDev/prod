@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { googleCalendarApi } from "packages/features/calendar/api";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore, useGoogleCalendarStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
 import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
@@ -50,7 +50,7 @@ export function useGoogleCalendarStoreIntegration() {
 
   const refreshCalendars = useCallback(async () => {
     log.debug(
-      LOG_CATEGORIES.HOOKS,
+      "HOOKS",
       "refreshCalendars called but fetching is disabled - calendars only fetched via initial prefetch"
     );
   }, []);

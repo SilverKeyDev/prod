@@ -2,8 +2,6 @@
 Recursive section rendering for PDF reports (charts, images, nested dicts/lists).
 """
 
-import logging
-
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
@@ -15,8 +13,6 @@ from .section_renderer_helpers import (
     try_render_home_image,
     try_render_image_prompt_pair,
 )
-
-logger = logging.getLogger(__name__)
 
 
 def add_section(elements, data, styles, level=0):

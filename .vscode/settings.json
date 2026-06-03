@@ -5,8 +5,9 @@
   "markdownlint.config": { "default": false },
 
   "python.defaultInterpreterPath": "${workspaceFolder}/Server/.venv/bin/python",
-  "python.analysis.extraPaths": ["Server", "scripts"],
+  "python.analysis.extraPaths": ["${workspaceFolder}/Server", "${workspaceFolder}/scripts"],
   "python.analysis.diagnosticMode": "openFilesOnly",
+  "python.analysis.useNearestConfiguration": true,
 
   "eslint.enable": true,
   "eslint.useFlatConfig": true,
@@ -47,12 +48,11 @@
   "task.autoReveal": "on",
   "cursorpyright.analysis.diagnosticMode": "workspace",
   "cursorpyright.analysis.extraPaths": [
-    "Server",
-    "scripts"
+    "${workspaceFolder}/scripts"
   ],
   "basedpyright.analysis.extraPaths": [
-    "Server",
-    "scripts"
+    "${workspaceFolder}/Server",
+    "${workspaceFolder}/scripts"
   ],
   "basedpyright.analysis.configFilePath": "${workspaceFolder}/Server/pyproject.toml",
   "cursorpyright.analysis.configFilePath": "${workspaceFolder}/Server/pyproject.toml"

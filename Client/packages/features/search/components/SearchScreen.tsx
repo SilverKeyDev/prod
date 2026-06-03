@@ -9,7 +9,7 @@ import { useSearchScreenSearchExecution } from "packages/features/search/hooks/u
 import type { SearchResult } from "packages/features/search/types";
 import { formatAddress } from "packages/features/search/types/search/formatters/propertyDetailsFormatters";
 import { useUserPreferences } from "packages/hooks/data/user/useUserData";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import {
   useAgentDashboardStore,
@@ -116,7 +116,7 @@ export function SearchScreen() {
 
   const handleTabChange = useCallback(
     (tab: "results" | "saved") => {
-      log.info(LOG_CATEGORIES.SEARCH, "Mobile search tab change", {
+      log.info("SEARCH", "Mobile search tab change", {
         from: activeTab,
         to: tab,
       });

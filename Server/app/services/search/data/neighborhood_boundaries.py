@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from .client import slipstream_get
 
@@ -63,7 +63,7 @@ def search_areas(
         resp = slipstream_get("/ws/areas/search", params=params)
         if not resp.ok:
             log.error(
-                LOG_CATEGORIES["API"],
+                "API",
                 "Slipstream /ws/areas/search HTTP error",
                 {"status": resp.status_code, "text": resp.text[:300]},
             )
@@ -91,7 +91,7 @@ def search_areas(
         ]
 
         log.debug(
-            LOG_CATEGORIES["API"],
+            "API",
             "Slipstream /ws/areas/search results",
             {
                 "keyword": keyword,
@@ -105,7 +105,7 @@ def search_areas(
 
     except Exception as exc:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             "Slipstream area search exception",
             {"keyword": keyword, "error": str(exc)[:300]},
         )
@@ -136,7 +136,7 @@ def get_area_boundary(area_id: str) -> tuple[dict[str, Any] | None, str | None]:
         )
         if not resp.ok:
             log.error(
-                LOG_CATEGORIES["API"],
+                "API",
                 "Slipstream /ws/areas/get HTTP error",
                 {"area_id": area_id, "status": resp.status_code},
             )
@@ -162,7 +162,7 @@ def get_area_boundary(area_id: str) -> tuple[dict[str, Any] | None, str | None]:
 
         if not geometry:
             log.warn(
-                LOG_CATEGORIES["API"],
+                "API",
                 "Slipstream area has no geometry",
                 {"area_id": area_id, "label": area.get("label")},
             )
@@ -182,7 +182,7 @@ def get_area_boundary(area_id: str) -> tuple[dict[str, Any] | None, str | None]:
             area_data["center"] = center
 
         log.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "Slipstream area boundary fetched",
             {
                 "area_id": area_id,
@@ -196,7 +196,7 @@ def get_area_boundary(area_id: str) -> tuple[dict[str, Any] | None, str | None]:
 
     except Exception as exc:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             "Slipstream area boundary exception",
             {"area_id": area_id, "error": str(exc)[:300]},
         )

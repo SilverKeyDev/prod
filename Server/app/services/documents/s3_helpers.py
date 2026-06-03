@@ -8,9 +8,7 @@ import os
 from botocore.exceptions import ClientError
 from flask import current_app, has_app_context
 
-from app.utils.security.app_logging import get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def get_bucket_name() -> str | None:
@@ -66,7 +64,7 @@ def delete_s3_objects_under_prefix(s3_client, bucket_name: str, prefix: str) -> 
         Number of objects deleted (0 if none or S3 unavailable).
     """
     if not s3_client or not bucket_name or not prefix:
-        logger.warning("S3 client, bucket, or prefix missing for bulk delete")
+        log.warn("DOCUMENTS", "S3 client, bucket, or prefix missing for bulk delete")
         return 0
 
     deleted = 0
@@ -85,18 +83,27 @@ def delete_s3_objects_under_prefix(s3_client, bucket_name: str, prefix: str) -> 
                 )
                 deleted += len(chunk)
         if deleted:
-            logger.info(
+            log.info(
+                "DOCUMENTS",
                 "Deleted S3 objects under prefix",
-                extra={"prefix": prefix, "count": deleted},
+                {"prefix": prefix, "count": deleted},
             )
         return deleted
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(f"S3 bulk delete failed for prefix {prefix}: {error_code} - {error_message}")
+        log.error(
+            "DOCUMENTS",
+            "S3 bulk delete failed",
+            {"prefix": prefix, "error_code": error_code, "error_message": error_message},
+        )
         return deleted
     except Exception as e:
-        logger.error(f"Unexpected error deleting S3 prefix {prefix}: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Unexpected error deleting S3 prefix",
+            {"prefix": prefix, "error": str(e)},
+        )
         return deleted
 
 
@@ -113,7 +120,7 @@ def list_s3_objects(s3_client, bucket_name: str, prefix: str) -> list[dict]:
         List of object dictionaries from S3 response
     """
     if not s3_client or not bucket_name:
-        logger.warning("S3 client or bucket name not available for listing")
+        log.warn("DOCUMENTS", "S3 client or bucket name not available for listing")
         return []
 
     try:
@@ -122,10 +129,18 @@ def list_s3_objects(s3_client, bucket_name: str, prefix: str) -> list[dict]:
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(f"S3 list_objects_v2 failed: {error_code} - {error_message}")
+        log.error(
+            "DOCUMENTS",
+            "S3 list_objects_v2 failed",
+            {"error_code": error_code, "error_message": error_message},
+        )
         return []
     except Exception as e:
-        logger.error(f"Unexpected error listing S3 objects: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Unexpected error listing S3 objects",
+            {"error": str(e)},
+        )
         return []
 
 

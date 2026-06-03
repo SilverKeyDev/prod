@@ -10,7 +10,7 @@ The `security/` directory contains security-focused utilities that handle:
 - Secure error reporting
 - Image processing security
 - Clipboard security
-- Secure logging
+- Secure operations (logging uses `packages/logger` with PII scrubbing via `piiSecurity`)
 
 ## Files
 
@@ -30,10 +30,6 @@ Error reporting service that safely reports errors without exposing PII.
 ### `errorUtils.ts`
 
 Error utility functions for creating error context and serialization.
-
-### `secureLogger.ts`
-
-Secure logging utility that automatically scrubs PII from log data.
 
 ### `imageProcessor.ts`
 
@@ -73,12 +69,14 @@ const safeData = scrubObjectPII({
 
 ### Secure Logging
 
-```typescript
-import { secureLogger } from "../../../packages/services/security/secureLogger";
+Use the centralized logger (`packages/logger`). It scrubs PII via `piiSecurity` and respects admin category toggles.
 
-secureLogger.info("User action", {
+```typescript
+import { log } from "packages/logger";
+
+log.info("AUTH", "User action", {
   userId: "123",
-  email: "user@example.com", // Automatically scrubbed
+  email: "user@example.com", // Automatically scrubbed in log output
 });
 ```
 
@@ -124,8 +122,8 @@ The following object keys are automatically redacted:
 ## Best Practices
 
 1. **Always use security utilities** when logging or reporting errors
-2. **Don't log raw user data** - use scrubbing utilities
-3. **Use secure logger** instead of console.log for sensitive data
+2. **Don't log raw user data** — use `packages/logger` (PII scrubbing is built in)
+3. **Do not import** the retired `secureLogger` module
 4. **Be mindful of PII** in error messages and logs
 
 ## Further Reading

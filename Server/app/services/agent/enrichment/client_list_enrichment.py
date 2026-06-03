@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
-from sqlalchemy import func
+from sqlalchemy import func, select
 
 from app import db
 from app.dtos.user import _try_presigned_profile_picture_url
@@ -44,7 +44,7 @@ def _client_kind_from_roles(role_names: set[str]) -> str:
 def batch_client_kinds(user_ids: list[str]) -> dict[str, str]:
     if not user_ids:
         return {}
-    rows = UserRole.query.filter(UserRole.user_id.in_(user_ids)).all()
+    rows = db.session.scalars(select(UserRole).where(UserRole.user_id.in_(user_ids))).all()
     by_user: dict[str, set[str]] = defaultdict(set)
     for row in rows:
         by_user[row.user_id].add(row.role)
@@ -58,20 +58,19 @@ def batch_pipeline_stages(user_ids: list[str]) -> dict[str, str]:
     """
     if not user_ids:
         return {}
-    grouped = (
-        db.session.query(
+    grouped = db.session.execute(
+        select(
             TransactionTask.user_id,
             TransactionTask.category,
             func.max(TransactionTask.updated_at).label("latest_at"),
         )
-        .filter(
+        .where(
             TransactionTask.user_id.in_(user_ids),
             TransactionTask.category.in_(TASK_CATEGORIES),
             TransactionTask.status == "done",
         )
         .group_by(TransactionTask.user_id, TransactionTask.category)
-        .all()
-    )
+    ).all()
     best: dict[str, tuple] = {}
     for user_id, category, latest_at in grouped:
         if category not in PIPELINE_RANK:
@@ -214,10 +213,12 @@ def batch_requires_signature(agent_id: str, client_ids: list[str]) -> dict[str, 
         return {}
 
     out = dict.fromkeys(client_ids, False)
-    agreements = Agreement.query.filter(
-        Agreement.agent_id == agent_id,
-        Agreement.buyer_id.in_(client_ids),
-        Agreement.status.in_(tuple(_AGREEMENT_ACTIVE_STATUSES)),
+    agreements = db.session.scalars(
+        select(Agreement).where(
+            Agreement.agent_id == agent_id,
+            Agreement.buyer_id.in_(client_ids),
+            Agreement.status.in_(tuple(_AGREEMENT_ACTIVE_STATUSES)),
+        )
     ).all()
 
     for agreement in agreements:

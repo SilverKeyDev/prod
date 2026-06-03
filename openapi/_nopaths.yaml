@@ -191,8 +191,12 @@ components:
       $ref: './components/schemas/agreements/docusign/DocuSignPrefillTextTabInput.yaml'
     DocuSignRemindersInput:
       $ref: './components/schemas/agreements/docusign/DocuSignRemindersInput.yaml'
+    DocusignAgreementDownloadUrlResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignAgreementDownloadUrlResponse.yaml'
     DocusignCreateTemplateMetadataInput:
       $ref: './components/schemas/agreements/docusign/DocusignCreateTemplateMetadataInput.yaml'
+    DocusignCreateTemplateMultipartRequest:
+      $ref: './components/schemas/agreements/docusign/DocusignCreateTemplateMultipartRequest.yaml'
     DocusignCreateTemplateResponse:
       $ref: './components/schemas/agreements/docusign/DocusignCreateTemplateResponse.yaml'
     DocusignDeleteTemplateResponse:
@@ -209,8 +213,6 @@ components:
       $ref: './components/schemas/agreements/docusign/DocusignResendRecipientRequest.yaml'
     DocusignResendRecipientResponse:
       $ref: './components/schemas/agreements/docusign/DocusignResendRecipientResponse.yaml'
-    DocusignSyncTemplatesResponse:
-      $ref: './components/schemas/agreements/docusign/DocusignSyncTemplatesResponse.yaml'
     DocusignTemplate:
       $ref: './components/schemas/agreements/docusign/DocusignTemplate.yaml'
     DocusignTemplateListItem:
@@ -425,6 +427,12 @@ components:
       $ref: './components/schemas/search/results/SearchDisplayResponse.yaml'
     SecureUploadDocumentPayload:
       $ref: './components/schemas/agreements/documents/SecureUploadDocumentPayload.yaml'
+    SecureUploadDocumentRequest:
+      $ref: './components/schemas/agreements/documents/SecureUploadDocumentRequest.yaml'
+    SecureUploadImagePayload:
+      $ref: './components/schemas/agreements/documents/SecureUploadImagePayload.yaml'
+    SecureUploadImageRequest:
+      $ref: './components/schemas/agreements/documents/SecureUploadImageRequest.yaml'
     SendAgreementRequest:
       $ref: './components/schemas/agreements/agreements/SendAgreementRequest.yaml'
     SendAgreementResponse:
@@ -441,6 +449,8 @@ components:
       $ref: './components/schemas/user/profile/SignupData.yaml'
     SuccessResponse:
       $ref: './components/schemas/shared/core/SuccessResponse.yaml'
+    SyncTemplatesRequest:
+      $ref: './components/schemas/agreements/templates/SyncTemplatesRequest.yaml'
     SyncTemplatesResponse:
       $ref: './components/schemas/agreements/templates/SyncTemplatesResponse.yaml'
     TaskChecklistApiResponse:

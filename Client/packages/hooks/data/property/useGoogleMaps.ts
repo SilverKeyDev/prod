@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { asError } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
 
@@ -30,12 +30,12 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
     (container: HTMLElement, overrides?: Partial<google.maps.MapOptions>) => {
       const win = getWindow();
       if (!win) {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Maps: window not available (SSR)");
+        log.warn("MAP_RENDERING", "Google Maps: window not available (SSR)");
         return null;
       }
 
       if (!isLoaded || !(win as Window & { google?: typeof google }).google) {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Maps not loaded yet");
+        log.warn("MAP_RENDERING", "Google Maps not loaded yet");
         return null;
       }
 
@@ -43,7 +43,7 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
         return googleMapsService.createMap(container, overrides);
       } catch (err: unknown) {
         const error = asError(err);
-        log.error(LOG_CATEGORIES.MAP_RENDERING, "Error creating map", error);
+        log.error("MAP_RENDERING", "Error creating map", error);
         setError(error.message);
         return null;
       }
@@ -67,7 +67,7 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
           setHasInitialized(true);
         } catch (err: unknown) {
           const error = asError(err);
-          log.error(LOG_CATEGORIES.MAP_RENDERING, "Error loading Google Maps", error);
+          log.error("MAP_RENDERING", "Error loading Google Maps", error);
           setError(error.message);
           setIsLoaded(false);
         }

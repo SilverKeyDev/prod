@@ -1,19 +1,16 @@
 """Agent and client discovery helpers for connection requests (search and recommendations)."""
 
-import logging
 from datetime import datetime, timezone
 
-from ... import db
-from ...models import User, UserAgentProfile
-from ...utils.format.json_string_list_parse import parse_json_or_csv_string_list
-from .connection_request_helpers import (
-    agent_row_base,
-    normalize_state,
-    normalize_zip,
-    tokenize,
-)
+from sqlalchemy import or_, select
 
-logger = logging.getLogger(__name__)
+from app import db
+from app.models import User, UserAgentProfile, UserRole
+from logger import log
+
+from ...utils.format.json_string_list_parse import parse_json_or_csv_string_list
+from ..auth.user_role_helpers import users_with_role_select, users_without_role_select
+from .connection_request_helpers import agent_row_base, normalize_state, normalize_zip, tokenize
 
 
 def recommend_agents(
@@ -35,33 +32,28 @@ def recommend_agents(
         intent_clean = intent.strip() if intent else ""
         intent_tokens = tokenize(intent_clean)
         has_signals = bool(zip_norm or state_norm or intent_tokens)
-
-        rows = (
-            db.session.query(User, UserAgentProfile)
+        rows = db.session.execute(
+            select(User, UserAgentProfile)
+            .join(UserRole, User.id == UserRole.user_id)
+            .where(UserRole.role == "agent")
             .outerjoin(UserAgentProfile, User.id == UserAgentProfile.user_id)
-            .filter(User.is_agent.is_(True))
-            .all()
-        )
-
+        ).all()
         scored: list[tuple[float, datetime | None, dict]] = []
         for agent, profile in rows:
             score = 0.0
             reasons: list[str] = []
-
             if zip_norm and profile and profile.primary_service_zips:
                 zips_raw = parse_json_or_csv_string_list(profile.primary_service_zips)
                 zips_n = {z for z in (normalize_zip(x) for x in zips_raw) if z}
                 if zip_norm in zips_n:
                     score += 5.0
                     reasons.append("zip")
-
             if state_norm and profile and profile.licensed_states:
                 states_raw = parse_json_or_csv_string_list(profile.licensed_states)
                 states_u = {s.strip().upper() for s in states_raw if s and len(s.strip()) >= 2}
                 if state_norm in states_u:
                     score += 3.0
                     reasons.append("state")
-
             if intent_tokens and profile:
                 specs = parse_json_or_csv_string_list(profile.specialties)
                 bio = profile.agent_bio or ""
@@ -70,7 +62,6 @@ def recommend_agents(
                 if overlap:
                     score += float(min(5, len(overlap)))
                     reasons.append("specialty")
-
             row = {
                 **agent_row_base(agent, profile),
                 "relevance_score": score,
@@ -91,26 +82,19 @@ def recommend_agents(
         if has_signals:
             out_rows = [t[2] for t in scored if t[2]["id"] not in excluded][:limit]
             return out_rows
-
-        # Fallback: no signals from client — recent agents, neutral score
-        q = User.query.filter(User.is_agent.is_(True))
+        recent_stmt = users_with_role_select("agent")
         if excluded:
-            q = q.filter(~User.id.in_(list(excluded)))
-        recent = q.order_by(User.created_at.desc()).limit(limit).all()
+            recent_stmt = recent_stmt.where(~User.id.in_(list(excluded)))
+        recent = db.session.scalars(recent_stmt.order_by(User.created_at.desc()).limit(limit)).all()
         result = []
         for a in recent:
             prof = db.session.get(UserAgentProfile, a.id)
             result.append(
-                {
-                    **agent_row_base(a, prof),
-                    "relevance_score": 0.0,
-                    "match_reasons": None,
-                }
+                {**agent_row_base(a, prof), "relevance_score": 0.0, "match_reasons": None}
             )
         return result
-
     except Exception as e:
-        logger.error(f"Error recommending agents: {e}", exc_info=True)
+        log.error("ERRORS", f"Error recommending agents: {e}")
         raise
 
 
@@ -128,25 +112,18 @@ def search_agents(query: str, limit: int = 20) -> list[dict]:
     try:
         if not query or len(query.strip()) < 2:
             return []
-
         search_term = f"%{query.strip()}%"
-        agents = (
-            User.query.filter(
-                User.is_agent.is_(True),
-                db.or_(User.name.ilike(search_term), User.email.ilike(search_term)),
-            )
+        agents = db.session.scalars(
+            users_with_role_select("agent")
+            .where(or_(User.name.ilike(search_term), User.email.ilike(search_term)))
             .limit(limit)
-            .all()
-        )
-
+        ).all()
         result = []
         for agent in agents:
             result.append(agent_row_base(agent))
-
         return result
-
     except Exception as e:
-        logger.error(f"Error searching agents: {e}", exc_info=True)
+        log.error("ERRORS", f"Error searching agents: {e}")
         raise
 
 
@@ -165,17 +142,12 @@ def search_clients(query: str, agent_id: str, limit: int = 20) -> list[dict]:
     try:
         if not query or len(query.strip()) < 2:
             return []
-
         search_term = f"%{query.strip()}%"
-        clients = (
-            User.query.filter(
-                User.is_agent.is_(False),
-                db.or_(User.name.ilike(search_term), User.email.ilike(search_term)),
-            )
+        clients = db.session.scalars(
+            users_without_role_select("agent")
+            .where(or_(User.name.ilike(search_term), User.email.ilike(search_term)))
             .limit(limit)
-            .all()
-        )
-
+        ).all()
         result = []
         for client in clients:
             result.append(
@@ -187,9 +159,7 @@ def search_clients(query: str, agent_id: str, limit: int = 20) -> list[dict]:
                     "created_at": client.created_at.isoformat() if client.created_at else None,
                 }
             )
-
         return result
-
     except Exception as e:
-        logger.error(f"Error searching clients: {e}", exc_info=True)
+        log.error("ERRORS", f"Error searching clients: {e}")
         raise

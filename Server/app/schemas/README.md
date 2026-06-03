@@ -40,12 +40,18 @@ def create_todo():
 ### Validating Responses
 
 ```python
+from flask import abort
+
+from app import db
 from app.schemas import TodoItem
 from app.models import Todo
+from app.utils.db.orm_lookup import get_model
 
 @app.route("/api/v1/agent/todos/<todo_id>")
 def get_todo(todo_id):
-    todo = Todo.query.get_or_404(todo_id)
+    todo = get_model(Todo, todo_id)
+    if todo is None:
+        abort(404)
 
     # Validate response with Pydantic
     response = TodoItem(**todo.to_dict())

@@ -34,7 +34,7 @@ export type UseFormsLibraryResult = {
  * ```typescript
  * const { categories, isLoading } = useFormsLibrary();
  * categories.forEach(cat => {
- *   console.log(`${cat.name}: ${cat.forms.length} forms`);
+ *   log.info('DOCUMENTS', 'Forms category', { name: cat.name, count: cat.forms.length });
  * });
  * ```
  */

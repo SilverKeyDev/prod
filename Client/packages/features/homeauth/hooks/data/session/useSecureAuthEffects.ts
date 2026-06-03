@@ -5,7 +5,7 @@
 import { useEffect } from "react";
 
 import { getEnv } from "packages/config";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { asError } from "packages/utils";
 import { getDocument, getWindow } from "packages/utils/platform";
 import { getSessionStorage } from "packages/utils/storage/platformStorage";
@@ -40,7 +40,7 @@ export function useVisibilityRefresh(
     const handleVisibilityChange = () => {
       if (doc.hidden) {
         if (user && accessToken && getEnv().isDevelopment) {
-          log.debug(LOG_CATEGORIES.AUTH, "Page hidden - security checkpoint");
+          log.debug("AUTH", "Page hidden - security checkpoint");
         }
       } else {
         if (accessToken) void refreshToken();
@@ -70,19 +70,19 @@ export function useAuthReadyDispatch(
         try {
           if (win) win.dispatchEvent(authReadyEvent);
         } catch (dispatchError) {
-          log.warn(LOG_CATEGORIES.AUTH, "Auth ready event dispatch failed", {
+          log.warn("AUTH", "Auth ready event dispatch failed", {
             error: asError(dispatchError).message,
           });
         }
       }, 0);
     } catch (eventCreationError) {
-      log.warn(LOG_CATEGORIES.AUTH, "Auth ready event creation failed", {
+      log.warn("AUTH", "Auth ready event creation failed", {
         error: asError(eventCreationError).message,
       });
     }
 
     if (getEnv().isDevelopment) {
-      log.debug(LOG_CATEGORIES.AUTH, "Auth ready event dispatched", {
+      log.debug("AUTH", "Auth ready event dispatched", {
         userId: user?.id ?? "unknown",
         userEmail: user?.email ?? "unknown",
       });

@@ -6,12 +6,15 @@ import json
 from typing import Any
 
 from pydantic import EmailStr, TypeAdapter
+from sqlalchemy import select
 
+from app import db
 from app.dtos.user import _profile_picture_content_type, _try_presigned_profile_picture_url
 from app.models import User, UserAgentProfile
 from app.schemas.generated import PublicAgentProfile
+from app.services.auth.user_role_helpers import user_is_agent
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 def _parse_json_array(value: str | None) -> list[str]:
@@ -73,7 +76,7 @@ def _try_presigned_headshot_url(raw: str | None) -> str | None:
         return s3_service.generate_view_url(s, content_type=content_type)
     except Exception as e:
         log.warn(
-            LOG_CATEGORIES["HTTP"],
+            "HTTP",
             "Professional headshot URL generation failed",
             {"error": str(e)},
         )
@@ -107,10 +110,12 @@ def build_public_agent_profile(user_id: str) -> PublicAgentProfile | None:
     if user is None:
         return None
     is_active = user.is_active if user.is_active is not None else True
-    if not is_active or not bool(getattr(user, "is_agent", False)):
+    if not is_active or not bool(user_is_agent(user)):
         return None
 
-    agent_row = UserAgentProfile.query.filter_by(user_id=user.id).first()
+    agent_row = db.session.scalar(
+        select(UserAgentProfile).where(UserAgentProfile.user_id == user.id)
+    )
 
     profile_url = _try_presigned_profile_picture_url(user)
 

@@ -47,7 +47,7 @@ if (!ok) {
     console.error(`  - ${e}`);
   }
   console.error(
-    "  Set values at build time (Client/.env locally; GitHub secrets + Docker --build-arg for ci_web)."
+    "  Set values at build time (Client/.env locally; AWS Secrets Manager primary + GitHub fallback in ci_web)."
   );
   console.error(`  Manifest: ${manifestPath}`);
   process.exit(1);

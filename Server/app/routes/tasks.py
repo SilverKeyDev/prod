@@ -9,6 +9,7 @@ from app.schemas import (
     TaskChecklistApiResponse,
     UpdateTaskChecklistRequest,
 )
+from app.utils.common_patterns import invalid_request, not_found, server_error, validation
 from app.utils.security import rate_limit
 from app.utils.validation import validate_query, validate_request, validate_response
 
@@ -33,13 +34,11 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/api/v1/tasks")
 @handle_exceptions_with_logging
 @require_authenticated_user
 @validate_query(ChecklistTypeQueryParams)
-def get_task_checklist(user, query: ChecklistTypeQueryParams | None = None):
-    checklist_type = coerce_checklist_type(
-        (query.type if query is not None else None) or request.args.get("type")
-    )
+def get_task_checklist(user, query: ChecklistTypeQueryParams):
+    checklist_type = coerce_checklist_type(query.type)
     data = build_task_checklist_data_for_buyer(str(user.id), checklist_type)
     if data is None:
-        return jsonify({"success": False, "error": "Invalid checklist type"}), 400
+        return invalid_request("Invalid checklist type")
 
     return jsonify({"success": True, "data": data})
 
@@ -62,27 +61,22 @@ def get_task_checklist_progress_summary(user):
 @validate_response(TaskChecklistApiResponse)
 def put_task_checklist(
     user,
-    data: UpdateTaskChecklistRequest | None = None,
-    query: ChecklistTypeQueryParams | None = None,
+    data: UpdateTaskChecklistRequest,
+    query: ChecklistTypeQueryParams,
 ):
-    checklist_type = coerce_checklist_type(
-        (query.type if query is not None else None) or request.args.get("type")
-    )
+    checklist_type = coerce_checklist_type(query.type)
     if checklist_type not in TASK_CATEGORIES:
-        return jsonify({"success": False, "error": "Invalid checklist type"}), 400
+        return invalid_request("Invalid checklist type")
 
     try:
-        if data is None:
-            request_data = request.get_json(silent=True)
-            if not isinstance(request_data, dict):
-                return jsonify({"success": False, "error": "Expected JSON object"}), 400
-            ids = request_data.get("checkedIds")
-        else:
-            payload = data.model_dump()
-            inner = payload.get("data") or {}
-            ids = inner.get("checkedIds")
+        payload = data.model_dump()
+        inner = payload.get("data") or {}
+        ids = inner.get("checkedIds")
         if not isinstance(ids, list):
-            return jsonify({"success": False, "error": "checkedIds must be an array"}), 400
+            return validation(
+                "checkedIds must be an array",
+                field_errors={"checkedIds": "Must be an array"},
+            )
 
         coerced = [int(x) for x in ids if isinstance(x, int | float)]
         correlation_id = (request.headers.get("X-Request-ID") or "").strip() or str(uuid.uuid4())
@@ -95,9 +89,8 @@ def put_task_checklist(
         )
         return jsonify(payload)
     except ValueError as e:
-        return jsonify({"success": False, "error": str(e)}), 400
+        if str(e) == "Transaction not found":
+            return not_found()
+        return validation(str(e))
     except Exception as e:
-        from flask import current_app
-
-        current_app.logger.error("Failed to update task checklist: %s", e)
-        return jsonify({"success": False, "error": "Server error"}), 500
+        return server_error(e, context={"function": "put_task_checklist"})

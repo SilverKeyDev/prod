@@ -2,6 +2,8 @@
 
 from decimal import Decimal
 
+from sqlalchemy import select
+
 from app import db
 from app.models import BuyerStepView, Partner, RevShareLink, RevShareLinkClick, Transaction, User
 from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
@@ -37,7 +39,7 @@ def _click(**kwargs):
 def test_ctr_excludes_anonymous_clicks(app, db_session):
     partner_id = _partner(app, slug="test-partner-ctr")
     with app.app_context():
-        buyer = User(email="b@test.com", name="Buyer", is_agent=False)
+        buyer = User(email="b@test.com", name="Buyer")
         db.session.add(buyer)
         db.session.commit()
 
@@ -86,7 +88,7 @@ def test_ctr_excludes_anonymous_clicks(app, db_session):
 def test_on_click_revenue_sums_snapped_payout_per_click(app, db_session):
     partner_id = _partner(app, slug="test-partner-revenue", payout_type="on_click", payout=25)
     with app.app_context():
-        buyer = User(email="b2@test.com", name="Buyer", is_agent=False)
+        buyer = User(email="b2@test.com", name="Buyer")
         db.session.add(buyer)
         db.session.commit()
 
@@ -133,7 +135,7 @@ def test_on_click_revenue_sums_snapped_payout_per_click(app, db_session):
 def test_on_click_revenue_uses_snapped_rate_not_live_partner_rate(app, db_session):
     partner_id = _partner(app, slug="test-partner-snap", payout_type="on_click", payout=10)
     with app.app_context():
-        buyer = User(email="b4@test.com", name="Buyer", is_agent=False)
+        buyer = User(email="b4@test.com", name="Buyer")
         db.session.add(buyer)
         db.session.commit()
 
@@ -159,7 +161,7 @@ def test_on_click_revenue_uses_snapped_rate_not_live_partner_rate(app, db_sessio
         )
         db.session.commit()
 
-        partner = Partner.query.filter_by(id=partner_id).first()
+        partner = db.session.scalar(select(Partner).where(Partner.id == partner_id))
         partner.payout_per_conversion = Decimal("100")
         db.session.commit()
 
@@ -172,7 +174,7 @@ def test_on_click_revenue_uses_snapped_rate_not_live_partner_rate(app, db_sessio
 def test_on_close_revenue_zero_until_attribution(app, db_session):
     partner_id = _partner(app, slug="test-partner-close", payout_type="on_close", payout=100)
     with app.app_context():
-        buyer = User(email="b3@test.com", name="Buyer", is_agent=False)
+        buyer = User(email="b3@test.com", name="Buyer")
         db.session.add(buyer)
         db.session.commit()
 

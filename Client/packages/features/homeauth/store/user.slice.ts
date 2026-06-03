@@ -27,7 +27,7 @@ export type UserProfile = {
   email: string;
   name?: string;
   username?: string;
-  is_agent?: boolean;
+  roles?: string[];
   [key: string]: unknown;
 };
 
@@ -87,7 +87,7 @@ const withPersist = persistSafe<UserState>(withReset, {
           email: state.userProfile.email,
           name: state.userProfile.name,
           username: state.userProfile.username,
-          is_agent: state.userProfile.is_agent,
+          roles: state.userProfile.roles,
         }
       : null,
     userPreferences: state.userPreferences,

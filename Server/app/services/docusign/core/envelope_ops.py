@@ -18,9 +18,7 @@ from docusign_esign import (
 )
 from docusign_esign.client.api_exception import ApiException
 
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def _handle(handle_exception: Callable[[ApiException, str], None], e: ApiException, op: str):
@@ -37,8 +35,8 @@ def create_envelope(
 ) -> dict[str, Any]:
     """Create envelope in DocuSign."""
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Creating DocuSign envelope",
             {
                 "account_id": account_id,
@@ -58,8 +56,8 @@ def create_envelope(
                 body_dict["prefillTabs"] = merged
                 body = body_dict
         results = envelopes_api.create_envelope(account_id=account_id, envelope_definition=body)
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "DocuSign envelope created successfully",
             {
                 "envelope_id": results.envelope_id,
@@ -85,15 +83,15 @@ def get_envelope(
 ) -> dict[str, Any]:
     """Get envelope status and details."""
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Getting envelope status",
             {"envelope_id": envelope_id, "account_id": account_id},
         )
         envelopes_api = EnvelopesApi(api_client)
         envelope = envelopes_api.get_envelope(account_id=account_id, envelope_id=envelope_id)
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Envelope status retrieved",
             {"envelope_id": envelope_id, "status": envelope.status},
         )
@@ -119,8 +117,8 @@ def void_envelope(
 ) -> dict[str, Any]:
     """Void an envelope."""
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Voiding envelope",
             {"envelope_id": envelope_id, "reason": reason, "account_id": account_id},
         )
@@ -129,8 +127,8 @@ def void_envelope(
         results = envelopes_api.update(
             account_id=account_id, envelope_id=envelope_id, envelope=envelope
         )
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Envelope voided successfully",
             {"envelope_id": envelope_id, "reason": reason},
         )
@@ -150,8 +148,8 @@ def create_recipient_view(
 ) -> str:
     """Create embedded signing URL for recipient."""
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Creating recipient view",
             {
                 "envelope_id": envelope_id,
@@ -174,8 +172,8 @@ def create_recipient_view(
             envelope_id=envelope_id,
             recipient_view_request=view_request,
         )
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Recipient view created successfully",
             {"envelope_id": envelope_id, "recipient_email": recipient.get("email")},
         )
@@ -194,8 +192,8 @@ def get_sender_view(
 ) -> str:
     """Create sender/correction view URL."""
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Creating sender view",
             {"envelope_id": envelope_id, "account_id": account_id},
         )
@@ -204,8 +202,8 @@ def get_sender_view(
         results = envelopes_api.create_sender_view(
             account_id=account_id, envelope_id=envelope_id, return_url_request=view_request
         )
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Sender view created successfully",
             {"envelope_id": envelope_id},
         )
@@ -223,8 +221,8 @@ def get_envelope_documents(
 ) -> dict[str, Any]:
     """Get envelope documents (combined PDF)."""
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Fetching envelope documents",
             {"envelope_id": envelope_id, "account_id": account_id},
         )
@@ -232,8 +230,8 @@ def get_envelope_documents(
         pdf_bytes = envelopes_api.get_document(
             account_id=account_id, envelope_id=envelope_id, document_id="combined"
         )
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Envelope documents fetched successfully",
             {
                 "envelope_id": envelope_id,
@@ -255,8 +253,8 @@ def get_envelope_certificate(
 ) -> dict[str, Any]:
     """Get certificate of completion."""
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Fetching envelope certificate",
             {"envelope_id": envelope_id, "account_id": account_id},
         )
@@ -264,8 +262,8 @@ def get_envelope_certificate(
         cert_bytes = envelopes_api.get_document(
             account_id=account_id, envelope_id=envelope_id, document_id="certificate"
         )
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Envelope certificate fetched successfully",
             {
                 "envelope_id": envelope_id,

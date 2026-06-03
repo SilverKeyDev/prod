@@ -12,7 +12,9 @@ Use centralized logging utilities only.
 ## Required usage
 
 - Client code: import logger from `Client/packages/logger/` (not raw `console.*`).
-- Server code: import logger from `Server/logger/` (not `print` or stdlib `logging.*` in production paths).
+- Server code: `from logger import log` from `Server/logger/` (not `print`, not `current_app.logger`, not `app.utils.security.app_logging` — removed).
+- Stdlib `logging` is allowed only under `Server/logger/bootstrap/` (Flask/Werkzeug levels, third-party noise, tenacity retry hooks via `get_infrastructure_logger`).
+- Use **dot-notation LogPath strings** in log calls: `log.info("AUTH", message, data)` or `log.info("API.POLLING", message, data)`. Do not pass `LOG_CATEGORIES.*` or a 4th `API_SUBCATEGORIES` argument (enforced by `silverkey/prefer-log-path`).
 - Always include an appropriate log category and safe contextual metadata.
 - Keep logs PII-safe; redaction is required for emails, phone numbers, tokens, SSN, and payment identifiers.
 
@@ -28,5 +30,10 @@ When adding a new log category or changing logging configuration contract:
 
 - `rg "console\\.(log|info|warn|error)\\(" Client`
 - `rg "\\bprint\\(" Server`
+- `make log-contracts-migrate-check` — no `LOG_CATEGORIES` left in log call sites
+- `cd Client && pnpm lint` — includes `silverkey/prefer-log-path` and `silverkey/valid-log-path`
+- `make log-contracts-lint` — legacy category usage + static LogPath allowlist (Client + Server)
+- `python3 Server/scripts/lint/lint_no_stdlib_logging.py` — bans `import logging`, `logging.getLogger`, `current_app.logger`, and `app_logging` under `Server/app/`
+- `scripts/ci/check-no-app-logging.sh` — fails if `app_logging` is referenced anywhere under `Server/`
 
 If either query finds new production-path usage, replace with centralized logger APIs.

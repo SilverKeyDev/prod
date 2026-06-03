@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useUIStore } from "packages/store";
 import type { Property } from "packages/types";
 import IconButton from "packages/ui/components/button/core/IconButton";
@@ -89,7 +89,7 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      log.error(LOG_CATEGORIES.SEARCH, "Error updating not-interested", {
+      log.error("SEARCH", "Error updating not-interested", {
         propertyId: property.id,
         address: propertyAddress,
         action: isNotInterested ? "remove" : "add",
@@ -110,7 +110,7 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      log.error(LOG_CATEGORIES.SEARCH, "Error marking as not-interested", {
+      log.error("SEARCH", "Error marking as not-interested", {
         propertyId: property.id,
         address: propertyAddress,
         why,

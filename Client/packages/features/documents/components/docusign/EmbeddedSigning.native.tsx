@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 import WebView, { type WebViewNavigation } from "react-native-webview";
 
 import { useEmbeddedSigningUrlQuery } from "packages/features/documents/hooks/data/docusign/useEmbeddedSigningUrlQuery";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
 import { Box } from "packages/ui/components/primitives";
@@ -121,7 +121,7 @@ export default function EmbeddedSigning({
         // Not JSON, ignore
       }
     } catch (err) {
-      log.error(LOG_CATEGORIES.ERRORS, "Error handling WebView message", err);
+      log.error("ERRORS", "Error handling WebView message", err);
     }
   };
 

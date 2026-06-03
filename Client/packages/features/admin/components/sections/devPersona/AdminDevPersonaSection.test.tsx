@@ -29,7 +29,6 @@ const authState = {
     email: "a@b.c",
     name: "Test",
     is_active: true,
-    is_agent: false,
     has_preferences: false,
     roles: ["buyer"],
   },
@@ -47,8 +46,7 @@ vi.mock("packages/store", () => ({
 describe("AdminDevPersonaSection", () => {
   beforeEach(() => {
     mutateAsync.mockReset();
-    mutateAsync.mockResolvedValue({ id: "u1", is_agent: true, roles: ["agent"] });
-    authState.user.is_agent = false;
+    mutateAsync.mockResolvedValue({ id: "u1", roles: ["agent"] });
     authState.user.roles = ["buyer"];
   });
 

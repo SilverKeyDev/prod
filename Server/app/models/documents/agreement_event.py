@@ -1,10 +1,10 @@
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
-from app.utils.format.datetime import to_aware_utc_iso
 
 
 class AgreementEvent(db.Model):
@@ -45,17 +45,6 @@ class AgreementEvent(db.Model):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "agreement_id": self.agreement_id,
-            "event_type": self.event_type,
-            "description": self.description,
-            "actor_id": self.actor_id,
-            "metadata": self.event_metadata,
-            "created_at": to_aware_utc_iso(self.created_at),
-        }
 
     def __repr__(self):
         return f"<AgreementEvent {self.event_type} - {self.created_at}>"

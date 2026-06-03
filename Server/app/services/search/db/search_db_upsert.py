@@ -5,6 +5,8 @@ from __future__ import annotations
 import copy
 from typing import Any
 
+from sqlalchemy import select
+
 from app import db
 from app.models import UserPropertyLink
 from app.services.property_cache import get_or_create_property
@@ -131,7 +133,12 @@ def add_or_update_home_basic(
     db.session.flush()
 
     # --- per-user UserPropertyLink upsert ---
-    link = UserPropertyLink.query.filter_by(user_id=str(user_id), property_id=prop.id).first()
+    link = db.session.scalar(
+        select(UserPropertyLink).where(
+            UserPropertyLink.user_id == str(user_id),
+            UserPropertyLink.property_id == prop.id,
+        )
+    )
 
     if link:
         link.current = True

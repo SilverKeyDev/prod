@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getNavigator } from "packages/utils/platform";
 
 export type WebShareResult = "shared" | "aborted" | "unavailable";
@@ -19,7 +19,7 @@ export async function tryWebShare(shareData: ShareData): Promise<WebShareResult>
     if (err instanceof Error && err.name === "AbortError") {
       return "aborted";
     }
-    log.warn(LOG_CATEGORIES.PAGES, "Web Share API share failed", err);
+    log.warn("PAGES", "Web Share API share failed", err);
     return "unavailable";
   }
 }

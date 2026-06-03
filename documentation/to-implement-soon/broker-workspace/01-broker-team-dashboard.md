@@ -8,7 +8,7 @@ It is written in the same spirit as the **agent vs buyer experience** split docu
 
 Today:
 
-- **Buyer vs agent** UX is driven by `UserProfile.is_agent` and helpers like `useIsAgent()`; see the rule linked above.
+- **Buyer vs agent** UX is driven by `User.roles` (including `agent`) and helpers like `useIsAgent()`; see the rule linked above.
 - **Roles** (`UserRole` in [`Client/packages/config/auth/auth.ts`](../../../Client/packages/config/auth/auth.ts)) are `user`, `agent`, `admin`, `super_admin`. There is **no broker / office-manager role**.
 - **Brokerage** appears as **agent profile fields** (e.g. `agent_brokerage_name`, address, contact) — useful for display and compliance, **not** for “this user supervises these agents.”
 
@@ -38,7 +38,7 @@ This spec assumes we will **introduce a broker persona** (exact mechanism below)
 | Persona   | Typical intent              | Today (approx.)                          |
 |----------|-----------------------------|------------------------------------------|
 | Buyer    | Own home search & workflow  | Search, Saved, Dashboard, Profile, …     |
-| Agent    | Serve clients               | Messaging + client tooling when `is_agent` |
+| Agent    | Serve clients               | Messaging + client tooling when user has `agent` role |
 | **Broker** | **Oversee team performance** | **Not implemented — this doc**           |
 
 ### Single primary surface
@@ -58,10 +58,10 @@ For users in the broker experience:
 
 If brokers must accept terms or manage org billing later, add explicit flows rather than exposing the full app map.
 
-### Relationship to `is_agent`
+### Relationship to the agent role
 
-- A broker user might or might not also be a licensed agent in real life; **product should decide** whether broker accounts are `is_agent: false` only, or dual-hat.
-- **UX rule:** when the user is in **broker mode** (role-gated), render **only** the broker shell + dashboard, **not** the agent client workspace — even if `is_agent` is true. Prefer **role + route** for authorization and layout, not `is_agent` alone.
+- A broker user might or might not also be a licensed agent in real life; **product should decide** whether broker accounts omit the `agent` role only, or allow dual-hat.
+- **UX rule:** when the user is in **broker mode** (role-gated), render **only** the broker shell + dashboard, **not** the agent client workspace — even if they also have the `agent` role. Prefer **role + route** for authorization and layout, not `useIsAgent()` alone.
 
 ```mermaid
 flowchart LR
@@ -89,7 +89,7 @@ flowchart LR
 **Implementation pointers:**
 
 - Use **RoleGuard** (or equivalent) and **server-side checks** on every API that returns team or aggregate data: [`RoleGuard.tsx`](../../../Client/apps/web/app/guards/RoleGuard.tsx).
-- Keep the distinction from [user-type-agent-experience.mdc](../../../.cursor/rules/shared/user-type-agent-experience.mdc): **`roles` for access**, **`is_agent` for agent product UX** — broker access should be **role-based**, not inferred from brokerage name on someone else’s profile.
+- Keep the distinction from [user-type-agent-experience.mdc](../../../.cursor/rules/shared/user-type-agent-experience.mdc): **`roles` for access** (including `agent` for agent product UX) — broker access should be **role-based**, not inferred from brokerage name on someone else’s profile.
 
 ### Org membership
 
@@ -133,7 +133,7 @@ Align with [user-activity-observability/05-privacy-and-governance.md](../user-ac
 
 - Add a **broker persona** with **server-scoped** access to **their org’s agents**.
 - Ship **one primary dashboard route** and **hide** standard buyer and agent nav.
-- Prefer **roles + route** for layout and auth; do not rely on `is_agent` or profile strings alone.
+- Prefer **roles + route** for layout and auth; do not rely on `useIsAgent()` alone or profile strings alone.
 - Metrics should mirror **observability and admin** norms: **trustworthy definitions**, **aggregates**, **no unnecessary PII**.
 
 ## Cross-links

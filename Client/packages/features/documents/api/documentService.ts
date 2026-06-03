@@ -3,7 +3,7 @@ import type {
   DocumentCategory,
   WorkflowDocument,
 } from "packages/features/documents/types/documents";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { createAbortManager, HttpError, isAbortError } from "packages/services/http";
 import { dateNow, dateParseISO } from "packages/utils/date";
 import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
@@ -24,7 +24,7 @@ export class DocumentService {
 
   async fetchDocuments(): Promise<WorkflowDocument[]> {
     // getDocuments should not be called - return empty array
-    log.warn(LOG_CATEGORIES.API, "fetchDocuments called but getDocuments should not be used");
+    log.warn("API", "fetchDocuments called but getDocuments should not be used");
     return [];
   }
 
@@ -99,7 +99,7 @@ export class DocumentService {
         throw new Error(result.error ?? result.message ?? "Upload failed");
       }
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Upload error", error);
+      log.error("ERRORS", "Upload error", error);
 
       // Improved error message extraction
       let errorMessage = "Upload failed";
@@ -152,7 +152,7 @@ export class DocumentService {
       }
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to update document status", e);
+        log.error("ERRORS", "Failed to update document status", e);
         throw e;
       }
       throw e;
@@ -177,7 +177,7 @@ export class DocumentService {
       }
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to sign document", e);
+        log.error("ERRORS", "Failed to sign document", e);
         throw e;
       }
       throw e;
@@ -189,7 +189,7 @@ export class DocumentService {
       await secureUploadApi.downloadDocument(docId);
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to download document", e);
+        log.error("ERRORS", "Failed to download document", e);
         throw e;
       }
       throw e;
@@ -205,7 +205,7 @@ export class DocumentService {
       }
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to delete document", e);
+        log.error("ERRORS", "Failed to delete document", e);
         throw e;
       }
       throw e;

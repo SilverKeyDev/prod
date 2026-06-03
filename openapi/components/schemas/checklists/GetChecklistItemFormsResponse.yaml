@@ -1,0 +1,9 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      forms:
+        type: array
+        items:
+          $ref: './ChecklistFormWithDownload.yaml'
+        nullable: true

@@ -8,7 +8,7 @@ Multi-party transaction workspaces (buyer, agent, TC, lender, escrow) with role 
 
 - **Buyer:** `transaction_id` on checklist routes equals the buyer's `user.id`; buyers read/write their own tasks.
 - **Agent:** Agents access a client's checklist when the buyer is in the agent's client list (`get_agent_client_ids`).
-- **Global flags:** `user.is_agent` gates agent routes; no per-transaction roles (TC, loan officer, etc.).
+- **Global roles:** `user_roles` with `role = "agent"` (via `user_is_agent()`) gates agent routes; no per-transaction roles (TC, loan officer, etc.).
 
 ### Planned (not in repo)
 

@@ -1,10 +1,10 @@
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
-from app.utils.format.datetime import to_aware_utc_iso
 
 
 class AgreementParticipant(db.Model):
@@ -52,23 +52,6 @@ class AgreementParticipant(db.Model):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "agreement_id": self.agreement_id,
-            "user_id": self.user_id,
-            "email": self.email,
-            "name": self.name,
-            "role": self.role,
-            "routing_order": self.routing_order,
-            "docusign_recipient_id": self.docusign_recipient_id,
-            "recipient_status": self.recipient_status,
-            "sent_at": to_aware_utc_iso(self.sent_at),
-            "delivered_at": to_aware_utc_iso(self.delivered_at),
-            "signed_at": to_aware_utc_iso(self.signed_at),
-            "declined_at": to_aware_utc_iso(self.declined_at),
-        }
 
     def __repr__(self):
         return f"<AgreementParticipant {self.name} - {self.role}>"

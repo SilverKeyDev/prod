@@ -1,5 +1,5 @@
 import { getEnv } from "packages/config/env";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { SavedHome } from "packages/types/domain/savedHome";
 import { isLikelyInternalAppListingKey } from "packages/utils/property/listingIdentifier";
 import type { PropertySearchListingPriceSource } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
@@ -78,24 +78,20 @@ export function mapHomeUniversalToSavedHome(home: unknown, index: number): Saved
 
   const isDev = getEnv().isDevelopment;
   if (index < 10) {
-    log.debug(
-      LOG_CATEGORIES.MAP_RENDERING,
-      "🗺️ [SAVED HOMES] Normalizing coordinates for saved home",
-      {
-        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-        index,
-        id: homeData.id,
-        address: homeData.address,
-        rawLat,
-        rawLng,
-        latNum,
-        lngNum,
-        validLat,
-        validLng,
-        finalLat: lat,
-        finalLng: lng,
-      }
-    );
+    log.debug("MAP_RENDERING", "🗺️ [SAVED HOMES] Normalizing coordinates for saved home", {
+      environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+      index,
+      id: homeData.id,
+      address: homeData.address,
+      rawLat,
+      rawLng,
+      latNum,
+      lngNum,
+      validLat,
+      validLng,
+      finalLat: lat,
+      finalLng: lng,
+    });
   }
 
   const rawData =

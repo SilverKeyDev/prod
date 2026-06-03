@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import base64
 import json
-import logging
 import os
 import re
 import time
@@ -21,9 +20,9 @@ from app.config.llm_models import (
     openai_model_text_cleanup,
     openai_model_vision_batch,
 )
+from logger import log
 
 _client: OpenAI | None = None
-logger = logging.getLogger(__name__)
 
 
 def _get_client() -> OpenAI:
@@ -62,7 +61,11 @@ def _download_image_as_data_url(url: str) -> str | None:
             headers=_IMAGE_DOWNLOAD_HEADERS,
         )
         if resp.status_code != 200:
-            logger.debug("Image download returned %d for %s", resp.status_code, url)
+            log.debug(
+                "SEARCH",
+                "Image download returned %d for %s",
+                {"arg0": str(resp.status_code), "arg1": str(url)},
+            )
             return None
         content_type = resp.headers.get("Content-Type", "image/jpeg")
         if not content_type.startswith("image/"):
@@ -70,7 +73,7 @@ def _download_image_as_data_url(url: str) -> str | None:
         b64 = base64.b64encode(resp.content).decode("utf-8")
         return f"data:{content_type};base64,{b64}"
     except Exception as exc:
-        logger.debug("Failed to download image %s: %s", url, exc)
+        log.debug("SEARCH", "Failed to download image %s: %s", {"arg0": str(url), "arg1": str(exc)})
         return None
 
 
@@ -131,37 +134,40 @@ def _make_openai_request_with_retry(request_func, max_retries: int = 3):
 
             if wait_time is None:
                 wait_time = 2**attempt
-                logger.warning(
-                    f"⏳ Rate limit hit on attempt {attempt + 1}, using exponential backoff: {wait_time}s"
+                log.warn(
+                    "SEARCH",
+                    f"⏳ Rate limit hit on attempt {attempt + 1}, using exponential backoff: {wait_time}s",
                 )
             else:
                 wait_time = max(wait_time + 0.1, 0.1)
-                logger.warning(
-                    f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time:.3f}s (as requested by API)..."
+                log.warn(
+                    "SEARCH",
+                    f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time:.3f}s (as requested by API)...",
                 )
 
             if attempt < max_retries - 1:
                 time.sleep(wait_time)
             else:
-                logger.error(f"❌ Rate limit exceeded after {max_retries} attempts: {e}")
+                log.error("ERRORS", f"❌ Rate limit exceeded after {max_retries} attempts: {e}")
                 raise
         except APIError as e:
             wait_time = 2**attempt
             if attempt < max_retries - 1:
-                logger.warning(
-                    f"⚠️ API error on attempt {attempt + 1}: {e}, waiting {wait_time}s before retry..."
+                log.warn(
+                    "SEARCH",
+                    f"⚠️ API error on attempt {attempt + 1}: {e}, waiting {wait_time}s before retry...",
                 )
                 time.sleep(wait_time)
             else:
-                logger.error(f"❌ API error after {max_retries} attempts: {e}")
+                log.error("ERRORS", f"❌ API error after {max_retries} attempts: {e}")
                 raise
         except Exception as e:
             if attempt == max_retries - 1:
-                logger.error(f"❌ Unexpected error after {max_retries} attempts: {e}")
+                log.error("ERRORS", f"❌ Unexpected error after {max_retries} attempts: {e}")
                 raise
             else:
-                logger.warning(
-                    f"⚠️ Unexpected error on attempt {attempt + 1}: {e}, retrying in 1s..."
+                log.warn(
+                    "SEARCH", f"⚠️ Unexpected error on attempt {attempt + 1}: {e}, retrying in 1s..."
                 )
                 time.sleep(1)
 
@@ -249,7 +255,7 @@ def extract_features_from_batch(image_batch: list[str], batch_num: int) -> list[
         return features
 
     except Exception as e:
-        logger.error(f"🔍 [BATCH {batch_num}] Error extracting features: {str(e)}")
+        log.error("ERRORS", f"🔍 [BATCH {batch_num}] Error extracting features: {str(e)}")
         return []
 
 
@@ -288,7 +294,7 @@ def extract_features_from_images(image_urls: list[str]) -> list[str]:
                 batch_features = future.result()
                 all_features.extend(batch_features)
             except Exception as e:
-                logger.error(f"🔍 [BATCH {batch_num}] Failed with error: {str(e)}")
+                log.error("ERRORS", f"🔍 [BATCH {batch_num}] Failed with error: {str(e)}")
 
     return all_features
 

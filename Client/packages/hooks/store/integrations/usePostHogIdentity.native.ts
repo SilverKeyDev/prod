@@ -23,12 +23,12 @@ export function usePostHogIdentity(): void {
 
     if (isAuthenticated && user?.id) {
       identifyPostHogUser(String(user.id), {
-        is_agent: Boolean(user.is_agent),
+        has_agent_role: (user.roles ?? []).includes("agent"),
         has_brokerage: Boolean(user.brokerage),
       });
       return;
     }
 
     resetPostHogUser();
-  }, [authReady, isAuthenticated, user?.id, user?.is_agent, user?.brokerage]);
+  }, [authReady, isAuthenticated, user?.id, user?.roles, user?.brokerage]);
 }

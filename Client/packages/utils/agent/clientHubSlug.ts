@@ -2,8 +2,7 @@
  * URL helpers for agent client hub routes: `/dashboard/client/{nameSlug}/{idSlug}`.
  *
  * `nameSlug` is derived from the client's display name; `idSlug` is the last segment of the
- * client's user id (RFC4122 UUID) for a shorter, shareable path. Legacy `/dashboard/client/{uuid}`
- * URLs are still accepted and canonicalized to the two-segment form.
+ * client's user id (RFC4122 UUID) for a shorter, shareable path.
  */
 
 import { isLikelyUserUuid } from "packages/utils/agent/pendingPublicAgentConnect";
@@ -35,22 +34,20 @@ export function buildClientHubPath(clientId: string, clientName: string): string
   return `/dashboard/client/${nameSlug}/${idSlug}`;
 }
 
-export type ParsedClientHubPath =
-  | { kind: "segments"; nameSlug: string; idSlug: string }
-  | { kind: "legacy"; segment: string };
+export type ParsedClientHubPath = {
+  nameSlug: string;
+  idSlug: string;
+};
 
-const CLIENT_HUB_PATH_RE = /^\/dashboard\/client\/([^/]+)(?:\/([^/]+))?\/?$/;
+const CLIENT_HUB_PATH_RE = /^\/dashboard\/client\/([^/]+)\/([^/]+)\/?$/;
 
 export function parseClientHubPathname(pathname: string): ParsedClientHubPath | null {
   const match = pathname.match(CLIENT_HUB_PATH_RE);
   if (!match) return null;
-  const first = match[1]?.trim() ?? "";
-  const second = match[2]?.trim() ?? "";
-  if (!first) return null;
-  if (second) {
-    return { kind: "segments", nameSlug: first, idSlug: second };
-  }
-  return { kind: "legacy", segment: first };
+  const nameSlug = match[1]?.trim() ?? "";
+  const idSlug = match[2]?.trim() ?? "";
+  if (!nameSlug || !idSlug) return null;
+  return { nameSlug, idSlug };
 }
 
 export function resolveClientIdFromHubSegments(
@@ -83,23 +80,9 @@ export function resolveClientIdFromHubSegments(
   return null;
 }
 
-export function resolveClientIdFromLegacyHubSegment(
-  clients: readonly { id: string; name: string }[],
-  segment: string
-): string | null {
-  const trimmed = segment.trim();
-  if (!trimmed) return null;
-  if (!isLikelyUserUuid(trimmed)) return null;
-  const found = clients.find((c) => c.id.trim() === trimmed);
-  return found?.id ?? trimmed;
-}
-
 export function resolveClientHubRouteClientId(
   clients: readonly { id: string; name: string }[],
   parsed: ParsedClientHubPath
 ): string | null {
-  if (parsed.kind === "legacy") {
-    return resolveClientIdFromLegacyHubSegment(clients, parsed.segment);
-  }
   return resolveClientIdFromHubSegments(clients, parsed.nameSlug, parsed.idSlug);
 }

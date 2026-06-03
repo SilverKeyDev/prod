@@ -5,10 +5,9 @@ User signup flow handler.
 from datetime import datetime, timezone
 from typing import Any
 
-from flask import current_app
-
 from app import db
 from app.models import User
+from logger import log
 
 from ..core.cognito_service import AWS_COGNITO_service
 
@@ -22,21 +21,20 @@ def handle_signup(data: dict[str, Any]) -> tuple[dict[str, Any], int]:
         {"Name": "email", "Value": data["email"]},
         {"Name": "name", "Value": data["name"]},
     ]
-
     if "phone" in data:
         user_attributes.append({"Name": "phone_number", "Value": data["phone"]})
-
     result = AWS_COGNITO_service.sign_up(
         username=data["email"], password=data["password"], user_attributes=user_attributes
     )
-
     if not result["success"]:
-        return {
-            "success": False,
-            "error": result.get("error", "SIGNUP_FAILED"),
-            "message": result.get("message", "Failed to register user"),
-        }, 400
-
+        return (
+            {
+                "success": False,
+                "error": result.get("error", "SIGNUP_FAILED"),
+                "message": result.get("message", "Failed to register user"),
+            },
+            400,
+        )
     try:
         now = datetime.now(timezone.utc)
         user = User(
@@ -58,21 +56,20 @@ def handle_signup(data: dict[str, Any]) -> tuple[dict[str, Any], int]:
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(
-            "Signup Cognito succeeded but database user creation failed for %s: %s",
-            data.get("email"),
+        log.error(
+            "ERRORS",
+            f"Signup Cognito succeeded but database user creation failed for {data.get('email')}: {str(e)}",
             str(e),
         )
-        return {
-            "success": False,
-            "error": "SIGNUP_SYNC_FAILED",
-            "message": (
-                "Account was created in our identity provider but could not be synced. "
-                "Please contact support or try signing in after verifying your email."
-            ),
-            "user_sub": result["user_sub"],
-        }, 503
-
+        return (
+            {
+                "success": False,
+                "error": "SIGNUP_SYNC_FAILED",
+                "message": "Account was created in our identity provider but could not be synced. Please contact support or try signing in after verifying your email.",
+                "user_sub": result["user_sub"],
+            },
+            503,
+        )
     from app.services.analytics.posthog_events import capture_product_event, set_person_properties
 
     set_person_properties(
@@ -90,9 +87,11 @@ def handle_signup(data: dict[str, Any]) -> tuple[dict[str, Any], int]:
             "has_brokerage": bool(data.get("brokerage") and str(data["brokerage"]).strip()),
         },
     )
-
-    return {
-        "success": True,
-        "message": "User registered successfully. Please check your email for verification code.",
-        "user_sub": result["user_sub"],
-    }, 201
+    return (
+        {
+            "success": True,
+            "message": "User registered successfully. Please check your email for verification code.",
+            "user_sub": result["user_sub"],
+        },
+        201,
+    )

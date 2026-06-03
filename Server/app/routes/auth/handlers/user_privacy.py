@@ -11,11 +11,12 @@ from app.services.auth import build_user_data_export, delete_user_and_all_relate
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_authenticated_user,
+    server_error,
     standardize_success_response,
 )
 from app.utils.security import rate_limit
 from app.utils.validation import validate_request, validate_response
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 if TYPE_CHECKING:
     from app.models.user import User
@@ -33,10 +34,13 @@ def delete_my_account(
     uid = str(user.id)
     ok = delete_user_and_all_related_data(uid)
     if not ok:
-        return jsonify({"success": False, "error": "Account could not be deleted"}), 500
+        return server_error(
+            RuntimeError("account_delete_failed"),
+            context={"function": "delete_my_account", "user_id": uid},
+        )
 
     log.info(
-        LOG_CATEGORIES["API"],
+        "API",
         "Self-service user account deleted",
         {"deleted_user_id": uid},
     )

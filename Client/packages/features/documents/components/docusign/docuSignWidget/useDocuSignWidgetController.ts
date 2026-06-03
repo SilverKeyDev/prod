@@ -15,8 +15,7 @@ import {
   selectRecentAgreementsForWidget,
 } from "./docuSignWidgetModel";
 
-/** Cached template row from GET /docusign/templates (may include legacy `docusign_template_id`). */
-export type ListDocusignTemplate = DocusignTemplate & { docusign_template_id?: string };
+export type ListDocusignTemplate = DocusignTemplate;
 
 export function useDocuSignWidgetController() {
   const qc = useQueryClient();

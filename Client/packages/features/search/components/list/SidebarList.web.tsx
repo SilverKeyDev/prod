@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { CardCompareCheckbox } from "packages/features/compare";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
@@ -142,7 +142,7 @@ export function SidebarList(props: {
       await markNotInterested(property, why);
       setReasonCardPropertyId(null);
     } catch (error) {
-      log.error(LOG_CATEGORIES.SEARCH, "Failed to mark not interested", error);
+      log.error("SEARCH", "Failed to mark not interested", error);
       throw error;
     }
   };
@@ -153,7 +153,7 @@ export function SidebarList(props: {
       await removeNotInterested(property.id, propertyAddress);
       setReasonCardPropertyId(null);
     } catch (error) {
-      log.error(LOG_CATEGORIES.SEARCH, "Failed to undo", error);
+      log.error("SEARCH", "Failed to undo", error);
       throw error;
     }
   };

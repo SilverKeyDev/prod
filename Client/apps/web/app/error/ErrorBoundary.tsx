@@ -7,7 +7,7 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Icon } from "@ui/icons";
 
 import { useErrorReporting } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { ErrorContext } from "packages/services/security/errorReporting";
 import { Box } from "packages/ui/components/primitives";
 import { normalizeError } from "packages/utils/errorHandling";
@@ -250,7 +250,7 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
     // Log error details for debugging
-    log.error(LOG_CATEGORIES.ERRORS, "ErrorBoundary caught error", {
+    log.error("ERRORS", "ErrorBoundary caught error", {
       message: error.message,
       name: error.name,
       stack: error.stack,
@@ -258,7 +258,7 @@ export class ErrorBoundary extends Component<Props, State> {
     });
     // Report error using centralized error reporting
     this.props.reportError?.(error, {
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo.componentStack ?? undefined,
       errorBoundary: true,
     });
     // Call optional onError callback
@@ -283,7 +283,8 @@ export class ErrorBoundary extends Component<Props, State> {
   handleFeedbackSubmit = () => {
     if (this.state.feedbackMessage.trim()) {
       this.props.reportError?.(this.state.error ?? new Error("User feedback"), {
-        userFeedback: this.state.feedbackMessage,
+        userFeedback: true,
+        feedbackMessage: this.state.feedbackMessage,
         errorBoundary: true,
       });
       this.setState({ feedbackSubmitted: true });

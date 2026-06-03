@@ -42,16 +42,16 @@ properties:
                 type: string
       - type: "null"
   validation_errors:
+    deprecated: true
     description: >
-      Optional alternate validation map when included via secure error additional_info. Values are
-      usually strings or lists of strings (same shape as field_errors); additionalProperties stays open
-      for legacy or nested payloads from some validators.
+      Deprecated — use `field_errors`. Removed from SecureErrorHandler output;
+      retained one release for client backward compatibility.
     anyOf:
       - type: object
         additionalProperties: true
       - type: "null"
   details:
-    description: Additional context as plain text or structured map (e.g. legacy Marshmallow validate_request).
+    description: Additional context as plain text or structured map.
     anyOf:
       - type: string
       - type: object
@@ -85,7 +85,6 @@ examples:
       retryable: false
       status_code: 401
       field_errors: null
-      validation_errors: null
       details: null
       retry_after: null
       allowed_types: null

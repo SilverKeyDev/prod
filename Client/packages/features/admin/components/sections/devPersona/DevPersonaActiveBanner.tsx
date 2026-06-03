@@ -19,7 +19,7 @@ export function DevPersonaActiveBanner() {
     const persona = deriveDevAppPersonaFromProfile(
       user
         ? {
-            is_agent: Boolean(user.is_agent),
+            roles: user.roles ?? [],
             roles: user.roles,
             brokerage_org_ids: user.brokerage_org_ids,
           }

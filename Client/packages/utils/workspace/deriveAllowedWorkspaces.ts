@@ -15,8 +15,7 @@ export const ALL_WORKSPACES: readonly Workspace[] = [
 ] as const;
 
 export type DeriveAllowedWorkspacesInput = {
-  isAgent: boolean;
-  /** Role strings from user_roles (e.g. buyer, seller, admin). Lowercased when matching. */
+  /** Role strings from user_roles (e.g. buyer, seller, agent). Lowercased when matching. */
   roles?: readonly string[] | undefined;
   /** When populated from profile/bootstrap, grants brokerage workspace without role heuristics. */
   brokerageOrgIds?: readonly string[] | undefined;
@@ -57,8 +56,9 @@ function hasIntegrationPartnerAccess(roleSet: Set<string>): boolean {
  * Computes which workspace tabs a user may open. Multi-hat users get multiple entries.
  */
 export function deriveAllowedWorkspaces(input: DeriveAllowedWorkspacesInput): Workspace[] {
-  const { isAgent, roles, brokerageOrgIds } = input;
+  const { roles, brokerageOrgIds } = input;
   const roleSet = normalizeRoles(roles);
+  const isAgent = roleSet.has("agent");
   const hasBrokerage = hasBrokerageAccess(roleSet, brokerageOrgIds);
   const hasPartner = hasIntegrationPartnerAccess(roleSet);
   const out = new Set<Workspace>();

@@ -5,6 +5,11 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
+from app import db
+from app.services.auth.user_role_helpers import user_is_agent
+
 if TYPE_CHECKING:
     from app.models import User
 
@@ -104,7 +109,7 @@ def ensure_public_profile_slug(user: User) -> None:
     from app.models import User as UserModel
 
     u = user
-    is_agent = bool(getattr(u, "is_agent", False))
+    is_agent = bool(user_is_agent(u))
     if not is_agent:
         u.public_profile_slug = None
         return
@@ -118,10 +123,12 @@ def ensure_public_profile_slug(user: User) -> None:
     for candidate in _unique_slug_candidates(base, u.id):
         if not is_valid_public_profile_slug(candidate):
             continue
-        existing = UserModel.query.filter(
-            UserModel.public_profile_slug == candidate,
-            UserModel.id != u.id,
-        ).first()
+        existing = db.session.scalar(
+            select(UserModel).where(
+                UserModel.public_profile_slug == candidate,
+                UserModel.id != u.id,
+            )
+        )
         if existing is None:
             u.public_profile_slug = candidate
             return
@@ -133,10 +140,12 @@ def lookup_agent_user_id_by_public_slug(normalized_slug: str) -> str | None:
 
     if not is_valid_public_profile_slug(normalized_slug):
         return None
-    row = User.query.filter_by(public_profile_slug=normalized_slug.lower().strip()).first()
+    row = db.session.scalar(
+        select(User).where(User.public_profile_slug == normalized_slug.lower().strip())
+    )
     if row is None:
         return None
-    if not bool(getattr(row, "is_agent", False)):
+    if not bool(user_is_agent(row)):
         return None
     if row.is_active is not None and not row.is_active:
         return None

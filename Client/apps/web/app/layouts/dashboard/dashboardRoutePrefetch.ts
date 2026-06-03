@@ -1,6 +1,5 @@
 import { prefetchAgentMessagingFeatureChunks } from "packages/features/agent/components/loading/prefetchAgentMessagingChunks";
 import { prefetchDashboardFeatureChunks } from "packages/features/dashboard/components/shell/prefetchDashboardFeatureChunks";
-import { LOG_CATEGORIES } from "packages/logger";
 import { stripWorkspaceShellPrefix } from "packages/utils/layout/dashboardLayoutConfig";
 import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
 
@@ -36,11 +35,7 @@ export function prefetchDashboardShellRoute(
   const path = stripWorkspaceShellPrefix(normalized);
 
   if (path.startsWith("/search")) {
-    traceDynamicImport(
-      LOG_CATEGORIES.ROUTING,
-      "prefetch:SearchPage",
-      import("@/pages/property/SearchPage")
-    );
+    traceDynamicImport("ROUTING", "prefetch:SearchPage", import("@/pages/property/SearchPage"));
     if (typeof window !== "undefined") {
       void import("packages/features/search/utils/googleMaps").then(({ googleMapsService }) => {
         void googleMapsService.loadGoogleMapsScript();
@@ -49,27 +44,19 @@ export function prefetchDashboardShellRoute(
     return;
   }
   if (path.startsWith("/messaging")) {
-    traceDynamicImport(
-      LOG_CATEGORIES.MESSAGES,
-      "prefetch:AgentPage",
-      import("@/pages/workspace/AgentPage")
-    );
+    traceDynamicImport("MESSAGES", "prefetch:AgentPage", import("@/pages/workspace/AgentPage"));
     // AgentFeature lazy-loads ClientMessaging / AgentDashboard; prewarm in parallel with AgentPage
     // so first navigation avoids a sequential chunk waterfall.
     prefetchAgentMessagingFeatureChunks(messagingPrefetchBranch(options));
     return;
   }
   if (path.startsWith("/find-agents")) {
-    traceDynamicImport(
-      LOG_CATEGORIES.ROUTING,
-      "prefetch:FindAgentsPage",
-      import("@/pages/misc/FindAgentsPage")
-    );
+    traceDynamicImport("ROUTING", "prefetch:FindAgentsPage", import("@/pages/misc/FindAgentsPage"));
     return;
   }
   if (path.startsWith("/dashboard")) {
     traceDynamicImport(
-      LOG_CATEGORIES.DASHBOARD,
+      "DASHBOARD",
       "prefetch:DashboardPage",
       import("@/pages/workspace/DashboardPage")
     );
@@ -82,24 +69,16 @@ export function prefetchDashboardShellRoute(
     path.startsWith("/saved") ||
     path.startsWith("/compare-reports")
   ) {
-    traceDynamicImport(
-      LOG_CATEGORIES.ROUTING,
-      "prefetch:LibraryPage",
-      import("@/pages/property/LibraryPage")
-    );
+    traceDynamicImport("ROUTING", "prefetch:LibraryPage", import("@/pages/property/LibraryPage"));
     return;
   }
   if (path.startsWith("/profile")) {
-    traceDynamicImport(
-      LOG_CATEGORIES.ROUTING,
-      "prefetch:ProfilePage",
-      import("@/pages/account/ProfilePage")
-    );
+    traceDynamicImport("ROUTING", "prefetch:ProfilePage", import("@/pages/account/ProfilePage"));
     return;
   }
   if (/^\/agreements\/[^/]+\/complete\/?$/.test(path)) {
     traceDynamicImport(
-      LOG_CATEGORIES.ROUTING,
+      "ROUTING",
       "prefetch:AgreementSigningCompletePage",
       import("@/pages/workspace/AgreementSigningCompletePage")
     );

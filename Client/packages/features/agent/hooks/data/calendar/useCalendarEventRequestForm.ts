@@ -14,7 +14,7 @@ import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentCh
 import { useEventRequestScheduleAvailability } from "packages/hooks/data/calendar/useEventRequestScheduleAvailability";
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useIsAgent } from "packages/hooks/store";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { type UIState, useAuthStore, useUIStore } from "packages/store";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
@@ -311,7 +311,7 @@ export function useCalendarEventRequestForm({
       onSuccess?.();
       onClose();
     } catch (error) {
-      log.error(LOG_CATEGORIES.CALENDAR, "Error sending event request", error);
+      log.error("CALENDAR", "Error sending event request", error);
     } finally {
       setIsSending(false);
     }

@@ -6,13 +6,14 @@ import { useLocation } from "react-router-dom";
 import { useLocalization } from "packages/contexts";
 import { SearchNavLink } from "packages/features/search";
 import { useActiveWorkspace } from "packages/hooks/store";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Link } from "packages/navigation";
 import { useNotificationStore } from "packages/store";
 import Region from "packages/ui/components/accessibility/Region";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
 import { NotificationBadge } from "packages/ui/components/primitives/index.web";
+import { tailwindNavChromeNavText } from "packages/ui/styles/theme/navTabTypography";
 import { getWorkspaceNavTabs } from "packages/utils/workspace/workspaceNavConfig";
 
 import { useDashboardShellRoutePrefetch } from "@/app/layouts/dashboard/useDashboardShellRoutePrefetch.web";
@@ -26,7 +27,7 @@ function genNavId(): string {
 const BAR_CLASS =
   "fixed inset-x-0 bottom-0 z-dock flex w-full min-h-[4rem] flex-col border-t border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg md:hidden";
 function linkClass(active: boolean): string {
-  return `flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 transition-all duration-normal ease-standard ${
+  return `flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-normal ease-standard ${
     active
       ? "text-sidebar-foreground"
       : "text-sidebar-muted-foreground active:text-sidebar-foreground/95"
@@ -36,11 +37,8 @@ function iconClass(active: boolean): string {
   return `h-6 w-6 transition-all duration-normal ease-standard ${active ? "scale-110" : ""}`;
 }
 function labelClass(active: boolean): string {
-  const weight = active ? "!font-semibold" : "!font-medium";
-  const color = active
-    ? "text-sidebar-foreground"
-    : "text-sidebar-muted-foreground active:text-sidebar-foreground/95";
-  return `w-full max-w-full truncate text-center !text-xs leading-tight transition-all duration-normal ease-standard ${weight} ${color}`;
+  const { inactive, highlighted } = tailwindNavChromeNavText;
+  return `transition-all duration-normal ease-standard ${active ? highlighted : inactive}`;
 }
 
 type BottomNavItem = SidebarTab & { name: string };
@@ -102,7 +100,7 @@ function BottomNavItems({
             onTouchStart={() => onPrefetchHref(item.href)}
             onClick={() => {
               const navId = genNavId();
-              log.info(LOG_CATEGORIES.ROUTING, "[NAV] MobileBottomNav click", {
+              log.info("ROUTING", "[NAV] MobileBottomNav click", {
                 navId,
                 from: pathname,
                 to: item.href,
@@ -149,7 +147,7 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
   });
 
   const handleSearchNavigateClick = (navId: string) => {
-    log.info(LOG_CATEGORIES.ROUTING, "[NAV] MobileBottomNav Search click", {
+    log.info("ROUTING", "[NAV] MobileBottomNav Search click", {
       navId,
       pathname: location.pathname,
     });
@@ -166,7 +164,7 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
       }}
     >
       <Box className="flex min-h-16 flex-1 flex-col items-center justify-center">
-        <Box className="flex w-full min-w-0 items-stretch px-1">
+        <Box className="flex w-full items-center justify-around px-2">
           <BottomNavItems
             items={navItems}
             isActive={isActive}

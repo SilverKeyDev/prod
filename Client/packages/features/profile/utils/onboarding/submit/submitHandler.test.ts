@@ -34,7 +34,6 @@ describe("postOnboardingPathForForm", () => {
     expect(
       postOnboardingPathForForm({
         primary_onboarding_role: "seller",
-        is_agent: "no",
         why_joining_silverkey: ["buying_house", "selling_house"],
       })
     ).toBe("/dashboard");
@@ -44,7 +43,6 @@ describe("postOnboardingPathForForm", () => {
     expect(
       postOnboardingPathForForm({
         primary_onboarding_role: "buyer",
-        is_agent: "no",
         why_joining_silverkey: ["buying_house"],
       })
     ).toBe("/search");
@@ -73,7 +71,7 @@ describe("onboarding submission validation bypass", () => {
     const navigate = vi.fn<(path: string) => void>();
 
     await handleSubmit({
-      formData: { primary_onboarding_role: "buyer", is_agent: "no" },
+      formData: { primary_onboarding_role: "buyer" },
       submitPreferences,
       setLoading,
       setValidationResult,

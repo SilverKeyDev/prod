@@ -1,5 +1,8 @@
 """Helpers for enriching Google Calendar API responses with SilverKey DB fields."""
 
+from sqlalchemy import select
+
+from app import db
 from app.models.calendar.calendar_event import CalendarEvent
 
 
@@ -10,9 +13,11 @@ def enrich_events_with_db_itinerary(user_id: str, events: list) -> None:
     ids = [e.get("id") for e in events if isinstance(e, dict) and e.get("id")]
     if not ids:
         return
-    rows = CalendarEvent.query.filter(
-        CalendarEvent.user_id == user_id,
-        CalendarEvent.google_event_id.in_(ids),
+    rows = db.session.scalars(
+        select(CalendarEvent).where(
+            CalendarEvent.user_id == user_id,
+            CalendarEvent.google_event_id.in_(ids),
+        )
     ).all()
     by_gid = {r.google_event_id: r for r in rows if r.google_event_id}
     for ev in events:

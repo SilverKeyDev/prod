@@ -10,7 +10,7 @@ import type { Property, SearchResult } from "packages/features/search/types";
 import { formatAddress } from "packages/features/search/types/search/formatters/propertyDetailsFormatters";
 import { useIsAgent } from "packages/hooks/store";
 import { useSecureClipboardCopy } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import { Textarea } from "packages/ui/components/form/field/FormField";
 import BaseModal from "packages/ui/components/modals/BaseModal";
@@ -66,7 +66,7 @@ export default function ShareHomeModal({
 
       return `${base}${buildPropertyUrl(zpid, address)}`;
     } catch (error) {
-      log.error(LOG_CATEGORIES.ERRORS, "Error building property URL", error);
+      log.error("ERRORS", "Error building property URL", error);
       return null;
     }
   };
@@ -113,7 +113,7 @@ export default function ShareHomeModal({
       }
       onClose();
     } catch (error) {
-      log.error(LOG_CATEGORIES.MESSAGES, "Error sharing home", error);
+      log.error("MESSAGES", "Error sharing home", error);
     } finally {
       setIsSharing(false);
     }

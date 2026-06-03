@@ -1,11 +1,12 @@
 """Brokerage organization — attribution boundary (not row-level isolation)."""
 
+# pyright: reportUndefinedVariable=false
 from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
 
 from app import db
 
@@ -25,6 +26,12 @@ class BrokerageOrg(db.Model):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+
+    memberships: DynamicMapped["UserOrgMembership"] = relationship(
+        "UserOrgMembership",
+        back_populates="brokerage_org",
+        lazy="dynamic",
     )
 
     def __init__(self, **kwargs):

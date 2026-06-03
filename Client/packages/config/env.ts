@@ -4,7 +4,7 @@
    Client-visible keys use EXPO_PUBLIC_* (Metro + Vite web shim); application code does not use Vite-prefixed env keys.
    ========================= */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { resolveGoogleMapsCloudMapId } from "packages/utils/maps/cloudMapId/resolveGoogleMapsCloudMapId";
 
 function trimEnv(value: string | undefined): string {
@@ -91,7 +91,7 @@ class EnvConfig {
     const missing = required.filter((key) => !this.env[key]);
 
     if (missing.length > 0) {
-      log.warn(LOG_CATEGORIES.API, "Missing required environment variables", {
+      log.warn("API", "Missing required environment variables", {
         missing,
       });
     }
@@ -104,7 +104,7 @@ class EnvConfig {
       resolveGoogleMapsCloudMapId(this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS);
     if (!mapId) {
       log.warn(
-        LOG_CATEGORIES.API,
+        "API",
         "Google Maps Cloud map ID not configured (EXPO_PUBLIC_GOOGLE_MAPS_ID or EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS) - using default map styling"
       );
     }
@@ -115,7 +115,7 @@ class EnvConfig {
     const clientId = EnvConfig.STATIC.GOOGLE_CLIENT_ID || this.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) {
       log.warn(
-        LOG_CATEGORIES.API,
+        "API",
         "EXPO_PUBLIC_GOOGLE_CLIENT_ID not configured - Google services integration may be limited"
       );
       return null;
@@ -127,7 +127,7 @@ class EnvConfig {
     const clientId = EnvConfig.STATIC.PLAID_CLIENT_ID || this.env.EXPO_PUBLIC_PLAID_CLIENT_ID;
     if (!clientId) {
       log.warn(
-        LOG_CATEGORIES.API,
+        "API",
         "EXPO_PUBLIC_PLAID_CLIENT_ID not configured - Plaid integration may be limited"
       );
       return null;

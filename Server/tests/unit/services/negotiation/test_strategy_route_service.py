@@ -12,7 +12,7 @@ from app.services.negotiation.strategy_route_service import (
 
 
 def test_resolve_preferences_user_id_defaults_to_self():
-    user = SimpleNamespace(id="user-1", is_agent=False)
+    user = SimpleNamespace(id="user-1")
     prefs_id, err, status = resolve_preferences_user_id(user, None)
     assert prefs_id == "user-1"
     assert err is None
@@ -20,7 +20,7 @@ def test_resolve_preferences_user_id_defaults_to_self():
 
 
 def test_resolve_preferences_user_id_rejects_non_agent_targeting_client():
-    user = SimpleNamespace(id="buyer-1", is_agent=False)
+    user = SimpleNamespace(id="buyer-1")
     prefs_id, err, status = resolve_preferences_user_id(user, "client-2")
     assert prefs_id is None
     assert status == 403
@@ -28,10 +28,13 @@ def test_resolve_preferences_user_id_rejects_non_agent_targeting_client():
 
 
 def test_resolve_preferences_user_id_rejects_agent_without_client_access():
-    user = SimpleNamespace(id="agent-1", is_agent=True)
-    with patch(
-        "app.services.negotiation.strategy_route_service.agent_may_access_client",
-        return_value=False,
+    user = SimpleNamespace(id="agent-1")
+    with (
+        patch("app.services.negotiation.strategy_route_service.user_is_agent", return_value=True),
+        patch(
+            "app.services.negotiation.strategy_route_service.agent_may_access_client",
+            return_value=False,
+        ),
     ):
         prefs_id, err, status = resolve_preferences_user_id(user, "client-2")
     assert prefs_id is None
@@ -40,10 +43,13 @@ def test_resolve_preferences_user_id_rejects_agent_without_client_access():
 
 
 def test_resolve_preferences_user_id_allows_managing_agent():
-    user = SimpleNamespace(id="agent-1", is_agent=True)
-    with patch(
-        "app.services.negotiation.strategy_route_service.agent_may_access_client",
-        return_value=True,
+    user = SimpleNamespace(id="agent-1")
+    with (
+        patch("app.services.negotiation.strategy_route_service.user_is_agent", return_value=True),
+        patch(
+            "app.services.negotiation.strategy_route_service.agent_may_access_client",
+            return_value=True,
+        ),
     ):
         prefs_id, err, status = resolve_preferences_user_id(user, "client-2")
     assert prefs_id == "client-2"
@@ -51,7 +57,7 @@ def test_resolve_preferences_user_id_allows_managing_agent():
 
 
 def test_build_negotiation_strategy_payload_success():
-    user = SimpleNamespace(id="user-1", is_agent=False)
+    user = SimpleNamespace(id="user-1")
     strategy = {"opening_offer_rationale": "Comp-based opening at $500k"}
 
     with (
@@ -84,7 +90,7 @@ def test_build_negotiation_strategy_payload_success():
 
 
 def test_build_negotiation_strategy_payload_propagates_access_denial():
-    user = SimpleNamespace(id="buyer-1", is_agent=False)
+    user = SimpleNamespace(id="buyer-1")
     body, status = build_negotiation_strategy_payload(
         user,
         address="123 Main St",

@@ -1,5 +1,5 @@
 import { getEnv } from "packages/config/env";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { resolveWebGoogleMapsCloudMapId } from "./resolveWebGoogleMapsCloudMapId";
 
@@ -68,12 +68,12 @@ export function logWebMapsEnvDiagnostics(options?: LogWebMapsEnvDiagnosticsOptio
 
   if (!mapId && phase === "env") {
     log.warn(
-      LOG_CATEGORIES.MAP_RENDERING,
+      "MAP_RENDERING",
       "Web Maps Cloud Map ID not configured at build/runtime — Advanced Markers will not work",
       payload
     );
     return;
   }
 
-  log.info(LOG_CATEGORIES.MAP_RENDERING, "Web Maps Cloud Map ID diagnostics", payload);
+  log.info("MAP_RENDERING", "Web Maps Cloud Map ID diagnostics", payload);
 }

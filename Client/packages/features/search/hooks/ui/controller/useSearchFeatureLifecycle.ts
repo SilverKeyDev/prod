@@ -1,6 +1,6 @@
 import { type MutableRefObject, useEffect } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getWindow } from "packages/utils/platform";
 
 type FeedScrollRef = MutableRefObject<unknown>;
@@ -91,14 +91,14 @@ export function useSearchFeatureLifecycle({
   }, [setUserGeolocation]);
 
   useEffect(() => {
-    log.info(LOG_CATEGORIES.ROUTING, "[SEARCH] SearchFeature mounted", {
+    log.info("ROUTING", "[SEARCH] SearchFeature mounted", {
       mode: searchViewMode,
       activeTab,
       resultsCount: filteredSearchResultsLength,
       savedCount: savedHomesLength,
     });
     return () => {
-      log.info(LOG_CATEGORIES.ROUTING, "[SEARCH] SearchFeature unmounted", {});
+      log.info("ROUTING", "[SEARCH] SearchFeature unmounted", {});
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount logging only; adding deps would log on every navigation/result change
   }, []);
@@ -108,7 +108,7 @@ export function useSearchFeatureLifecycle({
     return () => {
       const pending = acRef.current;
       if (pending) {
-        log.debug(LOG_CATEGORIES.ROUTING, "[SEARCH] Aborting in-flight search on unmount", {});
+        log.debug("ROUTING", "[SEARCH] Aborting in-flight search on unmount", {});
         pending.abort();
       }
     };

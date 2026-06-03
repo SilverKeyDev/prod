@@ -2,12 +2,11 @@
 Configuration validation utility for startup validation of required environment variables.
 """
 
-import logging
 import os
 import re
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 # Path to .env.example file (Server/.env.example)
 ENV_EXAMPLE_PATH = Path(__file__).resolve().parents[3] / ".env.example"
@@ -23,8 +22,10 @@ def _load_env_example_keys() -> set[str]:
     env_keys = set()
 
     if not ENV_EXAMPLE_PATH.exists():
-        logger.warning(
-            f".env.example file not found at {ENV_EXAMPLE_PATH}. Using fallback required variables."
+        log.warn(
+            "API",
+            ".env.example file not found; using fallback required variables",
+            {"path": str(ENV_EXAMPLE_PATH)},
         )
         return env_keys
 
@@ -47,13 +48,19 @@ def _load_env_example_keys() -> set[str]:
                     env_keys.add(key)
 
         if env_keys:
-            logger.info(
-                f"Loaded {len(env_keys)} required environment variables from {ENV_EXAMPLE_PATH}"
+            log.info(
+                "API",
+                "Loaded required environment variables from .env.example",
+                {"count": len(env_keys), "path": str(ENV_EXAMPLE_PATH)},
             )
         else:
-            logger.warning(f"No environment variables found in {ENV_EXAMPLE_PATH}")
+            log.warn(
+                "API",
+                "No environment variables found in .env.example",
+                {"path": str(ENV_EXAMPLE_PATH)},
+            )
     except Exception as e:
-        logger.error(f"Error reading .env.example file: {e}")
+        log.error("ERRORS", "Error reading .env.example file", {"error": str(e)})
 
     return env_keys
 
@@ -86,7 +93,7 @@ def validate_environment() -> tuple[bool, list[str]]:
         - missing_vars: List of missing required environment variable names
     """
     if not REQUIRED_ENV_VARS:
-        logger.warning("No required environment variables defined. Check .env.example file.")
+        log.warn("API", "No required environment variables defined; check .env.example file")
         return True, []
 
     missing_vars = []
@@ -95,17 +102,27 @@ def validate_environment() -> tuple[bool, list[str]]:
         value = os.getenv(var_name)
         if not value:
             missing_vars.append(var_name)
-            logger.error(f"Missing required environment variable: {var_name}")
+            log.error(
+                "ERRORS",
+                "Missing required environment variable",
+                {"variable": var_name},
+            )
 
     if missing_vars:
-        logger.error(
-            f"Missing {len(missing_vars)} required environment variable(s) "
-            f"(out of {len(REQUIRED_ENV_VARS)} total from .env.example)"
+        log.error(
+            "ERRORS",
+            "Missing required environment variables from .env.example",
+            {
+                "missing_count": len(missing_vars),
+                "total_required": len(REQUIRED_ENV_VARS),
+            },
         )
         return False, missing_vars
 
-    logger.info(
-        f"All {len(REQUIRED_ENV_VARS)} required environment variables are set (validated against .env.example)"
+    log.info(
+        "API",
+        "All required environment variables are set",
+        {"count": len(REQUIRED_ENV_VARS)},
     )
     return True, []
 
@@ -120,14 +137,16 @@ def validate_and_raise() -> None:
     from app.utils.testing_mode import is_testing
 
     if is_migrate_only():
-        logger.info(
-            "Skipping .env.example validation (SILVERKEY_MIGRATE_ONLY); migrations need DATABASE_URL only"
+        log.info(
+            "API",
+            "Skipping .env.example validation (SILVERKEY_MIGRATE_ONLY)",
         )
         return
 
     if is_testing():
-        logger.info(
-            "Skipping .env.example validation (TESTING); pytest uses stubs in tests/conftest.py"
+        log.info(
+            "API",
+            "Skipping .env.example validation (TESTING)",
         )
         return
 

@@ -11,7 +11,7 @@ import MapView, {
 
 import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/primitives";
 import { getIsochroneUnionFillNativeRgba } from "packages/utils/maps/isochrone/isochroneUnionStyle";
@@ -84,7 +84,7 @@ export function PropertyCommuteNativeMap({
 
   React.useEffect(() => {
     if (mapIdApplied) {
-      log.info(LOG_CATEGORIES.PROPERTY_DETAILS, "Property commute native map using Cloud Map ID", {
+      log.info("PROPERTY_DETAILS", "Property commute native map using Cloud Map ID", {
         googleMapId,
       });
     }

@@ -14,7 +14,7 @@ import {
   useAgentChats,
 } from "packages/features/messaging/hooks/data/useAgentChats";
 import { isSameMessagingUserId } from "packages/features/messaging/utils/userIdMatch";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNotificationStore } from "packages/store";
 import { dateParseISO } from "packages/utils/date";
 
@@ -212,7 +212,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
         return next;
       });
     } catch (err) {
-      log.error(LOG_CATEGORIES.API, "Refresh conversation history failed", err);
+      log.error(`API.${err}`, "Refresh conversation history failed");
     }
   }, [
     activeConversationId,
@@ -229,7 +229,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     if (!activeConversationId) return;
     markConversationRead(activeConversationId);
     void agentApi.markMessagesAsRead(activeConversationId).catch((err) => {
-      log.error(LOG_CATEGORIES.MESSAGES, "Failed to mark messages as read", err);
+      log.error("MESSAGES", "Failed to mark messages as read", err);
     });
     if (localMessages.length > 0) {
       const latest = localMessages[localMessages.length - 1];

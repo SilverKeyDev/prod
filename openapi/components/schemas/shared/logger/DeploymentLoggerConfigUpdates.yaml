@@ -1,6 +1,8 @@
+# AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Modify scripts/log_contracts/categories.yaml, then run: make log-contracts
 type: object
 properties:
   client:
-    $ref: './ClientLoggerConfig.yaml'
+    $ref: './ClientLoggerConfigPatch.yaml'
   server:
-    $ref: './ServerLoggerConfig.yaml'
+    $ref: './ServerLoggerConfigPatch.yaml'

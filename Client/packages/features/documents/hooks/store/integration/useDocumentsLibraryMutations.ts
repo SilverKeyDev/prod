@@ -6,7 +6,7 @@ import { queryKeys } from "packages/config/query/keys";
 import { docusignApi } from "packages/features/documents/api/docusign";
 import { reportApi } from "packages/features/documents/api/report";
 import type { DocumentData } from "packages/features/documents/hooks/data/useDocumentsData";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 
@@ -19,7 +19,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
       const response = await reportApi.delete(docId, s3Key);
       if (!response.success) {
         const errorMessage = resolveApiResultErrorMessage(response, "Failed to delete document");
-        log.error(LOG_CATEGORIES.API, "Failed to delete document", {
+        log.error("API", "Failed to delete document", {
           docId,
           error: errorMessage,
         });
@@ -41,7 +41,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
       return { previousDocuments };
     },
     onError: (error, _variables, context) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Error deleting document", error);
+      log.error("ERRORS", "Error deleting document", error);
       if (context?.previousDocuments) {
         queryClient.setQueryData(
           queryKeys.documents.list(undefined, clientId),
@@ -50,7 +50,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
       }
     },
     onSuccess: () => {
-      log.info(LOG_CATEGORIES.API, "Document deleted successfully");
+      log.info("API", "Document deleted successfully");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.documents.all });
@@ -65,7 +65,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
           response,
           "Failed to remove document from library"
         );
-        log.error(LOG_CATEGORIES.API, "Failed to remove from library", {
+        log.error("API", "Failed to remove from library", {
           libraryItemId,
           error: errorMessage,
         });
@@ -87,7 +87,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
       return { previousDocuments };
     },
     onError: (error, _variables, context) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Error removing from library", error);
+      log.error("ERRORS", "Error removing from library", error);
       if (context?.previousDocuments) {
         queryClient.setQueryData(
           queryKeys.documents.list(undefined, clientId),
@@ -96,7 +96,7 @@ export function useDocumentsLibraryMutations(clientId?: string) {
       }
     },
     onSuccess: () => {
-      log.info(LOG_CATEGORIES.API, "Document removed from library successfully");
+      log.info("API", "Document removed from library successfully");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.documents.all });

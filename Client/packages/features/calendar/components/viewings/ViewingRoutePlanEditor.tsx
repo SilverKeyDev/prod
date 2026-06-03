@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { buildViewingRoute } from "packages/api/viewings";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { AddressInput, Dropdown, type DropdownOption } from "packages/ui/components";
 import Button from "packages/ui/components/button/core/Button";
 import { Icon } from "packages/ui/components/icons";
@@ -133,7 +133,7 @@ export function ViewingRoutePlanEditor({
           setPreviewLegsMinutes(complete ? minutes : null);
         } catch (e) {
           if (!cancelled) {
-            log.warn(LOG_CATEGORIES.HTTP, "Viewing route preview failed", e);
+            log.warn("HTTP", "Viewing route preview failed", e);
             setPreviewLegsMinutes(null);
             setPreviewOrdered(false);
             setPreviewError("Could not preview route");

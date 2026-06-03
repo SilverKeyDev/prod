@@ -2,14 +2,13 @@
 Main entry point for home matching system.
 """
 
-import logging
 from typing import Any
+
+from logger import log
 
 from ..postprocessing.blend_scores import EnsembleScorer
 from ..utils.io import load_multiple_homes, load_user_data
 from .settings import DEFAULT_TOP_K
-
-logger = logging.getLogger(__name__)
 
 
 def find_best_matches(
@@ -67,7 +66,7 @@ def find_best_matches(
         return matches
 
     except Exception as e:
-        logger.error(f"Error finding best matches: {e}")
+        log.error("ERRORS", f"Error finding best matches: {e}")
         return []
 
 
@@ -100,7 +99,7 @@ def score_single_match(
         return result
 
     except Exception as e:
-        logger.error(f"Error scoring single match: {e}")
+        log.error("ERRORS", f"Error scoring single match: {e}")
         return {
             "user_id": user_data.get("user_id", "unknown"),
             "home_id": home_data.get("home_id", "unknown"),
@@ -147,7 +146,7 @@ def compare_homes_for_user(
         return result
 
     except Exception as e:
-        logger.error(f"Error comparing homes: {e}")
+        log.error("ERRORS", f"Error comparing homes: {e}")
         return {"user_id": user_data.get("user_id", "unknown"), "error": str(e)}
 
 
@@ -184,13 +183,13 @@ def batch_match_users(
                 results[user_id] = matches
 
             except Exception as e:
-                logger.error(f"Error matching user {user_id}: {e}")
+                log.error("ERRORS", f"Error matching user {user_id}: {e}")
                 results[user_id] = []
 
         return results
 
     except Exception as e:
-        logger.error(f"Error in batch matching: {e}")
+        log.error("ERRORS", f"Error in batch matching: {e}")
         return {}
 
 
@@ -218,7 +217,7 @@ def load_and_match(
         homes_data = load_multiple_homes(homes_directory)
 
         if not homes_data:
-            logger.warning("No homes loaded from directory")
+            log.warn("SEARCH", "No homes loaded from directory")
             return []
 
         # Find matches
@@ -229,7 +228,7 @@ def load_and_match(
         return matches
 
     except Exception as e:
-        logger.error(f"Error loading and matching: {e}")
+        log.error("ERRORS", f"Error loading and matching: {e}")
         return []
 
 
@@ -256,28 +255,21 @@ def get_system_info() -> dict[str, Any]:
         return info
 
     except Exception as e:
-        logger.error(f"Error getting system info: {e}")
+        log.error("ERRORS", f"Error getting system info: {e}")
         return {"error": str(e)}
 
 
 # Main execution for testing
 if __name__ == "__main__":
-    # Set up logging
-    logging.basicConfig(level=logging.INFO)
-
     # Note: Use real data from database via preprocessing module instead of sample data
-    from logger import LOG_CATEGORIES, log
-
-    log.info(LOG_CATEGORIES["API"], "Testing Home Matching System...")
+    log.info("API", "Testing Home Matching System...")
     log.info(
-        LOG_CATEGORIES["API"],
+        "API",
         "Note: Use real data from database via preprocessing module for testing",
     )
 
     # Get system info
     info = get_system_info()
-    log.info(
-        LOG_CATEGORIES["API"], "System info", {"system_name": info.get("system_name", "Unknown")}
-    )
+    log.info("API", "System info", {"system_name": info.get("system_name", "Unknown")})
 
-    log.info(LOG_CATEGORIES["API"], "Testing completed successfully!")
+    log.info("API", "Testing completed successfully!")

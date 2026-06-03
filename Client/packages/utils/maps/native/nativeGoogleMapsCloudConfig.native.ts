@@ -2,7 +2,7 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 
 import { env, getEnv } from "packages/config";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import {
   resolveNativeGoogleMapId,
@@ -22,13 +22,13 @@ export function getGoogleMapIdForNative(): string {
 
   if (!mapId) {
     log.warn(
-      LOG_CATEGORIES.MAP_RENDERING,
+      "MAP_RENDERING",
       "Google Cloud Map ID not set (EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS on iOS, or EXPO_PUBLIC_GOOGLE_MAPS_ID) - map will use default styling"
     );
     return mapId;
   }
 
-  log.info(LOG_CATEGORIES.MAP_RENDERING, "Native map ID resolved for Cloud styling", {
+  log.info("MAP_RENDERING", "Native map ID resolved for Cloud styling", {
     mapId,
     source,
     platform: Platform.OS,

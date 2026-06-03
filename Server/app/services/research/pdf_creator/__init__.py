@@ -3,7 +3,6 @@ PDF report creation: orchestration and public API.
 """
 
 import json
-import logging
 import os
 import traceback
 from io import BytesIO
@@ -24,6 +23,7 @@ from reportlab.platypus import (
 )
 
 from app.services.documents.s3_service import s3_service
+from logger import log
 
 from ..graphs.graphic_generation import (
     generate_commute_map,
@@ -34,17 +34,15 @@ from .image_utils import resize_image_to_fit
 from .section_property_data import add_property_data_section
 from .section_renderer import add_section
 
-logger = logging.getLogger(__name__)
-
 
 def _create_pdf(
     report: dict, address: str, filename: str, user_preferences: dict | None = None
 ) -> str:
     if not report:
-        logger.error("No report data provided")
+        log.error("ERRORS", "No report data provided")
         raise ValueError("Report data is required")
     if not address:
-        logger.error("No address provided")
+        log.error("ERRORS", "No address provided")
         raise ValueError("Address is required")
 
     try:
@@ -211,7 +209,7 @@ def _create_pdf(
                     )
                     prebuilt_chart_tables["age_distribution"] = age_table
         except Exception as e:
-            logger.warning("Failed to prebuild charts: %s", e)
+            log.warn("PROPERTY_DETAILS", "Failed to prebuild charts:", {"detail": str(e)})
 
         charts_inserted_after_neighborhood = False
 
@@ -268,7 +266,11 @@ def _create_pdf(
                                             )
                                             elements.append(Spacer(1, 6))
                                     except Exception as resize_error:
-                                        logger.error("Error resizing commute map: %s", resize_error)
+                                        log.error(
+                                            "ERRORS",
+                                            "Error resizing commute map:",
+                                            {"detail": str(resize_error)},
+                                        )
                                 if travel_times:
                                     elements.append(
                                         Paragraph("Travel Times by Car", styles["SectionSubHeader"])
@@ -290,15 +292,19 @@ def _create_pdf(
                                         elements.append(Paragraph(travel_text, styles["Normal"]))
                                     elements.append(Spacer(1, 10))
                         elif not google_maps_api_key:
-                            logger.warning(
-                                "GOOGLE_MAPS_API_KEY not found - skipping commute map generation"
+                            log.warn(
+                                "PROPERTY_DETAILS",
+                                "GOOGLE_MAPS_API_KEY not found - skipping commute map generation",
                             )
                         elif not user_preferences:
-                            logger.warning(
-                                "User preferences not provided - skipping commute map generation"
+                            log.warn(
+                                "PROPERTY_DETAILS",
+                                "User preferences not provided - skipping commute map generation",
                             )
                     except Exception as map_error:
-                        logger.error("Error generating commute map: %s", map_error)
+                        log.error(
+                            "ERRORS", "Error generating commute map:", {"detail": str(map_error)}
+                        )
 
                 elements.append(Indenter(left=1))
                 add_section(elements, section_data, styles)
@@ -341,7 +347,11 @@ def _create_pdf(
                                 elements.append(Spacer(1, 10))
                             charts_inserted_after_neighborhood = True
                     except Exception as e:
-                        logger.warning("Failed to render side-by-side charts: %s", e)
+                        log.warn(
+                            "PROPERTY_DETAILS",
+                            "Failed to render side-by-side charts:",
+                            {"detail": str(e)},
+                        )
             elif isinstance(section_data, list):
                 for item in section_data:
                     elements.append(Indenter(left=1))
@@ -373,7 +383,7 @@ def _create_pdf(
                     json_filename = f"{filename.removesuffix('.pdf')}.json"
                 s3_service.upload_pdf(json_data, json_filename, "application/json")
             except Exception as e:
-                logger.error("Failed to save raw JSON to S3: %s", e)
+                log.error("ERRORS", "Failed to save raw JSON to S3", {"error": str(e)})
 
         if s3_key:
             presigned_url = s3_service.generate_presigned_url(s3_key, download_filename=filename)
@@ -382,7 +392,14 @@ def _create_pdf(
         return ""
 
     except Exception as e:
-        logger.error("Error creating PDF for address %s: %s", address, e)
-        logger.error("Exception type: %s", type(e).__name__)
-        logger.error("Traceback: %s", traceback.format_exc())
+        log.error(
+            "ERRORS",
+            "Error creating PDF",
+            {
+                "address": address,
+                "error": str(e),
+                "exception_type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            },
+        )
         raise

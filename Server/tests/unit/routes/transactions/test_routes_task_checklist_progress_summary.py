@@ -10,27 +10,30 @@ import pytest
 from flask import Flask
 
 from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
+from tests.support.user_roles import create_user_with_roles
 
 
 def _seed_agent_buyer_tx(db_session):
-    from app.models import Transaction, User, UserRole
+    from app.models import Transaction
 
-    agent = User(
+    agent = create_user_with_roles(
+        db_session.session,
+        roles=("agent",),
         cognito_id=f"cognito-agent-{uuid.uuid4().hex[:8]}",
         email=f"agent-{uuid.uuid4().hex[:8]}@example.com",
         name="Agent Summary",
         is_active=True,
+        commit=False,
     )
-    buyer = User(
+    buyer = create_user_with_roles(
+        db_session.session,
+        roles=("buyer",),
         cognito_id=f"cognito-buyer-{uuid.uuid4().hex[:8]}",
         email=f"buyer-{uuid.uuid4().hex[:8]}@example.com",
         name="Buyer Summary",
         is_active=True,
+        commit=False,
     )
-    db_session.session.add_all([agent, buyer])
-    db_session.session.flush()
-    db_session.session.add(UserRole(user_id=str(agent.id), role="agent"))
-    db_session.session.add(UserRole(user_id=str(buyer.id), role="buyer"))
     tx_id = str(uuid.uuid4())
     db_session.session.add(
         Transaction(

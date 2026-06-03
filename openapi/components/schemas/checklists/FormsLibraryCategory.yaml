@@ -1,0 +1,12 @@
+type: object
+required:
+  - name
+  - forms
+properties:
+  name:
+    type: string
+    description: Category folder name (e.g. escrow).
+  forms:
+    type: array
+    items:
+      $ref: './ChecklistFormWithDownload.yaml'

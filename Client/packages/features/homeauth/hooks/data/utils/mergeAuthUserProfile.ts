@@ -6,7 +6,7 @@ export type SessionRefreshUserPatch = {
   email?: string;
   name?: string | null;
   phone?: string | null;
-  is_agent?: boolean;
+  roles?: readonly string[];
   auth_method?: UserProfile["auth_method"];
   user_sub?: string;
 };
@@ -33,8 +33,8 @@ export function mergeSessionRefreshUserIntoAuthProfile(
   if (patch.phone !== undefined) {
     next.phone = patch.phone;
   }
-  if (patch.is_agent !== undefined) {
-    next.is_agent = patch.is_agent;
+  if (patch.roles !== undefined) {
+    next.roles = [...patch.roles];
   }
   if (patch.auth_method !== undefined) {
     next.auth_method = patch.auth_method;

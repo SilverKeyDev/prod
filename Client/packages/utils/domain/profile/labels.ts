@@ -48,7 +48,6 @@ export const AVAILABILITY_SUBTITLE =
 export const FIELD_LABELS = {
   // Demographics
   NAME: "Name",
-  IS_AGENT: "Are you a real estate agent?",
   ONBOARDING_ROLE_HEADLINE: "I am a…",
   ONBOARDING_ROLE_SUBTITLE:
     "Choose the option that best describes you. We use this only to personalize your experience—details can live in your profile later.",

@@ -1,6 +1,6 @@
 import { warnSearchEmptyResults } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { transformPropertySearchResult } from "packages/features/search/utils/transform/searchTransform";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { PropertySearchResult, SearchByPolygonResponse } from "packages/types/domain/api";
 
 import type { MapPreviewSearchLifecycleHooks, SearchResult } from "./propertySearchTypes";
@@ -43,7 +43,7 @@ export async function handlePolygonSearchResponse(
   }
 
   const apiPropertyCount = searchResult.properties?.length ?? 0;
-  log.info(LOG_CATEGORIES.SEARCH, "Polygon search: raw API homes before client transform", {
+  log.info("SEARCH", "Polygon search: raw API homes before client transform", {
     propertiesCount: apiPropertyCount,
     totalCount: searchResult.total_count,
     meta: searchResult.meta,
@@ -51,11 +51,11 @@ export async function handlePolygonSearchResponse(
 
   if (searchResult.meta?.cached !== undefined) {
     if (searchResult.meta.cached) {
-      log.info(LOG_CATEGORIES.SEARCH, "Cache HIT - Using cached results", {
+      log.info("SEARCH", "Cache HIT - Using cached results", {
         cacheAge: searchResult.meta.cacheAge ?? "unknown",
       });
     } else {
-      log.info(LOG_CATEGORIES.SEARCH, "Cache MISS - Performing new search");
+      log.info("SEARCH", "Cache MISS - Performing new search");
     }
   }
 
@@ -87,7 +87,7 @@ export async function handlePolygonSearchResponse(
           : "_score" in fp
             ? (fp as { _score?: number })._score
             : undefined;
-      log.debug(LOG_CATEGORIES.SEARCH, "First Property Raw Data", {
+      log.debug("SEARCH", "First Property Raw Data", {
         keys,
         score: scoreVal,
         scoreType: typeof scoreVal,
@@ -114,7 +114,7 @@ export async function handlePolygonSearchResponse(
           "location" in p && (p as PropertySearchResult).location != null
             ? (p as PropertySearchResult).location.address
             : (p as { address?: string }).address;
-        log.warn(LOG_CATEGORIES.SEARCH, "Property missing score", {
+        log.warn("SEARCH", "Property missing score", {
           listingId,
           address: addr,
           rawScore,
@@ -146,7 +146,7 @@ export async function handlePolygonSearchResponse(
     warnSearchEmptyResults({ preferencesStrictFilter });
   }
 
-  log.info(LOG_CATEGORIES.SEARCH, "Successfully found properties (after home matching transform)", {
+  log.info("SEARCH", "Successfully found properties (after home matching transform)", {
     rawApiCount: apiPropertyCount,
     transformedCount: transformedResults.length,
     sampleIds: transformedResults.slice(0, 5).map((r) => r.id),

@@ -29,7 +29,6 @@ def test_replace_checked_ids_for_transaction_sequential_last_write_wins(app) -> 
                 cognito_id="cog-buyer",
                 email="buyer@test.com",
                 name="Buyer",
-                is_agent=False,
             )
         )
         db.session.add(

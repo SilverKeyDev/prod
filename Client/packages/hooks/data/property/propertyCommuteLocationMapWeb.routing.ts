@@ -1,5 +1,5 @@
 import { color } from "packages/design-tokens";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getWindow } from "packages/utils/platform";
 
 export const COMMUTE_ROUTE_COLORS = [
@@ -91,10 +91,7 @@ export async function fetchDrivingPath(
       }
 
       if (!win.google?.maps?.geometry?.encoding?.decodePath) {
-        log.warn(
-          LOG_CATEGORIES.PROPERTY_DETAILS,
-          "Geometry library not available for polyline decoding"
-        );
+        log.warn("PROPERTY_DETAILS", "Geometry library not available for polyline decoding");
         return null;
       }
 
@@ -102,17 +99,14 @@ export async function fetchDrivingPath(
       return path;
     } catch (error) {
       log.error(
-        LOG_CATEGORIES.PROPERTY_DETAILS,
+        "PROPERTY_DETAILS",
         "Failed to compute route with Routes API - ensure 'routes' library is loaded",
         { error, hasRoutesAPI: !!win?.google?.maps?.routes }
       );
     }
   }
 
-  log.warn(
-    LOG_CATEGORIES.PROPERTY_DETAILS,
-    "Routes API not available, using DirectionsService (deprecated)"
-  );
+  log.warn("PROPERTY_DETAILS", "Routes API not available, using DirectionsService (deprecated)");
 
   if (!win?.google?.maps?.DirectionsService) {
     return null;

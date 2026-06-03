@@ -14,7 +14,7 @@ import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUse
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { useResponsive } from "packages/hooks/ui";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 
 // Google Maps types
@@ -73,7 +73,7 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
         setOriginalData(normalized);
       }
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
+      log.error("ERRORS", "Failed to load user preferences from context", error);
     } finally {
       setIsLoading(false);
     }
@@ -147,10 +147,10 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
         setFormData(updatedFormData);
         setOriginalData(updatedFormData);
         setIsEditMode(false);
-        log.info(LOG_CATEGORIES.API, "Preferences saved successfully");
+        log.info("API", "Preferences saved successfully");
       },
       onError: (error) => {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to update preferences", error);
+        log.error("ERRORS", "Failed to update preferences", error);
         showErrorToast("Failed to update preferences. Please try again.");
       },
     });

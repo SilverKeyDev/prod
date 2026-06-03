@@ -28,7 +28,6 @@ export function AdminDevPersonaSection({
       deriveDevAppPersonaFromProfile(
         user
           ? {
-              is_agent: Boolean(user.is_agent),
               roles: user.roles,
               brokerage_org_ids: user.brokerage_org_ids,
             }

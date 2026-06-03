@@ -14,13 +14,23 @@ from app.schemas import (
 from app.services.calendar.core import get_authenticated_user_id
 from app.services.calendar.permissions import require_permission
 from app.services.viewings.route_builder import build_google_maps_navigate_url, build_viewing_route
+from app.utils.common_patterns import configuration_unavailable, server_error, validation
 from app.utils.security import rate_limit
-from app.utils.validation import validate_request
+from app.utils.validation import validate_request, validate_response
+
+_VIEWING_INVALID_REQUEST = "Invalid viewing route request"
+_VIEWING_NAVIGATION_INVALID = "Invalid itinerary for navigation"
+
+
+def _runtime_error_is_maps_misconfiguration(error: RuntimeError) -> bool:
+    message = str(error).lower()
+    return "google_maps" in message or "not configured" in message
 
 
 @rate_limit(max_requests=40, window_seconds=60)
 @validate_request(BuildRouteRequest)
-def post_build_route(data: BuildRouteRequest | None = None):
+@validate_response(ViewingBuildRouteApiResponse)
+def post_build_route(data: BuildRouteRequest):
     user_id, error_response = get_authenticated_user_id()
     if error_response:
         return error_response
@@ -32,15 +42,6 @@ def post_build_route(data: BuildRouteRequest | None = None):
     )
     if not has_permission:
         return jsonify(perm_err), 403
-
-    if data is None:
-        return jsonify(
-            {
-                "success": False,
-                "data": None,
-                "error": "Invalid request body",
-            }
-        ), 400
 
     try:
         payload = data.model_dump(mode="json")
@@ -59,29 +60,23 @@ def post_build_route(data: BuildRouteRequest | None = None):
             )
 
         return jsonify(body.model_dump(mode="json")), 200
-    except ValueError as e:
-        return jsonify(
-            ViewingBuildRouteApiResponse(success=False, data=None, error=str(e)).model_dump(
-                mode="json"
-            )
-        ), 400
+    except ValueError:
+        return validation(_VIEWING_INVALID_REQUEST)
     except RuntimeError as e:
-        return jsonify(
-            ViewingBuildRouteApiResponse(success=False, data=None, error=str(e)).model_dump(
-                mode="json"
+        if _runtime_error_is_maps_misconfiguration(e):
+            return configuration_unavailable(
+                e,
+                context={"function": "post_build_route", "feature": "viewings"},
             )
-        ), 500
-    except Exception:
-        return jsonify(
-            ViewingBuildRouteApiResponse(
-                success=False, data=None, error="Route computation failed"
-            ).model_dump(mode="json")
-        ), 500
+        return server_error(e, context={"function": "post_build_route"})
+    except Exception as e:
+        return server_error(e, context={"function": "post_build_route"})
 
 
 @rate_limit(max_requests=60, window_seconds=60)
 @validate_request(ViewingItinerary)
-def post_navigate_link(data: ViewingItinerary | None = None):
+@validate_response(ViewingNavigateApiResponse)
+def post_navigate_link(data: ViewingItinerary):
     user_id, error_response = get_authenticated_user_id()
     if error_response:
         return error_response
@@ -94,15 +89,6 @@ def post_navigate_link(data: ViewingItinerary | None = None):
     if not has_permission:
         return jsonify(perm_err), 403
 
-    if data is None:
-        return jsonify(
-            {
-                "success": False,
-                "data": None,
-                "error": "Invalid request body",
-            }
-        ), 400
-
     try:
         url = build_google_maps_navigate_url(data.model_dump(mode="json"))
         body = ViewingNavigateApiResponse(
@@ -111,9 +97,7 @@ def post_navigate_link(data: ViewingItinerary | None = None):
             error=None,
         )
         return jsonify(body.model_dump(mode="json")), 200
-    except ValueError as e:
-        return jsonify(
-            ViewingNavigateApiResponse(success=False, data=None, error=str(e)).model_dump(
-                mode="json"
-            )
-        ), 400
+    except ValueError:
+        return validation(_VIEWING_NAVIGATION_INVALID)
+    except Exception as e:
+        return server_error(e, context={"function": "post_navigate_link"})

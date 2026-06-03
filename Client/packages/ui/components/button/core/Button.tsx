@@ -4,7 +4,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { Icon } from "@ui/icons";
 
 import { getEnv } from "packages/config/env";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Pressable } from "packages/ui/components/primitives";
 import { tailwindButtonLabelHoverTypography } from "packages/ui/styles/theme/navTabTypography";
 import { buttonNativeSizes } from "packages/ui/styles/variants/buttonSizes";
@@ -232,7 +232,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 
     if (getEnv().isDevelopment && hideTextBelow && !label && !ariaLabel) {
       log.warn(
-        LOG_CATEGORIES.ERRORS,
+        "ERRORS",
         "[Button] hideTextBelow is set but label or aria-label is missing. Provide label for accessibility when text is hidden."
       );
     }
@@ -269,7 +269,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       if (!onlyChild || !isValidElement(onlyChild)) {
         if (getEnv().isDevelopment) {
           log.warn(
-            LOG_CATEGORIES.ERRORS,
+            "ERRORS",
             "[Button] asChild requires a single React element child; falling back to default button rendering."
           );
         }

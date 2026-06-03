@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import select
+
 from app import db
 from app.models import User
 
@@ -19,15 +21,13 @@ def get_recently_logged_in_users_with_preferences() -> list[dict[str, str]]:
     one_month_ago = datetime.now(timezone.utc) - timedelta(days=30)
 
     # Query users meeting all three conditions
-    users = (
-        db.session.query(User)
-        .filter(
+    users = db.session.scalars(
+        select(User).where(
             User.last_logged_in.isnot(None),
             User.last_logged_in >= one_month_ago,
-            User.has_preferences,
+            User.has_preferences.is_(True),
         )
-        .all()
-    )
+    ).all()
 
     # Return list of dictionaries with user id and email (str values for type consistency)
     return [{"user_id": str(user.id), "email": user.email or ""} for user in users]

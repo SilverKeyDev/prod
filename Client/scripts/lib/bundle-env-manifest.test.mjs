@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  assertGithubSecretsPresent,
+  assertBundleSecretsPresent,
+  assertBundleSecretsPresentWithValidation,
+  formatDockerBuildArgs,
   validateBundleEnvValue,
   verifyBundleEnvFromBuild,
 } from "./bundle-env-manifest.mjs";
@@ -33,39 +35,76 @@ describe("validateBundleEnvValue", () => {
   });
 });
 
-describe("assertGithubSecretsPresent", () => {
-  it("fails when required secret env is empty", () => {
+describe("assertBundleSecretsPresent", () => {
+  it("fails when required bundle env is empty", () => {
     const manifest = {
       version: 1,
       variables: [
         {
           key: "EXPO_PUBLIC_GOOGLE_MAPS_ID",
           required: true,
-          githubSecret: "EXPO_PUBLIC_GOOGLE_MAPS_ID",
         },
       ],
     };
-    const { ok, errors } = assertGithubSecretsPresent({}, manifest);
+    const { ok, errors } = assertBundleSecretsPresent({}, manifest);
     expect(ok).toBe(false);
     expect(errors.length).toBeGreaterThan(0);
   });
 
-  it("passes when required secret is set", () => {
+  it("passes when required bundle env is set", () => {
     const manifest = {
       version: 1,
       variables: [
         {
           key: "EXPO_PUBLIC_GOOGLE_MAPS_ID",
           required: true,
-          githubSecret: "EXPO_PUBLIC_GOOGLE_MAPS_ID",
         },
       ],
     };
-    const { ok } = assertGithubSecretsPresent(
+    const { ok } = assertBundleSecretsPresent(
       { EXPO_PUBLIC_GOOGLE_MAPS_ID: "20e2eb0b8f03975aaf072074" },
       manifest
     );
     expect(ok).toBe(true);
+  });
+});
+
+describe("assertBundleSecretsPresentWithValidation", () => {
+  it("rejects bad PostHog key missing phc_ prefix", () => {
+    const manifest = {
+      version: 1,
+      variables: [
+        {
+          key: "EXPO_PUBLIC_POSTHOG_KEY",
+          required: true,
+          pattern: "^phc_",
+          minLength: 10,
+        },
+      ],
+    };
+    const { ok, errors } = assertBundleSecretsPresentWithValidation(
+      { EXPO_PUBLIC_POSTHOG_KEY: "not-a-posthog-key" },
+      manifest
+    );
+    expect(ok).toBe(false);
+    expect(errors.some((e) => e.includes("EXPO_PUBLIC_POSTHOG_KEY"))).toBe(true);
+  });
+});
+
+describe("formatDockerBuildArgs", () => {
+  it("emits --build-arg for dockerBuildArg entries", () => {
+    const manifest = {
+      version: 1,
+      variables: [
+        { key: "EXPO_PUBLIC_GOOGLE_MAPS_ID", dockerBuildArg: true },
+        { key: "EXPO_PUBLIC_PLAID_CLIENT_ID", dockerBuildArg: false },
+      ],
+    };
+    const args = formatDockerBuildArgs(
+      { EXPO_PUBLIC_GOOGLE_MAPS_ID: "map-id-123", EXPO_PUBLIC_PLAID_CLIENT_ID: "ignored" },
+      manifest
+    );
+    expect(args).toEqual(["--build-arg EXPO_PUBLIC_GOOGLE_MAPS_ID='map-id-123'"]);
   });
 });
 

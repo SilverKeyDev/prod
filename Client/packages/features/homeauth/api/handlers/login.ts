@@ -1,5 +1,5 @@
 import type { AuthResponse, LoginData } from "packages/features/homeauth/types";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { apiPost } from "packages/services/http";
 import { HttpError } from "packages/services/http";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
@@ -17,7 +17,7 @@ function handleLoginApiResponse(
   duration: number
 ): void {
   if (!response.success && !response.needs_verification) {
-    log.warn(LOG_CATEGORIES.AUTH, "Login request failed", {
+    log.warn("AUTH", "Login request failed", {
       requestId,
       error: response.error,
       message: response.message,
@@ -39,7 +39,7 @@ function handleLoginApiResponse(
     return;
   }
   if (response.needs_verification) {
-    log.info(LOG_CATEGORIES.AUTH, "User needs email verification", {
+    log.info("AUTH", "User needs email verification", {
       requestId,
       email: maskEmail(data.email),
       duration: `${duration}ms`,
@@ -54,7 +54,7 @@ function handle401Response(
   duration: number
 ): AuthResponse {
   if (parsedBody.needs_verification === true) {
-    log.info(LOG_CATEGORIES.AUTH, "User needs email verification", {
+    log.info("AUTH", "User needs email verification", {
       requestId,
       email: maskEmail(data.email),
       duration: `${duration}ms`,
@@ -70,7 +70,7 @@ function handle401Response(
   const errorMessage =
     (parsedBody.message as string) || (parsedBody.error as string) || "Authentication failed";
   const errorCode = (parsedBody.error as string) || "AUTHENTICATION_FAILED";
-  log.warn(LOG_CATEGORIES.AUTH, "Login failed with 401 error", {
+  log.warn("AUTH", "Login failed with 401 error", {
     requestId,
     errorCode,
     errorMessage,
@@ -96,7 +96,7 @@ function handleLoginException(
   requestId: string,
   duration: number
 ): void {
-  log.error(LOG_CATEGORIES.AUTH, "Login request failed with exception", {
+  log.error("AUTH", "Login request failed with exception", {
     requestId,
     errorType: err?.constructor?.name || "Unknown",
     errorMessage: err?.message || "Unknown error",
@@ -110,7 +110,7 @@ function handleLoginException(
   const status = err?.status;
   const is502 = status === "502" || status === 502;
   if (is502) {
-    log.error(LOG_CATEGORIES.AUTH, "Bad Gateway error during login", {
+    log.error("AUTH", "Bad Gateway error during login", {
       requestId,
       errorDetails: {
         status: err.status,
@@ -136,7 +136,7 @@ function handleLoginException(
     return;
   }
   if (typeof status === "number" && status >= 500) {
-    log.error(LOG_CATEGORIES.AUTH, "Server error during login", {
+    log.error("AUTH", "Server error during login", {
       requestId,
       status,
       message: err.message,
@@ -145,7 +145,7 @@ function handleLoginException(
     return;
   }
   if (typeof status === "number" && status >= 400) {
-    log.warn(LOG_CATEGORIES.AUTH, "Client error during login", {
+    log.warn("AUTH", "Client error during login", {
       requestId,
       status,
       message: err.message,
@@ -158,7 +158,7 @@ export async function loginHandler(data: LoginData): Promise<AuthResponse> {
   const startTime = Date.now();
   const requestId = `login_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-  log.info(LOG_CATEGORIES.AUTH, "Starting login request", {
+  log.info("AUTH", "Starting login request", {
     requestId,
     email: maskEmail(data.email),
   });

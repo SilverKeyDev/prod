@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 
 import { useActiveWorkspace } from "packages/hooks/store";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAgentDashboardStore } from "packages/store";
 import { type ResearchListingKeyInput, researchListingZpid } from "packages/utils/property";
 
@@ -72,7 +72,7 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
           );
         }
       } catch (err) {
-        log.error(LOG_CATEGORIES.SEARCH, "Error streaming property details", err);
+        log.error("SEARCH", "Error streaming property details", err);
         setError(err instanceof Error ? err.message : "Failed to fetch property details");
         setIsLoading(false);
       }

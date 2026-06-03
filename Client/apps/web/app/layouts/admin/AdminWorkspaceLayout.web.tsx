@@ -7,11 +7,12 @@ import {
   ADMIN_BASE_PATH,
   ADMIN_ROUTE_SEGMENTS,
   segmentFromPath,
+  superadminOnlyRouteSegments,
   visibleAdminNavSpec,
 } from "packages/features/admin/utils/navigation";
 import { useUserData } from "packages/hooks/data/user/useUserData";
 import { checkStepUpRequired, useStepUpAuth } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { NavItem } from "packages/navigation";
 import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
@@ -51,7 +52,7 @@ export function AdminWorkspaceLayout() {
   useEffect(() => {
     const label = instanceLabelRef.current ?? "admin-layout";
     const loc = locationRef.current;
-    log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_WORKSPACE] mounted", {
+    log.info("ROUTING", "[ADMIN_WORKSPACE] mounted", {
       instanceId: label,
       windowPath: typeof window !== "undefined" ? window.location.pathname : "",
       routerPath: loc.pathname,
@@ -60,7 +61,7 @@ export function AdminWorkspaceLayout() {
     });
     return () => {
       const locUnmount = locationRef.current;
-      log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_WORKSPACE] unmounted", {
+      log.info("ROUTING", "[ADMIN_WORKSPACE] unmounted", {
         instanceId: label,
         windowPath: typeof window !== "undefined" ? window.location.pathname : "",
         routerPath: locUnmount.pathname,
@@ -80,7 +81,7 @@ export function AdminWorkspaceLayout() {
         return;
       }
 
-      log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_WORKSPACE] step-up required, opening flow", {
+      log.info("ROUTING", "[ADMIN_WORKSPACE] step-up required, opening flow", {
         instanceId: instanceLabelRef.current,
       });
 
@@ -90,20 +91,16 @@ export function AdminWorkspaceLayout() {
       );
 
       if (cancelled) {
-        log.info(
-          LOG_CATEGORIES.ROUTING,
-          "[ADMIN_WORKSPACE] step-up await returned after effect cleanup",
-          {
-            instanceId: instanceLabelRef.current,
-            ok,
-            note: "setStepUpSatisfied skipped — likely React Strict Mode remount or parent unmount",
-          }
-        );
+        log.info("ROUTING", "[ADMIN_WORKSPACE] step-up await returned after effect cleanup", {
+          instanceId: instanceLabelRef.current,
+          ok,
+          note: "setStepUpSatisfied skipped — likely React Strict Mode remount or parent unmount",
+        });
         return;
       }
 
       setStepUpSatisfied(ok);
-      log.info(LOG_CATEGORIES.ROUTING, "[ADMIN_WORKSPACE] step-up finished", {
+      log.info("ROUTING", "[ADMIN_WORKSPACE] step-up finished", {
         instanceId: instanceLabelRef.current,
         ok,
       });
@@ -113,7 +110,7 @@ export function AdminWorkspaceLayout() {
 
     return () => {
       log.info(
-        LOG_CATEGORIES.ROUTING,
+        "ROUTING",
         "[ADMIN_WORKSPACE] step-up effect cancelled (strict remount or parent unmount)",
         {
           instanceId: instanceLabelRef.current,
@@ -127,6 +124,7 @@ export function AdminWorkspaceLayout() {
 
   const roles = userProfile?.roles ?? user?.roles ?? [];
   const includeSuperadmin = roles.includes("super_admin");
+  const superadminOnlySegments = useMemo(() => new Set(superadminOnlyRouteSegments()), []);
 
   const navItems = useMemo(
     (): NavItem[] =>
@@ -143,20 +141,20 @@ export function AdminWorkspaceLayout() {
 
   const activeSegment = useMemo(() => {
     const seg = segmentFromPath(location.pathname);
-    if (seg && !includeSuperadmin && seg === ADMIN_ROUTE_SEGMENTS.superadmin) {
+    if (seg && !includeSuperadmin && superadminOnlySegments.has(seg)) {
       return ADMIN_ROUTE_SEGMENTS.logging;
     }
     return seg ?? ADMIN_ROUTE_SEGMENTS.logging;
-  }, [includeSuperadmin, location.pathname]);
+  }, [includeSuperadmin, location.pathname, superadminOnlySegments]);
 
   useEffect(() => {
     const seg = segmentFromPath(location.pathname);
-    if (seg === ADMIN_ROUTE_SEGMENTS.superadmin && !includeSuperadmin) {
+    if (seg && !includeSuperadmin && superadminOnlySegments.has(seg)) {
       void navigateToPath(`${ADMIN_BASE_PATH}/${ADMIN_ROUTE_SEGMENTS.logging}`, {
         replace: true,
       });
     }
-  }, [includeSuperadmin, location.pathname, navigateToPath]);
+  }, [includeSuperadmin, location.pathname, navigateToPath, superadminOnlySegments]);
 
   const handleNavKey = (key: string) => {
     navigateToPath(`${ADMIN_BASE_PATH}/${key}`);

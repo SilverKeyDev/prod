@@ -12,7 +12,7 @@ import { color } from "packages/design-tokens";
 import AuthPageLayoutNative from "packages/features/homeauth/components/core/AuthPageLayout.native";
 import { useAuthVerification } from "packages/features/homeauth/hooks/data/useAuthVerification";
 import { useCountdown } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { ROUTES } from "packages/navigation/types/routes";
 import { Box } from "packages/ui/components/primitives";
@@ -56,7 +56,7 @@ export function VerificationScreenNative() {
       setStep("code");
       startCountdown();
     } catch (err: unknown) {
-      log.error(LOG_CATEGORIES.AUTH, "Resend code error", err);
+      log.error("AUTH", "Resend code error", err);
       setError(
         err instanceof Error ? err.message : "Failed to send verification code. Please try again."
       );
@@ -89,7 +89,7 @@ export function VerificationScreenNative() {
         { postSuccessPath: routeState?.fromLogin ? ROUTES.SEARCH : "/onboarding" }
       );
     } catch (err: unknown) {
-      log.error(LOG_CATEGORIES.AUTH, "Verification error", err);
+      log.error("AUTH", "Verification error", err);
       setError(err instanceof Error ? err.message : "Invalid verification code. Please try again.");
       setCode("");
     } finally {
@@ -110,7 +110,7 @@ export function VerificationScreenNative() {
       startCountdown();
       setCode("");
     } catch (err: unknown) {
-      log.error(LOG_CATEGORIES.AUTH, "Resend code error", err);
+      log.error("AUTH", "Resend code error", err);
       setError(
         err instanceof Error ? err.message : "Failed to resend verification code. Please try again."
       );

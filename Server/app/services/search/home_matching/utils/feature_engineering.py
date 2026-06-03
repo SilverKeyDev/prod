@@ -2,14 +2,11 @@
 Feature engineering utilities for tabular features: deltas, overlaps, tolerances.
 """
 
-import logging
 from typing import Any
 
 import numpy as np
 
 # No tolerance constants needed - homes are already pre-filtered
-
-logger = logging.getLogger(__name__)
 
 
 def _distance_to_numeric_range(

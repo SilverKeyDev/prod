@@ -3,6 +3,8 @@
 import os
 import sys
 
+from sqlalchemy import select
+
 from app import db
 from app.models import AgentConnections, ChatHistory
 
@@ -12,7 +14,6 @@ server_dir = os.path.dirname(
 if server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 from logger import (  # noqa: E402 -- logger requires Server on sys.path when run outside app context
-    LOG_CATEGORIES,
     log,
 )
 
@@ -33,12 +34,14 @@ def update_event_request_status(
     if status not in ("accepted", "cancelled"):
         raise ValueError("status must be 'accepted' or 'cancelled'")
     try:
-        msg = ChatHistory.query.filter_by(id=message_id).first()
+        msg = db.session.scalar(select(ChatHistory).where(ChatHistory.id == message_id))
         if not msg:
             raise ValueError("Message not found")
         if not msg.conversation_id:
             raise ValueError("Message is not part of a conversation")
-        conversation = AgentConnections.query.filter_by(id=msg.conversation_id).first()
+        conversation = db.session.scalar(
+            select(AgentConnections).where(AgentConnections.id == msg.conversation_id)
+        )
         if not conversation:
             raise ValueError("Conversation not found")
         if str(user_id) != str(conversation.agent_id) and str(user_id) != str(
@@ -60,5 +63,5 @@ def update_event_request_status(
         raise
     except Exception as e:
         db.session.rollback()
-        log.error(LOG_CATEGORIES["ERRORS"], "Error updating event request status", e)
+        log.error("ERRORS", "Error updating event request status", e)
         raise

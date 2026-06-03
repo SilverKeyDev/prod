@@ -4,7 +4,7 @@ import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import type { AgentConversation } from "packages/features/agent/api/agent";
 import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { getInitialLoadRoutes, type RouteConfig } from "packages/services/data/dataConfig";
 import { coreUserRoutes } from "packages/services/data/dataRoutes/coreUserRoutes";
 import type { GoogleCalendar, UserProfile } from "packages/types";
@@ -29,18 +29,12 @@ export async function prefetchRoute(params: PrefetchRouteParams): Promise<void> 
   try {
     // Handle googleEvents specially - prefetch events per calendar with proper query keys
     if (routeConfig.key === "googleEvents") {
-      log.debug(
-        LOG_CATEGORIES.CALENDAR,
-        "Prefetching google events (primary + SilverKey metadata)"
-      );
+      log.debug("CALENDAR", "Prefetching google events (primary + SilverKey metadata)");
 
       const prefetchResult = await routeConfig.queryFn(userProfile);
 
       if (!prefetchResult || Array.isArray(prefetchResult)) {
-        log.debug(
-          LOG_CATEGORIES.CALENDAR,
-          "No google events to prefetch (user not connected or no data)"
-        );
+        log.debug("CALENDAR", "No google events to prefetch (user not connected or no data)");
         return;
       }
 
@@ -49,7 +43,7 @@ export async function prefetchRoute(params: PrefetchRouteParams): Promise<void> 
         !("events" in prefetchResult) ||
         !Array.isArray(prefetchResult.events)
       ) {
-        log.debug(LOG_CATEGORIES.CALENDAR, "Invalid prefetch result structure");
+        log.debug("CALENDAR", "Invalid prefetch result structure");
         return;
       }
 
@@ -68,7 +62,7 @@ export async function prefetchRoute(params: PrefetchRouteParams): Promise<void> 
           queryKeys.scheduling.silverKeyCalendar(),
           typedResult.silverKeyCalendar
         );
-        log.info(LOG_CATEGORIES.CALENDAR, "Stored SilverKey calendar in cache", {
+        log.info("CALENDAR", "Stored SilverKey calendar in cache", {
           calendarId: typedResult.silverKeyCalendar.id,
         });
       }
@@ -91,21 +85,21 @@ export async function prefetchRoute(params: PrefetchRouteParams): Promise<void> 
         queryClient.setQueryData(queryKey, eventsWithCalendarId);
 
         if (eventsWithCalendarId.length > 0) {
-          log.debug(LOG_CATEGORIES.CALENDAR, "Stored Google Calendar events in cache", {
+          log.debug("CALENDAR", "Stored Google Calendar events in cache", {
             calendarId: result.calendarId,
             eventCount: eventsWithCalendarId.length,
           });
         }
       });
 
-      log.info(LOG_CATEGORIES.CALENDAR, "Successfully prefetched google events", {
+      log.info("CALENDAR", "Successfully prefetched google events", {
         batchCount: typedResult.events.length,
         totalEvents: typedResult.events.reduce((sum, r) => sum + r.events.length, 0),
       });
       return;
     }
 
-    log.debug(LOG_CATEGORIES.API, "Prefetching route", {
+    log.debug("API", "Prefetching route", {
       routeKey: routeConfig.key,
     });
 
@@ -115,11 +109,11 @@ export async function prefetchRoute(params: PrefetchRouteParams): Promise<void> 
       staleTime: routeConfig.staleTime,
     });
 
-    log.debug(LOG_CATEGORIES.API, "Successfully prefetched route", {
+    log.debug("API", "Successfully prefetched route", {
       routeKey: routeConfig.key,
     });
   } catch (error) {
-    log.warn(LOG_CATEGORIES.API, "Failed to prefetch route", {
+    log.warn("API", "Failed to prefetch route", {
       routeKey: routeConfig.key,
       error: error instanceof Error ? error.message : String(error),
     });
@@ -201,8 +195,8 @@ export interface PrefetchAllParams {
 export async function prefetchAllInitialData(params: PrefetchAllParams): Promise<void> {
   const { user, queryClient } = params;
 
-  const isAgent = user.is_agent ?? false;
-  log.info(LOG_CATEGORIES.API, "Starting initial data prefetch", {
+  const isAgent = (user.roles ?? []).includes("agent");
+  log.info("API", "Starting initial data prefetch", {
     userId: user.id,
     isAgent,
   });
@@ -213,7 +207,7 @@ export async function prefetchAllInitialData(params: PrefetchAllParams): Promise
   const tierARoutes = routes.filter((r) => LIBRARY_PREFETCH_ROUTE_KEYS.has(r.key));
   const tierBRoutes = routes.filter((r) => !LIBRARY_PREFETCH_ROUTE_KEYS.has(r.key));
 
-  log.debug(LOG_CATEGORIES.API, "Routes to prefetch", {
+  log.debug("API", "Routes to prefetch", {
     routeCount: routes.length,
     tierACount: tierARoutes.length,
     tierBCount: tierBRoutes.length,
@@ -228,7 +222,7 @@ export async function prefetchAllInitialData(params: PrefetchAllParams): Promise
     );
     const tierASucceeded = tierAResults.filter((r) => r.status === "fulfilled").length;
     const tierAFailed = tierAResults.filter((r) => r.status === "rejected").length;
-    log.info(LOG_CATEGORIES.API, "Initial tier A prefetch completed (Library-critical)", {
+    log.info("API", "Initial tier A prefetch completed (Library-critical)", {
       total: tierARoutes.length,
       succeeded: tierASucceeded,
       failed: tierAFailed,
@@ -249,7 +243,7 @@ export async function prefetchAllInitialData(params: PrefetchAllParams): Promise
     const tierBResults = await Promise.allSettled(tierBPromises);
     const tierBSucceeded = tierBResults.filter((r) => r.status === "fulfilled").length;
     const tierBFailed = tierBResults.filter((r) => r.status === "rejected").length;
-    log.info(LOG_CATEGORIES.API, "Initial tier B prefetch completed", {
+    log.info("API", "Initial tier B prefetch completed", {
       total: tierBPromises.length,
       succeeded: tierBSucceeded,
       failed: tierBFailed,
@@ -259,6 +253,6 @@ export async function prefetchAllInitialData(params: PrefetchAllParams): Promise
     await prefetchChatHistories(queryClient);
   } catch (error) {
     // Don't throw - allow app to continue even if some prefetches fail
-    log.error(LOG_CATEGORIES.API, "Error during initial data prefetch", error);
+    log.error(`API.${error}`, "Error during initial data prefetch");
   }
 }

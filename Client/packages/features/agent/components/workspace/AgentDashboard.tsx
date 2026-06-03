@@ -3,7 +3,6 @@ import { lazy, Suspense, useLayoutEffect } from "react";
 import type { ReactNode } from "react";
 
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
-import { LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { logMessagingCheckpointSinceLatestShellMark } from "packages/utils/perf/messagingRoutePerf";
 import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
@@ -11,7 +10,7 @@ import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
 import { loadAgentMessagingUIModule } from "./agentMessagingEntryLoad";
 
 const AgentMessagingUI = lazy(
-  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:AgentMessagingUI", loadAgentMessagingUIModule)
+  traceLazyImport("MESSAGES", "lazy:AgentMessagingUI", loadAgentMessagingUIModule)
 );
 
 const agentMessagingShellFallback = (
@@ -25,7 +24,7 @@ type AgentDashboardProps = {
 };
 
 export default function AgentDashboard({ setMobileHeaderActions }: AgentDashboardProps = {}) {
-  useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "AgentDashboard");
+  useFirstRenderCommitTimer("MESSAGES", "AgentDashboard");
 
   useLayoutEffect(() => {
     logMessagingCheckpointSinceLatestShellMark("AgentDashboard:firstLayoutCommit");

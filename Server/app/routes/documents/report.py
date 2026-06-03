@@ -1,28 +1,28 @@
 import os
-import traceback
 
 from flask import Blueprint, Response, jsonify, request
-from jose.exceptions import ExpiredSignatureError, JWTError
+from sqlalchemy import func, select
 
 from app import db
 from app.models import Document, DocumentLibraryItem
 from app.schemas import DeleteReportRequest, DeleteReportResponse, DocumentLibraryResponse
-from app.services.auth import SecurityException
 from app.services.documents import DocumentService, s3_service
 from app.services.research.report_listing import list_reports_for_user
-from app.utils.common_patterns import require_authenticated_user, resolve_agent_scoped_user_id
+from app.utils.common_patterns import (
+    external_unavailable,
+    forbidden,
+    not_found,
+    require_authenticated_user,
+    resolve_agent_scoped_user_id,
+    server_error,
+)
 from app.utils.db.orm_lookup import get_model
 from app.utils.http.pagination import build_pagination, parse_query_pagination_args
 from app.utils.security import rate_limit
-from app.utils.security.app_logging import get_logger
 from app.utils.validation import validate_request, validate_response
-from logger import LOG_CATEGORIES
-from logger import log as category_log
+from logger import log
 
 from .report_document_library_rows import document_library_rows_for_agent_request
-
-# Get logger using centralized utility
-logger = get_logger()
 
 # Blueprint setup
 report_bp = Blueprint("report", __name__, url_prefix="/api/v1/report")
@@ -37,10 +37,8 @@ def list_reports(user):
         return jsonify({"success": True, "reports": reports_list})
 
     except Exception as e:
-        logger.error(f"Error listing reports: {str(e)}")
-        logger.error(traceback.format_exc())
-
-        return jsonify({"error": "Internal server error", "success": False}), 500
+        log.error("DOCUMENTS", "list_reports_failed", e)
+        return server_error(e, context={"function": "list_reports"})
 
 
 @report_bp.route("/<report_id>/download-url", methods=["GET"])
@@ -48,9 +46,11 @@ def list_reports(user):
 def get_download_url(user, report_id):
     """Generate a fresh presigned URL for downloading a specific report."""
     try:
-        report = Document.query.filter_by(id=report_id, user_id=user.id).first()
+        report = db.session.scalar(
+            select(Document).where(Document.id == report_id, Document.user_id == user.id)
+        )
         if not report or not report.file_path:
-            return jsonify({"error": "Report not found"}), 404
+            return not_found("Report not found")
 
         pdf_url = report.file_path
         if pdf_url.startswith("http"):
@@ -59,15 +59,17 @@ def get_download_url(user, report_id):
         filename = os.path.basename(pdf_url)
         fresh_url = s3_service.generate_presigned_url(pdf_url, download_filename=filename)
         if not fresh_url:
-            return jsonify({"error": "Failed to generate download URL"}), 500
+            return external_unavailable(
+                RuntimeError("presign_failed"),
+                api_name="s3",
+                context={"function": "get_download_url", "report_id": report_id},
+            )
 
         return jsonify({"success": True, "downloadUrl": fresh_url})
 
-    except (SecurityException, ExpiredSignatureError, JWTError):
-        return jsonify({"success": False, "error": "Authentication required"}), 401
     except Exception as e:
-        logger.error(f"Error generating download URL: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+        log.error("DOCUMENTS", "report_download_url_failed", e)
+        return server_error(e, context={"function": "get_download_url", "report_id": report_id})
 
 
 @report_bp.route("/<report_id>/view-url", methods=["GET"])
@@ -75,27 +77,33 @@ def get_download_url(user, report_id):
 def get_view_url(user, report_id):
     """Generate a fresh presigned URL for viewing a specific report inline in browser."""
     try:
-        report = Document.query.filter_by(id=report_id, user_id=user.id).first()
+        report = db.session.scalar(
+            select(Document).where(Document.id == report_id, Document.user_id == user.id)
+        )
         if not report or not report.file_path:
-            category_log.info(
-                LOG_CATEGORIES["DOCUMENTS"],
+            log.info(
+                "DOCUMENTS",
                 "Report view-url: document not found or missing file",
                 {"report_id": report_id, "user_id": user.id},
             )
-            return jsonify({"error": "Report not found"}), 404
+            return not_found("Report not found")
 
         storage_kind = "remote_http" if str(report.file_path).startswith("http") else "s3"
         fresh_url = s3_service.generate_view_url(report.file_path)
         if not fresh_url:
-            category_log.warn(
-                LOG_CATEGORIES["DOCUMENTS"],
+            log.warn(
+                "DOCUMENTS",
                 "Report view-url: failed to generate presigned URL",
                 {"report_id": report_id, "user_id": user.id, "storage_kind": storage_kind},
             )
-            return jsonify({"error": "Failed to generate view URL"}), 500
+            return external_unavailable(
+                RuntimeError("presign_failed"),
+                api_name="s3",
+                context={"function": "get_view_url", "report_id": report_id},
+            )
 
-        category_log.info(
-            LOG_CATEGORIES["DOCUMENTS"],
+        log.info(
+            "DOCUMENTS",
             "Report view-url issued (share/view client)",
             {
                 "report_id": report_id,
@@ -105,11 +113,9 @@ def get_view_url(user, report_id):
         )
         return jsonify({"success": True, "viewUrl": fresh_url})
 
-    except (SecurityException, ExpiredSignatureError, JWTError):
-        return jsonify({"success": False, "error": "Authentication required"}), 401
     except Exception as e:
-        logger.error(f"Error generating view URL: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+        log.error("DOCUMENTS", "report_view_url_failed", e)
+        return server_error(e, context={"function": "get_view_url", "report_id": report_id})
 
 
 @report_bp.route("/<report_id>/view", methods=["GET", "HEAD"])
@@ -117,9 +123,11 @@ def get_view_url(user, report_id):
 def view_pdf_inline(user, report_id):
     """Serve PDF with iframe-friendly headers for inline viewing."""
     try:
-        report = Document.query.filter_by(id=report_id, user_id=user.id).first()
+        report = db.session.scalar(
+            select(Document).where(Document.id == report_id, Document.user_id == user.id)
+        )
         if not report or not report.file_path:
-            return jsonify({"error": "Report not found"}), 404
+            return not_found("Report not found")
 
         pdf_url = report.file_path
         if pdf_url.startswith("http"):
@@ -127,12 +135,20 @@ def view_pdf_inline(user, report_id):
 
             response = requests.get(pdf_url, timeout=30)
             if response.status_code != 200:
-                return jsonify({"error": "Failed to fetch PDF content"}), 500
+                return external_unavailable(
+                    RuntimeError("pdf_fetch_failed"),
+                    api_name="http",
+                    context={"function": "view_pdf_inline", "report_id": report_id},
+                )
             pdf_data = response.content
         else:
             pdf_data = s3_service.get_pdf(pdf_url)
             if not pdf_data:
-                return jsonify({"error": "Failed to retrieve PDF content"}), 500
+                return external_unavailable(
+                    RuntimeError("pdf_fetch_failed"),
+                    api_name="s3",
+                    context={"function": "view_pdf_inline", "report_id": report_id},
+                )
 
         return Response(
             pdf_data,
@@ -144,25 +160,20 @@ def view_pdf_inline(user, report_id):
             },
         )
 
-    except (SecurityException, ExpiredSignatureError, JWTError):
-        return jsonify({"success": False, "error": "Authentication required"}), 401
     except Exception as e:
-        logger.error(f"Error serving PDF: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+        log.error("DOCUMENTS", "report_view_pdf_failed", e)
+        return server_error(e, context={"function": "view_pdf_inline", "report_id": report_id})
 
 
 @report_bp.route("/<report_id>", methods=["DELETE"])
 @require_authenticated_user
 @validate_request(DeleteReportRequest)
 @validate_response(DeleteReportResponse)
-def delete_report(user, report_id, data: DeleteReportRequest | None = None):
+def delete_report(user, report_id, data: DeleteReportRequest):
     """Delete a report from S3 and database."""
     try:
-        if data is None:
-            request_data = request.get_json(silent=True) or {}
-        else:
-            request_data = data.model_dump(mode="json")
-        s3_key = (request_data.get("s3_key") or request_data.get("file_path") or "").lstrip("/")
+        request_data = data.model_dump(mode="json")
+        s3_key = (request_data.get("s3_key") or "").lstrip("/")
 
         # Delete from S3
         s3_deleted = False
@@ -173,7 +184,7 @@ def delete_report(user, report_id, data: DeleteReportRequest | None = None):
         # Delete from database
         pdf_doc = get_model(Document, report_id)
         if not pdf_doc or pdf_doc.user_id != user.id:
-            return jsonify({"error": "Report not found"}), 404
+            return not_found("Report not found")
 
         li_id = pdf_doc.library_item_id
         db.session.delete(pdf_doc)
@@ -194,8 +205,8 @@ def delete_report(user, report_id, data: DeleteReportRequest | None = None):
 
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error deleting report: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+        log.error("DOCUMENTS", "delete_report_failed", e)
+        return server_error(e, context={"function": "delete_report", "report_id": report_id})
 
 
 @report_bp.route("/documents", methods=["GET"])
@@ -211,9 +222,11 @@ def get_user_documents(user):
         limit = min(100, max(1, int(request.args.get("limit", "100"))))
         offset = max(0, int(request.args.get("offset", "0")))
 
-        query = Document.query.filter_by(user_id=target_uid).order_by(Document.updated_at.desc())
-        total_count = query.count()
-        documents = query.limit(limit).offset(offset).all()
+        base_stmt = select(Document).where(Document.user_id == target_uid)
+        total_count = db.session.scalar(select(func.count()).select_from(base_stmt.subquery()))
+        documents = db.session.scalars(
+            base_stmt.order_by(Document.updated_at.desc()).limit(limit).offset(offset)
+        ).all()
 
         documents_data = [
             {
@@ -243,11 +256,9 @@ def get_user_documents(user):
             }
         ), 200
 
-    except (SecurityException, ExpiredSignatureError, JWTError):
-        return jsonify({"success": False, "error": "Authentication required"}), 401
     except Exception as e:
-        logger.error(f"Error retrieving documents: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+        log.error("DOCUMENTS", "get_user_documents_failed", e)
+        return server_error(e, context={"function": "get_user_documents"})
 
 
 @report_bp.route("/document-library", methods=["GET"])
@@ -276,11 +287,9 @@ def get_document_library(user):
             ),
             200,
         )
-    except (SecurityException, ExpiredSignatureError, JWTError):
-        return jsonify({"success": False, "error": "Authentication required"}), 401
     except Exception as e:
-        logger.error(f"Error retrieving document library: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+        log.error("DOCUMENTS", "get_document_library_failed", e)
+        return server_error(e, context={"function": "get_document_library"})
 
 
 @report_bp.route("/document-library/<library_item_id>", methods=["DELETE"])
@@ -289,25 +298,32 @@ def remove_from_library(user, library_item_id):
     """Remove a document from the user's library (does not delete the actual document)."""
     try:
         # Find the library item
-        library_item = DocumentLibraryItem.query.filter_by(id=library_item_id).first()
+        library_item = db.session.scalar(
+            select(DocumentLibraryItem).where(DocumentLibraryItem.id == library_item_id)
+        )
 
         if not library_item:
-            return jsonify({"success": False, "error": "Library item not found"}), 404
+            return not_found("Library item not found")
 
         # Verify the library item belongs to the current user
         if library_item.user_id != user.id:
-            return jsonify({"success": False, "error": "Unauthorized"}), 403
+            return forbidden()
 
         # Delete only the library item, not the underlying document/agreement
         db.session.delete(library_item)
         db.session.commit()
 
-        logger.info(f"Removed library item {library_item_id} for user {user.id}")
+        log.info(
+            "DOCUMENTS",
+            "library_item_removed",
+            {"library_item_id": library_item_id, "user_id": str(user.id)},
+        )
         return jsonify({"success": True, "message": "Document removed from library"}), 200
 
-    except (SecurityException, ExpiredSignatureError, JWTError):
-        return jsonify({"success": False, "error": "Authentication required"}), 401
     except Exception as e:
-        logger.error(f"Error removing from library: {str(e)}")
+        log.error("DOCUMENTS", "remove_from_library_failed", e)
         db.session.rollback()
-        return jsonify({"success": False, "error": "Internal server error"}), 500
+        return server_error(
+            e,
+            context={"function": "remove_from_library", "library_item_id": library_item_id},
+        )

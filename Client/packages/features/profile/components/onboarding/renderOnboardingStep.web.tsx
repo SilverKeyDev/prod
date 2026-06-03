@@ -38,7 +38,6 @@ export function renderOnboardingStep({
           wrapInCard={false}
           hideProfilePictureWhenOnboarding={true}
           hideNameWhenOnboarding={true}
-          showAgentChoice={false}
           showWhyJoiningQuestion={false}
         />
       );

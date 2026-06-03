@@ -4,15 +4,16 @@ from __future__ import annotations
 
 from typing import Any
 
+from sqlalchemy import select
+
+from app import db
 from app.models import ChecklistForm, ChecklistItemDispatchSetting, Transaction, User
 from app.services.agent.client_service import get_agent_client_ids
 from app.services.agent.todo_service import resolve_primary_agent_id_for_client
 from app.services.documents.forms_service import FormsService
 from app.services.transactions.retrieval import get_checklist_definition
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 _MAX_NOTE = 5000
 
@@ -24,7 +25,7 @@ def resolve_agent_id_for_buyer(buyer_id: str) -> str | None:
         agent_id = resolve_primary_agent_id_for_client(client)
         if agent_id:
             return str(agent_id)
-    txn = Transaction.query.filter_by(buyer_id=str(buyer_id)).first()
+    txn = db.session.scalar(select(Transaction).where(Transaction.buyer_id == str(buyer_id)))
     if txn and txn.primary_agent_id:
         return str(txn.primary_agent_id)
     return None
@@ -79,7 +80,9 @@ def _dispatch_forms_for_item(
     suggested = item_def.get("suggested_form_ids") or []
     if not suggested:
         return
-    forms = ChecklistForm.query.filter(ChecklistForm.form_key.in_(list(suggested))).all()
+    forms = db.session.scalars(
+        select(ChecklistForm).where(ChecklistForm.form_key.in_(list(suggested)))
+    ).all()
     if not forms:
         return
 
@@ -100,8 +103,8 @@ def _dispatch_forms_for_item(
                         optional_message=note,
                     )
                 except Exception as e:
-                    logger.error(
-                        LOG_CATEGORIES["ERRORS"],
+                    log.error(
+                        "ERRORS",
                         "checklist_dispatch_messaging_failed",
                         e,
                     )
@@ -116,8 +119,8 @@ def _dispatch_forms_for_item(
                         optional_message=note,
                     )
                 except Exception as e:
-                    logger.error(
-                        LOG_CATEGORIES["ERRORS"],
+                    log.error(
+                        "ERRORS",
                         "checklist_dispatch_docusign_failed",
                         e,
                     )
@@ -134,8 +137,8 @@ def run_checklist_dispatch_for_newly_checked(
         return
     agent_id = resolve_agent_id_for_buyer(str(buyer_user_id))
     if not agent_id:
-        logger.debug(
-            LOG_CATEGORIES["API"],
+        log.debug(
+            "API",
             "checklist_dispatch_skipped_no_agent",
             {"buyer_user_id": buyer_user_id, "category": checklist_category},
         )
@@ -145,12 +148,14 @@ def run_checklist_dispatch_for_newly_checked(
         item_def = next((i for i in items_raw if int(i.get("id", -1)) == int(item_id)), None)
         if not item_def or not item_def.get("dispatch_automation_available"):
             continue
-        setting = ChecklistItemDispatchSetting.query.filter_by(
-            agent_user_id=str(agent_id),
-            client_user_id=str(buyer_user_id),
-            category=str(checklist_category),
-            item_id=int(item_id),
-        ).first()
+        setting = db.session.scalar(
+            select(ChecklistItemDispatchSetting).where(
+                ChecklistItemDispatchSetting.agent_user_id == str(agent_id),
+                ChecklistItemDispatchSetting.client_user_id == str(buyer_user_id),
+                ChecklistItemDispatchSetting.category == str(checklist_category),
+                ChecklistItemDispatchSetting.item_id == int(item_id),
+            )
+        )
         if not setting or not setting.enabled:
             continue
         try:
@@ -170,8 +175,8 @@ def run_checklist_dispatch_for_newly_checked(
                 setting=setting,
             )
         except Exception as e:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 "checklist_dispatch_failed",
                 e,
             )

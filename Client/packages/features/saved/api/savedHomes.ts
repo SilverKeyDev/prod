@@ -6,7 +6,7 @@ import type {
   RemoveFavoriteRequest,
 } from "packages/features/homeauth/types/auth/user";
 import { mapToAddFavoriteHomePayload } from "packages/features/saved/utils/mapToAddFavoriteHomePayload";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { handleAuthenticationError, isAuthenticationError } from "packages/services/http/apiErrors";
 import type { AuthenticationError } from "packages/services/http/client";
 import type { SavedHome } from "packages/types";
@@ -82,7 +82,7 @@ export class SavedHomesService {
           typeof typedResponse.error === "string"
             ? typedResponse.error
             : "Failed to load favorite homes";
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch saved homes", {
+        log.error("ERRORS", "Failed to fetch saved homes", {
           error: errorMsg,
         });
         throw new Error(errorMsg);
@@ -93,7 +93,7 @@ export class SavedHomesService {
         throw error;
       }
 
-      log.error(LOG_CATEGORIES.ERRORS, "Error fetching saved homes", error);
+      log.error("ERRORS", "Error fetching saved homes", error);
       throw error;
     }
   }
@@ -127,7 +127,7 @@ export class SavedHomesService {
           typeof typedResponse.error === "string"
             ? typedResponse.error
             : "Failed to save home";
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to save home", {
+        log.error("ERRORS", "Failed to save home", {
           error: errorMsg,
         });
         return {
@@ -136,7 +136,7 @@ export class SavedHomesService {
         };
       }
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Error saving home", error);
+      log.error("ERRORS", "Error saving home", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to save home",
@@ -176,7 +176,7 @@ export class SavedHomesService {
           typeof typedResponse.error === "string"
             ? typedResponse.error
             : "Failed to remove home";
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to remove home", {
+        log.error("ERRORS", "Failed to remove home", {
           error: errorMsg,
         });
         return {
@@ -185,7 +185,7 @@ export class SavedHomesService {
         };
       }
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Error removing home", error);
+      log.error("ERRORS", "Error removing home", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to remove home",

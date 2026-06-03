@@ -38,7 +38,10 @@ def test_apply_signature_based_strips_without_agreement(_mock_complete):
     "app.services.transactions.ensure.ensure_transaction",
     return_value=SimpleNamespace(id="tx-auto-1"),
 )
-@patch("app.services.transactions.checklist_signature_completion.ChecklistItemDispatchSetting")
+@patch(
+    "app.services.transactions.checklist_signature_completion.db.session.scalar",
+    return_value=None,
+)
 @patch(
     "app.services.transactions.checklist_signature_completion.FormsService.send_form_via_docusign"
 )
@@ -59,10 +62,9 @@ def test_run_signature_step_auto_send_skips_when_locked(
     _has_agreement,
     _agent,
     _docusign,
-    _dispatch_model,
+    _mock_scalar,
     _mock_tx,
 ):
-    _dispatch_model.query.filter_by.return_value.first.return_value = None
     items_raw = [
         {"id": 1, "order": 0},
         {
@@ -86,7 +88,10 @@ def test_run_signature_step_auto_send_skips_when_locked(
     "app.services.transactions.ensure.ensure_transaction",
     return_value=SimpleNamespace(id="tx-auto-1"),
 )
-@patch("app.services.transactions.checklist_signature_completion.ChecklistItemDispatchSetting")
+@patch(
+    "app.services.transactions.checklist_signature_completion.db.session.scalar",
+    return_value=None,
+)
 @patch(
     "app.services.transactions.checklist_signature_completion.FormsService.send_form_via_docusign"
 )
@@ -112,10 +117,9 @@ def test_run_signature_step_auto_send_invokes_docusign_when_unlocked(
     _agent,
     _first_form,
     _docusign,
-    _dispatch_model,
+    _mock_scalar,
     _mock_tx,
 ):
-    _dispatch_model.query.filter_by.return_value.first.return_value = None
     items_raw = [
         {"id": 1, "order": 0},
         {

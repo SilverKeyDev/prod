@@ -1,5 +1,7 @@
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
+import type { ChecklistType } from "packages/features/checklists/api/checklists";
+
 export type ChecklistResourceLink = {
   label: string;
   href?: string;
@@ -28,7 +30,12 @@ export type CloseLayoutProps = {
   title: string;
   subtitle: string;
   sectionTitle: string;
-  apiEndpoint: string;
+  /** Checklist API `type` query value (transaction-scoped routes). */
+  checklistType?: ChecklistType;
+  /**
+   * @deprecated Use `checklistType`. Parsed when `checklistType` is omitted (legacy Close subheaders).
+   */
+  apiEndpoint?: string;
   /** @deprecated Items are now fetched from useChecklistData; this prop is ignored. */
   items?: ChecklistCloseLayoutCheckboxItem[];
   children?: ReactNode;

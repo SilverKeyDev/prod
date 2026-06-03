@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { adminApi } from "packages/api/admin";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { HttpError } from "packages/services/http/client";
 import { Box } from "packages/ui/components/primitives";
 
@@ -36,7 +36,7 @@ export function AdminDeleteUserSection({
       setDeleteUserSuccess(`Deleted user ${deletedId} and related data.`);
       setDeleteUserIdInput("");
       setDeleteUserAcknowledged(false);
-      log.security(LOG_CATEGORIES.SECURITY, "[ADMIN] Deleted user via admin API", {
+      log.security("SECURITY", "[ADMIN] Deleted user via admin API", {
         deleted_user_id: deletedId,
       });
     } catch (err) {
@@ -48,7 +48,7 @@ export function AdminDeleteUserSection({
         }
       }
       setDeleteUserError(message);
-      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN] deleteUserById failed", err);
+      log.error("ERRORS", "[ADMIN] deleteUserById failed", err);
     } finally {
       setDeleteUserBusy(false);
     }

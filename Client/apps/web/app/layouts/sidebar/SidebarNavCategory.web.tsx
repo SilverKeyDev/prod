@@ -3,7 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Link } from "packages/navigation";
 import AccessibleLink from "packages/ui/components/accessibility/AccessibleLink";
 import Region from "packages/ui/components/accessibility/Region";
@@ -70,7 +70,7 @@ export function SidebarNavCategory({
   const firstItemHref = category.items[0]?.href;
   const handleCategoryHeaderClick = () => {
     if (category.items.length === 1 && firstItemHref) {
-      log.info(LOG_CATEGORIES.ROUTING, "[NAV] Sidebar nav click (button)", {
+      log.info("ROUTING", "[NAV] Sidebar nav click (button)", {
         categoryKey,
         to: firstItemHref,
         currentPathname: location.pathname,

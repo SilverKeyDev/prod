@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { getEnv } from "packages/config";
 import { useLocalization } from "packages/contexts";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
@@ -106,7 +106,7 @@ function CardViewDetailsButton({
       setIsUnlocking(true);
       await onClick();
     } catch (error) {
-      log.error(LOG_CATEGORIES.SEARCH, "CardViewDetailsButton error during unlock", {
+      log.error("SEARCH", "CardViewDetailsButton error during unlock", {
         environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
         text,
         error: error instanceof Error ? error.message : String(error),

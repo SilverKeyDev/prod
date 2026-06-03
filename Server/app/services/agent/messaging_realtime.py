@@ -6,7 +6,7 @@ import json
 from typing import Any
 
 from app.utils.cache.redis_client import get_shared_redis, redis_url
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 CHANNEL_PREFIX = "sk:messaging:user:"
 
@@ -24,7 +24,7 @@ def publish_messaging_user_payload(user_id: str, payload: dict[str, Any]) -> Non
         client.publish(f"{CHANNEL_PREFIX}{user_id}", json.dumps(payload))
     except Exception as e:
         log.warn(
-            LOG_CATEGORIES["API"],
+            "API",
             "messaging_realtime publish skipped",
             {"user_id": str(user_id), "error": str(e)},
         )

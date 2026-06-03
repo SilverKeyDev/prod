@@ -1,0 +1,10 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      preferences:
+        $ref: './PreferencesResponse.yaml'
+        nullable: true
+      message:
+        type: string
+        description: Confirmation copy (e.g. Preferences saved successfully).

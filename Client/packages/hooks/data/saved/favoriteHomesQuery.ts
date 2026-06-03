@@ -2,7 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 
 import { getEnv, userApi } from "packages/config";
 import { queryKeys } from "packages/config/query/keys";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { SavedHome } from "packages/types";
 import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
 import { getWindow } from "packages/utils/platform";
@@ -54,7 +54,7 @@ async function enrichRawHomeWithCoordinatesIfNeeded(
 
   if (hasValidSavedHomeCoordinates(home)) {
     log.debug(
-      LOG_CATEGORIES.MAP_RENDERING,
+      "MAP_RENDERING",
       "\u{1F5FA}\uFE0F [SAVED HOMES] Using existing valid coordinates for saved home",
       {
         index,
@@ -77,7 +77,7 @@ async function enrichRawHomeWithCoordinatesIfNeeded(
         const lng = typeof location.lng === "function" ? location.lng() : location.lng;
         if (Number.isFinite(lat) && Number.isFinite(lng)) {
           log.debug(
-            LOG_CATEGORIES.MAP_RENDERING,
+            "MAP_RENDERING",
             "\u{1F5FA}\uFE0F [SAVED HOMES] Geocoded coordinates for saved home",
             {
               address: home.address,
@@ -98,21 +98,17 @@ async function enrichRawHomeWithCoordinatesIfNeeded(
 
 function logLoadedFavoriteHomesSample(rawHomes: RawHomeData[]): void {
   const isDev = getEnv().isDevelopment;
-  log.info(
-    LOG_CATEGORIES.MAP_RENDERING,
-    "\u{1F5FA}\uFE0F [SAVED HOMES] Loaded raw favorite homes from API",
-    {
-      environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-      rawCount: rawHomes.length,
-      sample: rawHomes.slice(0, 3).map((home, i) => ({
-        index: i,
-        id: home.id,
-        address: home.address,
-        lat: home.lat ?? home.latitude,
-        lng: home.lng ?? home.longitude ?? home.lon,
-      })),
-    }
-  );
+  log.info("MAP_RENDERING", "\u{1F5FA}\uFE0F [SAVED HOMES] Loaded raw favorite homes from API", {
+    environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+    rawCount: rawHomes.length,
+    sample: rawHomes.slice(0, 3).map((home, i) => ({
+      index: i,
+      id: home.id,
+      address: home.address,
+      lat: home.lat ?? home.latitude,
+      lng: home.lng ?? home.longitude ?? home.lon,
+    })),
+  });
 }
 
 export async function fetchFavoriteHomesData(

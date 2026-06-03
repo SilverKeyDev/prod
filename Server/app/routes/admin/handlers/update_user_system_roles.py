@@ -10,12 +10,13 @@ from app.schemas import UpdateUserSystemRolesRequest, UpdateUserSystemRolesRespo
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_authenticated_user,
-    standardize_error_response,
     standardize_success_response,
 )
 from app.utils.security.admin_roles import user_has_super_admin_role
 from app.utils.validation import validate_request, validate_response
-from logger import LOG_CATEGORIES, log
+from logger import log
+
+from ._errors import authorization_denied, not_found, super_admin_access_denied, validation
 
 _GATE_ROLES = frozenset({"admin", "super_admin"})
 
@@ -34,21 +35,14 @@ def _gate_roles_for_user(user_id: str) -> list[str]:
 @require_authenticated_user
 @validate_request(UpdateUserSystemRolesRequest)
 @validate_response(UpdateUserSystemRolesResponse)
-def update_user_system_roles(user, data: UpdateUserSystemRolesRequest | None = None):
+def update_user_system_roles(user, data: UpdateUserSystemRolesRequest):
     if not user_has_super_admin_role(user):
         log.security(
-            LOG_CATEGORIES["SECURITY"],
+            "SECURITY",
             "Unauthorized admin user role update attempt",
             {"actor_id": getattr(user, "id", None)},
         )
-        return standardize_error_response(
-            "Super admin access required", status_code=403, error_code="super_admin_required"
-        )
-
-    if data is None:
-        return standardize_error_response(
-            "Invalid request body", status_code=400, error_code="validation_error"
-        )
+        return super_admin_access_denied()
 
     actor_id = str(getattr(user, "id", "") or "").strip()
     target_id = (data.user_id or "").strip()
@@ -58,31 +52,21 @@ def update_user_system_roles(user, data: UpdateUserSystemRolesRequest | None = N
 
     for r in grants + revokes:
         if r not in _GATE_ROLES:
-            return standardize_error_response(
-                "Invalid gate role in payload", status_code=400, error_code="validation_error"
-            )
+            return validation("Invalid gate role in payload")
 
     overlap = frozenset(grants) & frozenset(revokes)
     if overlap:
-        return standardize_error_response(
-            "Cannot grant and revoke the same role in one request",
-            status_code=400,
-            error_code="validation_error",
-        )
+        return validation("Cannot grant and revoke the same role in one request")
 
     tgt = db.session.get(User, target_id)
     if tgt is None:
-        return standardize_error_response(
-            "User not found", status_code=404, error_code="resource_not_found"
-        )
+        return not_found("User not found")
 
     current = set(_gate_roles_for_user(target_id))
 
     if actor_id == target_id and "super_admin" in revokes:
-        return standardize_error_response(
+        return authorization_denied(
             "You cannot remove your own super_admin role here",
-            status_code=403,
-            error_code="authorization_failed",
         )
 
     if "super_admin" in revokes and "super_admin" in current:
@@ -93,10 +77,8 @@ def update_user_system_roles(user, data: UpdateUserSystemRolesRequest | None = N
             or 0
         )
         if total_sa <= 1:
-            return standardize_error_response(
+            return authorization_denied(
                 "Refusing to remove the last remaining super_admin",
-                status_code=403,
-                error_code="authorization_failed",
             )
 
     for role in grants:
@@ -113,7 +95,7 @@ def update_user_system_roles(user, data: UpdateUserSystemRolesRequest | None = N
     gate_roles = _gate_roles_for_user(target_id)
 
     log.security(
-        LOG_CATEGORIES["SECURITY"],
+        "SECURITY",
         "Super admin updated user gate roles",
         {
             "actor_id": actor_id,

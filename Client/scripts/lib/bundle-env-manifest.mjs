@@ -1,6 +1,6 @@
 /**
  * Shared loader + validation for Client/config/required-bundle-env.json
- * Used by verify-web-bundle-env.mjs and assert-github-bundle-secrets.mjs.
+ * Used by verify-web-bundle-env.mjs, assert-bundle-secrets.mjs, and export-bundle-docker-build-args.mjs.
  */
 import fs from "fs";
 import path from "path";
@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** @typedef {{ key: string, required?: boolean, dockerBuildArg?: boolean, githubSecret?: string, minLength?: number, forbidPrefix?: string, pattern?: string, description?: string }} BundleEnvVariable */
+/** @typedef {{ key: string, required?: boolean, dockerBuildArg?: boolean, fallbackEnvVar?: string, githubSecret?: string, minLength?: number, forbidPrefix?: string, pattern?: string, description?: string }} BundleEnvVariable */
 
 /** @typedef {{ version: number, variables: BundleEnvVariable[] }} BundleEnvManifest */
 
@@ -164,19 +164,56 @@ export function verifyBundleEnvFromBuild(clientRoot, manifest, opts = {}) {
  * @param {BundleEnvManifest} manifest
  * @returns {{ ok: boolean, errors: string[] }}
  */
-export function assertGithubSecretsPresent(env, manifest) {
-  const specs = filterManifestVariables(manifest.variables, { requiredOnly: true }).filter(
-    (v) => v.githubSecret
-  );
+export function assertBundleSecretsPresent(env, manifest) {
+  const specs = filterManifestVariables(manifest.variables, { requiredOnly: true });
   const errors = [];
   for (const spec of specs) {
-    const secretName = spec.githubSecret ?? spec.key;
-    const value = String(env[secretName] ?? env[spec.key] ?? "").trim();
+    const value = String(env[spec.key] ?? "").trim();
     if (!value) {
-      errors.push(`${secretName} is empty (required for prod web bundle)`);
+      errors.push(`${spec.key} is empty (required for prod web bundle)`);
     }
   }
   return { ok: errors.length === 0, errors };
+}
+
+/**
+ * Presence + manifest validation (minLength, pattern, forbidPrefix) for required keys.
+ * @param {NodeJS.ProcessEnv} env
+ * @param {BundleEnvManifest} manifest
+ * @returns {{ ok: boolean, errors: string[] }}
+ */
+export function assertBundleSecretsPresentWithValidation(env, manifest) {
+  const specs = filterManifestVariables(manifest.variables, { requiredOnly: true });
+  const errors = [];
+  for (const spec of specs) {
+    const value = String(env[spec.key] ?? "").trim();
+    const err = validateBundleEnvValue(value, spec);
+    if (err) {
+      errors.push(`${spec.key}: ${err}`);
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+/** @deprecated Use assertBundleSecretsPresent — kept for transitional imports. */
+export function assertGithubSecretsPresent(env, manifest) {
+  return assertBundleSecretsPresent(env, manifest);
+}
+
+/**
+ * @param {NodeJS.ProcessEnv} env
+ * @param {BundleEnvManifest} manifest
+ * @returns {string[]}
+ */
+export function formatDockerBuildArgs(env, manifest) {
+  const args = [];
+  for (const spec of manifest.variables) {
+    if (!spec.dockerBuildArg || !spec.key) continue;
+    const value = String(env[spec.key] ?? "").trim();
+    const escaped = value.replace(/'/g, `'\\''`);
+    args.push(`--build-arg ${spec.key}='${escaped}'`);
+  }
+  return args;
 }
 
 /**

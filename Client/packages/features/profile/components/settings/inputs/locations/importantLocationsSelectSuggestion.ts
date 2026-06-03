@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { hasProperty, isFunction, isObject } from "packages/utils";
 import { isSupportedServiceAreaAddressComponents } from "packages/utils/search/locations/serviceAreaAvailability";
 import {
@@ -50,7 +50,7 @@ export async function applyImportantLocationSuggestionSelection(
         });
       }
     } catch (error) {
-      log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields", error);
+      log.warn("ERRORS", "Error fetching place fields", error);
     }
 
     const placeTypes = hasProperty(place, "types") && Array.isArray(place.types) ? place.types : [];

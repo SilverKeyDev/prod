@@ -6,7 +6,7 @@ import {
   centroidOfViewportRing,
 } from "packages/features/search/utils/map/mapViewport";
 import { warnUnsupportedServiceArea } from "packages/features/search/utils/outcomes/searchOutcomeToast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { hasProperty, isFunction, isObject } from "packages/utils";
 import {
   isSupportedServiceAreaAddressComponents,
@@ -54,7 +54,7 @@ export async function selectSlipstreamSuggestionForLocationBar(
   try {
     const resp = await searchApi.getAreaBoundary({ id: suggestion.area.id });
     if (!resp.success || !resp.viewport_ring || resp.viewport_ring.length < 3) {
-      log.warn(LOG_CATEGORIES.SEARCH, "Area boundary unavailable, falling back", {
+      log.warn("SEARCH", "Area boundary unavailable, falling back", {
         areaId: suggestion.area.id,
         label: suggestion.area.label,
       });
@@ -71,7 +71,7 @@ export async function selectSlipstreamSuggestionForLocationBar(
     const label = resp.area?.label ?? suggestion.description;
 
     if (!isSupportedServiceAreaCoordinates(center)) {
-      log.warn(LOG_CATEGORIES.SEARCH, "Blocked Slipstream area outside supported service area", {
+      log.warn("SEARCH", "Blocked Slipstream area outside supported service area", {
         areaId: suggestion.area.id,
         label,
       });
@@ -93,7 +93,7 @@ export async function selectSlipstreamSuggestionForLocationBar(
       overlay: buildIsochroneOverlayFromViewportRing(ring, center, label),
     });
 
-    log.info(LOG_CATEGORIES.SEARCH, "Slipstream area boundary applied", {
+    log.info("SEARCH", "Slipstream area boundary applied", {
       areaId: suggestion.area.id,
       label,
       geoType: suggestion.area.geoType,
@@ -103,7 +103,7 @@ export async function selectSlipstreamSuggestionForLocationBar(
     setIsLoadingBoundary(false);
     void onSearch();
   } catch (err: unknown) {
-    log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch area boundary", err);
+    log.error("ERRORS", "Failed to fetch area boundary", err);
     setIsLoadingBoundary(false);
   }
 }
@@ -145,7 +145,7 @@ export async function resolveAreaViaSlipstreamForLocationBar(
     const label = boundaryResp.area?.label ?? placeName;
 
     if (!isSupportedServiceAreaCoordinates(center)) {
-      log.warn(LOG_CATEGORIES.SEARCH, "Blocked resolved area outside supported service area", {
+      log.warn("SEARCH", "Blocked resolved area outside supported service area", {
         placeName,
         areaId: topArea.id,
         label,
@@ -167,7 +167,7 @@ export async function resolveAreaViaSlipstreamForLocationBar(
       overlay: buildIsochroneOverlayFromViewportRing(ring, center, label),
     });
 
-    log.info(LOG_CATEGORIES.SEARCH, "Google place resolved via Slipstream boundary", {
+    log.info("SEARCH", "Google place resolved via Slipstream boundary", {
       placeName,
       areaId: topArea.id,
       label,
@@ -176,7 +176,7 @@ export async function resolveAreaViaSlipstreamForLocationBar(
     });
     return true;
   } catch (err: unknown) {
-    log.warn(LOG_CATEGORIES.ERRORS, "Slipstream boundary fallback failed", err);
+    log.warn("ERRORS", "Slipstream boundary fallback failed", err);
     return false;
   }
 }
@@ -221,7 +221,7 @@ export async function selectGoogleSuggestionForLocationBar(
         fields: ["formattedAddress", "viewport", "location", "types", "addressComponents", "id"],
       });
     } catch (error) {
-      log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields for search bar", error);
+      log.warn("ERRORS", "Error fetching place fields for search bar", error);
     }
 
     const formatted =
@@ -240,7 +240,7 @@ export async function selectGoogleSuggestionForLocationBar(
       : undefined;
 
     if (!isSupportedServiceAreaAddressComponents(addressComponents)) {
-      log.warn(LOG_CATEGORIES.SEARCH, "Blocked Google place outside supported service area", {
+      log.warn("SEARCH", "Blocked Google place outside supported service area", {
         formatted,
       });
       warnUnsupportedServiceArea();
@@ -278,14 +278,10 @@ export async function selectGoogleSuggestionForLocationBar(
         void onSearch();
         return false;
       }
-      log.warn(
-        LOG_CATEGORIES.SEARCH,
-        "Slipstream boundary unavailable, falling back to Google viewport",
-        {
-          searchName,
-          state: stateAbbr,
-        }
-      );
+      log.warn("SEARCH", "Slipstream boundary unavailable, falling back to Google viewport", {
+        searchName,
+        state: stateAbbr,
+      });
     }
 
     const bounds = boundsFromPlace(place as google.maps.places.Place);

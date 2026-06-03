@@ -6,12 +6,11 @@ Uses shared PropertyCache (no user_id filter) for cross-user data reuse.
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from flask import current_app
-
 from app.models import PropertyCache
 from app.services.property_cache import get_property_by_zpid_or_address
 from app.services.search.scoring import analysis_cache_signature_matches
 from app.utils.format.address_format import normalize_address
+from logger import log
 
 
 def find_cached_property(
@@ -39,17 +38,20 @@ def is_fully_populated(record: PropertyCache | None) -> bool:
     ]
 
     if not all(essential_fields):
-        current_app.logger.debug(
-            "[PROPERTY] Cache miss - missing essential fields: raw_data=%s, address=%s",
-            record.raw_data is not None,
-            bool(record.address),
+        log.debug(
+            "PROPERTY_DETAILS",
+            "Cache miss - missing essential fields",
+            {
+                "has_raw_data": record.raw_data is not None,
+                "has_address": bool(record.address),
+            },
         )
         return False
 
-    current_app.logger.info(
-        "[PROPERTY] Cache hit! Found cached property: zpid=%s, address=%s",
-        record.zpid,
-        record.address,
+    log.info(
+        "PROPERTY_DETAILS",
+        "Cache hit",
+        {"zpid": record.zpid, "address": record.address},
     )
     return True
 
@@ -79,8 +81,9 @@ def get_cached_data(
         return None
 
     if should_regenerate_details(record):
-        current_app.logger.info(
-            "[PROPERTY] Cached record incomplete and not unlocked recently; regenerating"
+        log.info(
+            "PROPERTY_DETAILS",
+            "Cached record incomplete and not unlocked recently; regenerating",
         )
         return None
 
@@ -94,7 +97,7 @@ def get_cached_data(
         and pa
         and not analysis_cache_signature_matches(pa, analysis_cache_signature)
     ):
-        current_app.logger.info("[PROPERTY] Cache skip: property_analysis signature mismatch")
+        log.info("PROPERTY_DETAILS", "Cache skip: property_analysis signature mismatch")
         return None
 
     images = record.images or []
@@ -138,15 +141,16 @@ def get_cached_details(
         if analysis_cache_signature and not analysis_cache_signature_matches(
             pa, analysis_cache_signature
         ):
-            current_app.logger.info(
-                "[PROPERTY] Skipping cached property_analysis (signature mismatch)"
+            log.info(
+                "PROPERTY_DETAILS",
+                "Skipping cached property_analysis (signature mismatch)",
             )
         else:
             cached_property_analysis = pa
 
     all_present = all([cached_features, cached_property_analysis])
     if not all_present and not unlocked_recently:
-        current_app.logger.info("[PROPERTY] Forcing regeneration (incomplete and not recent)")
+        log.info("PROPERTY_DETAILS", "Forcing regeneration (incomplete and not recent)")
         return None, None, None
 
     return cached_commute_data, cached_property_analysis, cached_features

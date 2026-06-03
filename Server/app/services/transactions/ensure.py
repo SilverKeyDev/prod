@@ -5,6 +5,8 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy import select
+
 from app import db
 from app.models import AgentConnections, Transaction
 from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
@@ -12,10 +14,10 @@ from app.services.brokerage.membership import primary_brokerage_org_id_for_agent
 
 
 def _first_agent_for_buyer(buyer_id: str) -> str | None:
-    conn = (
-        AgentConnections.query.filter_by(client_id=str(buyer_id))
+    conn = db.session.scalar(
+        select(AgentConnections)
+        .where(AgentConnections.client_id == str(buyer_id))
         .order_by(AgentConnections.created_at.asc())
-        .first()
     )
     return str(conn.agent_id) if conn and conn.agent_id else None
 
@@ -31,7 +33,7 @@ def ensure_transaction(
     if not buyer_id:
         raise ValueError("buyer_id is required")
 
-    existing = Transaction.query.filter_by(buyer_id=buyer_id).first()
+    existing = db.session.scalar(select(Transaction).where(Transaction.buyer_id == buyer_id))
     if existing:
         return existing
 
@@ -57,4 +59,4 @@ def ensure_transaction(
 
 
 def transaction_for_buyer(buyer_id: str) -> Transaction | None:
-    return Transaction.query.filter_by(buyer_id=str(buyer_id)).first()
+    return db.session.scalar(select(Transaction).where(Transaction.buyer_id == str(buyer_id)))

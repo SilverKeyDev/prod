@@ -3,6 +3,7 @@
 from flask import jsonify, request
 
 from app.services.agent.client_service import agent_may_access_client
+from app.services.auth.user_role_helpers import user_is_agent
 
 
 def resolve_agent_scoped_user_id(user, json_body: dict | None = None):
@@ -30,7 +31,7 @@ def resolve_agent_scoped_user_id(user, json_body: dict | None = None):
     if not cid:
         return str(user.id), None
 
-    if not getattr(user, "is_agent", False):
+    if not user_is_agent(user):
         return None, (
             jsonify({"success": False, "error": "Only agents can act on behalf of another user"}),
             403,

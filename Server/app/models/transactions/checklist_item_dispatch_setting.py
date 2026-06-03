@@ -1,5 +1,6 @@
 """Per-agent, per–hub-client checklist step dispatch automation preferences."""
 
+# pyright: reportUndefinedVariable=false
 from __future__ import annotations
 
 import uuid

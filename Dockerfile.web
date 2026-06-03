@@ -12,6 +12,7 @@
   RUN npm install -g pnpm@9.0.0 >/dev/null 2>&1
 
   # build-time variables (client bundle; EXPO_PUBLIC_* inlined by Vite)
+  # Values supplied at CI build from AWS Secrets Manager (GitHub repository secrets fallback — planned for removal).
   ARG EXPO_PUBLIC_GOOGLE_MAPS_ID
   ARG EXPO_PUBLIC_PLAID_CLIENT_ID
   ARG EXPO_PUBLIC_GOOGLE_CLIENT_ID

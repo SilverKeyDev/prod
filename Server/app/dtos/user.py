@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from app.models import User as UserModel
 from app.schemas.generated import User as UserSchema
 from app.services.brokerage.membership import brokerage_org_ids_for_user
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 _PROFILE_PICTURE_EXT_TO_MIME = {
     ".jpg": "image/jpeg",
@@ -36,7 +36,7 @@ def _try_presigned_profile_picture_url(user: UserModel) -> str | None:
         return s3_service.generate_view_url(user.profile_picture, content_type=content_type)
     except Exception as e:
         log.warn(
-            LOG_CATEGORIES["HTTP"],
+            "HTTP",
             "Profile picture URL generation failed in UserDTO",
             {"user_id": str(user.id), "error": str(e)},
         )
@@ -59,9 +59,11 @@ class UserDTO:
         cls,
         user: UserModel,
         *,
-        include_roles: bool = False,
+        include_roles: bool = True,
         presign_profile_pic: bool = True,
     ) -> dict:
+        from app.services.auth.user_role_helpers import user_role_names
+
         is_active = user.is_active if user.is_active is not None else True
 
         data: dict = {
@@ -80,11 +82,8 @@ class UserDTO:
             "is_active": is_active,
             "has_preferences": user.has_preferences,
             "preferences_version": user.preferences_version,
-            "is_agent": bool(user.is_agent),
+            "roles": user_role_names(user) if include_roles else [],
         }
-
-        if include_roles:
-            data["roles"] = [ur.role for ur in user.user_roles]
 
         # Brokerage roster membership from user_org_memberships.
         org_ids = brokerage_org_ids_for_user(str(user.id))
@@ -99,7 +98,7 @@ class UserDTO:
             validated = UserSchema.model_validate(data)
         except ValidationError as e:
             log.error(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 f"User DTO validation failed: {e}",
                 e,
             )

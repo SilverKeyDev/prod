@@ -2,21 +2,23 @@
 
 from __future__ import annotations
 
-import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from sqlalchemy import select
+
 from app import db
 from app.models import PropertyAnalysisSection
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 DEFAULT_MAX_AGE_DAYS = 14
 
 
 def get_cached_sections(property_id: str) -> list[PropertyAnalysisSection]:
     """Return all analysis sections for a given property."""
-    return PropertyAnalysisSection.query.filter_by(property_id=property_id).all()
+    return db.session.scalars(
+        select(PropertyAnalysisSection).where(PropertyAnalysisSection.property_id == property_id)
+    ).all()
 
 
 def get_cached_sections_dict(property_id: str) -> dict[str, dict[str, Any]]:
@@ -44,18 +46,21 @@ def save_section(
     data: dict[str, Any],
 ) -> PropertyAnalysisSection:
     """Upsert a single analysis section for a property."""
-    existing = PropertyAnalysisSection.query.filter_by(
-        property_id=property_id, section_name=section_name
-    ).first()
+    existing = db.session.scalar(
+        select(PropertyAnalysisSection).where(
+            PropertyAnalysisSection.property_id == property_id,
+            PropertyAnalysisSection.section_name == section_name,
+        )
+    )
 
     now = datetime.now(timezone.utc)
     if existing:
         existing.data = data
         existing.generated_at = now
-        logger.info(
-            "[SECTION_CACHE] Updated section %s for property %s",
-            section_name,
-            property_id,
+        log.info(
+            "PROPERTY_DETAILS",
+            "Updated analysis section",
+            {"section_name": section_name, "property_id": property_id},
         )
         return existing
 
@@ -66,9 +71,9 @@ def save_section(
         generated_at=now,
     )
     db.session.add(record)
-    logger.info(
-        "[SECTION_CACHE] Created section %s for property %s",
-        section_name,
-        property_id,
+    log.info(
+        "PROPERTY_DETAILS",
+        "Created analysis section",
+        {"section_name": section_name, "property_id": property_id},
     )
     return record

@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 import { useLocation } from "react-router-dom";
 
 import { SearchNavLink } from "packages/features/search";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Link } from "packages/navigation";
 import AccessibleLink from "packages/ui/components/accessibility/AccessibleLink";
 import { Box } from "packages/ui/components/primitives";
@@ -77,7 +77,7 @@ export function SidebarNavSingleLink({
   const to = firstItem?.href ?? "/";
   const handleClick = () => {
     const navId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-    log.info(LOG_CATEGORIES.ROUTING, "[NAV] Sidebar nav click (link)", {
+    log.info("ROUTING", "[NAV] Sidebar nav click (link)", {
       navId,
       from: location.pathname,
       to,

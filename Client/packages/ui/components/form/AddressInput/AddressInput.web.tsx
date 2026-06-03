@@ -3,7 +3,7 @@ import React, { useEffect, useId, useState } from "react";
 import Input from "@ui/form/Input";
 import { Icon } from "@ui/icons";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import Button from "packages/ui/components/button/Button";
 import {
@@ -107,7 +107,7 @@ function AddressInputAutocomplete({
         setSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
-        log.error(LOG_CATEGORIES.ERRORS, "Address autocomplete fetch error", error);
+        log.error("ERRORS", "Address autocomplete fetch error", error);
         setSuggestions([]);
       }
     };
