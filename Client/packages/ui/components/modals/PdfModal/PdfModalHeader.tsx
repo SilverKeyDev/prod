@@ -16,24 +16,29 @@ export type PdfModalHeaderProps = {
   onClose: () => void;
 };
 
-const ExternalLinkIcon = () => (
-  <svg
-    className="h-6 w-6 transition-transform duration-200 group-hover:scale-110"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-    />
-  </svg>
-);
-
 const headerButtonClass =
-  "text-text-secondary hover:bg-accent-muted hover:text-text-primary rounded-md p-2 transition-colors duration-200";
+  "text-text-secondary hover:bg-accent-muted hover:text-text-primary flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 transition-colors duration-200 touch-manipulation";
+
+const HeaderIconButton = ({
+  icon,
+  onClick,
+  label,
+  className = "",
+}: {
+  icon: React.ReactNode;
+  onClick: () => void;
+  label: string;
+  className?: string;
+}) => (
+  <IconButton
+    icon={icon}
+    onClick={onClick}
+    title={label}
+    aria-label={label}
+    className={`${headerButtonClass} ${className}`.trim()}
+    variant="ghost"
+  />
+);
 
 export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
   title,
@@ -48,55 +53,75 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
   const shareReport = t("pdf.share_report");
   const closeLabel = t("common.close");
 
-  return (
-    <Box className="border-border bg-background-surface flex items-center justify-between border-b px-4 py-3">
-      <Box className="gap-responsive-sm flex min-w-0 flex-1 items-center">
-        <Box className="flex-shrink-0">
-          <MiniLogo className="mobile-icon-lg" />
-        </Box>
-        <Title size="lg" as="h2" className="text-text-primary min-w-0 truncate font-semibold">
-          {title}
-        </Title>
-      </Box>
-
-      <Box className="gap-responsive-sm flex flex-shrink-0 items-center">
-        <IconButton
+  const actionButtons = (
+    <>
+      <HeaderIconButton
+        icon={
+          <Icon
+            name="download"
+            className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 sm:h-6 sm:w-6"
+          />
+        }
+        onClick={onDownload}
+        label={dl}
+      />
+      <HeaderIconButton
+        icon={
+          <Icon
+            name="external-link"
+            className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 sm:h-6 sm:w-6"
+          />
+        }
+        onClick={onOpenInNewTab}
+        label={openTabLabel}
+      />
+      {onShare ? (
+        <HeaderIconButton
           icon={
             <Icon
-              name="download"
-              className="h-6 w-6 transition-transform duration-200 group-hover:scale-110"
+              name="share"
+              className="h-5 w-5 transition-transform duration-200 group-hover:scale-110 sm:h-6 sm:w-6"
             />
           }
-          onClick={onDownload}
-          title={dl}
-          aria-label={dl}
-          className={`hidden sm:flex ${headerButtonClass}`}
-          variant="ghost"
+          onClick={onShare}
+          label={shareReport}
+          className="hidden sm:flex"
         />
-        <IconButton
-          icon={<ExternalLinkIcon />}
-          onClick={onOpenInNewTab}
-          title={openTabLabel}
-          aria-label={openTabLabel}
-          className={headerButtonClass}
-          variant="ghost"
+      ) : null}
+    </>
+  );
+
+  return (
+    <Box className="border-border bg-background-surface flex w-full min-w-0 flex-col gap-2 border-b px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-3">
+      <Box className="flex w-full min-w-0 items-start justify-between gap-2 sm:flex-1 sm:items-center">
+        <Box className="gap-responsive-sm flex min-w-0 flex-1 items-center">
+          <Box className="hidden flex-shrink-0 sm:block">
+            <MiniLogo className="mobile-icon-lg" />
+          </Box>
+          <Title
+            size="md"
+            as="h2"
+            className="text-text-primary line-clamp-2 min-w-0 flex-1 break-words font-semibold sm:line-clamp-1 sm:truncate sm:text-lg"
+          >
+            {title}
+          </Title>
+        </Box>
+        <HeaderIconButton
+          icon={
+            <Icon
+              name="x"
+              className="h-5 w-5 transition-transform duration-200 group-hover:scale-110"
+            />
+          }
+          onClick={onClose}
+          label={closeLabel}
+          className="flex-shrink-0 sm:hidden"
         />
-        {onShare && (
-          <IconButton
-            icon={
-              <Icon
-                name="share"
-                className="h-6 w-6 transition-transform duration-200 group-hover:scale-110"
-              />
-            }
-            onClick={onShare}
-            title={shareReport}
-            aria-label={shareReport}
-            className={`hidden sm:flex ${headerButtonClass}`}
-            variant="ghost"
-          />
-        )}
-        <IconButton
+      </Box>
+
+      <Box className="flex w-full min-w-0 flex-shrink-0 items-center justify-end gap-0.5 sm:w-auto sm:gap-1">
+        {actionButtons}
+        <HeaderIconButton
           icon={
             <Icon
               name="x"
@@ -104,10 +129,8 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
             />
           }
           onClick={onClose}
-          title={closeLabel}
-          aria-label={closeLabel}
-          className={headerButtonClass}
-          variant="ghost"
+          label={closeLabel}
+          className="hidden sm:flex"
         />
       </Box>
     </Box>
