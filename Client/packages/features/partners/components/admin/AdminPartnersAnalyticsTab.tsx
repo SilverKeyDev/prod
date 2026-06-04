@@ -27,10 +27,7 @@ const DEVICE_CHART_COLORS = [
 export function AdminPartnersAnalyticsTab() {
   const { t } = useLocalization();
   const { data: partners = [] } = useAdminPartnersList();
-  const defaultId = useMemo(
-    () => partners.find((p) => p.slug === "move-concierge")?.id ?? partners[0]?.id,
-    [partners]
-  );
+  const defaultId = useMemo(() => partners[0]?.id, [partners]);
   const [partnerId, setPartnerId] = useState<string | undefined>(undefined);
   const selectedId = partnerId ?? defaultId;
   const { data: analytics, isLoading } = useRevShareAnalytics(selectedId);

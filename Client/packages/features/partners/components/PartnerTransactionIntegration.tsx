@@ -7,7 +7,7 @@ import BodyText from "packages/ui/components/text/BodyText";
 
 /**
  * Checklist integration for rev-share partner placements on a transaction step
- * (replaces legacy Move Concierge–only UI; driven by admin partner config).
+ * (driven by admin partner config; no hardcoded partner slugs).
  */
 export default function PartnerTransactionIntegration({
   stepId,

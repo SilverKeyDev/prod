@@ -64,8 +64,8 @@ CLOSING_ITEMS = [
         "label": "Schedule move-in concierge",
         "explanation": "Book a move-in concierge to help with setup, utilities, and settling into your new home.",
         "bullets": [],
-        "component_key": "home_concierge",
-        "integration_key": "home_concierge",
+        "component_key": "partner_placements",
+        "integration_key": "partner_placements",
     },
     {
         "id": 5,

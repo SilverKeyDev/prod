@@ -17,7 +17,12 @@ vi.mock("packages/contexts", () => ({
 
 const steps = [
   { step_id: "search:5", section: "search", item_id: 5, label: "Set a budget" },
-  { step_id: "closing:13", section: "closing", item_id: 13, label: "Move Concierge" },
+  {
+    step_id: "closing:13",
+    section: "closing",
+    item_id: 13,
+    label: "Schedule move-in concierge",
+  },
 ];
 
 describe("ChecklistStepPicker", () => {
@@ -50,7 +55,7 @@ describe("ChecklistStepPicker", () => {
     fireEvent.click(screen.getByRole("button", { name: /partners.admin.form.section/i }));
     fireEvent.click(screen.getByRole("option", { name: "Move In" }));
     fireEvent.click(screen.getByRole("button", { name: /partners.admin.form.step/i }));
-    fireEvent.click(screen.getByRole("option", { name: "Move Concierge" }));
+    fireEvent.click(screen.getByRole("option", { name: "Schedule move-in concierge" }));
     fireEvent.click(screen.getByRole("button", { name: "partners.admin.form.add_step" }));
 
     expect(onChange).toHaveBeenCalledWith(["closing:13"]);

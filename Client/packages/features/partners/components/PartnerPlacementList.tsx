@@ -2,6 +2,7 @@ import { useLocalization } from "packages/contexts";
 import { PartnerIntegrationExperience } from "packages/features/partners/components/PartnerIntegrationExperience";
 import type { PartnerPlacementPresentationRow } from "packages/features/partners/hooks/usePartnerPlacementPresentation";
 import { Box } from "packages/ui/components/primitives";
+import { twMergeClasses } from "packages/ui/utils/twMergeClasses";
 
 type PartnerPlacementListProps = {
   rows: PartnerPlacementPresentationRow[];
@@ -16,10 +17,9 @@ export function PartnerPlacementList({ rows, className }: PartnerPlacementListPr
   }
 
   return (
-    <Box className={className ?? "gap-responsive-sm flex flex-col"}>
+    <Box className={twMergeClasses("gap-responsive-sm flex flex-col", className)}>
       {rows.map(({ placement, href, displayMode, embedSrc }) => {
         const partner = placement.partner;
-        const isMoveConcierge = partner.slug === "move-concierge";
         return (
           <PartnerIntegrationExperience
             key={partner.id}
@@ -29,11 +29,7 @@ export function PartnerPlacementList({ rows, className }: PartnerPlacementListPr
             integrationDisplayMode={displayMode}
             embedSrc={embedSrc}
             href={href}
-            ctaLabel={
-              isMoveConcierge
-                ? t("close.home_concierge.open_in_new_tab")
-                : t("partners.placement.open_partner")
-            }
+            ctaLabel={t("partners.placement.open_partner")}
             iframeTitle={partner.name}
           />
         );

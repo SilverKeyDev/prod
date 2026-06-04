@@ -22,8 +22,8 @@ vi.mock("packages/features/partners/components/admin/PartnerLogoUpload", () => (
 }));
 
 const baseInitial: PartnerCreateRequest = {
-  name: "Move Concierge",
-  slug: "move-concierge",
+  name: "Sample Partner",
+  slug: "sample-partner",
   destination_url_template: "https://example.com/{transaction_id}",
   target_roles: ["agent"],
   step_ids: [],
@@ -31,7 +31,7 @@ const baseInitial: PartnerCreateRequest = {
   payout_per_conversion: 25,
 };
 
-const steps = [{ step_id: "closing:13", label: "Move Concierge", section: "closing" }];
+const steps = [{ step_id: "closing:13", label: "Schedule move-in concierge", section: "closing" }];
 
 describe("AdminPartnerForm", () => {
   it("hides checklist step picker when only non-checklist roles are selected", () => {
@@ -76,6 +76,6 @@ describe("AdminPartnerForm", () => {
     );
 
     expect(screen.getByText("partners.admin.form.preview")).toBeTruthy();
-    expect(screen.getByText("Move Concierge")).toBeTruthy();
+    expect(screen.getByText("Sample Partner")).toBeTruthy();
   });
 });

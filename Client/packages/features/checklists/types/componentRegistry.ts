@@ -4,7 +4,7 @@ export type ChecklistComponentKey =
   | "define_criteria"
   | "set_budget"
   | "finding_home"
-  | "home_concierge"
+  | "partner_placements"
   | "partner_agent"
   | "review_comparables";
 
@@ -25,7 +25,7 @@ const VALID_KEYS: ChecklistComponentKey[] = [
   "define_criteria",
   "set_budget",
   "finding_home",
-  "home_concierge",
+  "partner_placements",
   "partner_agent",
   "review_comparables",
 ];

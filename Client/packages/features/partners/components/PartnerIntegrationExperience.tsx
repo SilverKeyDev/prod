@@ -19,7 +19,7 @@ type PartnerIntegrationExperienceProps = {
   onOpen?: () => void;
   ctaLabel?: string;
   iframeTitle?: string;
-  /** When embed_only, renders iframe and/or link without the partner summary card (e.g. Move Concierge hero). */
+  /** When embed_only, renders iframe and/or link without the partner summary card. */
   variant?: "full" | "embed_only";
 };
 

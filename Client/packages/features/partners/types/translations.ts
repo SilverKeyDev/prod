@@ -21,7 +21,7 @@ export const partnersFeatureTranslations = {
   "partners.admin.table.active": "Active",
   "partners.admin.form.rev_share_link": "Partner rev share link",
   "partners.admin.form.rev_share_link_help":
-    "Paste the tracking URL the partner gave you (e.g. Move Concierge affiliate link). Buyers hit SilverKey /r/… first for click logging, then redirect here.",
+    "Paste the tracking URL the partner gave you. Buyers hit SilverKey /r/… first for click logging, then redirect here.",
   "partners.admin.form.logo": "Logo",
   "partners.admin.form.logo_upload": "Upload logo",
   "partners.admin.form.logo_uploading": "Uploading…",
