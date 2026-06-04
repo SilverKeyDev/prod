@@ -2,6 +2,7 @@ import { useLocalization } from "packages/contexts";
 import { PartnerIntegrationExperience } from "packages/features/partners/components/PartnerIntegrationExperience";
 import type { PartnerPlacementPresentationRow } from "packages/features/partners/hooks/usePartnerPlacementPresentation";
 import { Box } from "packages/ui/components/primitives";
+import { twMergeClasses } from "packages/ui/utils/twMergeClasses";
 
 type PartnerPlacementListProps = {
   rows: PartnerPlacementPresentationRow[];
@@ -16,7 +17,7 @@ export function PartnerPlacementList({ rows, className }: PartnerPlacementListPr
   }
 
   return (
-    <Box className={className ?? "gap-responsive-sm flex flex-col"}>
+    <Box className={twMergeClasses("gap-responsive-sm flex flex-col", className)}>
       {rows.map(({ placement, href, displayMode, embedSrc }) => {
         const partner = placement.partner;
         return (

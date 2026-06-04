@@ -21,7 +21,7 @@ export const COMPONENT_REGISTRY: Record<
   choose_areas: ChooseAreasSection,
   define_criteria: DefineCriteriaSection,
   finding_home: FindingHome,
-  home_concierge: PartnerTransactionIntegration,
+  partner_placements: PartnerTransactionIntegration,
   partner_agent: PartnerAgentSection,
   review_comparables: ReviewComparablesSection,
   set_budget: SetBudgetSection,

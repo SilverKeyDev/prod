@@ -17,7 +17,7 @@ type ChecklistIntegrationSlotProps = {
 };
 
 /** Checklist keys that render partner placements as the primary integration UI. */
-const PARTNER_TRANSACTION_INTEGRATION_KEYS = new Set(["home_concierge"]);
+const PARTNER_TRANSACTION_INTEGRATION_KEYS = new Set(["partner_placements"]);
 
 export default function ChecklistIntegrationSlot({
   componentKey,

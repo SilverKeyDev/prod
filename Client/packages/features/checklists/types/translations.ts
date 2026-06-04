@@ -4,14 +4,6 @@ export const CHECKLISTS_TRANSLATIONS: Record<string, string> = {
   "close.show_details": "Show details",
   "close.hide_details": "Hide details",
   "close.checklist_legend": "Checklist",
-  "close.home_concierge.alt": "Moving Concierge",
-  "close.home_concierge.subtitle":
-    "Compare movers, schedule services, transfer utilities, and handle logistics, all in one 30 minute call",
-  "close.home_concierge.how_possible":
-    "How is this possible? MoveConcierge takes commission from service providers, so it's free for you",
-  "close.home_concierge.start_today": "Start Today",
-  "close.home_concierge.open_in_new_tab": "Open in new tab",
-  "close.home_concierge.open_in_browser": "Open in browser",
   "checklists.loading": "Loading...",
   "checklists.loading_forms": "Loading forms...",
   "checklists.error_loading_forms": "Error loading forms. Please try again.",
