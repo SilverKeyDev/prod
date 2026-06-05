@@ -57,6 +57,7 @@ export {
   newAvailabilityRuleId,
   updateAvailabilityFromEditedEvent,
 } from "./utils/availability/profileAvailabilityMutations";
+export { primaryOnboardingRoleFromForm } from "./utils/onboarding/role/onboardingRoleSelection";
 export { postOnboardingTargetForPrimaryRole } from "./utils/onboarding/role/onboardingToWorkspace";
 export { API_GET_KEYS, API_POST_KEYS } from "./utils/onboarding/steps/fieldContract";
 export { isOnboardingStepComplete } from "./utils/onboarding/steps/onboardingStepCompletion";
