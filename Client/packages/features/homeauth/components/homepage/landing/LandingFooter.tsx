@@ -1,7 +1,7 @@
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
 import { HomeHashLink, homeLandingSectionIdFromHref, Link } from "packages/navigation";
-import { LOGO } from "packages/ui/components/asset";
-import { Box, Image } from "packages/ui/components/primitives";
+import { LOGO } from "packages/ui/components/media/asset";
+import { Box, Image } from "packages/ui/components/structure/primitives";
 
 import { BodyText } from "@/components/ui";
 

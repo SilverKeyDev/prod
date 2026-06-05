@@ -6,7 +6,7 @@ import { queryKeys } from "packages/config/query/keys";
 import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats";
 import { log } from "packages/logger";
 import type { UserProfile } from "packages/types";
-import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
+import { prefetchRemoteImage } from "packages/utils/product/media/prefetchRemoteImage";
 
 import { DATA_ROUTES, getInitialLoadRoutes } from "./dataConfig";
 

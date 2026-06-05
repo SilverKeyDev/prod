@@ -8,8 +8,9 @@ import { Icon } from "@ui/icons";
 import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router-dom";
 
 import { useErrorReporting } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/primitives";
-import { getUserFriendlyMessage, normalizeError } from "packages/utils/errorHandling";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getUserFriendlyMessage, normalizeError } from "packages/utils/core/errorHandling";
+import { getWindow } from "packages/utils/core/platform";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, Title } from "@/components/ui";
@@ -134,7 +135,7 @@ export function RouteErrorBoundary() {
   useEffect(() => {
     reportError(error, {
       routeError: true,
-      url: window.location.href,
+      url: getWindow()?.location?.href ?? "",
     });
   }, [error, reportError]);
   const handleGoBack = () => {
@@ -144,7 +145,7 @@ export function RouteErrorBoundary() {
     void navigate("/");
   };
   const handleRetry = () => {
-    window.location.reload();
+    getWindow()?.location?.reload();
   };
   if (isRouteErrorResponse(error)) {
     const message =

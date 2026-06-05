@@ -1,14 +1,14 @@
+import { isOnboardingStepComplete } from "packages/features/profile";
 import { PersonalizationSectionLayoutProvider } from "packages/features/profile/components/layout";
 import { renderOnboardingStep } from "packages/features/profile/components/onboarding/renderOnboardingStep.web";
 import type { ProfileStepId } from "packages/features/profile/types/onboarding/profileStepIds";
 import { useOnboardingForm } from "packages/hooks/data/auth/onboarding/useOnboardingForm";
-import { LOGO } from "packages/ui/components/asset";
-import { Box, Image } from "packages/ui/components/primitives";
+import { LOGO } from "packages/ui/components/media/asset";
+import { Box, Image } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { NavigationButtons, SkipButton } from "@/components/ui";
 import OnboardingHeader from "@/features/profile/components/onboarding/Header.web";
-import { isOnboardingStepComplete } from "@/features/profile/utils";
 
 export function OnboardingFeature() {
   const {

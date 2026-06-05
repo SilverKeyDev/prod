@@ -1,12 +1,11 @@
 import React, { type ReactNode } from "react";
 
 import { color } from "packages/design-tokens";
-import type { CardBorderVariant } from "packages/ui/components/cards/Card";
-import Card from "packages/ui/components/cards/Card";
-import { Box, ScrollView, Text } from "packages/ui/components/primitives";
+import { Box, ScrollView, Text } from "packages/ui/components/structure/primitives";
+import type { CardBorderVariant } from "packages/ui/components/surfaces/cards/Card";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
-import type { Calendar } from "@/features/calendar/types/calendar";
-import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 import type { UpcomingAgendaItem } from "@/features/calendar/utils/agenda/mergeUpcomingAgenda";
 
@@ -29,6 +28,8 @@ type UpcomingAgendaListProps = {
   canEditAgendaTodos?: boolean;
   onSigningAgendaPress?: (agreementId: string) => void;
   border?: CardBorderVariant;
+  isAgendaEventComplete?: (event: ExtendedGoogleEvent) => boolean;
+  onToggleAgendaEventComplete?: (event: ExtendedGoogleEvent) => void;
 };
 
 const titleStyle = {
@@ -74,6 +75,8 @@ function renderRow(
   >
 ) {
   if (item.kind === "event") {
+    const canToggleAgenda =
+      Boolean(props.onToggleAgendaEventComplete) && Boolean(props.isAgendaEventComplete);
     return (
       <EventCard
         event={item.event}
@@ -83,6 +86,13 @@ function renderRow(
         deleteEvent={props.deleteEvent}
         calendars={props.calendars ?? []}
         onClick={() => props.onEventClick?.(item.event)}
+        agendaComplete={props.isAgendaEventComplete?.(item.event) ?? false}
+        onToggleAgendaComplete={
+          props.onToggleAgendaEventComplete
+            ? () => props.onToggleAgendaEventComplete?.(item.event)
+            : undefined
+        }
+        canToggleAgendaComplete={canToggleAgenda}
       />
     );
   }
@@ -113,6 +123,8 @@ export function UpcomingAgendaList({
   canEditAgendaTodos = false,
   onSigningAgendaPress,
   border = "charcoal",
+  isAgendaEventComplete,
+  onToggleAgendaEventComplete,
 }: UpcomingAgendaListProps) {
   const rowProps = {
     silverKeyCalendarId,
@@ -124,6 +136,8 @@ export function UpcomingAgendaList({
     onToggleAgendaTodo,
     canEditAgendaTodos,
     onSigningAgendaPress,
+    isAgendaEventComplete,
+    onToggleAgendaEventComplete,
   };
 
   const listContent =

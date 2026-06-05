@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
-import { stripWorkspaceShellPrefix } from "packages/utils/layout/dashboardLayoutConfig";
+import { stripWorkspaceShellPrefix } from "packages/utils/core/layout/dashboardLayoutConfig";
 
 import { ProtectedRoute } from "@/app/guards";
 import { DashboardLayout } from "@/app/layouts";

@@ -1,5 +1,5 @@
 import { getPostHogRequestHeaders } from "packages/services/analytics/posthogHeaders";
-import { getDocument } from "packages/utils/platform";
+import { getDocument } from "packages/utils/core/platform";
 
 import { createAuthHeaders, normalizeHeaders, normalizeUrl } from "./httpRequestHeaders";
 import { createHttpRequestId } from "./requestId";

@@ -2,7 +2,7 @@ import React from "react";
 
 import { GraduationCap } from "lucide-react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";

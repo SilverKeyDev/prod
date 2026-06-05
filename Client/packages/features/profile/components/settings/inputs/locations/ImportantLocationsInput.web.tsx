@@ -6,14 +6,14 @@ import { Icon } from "@ui/icons";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import { log } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
-import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/styles/fileUploadStyles";
-import { Box } from "packages/ui/components/primitives";
+import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/inputs/form/styles/fileUploadStyles";
+import { Box } from "packages/ui/components/structure/primitives";
 import { asError } from "packages/utils";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 import {
   SUPPORTED_SERVICE_AREA_GOOGLE_LOCATION_RESTRICTION,
   SUPPORTED_SERVICE_AREA_WARNING,
-} from "packages/utils/search/locations/serviceAreaAvailability";
+} from "packages/utils/product/search/locations/serviceAreaAvailability";
 
 import { BodyText, Button, CancelButton, IconButton } from "@/components/ui";
 

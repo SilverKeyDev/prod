@@ -20,6 +20,7 @@ export {
 export { useFeedData } from "./hooks/data/useFeedData";
 export type { FeedListing, FeedScrollController } from "./types/feed";
 export {
+  DEFAULT_AVATAR_IMAGE,
   DEFAULT_PLACEHOLDER_IMAGE,
   initBeaconFlush,
   listingToReelMedia,

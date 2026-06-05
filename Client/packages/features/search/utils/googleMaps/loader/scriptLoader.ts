@@ -2,9 +2,9 @@ import { mapsApi, type MapsScriptResponse } from "packages/api/maps";
 import { env } from "packages/config";
 import { log } from "packages/logger";
 import { asError } from "packages/utils";
-import { logWebMapsEnvDiagnostics } from "packages/utils/maps/cloudMapId/logWebMapsEnvDiagnostics";
-import { getDocument, getWindow } from "packages/utils/platform";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { getDocument, getWindow } from "packages/utils/core/platform";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
+import { logWebMapsEnvDiagnostics } from "packages/utils/product/maps/cloudMapId/logWebMapsEnvDiagnostics";
 
 import { isGoogleMapsReady } from "./googleMapsReadiness";
 

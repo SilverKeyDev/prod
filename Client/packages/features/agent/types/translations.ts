@@ -1,5 +1,5 @@
 /** Agent feature translation strings (agent, client_selector). */
-import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+import { ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.added_to_calendar": "Added to calendar",

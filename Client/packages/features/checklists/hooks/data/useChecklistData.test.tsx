@@ -22,6 +22,13 @@ vi.mock("packages/store", () => ({
     sel({ isAuthenticated: true, authReady: true }),
 }));
 
+vi.mock("./useResolvedTransactionId", () => ({
+  useResolvedTransactionId: () => ({
+    transactionId: "tx-123",
+    isLoading: false,
+  }),
+}));
+
 describe("useChecklistData", () => {
   let queryClient: QueryClient;
 
@@ -34,7 +41,7 @@ describe("useChecklistData", () => {
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
     });
-    vi.spyOn(checklistsApi, "getTaskChecklist").mockResolvedValue({
+    vi.spyOn(checklistsApi, "getTaskChecklistForSubject").mockResolvedValue({
       items: [
         {
           id: 1,
@@ -58,7 +65,7 @@ describe("useChecklistData", () => {
       release = r;
     });
 
-    const updateSpy = vi.spyOn(checklistsApi, "updateTaskChecklist").mockImplementation(
+    const updateSpy = vi.spyOn(checklistsApi, "updateTaskChecklistForSubject").mockImplementation(
       () =>
         new Promise<number[]>((resolve) => {
           void gate.then(() => resolve([1]));

@@ -48,6 +48,22 @@ def primary_onboarding_role_is_agent(data: dict[str, Any]) -> bool:
     return isinstance(role, str) and role.strip().lower() == "agent"
 
 
+def normalized_primary_onboarding_role(data: dict[str, Any]) -> str | None:
+    role = data.get("primary_onboarding_role")
+    if not isinstance(role, str):
+        return None
+    normalized = role.strip().lower()
+    return normalized or None
+
+
+def primary_onboarding_role_is_brokerage(data: dict[str, Any]) -> bool:
+    return normalized_primary_onboarding_role(data) == "brokerage"
+
+
+def primary_onboarding_role_is_integration_partner(data: dict[str, Any]) -> bool:
+    return normalized_primary_onboarding_role(data) == "integration_partner"
+
+
 def desired_client_roles_from_why_join(
     why_joining_silverkey: list[str] | None,
     *,

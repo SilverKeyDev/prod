@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import { getDocument } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
+import { getDocument } from "packages/utils/core/platform";
 
 import { BodyText, Button } from "@/components/ui";
 

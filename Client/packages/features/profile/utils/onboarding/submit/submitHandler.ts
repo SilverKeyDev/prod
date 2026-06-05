@@ -2,15 +2,16 @@ import { clientSettingsApi } from "packages/features/homeauth/api/clientSettings
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import type { SubmitHandlerParams } from "packages/features/profile/types/onboarding/submitHandler";
 import { log } from "packages/logger";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
 
 import { primaryOnboardingRoleFromForm } from "@/features/profile/utils/onboarding/role/onboardingRoleSelection";
+import { postOnboardingTargetForPrimaryRole } from "@/features/profile/utils/onboarding/role/onboardingToWorkspace";
 import { formDataToPreferencesPayload } from "@/features/profile/utils/onboarding/sync/profileFormSync";
 import { validateOnboardingData } from "@/features/profile/utils/onboarding/validation/validation";
 
 /** Default post-onboarding route by primary role (canonical paths). */
 export function postOnboardingPathForForm(formData: OnboardingData): string {
-  return primaryOnboardingRoleFromForm(formData) === "seller" ? "/dashboard" : "/search";
+  return postOnboardingTargetForPrimaryRole(primaryOnboardingRoleFromForm(formData)).path;
 }
 
 export type {

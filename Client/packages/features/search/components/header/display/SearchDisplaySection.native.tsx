@@ -12,7 +12,7 @@ import {
 } from "packages/features/search/types/domain/searchDisplay";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { useAuthStore } from "packages/store";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 const ORDER_LABELS: Record<ResultsOrderBy, string> = {
   match_score: SEARCH_TRANSLATIONS["search.order_match_score"] ?? "Match score",

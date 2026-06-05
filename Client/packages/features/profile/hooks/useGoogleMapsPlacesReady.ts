@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { log } from "packages/logger";
 import { useGoogleMapsStore } from "packages/store";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 type WindowWithGoogle = Window & {
   google?: { maps?: { places?: unknown } };

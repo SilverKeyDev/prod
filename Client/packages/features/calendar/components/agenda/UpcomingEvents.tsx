@@ -5,8 +5,8 @@ import { EventList } from "packages/features/calendar/components/view/agenda/Eve
 import { UpcomingAgendaList } from "packages/features/calendar/components/view/agenda/UpcomingAgendaList";
 import { CalendarConnectionPrompt } from "packages/features/calendar/components/view/CalendarConnectionPrompt";
 import { ClientCalendarAccessPrompt } from "packages/features/calendar/components/view/ClientCalendarAccessPrompt";
-import Card from "packages/ui/components/cards/Card";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 import { useUpcomingEventsData } from "@/features/calendar/hooks/data/core/useUpcomingEventsData";
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
@@ -76,6 +76,9 @@ export function UpcomingEvents({
       onToggleAgendaTodo={d.onToggleAgendaTodo}
       canEditAgendaTodos={d.canEditAgendaTodos}
       onSigningAgendaPress={d.onSigningAgendaPress}
+      isAgendaEventComplete={d.isAgendaEventComplete}
+      onToggleAgendaEventComplete={d.onToggleAgendaEventComplete}
+      completedEventKeys={d.completedEventKeys}
     />
   ) : null;
 

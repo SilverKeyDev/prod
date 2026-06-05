@@ -1,7 +1,7 @@
 import type React from "react";
 
-import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
-import { getWindow } from "packages/utils/platform";
+import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";
+import { getWindow } from "packages/utils/core/platform";
 
 export type CalendarTimeGridScrollViewRef = React.ComponentRef<typeof ScrollView>;
 

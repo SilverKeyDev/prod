@@ -1,4 +1,4 @@
-import { useProfileUiSurface } from "packages/features/profile/components/layout";
+import { useProfileUiSurface } from "packages/features/profile/hooks/usePersonalizationSectionLayout";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { shouldShowAgentOptionalBuyerCallout } from "packages/features/profile/types/visibility/profileVisibility";
 import { primaryOnboardingRoleFromForm } from "packages/features/profile/utils/onboarding/role/onboardingRoleSelection";

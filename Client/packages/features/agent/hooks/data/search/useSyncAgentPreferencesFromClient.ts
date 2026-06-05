@@ -4,17 +4,17 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { useLocalization } from "packages/contexts";
-import { useUserData } from "packages/hooks/data/user/useUserData";
-import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
-import { log } from "packages/logger";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
-
-import { preferencesApi } from "@/features/homeauth/api/preferences";
 import {
   formDataToPreferencesPayload,
   type OnboardingData,
   userPreferencesToOnboardingData,
-} from "@/features/profile/utils";
+} from "packages/features/profile";
+import { useUserData } from "packages/hooks/data/user/useUserData";
+import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
+import { log } from "packages/logger";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
+
+import { preferencesApi } from "@/features/homeauth/api/preferences";
 
 export type SyncFromClientOptions = {
   /** Called right after client preferences are loaded (before POST). Use to update UI immediately. */

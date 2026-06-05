@@ -18,7 +18,7 @@ import { createUserDataTestQueryContext, mockAuthSelectors } from "./useUserData
 // Mock dependencies
 vi.mock("packages/store");
 vi.mock("packages/api");
-vi.mock("packages/utils/media/prefetchRemoteImage", () => ({
+vi.mock("packages/utils/product/media/prefetchRemoteImage", () => ({
   prefetchRemoteImage: vi.fn(),
 }));
 

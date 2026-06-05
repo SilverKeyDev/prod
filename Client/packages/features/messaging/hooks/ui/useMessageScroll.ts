@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 import { setScrollToBottomInstant } from "./messageScrollHelpers";
 

@@ -8,10 +8,10 @@ import type { AgreementStatus } from "packages/features/documents/types/docusign
 import { formatAgreementDate } from "packages/features/documents/utils/docusignHelpers";
 import { useAuthStore } from "packages/store";
 import { Button, CancelButton } from "packages/ui";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box } from "packages/ui/components/primitives";
-import { getContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/structure/primitives";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
+import { getContextualAgreementStatus } from "packages/utils/transaction/agreement/contextualAgreementStatus";
 
 import { BodyText } from "@/components/ui";
 

@@ -14,7 +14,7 @@ import {
   SECTION_TITLES,
 } from "packages/features/profile/utils";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 type LocationStepProps = {
   formData: OnboardingData;

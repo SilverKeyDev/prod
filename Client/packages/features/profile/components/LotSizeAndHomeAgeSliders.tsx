@@ -7,7 +7,7 @@ import {
   HOME_AGE_YEARS_TICK_VALUES,
   LOT_SIZE_ACRES_TICK_VALUES,
 } from "packages/features/profile/utils/public/constants";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 export type LotSizeHomeAgeFormSlice = {
   preferred_lot_size_min?: number;

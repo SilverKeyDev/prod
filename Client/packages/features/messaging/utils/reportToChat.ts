@@ -5,9 +5,9 @@
 
 import type { Chat } from "packages/features/messaging/types/chat";
 import { log } from "packages/logger";
-import { dateNow, dayjs } from "packages/utils/date";
-import { formatFilenameToAddress } from "packages/utils/format/address";
-import { getWindow } from "packages/utils/platform";
+import { dateNow, dayjs } from "packages/utils/core/date";
+import { formatFilenameToAddress } from "packages/utils/core/format/address";
+import { getWindow } from "packages/utils/core/platform";
 
 const CACHE_TTL_MS = 30000; // 30 seconds
 

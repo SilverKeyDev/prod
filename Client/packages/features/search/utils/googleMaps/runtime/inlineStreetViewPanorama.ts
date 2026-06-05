@@ -1,5 +1,5 @@
 import { log } from "packages/logger";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 /** Monotonic counter so logs can show Strict Mode / double effect ordering (dev). */
 let attachInlineStreetViewPanoramaCallSeq = 0;

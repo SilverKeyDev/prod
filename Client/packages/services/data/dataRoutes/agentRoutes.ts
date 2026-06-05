@@ -22,9 +22,9 @@ export const agentRoutes = {
 
   agentTodos: {
     key: "agentTodos",
-    queryKey: () => queryKeys.agent.todos(false),
+    queryKey: () => queryKeys.agent.todos(true),
     queryFn: async () => {
-      const response = await agentApi.getTodos(false);
+      const response = await agentApi.getTodos(true);
       throwUnlessApiSuccess(response, "Failed to fetch todos");
       return response.todos ?? [];
     },

@@ -18,7 +18,7 @@ vi.mock("packages/contexts", () => ({
   }),
 }));
 
-vi.mock("packages/ui/components/modals", () => ({
+vi.mock("packages/ui/components/surfaces/modals", () => ({
   ConfirmationDialog: ({
     isOpen,
     title,
@@ -48,7 +48,7 @@ vi.mock("packages/ui/components/modals", () => ({
     ) : null,
 }));
 
-vi.mock("packages/ui/components/modals/BaseModal", () => ({
+vi.mock("packages/ui/components/surfaces/modals/BaseModal", () => ({
   default: ({
     isOpen,
     title,
@@ -68,7 +68,7 @@ vi.mock("packages/ui/components/modals/BaseModal", () => ({
 
 const mutateAsync = vi.fn();
 
-vi.mock("packages/hooks/data/admin/useAdminGateUsersList", () => ({
+vi.mock("packages/features/admin/hooks/data/useAdminGateUsersList", () => ({
   useAdminGateUsersList: () => ({
     data: {
       admins: [
@@ -85,7 +85,7 @@ vi.mock("packages/hooks/data/admin/useAdminGateUsersList", () => ({
   }),
 }));
 
-vi.mock("packages/hooks/data/admin/useUpdateUserSystemRolesMutation", () => ({
+vi.mock("packages/features/admin/hooks/data/useUpdateUserSystemRolesMutation", () => ({
   useUpdateUserSystemRolesMutation: () => ({
     mutateAsync,
     isPending: false,

@@ -2,7 +2,7 @@
 
 from flask import jsonify, request
 
-from app.dtos.agreement import revision_payload
+from app.dtos.documents import revision_payload
 from app.schemas import (
     DocusignResendRecipientRequest,
     DocusignResendRecipientResponse,

@@ -1,7 +1,7 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText } from "@/components/ui";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/sliders/BudgetRangeSlider";

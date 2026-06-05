@@ -3,17 +3,17 @@ import React from "react";
 import { useLocalization } from "packages/contexts";
 import { hasRenderableListingPrice } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
+import Card from "packages/ui/components/surfaces/cards/Card";
 import {
   formatLotSize,
   formatStructuredAddress,
-} from "packages/utils/format/property/addressFormatting";
+} from "packages/utils/core/format/property/addressFormatting";
 import {
   formatPrice,
   formatPropertyType,
-} from "packages/utils/format/property/propertyDetailsDisplayFormatters";
+} from "packages/utils/core/format/property/propertyDetailsDisplayFormatters";
 
 function resolveLegacyPropertyAddressLine(
   property: PropertyComponentProps["property"],

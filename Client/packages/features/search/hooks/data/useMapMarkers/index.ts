@@ -5,7 +5,7 @@ import { resetMapToListingFocusZoom } from "packages/features/search/utils/googl
 import { log } from "packages/logger";
 import type { SearchResult } from "packages/types";
 import type { IsochroneData } from "packages/types/domain/api";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 import { clearMapMarkers, removeCardMarkersOnly, teardownAdvancedMarker } from "./clearMarkers";
 import { addFocusedCardMarkers } from "./focusedCardMarker";

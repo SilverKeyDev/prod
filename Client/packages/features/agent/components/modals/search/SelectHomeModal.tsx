@@ -5,9 +5,9 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { Button, CancelButton } from "packages/ui";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box } from "packages/ui/components/primitives";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/structure/primitives";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
 
 import { BodyText, Title } from "@/components/ui";
 import { useMultiSelectionModal } from "@/features/agent/hooks/ui/useMultiSelectionModal";

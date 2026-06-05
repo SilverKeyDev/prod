@@ -3,9 +3,9 @@
  * Consolidates error context building and serialization from reports.ts and errorReporting.ts
  */
 
-import { dateNow } from "packages/utils/date";
-import { getNavigator, getWindow } from "packages/utils/platform";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { dateNow } from "packages/utils/core/date";
+import { getNavigator, getWindow } from "packages/utils/core/platform";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 import { redactErrorMessage, scrubPII } from "./piiSecurity";
 

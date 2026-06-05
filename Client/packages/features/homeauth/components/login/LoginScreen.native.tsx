@@ -17,9 +17,9 @@ import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAu
 import { applyLoginResult } from "packages/features/homeauth/utils/applyLoginResult";
 import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 export function LoginScreenNative() {
   const [email, setEmail] = useState("");

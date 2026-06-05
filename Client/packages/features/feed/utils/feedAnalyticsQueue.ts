@@ -1,5 +1,5 @@
 import { log } from "packages/logger";
-import { createBlob, getDocument, getNavigator, getWindow } from "packages/utils/platform";
+import { createBlob, getDocument, getNavigator, getWindow } from "packages/utils/core/platform";
 
 /** Set by app init (e.g. ReelsView) to avoid utils importing config. */
 let baseUrlGetter: (() => string) | null = null;

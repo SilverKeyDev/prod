@@ -10,7 +10,7 @@ import {
   parseSharedAttachmentSnapshot,
   type SharedChecklistFormSnapshot,
 } from "packages/features/messaging";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
 
 export type ChecklistFormAvailabilityOptions = {
   formsLibraryLoading: boolean;

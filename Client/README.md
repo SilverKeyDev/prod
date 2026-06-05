@@ -1,86 +1,44 @@
 # SilverKey Client
 
-TypeScript/React frontend: web app (`apps/web`) and React Native app (`apps/mobile`). Shared logic lives in `packages/`; UI lives in each app (or future shared `packages/ui`).
+TypeScript/React: **web** (`apps/web`) and **mobile** (`apps/mobile`). Shared logic in **`packages/`**; apps stay thin.
 
 ## Quick start
 
-From repo root: `make setup` then `make dev-web` (or `cd Client && pnpm dev:web`). See [setup.md](../setup.md) for full machine setup.
+From repo root: `make setup` then `make dev-web` (or `cd Client && pnpm dev:web`). Full machine setup: [setup.md](../setup.md).
 
-## Running the mobile app (React Native / Expo)
+## Mobile (Expo / Metro)
 
-The **web** dev stack is started by `./run-web.sh` (Flask + Vite). The **mobile** app is served by Metro on port 8081 and is **not** started by `run-web.sh`.
+Not started by `make dev-web`. Run:
 
-- To run the mobile app in the simulator/device: `cd Client && pnpm dev:mobile` (then press `i` for iOS or `a` for Android).
-- To run the mobile app in the **browser** (Expo web): start Metro with `pnpm dev:mobile`, then open the URL Expo prints (e.g. `http://localhost:8081/apps/mobile/`). If you see a **404** for `index.ts.bundle` and "MIME type 'application/json' not executable", Metro wasn't running or the path rewrite didn't apply - ensure you started Metro from `Client` and try a cache reset: `pnpm dev:mobile -- --clear`. For API and health checks to hit the backend instead of Metro, set `EXPO_PUBLIC_API_BASE_URL=http://localhost:5000` (or your backend URL) in `.env` or your shell.
+```bash
+cd Client && pnpm dev:mobile   # then i / a for simulator
+```
+
+Expo web uses Metro (e.g. port 8081). Set `EXPO_PUBLIC_API_BASE_URL=http://localhost:5000` so API calls hit Flask, not Metro. Cache issues: `pnpm dev:mobile -- --clear`.
 
 ## Testing
 
-The Client uses [Vitest](https://vitest.dev/) for unit and integration testing with comprehensive coverage reporting.
-
-### Running Tests
-
 ```bash
-# Run tests in watch mode (development)
-pnpm test
-
-# Run tests once (CI/verification)
-pnpm test:run
-
-# Run tests with coverage report
+pnpm test          # watch
+pnpm test:run      # CI
 pnpm test:coverage
-
-# Run tests with interactive UI
-pnpm test:ui
 ```
 
-### Coverage Configuration
+Coverage thresholds in `vitest.config.ts`. Place `*.test.ts` next to source. Details: [documentation/client/qa/](../documentation/client/qa/README.md).
 
-Coverage thresholds are enforced via `vitest.config.ts`:
+## OpenAPI types
 
-- **High-value shared code** (`packages/utils/`, `packages/hooks/`): 70% coverage required
-- **Feature code** (`packages/features/`): 50% coverage required
-- **Services and config** (`packages/services/`, `packages/config/`): 60% coverage required
-- **Store slices** (`packages/store/`): 50% coverage required
+Edit repo **`openapi/`**, then `pnpm generate:api-types` or `make openapi`. Do not edit `packages/types/api.generated.ts`.
 
-### Coverage Reports
-
-After running tests with coverage, view reports at:
-
-- **Terminal**: Summary shown in console
-- **HTML**: `Client/coverage/index.html` (open in browser)
-- **JSON**: `Client/coverage/coverage-summary.json` (for CI/scripts)
-
-### Writing Tests
-
-Place test files next to the code they test:
-
-```
-packages/utils/search/formatPrice.ts
-packages/utils/search/formatPrice.test.ts
-```
-
-Use `.test.ts` or `.spec.ts` extensions. Tests run in jsdom environment with React Testing Library support.
-
-## API Types and OpenAPI
-
-The Client uses a centralized OpenAPI 3.1.0 specification for all API types:
-
-- **Single source of truth:** `/openapi.yaml` (at repo root)
-- **Auto-generated types:** `Client/packages/types/api.generated.ts` (DO NOT EDIT)
-- **Generate command:** `pnpm generate:api-types`
-
-**Adding/modifying API types:**
-
-1. Edit `/openapi.yaml` (add/modify schemas)
-2. Run `pnpm generate:api-types`
-3. Import from `packages/types/api.generated`
-
-**See:** [documentation/server/openapi-workflow.md](../documentation/server/openapi-workflow.md) and [.cursor/rules/shared/openapi-types.mdc](../.cursor/rules/shared/openapi-types.mdc)
+- [openapi-workflow.md](../documentation/server/openapi-workflow.md)
+- [openapi-workflow.mdc](../.cursor/rules/shared/openapi-workflow.mdc)
 
 ## Where to read more
 
-- **Architecture and layers:** [.cursor/rules/frontend/frontend-architecture.mdc](../.cursor/rules/frontend/frontend-architecture.mdc) and [documentation/client/architecture/thin-app-architecture.md](../documentation/client/architecture/thin-app-architecture.md)
-- **Lint and checks:** [documentation/client/standards/LINTING.md](../documentation/client/standards/LINTING.md)
-- **Web-only / desktop-only files:** [.cursor/rules/frontend/platform-file-extensions.mdc](../.cursor/rules/frontend/platform-file-extensions.mdc)
-- **API types:** [documentation/server/openapi-workflow.md](../documentation/server/openapi-workflow.md) and [.cursor/rules/shared/openapi-types.mdc](../.cursor/rules/shared/openapi-types.mdc)
-- **Canonical docs (packages, platform, lint reference):** [documentation/client/](../documentation/client/README.md)
+| Topic | Doc |
+| ----- | --- |
+| Architecture | [thin-app-architecture.md](../documentation/client/architecture/thin-app-architecture.md), [Client/ARCHITECTURE.md](ARCHITECTURE.md) |
+| Packages | [packages/README.md](packages/README.md) |
+| Lint & UI | [LINTING.md](../documentation/client/standards/LINTING.md) |
+| Platform files | [platform-file-extensions.mdc](../.cursor/rules/frontend/platform-file-extensions.mdc) |
+| Doc index | [documentation/client/README.md](../documentation/client/README.md) |

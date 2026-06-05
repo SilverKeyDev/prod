@@ -11,9 +11,9 @@ import {
   useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
 import { SECTION_TITLES } from "packages/features/profile/utils";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
-import { STATIC_LEGAL_CONTACT } from "packages/utils/legal/staticLegalContact";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
+import { STATIC_LEGAL_CONTACT } from "packages/utils/transaction/legal/staticLegalContact";
 
 import { BodyText, Button } from "@/components/ui";
 

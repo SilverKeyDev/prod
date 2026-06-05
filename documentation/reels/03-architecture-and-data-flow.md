@@ -1,3 +1,5 @@
+> **Status:** Planned
+> **Last verified:** 2026-06-04
 # Reels: Architecture and Data Flow
 
 ## Full production flow

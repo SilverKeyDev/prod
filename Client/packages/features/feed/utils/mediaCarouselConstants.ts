@@ -1,5 +1,5 @@
 import { screenUp } from "packages/ui/types/screens";
-import { getNavigator } from "packages/utils/platform";
+import { getNavigator } from "packages/utils/core/platform";
 
 /**
  * True when the user has requested reduced data usage (e.g. Data Saver).

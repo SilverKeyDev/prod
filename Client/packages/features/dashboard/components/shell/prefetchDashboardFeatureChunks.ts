@@ -1,5 +1,5 @@
 import { prefetchAgentDashboardChunks } from "packages/features/agent/components/loading/prefetchAgentDashboardChunks";
-import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { traceDynamicImport } from "packages/utils/core/perf/shellRouteLoadTiming";
 
 import {
   loadDashboardAgreementSigningModalsModule,

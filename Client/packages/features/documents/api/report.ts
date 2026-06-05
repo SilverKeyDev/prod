@@ -5,7 +5,7 @@ import { captureError } from "packages/services/security/errorReporting";
 import type { components } from "packages/types/api.generated";
 import type { ShareDocumentResult } from "packages/types/domain/ui";
 import { asError } from "packages/utils";
-import { tryWebShareUrl } from "packages/utils/share";
+import { tryWebShareUrl } from "packages/utils/comms/share";
 
 // Re-export types from generated schema
 export type GenerateReportRequest = components["schemas"]["GenerateReportRequest"];

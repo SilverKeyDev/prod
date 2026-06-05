@@ -1,7 +1,7 @@
 import { log } from "packages/logger";
-import { dateNow } from "packages/utils/date";
-import { asError } from "packages/utils/errorHandling/error";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { asError } from "packages/utils/core/errorHandling/error";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import { isAuthEndpoint } from "./auth";
 import { AuthenticationError, HttpError } from "./errors";

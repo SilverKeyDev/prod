@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useLocalization } from "packages/contexts";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { useNavigation } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 import { AgentDiscoveryView } from "@/features/agent/components/agentDiscovery/AgentDiscoveryView";

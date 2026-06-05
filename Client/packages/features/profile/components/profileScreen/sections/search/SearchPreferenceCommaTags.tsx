@@ -1,8 +1,8 @@
 import React from "react";
 
 import { Input } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 import { PROFILE_NOT_SPECIFIED_LABEL } from "@/features/profile/utils";
 import { profileFieldValueClassName } from "@/features/profile/utils";

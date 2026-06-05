@@ -12,9 +12,21 @@ export function loadAgentDashboardModule(): Promise<typeof import("../workspace/
   return agentDashboardModulePromise;
 }
 
+let workspaceMessagingShellModulePromise: Promise<
+  typeof import("packages/features/messaging/components/workspace/WorkspaceMessagingShell")
+> | null = null;
+
 export function loadClientMessagingModule(): Promise<
   typeof import("../messaging/ClientMessaging")
 > {
   clientMessagingModulePromise ??= import("../messaging/ClientMessaging");
   return clientMessagingModulePromise;
+}
+
+export function loadWorkspaceMessagingShellModule(): Promise<
+  typeof import("packages/features/messaging/components/workspace/WorkspaceMessagingShell")
+> {
+  workspaceMessagingShellModulePromise ??=
+    import("packages/features/messaging/components/workspace/WorkspaceMessagingShell");
+  return workspaceMessagingShellModulePromise;
 }

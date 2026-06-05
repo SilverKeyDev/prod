@@ -1,5 +1,5 @@
 import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
-import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { traceDynamicImport } from "packages/utils/core/perf/shellRouteLoadTiming";
 
 import { loadAgentMessagingUIModule } from "@/features/agent/components/workspace/agentMessagingEntryLoad";
 

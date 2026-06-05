@@ -17,14 +17,14 @@ import { useDocumentActions } from "packages/features/documents/hooks/data/useDo
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
-import DocumentListRow from "packages/ui/components/cards/document/DocumentListRow";
+import { Portal } from "packages/ui/components/structure/portal";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import DocumentListRow from "packages/ui/components/surfaces/cards/document/DocumentListRow";
 import type {
   DocumentCardExternalActionHandlers,
   DocumentData,
-} from "packages/ui/components/cards/document/types";
-import { Portal } from "packages/ui/components/portal";
-import { Box, Text } from "packages/ui/components/primitives";
-import { tryWebShareUrl } from "packages/utils/share";
+} from "packages/ui/components/surfaces/cards/document/types";
+import { tryWebShareUrl } from "packages/utils/comms/share";
 
 type ChecklistStepFormsProps = {
   transactionId: string;

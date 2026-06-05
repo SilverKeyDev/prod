@@ -55,18 +55,17 @@ tags:
   - name: Research
     description: Property research and comparison tasks (routes under /api/v1/research).
   - name: Tasks
-    description: Unified transaction task checklists (routes under /api/v1/tasks).
+    description: Unified transaction task checklists (transaction-scoped routes).
   - name: HomeMatching
     description: Background home-matching tasks (routes under /api/home-matching;
       JWT session cookie or bearer token).
   - name: Transactions
     description: Saved transaction address and checklist-linked documents
       (/api/v1/transactions).
-  - name: Viewings
-    description: Multi-stop property viewing routes and navigation helpers
-      (/api/v1/viewings).
   - name: Health
     description: Process liveness (/livez) and database readiness (/healthz and /readyz alias).
+  - name: Conversations
+    description: Workspace-scoped operator messaging (brokerage, integrator, support).
   - name: Chatbot
     description: Property chatbot for address-based conversations (routes under /api/v1/chat).
 
@@ -106,6 +105,36 @@ components:
       $ref: "./components/schemas/agent/core/AgentClientsResponse.yaml"
     AgentConnectionRequest:
       $ref: "./components/schemas/agent/core/AgentConnectionRequest.yaml"
+    EligibleContactsResponse:
+      $ref: "./components/schemas/messaging/workspace/EligibleContactsResponse.yaml"
+    EligibleContact:
+      $ref: "./components/schemas/messaging/workspace/EligibleContact.yaml"
+    CreateWorkspaceConversationRequest:
+      $ref: "./components/schemas/messaging/workspace/CreateWorkspaceConversationRequest.yaml"
+    CreateWorkspaceConversationResponse:
+      $ref: "./components/schemas/messaging/workspace/CreateWorkspaceConversationResponse.yaml"
+    WorkspaceConversation:
+      $ref: "./components/schemas/messaging/workspace/WorkspaceConversation.yaml"
+    WorkspaceConversationKind:
+      $ref: "./components/schemas/messaging/workspace/WorkspaceConversationKind.yaml"
+    WorkspaceConversationsResponse:
+      $ref: "./components/schemas/messaging/workspace/WorkspaceConversationsResponse.yaml"
+    WorkspaceConversationHistoryResponse:
+      $ref: "./components/schemas/messaging/workspace/WorkspaceConversationHistoryResponse.yaml"
+    WorkspaceMessage:
+      $ref: "./components/schemas/messaging/workspace/WorkspaceMessage.yaml"
+    SendWorkspaceMessageRequest:
+      $ref: "./components/schemas/messaging/workspace/SendWorkspaceMessageRequest.yaml"
+    GroupConversation:
+      $ref: "./components/schemas/messaging/group/GroupConversation.yaml"
+    GroupConversationCreateRequest:
+      $ref: "./components/schemas/messaging/group/GroupConversationCreateRequest.yaml"
+    GroupConversationUpdateRequest:
+      $ref: "./components/schemas/messaging/group/GroupConversationUpdateRequest.yaml"
+    GroupParticipantAddRequest:
+      $ref: "./components/schemas/messaging/group/GroupParticipantAddRequest.yaml"
+    GroupParticipantRemoveRequest:
+      $ref: "./components/schemas/messaging/group/GroupParticipantRemoveRequest.yaml"
     AgentConversation:
       $ref: "./components/schemas/agent/core/AgentConversation.yaml"
     AgentConversationsResponse:
@@ -132,8 +161,6 @@ components:
       $ref: "./components/schemas/shared/core/AuthResponse.yaml"
     AuthSessionUser:
       $ref: "./components/schemas/shared/core/AuthSessionUser.yaml"
-    BuildRouteRequest:
-      $ref: "./components/schemas/viewings/BuildRouteRequest.yaml"
     BulkUpdateFavoritesRequest:
       $ref: "./components/schemas/auth/BulkUpdateFavoritesRequest.yaml"
     ChatbotHistoryMessage:
@@ -646,8 +673,20 @@ components:
       $ref: "./components/schemas/search/properties/TransactionAddressResponse.yaml"
     Transaction:
       $ref: "./components/schemas/transactions/Transaction.yaml"
+    TransactionMeData:
+      $ref: "./components/schemas/transactions/TransactionMeData.yaml"
     TransactionMeResponse:
       $ref: "./components/schemas/transactions/TransactionMeResponse.yaml"
+    TransactionListResponse:
+      $ref: "./components/schemas/transactions/TransactionListResponse.yaml"
+    CreateTransactionRequest:
+      $ref: "./components/schemas/transactions/CreateTransactionRequest.yaml"
+    CreateTransactionResponse:
+      $ref: "./components/schemas/transactions/CreateTransactionResponse.yaml"
+    SetActiveTransactionRequest:
+      $ref: "./components/schemas/transactions/SetActiveTransactionRequest.yaml"
+    SetActiveTransactionResponse:
+      $ref: "./components/schemas/transactions/SetActiveTransactionResponse.yaml"
     UpdateAgentStatusRequest:
       $ref: "./components/schemas/admin/UpdateAgentStatusRequest.yaml"
     UpdateAgentStatusResponse:
@@ -737,22 +776,6 @@ components:
       $ref: "./components/schemas/partners/RevSharePlacementsResponse.yaml"
     RevShareAnalyticsResponse:
       $ref: "./components/schemas/partners/RevShareAnalyticsResponse.yaml"
-    ViewingBuildRouteApiResponse:
-      $ref: "./components/schemas/viewings/ViewingBuildRouteApiResponse.yaml"
-    ViewingItinerary:
-      $ref: "./components/schemas/viewings/ViewingItinerary.yaml"
-    ViewingNavigateApiResponse:
-      $ref: "./components/schemas/viewings/ViewingNavigateApiResponse.yaml"
-    ViewingNavigateResponse:
-      $ref: "./components/schemas/viewings/ViewingNavigateResponse.yaml"
-    ViewingRouteEndMode:
-      $ref: "./components/schemas/viewings/ViewingRouteEndMode.yaml"
-    ViewingRouteEndpoint:
-      $ref: "./components/schemas/viewings/ViewingRouteEndpoint.yaml"
-    ViewingRouteLeg:
-      $ref: "./components/schemas/viewings/ViewingRouteLeg.yaml"
-    ViewingStop:
-      $ref: "./components/schemas/viewings/ViewingStop.yaml"
     VerifyData:
       $ref: "./components/schemas/auth/VerifyData.yaml"
     ViewUrlResponse:
@@ -1555,100 +1578,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/viewings/route:
-    post:
-      tags:
-        - Viewings
-      summary: Optimize viewing stop order and compute driving legs
-      description: >
-        Uses Google Distance Matrix (durations) for ordering, then Google Directions for
-        per-leg distance, duration, and encoded polylines. Optional start/end anchors:
-        when `start` is set, only property stops are reordered; `end_mode` chooses whether
-        the tour ends at the last listing, returns to `start`, or ends at a fixed `end`
-        location. When `start` is omitted, the route optimizes an open tour across
-        property stops only. Requires a server-side Google Maps API key.
-      operationId: buildViewingRoute
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/BuildRouteRequest"
-      responses:
-        "200":
-          description: Ordered itinerary with legs when routing succeeds
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ViewingBuildRouteApiResponse"
-        "400":
-          description: Invalid stops or missing coordinates
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "503":
-          description: Google Maps server key not configured
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Routing service error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/viewings/navigate:
-    post:
-      tags:
-        - Viewings
-      summary: Build Google Maps multi-stop navigation URL
-      description: Returns a maps/dir deep link with origin, destination, and waypoints.
-      operationId: buildViewingNavigateLink
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ViewingItinerary"
-      responses:
-        "200":
-          description: Navigation URL
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ViewingNavigateApiResponse"
-        "400":
-          description: Invalid itinerary or missing coordinates
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/google/me/events:
     get:
       tags:
@@ -2113,6 +2042,170 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/conversations:
+    get:
+      tags: [ Conversations ]
+      summary: List workspace conversations
+      operationId: getWorkspaceConversations
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: kinds
+          in: query
+          schema:
+            type: string
+          description: Comma-separated WorkspaceConversationKind values
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [ admin ]
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceConversationsResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ Conversations ]
+      summary: Create workspace conversation
+      operationId: createWorkspaceConversation
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkspaceConversationRequest"
+      responses:
+        "201":
+          description: HTTP 201
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateWorkspaceConversationResponse"
+        "501":
+          description: Kind not implemented (e.g. group)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/conversations/stream:
+    get:
+      tags: [ Conversations ]
+      summary: Workspace messaging events (SSE)
+      operationId: streamWorkspaceConversationEvents
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: text/event-stream
+  /api/v1/conversations/eligible-contacts:
+    get:
+      tags: [ Conversations ]
+      summary: List contacts the user may message
+      operationId: getWorkspaceEligibleContacts
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: kinds
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EligibleContactsResponse"
+  /api/v1/conversations/{conversationId}/history:
+    get:
+      tags: [ Conversations ]
+      summary: Workspace conversation history
+      operationId: getWorkspaceConversationHistory
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceConversationHistoryResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/conversations/message:
+    post:
+      tags: [ Conversations ]
+      summary: Send workspace conversation message
+      operationId: sendWorkspaceConversationMessage
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendWorkspaceMessageRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/v1/conversations/{conversationId}/read:
+    post:
+      tags: [ Conversations ]
+      summary: Mark workspace conversation read
+      operationId: markWorkspaceConversationRead
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
   /api/v1/agent/chats:
     get:
       tags: [ Agent ]
@@ -4073,13 +4166,91 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/transactions:
+    get:
+      tags: [ Transactions ]
+      summary: List deals for the current user
+      description: >
+        Buyers receive their own `transactions` rows. Agents may pass `buyer_id` to list
+        deals for a managed client. Deal scope ids are always `transactions.id` (UUID).
+      operationId: listTransactions
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: buyer_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter to a buyer user id (agents only; must manage the client).
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionListResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ Transactions ]
+      summary: Create a new deal row
+      description: >
+        Creates a new `transactions` row. Pilot UI may not expose this; backend supports
+        multi-deal. When `set_active` is true (default), updates the buyer's active deal pointer.
+      operationId: createTransaction
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransactionRequest"
+      responses:
+        "201":
+          description: Deal created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateTransactionResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/transactions/me:
     get:
       tags: [ Transactions ]
-      summary: Get the authenticated buyer's transaction row
+      summary: Get the authenticated buyer's active deal
       description: >
-        Ensures a `transactions` row exists for the current user (v1 one deal per buyer)
-        and returns its id for checklist and rev-share APIs.
+        Resolves the buyer's active deal (`users.active_transaction_id`, else most recently
+        updated row, else creates the first deal). Returns `transactions.id` for checklist APIs.
       operationId: getMyTransaction
       security:
         - sessionCookie: []
@@ -4093,6 +4264,54 @@ paths:
                 $ref: "#/components/schemas/TransactionMeResponse"
         "401":
           description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/transactions/me/active:
+    put:
+      tags: [ Transactions ]
+      summary: Set the buyer's active deal
+      description: >
+        Updates `users.active_transaction_id` to an owned deal. Post-pilot UI uses this for
+        a deal switcher; pilot may omit the control while the endpoint remains available.
+      operationId: setMyActiveTransaction
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetActiveTransactionRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetActiveTransactionResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
           content:
             application/json:
               schema:
@@ -4198,7 +4417,7 @@ paths:
       tags: [ Tasks ]
       summary: Task checklist for a transaction subject (buyer self or agent client)
       description: >
-        Returns the same payload as GET /api/v1/tasks for the given `transactions.id`.
+        Returns unified task checklist definitions and progress for the given `transactions.id`.
         Callers may read their own checklist or, when authorized, a client checklist
         (agent must manage the client).
       operationId: getTransactionTaskChecklist
@@ -4254,7 +4473,7 @@ paths:
       tags: [ Tasks ]
       summary: Replace task checklist progress for a transaction subject
       description: >
-        Same semantics as PUT /api/v1/tasks for the deal identified by `transactions.id`.
+        Replaces checklist progress for the deal identified by `transactions.id`.
         Buyers may update their own checklist; agents may update a managed client's checklist.
       operationId: putTransactionTaskChecklist
       security:
@@ -4671,118 +4890,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: HTTP 403
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/tasks/progress-summary:
-    get:
-      tags: [ Tasks ]
-      summary: Unified task checklist progress summary
-      description: >
-        Returns per-category completion counts and overall journey progress for the
-        authenticated user without fetching full item definitions.
-      operationId: getUnifiedTaskChecklistProgressSummary
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TaskChecklistProgressSummaryResponse"
-        "401":
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/tasks:
-    get:
-      tags: [ Tasks ]
-      summary: Unified task checklist definitions and progress
-      operationId: getUnifiedTaskChecklist
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      parameters:
-        - name: type
-          in: query
-          schema:
-            $ref: "#/components/schemas/ChecklistType"
-            default: escrow
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: "#/components/schemas/TaskChecklistResponse"
-        "400":
-          description: HTTP 400
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: HTTP 500
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-    put:
-      tags: [ Tasks ]
-      summary: Replace unified task checklist progress
-      operationId: putUnifiedTaskChecklist
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      parameters:
-        - name: type
-          in: query
-          schema:
-            $ref: "#/components/schemas/ChecklistType"
-            default: escrow
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateTaskChecklistRequest"
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TaskChecklistApiResponse"
-        "400":
-          description: HTTP 400
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: HTTP 500
           content:
             application/json:
               schema:

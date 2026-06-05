@@ -18,8 +18,8 @@ import { runAuthBootstrap } from "packages/features/homeauth";
 import { ClientSettingsBootstrap } from "packages/features/homeauth/components/ClientSettingsBootstrap";
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { Text } from "packages/ui/components/primitives";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { Text } from "packages/ui/components/structure/primitives";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 type AuthProviderNativeProps = {
   children: ReactNode;

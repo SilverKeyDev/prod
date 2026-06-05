@@ -5,16 +5,11 @@ import React from "react";
 
 import { color } from "packages/design-tokens";
 import { AnalysisKeyValueLine } from "packages/features/propertyDetails/components/PropertyDetailsModal/helpers/analysisKeyValueLine";
-import {
-  DonutChart,
-  LabeledBarRow,
-  LollipopChart,
-  VerticalBarChart,
-} from "packages/features/propertyDetails/components/visualizations";
-import { Box, Icon } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { DonutChart, LabeledBarRow, LollipopChart, VerticalBarChart } from "packages/ui";
+import { Box, Icon } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 import type { IconName } from "packages/ui/types/icons";
-import { formatAnalysisLabel } from "packages/utils/propertyDetails";
+import { formatAnalysisLabel } from "packages/utils/transaction/propertyDetails";
 
 function demographicsChartHeading(iconName: IconName, title: string): React.ReactElement {
   return (

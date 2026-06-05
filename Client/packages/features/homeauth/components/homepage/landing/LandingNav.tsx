@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
 import { HomeHashLink, homeLandingSectionIdFromHref, Link, ROUTES } from "packages/navigation";
-import { LOGO } from "packages/ui/components/asset";
-import { Box, Image } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { LOGO } from "packages/ui/components/media/asset";
+import { Box, Image } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import { Button } from "@/components/ui";
 

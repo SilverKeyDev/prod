@@ -1,25 +1,11 @@
-import React, { createContext, useContext } from "react";
+import React from "react";
 
+import { PersonalizationSectionLayoutContext } from "packages/features/profile/hooks/usePersonalizationSectionLayout";
 import type { ProfileUiSurface } from "packages/features/profile/types/visibility/profileVisibility";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
-import { isWeb } from "packages/utils/platform";
-
-type PersonalizationSectionLayoutValue = {
-  /** When true, section bodies should not repeat the step title (card heading shows it). */
-  hideStepHeadings: boolean;
-  /** When false, the card heading is visually hidden; bodies should show their own primary title. */
-  panelShowsVisibleHeading: boolean;
-  /** Drives agent-only buyer callouts (onboarding only). */
-  profileUiSurface: ProfileUiSurface;
-};
-
-const PersonalizationSectionLayoutContext = createContext<PersonalizationSectionLayoutValue>({
-  hideStepHeadings: false,
-  panelShowsVisibleHeading: true,
-  profileUiSurface: "personalization",
-});
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
+import Card from "packages/ui/components/surfaces/cards/Card";
+import { isWeb } from "packages/utils/core/platform";
 
 /**
  * Wraps settings / profile personalization main content when not using
@@ -39,23 +25,6 @@ export function PersonalizationSectionLayoutProvider({
       {children}
     </PersonalizationSectionLayoutContext.Provider>
   );
-}
-
-/**
- * When true, render the section body's own step-level title; when false, the card already shows it visibly.
- */
-// eslint-disable-next-line react-refresh/only-export-components -- hook paired with Provider above
-export function useShowPersonalizationSectionBodyTitle(): boolean {
-  const { hideStepHeadings, panelShowsVisibleHeading } = useContext(
-    PersonalizationSectionLayoutContext
-  );
-  return !hideStepHeadings || !panelShowsVisibleHeading;
-}
-
-/** Profile vs onboarding vs settings — controls agent-only buyer callout visibility. */
-// eslint-disable-next-line react-refresh/only-export-components -- hook paired with Provider above
-export function useProfileUiSurface(): ProfileUiSurface {
-  return useContext(PersonalizationSectionLayoutContext).profileUiSurface;
 }
 
 export type PersonalizationSectionPanelProps = {

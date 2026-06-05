@@ -3,8 +3,8 @@ import { getMapFocusedSlotAssignmentsExcludingDismissed } from "packages/feature
 import { searchMapHomeCardZIndex } from "packages/features/search/types/search/map/mapOverlayLayerOrder";
 import { log } from "packages/logger";
 import type { SearchResult } from "packages/types";
-import { escapeHtml } from "packages/utils/dom/escapeHtml";
-import { getDocument } from "packages/utils/platform";
+import { escapeHtml } from "packages/utils/core/dom/escapeHtml";
+import { getDocument } from "packages/utils/core/platform";
 
 import { geocodeAddress } from "./geocode";
 import type { GoogleAdvancedMarkerElement, MapPropertyCardRenderProps } from "./types";

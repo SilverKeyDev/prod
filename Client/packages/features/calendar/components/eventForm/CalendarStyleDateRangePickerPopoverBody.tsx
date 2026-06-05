@@ -3,9 +3,9 @@ import { type RefObject } from "react";
 import { Icon } from "@ui/icons";
 
 import { Button, IconButton, OliveCheckbox, OliveCheckboxRowLabel } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import { dayjs } from "packages/utils/date";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import { dayjs } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import { CalendarWeekView } from "@/features/calendar/components/shell/CalendarWeekView";

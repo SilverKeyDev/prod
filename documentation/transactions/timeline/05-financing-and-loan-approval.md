@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [rev-share-partners.md](../../client/features/rev-share-partners.md).
+
 ## Financing and loan approval
 
 Financing timeline is **checklist-guided** (choose lender, submit application, lock rate, review disclosures). Contingency dates and lender status are not computed or synced.

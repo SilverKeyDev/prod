@@ -2,7 +2,7 @@
 
 from flask import jsonify
 
-from app.dtos.agreement import participant_payload
+from app.dtos.documents import participant_payload
 from app.schemas import (
     CreateParticipantRequest,
     CreateParticipantResponse,

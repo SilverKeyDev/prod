@@ -5,9 +5,9 @@ import {
   partnerShowsIframe,
 } from "packages/features/partners/types/integrationDisplay";
 import { Button, Subtitle } from "packages/ui";
-import Card from "packages/ui/components/cards/Card";
-import { Box, Image } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { Box, Image } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
+import { getWindow } from "packages/utils/core/platform";
 
 type PartnerIntegrationExperienceProps = {
   name: string;

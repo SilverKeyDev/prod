@@ -1,5 +1,5 @@
-import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
-import { stripSectionRatingField } from "packages/utils/propertyDetails";
+import { DEFAULT_REPORT_SECTIONS } from "packages/utils/product/domain/defaultReportSections";
+import { stripSectionRatingField } from "packages/utils/transaction/propertyDetails";
 
 export type PropertyDemographicsViewModel = {
   ageDistribution?: Record<string, string>;

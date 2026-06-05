@@ -126,10 +126,10 @@ Use **grep**, **read_file**, LOC counts, and dependency/build outputs. The failu
 
 Use this when the team wants **PR-reviewable** or shared triage history.
 
-- Add or update files such as `components-axis-1.md`, `components-axis-2.md`, …, `packages-fat-deps.md`.
-- Maintain **`TRIAGE.md`** (or equivalent) with columns for **P0 / P1 / P2** and links back to source paths.
+- Add or update evidence files such as `feature-module-folder-and-layering-audit.md` under [component-audit/](../../internal/component-audit/) when the team wants shared audit history.
+- **File Linear issues** for remediation work (e.g. [SIL-167](https://linear.app/silverkey/issue/SIL-167/component-audit-split-300-loc-feature-shells-when-touched)) — do not maintain `TRIAGE.md` or P0/P1/P2 markdown queues.
 
-See [component-audit/README.md](../../internal/component-audit/README.md) for a minimal folder convention.
+See [component-audit/README.md](../../internal/component-audit/README.md).
 
 ### Alternative (local only): repo-root `audit/`
 

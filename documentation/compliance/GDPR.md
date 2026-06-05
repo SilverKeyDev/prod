@@ -46,7 +46,7 @@ Last Updated: April 5, 2026
 - **Why:** Secure authentication and authorization
 - **How:** AWS Cognito authentication service
 - **Legal Basis:** Contract performance, legitimate interest (security)
-- **Storage:** Session tokens in sessionStorage (not localStorage), server-side secure storage
+- **Storage:** Web auth via HTTP-only cookies (not accessible to JavaScript); no auth tokens in `localStorage`; server-side secure storage for integrations
 
 #### Financial Information
 - **What:** Bank account connections, transaction data, income verification
@@ -211,7 +211,8 @@ See [DATA_RETENTION.md](./DATA_RETENTION.md) for detailed retention periods.
 - **Inactive accounts:** Deleted after 3 years of inactivity (with prior notice)
 - **Deleted accounts:** Permanently deleted within 90 days
 - **Transaction records:** Retained for 7 years (legal obligation)
-- **Logs and technical data:** Retained for 90 days (PII-masked)
+- **Application and error logs:** Retained for 90 days (PII-masked)
+- **Security audit logs:** Retained for 1 year (PII-masked)
 - **Backups:** Overwritten within 90 days of deletion request
 
 ---
@@ -311,7 +312,7 @@ SilverKey implements industry-standard technical and organizational measures to 
 #### 2. Authentication & Authorization
 - **Method:** AWS Cognito (industry-standard OAuth 2.0)
 - **Password Policy:** Minimum 8 characters, complexity requirements
-- **Session Management:** Secure tokens in sessionStorage (not localStorage), automatic expiration
+- **Session Management:** HTTP-only auth cookies on web; no auth tokens in `localStorage`; automatic expiration and server-side revocation
 - **MFA Support:** Available for all users (encouraged)
 
 #### 3. PII Protection in Logs

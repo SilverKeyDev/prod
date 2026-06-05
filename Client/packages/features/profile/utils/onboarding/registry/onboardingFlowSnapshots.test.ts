@@ -77,4 +77,29 @@ describe("onboarding flow snapshots (buyer and agent parity)", () => {
   it("agent mobile — public API matches golden fixture", () => {
     expect(stepSnapshot(getOnboardingStepsMobile({ isAgent: true }))).toEqual(AGENT_SNAPSHOT);
   });
+
+  const SHELL_FLOW_SNAPSHOT = [
+    { id: "onboarding_role", title: "Who I am" },
+    { id: "seller_shell_setup", title: "Seller setup" },
+  ];
+
+  it("seller web — shell onboarding snapshot", () => {
+    expect(stepSnapshot(getOnboardingSteps({ primaryRole: "seller" }))).toEqual(
+      SHELL_FLOW_SNAPSHOT
+    );
+  });
+
+  it("brokerage web — shell onboarding snapshot", () => {
+    expect(stepSnapshot(getOnboardingSteps({ primaryRole: "brokerage" }))).toEqual([
+      { id: "onboarding_role", title: "Who I am" },
+      { id: "brokerage_shell_setup", title: "Brokerage setup" },
+    ]);
+  });
+
+  it("integration partner web — shell onboarding snapshot", () => {
+    expect(stepSnapshot(getOnboardingSteps({ primaryRole: "integration_partner" }))).toEqual([
+      { id: "onboarding_role", title: "Who I am" },
+      { id: "integration_partner_shell_setup", title: "Partner setup" },
+    ]);
+  });
 });

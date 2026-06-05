@@ -15,4 +15,4 @@ export {
   useIsAgent,
   useSetActiveWorkspace,
 } from "packages/hooks/store";
-export { default as RippleBackground } from "packages/ui/components/backgrounds/RippleBackground";
+export { default as RippleBackground } from "packages/ui/components/surfaces/backgrounds/RippleBackground";

@@ -20,7 +20,7 @@ import {
   warnUnsupportedServiceArea,
 } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { log } from "packages/logger";
-import { isSupportedServiceAreaCoordinates } from "packages/utils/search/locations/serviceAreaAvailability";
+import { isSupportedServiceAreaCoordinates } from "packages/utils/product/search/locations/serviceAreaAvailability";
 
 import {
   type MapPreviewSearchLifecycleHooks,

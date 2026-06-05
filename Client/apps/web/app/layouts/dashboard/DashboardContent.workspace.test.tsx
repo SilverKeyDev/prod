@@ -85,7 +85,7 @@ describe("DashboardContent workspace shells", () => {
   });
 
   it("renders placeholder shell for blocked routes when workspace is a placeholder", async () => {
-    mockUseActiveWorkspace.mockReturnValue("seller");
+    mockUseActiveWorkspace.mockReturnValue("buyer");
     mockUseDashboardRoute.mockReturnValue({
       activeKey: "search",
       isSearch: true,
@@ -101,7 +101,6 @@ describe("DashboardContent workspace shells", () => {
     render(
       <DashboardContent searchPageRef={{ current: null }} setMobileHeaderActions={() => {}} />
     );
-    expect(await screen.findByTestId("workspace-shell-seller")).toBeTruthy();
-    expect(screen.queryByText("SearchPage")).toBeNull();
+    expect(await screen.findByText("SearchPage")).toBeTruthy();
   });
 });

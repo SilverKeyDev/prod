@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
 import { useUIStore } from "packages/store";
-import { ToastNative } from "packages/ui/components/feedback/Toast.native";
-import { toastDurationForType } from "packages/ui/components/feedback/toastDurations";
+import { ToastNative } from "packages/ui/components/surfaces/feedback/Toast.native";
+import { toastDurationForType } from "packages/ui/components/surfaces/feedback/toastDurations";
 
 export function ToastsPortalNative() {
   const activeToastId = useUIStore((s) => s.activeToastId);

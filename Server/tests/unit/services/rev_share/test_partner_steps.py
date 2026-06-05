@@ -2,7 +2,7 @@
 
 from app import db
 from app.models import Partner
-from app.services.rev_share.partner_steps import list_active_partners_for_step
+from app.services.rev_share.placements import list_active_partners_for_step
 
 
 def test_list_active_partners_matches_any_step_id(app, db_session):

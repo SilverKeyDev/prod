@@ -19,11 +19,11 @@ import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui";
 import { useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { screenUp } from "packages/ui/types/screens";
-import { logMessagingCheckpointSinceLatestShellMark } from "packages/utils/perf/messagingRoutePerf";
-import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { logMessagingCheckpointSinceLatestShellMark } from "packages/utils/core/perf/messagingRoutePerf";
+import { traceLazyImport } from "packages/utils/core/perf/shellRouteLoadTiming";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import { Region } from "@/components/ui";
 import AgentMessagingClientList from "@/features/agent/components/messaging/chrome/AgentMessagingClientList";

@@ -24,7 +24,8 @@
 # - ``POSTHOG_PROJECT_TOKEN`` or ``POSTHOG_QUERY_API_KEY`` is missing/placeholder
 # - HogQL cannot read ``api_request`` traffic (bad query key or wrong project)
 # - Capture/batch ingest returns an error
-# - Ingest verification cannot find the sync events for this ``deploy_sha`` within ~30s
+# - Ingest verification cannot find the sync events for this ``deploy_sha`` within the
+#   retry window (exponential backoff, ~3 min) — PostHog capture→query lag is async
 #
 # No DATABASE_URL or Flask boot — reads ``Server/endpoints.json`` from git only.
 #

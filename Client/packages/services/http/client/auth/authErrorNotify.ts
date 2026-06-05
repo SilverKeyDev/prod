@@ -1,6 +1,6 @@
 import { log } from "packages/logger";
 import type { AuthenticationError } from "packages/services/http/client/errors";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 import { broadcastAuthLogout } from "./authBroadcast";
 import { redirectToLoginIfNeeded } from "./authRedirect";

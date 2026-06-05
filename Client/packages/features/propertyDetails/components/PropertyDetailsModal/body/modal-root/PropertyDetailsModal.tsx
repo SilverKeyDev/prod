@@ -7,9 +7,9 @@ import type { PropertyDetailsModalProps } from "packages/features/propertyDetail
 import { usePropertyDetailsSectionScroll } from "packages/features/propertyDetails/hooks/usePropertyDetailsSectionScroll.web";
 import { useSavedHomesStoreIntegration } from "packages/hooks/store/integrations/useSavedHomesStoreIntegration";
 import { log } from "packages/logger";
-import Cover from "packages/ui/components/modals/cover";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import Cover from "packages/ui/components/surfaces/modals/cover";
+import { getWindow } from "packages/utils/core/platform";
 
 const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
   property,

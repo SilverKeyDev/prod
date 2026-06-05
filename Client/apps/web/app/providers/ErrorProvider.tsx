@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 
 import { useErrorReporting } from "packages/hooks/ui";
 import { log } from "packages/logger";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 import ErrorBoundary from "@/app/error/ErrorBoundary";
 

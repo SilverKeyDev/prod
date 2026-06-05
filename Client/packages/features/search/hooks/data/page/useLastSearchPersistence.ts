@@ -10,7 +10,7 @@ import { centroidOfViewportRing } from "packages/features/search/utils/map/mapVi
 import { log } from "packages/logger";
 import { useFiltersStore, useSearchContextStore } from "packages/store";
 import type { ViewportPolygonPoint } from "packages/types/domain/api";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 /**
  * Persists last search context to the backend on every search, and hydrates

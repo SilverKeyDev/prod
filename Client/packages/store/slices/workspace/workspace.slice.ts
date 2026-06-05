@@ -5,13 +5,13 @@ import {
   deriveAllowedWorkspaces,
   type DeriveAllowedWorkspacesInput,
   type Workspace,
-} from "packages/utils/workspace";
+} from "packages/utils/product/workspace";
 import {
   readPersistedActiveWorkspace,
   writePersistedActiveWorkspace,
-} from "packages/utils/workspace/workspaceSessionStorage";
+} from "packages/utils/product/workspace/workspaceSessionStorage";
 
-export type { Workspace } from "packages/utils/workspace";
+export type { Workspace } from "packages/utils/product/workspace";
 
 export type WorkspaceState = {
   allowedWorkspaces: Workspace[];

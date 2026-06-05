@@ -6,9 +6,9 @@ import { useLocation } from "react-router-dom";
 import { SearchNavLink } from "packages/features/search";
 import { log } from "packages/logger";
 import { Link } from "packages/navigation";
-import AccessibleLink from "packages/ui/components/accessibility/AccessibleLink";
-import { Box } from "packages/ui/components/primitives";
-import { getChromeNavButtonStyles } from "packages/ui/components/sidebar/sidebarTheme";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getChromeNavButtonStyles } from "packages/ui/components/structure/sidebar/sidebarTheme";
+import AccessibleLink from "packages/ui/components/system/accessibility/AccessibleLink";
 
 import { NotificationBadge } from "@/components/ui";
 

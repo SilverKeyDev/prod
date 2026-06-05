@@ -5,7 +5,7 @@ import {
   ProfileSectionBody,
   useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { Input, Title } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";

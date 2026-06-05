@@ -1,0 +1,17 @@
+{
+  "_comment": "Copy to mcp.json (gitignored). Lightweight default: github + linear + slack. Add optional connectors only when needed.",
+  "mcpServers": {
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer YOUR_GITHUB_PAT"
+      }
+    },
+    "linear": {
+      "url": "https://mcp.linear.app/mcp"
+    },
+    "slack": {
+      "url": "https://mcp.slack.com/mcp"
+    }
+  }
+}

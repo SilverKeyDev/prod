@@ -1,5 +1,5 @@
-import { Box } from "packages/ui/components/primitives";
-import { sidebarInsetHeaderGhostButtonClass } from "packages/ui/components/sidebar/sidebarTheme";
+import { Box } from "packages/ui/components/structure/primitives";
+import { sidebarInsetHeaderGhostButtonClass } from "packages/ui/components/structure/sidebar/sidebarTheme";
 
 import { BodyText, Button } from "@/components/ui";
 

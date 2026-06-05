@@ -9,15 +9,16 @@ import { useActiveWorkspace } from "packages/hooks/store";
 import { log } from "packages/logger";
 import { Link } from "packages/navigation";
 import { useNotificationStore } from "packages/store";
-import Region from "packages/ui/components/accessibility/Region";
-import { Portal } from "packages/ui/components/portal";
-import { Box } from "packages/ui/components/primitives";
-import { NotificationBadge } from "packages/ui/components/primitives/index.web";
+import { Portal } from "packages/ui/components/structure/portal";
+import { Box } from "packages/ui/components/structure/primitives";
+import { NotificationBadge } from "packages/ui/components/structure/primitives/index.web";
+import Region from "packages/ui/components/system/accessibility/Region";
 import { tailwindNavChromeNavText } from "packages/ui/styles/theme/navTabTypography";
-import { getWorkspaceNavTabs } from "packages/utils/workspace/workspaceNavConfig";
+import { getDocument } from "packages/utils/core/platform";
+import { getWorkspaceNavTabs } from "packages/utils/product/workspace/workspaceNavConfig";
 
-import { useDashboardShellRoutePrefetch } from "@/app/layouts/dashboard/useDashboardShellRoutePrefetch.web";
 import { SIDEBAR_TABS, type SidebarTab } from "@/app/layouts/sidebar/sidebarTabs.web";
+import { useDashboardShellRoutePrefetch } from "@/app/navigation/useDashboardShellRoutePrefetch.web";
 import type { UserProfile } from "@/features/homeauth/types";
 
 function genNavId(): string {
@@ -179,6 +180,6 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
     </Region>
   );
 
-  if (!mounted || typeof document === "undefined") return null;
+  if (!mounted || !getDocument()) return null;
   return <Portal>{nav}</Portal>;
 }

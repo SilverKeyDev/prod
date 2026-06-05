@@ -1,6 +1,6 @@
 import { apiRequest, apiUpload } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
-import { createBlob, getDocument } from "packages/utils/platform";
+import { createBlob, getDocument } from "packages/utils/core/platform";
 
 // Re-export type from generated schema
 export type UploadResponse = components["schemas"]["UploadResponse"];

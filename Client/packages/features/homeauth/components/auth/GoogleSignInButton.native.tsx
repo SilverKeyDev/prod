@@ -8,11 +8,11 @@ import React from "react";
 import { Linking, Platform, Pressable, StyleSheet } from "react-native";
 
 import { getEnv } from "packages/config";
-import AppImage from "packages/ui/components/asset/AppImage.native";
+import AppImage from "packages/ui/components/media/asset/AppImage.native";
 import {
   GOOGLE_SIGN_IN_ANDROID_SOURCE,
   GOOGLE_SIGN_IN_IOS_SOURCE,
-} from "packages/ui/components/asset/logoSource.native";
+} from "packages/ui/components/media/asset/logoSource.native";
 
 interface GoogleSignInButtonProps {
   text?: string;

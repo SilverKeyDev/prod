@@ -1,11 +1,11 @@
 import { useCallback, useState } from "react";
 
+import { useUpdateUserSystemRolesMutation } from "packages/features/admin/hooks/data/useUpdateUserSystemRolesMutation";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
-import { useUpdateUserSystemRolesMutation } from "packages/hooks/data/admin/useUpdateUserSystemRolesMutation";
 import { log } from "packages/logger";
 import { HttpError } from "packages/services/http/client";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import {

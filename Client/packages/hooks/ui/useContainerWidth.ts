@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 export interface UseContainerWidthOptions {
   /** Throttle resize updates (ms). Not used when ResizeObserver is available. */

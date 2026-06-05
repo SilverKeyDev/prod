@@ -173,6 +173,7 @@ export function formDataToPreferencesPayload(
   }
   delete payload.public_profile_slug;
   delete payload.agent_professional_headshot_url;
+  delete payload.workspace_shell_test_input;
   return payload;
 }
 

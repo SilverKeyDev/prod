@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { formDataToPreferencesPayload, type OnboardingData } from "packages/features/profile";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
 import { log } from "packages/logger";
 
 import { preferencesApi } from "@/features/homeauth/api/preferences";
-import { formDataToPreferencesPayload, type OnboardingData } from "@/features/profile/utils";
 
 type SaveStatus = "idle" | "saving" | "saved";
 

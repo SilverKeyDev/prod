@@ -1,9 +1,9 @@
 import React from "react";
 
-import { PrimitiveInput } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { PrimitiveInput } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import type { ImportantLocation } from "@/features/profile/utils/public/importantLocations";
 

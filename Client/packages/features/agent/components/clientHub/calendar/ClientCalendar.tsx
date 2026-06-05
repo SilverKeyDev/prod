@@ -1,5 +1,5 @@
 import { Calendar } from "packages/features/calendar";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 type ClientCalendarProps = {
   userId: string;

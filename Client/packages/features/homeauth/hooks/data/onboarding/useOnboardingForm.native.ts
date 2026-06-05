@@ -1,4 +1,4 @@
-import { getOnboardingStepsMobile, primaryOnboardingRoleFromForm } from "@/features/profile/utils";
+import { getOnboardingStepsMobile, primaryOnboardingRoleFromForm } from "packages/features/profile";
 
 import { useOnboardingAffordability } from "./useOnboardingAffordability";
 import { useOnboardingFormCore } from "./useOnboardingFormCore";

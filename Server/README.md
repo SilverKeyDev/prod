@@ -1,142 +1,52 @@
 # SilverKey Server
 
-Python/Flask backend. API, services, and business logic live under `app/`. Do not modify migrations or run migration commands unless you own that workflow.
+Python/Flask backend under `app/`. Do not run or author migrations unless you own that workflow.
 
 ## Python dependencies
 
-All pins live under **`requirements/`** (from `Server/`, paths are `requirements/…`):
+Pins under **`requirements/`** (from `Server/`):
 
-| File | When to use |
-|------|----------------|
-| `requirements/runtime.txt` | Production Docker, full local app (includes heavy ML / geospatial pins). |
-| `requirements/ci.txt` | CI import smoke / base layer for lint and test installs. |
-| `requirements/lint.txt` | `ci.txt` + ruff + pyright — **server lint CI** (`.github/workflows/lint.yml`). |
-| `requirements/test.txt` | With `ci.txt` + CPU torch in backend test CI (`test-callable.yml`). |
-| `requirements/dev.txt` | Local pytest, pre-commit, mypy, codegen tools. |
-| `requirements/codegen.txt` | OpenAPI → Pydantic generation scripts only. |
+| File | Use |
+| ---- | --- |
+| `runtime.txt` | Production / full local (ML + geospatial) |
+| `ci.txt` | CI import smoke |
+| `lint.txt` | ruff + pyright (lint CI) |
+| `test.txt` | Test CI (+ CPU torch) |
+| `dev.txt` | Local pytest, pre-commit, mypy |
+| `codegen.txt` | OpenAPI → Pydantic scripts |
 
-Quick install from `Server/`: `pip install -r requirements/runtime.txt` and, for local test tooling, `pip install -r requirements/dev.txt`. Or from repo root: `bash Server/scripts/bootstrap-venv.sh` (full), `… --lint` (CI lint parity), `… --ci` (import smoke only), or `… --refresh-deps` (re-run pip in an existing `.venv`).
+Install: `bash Server/scripts/bootstrap-venv.sh` (or `--lint`, `--ci`, `--refresh-deps`).
 
-### System libraries (local dev)
-
-`python-magic` (secure uploads) needs the native **libmagic** library on your machine (pip only installs the Python binding):
+### libmagic (uploads)
 
 | OS | Install |
 | -- | ------- |
-| macOS | `brew install libmagic` (`make setup` installs via Homebrew when possible) |
-| Debian / Ubuntu | `sudo apt install libmagic1` |
+| macOS | `brew install libmagic` |
+| Debian/Ubuntu | `sudo apt install libmagic1` |
 | Fedora | `sudo dnf install file-libs` |
 
-Docker images already include `libmagic1`. If Flask fails at startup with `failed to find libmagic`, install the package above and restart the API.
+Docker images include `libmagic1`.
 
 ## Testing
 
-The Server uses [pytest](https://pytest.org/) for unit and integration testing with comprehensive coverage reporting.
-
-### Running Tests
-
 ```bash
-# From Server directory
-cd Server
-
-# Run all tests
-pytest
-
-# Run tests with verbose output
-pytest -v
-
-# Run tests in watch mode (requires pytest-watch)
-pytest-watch
-
-# Run specific test file
-pytest tests/unit/test_property_type_multi.py
-
-# Run tests matching pattern
-pytest -k "property"
-
-# Run only unit tests (fast)
-pytest -m unit
-
-# Run only integration tests
-pytest -m integration
-```
-
-### Running Tests with Coverage
-
-```bash
-# Run tests with coverage (configured in pytest.ini)
-pytest
-
-# View coverage report in terminal
-pytest --cov=app --cov-report=term-missing
-
-# Generate HTML coverage report
+cd Server && source .venv/bin/activate
+pytest                    # or: make test-be from repo root
+pytest -v -k "pattern"
+pytest -m unit            # / -m integration
 pytest --cov=app --cov-report=html
-
-# Open coverage report in browser
-open coverage/html/index.html
 ```
 
-### Coverage Configuration
+Thresholds: `pytest.ini`, `pyproject.toml`, `scripts/lint/check_coverage_thresholds.py` (overall ~47%, per-area floors). `app/schemas/generated.py` omitted — regenerate via `make openapi`.
 
-Coverage thresholds are enforced via `pytest.ini` (`--cov-fail-under=47`), `pyproject.toml` (`[tool.coverage.report]`), and `scripts/lint/check_coverage_thresholds.py`:
-
-- **Overall**: 47% line coverage required (fails if not met)
-- **Services** (`app/services/`): 38% coverage required
-- **Routes** (`app/routes/`): 45% coverage required
-- **Models** (`app/models/`): 65% coverage required
-- **Utils** (`app/utils/`): 52% coverage required
-
-`app/schemas/generated.py` is omitted from coverage (see `pyproject.toml` `[tool.coverage.run]` omit list); regenerate via `make openapi`.
-
-### Coverage Reports
-
-After running tests, view reports at:
-
-- **Terminal**: Summary shown in console
-- **HTML**: `Server/coverage/html/index.html` (open in browser)
-- **XML**: `Server/coverage/coverage.xml` (for CI/tools)
-- **JSON**: `Server/coverage/coverage.json` (for scripts/CI)
-
-### Writing Tests
-
-Place test files in the `tests/` directory:
-
-```
-tests/
-├── unit/                  # Fast, isolated tests
-│   ├── test_preferences_canonical_keys.py
-│   └── test_property_type_multi.py
-├── integration/           # Tests with external services
-└── conftest.py           # Shared fixtures
-```
-
-Use `test_*.py` naming convention. Mark tests with decorators:
-
-```python
-import pytest
-
-@pytest.mark.unit
-def test_fast_function():
-    assert True
-
-@pytest.mark.integration
-@pytest.mark.slow
-def test_external_service():
-    assert True
-```
-
-### CI Integration
-
-Tests run automatically in CI via `.github/workflows/test.yml`:
-
-- Tests must pass before deployment
-- Coverage thresholds must be met
-- Coverage reports uploaded as artifacts
-- PR comments show coverage summary
+Tests live under `tests/` (`unit/`, `integration/`, `conftest.py`). CI: `.github/workflows/test.yml`.
 
 ## Where to read more
 
-- **Canonical server docs:** [documentation/server/](../documentation/server/README.md)
-- **Backend rules:** `.cursor/rules/backend/`
-- **Per-module:** READMEs under `app/` (e.g. `app/services/search/home_matching/`, `app/services/docusign/`).
+| Topic | Doc |
+| ----- | --- |
+| Server docs | [documentation/server/README.md](../documentation/server/README.md) |
+| Ops | [documentation/server/ops/](../documentation/server/ops/postgres.md) |
+| OpenAPI | [documentation/server/openapi-workflow.md](../documentation/server/openapi-workflow.md) |
+| Backend rules | `.cursor/rules/backend/` |
+| Module READMEs | `app/services/search/home_matching/`, `app/services/docusign/docs/`, … |

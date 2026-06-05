@@ -1,30 +1,23 @@
 import { useCallback, useMemo, useState } from "react";
 
-import { Linking } from "react-native";
-
-import { viewingsApi } from "packages/api/viewings";
 import { CreateEventModal } from "packages/features/calendar/components/view/eventModal/CreateEventModal";
-import { log } from "packages/logger";
-import type { UIState } from "packages/store";
-import { useUIStore } from "packages/store";
 import { Button, CancelButton } from "packages/ui";
-import DeleteModal from "packages/ui/components/modals/standalone/DeleteModal";
-import { Box, Text, TouchableBox } from "packages/ui/components/primitives";
-import { getEventEndDate, getEventStartDate } from "packages/utils/calendar/parsing/eventParsing";
+import { Box, Text, TouchableBox } from "packages/ui/components/structure/primitives";
+import DeleteModal from "packages/ui/components/surfaces/modals/standalone/DeleteModal";
+import {
+  getEventEndDate,
+  getEventStartDate,
+} from "packages/utils/comms/calendar/parsing/eventParsing";
 import {
   formatLocaleTime12HourEnUs,
   formatLocaleWeekdayShortMonthDayEnUs,
-} from "packages/utils/date";
-import { getWindow } from "packages/utils/platform";
+} from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
+import { AgendaCompleteControl } from "@/features/calendar/components/view/agenda/AgendaCompleteControl";
 import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 import { calendarColorForEvent } from "@/features/calendar/utils/createEventModal/calendarEventColors";
-import {
-  formatViewingItinerarySummaryLines,
-  itineraryCanOpenNavigation,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 type EventCardProps = {
   event: ExtendedGoogleEvent;
@@ -34,6 +27,9 @@ type EventCardProps = {
   deleteEvent?: (eventId: string, calendarId?: string) => Promise<void>;
   calendars?: Calendar[];
   onClick?: () => void;
+  agendaComplete?: boolean;
+  onToggleAgendaComplete?: () => void;
+  canToggleAgendaComplete?: boolean;
 };
 
 function formatDate(date: Date) {
@@ -52,11 +48,12 @@ export function EventCard({
   deleteEvent,
   calendars = [],
   onClick,
+  agendaComplete = false,
+  onToggleAgendaComplete,
+  canToggleAgendaComplete = false,
 }: EventCardProps) {
-  const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
-  const [isOpeningNavigation, setIsOpeningNavigation] = useState(false);
 
   const handleEdit = useCallback(() => {
     setEditModalOpen(true);
@@ -86,46 +83,10 @@ export function EventCard({
     void refreshEvents?.();
   }, [refreshEvents]);
 
-  const showStartViewingNavigation = useMemo(
-    () => itineraryCanOpenNavigation(event.itinerary),
-    [event.itinerary]
-  );
-
   const stripeColor = useMemo(
     () => calendarColorForEvent(event, calendars as GoogleCalendar[]),
     [event, calendars]
   );
-
-  const handleStartViewingNavigation = useCallback(async () => {
-    if (!event.itinerary || !itineraryCanOpenNavigation(event.itinerary)) {
-      return;
-    }
-    setIsOpeningNavigation(true);
-    try {
-      const res = await viewingsApi.navigateLink(event.itinerary);
-      if (res.success && res.data?.url) {
-        const win = getWindow();
-        if (win) {
-          win.open(res.data.url, "_blank", "noopener,noreferrer");
-        } else {
-          await Linking.openURL(res.data.url);
-        }
-      } else {
-        enqueueToast({
-          type: "error",
-          message: res.error ?? "Could not open maps",
-        });
-      }
-    } catch (error) {
-      log.error("CALENDAR", "Viewing navigation link failed", error);
-      enqueueToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Could not open maps",
-      });
-    } finally {
-      setIsOpeningNavigation(false);
-    }
-  }, [enqueueToast, event.itinerary]);
 
   const dateRange = useMemo(() => {
     try {
@@ -149,11 +110,15 @@ export function EventCard({
   /** Callers pass update/delete only when edits are allowed (e.g. omit for client calendar or view-only). */
   const showEditActions = Boolean(updateEvent && deleteEvent);
 
-  const itineraryLines = event.itinerary ? formatViewingItinerarySummaryLines(event.itinerary) : [];
+  const showAgendaComplete = Boolean(onToggleAgendaComplete);
 
   const eventBody = (
     <>
-      <Text className="text-text-primary text-left text-sm font-semibold">
+      <Text
+        className={`text-left text-sm font-semibold ${
+          agendaComplete ? "text-text-disabled line-through" : "text-text-primary"
+        }`}
+      >
         {event.summary || "Untitled Event"}
       </Text>
       {dateRange ? (
@@ -161,11 +126,6 @@ export function EventCard({
       ) : null}
       {event.location ? (
         <Text className="text-text-secondary text-left text-xs sm:text-sm">{event.location}</Text>
-      ) : null}
-      {itineraryLines.length > 0 ? (
-        <Text className="text-text-secondary line-clamp-4 text-left text-xs sm:text-sm">
-          {itineraryLines.join(" · ")}
-        </Text>
       ) : null}
       {event.description ? (
         <Text className="text-text-secondary line-clamp-2 text-left text-xs sm:text-sm">
@@ -183,6 +143,13 @@ export function EventCard({
             <Box className="w-1 shrink-0" style={{ backgroundColor: stripeColor }} />
             <Box className="min-w-0 flex-1 p-3 text-left">
               <Box className="flex flex-row items-start gap-2">
+                {showAgendaComplete ? (
+                  <AgendaCompleteControl
+                    completed={agendaComplete}
+                    canToggle={canToggleAgendaComplete}
+                    onToggle={() => onToggleAgendaComplete?.()}
+                  />
+                ) : null}
                 <Box className="min-w-0 flex-1">
                   {onClick ? (
                     <TouchableBox onPress={onClick} className="space-y-1 text-left outline-none">
@@ -192,30 +159,14 @@ export function EventCard({
                     <Box className="space-y-1">{eventBody}</Box>
                   )}
                 </Box>
-                {showEditActions || showStartViewingNavigation ? (
+                {showEditActions ? (
                   <Box className="flex flex-shrink-0 flex-row flex-wrap justify-end gap-2">
-                    {showStartViewingNavigation ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        loading={isOpeningNavigation}
-                        disabled={isOpeningNavigation}
-                        onPress={() => void handleStartViewingNavigation()}
-                        iconName="map-pin"
-                      >
-                        Start navigation
-                      </Button>
-                    ) : null}
-                    {showEditActions ? (
-                      <>
-                        <Button variant="outline" size="sm" onPress={handleEdit} iconName="pencil">
-                          Edit
-                        </Button>
-                        <CancelButton size="sm" onPress={handleCancel}>
-                          Cancel
-                        </CancelButton>
-                      </>
-                    ) : null}
+                    <Button variant="outline" size="sm" onPress={handleEdit} iconName="pencil">
+                      Edit
+                    </Button>
+                    <CancelButton size="sm" onPress={handleCancel}>
+                      Cancel
+                    </CancelButton>
                   </Box>
                 ) : null}
               </Box>

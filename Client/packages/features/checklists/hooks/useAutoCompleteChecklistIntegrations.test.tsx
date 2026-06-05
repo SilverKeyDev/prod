@@ -34,7 +34,7 @@ vi.mock("packages/features/messaging/hooks/data/useAgentChats", () => ({
   }),
 }));
 
-vi.mock("@/features/profile/utils", () => ({
+vi.mock("packages/features/profile", () => ({
   userPreferencesToOnboardingData: (prefs: Record<string, unknown>) => prefs,
 }));
 

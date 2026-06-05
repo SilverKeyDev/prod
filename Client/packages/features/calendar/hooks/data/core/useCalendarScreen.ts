@@ -5,17 +5,20 @@ import { useMediaQuery } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
+import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/surfaces/modals/BaseModalTypes";
 import { screenUp } from "packages/ui/types/screens";
 import {
   calendarDateToKey,
   getCalendarDayListHeading,
-} from "packages/utils/calendar/core/calendarDateKeys";
-import { calculateCalendarDateRange, stepFocusedDate } from "packages/utils/calendar/core/date";
-import { formatCalendarToolbarLabel } from "packages/utils/calendar/grid/calendarToolbarLabel";
-import { buildWeekTimedEventResizeGoogleEvent } from "packages/utils/calendar/grid/calendarWeekTimedEventResize";
-import { dateNow, dayjs } from "packages/utils/date";
-import { getDocument } from "packages/utils/platform";
+} from "packages/utils/comms/calendar/core/calendarDateKeys";
+import {
+  calculateCalendarDateRange,
+  stepFocusedDate,
+} from "packages/utils/comms/calendar/core/date";
+import { formatCalendarToolbarLabel } from "packages/utils/comms/calendar/grid/calendarToolbarLabel";
+import { buildWeekTimedEventResizeGoogleEvent } from "packages/utils/comms/calendar/grid/calendarWeekTimedEventResize";
+import { dateNow, dayjs } from "packages/utils/core/date";
+import { getDocument } from "packages/utils/core/platform";
 
 import { useGoogleCalendarPermissions } from "@/features/calendar/hooks/data/google/useGoogleCalendarPermissions";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";

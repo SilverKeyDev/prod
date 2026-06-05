@@ -8,7 +8,7 @@ import { useGoogleMaps } from "packages/hooks/data";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { useFiltersStore, useSearchContextStore } from "packages/store";
 import type { IsochroneData, UserPreferencesData } from "packages/types/domain/api";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 import { searchPropertiesInIsochrone } from "@/features/search/api/propertySearch";
 import { useIsochroneFlow } from "@/features/search/hooks/data/isochrone/useIsochroneFlow";

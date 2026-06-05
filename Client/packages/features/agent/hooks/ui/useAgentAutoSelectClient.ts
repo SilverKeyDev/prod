@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { log } from "packages/logger";
-import { dateParseISO } from "packages/utils/date";
-import { getLocalStorage } from "packages/utils/storage";
+import { dateParseISO } from "packages/utils/core/date";
+import { getLocalStorage } from "packages/utils/core/storage";
 
 type ClientLike = { id: string };
 

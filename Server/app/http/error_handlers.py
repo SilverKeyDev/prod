@@ -9,6 +9,8 @@ from jose.exceptions import ExpiredSignatureError
 from sqlalchemy.exc import DatabaseError, IntegrityError, OperationalError, ProgrammingError
 from werkzeug.exceptions import Unauthorized
 
+from app.http.csp import build_content_security_policy
+from app.http.secure_errors import SecureErrorHandler
 from app.services.docusign.errors import (
     AgreementNotFoundError,
     AgreementStateError,
@@ -20,8 +22,6 @@ from app.services.docusign.errors import (
     RevisionNotFoundError,
     TemplateNotFoundError,
 )
-from app.utils.security.csp import build_content_security_policy
-from app.utils.security.secure_errors import SecureErrorHandler
 
 _IS_PROD_FLASK = os.getenv("FLASK_ENV") == "production"
 

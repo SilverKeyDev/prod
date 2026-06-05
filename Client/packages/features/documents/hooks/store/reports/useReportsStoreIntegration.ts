@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { useReportsData } from "packages/features/documents/hooks/data/useReportsData";
-import { useReportsStore } from "packages/store";
+import { useReportsStore } from "packages/features/documents/store";
 
 /**
  * Hook that integrates useReportsData with useReportsStore

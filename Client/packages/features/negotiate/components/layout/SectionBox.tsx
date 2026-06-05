@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 type SectionBoxProps = {
   children: React.ReactNode;
   className?: string;

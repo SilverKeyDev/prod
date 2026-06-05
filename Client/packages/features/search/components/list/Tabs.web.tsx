@@ -1,6 +1,6 @@
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
-import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
+import { Box } from "packages/ui/components/structure/primitives";
+import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTabs";
 
 import { BodyText } from "@/components/ui";
 

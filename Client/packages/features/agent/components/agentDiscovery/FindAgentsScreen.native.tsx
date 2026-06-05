@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
-import { ScrollView, Text } from "packages/ui/components/primitives";
+import { ScrollView, Text } from "packages/ui/components/structure/primitives";
 
 import { AgentDiscoveryView } from "./AgentDiscoveryView.native";
 

@@ -1,6 +1,6 @@
 import type { ProfileStep } from "packages/features/profile/types/onboarding/onboarding";
 import type { ProfileStepId } from "packages/features/profile/types/onboarding/profileStepIds";
-import { SECTION_TITLES } from "packages/utils/domain/profile/labels";
+import { SECTION_TITLES } from "packages/utils/product/domain/profile/labels";
 
 const STEP_TITLES: Record<ProfileStepId, string> = {
   onboarding_role: SECTION_TITLES.ONBOARDING_ROLE,
@@ -15,6 +15,9 @@ const STEP_TITLES: Record<ProfileStepId, string> = {
   agent_profile: "Territory",
   availability: SECTION_TITLES.AVAILABILITY,
   privacy_data: "Privacy & data",
+  seller_shell_setup: "Seller setup",
+  brokerage_shell_setup: "Brokerage setup",
+  integration_partner_shell_setup: "Partner setup",
 };
 
 export function profileStepFromId(id: ProfileStepId): ProfileStep {

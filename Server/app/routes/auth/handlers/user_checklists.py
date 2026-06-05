@@ -5,11 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flask import Response, jsonify, request
-from sqlalchemy import delete, select
 
-from app import db
-from app.models import TransactionTask
 from app.schemas import ChecklistResponse, UpdateChecklistRequest
+from app.services.auth.checklists import get_checklist_ids_from_user_tasks, set_checklist_ids
 from app.utils.common_patterns import (
     invalid_request,
     require_authenticated_user,
@@ -29,59 +27,8 @@ def _build_response(checklist):
     return jsonify({"success": True, "data": checklist})
 
 
-def _get_checklist_ids_from_user_tasks(user_id, category):
-    tasks = db.session.scalars(
-        select(TransactionTask).where(
-            TransactionTask.user_id == str(user_id),
-            TransactionTask.category == category,
-        )
-    ).all()
-    ids = []
-    for t in tasks:
-        if t.status != "done":
-            continue
-        meta = t.task_metadata or {}
-        tid = meta.get("templateId")
-        if tid is not None:
-            try:
-                ids.append(int(tid))
-            except (TypeError, ValueError):
-                pass
-        elif t.order_index is not None:
-            ids.append(int(t.order_index))
-    return sorted(ids)
-
-
 def _get_checklist_ids(user, category):
-    user_id = str(user.id)
-    return _get_checklist_ids_from_user_tasks(user_id, category)
-
-
-def _set_checklist_ids(user_id, category, ids):
-    if not isinstance(ids, list):
-        raise ValueError("Expected list")
-    user_id = str(user_id)
-    db.session.execute(
-        delete(TransactionTask).where(
-            TransactionTask.user_id == user_id, TransactionTask.category == category
-        )
-    )
-    for i, tid in enumerate(ids):
-        try:
-            template_id = int(tid) if not isinstance(tid, int | float) else int(tid)
-        except (TypeError, ValueError):
-            continue
-        db.session.add(
-            TransactionTask(
-                user_id=user_id,
-                category=category,
-                title=f"Item {template_id}",
-                status="done",
-                order_index=i,
-                task_metadata={"templateId": template_id},
-            )
-        )
-    db.session.commit()
+    return get_checklist_ids_from_user_tasks(str(user.id), category)
 
 
 def _ids_from_put_body(data: UpdateChecklistRequest) -> list[int]:
@@ -112,7 +59,7 @@ def put_timeline_checklist(
     category = "timeline"
     try:
         ids = _ids_from_put_body(data)
-        _set_checklist_ids(user.id, category, ids)
+        set_checklist_ids(user.id, category, ids)
         return _build_response(ids)
     except ValueError:
         return validation("Expected list")
@@ -141,7 +88,7 @@ def put_close_checklist(
         return invalid_request("Invalid checklist type")
     try:
         ids = _ids_from_put_body(data)
-        _set_checklist_ids(user.id, checklist_type, ids)
+        set_checklist_ids(user.id, checklist_type, ids)
         return _build_response(ids)
     except ValueError:
         return validation("Expected list")

@@ -2,18 +2,21 @@ import React, { useCallback, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile";
+import type { OnboardingData } from "packages/features/profile";
 import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
 import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/popovers/searchHeaderPopoverDismiss.web";
 import { type SearchFilterOverrides, useSearchContextStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
-import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
+import {
+  TOUR_TARGETS_DESKTOP,
+  TOUR_TARGETS_MOBILE,
+} from "packages/utils/transaction/tour/tourTargets";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
-import type { OnboardingData } from "@/features/profile/utils";
 import SearchPreferencesContent from "@/features/search/components/filters/SearchPreferencesContent.web";
 
 import SearchFiltersSheet from "./SearchFiltersSheet.web";

@@ -1,10 +1,10 @@
 import { log } from "packages/logger";
 import { hasProperty, isFunction, isObject } from "packages/utils";
-import { isSupportedServiceAreaAddressComponents } from "packages/utils/search/locations/serviceAreaAvailability";
+import { isSupportedServiceAreaAddressComponents } from "packages/utils/product/search/locations/serviceAreaAvailability";
 import {
   type GooglePlaceAddressComponentLike,
   isGooglePlacePreciseStreetAddress,
-} from "packages/utils/search/places/isGooglePlacePreciseStreetAddress";
+} from "packages/utils/product/search/places/isGooglePlacePreciseStreetAddress";
 
 import type { Suggestion } from "./importantLocationsInputTypes";
 

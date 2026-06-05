@@ -1,6 +1,7 @@
+import { AdminGuard } from "packages/features/admin/components/guards/AdminGuard";
+import { AdminWorkspaceLayout } from "packages/features/admin/components/layout/AdminWorkspaceLayout.web";
+
 import { AuthGuard } from "@/app/guards";
-import { AdminGuard } from "@/app/guards/auth";
-import { AdminWorkspaceLayout } from "@/app/layouts/admin/AdminWorkspaceLayout.web";
 
 export default function AdminPage() {
   return (

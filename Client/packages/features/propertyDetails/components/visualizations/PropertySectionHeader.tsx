@@ -1,9 +1,9 @@
 import React from "react";
 
-import { Icon } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
+import { Icon } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
 import type { IconName } from "packages/ui/types/icons";
 
 export type PropertySectionHeaderProps = {

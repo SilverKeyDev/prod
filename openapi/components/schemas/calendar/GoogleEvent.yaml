@@ -41,12 +41,6 @@ properties:
   conferenceData:
     $ref: './GoogleConferenceData.yaml'
     nullable: true
-  itinerary:
-    $ref: '../viewings/ViewingItinerary.yaml'
-    nullable: true
-    description: >
-      App-only multi-stop viewing data; stripped before sending to Google Calendar.
-      Persisted in SilverKey DB; used to build calendar description and first-stop location.
   colorId:
     type: string
     nullable: true

@@ -32,7 +32,7 @@ Buyer and agent are **implemented** workspaces. See [workspace-first-architectur
 4. Add feature code under `packages/features/<workspace>/` following [package feature structure](../../../.cursor/rules/shared/package-feature-structure.mdc).
 5. Add onboarding steps via the [profile onboarding flow registry](../features/profile-onboarding-flow.md) when the role has a public picker entry.
 
-## Related future specs
+## Related
 
-- Brokerage team dashboard: [documentation/to-implement-soon/broker-workspace/01-broker-team-dashboard.md](../../to-implement-soon/broker-workspace/01-broker-team-dashboard.md)
+- Broker team dashboard (planned): [SIL-158](https://linear.app/silverkey/issue/SIL-158/broker-team-dashboard-read-only-team-kpis-broker-persona-routes)
 - Partner placement (brokerage admin): [rev-share-partners.md](../features/rev-share-partners.md)

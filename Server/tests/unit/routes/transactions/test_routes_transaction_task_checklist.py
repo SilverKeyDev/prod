@@ -61,7 +61,7 @@ def test_get_transaction_tasks_forbidden_when_agent_does_not_manage_client(
     with (
         patch("app.services.auth.get_current_user", return_value=actor),
         patch(
-            "app.routes.transactions.build_task_checklist_data",
+            "app.routes.transactions.handlers.checklist.build_task_checklist_data",
             side_effect=AssertionError("GET must not run when forbidden"),
         ),
     ):
@@ -90,7 +90,7 @@ def test_put_transaction_tasks_forbidden_when_agent_does_not_manage_client(
     with (
         patch("app.services.auth.get_current_user", return_value=actor),
         patch(
-            "app.routes.transactions.perform_task_checklist_put",
+            "app.routes.transactions.handlers.checklist.perform_task_checklist_put",
             side_effect=AssertionError("PUT must not run when forbidden"),
         ),
     ):
@@ -142,7 +142,10 @@ def test_put_transaction_tasks_ok_when_agent_manages_client(client, app: Flask, 
 
     with (
         patch("app.services.auth.get_current_user", return_value=actor),
-        patch("app.routes.transactions.perform_task_checklist_put", return_value=(payload, None)),
+        patch(
+            "app.routes.transactions.handlers.checklist.perform_task_checklist_put",
+            return_value=(payload, None),
+        ),
     ):
         resp = client.put(
             f"/api/v1/transactions/{tx_id}/tasks?type=closing",

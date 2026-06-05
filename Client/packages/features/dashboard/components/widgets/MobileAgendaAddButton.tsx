@@ -1,13 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
+import { EventRequestTimeDropdown } from "packages/features/agent/components/modals/calendarEventRequest/EventRequestTimeDropdown.native";
 import { defaultGoogleMeetForCreate } from "packages/features/calendar";
+import { defaultCreateEventTimedRange } from "packages/features/calendar/utils/createEventModal/createEventModalDefaults";
 import { log } from "packages/logger";
 import { Button } from "packages/ui";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box, Pressable, PrimitiveInput, Text } from "packages/ui/components/primitives";
-import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
-import { parseAgendaDeadlineTime } from "packages/utils/calendar/agenda/agentAgendaEvent";
-import { dayjs } from "packages/utils/date";
+import { Box, Pressable, PrimitiveInput, Text } from "packages/ui/components/structure/primitives";
+import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
+import { parseAgendaDeadlineTime } from "packages/utils/comms/calendar/agenda/agentAgendaEvent";
+import { CREATE_EVENT_TIME_STEP_MINUTES } from "packages/utils/comms/calendar/createEvent/eventFormGooglePayload";
+import { buildTimeOptions } from "packages/utils/comms/scheduling/eventRequestScheduleOptions";
+import { dayjs } from "packages/utils/core/date";
 
 export type MobileAgendaAddButtonProps = {
   onSubmitTodo: (payload: {
@@ -29,8 +33,11 @@ export function MobileAgendaAddButton({
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [descriptionInput, setDescriptionInput] = useState("");
   const [deadlineInput, setDeadlineInput] = useState("");
-  const [timeInput, setTimeInput] = useState("");
+  const [timeInput, setTimeInput] = useState(() => defaultCreateEventTimedRange().startTime);
+  const [isAllDay, setIsAllDay] = useState(false);
   const [addGoogleMeet, setAddGoogleMeet] = useState(true);
+
+  const timeOptions = useMemo(() => buildTimeOptions(CREATE_EVENT_TIME_STEP_MINUTES), []);
 
   const deadlineValid = useMemo(() => {
     const raw = deadlineInput.trim();
@@ -40,9 +47,10 @@ export function MobileAgendaAddButton({
     return dayjs(raw, "YYYY-MM-DD", true).isValid();
   }, [deadlineInput]);
 
-  const hasValidTimeForMeet = parseAgendaDeadlineTime(timeInput) !== null;
-  const showMeetToggle =
-    Boolean(googleCalendarCreateEligible) && deadlineValid && hasValidTimeForMeet;
+  const hasValidTimeForMeet =
+    !isAllDay && deadlineValid && parseAgendaDeadlineTime(timeInput) !== null;
+  const showMeetToggle = Boolean(googleCalendarCreateEligible) && hasValidTimeForMeet;
+  const showScheduleOptions = deadlineValid;
 
   useEffect(() => {
     setAddGoogleMeet(
@@ -55,8 +63,19 @@ export function MobileAgendaAddButton({
     setNewTodoTitle("");
     setDescriptionInput("");
     setDeadlineInput("");
-    setTimeInput("");
+    setTimeInput(defaultCreateEventTimedRange().startTime);
+    setIsAllDay(false);
     setAddGoogleMeet(true);
+  }, []);
+
+  const handleAllDayToggle = useCallback(() => {
+    setIsAllDay((prev) => {
+      const next = !prev;
+      if (!next) {
+        setTimeInput(defaultCreateEventTimedRange().startTime);
+      }
+      return next;
+    });
   }, []);
 
   const submitTodo = useCallback(async () => {
@@ -73,8 +92,8 @@ export function MobileAgendaAddButton({
       }
       deadlineDate = deadlineParsed.format("YYYY-MM-DD");
     }
-    const rawTime = timeInput.trim();
-    const deadlineTime = rawTime === "" ? null : rawTime;
+    const deadlineTime =
+      isAllDay || !deadlineDate ? null : parseAgendaDeadlineTime(timeInput.trim());
     const descTrimmed = descriptionInput.trim();
     try {
       await onSubmitTodo({
@@ -96,6 +115,7 @@ export function MobileAgendaAddButton({
     newTodoTitle,
     onSubmitTodo,
     showMeetToggle,
+    isAllDay,
     timeInput,
   ]);
 
@@ -136,14 +156,16 @@ export function MobileAgendaAddButton({
         }
       >
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <Text className="text-text-secondary mb-1 text-xs">Title</Text>
+          <Text className="text-text-secondary mb-1 text-sm font-medium">Title</Text>
           <PrimitiveInput
             value={newTodoTitle}
             onValueChange={setNewTodoTitle}
             placeholder="Task name"
             className="border-border bg-background-base text-text-primary mb-3 rounded-lg border px-3 py-2 text-base"
           />
-          <Text className="text-text-secondary mb-1 text-xs">Description (optional)</Text>
+          <Text className="text-text-secondary mb-1 text-sm font-medium">
+            Description (optional)
+          </Text>
           <PrimitiveInput
             value={descriptionInput}
             onValueChange={setDescriptionInput}
@@ -152,23 +174,44 @@ export function MobileAgendaAddButton({
             textAlignVertical="top"
             className="border-border bg-background-base text-text-primary mb-3 min-h-20 rounded-lg border px-3 py-2 text-base"
           />
-          <Text className="text-text-secondary mb-1 text-xs">Date (optional, YYYY-MM-DD)</Text>
+          <Text className="text-text-secondary mb-1 text-sm font-medium">
+            Date (optional, YYYY-MM-DD)
+          </Text>
           <PrimitiveInput
             value={deadlineInput}
             onValueChange={setDeadlineInput}
             placeholder="YYYY-MM-DD (optional)"
             className="border-border bg-background-base text-text-primary mb-1 rounded-lg border px-3 py-2 text-base"
           />
-          <Text className="text-text-secondary mb-2 text-xs">
+          <Text className="text-text-secondary mb-2 text-sm">
             Add a date to save to your SilverKey calendar; leave empty for a to-do only.
           </Text>
-          <Text className="text-text-secondary mb-1 text-xs">Time (optional, HH:mm)</Text>
-          <PrimitiveInput
-            value={timeInput}
-            onValueChange={setTimeInput}
-            placeholder="e.g. 14:30 (24-hour)"
-            className="border-border bg-background-base text-text-primary mb-3 rounded-lg border px-3 py-2 text-base"
-          />
+          {showScheduleOptions ? (
+            <>
+              <Pressable
+                onPress={handleAllDayToggle}
+                className="mb-3 flex-row items-center gap-2 active:opacity-80"
+              >
+                <Box
+                  className={`flex h-5 w-5 items-center justify-center rounded border ${
+                    isAllDay ? "border-primary bg-primary" : "border-border"
+                  }`}
+                >
+                  {isAllDay ? <Text className="text-xs font-bold text-white">✓</Text> : null}
+                </Box>
+                <Text className="text-text-primary text-sm">All day</Text>
+              </Pressable>
+              {!isAllDay ? (
+                <Box className="mb-3">
+                  <EventRequestTimeDropdown
+                    value={timeInput}
+                    onChange={setTimeInput}
+                    options={timeOptions}
+                  />
+                </Box>
+              ) : null}
+            </>
+          ) : null}
           {showMeetToggle ? (
             <Pressable
               onPress={() => setAddGoogleMeet(!addGoogleMeet)}

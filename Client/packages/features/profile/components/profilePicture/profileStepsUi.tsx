@@ -45,6 +45,12 @@ const iconNameForStepId = (id: ProfileStepId): IconName | undefined => {
       return "shield";
     case "financial":
       return "building";
+    case "seller_shell_setup":
+      return "home";
+    case "brokerage_shell_setup":
+      return "building-2";
+    case "integration_partner_shell_setup":
+      return "settings-2";
     default:
       return undefined;
   }

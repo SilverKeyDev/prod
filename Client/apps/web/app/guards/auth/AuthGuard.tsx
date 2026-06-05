@@ -7,7 +7,8 @@ import { type ReactNode } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, Title } from "@/components/ui";
@@ -67,7 +68,12 @@ export function AuthGuard({
 
               <Button
                 variant="primary"
-                onClick={() => (window.location.href = redirectTo)}
+                onClick={() => {
+                  const win = getWindow();
+                  if (win) {
+                    win.location.href = redirectTo;
+                  }
+                }}
                 icon={<Icon name="log-in" className="h-4 w-4" />}
                 className="w-full"
               >

@@ -1,4 +1,4 @@
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 function PulseBar({ className }: { className?: string }) {
   return (

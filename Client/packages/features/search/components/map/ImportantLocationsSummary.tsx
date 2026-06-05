@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText } from "@/components/ui";
 const MAX_VISIBLE = 3;

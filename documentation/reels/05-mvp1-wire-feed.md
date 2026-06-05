@@ -1,3 +1,7 @@
+> **Status:** Planned
+> **Last verified:** 2026-06-04
+> **Depends on:** [04-current-infrastructure.md](./04-current-infrastructure.md); [search.md](../client/features/search.md).
+
 # Reels MVP 1: Wire Feed
 
 ## Goal

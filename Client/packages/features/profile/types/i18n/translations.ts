@@ -1,5 +1,5 @@
 /** Profile feature translation strings. */
-import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+import { ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 export const PROFILE_TRANSLATIONS: Record<string, string> = {
   // Favorite homes dropdown (shared UI; list from profile)

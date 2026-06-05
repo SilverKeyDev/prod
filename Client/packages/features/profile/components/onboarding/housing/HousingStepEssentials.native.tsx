@@ -1,9 +1,9 @@
 import React from "react";
 
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import {
   AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT,

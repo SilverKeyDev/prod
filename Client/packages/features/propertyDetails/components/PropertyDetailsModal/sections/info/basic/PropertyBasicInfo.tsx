@@ -9,10 +9,10 @@ import {
   hasRenderableListingPrice,
 } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import { formatStructuredAddress } from "packages/utils/format/property/addressFormatting";
-import { formatPrice } from "packages/utils/format/property/propertyDetailsDisplayFormatters";
+import { Box } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
+import { formatStructuredAddress } from "packages/utils/core/format/property/addressFormatting";
+import { formatPrice } from "packages/utils/core/format/property/propertyDetailsDisplayFormatters";
 
 import { PropertyDetailsList } from "./PropertyDetailsList";
 

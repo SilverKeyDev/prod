@@ -4,7 +4,7 @@ import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { pathFor } from "packages/navigation/router/paths";
 import { useSearchViewStore } from "packages/store";
-import { getActiveDashboardKey } from "packages/utils/layout/dashboardLayoutConfig";
+import { getActiveDashboardKey } from "packages/utils/core/layout/dashboardLayoutConfig";
 
 import { AccessibleLink } from "@/components/ui";
 

@@ -8,7 +8,7 @@ import type { DocusignTemplate } from "packages/features/documents/types/docusig
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type UseDocusignTemplatesReturn = {
   templates: DocusignTemplate[];

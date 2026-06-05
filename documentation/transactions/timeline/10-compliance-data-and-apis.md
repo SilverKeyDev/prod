@@ -1,5 +1,7 @@
 > **Status:** Planned | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [partners.md](../../client/features/partners.md), [rev-share-partners.md](../../client/features/rev-share-partners.md).
+
 ## Compliance data and timeline APIs
 
 Compliance-critical deadlines are **not tagged** on milestones or checklist items. Product copy and external resource links carry regulatory context today.

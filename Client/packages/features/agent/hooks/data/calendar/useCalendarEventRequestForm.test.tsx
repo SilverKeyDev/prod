@@ -18,21 +18,20 @@ vi.mock("packages/hooks/store", () => ({
   useIsAgent: () => true,
 }));
 
-vi.mock("packages/hooks/data/user/useClientSettings", () => ({
-  useClientSettings: () => ({ clientSettings: { viewing_tour: { anchors: [] } } }),
-}));
-
 vi.mock("packages/features/messaging/hooks/data/useAgentChats", () => ({
   useAgentChats: () => ({ conversations: [], sendMessage: vi.fn() }),
 }));
 
-vi.mock("packages/hooks/data/calendar/useEventRequestScheduleAvailability", () => ({
-  useEventRequestScheduleAvailability: () => ({
-    dateOptions: [],
-    buildTimeOptionsForDate: () => [],
-    isLoading: false,
-  }),
-}));
+vi.mock(
+  "packages/features/calendar/hooks/data/availability/useEventRequestScheduleAvailability",
+  () => ({
+    useEventRequestScheduleAvailability: () => ({
+      dateOptions: [],
+      buildTimeOptionsForDate: () => [],
+      isLoading: false,
+    }),
+  })
+);
 
 vi.mock("packages/store", () => ({
   useAuthStore: (selector: (s: { user: { id: string } }) => unknown) =>

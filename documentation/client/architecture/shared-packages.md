@@ -27,13 +27,13 @@ This document is the **exhaustive** reference for all **shared packages** in the
 ### Core Principles
 
 1. **Single source of truth** — Types, API clients, store, and utilities live in packages so both web and mobile (and future apps) reuse the same logic.
-2. **Layered architecture** — Strict import rules: components → hooks → config/api → services/http; no bypassing layers.
+2. **Layered architecture** — Strict import rules: components → hooks → `packages/api` → services/http; no bypassing layers.
 3. **Framework boundaries** — Packages are either framework-agnostic (no React) or React-only (hooks, contexts); no React Native–specific code in shared packages unless using platform extensions (`.web.*` / `.native.*`).
 4. **No direct app imports** — Shared packages must not import from `apps/web/*` or `apps/mobile/*`.
 
 ### API client import path (canonical)
 
-**Use `packages/api`** (and subpaths such as `packages/api/viewings`, `packages/api/admin`) for API clients and shared API types. That package is the implementation barrel: it re-exports domain clients from `packages/features/*/api/` and generated contract types.
+**Use `packages/api`** (and subpaths such as `packages/api/admin`) for API clients and shared API types. That package is the implementation barrel: it re-exports domain clients from `packages/features/*/api/` and generated contract types.
 
 **`packages/config/http/api`** re-exports the same surface for backward compatibility. Prefer **`packages/api`** in new code so features, hooks, and services share one path. Importing from `packages/config` or `packages/config/http/api` is equivalent but discouraged for new edits.
 
@@ -69,6 +69,8 @@ This document is the **exhaustive** reference for all **shared packages** in the
 
 **Feature module structure:** Each subfolder under `packages/features/<name>/` may only contain: `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`, and `index.ts` (barrel). Enforced by ESLint rule `silverkey/package-module-allowed-children`. See `Client/packages/features/README.md` and `.cursor/rules/shared/package-feature-structure.mdc`.
 
+**Cross-feature imports:** Hub features (dashboard, saved, agent, checklists, search, messaging) compose other features through public barrels and documented subpaths—not forbidden. Policy, tiers, and audit edge matrix: [cross-feature-composition.md](./cross-feature-composition.md).
+
 \* React Query lives in `config/query/`; the rest of config is non-React.
 \** `services/data/` uses React Query's `QueryClient` for prefetch/polling; otherwise services are framework-agnostic.
 \*** Contexts use React but no DOM; mobile can consume the same contexts or provide its own provider shell.
@@ -77,6 +79,35 @@ This document is the **exhaustive** reference for all **shared packages** in the
 **Note:** Email templates may live under `packages/email-templates/`. See [shared-ui-package.md](../platform/shared-ui-package.md) for design-system rationale.
 
 ---
+
+## Feature module inventory
+
+All feature folders under `Client/packages/features/` (see also [`Client/packages/features/README.md`](../../../Client/packages/features/README.md)):
+
+| Module | Role |
+|--------|------|
+| `admin` | Super-admin and dev persona UI |
+| `agent` | Agent workspace, clients, messaging chrome |
+| `brokerage` | Brokerage workspace shell |
+| `calendar` | Calendar and events |
+| `checklists` | Transaction checklists |
+| `compare` | Property comparison |
+| `dashboard` | Dashboard shell composition |
+| `documents` | Documents, agreements, DocuSign |
+| `feed` | Feed and reels |
+| `homeauth` | Auth, landing, onboarding entry |
+| `integrationPartner` | Integration-partner workspace shell |
+| `messaging` | Threads and messaging shell |
+| `negotiate` | Negotiation UI |
+| `partners` | Partner marketplace (RESPA-scoped) |
+| `profile` | Profile, preferences, onboarding registry |
+| `propertyDetails` | Property detail modal |
+| `saved` | Saved homes |
+| `search` | Search map/list/filters |
+| `seller` | Seller workspace shell |
+| `workspace` | Workspace switcher and placeholders |
+
+Not every module needs every allowed subfolder (`api/`, `store/`, etc.) — see [feature-module-folder-and-layering-audit.md](../../internal/component-audit/feature-module-folder-and-layering-audit.md).
 
 ## Large feature modules: subdirectory map
 
@@ -108,12 +139,12 @@ Large features accumulate many files. When using `@` / search in the repo, start
 | Subtree | Role |
 |--------|------|
 | `api/` | Calendar and scheduling queries |
-| `components/` | `shell/`, `view/`, `timeGrid/`, `agenda/`, `eventForm/`, `scheduling/`, `viewings/` |
+| `components/` | `shell/`, `view/`, `timeGrid/`, `agenda/`, `eventForm/`, `scheduling/` |
 | `hooks/data/` | `core/`, `createEvent/`, `google/`, etc. |
 | `hooks/store/` | Google calendar / integration hooks |
 | `hooks/ui/` | Quick-create and UI session hooks |
 | `store/` | Calendar feature store |
-| `utils/` | `grid/`, `agenda/`, `createEventModal/`, `parsing/`, `viewing/`, `core/` |
+| `utils/` | `grid/`, `agenda/`, `createEventModal/`, `parsing/`, `core/` |
 
 ### `feed/`
 
@@ -166,11 +197,11 @@ For allowed children of any feature folder, see `.cursor/rules/shared/package-fe
 
 **File types:** All `.ts`. No React components; no hooks.
 
-**Allowed imports:** `packages/config/api/*`, `packages/services/http/*`, `packages/services/security/*`, `packages/schemas/*`.
+**Allowed imports:** `packages/api/*`, `packages/services/http/*`, `packages/services/security/*`, `packages/schemas/*`.
 
 **Forbidden imports:** `packages/hooks/*`, `packages/store/*`, `apps/*`.
 
-**Consumers:** `packages/config/*` (HTTP/security only), and optionally server or tooling; apps use hooks → config/api, not services directly.
+**Consumers:** `packages/config/*` (HTTP/security only), and optionally server or tooling; apps use hooks → `packages/api`, not services directly.
 
 ---
 
@@ -186,11 +217,11 @@ For allowed children of any feature folder, see `.cursor/rules/shared/package-fe
 
 **File types:** All `.ts`. No `.tsx` in hooks (hooks do not render JSX).
 
-**Allowed imports:** `packages/config/api/*`, `packages/store/*`, `packages/schemas/*`, `packages/services/http/*`, `packages/services/security/*`.
+**Allowed imports:** `packages/api/*`, `packages/store/*`, `packages/schemas/*`, `packages/services/http/*`, `packages/services/security/*`.
 
-**Forbidden imports:** Business logic `packages/services/*` (use config/api); `apps/*`.
+**Forbidden imports:** Business logic `packages/services/*` (use `packages/api`); `apps/*`.
 
-**Consumers:** `apps/web/*` (and when present `apps/mobile/*`); components must use hooks, not config/api or services directly.
+**Consumers:** `apps/web/*` (and when present `apps/mobile/*`); components must use hooks, not `packages/api` or services directly.
 
 ---
 
@@ -268,7 +299,7 @@ For allowed children of any feature folder, see `.cursor/rules/shared/package-fe
 
 **Allowed imports:** `packages/hooks/*`, `packages/schemas/*`, `packages/utils/*`.
 
-**Forbidden imports:** `packages/config/api/*`, `packages/services/*`, `apps/*`.
+**Forbidden imports:** `packages/api/*`, `packages/services/*`, `apps/*`.
 
 **Consumers:** `apps/web/*` (and when present `apps/mobile/*`) at app shell / root; feature code uses hooks/contexts from here.
 
@@ -387,8 +418,8 @@ packages/design-tokens
 ### Forbidden Imports (all packages)
 
 - No package may import from `apps/web/*` or `apps/mobile/*`.
-- Components (apps) must not import `packages/config/api/*` or business `packages/services/*` directly; they use `packages/hooks/*`.
-- Hooks must not import business logic `packages/services/*`; they use `packages/config/api/*`.
+- Components (apps) must not import `packages/api/*` or business `packages/services/*` directly; they use `packages/hooks/*`.
+- Hooks must not import business logic `packages/services/*`; they use `packages/api/*`.
 - Services and config must not import `packages/hooks/*` or `packages/store/*`.
 - Store must not import config, services, or hooks.
 
@@ -398,10 +429,10 @@ packages/design-tokens
 
 | Consumer | Uses |
 |----------|------|
-| **apps/web** | hooks, store, schemas, utils, contexts, navigation, design-tokens, **ui**, **features**, logger. Does **not** import config/api or services directly from pages/components. |
+| **apps/web** | hooks, store, schemas, utils, contexts, navigation, design-tokens, **ui**, **features**, logger. Does **not** import `packages/api` or services directly from pages/components. |
 | **apps/mobile** (when present) | Same as web: hooks, store, **ui**, **features**, etc.; RN shells compose shared packages; navigation adapter uses native implementation where needed. |
-| **packages/hooks** | config/api, store, schemas, services/http, services/security. |
-| **packages/services** | config/api, services/http, services/security, schemas. |
+| **packages/hooks** | `packages/api`, store, schemas, services/http, services/security. |
+| **packages/services** | `packages/api`, services/http, services/security, schemas. |
 | **packages/config** | services/http, services/security, schemas. |
 
 ---

@@ -181,14 +181,6 @@ Python linters:
 | `endpoints/sync_inventory_posthog.py` | POST inventory + dead routes to PostHog | `make endpoints-sync-posthog`; `endpoints-sync-posthog.yml` |
 | `endpoints/posthog_constants_loader.py` | Load PostHog constants without Flask app context | Imported by check/sync scripts |
 
-### `ops/` — operator data migrations
-
-| Script | Purpose |
-|--------|---------|
-| `ops/migrate_viewing_itineraries.py` | Normalize legacy `calendar_events.itinerary` to ViewingItinerary (dry-run default) |
-
-See [viewing-itinerary-migration.md](./viewing-itinerary-migration.md).
-
 ### Operator / manual tools
 
 | Script | Purpose |

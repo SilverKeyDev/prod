@@ -8,13 +8,19 @@ from typing import Any
 from sqlalchemy import func, select
 
 from app import db
-from app.dtos.user import _try_presigned_profile_picture_url
+from app.dtos.user.user import _try_presigned_profile_picture_url
 from app.models import Agreement, TransactionTask, User, UserRole
 from app.services.transactions.checklist_support.checklist_constants import (
     PIPELINE_ORDER,
     PIPELINE_RANK,
     TASK_CATEGORIES,
 )
+from app.services.transactions.checklist_support.checklist_rules import (
+    merge_task_checklist_checked_ids,
+    sort_task_checklist_items,
+)
+from app.services.transactions.ensure import ensure_transaction
+from app.services.transactions.retrieval import get_checklist_definition
 
 _SECTION_UNLOCK_REQUIRES: dict[str, tuple[str, ...]] = {
     "search": (),
@@ -97,14 +103,10 @@ def _item_id(item: dict[str, Any]) -> int | None:
 
 
 def _effective_checked_ids(user_id: str, category: str) -> set[int]:
+    # Lazy: unified_task_checklist_read → checklist_signature_completion → agent cycle.
     from app.services.transactions.checklist_signature_completion import (
         apply_signature_based_checked_ids,
     )
-    from app.services.transactions.checklist_support.checklist_rules import (
-        merge_task_checklist_checked_ids,
-    )
-    from app.services.transactions.ensure import ensure_transaction
-    from app.services.transactions.retrieval import get_checklist_definition
     from app.services.transactions.unified_task_checklist_read import (
         get_checked_ids_for_transaction,
     )
@@ -124,11 +126,6 @@ def _effective_checked_ids(user_id: str, category: str) -> set[int]:
 
 
 def _section_is_complete(user_id: str, category: str) -> bool:
-    from app.services.transactions.checklist_support.checklist_rules import (
-        sort_task_checklist_items,
-    )
-    from app.services.transactions.retrieval import get_checklist_definition
-
     items = get_checklist_definition(category)
     if not items:
         return True
@@ -145,10 +142,6 @@ def _section_is_complete(user_id: str, category: str) -> bool:
 
 def _first_incomplete_step_label(items: list[dict[str, Any]], checked: set[int]) -> str | None:
     """Port of Client getActiveChecklistItemIds — returns label for the first active step only."""
-    from app.services.transactions.checklist_support.checklist_rules import (
-        sort_task_checklist_items,
-    )
-
     sorted_items = sort_task_checklist_items(list(items))
     first_incomplete = None
     for item in sorted_items:
@@ -172,8 +165,6 @@ def _first_incomplete_step_label(items: list[dict[str, Any]], checked: set[int])
 
 
 def _current_step_for_user(user_id: str) -> tuple[str, str | None]:
-    from app.services.transactions.retrieval import get_checklist_definition
-
     completion_cache: dict[str, bool] = {
         cat: _section_is_complete(user_id, cat) for cat in PIPELINE_ORDER
     }

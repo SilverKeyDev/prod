@@ -1,5 +1,5 @@
 import { useLocalization } from "packages/contexts";
-import StatusBadge from "packages/ui/components/asset/StatusBadge";
+import StatusBadge from "packages/ui/components/media/asset/StatusBadge";
 
 import type { AgentConnectionDisplayStatus } from "@/features/agent/utils/connectionRequestStatus";
 

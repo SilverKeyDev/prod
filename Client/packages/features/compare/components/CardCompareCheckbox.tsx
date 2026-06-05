@@ -2,9 +2,9 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import IconButton from "packages/ui/components/button/core/IconButton";
-import { getCardBubbleSizeClasses } from "packages/ui/components/cards/base/styles/CardBubbleStyles";
-import { Box } from "packages/ui/components/primitives";
+import IconButton from "packages/ui/components/actions/button/core/IconButton";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getCardBubbleSizeClasses } from "packages/ui/components/surfaces/cards/base/styles/CardBubbleStyles";
 export type CardCompareCheckboxProps = {
   isSelected: boolean;
   onToggle: () => void;

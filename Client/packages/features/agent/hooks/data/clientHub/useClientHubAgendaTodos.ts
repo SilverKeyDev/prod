@@ -5,7 +5,7 @@ import { useDocumentsData } from "packages/features/documents";
 import {
   completedSigningAgendaTodosForViewer,
   pendingSigningAgendaTodosAsClient,
-} from "packages/hooks/data/agenda/signingAgendaFromDocuments";
+} from "packages/features/documents/hooks/data/agenda/signingAgendaFromDocuments";
 import { log } from "packages/logger";
 
 import { mapTodosToAgendaDTO } from "@/features/agent/utils/mapTodosToAgendaDTO";
@@ -20,7 +20,7 @@ export function useClientHubAgendaTodos(clientId: string): {
   agendaTodos: AgendaTodoDTO[];
   onToggleAgendaTodo: (id: string) => Promise<void>;
 } {
-  const { todos, updateTodo } = useAgentTodos(false);
+  const { todos, updateTodo } = useAgentTodos(true);
   const { documents } = useDocumentsData(clientId);
 
   const clientTodos = useMemo(

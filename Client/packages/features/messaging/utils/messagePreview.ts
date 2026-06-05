@@ -1,1 +1,1 @@
-export * from "packages/utils/messaging/messagePreview";
+export * from "packages/utils/comms/messaging/messagePreview";

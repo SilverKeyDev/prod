@@ -13,9 +13,9 @@ import { checklistCheckboxRowClassNames } from "packages/features/checklists/uti
 import { CHECKLIST_ROW_INTERACTIVE_SELECTOR } from "packages/features/checklists/utils/presentation/checklistRowInteractiveSelector";
 import type { ChecklistItemToggleEligibility } from "packages/features/checklists/utils/rules/checklistRules";
 import { ChecklistCheckbox } from "packages/ui";
-import { ConfirmationDialog } from "packages/ui/components/modals";
-import { Box, TouchableBox } from "packages/ui/components/primitives";
-import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/primitives/divider/dividerStyles";
+import { Box, TouchableBox } from "packages/ui/components/structure/primitives";
+import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/structure/primitives/divider/dividerStyles";
+import { ConfirmationDialog } from "packages/ui/components/surfaces/modals";
 
 import { IconButton } from "@/components/ui";
 

@@ -6,17 +6,17 @@ import { PropertySectionRatingBadge } from "packages/features/propertyDetails/co
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
-import { usePropertyCommuteLocationMap } from "packages/hooks/data/property/usePropertyCommuteLocationMap";
-import { usePropertyCommuteMapUnavailableLog } from "packages/hooks/data/property/usePropertyCommuteMapUnavailableLog";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { usePropertyCommuteLocationMap } from "packages/features/search/hooks/data/map/commute/usePropertyCommuteLocationMap";
+import { usePropertyCommuteMapUnavailableLog } from "packages/features/search/hooks/data/map/commute/usePropertyCommuteMapUnavailableLog";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Card from "packages/ui/components/surfaces/cards/Card";
 import {
   stripSectionRatingField,
   unwrapPropertyAnalysisSection,
-} from "packages/utils/propertyDetails";
-import { commuteDestinationsForMap } from "packages/utils/propertyDetails/location/commuteMapDestinations";
-import { getListingCoords } from "packages/utils/propertyDetails/location/listingCoords";
+} from "packages/utils/transaction/propertyDetails";
+import { commuteDestinationsForMap } from "packages/utils/transaction/propertyDetails/location/commuteMapDestinations";
+import { getListingCoords } from "packages/utils/transaction/propertyDetails/location/listingCoords";
 
 import { CommuteAnalysisContent } from "./propertyCommuteRender";
 

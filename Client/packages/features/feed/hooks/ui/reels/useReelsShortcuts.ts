@@ -4,7 +4,7 @@ import type { MutableRefObject } from "react";
 
 import { useSearchViewStore } from "packages/store";
 import { useFeedStore } from "packages/store";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import type { FeedScrollController } from "@/features/feed/types/feed";
 

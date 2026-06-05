@@ -10,29 +10,37 @@ describe("getOnboardingSteps", () => {
     expect(ids[0]).toBe("onboarding_role");
     expect(ids).toContain("housing_essentials");
     expect(ids).toContain("location");
-    expect(ids).not.toContain("seller_shell");
+    expect(ids).not.toContain("seller_shell_setup");
   });
 
-  it("seller flow is role picker only", () => {
+  it("seller flow includes shell setup step", () => {
     const ids = getOnboardingSteps({
       excludeFinancial: true,
       isAgent: false,
       primaryRole: "seller",
     }).map((s) => s.id);
-    expect(ids).toEqual(["onboarding_role"]);
+    expect(ids).toEqual(["onboarding_role", "seller_shell_setup"]);
+  });
+
+  it("brokerage flow includes shell setup step", () => {
+    const ids = getOnboardingSteps({
+      excludeFinancial: true,
+      primaryRole: "brokerage",
+    }).map((s) => s.id);
+    expect(ids).toEqual(["onboarding_role", "brokerage_shell_setup"]);
+  });
+
+  it("integration partner flow includes shell setup step", () => {
+    const ids = getOnboardingSteps({
+      excludeFinancial: true,
+      primaryRole: "integration_partner",
+    }).map((s) => s.id);
+    expect(ids).toEqual(["onboarding_role", "integration_partner_shell_setup"]);
   });
 
   it("agent flow includes agent professional steps", () => {
     const ids = getOnboardingSteps({ excludeFinancial: true, isAgent: true }).map((s) => s.id);
     expect(ids).toContain("agent_brokerage");
     expect(ids).not.toContain("housing_essentials");
-  });
-
-  it("integration_partner is role-picker only when draft role is set", () => {
-    const ids = getOnboardingSteps({
-      excludeFinancial: true,
-      primaryRole: "integration_partner",
-    }).map((s) => s.id);
-    expect(ids).toEqual(["onboarding_role"]);
   });
 });

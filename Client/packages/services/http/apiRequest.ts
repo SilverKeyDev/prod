@@ -9,7 +9,7 @@ import type {
   FetchJsonOpts,
   RetryOpts,
 } from "packages/types/domain/api";
-import { getFetch } from "packages/utils/platform";
+import { getFetch } from "packages/utils/core/platform";
 
 import { AuthenticationError } from "./client/errors";
 import {

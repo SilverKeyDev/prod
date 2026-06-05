@@ -1,4 +1,4 @@
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 export function redirectToLoginIfNeeded(): void {
   const win = getWindow();

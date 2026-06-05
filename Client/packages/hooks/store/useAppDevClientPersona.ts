@@ -1,5 +1,5 @@
 import { useAuthStore } from "packages/store";
-import { deriveDevAppPersonaFromProfile } from "packages/utils/admin/deriveDevAppPersonaFromProfile";
+import { deriveDevAppPersonaFromProfile } from "packages/utils/growth/admin/deriveDevAppPersonaFromProfile";
 
 /**
  * When the account is not an agent (`roles` lacks `"agent"`), exposes buyer vs seller intent from

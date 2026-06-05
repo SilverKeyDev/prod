@@ -10,9 +10,9 @@ import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import { color } from "packages/design-tokens";
 import { log } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
-import { Text } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows/shadows.native";
-import { normalizeError } from "packages/utils/errorHandling";
+import { normalizeError } from "packages/utils/core/errorHandling";
 
 type Props = {
   children: ReactNode;

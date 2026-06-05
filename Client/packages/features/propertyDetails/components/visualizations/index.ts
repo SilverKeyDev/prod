@@ -1,16 +1,8 @@
 export type { DetailFactTileProps } from "./DetailFactTile";
 export { DetailFactTile } from "./DetailFactTile";
-export type { DonutChartProps } from "./DonutChart";
-export { DonutChart } from "./DonutChart";
-export type { LabeledBarRowProps } from "./LabeledBarRow";
-export { LabeledBarRow } from "./LabeledBarRow";
-export type { LollipopChartProps } from "./LollipopChart";
-export { LollipopChart } from "./LollipopChart";
 export type { PropertySectionHeaderProps } from "./PropertySectionHeader";
 export { PropertySectionHeader } from "./PropertySectionHeader";
 export type { ScoreBarProps } from "./ScoreBar";
 export { ScoreBar } from "./ScoreBar";
 export type { StatChipProps } from "./StatChip";
 export { StatChip } from "./StatChip";
-export type { VerticalBarChartProps } from "./VerticalBarChart";
-export { VerticalBarChart } from "./VerticalBarChart";

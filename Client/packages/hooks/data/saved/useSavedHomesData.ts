@@ -10,9 +10,9 @@ import {
 } from "packages/features/saved/types/savedHomeUtils";
 import { useAuthStore } from "packages/store";
 import type { SavedHome } from "packages/types";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 // Direct type/util imports to avoid require cycle: saved barrel -> SavedFeature -> ... -> contexts
-import { mapSavedHomeWireToSavedHome } from "packages/utils/saved";
+import { mapSavedHomeWireToSavedHome } from "packages/utils/transaction/saved";
 
 import { fetchFavoriteHomesData } from "./favoriteHomesQuery";
 

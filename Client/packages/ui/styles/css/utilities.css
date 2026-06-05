@@ -810,7 +810,7 @@
 
   /**
    * Portaled modal/backdrop roots: span the viewport minus the dashboard sidebar when
-   * `packages/utils/layout/dashboardModalInset` documents the active inset on :root.
+   * `packages/utils/core/layout/dashboardModalInset` documents the active inset on :root.
    */
   .fixed-modal-dashboard-main {
     position: fixed;

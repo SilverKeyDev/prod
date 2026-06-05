@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { authUtils, PERMISSIONS, UserRole } from "packages/config/auth/auth";
 import { useUserData } from "packages/hooks/data/user/useUserData";
 import { log } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";

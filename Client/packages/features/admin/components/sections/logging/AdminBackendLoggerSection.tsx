@@ -7,7 +7,7 @@ import {
   LOGGER_CONFIG_KEY_TO_LOG_PATH,
 } from "packages/logger/config/adminLoggerUiMeta.generated";
 import type { components } from "packages/types/api.generated";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { AccessibleCheckboxInput, BodyText, Dropdown, Label, Title } from "@/components/ui";

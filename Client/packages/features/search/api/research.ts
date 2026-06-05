@@ -2,7 +2,7 @@ import { getEnv } from "packages/config/env";
 import { log } from "packages/logger";
 import { apiGet, apiPost } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
-import { getFetch } from "packages/utils/platform";
+import { getFetch } from "packages/utils/core/platform";
 
 // Re-export types from generated schema
 export type PropertyResearchOptions = components["schemas"]["PropertyResearchOptions"];

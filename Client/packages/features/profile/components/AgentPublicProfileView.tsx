@@ -7,12 +7,12 @@ import {
   SECTION_TITLES,
 } from "packages/features/profile/utils";
 import type { components } from "packages/types/api.generated";
-import { ExternalAnchor } from "packages/ui/components/accessibility";
-import { ProfileAvatar } from "packages/ui/components/avatar";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Subtitle from "packages/ui/components/text/Subtitle";
-import Title from "packages/ui/components/text/Title";
+import { ProfileAvatar } from "packages/ui/components/media/avatar";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Subtitle from "packages/ui/components/structure/text/Subtitle";
+import Title from "packages/ui/components/structure/text/Title";
+import { ExternalAnchor } from "packages/ui/components/system/accessibility";
 
 export type AgentPublicProfileViewProps = {
   agent: components["schemas"]["PublicAgentProfile"];

@@ -9,8 +9,9 @@ const { removeItemMock, patchClientSettingsMock } = vi.hoisted(() => ({
   patchClientSettingsMock: vi.fn().mockResolvedValue({ success: true }),
 }));
 
-vi.mock("packages/utils/storage/platformStorage", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("packages/utils/storage/platformStorage")>();
+vi.mock("packages/utils/core/storage/platformStorage", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("packages/utils/core/storage/platformStorage")>();
   return {
     ...actual,
     getLocalStorage: () => ({
@@ -35,6 +36,22 @@ describe("postOnboardingPathForForm", () => {
       postOnboardingPathForForm({
         primary_onboarding_role: "seller",
         why_joining_silverkey: ["buying_house", "selling_house"],
+      })
+    ).toBe("/dashboard");
+  });
+
+  it("routes brokerage to dashboard", () => {
+    expect(
+      postOnboardingPathForForm({
+        primary_onboarding_role: "brokerage",
+      })
+    ).toBe("/dashboard");
+  });
+
+  it("routes integration partner to dashboard", () => {
+    expect(
+      postOnboardingPathForForm({
+        primary_onboarding_role: "integration_partner",
       })
     ).toBe("/dashboard");
   });

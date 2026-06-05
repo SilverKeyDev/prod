@@ -2,7 +2,7 @@ import {
   ADMIN_LOGGER_UI_GROUPS,
   LOGGER_CONFIG_KEY_TO_LOG_PATH,
 } from "packages/logger/config/adminLoggerUiMeta.generated";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { AccessibleCheckboxInput, BodyText, Label, Title } from "@/components/ui";
 

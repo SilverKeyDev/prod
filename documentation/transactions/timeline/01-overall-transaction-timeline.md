@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
+
 ## Overall transaction timeline
 
 Residential purchase phases map to **checklist categories**, not a computed milestone timeline. Buyers progress through search → offer → escrow → financing → closing → insurance/due diligence tabs.

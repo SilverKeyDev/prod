@@ -5,10 +5,10 @@ import Button from "@ui/button/Button";
 import { useLocalization } from "packages/contexts";
 import { type ChecklistForm, FormsBrowser, useDocuments } from "packages/features/documents";
 import { useAuthStore, useUIStore } from "packages/store";
-import { BaseModal } from "packages/ui/components/modals";
-import { Box, Text } from "packages/ui/components/primitives";
-import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
-import { Platform } from "packages/utils/platform";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTabs";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
+import { Platform } from "packages/utils/core/platform";
 
 type DocumentUploadModalProps = {
   isOpen: boolean;

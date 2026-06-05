@@ -96,11 +96,11 @@ class TestScoreAndSortPropertiesUniformity:
         rounded = {round(float(p.get("_score", 0)), 1) for p in out}
         assert len(rounded) >= 2, f"expected score spread, got {sorted(rounded)}"
 
-    def test_legacy_preferred_bedrooms_activates_preference_fit(self, flask_ctx) -> None:
+    def test_preferred_bedrooms_min_max_activates_preference_fit(self, flask_ctx) -> None:
         prefs = {
             "home_budget_max": 500_000,
-            "preferred_bedrooms": 3,
-            "preferred_bathrooms": 2,
+            "preferred_bedrooms_min": 3,
+            "preferred_bathrooms_min": 2,
         }
         good = {
             "zpid": "good",

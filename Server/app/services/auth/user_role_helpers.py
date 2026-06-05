@@ -31,6 +31,22 @@ def user_is_buyer(user) -> bool:
     return user_has_role(user, _BUYER_ROLE)
 
 
+_BROKERAGE_ADMIN_ROLES = frozenset({"brokerage_admin", "brokerage_administrator", "broker_admin"})
+_INTEGRATION_PARTNER_ROLES = frozenset(
+    {"integration_partner", "partner_integration", "integration_partner_admin"}
+)
+
+
+def user_has_brokerage_admin(user) -> bool:
+    names = user_role_names(user)
+    return any(role in _BROKERAGE_ADMIN_ROLES for role in names)
+
+
+def user_has_integration_partner(user) -> bool:
+    names = user_role_names(user)
+    return any(role in _INTEGRATION_PARTNER_ROLES for role in names)
+
+
 def ensure_user_role(user_id: str, role: str) -> None:
     uid = str(user_id).strip()
     if not uid or not role:

@@ -8,8 +8,8 @@ import { color } from "packages/design-tokens";
 import { docusignApi } from "packages/features/documents/api/docusign";
 import { log } from "packages/logger";
 import { useUIStore } from "packages/store";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
-import { Box } from "packages/ui/components/primitives";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 

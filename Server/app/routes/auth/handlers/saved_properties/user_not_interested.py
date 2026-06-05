@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from flask import Response, jsonify
 from sqlalchemy import select
 
 from app import db
-from app.dtos.saved_home import NotInterestedHomeDTO
+from app.dtos.property import NotInterestedHomeDTO
 from app.models import HomeNotInterested, PropertyCache, UserPropertyLink
 from app.schemas import (
     AddNotInterestedRequest,
@@ -17,6 +16,7 @@ from app.schemas import (
     RemoveNotInterestedRequest,
     UpdateNotInterestedRequest,
 )
+from app.services.auth.saved_homes import clear_not_interested_flag, update_not_interested_reason
 from app.services.search.db import add_or_update_home_basic, sync_to_home_not_interested
 from app.utils.common_patterns import (
     not_found,
@@ -140,8 +140,7 @@ def remove_not_interested_home(
                 )
             )
 
-        existing_home.is_not_interested = False
-        db.session.commit()
+        clear_not_interested_flag(existing_home)
 
         if link and prop:
             sync_to_home_not_interested(link, prop, action="undo")
@@ -190,24 +189,7 @@ def update_not_interested_home(
                 break
         if not existing_home:
             return not_found("Home not found in not-interested list")
-        existing_home.why = why
-        if existing_home.not_interested_history is None:
-            existing_home.not_interested_history = []
-        updated = False
-        for entry in reversed(existing_home.not_interested_history):
-            if entry.get("action") == "not_interested":
-                entry["why"] = why
-                updated = True
-                break
-        if not updated:
-            existing_home.not_interested_history.append(
-                {
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "action": "not_interested",
-                    "why": why,
-                }
-            )
-        db.session.commit()
+        update_not_interested_reason(existing_home, why)
         homes = _active_not_interested_homes(str(user.id))
         return jsonify(
             {

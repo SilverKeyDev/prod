@@ -1,4 +1,4 @@
-import { resolveUserFacingMessage } from "packages/utils/errorHandling";
+import { resolveUserFacingMessage } from "packages/utils/core/errorHandling";
 
 /**
  * User-facing message from a failed connection-request API call (4xx/5xx JSON body or Error).

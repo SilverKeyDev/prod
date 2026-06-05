@@ -1,7 +1,7 @@
 import { useLocalization } from "packages/contexts";
 import { PartnerIntegrationExperience } from "packages/features/partners/components/PartnerIntegrationExperience";
 import type { PartnerPlacementPresentationRow } from "packages/features/partners/hooks/usePartnerPlacementPresentation";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { twMergeClasses } from "packages/ui/utils/twMergeClasses";
 
 type PartnerPlacementListProps = {

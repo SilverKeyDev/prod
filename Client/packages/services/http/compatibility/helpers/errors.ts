@@ -4,7 +4,7 @@
 
 import { log } from "packages/logger";
 import { AuthenticationError } from "packages/services/http/client";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 export function isAuthenticationError(error: unknown): boolean {
   return error instanceof AuthenticationError;

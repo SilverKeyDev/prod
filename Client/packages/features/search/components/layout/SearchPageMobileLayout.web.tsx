@@ -5,7 +5,7 @@ import { Tabs } from "packages/features/search/components/list/Tabs.web";
 import type { SearchResult } from "packages/features/search/types";
 import type { SavedHome } from "packages/features/search/types/domain/property";
 import { IconButton } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { SearchPageMapContainer } from "./SearchPageMapContainer.web";
 

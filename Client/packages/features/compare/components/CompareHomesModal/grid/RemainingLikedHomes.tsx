@@ -4,8 +4,8 @@ import { useLocalization } from "packages/contexts";
 import CardCompareCheckbox from "packages/features/compare/components/CardCompareCheckbox";
 import type { SavedHome } from "packages/types";
 import { ConnectedCardHeartSave } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
+import { Box } from "packages/ui/components/structure/primitives";
+import { addressStreetLineForCard } from "packages/utils/core/format/property/addressFormatting";
 
 import { PropertyCard } from "@/components/cards";
 import { Title } from "@/components/ui";

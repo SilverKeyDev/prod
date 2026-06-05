@@ -12,11 +12,11 @@ import {
   isSupportedServiceAreaAddressComponents,
   isSupportedServiceAreaCoordinates,
   SUPPORTED_SERVICE_AREA_STATE_SHORT,
-} from "packages/utils/search/locations/serviceAreaAvailability";
+} from "packages/utils/product/search/locations/serviceAreaAvailability";
 import {
   type GooglePlaceAddressComponentLike,
   isGooglePlacePreciseStreetAddress,
-} from "packages/utils/search/places/isGooglePlacePreciseStreetAddress";
+} from "packages/utils/product/search/places/isGooglePlacePreciseStreetAddress";
 
 import type { SearchLocationBarMapDeps } from "./searchLocationBarMapDeps";
 import {

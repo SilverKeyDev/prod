@@ -75,7 +75,8 @@ yarn-debug.log*
 yarn-error.log*
 .cursor/debug-*.log
 .cursor/.agent-tools/
-.cursor/mcp.json
+# Local MCP profiles (copy from *mcp.example.json); never commit tokens
+**/mcp.json
 .mcp.json
 .claude-context/conversations.json
 

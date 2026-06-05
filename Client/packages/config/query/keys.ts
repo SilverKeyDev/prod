@@ -149,6 +149,17 @@ export const queryKeys = {
       [...queryKeys.agent.all, "todos", includeCompleted] as const,
   },
 
+  // Workspace conversations (brokerage, integrator, admin support)
+  workspaceConversations: {
+    all: ["workspaceConversations"] as const,
+    list: (personaId: string, kinds: readonly string[]) =>
+      [...queryKeys.workspaceConversations.all, "list", personaId, kinds.join(",")] as const,
+    history: (conversationId: string) =>
+      [...queryKeys.workspaceConversations.all, "history", conversationId] as const,
+    eligibleContacts: (kinds: readonly string[]) =>
+      [...queryKeys.workspaceConversations.all, "eligibleContacts", kinds.join(",")] as const,
+  },
+
   // Search domain
   search: {
     all: ["search"] as const,

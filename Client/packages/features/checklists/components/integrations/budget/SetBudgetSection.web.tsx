@@ -6,16 +6,20 @@ import { queryKeys } from "packages/config/query/keys";
 import { useLocalization } from "packages/contexts";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import { isSetBudgetStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
-import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/sections/financial/ProfileFinancialSection";
-import type { OnboardingData } from "packages/features/profile/utils";
+import {
+  type OnboardingData,
+  ProfileFinancialSection,
+  userPreferencesToOnboardingData,
+} from "packages/features/profile";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import { calculateAffordableHomePrice, type HomePriceResult } from "packages/utils/affordability";
-
-import { userPreferencesToOnboardingData } from "@/features/profile/utils";
+import { Box } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
+import {
+  calculateAffordableHomePrice,
+  type HomePriceResult,
+} from "packages/utils/transaction/affordability";
 
 type SetBudgetSectionProps = {
   onComplete?: () => void;

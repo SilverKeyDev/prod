@@ -2,7 +2,7 @@
  * Shared guards for config/http API wrappers used by React Query data routes.
  */
 
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type ApiResultBase = {
   success: boolean;

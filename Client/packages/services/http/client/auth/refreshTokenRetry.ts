@@ -2,7 +2,7 @@ import { getEnv } from "packages/config/env";
 import { log } from "packages/logger";
 import { normalizeUrl } from "packages/services/http/client/request/httpRequestHeaders";
 import { createHttpRequestId } from "packages/services/http/client/request/requestId";
-import { getFetch } from "packages/utils/platform";
+import { getFetch } from "packages/utils/core/platform";
 
 export type RefreshTokenAttemptResult = {
   ok: boolean;

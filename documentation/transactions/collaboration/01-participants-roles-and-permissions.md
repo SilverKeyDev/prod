@@ -1,5 +1,7 @@
 > **Status:** Planned | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [workspace.md](../../client/features/workspace.md).
+
 ## Participants, roles, and permissions
 
 Multi-party transaction workspaces (buyer, agent, TC, lender, escrow) with role templates and scoped permissions are **not implemented**. Today access is binary: buyer self-service or agent–client relationship.

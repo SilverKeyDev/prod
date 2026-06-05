@@ -38,6 +38,11 @@ function isLocationStepComplete(formData: OnboardingData): boolean {
   return locations.every((loc) => loc?.address?.trim() !== "");
 }
 
+function isShellSetupStepComplete(formData: OnboardingData): boolean {
+  const value = formData.workspace_shell_test_input;
+  return typeof value === "string" && value.trim() !== "";
+}
+
 const STEP_COMPLETION_HANDLERS: Partial<
   Record<ProfileStepId, (formData: OnboardingData) => boolean>
 > = {
@@ -50,6 +55,9 @@ const STEP_COMPLETION_HANDLERS: Partial<
   agent_brokerage: () => true,
   agent_licensing: () => true,
   agent_profile: () => true,
+  seller_shell_setup: isShellSetupStepComplete,
+  brokerage_shell_setup: isShellSetupStepComplete,
+  integration_partner_shell_setup: isShellSetupStepComplete,
 };
 
 export function getStepCompletionHandler(

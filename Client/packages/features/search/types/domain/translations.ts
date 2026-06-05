@@ -118,7 +118,7 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.agent_share_home_selected": "1 home selected to share",
   "search.agent_share_homes_selected": "{{count}} homes selected to share",
 
-  /** Product tour (driver.js): keyed copy for future locale bundles — see `packages/utils/tour/productTourSteps`. */
+  /** Product tour (driver.js): keyed copy for future locale bundles — see `packages/utils/transaction/tour/productTourSteps`. */
   "search.product_tour.desktop.preferences_title": "Preferences",
   "search.product_tour.desktop.preferences_description":
     "Open Preferences for budgets, beds and baths, commute and important locations, and the other fields that shape your matches. Changes save to your profile.",

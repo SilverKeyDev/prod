@@ -2,8 +2,8 @@ import { create } from "zustand";
 
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
-import { getWindow } from "packages/utils/platform";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
+import { getWindow } from "packages/utils/core/platform";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
 
 /** Custom event dispatched when mode changes - feed listens to mute all videos */
 export const SEARCH_VIEW_MODE_CHANGED_EVENT = "search-view-mode-changed";

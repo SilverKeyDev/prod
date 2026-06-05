@@ -4,7 +4,7 @@ import type { UserProfile } from "packages/features/homeauth/types/index";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 

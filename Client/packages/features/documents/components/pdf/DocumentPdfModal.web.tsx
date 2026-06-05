@@ -6,13 +6,13 @@ import { generateOptimizedPdfUrl } from "packages/features/documents/utils/pdf";
 import { formatFilenameToAddress } from "packages/features/search/types/search/formatters/address";
 import { useResponsive } from "packages/hooks/ui";
 import { log } from "packages/logger";
-import ModalPortal from "packages/ui/components/modals/ModalPortal";
-import type { PdfModalProps } from "packages/ui/components/modals/PdfModal/PdfModal.types";
-import { PdfModalContent } from "packages/ui/components/modals/PdfModal/PdfModalContent";
-import { PdfModalHeader } from "packages/ui/components/modals/PdfModal/PdfModalHeader";
-import { Box } from "packages/ui/components/primitives";
-import { dateNow } from "packages/utils/date";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import ModalPortal from "packages/ui/components/surfaces/modals/ModalPortal";
+import type { PdfModalProps } from "packages/ui/components/surfaces/modals/PdfModal/PdfModal.types";
+import { PdfModalContent } from "packages/ui/components/surfaces/modals/PdfModal/PdfModalContent";
+import { PdfModalHeader } from "packages/ui/components/surfaces/modals/PdfModal/PdfModalHeader";
+import { dateNow } from "packages/utils/core/date";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 /**
  * Web PDF modal: document hooks and URL optimization live here so `packages/ui`

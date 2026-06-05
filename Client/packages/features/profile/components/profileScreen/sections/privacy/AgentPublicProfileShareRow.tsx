@@ -5,12 +5,12 @@ import { Linking } from "react-native";
 import { useLocalization } from "packages/contexts";
 import { showErrorToast, showSuccessToast, useSecureClipboardCopy } from "packages/hooks/ui";
 import { Button } from "packages/ui";
-import { Box, Text } from "packages/ui/components/primitives";
-import Subtitle from "packages/ui/components/text/Subtitle";
-import Title from "packages/ui/components/text/Title";
-import { getAgentPublicProfileAbsoluteUrl } from "packages/utils/agent";
-import { getWindow } from "packages/utils/platform";
-import { tryWebShareUrl } from "packages/utils/share";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import Subtitle from "packages/ui/components/structure/text/Subtitle";
+import Title from "packages/ui/components/structure/text/Title";
+import { tryWebShareUrl } from "packages/utils/comms/share";
+import { getWindow } from "packages/utils/core/platform";
+import { getAgentPublicProfileAbsoluteUrl } from "packages/utils/growth/agent";
 
 export type AgentPublicProfileShareRowProps = {
   agentId: string;

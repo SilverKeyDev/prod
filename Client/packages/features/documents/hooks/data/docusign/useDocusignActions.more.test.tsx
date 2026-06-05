@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { docusignApi } from "packages/features/documents/api/docusign";
-import { dateNow } from "packages/utils/date";
-import { createFile, setPlatformGlobals } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { createFile, setPlatformGlobals } from "packages/utils/core/platform";
 
 import { useDocusignActions } from "./useDocusignActions";
 

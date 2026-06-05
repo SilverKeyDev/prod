@@ -3,7 +3,7 @@
  */
 
 import { log } from "packages/logger";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 import { NEGOTIATION_STORAGE_KEYS } from "./types";
 

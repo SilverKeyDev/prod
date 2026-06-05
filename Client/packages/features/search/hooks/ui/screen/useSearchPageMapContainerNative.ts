@@ -17,8 +17,8 @@ import { useFiltersStore } from "packages/store";
 import {
   getGoogleMapIdForNative,
   getUseGoogleMapsProvider,
-} from "packages/utils/maps/native/nativeGoogleMapsCloudConfig";
-import { parseIsochroneForNativeMap } from "packages/utils/maps/native/parseIsochroneForNativeMap";
+} from "packages/utils/product/maps/native/nativeGoogleMapsCloudConfig";
+import { parseIsochroneForNativeMap } from "packages/utils/product/maps/native/parseIsochroneForNativeMap";
 
 const SEARCH_NATIVE_GOOGLE_MAPS_FLAG = "search_native_google_maps";
 

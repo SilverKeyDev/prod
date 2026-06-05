@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AdminLoggingSections } from "./AdminLoggingSections";
 
-vi.mock("packages/hooks/data/admin/useAdminLoggerConfig", () => ({
+vi.mock("packages/features/admin/hooks/data/useAdminLoggerConfig", () => ({
   useAdminLoggerConfig: () => ({
     config: {
       client: {

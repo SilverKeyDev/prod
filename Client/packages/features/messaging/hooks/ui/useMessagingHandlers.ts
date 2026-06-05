@@ -4,7 +4,7 @@ import { log } from "packages/logger";
 import { useUIStore } from "packages/store";
 import type { components } from "packages/types/api.generated";
 import type { SavedHome } from "packages/types/domain/savedHome";
-import type { DocumentData } from "packages/ui/components/cards/document/types";
+import type { DocumentData } from "packages/ui/components/surfaces/cards/document/types";
 
 import { useEventRequests } from "@/features/agent/hooks/data/calendar/useEventRequests";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
@@ -140,9 +140,6 @@ export function useMessagingHandlers({
           attendees: [{ email: otherEmail }],
           calendarId: "primary",
         };
-        if (payload.itinerary) {
-          event.itinerary = payload.itinerary;
-        }
         await createEvent(event);
         if (mode === "client") {
           await refreshActiveConversationHistory();

@@ -7,7 +7,7 @@
  * Use getInputClasses() for composed input styling; use getSharedInputTextStyles for raw text styles.
  */
 
-import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
+import { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 export type InputVariant = "default" | "mobile" | "compact" | "search";
 export type InputSize = "sm" | "md" | "lg";
@@ -105,7 +105,7 @@ export const DISPLAY_BOX_CLASSES =
 export const DISPLAY_BOX_READONLY_CLASSES = `${DISPLAY_BOX_CLASSES} bg-primary-muted`;
 
 /** Re-export for consumers that need raw text styles */
-export { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
+export { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 /** Label wrapper classes (mb-2 for spacing; label content uses labelVariants) */
 export const INPUT_LABEL_WRAPPER_CLASSES = "mb-2";
@@ -200,7 +200,7 @@ export interface GetWebInputControlClassesOptions {
   className?: string;
 }
 
-/** Composed classes for `packages/ui/components/form/Input.web` (`<input>` / `customInput`). */
+/** Composed classes for `packages/ui/components/inputs/form/Input.web` (`<input>` / `customInput`). */
 export function getWebInputControlClasses(options: GetWebInputControlClassesOptions = {}): string {
   const {
     variant = "default",

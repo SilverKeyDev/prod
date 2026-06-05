@@ -2,7 +2,7 @@ import type {
   ApplyLoginResultOptions,
   LoginResult,
 } from "packages/features/homeauth/types/auth/login";
-import { getSessionStorage } from "packages/utils/storage";
+import { getSessionStorage } from "packages/utils/core/storage";
 
 export type {
   ApplyLoginResultOptions,

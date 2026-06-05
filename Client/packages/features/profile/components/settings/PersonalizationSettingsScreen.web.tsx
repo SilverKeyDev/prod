@@ -34,9 +34,9 @@ import { useResponsive } from "packages/hooks/ui";
 import { showErrorToast } from "packages/hooks/ui/toast";
 import { log } from "packages/logger";
 import { Loading } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import SettingsSidebar from "packages/ui/components/sidebar/SettingsSidebar";
-import { TwoColumnInsetPageLayout } from "packages/ui/components/sidebar/TwoColumnInsetPageLayout";
+import { Box } from "packages/ui/components/structure/primitives";
+import SettingsSidebar from "packages/ui/components/structure/sidebar/SettingsSidebar";
+import { TwoColumnInsetPageLayout } from "packages/ui/components/structure/sidebar/TwoColumnInsetPageLayout";
 
 export type PersonalizationSettingsScreenProps = {
   setMobileHeaderActions: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;

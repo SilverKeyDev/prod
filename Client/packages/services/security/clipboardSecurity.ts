@@ -3,7 +3,7 @@
  */
 
 import { log } from "packages/logger";
-import { getDocument, getNavigator, getWindow } from "packages/utils/platform";
+import { getDocument, getNavigator, getWindow } from "packages/utils/core/platform";
 
 /**
  * Securely copy text to clipboard with fallback

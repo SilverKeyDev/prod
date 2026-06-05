@@ -4,9 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { log } from "packages/logger";
 import { ROUTES, useNavigation } from "packages/navigation";
+import { prefetchAllInitialData } from "packages/services/data/prefetchInitialData";
 import { useAuthStore } from "packages/store";
-
-import { prefetchAllInitialData } from "./usePrefetchHelpers";
 
 /**
  * Hook that prefetches all initial data on login

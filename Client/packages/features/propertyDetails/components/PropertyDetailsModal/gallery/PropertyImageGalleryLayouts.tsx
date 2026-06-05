@@ -3,8 +3,8 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import type { LocalizationContextType } from "packages/contexts/LocalizationContext";
-import { StyledImage } from "packages/ui/components/cards/base";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { StyledImage } from "packages/ui/components/surfaces/cards/base";
 
 import {
   FIRST_PAGE_IMAGE_COUNT,

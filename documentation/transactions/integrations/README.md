@@ -1,3 +1,7 @@
+> **Status:** partial
+> **Last verified:** 2026-06-04
+> **Shipped:** [docusign-integration.md](../../client/features/docusign-integration.md), [rev-share-partners.md](../../client/features/rev-share-partners.md).
+
 # Transaction integrations
 
 Calendar, documents, signing, notifications, and financial integrations.
@@ -11,4 +15,4 @@ Calendar, documents, signing, notifications, and financial integrations.
 | [10-compliance-data-and-apis.md](./10-compliance-data-and-apis.md) | Compliance data and APIs |
 | [12-financial-and-service-integrations.md](./12-financial-and-service-integrations.md) | Financial and service integrations |
 
-**Naming note:** Legacy specs may say "HomeConcierge"; the live partner is **Move Concierge**.
+**Partner steps:** `partner_placements` in templates → `PartnerTransactionIntegration` (see [rev-share-partners.md](../../client/features/rev-share-partners.md)).

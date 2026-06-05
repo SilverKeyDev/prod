@@ -7,10 +7,10 @@ import {
   useLayoutEffect,
 } from "react";
 
-import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
-import { localYOffsetToRoundedMinutesFromMidnight } from "packages/utils/calendar/grid/calendarQuickCreateSnap";
-import { dayjs } from "packages/utils/date";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/surfaces/modals/BaseModalTypes";
+import { localYOffsetToRoundedMinutesFromMidnight } from "packages/utils/comms/calendar/grid/calendarQuickCreateSnap";
+import { dayjs } from "packages/utils/core/date";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import { CAL_TIME_GRID_HOURS } from "@/features/calendar/components/timeGrid/calendarTimeGridConstants";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

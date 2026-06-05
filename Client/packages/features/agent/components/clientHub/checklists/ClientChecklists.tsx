@@ -17,9 +17,9 @@ import { useActiveWorkspace } from "packages/features/homeauth";
 import { useTransactionShellConfig } from "packages/hooks/store";
 import { showErrorToast } from "packages/hooks/ui";
 import { log } from "packages/logger";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import type { TransactionShellConfig } from "packages/utils/workspace";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import type { TransactionShellConfig } from "packages/utils/product/workspace";
 
 const TAB_TO_CHECKLIST_TYPE = CHECKLIST_TAB_TO_TYPE;
 

@@ -26,13 +26,9 @@ def _has_float_pref(preferences: dict[str, Any], key: str) -> bool:
 
 def normalize_preferences_for_mcda(preferences: dict[str, Any] | None) -> dict[str, Any]:
     """
-    Align aggregated profile keys with MCDA dimension detectors (e.g. preferred_bedrooms → _min).
+    Align aggregated profile keys with MCDA dimension detectors (housing_type alias only).
     """
     out = dict(preferences or {})
-    if out.get("preferred_bedrooms_min") is None and out.get("preferred_bedrooms") is not None:
-        out["preferred_bedrooms_min"] = out["preferred_bedrooms"]
-    if out.get("preferred_bathrooms_min") is None and out.get("preferred_bathrooms") is not None:
-        out["preferred_bathrooms_min"] = out["preferred_bathrooms"]
     if not out.get("preferred_housing_type") and out.get("housing_type"):
         ht = out.get("housing_type")
         if isinstance(ht, str) and ht.strip():

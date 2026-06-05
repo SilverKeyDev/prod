@@ -1,7 +1,7 @@
 import React from "react";
 
-import { RippleBackground } from "packages/ui/components/backgrounds";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { RippleBackground } from "packages/ui/components/surfaces/backgrounds";
 
 import { BodyText, Title } from "@/components/ui";
 

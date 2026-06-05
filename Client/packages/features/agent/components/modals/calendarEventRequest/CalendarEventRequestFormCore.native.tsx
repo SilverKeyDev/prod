@@ -6,13 +6,12 @@ import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { CALENDAR_EVENT_KINDS, type CalendarEventKindId } from "packages/features/calendar";
 import { Button, Dropdown } from "packages/ui";
-import { Box, ScrollView, Text, TouchableBox } from "packages/ui/components/primitives";
+import { Box, ScrollView, Text, TouchableBox } from "packages/ui/components/structure/primitives";
 
 import {
   useCalendarEventRequestForm,
   type UseCalendarEventRequestFormParams,
 } from "@/features/agent/hooks/data/calendar/useCalendarEventRequestForm";
-import { ViewingRoutePlanEditor } from "@/features/calendar/components/viewings/ViewingRoutePlanEditor";
 
 import { EventRequestDateDropdown } from "./EventRequestDateDropdown.native";
 import { EventRequestTimeDropdown } from "./EventRequestTimeDropdown.native";
@@ -29,8 +28,7 @@ export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCore
     setSelectedClientId,
     eventKindId,
     onEventKindIdChange,
-    kindOptionSlice,
-    checklistProgressLoading,
+    allowedKindIds,
     eventTitle,
     setEventTitle,
     eventDescription,
@@ -45,16 +43,6 @@ export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCore
     canSend,
     minDate,
     handleSend,
-    isPropertyViewing,
-    viewingStops,
-    setViewingStops,
-    viewingStartSelection,
-    setViewingStartSelection,
-    viewingEndMode,
-    setViewingEndMode,
-    viewingEndFixed,
-    setViewingEndFixed,
-    viewingTourAnchors,
     eventRequestDateOptions,
     eventRequestTimeOptions,
   } = useCalendarEventRequestForm(props);
@@ -62,7 +50,7 @@ export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCore
   const { onClose } = props;
   const showCustomTitle = eventKindId === "other";
 
-  const kindDropdownOptions = kindOptionSlice.allowedKindIds.map((id) => ({
+  const kindDropdownOptions = allowedKindIds.map((id) => ({
     value: id,
     label: CALENDAR_EVENT_KINDS[id].label,
     icon: (
@@ -133,7 +121,6 @@ export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCore
         options={kindDropdownOptions}
         value={eventKindId}
         onChange={onEventKindIdChange}
-        disabled={checklistProgressLoading}
         variant="mobile"
       />
 
@@ -168,34 +155,14 @@ export function CalendarEventRequestFormCore(props: CalendarEventRequestFormCore
         </Box>
       </Box>
 
-      {isPropertyViewing ? (
-        <ViewingRoutePlanEditor
-          viewingStops={viewingStops}
-          onViewingStopsChange={setViewingStops}
-          startSelection={viewingStartSelection}
-          onStartSelectionChange={setViewingStartSelection}
-          endMode={viewingEndMode}
-          onEndModeChange={setViewingEndMode}
-          endFixed={viewingEndFixed}
-          onEndFixedChange={setViewingEndFixed}
-          savedAnchors={viewingTourAnchors}
-          scriptsReady={false}
-          loadError={null}
-        />
-      ) : (
-        <>
-          <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">
-            Location (optional)
-          </Text>
-          <TextInput
-            value={eventLocation}
-            onChangeText={setEventLocation}
-            placeholder="e.g., 123 Main St or Zoom link"
-            placeholderTextColor={color("neutral.400")}
-            style={styles.input}
-          />
-        </>
-      )}
+      <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">Location (optional)</Text>
+      <TextInput
+        value={eventLocation}
+        onChangeText={setEventLocation}
+        placeholder="e.g., 123 Main St or Zoom link"
+        placeholderTextColor={color("neutral.400")}
+        style={styles.input}
+      />
 
       <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">
         Description (optional)

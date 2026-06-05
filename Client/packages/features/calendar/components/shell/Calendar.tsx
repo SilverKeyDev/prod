@@ -5,8 +5,8 @@ import { ClientCalendarAccessPrompt } from "packages/features/calendar/component
 import { CreateEventModal } from "packages/features/calendar/components/view/eventModal/CreateEventModal";
 import { CalendarToolbar } from "packages/features/calendar/components/view/toolbar/CalendarToolbar";
 import { QuickEventPopover } from "packages/features/calendar/components/view/toolbar/QuickEventPopover";
-import Card from "packages/ui/components/cards/Card";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import { useCalendarScreen } from "@/features/calendar/hooks/data/core/useCalendarScreen";

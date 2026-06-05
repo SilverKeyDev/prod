@@ -12,7 +12,7 @@ import {
 } from "packages/features/search/types/domain/searchDisplay";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { useAuthStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Dropdown, OliveCheckbox, Subtitle } from "@/components/ui";
 

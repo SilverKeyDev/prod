@@ -5,8 +5,8 @@ import { Icon } from "@ui/icons";
 import type { AgentClient } from "packages/api";
 import { useLocalization } from "packages/contexts";
 import { ClientSearchModal } from "packages/features/agent/components/modals";
-import Card from "packages/ui/components/layout/Card.web";
-import { Box, ScrollView } from "packages/ui/components/primitives";
+import Card from "packages/ui/components/structure/layout/Card.web";
+import { Box, ScrollView } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 import { useAgentClients } from "@/features/agent/hooks/data/clients/useAgentClients";

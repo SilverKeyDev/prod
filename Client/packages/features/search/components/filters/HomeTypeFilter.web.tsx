@@ -1,15 +1,15 @@
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
-
-import Label from "@/features/profile/components/settings/inputs/Label";
-import OptionTagInput from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
 import {
   FIELD_LABELS,
   HOUSING_TYPE_OPTIONS,
   parseHousingTypes,
   serializeHousingTypes,
-} from "@/features/profile/utils";
+} from "packages/features/profile";
+import { Box } from "packages/ui/components/structure/primitives";
+
+import Label from "@/features/profile/components/settings/inputs/Label";
+import OptionTagInput from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
 
 export type HomeTypeFilterProps = {
   value: string;

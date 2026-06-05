@@ -4,8 +4,8 @@ import type { AgentConversation } from "packages/config/http/api";
 import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { log } from "packages/logger";
-import { dateParseISO } from "packages/utils/date";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { dateParseISO } from "packages/utils/core/date";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type NotificationStoreRef = {
   current: {

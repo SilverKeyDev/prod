@@ -5,10 +5,10 @@ import { Icon } from "@ui/icons";
 import { color } from "packages/design-tokens";
 import { useAuthStoreIntegration } from "packages/features/homeauth/hooks/store/useAuthStoreIntegration";
 import { useLogoutConfirm } from "packages/features/homeauth/hooks/ui/useLogoutConfirm";
-import { ConfirmationDialog } from "packages/ui/components/modals";
-import { Box, TouchableBox } from "packages/ui/components/primitives";
-import { getChromeNavButtonStyles } from "packages/ui/components/sidebar/sidebarTheme";
-import { isWeb } from "packages/utils/platform";
+import { Box, TouchableBox } from "packages/ui/components/structure/primitives";
+import { getChromeNavButtonStyles } from "packages/ui/components/structure/sidebar/sidebarTheme";
+import { ConfirmationDialog } from "packages/ui/components/surfaces/modals";
+import { isWeb } from "packages/utils/core/platform";
 
 import { BodyText, Button } from "@/components/ui";
 

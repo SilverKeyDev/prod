@@ -4,8 +4,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import type { OnboardingData } from "packages/features/profile/utils";
-import { calculateAffordableHomePrice, type HomePriceResult } from "packages/utils/affordability";
+import type { OnboardingData } from "packages/features/profile";
+import {
+  calculateAffordableHomePrice,
+  type HomePriceResult,
+} from "packages/utils/transaction/affordability";
 
 type OnboardingStep = { id: string };
 

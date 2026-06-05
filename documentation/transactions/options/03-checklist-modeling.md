@@ -1,5 +1,5 @@
 > **Status:** Shipped (templates + per-user progress); transaction-scoped `ChecklistItemState` not added.  
-> **Last verified:** 2026-05-28
+> **Last verified:** 2026-06-04
 
 ## Problem
 
@@ -19,17 +19,19 @@ Keep rich template copy in one place, track per-deal progress/assignments/review
 | Area | What exists | Pointers |
 | ---- | ----------- | -------- |
 | Templates | Category item arrays (escrow, financing, closing, insurance). | `Server/app/services/transactions/escrow/items.py`, `financing/items.py`, `closing/items.py`, `insurance/items.py` |
-| Read/write API | Legacy `GET/PUT /api/v1/tasks`; transaction-scoped `GET/PUT /api/v1/transactions/<buyer_user_id>/tasks`. | `Server/app/routes/tasks.py`, `Server/app/routes/transactions.py` |
-| Progress | `TransactionTask`: `user_id`, `category`, `status`, `task_metadata` (includes `templateId`). | `Server/app/models/transactions/transaction_task.py` |
+| Read/write API | `GET/PUT /api/v1/transactions/<transactions.id>/tasks` (+ progress summary). | `Server/app/routes/transactions/__init__.py` |
+| Progress | `TransactionTask`: `transaction_id`, `category`, `status`, `task_metadata` (includes `templateId`). | `Server/app/models/transactions/transaction_task.py` |
 | Client | `useChecklistData`, rules merge, integration submit completion. | `Client/packages/features/checklists/hooks/data/useChecklistData.ts`, `utils/rules/checklistRules.ts`, `utils/integration/checklistIntegrationComplete.ts` |
 | Forms on steps | Per-step forms list/send/download. | `Server/app/routes/checklist_forms.py`, `Client/packages/features/documents/api/checklistForms.ts` |
-| Partner steps | Rev-share placements on integration keys (e.g. `home_concierge` → Move Concierge UI). | `Server/app/services/rev_share/`, `Client/packages/features/partners/components/PartnerTransactionIntegration.tsx` |
+| Partner steps | Rev-share placements on `partner_placements` integration key (e.g. `closing:13`). | `Server/app/services/rev_share/`, `Client/packages/features/partners/components/PartnerTransactionIntegration.tsx` |
 
 ## Gaps vs target model
 
-- No `ChecklistItemState` keyed by `(transaction_id, category, template_id)` — progress is still **buyer user id**, not `transactions.id`.
+- No `ChecklistItemState` overlay keyed by `(transaction_id, category, template_id)` — progress uses `TransactionTask.transaction_id` today.
 - `ChecklistItemState` name in older docs = planned; do not assume the table exists.
 
 ## DocuSign note
+
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
 
 SilverKey agreements are **DocuSign + S3**, not a generic brokerage-form mirror. See `documentation/transactions/integrations/09-documents-docusign-and-s3.md`.

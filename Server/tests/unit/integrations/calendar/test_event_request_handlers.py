@@ -7,14 +7,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from app.services.agent.event_request_handlers import (
+from app.services.agent.conversation.event_requests import (
     EVENT_REQUEST_PREFIX,
     update_event_request_status,
 )
 
-_SCALAR = "app.services.agent.event_request_handlers.db.session.scalar"
-_COMMIT = "app.services.agent.event_request_handlers.db.session.commit"
-_ROLLBACK = "app.services.agent.event_request_handlers.db.session.rollback"
+_SCALAR = "app.services.agent.conversation.event_requests.db.session.scalar"
+_COMMIT = "app.services.agent.conversation.event_requests.db.session.commit"
+_ROLLBACK = "app.services.agent.conversation.event_requests.db.session.rollback"
 
 
 @pytest.fixture(autouse=True)
@@ -154,7 +154,7 @@ class TestUpdateEventRequestStatus:
         assert result["success"] is True
         assert mock_message.event_request_status == "accepted"
 
-    @patch("app.services.agent.event_request_handlers.log")
+    @patch("app.services.agent.conversation.event_requests.log")
     @patch(_ROLLBACK)
     @patch(_COMMIT)
     @patch(_SCALAR)

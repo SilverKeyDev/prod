@@ -4,7 +4,7 @@
 import { getEnv } from "packages/config/env";
 import { log } from "packages/logger";
 import type { PropertySearchResult, SearchByPolygonResponse } from "packages/types/domain/api";
-import { formatPropertySearchListingPrice } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
+import { formatPropertySearchListingPrice } from "packages/utils/product/search/pricing/formatPropertySearchListingPrice";
 
 import type { SearchResult } from "@/features/search/types";
 

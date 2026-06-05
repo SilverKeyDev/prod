@@ -68,11 +68,11 @@ run_server() {
 
   apply_server_fixes "$SERVER_PYTHON"
 
-  echo "==> Server: running discovered linters (scripts/lint/lint_*.py, then lint_*.sh)…"
+  echo "==> Server: running discovered linters (scripts/lint/**/lint_*.py, then lint_*.sh)…"
   (
     cd "$REPO_ROOT"
     shopt -s nullglob
-    for f in Server/scripts/lint/lint_*.py; do
+    for f in Server/scripts/lint/lint_*.py Server/scripts/lint/*/lint_*.py; do
       echo "  Running $f"
       "$SERVER_PYTHON" "$f" || exit 1
     done

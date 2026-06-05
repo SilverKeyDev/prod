@@ -1,7 +1,7 @@
 # Profile feature
 
 > **Status:** Shipped  
-> **Last verified:** 2026-05-28  
+> **Last verified:** 2026-06-04  
 > **Code:** `Client/packages/features/profile/`
 
 User profile, onboarding steps, search preferences, availability, financial sections, agent public profile.

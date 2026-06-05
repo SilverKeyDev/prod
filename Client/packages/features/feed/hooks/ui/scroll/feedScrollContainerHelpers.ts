@@ -4,8 +4,8 @@ import type { VirtuosoHandle } from "react-virtuoso";
 
 import { useSecureClipboardCopy } from "packages/hooks/ui/clipboard";
 import { ROUTES } from "packages/navigation";
-import { dateNow } from "packages/utils/date";
-import { getWindow } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { getWindow } from "packages/utils/core/platform";
 
 import type { FeedComment, FeedListing, FeedScrollController } from "@/features/feed/types/feed";
 import { schedulePreload } from "@/features/feed/utils";

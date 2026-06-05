@@ -1,6 +1,6 @@
 > **Status:** Partial  
 > **Last verified:** 2026-05-28  
-> **Code pointers:** `Server/app/services/transactions/calendar_from_checklist.py`, `Server/app/services/documents/forms_service.py`, `Server/app/services/transactions/retrieval.py`, `Client/packages/utils/calendar/createEvent/buyerChecklistMilestones.ts`, `Client/packages/features/calendar/`
+> **Code pointers:** `Server/app/services/transactions/calendar_from_checklist.py`, `Server/app/services/documents/forms_service.py`, `Server/app/services/transactions/retrieval.py`, `Client/packages/features/calendar/`
 
 ## Deadline and milestone engine
 
@@ -22,7 +22,7 @@ Events stored locally (`sync_source="checklist"`); Google Calendar sync is separ
 
 `get_series_metadata()` returns null `deadline`, `date_finished`, `state`, `county` for all categories — API shape exists; values not computed.
 
-Client calendar kind options reference stable checklist item ids (`buyerChecklistMilestones.ts`) for buyer-broker and purchase-agreement gates — not a full milestone list.
+Calendar create uses a fixed event-type list (no checklist-driven kind filtering).
 
 ### Planned: rules engine
 
@@ -45,6 +45,8 @@ Legacy `milestones` table was removed; no replacement table yet.
 Same transaction inputs + ruleset version → same computed dates unless manually overridden; overrides audited.
 
 ### Build path
+
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
 
 1. Codify jurisdiction rule sets (business days vs calendar days)
 2. Persist milestones + link to checklist items / calendar

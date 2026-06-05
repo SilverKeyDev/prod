@@ -3,7 +3,10 @@ import { useCallback, useState } from "react";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { log } from "packages/logger";
 import { useAgentDashboardStore } from "packages/store";
-import { type ResearchListingKeyInput, researchListingZpid } from "packages/utils/property";
+import {
+  type ResearchListingKeyInput,
+  researchListingZpid,
+} from "packages/utils/transaction/property";
 
 import type { PropertyRequest } from "@/features/search/api/research";
 import { researchApi } from "@/features/search/api/research";
@@ -12,7 +15,7 @@ import { applyStreamUpdate, parseStreamError } from "./propertyDetailsStreamHelp
 import type { Property } from "./propertyDetailsTypes";
 
 export type { Property } from "./propertyDetailsTypes";
-export { researchListingZpid } from "packages/utils/property";
+export { researchListingZpid } from "packages/utils/transaction/property";
 
 export type UsePropertyDetailsReturn = {
   /** Whether property details are currently being fetched */

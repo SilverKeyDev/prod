@@ -1,7 +1,7 @@
 import type { GoogleEvent } from "packages/api";
 import { googleCalendarApi } from "packages/features/calendar/api";
 import { log } from "packages/logger";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 /**
  * Build the queryFn for a single calendar's events list.

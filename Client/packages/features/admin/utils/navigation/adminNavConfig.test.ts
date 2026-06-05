@@ -17,9 +17,13 @@ describe("adminNavConfig", () => {
     expect(ADMIN_ROUTE_SEGMENTS.superadmin).toBe("superadmin");
   });
 
-  it("superadminOnlyRouteSegments includes partners and superadmin", () => {
+  it("superadminOnlyRouteSegments includes partners, support messaging, and superadmin", () => {
     expect(superadminOnlyRouteSegments()).toEqual(
-      expect.arrayContaining([ADMIN_ROUTE_SEGMENTS.partners, ADMIN_ROUTE_SEGMENTS.superadmin])
+      expect.arrayContaining([
+        ADMIN_ROUTE_SEGMENTS.partners,
+        ADMIN_ROUTE_SEGMENTS.supportMessaging,
+        ADMIN_ROUTE_SEGMENTS.superadmin,
+      ])
     );
   });
 

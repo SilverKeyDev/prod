@@ -7,8 +7,8 @@ import {
   FIELD_LABELS,
   type OnboardingData,
 } from "packages/features/profile/utils";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 export function HousingNumberFields({
   formData,

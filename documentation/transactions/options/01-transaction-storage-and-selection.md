@@ -1,5 +1,5 @@
-> **Status:** Partial — buyer-scoped checklists shipped; multi-`Transaction` entity and active pointer not wired.  
-> **Last verified:** 2026-05-28
+> **Status:** Partial — Option B API contract locked 2026-06-04; multi-deal UI deferred.  
+> **Last verified:** 2026-06-04
 
 ## Problem
 
@@ -13,23 +13,38 @@ Represent multiple concurrent deals per user, resolve an **active transaction** 
 | Default model | **Option B** — many transactions per user; buyers get an `active_transaction_id`; agents pick per client context. |
 | Per-surface-only selection (**Option C**) | Rejected — too much friction. |
 
+## Contract locked (2026-06-04)
+
+| Rule | Detail |
+| ---- | ------ |
+| Spine id | Path param `transaction_id` and rev-share/agreement fields use **`transactions.id` (UUID)** — never the buyer `users.id`. |
+| Buyer entry (pilot) | `GET /api/v1/transactions/me` → active deal + optional address (`TransactionMeData`). |
+| Multi-deal backend | `POST /api/v1/transactions`, `GET /api/v1/transactions`, `PUT /api/v1/transactions/me/active`; migration `k6f7a8b9c0d1` drops one-row-per-buyer unique constraint. |
+| Pilot frontend | Single-deal path only: `useResolvedTransactionId` + `/transactions/me` — **no deal switcher UI**. |
+| Post-pilot UI | Deal switcher calls `PUT .../me/active`; agent per-client deal picker when a buyer has 2+ rows. |
+
 ## Code today
 
 | Area | What exists | Pointers |
 | ---- | ----------- | -------- |
-| Checklist scope | `transaction_id` in `/api/v1/transactions/<id>/tasks` is the **buyer user id** (self or agent’s managed client). | `Server/app/routes/transactions.py` (`_can_read_transaction_task_checklist`), `Client/packages/features/checklists/hooks/data/useChecklistData.ts` (`checklistSubjectUserId`) |
-| Progress storage | `TransactionTask` rows keyed by `user_id` + `category` (`user_tasks` table). | `Server/app/models/transactions/transaction_task.py`, `Server/app/services/transactions/unified_task_checklist_*.py` |
-| `Transaction` row | Minimal model (`buyer_id`, `primary_agent_id`, `skyslope_file_id`); used for agreement links, not checklist routing. | `Server/app/models/transactions/transaction.py`, `Server/app/routes/checklist_documents.py` |
-| Client surfaces | Close/roadmap checklists, agent hub prefetch. | `Client/packages/features/checklists/components/layout/CloseLayout.tsx`, `Client/packages/features/checklists/components/roadmap/`, `Client/packages/features/agent/hooks/data/clientHub/useClientHubChecklistPrefetch.ts` |
-| Workspace shells | Buyer/seller/brokerage placeholders. | `Client/packages/features/workspace/` |
+| Checklist scope | `GET/PUT /api/v1/transactions/<transactions.id>/tasks` | `Server/app/routes/transactions/__init__.py`, `unified_task_checklist_*.py`, `Client/packages/features/checklists/hooks/data/useChecklistData.ts` (`transactionId`) |
+| Progress storage | `TransactionTask.transaction_id` + `category` | `Server/app/models/transactions/transaction_task.py` |
+| Selection | Active pointer, create, list | `Server/app/services/transactions/selection.py`, `users.active_transaction_id` |
+| Address | Per `transactions.id` | `TransactionAddress`, `GET/POST /api/v1/transactions/address` (active deal) |
+| Agent clients | `transaction_id` on client list | `Server/app/services/agent/client_service.py` |
+| Dispatch settings | `transaction_id` on row; dual-read with legacy `client_user_id` | `checklist_item_dispatch_settings`, `dispatch_settings.py`, `checklist_dispatch_automation.py` |
+| Client surfaces | Close/roadmap, agent hub prefetch | `useResolvedTransactionId`, `useClientHubChecklistPrefetch` |
+| Workspace shells | Role switcher (buyer/seller/agent) — orthogonal to deal | `Client/packages/features/workspace/` |
 
-## Gaps (Option B not finished)
+## Gaps (post-contract)
 
-- No `active_transaction_id` on buyer profile; no transaction switcher.
+- No transaction switcher or `GET /transactions` list UI in pilot.
 - No `TransactionParticipant` or per-deal participant graph.
-- No `POST /api/v1/transactions` that creates a deal row and binds address + checklists to `transactions.id`.
+- Seller/brokerage deal surfaces must consume `transactionId` when they ship (do not key on buyer user id).
 
 ## Rejected options (summary)
+
+> **Shipped feature docs:** [workspace.md](../../client/features/workspace.md).
 
 - **Option A** — one active deal globally: fails multi-transaction product requirement.
 - **Option C** — pick transaction on every surface: rejected for UX and deep links.

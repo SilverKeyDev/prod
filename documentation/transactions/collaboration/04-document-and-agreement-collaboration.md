@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [docusign-integration.md](../../client/features/docusign-integration.md), [messaging.md](../../client/features/messaging.md).
+
 ## Document and agreement collaboration
 
 Documents and DocuSign agreements are shared between **buyer and agent** via the documents library, checklist forms, and messaging attachments—not a multi-party transaction document ACL.

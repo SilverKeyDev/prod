@@ -7,8 +7,8 @@ import { useEffect } from "react";
 import { getEnv } from "packages/config";
 import { log } from "packages/logger";
 import { asError } from "packages/utils";
-import { getDocument, getWindow } from "packages/utils/platform";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { getDocument, getWindow } from "packages/utils/core/platform";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 import type { UserProfile } from "@/features/homeauth/types";
 

@@ -6,8 +6,8 @@ import { queryKeys } from "packages/config/query/keys";
 import { googleCalendarApi } from "packages/features/calendar/api";
 import { log } from "packages/logger";
 import { useAuthStore, useGoogleCalendarStore } from "packages/store";
-import { dateNow } from "packages/utils/date";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { dateNow } from "packages/utils/core/date";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 

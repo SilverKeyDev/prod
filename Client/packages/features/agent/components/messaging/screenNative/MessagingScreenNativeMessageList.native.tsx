@@ -3,12 +3,12 @@ import { type RefObject, useCallback, useRef } from "react";
 import Loading from "@ui/asset/loading/Loading";
 import { FlatList, View } from "react-native";
 
-import { Box, Text } from "packages/ui/components/primitives";
+import type { EventRequestPayload } from "packages/features/messaging";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 import { MessagingMessageRowNative } from "@/features/agent/components/messaging/messageRow/MessagingMessageRow.native";
 import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/types";
-import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 
 type MessagingScreenNativeMessageListHandlers = {
   handleAcceptEventRequest: (messageId: string, payload: EventRequestPayload) => Promise<void>;

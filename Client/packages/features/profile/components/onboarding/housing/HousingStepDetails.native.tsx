@@ -2,9 +2,9 @@ import React from "react";
 
 import Input from "@ui/form/Input";
 
-import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import {
   FIELD_LABELS,

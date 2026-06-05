@@ -8,7 +8,7 @@ import { color } from "packages/design-tokens";
 import { useFeedReelsContext } from "packages/features/feed/hooks/feedReels/useFeedReelsContext";
 import { useFeedGestureTrap } from "packages/hooks/ui";
 import { useFeedStore } from "packages/store";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 import { formatCompactNumber } from "packages/utils";
 
 import type { MediaCarouselRef } from "@/features/feed/components/carousel/MediaCarousel";

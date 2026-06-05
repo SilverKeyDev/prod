@@ -1,18 +1,9 @@
 import type { ChangeEvent } from "react";
 
 import type { CreateEventModalFormProps } from "@/features/calendar/components/view/eventModal/CreateEventModalForm";
-import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
 import type { Calendar } from "@/features/calendar/types/calendar";
-import type {
-  ViewingRouteEndMode,
-  ViewingRouteEndpoint,
-  ViewingTourAnchor,
-  ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
-
-import type { CalendarEventKindOptionSlice } from "./calendarEventKindOptions";
-import type { CalendarEventKindId } from "./calendarEventKinds";
+import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 
 export type BuildCreateEventModalFormPropsInput = {
   isOpen: boolean;
@@ -23,8 +14,7 @@ export type BuildCreateEventModalFormPropsInput = {
   setSelectedCalendarId: (id: string) => void;
   eventKindId: CalendarEventKindId;
   handleEventKindIdChange: (id: CalendarEventKindId) => void;
-  kindOptionSlice: CalendarEventKindOptionSlice;
-  checklistProgressLoading: boolean;
+  allowedKindIds: CalendarEventKindId[];
   eventTitle: string;
   setEventTitle: (v: string) => void;
   showAgentClientPicker: boolean;
@@ -39,16 +29,6 @@ export type BuildCreateEventModalFormPropsInput = {
   endTime: string;
   setStartTime: (v: string) => void;
   setEndTime: (v: string) => void;
-  isPropertyViewing: boolean;
-  viewingStops: ViewingStop[];
-  setViewingStops: (v: ViewingStop[]) => void;
-  viewingStartSelection: ViewingTourStartSelection;
-  setViewingStartSelection: (v: ViewingTourStartSelection) => void;
-  viewingEndMode: ViewingRouteEndMode;
-  setViewingEndMode: (v: ViewingRouteEndMode) => void;
-  viewingEndFixed: ViewingRouteEndpoint | null;
-  setViewingEndFixed: (v: ViewingRouteEndpoint | null) => void;
-  viewingTourAnchors: ViewingTourAnchor[];
   eventLocation: string;
   handleEventLocationChange: (value: string) => void;
   locationScriptsReady: boolean;
@@ -70,113 +50,49 @@ export type BuildCreateEventModalFormPropsInput = {
 export function buildCreateEventModalFormProps(
   input: BuildCreateEventModalFormPropsInput
 ): CreateEventModalFormProps {
-  const {
-    isOpen,
-    onClose,
-    mode,
-    calendars,
-    selectedCalendarId,
-    setSelectedCalendarId,
-    eventKindId,
-    handleEventKindIdChange,
-    kindOptionSlice,
-    checklistProgressLoading,
-    eventTitle,
-    setEventTitle,
-    showAgentClientPicker,
-    selectedClientId,
-    setSelectedClientId,
-    isAllDay,
-    onIsAllDayChange,
-    startDate,
-    endDate,
-    onDateRangeChange,
-    startTime,
-    endTime,
-    setStartTime,
-    setEndTime,
-    isPropertyViewing,
-    viewingStops,
-    setViewingStops,
-    viewingStartSelection,
-    setViewingStartSelection,
-    viewingEndMode,
-    setViewingEndMode,
-    viewingEndFixed,
-    setViewingEndFixed,
-    viewingTourAnchors,
-    eventLocation,
-    handleEventLocationChange,
-    locationScriptsReady,
-    loadError,
-    eventDescription,
-    setEventDescription,
-    canSubmit,
-    formSubmitting,
-    primaryActionLabel,
-    handleSubmit,
-    addGoogleMeet,
-    setAddGoogleMeet,
-    showGoogleMeetOption,
-    mutualSchedule,
-    onCalendarTimedSlotPick,
-    registerOutsideClickSafeTarget,
-  } = input;
-
   return {
-    isOpen,
-    onClose,
-    mode,
-    calendars,
-    selectedCalendarId,
-    onCalendarChange: setSelectedCalendarId,
-    hideCalendarPicker: mode === "create",
-    eventKindId,
-    onEventKindIdChange: handleEventKindIdChange,
-    kindOptionSlice,
-    checklistProgressLoading,
-    eventTitle,
-    onEventTitleChange: (e: ChangeEvent<HTMLInputElement>) => setEventTitle(e.target.value),
-    showAgentClientPicker,
-    selectedClientId,
-    onSelectedClientIdChange: setSelectedClientId,
-    isAllDay,
-    onIsAllDayChange,
-    startDate,
-    endDate,
-    onDateRangeChange,
-    startTime,
-    endTime,
-    onStartTimeChange: setStartTime,
-    onEndTimeChange: setEndTime,
-    isPropertyViewing,
-    viewingStops,
-    onViewingStopsChange: setViewingStops,
-    viewingStartSelection,
-    onViewingStartSelectionChange: setViewingStartSelection,
-    viewingEndMode,
-    onViewingEndModeChange: setViewingEndMode,
-    viewingEndFixed,
-    onViewingEndFixedChange: setViewingEndFixed,
-    viewingTourAnchors,
-    eventLocation,
-    onEventLocationChange: handleEventLocationChange,
-    locationScriptsReady,
-    loadError,
-    eventDescription,
+    isOpen: input.isOpen,
+    onClose: input.onClose,
+    mode: input.mode,
+    calendars: input.calendars,
+    selectedCalendarId: input.selectedCalendarId,
+    onCalendarChange: input.setSelectedCalendarId,
+    hideCalendarPicker: input.mode === "create",
+    eventKindId: input.eventKindId,
+    onEventKindIdChange: input.handleEventKindIdChange,
+    allowedKindIds: input.allowedKindIds,
+    eventTitle: input.eventTitle,
+    onEventTitleChange: (e: ChangeEvent<HTMLInputElement>) => input.setEventTitle(e.target.value),
+    showAgentClientPicker: input.showAgentClientPicker,
+    selectedClientId: input.selectedClientId,
+    onSelectedClientIdChange: input.setSelectedClientId,
+    isAllDay: input.isAllDay,
+    onIsAllDayChange: input.onIsAllDayChange,
+    startDate: input.startDate,
+    endDate: input.endDate,
+    onDateRangeChange: input.onDateRangeChange,
+    startTime: input.startTime,
+    endTime: input.endTime,
+    onStartTimeChange: input.setStartTime,
+    onEndTimeChange: input.setEndTime,
+    eventLocation: input.eventLocation,
+    onEventLocationChange: input.handleEventLocationChange,
+    locationScriptsReady: input.locationScriptsReady,
+    loadError: input.loadError,
+    eventDescription: input.eventDescription,
     onEventDescriptionChange: (e: ChangeEvent<HTMLTextAreaElement>) =>
-      setEventDescription(e.target.value),
-    canSubmit,
-    isSubmitting: formSubmitting,
-    primaryActionLabel,
+      input.setEventDescription(e.target.value),
+    canSubmit: input.canSubmit,
+    isSubmitting: input.formSubmitting,
+    primaryActionLabel: input.primaryActionLabel,
     onSubmit: () => {
-      void handleSubmit();
+      void input.handleSubmit();
     },
-    addGoogleMeet,
-    onAddGoogleMeetChange: setAddGoogleMeet,
-    showGoogleMeetOption,
-    mutualSchedule,
-    onCalendarTimedSlotPick,
-    registerOutsideClickSafeTarget,
+    addGoogleMeet: input.addGoogleMeet,
+    onAddGoogleMeetChange: input.setAddGoogleMeet,
+    showGoogleMeetOption: input.showGoogleMeetOption,
+    mutualSchedule: input.mutualSchedule,
+    onCalendarTimedSlotPick: input.onCalendarTimedSlotPick,
+    registerOutsideClickSafeTarget: input.registerOutsideClickSafeTarget,
   };
 }

@@ -1,9 +1,9 @@
 import { useEffect, useMemo } from "react";
 
-import { AGREEMENT_SIGNING_COMPLETE_POSTMESSAGE_SOURCE } from "packages/features/documents/utils/agreementSigningPostMessage";
+import { AGREEMENT_SIGNING_COMPLETE_POSTMESSAGE_SOURCE } from "packages/features/documents";
 import { useNavigation } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import { BodyText, Button, Title } from "@/components/ui";
 

@@ -3,7 +3,7 @@ import React from "react";
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
 import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
 import { type OnboardingData } from "packages/features/profile/utils";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { HousingStepEssentials } from "./housing/HousingStepEssentials.native";
 import { HousingStepRanges } from "./housing/HousingStepRanges.native";

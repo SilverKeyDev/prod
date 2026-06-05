@@ -2,13 +2,13 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile";
+import type { OnboardingData } from "packages/features/profile";
 import { SearchDisplayPanelWeb } from "packages/features/search/components/header/display/SearchDisplayPanel.web";
-import { Transition } from "packages/ui/components/adapters/headless";
-import { Box } from "packages/ui/components/primitives";
-import { TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Transition } from "packages/ui/components/system/adapters/headless";
+import { TOUR_TARGETS_MOBILE } from "packages/utils/transaction/tour/tourTargets";
 
 import { AccessibleDialog, CloseButton, Title } from "@/components/ui";
-import type { OnboardingData } from "@/features/profile/utils";
 import SearchPreferencesContent from "@/features/search/components/filters/SearchPreferencesContent.web";
 
 export type SearchFiltersSheetProps = {

@@ -78,7 +78,6 @@ def create_primary_event_and_db(
     calendar_id,
     event_type,
     primary_target,
-    itinerary=None,
     *,
     add_google_meet: bool = False,
 ):
@@ -126,7 +125,6 @@ def create_primary_event_and_db(
         is_synced=True,
         last_synced_at=datetime.now(timezone.utc),
         sync_source="google",
-        itinerary=itinerary,
         meet_url=meet_url,
         conference_status=conference_status,
     )
@@ -143,7 +141,6 @@ def create_in_agent_calendars(
     calendar_event,
     should_create,
     is_agent,
-    itinerary=None,
 ):
     """Create event in each agent's calendar and update calendar_event.shared_with_user_ids."""
     if not should_create or is_agent:
@@ -191,7 +188,6 @@ def create_in_agent_calendars(
                 is_synced=True,
                 last_synced_at=datetime.now(timezone.utc),
                 sync_source="google",
-                itinerary=itinerary,
             )
             agent_calendar_event.calculate_duration()
             db.session.add(agent_calendar_event)

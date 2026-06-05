@@ -12,7 +12,7 @@ import { LibraryViewModeToggle } from "packages/features/saved/components/header
 import { SavedPageViewUnderlineTabs } from "packages/features/saved/components/header/SavedPageViewUnderlineTabs";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "packages/features/saved/utils/constants";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 import { INPUT_LEFT_ICON_WRAPPER_CLASSES } from "packages/ui/styles/variants/inputVariants";
 
 type EventTypeFilter = "listed" | "price_change" | "sold" | "withdrawn" | "";

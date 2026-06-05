@@ -1,4 +1,4 @@
-import { FEED_ACTION_LABELS } from "packages/utils/domain/actionLabels";
+import { FEED_ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 /** Feed / reels overlay action labels (wired to LocalizationContext). */
 export const FEED_TRANSLATIONS: Record<string, string> = {

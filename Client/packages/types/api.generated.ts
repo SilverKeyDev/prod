@@ -355,46 +355,6 @@ export interface paths {
         patch: operations["patchUserClientSettings"];
         trace?: never;
     };
-    "/api/v1/viewings/route": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Optimize viewing stop order and compute driving legs
-         * @description Uses Google Distance Matrix (durations) for ordering, then Google Directions for per-leg distance, duration, and encoded polylines. Optional start/end anchors: when `start` is set, only property stops are reordered; `end_mode` chooses whether the tour ends at the last listing, returns to `start`, or ends at a fixed `end` location. When `start` is omitted, the route optimizes an open tour across property stops only. Requires a server-side Google Maps API key.
-         */
-        post: operations["buildViewingRoute"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/viewings/navigate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Build Google Maps multi-stop navigation URL
-         * @description Returns a maps/dir deep link with origin, destination, and waypoints.
-         */
-        post: operations["buildViewingNavigateLink"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/google/me/events": {
         parameters: {
             query?: never;
@@ -521,6 +481,109 @@ export interface paths {
          * @description Revoke Google Calendar access for the authenticated user
          */
         post: operations["revokeGoogleOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List workspace conversations */
+        get: operations["getWorkspaceConversations"];
+        put?: never;
+        /** Create workspace conversation */
+        post: operations["createWorkspaceConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workspace messaging events (SSE) */
+        get: operations["streamWorkspaceConversationEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/eligible-contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List contacts the user may message */
+        get: operations["getWorkspaceEligibleContacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workspace conversation history */
+        get: operations["getWorkspaceConversationHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send workspace conversation message */
+        post: operations["sendWorkspaceConversationMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark workspace conversation read */
+        post: operations["markWorkspaceConversationRead"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1295,6 +1358,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List deals for the current user
+         * @description Buyers receive their own `transactions` rows. Agents may pass `buyer_id` to list deals for a managed client. Deal scope ids are always `transactions.id` (UUID).
+         */
+        get: operations["listTransactions"];
+        put?: never;
+        /**
+         * Create a new deal row
+         * @description Creates a new `transactions` row. Pilot UI may not expose this; backend supports multi-deal. When `set_active` is true (default), updates the buyer's active deal pointer.
+         */
+        post: operations["createTransaction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transactions/me": {
         parameters: {
             query?: never;
@@ -1303,11 +1390,31 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get the authenticated buyer's transaction row
-         * @description Ensures a `transactions` row exists for the current user (v1 one deal per buyer) and returns its id for checklist and rev-share APIs.
+         * Get the authenticated buyer's active deal
+         * @description Resolves the buyer's active deal (`users.active_transaction_id`, else most recently updated row, else creates the first deal). Returns `transactions.id` for checklist APIs.
          */
         get: operations["getMyTransaction"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/me/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the buyer's active deal
+         * @description Updates `users.active_transaction_id` to an owned deal. Post-pilot UI uses this for a deal switcher; pilot may omit the control while the endpoint remains available.
+         */
+        put: operations["setMyActiveTransaction"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1362,12 +1469,12 @@ export interface paths {
         };
         /**
          * Task checklist for a transaction subject (buyer self or agent client)
-         * @description Returns the same payload as GET /api/v1/tasks for the given `transactions.id`. Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
+         * @description Returns unified task checklist definitions and progress for the given `transactions.id`. Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
          */
         get: operations["getTransactionTaskChecklist"];
         /**
          * Replace task checklist progress for a transaction subject
-         * @description Same semantics as PUT /api/v1/tasks for the deal identified by `transactions.id`. Buyers may update their own checklist; agents may update a managed client's checklist.
+         * @description Replaces checklist progress for the deal identified by `transactions.id`. Buyers may update their own checklist; agents may update a managed client's checklist.
          */
         put: operations["putTransactionTaskChecklist"];
         post?: never;
@@ -1488,44 +1595,6 @@ export interface paths {
         get: operations["getChecklistDispatchAutomation"];
         /** Replace checklist dispatch automation settings for a step */
         put: operations["putChecklistDispatchAutomation"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/tasks/progress-summary": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Unified task checklist progress summary
-         * @description Returns per-category completion counts and overall journey progress for the authenticated user without fetching full item definitions.
-         */
-        get: operations["getUnifiedTaskChecklistProgressSummary"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/tasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Unified task checklist definitions and progress */
-        get: operations["getUnifiedTaskChecklist"];
-        /** Replace unified task checklist progress */
-        put: operations["putUnifiedTaskChecklist"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3015,6 +3084,105 @@ export interface components {
             other_party_email?: string | null;
             created_at: string;
         };
+        EligibleContactsResponse: {
+            success: boolean;
+            contacts: components["schemas"]["EligibleContact"][];
+        };
+        EligibleContact: {
+            contact_id: string;
+            contact_type: string;
+            display_name: string;
+            kind: components["schemas"]["WorkspaceConversationKind"];
+            metadata?: {
+                [key: string]: unknown;
+            };
+        };
+        CreateWorkspaceConversationRequest: {
+            kind: components["schemas"]["WorkspaceConversationKind"];
+            brokerage_org_id?: string | null;
+            partner_id?: string | null;
+            agent_user_id?: string | null;
+            /** @enum {string|null} */
+            support_category?: "brokerage" | "integrator" | null;
+        };
+        CreateWorkspaceConversationResponse: {
+            success: boolean;
+            conversation: components["schemas"]["WorkspaceConversation"];
+        };
+        WorkspaceConversation: {
+            id: string;
+            kind: components["schemas"]["WorkspaceConversationKind"];
+            brokerage_org_id?: string | null;
+            partner_id?: string | null;
+            subject_user_id?: string | null;
+            /** @enum {string|null} */
+            support_category?: "brokerage" | "integrator" | null;
+            agent_user_id?: string | null;
+            title?: string | null;
+            participant_count?: number | null;
+            is_archived?: boolean | null;
+            last_message?: string | null;
+            /** Format: date-time */
+            last_message_at?: string | null;
+            /** Format: date-time */
+            last_read_at?: string | null;
+            unread_count?: number | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        /**
+         * @description Workspace-scoped conversation kind
+         * @enum {string}
+         */
+        WorkspaceConversationKind: "platform_support" | "brokerage_agent" | "integrator_brokerage" | "group";
+        WorkspaceConversationsResponse: {
+            success: boolean;
+            conversations: components["schemas"]["WorkspaceConversation"][];
+        };
+        WorkspaceConversationHistoryResponse: {
+            success: boolean;
+            messages: components["schemas"]["WorkspaceMessage"][];
+        };
+        WorkspaceMessage: {
+            id: string;
+            conversation_id?: string | null;
+            sender_id?: string | null;
+            role: string;
+            message: string;
+            /** Format: date-time */
+            timestamp?: string | null;
+        };
+        SendWorkspaceMessageRequest: {
+            conversation_id: string;
+            message: string;
+        };
+        GroupConversation: components["schemas"]["WorkspaceConversation"] & {
+            participants?: {
+                user_id?: string;
+                participant_role?: string;
+            }[];
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupConversationCreateRequest: {
+            title: string;
+            participant_user_ids: string[];
+            brokerage_org_id?: string | null;
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupConversationUpdateRequest: {
+            title?: string;
+            is_archived?: boolean;
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupParticipantAddRequest: {
+            user_id: string;
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupParticipantRemoveRequest: {
+            user_id: string;
+        };
         AgentConversation: {
             id: string;
             agent_id: string;
@@ -3300,21 +3468,6 @@ export interface components {
              */
             auth_method: "unknown" | "cognito" | "google" | "both";
         };
-        /** @description Request to optimize stop order and compute driving legs. */
-        BuildRouteRequest: {
-            /** @description Property stops; order preserved when optimize_order is false. */
-            stops: components["schemas"]["ViewingStop"][];
-            /** @description Optional starting location (e.g. home or current position). When set, the route begins here and only property stops are reordered. When omitted, the route optimizes across property stops only (open tour, best first listing). */
-            start?: components["schemas"]["ViewingRouteEndpoint"] | null;
-            /** @description Required when end_mode is fixed; ignored for last_property and return_to_start. */
-            end?: components["schemas"]["ViewingRouteEndpoint"] | null;
-            end_mode?: components["schemas"]["ViewingRouteEndMode"];
-            /**
-             * @description When true, reorder property stops to reduce driving time (subject to start/end_mode). When false, visit properties in request order between anchors.
-             * @default true
-             */
-            optimize_order: boolean;
-        };
         BulkUpdateFavoritesRequest: {
             /** @description Replaces the user's favorites; each element is a home object passed to add_or_update_home_basic (same flexible shape as add-favorite). */
             favorites: components["schemas"]["FavoriteHomePayload"][];
@@ -3587,8 +3740,6 @@ export interface components {
                  */
                 shell?: "week" | "month";
             };
-            /** @description Saved tour anchors and defaults for multi-stop property viewings. */
-            viewing_tour?: components["schemas"]["ViewingTourClientSettings"] | null;
             /** @description Partial onboarding / profile form payload for refresh recovery. Omitted when empty. */
             onboarding_draft?: {
                 [key: string]: unknown;
@@ -4578,8 +4729,6 @@ export interface components {
              */
             hangoutLink?: string | null;
             conferenceData?: components["schemas"]["GoogleConferenceData"];
-            /** @description App-only multi-stop viewing data; stripped before sending to Google Calendar. Persisted in SilverKey DB; used to build calendar description and first-stop location. */
-            itinerary?: components["schemas"]["ViewingItinerary"];
             /** @description Google Calendar event color id (1–11) when set on the event; returned by the Calendar API on list/get. Optional; omitted when the event uses the calendar default color. */
             colorId?: string | null;
             /** @description SilverKey scheduling category from the app database when this event was created in-app (e.g. `property_viewing`, `meeting`, `open_house`). Not sent to Google; attached by the server when listing or getting events. Used for UI coloring when the title no longer matches a known template label. */
@@ -6167,7 +6316,7 @@ export interface components {
             data?: components["schemas"]["TransactionAddressData"];
         };
         /**
-         * @description Revenue spine row for a buyer deal (v1 one row per buyer).
+         * @description Revenue spine row for a buyer deal. Path param `transaction_id` on checklist, documents, rev-share, and calendar APIs MUST be `transactions.id` (UUID) — never the buyer's `users.id`.
          * @example {
          *       "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
          *       "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -6176,7 +6325,7 @@ export interface components {
          *     }
          */
         Transaction: {
-            /** @description Primary key (`transactions.id`); use as `transaction_id` on checklist and rev-share APIs. */
+            /** @description Primary key (`transactions.id`); sole deal scope id for downstream APIs. */
             id: string;
             /** @description Buyer user id for this deal. */
             buyer_id: string;
@@ -6184,21 +6333,90 @@ export interface components {
             primary_agent_id?: string | null;
             /** @description Attribution org for brokerage revenue (not tenant isolation). */
             brokerage_org_id: string;
+            /** @description Deal lifecycle status (e.g. active, closed). Optional until engine assigns values. */
+            status?: string | null;
+            /** @description Short human label (often address line) for multi-deal lists and switchers. */
+            display_label?: string | null;
+            /**
+             * Format: date-time
+             * @description ISO 8601 timestamp when the deal row was created.
+             */
+            created_at?: string | null;
+            /**
+             * Format: date-time
+             * @description ISO 8601 timestamp when the deal row was last updated.
+             */
+            updated_at?: string | null;
+        };
+        /** @description Active deal for the authenticated buyer plus optional address summary. */
+        TransactionMeData: {
+            transaction: components["schemas"]["Transaction"];
+            /** @description Buyer user's active deal pointer (`users.active_transaction_id`); mirrors `transaction.id` when set. */
+            active_transaction_id?: string | null;
+            /** @description Saved finding-home address for this deal when present. */
+            address?: components["schemas"]["TransactionAddressData"] | null;
         };
         /**
          * @example {
          *       "success": true,
          *       "data": {
-         *         "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
-         *         "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-         *         "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-         *         "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+         *         "transaction": {
+         *           "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *           "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *           "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+         *           "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+         *         },
+         *         "active_transaction_id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *         "address": null
          *       }
          *     }
          */
         TransactionMeResponse: {
             success: boolean;
-            data?: components["schemas"]["Transaction"];
+            data?: components["schemas"]["TransactionMeData"];
+        };
+        /**
+         * @example {
+         *       "success": true,
+         *       "data": [
+         *         {
+         *           "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *           "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *           "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+         *           "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+         *         }
+         *       ]
+         *     }
+         */
+        TransactionListResponse: {
+            success: boolean;
+            data: components["schemas"]["Transaction"][];
+        };
+        /** @description Create a new deal row (`transactions.id`). Buyer is implicit for self; agents may set `buyer_id` for a managed client. */
+        CreateTransactionRequest: {
+            /** @description Buyer user id. Required when the caller is an agent creating a deal for a client; omit for buyer self-serve. */
+            buyer_id?: string | null;
+            /** @description Optional primary agent override when creating on behalf of a buyer. */
+            primary_agent_id?: string | null;
+            /** @description Attribution org; defaults from agent membership or platform default. */
+            brokerage_org_id?: string | null;
+            /**
+             * @description When true, sets the buyer's `active_transaction_id` to the new deal.
+             * @default true
+             */
+            set_active: boolean;
+        };
+        CreateTransactionResponse: {
+            success: boolean;
+            data: components["schemas"]["Transaction"];
+        };
+        SetActiveTransactionRequest: {
+            /** @description Revenue spine id (`transactions.id`) to set as the buyer's active deal. */
+            transaction_id: string;
+        };
+        SetActiveTransactionResponse: {
+            success: boolean;
+            data: components["schemas"]["Transaction"];
         };
         UpdateAgentStatusRequest: {
             /** @description When true, ensure the agent role in user_roles; when false, remove it. */
@@ -6679,77 +6897,6 @@ export interface components {
                 recent_clicks?: components["schemas"]["RevShareRecentClick"][];
             };
         };
-        ViewingBuildRouteApiResponse: {
-            success: boolean;
-            data?: components["schemas"]["ViewingItinerary"];
-            error?: string | null;
-        };
-        /** @description Ordered property viewing stops with optional route anchors and computed legs. `stops` are property/showing stops only; `start` and `end` (when used) are logistics anchors and are not duplicated inside `stops`. */
-        ViewingItinerary: {
-            /** @description Property stops only, in visit order after route optimization when `ordered` is true. */
-            stops: components["schemas"]["ViewingStop"][];
-            /**
-             * @description True when property stop order was optimized via the route service.
-             * @default false
-             */
-            ordered: boolean;
-            /** @description Per-leg metrics and polylines for the full driving path (includes legs from/to anchors). When present and complete, length equals the number of nodes in the expanded path minus one (nodes: optional start, each property stop in order, optional return or fixed end). */
-            legs?: components["schemas"]["ViewingRouteLeg"][] | null;
-            /** @description Optional meet-up / departure anchor (not listed in `stops`). */
-            start?: components["schemas"]["ViewingRouteEndpoint"] | null;
-            /** @description Required when `end_mode` is `fixed`; ignored otherwise. */
-            end?: components["schemas"]["ViewingRouteEndpoint"] | null;
-            /** @description How the tour ends after the last property. Omitted or `last_property` when no end anchor is set. */
-            end_mode?: components["schemas"]["ViewingRouteEndMode"];
-        };
-        ViewingNavigateApiResponse: {
-            success: boolean;
-            data?: components["schemas"]["ViewingNavigateResponse"];
-            error?: string | null;
-        };
-        /** @description Google Maps multi-stop navigation URL. */
-        ViewingNavigateResponse: {
-            /**
-             * Format: uri
-             * @description https://www.google.com/maps/dir/... deep link for driving directions.
-             */
-            url: string;
-        };
-        /**
-         * @description How the route finishes after the last property when a start location is set. Ignored when start is omitted (open tour across property stops only).
-         * @enum {string}
-         */
-        ViewingRouteEndMode: "last_property" | "return_to_start" | "fixed";
-        /** @description Start or end location for routing. Provide a non-empty address and/or both lat and lng. The server geocodes when an address is present without coordinates. */
-        ViewingRouteEndpoint: {
-            label?: string | null;
-            address?: string | null;
-            lat?: number | null;
-            lng?: number | null;
-        };
-        /** @description Driving leg between two consecutive ordered stops (from Directions API). */
-        ViewingRouteLeg: {
-            /** @description Travel duration in seconds for this leg. */
-            duration_seconds?: number | null;
-            /** @description Distance in meters for this leg. */
-            distance_meters?: number | null;
-            /** @description Google-encoded polyline for this leg (path for map rendering). */
-            encoded_polyline?: string | null;
-        };
-        /** @description One stop on a multi-property viewing itinerary. */
-        ViewingStop: {
-            /** @description Short label shown in lists (e.g. street or listing title). */
-            label?: string | null;
-            /** @description Full address string for display and calendar location fallback. */
-            address: string;
-            /** @description Latitude when geocoded or from listing; required for routing. */
-            lat?: number | null;
-            /** @description Longitude when geocoded or from listing; required for routing. */
-            lng?: number | null;
-            notes?: string | null;
-            /** @description Optional listing / property identifier when linked to search results. */
-            listing_id?: string | null;
-        };
         VerifyData: {
             /**
              * Format: email
@@ -6784,19 +6931,6 @@ export interface components {
             layout?: "grid" | "list";
             /** @description Sort id (allowlist enforced server-side per tab). */
             sort?: string;
-        };
-        /** @description Saved viewing-route anchors (e.g. office, home) for quick start selection on property tours. */
-        ViewingTourClientSettings: {
-            /** @description Named locations the user can pick as a tour start (or fixed end). */
-            anchors?: {
-                /** @description Client-generated stable id (e.g. UUID). */
-                id: string;
-                /** @description Display name (e.g. "Midtown office"). */
-                label: string;
-                endpoint: components["schemas"]["ViewingRouteEndpoint"];
-            }[];
-            /** @description When set, new property-viewing events default start to this anchor id. */
-            default_start_anchor_id?: string | null;
         };
         /** @description Optional user id whose preferences drive the isochrone (agent research scope). */
         preferences_user_id: string;
@@ -7782,117 +7916,6 @@ export interface operations {
             };
         };
     };
-    buildViewingRoute: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BuildRouteRequest"];
-            };
-        };
-        responses: {
-            /** @description Ordered itinerary with legs when routing succeeds */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ViewingBuildRouteApiResponse"];
-                };
-            };
-            /** @description Invalid stops or missing coordinates */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Routing service error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Google Maps server key not configured */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    buildViewingNavigateLink: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ViewingItinerary"];
-            };
-        };
-        responses: {
-            /** @description Navigation URL */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ViewingNavigateApiResponse"];
-                };
-            };
-            /** @description Invalid itinerary or missing coordinates */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     listGoogleEvents: {
         parameters: {
             query?: {
@@ -8438,6 +8461,198 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getWorkspaceConversations: {
+        parameters: {
+            query?: {
+                /** @description Comma-separated WorkspaceConversationKind values */
+                kinds?: string;
+                scope?: "admin";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceConversationsResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createWorkspaceConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWorkspaceConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 201 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateWorkspaceConversationResponse"];
+                };
+            };
+            /** @description Kind not implemented (e.g. group) */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    streamWorkspaceConversationEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description text/event-stream */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getWorkspaceEligibleContacts: {
+        parameters: {
+            query?: {
+                kinds?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EligibleContactsResponse"];
+                };
+            };
+        };
+    };
+    getWorkspaceConversationHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceConversationHistoryResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    sendWorkspaceConversationMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendWorkspaceMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+        };
+    };
+    markWorkspaceConversationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
         };
@@ -10997,6 +11212,98 @@ export interface operations {
             };
         };
     };
+    listTransactions: {
+        parameters: {
+            query?: {
+                /** @description Filter to a buyer user id (agents only; must manage the client). */
+                buyer_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionListResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateTransactionRequest"];
+            };
+        };
+        responses: {
+            /** @description Deal created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateTransactionResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     getMyTransaction: {
         parameters: {
             query?: never;
@@ -11017,6 +11324,66 @@ export interface operations {
             };
             /** @description HTTP 401 */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    setMyActiveTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetActiveTransactionRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetActiveTransactionResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11679,140 +12046,6 @@ export interface operations {
             };
             /** @description HTTP 403 */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getUnifiedTaskChecklistProgressSummary: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskChecklistProgressSummaryResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getUnifiedTaskChecklist: {
-        parameters: {
-            query?: {
-                type?: components["schemas"]["ChecklistType"];
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        success?: boolean;
-                        data?: components["schemas"]["TaskChecklistResponse"];
-                    };
-                };
-            };
-            /** @description HTTP 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    putUnifiedTaskChecklist: {
-        parameters: {
-            query?: {
-                type?: components["schemas"]["ChecklistType"];
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateTaskChecklistRequest"];
-            };
-        };
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskChecklistApiResponse"];
-                };
-            };
-            /** @description HTTP 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };

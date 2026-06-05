@@ -1,30 +1,17 @@
-import type { ViewingItinerary } from "packages/api/viewings";
 import type { GoogleEventCreateResponse } from "packages/features/calendar/api/types";
 import { log } from "packages/logger";
 import {
   buildCreateEventGoogleStartEnd,
   CREATE_EVENT_TIME_STEP_MINUTES,
-} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
-import { detectEventTypeFromTitle } from "packages/utils/calendar/parsing/detectEventTypeFromTitle";
+} from "packages/utils/comms/calendar/createEvent/eventFormGooglePayload";
+import { detectEventTypeFromTitle } from "packages/utils/comms/calendar/parsing/detectEventTypeFromTitle";
 
-import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { CreateEventModalAddWithoutSchedulePayload } from "@/features/calendar/types/createEventModal";
 import type {
   GoogleCalendarEventCreateBody,
   GoogleEvent,
 } from "@/features/calendar/types/googleEvent";
-import type {
-  ViewingRouteEndMode,
-  ViewingRouteEndpoint,
-  ViewingTourAnchor,
-  ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
-import {
-  buildViewingItineraryDraftFromForm,
-  primaryLocationLabelFromItinerary,
-  viewingStopsHaveAtLeastOneAddress,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 import {
   copyTextToClipboard,
@@ -48,12 +35,6 @@ export type RunCreateEventModalSubmitParams = {
   selectedCalendarId: string;
   defaultCalendarId?: string | null;
   selectedClientId: string | null;
-  isPropertyViewing: boolean;
-  viewingStops: ViewingStop[];
-  viewingStartSelection: ViewingTourStartSelection;
-  viewingTourAnchors: ViewingTourAnchor[];
-  viewingEndMode: ViewingRouteEndMode;
-  viewingEndFixed: ViewingRouteEndpoint | null;
   existingEvent?: ExtendedGoogleEvent;
   onAddWithoutSchedule?: (payload: CreateEventModalAddWithoutSchedulePayload) => Promise<void>;
   createEvent: (body: GoogleCalendarEventCreateBody) => Promise<unknown>;
@@ -65,9 +46,7 @@ export type RunCreateEventModalSubmitParams = {
     type: "error" | "success" | "info" | "warning";
     message: string;
   }) => void;
-  /** Forwarded to `buildCreateEventGoogleStartEnd` for timed events (e.g. quick-create). */
   clampTimedEndToStartLocalDay?: boolean;
-  /** Create flow only: optional Google Meet on the calendar insert. */
   addGoogleMeet?: boolean;
 };
 
@@ -76,14 +55,6 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
     p.enqueueToast({
       type: "error",
       message: "Please enter a title",
-    });
-    return;
-  }
-
-  if (p.isPropertyViewing && !viewingStopsHaveAtLeastOneAddress(p.viewingStops)) {
-    p.enqueueToast({
-      type: "error",
-      message: "Add at least one property address for the viewing tour.",
     });
     return;
   }
@@ -114,18 +85,9 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
     try {
       const descTrimmed = p.eventDescription.trim();
       const locTrimmed = p.eventLocation.trim();
-      const viewingAddresses = p.isPropertyViewing
-        ? p.viewingStops.map((s) => s.address.trim()).filter(Boolean)
-        : [];
-      const viewingBlock =
-        p.isPropertyViewing && viewingAddresses.length > 0
-          ? `Stops:\n${viewingAddresses.map((a, i) => `${i + 1}. ${a}`).join("\n")}`
-          : "";
-      const parts = [
-        descTrimmed || null,
-        !locTrimmed || p.isPropertyViewing ? null : `Location: ${locTrimmed}`,
-        viewingBlock || null,
-      ].filter(Boolean);
+      const parts = [descTrimmed || null, locTrimmed ? `Location: ${locTrimmed}` : null].filter(
+        Boolean
+      );
       const descriptionForTodo = parts.length ? parts.join("\n\n") : null;
 
       await p.onAddWithoutSchedule({
@@ -204,23 +166,6 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
       calendarId: calendarIdForCreate,
       eventType,
     };
-
-    if (p.isPropertyViewing) {
-      const itineraryPayload = buildViewingItineraryDraftFromForm({
-        stops: p.viewingStops,
-        startSelection: p.viewingStartSelection,
-        anchors: p.viewingTourAnchors,
-        endMode: p.viewingEndMode,
-        endFixed: p.viewingEndFixed,
-      });
-      if (itineraryPayload) {
-        eventData.itinerary = itineraryPayload as ViewingItinerary;
-        const loc = primaryLocationLabelFromItinerary(itineraryPayload);
-        if (loc) {
-          eventData.location = loc;
-        }
-      }
-    }
 
     if (p.mode === "create" && p.selectedClientId) {
       eventData.target_user_id = p.selectedClientId;

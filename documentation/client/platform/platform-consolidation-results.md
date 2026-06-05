@@ -54,15 +54,15 @@ Successfully implemented a comprehensive categorization system for platform-spec
 
 ## Validation Results
 
+> **Note:** Commands and counts below are a **March 2026 snapshot** for the consolidation framework rollout. Re-run from `Client/` with current gates (`pnpm typecheck`, `pnpm lint`, `pnpm check`) for live status.
+
 ### ✅ TypeScript Compilation
-- **Status**: PASSED
-- **Command**: `npm run typecheck`
-- **Result**: No compilation errors
-- **Time**: 491ms
+- **Status**: PASSED (snapshot)
+- **Command**: `pnpm typecheck`
 
 ### ❌ ESLint Validation
-- **Status**: 168 errors, 10 warnings
-- **Command**: `npm run lint`
+- **Status**: 168 errors, 10 warnings (snapshot)
+- **Command**: `pnpm lint`
 - **Issues**: 168 undocumented platform files detected by `silverkey/platform-file-justification`
 - **Action Required**: Document or consolidate remaining platform files
 
@@ -73,9 +73,8 @@ Successfully implemented a comprehensive categorization system for platform-spec
 - **Note**: Issue unrelated to platform consolidation work
 
 ### ⚠️ Test Suite
-- **Status**: No tests configured
-- **Command**: `npm run test --if-present`
-- **Note**: Test suite implementation needed for comprehensive validation
+- **Status**: Use `pnpm test:run` from `Client/` (Vitest in shared packages)
+- **Command**: `pnpm test:run`
 
 ## Enforcement System Details
 

@@ -9,8 +9,8 @@ import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePref
 import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useResponsive } from "packages/hooks/ui";
 import { log } from "packages/logger";
-import Box from "packages/ui/components/primitives/box/Box";
-import { getWindow } from "packages/utils/platform";
+import Box from "packages/ui/components/structure/primitives/box/Box";
+import { getWindow } from "packages/utils/core/platform";
 
 import type { OnboardingData } from "@/features/profile/utils";
 import { userPreferencesToOnboardingData } from "@/features/profile/utils";

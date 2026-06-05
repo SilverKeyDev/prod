@@ -3,7 +3,7 @@
  * Single source for SearchResult, PropertyDetails, and related type guards.
  */
 
-import { getPropertyMatchScore } from "packages/utils/search/scoring/propertyMatchScore";
+import { getPropertyMatchScore } from "packages/utils/product/search/scoring/propertyMatchScore";
 
 export type PropertyType =
   | "SINGLE_FAMILY"
@@ -221,4 +221,4 @@ export function isPropertyDetails(obj: unknown): obj is PropertyDetails {
 /** Centralized match score read (backend MCDA display scale when `_score` is set). */
 export const getMatchScore = (property: SearchResult): number => getPropertyMatchScore(property);
 
-export { isListingFullCriteriaMatch } from "packages/utils/search/scoring/propertyMatchScore";
+export { isListingFullCriteriaMatch } from "packages/utils/product/search/scoring/propertyMatchScore";

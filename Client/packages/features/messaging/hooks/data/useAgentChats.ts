@@ -21,7 +21,7 @@ import { showErrorToast } from "packages/hooks/ui/toast";
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { useNotificationStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 /**
  * Hook to manage agent conversations

@@ -11,7 +11,7 @@ import {
   AGREEMENT_EVENT_HEADLINES,
   type AgreementEventPayload,
 } from "packages/features/messaging/utils/agreementEventPayload";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText } from "@/components/ui";
 

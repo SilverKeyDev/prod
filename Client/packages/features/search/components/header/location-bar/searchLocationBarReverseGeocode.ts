@@ -7,12 +7,12 @@ import {
 } from "packages/features/search/utils/map/mapViewport";
 import { warnUnsupportedServiceArea } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { log } from "packages/logger";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 import {
   isSupportedServiceAreaAddressComponents,
   isSupportedServiceAreaCoordinates,
   SUPPORTED_SERVICE_AREA_STATE_SHORT,
-} from "packages/utils/search/locations/serviceAreaAvailability";
+} from "packages/utils/product/search/locations/serviceAreaAvailability";
 
 import type { SearchLocationBarMapDeps } from "./searchLocationBarMapDeps";
 import { boundsFromViewportRing } from "./searchLocationBarTypes";

@@ -48,9 +48,9 @@ def test_create_partner_super_admin(client, app, db_session):
             "/api/v1/admin/partners",
             headers={"Authorization": "Bearer mock"},
             json={
-                "name": "Move Concierge",
-                "slug": "move-concierge-test",
-                "destination_url_template": "https://mc.partners/SilverKey",
+                "name": "Test Partner Embed",
+                "slug": "test-partner-embed",
+                "destination_url_template": "https://partner.example/SilverKey",
                 "step_ids": ["closing:13"],
                 "target_roles": ["buyer"],
                 "payout_type": "on_click",
@@ -62,7 +62,7 @@ def test_create_partner_super_admin(client, app, db_session):
     assert body.get("success") is True
 
     with app.app_context():
-        row = db.session.scalar(select(Partner).where(Partner.slug == "move-concierge-test"))
+        row = db.session.scalar(select(Partner).where(Partner.slug == "test-partner-embed"))
         assert row is not None
 
 

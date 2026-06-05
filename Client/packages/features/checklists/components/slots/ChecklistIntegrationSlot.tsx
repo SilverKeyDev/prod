@@ -4,8 +4,8 @@ import { getChecklistComponent } from "packages/features/checklists/components/i
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
 import { PartnerRevSharePlacement } from "packages/features/partners";
 import { usePartnerPlacements } from "packages/features/partners/hooks/usePartnerPlacements";
-import { Box } from "packages/ui/components/primitives";
-import { buildStepId } from "packages/utils/checklists/stepId";
+import { Box } from "packages/ui/components/structure/primitives";
+import { buildStepId } from "packages/utils/product/checklists/stepId";
 
 type ChecklistIntegrationSlotProps = {
   componentKey: string | undefined;

@@ -48,7 +48,7 @@ Checklist items can link to agreements (`AgreementLink`). Signature completion c
 
 ## RESPA / compliance
 
-Agreement flows are transaction workflow tools, not partner placement. Partner marketplace placement (Move Concierge, lenders) is separate — see [rev-share-partners.md](./rev-share-partners.md) and `CLAUDE.md` RESPA section.
+Agreement flows are transaction workflow tools, not partner placement. Partner marketplace placement (rev-share partners, lenders) is separate — see [rev-share-partners.md](./rev-share-partners.md) and `CLAUDE.md` RESPA section.
 
 ## Environment
 

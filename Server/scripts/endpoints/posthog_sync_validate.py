@@ -129,10 +129,20 @@ def verify_inventory_sync_ingested(
     posthog_query_url: str,
     deploy_sha: str,
     expected_dead_count: int,
-    max_attempts: int = 6,
+    max_attempts: int = 9,
     sleep_seconds: float = 5.0,
+    backoff_factor: float = 1.6,
+    max_sleep_seconds: float = 30.0,
 ) -> None:
-    """Best-effort check that ingest landed (PostHog query lag is common)."""
+    """Check that ingest landed, tolerating PostHog's async capture→query lag.
+
+    Capture (``/capture/``, ``/batch/``) is asynchronous: events flow through
+    Kafka and ingestion before they are queryable via HogQL/ClickHouse. That lag
+    is routinely longer than the ~25s a flat 5s × 6 loop allowed, which produced
+    false failures even when capture succeeded. Poll with exponential backoff
+    (capped) so transient lag is tolerated while a genuinely missing event still
+    fails after a generous window (~3 min with defaults).
+    """
     if not is_github_actions():
         return
 
@@ -187,8 +197,9 @@ WHERE timestamp > now() - INTERVAL 2 HOUR
             last_error = str(exc)
 
         if attempt < max_attempts:
-            log_notice(f"Ingest verification waiting ({last_error}); retrying…")
-            time.sleep(sleep_seconds)
+            delay = min(sleep_seconds * (backoff_factor ** (attempt - 1)), max_sleep_seconds)
+            log_notice(f"Ingest verification waiting ({last_error}); retrying in {delay:.0f}s…")
+            time.sleep(delay)
 
     fail(
         "PostHog ingest verification failed after capture.",

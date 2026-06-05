@@ -3,7 +3,7 @@
  *
  * Note: React Native does not support `new Image()`. We use `Image.prefetch` instead.
  */
-import { Image } from "packages/ui/components/primitives";
+import { Image } from "packages/ui/components/structure/primitives";
 
 const POSTER_CACHE_MAX = 20;
 const preloadedPosters = new Set<string>();

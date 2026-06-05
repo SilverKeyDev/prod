@@ -7,8 +7,8 @@ export type { CreateEventModalAddWithoutSchedulePayload } from "./types/createEv
 export type { GoogleCalendarEventCreateBody, GoogleEvent } from "./types/googleEvent";
 export { sortCompletedAgendaTodosForDisplay } from "./utils/agenda/mergeUpcomingAgenda";
 export { getCalendarColorMap } from "./utils/core/calendar";
-export { getCalendarEventKindOptionSlice } from "./utils/createEventModal/calendarEventKindOptions";
 export {
+  CALENDAR_EVENT_KIND_ORDER,
   CALENDAR_EVENT_KINDS,
   type CalendarEventKindId,
 } from "./utils/createEventModal/calendarEventKinds";
@@ -18,11 +18,11 @@ export {
   googleAllDayEndExclusiveToInclusiveEndYmd,
   inclusiveRangeToGoogleAllDayDates,
   quantizeHourMinute,
-} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
+} from "packages/utils/comms/calendar/createEvent/eventFormGooglePayload";
 export {
   eventSpansMultipleLocalDays,
   getEventEndDate,
   getEventFirstLocalDayKey,
   getEventLocalDayKeys,
   getEventStartDate,
-} from "packages/utils/calendar/parsing/eventParsing";
+} from "packages/utils/comms/calendar/parsing/eventParsing";

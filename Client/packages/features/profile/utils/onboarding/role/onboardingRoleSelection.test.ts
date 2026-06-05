@@ -30,20 +30,34 @@ describe("applyOnboardingRoleSelection", () => {
     expect(patches.why_joining_silverkey).toEqual([WHY_JOIN_FOR_ROLE.buyer]);
   });
 
-  it("does not apply patches for coming-soon seller tile", () => {
+  it("maps seller to primary_onboarding_role and buyer+seller tags", () => {
     const patches: Record<string, unknown> = {};
     applyOnboardingRoleSelection("seller", (k, v) => {
       patches[String(k)] = v;
     });
-    expect(patches).toEqual({});
+    expect(patches.primary_onboarding_role).toBe("seller");
+    expect(patches.why_joining_silverkey).toEqual([
+      WHY_JOIN_FOR_ROLE.buyer,
+      WHY_JOIN_FOR_ROLE.seller,
+    ]);
   });
 
-  it("does not apply patches for coming-soon integration partner tile", () => {
+  it("maps brokerage to primary_onboarding_role", () => {
+    const patches: Record<string, unknown> = {};
+    applyOnboardingRoleSelection("brokerage", (k, v) => {
+      patches[String(k)] = v;
+    });
+    expect(patches.primary_onboarding_role).toBe("brokerage");
+    expect(patches.why_joining_silverkey).toEqual([]);
+  });
+
+  it("maps integration partner to primary_onboarding_role", () => {
     const patches: Record<string, unknown> = {};
     applyOnboardingRoleSelection("integration_partner", (k, v) => {
       patches[String(k)] = v;
     });
-    expect(patches).toEqual({});
+    expect(patches.primary_onboarding_role).toBe("integration_partner");
+    expect(patches.why_joining_silverkey).toEqual([]);
   });
 });
 
@@ -84,14 +98,23 @@ describe("formDataToPreferencesPayload", () => {
     } as OnboardingData);
     expect(payload.primary_onboarding_role).toBe("buyer");
   });
+
+  it("strips workspace_shell_test_input from preferences payload", () => {
+    const payload = formDataToPreferencesPayload({
+      primary_onboarding_role: "seller",
+      workspace_shell_test_input: "draft-only",
+    } as OnboardingData);
+    expect(payload.workspace_shell_test_input).toBeUndefined();
+  });
 });
 
 describe("isSelectableOnboardingRole", () => {
-  it("allows buyer and agent only", () => {
+  it("allows all public onboarding roles", () => {
     expect(isSelectableOnboardingRole("buyer")).toBe(true);
     expect(isSelectableOnboardingRole("agent")).toBe(true);
-    expect(isSelectableOnboardingRole("seller")).toBe(false);
-    expect(isSelectableOnboardingRole("integration_partner")).toBe(false);
+    expect(isSelectableOnboardingRole("seller")).toBe(true);
+    expect(isSelectableOnboardingRole("brokerage")).toBe(true);
+    expect(isSelectableOnboardingRole("integration_partner")).toBe(true);
   });
 });
 

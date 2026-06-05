@@ -1,0 +1,11 @@
+type: object
+required:
+  - success
+  - messages
+properties:
+  success:
+    type: boolean
+  messages:
+    type: array
+    items:
+      $ref: "./WorkspaceMessage.yaml"

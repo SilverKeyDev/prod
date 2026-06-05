@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 type Options = {
   /**

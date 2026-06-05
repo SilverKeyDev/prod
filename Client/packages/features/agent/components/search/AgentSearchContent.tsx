@@ -6,8 +6,8 @@ import { useLocalization } from "packages/contexts";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAuthStore, useUIStore } from "packages/store";
 import { Button, Textarea } from "packages/ui";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { Box } from "packages/ui/components/primitives";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Input, Label, Title } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";

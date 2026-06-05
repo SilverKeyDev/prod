@@ -7,7 +7,7 @@ import { useAuthStore, useUIStore } from "packages/store";
 import {
   clearPendingPublicAgentConnect,
   peekPendingPublicAgentConnect,
-} from "packages/utils/agent";
+} from "packages/utils/growth/agent";
 
 import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 

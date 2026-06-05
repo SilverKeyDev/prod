@@ -12,7 +12,7 @@ import {
   defaultClientSettings,
   hydrateClientSettings,
   mergeClientSettingsDeep,
-} from "packages/utils/clientSettings";
+} from "packages/utils/auth/clientSettings";
 
 const PATCH_DEBOUNCE_MS = 400;
 

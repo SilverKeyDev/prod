@@ -18,7 +18,7 @@ Company context: [silverkey-context.mdc](./silverkey-context.mdc) and [pitch-and
 
 ## Commits and PRs
 
-- **Commit format:** `[LINEAR-ID] short description` (e.g. `[SK-142] Add Move Concierge prefill params`).
+- **Commit format:** `[LINEAR-ID] short description` (e.g. `[SK-142] Add partner placement prefill params`).
 - **PR description:** Link the Linear ticket URL or ID; summarize what changed and why.
 - **Do not commit:** secrets, API keys, `.env`, partner deal terms, or credentials files.
 

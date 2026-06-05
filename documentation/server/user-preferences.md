@@ -38,9 +38,9 @@ users
 - `monthly_payment_max`: Maximum monthly payment
 
 #### `user_search_intent`
-- `preferred_bedrooms`: Minimum bedrooms
-- `preferred_bathrooms`: Minimum bathrooms
+- `preferred_bedrooms_min`: Minimum bedrooms
 - `preferred_bedrooms_max`: Maximum bedrooms
+- `preferred_bathrooms_min`: Minimum bathrooms
 - `preferred_bathrooms_max`: Maximum bathrooms
 - `preferred_housing_type`: e.g., "single_family", "condo"
 - `preferred_home_age`: e.g., "new", "5-10 years"
@@ -78,8 +78,10 @@ users
 {
   "home_budget_min": 300000,
   "home_budget_max": 500000,
-  "preferred_bedrooms": 3,
-  "preferred_bathrooms": 2,
+  "preferred_bedrooms_min": 3,
+  "preferred_bedrooms_max": 4,
+  "preferred_bathrooms_min": 2,
+  "preferred_bathrooms_max": 3,
   "preferred_housing_type": "single_family",
   "must_have": ["pool", "garage"],
   "deal_breakers": ["hoa"],

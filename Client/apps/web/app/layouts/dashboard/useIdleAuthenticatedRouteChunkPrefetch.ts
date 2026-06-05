@@ -4,7 +4,8 @@ import { prefetchAgentMessagingFeatureChunks } from "packages/features/agent/com
 import { log } from "packages/logger";
 import { ROUTES } from "packages/navigation";
 import { useAuthStore } from "packages/store";
-import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { traceDynamicImport } from "packages/utils/core/perf/shellRouteLoadTiming";
+import { getWindow } from "packages/utils/core/platform";
 
 import { prefetchDashboardShellRoute } from "@/app/layouts/dashboard/dashboardRoutePrefetch";
 
@@ -70,8 +71,12 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
 
     let raf1 = 0;
     let raf2 = 0;
-    raf1 = window.requestAnimationFrame(() => {
-      raf2 = window.requestAnimationFrame(() => {
+    const win = getWindow();
+    if (!win) {
+      return;
+    }
+    raf1 = win.requestAnimationFrame(() => {
+      raf2 = win.requestAnimationFrame(() => {
         if (!cancelled) {
           run();
         }
@@ -80,8 +85,8 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
 
     return () => {
       cancelled = true;
-      window.cancelAnimationFrame(raf1);
-      window.cancelAnimationFrame(raf2);
+      win.cancelAnimationFrame(raf1);
+      win.cancelAnimationFrame(raf2);
     };
   }, [authReady, isAuthenticated, user, pathname]);
 }

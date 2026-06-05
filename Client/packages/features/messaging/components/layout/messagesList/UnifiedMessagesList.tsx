@@ -15,11 +15,11 @@ import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { showErrorToast } from "packages/hooks/ui";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import {
   propertyDetailsPathFromListing,
   type ResearchListingKeyInput,
-} from "packages/utils/property";
+} from "packages/utils/transaction/property";
 
 import {
   getMessagingConfig,

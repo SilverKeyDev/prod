@@ -8,7 +8,7 @@ import {
   postRefreshTokenWithRetry,
 } from "packages/services/http/client/auth/refreshTokenRetry";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import type { UserProfile } from "@/features/homeauth/types";
 

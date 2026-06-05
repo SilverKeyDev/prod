@@ -8,7 +8,7 @@ import { reportApi } from "packages/features/documents/api/report";
 import type { DocumentData } from "packages/features/documents/hooks/data/useDocumentsData";
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export function useDocumentsLibraryMutations(clientId?: string) {
   const queryClient = useQueryClient();

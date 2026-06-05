@@ -24,9 +24,9 @@ import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { showErrorToast } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { Box, Loading, ScrollView, Text } from "packages/ui/components/primitives";
-import { UnderlineTabs } from "packages/ui/components/tabs";
-import { isWeb } from "packages/utils/platform";
+import { Box, Loading, ScrollView, Text } from "packages/ui/components/structure/primitives";
+import { UnderlineTabs } from "packages/ui/components/structure/tabs";
+import { isWeb } from "packages/utils/core/platform";
 
 export type ProfileScreenProps = {
   /** When set, loads that user's preferences read-only (e.g. agent client hub). */

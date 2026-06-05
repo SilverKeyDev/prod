@@ -3,9 +3,9 @@ import { useEffect, useRef } from "react";
 import { useEmbeddedSigningUrlQuery } from "packages/features/documents/hooks/data/docusign/useEmbeddedSigningUrlQuery";
 import { AGREEMENT_SIGNING_COMPLETE_POSTMESSAGE_SOURCE } from "packages/features/documents/utils/agreementSigningPostMessage";
 import { useUIStore } from "packages/store";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import { DocuSignLegalNotice } from "./DocuSignLegalNotice";
 import ViewSignedDocument from "./ViewSignedDocument";

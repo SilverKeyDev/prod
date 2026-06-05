@@ -1,5 +1,3 @@
-import type { components } from "packages/types/api.generated";
-
 /**
  * Event request payload embedded in message content.
  * Used when a user sends a calendar event request from messaging;
@@ -12,5 +10,4 @@ export type EventRequestPayload = {
   description?: string;
   /** Persisted on the message so the card can show location after reload. */
   location?: string;
-  itinerary?: components["schemas"]["ViewingItinerary"];
 };

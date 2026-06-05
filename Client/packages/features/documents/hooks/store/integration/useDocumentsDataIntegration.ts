@@ -12,7 +12,7 @@ import { prepareAgreementSigningSession } from "packages/features/documents/util
 import { showErrorToast, showInfoToast } from "packages/hooks/ui";
 import { apiDownloadBlob } from "packages/services/http/fileTransfer";
 import { useAuthStore } from "packages/store";
-import { createBlob } from "packages/utils/platform";
+import { createBlob } from "packages/utils/core/platform";
 
 import {
   canSendForSignature,

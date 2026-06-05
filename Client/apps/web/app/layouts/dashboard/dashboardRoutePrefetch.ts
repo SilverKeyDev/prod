@@ -1,7 +1,8 @@
 import { prefetchAgentMessagingFeatureChunks } from "packages/features/agent/components/loading/prefetchAgentMessagingChunks";
 import { prefetchDashboardFeatureChunks } from "packages/features/dashboard/components/shell/prefetchDashboardFeatureChunks";
-import { stripWorkspaceShellPrefix } from "packages/utils/layout/dashboardLayoutConfig";
-import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { stripWorkspaceShellPrefix } from "packages/utils/core/layout/dashboardLayoutConfig";
+import { traceDynamicImport } from "packages/utils/core/perf/shellRouteLoadTiming";
+import { getWindow } from "packages/utils/core/platform";
 
 export type PrefetchDashboardShellRouteOptions = {
   /** When set, avoids prefetching the opposite role's lazy-only chunks (messaging + dashboard). */
@@ -36,7 +37,7 @@ export function prefetchDashboardShellRoute(
 
   if (path.startsWith("/search")) {
     traceDynamicImport("ROUTING", "prefetch:SearchPage", import("@/pages/property/SearchPage"));
-    if (typeof window !== "undefined") {
+    if (getWindow()) {
       void import("packages/features/search/utils/googleMaps").then(({ googleMapsService }) => {
         void googleMapsService.loadGoogleMapsScript();
       });
@@ -62,6 +63,14 @@ export function prefetchDashboardShellRoute(
     );
     // DashboardFeature lazy-loads list/checklists/calendar/modals; prewarm alongside the page chunk.
     prefetchDashboardFeatureChunks(dashboardFeaturePrefetchBranch(options));
+    return;
+  }
+  if (path.startsWith("/analytics")) {
+    traceDynamicImport(
+      "DASHBOARD",
+      "prefetch:BrokerageAnalyticsPage",
+      import("@/pages/workspace/BrokerageAnalyticsPage")
+    );
     return;
   }
   if (

@@ -6,7 +6,7 @@ import type { AgentConversation } from "packages/api";
 import type { UseAgentChatsReturn } from "packages/features/messaging/hooks/data/useAgentChats.types";
 import type { SharedBundleItemV1 } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
 import type { SavedHome } from "packages/types/domain/savedHome";
-import type { DocumentData } from "packages/ui/components/cards/document/types";
+import type { DocumentData } from "packages/ui/components/surfaces/cards/document/types";
 
 export type EventRequestStatus = "pending" | "accepted" | "cancelled";
 

@@ -1,6 +1,6 @@
 import type { ViewportPolygonPoint } from "packages/types/domain/api";
-import { defaultPilotSearchViewportRing } from "packages/utils/search/locations/defaultPilotSearchViewport";
-import { isSupportedServiceAreaCoordinates } from "packages/utils/search/locations/serviceAreaAvailability";
+import { defaultPilotSearchViewportRing } from "packages/utils/product/search/locations/defaultPilotSearchViewport";
+import { isSupportedServiceAreaCoordinates } from "packages/utils/product/search/locations/serviceAreaAvailability";
 
 import type { IsochroneData } from "@/features/search/types/isochrone";
 import { extractViewportRingFromIsochroneGeometry } from "@/features/search/utils/map/extractViewportRingFromIsochroneGeometry";

@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
+
 ## Inspections and due diligence
 
 Inspection guidance is **static checklist content** under the `insurance` category (historical naming). No computed inspection-window milestones.

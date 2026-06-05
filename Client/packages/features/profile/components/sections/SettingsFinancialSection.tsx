@@ -9,7 +9,7 @@ import {
 import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { OliveCheckbox } from "packages/ui";
-import { Box, Pressable } from "packages/ui/components/primitives";
+import { Box, Pressable } from "packages/ui/components/structure/primitives";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import { BodyText, Dropdown, Input, Title } from "@/components/ui";

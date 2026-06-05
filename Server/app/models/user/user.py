@@ -36,6 +36,11 @@ class User(db.Model):
 
     has_preferences: Mapped[bool | None] = mapped_column(db.Boolean, default=False)
     preferences_version: Mapped[str | None] = mapped_column(db.String(10))
+    active_transaction_id: Mapped[str | None] = mapped_column(
+        db.String(36),
+        db.ForeignKey("transactions.id", ondelete="SET NULL", use_alter=True),
+        index=True,
+    )
 
     google_oauth_token: Mapped["GoogleOAuthToken | None"] = relationship(
         "GoogleOAuthToken",

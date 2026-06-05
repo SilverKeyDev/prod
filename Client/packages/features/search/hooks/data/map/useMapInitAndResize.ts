@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { log } from "packages/logger";
 import { screenUp } from "packages/ui/types/screens";
-import { dateNow } from "packages/utils/date";
-import { getWindow } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { getWindow } from "packages/utils/core/platform";
 
 import { googleMapsService } from "@/features/search/utils/googleMaps";
 

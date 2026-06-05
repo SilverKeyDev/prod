@@ -7,7 +7,7 @@ import { reportApi } from "packages/features/documents/api/report";
 import type { DocumentLibraryKind } from "packages/features/documents/types/documentLibrary";
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type AgreementParticipantData = {
   user_id: string;

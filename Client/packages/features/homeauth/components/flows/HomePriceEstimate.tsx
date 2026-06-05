@@ -2,8 +2,8 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Box } from "packages/ui/components/primitives";
-import type { HomePriceResult } from "packages/utils/affordability";
+import { Box } from "packages/ui/components/structure/primitives";
+import type { HomePriceResult } from "packages/utils/transaction/affordability";
 
 import { BodyText, Title } from "@/components/ui";
 

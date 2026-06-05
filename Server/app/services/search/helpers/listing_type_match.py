@@ -10,8 +10,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from logger import log
-
 _KNOWN_LISTING_TYPE_PREFS: frozenset[str] = frozenset(
     {
         "agent_listed",
@@ -155,12 +153,6 @@ def _pref_matches(
             or "preforeclosure" in text_blob.replace(" ", "")
         )
 
-    if pref_norm not in _KNOWN_LISTING_TYPE_PREFS:
-        log.info(
-            "SEARCH",
-            "Unknown listing_type preference",
-            {"pref": pref_norm, "status": status_norm},
-        )
     return False
 
 

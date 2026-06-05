@@ -1,9 +1,8 @@
 import React, { createContext, type ReactNode, useContext } from "react";
 
 import { preferencesApi, userApi } from "packages/config/http/api";
-
-import { negotiationService } from "@/features/negotiate/utils";
-import { googleMapsService } from "@/features/search/utils/googleMaps";
+import { negotiationService } from "packages/features/negotiate";
+import { googleMapsService } from "packages/features/search";
 
 /**
  * Service injection context - provides access to services without state management

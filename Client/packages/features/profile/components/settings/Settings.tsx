@@ -15,7 +15,7 @@ import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { useResponsive } from "packages/hooks/ui";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { log } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 // Google Maps types
 /// <reference types="google.maps" />

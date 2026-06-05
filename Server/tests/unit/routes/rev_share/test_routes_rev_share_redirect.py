@@ -15,7 +15,7 @@ def test_redirect_logs_click_and_returns_302(app, client, db_session):
     with app.app_context():
         partner = Partner(
             name="MC",
-            slug="move-concierge",
+            slug="test-partner-redirect",
             destination_url_template="https://partner.example/{link_id}",
             step_id="closing:13",
             payout_per_conversion=Decimal("5.50"),
@@ -55,7 +55,7 @@ def test_redirect_dedupes_same_session_same_day(app, client, db_session):
     with app.app_context():
         partner = Partner(
             name="MC",
-            slug="move-concierge-dedupe",
+            slug="test-partner-redirect-dedupe",
             destination_url_template="https://partner.example/{link_id}",
             step_id="closing:13",
             is_active=True,
@@ -103,7 +103,7 @@ def test_redirect_stores_transaction_id_when_valid(app, client, db_session):
         db.session.add(tx)
         partner = Partner(
             name="MC",
-            slug="move-concierge",
+            slug="test-partner-redirect",
             destination_url_template="https://partner.example/landing",
             step_id="closing:13",
             is_active=True,

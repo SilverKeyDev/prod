@@ -1,7 +1,7 @@
 import { apiGet, apiPost } from "packages/services/http";
 import { buildApiUrl } from "packages/services/http/urlHelpers";
 import type { components } from "packages/types/api.generated";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 // Re-export types from generated schema
 export type ServerLoggerConfig = components["schemas"]["ServerLoggerConfig"];

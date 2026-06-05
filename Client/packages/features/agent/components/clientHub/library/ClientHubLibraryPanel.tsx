@@ -7,11 +7,11 @@ import {
   useSavedPageDocumentHandlers,
 } from "packages/features/documents";
 import { PdfModal } from "packages/features/documents/components/pdf/PdfModalBridge";
-import type { AgreementData } from "packages/ui/components/cards/agreement";
-import { AgreementCard } from "packages/ui/components/cards/agreement";
-import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
-import { Box } from "packages/ui/components/primitives";
-import { dateParseISO } from "packages/utils/date";
+import { Box } from "packages/ui/components/structure/primitives";
+import type { AgreementData } from "packages/ui/components/surfaces/cards/agreement";
+import { AgreementCard } from "packages/ui/components/surfaces/cards/agreement";
+import DocumentCard from "packages/ui/components/surfaces/cards/document/DocumentCard";
+import { dateParseISO } from "packages/utils/core/date";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
 import { ClientHubDocumentSigningModals } from "@/features/agent/components/clientHub/ClientHubDocumentSigningModals";

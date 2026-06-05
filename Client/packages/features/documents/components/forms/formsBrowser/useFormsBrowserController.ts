@@ -6,8 +6,8 @@ import { useFormsLibrary } from "packages/features/documents/hooks/data/useForms
 import type { ChecklistForm } from "packages/features/documents/types/forms";
 import { log } from "packages/logger";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
-import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
-import { tryWebShareUrl } from "packages/utils/share";
+import type { DocumentCardExternalActionHandlers } from "packages/ui/components/surfaces/cards/document/types";
+import { tryWebShareUrl } from "packages/utils/comms/share";
 
 import { buildFormIdMap, buildProcessedFormCategories } from "./formsBrowserModel";
 

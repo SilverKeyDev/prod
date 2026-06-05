@@ -3,21 +3,21 @@ import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useLocalization } from "packages/contexts";
+import { listAgentRelationshipSummaries } from "packages/features/agent";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import type { ChecklistIntegrationComponentProps } from "packages/features/checklists/types/componentRegistry";
 import { isPartnerWithAgentStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 import { AgentDiscoveryView } from "@/features/agent/components/agentDiscovery/AgentDiscoveryView";
 import {
   initiatedConnectionRequestsQueryKey,
   useInitiatedConnectionRequests,
 } from "@/features/agent/hooks/data/connections/useInitiatedConnectionRequests";
-import { listAgentRelationshipSummaries } from "@/features/agent/utils/agentRelationshipSummaries";
 
 import PartnerAgentConnectedAgentsSection from "./PartnerAgentConnectedAgentsSection";
 

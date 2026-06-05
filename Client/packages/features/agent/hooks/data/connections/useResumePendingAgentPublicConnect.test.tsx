@@ -35,7 +35,7 @@ vi.mock("packages/store", () => ({
     selector({ enqueueToast }),
 }));
 
-vi.mock("packages/utils/agent", () => ({
+vi.mock("packages/utils/growth/agent", () => ({
   peekPendingPublicAgentConnect: vi.fn(),
   clearPendingPublicAgentConnect: vi.fn(),
 }));
@@ -43,7 +43,7 @@ vi.mock("packages/utils/agent", () => ({
 import {
   clearPendingPublicAgentConnect,
   peekPendingPublicAgentConnect,
-} from "packages/utils/agent";
+} from "packages/utils/growth/agent";
 
 describe("useResumePendingAgentPublicConnect", () => {
   beforeEach(() => {

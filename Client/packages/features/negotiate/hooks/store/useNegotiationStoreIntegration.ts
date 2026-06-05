@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 
+import { negotiationService } from "packages/features/negotiate";
 import { useAuthStore, useNegotiationStore } from "packages/store";
-
-import { negotiationService } from "@/features/negotiate/utils";
 
 /**
  * Hook that integrates negotiation data with useNegotiationStore

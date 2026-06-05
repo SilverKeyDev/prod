@@ -16,7 +16,6 @@ import * as events from "./events";
 import * as oauth from "./oauth";
 import * as permissions from "./permissions";
 import * as scheduling from "./scheduling";
-import * as viewings from "./viewings";
 
 export const googleCalendarApi = {
   startOAuth: oauth.startOAuth,
@@ -38,5 +37,3 @@ export const googleCalendarApi = {
   getClientEvents: scheduling.getClientEvents,
   getPermissions: permissions.getPermissions,
 };
-
-export const viewingsApi = viewings.viewingsApi;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { log } from "packages/logger";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 /**
  * Memory monitoring utilities (map-related).

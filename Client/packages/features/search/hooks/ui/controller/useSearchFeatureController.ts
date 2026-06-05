@@ -13,11 +13,11 @@ import { useSearchPageData } from "packages/features/search/hooks/data/page/useS
 import { useSearchPageHandlers } from "packages/features/search/hooks/data/page/useSearchPageHandlers";
 import type { Property } from "packages/features/search/hooks/data/property/usePropertyDetails";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
+import { useSearchRefreshIntegration } from "packages/features/search/hooks/data/useSearchRefreshIntegration";
 import { useSearchViewIntegration } from "packages/features/search/hooks/store/useSearchViewIntegration";
 import { useAgentSearchShareSelection } from "packages/features/search/hooks/ui/screen/useAgentSearchShareSelection";
 import { useSearchMobileHeaderActions } from "packages/features/search/hooks/ui/screen/useSearchMobileHeaderActions";
 import type { SearchResult } from "packages/features/search/types";
-import { useSearchRefreshIntegration } from "packages/hooks/data/integrations/useSearchRefreshIntegration";
 import { useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { usePreActionSnapshot } from "packages/hooks/ui";

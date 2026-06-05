@@ -5,7 +5,7 @@ import { getBaseUrl } from "packages/config";
 import { showErrorToast } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import { asError } from "packages/utils";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import { reportApi } from "@/features/documents/api/report";
 

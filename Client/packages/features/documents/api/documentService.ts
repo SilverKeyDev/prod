@@ -5,8 +5,8 @@ import type {
 } from "packages/features/documents/types/documents";
 import { log } from "packages/logger";
 import { createAbortManager, HttpError, isAbortError } from "packages/services/http";
-import { dateNow, dateParseISO } from "packages/utils/date";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 /** Client-side category when upload UI does not collect one (not sent on multipart upload). */
 export const DEFAULT_UPLOAD_DOCUMENT_CATEGORY = "general";

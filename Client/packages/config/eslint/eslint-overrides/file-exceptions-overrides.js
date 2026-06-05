@@ -9,7 +9,7 @@ export function fileExceptionsOverrides() {
         "packages/schemas/nav.ts",
         "packages/utils/profile/types.ts",
         "packages/utils/profile/utils.ts",
-        "packages/utils/search/MapZoomController.ts",
+        "packages/utils/product/search/MapZoomController.ts",
       ],
       rules: { "no-restricted-imports": "off", "no-restricted-syntax": "off" },
     },

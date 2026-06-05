@@ -1,5 +1,5 @@
 import { HttpError } from "packages/services/http/client";
-import { extractFirstValidationMessage } from "packages/utils/errorHandling/extractValidationDetail";
+import { extractFirstValidationMessage } from "packages/utils/core/errorHandling/extractValidationDetail";
 
 /** Surface server validation messages from partner logo upload failures. */
 export function getPartnerLogoUploadErrorMessage(err: unknown, fallback: string): string {

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import { DashboardFeature } from "packages/features/dashboard";
 import { useNavigation } from "packages/navigation";
-import { shellRoutePageMounted } from "packages/utils/perf/shellRouteLoadTiming";
+import { shellRoutePageMounted } from "packages/utils/core/perf/shellRouteLoadTiming";
 
 type DashboardPageProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;

@@ -1,7 +1,7 @@
 import React from "react";
 
-import Region from "packages/ui/components/accessibility/Region";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import Region from "packages/ui/components/system/accessibility/Region";
 
 const MOBILE_TOP_BAR_HEIGHT_PX = 80; // h-20 – default height (search and dense chrome)
 /** Matches `SIDEBAR_INSET_HEADER_SHELL` (`h-14`) so messaging header is not vertically centered in extra slack. */

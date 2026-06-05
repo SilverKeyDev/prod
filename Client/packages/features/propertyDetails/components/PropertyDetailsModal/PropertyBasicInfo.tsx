@@ -1,15 +1,15 @@
 import React from "react";
 
 import { hasRenderableListingPrice } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import {
   formatLotSize,
   formatStructuredAddress,
-} from "packages/utils/format/property/addressFormatting";
+} from "packages/utils/core/format/property/addressFormatting";
 import {
   formatPrice,
   formatPropertyType,
-} from "packages/utils/format/property/propertyDetailsDisplayFormatters";
+} from "packages/utils/core/format/property/propertyDetailsDisplayFormatters";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";

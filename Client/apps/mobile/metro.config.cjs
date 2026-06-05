@@ -332,15 +332,15 @@ function customResolveRequestImpl(context, moduleName, platform) {
   // 0e) On native, force HeartSave and IconButton to .native so we never load web implementations
   //     that use <button> or <div> (RN has no View config for those).
   if ((platform === "ios" || platform === "android") && typeof moduleName === "string") {
-    const uiButtonDir = path.join(monorepoRoot, "packages/ui/components/button");
+    const uiButtonDir = path.join(monorepoRoot, "packages/ui/components/actions/button");
     let stem = null;
     if (
       moduleName === "@ui/button/HeartSave" ||
       moduleName.startsWith("@ui/button/HeartSave/") ||
       moduleName === "@ui/button/propertyActions/HeartSave" ||
       moduleName.startsWith("@ui/button/propertyActions/HeartSave/") ||
-      moduleName === "packages/ui/components/button/HeartSave" ||
-      moduleName === "packages/ui/components/button/propertyActions/HeartSave" ||
+      moduleName === "packages/ui/components/actions/button/HeartSave" ||
+      moduleName === "packages/ui/components/actions/button/propertyActions/HeartSave" ||
       moduleName === "./HeartSave" ||
       moduleName === "../button/HeartSave"
     ) {
@@ -348,7 +348,7 @@ function customResolveRequestImpl(context, moduleName, platform) {
     } else if (
       moduleName === "@ui/button/IconButton" ||
       moduleName.startsWith("@ui/button/IconButton/") ||
-      moduleName === "packages/ui/components/button/IconButton" ||
+      moduleName === "packages/ui/components/actions/button/IconButton" ||
       moduleName === "./IconButton" ||
       moduleName === "../button/IconButton"
     ) {
@@ -380,7 +380,7 @@ function customResolveRequestImpl(context, moduleName, platform) {
   ) {
     const originDir = origin
       ? path.dirname(origin)
-      : path.resolve(monorepoRoot, "packages/ui/components/asset");
+      : path.resolve(monorepoRoot, "packages/ui/components/media/asset");
     let absolutePath = path.resolve(originDir, moduleName);
     const rootNorm = path.normalize(monorepoRoot);
     let pathNorm = path.normalize(absolutePath);

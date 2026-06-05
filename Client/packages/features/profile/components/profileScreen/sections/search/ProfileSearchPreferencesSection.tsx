@@ -13,8 +13,8 @@ import { ProfileFinancialSection } from "packages/features/profile/components/pr
 import { ProfileLocationSection } from "packages/features/profile/components/profileScreen/sections/location/ProfileLocationSection";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { type OnboardingData, SECTION_TITLES } from "packages/features/profile/utils";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 import { HousingEssentialRows } from "@/features/profile/components/sections/housing/HousingEssentialRows";
 import { HousingRangeRows } from "@/features/profile/components/sections/housing/HousingRangeRows";

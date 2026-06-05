@@ -2,7 +2,7 @@ import type { AuthResponse } from "packages/features/homeauth/types";
 import { log } from "packages/logger";
 import { apiPost } from "packages/services/http";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 function maskEmail(email: string): string {
   if (!email) return "missing";

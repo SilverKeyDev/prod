@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 type MessagingSidebarShellProps = {
   isSidebarExpanded: boolean;

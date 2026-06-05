@@ -4,8 +4,8 @@ import Button from "@ui/button/Button";
 import { Icon } from "@ui/icons";
 
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 import {
   GEO_TYPE_LABELS,

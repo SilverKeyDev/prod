@@ -1,7 +1,7 @@
 import { type MutableRefObject, useEffect } from "react";
 
 import { log } from "packages/logger";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 type FeedScrollRef = MutableRefObject<unknown>;
 

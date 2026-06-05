@@ -7,18 +7,15 @@ import {
 } from "./buildProfileFlow";
 
 describe("resolveTemplateId", () => {
-  it("maps seller and integration_partner to minimal_onboarding", () => {
+  it("maps shell workspace roles to dedicated onboarding templates", () => {
     expect(resolveTemplateId({ surface: "onboarding", primaryRole: "seller" })).toBe(
-      "minimal_onboarding"
+      "seller_onboarding"
     );
-    expect(resolveTemplateId({ surface: "onboarding", primaryRole: "integration_partner" })).toBe(
-      "minimal_onboarding"
-    );
-  });
-
-  it("maps brokerage to brokerage_onboarding", () => {
     expect(resolveTemplateId({ surface: "onboarding", primaryRole: "brokerage" })).toBe(
       "brokerage_onboarding"
+    );
+    expect(resolveTemplateId({ surface: "onboarding", primaryRole: "integration_partner" })).toBe(
+      "integration_partner_onboarding"
     );
   });
 
@@ -46,20 +43,28 @@ describe("resolveTemplateId", () => {
 });
 
 describe("buildOnboardingFlowFromOptions", () => {
-  it("seller flow is role picker only", () => {
+  it("seller flow includes shell setup step", () => {
     const ids = buildOnboardingFlowFromOptions({
       primaryRole: "seller",
       excludeFinancial: true,
     }).map((s) => s.id);
-    expect(ids).toEqual(["onboarding_role"]);
+    expect(ids).toEqual(["onboarding_role", "seller_shell_setup"]);
   });
 
-  it("brokerage flow is role picker only", () => {
+  it("brokerage flow includes shell setup step", () => {
     const ids = buildOnboardingFlowFromOptions({
       primaryRole: "brokerage",
       excludeFinancial: true,
     }).map((s) => s.id);
-    expect(ids).toEqual(["onboarding_role"]);
+    expect(ids).toEqual(["onboarding_role", "brokerage_shell_setup"]);
+  });
+
+  it("integration partner flow includes shell setup step", () => {
+    const ids = buildOnboardingFlowFromOptions({
+      primaryRole: "integration_partner",
+      excludeFinancial: true,
+    }).map((s) => s.id);
+    expect(ids).toEqual(["onboarding_role", "integration_partner_shell_setup"]);
   });
 
   it("excludes financial when excludeFinancial is true", () => {

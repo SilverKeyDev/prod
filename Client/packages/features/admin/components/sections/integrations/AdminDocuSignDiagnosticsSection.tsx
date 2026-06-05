@@ -4,7 +4,7 @@ import { adminApi } from "packages/api/admin";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import { log } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 

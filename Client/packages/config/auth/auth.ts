@@ -3,7 +3,7 @@
    ========================= */
 
 import { log } from "packages/logger";
-import { getLocalStorage, getSessionStorage } from "packages/utils/storage/platformStorage";
+import { getLocalStorage, getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 /**
  * Authentication configuration that matches existing patterns

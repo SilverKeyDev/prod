@@ -3,7 +3,7 @@ import { log } from "packages/logger";
 import { apiPost } from "packages/services/http";
 import { HttpError } from "packages/services/http";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 function maskEmail(email: string | undefined): string {
   if (!email) return "missing";

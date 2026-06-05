@@ -1,4 +1,4 @@
-import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { traceDynamicImport } from "packages/utils/core/perf/shellRouteLoadTiming";
 
 import { loadClientHubModule, loadClientListModule } from "./agentDashboardDynamicImports";
 

@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { log } from "packages/logger";
 import type { ScheduleEventRequest } from "packages/schemas/scheduling";
 import { useGoogleCalendarStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
-import { dateNow } from "packages/utils/date";
+import { Box } from "packages/ui/components/structure/primitives";
+import { dateNow } from "packages/utils/core/date";
 
 import { BodyText, Button, CancelButton, Title } from "@/components/ui";
 import { useScheduling } from "@/features/calendar/hooks/data/core/useScheduling";

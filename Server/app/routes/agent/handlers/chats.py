@@ -27,7 +27,7 @@ from app.services.agent import (
     send_message as send_conversation_message,
 )
 from app.services.agent.client_service import get_user_agent_id
-from app.services.agent.conversation_access import user_may_access_conversation
+from app.services.agent.conversation import user_may_access_conversation
 from app.services.auth.user_role_helpers import user_is_agent
 from app.utils.common_patterns import (
     forbidden,

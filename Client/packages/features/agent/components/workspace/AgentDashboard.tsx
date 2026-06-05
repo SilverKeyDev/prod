@@ -3,9 +3,9 @@ import { lazy, Suspense, useLayoutEffect } from "react";
 import type { ReactNode } from "react";
 
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/primitives";
-import { logMessagingCheckpointSinceLatestShellMark } from "packages/utils/perf/messagingRoutePerf";
-import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { Box } from "packages/ui/components/structure/primitives";
+import { logMessagingCheckpointSinceLatestShellMark } from "packages/utils/core/perf/messagingRoutePerf";
+import { traceLazyImport } from "packages/utils/core/perf/shellRouteLoadTiming";
 
 import { loadAgentMessagingUIModule } from "./agentMessagingEntryLoad";
 

@@ -5,14 +5,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { log } from "packages/logger";
 import { Link } from "packages/navigation";
-import AccessibleLink from "packages/ui/components/accessibility/AccessibleLink";
-import Region from "packages/ui/components/accessibility/Region";
-import Button from "packages/ui/components/button/Button";
-import { Box } from "packages/ui/components/primitives";
+import Button from "packages/ui/components/actions/button/Button";
+import { Box } from "packages/ui/components/structure/primitives";
 import {
   getChromeNavButtonStyles,
   getChromeNavSubItemStyles,
-} from "packages/ui/components/sidebar/sidebarTheme";
+} from "packages/ui/components/structure/sidebar/sidebarTheme";
+import AccessibleLink from "packages/ui/components/system/accessibility/AccessibleLink";
+import Region from "packages/ui/components/system/accessibility/Region";
 
 import { type NavCategory, type SidebarNavItem } from "./sidebarNav.web";
 import {

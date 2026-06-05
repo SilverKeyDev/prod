@@ -1,8 +1,8 @@
 import { useLocalization } from "packages/contexts";
 import { NavigationButton, Subtitle } from "packages/ui";
-import Card from "packages/ui/components/cards/Card";
-import { Box, Image } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { Box, Image } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
+import { getWindow } from "packages/utils/core/platform";
 
 type PartnerPlacementCardProps = {
   name: string;

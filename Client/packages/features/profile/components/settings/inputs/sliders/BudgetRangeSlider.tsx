@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from "react";
 
 import { spacing } from "packages/design-tokens";
+import { useSliderTickMapping } from "packages/features/profile/hooks/useSliderTickMapping";
 import { RangeInput } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 import { formatCompactNumber, formatNumber } from "packages/utils";
 
 import { RangeSliderTrackRoot, TickMappedRangeSliderChrome } from "./TickMappedRangeSliderFrame";
 import { getRangeSliderThumbClass, RANGE_SLIDER_HIT_HEIGHT } from "./tickMappedRangeSliderShared";
-import { useSliderTickMapping } from "./useSliderTickMapping";
 
 type BudgetRangeSliderProps = {
   tickValues: number[];

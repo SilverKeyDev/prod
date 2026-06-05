@@ -12,9 +12,9 @@ import type {
   SharedChecklistFormSnapshot,
 } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
 import { SearchResultListingCard } from "packages/features/search";
-import type { HomeDescription } from "packages/ui/components/cards/HomeCard";
-import { Box } from "packages/ui/components/primitives";
-import { homeDescriptionToSearchResult } from "packages/utils/search/scoring/homeDescriptionToSearchResult";
+import { Box } from "packages/ui/components/structure/primitives";
+import type { HomeDescription } from "packages/ui/components/surfaces/cards/HomeCard";
+import { homeDescriptionToSearchResult } from "packages/utils/product/search/scoring/homeDescriptionToSearchResult";
 
 import { BodyText } from "@/components/ui";
 import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";

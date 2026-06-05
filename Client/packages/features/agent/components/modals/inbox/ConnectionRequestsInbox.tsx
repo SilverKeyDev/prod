@@ -1,8 +1,8 @@
 import { Icon } from "@ui/icons";
 
 import { useUIStore } from "packages/store";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { Box } from "packages/ui/components/primitives";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";

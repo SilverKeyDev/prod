@@ -6,7 +6,7 @@ import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
 import type { SavedHome, SearchResult } from "packages/types";
-import { createPersistStorageProxy } from "packages/utils/storage/platformStorage";
+import { createPersistStorageProxy } from "packages/utils/core/storage/platformStorage";
 
 export type SavedHomesState = {
   // Saved homes data

@@ -2,7 +2,7 @@ import type React from "react";
 
 import { color, spacing } from "packages/design-tokens";
 import { IconButton } from "packages/ui";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 import type { CalendarViewType } from "@/features/calendar/types/calendar";
 

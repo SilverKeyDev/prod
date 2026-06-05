@@ -4,11 +4,11 @@ import { getEnv, userApi } from "packages/config";
 import { queryKeys } from "packages/config/query/keys";
 import { log } from "packages/logger";
 import type { SavedHome } from "packages/types";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
-import { getWindow } from "packages/utils/platform";
-import type { RawHomeData } from "packages/utils/saved";
-import { mapSavedHomeWireToSavedHome } from "packages/utils/saved";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
+import { getWindow } from "packages/utils/core/platform";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
+import type { RawHomeData } from "packages/utils/transaction/saved";
+import { mapSavedHomeWireToSavedHome } from "packages/utils/transaction/saved";
 
 interface WindowWithGoogle {
   google?: {

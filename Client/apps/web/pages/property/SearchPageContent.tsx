@@ -7,8 +7,8 @@ import {
   SearchPageModals,
   type SearchResult,
 } from "packages/features/search";
-import { MotionView } from "packages/ui/components/adapters/motion";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { MotionView } from "packages/ui/components/system/adapters/motion";
 
 import { IconButton } from "@/components/ui";
 

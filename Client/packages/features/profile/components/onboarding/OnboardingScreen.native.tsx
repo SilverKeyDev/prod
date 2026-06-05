@@ -7,9 +7,9 @@ import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useOnboardingForm } from "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm";
 import { isOnboardingStepComplete } from "packages/features/profile/utils";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";
 
 import { renderOnboardingStep } from "./renderOnboardingStep.native";
 

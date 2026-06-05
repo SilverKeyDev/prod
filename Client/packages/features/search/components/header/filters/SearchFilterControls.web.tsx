@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
+import type { OnboardingData } from "packages/features/profile";
 import { SEARCH_HEADER_PANEL_MAX_HEIGHT } from "packages/features/search/components/header/searchHeaderConstants";
 import { useSearchFilterControlsOverflow } from "packages/features/search/hooks/ui/controller/useSearchFilterControlsOverflow.web";
 import {
@@ -14,11 +15,10 @@ import {
 } from "packages/features/search/utils/filters/searchHeaderFilterOrder";
 import { useContainerWidth } from "packages/hooks/ui/useContainerWidth";
 import { useSearchContextStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
-import type { OnboardingData } from "@/features/profile/utils";
 import BedBathFilter from "@/features/search/components/filters/BedBathFilter.web";
 import HomeTypeFilter from "@/features/search/components/filters/HomeTypeFilter.web";
 import OtherFilterContent from "@/features/search/components/filters/OtherFilterContent.web";

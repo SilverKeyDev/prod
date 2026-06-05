@@ -4,7 +4,7 @@
 
 import { color } from "packages/design-tokens";
 import { log } from "packages/logger";
-import { getIsochroneUnionFillForGoogleMaps } from "packages/utils/maps/isochrone/isochroneUnionStyle";
+import { getIsochroneUnionFillForGoogleMaps } from "packages/utils/product/maps/isochrone/isochroneUnionStyle";
 
 import {
   searchMapPolygonIndividualZIndex,

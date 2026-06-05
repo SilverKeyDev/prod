@@ -18,11 +18,11 @@ import {
 } from "packages/features/search/types/otherFilterOptions";
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
 import { ClientSelector } from "packages/ui";
-import { ScrollView } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { ScrollView } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 import { FilterChipRow } from "./FilterChipRow";
 

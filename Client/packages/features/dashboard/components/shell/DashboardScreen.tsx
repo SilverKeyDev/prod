@@ -3,23 +3,23 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { DashboardAgentTodaySection, mapTodosToAgendaDTO } from "packages/features/agent";
-import { type AgendaTodoDTO, Calendar, UpcomingEvents } from "packages/features/calendar";
-import DashboardChecklists from "packages/features/dashboard/components/DashboardChecklists/DashboardChecklists";
-import { MobileAgendaAddButton } from "packages/features/dashboard/components/widgets/MobileAgendaAddButton";
-import { useActiveWorkspace } from "packages/features/homeauth";
 import {
   submitAgendaItemAsGoogleCalendarEvent,
   submitAgentAgendaTodo,
-} from "packages/hooks/data/agenda/agentAgendaTodoSubmit";
+} from "packages/features/agent/hooks/data/agenda/agentAgendaTodoSubmit";
+import { type AgendaTodoDTO, Calendar, UpcomingEvents } from "packages/features/calendar";
+import DashboardChecklists from "packages/features/dashboard/components/DashboardChecklists/DashboardChecklists";
+import { MobileAgendaAddButton } from "packages/features/dashboard/components/widgets/MobileAgendaAddButton";
 import {
   useCompletedSigningTodos,
   useSigningTodos,
-} from "packages/hooks/data/agenda/useSigningTodos";
+} from "packages/features/documents/hooks/data/agenda/useSigningTodos";
+import { useActiveWorkspace } from "packages/features/homeauth";
 import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import { Box, ScrollView, Text } from "packages/ui/components/primitives";
+import { Box, ScrollView, Text } from "packages/ui/components/structure/primitives";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/clientHub/useAgentTodos";
 import { useCalendarOAuthCallback } from "@/features/calendar/hooks/data";
@@ -39,7 +39,7 @@ export function DashboardScreen() {
   const canCreateEvent = Boolean(isConnected && defaultCalendarId);
   const useCalendarEventForTodo = Boolean(canCreateEvent && defaultCalendarId);
 
-  const { todos, createTodo, updateTodo } = useAgentTodos(false);
+  const { todos, createTodo, updateTodo } = useAgentTodos(true);
   const signingTodos = useSigningTodos(isAgentWorkspace);
   const completedSigningTodos = useCompletedSigningTodos();
 

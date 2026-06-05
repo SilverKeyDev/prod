@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { openAgentPublicProfileExternal } from "packages/utils/agent";
+import { openAgentPublicProfileExternal } from "packages/utils/growth/agent";
 
 import { AgentDiscoveryView } from "./AgentDiscoveryView";
 
@@ -59,8 +59,8 @@ vi.mock("packages/store", () => ({
     selector({ enqueueToast: vi.fn() }),
 }));
 
-vi.mock("packages/utils/agent", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("packages/utils/agent")>();
+vi.mock("packages/utils/growth/agent", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("packages/utils/growth/agent")>();
   return { ...actual, openAgentPublicProfileExternal: vi.fn() };
 });
 

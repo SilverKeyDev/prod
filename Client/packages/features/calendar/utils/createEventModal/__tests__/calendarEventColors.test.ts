@@ -68,9 +68,7 @@ describe("calendarColorForEvent", () => {
       end: { dateTime: "2026-06-01T11:00:00Z" },
       silverKeyEventType: "property_viewing",
     };
-    expect(calendarColorForEvent(ev, cals)).toBe(
-      color(CALENDAR_EVENT_KINDS.property_viewings.uiColorPath)
-    );
+    expect(calendarColorForEvent(ev, cals)).toBe(color("calendar.eventKind.warmBrown"));
   });
 
   it("infers type color from free-text title when there is no DB hint", () => {
@@ -81,9 +79,7 @@ describe("calendarColorForEvent", () => {
       start: { dateTime: "2026-06-01T10:00:00Z" },
       end: { dateTime: "2026-06-01T11:00:00Z" },
     };
-    expect(calendarColorForEvent(ev, cals)).toBe(
-      color(CALENDAR_EVENT_KINDS.property_viewings.uiColorPath)
-    );
+    expect(calendarColorForEvent(ev, cals)).toBe(color("calendar.eventKind.warmBrown"));
   });
 });
 

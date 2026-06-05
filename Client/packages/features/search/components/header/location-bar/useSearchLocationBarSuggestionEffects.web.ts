@@ -6,11 +6,11 @@ import { searchApi } from "packages/features/search/api/search";
 import { log } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import { asError } from "packages/utils";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 import {
   SUPPORTED_SERVICE_AREA_GOOGLE_LOCATION_RESTRICTION,
   SUPPORTED_SERVICE_AREA_STATE_SHORT,
-} from "packages/utils/search/locations/serviceAreaAvailability";
+} from "packages/utils/product/search/locations/serviceAreaAvailability";
 
 import type { GoogleSuggestion, SlipstreamSuggestion, Suggestion } from "./searchLocationBarTypes";
 

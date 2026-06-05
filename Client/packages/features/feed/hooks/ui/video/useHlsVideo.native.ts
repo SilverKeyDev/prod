@@ -1,4 +1,4 @@
 /**
  * Re-export from packages/ui adapter (native no-op impl).
  */
-export { useHlsVideo } from "packages/ui/components/adapters/hls";
+export { useHlsVideo } from "packages/ui/components/system/adapters/hls";

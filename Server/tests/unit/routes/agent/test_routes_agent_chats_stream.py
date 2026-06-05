@@ -29,14 +29,14 @@ def _load_chats_stream_module():
     security.rate_limit = lambda **_kwargs: lambda f: f
 
     patched_modules = (
-        "app.services.agent.messaging_realtime",
+        "app.services.agent.conversation.messaging_realtime",
         "app.utils.common_patterns",
         "app.utils.security",
     )
     saved_modules = {key: sys.modules.get(key) for key in patched_modules}
 
     try:
-        sys.modules["app.services.agent.messaging_realtime"] = messaging_realtime
+        sys.modules["app.services.agent.conversation.messaging_realtime"] = messaging_realtime
         sys.modules["app.utils.common_patterns"] = common_patterns
         sys.modules["app.utils.security"] = security
 

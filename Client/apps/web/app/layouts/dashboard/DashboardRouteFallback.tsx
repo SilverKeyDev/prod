@@ -1,4 +1,4 @@
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import type { DashboardAreaKey } from "./useDashboardRoute";
 

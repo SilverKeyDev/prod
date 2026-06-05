@@ -1,7 +1,7 @@
 import { Icon } from "@ui/icons";
 
 import { Button, Textarea } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Label, Title } from "@/components/ui";
 import type { AgentSearchResult } from "@/features/agent/api/agent";

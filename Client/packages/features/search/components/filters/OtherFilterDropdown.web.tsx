@@ -4,10 +4,10 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { LotSizeHomeAgeSearchOverridesPatch } from "packages/features/profile";
-import { Box } from "packages/ui/components/primitives";
+import type { OnboardingData } from "packages/features/profile";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button } from "@/components/ui";
-import type { OnboardingData } from "@/features/profile/utils";
 
 import OtherFilterContent from "./OtherFilterContent.web";
 

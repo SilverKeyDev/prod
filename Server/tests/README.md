@@ -26,7 +26,10 @@ Recent additions target former weak spots:
 | File upload security | `tests/unit/utils/security/test_file_security.py` |
 | Secure upload routes | `tests/unit/routes/documents/test_routes_secure_upload.py` |
 | Transaction access | `tests/unit/services/transactions/test_access.py` |
-| Negotiation / offer | `tests/unit/services/negotiation/`, `tests/unit/routes/offer/` |
+| Negotiation / offer | `tests/unit/services/negotiation/`, `tests/unit/routes/negotiation/` |
+| Research routes | `tests/unit/routes/research/` |
+| DocuSign routes | `tests/unit/routes/documents/docusign/` |
+| Search maps script | `tests/unit/routes/search/test_routes_maps_http_errors.py` |
 | Documents S3 presign | `tests/unit/services/documents/test_s3_presign_and_validation.py` |
 | Preferences write | `tests/unit/services/aggregation/test_preferences_aggregation_write.py` |
 | Forms library auth | `tests/unit/routes/forms/test_routes_forms_library.py` |
@@ -86,7 +89,10 @@ pytest tests/
 # Authentication tests
 pytest tests/unit/auth/
 
-# DocuSign integration tests
+# DocuSign route tests (mirrors app/routes/documents/docusign/)
+pytest tests/unit/routes/documents/docusign/
+
+# DocuSign service integration tests
 pytest tests/unit/integrations/docusign/
 
 # Calendar integration tests
@@ -101,7 +107,9 @@ pytest tests/unit/search/preferences/
 
 # API routes tests (by domain under tests/unit/routes/)
 pytest tests/unit/routes/auth/
-pytest tests/unit/routes/docusign/
+pytest tests/unit/routes/documents/docusign/
+pytest tests/unit/routes/research/
+pytest tests/unit/routes/negotiation/
 pytest tests/unit/routes/calendar/
 pytest tests/unit/routes/   # all route unit tests
 ```
@@ -153,9 +161,13 @@ pytest tests/unit/test_auth_login.py::TestLoginFlow::test_successful_login
 
 - **API Routes** (`tests/unit/routes/<domain>/`): HTTP blueprint tests grouped by domain
   - `auth/` — auth, profile, preferences (`test_routes_auth.py`, `test_routes_user_*.py`)
-  - `docusign/` — DocuSign routes and shared `docusign_route_test_helpers.py`
+  - `documents/docusign/` — DocuSign routes and shared `docusign_route_test_helpers.py` (mirrors `app/routes/documents/docusign/`)
+  - `documents/` — secure upload and report routes
+  - `research/` — property research and task-status routes (mirrors `app/routes/research/`)
+  - `negotiation/` — offer strategy routes (mirrors `app/routes/negotiation/`)
   - `calendar/` — Google Calendar API routes (`test_routes_calendar.py`; service tests live in `tests/unit/integrations/calendar/`)
-  - `rev_share/`, `user_properties/`, `transactions/`, `admin/`, `agent/`, `search/`
+  - `search/` — polygon, isochrone, home matching, maps script (`test_routes_maps_http_errors.py`; mirrors `app/routes/search/maps.py`)
+  - `rev_share/`, `user_properties/`, `transactions/`, `admin/`, `agent/`
   - Domain route test files use `test_routes_<domain>_<feature>.py` naming
   - Parent: `test_rate_limit_unauthenticated.py` (cross-cutting)
 
@@ -315,7 +327,7 @@ Shared test fixtures:
 - GET `/api/v1/auth/google/callback`
 - GET `/api/v1/auth/user`
 
-**DocuSign Routes** (`routes/docusign/test_routes_docusign.py`):
+**DocuSign Routes** (`routes/documents/docusign/test_routes_docusign.py`):
 - GET `/api/v1/documents/docusign/templates`
 - POST `/api/v1/documents/docusign/agreements`
 - GET `/api/v1/documents/docusign/agreements/:id`

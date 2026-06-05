@@ -1,12 +1,14 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { dateNow, dayjs } from "packages/utils/date";
+import { dateNow, dayjs } from "packages/utils/core/date";
 
 import { useGoogleCalendarPermissions } from "@/features/calendar/hooks/data/google/useGoogleCalendarPermissions";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
+import { useAgendaEventCompletion } from "@/features/calendar/hooks/ui/useAgendaEventCompletion";
 import { useUpcomingAgendaHeaderActions } from "@/features/calendar/hooks/ui/useUpcomingAgendaHeaderActions";
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
+import { filterAgendaEventsExcludingCompleted } from "@/features/calendar/utils/agenda/agendaEventCompletionKey";
 import {
   filterTodosInRange,
   mergeUpcomingAgendaItems,
@@ -59,6 +61,8 @@ export function useUpcomingEventsData({
     useGoogleCalendarPermissions();
 
   const [allAgendaEventsModalOpen, setAllAgendaEventsModalOpen] = useState(false);
+  const { isAgendaEventComplete, onToggleAgendaEventComplete, completedEventKeys } =
+    useAgendaEventCompletion();
 
   const [todayDateString, setTodayDateString] = useState(() => dateNow().format("ddd MMM DD YYYY"));
   const lastCheckedDateRef = useRef<string>(todayDateString);
@@ -147,6 +151,11 @@ export function useUpcomingEventsData({
     [upcomingEventsRaw, effectiveSilverKeyCalendarId]
   );
 
+  const upcomingEventsForCompact = useMemo(
+    () => filterAgendaEventsExcludingCompleted(upcomingEvents, completedEventKeys),
+    [upcomingEvents, completedEventKeys]
+  );
+
   const agendaTodosInRange = useMemo(() => {
     if (!agendaTodos?.length) {
       return [];
@@ -167,8 +176,8 @@ export function useUpcomingEventsData({
   }, [agendaTodos]);
 
   const mergedAgendaItems = useMemo(
-    () => mergeUpcomingAgendaItems(upcomingEvents, agendaTodosIncompleteInRange),
-    [upcomingEvents, agendaTodosIncompleteInRange]
+    () => mergeUpcomingAgendaItems(upcomingEventsForCompact, agendaTodosIncompleteInRange),
+    [upcomingEventsForCompact, agendaTodosIncompleteInRange]
   );
 
   const handleConnect = useCallback(() => {
@@ -240,6 +249,8 @@ export function useUpcomingEventsData({
     onToggleAgendaTodo,
     canEditAgendaTodos,
     onSigningAgendaPress,
+    isAgendaEventComplete,
+    onToggleAgendaEventComplete,
   };
 
   const clientAgendaLoading = isClientAgendaMode && clientEventsQuery.isLoading;
@@ -292,5 +303,8 @@ export function useUpcomingEventsData({
     agendaListProps,
     eventListHeaderActions,
     handleConnect,
+    isAgendaEventComplete,
+    onToggleAgendaEventComplete,
+    completedEventKeys,
   };
 }

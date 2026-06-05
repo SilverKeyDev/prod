@@ -2,12 +2,12 @@ import type { KeyboardEvent, MouseEvent } from "react";
 
 import { color, spacing } from "packages/design-tokens";
 import { useFeedGestureTrap } from "packages/hooks/ui";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
 import {
   eventSpansMultipleLocalDays,
   getEventFirstLocalDayKey,
-} from "packages/utils/calendar/parsing/eventParsing";
-import { dateParseISO } from "packages/utils/date";
+} from "packages/utils/comms/calendar/parsing/eventParsing";
+import { dateParseISO } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { CalendarMonthGridStyles } from "@/features/calendar/components/shell/calendarMonthGridStyles";

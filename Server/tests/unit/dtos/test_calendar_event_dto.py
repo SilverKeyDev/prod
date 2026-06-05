@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import Mock, patch
 
-from app.dtos.calendar_event import CalendarEventDTO, _has_create_metadata, _itinerary_for_response
+from app.dtos.calendar.calendar_event import CalendarEventDTO, _has_create_metadata
 
 
 def _google_event(**overrides):
@@ -26,44 +26,15 @@ def _calendar_row(**overrides):
     return row
 
 
-class TestItineraryForResponse:
-    def test_validates_stops_only_legacy_shape(self):
-        raw = {
-            "stops": [
-                {"address": "A", "lat": 1.0, "lng": 2.0},
-                {"address": "B", "lat": 3.0, "lng": 4.0},
-            ]
-        }
-        result = _itinerary_for_response(raw)
-        assert result is not None
-        assert len(result["stops"]) == 2
-        assert result["stops"][0]["address"] == "A"
-        assert result["stops"][1]["address"] == "B"
-        assert result.get("end_mode") == "last_property"
-
-    def test_passes_through_invalid_legacy_shape(self):
-        raw = {"stops": []}
-        result = _itinerary_for_response(raw)
-        assert result == raw
-
-    def test_returns_none_for_empty(self):
-        assert _itinerary_for_response(None) is None
-
-
 class TestCalendarEventDTOToResponse:
     def test_merges_db_overlays(self):
-        itinerary = {
-            "stops": [{"address": "123 Main St"}],
-            "start": {"label": "Office", "address": "Office"},
-            "end_mode": "last_property",
-        }
-        row = _calendar_row(itinerary=itinerary, event_type="property_viewing")
+        row = _calendar_row(event_type="property_viewing")
 
         result = CalendarEventDTO.to_response(_google_event(), calendar_event_row=row)
 
         assert result["silverKeyEventType"] == "property_viewing"
-        assert result["itinerary"]["stops"][0]["address"] == "123 Main St"
         assert result["summary"] == "Test Event"
+        assert "itinerary" not in result
 
     def test_preserves_google_metadata_keys(self):
         google = _google_event(
@@ -102,12 +73,11 @@ class TestCalendarEventDTOToResponse:
 
 
 class TestCalendarEventDTOEnrichEvents:
-    @patch("app.dtos.calendar_event.db.session.scalars")
+    @patch("app.dtos.calendar.calendar_event.db.session.scalars")
     def test_batch_merges_by_google_event_id(self, mock_scalars):
         row = _calendar_row(
             google_event_id="event-123",
             event_type="meeting",
-            itinerary={"stops": [{"address": "A"}]},
         )
         mock_scalars.return_value.all.return_value = [row]
 
@@ -130,7 +100,7 @@ class TestCalendarEventDTOEnrichEvents:
 
         assert len(enriched) == 2
         assert enriched[0]["silverKeyEventType"] == "meeting"
-        assert enriched[0]["itinerary"]["stops"][0]["address"] == "A"
+        assert "itinerary" not in enriched[0]
         assert "silverKeyEventType" not in enriched[1]
 
     def test_returns_empty_for_non_list(self):

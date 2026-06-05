@@ -9,8 +9,8 @@ import { usePreferencesSubmit, useUserPreferences } from "packages/hooks/data/us
 import { useIsAgent } from "packages/hooks/store";
 import { useSearchContextStore } from "packages/store";
 import { Button } from "packages/ui";
-import { BaseModal } from "packages/ui/components/modals";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
 
 import { SearchFiltersContent } from "./SearchFiltersContent";
 

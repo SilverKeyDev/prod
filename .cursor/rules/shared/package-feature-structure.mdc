@@ -48,5 +48,6 @@ packages/features/saved/
 ## References
 
 - **Feature package README:** `Client/packages/features/README.md`
+- **Cross-feature composition:** `documentation/client/architecture/cross-feature-composition.md` (barrels, orchestrators, import tiers)
 - **Lint reference:** `documentation/client/standards/LINTING.md` (run lint; package-module-allowed-children is in ESLint)
 - **Shared packages:** `documentation/client/architecture/shared-packages.md`

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";

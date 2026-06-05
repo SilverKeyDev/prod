@@ -7,11 +7,11 @@ import {
   getSearchProductTourSteps,
   type SearchProductTourLayout,
   type SearchProductTourStep,
-} from "packages/utils/tour/productTourSteps";
+} from "packages/utils/transaction/tour/productTourSteps";
 import {
   isSearchProductTourStepCompleted,
   markSearchProductTourStepCompleted,
-} from "packages/utils/tour/productTourStorage";
+} from "packages/utils/transaction/tour/productTourStorage";
 
 function stepIdForDriveStep(
   step: DriveStep | undefined,

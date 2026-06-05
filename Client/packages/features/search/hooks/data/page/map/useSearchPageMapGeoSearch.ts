@@ -21,7 +21,7 @@ import {
 } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { log } from "packages/logger";
 import type { ViewportPolygonPoint } from "packages/types/domain/api";
-import { isSupportedServiceAreaCoordinates } from "packages/utils/search/locations/serviceAreaAvailability";
+import { isSupportedServiceAreaCoordinates } from "packages/utils/product/search/locations/serviceAreaAvailability";
 
 import {
   type MapPreviewSearchLifecycleHooks,

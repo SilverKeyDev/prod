@@ -18,7 +18,7 @@ import {
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
 import { resetWorkspaceStore, useDevAppPersonaStore } from "packages/store";
 import { asError, getWindow } from "packages/utils";
-import { resolveUserFacingMessage } from "packages/utils/errorHandling";
+import { resolveUserFacingMessage } from "packages/utils/core/errorHandling";
 
 import type { UserProfile } from "@/features/homeauth/types";
 

@@ -96,6 +96,7 @@ Short body. Link to `documentation/**` for long prose.
 3. Keep **&lt; ~500 lines**; link to rules/skills this agent must follow.
 4. Team policy: **commit** shared agents; don’t commit personal experiments (or use a separate branch).
 5. **Post–component-audit fixes:** use the `silverkey-audit-axis*` and `silverkey-audit-architecture-remediation` personas ([`documentation/client/patterns/react-component-audit-rubric.md`](../documentation/client/patterns/react-component-audit-rubric.md) — *Remediation subagents* table).
+6. **Docs / reorg hygiene:** use skills [`documentation-placement`](skills/documentation-placement/SKILL.md) and [`post-major-change-sync`](skills/post-major-change-sync/SKILL.md) with [`documentation/internal/post-major-change-checklist.md`](../documentation/internal/post-major-change-checklist.md). Optional checklist: [`frontend-reorganization-audit.md`](../documentation/internal/component-audit/frontend-reorganization-audit.md). Do **not** add per-domain `silverkey-docs-*` or `silverkey-*-reorg-*` fleet agents — they were removed as low-signal context bloat.
 
 ---
 
@@ -137,7 +138,7 @@ flowchart TD
 | File                        | Effect                                                                                                                                                                                                             |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **`.cursorignore`**         | Excludes paths from **indexing and default AI context** (noise, secrets, huge trees). Copy from `.cursorignore.example` → `.cursorignore` locally if you want team defaults without committing personal overrides. |
-| **`.cursorindexingignore`** | Excludes from **automatic index** only — files can still be **`@`-mentioned** when you need them (migrations, generated blobs, large fixtures).                                                                    |
+| **`.cursorindexingignore`** | Excludes from **automatic index** only — files can still be **`@`-mentioned** when you need them (migrations, generated blobs, large fixtures). Includes **`.claude/`**, **`.codex/`**, and **`.agents/`** adapter trees so Cursor does not index duplicate stubs alongside canonical `.cursor/` content. |
 
 Rule of thumb: if the model never needs a path unless you explicitly attach it, prefer **indexing ignore** over full ignore.
 
@@ -164,7 +165,7 @@ Rule of thumb: if the model never needs a path unless you explicitly attach it, 
 | `CLAUDE.md` (repo root)                         | Yes                                           |
 | `.cursor/settings.json`                         | Yes                                           |
 | `.cursor/mcp.example.json`                      | Yes                                           |
-| `.cursor/mcp.json`                              | Only if **no secrets** — otherwise local only |
+| `.cursor/mcp.json`, repo-root `mcp.json`        | No — gitignored; copy from `*mcp.example.json` |
 | `.cursorignore.example`                         | Yes                                           |
 | `.cursorindexingignore`                         | Yes                                           |
 | `.cursorignore`                                 | Optional local (often gitignored)             |

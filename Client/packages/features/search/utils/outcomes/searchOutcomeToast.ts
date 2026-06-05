@@ -1,8 +1,8 @@
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import { HttpError, TimeoutError } from "packages/services/http/client";
-import { resolveUserFacingMessage } from "packages/utils/errorHandling";
-import { SUPPORTED_SERVICE_AREA_WARNING } from "packages/utils/search/locations/serviceAreaAvailability";
+import { resolveUserFacingMessage } from "packages/utils/core/errorHandling";
+import { SUPPORTED_SERVICE_AREA_WARNING } from "packages/utils/product/search/locations/serviceAreaAvailability";
 
 const MAX_ERROR_MESSAGE_LEN = 200;
 

@@ -44,3 +44,37 @@ def set_agent_role(user_id: str, *, is_agent: bool) -> None:
 
 def clear_agent_role(user_id: str) -> None:
     remove_user_role(str(user_id), "agent")
+
+
+def seed_brokerage_admin(db_session, *, user_id: str, org_id: str, email: str) -> User:
+    """Create user with brokerage org admin membership (workspace messaging tests)."""
+    from app.models import UserOrgMembership
+
+    user = create_user_with_roles(
+        db_session,
+        id=user_id,
+        email=email,
+        name="Brokerage Admin",
+        roles=(),
+        cognito_id=f"cognito-{user_id}",
+    )
+    db_session.add(UserOrgMembership(user_id=user_id, brokerage_org_id=org_id, role="admin"))
+    db_session.commit()
+    return user
+
+
+def seed_integrator_operator(db_session, *, user_id: str, partner_id: str, email: str) -> User:
+    """Create user linked as partner operator (workspace messaging tests)."""
+    from app.models.messaging import PartnerOperator
+
+    user = create_user_with_roles(
+        db_session,
+        id=user_id,
+        email=email,
+        name="Integrator Operator",
+        roles=(),
+        cognito_id=f"cognito-{user_id}",
+    )
+    db_session.add(PartnerOperator(user_id=user_id, partner_id=partner_id))
+    db_session.commit()
+    return user

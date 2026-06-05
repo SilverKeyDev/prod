@@ -1,7 +1,7 @@
 import { log } from "packages/logger";
 import { normalizeUrl } from "packages/services/http/client/request/httpRequestHeaders";
 import { createHttpRequestId } from "packages/services/http/client/request/requestId";
-import { getFetch, getWindow } from "packages/utils/platform";
+import { getFetch, getWindow } from "packages/utils/core/platform";
 
 import { broadcastAuthLogout } from "./authBroadcast";
 import { postRefreshTokenWithRetry } from "./refreshTokenRetry";

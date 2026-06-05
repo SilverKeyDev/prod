@@ -9,11 +9,11 @@ from typing import Any
 
 from flask import jsonify, request
 
+from app.http.secure_errors import SecureErrorHandler
 from app.utils.http.client_ip import get_client_ip
 from logger import log
 
 from .rate_limit_backend import allow_request
-from .secure_errors import SecureErrorHandler
 
 # Sensitive keys that should be redacted from logs
 SENSITIVE_KEYS = {

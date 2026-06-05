@@ -1,4 +1,4 @@
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import MiniLogo from "@/components/asset/MiniLogo";
 import { BodyText, Title } from "@/components/ui";

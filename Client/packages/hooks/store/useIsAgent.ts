@@ -1,5 +1,5 @@
 import { useAuthStore } from "packages/store";
-import { userHasAgentRole } from "packages/utils/auth/userHasAgentRole";
+import { userHasAgentRole } from "packages/utils/auth/auth/userHasAgentRole";
 
 /**
  * Canonical agent-identity flag for UX gating.

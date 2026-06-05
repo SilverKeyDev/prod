@@ -6,10 +6,10 @@ import type { PropertyComponentProps } from "packages/features/propertyDetails/c
 import { usePropertyDetails } from "packages/hooks/data";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { Button } from "packages/ui";
-import { StyledImage } from "packages/ui/components/cards/base";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
+import { StyledImage } from "packages/ui/components/surfaces/cards/base";
 
 export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ property }) => {
   const { savedHomes, savedHomesLoading } = useSavedHomesData();

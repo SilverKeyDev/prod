@@ -1,14 +1,14 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { useSetCurrentUserDevWorkspaceMutation } from "packages/features/admin/hooks/data/useSetCurrentUserDevWorkspaceMutation";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
-import { useSetCurrentUserDevWorkspaceMutation } from "packages/hooks/data/admin/useSetCurrentUserDevWorkspaceMutation";
 import { useAuthStore } from "packages/store";
-import { Region } from "packages/ui/components/accessibility";
-import { deriveDevAppPersonaFromProfile } from "packages/utils/admin/deriveDevAppPersonaFromProfile";
-import { ALL_WORKSPACES, type Workspace } from "packages/utils/workspace";
-import { workspaceSwitcherLabelKey } from "packages/utils/workspace/workspaceNavConfig";
+import { Region } from "packages/ui/components/system/accessibility";
+import { deriveDevAppPersonaFromProfile } from "packages/utils/growth/admin/deriveDevAppPersonaFromProfile";
+import { ALL_WORKSPACES, type Workspace } from "packages/utils/product/workspace";
+import { workspaceSwitcherLabelKey } from "packages/utils/product/workspace/workspaceNavConfig";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, Title } from "@/components/ui";

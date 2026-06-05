@@ -1,6 +1,6 @@
 > **Status:** Partial  
 > **Last verified:** 2026-05-28  
-> **Code pointers:** `Server/app/services/docusign/notifications/messaging.py`; `Client/packages/store/slices/ui/` (toasts); `documentation/to-implement-soon/notifications/`
+> **Code pointers:** `Server/app/services/docusign/notifications/messaging.py`; `Client/packages/store/slices/ui/` (toasts)
 
 ## Notifications for checklist-driven transactions
 
@@ -13,10 +13,12 @@
 ### Not built yet
 
 - **Central `NotificationEvent` bus** — no unified schema, routing, or idempotency layer for checklist/deadline/integration events.
-- **Email / SMS / mobile push** for transaction milestones — spec lives under [`documentation/to-implement-soon/notifications/`](../../to-implement-soon/notifications/README.md).
+- **Email / SMS / mobile push** for transaction milestones — track in Linear [Notification Systems](https://linear.app/silverkey/project/notification-systems-f44e58377593) ([SIL-157](https://linear.app/silverkey/issue/SIL-157/transaction-milestone-notifications-emailsmspush), [SIL-113](https://linear.app/silverkey/issue/SIL-113/text-notifications), [SIL-115](https://linear.app/silverkey/issue/SIL-115/mobile-notifications)).
 - **Role-based preferences** — no per-user channel toggles for transaction event types.
-- **Integration completion alerts** — Move Concierge and future providers have click/view analytics, not buyer push on partner completion.
+- **Integration completion alerts** — Rev-share placements have click/view analytics, not buyer push on partner completion.
 
 ### Target shape (unchanged intent)
+
+> **Shipped feature docs:** [messaging.md](../../client/features/messaging.md).
 
 Emit structured events from checklist merges, milestone engine, agreement webhooks, and partner integrations; fan out through one delivery pipeline with templates and deep links. Until then, extend existing surfaces (chat, toasts) rather than a parallel stack.

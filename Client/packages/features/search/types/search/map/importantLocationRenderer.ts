@@ -6,8 +6,8 @@ import type { IsochroneData } from "packages/features/search/types/isochrone";
 import { addressForMarkerTitle } from "packages/features/search/types/search/formatters/address";
 import { importantWaypointsFromIsochrone } from "packages/features/search/utils/map/importantWaypointsFromIsochrone";
 import { log } from "packages/logger";
-import { escapeHtml } from "packages/utils/dom/escapeHtml";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { escapeHtml } from "packages/utils/core/dom/escapeHtml";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import { searchMapOverlayBaseZIndex } from "./mapOverlayLayerOrder";
 

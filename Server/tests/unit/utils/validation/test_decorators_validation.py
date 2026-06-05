@@ -27,6 +27,9 @@ from .validation_decorator_test_schemas import (
     ValidResponseBody,
 )
 
+_DECORATORS_REQUEST = "app.utils.validation.decorators.request"
+_DECORATORS_RESPONSE = "app.utils.validation.decorators.response"
+
 
 def test_validate_request_passes_validated_model(app: Flask):
     captured: dict[str, Any] = {}
@@ -57,11 +60,11 @@ def test_validate_request_gradual_mode_passes_none_on_invalid(app: Flask):
         return "continued"
 
     with (
-        patch("app.utils.validation.decorators.VALIDATION_MODE", "gradual"),
-        patch("app.utils.validation.decorators.is_strict_for_request_path", return_value=False),
+        patch(f"{_DECORATORS_REQUEST}.VALIDATION_MODE", "gradual"),
+        patch(f"{_DECORATORS_REQUEST}.is_strict_for_request_path", return_value=False),
     ):
         with app.test_request_context("/api/v1/other/action", method="POST", json={}):
-            with patch("app.utils.validation.decorators.log") as mock_log:
+            with patch(f"{_DECORATORS_REQUEST}.log") as mock_log:
                 result = route()
 
     assert result == "continued"
@@ -76,11 +79,11 @@ def test_validate_request_strict_path_returns_400(app: Flask):
         return "should not run"
 
     with (
-        patch("app.utils.validation.decorators.VALIDATION_MODE", "gradual"),
-        patch("app.utils.validation.decorators.is_strict_for_request_path", return_value=True),
+        patch(f"{_DECORATORS_REQUEST}.VALIDATION_MODE", "gradual"),
+        patch(f"{_DECORATORS_REQUEST}.is_strict_for_request_path", return_value=True),
     ):
         with app.test_request_context("/api/v1/auth/login", method="POST", json={}):
-            with patch("app.utils.validation.decorators.log") as mock_log:
+            with patch(f"{_DECORATORS_REQUEST}.log") as mock_log:
                 result = route()
 
     assert isinstance(result, tuple)
@@ -93,7 +96,7 @@ def test_validate_request_global_strict_mode_returns_400(app: Flask):
     def route(data: InvalidRequestBody | None = None):
         return "should not run"
 
-    with patch("app.utils.validation.decorators.VALIDATION_MODE", "strict"):
+    with patch(f"{_DECORATORS_REQUEST}.VALIDATION_MODE", "strict"):
         with app.test_request_context("/api/v1/other/action", method="POST", json={}):
             result = route()
 
@@ -193,9 +196,9 @@ def test_validate_form_request_gradual_invalid_returns_none(app: Flask):
         captured["data"] = data
         return "ok"
 
-    with patch("app.utils.validation.decorators.is_strict_for_request_path", return_value=False):
+    with patch(f"{_DECORATORS_REQUEST}.is_strict_for_request_path", return_value=False):
         with app.test_request_context("/api/v1/upload", method="POST", data={"count": "1"}):
-            with patch("app.utils.validation.decorators.log") as mock_log:
+            with patch(f"{_DECORATORS_REQUEST}.log") as mock_log:
                 route()
 
     assert captured["data"] is None
@@ -219,7 +222,7 @@ def test_validate_form_request_invalid_json_returns_400(app: Flask):
                 "model_validate_json",
                 side_effect=json.JSONDecodeError("Expecting value", "not-json", 0),
             ),
-            patch("app.utils.validation.decorators.log") as mock_log,
+            patch(f"{_DECORATORS_REQUEST}.log") as mock_log,
         ):
             result = route()
 
@@ -251,7 +254,7 @@ def test_validate_response_logs_validation_error_but_returns_payload(app: Flask)
         return {"success": "not-a-bool"}
 
     with app.test_request_context("/api/v1/test", method="GET"):
-        with patch("app.utils.validation.decorators.log") as mock_log:
+        with patch(f"{_DECORATORS_RESPONSE}.log") as mock_log:
             result = route()
 
     assert result == {"success": "not-a-bool"}
@@ -267,7 +270,7 @@ def test_validate_response_skips_validation_for_non_2xx(app: Flask):
         return ({"success": "bad"}, 500)
 
     with app.test_request_context("/api/v1/test", method="GET"):
-        with patch("app.utils.validation.decorators.log") as mock_log:
+        with patch(f"{_DECORATORS_RESPONSE}.log") as mock_log:
             result = route()
 
     assert result == ({"success": "bad"}, 500)

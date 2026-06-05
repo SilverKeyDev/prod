@@ -16,10 +16,10 @@ import {
   useMessageScroll,
   useMessagingHandlers,
 } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { screenUp } from "packages/ui/types/screens";
-import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { traceLazyImport } from "packages/utils/core/perf/shellRouteLoadTiming";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import { Region } from "@/components/ui";
 import { ConnectionRequestsInboxSidebar } from "@/features/agent/components/messaging/chrome";
@@ -38,15 +38,19 @@ const UnifiedMessagesList = lazy(
 
 type ClientMessagingProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
+  clientPersona?: import("@/features/agent/components/messaging/screen/messagingConfig").ClientPersona;
 };
 
-export default function ClientMessaging({ setMobileHeaderActions }: ClientMessagingProps = {}) {
+export default function ClientMessaging({
+  setMobileHeaderActions,
+  clientPersona = "buyer",
+}: ClientMessagingProps = {}) {
   useMessagingComposerStoreIntegration();
   useFirstRenderCommitTimer("MESSAGES", "ClientMessaging");
   const { userProfile } = useUserData();
   const agentId = useMemo(() => null, []);
   const showFindAgentInMessagingHeader = !(userProfile?.roles ?? []).includes("agent");
-  const clientMessagingConfig = getMessagingConfig("client");
+  const clientMessagingConfig = getMessagingConfig("client", { clientPersona });
 
   const {
     localMessages,

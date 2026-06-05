@@ -1,18 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StyleSheet } from "react-native";
 
-import { AgentProfileScreenNative, FindAgentsScreenNative } from "packages/features/agent/native";
-import { OnboardingScreenNative } from "packages/features/homeauth/native";
-import { PropertyDetailsScreenNative } from "packages/features/propertyDetails/native";
+import { AgentProfileScreenNative, FindAgentsScreenNative } from "packages/features/agent";
+import { OnboardingScreenNative } from "packages/features/homeauth";
+import { PropertyDetailsScreenNative } from "packages/features/propertyDetails";
 import type {
   AgentProfileScreenParams,
   PropertyDetailsScreenParams,
 } from "packages/navigation/types";
 import { useAuthStore } from "packages/store";
-import { getPostAuthRedirectTarget } from "packages/utils/navigation";
+import { getPostAuthRedirectTarget } from "packages/utils/product/navigation";
 
 import { AppStackIntegrations } from "../providers/AppStackIntegrations.native";
 import { AppStack } from "./AppStack.native";
@@ -38,9 +38,12 @@ function OnboardingScreenWrapper() {
       routes: { name: keyof AuthenticatedStackParamList }[];
     }) => void;
   }>();
+  const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const userRef = useRef(user);
+  userRef.current = user;
   const onSubmitSuccess = () => {
-    const current = useAuthStore.getState().user;
+    const current = userRef.current;
     if (current) setUser({ ...current, has_preferences: true });
     navigation.reset({ index: 0, routes: [{ name: "Main" }] });
   };

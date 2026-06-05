@@ -1,9 +1,9 @@
 import React from "react";
 
 import { OliveCheckbox } from "packages/ui";
-import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 export type ProfileCheckboxProps = {
   /** Whether the component is in edit mode (interactive) or read-only */

@@ -25,9 +25,9 @@ import { ProsAndCons } from "packages/features/propertyDetails/components/Proper
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import type { PropertyDetailsSectionRefs } from "packages/features/propertyDetails/hooks/usePropertyDetailsSectionScroll.web";
 import type { PropertyWithAnalysis } from "packages/types/domain/property-analysis";
-import Card from "packages/ui/components/cards/Card";
-import { Box, Text } from "packages/ui/components/primitives";
-import { Loading } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { Loading } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
 import {
   getClimateEnvironmentalSection,
   getNeighborhoodAnalysisPayload,
@@ -35,7 +35,7 @@ import {
   hasEnvironmentalFactorsContent,
   shouldHideStandaloneLocationMap,
   shouldShowListingAgentSkeleton,
-} from "packages/utils/propertyDetails";
+} from "packages/utils/transaction/propertyDetails";
 
 export type PropertyDetailsBodyProps = PropertyComponentProps & {
   isLoading?: boolean;

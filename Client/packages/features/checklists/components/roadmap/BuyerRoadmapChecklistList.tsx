@@ -19,9 +19,9 @@ import {
   getRoadmapChecklistItemBlockerKind,
 } from "packages/features/checklists/utils/rules/checklistRules";
 import { sortTaskChecklistItemsForDisplay } from "packages/features/checklists/utils/sort/sortTaskChecklistItemsForDisplay";
-import { Loading } from "packages/ui/components/asset/loading/Loading";
-import Card from "packages/ui/components/cards/Card";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Loading } from "packages/ui/components/media/asset/loading/Loading";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 import { BuyerRoadmapChecklistItemCard } from "./BuyerRoadmapChecklistItemCard";
 

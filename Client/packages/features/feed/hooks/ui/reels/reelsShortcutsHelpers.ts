@@ -1,6 +1,6 @@
 import type { MutableRefObject } from "react";
 
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import type { FeedScrollController } from "@/features/feed/types/feed";
 

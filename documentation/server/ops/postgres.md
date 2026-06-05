@@ -18,11 +18,15 @@ Brief ops reference for local and deployed PostgreSQL. Schema detail lives in SQ
 | Task | Command / location |
 |------|-------------------|
 | Run API with DB | `make dev-backend` or `cd Server && source .venv/bin/activate && python run.py` |
-| Tests (no real DB required for most) | `TESTING=true pytest` from `Server/` |
+| Server tests (repo root) | `make test-be` — sets `TESTING=true` and runs pytest in `Server/` |
+| Server tests (from `Server/`) | `TESTING=true pytest` |
+| Refresh secrets into `Server/.env` | `make secrets` (repo root; see [scripts-guide.md](./scripts-guide.md)) |
 | Connection issues | Verify `Server/.env` matches `.env.example`; check Postgres listening on 5432 |
 
 ## Related docs
 
+- [Redis and Celery](./redis-celery.md)
+- [Scripts guide](./scripts-guide.md)
 - [Flask architecture](../flask-architecture.md)
 - [SQLAlchemy patterns](../sqlalchemy-patterns.md)
 - [AWS resources](../aws-resources.md)

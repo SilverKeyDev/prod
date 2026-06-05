@@ -2,102 +2,118 @@
  * Root barrel for packages/ui/components so that imports like
  * "packages/ui/components" and "@ui" resolve for both TypeScript and ESLint.
  */
-export * from "./accessibility";
-export * from "./backgrounds";
-export * from "./feedback";
-export * from "./primitives";
-export * from "./text";
+export * from "./structure/primitives";
+export * from "./structure/text";
+export * from "./surfaces/backgrounds";
+export * from "./surfaces/feedback";
+export * from "./system/accessibility";
 
 // Text components
-export { default as BodyText } from "./text/BodyText";
-export { default as Label } from "./text/Label.web";
-export { default as PropertyStat } from "./text/PropertyStat";
-export { default as Subtitle } from "./text/Subtitle";
-export { default as Title } from "./text/Title";
+export { default as BodyText } from "./structure/text/BodyText";
+export { default as Label } from "./structure/text/Label.web";
+export { default as PropertyStat } from "./structure/text/PropertyStat";
+export { default as Subtitle } from "./structure/text/Subtitle";
+export { default as Title } from "./structure/text/Title";
 
 // Form components (implementation paths — no root-level shim files)
 export {
   type AddressData,
   AddressInput,
   type AddressInputProps,
-} from "./form/AddressInput/AddressInput";
-export { default as AccessibleCheckboxInput } from "./form/checkbox/AccessibleCheckboxInput";
-export type { ChecklistItem } from "./form/checkbox/ChecklistCheckbox";
-export { default as ChecklistCheckbox } from "./form/checkbox/ChecklistCheckbox";
-export { default as OliveCheckbox } from "./form/checkbox/OliveCheckbox";
-export type { OliveCheckboxRowLabelProps } from "./form/checkbox/OliveCheckboxRowLabel";
-export { OliveCheckboxRowLabel } from "./form/checkbox/OliveCheckboxRowLabel";
-export { default as Dropdown, type DropdownOption, type DropdownProps } from "./form/dropdown";
-export { default as FavoriteHomesDropdown } from "./form/dropdowns/FavoriteHomesDropdown";
-export { default as FieldShell } from "./form/field/FieldShell";
-export { default as FormField, Textarea } from "./form/field/FormField";
-export * from "./form/fileUploadStyles";
-export { default as GooglePlacesAutocompleteField } from "./form/GooglePlacesAutocompleteField/GooglePlacesAutocompleteField";
-export { default as AccessibleTextInput } from "./form/inputs/AccessibleTextInput";
-export { default as Input, Input, type InputProps } from "./form/inputs/Input";
-export { default as AccessibleRadioInput } from "./form/pickers/AccessibleRadioInput";
-export { default as DateInput } from "./form/pickers/DateInput";
-export { default as RangeInput } from "./form/pickers/RangeInput";
-export { default as Select } from "./form/pickers/Select";
-export { default as TimeInput } from "./form/pickers/TimeInput";
-export { default as Toggle } from "./form/pickers/Toggle";
+} from "./inputs/form/AddressInput/AddressInput";
+export { default as AccessibleCheckboxInput } from "./inputs/form/checkbox/AccessibleCheckboxInput";
+export type { ChecklistItem } from "./inputs/form/checkbox/ChecklistCheckbox";
+export { default as ChecklistCheckbox } from "./inputs/form/checkbox/ChecklistCheckbox";
+export { default as OliveCheckbox } from "./inputs/form/checkbox/OliveCheckbox";
+export type { OliveCheckboxRowLabelProps } from "./inputs/form/checkbox/OliveCheckboxRowLabel";
+export { OliveCheckboxRowLabel } from "./inputs/form/checkbox/OliveCheckboxRowLabel";
+export {
+  default as Dropdown,
+  type DropdownOption,
+  type DropdownProps,
+} from "./inputs/form/dropdown";
+export { default as FavoriteHomesDropdown } from "./inputs/form/dropdowns/FavoriteHomesDropdown";
+export { default as FieldShell } from "./inputs/form/field/FieldShell";
+export { default as FormField, Textarea } from "./inputs/form/field/FormField";
+export * from "./inputs/form/fileUploadStyles";
+export { default as GooglePlacesAutocompleteField } from "./inputs/form/GooglePlacesAutocompleteField/GooglePlacesAutocompleteField";
+export { default as AccessibleTextInput } from "./inputs/form/inputs/AccessibleTextInput";
+export { default as Input, Input, type InputProps } from "./inputs/form/inputs/Input";
+export { default as AccessibleRadioInput } from "./inputs/form/pickers/AccessibleRadioInput";
+export { default as DateInput } from "./inputs/form/pickers/DateInput";
+export { default as RangeInput } from "./inputs/form/pickers/RangeInput";
+export { default as Select } from "./inputs/form/pickers/Select";
+export { default as TimeInput } from "./inputs/form/pickers/TimeInput";
+export { default as Toggle } from "./inputs/form/pickers/Toggle";
 
 // Avatar
-export type { ProfileAvatarProps } from "./avatar";
-export { ProfileAvatar } from "./avatar";
+export type { ProfileAvatarProps } from "./media/avatar";
+export { ProfileAvatar } from "./media/avatar";
 
 // Asset/loading components
-export { default as AppImage } from "./asset/AppImage";
-export { default as KeyLogo } from "./asset/KeyLogo";
-export { default as KeyTurnLoader } from "./asset/loading/KeyTurnLoader";
-export { default as MiniLogo } from "./asset/MiniLogo";
-export { default as StatusBadge } from "./asset/StatusBadge";
-export { default as WhiteLogo } from "./asset/WhiteLogo";
+export { default as AppImage } from "./media/asset/AppImage";
+export { default as KeyLogo } from "./media/asset/KeyLogo";
+export { default as KeyTurnLoader } from "./media/asset/loading/KeyTurnLoader";
+export { default as MiniLogo } from "./media/asset/MiniLogo";
+export { default as StatusBadge } from "./media/asset/StatusBadge";
+export { default as WhiteLogo } from "./media/asset/WhiteLogo";
 
 // Security components
-export { default as SecureFileUpload } from "./security/SecureFileUpload";
+export { default as SecureFileUpload } from "./system/security/SecureFileUpload";
 
 // Button components (implementation paths — no root-level shim files)
-export { default as Button } from "./button/core/Button";
-export { default as CancelButton } from "./button/core/CancelButton";
-export { default as CloseButton } from "./button/core/CloseButton";
-export { default as DropdownChevron } from "./button/core/DropdownChevron";
-export { default as IconButton } from "./button/core/IconButton";
+export { default as Button } from "./actions/button/core/Button";
+export { default as CancelButton } from "./actions/button/core/CancelButton";
+export { default as CloseButton } from "./actions/button/core/CloseButton";
+export { default as DropdownChevron } from "./actions/button/core/DropdownChevron";
+export { default as IconButton } from "./actions/button/core/IconButton";
 export {
   OVERLAY_MARKER_CIRCLE_CLASSES,
   OVERLAY_MARKER_ICON_BUTTON_SIZE,
   OVERLAY_MARKER_ICON_CLASSES,
-} from "./button/core/overlayMarkerButtonTypes";
-export { default as NavigationButton } from "./button/navigation/NavigationButton";
-export { default as NavigationButtons, SkipButton } from "./button/navigation/NavigationButtons";
-export { default as ClientSelector } from "./button/propertyActions/ClientSelector";
-export { ConnectedCardHeartSave } from "./button/propertyActions/ConnectedCardHeartSave";
-export { default as HeartSave } from "./button/propertyActions/HeartSave";
-export { default as NotInterested } from "./button/propertyActions/NotInterested";
+} from "./actions/button/core/overlayMarkerButtonTypes";
+export { default as NavigationButton } from "./actions/button/navigation/NavigationButton";
+export {
+  default as NavigationButtons,
+  SkipButton,
+} from "./actions/button/navigation/NavigationButtons";
+export { default as ClientSelector } from "./actions/button/propertyActions/ClientSelector";
+export { ConnectedCardHeartSave } from "./actions/button/propertyActions/ConnectedCardHeartSave";
+export { default as HeartSave } from "./actions/button/propertyActions/HeartSave";
+export { default as NotInterested } from "./actions/button/propertyActions/NotInterested";
 
 // Sidebar / inset two-column layouts
-export { TwoColumnInsetPageLayout } from "./sidebar/TwoColumnInsetPageLayout";
+export { TwoColumnInsetPageLayout } from "./structure/sidebar/TwoColumnInsetPageLayout";
 
 // Layout components
-export { default as AlignedRow } from "./layout/AlignedRow";
-export { default as SectionCard } from "./layout/SectionCard";
-export { default as Popover } from "./popover/Popover";
+export { default as AlignedRow } from "./structure/layout/AlignedRow";
+export { default as SectionCard } from "./structure/layout/SectionCard";
+export { default as Popover } from "./surfaces/popover/Popover";
 
 // Match score
-export type { MatchPillProps } from "./match";
-export { MatchPill } from "./match";
+export type { MatchPillProps } from "./surfaces/match";
+export { MatchPill } from "./surfaces/match";
+
+// Data visualization (charts)
+export type {
+  DonutChartProps,
+  LabeledBarRowProps,
+  LollipopChartProps,
+  VerticalBarChartProps,
+} from "./data-viz";
+export { DonutChart, LabeledBarRow, LollipopChart, VerticalBarChart } from "./data-viz";
 
 // Card components
-export { default as BaseCard } from "./cards/BaseCard";
-export { default as CompCard } from "./cards/CompCard";
-export { default as HomeCard } from "./cards/HomeCard";
-export { default as PropertyCard } from "./cards/property/PropertyCard";
-export * from "./cards/property/PropertyCardBodySection";
-export { default as ReportCard } from "./cards/ReportCard";
+export { default as BaseCard } from "./surfaces/cards/BaseCard";
+export { default as CompCard } from "./surfaces/cards/CompCard";
+export { default as HomeCard } from "./surfaces/cards/HomeCard";
+export { default as PropertyCard } from "./surfaces/cards/property/PropertyCard";
+export * from "./surfaces/cards/property/PropertyCardBodySection";
+export { default as ReportCard } from "./surfaces/cards/ReportCard";
 
 // Modal components
-export { default as BaseModal } from "./modals/BaseModal";
-export type { CoverAnimation, CoverProps } from "./modals/cover";
-export { default as Cover } from "./modals/cover";
-export { default as ModalPortal } from "./modals/ModalPortal";
-export { default as ShareHomeModal } from "./modals/ShareHomeModal";
+export { default as BaseModal } from "./surfaces/modals/BaseModal";
+export type { CoverAnimation, CoverProps } from "./surfaces/modals/cover";
+export { default as Cover } from "./surfaces/modals/cover";
+export { default as ModalPortal } from "./surfaces/modals/ModalPortal";
+export { default as ShareHomeModal } from "./surfaces/modals/ShareHomeModal";

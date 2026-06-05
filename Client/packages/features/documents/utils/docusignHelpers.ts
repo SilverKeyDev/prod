@@ -5,12 +5,12 @@ import type {
   AgreementType,
   ParticipantRole,
 } from "packages/features/documents/types/docusign";
-import type { ContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
+import type { ContextualAgreementStatus } from "packages/utils/transaction/agreement/contextualAgreementStatus";
 import {
   getContextualAgreementStatus,
   getNextSignerUserId,
-} from "packages/utils/agreement/contextualAgreementStatus";
-import { dateNow, dateParseISO } from "packages/utils/date";
+} from "packages/utils/transaction/agreement/contextualAgreementStatus";
 
 /**
  * DocuSign Helper Functions
@@ -18,7 +18,7 @@ import { dateNow, dateParseISO } from "packages/utils/date";
  */
 
 export type { ContextualAgreementStatus };
-export type { AgreementLikeForContext } from "packages/utils/agreement/contextualAgreementStatus";
+export type { AgreementLikeForContext } from "packages/utils/transaction/agreement/contextualAgreementStatus";
 export { getContextualAgreementStatus, getNextSignerUserId };
 
 /**

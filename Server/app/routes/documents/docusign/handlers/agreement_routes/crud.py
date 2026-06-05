@@ -4,7 +4,7 @@ from flask import jsonify, request
 from sqlalchemy import func, select
 
 from app import db
-from app.dtos.agreement import AgreementDTO
+from app.dtos.documents import AgreementDTO
 from app.models import Agreement
 from app.schemas import (
     CreateAgreementRequest,

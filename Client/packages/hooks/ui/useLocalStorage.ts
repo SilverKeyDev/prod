@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { log } from "packages/logger";
-import { getWindow } from "packages/utils/platform";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
+import { getWindow } from "packages/utils/core/platform";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
 
 export type UseLocalStorageReturn<T> = {
   value: T;

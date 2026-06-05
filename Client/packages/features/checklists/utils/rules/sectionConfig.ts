@@ -1,6 +1,6 @@
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
 import type { SectionConfig } from "packages/features/checklists/types/sectionConfig";
-import { CHECKLIST_SECTION_ORDER } from "packages/utils/checklists/sectionOrder";
+import { CHECKLIST_SECTION_ORDER } from "packages/utils/product/checklists/sectionOrder";
 
 export type { SectionConfig } from "packages/features/checklists/types/sectionConfig";
 

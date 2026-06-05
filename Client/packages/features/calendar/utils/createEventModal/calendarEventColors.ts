@@ -1,5 +1,5 @@
 import { color } from "packages/design-tokens";
-import { detectEventTypeFromTitle } from "packages/utils/calendar/parsing/detectEventTypeFromTitle";
+import { detectEventTypeFromTitle } from "packages/utils/comms/calendar/parsing/detectEventTypeFromTitle";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
@@ -33,7 +33,8 @@ const GOOGLE_CALENDAR_EVENT_COLOR_ID_HEX: Record<string, string> = {
 
 /** Maps SilverKey create payload `eventType` / DB `event_type` to design-token paths. */
 const SILVER_KEY_BACKEND_EVENT_TYPE_TO_COLOR_PATH: Record<string, string> = {
-  property_viewing: CALENDAR_EVENT_KINDS.property_viewings.uiColorPath,
+  /** Legacy DB rows; kind removed from create UI. */
+  property_viewing: "calendar.eventKind.warmBrown",
   inspection: CALENDAR_EVENT_KINDS.home_inspection.uiColorPath,
   closing: CALENDAR_EVENT_KINDS.closing_signing.uiColorPath,
   meeting: CALENDAR_EVENT_KINDS.meeting.uiColorPath,

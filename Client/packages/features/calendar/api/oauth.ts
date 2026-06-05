@@ -1,6 +1,6 @@
 import { apiGet, apiPost } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 export type RevokeResponse = components["schemas"]["RevokeResponse"];
 export type ConnectionStatusResponse = components["schemas"]["ConnectionStatusResponse"];

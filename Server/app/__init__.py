@@ -200,7 +200,8 @@ def create_app(config=None):
     # S3 client is initialized lazily on first use via s3_service._ensure_s3_client() (avoids boto/head_bucket at boot).
 
     # Validate environment variables at startup
-    from .utils.security.env_validator import check_api_keys
+    from app.config.env_validator import check_api_keys
+
     from .utils.validation.config_validator import validate_and_raise
 
     try:
@@ -225,25 +226,24 @@ def create_app(config=None):
     from .routes.agent.agent import agent_bp
     from .routes.auth.auth import auth_bp
     from .routes.auth.preferences import preferences_bp
-    from .routes.auth.search_display import search_display_bp
     from .routes.auth.user import user_bp
     from .routes.calendar.google_calendar import google_calendar_bp
     from .routes.chat.chatbot import chatbot_bp
-    from .routes.client_errors import client_errors_bp
+    from .routes.conversations import conversations_bp
     from .routes.documents.report import report_bp
     from .routes.documents.secure_upload import secure_upload_bp
     from .routes.feed import feed_bp
     from .routes.forms import forms_bp
-    from .routes.maps import maps_bp
-    from .routes.offer import offer_bp
+    from .routes.negotiation import offer_bp
     from .routes.public import public_bp
+    from .routes.research import research_bp
     from .routes.rev_share import rev_share_bp, rev_share_redirect_bp
     from .routes.search.home_matching import home_matching_bp
-    from .routes.search.research import research_bp
+    from .routes.search.maps import maps_bp
     from .routes.search.search import search_bp
-    from .routes.tasks import tasks_bp
+    from .routes.search.search_display import search_display_bp
+    from .routes.telemetry import client_errors_bp
     from .routes.transactions import transactions_bp
-    from .routes.viewings import viewings_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(public_bp)
@@ -257,13 +257,12 @@ def create_app(config=None):
     app.register_blueprint(secure_upload_bp)
     app.register_blueprint(offer_bp)
     app.register_blueprint(google_calendar_bp)
-    app.register_blueprint(viewings_bp)
     app.register_blueprint(agent_bp)
+    app.register_blueprint(conversations_bp)
     app.register_blueprint(chatbot_bp)
     app.register_blueprint(report_bp)
     app.register_blueprint(client_errors_bp)
     app.register_blueprint(feed_bp)
-    app.register_blueprint(tasks_bp)
     app.register_blueprint(transactions_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(rev_share_bp)

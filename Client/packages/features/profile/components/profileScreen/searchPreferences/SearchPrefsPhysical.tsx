@@ -14,9 +14,9 @@ import {
 } from "packages/features/profile/utils";
 import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/public/constants";
 import { Input, OliveCheckbox } from "packages/ui";
-import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import { Dropdown } from "@/components/ui";

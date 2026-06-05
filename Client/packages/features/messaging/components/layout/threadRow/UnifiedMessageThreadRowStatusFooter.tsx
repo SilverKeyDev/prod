@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button } from "@/components/ui";
 import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";

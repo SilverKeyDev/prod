@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { GoogleCalendar, GoogleEvent } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
 import type { GoogleCalendarState } from "packages/features/calendar/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import { googleCalendarApi } from "@/features/calendar/api";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";

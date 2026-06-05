@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [docusign-integration.md](../../client/features/docusign-integration.md).
+
 ## Signing, closing, and funding
 
 Closing workflow is **checklist + DocuSign**: sign documents, send funds, walkthrough, confirm recording. No closing-readiness dashboard or funding/recording milestones.

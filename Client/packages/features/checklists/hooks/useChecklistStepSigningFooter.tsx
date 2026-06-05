@@ -4,9 +4,9 @@ import type { ReactNode } from "react";
 
 import type { ChecklistType, TaskChecklistItem } from "packages/features/checklists/api/checklists";
 import { ChecklistStepSigningFooter } from "packages/features/checklists/components/shared/ChecklistStepSigningFooter";
+import { signingTodosForChecklistStep } from "packages/features/checklists/hooks/data/agenda/signingTodosForChecklistStep";
 import { useDocumentsDataIntegration } from "packages/features/documents";
-import { signingTodosForChecklistStep } from "packages/hooks/data/agenda/signingTodosForChecklistStep";
-import { useSigningTodos } from "packages/hooks/data/agenda/useSigningTodos";
+import { useSigningTodos } from "packages/features/documents/hooks/data/agenda/useSigningTodos";
 import { log } from "packages/logger";
 
 type UseChecklistStepSigningFooterArgs = {

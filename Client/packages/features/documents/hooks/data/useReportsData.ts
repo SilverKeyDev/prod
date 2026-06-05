@@ -7,9 +7,9 @@ import { queryKeys } from "packages/config/query/keys";
 import { reportApi } from "packages/features/documents/api/report";
 import { useAuthStore } from "packages/store";
 import type { CompareReport, Report } from "packages/types";
-import { dateNow, dayjs } from "packages/utils/date";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
-import { getWindow } from "packages/utils/platform";
+import { dateNow, dayjs } from "packages/utils/core/date";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
+import { getWindow } from "packages/utils/core/platform";
 
 // Simple deserialization functions
 const deserializeReport = (r: unknown): Report => {

@@ -4,11 +4,11 @@ import { useLocalization } from "packages/contexts";
 import { useSecureClipboardCopy } from "packages/hooks/ui";
 import { ROUTES } from "packages/navigation";
 import { useFeedStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { formatCompactNumber } from "packages/utils";
-import { getWindow } from "packages/utils/platform";
-import { buildPropertyUrl } from "packages/utils/property";
-import { tryWebShareUrl } from "packages/utils/share";
+import { tryWebShareUrl } from "packages/utils/comms/share";
+import { getWindow } from "packages/utils/core/platform";
+import { buildPropertyUrl } from "packages/utils/transaction/property";
 
 import { BodyText } from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";

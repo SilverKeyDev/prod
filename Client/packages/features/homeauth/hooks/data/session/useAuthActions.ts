@@ -9,7 +9,7 @@ import { log } from "packages/logger";
 import {
   resolveApiResultErrorMessage,
   resolveUserFacingMessage,
-} from "packages/utils/errorHandling";
+} from "packages/utils/core/errorHandling";
 
 import { authApi } from "@/features/homeauth/api/auth";
 

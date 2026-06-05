@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { Button, Input } from "@/components/ui";
 import { ProfileTagChip } from "@/features/profile/components/ProfileTagChip";

@@ -8,9 +8,9 @@ import { PdfModal } from "packages/features/documents/components/pdf/PdfModalBri
 import type { SavedPageLayoutProps } from "packages/features/saved/components/layout/SavedPageLayout";
 import DocumentUploadModal from "packages/features/saved/components/upload/DocumentUploadModal";
 import type { SavedHome } from "packages/types";
-import { BaseModal } from "packages/ui/components/modals";
-import { Box, Text } from "packages/ui/components/primitives";
-import { displayListingPriceForCard } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
+import { displayListingPriceForCard } from "packages/utils/product/search/pricing/formatPropertySearchListingPrice";
 
 type SavedPageNativeModalsProps = Pick<
   SavedPageLayoutProps,

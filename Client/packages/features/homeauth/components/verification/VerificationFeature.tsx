@@ -5,9 +5,9 @@ import { useCountdown } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { ROUTES } from "packages/navigation/types/routes";
-import { dateNow } from "packages/utils/date";
-import { getSessionStorage } from "packages/utils/storage";
-import { performVerify } from "packages/utils/verification";
+import { performVerify } from "packages/utils/auth/verification";
+import { dateNow } from "packages/utils/core/date";
+import { getSessionStorage } from "packages/utils/core/storage";
 
 import { VerificationForm, type VerificationStep } from "./VerificationForm";
 

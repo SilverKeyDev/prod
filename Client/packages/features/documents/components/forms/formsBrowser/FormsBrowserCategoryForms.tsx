@@ -6,14 +6,14 @@ import {
   formatFormLibraryCardDate,
 } from "packages/features/documents/utils/forms/checklistFormToDocumentData";
 import { Button } from "packages/ui";
-import BaseCard from "packages/ui/components/cards/BaseCard";
-import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
-import DocumentCardHeader from "packages/ui/components/cards/document/DocumentCardHeader";
-import DocumentListRow from "packages/ui/components/cards/document/DocumentListRow";
-import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
-import { Portal } from "packages/ui/components/portal";
-import { Box } from "packages/ui/components/primitives";
-import { formatFormsLibraryCategoryLabel } from "packages/utils/documents";
+import { Portal } from "packages/ui/components/structure/portal";
+import { Box } from "packages/ui/components/structure/primitives";
+import BaseCard from "packages/ui/components/surfaces/cards/BaseCard";
+import DocumentCard from "packages/ui/components/surfaces/cards/document/DocumentCard";
+import DocumentCardHeader from "packages/ui/components/surfaces/cards/document/DocumentCardHeader";
+import DocumentListRow from "packages/ui/components/surfaces/cards/document/DocumentListRow";
+import type { DocumentCardExternalActionHandlers } from "packages/ui/components/surfaces/cards/document/types";
+import { formatFormsLibraryCategoryLabel } from "packages/utils/transaction/documents";
 
 import { BodyText, Subtitle, Title } from "@/components/ui";
 

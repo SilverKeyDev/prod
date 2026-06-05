@@ -3,7 +3,7 @@ import SearchHeader from "packages/features/search/components/header/SearchHeade
 import { SidebarList } from "packages/features/search/components/list/SidebarList.web";
 import { Tabs } from "packages/features/search/components/list/Tabs.web";
 import type { SearchResult } from "packages/features/search/types";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { SearchPageMapContainer } from "./SearchPageMapContainer.web";
 

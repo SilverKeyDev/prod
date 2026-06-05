@@ -5,7 +5,7 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import SectionBox from "packages/features/negotiate/components/layout/SectionBox";
 import { formatStrategyValue } from "packages/features/negotiate/components/layout/StrategyFieldFormatter";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, MiniLogo } from "@/components/ui";
 

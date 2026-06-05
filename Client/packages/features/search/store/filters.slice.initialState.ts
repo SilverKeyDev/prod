@@ -1,6 +1,6 @@
 import {
   DEFAULT_RESULTS_ORDER_BY,
-  legacyDefaultSortDirection,
+  defaultSortDirectionForOrderBy,
 } from "packages/features/search/types/domain/searchDisplay";
 
 import type { FiltersState } from "./filters.slice.types";
@@ -44,7 +44,7 @@ export function filtersSliceInitialState(): FiltersStateFields {
     webMapCamera: null,
     mapHomeCardsCount: 1,
     resultsOrderBy: DEFAULT_RESULTS_ORDER_BY,
-    resultsSortDirection: legacyDefaultSortDirection(DEFAULT_RESULTS_ORDER_BY),
+    resultsSortDirection: defaultSortDirectionForOrderBy(DEFAULT_RESULTS_ORDER_BY),
     userGeolocation: null,
     preferencesStrictFilter: false,
     dismissedMapPreviewIds: [],

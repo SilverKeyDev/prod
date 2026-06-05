@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useLocalStorage } from "packages/hooks/ui";
-import { defaultClientSettings } from "packages/utils/clientSettings";
+import { defaultClientSettings } from "packages/utils/auth/clientSettings";
 
 export type LibraryViewMode = "grid" | "list";
 

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AUTH_CONFIG } from "packages/config/auth/auth";
 import { clearSessionStorageForLogout } from "packages/features/homeauth/hooks/data/utils/logoutCleanup";
 import { log } from "packages/logger";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import { getErrorMessage } from "./errorMessageHelpers";
 

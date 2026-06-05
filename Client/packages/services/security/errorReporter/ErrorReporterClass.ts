@@ -2,9 +2,9 @@ import { getEnv } from "packages/config/env";
 import { log } from "packages/logger";
 import type { ClientErrorPayload } from "packages/services/security/reportClientErrors";
 import { clientErrorsApi } from "packages/services/security/reportClientErrors";
-import { dateNow } from "packages/utils/date";
-import { asError } from "packages/utils/errorHandling/error";
-import { getNavigator, getWindow } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { asError } from "packages/utils/core/errorHandling/error";
+import { getNavigator, getWindow } from "packages/utils/core/platform";
 
 import type { ErrorContext, SecurityEvent } from "./types";
 

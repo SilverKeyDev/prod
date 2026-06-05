@@ -1,7 +1,7 @@
 import type { PreciseStreetAddressPayload } from "packages/features/search/components/header/location-bar/SearchLocationBar.web";
 import { SearchHeaderPopoverDismissProvider } from "packages/features/search/hooks/ui/popovers/searchHeaderPopoverDismiss.web";
 import { useSearchViewStore } from "packages/store";
-import { MotionView } from "packages/ui/components/adapters/motion";
+import { MotionView } from "packages/ui/components/system/adapters/motion";
 
 import type { SearchResult } from "@/features/search/types";
 import type { SavedHome } from "@/features/search/types/domain/property";

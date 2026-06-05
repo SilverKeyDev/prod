@@ -8,7 +8,7 @@ Celery handles async work off the Flask request path. Redis is broker and result
 ## When Celery runs
 
 - Long-running or retriable server work (emails, webhooks follow-up, batch jobs) defined under `Server/app/celery/tasks/`.
-- Local dev: started via `make dev` / `scripts/run/run-web.sh` with Redis up.
+- Local dev: started via `make dev` or `make dev-backend` (`scripts/run/run-backend.sh`) with Redis up.
 
 ## Conventions
 

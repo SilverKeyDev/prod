@@ -1,10 +1,10 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { color, spacing } from "packages/design-tokens";
-import { Box } from "packages/ui/components/primitives";
-import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
-import { dateNow, dayjs } from "packages/utils/date";
-import { getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";
+import { dateNow, dayjs } from "packages/utils/core/date";
+import { getWindow } from "packages/utils/core/platform";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

@@ -6,8 +6,7 @@ from app.dtos.partner import BuyerStepViewDTO
 from app.schemas import RevShareStepViewRequest, RevShareStepViewResponse
 from app.services.analytics.posthog_events import capture_product_event
 from app.services.auth.user_role_helpers import user_is_agent
-from app.services.rev_share.partner_steps import list_active_partners_for_step
-from app.services.rev_share.step_views import record_buyer_step_view
+from app.services.rev_share.placements import list_active_partners_for_step, record_buyer_step_view
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_authenticated_user,

@@ -1,7 +1,7 @@
 import { useLocalization } from "packages/contexts";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { useGoogleMaps } from "packages/hooks/data";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { Button, CancelButton } from "@/components/ui";

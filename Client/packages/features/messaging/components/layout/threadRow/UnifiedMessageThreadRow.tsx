@@ -1,7 +1,7 @@
 import React from "react";
 
 import { parseAgreementEventPayload } from "packages/features/messaging/utils/agreementEventPayload";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { parseEventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 import { getDateDividerText } from "@/features/messaging/utils/messageDateUtils";

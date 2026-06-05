@@ -1,5 +1,5 @@
 import { useWorkspaceStore } from "packages/store/slices/workspace/workspace.slice";
-import { type Workspace } from "packages/utils/workspace";
+import { type Workspace } from "packages/utils/product/workspace";
 
 /**
  * Canonical UX workspace for Layer 2/3 UI (buyer | seller | agent | brokerage | integration_partner).

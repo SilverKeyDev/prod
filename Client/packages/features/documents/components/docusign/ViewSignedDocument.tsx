@@ -4,9 +4,9 @@ import { AlertCircle } from "lucide-react";
 
 import { docusignApi } from "packages/features/documents/api/docusign";
 import { useUIStore } from "packages/store";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import { BodyText, Button, Title } from "@/components/ui";
 

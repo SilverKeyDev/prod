@@ -1,15 +1,15 @@
 import React from "react";
 
-import { useShowPersonalizationSectionBodyTitle } from "packages/features/profile/components/layout";
 import { ProfileReadOnlyValue } from "packages/features/profile/components/profileScreen/sections/shared/ProfileReadOnlyValue";
+import { useShowPersonalizationSectionBodyTitle } from "packages/features/profile/hooks/usePersonalizationSectionLayout";
 import { FIELD_LABELS, type OnboardingData } from "packages/features/profile/utils";
 import { Input } from "packages/ui";
-import { ProfileAvatar } from "packages/ui/components/avatar";
-import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
+import { ProfileAvatar } from "packages/ui/components/media/avatar";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
 
 /** Agent/buyer choice is immutable and only shown during onboarding; omitted from profile. */
 

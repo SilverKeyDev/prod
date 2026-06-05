@@ -1,1 +1,1 @@
-export * from "packages/utils/messaging/agreementEventPayload";
+export * from "packages/utils/comms/messaging/agreementEventPayload";

@@ -70,5 +70,5 @@ After any 401 on a protected route, the HTTP client runs `recoverSessionAfter401
 ## Related docs
 
 - HogQL templates: [posthog-capacity-queries.md](./posthog-capacity-queries.md)
-- Investigation outputs: [documentation/internal/posthog-api-error-investigation/](../../internal/posthog-api-error-investigation/)
+- PostHog SLO migration (planned work): [SIL-160](https://linear.app/silverkey/issue/SIL-160/deploy-api-request-error-kind-and-migrate-posthog-slo-insights)
 - API instrumentation rule: [`.cursor/rules/shared/api-instrumentation.mdc`](../../../.cursor/rules/shared/api-instrumentation.mdc)

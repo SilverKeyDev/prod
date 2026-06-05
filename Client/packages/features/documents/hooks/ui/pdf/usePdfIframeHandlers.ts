@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import type { SyntheticEvent } from "react";
 
 import { log } from "packages/logger";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 import { injectPdfErrorUI, inspectIframeContentAfterLoad } from "./pdfIframeHelpers";
 

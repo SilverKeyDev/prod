@@ -1,3 +1,7 @@
+> **Status:** partial
+> **Last verified:** 2026-06-04
+> **Shipped:** [checklists.md](../../client/features/checklists.md).
+
 # Transaction mechanics
 
 Checklist generation, location enrichment, and milestone/deadline engine.

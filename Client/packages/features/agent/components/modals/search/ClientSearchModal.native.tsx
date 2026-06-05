@@ -6,8 +6,8 @@ import { color } from "packages/design-tokens";
 import { useIsAgent } from "packages/features/homeauth";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAuthStore, useUIStore } from "packages/store";
-import { Loading } from "packages/ui/components/asset/loading/Loading";
-import { Text } from "packages/ui/components/primitives";
+import { Loading } from "packages/ui/components/media/asset/loading/Loading";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";

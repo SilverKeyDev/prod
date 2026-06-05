@@ -1,7 +1,7 @@
 import type { PrimaryOnboardingRole } from "packages/features/profile/utils/onboarding/role/onboardingRoleSelection";
 
-/** Primary role for flow resolution; includes future brokerage signup (no public picker yet). */
-export type OnboardingFlowPrimaryRole = PrimaryOnboardingRole | "brokerage";
+/** Primary role for onboarding flow resolution. */
+export type OnboardingFlowPrimaryRole = PrimaryOnboardingRole;
 
 export type ProfileFlowSurface = "onboarding" | "personalization";
 
@@ -18,7 +18,8 @@ export type ProfileFlowContext = {
 export type FlowTemplateId =
   | "buyer_onboarding"
   | "agent_onboarding"
-  | "minimal_onboarding"
+  | "seller_onboarding"
   | "brokerage_onboarding"
+  | "integration_partner_onboarding"
   | "buyer_personalization"
   | "agent_personalization";

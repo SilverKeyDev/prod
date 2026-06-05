@@ -37,7 +37,7 @@ Remainder sub-prefixes (add in separate soak steps):
 - `/api/v1/search`, `/api/v1/research`
 - `/api/v1/transactions`
 - `/api/v1/admin`
-- `/api/v1/feed`, `/api/v1/tasks`, `/api/v1/viewings`, `/api/v1/chat`, `/api/v1/client`, `/api/v1/offer`
+- `/api/v1/feed`, `/api/v1/chat`, `/api/v1/client`, `/api/v1/offer`
 - `/api/v1/rev-share`, `/api/v1/partners`, `/api/v1/admin/partners`
 
 ## Per-phase done checklist

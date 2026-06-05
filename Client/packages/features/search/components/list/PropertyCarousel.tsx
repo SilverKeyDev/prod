@@ -1,7 +1,7 @@
 import { useLocalization } from "packages/contexts";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
-import { Box } from "packages/ui/components/primitives";
-import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
+import { Box } from "packages/ui/components/structure/primitives";
+import { addressStreetLineForCard } from "packages/utils/core/format/property/addressFormatting";
 
 import { PropertyCard } from "@/components/cards";
 import { CardCarousel, CardHeartSaveWithProps } from "@/components/cards/base/index.web";

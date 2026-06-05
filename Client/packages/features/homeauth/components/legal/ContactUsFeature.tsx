@@ -8,9 +8,9 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { ICON_SIZE_CLASSES } from "packages/ui/styles/variants/iconButtonVariants";
-import { LEGAL_PAGES_LAST_UPDATED } from "packages/utils/legal/staticLegalContact";
+import { LEGAL_PAGES_LAST_UPDATED } from "packages/utils/transaction/legal/staticLegalContact";
 
 import { BodyText, Title } from "@/components/ui";
 

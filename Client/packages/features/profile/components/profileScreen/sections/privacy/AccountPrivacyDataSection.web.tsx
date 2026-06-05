@@ -14,11 +14,11 @@ import { SECTION_TITLES } from "packages/features/profile/utils";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui/toast";
 import { ROUTES } from "packages/navigation";
 import { useNavigation } from "packages/navigation/hooks/useNavigation";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
-import { STATIC_LEGAL_CONTACT } from "packages/utils/legal/staticLegalContact";
-import { getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
+import { getDocument, getWindow } from "packages/utils/core/platform";
+import { STATIC_LEGAL_CONTACT } from "packages/utils/transaction/legal/staticLegalContact";
 
 import { BodyText, Button } from "@/components/ui";
 
@@ -26,10 +26,11 @@ import type { AccountPrivacyDataSectionProps } from "./accountPrivacyDataSection
 
 function triggerJsonDownload(data: Record<string, unknown>, filename: string) {
   const w = getWindow();
-  if (!w?.document) return;
+  const doc = getDocument();
+  if (!w || !doc) return;
   const blob = new w.Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = w.URL.createObjectURL(blob);
-  const a = w.document.createElement("a");
+  const a = doc.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();

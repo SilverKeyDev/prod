@@ -1,10 +1,10 @@
 import React, { type ReactNode, useMemo } from "react";
 
 import { color, spacing } from "packages/design-tokens";
-import type { CardBorderVariant } from "packages/ui/components/cards/Card";
-import Card from "packages/ui/components/cards/Card";
-import { Box, ScrollView, Text } from "packages/ui/components/primitives";
-import { dateParseISO } from "packages/utils/date";
+import { Box, ScrollView, Text } from "packages/ui/components/structure/primitives";
+import type { CardBorderVariant } from "packages/ui/components/surfaces/cards/Card";
+import Card from "packages/ui/components/surfaces/cards/Card";
+import { dateParseISO } from "packages/utils/core/date";
 
 import type { Calendar } from "@/features/calendar/types/calendar";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

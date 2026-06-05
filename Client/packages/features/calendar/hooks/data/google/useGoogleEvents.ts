@@ -12,7 +12,7 @@ import { googleCalendarApi } from "packages/features/calendar/api";
 import { showErrorToast } from "packages/hooks/ui/toast";
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import { buildEventsListQueryFn } from "./useGoogleEventsHelpers";
 

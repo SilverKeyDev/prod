@@ -24,7 +24,6 @@ from app.services.property_cache import (
 from app.services.property_cache.section_cache import get_cached_sections
 from app.services.research.perplexity import (
     analyze_property_with_sonar_pro,
-    generate_report_sections_for_property,
     generate_report_sections_for_property_streaming,
 )
 from app.services.research.property.property_analysis import (
@@ -32,6 +31,7 @@ from app.services.research.property.property_analysis import (
     prepare_user_preferences_dict,
 )
 from app.services.research.property.property_analysis_payload import (
+    enrich_neighborhood_overview_with_census,
     finalize_property_analysis_payload,
 )
 from app.services.search.scoring import (
@@ -59,6 +59,23 @@ _BASIC_DATA_MAX_AGE = timedelta(days=1)
 
 def _sse(type_name: str, data: dict) -> str:
     return f"data: {json.dumps({'type': type_name, 'data': data})}\n\n"
+
+
+def _property_analysis_section_sse_data(
+    section_name: str,
+    section_data: Any,
+    property_address: str | None,
+    *,
+    enrich_neighborhood: bool,
+) -> dict[str, Any]:
+    """Build SSE payload for one analysis section; neighborhood includes census charts when enabled."""
+    if enrich_neighborhood and section_name == "neighborhood" and isinstance(section_data, dict):
+        return {
+            "neighborhood_overview": enrich_neighborhood_overview_with_census(
+                section_data, property_address
+            )
+        }
+    return {section_name: section_data}
 
 
 def _is_stale(timestamp: datetime | None, max_age: timedelta) -> bool:
@@ -315,9 +332,12 @@ def _generate_property_stream_internal(
                         public_property_analysis(property_analysis).copy(),
                     )
 
-                    # Shared analysis sections
+                    # Shared analysis sections (stream each section as it completes)
                     section_names = DEFAULT_SECTION_ORDER
                     sections_to_generate_normal: list[str] = []
+                    section_address = property_address or data.get(
+                        "streetAddress", "Unknown address"
+                    )
                     for sn in section_names:
                         if sn in cached_sections:
                             section_row = None
@@ -326,33 +346,46 @@ def _generate_property_stream_internal(
                                     section_row = s
                                     break
                             if not should_regenerate_section(section_row):
-                                property_analysis[sn] = cached_sections[sn]
+                                sd = cached_sections[sn]
+                                property_analysis[sn] = sd
+                                yield _sse(
+                                    "property_analysis_section",
+                                    _property_analysis_section_sse_data(
+                                        sn,
+                                        sd,
+                                        section_address,
+                                        enrich_neighborhood=True,
+                                    ),
+                                )
                                 continue
                         sections_to_generate_normal.append(sn)
 
-                    if sections_to_generate_normal:
-                        additional_sections = generate_report_sections_for_property(
+                    if sections_to_generate_normal and data:
+                        for section_result in generate_report_sections_for_property_streaming(
                             section_names=sections_to_generate_normal,
-                            address=property_address
-                            or data.get("streetAddress", "Unknown address"),
+                            address=section_address,
                             user_preferences=user_prefs_dict,
                             property_data=data,
-                        )
-                        if additional_sections:
-                            property_analysis.update(additional_sections)
-                            # Persist new shared sections
+                            existing_sections=property_analysis,
+                        ):
+                            sn = section_result["section_name"]
+                            sd = section_result["section_data"]
+                            property_analysis[sn] = sd
+                            yield _sse(
+                                "property_analysis_section",
+                                _property_analysis_section_sse_data(
+                                    sn,
+                                    sd,
+                                    section_address,
+                                    enrich_neighborhood=True,
+                                ),
+                            )
                             if prop_record:
                                 try:
-                                    for sn, sd in additional_sections.items():
-                                        save_section(prop_record.id, sn, sd)
+                                    save_section(prop_record.id, sn, sd)
                                     db.session.commit()
                                 except Exception:
                                     db.session.rollback()
-
-                    # Merge cached sections that were not regenerated
-                    for sn, sd in cached_sections.items():
-                        if sn not in property_analysis:
-                            property_analysis[sn] = sd
 
                     if property_analysis and "error" not in property_analysis:
                         property_analysis = attach_analysis_cache_meta(property_analysis, adj_sig)

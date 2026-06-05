@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from "react";
 
 import { getEnv } from "packages/config/env";
 import { log } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { PERFECT_CRITERIA_MATCH_CARD_CLASSNAME } from "@/components/cards/property/perfectMatchCardGlowClasses";
 import { SearchResultListingCard } from "@/features/search/components/list/SearchResultListingCard.web";

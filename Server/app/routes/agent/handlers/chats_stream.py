@@ -8,7 +8,7 @@ from collections.abc import Generator
 
 from flask import Response, stream_with_context
 
-from app.services.agent.messaging_realtime import CHANNEL_PREFIX, messaging_redis_url
+from app.services.agent.conversation import CHANNEL_PREFIX, messaging_redis_url
 from app.utils.cache.redis_client import create_messaging_pubsub_client
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,

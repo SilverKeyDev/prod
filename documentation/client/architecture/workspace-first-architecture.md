@@ -98,23 +98,23 @@ Canonical routes are shared; **nav visibility**, **labels**, **onboarding**, and
 
 | Area | Detail |
 | ---- | ------ |
-| **Onboarding** | Public role picker only: selecting **Seller** → single `onboarding_role` step → submit. Sets `why_joining_silverkey` / `user_roles` via preferences sync; `activeWorkspace` → `seller`; lands on `/dashboard`. |
+| **Onboarding** | Public role picker: **Seller** → `onboarding_role` → `seller_shell_setup` (one test input) → submit. Sets `why_joining_silverkey` / `user_roles` via preferences sync; `activeWorkspace` → `seller`; lands on `/dashboard`. |
 | **Nav** | **Dashboard**, **Messaging** (generic labels; icons: home, send). Same on mobile. |
 | **Dashboard / Messaging** | `WorkspacePlaceholderPage` on both tabs until features ship |
 | **Blocked routes** | `/search`, `/library`, `/profile` render placeholder (not buyer/agent product UI) |
-| **Code** | `SellerDashboardPage.tsx`, empty `packages/features/seller/types/translations.ts` |
+| **Code** | `SellerDashboardPage.tsx`, `packages/features/seller/` (shell onboarding step) |
 
 ### Brokerage — **Placeholder (shell only)**
 
-**Product goal (future):** Brokerage / office-lead oversight — team roster, aggregates, marketplace admin. See [to-implement-soon/broker-workspace/01-broker-team-dashboard.md](../../to-implement-soon/broker-workspace/01-broker-team-dashboard.md).
+**Product goal (future):** Brokerage / office-lead oversight — team roster, aggregates, marketplace admin. Track in Linear [SIL-158](https://linear.app/silverkey/issue/SIL-158/broker-team-dashboard-read-only-team-kpis-broker-persona-routes) ([Brokerage Build Out](https://linear.app/silverkey/project/brokerage-build-out-835fbc2c4844)).
 
 | Area | Detail |
 | ---- | ------ |
-| **Onboarding** | Not in public role picker. Provisioned via `brokerage_admin*` roles, `brokerage_org_ids`, or **Admin → Dev persona**. |
+| **Onboarding** | Public role picker (shell QA): **Brokerage** → `onboarding_role` → `brokerage_shell_setup` → submit. Grants `brokerage_admin` from `primary_onboarding_role` on first preferences write; lands on `/dashboard`. Production invite/provision flows remain future work. |
 | **Nav** | **Dashboard**, **Messaging** (generic labels). |
 | **Dashboard / Messaging** | `WorkspacePlaceholderPage` |
 | **Blocked routes** | Same placeholder guard as seller |
-| **Code** | `BrokerageDashboardPage.tsx`, empty `packages/features/brokerage/types/translations.ts` |
+| **Code** | `BrokerageDashboardPage.tsx`, `packages/features/brokerage/` (shell onboarding step) |
 
 ### Integration partner — **Placeholder (shell only)**
 
@@ -122,24 +122,24 @@ Canonical routes are shared; **nav visibility**, **labels**, **onboarding**, and
 
 | Area | Detail |
 | ---- | ------ |
-| **Onboarding** | Not in public role picker. Provisioned via `integration_partner*` roles or dev persona. |
+| **Onboarding** | Public role picker (shell QA): **Integration partner** → `onboarding_role` → `integration_partner_shell_setup` → submit. Grants `integration_partner` from `primary_onboarding_role` on first write; lands on `/dashboard`. Production partner provision remains future work. |
 | **Nav** | **Dashboard**, **Messaging** (generic labels). |
 | **Dashboard / Messaging** | `WorkspacePlaceholderPage` |
 | **Related (brokerage-side)** | Partner placement admin: [rev-share-partners.md](../features/rev-share-partners.md) |
-| **Code** | `IntegrationPartnerDashboardPage.tsx`, empty `packages/features/integrationPartner/types/translations.ts` |
+| **Code** | `IntegrationPartnerDashboardPage.tsx`, `packages/features/integrationPartner/` (shell onboarding step) |
 
 ---
 
 ## Identity → workspace
 
-- POST `/api/v1/preferences` syncs **`user_roles`** from `why_joining_silverkey` via `Server/app/services/auth/user_roles_sync.py` (buyer / seller / investor tags); agent role is granted from `primary_onboarding_role: "agent"` on first write (immutable after grant).
+- POST `/api/v1/preferences` syncs **`user_roles`** from `why_joining_silverkey` via `Server/app/services/auth/user_roles_sync.py` (buyer / seller / investor tags); agent role is granted from `primary_onboarding_role: "agent"` on first write (immutable after grant). Shell QA: `brokerage_admin` and `integration_partner` are granted from `primary_onboarding_role` on first write until invite/provision flows ship.
 - `deriveAllowedWorkspaces` reads `user.roles` from profile bootstrap (including `integration_partner` when provisioned).
 - **`WorkspaceSwitcher`** — admin only at **`/admin/dev-persona`** (`AdminDevPersonaSection`): sets exclusive server-backed persona via `POST /api/v1/admin/current-user-dev-workspace`. Workspace UX follows identity like production; not mounted in the main dashboard.
-- Seller onboarding success sets `activeWorkspace` to `seller` and navigates to `/dashboard` (see `postOnboardingPathForForm`).
+- Shell onboarding success sets `activeWorkspace` and navigates via [`onboardingToWorkspace.ts`](../../../Client/packages/features/profile/utils/onboarding/role/onboardingToWorkspace.ts) (seller / brokerage / integration_partner → `/dashboard`).
 
 ## How to verify locally
 
-1. Complete onboarding as **Seller** (role only) → lands on placeholder dashboard; profile `roles` includes `seller` when tags sync.
+1. Complete onboarding as **Seller**, **Brokerage**, or **Integration partner** (role + shell setup step) → lands on placeholder dashboard with matching workspace.
 2. Open **Admin → Dev preview** (`/admin/dev-persona`) and choose brokerage or integration partner → barren nav and placeholder dashboard.
 3. As buyer or agent, confirm full tabs and flows unchanged.
 4. Run tests:

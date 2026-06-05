@@ -1,5 +1,7 @@
 > **Status:** Planned | **Last verified:** 2026-05-28
 
+> **Planned work:** Linear [Notification Systems](https://linear.app/silverkey/project/notification-systems-f44e58377593) / [SIL-157](https://linear.app/silverkey/issue/SIL-157/transaction-milestone-notifications-emailsmspush).
+
 ## Audit trail and activity feed
 
 There is **no transaction-level `ActivityEvent` feed**. Audit today is chat history, structured server logs, and partner exposure logging.

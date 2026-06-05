@@ -3,6 +3,8 @@
  * React.lazy() reuse the same import() (one network fetch / parse when possible).
  * Clears the memo on failure so a later prefetch can retry (e.g. after deploy).
  */
+import { getWindow } from "packages/utils/core/platform";
+
 function memoizedPageImport<T>(
   getCache: () => Promise<T> | null,
   setCache: (p: Promise<T> | null) => void,
@@ -112,7 +114,7 @@ let googleMapsUtilModulePromise: Promise<
 
 /** Best-effort Maps script prewarm when prefetching Search (deduped). */
 export function prefetchGoogleMapsForSearch(): void {
-  if (typeof window === "undefined") {
+  if (!getWindow()) {
     return;
   }
   googleMapsUtilModulePromise ??= import("packages/features/search/utils/googleMaps");

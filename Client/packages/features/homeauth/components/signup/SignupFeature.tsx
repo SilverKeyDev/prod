@@ -15,7 +15,7 @@ import {
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { useNavigation } from "packages/navigation";
 import { ROUTES } from "packages/navigation";
-import { getDocument } from "packages/utils/platform";
+import { getDocument } from "packages/utils/core/platform";
 
 import { usePasswordValidation } from "@/components/feedback";
 

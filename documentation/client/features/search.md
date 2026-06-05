@@ -1,7 +1,7 @@
 # Search feature
 
 > **Status:** Shipped  
-> **Last verified:** 2026-05-28  
+> **Last verified:** 2026-06-04  
 > **Code:** `Client/packages/features/search/`
 
 Property search: map, filters, criteria, saved searches integration.

@@ -1,6 +1,6 @@
 import { docusignApi } from "packages/features/documents/api/docusign";
 import { log } from "packages/logger";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 export type SignAgreementNowFlowUser = {
   id?: string;

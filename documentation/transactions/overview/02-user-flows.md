@@ -20,7 +20,7 @@ What ships vs what the vision docs describe.
 ### 2. Switch transactions — **Planned**
 
 - **Workspace switcher** toggles buyer / seller / agent — not property/deal list
-- Progress is **one journey per buyer user id**; agents switch clients via `checklistSubjectUserId`
+- Progress is **one active journey per buyer** (`transactions.id`); agents switch clients and pass `transactionId` from the client list
 
 ### 3. Checklist completion — **Shipped**
 
@@ -29,7 +29,7 @@ What ships vs what the vision docs describe.
 | Manual checkbox | `toggleItem` → merge rules → `PUT …/tasks` |
 | Submit-gated integrations | Budget, areas, criteria, agent, finding home — complete when profile/onboarding + address rules pass |
 | Signature-based | Linked agreement `status === completed` merges into `checkedIds` |
-| Move Concierge | Admin partner placement on closing step; embed via `PartnerTransactionIntegration` |
+| Partner placements | Admin rows on checklist `step_id` (e.g. `closing:13`); UI via `PartnerTransactionIntegration` |
 | Agent override | Agent PUT bypasses submit gates when `actor_user_id ≠ subject_user_id` |
 
 **UI:** `ChecklistLayout`, `ChecklistCheckbox`, integration slot, progressive `activeItemIds`.
@@ -53,8 +53,10 @@ What ships vs what the vision docs describe.
 
 ### 6. Multi-party collaboration — **Partial**
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [workspace.md](../../client/features/workspace.md).
+
 | Shipped | Planned |
 | ------- | ------- |
 | Buyer + primary agent (messaging, agent client list, agent checklist PUT) | TC, loan officer, escrow invites |
 | Agent dispatch automation on checkoff (`checklist_dispatch_automation`) | Role-based review gates, shared activity feed |
-| Partner exposure logging (Move Concierge / rev-share) | Full permission matrix per participant |
+| Partner exposure logging (rev-share placements) | Full permission matrix per participant |

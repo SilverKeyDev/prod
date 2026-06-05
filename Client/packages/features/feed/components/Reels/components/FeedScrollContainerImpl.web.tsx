@@ -5,8 +5,8 @@ import { useFeedLikes } from "packages/features/feed/hooks/data/useFeedLikes";
 import { FeedReelsProvider } from "packages/features/feed/hooks/feedReels/FeedReelsContext";
 import { useFeedReelsContext } from "packages/features/feed/hooks/feedReels/useFeedReelsContext";
 import { useFeedScrollContainer } from "packages/hooks/ui";
-import { Virtuoso, type VirtuosoHandle } from "packages/ui/components/adapters/virtuoso";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Virtuoso, type VirtuosoHandle } from "packages/ui/components/system/adapters/virtuoso";
 
 import { ReelsCommentsSheet } from "@/features/feed/components/Reels/sheets/ReelsCommentsSheet";
 import { ReelsMoreSheet } from "@/features/feed/components/Reels/sheets/ReelsMoreSheet";

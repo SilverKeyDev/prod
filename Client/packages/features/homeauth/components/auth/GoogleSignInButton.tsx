@@ -2,13 +2,13 @@ import React from "react";
 
 import { getEnv } from "packages/config";
 import { color } from "packages/design-tokens";
-import AppImage from "packages/ui/components/asset/AppImage";
+import AppImage from "packages/ui/components/media/asset/AppImage";
 import {
   GOOGLE_SIGN_IN_ANDROID_SOURCE,
   GOOGLE_SIGN_IN_IOS_SOURCE,
-} from "packages/ui/components/asset/logoSource";
-import { getWindow, isWeb, Platform } from "packages/utils/platform";
-import { Linking } from "packages/utils/platform/linking";
+} from "packages/ui/components/media/asset/logoSource";
+import { getWindow, isWeb, Platform } from "packages/utils/core/platform";
+import { Linking } from "packages/utils/core/platform/linking";
 
 import { BodyText, Button } from "@/components/ui";
 

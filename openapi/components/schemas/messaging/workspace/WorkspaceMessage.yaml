@@ -1,0 +1,22 @@
+type: object
+required:
+  - id
+  - role
+  - message
+properties:
+  id:
+    type: string
+  conversation_id:
+    type: string
+    nullable: true
+  sender_id:
+    type: string
+    nullable: true
+  role:
+    type: string
+  message:
+    type: string
+  timestamp:
+    type: string
+    format: date-time
+    nullable: true

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import OnPerTagInput from "@/features/profile/components/settings/inputs/tags/TagInput.web";
 import { type OnboardingData } from "@/features/profile/utils";

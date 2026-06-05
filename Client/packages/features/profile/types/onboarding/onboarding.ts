@@ -10,7 +10,15 @@ export type OnboardingData = {
 
   // Demographics
   /** Draft-only: first-screen role selection; stripped from preferences API payload. */
-  primary_onboarding_role?: "buyer" | "seller" | "agent" | "integration_partner" | "investor";
+  primary_onboarding_role?:
+    | "buyer"
+    | "seller"
+    | "agent"
+    | "brokerage"
+    | "integration_partner"
+    | "investor";
+  /** Shell-only onboarding scaffold; stripped from preferences API payload. */
+  workspace_shell_test_input?: string;
   name?: string;
   pets?: string;
   age?: number;

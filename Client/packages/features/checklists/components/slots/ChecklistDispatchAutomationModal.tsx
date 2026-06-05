@@ -14,9 +14,9 @@ import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import type { components } from "packages/types/api.generated";
 import { AccessibleCheckboxInput, AccessibleRadioInput, Button, Textarea } from "packages/ui";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box, Text } from "packages/ui/components/primitives";
-import Label from "packages/ui/components/text/Label";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import Label from "packages/ui/components/structure/text/Label";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
 
 type ChecklistDispatchChannel = components["schemas"]["ChecklistDispatchChannel"];
 type ChecklistDispatchRecipientScope = components["schemas"]["ChecklistDispatchRecipientScope"];

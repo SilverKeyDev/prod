@@ -14,8 +14,8 @@ import {
 } from "packages/store";
 import type { IsochroneData } from "packages/types/domain/api";
 import { simpleHash } from "packages/utils";
-import { formatPropertySearchListingPrice } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
-import { sortSearchResults } from "packages/utils/search/sort/sortSearchResults";
+import { formatPropertySearchListingPrice } from "packages/utils/product/search/pricing/formatPropertySearchListingPrice";
+import { sortSearchResults } from "packages/utils/product/search/sort/sortSearchResults";
 
 import { useIsochroneData } from "@/features/search/hooks/data/isochrone/useIsochroneData";
 import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";

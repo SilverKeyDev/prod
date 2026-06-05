@@ -6,7 +6,7 @@ import {
   ProfileSectionBody,
   useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import { Input, Title } from "@/components/ui";

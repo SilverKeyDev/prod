@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 
-import { Icon } from "packages/ui/components/icons";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
-import { dateParseISO } from "packages/utils/date";
+import { Icon } from "packages/ui/components/media/icons";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import { dateParseISO } from "packages/utils/core/date";
 
+import { AgendaCompleteControl } from "@/features/calendar/components/view/agenda/AgendaCompleteControl";
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
 
 function formatDueLine(dueDate: string | null) {
@@ -133,19 +134,11 @@ export function TodoAgendaRow({
         <Box className="flex flex-row items-stretch">
           <Box className="bg-primary w-1" />
           <Box className="flex min-w-0 flex-1 flex-row items-start gap-2 p-3">
-            <Pressable
-              onPress={() => (canEditComplete ? onToggleComplete(todo.id) : undefined)}
-              disabled={!canEditComplete}
-              className={`mt-0.5 h-6 w-6 flex-shrink-0 items-center justify-center rounded border-2 ${
-                todo.completed
-                  ? "border-primary bg-primary"
-                  : canEditComplete
-                    ? "border-border active:border-neutral-400"
-                    : "border-border"
-              }`}
-            >
-              {todo.completed ? <Text className="text-xs font-semibold text-white">✓</Text> : null}
-            </Pressable>
+            <AgendaCompleteControl
+              completed={todo.completed}
+              canToggle={canEditComplete}
+              onToggle={() => onToggleComplete(todo.id)}
+            />
             <Box className="min-w-0 flex-1 space-y-1">
               <Text
                 className={`text-left text-sm font-semibold ${

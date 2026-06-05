@@ -1,6 +1,9 @@
 import { describe, it } from "vitest";
 
-import { assertKeysResolve, assertTranslationMap } from "packages/utils/test/translationAssertions";
+import {
+  assertKeysResolve,
+  assertTranslationMap,
+} from "packages/utils/core/test/translationAssertions";
 
 import { DASHBOARD_TRANSLATIONS } from "./translations";
 

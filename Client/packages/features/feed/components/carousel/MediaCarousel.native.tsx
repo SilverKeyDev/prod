@@ -11,7 +11,7 @@ import { FlatList, Pressable, useWindowDimensions, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { useFeedStore } from "packages/store";
-import { Image, Video } from "packages/ui/components/primitives";
+import { Image, Video } from "packages/ui/components/structure/primitives";
 
 import type { MediaCarouselProps, MediaCarouselRef } from "./MediaCarouselTypes";
 

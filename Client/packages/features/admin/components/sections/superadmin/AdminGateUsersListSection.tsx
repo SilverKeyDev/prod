@@ -1,15 +1,15 @@
 import { useCallback, useState } from "react";
 
 import type { AdminGateUser } from "packages/api/admin";
+import { useAdminGateUsersList } from "packages/features/admin/hooks/data/useAdminGateUsersList";
+import { useUpdateUserSystemRolesMutation } from "packages/features/admin/hooks/data/useUpdateUserSystemRolesMutation";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
-import { useAdminGateUsersList } from "packages/hooks/data/admin/useAdminGateUsersList";
-import { useUpdateUserSystemRolesMutation } from "packages/hooks/data/admin/useUpdateUserSystemRolesMutation";
 import { log } from "packages/logger";
 import { HttpError } from "packages/services/http/client";
-import { ConfirmationDialog } from "packages/ui/components/modals";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { ConfirmationDialog } from "packages/ui/components/surfaces/modals";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
 
 import Card from "@/components/layout/Card.web";
 import { AccessibleCheckboxInput, BodyText, Button, Dropdown, Label, Title } from "@/components/ui";

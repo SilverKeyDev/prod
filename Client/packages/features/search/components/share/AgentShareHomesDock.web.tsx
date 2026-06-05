@@ -7,7 +7,7 @@ import type { SearchResult } from "packages/features/search/types/domain/result"
 import { useAgentSearchShareBundleDock } from "packages/hooks/data";
 import { useUIStore } from "packages/store";
 import { Button, ClientSelector } from "packages/ui";
-import { SelectionBottomDock } from "packages/ui/components/layout";
+import { SelectionBottomDock } from "packages/ui/components/structure/layout";
 
 export type AgentShareHomesDockProps = {
   selectedProperties: SearchResult[];

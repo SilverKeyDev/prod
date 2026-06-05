@@ -6,7 +6,7 @@ import { queryKeys } from "packages/config/query/keys";
 import { showErrorToast } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import type { CreateTodoRequest, TodoItem, UpdateTodoRequest } from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";
@@ -51,10 +51,7 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     // Use placeholderData function to check cache reactively when enabled changes
     // Note: Only use cached data if we're querying with includeCompleted=false (what's prefetched)
     placeholderData: () => {
-      if (includeCompleted === false) {
-        return queryClient.getQueryData<TodoItem[]>(queryKeys.agent.todos(false));
-      }
-      return undefined;
+      return queryClient.getQueryData<TodoItem[]>(queryKeys.agent.todos(includeCompleted));
     },
     staleTime: 3 * 60 * 1000, // 3 minutes
     refetchOnMount: false,

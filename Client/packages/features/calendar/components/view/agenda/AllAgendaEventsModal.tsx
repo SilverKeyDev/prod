@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 import { Dropdown, type DropdownOption } from "packages/ui";
-import Cover from "packages/ui/components/modals/cover";
-import { Box, Text } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
+import Cover from "packages/ui/components/surfaces/modals/cover";
 
 import type { Calendar } from "@/features/calendar/types/calendar";
+import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 import {
   AGENDA_ALL_DISPLAY_OPTIONS,
@@ -39,6 +40,9 @@ type AllAgendaEventsModalProps = {
   onToggleAgendaTodo?: (id: string) => void;
   canEditAgendaTodos?: boolean;
   onSigningAgendaPress?: (agreementId: string) => void;
+  isAgendaEventComplete?: (event: ExtendedGoogleEvent) => boolean;
+  onToggleAgendaEventComplete?: (event: ExtendedGoogleEvent) => void;
+  completedEventKeys?: Record<string, true>;
 };
 
 export function AllAgendaEventsModal({
@@ -54,6 +58,9 @@ export function AllAgendaEventsModal({
   onToggleAgendaTodo,
   canEditAgendaTodos = false,
   onSigningAgendaPress,
+  isAgendaEventComplete,
+  onToggleAgendaEventComplete,
+  completedEventKeys,
 }: AllAgendaEventsModalProps) {
   const [displayMode, setDisplayMode] = useState<AgendaAllDisplayMode>("chronological");
 
@@ -64,8 +71,8 @@ export function AllAgendaEventsModal({
   }, [isOpen]);
 
   const displayedItems = useMemo(
-    () => applyAgendaAllDisplayMode(items, displayMode),
-    [items, displayMode]
+    () => applyAgendaAllDisplayMode(items, displayMode, { completedEventKeys }),
+    [items, displayMode, completedEventKeys]
   );
 
   const sortOptions = useMemo((): DropdownOption<AgendaAllDisplayMode>[] => {
@@ -142,6 +149,15 @@ export function AllAgendaEventsModal({
                     updateEvent={updateEvent}
                     deleteEvent={deleteEvent}
                     calendars={calendars}
+                    agendaComplete={isAgendaEventComplete?.(item.event) ?? false}
+                    onToggleAgendaComplete={
+                      onToggleAgendaEventComplete
+                        ? () => onToggleAgendaEventComplete(item.event)
+                        : undefined
+                    }
+                    canToggleAgendaComplete={Boolean(
+                      onToggleAgendaEventComplete && isAgendaEventComplete
+                    )}
                   />
                 ) : (
                   <TodoAgendaRow

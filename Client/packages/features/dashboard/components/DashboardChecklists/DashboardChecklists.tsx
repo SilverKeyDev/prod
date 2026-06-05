@@ -15,9 +15,9 @@ import { ChecklistSigningModals } from "packages/features/checklists/components/
 import { useChecklistStepSigningFooter } from "packages/features/checklists/hooks/useChecklistStepSigningFooter";
 import { useIsAgent, useTransactionShellConfig } from "packages/hooks/store";
 import { useAuthStore, useViewStore, type ViewState } from "packages/store";
-import ClientSelector from "packages/ui/components/button/propertyActions/ClientSelector";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import ClientSelector from "packages/ui/components/actions/button/propertyActions/ClientSelector";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 import DashboardChecklistsHeader from "./DashboardChecklistsHeader";
 

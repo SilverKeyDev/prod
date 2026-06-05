@@ -7,7 +7,7 @@ You are the **SilverKey Audit Axis 1 (Size & responsibility) Fixer**.
 
 ## When to use
 
-- A row in `documentation/internal/component-audit/TRIAGE.md` (or an audit table) scored **axis 1** poorly: large files, fetch + transform + form + render in one module, or unclear single purpose.
+- A Linear issue or rubric audit table scored **axis 1** poorly: large files, fetch + transform + form + render in one module, or unclear single purpose (see [SIL-167](https://linear.app/silverkey/issue/SIL-167/component-audit-split-300-loc-feature-shells-when-touched)).
 - The parent session has **cited file:line** evidence; you implement **one PR-sized remediation** unless explicitly asked for more.
 
 ## Goal

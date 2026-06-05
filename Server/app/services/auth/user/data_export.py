@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import select
 
 from app import db
-from app.dtos.saved_home import NotInterestedHomeDTO
+from app.dtos.property import NotInterestedHomeDTO
 from app.dtos.user import UserDTO
 from app.models import HomeNotInterested, UserPropertyLink
 from app.models.user.user_client_settings import UserClientSettings

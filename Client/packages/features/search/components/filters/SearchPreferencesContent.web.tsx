@@ -1,5 +1,6 @@
 import React from "react";
 
+import type { OnboardingData } from "packages/features/profile";
 import {
   LocationSection,
   type PatchBuyerPreferenceExtensions,
@@ -8,10 +9,9 @@ import {
   ProfileSearchPropertySection,
 } from "packages/features/profile";
 import { useIsAgent } from "packages/hooks/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import AgentSearchPreferencesSyncPanel from "@/features/agent/components/search/AgentSearchPreferencesSyncPanel.web";
-import type { OnboardingData } from "@/features/profile/utils";
 
 import { ClearPreferencesButton } from "./ClearPreferencesButton";
 import PriceRangeFilter from "./PriceRangeFilter.web";

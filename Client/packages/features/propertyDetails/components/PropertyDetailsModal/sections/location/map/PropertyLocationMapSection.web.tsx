@@ -4,16 +4,16 @@ import { useLocalization } from "packages/contexts";
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
-import { usePropertyDetailsLocationMap } from "packages/hooks/data/property/usePropertyDetailsLocationMap.web";
+import { usePropertyDetailsLocationMap } from "packages/features/search/hooks/data/map/commute/usePropertyDetailsLocationMap.web";
 import { log } from "packages/logger";
 import { Button } from "packages/ui";
-import { Box, Loading } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import { getWindow } from "packages/utils/platform";
+import { Box, Loading } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import { getWindow } from "packages/utils/core/platform";
 import {
   getListingCoords,
   getListingCoordsUnavailableDiagnostics,
-} from "packages/utils/propertyDetails/location/listingCoords";
+} from "packages/utils/transaction/propertyDetails/location/listingCoords";
 
 import { PropertyDetailsMapOverlayControls } from "./PropertyDetailsMapOverlayControls.web";
 

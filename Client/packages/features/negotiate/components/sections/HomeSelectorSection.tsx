@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import SectionBox from "packages/features/negotiate/components/layout/SectionBox";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { AlignedRow } from "@/components/layout";
 import { Button, CancelButton, FavoriteHomesDropdown } from "@/components/ui";

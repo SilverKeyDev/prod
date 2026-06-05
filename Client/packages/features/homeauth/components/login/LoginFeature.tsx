@@ -12,7 +12,7 @@ import { applyLoginResult } from "packages/features/homeauth/utils/applyLoginRes
 import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { ROUTES } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Input } from "@/components/ui";
 export function LoginFeature() {

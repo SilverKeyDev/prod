@@ -1,6 +1,6 @@
 import { color, spacing } from "packages/design-tokens";
 import { useFeedGestureTrap } from "packages/hooks/ui";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
 
 export type CalendarTimeGridDayHeaderProps = {
   date: Date;

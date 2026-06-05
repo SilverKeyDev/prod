@@ -42,11 +42,6 @@ MAX_SETTINGS_JSON_BYTES = 512_000
 # Max onboarding draft blob (bytes) after json serialization
 MAX_ONBOARDING_DRAFT_BYTES = 200_000
 
-MAX_VIEWING_TOUR_ANCHORS = 30
-MAX_VIEWING_ANCHOR_ID_LEN = 80
-MAX_VIEWING_ANCHOR_LABEL_LEN = 120
-MAX_VIEWING_ENDPOINT_STRING_LEN = 500
-
 
 def default_settings() -> dict[str, Any]:
     return {
@@ -136,68 +131,6 @@ def _sanitize_calendar(raw: Any) -> dict[str, Any]:
     }
 
 
-def _strip_endpoint_string(val: Any, max_len: int) -> str | None:
-    if not isinstance(val, str):
-        return None
-    s = val.strip()
-    if not s:
-        return None
-    return s[:max_len]
-
-
-def _sanitize_viewing_route_endpoint(raw: Any) -> dict[str, Any] | None:
-    if not isinstance(raw, dict):
-        return None
-    out: dict[str, Any] = {}
-    label = _strip_endpoint_string(raw.get("label"), MAX_VIEWING_ENDPOINT_STRING_LEN)
-    if label is not None:
-        out["label"] = label
-    addr = _strip_endpoint_string(raw.get("address"), MAX_VIEWING_ENDPOINT_STRING_LEN)
-    if addr is not None:
-        out["address"] = addr
-    for key in ("lat", "lng"):
-        v = raw.get(key)
-        if v is None:
-            continue
-        try:
-            out[key] = float(v)
-        except (TypeError, ValueError):
-            continue
-    if not any(k in out for k in ("address", "lat", "lng")):
-        return None
-    return out
-
-
-def _sanitize_viewing_tour(raw: Any) -> dict[str, Any] | None:
-    if raw is None:
-        return None
-    if not isinstance(raw, dict):
-        return None
-    anchors_out: list[dict[str, Any]] = []
-    anchors_raw = raw.get("anchors")
-    if isinstance(anchors_raw, list):
-        for item in anchors_raw[:MAX_VIEWING_TOUR_ANCHORS]:
-            if not isinstance(item, dict):
-                continue
-            aid = _strip_endpoint_string(item.get("id"), MAX_VIEWING_ANCHOR_ID_LEN)
-            label = _strip_endpoint_string(item.get("label"), MAX_VIEWING_ANCHOR_LABEL_LEN)
-            if aid is None or label is None:
-                continue
-            endpoint = _sanitize_viewing_route_endpoint(item.get("endpoint"))
-            if endpoint is None:
-                continue
-            anchors_out.append({"id": aid, "label": label, "endpoint": endpoint})
-
-    out: dict[str, Any] = {"anchors": anchors_out}
-    dflt_raw = raw.get("default_start_anchor_id")
-    dflt = _strip_endpoint_string(dflt_raw, MAX_VIEWING_ANCHOR_ID_LEN)
-    if dflt is not None and any(a["id"] == dflt for a in anchors_out):
-        out["default_start_anchor_id"] = dflt
-    else:
-        out["default_start_anchor_id"] = None
-    return out
-
-
 def _sanitize_onboarding_draft(raw: Any) -> dict[str, Any] | None:
     if raw is None:
         return None
@@ -232,12 +165,6 @@ def sanitize_settings(raw: Any) -> dict[str, Any]:
         out["onboarding_draft"] = od
     elif "onboarding_draft" in raw and raw["onboarding_draft"] is None:
         out.pop("onboarding_draft", None)
-
-    vt = _sanitize_viewing_tour(raw.get("viewing_tour"))
-    if vt is not None:
-        out["viewing_tour"] = vt
-    elif "viewing_tour" in raw and raw["viewing_tour"] is None:
-        out.pop("viewing_tour", None)
 
     return out
 

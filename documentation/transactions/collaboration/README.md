@@ -1,3 +1,7 @@
+> **Status:** partial
+> **Last verified:** 2026-06-04
+> **Shipped:** [checklists.md](../../client/features/checklists.md), [messaging.md](../../client/features/messaging.md), [docusign-integration.md](../../client/features/docusign-integration.md).
+
 ## Collaboration and Multi-Party Workspace
 
 This folder defines how a transaction acts as a **shared workspace** for:

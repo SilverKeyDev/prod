@@ -1,13 +1,16 @@
 import React from "react";
 
+import { BrokerageShellSetupStep } from "packages/features/brokerage/components/onboarding/BrokerageShellSetupStep.native";
+import { IntegrationPartnerShellSetupStep } from "packages/features/integrationPartner/components/onboarding/IntegrationPartnerShellSetupStep.native";
 import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
 import {
   AgentBrokerageSection,
   AgentLicensingSection,
   AgentProfileServiceSection,
 } from "packages/features/profile/components/sections";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { SellerShellSetupStep } from "packages/features/seller/components/onboarding/SellerShellSetupStep.native";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import { DemographicsStep } from "./DemographicsStep.native";
 import { HousingStepEssentials } from "./housing/HousingStepEssentials.native";
@@ -74,6 +77,14 @@ export function renderOnboardingStep({
           updateField={(field, value) => updateFormData(field, value)}
           patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
+      );
+    case "seller_shell_setup":
+      return <SellerShellSetupStep formData={formData} updateFormData={updateFormData} />;
+    case "brokerage_shell_setup":
+      return <BrokerageShellSetupStep formData={formData} updateFormData={updateFormData} />;
+    case "integration_partner_shell_setup":
+      return (
+        <IntegrationPartnerShellSetupStep formData={formData} updateFormData={updateFormData} />
       );
     default:
       return (

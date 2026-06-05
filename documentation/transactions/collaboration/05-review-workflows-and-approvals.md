@@ -1,5 +1,7 @@
 > **Status:** Planned | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
+
 ## Review workflows and approvals
 
 Explicit review queues (agent/TC approves before an item is "done") are **not built**. Checklist completion is checkbox, integration, or signature-driven only.

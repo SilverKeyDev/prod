@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
+import { Box } from "packages/ui/components/structure/primitives";
 import {
   AnimatePresence,
   MotionButton,
   MotionSpan,
   MotionView,
-} from "packages/ui/components/adapters/motion";
-import { Box } from "packages/ui/components/primitives";
-import { getDocument, getWindow } from "packages/utils/platform";
+} from "packages/ui/components/system/adapters/motion";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import Card from "@/components/layout/Card.web";
 import { Region } from "@/components/ui";

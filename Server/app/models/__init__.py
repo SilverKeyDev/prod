@@ -16,6 +16,12 @@ from .documents import (
     DocusignOAuthToken,
     DocusignTemplate,
 )
+from .messaging import (
+    BrokeragePartnerAdoption,
+    PartnerOperator,
+    WorkspaceConversation,
+    WorkspaceConversationParticipant,
+)
 from .partners import BuyerStepView, Partner, RevShareLink, RevShareLinkClick
 from .property import (
     HomeComment,
@@ -65,6 +71,10 @@ def init_db():
 __all__ = [
     "BrokerageOrg",
     "UserOrgMembership",
+    "BrokeragePartnerAdoption",
+    "PartnerOperator",
+    "WorkspaceConversation",
+    "WorkspaceConversationParticipant",
     "Partner",
     "RevShareLink",
     "RevShareLinkClick",

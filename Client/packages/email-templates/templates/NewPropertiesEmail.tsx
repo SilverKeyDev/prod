@@ -2,7 +2,7 @@ import React from "react";
 
 import { Section, Text } from "@react-email/components";
 
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 import { EmailTemplate } from "../components/EmailTemplate";
 import { Listing, ListingCard } from "../components/ListingCard";

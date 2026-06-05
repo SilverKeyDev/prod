@@ -1,13 +1,13 @@
 import { useCallback } from "react";
 
-import { useShowPersonalizationSectionBodyTitle } from "packages/features/profile/components/layout";
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
 import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
 import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
+import { useShowPersonalizationSectionBodyTitle } from "packages/features/profile/hooks/usePersonalizationSectionLayout";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import type { OnboardingData } from "packages/features/profile/utils";
 import { PROFILE_NOT_SPECIFIED_LABEL } from "packages/features/profile/utils";
-import type { HomePriceResult } from "packages/utils/affordability";
+import type { HomePriceResult } from "packages/utils/transaction/affordability";
 
 export type ProfileFinancialSectionProps = {
   formData: OnboardingData;

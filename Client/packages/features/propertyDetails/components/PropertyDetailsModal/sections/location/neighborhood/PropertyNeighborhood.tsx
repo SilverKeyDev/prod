@@ -5,11 +5,11 @@ import { PropertySectionRatingBadge } from "packages/features/propertyDetails/co
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
-import { stripSectionRatingField } from "packages/utils/propertyDetails";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Card from "packages/ui/components/surfaces/cards/Card";
+import { DEFAULT_REPORT_SECTIONS } from "packages/utils/product/domain/defaultReportSections";
+import { stripSectionRatingField } from "packages/utils/transaction/propertyDetails";
 
 import { renderNeighborhoodContent } from "./propertyNeighborhoodHelpers";
 

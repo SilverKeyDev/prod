@@ -1,3 +1,7 @@
+> **Status:** Partial
+> **Last verified:** 2026-06-04
+> **Shipped feature docs:** [search.md](../client/features/search.md).
+
 # Reels: Current Infrastructure
 
 What SilverKey has today and how it maps to the target Reels architecture.

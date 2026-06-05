@@ -12,11 +12,11 @@ import {
   useTogglePartnerActive,
   useUpdatePartner,
 } from "packages/features/partners/hooks/useAdminPartners";
-import { ConfirmationDialog } from "packages/ui/components/modals";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
-import { formatCtrPercent } from "packages/utils/revShare/revShareRedirectUrl";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
+import { ConfirmationDialog } from "packages/ui/components/surfaces/modals";
+import { formatCtrPercent } from "packages/utils/transaction/revShare/revShareRedirectUrl";
 
 import Card from "@/components/layout/Card.web";
 import { Button } from "@/components/ui";

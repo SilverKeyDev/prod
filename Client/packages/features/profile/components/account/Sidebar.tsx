@@ -6,14 +6,14 @@ import { spacing } from "packages/design-tokens";
 import { getPersonalizationNavItems } from "packages/features/profile/components/profilePicture/profileStepsUi";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { useResponsive } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import {
   getInsetNavItemClasses,
   getInsetNavItemIconClasses,
   getInsetNavItemIconLucideSizePx,
   getInsetNavItemIconStrokeWidth,
   getInsetNavItemLabelClasses,
-} from "packages/ui/components/sidebar/sidebarTheme";
+} from "packages/ui/components/structure/sidebar/sidebarTheme";
 import type { IconName } from "packages/ui/types/icons";
 
 import Card from "@/components/layout/Card.web";

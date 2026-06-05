@@ -7,8 +7,8 @@ import { queryKeys } from "packages/config/query/keys";
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import type { UserPreferences, UserProfile } from "packages/types";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
-import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
+import { prefetchRemoteImage } from "packages/utils/product/media/prefetchRemoteImage";
 
 export type UserProfileQueryMeta = {
   status: string;

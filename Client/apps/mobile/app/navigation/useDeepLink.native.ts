@@ -1,10 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { Linking } from "react-native";
 
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { getPathnameFromUrl, resolveDeepLinkTarget } from "packages/utils/navigation";
+import { getPathnameFromUrl, resolveDeepLinkTarget } from "packages/utils/product/navigation";
 
 import { rootNavigationRef } from "./rootNavigationRef.native";
 
@@ -25,11 +25,15 @@ function navigateToResolvedTarget(pathname: string, isAuthenticated: boolean): v
 }
 
 export function useDeepLink() {
+  const authStatus = useAuthStore((s) => s.authStatus);
+  const authStatusRef = useRef(authStatus);
+  authStatusRef.current = authStatus;
+
   useEffect(() => {
     const handleUrl = (url: string | null) => {
       try {
         const pathname = getPathnameFromUrl(url);
-        const isAuthenticated = useAuthStore.getState().authStatus === "authenticated";
+        const isAuthenticated = authStatusRef.current === "authenticated";
         navigateToResolvedTarget(pathname, isAuthenticated);
       } catch (err) {
         log.error("ERRORS", "Deep link handleUrl failed", err);

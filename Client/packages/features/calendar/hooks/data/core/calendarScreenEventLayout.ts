@@ -1,6 +1,6 @@
-import { calendarDateToKey } from "packages/utils/calendar/core/calendarDateKeys";
-import { getVisibleDateRange } from "packages/utils/calendar/core/date";
-import { getEventLocalDayKeys } from "packages/utils/calendar/parsing/eventParsing";
+import { calendarDateToKey } from "packages/utils/comms/calendar/core/calendarDateKeys";
+import { getVisibleDateRange } from "packages/utils/comms/calendar/core/date";
+import { getEventLocalDayKeys } from "packages/utils/comms/calendar/parsing/eventParsing";
 
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 

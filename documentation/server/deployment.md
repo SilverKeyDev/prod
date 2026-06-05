@@ -31,7 +31,7 @@
 | Command | When to run | On prod deploy? |
 | ------- | ----------- | --------------- |
 | `make routes-extract` | After adding/changing Flask routes; commit `Server/endpoints.json` | **No** — inventory is code-derived and verified in CI |
-| `make routes-extract-verify` | CI on every PR/push (`test.yml` backend job) | **No** |
+| `make routes-extract-verify` | CI on every PR/push (`.github/workflows/test-callable.yml` backend job, invoked via `test.yml`) | **No** |
 | `make endpoints-sync-posthog` | CI after tests pass on `main`; weekly dead-route job; manual | **No** — posts `endpoint_inventory_sync` + `endpoint_dead_route` (dead = inventory minus 7d `api_request`); needs `POSTHOG_PROJECT_TOKEN` + `POSTHOG_QUERY_API_KEY` |
 | `make endpoints-check-dead` | Local print-only diff (same HogQL logic, no PostHog capture) | **No** — needs 7 days of `api_request` traffic; new routes are expected to look “dead” right after deploy |
 

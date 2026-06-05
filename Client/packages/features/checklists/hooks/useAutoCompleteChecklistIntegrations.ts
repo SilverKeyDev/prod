@@ -16,9 +16,8 @@ import {
 } from "packages/features/checklists/utils/integration/checklistIntegrationCompletenessByKey";
 import type { ChecklistItemToggleEligibility } from "packages/features/checklists/utils/rules/checklistRules";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import { userPreferencesToOnboardingData } from "packages/features/profile";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
-
-import { userPreferencesToOnboardingData } from "@/features/profile/utils";
 
 export type UseAutoCompleteChecklistIntegrationsArgs = {
   items: TaskChecklistItem[];

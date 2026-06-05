@@ -1,6 +1,6 @@
 import type { MessagingSendMessageOptions } from "packages/features/messaging/hooks/data/messaging/types";
 import type { SavedHome } from "packages/types";
-import type { DocumentData } from "packages/ui/components/cards/document/DocumentCard";
+import type { DocumentData } from "packages/ui/components/surfaces/cards/document/DocumentCard";
 
 import {
   AgentSearchModal,

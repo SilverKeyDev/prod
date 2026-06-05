@@ -1,19 +1,19 @@
 import React, { useCallback, useEffect } from "react";
 
+import type { OnboardingData } from "packages/features/profile";
+import { useSearchHeaderLocations } from "packages/features/search/hooks/ui/useSearchHeaderLocations";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { useGoogleMaps } from "packages/hooks/data";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 import { Popover } from "@/components/ui";
 import LocationSection from "@/features/profile/components/sections/LocationSection";
-import type { OnboardingData } from "@/features/profile/utils";
 
 import {
   SEARCH_HEADER_PANEL_CLASS_LOCATIONS,
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "./searchHeaderConstants";
 import { SearchHeaderLocationsTrigger } from "./SearchHeaderLocations/SearchHeaderLocationsTrigger";
-import { useSearchHeaderLocations } from "./SearchHeaderLocations/useSearchHeaderLocations";
 
 export { type SearchHeaderLocationsProps } from "./SearchHeaderLocations/types";
 

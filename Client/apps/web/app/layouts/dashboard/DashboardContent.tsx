@@ -4,9 +4,12 @@ import { WorkspacePlaceholderPage } from "packages/features/workspace";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { useIsMobile } from "packages/hooks/ui";
 import { log, type LogCategory } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
-import { shellRouteNavigateStart, traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
-import { isPlaceholderWorkspace } from "packages/utils/workspace";
+import { Box } from "packages/ui/components/structure/primitives";
+import {
+  shellRouteNavigateStart,
+  traceLazyImport,
+} from "packages/utils/core/perf/shellRouteLoadTiming";
+import { isPlaceholderWorkspace } from "packages/utils/product/workspace";
 
 import PageErrorBoundary from "@/app/error/PageErrorBoundary";
 
@@ -30,6 +33,13 @@ const BrokerageDashboardPage = lazy(
     "DASHBOARD",
     "lazy:BrokerageDashboardPage",
     () => import("@/pages/workspace/BrokerageDashboardPage")
+  )
+);
+const BrokerageAnalyticsPage = lazy(
+  traceLazyImport(
+    "DASHBOARD",
+    "lazy:BrokerageAnalyticsPage",
+    () => import("@/pages/workspace/BrokerageAnalyticsPage")
   )
 );
 const IntegrationPartnerDashboardPage = lazy(
@@ -123,13 +133,15 @@ export function DashboardContent({
     activeKey !== "dashboard" &&
     activeKey !== "messaging" &&
     activeKey !== null;
-  const contentTopMargin = route.isDashboard || route.isProfile || route.isFindAgents;
+  const contentTopMargin =
+    route.isDashboard || route.isProfile || route.isFindAgents || route.isAnalytics;
   const contentBottomMargin =
     route.isDashboard ||
     route.isProfile ||
     route.isLibrary ||
     route.isFindAgents ||
-    route.isAgreementSigningComplete;
+    route.isAgreementSigningComplete ||
+    route.isAnalytics;
 
   const searchHeightClass =
     isSearch && isMobile
@@ -200,6 +212,14 @@ export function DashboardContent({
           <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
         </Suspense>
       </PageErrorBoundary>
+    )
+  ) : activeKey === "analytics" ? (
+    activeWorkspace === "brokerage" ? (
+      <Suspense fallback={loadingFallback}>
+        <BrokerageAnalyticsPage />
+      </Suspense>
+    ) : (
+      <WorkspacePlaceholderPage workspace={activeWorkspace} />
     )
   ) : activeKey === "dashboard" ? (
     <Suspense fallback={loadingFallback}>

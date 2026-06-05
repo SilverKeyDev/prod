@@ -23,7 +23,7 @@ vi.mock("./useSecureAuthEffects", () => ({
   useAuthReadyDispatch: () => {},
 }));
 
-vi.mock("../utils/logoutCleanup", () => ({
+vi.mock("packages/features/homeauth/hooks/data/utils/logoutCleanup", () => ({
   clearSessionStorageForLogout: vi.fn(),
   getOptionalSessionStorageForLogout: () => undefined,
 }));

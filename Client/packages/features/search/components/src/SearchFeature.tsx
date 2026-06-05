@@ -7,8 +7,8 @@ import { SearchPageMapView } from "packages/features/search/components/layout/Se
 import { SearchPageModals } from "packages/features/search/components/layout/SearchPageModals";
 import { DesktopReelsView } from "packages/features/search/components/reels/DesktopReelsView";
 import { useSearchFeatureController } from "packages/features/search/hooks/ui/controller/useSearchFeatureController";
-import { MotionView } from "packages/ui/components/adapters/motion";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { MotionView } from "packages/ui/components/system/adapters/motion";
 
 import { SearchFeatureAgentShareMount } from "./SearchFeatureAgentShareMount.web";
 

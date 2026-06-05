@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 const USER_UNMUTED_KEY = "feed_user_has_unmuted";
 

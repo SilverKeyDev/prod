@@ -6,7 +6,6 @@ from flask import Response, make_response
 
 from app.models import User
 from app.services.auth.user_role_helpers import user_role_names
-from logger import log
 
 
 def create_error_response(error: str, message: str, status_code: int = 400) -> tuple:
@@ -36,8 +35,6 @@ def create_auth_response(
             auth_method = "google"
         elif has_cognito:
             auth_method = "cognito"
-    if auth_method == "unknown":
-        log.info("AUTH", f"auth_method_unknown_session has_user_row={user is not None}")
     response_data = {
         "success": True,
         "user": {

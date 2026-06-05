@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { Modal, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { Box, ScrollView, Text, TouchableBox } from "packages/ui/components/primitives";
-import type { EventScheduleOption } from "packages/utils/scheduling/eventRequestScheduleOptions";
+import { Box, ScrollView, Text, TouchableBox } from "packages/ui/components/structure/primitives";
+import type { EventScheduleOption } from "packages/utils/comms/scheduling/eventRequestScheduleOptions";
 
 export type EventRequestDateDropdownProps = {
   minDate: string;

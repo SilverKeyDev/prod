@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { docusignApi } from "packages/features/documents/api/docusign";
 import type { Agreement, CreateAgreementRequest } from "packages/features/documents/types/docusign";
-import { dateNow } from "packages/utils/date";
-import { setPlatformGlobals } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { setPlatformGlobals } from "packages/utils/core/platform";
 
 import { useDocusignActions } from "./useDocusignActions";
 

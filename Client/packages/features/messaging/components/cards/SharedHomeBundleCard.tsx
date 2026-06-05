@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { type SearchResult, SearchResultListingCard } from "packages/features/search";
 import { IconButton } from "packages/ui";
-import { useEmblaCarousel } from "packages/ui/components/adapters/carousel";
-import type { HomeDescription } from "packages/ui/components/cards/HomeCard";
-import { Box } from "packages/ui/components/primitives";
-import { homeDescriptionToSearchResult } from "packages/utils/search/scoring/homeDescriptionToSearchResult";
+import { Box } from "packages/ui/components/structure/primitives";
+import type { HomeDescription } from "packages/ui/components/surfaces/cards/HomeCard";
+import { useEmblaCarousel } from "packages/ui/components/system/adapters/carousel";
+import { homeDescriptionToSearchResult } from "packages/utils/product/search/scoring/homeDescriptionToSearchResult";
 
 export type SharedHomeBundleCardProps = {
   homes: HomeDescription[];

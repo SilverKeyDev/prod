@@ -19,10 +19,10 @@ import {
   type OnboardingData,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Subtitle from "packages/ui/components/text/Subtitle";
-import Title from "packages/ui/components/text/Title";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Subtitle from "packages/ui/components/structure/text/Subtitle";
+import Title from "packages/ui/components/structure/text/Title";
 
 type ProfileLocationSectionProps = {
   formData: OnboardingData;

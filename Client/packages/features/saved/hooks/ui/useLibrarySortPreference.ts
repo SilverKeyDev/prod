@@ -9,7 +9,7 @@ import {
 } from "packages/features/saved/utils/librarySort";
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useLocalStorage } from "packages/hooks/ui";
-import { defaultClientSettings } from "packages/utils/clientSettings";
+import { defaultClientSettings } from "packages/utils/auth/clientSettings";
 
 const STORAGE_KEYS: Record<LibraryPersistSection, string> = {
   homes: "library-sort:homes",

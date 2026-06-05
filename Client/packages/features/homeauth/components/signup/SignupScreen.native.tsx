@@ -19,10 +19,13 @@ import {
   persistSignupEmailForVerification,
 } from "packages/features/homeauth/utils/signupPayload";
 import { useNavigation } from "packages/navigation";
-import { PasswordValidation, usePasswordValidation } from "packages/ui/components/feedback";
-import { Box } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import {
+  PasswordValidation,
+  usePasswordValidation,
+} from "packages/ui/components/surfaces/feedback";
 
 export function SignupScreenNative() {
   const [name, setName] = useState("");

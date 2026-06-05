@@ -1,10 +1,9 @@
 import type React from "react";
 
+import { googleMapsService } from "packages/features/search";
 import { log } from "packages/logger";
-import { dateNow } from "packages/utils/date";
-import { getWindow } from "packages/utils/platform";
-
-import { googleMapsService } from "@/features/search/utils/googleMaps";
+import { dateNow } from "packages/utils/core/date";
+import { getWindow } from "packages/utils/core/platform";
 
 type MemoryStatsRef = React.MutableRefObject<{
   markers: number;

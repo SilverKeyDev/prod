@@ -5,11 +5,11 @@ import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useFiltersStore } from "packages/store";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 import {
   propertyDetailsPathFromListing,
   type ResearchListingKeyInput,
-} from "packages/utils/property";
+} from "packages/utils/transaction/property";
 
 import type { SearchResult } from "@/features/search/types";
 import { getPageIndexForProperty } from "@/features/search/types/search/map/mapCardFocus";

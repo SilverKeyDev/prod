@@ -8,11 +8,11 @@ import type { ChecklistIntegrationComponentProps } from "packages/features/check
 import { usePartnerPlacementPresentation } from "packages/features/partners/hooks/usePartnerPlacementPresentation";
 import { partnerShowsIframe } from "packages/features/partners/types/integrationDisplay";
 import { Button } from "packages/ui";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
-import Card from "packages/ui/components/cards/Card";
-import { Box, Image } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Subtitle from "packages/ui/components/text/Subtitle";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader";
+import { Box, Image } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Subtitle from "packages/ui/components/structure/text/Subtitle";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 /**
  * Native checklist partner transaction integration (iframe via WebView + tracked open link).

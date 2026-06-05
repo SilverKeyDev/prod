@@ -1,6 +1,6 @@
-import { sanitizeCssHexColor } from "packages/utils/dom/sanitizeCssColor";
-import { getMapPinColorsForScoreAndStatus } from "packages/utils/format/mapMatchPinColors";
-import { getDocument } from "packages/utils/platform";
+import { sanitizeCssHexColor } from "packages/utils/core/dom/sanitizeCssColor";
+import { getMapPinColorsForScoreAndStatus } from "packages/utils/core/format/mapMatchPinColors";
+import { getDocument } from "packages/utils/core/platform";
 
 const PIN_SIZE_PX = 28;
 

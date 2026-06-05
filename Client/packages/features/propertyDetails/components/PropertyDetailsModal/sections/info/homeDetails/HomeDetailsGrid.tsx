@@ -1,8 +1,8 @@
 import React from "react";
 
-import { Box, Icon } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
+import { Box, Icon } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
 
 import type { HomeDetailsBlock } from "./columns/homeDetailsColumnTypes";
 

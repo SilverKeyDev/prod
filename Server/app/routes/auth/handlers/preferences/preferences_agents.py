@@ -3,10 +3,9 @@
 from flask import jsonify, request
 from jose import jwt as jose_jwt
 from jose.exceptions import ExpiredSignatureError, JWTClaimsError, JWTError
-from sqlalchemy import select
 
 from app import db
-from app.models import AgentConnections, User
+from app.models import User
 from app.schemas import (
     AddAgentResponse,
     RemoveAgentResponse,
@@ -14,6 +13,12 @@ from app.schemas import (
     UserAgentsResponse,
 )
 from app.services.agent.client_service import get_connected_agent_ids_for_client
+from app.services.auth.agent_connections import (
+    create_agent_connection,
+    delete_agent_connection,
+    find_agent_connection,
+    find_user_by_cognito_id,
+)
 from app.services.auth.tokens import (
     AWS_COGNITO_ISSUER,
 )
@@ -109,7 +114,7 @@ def set_as_agent():
                 "agent_id parameter is required",
                 field_errors={"agent_id": "Required"},
             )
-        current_user = db.session.scalar(select(User).where(User.cognito_id == user_id))
+        current_user = find_user_by_cognito_id(user_id)
         if not current_user:
             log.error(
                 "AUTH",
@@ -128,11 +133,7 @@ def set_as_agent():
         if not agent:
             log.error("AUTH", "preferences_agents_agent_not_found", {"agent_id": agent_id})
             return not_found("Agent not found")
-        existing = db.session.scalar(
-            select(AgentConnections).where(
-                AgentConnections.agent_id == agent_id, AgentConnections.client_id == current_user.id
-            )
-        )
+        existing = find_agent_connection(agent_id, current_user.id)
         if existing:
             log.info(
                 "AUTH",
@@ -140,8 +141,7 @@ def set_as_agent():
                 {"user_id": str(current_user.id), "agent_id": agent_id},
             )
             return conflict("User is already assigned to this agent")
-        db.session.add(AgentConnections(agent_id=agent_id, client_id=current_user.id))
-        db.session.commit()
+        create_agent_connection(agent_id, current_user.id)
         return jsonify(
             {
                 "success": True,
@@ -189,7 +189,7 @@ def remove_agent_relationship():
                 "agent_id parameter is required",
                 field_errors={"agent_id": "Required"},
             )
-        current_user = db.session.scalar(select(User).where(User.cognito_id == user_id))
+        current_user = find_user_by_cognito_id(user_id)
         if not current_user:
             log.error(
                 "AUTH",
@@ -208,11 +208,7 @@ def remove_agent_relationship():
         if not agent:
             log.error("AUTH", "preferences_agents_agent_not_found", {"agent_id": agent_id})
             return not_found("Agent not found")
-        connection = db.session.scalar(
-            select(AgentConnections).where(
-                AgentConnections.agent_id == agent_id, AgentConnections.client_id == current_user.id
-            )
-        )
+        connection = find_agent_connection(agent_id, current_user.id)
         if not connection:
             log.info(
                 "AUTH",
@@ -220,8 +216,7 @@ def remove_agent_relationship():
                 {"user_id": str(current_user.id), "agent_id": agent_id},
             )
             return conflict("User is not assigned to this agent")
-        db.session.delete(connection)
-        db.session.commit()
+        delete_agent_connection(connection)
         return jsonify(
             {
                 "success": True,

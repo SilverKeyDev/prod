@@ -13,7 +13,7 @@ import { usePropertyDetails } from "packages/features/search";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { useSavedPageModals } from "packages/hooks/ui";
 import type { SavedHome } from "packages/types";
-import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
+import { Box, Pressable, ScrollView, Text } from "packages/ui/components/structure/primitives";
 
 type ClientSavedHomesProps = {
   userId?: string;

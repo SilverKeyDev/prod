@@ -65,11 +65,11 @@ vi.mock("packages/features/checklists/components/steps/ChecklistStepSubmitFooter
   ),
 }));
 
-vi.mock("packages/ui/components/cards/Card", () => ({
+vi.mock("packages/ui/components/surfaces/cards/Card", () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-vi.mock("packages/ui/components/primitives", () => ({
+vi.mock("packages/ui/components/structure/primitives", () => ({
   Box: ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <div className={className}>{children}</div>
   ),

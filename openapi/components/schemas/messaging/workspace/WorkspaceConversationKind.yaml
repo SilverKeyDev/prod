@@ -1,0 +1,7 @@
+type: string
+enum:
+  - platform_support
+  - brokerage_agent
+  - integrator_brokerage
+  - group
+description: Workspace-scoped conversation kind

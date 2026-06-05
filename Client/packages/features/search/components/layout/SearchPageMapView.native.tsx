@@ -7,8 +7,8 @@ import { color } from "packages/design-tokens";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { log } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import type { SearchResult } from "@/features/search/types";
 

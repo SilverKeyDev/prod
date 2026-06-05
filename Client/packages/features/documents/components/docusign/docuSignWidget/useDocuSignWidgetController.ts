@@ -7,7 +7,7 @@ import { docusignApi } from "packages/features/documents/api/docusign";
 import { useDocusignAgreements } from "packages/features/documents/hooks/data/docusign/useDocusignAgreements";
 import { useDocusignTemplates } from "packages/features/documents/hooks/data/docusign/useDocusignTemplates";
 import type { DocusignTemplate } from "packages/features/documents/types/docusign";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 import {
   buildDocuSignWidgetStats,

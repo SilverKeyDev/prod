@@ -33,14 +33,14 @@ def create_app(config_name='default'):
     return app
 
 def register_blueprints(app):
-    from app.routes.auth import auth_bp
-    from app.routes.user import user_bp
-    from app.routes.search import search_bp
-    # ... more blueprints
+    from app.routes.auth.auth import auth_bp
+    from app.routes.auth.user import user_bp
+    from app.routes.search.search import search_bp
+    # ... see Server/app/__init__.py for full list
 
-    app.register_blueprint(auth_bp, url_prefix='/api/v1/auth')
-    app.register_blueprint(user_bp, url_prefix='/api/v1/user')
-    app.register_blueprint(search_bp, url_prefix='/api/v1/search')
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(user_bp)
+    app.register_blueprint(search_bp)
 ```
 
 ### Entry Point
@@ -63,12 +63,10 @@ Each feature area gets its own blueprint module:
 
 ```
 app/routes/
-├── auth/
-│   ├── __init__.py           # Blueprint registration
-│   └── handlers.py           # Route handlers
-├── user/
-│   ├── __init__.py
-│   └── handlers.py
+├── auth/                     # Auth, preferences, saved homes; user_bp in user.py
+│   ├── auth.py
+│   ├── user.py
+│   └── handlers/
 ├── search/
 │   ├── __init__.py
 │   ├── handlers/
@@ -82,12 +80,12 @@ app/routes/
 **Pattern 1: Simple blueprint** (single file):
 
 ```python
-# app/routes/user/__init__.py
+# app/routes/auth/user.py
 from flask import Blueprint
+from app.routes.auth.handlers import get_user_profile
 
-user_bp = Blueprint('user', __name__, url_prefix='/api/v1/user')
-
-from app.routes.user import handlers
+user_bp = Blueprint("user", __name__, url_prefix="/api/v1/user")
+user_bp.route("/profile", methods=["GET"])(get_user_profile)
 ```
 
 **Pattern 2: Complex blueprint** (multiple handler files):

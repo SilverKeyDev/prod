@@ -2,10 +2,10 @@
 import { useCallback, useRef, useState } from "react";
 
 import { color } from "packages/design-tokens";
-import { Box, Text } from "packages/ui/components/primitives";
-import { quantizeMinutesFromMidnight } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
-import { canResizeWeekTimedEvent } from "packages/utils/calendar/grid/calendarWeekTimedEventResize";
-import { getDocument } from "packages/utils/platform";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { quantizeMinutesFromMidnight } from "packages/utils/comms/calendar/createEvent/eventFormGooglePayload";
+import { canResizeWeekTimedEvent } from "packages/utils/comms/calendar/grid/calendarWeekTimedEventResize";
+import { getDocument } from "packages/utils/core/platform";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

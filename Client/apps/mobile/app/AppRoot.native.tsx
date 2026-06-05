@@ -8,7 +8,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { color } from "packages/design-tokens";
 import { log } from "packages/logger";
-import { Text } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import { runPlatformBootstrap } from "@/bootstrap/platformBootstrap.native";
 

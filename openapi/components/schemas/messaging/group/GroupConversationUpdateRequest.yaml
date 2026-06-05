@@ -1,0 +1,8 @@
+type: object
+description: Reserved for group chat — endpoints not implemented
+properties:
+  title:
+    type: string
+    maxLength: 120
+  is_archived:
+    type: boolean

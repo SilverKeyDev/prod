@@ -8,7 +8,7 @@ from sqlalchemy import or_, select
 
 from app import db
 from app.config._urls import get_frontend_url
-from app.dtos.docusign_template import DocusignTemplateDTO
+from app.dtos.documents import DocusignTemplateDTO
 from app.models import DocusignTemplate
 from app.schemas import (
     DocusignCreateTemplateMetadataInput,

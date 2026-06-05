@@ -23,7 +23,7 @@ Profile search locations (commute areas) are separate: `user_important_locations
 | Consumer | Uses address? |
 | -------- | ------------- |
 | Checklist `finding_home` step | Yes — saved address |
-| Move Concierge embed prefill | Yes — from user prefs + address (`moveConciergeEmbed.ts`) |
+| Partner placement redirect URL interpolation | Optional — when partner template includes transaction/address placeholders |
 | Series metadata (`get_series_metadata`) | **No** — `state`/`county`/`deadline` placeholders return null |
 | Jurisdiction checklist filtering | **No** |
 | Deadline rules engine | **No** |
@@ -44,6 +44,8 @@ Given `place_id` + structured fields (+ lat/lng when added):
 | Multi-transaction | Address per deal, not single user row |
 
 ### Reuse (don’t duplicate)
+
+> **Shipped feature docs:** [search.md](../../client/features/search.md).
 
 - Places autocomplete: `FindingHome`, calendar event location patterns, profile location inputs
 - Address normalization server-side: `Server/app/utils/address_format.py`

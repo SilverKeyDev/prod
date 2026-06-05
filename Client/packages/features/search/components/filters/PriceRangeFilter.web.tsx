@@ -1,7 +1,7 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { formatCompactNumber } from "packages/utils";
 
 import { BodyText } from "@/components/ui";

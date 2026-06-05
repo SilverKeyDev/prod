@@ -3,11 +3,11 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import {
-  getTaskChecklistProgressSummary,
   getTaskChecklistProgressSummaryForSubject,
   type TaskChecklistProgressSummary,
 } from "packages/features/checklists/api/checklists";
 import type { UseChecklistDataOptions } from "packages/features/checklists/hooks/data/useChecklistData";
+import { useResolvedTransactionId } from "packages/features/checklists/hooks/data/useResolvedTransactionId";
 import { useAuthStore } from "packages/store";
 
 export type UseChecklistProgressSummaryReturn = {
@@ -22,36 +22,40 @@ export function useChecklistProgressSummary(
 ): UseChecklistProgressSummaryReturn {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
-  const checklistSubjectUserId = options?.checklistSubjectUserId;
-  const transactionId = options?.transactionId ?? checklistSubjectUserId;
+
+  const explicitTransactionId = options?.transactionId;
+  const shouldResolveTransaction = explicitTransactionId == null;
+  const { transactionId: resolvedTransactionId, isLoading: transactionIdLoading } =
+    useResolvedTransactionId(undefined, { enabled: shouldResolveTransaction });
+  const effectiveTransactionId = explicitTransactionId ?? resolvedTransactionId;
 
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
-  const subjectCacheKey = transactionId ?? "self";
   const queryEnabled =
     shouldLoadData &&
     options?.enabled !== false &&
-    (transactionId == null || transactionId.length > 0);
+    Boolean(effectiveTransactionId) &&
+    (!shouldResolveTransaction || !transactionIdLoading);
 
   const queryKey = useMemo(
-    () => ["checklists", "progress-summary", subjectCacheKey] as const,
-    [subjectCacheKey]
+    () => ["checklists", "progress-summary", effectiveTransactionId ?? "pending"] as const,
+    [effectiveTransactionId]
   );
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey,
-    queryFn: () =>
-      transactionId
-        ? getTaskChecklistProgressSummaryForSubject(transactionId)
-        : getTaskChecklistProgressSummary(),
+    queryFn: () => getTaskChecklistProgressSummaryForSubject(effectiveTransactionId!),
     enabled: queryEnabled,
     staleTime: 5 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: true,
   });
 
+  const combinedLoading =
+    isLoading || (shouldResolveTransaction && transactionIdLoading && !effectiveTransactionId);
+
   return {
     summary: data,
-    isLoading,
+    isLoading: combinedLoading,
     error: error?.message ?? null,
     refetch,
   };

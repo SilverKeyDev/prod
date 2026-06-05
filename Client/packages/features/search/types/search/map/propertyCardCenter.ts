@@ -1,6 +1,6 @@
 import { log } from "packages/logger";
 import { screenPx } from "packages/ui/types/screens";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 // Cache for property centers to ensure consistent positioning with device-specific offsets
 // Key format: "propertyId:mobile" or "propertyId:desktop"

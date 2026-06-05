@@ -34,6 +34,10 @@ class ChecklistItemDispatchSetting(db.Model):
     )
     agent_user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"), index=True)
     client_user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"), index=True)
+    transaction_id: Mapped[str | None] = mapped_column(
+        db.ForeignKey("transactions.id", ondelete="CASCADE"),
+        index=True,
+    )
     category: Mapped[str] = mapped_column(db.String(50))
     item_id: Mapped[int] = mapped_column(db.Integer)
 

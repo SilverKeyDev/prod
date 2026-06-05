@@ -1,8 +1,8 @@
 import { log } from "packages/logger";
 import { asError } from "packages/utils";
-import { dateNow } from "packages/utils/date";
-import { logWebMapsEnvDiagnostics } from "packages/utils/maps/cloudMapId/logWebMapsEnvDiagnostics";
-import { getWindow } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { getWindow } from "packages/utils/core/platform";
+import { logWebMapsEnvDiagnostics } from "packages/utils/product/maps/cloudMapId/logWebMapsEnvDiagnostics";
 
 import { buildWebGoogleMapOptions } from "@/features/search/utils/googleMaps/webOptions/buildWebGoogleMapOptions";
 

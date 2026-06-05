@@ -5,9 +5,9 @@ import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore, useUIStore } from "packages/store";
 import { Button } from "packages/ui";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { Box } from "packages/ui/components/primitives";
-import { buildAgentProfileUrl, openAgentPublicProfileExternal } from "packages/utils/agent";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/structure/primitives";
+import { buildAgentProfileUrl, openAgentPublicProfileExternal } from "packages/utils/growth/agent";
 
 import { BodyText, Title } from "@/components/ui";
 import type { AgentSearchResult, RecommendedAgentResult } from "@/features/agent/api/agent";

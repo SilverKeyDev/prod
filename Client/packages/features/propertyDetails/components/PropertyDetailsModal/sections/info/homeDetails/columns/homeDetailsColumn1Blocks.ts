@@ -1,6 +1,6 @@
 import type { PropertyBasicDisplayFields } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
-import { formatPropertyType } from "packages/utils/format/property";
-import { formatLotSize } from "packages/utils/format/property/addressFormatting";
+import { formatPropertyType } from "packages/utils/core/format/property";
+import { formatLotSize } from "packages/utils/core/format/property/addressFormatting";
 
 import { asStringList, asTrimmedString } from "./homeDetailsColumnHelpers";
 import type { HomeDetailsBlock, HomeDetailsTranslate } from "./homeDetailsColumnTypes";

@@ -1,6 +1,6 @@
 import { apiDelete, apiGet, apiPatch, apiPost, apiUpload } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
-import type { Workspace } from "packages/utils/workspace";
+import type { Workspace } from "packages/utils/product/workspace";
 
 export type Partner = components["schemas"]["Partner"];
 export type PartnerCreateRequest = components["schemas"]["PartnerCreateRequest"];

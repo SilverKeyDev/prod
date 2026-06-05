@@ -5,8 +5,8 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { CardCompareCheckbox } from "packages/features/compare";
 import { log } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import { PERFECT_CRITERIA_MATCH_CARD_CLASSNAME } from "@/components/cards/property/perfectMatchCardGlowClasses";
 import WhyNotInterestedCard from "@/components/cards/property/WhyNotInterestedCard.web";

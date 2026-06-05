@@ -4,17 +4,17 @@ import { Icon } from "@ui/icons";
 import type { MouseEvent } from "react";
 
 import { Button } from "packages/ui";
-import Popover from "packages/ui/components/popover/Popover";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Label from "packages/ui/components/text/Label.web";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Label from "packages/ui/components/structure/text/Label.web";
+import Popover from "packages/ui/components/surfaces/popover/Popover";
 import {
   formatDateRange,
   getVisibleDateRange,
   stepFocusedDate,
-} from "packages/utils/calendar/core/date";
-import { formatCalendarToolbarLabel } from "packages/utils/calendar/grid/calendarToolbarLabel";
-import { dateNow, dayjs } from "packages/utils/date";
+} from "packages/utils/comms/calendar/core/date";
+import { formatCalendarToolbarLabel } from "packages/utils/comms/calendar/grid/calendarToolbarLabel";
+import { dateNow, dayjs } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { Calendar, CalendarViewType } from "@/features/calendar/types/calendar";

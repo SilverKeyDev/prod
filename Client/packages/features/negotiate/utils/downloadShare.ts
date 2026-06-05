@@ -5,8 +5,8 @@
 import { log } from "packages/logger";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
 import { isObject } from "packages/utils";
-import { createBlob, createFile, getDocument, getNavigator } from "packages/utils/platform";
-import { tryWebShare } from "packages/utils/share";
+import { tryWebShare } from "packages/utils/comms/share";
+import { createBlob, createFile, getDocument, getNavigator } from "packages/utils/core/platform";
 
 function getAddressForFilename(selectedHome: unknown): string {
   if (isObject(selectedHome)) {

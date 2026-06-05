@@ -7,8 +7,8 @@
 import { authUtils } from "packages/config/auth/auth";
 import type { SessionVerifyResult } from "packages/features/homeauth/api/handlers/session";
 import { log } from "packages/logger";
-import { dateNow } from "packages/utils/date";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { dateNow } from "packages/utils/core/date";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 import type { UserProfile } from "@/features/homeauth/types";
 

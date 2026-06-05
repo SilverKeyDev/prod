@@ -1,4 +1,4 @@
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { ClientHubAgenda } from "@/features/agent/components/clientHub/agenda/ClientHubAgenda";
 import ClientCalendar from "@/features/agent/components/clientHub/calendar/ClientCalendar";

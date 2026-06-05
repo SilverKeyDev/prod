@@ -1,6 +1,6 @@
 import type { IconName } from "packages/ui/types/icons";
-import type { Workspace } from "packages/utils/workspace";
-import { getWorkspaceNavTabs } from "packages/utils/workspace/workspaceNavConfig";
+import type { Workspace } from "packages/utils/product/workspace";
+import { getWorkspaceNavTabs } from "packages/utils/product/workspace/workspaceNavConfig";
 
 import { SIDEBAR_TABS } from "./sidebarTabs.web";
 
@@ -27,6 +27,17 @@ const navigationStructure: NavigationStructure = {
         name: SIDEBAR_TABS.dashboard.name,
         href: SIDEBAR_TABS.dashboard.href,
         icon: SIDEBAR_TABS.dashboard.icon,
+      },
+    ],
+  },
+  analytics: {
+    name: SIDEBAR_TABS.analytics.name,
+    icon: SIDEBAR_TABS.analytics.icon,
+    items: [
+      {
+        name: SIDEBAR_TABS.analytics.name,
+        href: SIDEBAR_TABS.analytics.href,
+        icon: SIDEBAR_TABS.analytics.icon,
       },
     ],
   },

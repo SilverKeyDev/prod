@@ -172,23 +172,7 @@ export default function getSilverkeyConfig({ silverkey }) {
       },
     },
 
-    // packages/utils: 16 direct children; no grouping needed
-    {
-      files: ["packages/utils/**/*.ts"],
-      plugins: { silverkey },
-      rules: {
-        "silverkey/folder-max-items": ["off"],
-      },
-    },
-
-    // packages/ui/components: 21 direct children; structure intentional
-    {
-      files: ["packages/ui/components/**/*.{ts,tsx}"],
-      plugins: { silverkey },
-      rules: {
-        "silverkey/folder-max-items": ["off"],
-      },
-    },
+    // packages/ui/components: 8 meta-folder direct children (inputs, actions, surfaces, structure, media, system)
 
     // packages/email-templates: relative paths required for runtime resolution
     {

@@ -7,7 +7,7 @@ import { log } from "packages/logger";
 import { PasswordValidation } from "@/components/feedback/PasswordValidation";
 import { Button, Input, VerificationCodeInput } from "@/components/ui";
 export type ResetPasswordStep = "request" | "verify" | "reset";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 type ResetPasswordFormProps = {
   step: ResetPasswordStep;
   email: string;

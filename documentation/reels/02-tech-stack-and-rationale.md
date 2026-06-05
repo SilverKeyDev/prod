@@ -1,3 +1,5 @@
+> **Status:** Planned
+> **Last verified:** 2026-06-04
 # Reels: Tech Stack and Rationale
 
 This document explains why each part of the target tech stack is used and what alternatives exist.

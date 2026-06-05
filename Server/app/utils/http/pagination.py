@@ -6,8 +6,6 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import Select, func, select
 
-from logger import log
-
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
@@ -43,15 +41,13 @@ def build_pagination(*, page: int, per_page: int, total: int) -> dict[str, Any]:
 def parse_query_pagination_args(
     args,
     *,
-    legacy_limit_default: int | None = None,
     default_per_page: int = 20,
 ) -> tuple[int, int]:
     """
     Resolve (page, per_page) from Flask request.args.
 
     Prefers `page` / `per_page`. Falls back to `limit` / `offset` when those are present.
-    When no pagination args are sent, uses legacy_limit_default (e.g. 100 for favorite-homes)
-    or default_per_page as the page size on page 1.
+    When no pagination args are sent, uses default_per_page on page 1.
     """
     has_new = args.get("page") is not None or args.get("per_page") is not None
     if has_new:
@@ -62,23 +58,12 @@ def parse_query_pagination_args(
     if args.get("limit") is not None or args.get("offset") is not None:
         limit_raw = args.get("limit")
         offset_raw = args.get("offset")
-        limit = (
-            int(limit_raw)
-            if limit_raw is not None
-            else (legacy_limit_default if legacy_limit_default is not None else default_per_page)
-        )
+        limit = int(limit_raw) if limit_raw is not None else default_per_page
         offset = int(offset_raw) if offset_raw is not None else 0
         per_page = clamp_per_page(limit)
         page = offset // per_page + 1 if per_page else 1
         return clamp_page(page), per_page
 
-    if legacy_limit_default is not None:
-        log.info(
-            "API",
-            "legacy_favorite_homes_pagination_default",
-            {"per_page": legacy_limit_default},
-        )
-        return 1, clamp_per_page(legacy_limit_default)
     return 1, clamp_per_page(default_per_page)
 
 

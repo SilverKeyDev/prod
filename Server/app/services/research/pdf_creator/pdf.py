@@ -23,7 +23,7 @@ matplotlib.use("Agg")
 
 from app.services.documents.s3_service import s3_service
 
-from .pdf_section_rendering import FLATTENED_FIELD_PATTERNS
+from .sections.pdf_section_rendering import FLATTENED_FIELD_PATTERNS
 
 
 def _pdf(report: dict, address: str, filename: str, title: str) -> str:

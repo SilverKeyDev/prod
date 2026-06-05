@@ -19,7 +19,7 @@ Multiple roles per deal (buyer, agent, TC, LO, escrow) need predictable, testabl
 | ---- | ----------- | -------- |
 | Global roles | Agent vs client on `User`; route decorators. | `Server/app/utils/common_patterns.py` (`require_agent_access`, `require_authenticated_user`) |
 | Checklist access | Agent may read/write client checklist if client id ∈ `get_agent_client_ids`. | `Server/app/routes/transactions.py`, `Server/app/services/agent/client_service.py` |
-| Client UI | Agent hub passes `checklistSubjectUserId`; integration slot gets `transactionSubjectId`. | `Client/packages/features/checklists/hooks/data/useChecklistData.ts`, `components/slots/ChecklistIntegrationSlot.tsx` |
+| Client UI | Agent hub passes `transactionId` from client list. | `useChecklistData.ts`, `useResolvedTransactionId`, `ChecklistIntegrationSlot.tsx` |
 | Messaging | Agent/client threads (not transaction-participant graph). | `Client/packages/features/messaging/` |
 | Participants | **No** `TransactionParticipant`, **no** `RoleTemplate` tables or APIs. | — |
 
@@ -29,5 +29,9 @@ Multiple roles per deal (buyer, agent, TC, LO, escrow) need predictable, testabl
 - Activity feed per transaction (see `documentation/transactions/collaboration/` — mostly spec).
 
 ## Implementation note
+
+**Sequence:** Ship `TransactionParticipant` RBAC only after Option B storage contract ([01-transaction-storage-and-selection.md](./01-transaction-storage-and-selection.md)). Deadline engine and notification bus must key events on `transactions.id`, not buyer user id.
+
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
 
 Frontend should consume capability flags from the API when RBAC lands; avoid duplicating role matrices in components.

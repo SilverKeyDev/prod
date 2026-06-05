@@ -80,7 +80,7 @@ module.exports = {
     const filename = rawFilename.split(path.sep).join("/");
     const opt = context.options[0] || {};
     const primitiveNames = new Set(opt.primitiveNames || DEFAULT_PRIMITIVE_NAMES);
-    const isIconMapImplFile = filename.includes("packages/ui/components/icons/iconMapImpl");
+    const isIconMapImplFile = filename.includes("packages/ui/components/media/icons/iconMapImpl");
 
     // Apply to app layers and feature/UI packages where primitives are consumed.
     const inRelevantFile =
@@ -94,7 +94,7 @@ module.exports = {
     }
 
     // Do not enforce inside the primitives implementation folder itself.
-    if (filename.includes("packages/ui/components/primitives")) {
+    if (filename.includes("packages/ui/components/structure/primitives")) {
       return {};
     }
 

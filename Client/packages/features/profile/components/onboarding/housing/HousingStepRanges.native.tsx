@@ -3,8 +3,8 @@ import React from "react";
 import Input from "@ui/form/Input";
 
 import { LotSizeAndHomeAgeSliders } from "packages/features/profile";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import { FIELD_LABELS, type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
 

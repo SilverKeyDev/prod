@@ -303,7 +303,7 @@ from validation import validate_request
 | Route / area | Response type | Notes |
 | ------------ | ------------- | ----- |
 | `GET /api/v1/agent/chats/stream` | `text/event-stream` (SSE) | Request body may still use `@validate_request`; stream chunks are not a single JSON envelope. Same telemetry exclusion as [api-instrumentation.mdc](../../../.cursor/rules/shared/api-instrumentation.mdc). |
-| Research property streams (`/api/v1/search`, research routes) | SSE | e.g. `stream_with_context` + `mimetype="text/event-stream"` in `Server/app/routes/search/research.py`. |
+| Research property streams (`/api/v1/search`, research routes) | SSE | e.g. `stream_with_context` + `mimetype="text/event-stream"` in `Server/app/routes/research/research.py`. |
 | Google Calendar `GET /api/v1/google/oauth/start`, `.../oauth/enhance`, `.../oauth/callback` | `302` redirect or non-envelope JSON errors | No `{ success, ... }` JSON success body to validate. |
 | DocuSign `GET /api/v1/docusign/oauth/callback` | HTTP redirect | OAuth completion redirect; not a typed JSON envelope. |
 | Report `GET /api/v1/report/<id>/view` (and similar) | `application/pdf` inline | Binary body; only JSON URL/list endpoints use `@validate_response`. |
@@ -312,7 +312,7 @@ from validation import validate_request
 #### SSE pattern (reference)
 
 - **Agent messaging stream:** `Server/app/routes/agent/handlers/chats_stream.py`
-- **Property research stream:** `Server/app/routes/search/research.py`
+- **Property research stream:** `Server/app/routes/research/research.py`
 
 For SSE routes, validate the **incoming JSON request** when applicable; skip response validation on the stream itself.
 

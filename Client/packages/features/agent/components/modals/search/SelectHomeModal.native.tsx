@@ -7,9 +7,9 @@ import { color } from "packages/design-tokens";
 import { useMultiSelectionModal } from "packages/features/agent/hooks/ui/useMultiSelectionModal";
 import { useSavedHomesData } from "packages/features/search";
 import type { SavedHome } from "packages/types";
-import { Loading } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Loading } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 type SelectHomeModalNativeProps = {
   isOpen: boolean;

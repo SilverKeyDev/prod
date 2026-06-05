@@ -6,11 +6,15 @@ from datetime import date, timedelta
 from sqlalchemy import select
 
 from app import db
-from app.dtos.checklist_form import ChecklistFormDTO
+from app.dtos.documents import ChecklistFormDTO
 from app.models import AgreementLink, ChecklistForm
-from app.services.agent.conversation_list import get_conversation
-from app.services.agent.conversation_messages import send_message as send_conversation_message
-from app.services.agent.conversation_service import create_conversation
+from app.services.agent.conversation import (
+    create_conversation,
+    get_conversation,
+)
+from app.services.agent.conversation import (
+    send_message as send_conversation_message,
+)
 from app.services.transactions.retrieval import get_checklist_definition
 from logger import log
 

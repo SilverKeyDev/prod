@@ -13,10 +13,10 @@ import { useLocalization } from "packages/contexts";
 import type { PropertyImageGalleryProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { log } from "packages/logger";
 import { Button } from "packages/ui";
-import { StyledImage } from "packages/ui/components/cards/base";
-import { Box } from "packages/ui/components/primitives";
-import { getDocument, getWindow } from "packages/utils/platform";
-import { getPropertyImages } from "packages/utils/propertyDetails";
+import { Box } from "packages/ui/components/structure/primitives";
+import { StyledImage } from "packages/ui/components/surfaces/cards/base";
+import { getDocument, getWindow } from "packages/utils/core/platform";
+import { getPropertyImages } from "packages/utils/transaction/propertyDetails";
 
 import {
   PropertyImageGalleryEightGridPage,

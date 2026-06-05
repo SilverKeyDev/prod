@@ -9,8 +9,8 @@ import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibrar
 import type { Property } from "packages/features/search";
 import type { SavedHome, SearchResult } from "packages/types";
 import { Input } from "packages/ui";
-import { BaseModal } from "packages/ui/components/modals";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
 
 import { ClientSelector } from "@/components/ui";
 import { BodyText, Button, Label } from "@/components/ui";

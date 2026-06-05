@@ -6,12 +6,13 @@ import { useLocation } from "react-router-dom";
 import { SearchRefreshProvider } from "packages/contexts";
 import { useIsMobile } from "packages/hooks/ui";
 import { log } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { screenUp } from "packages/ui/types/screens";
 import {
   DASHBOARD_MODAL_INSET_LEFT_VAR,
   DASHBOARD_SIDEBAR_WIDTH_CSS,
-} from "packages/utils/layout/dashboardModalInset";
+} from "packages/utils/core/layout/dashboardModalInset";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 // Sidebar
 import MobileBottomNav from "@/app/layouts/mobile/MobileBottomNav";
@@ -78,14 +79,18 @@ export default function DashboardLayout({
   }, [isDashboard]);
 
   useEffect(() => {
-    const root = document.documentElement;
+    const doc = getDocument();
+    const root = doc?.documentElement;
+    if (!root) return;
     if (route.isAgreementSigningComplete) {
       root.style.setProperty(DASHBOARD_MODAL_INSET_LEFT_VAR, "0px");
       return () => {
         root.style.removeProperty(DASHBOARD_MODAL_INSET_LEFT_VAR);
       };
     }
-    const mq = window.matchMedia(screenUp("md"));
+    const win = getWindow();
+    if (!win) return;
+    const mq = win.matchMedia(screenUp("md"));
     const apply = () => {
       root.style.setProperty(
         DASHBOARD_MODAL_INSET_LEFT_VAR,

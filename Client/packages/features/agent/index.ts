@@ -29,5 +29,16 @@ export {
   useSyncAgentPreferencesFromClient,
   type UseSyncAgentPreferencesFromClientReturn,
 } from "./hooks/data/search/useSyncAgentPreferencesFromClient";
+export { type AgentDashboardState, useAgentDashboardStore } from "./store";
 export { AGENT_TRANSLATIONS } from "./types/translations";
+export {
+  agentClientKindTranslationKey,
+  pipelineStageTranslationKey,
+} from "./utils/agentClientListLabels";
+export { type AgentClientSortMode, sortAgentClients } from "./utils/agentClientListSort";
+export type { ClientDealInfo } from "./utils/agentDashboard";
+export {
+  type AgentRelationshipSummary,
+  listAgentRelationshipSummaries,
+} from "./utils/agentRelationshipSummaries";
 export { mapTodosToAgendaDTO } from "./utils/mapTodosToAgendaDTO";

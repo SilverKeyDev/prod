@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { AccessibleCheckboxInput, BodyText, Label, OliveCheckbox } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";

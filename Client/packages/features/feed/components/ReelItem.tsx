@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMediaQuery } from "packages/hooks/ui";
-import { useEmblaCarousel } from "packages/ui/components/adapters/carousel";
-import { Box, Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/structure/primitives";
+import { useEmblaCarousel } from "packages/ui/components/system/adapters/carousel";
 import { screenUp } from "packages/ui/types/screens";
 
 import { Button, Region, Video } from "@/components/ui";

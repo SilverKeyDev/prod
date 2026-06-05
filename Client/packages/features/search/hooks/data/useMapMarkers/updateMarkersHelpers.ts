@@ -7,7 +7,7 @@ import { calculatePropertyCardCenter } from "packages/features/search/types/sear
 import { applyListingFocusCamera } from "packages/features/search/utils/googleMaps";
 import { log } from "packages/logger";
 import type { SearchResult } from "packages/types";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 import type { GoogleAdvancedMarkerElement } from "./types";
 

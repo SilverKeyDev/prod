@@ -1,8 +1,8 @@
 /* eslint-disable silverkey/no-raw-spacing -- all-day lane geometry uses CAL_TIME_GRID_ALL_DAY_ROW_HEIGHT and fixed gaps to align with the hour grid */
 import { color, spacing } from "packages/design-tokens";
-import { Box, Text } from "packages/ui/components/primitives";
-import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
-import { dateNow, dayjs } from "packages/utils/date";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";
+import { dateNow, dayjs } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

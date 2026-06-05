@@ -15,7 +15,6 @@ from app.services.agent.enrichment.client_list_enrichment import (
     batch_requires_signature,
 )
 from app.services.auth.user_role_helpers import get_user_if_agent
-from app.services.transactions.ensure import ensure_transaction
 from logger import log
 
 from ...models import AgentConnections, Transaction, User
@@ -59,7 +58,9 @@ def get_agent_clients(agent_id: str) -> list[dict]:
             cid = client.id
             tx_id = tx_by_buyer.get(cid)
             if not tx_id:
-                tx_id = ensure_transaction(buyer_id=cid, primary_agent_id=agent_id).id
+                from app.services.transactions.selection import preferred_transaction_for_buyer
+
+                tx_id = str(preferred_transaction_for_buyer(cid).id)
                 tx_by_buyer[cid] = tx_id
             current_phase, current_step_label = step_by_id.get(cid, ("search", None))
             client_data = {

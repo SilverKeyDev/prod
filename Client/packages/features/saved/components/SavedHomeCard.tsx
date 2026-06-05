@@ -3,8 +3,8 @@ import React from "react";
 import { CardCompareCheckbox } from "packages/features/compare";
 import type { SavedHome } from "packages/types";
 import { ConnectedCardHeartSave } from "packages/ui";
-import { Box, Image, Text } from "packages/ui/components/primitives";
-import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
+import { Box, Image, Text } from "packages/ui/components/structure/primitives";
+import { addressStreetLineForCard } from "packages/utils/core/format/property/addressFormatting";
 
 import { PropertyCard } from "@/components/cards";
 

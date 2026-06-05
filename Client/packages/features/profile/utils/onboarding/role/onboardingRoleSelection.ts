@@ -2,7 +2,7 @@ import type { OnboardingData } from "packages/features/profile/types/onboarding/
 import {
   isSelectableOnboardingRolePickerValue,
   type OnboardingRolePickerValue,
-} from "packages/utils/domain/profile/onboardingRolePicker";
+} from "packages/utils/product/domain/profile/onboardingRolePicker";
 
 /** Values accepted by onboarding role picker; maps to `why_joining_silverkey` and role sync. */
 export type PrimaryOnboardingRole = OnboardingRolePickerValue;
@@ -42,6 +42,9 @@ export function applyOnboardingRoleSelection(
     case "seller":
       updateFormData("why_joining_silverkey", [WHY_JOIN_FOR_ROLE.buyer, WHY_JOIN_FOR_ROLE.seller]);
       break;
+    case "brokerage":
+      updateFormData("why_joining_silverkey", []);
+      break;
     case "integration_partner":
       updateFormData("why_joining_silverkey", []);
       break;
@@ -61,6 +64,7 @@ export function primaryOnboardingRoleFromForm(
     fromDraft === "buyer" ||
     fromDraft === "seller" ||
     fromDraft === "agent" ||
+    fromDraft === "brokerage" ||
     fromDraft === "integration_partner"
   ) {
     return fromDraft;

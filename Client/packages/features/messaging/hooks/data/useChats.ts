@@ -7,9 +7,9 @@ import { useFiltersQueryParams } from "packages/config/query/adapters";
 import { queryKeys } from "packages/config/query/keys";
 import { getChatsFromSharedData } from "packages/features/messaging/utils/reportToChat";
 import { useAuthStore } from "packages/store";
-import { dateParseISO } from "packages/utils/date";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
-import { formatFilenameToAddress } from "packages/utils/format/address";
+import { dateParseISO } from "packages/utils/core/date";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
+import { formatFilenameToAddress } from "packages/utils/core/format/address";
 
 /**
  * Enhanced chat data hook with TanStack Query integration

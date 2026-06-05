@@ -5,7 +5,7 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import SectionBox from "packages/features/negotiate/components/layout/SectionBox";
 import SectionTitle from "packages/features/negotiate/components/layout/SectionTitle";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 type DebugSectionProps = {
   compsData: unknown;

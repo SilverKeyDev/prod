@@ -1,6 +1,6 @@
 import { Icon } from "@ui/icons";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, CloseButton } from "@/components/ui";
 

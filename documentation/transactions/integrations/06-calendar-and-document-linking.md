@@ -1,5 +1,6 @@
 > **Status:** Partial  
-> **Last verified:** 2026-05-28  
+> **Last verified:** 2026-06-04  
+> **Shipped feature docs:** [docusign-integration.md](../../client/features/docusign-integration.md), [checklists.md](../../client/features/checklists.md).  
 > **Code pointers:** `Client/packages/features/calendar/` (Google Calendar UI + agenda); `Client/packages/hooks/data/agenda/signingTodosForChecklistStep.ts`; `Server/app/models/documents/agreement_link.py`
 
 ## Calendar and document linking

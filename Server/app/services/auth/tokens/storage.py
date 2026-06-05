@@ -10,7 +10,7 @@ from typing import Any
 from sqlalchemy import select
 
 from app import db
-from app.dtos.google_oauth_token import GoogleOAuthTokenDTO
+from app.dtos.user import GoogleOAuthTokenDTO
 from app.models import GoogleOAuthToken
 from logger import log
 

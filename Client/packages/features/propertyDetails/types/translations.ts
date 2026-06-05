@@ -1,5 +1,5 @@
 /** Property details feature translation strings. */
-import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+import { ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 export const PROPERTY_DETAILS_TRANSLATIONS: Record<string, string> = {
   "property_details.sq_ft_label": "Sq Ft",

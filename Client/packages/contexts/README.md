@@ -122,5 +122,6 @@ function MyComponent() {
 
 ## Further Reading
 
-- [packages/README.md](../README.md) - Packages overview
-- [store/README.md](../store/README.md) - Zustand stores for state management
+- [packages/README.md](../README.md)
+- [documentation/client/architecture/shared-packages.md](../../../documentation/client/architecture/shared-packages.md)
+- [store/README.md](../store/README.md) — Zustand for shared state

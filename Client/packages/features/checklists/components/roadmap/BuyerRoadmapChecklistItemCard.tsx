@@ -21,8 +21,8 @@ import type {
 import { getFirstIncompleteUnlockSection } from "packages/features/checklists/utils/rules/sectionConfig";
 import { IconButton } from "packages/ui";
 import { ChecklistCheckbox } from "packages/ui";
-import Card from "packages/ui/components/cards/Card";
-import { Box, TouchableBox } from "packages/ui/components/primitives";
+import { Box, TouchableBox } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 export type BuyerRoadmapChecklistItemRowKind =
   | "flat_item"

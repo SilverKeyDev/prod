@@ -7,7 +7,7 @@ import React from "react";
 import { Pressable } from "react-native";
 
 import { LinkPrimitiveContext } from "packages/navigation";
-import { Text } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 function NativeLinkPrimitive({
   onPress,

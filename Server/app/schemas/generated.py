@@ -327,6 +327,112 @@ class AgentConnectionRequest(BaseModel):
     created_at: str
 
 
+class WorkspaceConversationKind(Enum):
+    """
+    Workspace-scoped conversation kind
+    """
+
+    platform_support = "platform_support"
+    brokerage_agent = "brokerage_agent"
+    integrator_brokerage = "integrator_brokerage"
+    group = "group"
+
+
+class SupportCategory(Enum):
+    brokerage = "brokerage"
+    integrator = "integrator"
+
+
+class CreateWorkspaceConversationRequest(BaseModel):
+    kind: WorkspaceConversationKind
+    brokerage_org_id: str | None = None
+    partner_id: str | None = None
+    agent_user_id: str | None = None
+    support_category: SupportCategory | None = None
+
+
+class WorkspaceConversation(BaseModel):
+    id: str
+    kind: WorkspaceConversationKind
+    brokerage_org_id: str | None = None
+    partner_id: str | None = None
+    subject_user_id: str | None = None
+    support_category: SupportCategory | None = None
+    agent_user_id: str | None = None
+    title: str | None = None
+    participant_count: int | None = None
+    is_archived: bool | None = None
+    last_message: str | None = None
+    last_message_at: AwareDatetime | None = None
+    last_read_at: AwareDatetime | None = None
+    unread_count: int | None = None
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
+
+
+class WorkspaceConversationsResponse(BaseModel):
+    success: bool
+    conversations: list[WorkspaceConversation]
+
+
+class WorkspaceMessage(BaseModel):
+    id: str
+    conversation_id: str | None = None
+    sender_id: str | None = None
+    role: str
+    message: str
+    timestamp: AwareDatetime | None = None
+
+
+class SendWorkspaceMessageRequest(BaseModel):
+    conversation_id: str
+    message: str
+
+
+class Participant(BaseModel):
+    user_id: str | None = None
+    participant_role: str | None = None
+
+
+class GroupConversation(WorkspaceConversation):
+    participants: list[Participant] | None = None
+
+
+class GroupConversationCreateRequest(BaseModel):
+    """
+    Reserved for group chat — endpoints not implemented
+    """
+
+    title: constr(max_length=120)
+    participant_user_ids: list[str] = Field(..., min_length=2)
+    brokerage_org_id: str | None = None
+
+
+class GroupConversationUpdateRequest(BaseModel):
+    """
+    Reserved for group chat — endpoints not implemented
+    """
+
+    title: constr(max_length=120) | None = None
+    is_archived: bool | None = None
+
+
+class GroupParticipantAddRequest(BaseModel):
+    """
+    Reserved for group chat — endpoints not implemented
+    """
+
+    user_id: str
+
+
+class GroupParticipantRemoveRequest(BaseModel):
+    """
+    Reserved for group chat — endpoints not implemented
+    """
+
+    user_id: str
+
+
 class AgentConversationsResponse(SuccessResponse):
     conversations: list[AgentConversation] | None = None
 
@@ -523,56 +629,6 @@ class CognitoEmailSmsMedium(Enum):
     SMS = "SMS"
 
 
-class ViewingStop(BaseModel):
-    """
-    One stop on a multi-property viewing itinerary.
-    """
-
-    label: str | None = Field(
-        None, description="Short label shown in lists (e.g. street or listing title)."
-    )
-    address: str = Field(
-        ...,
-        description="Full address string for display and calendar location fallback.",
-    )
-    lat: float | None = Field(
-        None,
-        description="Latitude when geocoded or from listing; required for routing.",
-    )
-    lng: float | None = Field(
-        None,
-        description="Longitude when geocoded or from listing; required for routing.",
-    )
-    notes: str | None = None
-    listing_id: str | None = Field(
-        None,
-        description="Optional listing / property identifier when linked to search results.",
-    )
-
-
-class ViewingRouteEndpoint(BaseModel):
-    """
-    Start or end location for routing. Provide a non-empty address and/or both lat and lng. The server geocodes when an address is present without coordinates.
-
-    """
-
-    label: str | None = None
-    address: str | None = None
-    lat: float | None = None
-    lng: float | None = None
-
-
-class ViewingRouteEndMode(Enum):
-    """
-    How the route finishes after the last property when a start location is set. Ignored when start is omitted (open tour across property stops only).
-
-    """
-
-    last_property = "last_property"
-    return_to_start = "return_to_start"
-    fixed = "fixed"
-
-
 class BulkUpdateFavoritesRequest(BaseModel):
     favorites: list[FavoriteHomePayload] = Field(
         ...,
@@ -710,7 +766,7 @@ class Method(Enum):
     both = "both"
 
 
-class Participant(BaseModel):
+class Participant1(BaseModel):
     email: constr(max_length=320) | None = None
     name: constr(max_length=200) | None = None
 
@@ -720,7 +776,7 @@ class ChecklistFormSendRequest(BaseModel):
     conversation_id: constr(max_length=64) | None = None
     client_id: constr(max_length=64) | None = None
     message: constr(max_length=4000) | None = None
-    participants: list[Participant] | None = None
+    participants: list[Participant1] | None = None
 
 
 class Step(Enum):
@@ -900,34 +956,6 @@ class LibraryTabClientSettings(BaseModel):
     )
     layout: Layout | None = None
     sort: str | None = Field(None, description="Sort id (allowlist enforced server-side per tab).")
-
-
-class Anchor(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    id: str = Field(..., description="Client-generated stable id (e.g. UUID).")
-    label: str = Field(..., description='Display name (e.g. "Midtown office").')
-    endpoint: ViewingRouteEndpoint
-
-
-class ViewingTourClientSettings(BaseModel):
-    """
-    Saved viewing-route anchors (e.g. office, home) for quick start selection on property tours.
-
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    anchors: list[Anchor] | None = Field(
-        None,
-        description="Named locations the user can pick as a tour start (or fixed end).",
-    )
-    default_start_anchor_id: str | None = Field(
-        None,
-        description="When set, new property-viewing events default start to this anchor id.",
-    )
 
 
 class TravelTime(BaseModel):
@@ -2024,21 +2052,6 @@ class CreateRequest(BaseModel):
 class GoogleConferenceData(BaseModel):
     createRequest: CreateRequest | None = None
     entryPoints: list[dict[str, Any]] | None = None
-
-
-class ViewingRouteLeg(BaseModel):
-    """
-    Driving leg between two consecutive ordered stops (from Directions API).
-    """
-
-    duration_seconds: int | None = Field(
-        None, description="Travel duration in seconds for this leg."
-    )
-    distance_meters: int | None = Field(None, description="Distance in meters for this leg.")
-    encoded_polyline: str | None = Field(
-        None,
-        description="Google-encoded polyline for this leg (path for map rendering).",
-    )
 
 
 class GoogleCalendarListResponse(BaseModel):
@@ -3224,12 +3237,13 @@ class TransactionAddressResponse(SuccessResponse):
 
 class Transaction(BaseModel):
     """
-    Revenue spine row for a buyer deal (v1 one row per buyer).
+    Revenue spine row for a buyer deal. Path param `transaction_id` on checklist, documents, rev-share, and calendar APIs MUST be `transactions.id` (UUID) — never the buyer's `users.id`.
+
     """
 
     id: str = Field(
         ...,
-        description="Primary key (`transactions.id`); use as `transaction_id` on checklist and rev-share APIs.",
+        description="Primary key (`transactions.id`); sole deal scope id for downstream APIs.",
     )
     buyer_id: str = Field(..., description="Buyer user id for this deal.")
     primary_agent_id: str | None = Field(
@@ -3238,11 +3252,85 @@ class Transaction(BaseModel):
     brokerage_org_id: str = Field(
         ..., description="Attribution org for brokerage revenue (not tenant isolation)."
     )
+    status: str | None = Field(
+        None,
+        description="Deal lifecycle status (e.g. active, closed). Optional until engine assigns values.",
+    )
+    display_label: str | None = Field(
+        None,
+        description="Short human label (often address line) for multi-deal lists and switchers.",
+    )
+    created_at: AwareDatetime | None = Field(
+        None, description="ISO 8601 timestamp when the deal row was created."
+    )
+    updated_at: AwareDatetime | None = Field(
+        None, description="ISO 8601 timestamp when the deal row was last updated."
+    )
+
+
+class TransactionMeData(BaseModel):
+    """
+    Active deal for the authenticated buyer plus optional address summary.
+    """
+
+    transaction: Transaction
+    active_transaction_id: str | None = Field(
+        None,
+        description="Buyer user's active deal pointer (`users.active_transaction_id`); mirrors `transaction.id` when set.",
+    )
+    address: TransactionAddressData | None = Field(
+        None, description="Saved finding-home address for this deal when present."
+    )
 
 
 class TransactionMeResponse(BaseModel):
     success: bool
-    data: Transaction | None = None
+    data: TransactionMeData | None = None
+
+
+class TransactionListResponse(BaseModel):
+    success: bool
+    data: list[Transaction]
+
+
+class CreateTransactionRequest(BaseModel):
+    """
+    Create a new deal row (`transactions.id`). Buyer is implicit for self; agents may set `buyer_id` for a managed client.
+    """
+
+    buyer_id: str | None = Field(
+        None,
+        description="Buyer user id. Required when the caller is an agent creating a deal for a client; omit for buyer self-serve.",
+    )
+    primary_agent_id: str | None = Field(
+        None,
+        description="Optional primary agent override when creating on behalf of a buyer.",
+    )
+    brokerage_org_id: str | None = Field(
+        None,
+        description="Attribution org; defaults from agent membership or platform default.",
+    )
+    set_active: bool | None = Field(
+        True,
+        description="When true, sets the buyer's `active_transaction_id` to the new deal.",
+    )
+
+
+class CreateTransactionResponse(BaseModel):
+    success: bool
+    data: Transaction
+
+
+class SetActiveTransactionRequest(BaseModel):
+    transaction_id: str = Field(
+        ...,
+        description="Revenue spine id (`transactions.id`) to set as the buyer's active deal.",
+    )
+
+
+class SetActiveTransactionResponse(BaseModel):
+    success: bool
+    data: Transaction
 
 
 class UpdateAgentStatusRequest(BaseModel):
@@ -3689,17 +3777,6 @@ class RevShareAnalyticsResponse(BaseModel):
     data: Data5
 
 
-class ViewingNavigateResponse(BaseModel):
-    """
-    Google Maps multi-stop navigation URL.
-    """
-
-    url: AnyUrl = Field(
-        ...,
-        description="https://www.google.com/maps/dir/... deep link for driving directions.",
-    )
-
-
 class VerifyData(BaseModel):
     email: EmailStr = Field(..., description="User's email address")
     code: str = Field(..., description="Verification code sent via email")
@@ -3817,6 +3894,24 @@ class AgentChatMessage(BaseModel):
     event_request_status: EventRequestStatus | None = None
 
 
+class EligibleContact(BaseModel):
+    contact_id: str
+    contact_type: str
+    display_name: str
+    kind: WorkspaceConversationKind
+    metadata: dict[str, Any] | None = None
+
+
+class CreateWorkspaceConversationResponse(BaseModel):
+    success: bool
+    conversation: WorkspaceConversation
+
+
+class WorkspaceConversationHistoryResponse(BaseModel):
+    success: bool
+    messages: list[WorkspaceMessage]
+
+
 class AgreementParticipant(BaseModel):
     id: str
     agreement_id: str
@@ -3849,31 +3944,6 @@ class CognitoCodeDeliveryDetails(BaseModel):
         None, description="Masked destination (e.g., 'j***@example.com' or '+1***1234')"
     )
     AttributeName: str | None = Field(None, description="Attribute being verified (e.g., 'email')")
-
-
-class BuildRouteRequest(BaseModel):
-    """
-    Request to optimize stop order and compute driving legs.
-    """
-
-    stops: list[ViewingStop] = Field(
-        ...,
-        description="Property stops; order preserved when optimize_order is false.",
-        min_length=2,
-    )
-    start: ViewingRouteEndpoint | None = Field(
-        None,
-        description="Optional starting location (e.g. home or current position). When set, the route begins here and only property stops are reordered. When omitted, the route optimizes across property stops only (open tour, best first listing).\n",
-    )
-    end: ViewingRouteEndpoint | None = Field(
-        None,
-        description="Required when end_mode is fixed; ignored for last_property and return_to_start.",
-    )
-    end_mode: ViewingRouteEndMode | None = None
-    optimize_order: bool | None = Field(
-        True,
-        description="When true, reorder property stops to reduce driving time (subject to start/end_mode). When false, visit properties in request order between anchors.\n",
-    )
 
 
 class TaskChecklistItem(BaseModel):
@@ -3990,10 +4060,6 @@ class ClientSettings(BaseModel):
     library: Library | None = None
     saved: Saved | None = None
     calendar: Calendar1 | None = None
-    viewing_tour: ViewingTourClientSettings | None = Field(
-        None,
-        description="Saved tour anchors and defaults for multi-stop property viewings.",
-    )
     onboarding_draft: dict[str, Any] | None = Field(
         None,
         description="Partial onboarding / profile form payload for refresh recovery. Omitted when empty.",
@@ -4164,37 +4230,6 @@ class GoogleEventReminders(BaseModel):
     overrides: list[GoogleReminderOverride] | None = None
 
 
-class ViewingItinerary(BaseModel):
-    """
-    Ordered property viewing stops with optional route anchors and computed legs. `stops` are property/showing stops only; `start` and `end` (when used) are logistics anchors and are not duplicated inside `stops`.
-
-    """
-
-    stops: list[ViewingStop] = Field(
-        ...,
-        description="Property stops only, in visit order after route optimization when `ordered` is true.\n",
-        min_length=1,
-    )
-    ordered: bool | None = Field(
-        False,
-        description="True when property stop order was optimized via the route service.",
-    )
-    legs: list[ViewingRouteLeg] | None = Field(
-        None,
-        description="Per-leg metrics and polylines for the full driving path (includes legs from/to anchors). When present and complete, length equals the number of nodes in the expanded path minus one (nodes: optional start, each property stop in order, optional return or fixed end).\n",
-    )
-    start: ViewingRouteEndpoint | None = Field(
-        None, description="Optional meet-up / departure anchor (not listed in `stops`)."
-    )
-    end: ViewingRouteEndpoint | None = Field(
-        None, description="Required when `end_mode` is `fixed`; ignored otherwise."
-    )
-    end_mode: ViewingRouteEndMode | None = Field(
-        None,
-        description="How the tour ends after the last property. Omitted or `last_property` when no end anchor is set.\n",
-    )
-
-
 class PropertyComplete(BaseModel):
     """
     Complete property record with all details organized into logical submodels.
@@ -4347,18 +4382,6 @@ class UserResponse(SuccessResponse):
     data: User | None = Field(None, description="Alternative field name for user data")
 
 
-class ViewingBuildRouteApiResponse(BaseModel):
-    success: bool
-    data: ViewingItinerary | None = None
-    error: str | None = None
-
-
-class ViewingNavigateApiResponse(BaseModel):
-    success: bool
-    data: ViewingNavigateResponse | None = None
-    error: str | None = None
-
-
 class AddAgentResponse(SuccessResponse):
     agent: User | None = None
 
@@ -4374,6 +4397,11 @@ class AgentChatHistoryResponse(SuccessResponse):
         None,
         description="Whether more messages exist after the newest message in this page",
     )
+
+
+class EligibleContactsResponse(BaseModel):
+    success: bool
+    contacts: list[EligibleContact]
 
 
 class Agreement(BaseModel):
@@ -4539,10 +4567,6 @@ class GoogleEvent(BaseModel):
         description="Google Meet URL when provisioned (Calendar API `hangoutLink`).",
     )
     conferenceData: GoogleConferenceData | None = None
-    itinerary: ViewingItinerary | None = Field(
-        None,
-        description="App-only multi-stop viewing data; stripped before sending to Google Calendar. Persisted in SilverKey DB; used to build calendar description and first-stop location.\n",
-    )
     colorId: str | None = Field(
         None,
         description="Google Calendar event color id (1–11) when set on the event; returned by the Calendar API on list/get. Optional; omitted when the event uses the calendar default color.\n",

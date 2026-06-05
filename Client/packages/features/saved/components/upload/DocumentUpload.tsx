@@ -12,7 +12,7 @@ import { useLocalization } from "packages/contexts";
 import { useDocuments } from "packages/features/documents";
 import { useUIStore } from "packages/store";
 import { DROP_ZONE_BORDER_BASE } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 type DocumentUploadProps = {

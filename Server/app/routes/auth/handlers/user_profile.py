@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING
 
 from flask import Response, current_app, jsonify, request
 
-from app import db
 from app.dtos.user import UserDTO
 from app.schemas import EmptyRequest, ProfilePictureResponse, UserResponse
+from app.services.auth.user_profile import persist_profile_picture_key
 from app.services.auth.user_role_helpers import user_is_agent
 from app.utils.common_patterns import (
     configuration_unavailable,
@@ -204,8 +204,7 @@ def upload_profile_picture(
                     {"user_id": str(user.id), "error": str(e)},
                 )
 
-        user.profile_picture = uploaded_key
-        db.session.commit()
+        persist_profile_picture_key(user, uploaded_key)
 
         # #region agent log
         _, ext_dbg = os.path.splitext(safe_filename.lower())

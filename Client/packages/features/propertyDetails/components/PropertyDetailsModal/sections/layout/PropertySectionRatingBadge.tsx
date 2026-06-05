@@ -1,8 +1,8 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 import { getMatchScoreGradientColors } from "packages/utils";
 
 export type PropertySectionRatingBadgeProps = {

@@ -1,7 +1,7 @@
 import Button from "@ui/button/Button";
 
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 

@@ -5,14 +5,14 @@ import { AdminDevPersonaSection } from "./AdminDevPersonaSection";
 
 const mutateAsync = vi.fn();
 
-vi.mock("packages/hooks/data/admin/useSetCurrentUserDevWorkspaceMutation", () => ({
+vi.mock("packages/features/admin/hooks/data/useSetCurrentUserDevWorkspaceMutation", () => ({
   useSetCurrentUserDevWorkspaceMutation: () => ({
     mutateAsync,
     isPending: false,
   }),
 }));
 
-vi.mock("packages/hooks/data/admin/useResetDevUserDataMutation", () => ({
+vi.mock("packages/features/admin/hooks/data/useResetDevUserDataMutation", () => ({
   useResetDevUserDataMutation: () => ({
     mutateAsync: vi.fn(),
     isPending: false,

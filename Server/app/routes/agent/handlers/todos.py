@@ -57,7 +57,7 @@ def create_todo_endpoint(user, data: CreateTodoRequest):
     try:
         title = data.title
         due_date_str = data.due_date
-        todo_type = data.type or "manual"
+        todo_type = data.type.value if data.type is not None else "manual"
         client_id = data.client_id
         description = data.description
         if not title:
@@ -97,7 +97,8 @@ def create_todo_endpoint(user, data: CreateTodoRequest):
         return agent_value_error_response(e)
     except Exception as e:
         return server_error(
-            e, {"function": "create_todo", "user_id": getattr(user, "id", "unknown")}
+            e,
+            context={"function": "create_todo", "user_id": getattr(user, "id", "unknown")},
         )
 
 
@@ -147,7 +148,8 @@ def update_todo_endpoint(user, todo_id, data: UpdateTodoRequest):
         return agent_value_error_response(e)
     except Exception as e:
         return server_error(
-            e, {"function": "update_todo", "user_id": getattr(user, "id", "unknown")}
+            e,
+            context={"function": "update_todo", "user_id": getattr(user, "id", "unknown")},
         )
 
 
@@ -169,5 +171,6 @@ def delete_todo_endpoint(user, todo_id):
         return agent_value_error_response(e)
     except Exception as e:
         return server_error(
-            e, {"function": "delete_todo", "user_id": getattr(user, "id", "unknown")}
+            e,
+            context={"function": "delete_todo", "user_id": getattr(user, "id", "unknown")},
         )

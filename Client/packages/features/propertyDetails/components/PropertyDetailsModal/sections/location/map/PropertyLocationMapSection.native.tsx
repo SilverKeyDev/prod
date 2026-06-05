@@ -10,18 +10,18 @@ import type { PropertyComponentProps } from "packages/features/propertyDetails/c
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import { log } from "packages/logger";
 import { Button } from "packages/ui";
-import { Box, Loading } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import { buildGoogleStreetViewUrl } from "packages/utils/maps/links/googleMapsLinks";
+import { Box, Loading } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import { buildGoogleStreetViewUrl } from "packages/utils/product/maps/links/googleMapsLinks";
 import {
   getGoogleMapIdForNative,
   getUseGoogleMapsProvider,
-} from "packages/utils/maps/native/nativeGoogleMapsCloudConfig";
-import { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/maps/native/propertyDetailsMapRegion";
+} from "packages/utils/product/maps/native/nativeGoogleMapsCloudConfig";
+import { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/product/maps/native/propertyDetailsMapRegion";
 import {
   getListingCoords,
   getListingCoordsUnavailableDiagnostics,
-} from "packages/utils/propertyDetails/location/listingCoords";
+} from "packages/utils/transaction/propertyDetails/location/listingCoords";
 
 import { PropertyDetailsMapOverlayControls } from "./PropertyDetailsMapOverlayControls.native";
 

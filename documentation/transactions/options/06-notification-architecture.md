@@ -26,7 +26,7 @@ Checklist, deadline, signature, and integration events must share one routing la
 
 - No shared `NotificationEvent` type consumed by checklists, deadlines, and integrations.
 - No `NotificationPreference` merge with role templates for transaction events.
-- Long-form delivery design still under `documentation/to-implement-soon/notifications/` — treat as spec, not shipped pipeline.
+- Milestone delivery pipeline not shipped — track in Linear [Notification Systems](https://linear.app/silverkey/project/notification-systems-f44e58377593) ([SIL-157](https://linear.app/silverkey/issue/SIL-157/transaction-milestone-notifications-emailsmspush)).
 
 ## Target v1 shape (unchanged intent)
 

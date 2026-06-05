@@ -1,6 +1,6 @@
 import { log } from "packages/logger";
-import { dateNow } from "packages/utils/date";
-import { getDocument, getFetch } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { getDocument, getFetch } from "packages/utils/core/platform";
 
 import { notifyAuthenticationError } from "./auth/authErrorNotify";
 import { isAuthEndpoint, recoverSessionAfter401 } from "./auth/authRecovery";

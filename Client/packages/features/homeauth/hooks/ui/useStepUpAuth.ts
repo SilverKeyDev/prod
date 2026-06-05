@@ -6,8 +6,8 @@
 import { useCallback, useRef, useState } from "react";
 
 import { log } from "packages/logger";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
-import { hasProperty, isObject } from "packages/utils/typeGuards";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
+import { hasProperty, isObject } from "packages/utils/core/typeGuards";
 
 import { useLocalStorage } from "./useLocalStorage";
 

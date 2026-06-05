@@ -6,9 +6,9 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { color, spacing, Z_LAYERS } from "packages/design-tokens";
 import { Button, IconButton } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { boxShadow } from "packages/ui/styles/shadows/shadows.web";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import type { CreateEventModalFormProps } from "./CreateEventModalForm";
 import { CreateEventModalFormCore } from "./CreateEventModalForm";

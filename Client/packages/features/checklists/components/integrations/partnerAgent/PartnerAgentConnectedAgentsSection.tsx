@@ -1,11 +1,11 @@
 import { useLocalization } from "packages/contexts";
-import { ProfileAvatar } from "packages/ui/components/avatar/ProfileAvatar";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import type { AgentRelationshipSummary } from "packages/features/agent";
+import { ProfileAvatar } from "packages/ui/components/media/avatar/ProfileAvatar";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 import { Title } from "@/components/ui";
 import { AgentConnectionStatusBadge } from "@/features/agent/components/search/AgentConnectionStatusBadge";
-import type { AgentRelationshipSummary } from "@/features/agent/utils/agentRelationshipSummaries";
 
 export type PartnerAgentConnectedAgentsSectionProps = {
   agents: AgentRelationshipSummary[];

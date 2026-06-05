@@ -1,1 +1,1 @@
-export { formatPropertyType } from "packages/utils/format/property/propertyTypeFormatters";
+export { formatPropertyType } from "packages/utils/core/format/property/propertyTypeFormatters";

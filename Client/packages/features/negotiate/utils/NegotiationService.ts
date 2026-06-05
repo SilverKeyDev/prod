@@ -5,7 +5,7 @@
 import { log } from "packages/logger";
 import type { SavedHome } from "packages/types";
 import { asError } from "packages/utils";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
 
 import {
   downloadStrategyJson as doDownloadStrategyJson,

@@ -1,13 +1,22 @@
 # Account deletion
 
-## Self-serve (end user)
+## Self-serve (end user, web)
 
-`userApi.deleteAccount` in `Client/packages/features/homeauth/api/user.ts` is currently a **stub** that rejects with *Account deletion not available* — there is **no** user-facing delete endpoint wired in the client for production E2E.
+**Shipped:** `POST /api/v1/user/account/delete` with `{ confirm: true }` (rate-limited). Client: `userApi.deleteAccount()` in `Client/packages/features/homeauth/api/user.ts`.
 
-**QA approach until an API exists:**
+**UI:** Profile → **Privacy & data** (`AccountPrivacyDataSection.web.tsx`) — export JSON, then **Permanently delete account** with a confirmation modal. On success the client logs out and navigates home.
 
-1. **Process-based:** follow [compliance/DATA_RETENTION.md](../../compliance/DATA_RETENTION.md) — user may request deletion via in-app (when built) or **privacy@** / support email; log ticket ID and 7-day grace if applicable.
-2. **Do not** claim “E2E account deletion” for general users in release notes when only admin tooling exists (below).
+**Native:** `AccountPrivacyDataSection.native.tsx` directs users to the web app for export and deletion (verification and safety).
+
+| Step | What to verify (staging) |
+|------|---------------------------|
+| Access | Authenticated user only; unauthenticated requests fail. |
+| Confirm | Request without `confirm: true` rejected (OpenAPI / server validation). |
+| Success | User cannot log in again; related data purged (same purge path as admin delete). |
+| UX | Double confirmation in modal; success toast; session cleared. |
+| Rate limit | Repeated abuse attempts throttled (server: 3/hour per user). |
+
+**QA approach:** Use a **disposable** test account in staging. Do **not** delete shared QA personas without updating [ENV_AND_DEVICE_MATRIX.md](./ENV_AND_DEVICE_MATRIX.md).
 
 ## Admin (staging / authorized operators only)
 
@@ -23,10 +32,10 @@
 
 ## Evidence
 
-- Admin: redacted request/response (no PII in public artifacts), or internal ticket reference.
-- Process: support ticket ID and confirmation email to requester (if applicable).
+- Self-serve / admin: redacted request/response (no PII in public artifacts), or internal ticket reference.
+- Process fallback: support ticket ID when users email **privacy@** instead of using in-app delete — see [compliance/DATA_RETENTION.md](../../compliance/DATA_RETENTION.md).
 
 ## Related
 
 - [END_TO_END_QA_RUNBOOK.md](./END_TO_END_QA_RUNBOOK.md)
-- [FLOW_SIGNUP_AND_VERIFICATION.md](./FLOW_SIGNUP_AND_VERIFICATION.md) — re-registration after deletion policy (opt-out records may be retained per DATA_RETENTION)
+- [FLOW_SIGNUP_AND_VERIFICATION.md](./FLOW_SIGNUP_AND_VERIFICATION.md) — re-registration after deletion (opt-out records may be retained per DATA_RETENTION)

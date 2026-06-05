@@ -1,5 +1,5 @@
-import { getEventStartDate } from "packages/utils/calendar/parsing/eventParsing";
-import { dateParseISO } from "packages/utils/date";
+import { getEventStartDate } from "packages/utils/comms/calendar/parsing/eventParsing";
+import { dateParseISO } from "packages/utils/core/date";
 
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

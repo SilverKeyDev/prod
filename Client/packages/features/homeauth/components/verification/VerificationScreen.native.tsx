@@ -15,11 +15,11 @@ import { useCountdown } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { ROUTES } from "packages/navigation/types/routes";
-import { Box } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-import { getSessionStorage } from "packages/utils/storage";
-import { performVerify } from "packages/utils/verification";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import { performVerify } from "packages/utils/auth/verification";
+import { getSessionStorage } from "packages/utils/core/storage";
 
 type RouteState = { email?: string; fromLogin?: boolean };
 

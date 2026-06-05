@@ -7,7 +7,7 @@ import { docusignApi } from "packages/features/documents/api/docusign";
 import type { Agreement } from "packages/features/documents/types/docusign";
 import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type UseDocusignAgreementsReturn = {
   agreements: Agreement[];

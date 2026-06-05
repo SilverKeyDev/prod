@@ -6,7 +6,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { color } from "packages/design-tokens";
 import { useAuthStoreIntegration } from "packages/features/homeauth/hooks/store/useAuthStoreIntegration";
 import { useHealthCheck, useSessionTimeout } from "packages/hooks/ui";
-import { Text } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import { RootNavigator } from "./navigation/RootNavigator.native";
 import { MaintenanceScreenNative } from "./screens/MaintenanceScreen.native";

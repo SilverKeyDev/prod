@@ -6,8 +6,8 @@ import {
 } from "packages/features/profile/components/layout";
 import { useAgentOptionalBuyerCalloutVisibility } from "packages/features/profile/hooks/useAgentOptionalBuyerCalloutVisibility";
 import { OliveCheckbox } from "packages/ui";
-import { Box, Pressable } from "packages/ui/components/primitives";
-import type { HomePriceResult } from "packages/utils/affordability";
+import { Box, Pressable } from "packages/ui/components/structure/primitives";
+import type { HomePriceResult } from "packages/utils/transaction/affordability";
 
 import { BodyText, Dropdown, Input, Label, Title } from "@/components/ui";
 import { HomePriceEstimate } from "@/features/homeauth/components/flows/HomePriceEstimate";

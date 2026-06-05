@@ -1,7 +1,7 @@
 import React from "react";
 
 import { useNavigation } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Cover } from "@/components/ui";
 

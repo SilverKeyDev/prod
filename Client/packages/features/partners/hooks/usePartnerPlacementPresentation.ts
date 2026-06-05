@@ -6,8 +6,8 @@ import {
   partnerShowsIframe,
 } from "packages/features/partners/types/integrationDisplay";
 import { useAuthStore } from "packages/store";
-import { buildRevShareRedirectUrl } from "packages/utils/revShare/revShareRedirectUrl";
-import { getOrCreateRevShareSessionId } from "packages/utils/revShare/revShareSession";
+import { buildRevShareRedirectUrl } from "packages/utils/transaction/revShare/revShareRedirectUrl";
+import { getOrCreateRevShareSessionId } from "packages/utils/transaction/revShare/revShareSession";
 
 export type PartnerPlacementPresentationRow = {
   placement: PartnerPlacement;

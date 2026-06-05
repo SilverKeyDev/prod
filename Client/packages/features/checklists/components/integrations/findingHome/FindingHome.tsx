@@ -10,9 +10,9 @@ import { hasFindingHomeAddressChanges } from "packages/features/checklists/compo
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import { useGoogleMapsStore } from "packages/store";
 import { GooglePlacesAutocompleteField } from "packages/ui/components";
-import Card from "packages/ui/components/cards/Card";
-import type { AddressData } from "packages/ui/components/form/AddressInput/AddressInput";
-import { Box, Text } from "packages/ui/components/primitives";
+import type { AddressData } from "packages/ui/components/inputs/form/AddressInput/AddressInput";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 type FindingHomeProps = {
   onSave?: (address: string) => void;

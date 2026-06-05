@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 
 from app import db
 from app.dtos.property import PropertyDTO
-from app.models import PropertyCache, UserPropertyLink
+from app.models import UserPropertyLink
 from app.schemas import (
     AddFavoriteRequest,
     BulkUpdateFavoritesRequest,
@@ -17,6 +17,7 @@ from app.schemas import (
     FavoriteHomesResponse,
     RemoveFavoriteRequest,
 )
+from app.services.auth.saved_homes import bulk_replace_favorites, unlike_homes_by_normalized_address
 from app.services.search.db import add_or_update_home_basic
 from app.utils.common_patterns import (
     not_found,
@@ -25,8 +26,6 @@ from app.utils.common_patterns import (
     server_error,
     validation,
 )
-from app.utils.db.orm_lookup import get_model
-from app.utils.format.address_format import normalize_address, safe_normalize_address
 from app.utils.http.pagination import build_pagination, parse_query_pagination_args
 from app.utils.validation import validate_request, validate_response
 from logger import log
@@ -53,9 +52,7 @@ def get_favorite_homes(user: User) -> Response | tuple[Response, int]:
     if scope_err:
         return scope_err[0], scope_err[1]
 
-    page, per_page = parse_query_pagination_args(
-        request.args, legacy_limit_default=100, default_per_page=20
-    )
+    page, per_page = parse_query_pagination_args(request.args, default_per_page=20)
 
     uid = str(target_uid)
     liked_where = (
@@ -119,27 +116,7 @@ def post_favorite_homes(
             return scope_err[0], scope_err[1]
 
         uid = str(target_uid)
-        existing_links = db.session.scalars(
-            select(UserPropertyLink).where(
-                UserPropertyLink.user_id == uid,
-                UserPropertyLink.current.is_(True),
-            )
-        ).all()
-        for link in existing_links:
-            was_liked = link.is_liked
-            link.is_liked = False
-            if was_liked:
-                pass
-
-        for home in homes_payload:
-            if not isinstance(home, dict):
-                log.warn("AUTH", "favorites_bulk_skip_non_object", None)
-                continue
-            try:
-                add_or_update_home_basic(user_id=uid, home=home, set_liked=True)
-            except Exception as e:
-                log.warn("AUTH", "favorites_bulk_skip_invalid_home", {"error": str(e)})
-        db.session.commit()
+        bulk_replace_favorites(uid, homes_payload)
 
         liked_links = _liked_links_for_user(uid)
         favorites = [PropertyDTO.to_saved_home(link) for link in liked_links]
@@ -209,32 +186,9 @@ def remove_favorite_home(
                 "Address is required and must be a string",
                 field_errors={"address": "Required"},
             )
-        normalized_target = safe_normalize_address(address)
-
         uid = str(target_uid)
-        all_user_links = db.session.scalars(
-            select(UserPropertyLink).where(UserPropertyLink.user_id == uid)
-        ).all()
-        matching: list[UserPropertyLink] = []
-        for link in all_user_links:
-            prop = get_model(PropertyCache, link.property_id)
-            if not prop or not prop.address:
-                continue
-            try:
-                norm_existing = normalize_address(prop.address)
-            except Exception:
-                norm_existing = prop.address.strip().lower()
-            if norm_existing == normalized_target:
-                matching.append(link)
-
-        if not matching:
+        if not unlike_homes_by_normalized_address(uid, address):
             return not_found("Home not found in favorites")
-
-        for link in matching:
-            if link.is_liked:
-                pass
-            link.is_liked = False
-        db.session.commit()
 
         liked_links = _liked_links_for_user(uid)
         favorites = [PropertyDTO.to_saved_home(link) for link in liked_links]

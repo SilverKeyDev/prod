@@ -8,7 +8,7 @@ import type { RouteConfig } from "packages/services/data/dataConfig";
 import { getPollingRoutes } from "packages/services/data/dataConfig";
 import { useAuthStore } from "packages/store";
 import type { UserProfile } from "packages/types";
-import { getDocument } from "packages/utils/platform";
+import { getDocument } from "packages/utils/core/platform";
 
 /**
  * Polling intervals in milliseconds

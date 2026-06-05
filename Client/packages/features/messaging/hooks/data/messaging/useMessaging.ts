@@ -16,7 +16,7 @@ import {
 import { isSameMessagingUserId } from "packages/features/messaging/utils/userIdMatch";
 import { log } from "packages/logger";
 import { useNotificationStore } from "packages/store";
-import { dateParseISO } from "packages/utils/date";
+import { dateParseISO } from "packages/utils/core/date";
 
 import { formatMessageTime, mapApiMessagesToChatMessages } from "./helpers";
 import { useMessagingHistory } from "./history/useMessagingHistory";

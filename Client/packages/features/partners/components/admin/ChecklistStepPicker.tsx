@@ -10,10 +10,10 @@ import {
   stepLabel,
   stepsForSection,
 } from "packages/features/partners/utils/checklistStepPicker";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Label from "packages/ui/components/text/Label";
-import type { Workspace } from "packages/utils/workspace";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Label from "packages/ui/components/structure/text/Label";
+import type { Workspace } from "packages/utils/product/workspace";
 
 import { Button, Dropdown } from "@/components/ui";
 import { ProfileTagChip } from "@/features/profile/components/ProfileTagChip";

@@ -3,7 +3,7 @@
  */
 
 import { googleCalendarApi, type GoogleEvent } from "packages/api";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import { getClientAvailability } from "@/features/calendar/api/scheduling";
 import type { GoogleCalendar } from "@/features/calendar/api/types";
@@ -87,7 +87,6 @@ export async function createScheduledEvent(
     end: { dateTime: eventData.end },
     attendees: eventData.attendees,
     location: eventData.location,
-    itinerary: eventData.itinerary,
   };
 
   const response = await googleCalendarApi.createEvent(event);

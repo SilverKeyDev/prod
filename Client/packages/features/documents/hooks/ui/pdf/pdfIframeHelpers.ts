@@ -1,7 +1,7 @@
 import { color } from "packages/design-tokens";
 import { log } from "packages/logger";
-import { DOCUMENT_ACTION_LABELS } from "packages/utils/domain/actionLabels";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
+import { DOCUMENT_ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 export function inspectIframeContentAfterLoad(
   iframe: HTMLIFrameElement,

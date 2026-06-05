@@ -16,7 +16,7 @@ Brief guide to SilverKey's documentation approach: one canonical system plus lig
 | **Canonical** | `documentation/**` | Long-form allowed |
 | **Entrypoint** | `AGENTS.md`, `ARCHITECTURE.md`, `README.md`, `setup.md`, `CLAUDE.md` | Short; link to `documentation/` |
 | **Colocated** | `Client/packages/*/README.md`, `Server/app/**/README.md`, `Server/app/services/docusign/docs/` | Short (~40 lines); link to canonical |
-| **Design spec** | `documentation/transactions/`, `documentation/to-implement-soon/` | Status banner required; may be planned vs shipped |
+| **Design spec** | `documentation/transactions/` | Status banner required; shipped vs partial vs planned — **planned work is tracked in Linear only**, not repo markdown backlogs |
 | **Cursor** | `.cursor/rules/`, `.cursor/skills/` | Constraints + links; not duplicate long guides |
 
 ## 3. Lightweight READMEs in major folders
@@ -34,7 +34,7 @@ Brief guide to SilverKey's documentation approach: one canonical system plus lig
 ## 5. Cursor and tooling
 
 - **Rules** (`monorepo.mdc`, `documentation.mdc`) point to `documentation/` for structure.
-- **Skills:** `documentation-placement` for new prose; `post-major-change-sync` after major architecture changes.
+- **Skills:** `documentation-placement` for new prose; `post-major-change-sync` after major architecture changes; `make check-docs` for link/placement gates. Full-tree audits use the default agent + checklist — not a fleet of `silverkey-docs-*` subagents.
 - **Checks:** `./scripts/ci/check-script-references.sh`, `./scripts/ci/check-doc-placement.sh`, and `./scripts/ci/check-doc-links.sh` (also `make check-docs`).
 
 ## 6. Adding or moving docs

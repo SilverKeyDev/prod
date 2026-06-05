@@ -11,9 +11,9 @@ import {
 } from "packages/features/documents";
 import PdfModal from "packages/features/documents/components/pdf/PdfModalBridge";
 import type { SavedHome } from "packages/types";
-import type { DocumentData } from "packages/ui/components/cards/document/types";
-import { BaseModal } from "packages/ui/components/modals";
-import { Portal } from "packages/ui/components/portal";
+import { Portal } from "packages/ui/components/structure/portal";
+import type { DocumentData } from "packages/ui/components/surfaces/cards/document/types";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
 
 import { MessagingAttachmentMenu } from "@/features/agent/components/messaging/menus/MessagingAttachmentMenu.native";
 import CalendarEventRequestModal from "@/features/agent/components/modals/calendarEventRequest/CalendarEventRequestModal";

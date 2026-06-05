@@ -2,7 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button } from "@/components/ui";
 import { ProfileTagChip } from "@/features/profile/components/ProfileTagChip";

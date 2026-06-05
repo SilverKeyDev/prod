@@ -1,9 +1,9 @@
 import {
   clampMapHomeCardsCount,
   DEFAULT_RESULTS_ORDER_BY,
+  defaultSortDirectionForOrderBy,
   isResultsOrderBy,
   isResultsSortDirection,
-  legacyDefaultSortDirection,
 } from "packages/features/search/types/domain/searchDisplay";
 
 import { filtersSliceInitialState } from "./filters.slice.initialState";
@@ -33,10 +33,9 @@ export function migrateFiltersStorePersisted(persisted: unknown, oldVersion: num
       : DEFAULT_RESULTS_ORDER_BY;
   const hasValidSortDirection =
     typeof p.resultsSortDirection === "string" && isResultsSortDirection(p.resultsSortDirection);
-  const resultsSortDirection =
-    oldVersion >= 7 && hasValidSortDirection
-      ? p.resultsSortDirection
-      : legacyDefaultSortDirection(resultsOrderBy);
+  const resultsSortDirection = hasValidSortDirection
+    ? p.resultsSortDirection
+    : defaultSortDirectionForOrderBy(resultsOrderBy);
   const preferencesStrictFilter =
     oldVersion >= 5 && typeof p.preferencesStrictFilter === "boolean"
       ? p.preferencesStrictFilter

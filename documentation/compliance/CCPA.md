@@ -305,7 +305,7 @@ We will NOT:
 
 ### Financial Incentives (Permissible)
 
-We may offer optional financial incentives (e.g., referral bonuses, promotional discounts) that provide different prices, rates, or quality in exchange for providing certain information.
+We may offer optional financial incentives (e.g., consumer referral or promotional programs, discounts) that provide different prices, rates, or quality in exchange for providing certain information. These are **not** fees tied to real-estate settlement service referrals.
 
 **Requirements:**
 - **Opt-In:** You must affirmatively opt in to any financial incentive program

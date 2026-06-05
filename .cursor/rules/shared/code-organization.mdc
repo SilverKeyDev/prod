@@ -61,9 +61,9 @@ When adding large methods or substantial functionality, **PREFER creating new fi
 **Components**:
 ```typescript
 // ✅ CORRECT: Extract large components or logic; utilities live in packages
-// apps/web/features/calendar/Calendar.tsx (main component)
-// apps/web/features/calendar/components/CalendarView.tsx
-// packages/utils/calendar/eventParsing.ts (utilities – not under apps/web/features or components)
+// packages/features/calendar/components/Calendar.tsx (main component)
+// packages/features/calendar/components/CalendarView.tsx
+// packages/utils/calendar/eventParsing.ts (utilities – not under apps/web)
 
 // ❌ AVOID: Single massive component file
 // features/calendar/Calendar.tsx (800+ lines with everything)
@@ -215,7 +215,7 @@ export const filterEvents = (events) => { /* ... */ };
 // packages/utils/calendar/date.ts
 export const formatDates = (dates) => { /* ... */ };
 
-// apps/web/features/calendar/Calendar.tsx (now 200 lines)
+// packages/features/calendar/components/Calendar.tsx (now 200 lines)
 import { parseEvents } from '../../../packages/utils/calendar/eventParsing';
 import { filterEvents } from '../../../packages/utils/calendar/eventFiltering';
 import { formatDates } from '../../../packages/utils/calendar/date';

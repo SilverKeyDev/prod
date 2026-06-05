@@ -11,9 +11,9 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout.native";
-import { Icon } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-import { LEGAL_PAGES_LAST_UPDATED } from "packages/utils/legal/staticLegalContact";
+import { Icon } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import { LEGAL_PAGES_LAST_UPDATED } from "packages/utils/transaction/legal/staticLegalContact";
 
 import { ContactUsContent } from "./ContactUsContent";
 

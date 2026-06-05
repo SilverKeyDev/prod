@@ -1,4 +1,4 @@
-import BaseModal from "packages/ui/components/modals/BaseModal";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
 
 import { BodyText } from "@/components/ui";
 

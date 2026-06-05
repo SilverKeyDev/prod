@@ -3,8 +3,8 @@ import type {
   CompareHomesPropertyDetails,
 } from "packages/features/compare/types/compareHomes";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
-import { createBlob, createFile, getDocument } from "packages/utils/platform";
-import { tryWebShare } from "packages/utils/share";
+import { tryWebShare } from "packages/utils/comms/share";
+import { createBlob, createFile, getDocument } from "packages/utils/core/platform";
 
 export function generateCSVContent(
   comparisonData: CompareHomesPropertyDetails[],

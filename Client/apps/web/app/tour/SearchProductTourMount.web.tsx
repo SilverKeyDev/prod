@@ -6,12 +6,12 @@ import { useLocation } from "react-router-dom";
 import { useResponsive } from "packages/hooks/ui";
 import { useNavigation } from "packages/navigation/hooks/useNavigation";
 import { useAuthStore } from "packages/store";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 import {
   PRODUCT_TOUR_QUERY,
   PRODUCT_TOUR_QUERY_VALUE_START,
-} from "packages/utils/tour/productTourQuery";
-import { hasIncompleteSearchProductTourSteps } from "packages/utils/tour/productTourStorage";
+} from "packages/utils/transaction/tour/productTourQuery";
+import { hasIncompleteSearchProductTourSteps } from "packages/utils/transaction/tour/productTourStorage";
 
 import { startSearchProductTour } from "@/app/tour/searchProductTourDriver";
 

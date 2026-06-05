@@ -5,7 +5,7 @@ import { useDocumentActions, useDocumentsDataIntegration } from "packages/featur
 import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { ClientHubDocumentSigningModals } from "@/features/agent/components/clientHub/ClientHubDocumentSigningModals";
 import { useClientHubAgendaTodos } from "@/features/agent/hooks/data/clientHub/useClientHubAgendaTodos";

@@ -7,7 +7,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import { userApi } from "@/features/profile/api/user";
 

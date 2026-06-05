@@ -2,7 +2,7 @@
 
 Copy-paste templates for the SilverKey project ingest (`api_request` events). Requires PostHog query access (`POSTHOG_QUERY_API_KEY` for CI dead-endpoint checks uses the same API).
 
-Project id is hardcoded in [`Server/app/services/analytics/posthog_constants.py`](../../Server/app/services/analytics/posthog_constants.py).
+Project id is hardcoded in [`Server/app/services/analytics/posthog_constants.py`](../../../Server/app/services/analytics/posthog_constants.py).
 
 ## Dead routes (latest CI sync)
 

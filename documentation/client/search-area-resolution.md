@@ -2,7 +2,24 @@
 
 Search must **always run** when the user taps Search. Missing home preferences (budget, beds/baths, important locations) must not block execution. Preference filters apply only when the user has saved values (or explicit filter-sheet overrides).
 
-Related: [search-preference-scoping-pilot.md](../internal/search-preference-scoping-pilot.md), [profile-onboarding-flow.md](./features/profile-onboarding-flow.md) (settings no longer require home prefs).
+Related: [profile-onboarding-flow.md](./features/profile-onboarding-flow.md) (settings no longer require home prefs).
+
+## Preference scoping (whose filters apply)
+
+Whose preferences drive Slipstream filters and scoring is determined by the **authenticated viewer** plus optional **`preferences_user_id`** on polygon/isochrone requests. The server resolves this through `resolve_preferences_user_id_for_research` (agents may only pass IDs in `client_ids`; buyers are always scoped to self).
+
+| Flow | Client | `preferences_user_id` / subject | Server prefs source |
+|------|--------|-----------------------------------|---------------------|
+| Polygon force (isochrone) | `propertySearch.searchPropertiesInIsochrone` | Passed when agent has `selectedClientId` | `run_polygon_search` → `get_user_preferences_parsed(resolved_subject)` + merge body `user_preferences` overrides |
+| Polygon force (viewport) | `propertySearch.searchPropertiesInViewport` | Same | Same |
+| Polygon onlyCached | `fetchCachedPolygonSearchResults` | Optional `preferencesUserId` (buyers: typically omitted = self) | DB `UserPropertyLink` rows for **viewer only** (not subject-partitioned); agents skip initial fetch in `useSearchResultsData` |
+| Isochrone GET | `searchApi.getIsochrone` query param | `preferencesUserId` when set | Same resolver + `get_user_preferences_parsed` |
+| Property details / compare | `usePropertyDetails`, `usePropertyComparison` | `preferences_user_id` when agent + client | Research APIs |
+| Session filter overrides | `searchContext.slice` | Merged into polygon body `user_preferences` | Server merges into subject prefs (`REQUEST_PREF_MERGE_KEYS` + must_have lists) |
+
+`useAgentSyncPreferencesWhenClientSelected` copies the selected client’s saved preferences onto the **agent’s** profile row (filters UI). **Polygon and isochrone still must send `preferences_user_id`** when the UI subject is the client. Do not rely on sync alone for search correctness.
+
+**Regression guards:** New callers of `searchByPolygon` / `getIsochrone` must pass `preferences_user_id` when acting on behalf of a selected client.
 
 ## Decision tree
 

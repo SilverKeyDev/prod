@@ -1,21 +1,13 @@
 import type { ChangeEvent } from "react";
 
 import { Button, CancelButton, ClientSelector } from "packages/ui";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
 
 import Label from "@/components/ui/text/Label.web";
-import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
 import type { Calendar } from "@/features/calendar/types/calendar";
-import type { CalendarEventKindOptionSlice } from "@/features/calendar/utils/createEventModal/calendarEventKindOptions";
 import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
-import type {
-  ViewingRouteEndMode,
-  ViewingRouteEndpoint,
-  ViewingTourAnchor,
-  ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 import { CreateEventModalFormFields } from "./CreateEventModalFormFields";
 
@@ -23,17 +15,14 @@ export type CreateEventModalFormProps = {
   isOpen: boolean;
   onClose: () => void;
   mode: "create" | "edit";
-  /** When set, replaces the default "Add to Agenda" / "Edit Event" modal title. */
   modalTitle?: string;
   calendars: Calendar[];
   selectedCalendarId: string;
   onCalendarChange: (id: string) => void;
-  /** Hide calendar dropdown (create uses default SilverKey calendar only). */
   hideCalendarPicker?: boolean;
   eventKindId: CalendarEventKindId;
   onEventKindIdChange: (id: CalendarEventKindId) => void;
-  kindOptionSlice: CalendarEventKindOptionSlice;
-  checklistProgressLoading?: boolean;
+  allowedKindIds: CalendarEventKindId[];
   eventTitle: string;
   onEventTitleChange: (e: ChangeEvent<HTMLInputElement>) => void;
   showAgentClientPicker?: boolean;
@@ -48,16 +37,6 @@ export type CreateEventModalFormProps = {
   endTime: string;
   onStartTimeChange: (hhmm: string) => void;
   onEndTimeChange: (hhmm: string) => void;
-  isPropertyViewing?: boolean;
-  viewingStops?: ViewingStop[];
-  onViewingStopsChange?: (next: ViewingStop[]) => void;
-  viewingStartSelection?: ViewingTourStartSelection;
-  onViewingStartSelectionChange?: (next: ViewingTourStartSelection) => void;
-  viewingEndMode?: ViewingRouteEndMode;
-  onViewingEndModeChange?: (next: ViewingRouteEndMode) => void;
-  viewingEndFixed?: ViewingRouteEndpoint | null;
-  onViewingEndFixedChange?: (next: ViewingRouteEndpoint | null) => void;
-  viewingTourAnchors?: ViewingTourAnchor[];
   eventLocation: string;
   onEventLocationChange: (value: string) => void;
   locationScriptsReady: boolean;
@@ -73,7 +52,6 @@ export type CreateEventModalFormProps = {
   showGoogleMeetOption: boolean;
   mutualSchedule: CreateEventMutualAvailability | null;
   onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
-  /** Portaled pickers (week create popover, quick event) register menu roots for outside-click guards. */
   registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
 };
 
@@ -88,53 +66,44 @@ export type CreateEventModalFormCoreProps = Omit<
   | "onSubmit"
 >;
 
-export function CreateEventModalFormCore({
-  mode,
-  calendars,
-  selectedCalendarId,
-  onCalendarChange,
-  hideCalendarPicker = false,
-  eventKindId,
-  onEventKindIdChange,
-  kindOptionSlice,
-  checklistProgressLoading = false,
-  eventTitle,
-  onEventTitleChange,
-  showAgentClientPicker = false,
-  selectedClientId,
-  onSelectedClientIdChange,
-  isAllDay,
-  onIsAllDayChange,
-  startDate,
-  endDate,
-  onDateRangeChange,
-  startTime,
-  endTime,
-  onStartTimeChange,
-  onEndTimeChange,
-  isPropertyViewing = false,
-  viewingStops = [],
-  onViewingStopsChange,
-  viewingStartSelection = { kind: "omit" },
-  onViewingStartSelectionChange,
-  viewingEndMode = "last_property",
-  onViewingEndModeChange,
-  viewingEndFixed = null,
-  onViewingEndFixedChange,
-  viewingTourAnchors = [],
-  eventLocation,
-  onEventLocationChange,
-  locationScriptsReady,
-  loadError,
-  eventDescription,
-  onEventDescriptionChange,
-  addGoogleMeet,
-  onAddGoogleMeetChange,
-  showGoogleMeetOption,
-  mutualSchedule,
-  onCalendarTimedSlotPick,
-  registerOutsideClickSafeTarget,
-}: CreateEventModalFormCoreProps) {
+export function CreateEventModalFormCore(props: CreateEventModalFormCoreProps) {
+  const {
+    mode,
+    calendars,
+    selectedCalendarId,
+    onCalendarChange,
+    hideCalendarPicker = false,
+    eventKindId,
+    onEventKindIdChange,
+    allowedKindIds,
+    eventTitle,
+    onEventTitleChange,
+    showAgentClientPicker = false,
+    selectedClientId,
+    onSelectedClientIdChange,
+    isAllDay,
+    onIsAllDayChange,
+    startDate,
+    endDate,
+    onDateRangeChange,
+    startTime,
+    endTime,
+    onStartTimeChange,
+    onEndTimeChange,
+    eventLocation,
+    onEventLocationChange,
+    locationScriptsReady,
+    loadError,
+    eventDescription,
+    onEventDescriptionChange,
+    addGoogleMeet,
+    onAddGoogleMeetChange,
+    showGoogleMeetOption,
+    mutualSchedule,
+    onCalendarTimedSlotPick,
+    registerOutsideClickSafeTarget,
+  } = props;
+
   return (
     <Box className="space-y-4">
       {mode === "create" && showAgentClientPicker ? (
@@ -156,8 +125,7 @@ export function CreateEventModalFormCore({
         hideCalendarPicker={hideCalendarPicker}
         eventKindId={eventKindId}
         onEventKindIdChange={onEventKindIdChange}
-        kindOptionSlice={kindOptionSlice}
-        checklistProgressLoading={checklistProgressLoading}
+        allowedKindIds={allowedKindIds}
         eventTitle={eventTitle}
         onEventTitleChange={onEventTitleChange}
         isAllDay={isAllDay}
@@ -169,16 +137,6 @@ export function CreateEventModalFormCore({
         endTime={endTime}
         onStartTimeChange={onStartTimeChange}
         onEndTimeChange={onEndTimeChange}
-        isPropertyViewing={isPropertyViewing}
-        viewingStops={viewingStops}
-        onViewingStopsChange={onViewingStopsChange}
-        viewingStartSelection={viewingStartSelection}
-        onViewingStartSelectionChange={onViewingStartSelectionChange}
-        viewingEndMode={viewingEndMode}
-        onViewingEndModeChange={onViewingEndModeChange}
-        viewingEndFixed={viewingEndFixed}
-        onViewingEndFixedChange={onViewingEndFixedChange}
-        viewingTourAnchors={viewingTourAnchors}
         eventLocation={eventLocation}
         onEventLocationChange={onEventLocationChange}
         locationScriptsReady={locationScriptsReady}

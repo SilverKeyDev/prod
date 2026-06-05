@@ -5,7 +5,7 @@ import {
   useShowPersonalizationSectionBodyTitle,
 } from "packages/features/profile/components/layout";
 import { type OnboardingData, SECTION_TITLES } from "packages/features/profile/utils";
-import Title from "packages/ui/components/text/Title";
+import Title from "packages/ui/components/structure/text/Title";
 
 import { HousingRangeRows } from "@/features/profile/components/sections/housing/HousingRangeRows";
 

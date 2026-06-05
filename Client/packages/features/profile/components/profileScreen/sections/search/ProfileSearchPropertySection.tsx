@@ -12,8 +12,8 @@ import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/c
 import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { type OnboardingData, SECTION_TITLES } from "packages/features/profile/utils";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 import { HousingDropdownRows } from "@/features/profile/components/sections/housing/HousingDropdownRows";
 import { HousingTagRows } from "@/features/profile/components/sections/housing/HousingTagRows";

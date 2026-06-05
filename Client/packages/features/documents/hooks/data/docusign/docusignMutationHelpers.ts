@@ -5,7 +5,7 @@ import type { UIState } from "packages/store";
 import {
   resolveApiResultErrorMessage,
   resolveUserFacingMessage,
-} from "packages/utils/errorHandling";
+} from "packages/utils/core/errorHandling";
 
 /**
  * Shared helpers for DocuSign mutations: logging and standard onSuccess/onError handlers.

@@ -1,5 +1,7 @@
 > **Status:** Planned | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
+
 ## State and jurisdiction variation model
 
 `JurisdictionRuleSet` / `RuleVersion` are **design targets only**. Checklist content is national/generic; deadlines are not computed from state or contract form.

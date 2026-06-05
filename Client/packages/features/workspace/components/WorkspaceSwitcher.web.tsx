@@ -5,9 +5,9 @@ import {
   useSetActiveWorkspace,
 } from "packages/hooks/store";
 import { Button } from "packages/ui";
-import { Region } from "packages/ui/components/accessibility";
-import type { Workspace } from "packages/utils/workspace";
-import { workspaceSwitcherLabelKey } from "packages/utils/workspace/workspaceNavConfig";
+import { Region } from "packages/ui/components/system/accessibility";
+import type { Workspace } from "packages/utils/product/workspace";
+import { workspaceSwitcherLabelKey } from "packages/utils/product/workspace/workspaceNavConfig";
 
 type WorkspaceSwitcherProps = {
   /** When true, render even with a single allowed workspace (local dev harness). */

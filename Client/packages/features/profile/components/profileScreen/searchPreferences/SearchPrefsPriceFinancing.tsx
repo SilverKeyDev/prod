@@ -3,7 +3,7 @@ import React from "react";
 import type { BuyerPriceFinancing } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { FIELD_LABELS, PROFILE_NOT_SPECIFIED_LABEL } from "packages/features/profile/utils";
 import { Input } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import Label from "@/features/profile/components/settings/inputs/Label";

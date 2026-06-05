@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
+
 ## Earnest money and deposits
 
 Earnest-money guidance lives in **escrow checklist content** and optional calendar reminders—not computed `earnest_money_due` milestones or payment rails.

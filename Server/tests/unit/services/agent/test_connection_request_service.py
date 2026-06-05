@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from app import db
 from app.models import AgentConnectionRequest, AgentConnections, User, UserRole
-from app.services.agent.connection_request_service import (
+from app.services.agent.connection_request.service import (
     create_connection_request,
     get_connection_requests,
 )

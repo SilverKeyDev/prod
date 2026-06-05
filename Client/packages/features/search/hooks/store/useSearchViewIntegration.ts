@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useSearchViewStore } from "packages/store";
 import { screenDown } from "packages/ui/types/screens";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 const MOBILE_BREAKPOINT = screenDown("md");
 

@@ -10,7 +10,7 @@ import { log } from "packages/logger";
 import { handleAuthenticationError, isAuthenticationError } from "packages/services/http/apiErrors";
 import type { AuthenticationError } from "packages/services/http/client";
 import type { SavedHome } from "packages/types";
-import { mapSavedHomeWireToSavedHome } from "packages/utils/saved";
+import { mapSavedHomeWireToSavedHome } from "packages/utils/transaction/saved";
 
 /**
  * SavedHomes service - I/O only, no state management

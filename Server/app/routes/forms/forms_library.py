@@ -6,7 +6,7 @@ from flask import jsonify
 from sqlalchemy import select
 
 from app import db
-from app.dtos.checklist_form import ChecklistFormDTO
+from app.dtos.documents import ChecklistFormDTO
 from app.models import ChecklistForm
 from app.schemas import FormsLibraryDownloadResponse, FormsLibraryResponse
 from app.services.auth.user_role_helpers import user_is_agent

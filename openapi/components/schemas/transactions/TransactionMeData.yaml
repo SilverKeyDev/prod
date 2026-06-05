@@ -1,0 +1,16 @@
+type: object
+description: Active deal for the authenticated buyer plus optional address summary.
+required:
+  - transaction
+properties:
+  transaction:
+    $ref: "./Transaction.yaml"
+  active_transaction_id:
+    type: string
+    nullable: true
+    description: Buyer user's active deal pointer (`users.active_transaction_id`); mirrors `transaction.id` when set.
+  address:
+    allOf:
+      - $ref: "../search/properties/TransactionAddressData.yaml"
+    nullable: true
+    description: Saved finding-home address for this deal when present.

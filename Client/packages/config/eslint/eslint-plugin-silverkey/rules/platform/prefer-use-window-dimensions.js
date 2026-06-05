@@ -36,7 +36,7 @@ module.exports = {
     const filename = context.getFilename().split(path.sep).join("/");
     const opt = context.options[0] || {};
     const allowedPaths = opt.allowedPaths || [
-      "packages/utils/platform/dimensions.native.ts",
+      "packages/utils/core/platform/dimensions.native.ts",
       "PropertyImageGallery.native.styles.ts",
     ];
     if (allowedPaths.some((p) => filename.includes(p.replace(/\*\*/g, "")))) return {};

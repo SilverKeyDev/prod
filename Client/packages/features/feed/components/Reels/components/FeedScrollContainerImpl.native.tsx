@@ -8,7 +8,7 @@ import { useFeedComments } from "packages/features/feed/hooks/data/useFeedCommen
 import { useFeedLikes } from "packages/features/feed/hooks/data/useFeedLikes";
 import { FeedReelsProvider } from "packages/features/feed/hooks/feedReels/FeedReelsContext";
 import { useFeedScrollContainer } from "packages/hooks/ui";
-import { Text } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import { ReelsCommentsSheet } from "@/features/feed/components/Reels/sheets/ReelsCommentsSheet";
 import { ReelsMoreSheet } from "@/features/feed/components/Reels/sheets/ReelsMoreSheet";

@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { AuthMethod } from "packages/features/homeauth/types";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 interface AuthMethodIndicatorProps {

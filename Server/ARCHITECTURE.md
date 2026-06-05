@@ -10,11 +10,19 @@ The SilverKey backend is a **Flask-based REST API** following a service-oriented
 Server/
 ├── app/
 │   ├── routes/                   # Flask blueprints (routing only)
-│   │   ├── auth/                 # Authentication routes
-│   │   ├── search/               # Property search routes
-│   │   ├── user/                 # User profile routes
-│   │   ├── documents/            # Document and DocuSign routes
-│   │   ├── calendar/             # Calendar and scheduling routes
+│   │   ├── auth/                 # Auth, signup, preferences, user profile (`user_bp`)
+│   │   ├── search/               # Property search, maps, home matching
+│   │   ├── documents/            # DocuSign, secure upload, reports
+│   │   ├── calendar/             # Google Calendar, events, viewings
+│   │   ├── agent/                # Agent clients, chats, connection requests
+│   │   ├── transactions/         # Transactions and checklists
+│   │   ├── feed/                 # Feed and reels
+│   │   ├── research/             # Research compare streams
+│   │   ├── negotiation/          # Offers
+│   │   ├── admin/                # Super-admin and dev persona
+│   │   ├── rev_share/            # Partner placements and redirects
+│   │   ├── chat/                 # Address chatbot routes
+│   │   ├── telemetry/            # Client error reporting
 │   │   └── ...
 │   ├── services/                 # Business logic and orchestration
 │   │   ├── search/               # Search algorithms (polygon, isochrone)
@@ -116,19 +124,13 @@ def create_app():
 Each feature gets a blueprint:
 
 ```python
-# app/routes/user/handlers.py
-from flask import Blueprint, request, jsonify
+# app/routes/auth/user.py — user profile blueprint (registered in create_app)
+from flask import Blueprint
+from app.routes.auth.handlers import get_user_profile
 from app.utils.common_patterns import require_authenticated_user
-from app.dtos.user import UserDTO
 
-user_bp = Blueprint('user', __name__, url_prefix='/api/v1/user')
-
-@user_bp.route('/profile', methods=['GET'])
-@require_authenticated_user
-def get_profile(user):
-    """Get authenticated user's profile"""
-    profile = UserDTO.to_response(user, include_roles=True)
-    return jsonify({'success': True, 'data': profile})
+user_bp = Blueprint("user", __name__, url_prefix="/api/v1/user")
+user_bp.route("/profile", methods=["GET"])(get_user_profile)
 ```
 
 ### Auth Decorators
@@ -550,16 +552,12 @@ Loads environment variables and sets Flask/SQLAlchemy configuration.
 **Location:** `Server/logger/`
 
 ```python
-from logger import log, LOG_CATEGORIES
+from logger import log
 
-# Debug logging
-log.debug(LOG_CATEGORIES["API"], "API request started", {"endpoint": "/api/users"})
-
-# Error logging
-log.error(LOG_CATEGORIES["ERRORS"], "Failed to fetch data", exception)
-
-# Security logging (always logs)
-log.security(LOG_CATEGORIES["SECURITY"], "Unauthorized access attempt", {"ip": "1.2.3.4"})
+# Dot-notation LogPath (preferred; see .cursor/rules/shared/logging.mdc)
+log.debug("API", "API request started", {"endpoint": "/api/users"})
+log.error("ERRORS", "Failed to fetch data", exception)
+log.security("SECURITY", "Unauthorized access attempt", {"ip": "1.2.3.4"})
 ```
 
 **Features:**
@@ -640,36 +638,30 @@ See: `.cursor/rules/shared/security.mdc`
 
 ### Local Setup
 
+From repo root, prefer `make setup` then `make dev-backend` (Redis + Flask + Celery) or `make dev` (adds Vite web). See [setup.md](../setup.md) and [documentation/server/ops/postgres.md](../documentation/server/ops/postgres.md).
+
+Manual Server-only setup:
+
 ```bash
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # or `.venv\Scripts\activate` on Windows
-
-# Install dependencies
-pip install -r requirements/runtime.txt
-
-# Set up environment (from repo root: make setup, or copy Server/.env.example → Server/.env)
-cp .env.example .env
-# Edit .env with your configuration
-
-# Run development server
+cd Server
+bash scripts/bootstrap-venv.sh   # or: python -m venv .venv && pip install -r requirements/runtime.txt
+source .venv/bin/activate
+cp .env.example .env             # or: make secrets from repo root
 python run.py
 ```
 
 ### Common Commands
 
 ```bash
-# Run server
+# Repo root
+make dev-backend    # Redis + Flask + Celery
+make test-be        # pytest with TESTING=true
+make lint-server    # ruff + pyright + Server lint scripts
+
+# From Server/ with venv active
 python run.py
-
-# Run tests
-pytest
-
-# Check linting
+TESTING=true pytest
 python -m ruff check .
-
-# Format code
-python -m black .
 ```
 
 ## Documentation
@@ -694,5 +686,7 @@ python -m black .
 
 - **Root Architecture:** `/ARCHITECTURE.md`
 - **Client Architecture:** `/Client/ARCHITECTURE.md`
-- **Documentation Index:** `documentation/README.md`
+- **Server docs index:** [documentation/server/README.md](../documentation/server/README.md)
+- **Ops runbooks:** [documentation/server/ops/postgres.md](../documentation/server/ops/postgres.md), [redis-celery.md](../documentation/server/ops/redis-celery.md), [deployment.md](../documentation/server/deployment.md), [scripts-guide.md](../documentation/server/ops/scripts-guide.md)
+- **Documentation tree:** [documentation/README.md](../documentation/README.md)
 - **Backend Rules:** `.cursor/rules/backend/`

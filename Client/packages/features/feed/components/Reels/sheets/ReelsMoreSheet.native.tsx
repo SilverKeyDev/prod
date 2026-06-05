@@ -7,7 +7,7 @@ import { Modal, Pressable, StyleSheet, useWindowDimensions, View } from "react-n
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
-import { Text } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import type { FeedListing } from "@/features/feed/types/feed";
 

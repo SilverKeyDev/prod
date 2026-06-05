@@ -2,9 +2,9 @@ import React from "react";
 
 import type { AgentClient, AgentConversation } from "packages/api";
 import { ProfileAvatar } from "packages/ui/components";
-import NotificationBadge from "packages/ui/components/badge/NotificationBadge";
-import { Box } from "packages/ui/components/primitives";
-import { SIDEBAR_AVATAR_WRAP } from "packages/ui/components/sidebar/sidebarTheme";
+import { Box } from "packages/ui/components/structure/primitives";
+import { SIDEBAR_AVATAR_WRAP } from "packages/ui/components/structure/sidebar/sidebarTheme";
+import NotificationBadge from "packages/ui/components/surfaces/badge/NotificationBadge";
 
 import { BodyText, Title } from "@/components/ui";
 import {

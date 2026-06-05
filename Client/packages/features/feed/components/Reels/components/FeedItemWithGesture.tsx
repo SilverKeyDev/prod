@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useFeedReelsContext } from "packages/features/feed/hooks/feedReels/useFeedReelsContext";
 import { useFeedAxisLock, useFeedGestureTrap } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { Button, Region } from "@/components/ui";
 import type { MediaCarouselRef } from "@/features/feed/components/carousel/MediaCarousel";

@@ -3,7 +3,7 @@ import React from "react";
 import { Modal, Pressable as RNPressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { Text } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 type MessagingAttachmentMenuProps = {
   visible: boolean;

@@ -5,7 +5,7 @@ import {
   deduplicateFeatures,
   isImageFeatures,
 } from "packages/features/propertyDetails/utils/propertyFeaturesHelpers";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import {
   asStringList,

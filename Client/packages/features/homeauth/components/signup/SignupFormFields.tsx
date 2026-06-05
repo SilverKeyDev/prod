@@ -9,8 +9,8 @@ import AuthLink from "packages/features/homeauth/components/core/Link";
 import type { FieldKey, SignupFormData } from "packages/hooks/data/auth/useSignupAutofill";
 import { ROUTES } from "packages/navigation";
 import { OliveCheckbox } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 import { PasswordValidation } from "@/components/feedback";
 import { BodyText, Button, FieldShell, Input, PhoneInput } from "@/components/ui";

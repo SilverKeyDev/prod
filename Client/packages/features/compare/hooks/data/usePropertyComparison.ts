@@ -4,7 +4,7 @@ import type { CompareHomesPropertyDetails } from "packages/features/compare/type
 import { useIsAgent } from "packages/hooks/store";
 import { log } from "packages/logger";
 import { useAgentDashboardStore } from "packages/store";
-import { unknownToNumberOrString, unknownToString } from "packages/utils/typeGuards";
+import { unknownToNumberOrString, unknownToString } from "packages/utils/core/typeGuards";
 
 import type { PropertyRequest } from "@/features/search/api/research";
 import { researchApi } from "@/features/search/api/research";

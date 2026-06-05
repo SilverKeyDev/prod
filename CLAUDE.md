@@ -33,6 +33,12 @@
 - `.claude/`: Claude Code adapter (stubs → `.cursor/`)
 - `.codex/`, `.agents/skills/`: Codex adapter (`rules/`, TOML subagents, repo skills → `.cursor/`)
 
+## Documentation
+
+- Index: [documentation/README.md](documentation/README.md)
+- Client: [documentation/client/README.md](documentation/client/README.md)
+- Server: [documentation/server/README.md](documentation/server/README.md)
+
 ## Universal Conventions
 
 - Keep business logic in shared packages and services, not in thin app shells.

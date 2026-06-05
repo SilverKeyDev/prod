@@ -8,8 +8,8 @@ import type { PropertyWithAnalysis } from "packages/types/domain/property-analys
 import {
   normalizeConEntry,
   normalizeProEntry,
-} from "packages/utils/search/normalize/normalizeProsConsItems";
-import { getPropertyMatchScore } from "packages/utils/search/scoring/propertyMatchScore";
+} from "packages/utils/product/search/normalize/normalizeProsConsItems";
+import { getPropertyMatchScore } from "packages/utils/product/search/scoring/propertyMatchScore";
 
 export const useProsAndConsData = (property: unknown) => {
   const { t } = useLocalization();

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { log } from "packages/logger";
 import type { UserProfile } from "packages/types";
-import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
+import { prefetchRemoteImage } from "packages/utils/product/media/prefetchRemoteImage";
 
 import { userApi } from "@/features/homeauth/api/user";
 

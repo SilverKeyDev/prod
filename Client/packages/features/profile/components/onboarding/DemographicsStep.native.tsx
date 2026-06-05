@@ -3,9 +3,9 @@ import React from "react";
 import Input from "@ui/form/Input";
 
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/native/nativeFormStyles.native";
 
 import {

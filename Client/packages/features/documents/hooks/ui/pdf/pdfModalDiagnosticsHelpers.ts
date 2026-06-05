@@ -1,5 +1,5 @@
 import { log } from "packages/logger";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 import { reportApi } from "@/features/documents/api/report";
 

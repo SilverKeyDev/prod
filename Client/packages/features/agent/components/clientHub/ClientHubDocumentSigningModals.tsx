@@ -3,7 +3,7 @@ import {
   EmbeddedSigning,
   ViewSignedDocument,
 } from "packages/features/documents";
-import { BaseModal } from "packages/ui/components/modals";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
 
 type AgreementSigningSession =
   | {

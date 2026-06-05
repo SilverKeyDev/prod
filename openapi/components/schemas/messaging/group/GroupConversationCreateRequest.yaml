@@ -1,0 +1,17 @@
+type: object
+description: Reserved for group chat — endpoints not implemented
+required:
+  - title
+  - participant_user_ids
+properties:
+  title:
+    type: string
+    maxLength: 120
+  participant_user_ids:
+    type: array
+    minItems: 2
+    items:
+      type: string
+  brokerage_org_id:
+    type: string
+    nullable: true

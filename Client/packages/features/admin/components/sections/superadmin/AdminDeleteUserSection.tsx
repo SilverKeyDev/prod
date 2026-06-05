@@ -5,7 +5,7 @@ import type { AdminSectionBaseProps } from "packages/features/admin/types/adminS
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import { log } from "packages/logger";
 import { HttpError } from "packages/services/http/client";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { AccessibleCheckboxInput, BodyText, Button, Input, Label, Title } from "@/components/ui";
 

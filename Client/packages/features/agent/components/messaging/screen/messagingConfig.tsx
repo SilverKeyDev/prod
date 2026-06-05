@@ -1,7 +1,9 @@
+import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
 import type { IconName } from "packages/ui/types/icons";
-import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+import { ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 export type MessagingMode = "client" | "agent";
+export type ClientPersona = "buyer" | "seller";
 export type MessageRole = "user" | "agent";
 export type MessagingConfig = {
   mode: MessagingMode;
@@ -188,6 +190,43 @@ export const AGENT_MESSAGING_CONFIG: MessagingConfig = {
     },
   },
 };
-export const getMessagingConfig = (mode: MessagingMode): MessagingConfig => {
-  return mode === "agent" ? AGENT_MESSAGING_CONFIG : CLIENT_MESSAGING_CONFIG;
+export const getMessagingConfig = (
+  mode: MessagingMode,
+  options?: { clientPersona?: ClientPersona }
+): MessagingConfig => {
+  if (mode === "agent") return AGENT_MESSAGING_CONFIG;
+  if (options?.clientPersona === "seller") {
+    return {
+      ...CLIENT_MESSAGING_CONFIG,
+      sidebar: {
+        ...CLIENT_MESSAGING_CONFIG.sidebar,
+        title: SELLER_TRANSLATIONS.SELLER_MESSAGING_SIDEBAR_TITLE,
+        emptyTitle: SELLER_TRANSLATIONS.SELLER_MESSAGING_EMPTY_TITLE,
+        emptyMessage: SELLER_TRANSLATIONS.SELLER_MESSAGING_EMPTY_MESSAGE,
+      },
+      header: {
+        ...CLIENT_MESSAGING_CONFIG.header,
+        chatTitle: SELLER_TRANSLATIONS.SELLER_MESSAGING_HEADER_CHAT,
+        noSelectionTitle: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_SELECTION_TITLE,
+        noSelectionMessage: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_SELECTION_MESSAGE,
+      },
+      emptyStates: {
+        ...CLIENT_MESSAGING_CONFIG.emptyStates,
+        noSelection: {
+          title: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_SELECTION_TITLE,
+          message: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_SELECTION_MESSAGE,
+        },
+        noMessages: {
+          title: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_MESSAGES_TITLE,
+          message: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_MESSAGES_MESSAGE,
+        },
+        noAgent: {
+          title: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_AGENT_TITLE,
+          message: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_AGENT_MESSAGE,
+          actionLabel: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_AGENT_ACTION,
+        },
+      },
+    };
+  }
+  return CLIENT_MESSAGING_CONFIG;
 };

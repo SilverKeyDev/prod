@@ -116,3 +116,39 @@ def test_write_preferences_removes_agent_profile_when_no_longer_agent(
             select(UserAgentProfile).where(UserAgentProfile.user_id == user_id)
         )
         assert profile is None
+
+
+def test_write_preferences_grants_brokerage_admin_from_primary_role(app: Flask, db_session) -> None:
+    with app.app_context():
+        user = _create_user()
+        user_id = str(user.id)
+        db.session.commit()
+
+        write_preferences_from_payload(
+            user_id,
+            {"primary_onboarding_role": "brokerage", "name": "Broker Lead"},
+            user=user,
+        )
+
+        refreshed = db.session.scalar(select(User).where(User.id == user_id))
+        role_names = {row.role for row in refreshed.user_roles.all()}
+        assert "brokerage_admin" in role_names
+
+
+def test_write_preferences_grants_integration_partner_from_primary_role(
+    app: Flask, db_session
+) -> None:
+    with app.app_context():
+        user = _create_user()
+        user_id = str(user.id)
+        db.session.commit()
+
+        write_preferences_from_payload(
+            user_id,
+            {"primary_onboarding_role": "integration_partner", "name": "Partner Lead"},
+            user=user,
+        )
+
+        refreshed = db.session.scalar(select(User).where(User.id == user_id))
+        role_names = {row.role for row in refreshed.user_roles.all()}
+        assert "integration_partner" in role_names
