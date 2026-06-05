@@ -41,7 +41,7 @@
 
 **PostHog table for dead routes:** Use event `endpoint_dead_route` (one row per route), not `endpoint_inventory_sync` alone — see [ops/posthog-dead-routes-table.md](./ops/posthog-dead-routes-table.md).
 
-**Sync workflow failures:** `endpoints-sync-posthog` and the weekly dead-route job exit non-zero when secrets are missing, HogQL returns no `api_request` data, capture/batch ingest errors, or PostHog does not show the sync for the deploy SHA within the verification window (~30s).
+**Sync workflow failures:** `endpoints-sync-posthog` and the weekly dead-route job exit non-zero when secrets are missing, HogQL returns no `api_request` data, capture/batch ingest errors, or PostHog does not show the sync for the deploy SHA within the verification window (~8–12 min; capture→HogQL lag). Tune with `POSTHOG_INGEST_VERIFY_MAX_ATTEMPTS` / `POSTHOG_INGEST_VERIFY_MAX_SLEEP_SECONDS` in the workflow env if needed.
 
 **GitHub secrets:**
 

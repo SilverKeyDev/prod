@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 
 import requests
@@ -123,42 +124,77 @@ def validate_observed_traffic(observed_count: int, inventory_count: int) -> None
     )
 
 
+def _ingest_verify_poll_settings() -> tuple[int, float, float, float]:
+    """Read optional CI overrides for capture→HogQL poll tuning."""
+
+    def _int(name: str, default: int) -> int:
+        raw = (os.getenv(name) or "").strip()
+        return int(raw) if raw.isdigit() and int(raw) > 0 else default
+
+    def _float(name: str, default: float) -> float:
+        raw = (os.getenv(name) or "").strip()
+        try:
+            value = float(raw)
+        except ValueError:
+            return default
+        return value if value > 0 else default
+
+    return (
+        _int("POSTHOG_INGEST_VERIFY_MAX_ATTEMPTS", 15),
+        _float("POSTHOG_INGEST_VERIFY_SLEEP_SECONDS", 8.0),
+        _float("POSTHOG_INGEST_VERIFY_BACKOFF_FACTOR", 1.5),
+        _float("POSTHOG_INGEST_VERIFY_MAX_SLEEP_SECONDS", 60.0),
+    )
+
+
 def verify_inventory_sync_ingested(
     query_api_key: str,
     *,
     posthog_query_url: str,
     deploy_sha: str,
     expected_dead_count: int,
-    max_attempts: int = 9,
-    sleep_seconds: float = 5.0,
-    backoff_factor: float = 1.6,
-    max_sleep_seconds: float = 30.0,
+    max_attempts: int | None = None,
+    sleep_seconds: float | None = None,
+    backoff_factor: float | None = None,
+    max_sleep_seconds: float | None = None,
 ) -> None:
     """Check that ingest landed, tolerating PostHog's async capture→query lag.
 
     Capture (``/capture/``, ``/batch/``) is asynchronous: events flow through
-    Kafka and ingestion before they are queryable via HogQL/ClickHouse. That lag
-    is routinely longer than the ~25s a flat 5s × 6 loop allowed, which produced
+    Kafka and ingestion before they are queryable via HogQL/ClickHouse. In
+    practice that lag is often **several minutes** for CI POSTs (inventory sync
+    plus large ``endpoint_dead_route`` batches), so a short poll window produces
     false failures even when capture succeeded. Poll with exponential backoff
-    (capped) so transient lag is tolerated while a genuinely missing event still
-    fails after a generous window (~3 min with defaults).
+    (capped) — defaults allow roughly **8–12 minutes** total in GitHub Actions.
     """
     if not is_github_actions():
         return
 
-    from scripts.endpoints.endpoint_coverage import EVENT_DEAD_ROUTE, EVENT_INVENTORY_SYNC
+    from scripts.endpoints.endpoint_coverage import (
+        EVENT_DEAD_ROUTE,
+        EVENT_INVENTORY_SYNC,
+        SYNC_DISTINCT_ID,
+    )
+
+    defaults = _ingest_verify_poll_settings()
+    attempts = max_attempts if max_attempts is not None else defaults[0]
+    base_sleep = sleep_seconds if sleep_seconds is not None else defaults[1]
+    backoff = backoff_factor if backoff_factor is not None else defaults[2]
+    max_sleep = max_sleep_seconds if max_sleep_seconds is not None else defaults[3]
 
     hogql = f"""
 SELECT
   countIf(event = '{_escape_sql(EVENT_INVENTORY_SYNC)}') AS inventory_syncs,
   countIf(event = '{_escape_sql(EVENT_DEAD_ROUTE)}') AS dead_route_events
 FROM events
-WHERE timestamp > now() - INTERVAL 2 HOUR
+WHERE timestamp > now() - INTERVAL 6 HOUR
+  AND distinct_id = '{_escape_sql(SYNC_DISTINCT_ID)}'
   AND properties.deploy_sha = '{_escape_sql(deploy_sha)}'
 """.strip()
 
     last_error: str | None = None
-    for attempt in range(1, max_attempts + 1):
+    inventory_seen = False
+    for attempt in range(1, attempts + 1):
         try:
             response = requests.post(
                 posthog_query_url,
@@ -177,15 +213,18 @@ WHERE timestamp > now() - INTERVAL 2 HOUR
             else:
                 inventory_syncs = int(row[0] or 0)
                 dead_events = int(row[1] or 0)
+                if inventory_syncs >= 1:
+                    inventory_seen = True
                 if inventory_syncs < 1:
                     last_error = (
                         f"no endpoint_inventory_sync for deploy_sha={deploy_sha} yet "
-                        f"(attempt {attempt}/{max_attempts})"
+                        f"(attempt {attempt}/{attempts})"
                     )
                 elif expected_dead_count > 0 and dead_events < expected_dead_count:
                     last_error = (
-                        f"expected >={expected_dead_count} endpoint_dead_route events, "
-                        f"saw {dead_events} (attempt {attempt}/{max_attempts})"
+                        f"endpoint_inventory_sync present but expected "
+                        f">={expected_dead_count} endpoint_dead_route events, "
+                        f"saw {dead_events} (attempt {attempt}/{attempts})"
                     )
                 else:
                     log_notice(
@@ -196,14 +235,20 @@ WHERE timestamp > now() - INTERVAL 2 HOUR
         except requests.RequestException as exc:
             last_error = str(exc)
 
-        if attempt < max_attempts:
-            delay = min(sleep_seconds * (backoff_factor ** (attempt - 1)), max_sleep_seconds)
+        if attempt < attempts:
+            delay = min(base_sleep * (backoff ** (attempt - 1)), max_sleep)
             log_notice(f"Ingest verification waiting ({last_error}); retrying in {delay:.0f}s…")
             time.sleep(delay)
 
+    hint = last_error or "Check ingest keys and PostHog project id."
+    if inventory_seen:
+        hint += (
+            " Inventory sync was visible before timeout; dead_route batch may still be "
+            "ingesting — re-run workflow or raise POSTHOG_INGEST_VERIFY_MAX_ATTEMPTS."
+        )
     fail(
         "PostHog ingest verification failed after capture.",
-        hint=last_error or "Check ingest keys and PostHog project id.",
+        hint=hint,
     )
 
 
