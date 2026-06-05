@@ -7,10 +7,9 @@
 #   all features (integrations, embeddings/ML, PDFs, Celery, etc.).
 #
 # Where it is used:
-#   - Docker: Dockerfile.web (`pip install -r requirements/runtime.txt`)
-#   - GitHub Actions: sunday_newsletter.yml, sunday_newsletter_test.yml (full env)
-#   - Local: Server/scripts/bootstrap-venv.sh (default, non-`--ci`), Server/README.md,
-#     docs/local-development.md, Server/tests/README.md
+#   - Docker: Dockerfile.web (CPU torch first, then runtime.txt)
+#   - GitHub Actions: sunday_newsletter.yml, sunday_newsletter_test.yml (CPU torch first)
+#   - Local: Server/scripts/bootstrap-venv.sh (CPU torch on Linux, then runtime.txt)
 #
 # Not used for:
 #   - PR lint → requirements/lint.txt (ci.txt + ruff + pyright)

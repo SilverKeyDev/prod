@@ -41,12 +41,10 @@
   RUN pnpm --reporter=silent run -s build:web -- --logLevel warn \
    && rm -rf /tmp/*
 
-  # Fail prod image build when Cloud Map ID was not passed (Advanced Markers require it)
-  ENV VERIFY_MAPS_MAP_ID=1
+  # Fail prod image build when PostHog key was not inlined into the web bundle
   ENV VERIFY_POSTHOG=1
   ENV NODE_ENV=production
-  RUN node scripts/verify-web-maps-map-id.mjs \
-   && node scripts/verify-web-posthog-config.mjs
+  RUN node scripts/verify-web-posthog-config.mjs
 
   # Verify assets exist (build must produce Client/dist when run from WORKDIR /app/client)
   RUN test -d dist && [ "$(ls -A dist)" ] || (echo "dist missing or empty!" >&2 && exit 1)

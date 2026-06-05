@@ -17,7 +17,7 @@ Use the same GCP project (or compatible pairing) for the Map ID baked at build t
 
 1. Copy [`Client/.env.example`](../../../Client/.env.example) to `Client/.env`.
 2. Set `EXPO_PUBLIC_GOOGLE_MAPS_ID=<your-cloud-map-id>`.
-3. Run the web app; optional: `cd Client && pnpm verify:web:maps` after `pnpm build:web` with the same env var set.
+3. Run the web app; optional: `cd Client && VERIFY_CLIENT_BUNDLE_ENV=1 node scripts/verify-web-bundle-env.mjs` after `pnpm build:web` with the same env var set.
 
 ## Production deploy
 
@@ -35,7 +35,7 @@ After deploy, rebuild is required when changing the Map ID (value is compile-tim
 ```bash
 cd Client
 EXPO_PUBLIC_GOOGLE_MAPS_ID="<your-map-id>" pnpm build:web
-VERIFY_MAPS_MAP_ID=1 pnpm verify:web:maps
+VERIFY_CLIENT_BUNDLE_ENV=1 node scripts/verify-web-bundle-env.mjs
 ```
 
 Inspect the Vite shim (optional):
@@ -60,4 +60,3 @@ Vitest does **not** use GitHub secrets. See `packages/config/env.test.ts`, `pack
 - Env: [`Client/packages/config/env.ts`](../../../Client/packages/config/env.ts)
 - Vite shim: [`Client/apps/web/vite.config.js`](../../../Client/apps/web/vite.config.js)
 - Map options: [`Client/packages/features/search/utils/googleMaps/buildWebGoogleMapOptions.ts`](../../../Client/packages/features/search/utils/googleMaps/buildWebGoogleMapOptions.ts)
-- Post-build gate: [`Client/scripts/verify-web-maps-map-id.mjs`](../../../Client/scripts/verify-web-maps-map-id.mjs)

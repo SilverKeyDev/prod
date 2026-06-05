@@ -60,8 +60,9 @@ To exercise real third-party APIs, run optional manual/integration checks locall
 
 ```bash
 cd Server
-pip install -r requirements/runtime.txt
-pip install -r requirements/dev.txt
+bash scripts/bootstrap-venv.sh   # on Linux, pre-installs CPU torch before runtime.txt
+source .venv/bin/activate
+# Manual: on Linux/WSL, pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu first
 ```
 
 ### Test Dependencies
@@ -426,7 +427,9 @@ jobs:
       - name: Install dependencies
         run: |
           cd Server
-          pip install -r requirements/runtime.txt
+          pip install -r requirements/ci.txt
+          pip install --no-cache-dir torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements/test.txt
           pip install -r requirements/dev.txt
       - name: Run tests
         run: |

@@ -215,7 +215,6 @@ Frontend-specific scripts. Run from the `Client/` directory with `pnpm` or `node
 | `npm-audit-critical.sh` | `npm audit` for critical vulnerabilities (pnpm audit workaround) | `pnpm audit`; `pnpm check` |
 | `assert-bundle-secrets.mjs` | Fail CI build if required bundle env is absent/invalid | `.github/workflows/ci_web.yml` |
 | `export-bundle-docker-build-args.mjs` | Emit Docker `--build-arg` flags from manifest | `.github/workflows/ci_web.yml` |
-| `verify-web-maps-map-id.mjs` | Verify Google Maps Map ID is inlined in web dist | `pnpm verify:web:maps`; `Dockerfile.web` |
 | `verify-web-posthog-config.mjs` | Verify PostHog key is inlined in web dist | `pnpm verify:web:posthog`; `Dockerfile.web` |
 | `verify-web-bundle-env.mjs` | Validate required env vars are present in web dist | Manual / documented for Docker |
 | `check-web-dist-no-native.mjs` | Fail if web dist contains React Native imports | `@silverkey/web` `postbuild` |
@@ -301,7 +300,7 @@ Scripts run exclusively inside GitHub Actions. Do not invoke locally unless debu
 | Shell scripts (runnable) | `verb-noun.sh` | `sync-openapi.sh`, `check-doc-links.sh` |
 | Shell scripts (sourced lib) | `noun.sh` or `verb-noun.sh` inside `lib/` | `lib/deps.sh`, `lib/aws-setup.sh` |
 | Python scripts (standalone) | `verb_noun.py` (snake_case) | `extract_routes.py`, `lint_file_length.py` |
-| Node / ESM scripts | `verb-noun.mjs` | `audit-button-icons.mjs`, `verify-web-maps-map-id.mjs` |
+| Node / ESM scripts | `verb-noun.mjs` | `audit-button-icons.mjs`, `verify-web-posthog-config.mjs` |
 | CI-only scripts | `verb-noun.sh` in `.github/scripts/` | `ec2-deploy.sh`, `gh-db-upgrade.sh` |
 | Operator / one-off tools | `verb_noun.py` in `Server/scripts/misc/` or `verb-noun.sh` in `scripts/ops/` | `delete_user_by_id.py` |
 

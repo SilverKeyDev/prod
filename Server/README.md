@@ -15,7 +15,7 @@ Pins under **`requirements/`** (from `Server/`):
 | `dev.txt` | Local pytest, pre-commit, mypy |
 | `codegen.txt` | OpenAPI → Pydantic scripts |
 
-Install: `bash Server/scripts/bootstrap-venv.sh` (or `--lint`, `--ci`, `--refresh-deps`).
+Install: `bash Server/scripts/bootstrap-venv.sh` (or `--lint`, `--ci`, `--refresh-deps`). On Linux/WSL, that script pre-installs the CPU-only `torch` wheel before `runtime.txt` (bare `torch` on PyPI is CUDA).
 
 ### libmagic (uploads)
 

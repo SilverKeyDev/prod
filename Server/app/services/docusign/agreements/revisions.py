@@ -36,7 +36,7 @@ def _assert_readable_pdf(file_content: bytes) -> None:
             log.warn(
                 "DOCUSIGN",
                 "pypdf not installed; only PDF magic-byte check runs. "
-                "Install dependencies (pip install -r requirements/runtime.txt) for full validation.",
+                "Install dependencies (bash scripts/bootstrap-venv.sh) for full validation.",
                 {},
             )
         return

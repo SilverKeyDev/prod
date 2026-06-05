@@ -644,8 +644,11 @@ Manual Server-only setup:
 
 ```bash
 cd Server
-bash scripts/bootstrap-venv.sh   # or: python -m venv .venv && pip install -r requirements/runtime.txt
+bash scripts/bootstrap-venv.sh   # recommended — on Linux, pre-installs CPU torch before runtime.txt
 source .venv/bin/activate
+# Manual venv: on Linux/WSL, install CPU torch before runtime.txt (PyPI default is CUDA):
+#   pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements/runtime.txt && pip install -r requirements/dev.txt
 cp .env.example .env             # or: make secrets from repo root
 python run.py
 ```

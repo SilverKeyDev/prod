@@ -40,10 +40,8 @@ Maps-specific setup: [`google-maps-web-setup.md`](../features/google-maps-web-se
 make secrets
 cd Client
 pnpm build:web
-VERIFY_CLIENT_BUNDLE_ENV=1 pnpm verify:web:bundle
+VERIFY_CLIENT_BUNDLE_ENV=1 node scripts/verify-web-bundle-env.mjs
 ```
-
-`pnpm verify:web:maps` is an alias for the same verifier.
 
 ## Tests
 
