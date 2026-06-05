@@ -113,7 +113,9 @@ Install with: `git config core.hooksPath scripts/githooks`
 
 | Path | Purpose | Called by |
 |------|---------|-----------|
-| `deploy/prod-parity/docker-compose.yml` | Local prod-parity stack: app, Redis, Celery worker, Beat | `make prod-parity` / `make prod-parity-build` |
+| `deploy/prod-parity/compose.sh` | Prod-parity compose wrapper; `build` passes all `Client/.env` keys as `--build-arg` | `make prod-parity-build` |
+| `deploy/prod-parity/docker-compose.yml` | Local prod-parity stack: app, Redis, Celery worker, Beat | `make prod-parity` via `compose.sh` |
+| `deploy/prod-parity/smoke.sh` | Build, boot, `/livez` + `/readyz`, tear down | `make prod-parity-smoke` (before Docker/deploy PRs) |
 
 Canonical production deploy lives in `.github/scripts/ec2-deploy.sh`, invoked by `.github/workflows/ci_web.yml` via SSH.
 

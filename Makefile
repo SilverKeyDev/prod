@@ -9,7 +9,7 @@ SERVER_VENV := $(ROOT)/Server/.venv
 SERVER_PYTHON := $(SERVER_VENV)/bin/python3
 SERVER_PYTEST := $(SERVER_VENV)/bin/pytest
 SERVER_FLASK := $(SERVER_VENV)/bin/flask
-PROD_PARITY_COMPOSE := $(ROOT)/scripts/deploy/prod-parity/docker-compose.yml
+PROD_PARITY_COMPOSE_SH := $(ROOT)/scripts/deploy/prod-parity/compose.sh
 REGION ?= us-east-2
 PROFILE ?=
 PYTEST_ARGS ?=
@@ -23,7 +23,7 @@ PYTEST_ARGS ?=
 	format-client format-check mobile \
 	routes-extract endpoints-check-dead routes-extract-verify endpoints-sync-posthog \
 	log-contracts log-contracts-migrate log-contracts-migrate-check log-contracts-lint log-contracts-verify \
-	prod-parity prod-parity-build
+	prod-parity prod-parity-build prod-parity-smoke
 
 help:
 	@echo "SilverKey Makefile (see also ./scripts/setup/setup-local.sh and ./scripts/setup/refresh.sh)"
@@ -66,7 +66,8 @@ help:
 	@echo "  make log-contracts-lint           Lint log paths + legacy category usage (CI)"
 	@echo "  make log-contracts-verify Regenerate log contracts; fail if git drift"
 	@echo "  make prod-parity-build    Build local prod-parity Docker stack (app + Redis + Celery)"
-	@echo "  make prod-parity          Run local prod-parity stack (requires Server/.env)"
+	@echo "  make prod-parity          Run local prod-parity stack (requires Server/.env + Client/.env)"
+	@echo "  make prod-parity-smoke    Build, boot, curl /livez+/readyz, tear down (pre-merge Docker check)"
 
 setup:
 	bash "$(ROOT)/scripts/setup/setup-local.sh" $(ARGS)
@@ -193,7 +194,10 @@ log-contracts-verify:
 	bash "$(ROOT)/scripts/log_contracts/verify.sh"
 
 prod-parity-build:
-	docker compose -f "$(PROD_PARITY_COMPOSE)" build
+	bash "$(PROD_PARITY_COMPOSE_SH)" build
 
 prod-parity:
-	docker compose -f "$(PROD_PARITY_COMPOSE)" up
+	bash "$(PROD_PARITY_COMPOSE_SH)" up
+
+prod-parity-smoke:
+	bash "$(ROOT)/scripts/deploy/prod-parity/smoke.sh"

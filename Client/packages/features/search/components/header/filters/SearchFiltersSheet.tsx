@@ -27,6 +27,9 @@ function preferencesToFormData(
 ): Partial<SearchFiltersFormData> {
   if (!prefs) return {};
   const base = { ...prefs } as Partial<SearchFiltersFormData>;
+  if (base.preferred_bedrooms_min == null && typeof prefs.preferred_bedrooms === "number") {
+    base.preferred_bedrooms_min = prefs.preferred_bedrooms;
+  }
   if (base.preferred_bathrooms_min == null && typeof prefs.preferred_bathrooms === "number") {
     base.preferred_bathrooms_min = prefs.preferred_bathrooms;
   }

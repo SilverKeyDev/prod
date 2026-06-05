@@ -1,9 +1,15 @@
+import fs from "fs";
+import os from "os";
+import path from "path";
+
 import { describe, expect, it } from "vitest";
 
 import {
   assertBundleSecretsPresent,
   assertBundleSecretsPresentWithValidation,
   formatDockerBuildArgs,
+  formatEnvFileDockerBuildArgs,
+  parseDotenvFile,
   validateBundleEnvValue,
   verifyBundleEnvFromBuild,
 } from "./bundle-env-manifest.mjs";
@@ -88,6 +94,28 @@ describe("assertBundleSecretsPresentWithValidation", () => {
     );
     expect(ok).toBe(false);
     expect(errors.some((e) => e.includes("EXPO_PUBLIC_POSTHOG_KEY"))).toBe(true);
+  });
+});
+
+describe("parseDotenvFile", () => {
+  it("parses entries and skips comments and blanks", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dotenv-"));
+    const file = path.join(dir, ".env");
+    fs.writeFileSync(file, "# comment\nA=1\nB='quoted'\n\nC=\"double\"\n");
+    expect(parseDotenvFile(file)).toEqual({ A: "1", B: "quoted", C: "double" });
+  });
+});
+
+describe("formatEnvFileDockerBuildArgs", () => {
+  it("emits --build-arg for every env entry", () => {
+    const args = formatEnvFileDockerBuildArgs({
+      EXPO_PUBLIC_POSTHOG_KEY: "phc_test",
+      EXPO_PUBLIC_API_URL: "http://localhost:5000",
+    });
+    expect(args).toEqual([
+      "--build-arg EXPO_PUBLIC_POSTHOG_KEY='phc_test'",
+      "--build-arg EXPO_PUBLIC_API_URL='http://localhost:5000'",
+    ]);
   });
 });
 

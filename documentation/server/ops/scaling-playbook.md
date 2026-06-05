@@ -104,6 +104,7 @@ Before placing an ALB in front of multiple app containers:
 ```bash
 make prod-parity-build
 make prod-parity
+# or automated gate: make prod-parity-smoke
 curl -s http://127.0.0.1:5000/readyz | jq .
 ```
 

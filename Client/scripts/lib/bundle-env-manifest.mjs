@@ -205,12 +205,60 @@ export function assertGithubSecretsPresent(env, manifest) {
  * @param {BundleEnvManifest} manifest
  * @returns {string[]}
  */
+/**
+ * @param {string} envFilePath
+ * @returns {Record<string, string>}
+ */
+export function parseDotenvFile(envFilePath) {
+  const content = fs.readFileSync(envFilePath, "utf8");
+  /** @type {Record<string, string>} */
+  const env = {};
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    if (!key || key.startsWith("#")) continue;
+    let value = trimmed.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    env[key] = value;
+  }
+  return env;
+}
+
+/**
+ * @param {string} value
+ */
+function escapeDockerBuildArgValue(value) {
+  return String(value).replace(/'/g, `'\\''`);
+}
+
+/**
+ * @param {Record<string, string>} env
+ * @returns {string[]}
+ */
+export function formatEnvFileDockerBuildArgs(env) {
+  const args = [];
+  for (const [key, value] of Object.entries(env)) {
+    if (!key) continue;
+    const escaped = escapeDockerBuildArgValue(value);
+    args.push(`--build-arg ${key}='${escaped}'`);
+  }
+  return args;
+}
+
 export function formatDockerBuildArgs(env, manifest) {
   const args = [];
   for (const spec of manifest.variables) {
     if (!spec.dockerBuildArg || !spec.key) continue;
     const value = String(env[spec.key] ?? "").trim();
-    const escaped = value.replace(/'/g, `'\\''`);
+    const escaped = escapeDockerBuildArgValue(value);
     args.push(`--build-arg ${spec.key}='${escaped}'`);
   }
   return args;

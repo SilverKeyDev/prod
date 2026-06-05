@@ -16,7 +16,7 @@ For the full inventory, caller map, naming conventions, and add-a-script guide s
 | `log_contracts/` | Log category YAML, Python schema, codegen, and verify |
 | `run/` | Local dev-stack orchestration (`make dev`, `make dev-backend`) |
 | `githooks/` | Git pre-commit and pre-push hooks |
-| `deploy/` | Local prod-parity Docker Compose stack (`make prod-parity`) |
+| `deploy/` | Local prod-parity Docker Compose stack (`make prod-parity`, `make prod-parity-smoke`) |
 | `load/` | k6 load and smoke test scripts (manual / staging only) |
 | `ops/` | Manual ops and audit helpers (not wired to CI or Makefile) |
 

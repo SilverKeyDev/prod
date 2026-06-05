@@ -13,7 +13,6 @@ import { Portal } from "packages/ui/components/structure/portal";
 import { Box } from "packages/ui/components/structure/primitives";
 import { NotificationBadge } from "packages/ui/components/structure/primitives/index.web";
 import Region from "packages/ui/components/system/accessibility/Region";
-import { tailwindNavChromeNavText } from "packages/ui/styles/theme/navTabTypography";
 import { getDocument } from "packages/utils/core/platform";
 import { getWorkspaceNavTabs } from "packages/utils/product/workspace/workspaceNavConfig";
 
@@ -28,7 +27,7 @@ function genNavId(): string {
 const BAR_CLASS =
   "fixed inset-x-0 bottom-0 z-dock flex w-full min-h-[4rem] flex-col border-t border-sidebar-border bg-sidebar text-sidebar-foreground shadow-lg md:hidden";
 function linkClass(active: boolean): string {
-  return `flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-normal ease-standard ${
+  return `flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 transition-all duration-normal ease-standard ${
     active
       ? "text-sidebar-foreground"
       : "text-sidebar-muted-foreground active:text-sidebar-foreground/95"
@@ -38,8 +37,11 @@ function iconClass(active: boolean): string {
   return `h-6 w-6 transition-all duration-normal ease-standard ${active ? "scale-110" : ""}`;
 }
 function labelClass(active: boolean): string {
-  const { inactive, highlighted } = tailwindNavChromeNavText;
-  return `transition-all duration-normal ease-standard ${active ? highlighted : inactive}`;
+  const weight = active ? "!font-semibold" : "!font-medium";
+  const color = active
+    ? "text-sidebar-foreground"
+    : "text-sidebar-muted-foreground active:text-sidebar-foreground/95";
+  return `w-full max-w-full truncate text-center !text-xs leading-tight transition-all duration-normal ease-standard ${weight} ${color}`;
 }
 
 type BottomNavItem = SidebarTab & { name: string };
@@ -165,7 +167,7 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
       }}
     >
       <Box className="flex min-h-16 flex-1 flex-col items-center justify-center">
-        <Box className="flex w-full items-center justify-around px-2">
+        <Box className="flex w-full min-w-0 items-stretch px-1">
           <BottomNavItems
             items={navItems}
             isActive={isActive}

@@ -93,7 +93,9 @@ googleapis-common-protos==1.70.0
 proto-plus==1.26.1
 grpcio==1.75.0
 httplib2==0.31.0
-cryptography==48.0.0
+# 47+ aarch64 wheels SIGILL on Docker Desktop for Mac (linux/arm64 VM lacks some
+# CPU features used by cryptography's Rust extension). 46.0.3 is last good pin.
+cryptography==46.0.3
 
 # --- Pydantic & Serialization ---
 pydantic==2.10.5

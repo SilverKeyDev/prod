@@ -2,7 +2,7 @@
 
 Run **`make setup`** once on a new machine (six steps: prerequisites → build → AWS SSO → secrets → verify → Cursor MCP). Skip AWS/secrets: `make setup ARGS='--skip-secrets'`. After every `git pull`: **`make refresh`**.
 
-**Supported environments:** macOS, Linux, or **Windows via WSL2 (Ubuntu)**. Native Windows shells (PowerShell/CMD/Git Bash) are not supported — `make setup` will stop and point you to the [Windows (WSL2)](#windows-wsl2--required) steps.
+**First:** use a supported terminal — macOS Terminal, Linux shell, or **Windows via WSL2 (Ubuntu)**. Native Windows shells (PowerShell/CMD/Git Bash) are not supported; `make setup` stops and points you to [Windows (WSL2)](#windows-wsl2--required).
 
 Deep MCP and Cursor tuning: [`.cursor/README.md`](.cursor/README.md), [cursor-configuration-optimization.md](documentation/client/tooling/cursor-configuration-optimization.md), [cursor-agent-memory.md](documentation/client/tooling/cursor-agent-memory.md).
 
@@ -10,8 +10,8 @@ Deep MCP and Cursor tuning: [`.cursor/README.md`](.cursor/README.md), [cursor-co
 
 ## TL;DR
 
-1. Install the [prerequisites](#prerequisites) for your platform (macOS / Linux / [Windows WSL2](#windows-wsl2--required)).
-2. Clone the repo, then from the repo root:
+1. **Set up your terminal** — macOS/Linux shell, or [Windows WSL2 (Ubuntu)](#windows-wsl2--required) (not PowerShell/CMD/Git Bash).
+2. Install the [prerequisites](#prerequisites) for your platform, clone the repo, then from the repo root:
 
 ```bash
 make setup    # installs/verifies tools → builds Client+Server → AWS SSO → secrets → MCP
@@ -19,6 +19,8 @@ make dev      # web (http://localhost:5173) + API (http://localhost:5000)
 ```
 
 3. After every `git pull`: `make refresh`.
+
+On Windows, complete step 1 (WSL2 + Ubuntu terminal) before installing prerequisites or running `make setup`.
 
 **No AWS access yet?** `make setup ARGS='--skip-secrets'` — sets up everything except SSO/secrets. **Re-check tools anytime:** `make check-deps`.
 
