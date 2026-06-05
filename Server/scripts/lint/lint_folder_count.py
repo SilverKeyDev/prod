@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Entrypoint for CI discovery; implementation lives in meta/."""
+
 import runpy
 from pathlib import Path
 

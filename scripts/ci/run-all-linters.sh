@@ -72,7 +72,7 @@ run_server() {
   (
     cd "$REPO_ROOT"
     shopt -s nullglob
-    for f in Server/scripts/lint/lint_*.py Server/scripts/lint/*/lint_*.py; do
+    for f in Server/scripts/lint/lint_*.py; do
       echo "  Running $f"
       "$SERVER_PYTHON" "$f" || exit 1
     done

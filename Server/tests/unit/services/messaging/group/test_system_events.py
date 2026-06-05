@@ -1,5 +1,7 @@
 """Group system event payload helpers."""
 
+import pytest
+
 from app.services.messaging.constants import GROUP_EVENT_PREFIX
 from app.services.messaging.group.system_events import (
     build_group_event_message,
@@ -18,8 +20,5 @@ class TestGroupSystemEvents:
         assert parse_group_event_message("hello") is None
 
     def test_build_rejects_unknown_type(self):
-        try:
+        with pytest.raises(ValueError):
             build_group_event_message("unknown", {})
-            assert False, "expected ValueError"
-        except ValueError:
-            pass

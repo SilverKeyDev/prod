@@ -169,7 +169,7 @@ Python linters:
 | `lint/lint_folder_count.py` | Warn / error on crowded directories |
 | `lint/lint_import_time_env.py` | Ban `os.environ` raises at import time in `app/` |
 | `lint/lint_timezone_aware.py` | Detect naive `datetime.now()` calls |
-| `lint/check_coverage_thresholds.py` | Enforce per-module coverage floors from `coverage.json` |
+| `misc/check_coverage_thresholds.py` | Enforce per-module coverage floors from `coverage.json` |
 
 ### `endpoints/` — route inventory and PostHog sync
 
@@ -186,7 +186,7 @@ Python linters:
 | Script | Purpose |
 |--------|---------|
 | `validate-schema-coverage.py` | OpenAPI decorator coverage report (advisory) |
-| `seed_georgia_forms.py` | Seed Georgia form library data into DB |
+| `misc/seed_georgia_forms.py` | Seed Georgia form library data into DB |
 | `misc/delete_user_by_id.py` | Delete a user and related data by UUID |
 | `postgres/export_postgres_docs.py` | Export Postgres schema docs |
 | `redis_healthcheck.py` | Redis PING connectivity check |
@@ -283,7 +283,7 @@ Scripts run exclusively inside GitHub Actions. Do not invoke locally unless debu
 | Workflow | Scripts invoked |
 |----------|----------------|
 | `lint.yml` | `scripts/ci/run-all-linters.sh` |
-| `test-callable.yml` | `pytest`; `pnpm test:coverage`; `Server/scripts/lint/check_coverage_thresholds.py`; `Server/scripts/endpoints/extract_routes.py` |
+| `test-callable.yml` | `pytest`; `pnpm test:coverage`; `Server/scripts/misc/check_coverage_thresholds.py`; `Server/scripts/endpoints/extract_routes.py` |
 | `openapi-sync.yml` | `Server/scripts/generate-pydantic-models.sh`; `Client/scripts/generate-api-types.sh`; `.github/scripts/summarize-openapi-sync-diff.sh` |
 | `doc-check.yml` | `scripts/ci/check-doc-placement.sh`; `scripts/ci/check-doc-links.sh` |
 | `ci_web.yml` | `fetch-client-bundle-env.sh`; `apply-bundle-env-github-fallback.sh`; `assert-bundle-secrets.mjs`; `export-bundle-docker-build-args.mjs`; `.github/scripts/ec2-deploy.sh` |

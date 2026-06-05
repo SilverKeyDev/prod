@@ -1,7 +1,7 @@
 """
 Seed Georgia real estate forms from S3 into ChecklistForm table.
 
-Run with: python scripts/seed_georgia_forms.py
+Run with: python scripts/misc/seed_georgia_forms.py
 """
 
 import sys

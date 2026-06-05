@@ -37,7 +37,7 @@ pytest -m unit            # / -m integration
 pytest --cov=app --cov-report=html
 ```
 
-Thresholds: `pytest.ini`, `pyproject.toml`, `scripts/lint/check_coverage_thresholds.py` (overall ~47%, per-area floors). `app/schemas/generated.py` omitted — regenerate via `make openapi`.
+Thresholds: `pytest.ini`, `pyproject.toml`, `scripts/misc/check_coverage_thresholds.py` (overall ~47%, per-area floors). `app/schemas/generated.py` omitted — regenerate via `make openapi`.
 
 Tests live under `tests/` (`unit/`, `integration/`, `conftest.py`). CI: `.github/workflows/test.yml`.
 

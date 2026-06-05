@@ -59,13 +59,13 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**/*.ipynb" = ["T201"]
 "app/__init__.py" = ["E402"]
-"scripts/lint/lint_*.py" = ["T201"]
-"scripts/lint/check_coverage_thresholds.py" = ["T201"]
+"scripts/lint/**/lint_*.py" = ["T201"]
+"scripts/misc/check_coverage_thresholds.py" = ["T201"]
+"scripts/misc/seed_georgia_forms.py" = ["T201", "E402"]
 "scripts/validate-schema-coverage.py" = ["T201"]
 "scripts/endpoints/extract_routes.py" = ["T201", "E402"]
 "scripts/endpoints/check_dead_endpoints.py" = ["T201"]
 "scripts/endpoints/sync_inventory_posthog.py" = ["T201"]
-"scripts/seed_georgia_forms.py" = ["T201", "E402"]
 # ORM relationship Mapped[] forward refs: quoted names for pyright; F821/UP037 waived in models.
 "app/models/**/*.py" = ["F821", "UP037"]
 

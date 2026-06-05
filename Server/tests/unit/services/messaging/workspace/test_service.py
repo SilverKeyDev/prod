@@ -1,5 +1,7 @@
 """Workspace conversation service orchestration tests."""
 
+import pytest
+
 from app.services.messaging.workspace.service import (
     create_conversation,
     list_eligible_contacts,
@@ -30,11 +32,8 @@ class TestWorkspaceConversationService:
     def test_create_group_rejected(self, db_session):
         user = create_user(user_id="grp-1", email="grp-1@test.com")
         db_session.session.commit()
-        try:
+        with pytest.raises(ValueError, match="not available"):
             create_conversation(user, {"kind": "group", "title": "nope"})
-            assert False, "expected ValueError"
-        except ValueError as e:
-            assert "not available" in str(e).lower()
 
     def test_send_message_requires_access(self, db_session):
         admin = create_user(user_id="send-admin", email="send-admin@test.com")
@@ -47,11 +46,8 @@ class TestWorkspaceConversationService:
             admin, {"kind": "platform_support", "support_category": "brokerage"}
         )
         send_message(admin, conversation_id=conv["id"], message="hello")
-        try:
+        with pytest.raises(ValueError, match="Access denied"):
             send_message(outsider, conversation_id=conv["id"], message="blocked")
-            assert False, "expected ValueError"
-        except ValueError as e:
-            assert "Access denied" in str(e)
 
     def test_list_eligible_contacts_merges_kinds(self, db_session):
         org = create_brokerage_org(slug="elig-org")
