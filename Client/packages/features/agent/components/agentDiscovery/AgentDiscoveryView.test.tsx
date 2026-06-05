@@ -17,12 +17,16 @@ vi.mock("packages/contexts", () => ({
   useLocalization: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("packages/navigation", () => ({
-  useNavigation: () => ({
-    navigateToPath,
-    getCurrentRoute: () => ({ pathname: "/checklist", search: "" }),
-  }),
-}));
+vi.mock("packages/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("packages/navigation")>();
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigateToPath,
+      getCurrentRoute: () => ({ pathname: "/checklist", search: "" }),
+    }),
+  };
+});
 
 vi.mock("@/features/agent/hooks/data/discovery/useAgentDiscoveryContext", () => ({
   useAgentDiscoveryContext: () => ({}),

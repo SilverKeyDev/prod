@@ -47,9 +47,13 @@ vi.mock("packages/features/messaging/hooks/data/useAgentChats", () => ({
 const mockInitiatedRequests = vi.hoisted(() => [] as Array<Record<string, unknown>>);
 const invalidateQueries = vi.fn();
 
-vi.mock("@tanstack/react-query", () => ({
-  useQueryClient: () => ({ invalidateQueries }),
-}));
+vi.mock("@tanstack/react-query", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@tanstack/react-query")>();
+  return {
+    ...actual,
+    useQueryClient: () => ({ invalidateQueries }),
+  };
+});
 
 vi.mock("@/features/agent/hooks/data/connections/useInitiatedConnectionRequests", () => ({
   initiatedConnectionRequestsQueryKey: ["agent", "connection-requests", "initiated"],
