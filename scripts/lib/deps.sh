@@ -12,6 +12,85 @@ DEPS_CMD_TIMEOUT="${DEPS_CMD_TIMEOUT:-600}" # seconds for brew/corepack/network 
 deps_die() { echo "deps: $*" >&2; exit 1; }
 deps_have() { command -v "$1" >/dev/null 2>&1; }
 
+# Classify the current shell environment so we can fail early with a clear
+# explanation instead of letting bash/make/redis/venv steps blow up confusingly.
+# Echoes one of: macos | wsl | linux | windows | unknown
+deps_detect_platform() {
+  local kernel
+  kernel="$(uname -s 2>/dev/null || echo unknown)"
+  case "$kernel" in
+    Darwin) echo macos ;;
+    MINGW*|MSYS*|CYGWIN*) echo windows ;;
+    Linux)
+      # WSL reports Linux but advertises itself in /proc/version and env vars.
+      if [[ -n "${WSL_DISTRO_NAME:-}" || -n "${WSL_INTEROP:-}" ]] ||
+         grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; then
+        echo wsl
+      else
+        echo linux
+      fi
+      ;;
+    *) echo unknown ;;
+  esac
+}
+
+# Print the "why" + exact steps for Windows users who must develop inside WSL2.
+deps_print_windows_help() {
+  cat >&2 <<'EOF'
+
+============================================================================
+  SilverKey setup must run inside WSL2 (Ubuntu), not native Windows.
+============================================================================
+
+WHY: The whole dev toolchain is Unix-based — bash setup scripts, GNU make,
+a Python venv, Redis, and the libmagic system library. PowerShell, CMD, and
+Git Bash cannot run these reliably, which is the confusing errors you hit.
+WSL2 gives you a real Ubuntu Linux on Windows where the exact same commands
+your macOS/Linux teammates use just work.
+
+ONE-TIME (in an ADMIN PowerShell, then reboot):
+
+  wsl --install               # installs WSL2 + Ubuntu by default
+  # reboot, then open "Ubuntu" from the Start menu and create your user
+
+THEN, INSIDE the Ubuntu (WSL) terminal:
+
+  sudo apt update
+  sudo apt install -y build-essential git python3 python3-venv \
+    redis-server libmagic1 awscli
+  # install Node 20+ and pnpm 9 (nvm shown; corepack handles pnpm):
+  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+  exec bash && nvm install 20 && corepack enable
+
+  # IMPORTANT: clone into the Linux home dir (fast + correct), NOT /mnt/c:
+  cd ~ && git clone <repo-url> && cd <repo> && make setup
+
+Open the project in Cursor/VS Code with the WSL extension ("Connect to WSL").
+Full guide: setup.md → "Windows (WSL2)" section.
+============================================================================
+EOF
+}
+
+# Gate setup on a supported environment. Returns non-zero on native Windows.
+deps_assert_supported_platform() {
+  local plat
+  plat="$(deps_detect_platform)"
+  case "$plat" in
+    macos) deps_log "Platform: macOS" ;;
+    wsl)   deps_log "Platform: WSL2 (${WSL_DISTRO_NAME:-Linux}) — good, this is the supported Windows setup" ;;
+    linux) deps_log "Platform: Linux" ;;
+    windows)
+      echo "deps: native Windows shell detected ($(uname -s 2>/dev/null))" >&2
+      deps_print_windows_help
+      return 1
+      ;;
+    *)
+      deps_log "Platform: unrecognized ($(uname -s 2>/dev/null)) — proceeding; setup expects macOS, Linux, or WSL2"
+      ;;
+  esac
+  return 0
+}
+
 # Avoid Corepack blocking on "about to download" with no visible progress.
 deps_init_env() {
   export COREPACK_ENABLE_DOWNLOAD_PROMPT="${COREPACK_ENABLE_DOWNLOAD_PROMPT:-0}"
@@ -327,6 +406,9 @@ deps_ensure_one() {
 # Setup phase 1: install or print commands for node, pnpm, python, aws CLI (binary only).
 deps_ensure_prerequisites() {
   deps_init_env
+  if ! deps_assert_supported_platform; then
+    return 1
+  fi
   DEPS_ENSURE_MODE=true
   local failed=false tools=(node pnpm python redis libmagic)
   [[ "$DEPS_SKIP_AWS_SETUP" != true ]] && tools+=(aws)
@@ -365,6 +447,9 @@ deps_run_scan() {
   deps_init_env
   local failed=false
   echo "==> Checking prerequisites (${DEPS_SETUP_DOC})"
+  if ! deps_assert_supported_platform; then
+    return 1
+  fi
   deps_log_step node "checking…"
   if deps_check_node; then
     deps_log_step node "OK $(deps_node_version)"

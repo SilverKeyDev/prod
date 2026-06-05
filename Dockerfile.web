@@ -79,7 +79,13 @@
 
   # Python deps (quiet); pins live in Server/requirements/
   COPY Server/requirements ./requirements
+  # Install the CPU-only torch wheel first. There is no GPU in production, but the bare
+  # `torch==2.10.0` pin in runtime.txt resolves to the multi-GB CUDA wheel from PyPI on
+  # linux. Installing 2.10.0+cpu up front satisfies that pin, so the runtime.txt install
+  # below does not pull torch (or its CUDA deps) again. Mirrors the CPU-wheel install in
+  # .github/workflows/test-callable.yml.
   RUN pip install --upgrade pip setuptools wheel --quiet --disable-pip-version-check \
+   && pip install --no-cache-dir torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu --quiet --disable-pip-version-check \
    && pip install --no-cache-dir --prefer-binary -r requirements/runtime.txt --quiet --disable-pip-version-check \
    && pip cache purge >/dev/null 2>&1 \
    && rm -rf /tmp/* /var/tmp/* ~/.cache/pip

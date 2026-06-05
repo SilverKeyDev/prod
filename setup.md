@@ -2,7 +2,25 @@
 
 Run **`make setup`** once on a new machine (six steps: prerequisites → build → AWS SSO → secrets → verify → Cursor MCP). Skip AWS/secrets: `make setup ARGS='--skip-secrets'`. After every `git pull`: **`make refresh`**.
 
+**Supported environments:** macOS, Linux, or **Windows via WSL2 (Ubuntu)**. Native Windows shells (PowerShell/CMD/Git Bash) are not supported — `make setup` will stop and point you to the [Windows (WSL2)](#windows-wsl2--required) steps.
+
 Deep MCP and Cursor tuning: [`.cursor/README.md`](.cursor/README.md), [cursor-configuration-optimization.md](documentation/client/tooling/cursor-configuration-optimization.md), [cursor-agent-memory.md](documentation/client/tooling/cursor-agent-memory.md).
+
+---
+
+## TL;DR
+
+1. Install the [prerequisites](#prerequisites) for your platform (macOS / Linux / [Windows WSL2](#windows-wsl2--required)).
+2. Clone the repo, then from the repo root:
+
+```bash
+make setup    # installs/verifies tools → builds Client+Server → AWS SSO → secrets → MCP
+make dev      # web (http://localhost:5173) + API (http://localhost:5000)
+```
+
+3. After every `git pull`: `make refresh`.
+
+**No AWS access yet?** `make setup ARGS='--skip-secrets'` — sets up everything except SSO/secrets. **Re-check tools anytime:** `make check-deps`.
 
 ---
 
@@ -45,7 +63,39 @@ brew services start redis   # optional
 
 ### Linux
 
-Debian/Ubuntu: `python3`, `python3-venv`, `redis-server`, `libmagic1`, `awscli`. Fedora: `python3`, `redis`, `file-libs`, `awscli`. Windows: **WSL2** + Linux steps.
+Debian/Ubuntu: `python3`, `python3-venv`, `redis-server`, `libmagic1`, `awscli`. Fedora: `python3`, `redis`, `file-libs`, `awscli`.
+
+### Windows (WSL2) — required
+
+**You cannot run setup in PowerShell, CMD, or Git Bash.** The toolchain is Unix-based (bash setup scripts, GNU `make`, a Python venv, Redis, the `libmagic` system library). Those don't run reliably on native Windows — that's the confusing errors people hit. **WSL2 gives you a real Ubuntu Linux on Windows**, so the exact same commands your macOS/Linux teammates use just work. `make setup` will hard-stop with these steps if it detects a native Windows shell.
+
+**1. One-time — in an _admin_ PowerShell, then reboot:**
+
+```powershell
+wsl --install   # installs WSL2 + Ubuntu by default
+```
+
+Reboot, open **Ubuntu** from the Start menu, and create your Linux username/password.
+
+**2. Inside the Ubuntu (WSL) terminal — install prerequisites:**
+
+```bash
+sudo apt update
+sudo apt install -y build-essential git python3 python3-venv \
+  redis-server libmagic1 awscli
+# Node 20+ via nvm; corepack provides pnpm 9:
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+exec bash && nvm install 20 && corepack enable
+```
+
+**3. Clone _inside_ the Linux home dir (not `C:\` / `/mnt/c/...`) and run setup:**
+
+```bash
+cd ~ && git clone <repo-url> && cd <repo>
+make setup
+```
+
+> **Gotcha:** Clone into `~` (the WSL filesystem), **not** a Windows path under `/mnt/c`. Windows-mounted paths are slow and cause line-ending and file-permission issues. Open the repo in Cursor/VS Code via the **WSL** extension ("Connect to WSL").
 
 ---
 
@@ -73,6 +123,21 @@ Debian/Ubuntu: `python3`, `python3-venv`, `redis-server`, `libmagic1`, `awscli`.
 
 ---
 
+## First run & verify
+
+After `make setup` completes, confirm the stack runs:
+
+```bash
+make dev
+```
+
+- **Web:** open <http://localhost:5173>
+- **API health:** `curl http://localhost:5000/healthz` → expect a `200` / OK response
+
+Other entry points: `make dev-web` (web only), `make mobile` (Expo). If `/healthz` is unreachable on macOS, see the [port 5000 / AirPlay](#macos-quick) note.
+
+---
+
 ## Cursor MCP (step 6)
 
 - Seeds **`.cursor/mcp.json`** from [`.cursor/mcp.example.json`](.cursor/mcp.example.json) when missing; never commit real tokens.
@@ -93,6 +158,7 @@ Finish in **Cursor → Settings → Tools & MCP** (GitHub PAT, Linear/Slack OAut
 
 | Problem | Fix |
 | ------- | --- |
+| On Windows / "native Windows shell detected" | Use **WSL2 (Ubuntu)** — see [Windows (WSL2)](#windows-wsl2--required). Run `make setup` inside the Ubuntu terminal, not PowerShell/Git Bash. |
 | Wrong/missing pnpm | `corepack prepare pnpm@9.0.0 --activate` or `brew unlink pnpm` |
 | AWS profile / SSO | `export AWS_PROFILE=…`; `aws sso login`; or `Server/config/.aws-sso` |
 | Broken venv | `export PYTHON=python3.12`; re-run `make setup` |

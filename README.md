@@ -23,24 +23,18 @@ Monorepo for the SilverKey product: **React** (web + **React Native**) in [`Clie
 
 ## Quick start
 
-**First-time setup:** run **`make setup`** — installs missing tools (or prints commands), builds Client/Server env, AWS SSO login, fetches secrets, verifies, and seeds Cursor MCP config. Details: **[setup.md](setup.md)**.
+**New machine?** All setup — prerequisites, build, AWS SSO, secrets, and Cursor MCP — lives in **[setup.md](setup.md)**. In short: run `make setup`, then `make dev`; after a `git pull`, run `make refresh`. Windows users must use WSL2 (Ubuntu) — see [setup.md](setup.md).
 
-```bash
-make setup          # deps → build → AWS SSO → secrets → verify → MCP
-make dev            # web + API (after setup)
-make refresh        # after git pull
-```
+Day-to-day commands once you're set up:
 
 | If you need… | Run |
 | ------------ | --- |
-| Full setup guide | [setup.md](setup.md) |
-| Same as `scripts/setup/setup-local.sh` | `make setup` |
-| Same as `scripts/setup/refresh.sh` | `make refresh` |
-| Secrets only | `make secrets` |
+| Web + API | `make dev` |
 | Web only | `make dev-web` |
 | Mobile (Expo) | `make mobile` |
 | Full client CI gate | `make check-client` |
 | All repo linters | `make lint` |
+| Anything setup, refresh, or secrets related | see **[setup.md](setup.md)** |
 
 ---
 
@@ -48,7 +42,7 @@ make refresh        # after git pull
 
 This repo uses Cursor with MCP connectors and a structured rules system. On first clone:
 
-1. Copy [`.cursor/mcp.example.json`](.cursor/mcp.example.json) to `.cursor/mcp.json` and OAuth into default connectors (GitHub, Linear, Slack). Add optional connectors (Mercury/AWS/analytics) only when needed — see [setup.md](setup.md) or `make setup-mcp`
+1. Set up Cursor MCP connectors (GitHub, Linear, Slack by default) — see **[setup.md](setup.md)** (step 6) or run `make setup-mcp`
 2. Read [`CLAUDE.md`](CLAUDE.md) for quick context, then use [`.cursor/rules/shared/silverkey-context.mdc`](.cursor/rules/shared/silverkey-context.mdc) and [`.cursor/rules/shared/pitch-and-fundraising.mdc`](.cursor/rules/shared/pitch-and-fundraising.mdc) for canonical partner/fundraising facts
 3. Read [`AGENTS.md`](AGENTS.md) for engineering commands and quality gates
 4. Cursor auto-loads rules from [`.cursor/rules/`](.cursor/rules/) based on which files you edit — see [`.cursor/rules/README.md`](.cursor/rules/README.md)
