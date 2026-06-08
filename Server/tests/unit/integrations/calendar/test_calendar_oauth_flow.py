@@ -3,6 +3,7 @@
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
+from app.config.constants._constants_google import GOOGLE_SCOPES
 from app.services.calendar.oauth.flow import build_auth_url
 from app.services.calendar.permissions.constants import oauth_requested_scope_urls
 
@@ -15,6 +16,8 @@ class TestCalendarOAuthFlowScopes:
         assert "https://www.googleapis.com/auth/calendar.calendarlist.readonly" not in urls
         assert "https://www.googleapis.com/auth/calendar.freebusy" in urls
         assert "https://www.googleapis.com/auth/calendar.app.created" in urls
+        assert "https://www.googleapis.com/auth/calendar.calendarlist" in urls
+        assert GOOGLE_SCOPES.split() == urls
 
     def test_build_auth_url_scope_query_never_includes_excluded_scopes(self) -> None:
         with patch("app.services.calendar.oauth.flow.db.session.add"):

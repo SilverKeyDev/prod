@@ -117,13 +117,6 @@ def oauth_enhance():
 @rate_limit(max_requests=20, window_seconds=60)
 def oauth_callback():
     """Handle Google OAuth callback"""
-    user_id, error_response = get_authenticated_user_id()
-    if error_response:
-        log_oauth_event("callback_failed", None, reason="auth_error", error="authentication_failed")
-        return error_response
-    if user_id is None:
-        return make_response(("Unauthorized", 401))
-
     state = request.args.get("state")
     code = request.args.get("code")
     error = request.args.get("error")
@@ -137,11 +130,9 @@ def oauth_callback():
     if error:
         return http_errors.validation("OAuth authorization was denied or failed")
 
-    # Validate state - use separate session key for calendar flow
-    if not google_calendar_service.validate_state(
-        state, session.get("google_calendar_oauth_state")
-    ):
-        log_oauth_event("callback_failed", user_id, reason="invalid_state")
+    user_id = google_calendar_service.validate_state_and_get_user_id(state)
+    if user_id is None:
+        log_oauth_event("callback_failed", None, reason="invalid_state")
         return http_errors.validation("Invalid OAuth state")
 
     # Exchange code for tokens using service

@@ -35,7 +35,10 @@ class OAuthState(db.Model):
 
     def is_expired(self) -> bool:
         """Check if state has expired"""
-        return datetime.now(timezone.utc) > self.expires_at
+        expires_at = self.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        return datetime.now(timezone.utc) > expires_at
 
     @classmethod
     def cleanup_expired(cls, older_than_hours: int = 1):

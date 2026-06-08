@@ -106,6 +106,9 @@ class GoogleCalendarService:
     def validate_state(self, state: str, session_state: str | None = None) -> bool:
         return self._oauth_facade.validate_state(state, session_state)
 
+    def validate_state_and_get_user_id(self, state: str) -> str | None:
+        return self._oauth_facade.validate_state_and_get_user_id(state)
+
     def build_auth_url(
         self, user_id: str, request_additional_scopes: list[str] | None = None
     ) -> tuple[str, str]:
