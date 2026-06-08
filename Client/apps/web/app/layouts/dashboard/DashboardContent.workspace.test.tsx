@@ -40,8 +40,6 @@ vi.mock("@/pages/workspace/DashboardPage", () => ({
   default: () => <div data-testid="workspace-shell-buyer">Buyer</div>,
 }));
 vi.mock("@/pages/workspace/AgentPage", () => ({ default: () => <div>AgentPage</div> }));
-vi.mock("@/pages/misc/FindAgentsPage", () => ({ default: () => <div>FindAgents</div> }));
-
 import { DashboardContent } from "./DashboardContent";
 
 describe("DashboardContent workspace shells", () => {
@@ -54,7 +52,6 @@ describe("DashboardContent workspace shells", () => {
       isDashboard: true,
       isProfile: false,
       isLibrary: false,
-      isFindAgents: false,
       isAgreementSigningComplete: false,
       pathname: "/dashboard",
     });
@@ -94,7 +91,6 @@ describe("DashboardContent workspace shells", () => {
       isDashboard: false,
       isProfile: false,
       isLibrary: false,
-      isFindAgents: false,
       isAgreementSigningComplete: false,
       pathname: "/search",
     });

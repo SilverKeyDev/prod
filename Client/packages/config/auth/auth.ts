@@ -139,6 +139,7 @@ export const AUTH_CONFIG = {
     "/terms",
     "/about",
     "/contact",
+    "/dev/session",
     "/agent-profile",
     "/a",
     "/property",
@@ -147,7 +148,6 @@ export const AUTH_CONFIG = {
   // Routes that require authentication
   PROTECTED_ROUTES: [
     "/dashboard",
-    "/find-agents",
     "/search",
     "/library",
     "/saved",

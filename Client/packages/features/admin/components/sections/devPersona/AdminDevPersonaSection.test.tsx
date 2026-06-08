@@ -5,8 +5,8 @@ import { AdminDevPersonaSection } from "./AdminDevPersonaSection";
 
 const mutateAsync = vi.fn();
 
-vi.mock("packages/hooks/data/admin/useSetCurrentUserDevWorkspaceMutation", () => ({
-  useSetCurrentUserDevWorkspaceMutation: () => ({
+vi.mock("packages/hooks/data/admin/useOpenDevAccountSessionMutation", () => ({
+  useOpenDevAccountSessionMutation: () => ({
     mutateAsync,
     isPending: false,
   }),
@@ -63,27 +63,27 @@ describe("AdminDevPersonaSection", () => {
     ).toBeTruthy();
   });
 
-  it("sets agent persona when Agent is chosen", async () => {
+  it("opens an agent dev account tab when Agent is chosen", async () => {
     render(<AdminDevPersonaSection />);
     fireEvent.click(screen.getByRole("button", { name: "workspace.switcher.agent" }));
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({ workspace: "agent" });
+      expect(mutateAsync).toHaveBeenCalledWith("agent");
     });
   });
 
-  it("sets seller persona when Seller is chosen", async () => {
+  it("opens a seller dev account tab when Seller is chosen", async () => {
     render(<AdminDevPersonaSection />);
     fireEvent.click(screen.getByRole("button", { name: "workspace.switcher.seller" }));
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({ workspace: "seller" });
+      expect(mutateAsync).toHaveBeenCalledWith("seller");
     });
   });
 
-  it("skips mutation when persona already matches", async () => {
+  it("opens buyer even when the current admin profile looks buyer-like", async () => {
     render(<AdminDevPersonaSection />);
     fireEvent.click(screen.getByRole("button", { name: "workspace.switcher.buyer" }));
     await waitFor(() => {
-      expect(mutateAsync).not.toHaveBeenCalled();
+      expect(mutateAsync).toHaveBeenCalledWith("buyer");
     });
   });
 

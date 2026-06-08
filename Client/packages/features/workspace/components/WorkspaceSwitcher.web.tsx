@@ -1,4 +1,5 @@
 import { useLocalization } from "packages/contexts";
+import { useOpenDevAccountSessionMutation } from "packages/hooks/data/admin/useOpenDevAccountSessionMutation";
 import {
   useActiveWorkspace,
   useAllowedWorkspaces,
@@ -24,6 +25,7 @@ export function WorkspaceSwitcher({
   const allowed = useAllowedWorkspaces();
   const active = useActiveWorkspace();
   const setActive = useSetActiveWorkspace();
+  const openDevSession = useOpenDevAccountSessionMutation();
 
   const show = forceVisible || (allowed.length > 1 && allowed.length > 0);
 
@@ -46,8 +48,15 @@ export function WorkspaceSwitcher({
             type="button"
             size="sm"
             variant={selected ? "primary" : "secondary"}
-            onPress={() => setActive(workspace, devPreview ? { devPreview: true } : undefined)}
+            onPress={() => {
+              if (devPreview) {
+                void openDevSession.mutateAsync(workspace);
+                return;
+              }
+              setActive(workspace);
+            }}
             label={t(workspaceSwitcherLabelKey(workspace))}
+            disabled={devPreview && openDevSession.isPending}
             accessibilityState={{ selected }}
           >
             {t(workspaceSwitcherLabelKey(workspace))}

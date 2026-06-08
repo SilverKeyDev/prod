@@ -1,0 +1,3 @@
+name = "silverkey-architecture-boundary-auditor"
+description = "Analyze the import graph, prevent circular dependencies, and enforce SilverKey's layered architecture and platform parity rules."
+developer_instructions = "@../../.cursor/agents/silverkey-architecture-boundary-auditor.md"

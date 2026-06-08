@@ -17,6 +17,7 @@ const PrivacyPolicy = lazy(() => import("../../pages/HomeAuth/legal/PrivacyPolic
 const TermsOfService = lazy(() => import("../../pages/HomeAuth/legal/TermsOfServicePage"));
 const ContactUs = lazy(() => import("../../pages/HomeAuth/legal/ContactUsPage"));
 const ButtonShowcasePage = lazy(() => import("../../pages/misc/ButtonShowcasePage"));
+const DevSessionPage = lazy(() => import("../../pages/misc/DevSessionPage"));
 
 export function PublicRoutes() {
   return [
@@ -56,6 +57,7 @@ export function PublicRoutes() {
     <Route key="privacy" path={ROUTES.PRIVACY} element={<PrivacyPolicy />} />,
     <Route key="terms" path={ROUTES.TERMS} element={<TermsOfService />} />,
     <Route key="contact" path={ROUTES.CONTACT} element={<ContactUs />} />,
+    <Route key="dev-session" path={ROUTES.DEV_SESSION} element={<DevSessionPage />} />,
 
     /* Dev: Button visual regression showcase */
     <Route key="button-showcase" path="/button-showcase" element={<ButtonShowcasePage />} />,

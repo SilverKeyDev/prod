@@ -23,7 +23,7 @@ function appTabScreenFromPathname(pathname: string): string | null {
 export type DeepLinkTarget =
   | { type: "auth"; screen: string }
   | { type: "app"; tab: string }
-  /** Authenticated root-stack screen (sibling to `Main`, e.g. FindAgents, AgentProfile). */
+  /** Authenticated root-stack screen (sibling to `Main`, e.g. AgentProfile). */
   | { type: "rootStack"; screen: string; params?: Record<string, unknown> };
 
 /**
@@ -35,9 +35,6 @@ export function resolveDeepLinkTarget(
   isAuthenticated: boolean
 ): DeepLinkTarget | null {
   if (isAuthenticated) {
-    if (normalizedPathname === "/find-agents") {
-      return { type: "rootStack", screen: "FindAgents" };
-    }
     const tab = appTabScreenFromPathname(normalizedPathname);
     if (tab) return { type: "app", tab };
     return null;

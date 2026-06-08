@@ -143,6 +143,9 @@ const withPersist = persistSafe<AuthState>(withReset, {
           is_active: state.user.is_active,
           has_preferences: state.user.has_preferences,
           is_agent: state.user.is_agent,
+          roles: state.user.roles,
+          brokerage_org_ids: state.user.brokerage_org_ids,
+          auth_method: state.user.auth_method,
         }
       : null,
     isAuthenticated: state.isAuthenticated,

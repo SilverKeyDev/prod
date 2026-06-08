@@ -27,10 +27,15 @@ export function mapAuthResponseToUserProfile(
     is_active: true,
     has_preferences: false,
     is_agent: ("is_agent" in user ? (user.is_agent ?? false) : false) ?? false,
+    roles: ("roles" in user ? user.roles : undefined) as UserProfile["roles"],
+    brokerage_org_ids: ("brokerage_org_ids" in user
+      ? user.brokerage_org_ids
+      : undefined) as UserProfile["brokerage_org_ids"],
     auth_method: ("auth_method" in user ? user.auth_method : undefined) as
       | "cognito"
       | "google"
       | "both"
+      | "dev_session"
       | "unknown"
       | undefined,
   };

@@ -72,13 +72,6 @@ const AgreementSigningCompletePage = lazy(
     () => import("@/pages/workspace/AgreementSigningCompletePage")
   )
 );
-const FindAgentsPage = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
-    "lazy:FindAgentsPage",
-    () => import("@/pages/misc/FindAgentsPage")
-  )
-);
 const AgentPage = lazy(
   traceLazyImport(
     LOG_CATEGORIES.MESSAGES,
@@ -143,13 +136,9 @@ export function DashboardContent({
     activeKey !== "dashboard" &&
     activeKey !== "messaging" &&
     activeKey !== null;
-  const contentTopMargin = route.isDashboard || route.isProfile || route.isFindAgents;
+  const contentTopMargin = route.isDashboard || route.isProfile;
   const contentBottomMargin =
-    route.isDashboard ||
-    route.isProfile ||
-    route.isLibrary ||
-    route.isFindAgents ||
-    route.isAgreementSigningComplete;
+    route.isDashboard || route.isProfile || route.isLibrary || route.isAgreementSigningComplete;
 
   const searchHeightClass =
     isSearch && isMobile
@@ -233,12 +222,6 @@ export function DashboardContent({
         <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
       )}
     </Suspense>
-  ) : activeKey === "find_agents" ? (
-    <PageErrorBoundary key="find-agents" pageLabel="Find agents">
-      <Suspense fallback={loadingFallback}>
-        <FindAgentsPage setMobileHeaderActions={setMobileHeaderActions} />
-      </Suspense>
-    </PageErrorBoundary>
   ) : activeKey === "agreement_signing_complete" ? (
     <PageErrorBoundary key="agreement-signing-complete" pageLabel="Signing">
       <Suspense fallback={loadingFallback}>

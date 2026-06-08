@@ -12,13 +12,7 @@ export type RouteCategory = "lightweight" | "standard" | "specialized";
 export const ROUTE_CONFIGS = {
   lightweight: [ROUTES.PROFILE],
 
-  standard: [
-    ROUTES.LIBRARY,
-    ROUTES.DASHBOARD,
-    ROUTES.MESSAGING,
-    ROUTES.FIND_AGENTS,
-    ROUTES.AGREEMENT_SIGNING_COMPLETE,
-  ],
+  standard: [ROUTES.LIBRARY, ROUTES.DASHBOARD, ROUTES.MESSAGING, ROUTES.AGREEMENT_SIGNING_COMPLETE],
 
   specialized: [{ path: ROUTES.SEARCH, providerType: "maps" as const }],
 } as const;

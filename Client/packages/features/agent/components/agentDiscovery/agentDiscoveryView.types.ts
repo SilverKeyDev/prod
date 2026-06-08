@@ -6,7 +6,7 @@ export type AgentDiscoveryViewProps = {
   isActive?: boolean;
   /**
    * `external`: open public profile in a new tab / system browser (checklist partner step).
-   * `navigate`: in-app profile route (Find agents page).
+   * `navigate`: in-app profile route.
    */
   profileTarget?: AgentDiscoveryProfileTarget;
   /** When set, overrides default profile open behavior for the given `profileTarget`. */

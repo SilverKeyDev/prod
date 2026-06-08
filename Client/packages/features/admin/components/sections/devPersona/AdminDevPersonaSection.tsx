@@ -1,12 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
-import { useSetCurrentUserDevWorkspaceMutation } from "packages/hooks/data/admin/useSetCurrentUserDevWorkspaceMutation";
-import { useAuthStore } from "packages/store";
+import { useOpenDevAccountSessionMutation } from "packages/hooks/data/admin/useOpenDevAccountSessionMutation";
 import { Region } from "packages/ui/components/accessibility";
-import { deriveDevAppPersonaFromProfile } from "packages/utils/admin/deriveDevAppPersonaFromProfile";
 import { ALL_WORKSPACES, type Workspace } from "packages/utils/workspace";
 import { workspaceSwitcherLabelKey } from "packages/utils/workspace/workspaceNavConfig";
 
@@ -19,35 +17,19 @@ export function AdminDevPersonaSection({
   scope: _scope = DEFAULT_ADMIN_SCOPE,
 }: AdminSectionBaseProps) {
   const { t } = useLocalization();
-  const user = useAuthStore((s) => s.user);
-  const mutation = useSetCurrentUserDevWorkspaceMutation();
+  const mutation = useOpenDevAccountSessionMutation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const activePersona = useMemo(
-    () =>
-      deriveDevAppPersonaFromProfile(
-        user
-          ? {
-              is_agent: Boolean(user.is_agent),
-              roles: user.roles,
-              brokerage_org_ids: user.brokerage_org_ids,
-            }
-          : null
-      ),
-    [user]
-  );
 
   const handleSetPersona = useCallback(
     async (workspace: Workspace) => {
-      if (workspace === activePersona) return;
       setErrorMessage(null);
       try {
-        await mutation.mutateAsync({ workspace });
+        await mutation.mutateAsync(workspace);
       } catch (e) {
         setErrorMessage(e instanceof Error ? e.message : "Request failed");
       }
     },
-    [activePersona, mutation]
+    [mutation]
   );
 
   const busy = mutation.isPending;
@@ -77,15 +59,13 @@ export function AdminDevPersonaSection({
         label={t("admin.dev_persona.persona_title")}
       >
         {ALL_WORKSPACES.map((workspace) => {
-          const selected = workspace === activePersona;
           return (
             <Button
               key={workspace}
-              variant={selected ? "primary" : "secondary"}
+              variant="secondary"
               size="sm"
               disabled={busy}
               onPress={() => void handleSetPersona(workspace)}
-              accessibilityState={{ selected }}
             >
               {t(workspaceSwitcherLabelKey(workspace))}
             </Button>

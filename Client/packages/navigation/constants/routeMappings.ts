@@ -23,7 +23,6 @@ export const ROUTE_TO_SCREEN: Record<RouteName, string> = {
   DASHBOARD: "Dashboard",
   AGREEMENT_SIGNING_COMPLETE: "Dashboard",
   MESSAGING: "Messaging",
-  FIND_AGENTS: "FindAgents",
   SEARCH: "Search",
   PROPERTY_DETAILS: "PropertyDetails",
   PROPERTY: "PropertyDetails",
