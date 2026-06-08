@@ -7,6 +7,7 @@
 | Area | Location |
 |------|----------|
 | Prod web deploy | `.github/workflows/ci_web.yml` |
+| Prod web rollback | [ops/prod-web-rollback.md](./ops/prod-web-rollback.md) |
 | Lint (weekly) | `.github/workflows/lint.yml` |
 | Tests on PR | `.github/workflows/test.yml` |
 | API route inventory drift | `make routes-extract-verify` in `.github/workflows/test-callable.yml` (backend job) |
@@ -19,6 +20,9 @@
 ## Prod web (EC2)
 
 - Immutable image tags from git SHA.
+- One-command rollback redeploys the prior immutable SHA tag: `scripts/deploy/rollback-prod-web.sh <prior-12-char-sha-tag>`.
+- Until M2 redundancy lands, schedule prod deploys and rollback drills off-hours.
+- Deploy replacement preserves stateful Redis and Docker volumes; app/worker/beat containers are treated as stateless.
 - Pre-deploy rollback image captured on EC2 — see [infrastructure-reliability-gap-audit.md](./infrastructure-reliability-gap-audit.md).
 
 ## Environment promotion

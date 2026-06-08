@@ -2,6 +2,11 @@ name: Prod Deploy - Web (EC2)
 
 on:
   workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Optional existing immutable ECR image tag to deploy, e.g. prior 12-char git SHA for rollback"
+        required: false
+        type: string
 
 env:
   REGION: us-east-2
@@ -26,9 +31,15 @@ jobs:
       - name: Set immutable image tag (git SHA)
         run: |
           set -euo pipefail
-          IMAGE_TAG="${GITHUB_SHA::12}"
+          REQUESTED_IMAGE_TAG="${{ github.event.inputs.image_tag || '' }}"
+          if [ -n "$REQUESTED_IMAGE_TAG" ]; then
+            IMAGE_TAG="$REQUESTED_IMAGE_TAG"
+            echo "Rollback/redeploy requested for existing image tag: $IMAGE_TAG"
+          else
+            IMAGE_TAG="${GITHUB_SHA::12}"
+            echo "Deploy image tag: $IMAGE_TAG (from ${GITHUB_SHA})"
+          fi
           echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
-          echo "Deploy image tag: $IMAGE_TAG (from ${GITHUB_SHA})"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -38,6 +49,7 @@ jobs:
           aws-region: ${{ env.REGION }}
 
       - name: Set up Docker Buildx (container driver)
+        if: ${{ github.event.inputs.image_tag == '' }}
         uses: docker/setup-buildx-action@v4
         with:
           driver: docker-container
@@ -57,6 +69,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2.1.5
 
       - name: Assert bundle build secrets
+        if: ${{ github.event.inputs.image_tag == '' }}
         env:
           # GitHub Actions: repository secrets EXPO_PUBLIC_* (Maps / Plaid / OAuth / PostHog for the web bundle).
           EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
@@ -66,6 +79,7 @@ jobs:
         run: node Client/scripts/assert-github-bundle-secrets.mjs Client
 
       - name: Build & push to ECR
+        if: ${{ github.event.inputs.image_tag == '' }}
         env:
           EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
           EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
@@ -113,6 +127,26 @@ jobs:
           fi
           echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_ENV"
           echo "Pushed $IMAGE_REF ($IMAGE_DIGEST)"
+
+      - name: Resolve existing rollback image digest
+        if: ${{ github.event.inputs.image_tag != '' }}
+        run: |
+          set -euo pipefail
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "ACCOUNT_ID=$ACCOUNT_ID" >> "$GITHUB_ENV"
+          IMAGE_TAG="${IMAGE_TAG:?IMAGE_TAG must be set}"
+          IMAGE_DIGEST="$(aws ecr describe-images \
+            --region "${{ env.REGION }}" \
+            --repository-name "${{ env.REPO }}" \
+            --image-ids "imageTag=${IMAGE_TAG}" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+          if [ -z "$IMAGE_DIGEST" ] || [ "$IMAGE_DIGEST" = "None" ]; then
+            echo "ERROR: Could not resolve ECR digest for existing tag ${IMAGE_TAG}" >&2
+            exit 1
+          fi
+          echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_ENV"
+          echo "Resolved existing image tag $IMAGE_TAG ($IMAGE_DIGEST)"
 
       - name: Verify production image CMD (gunicorn, not migrate)
         run: |
