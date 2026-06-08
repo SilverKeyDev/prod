@@ -2,7 +2,7 @@
 OAuth flow and scope management for Google Calendar
 """
 
-from .flow import build_auth_url, generate_state, validate_state
+from .flow import build_auth_url, generate_state, validate_state, validate_state_and_get_user_id
 from .scopes import (
     ALL_SCOPE_URLS,
     AUTH_SCOPES,
@@ -23,6 +23,7 @@ from .token_exchange import exchange_code_for_tokens
 __all__ = [
     "generate_state",
     "validate_state",
+    "validate_state_and_get_user_id",
     "build_auth_url",
     "exchange_code_for_tokens",
     "GoogleScope",

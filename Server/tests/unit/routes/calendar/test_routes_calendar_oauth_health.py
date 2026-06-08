@@ -1,6 +1,9 @@
 """Tests for Google Calendar OAuth, health, and error-envelope routes."""
 
+from datetime import datetime, timedelta
 from unittest.mock import patch
+
+from app.models import OAuthState
 
 from .calendar_route_test_helpers import auth_user
 
@@ -26,32 +29,29 @@ class TestCalendarOAuthHealthRoutes:
 
     def test_oauth_callback_endpoint(self, client):
         """Test GET /api/v1/google/oauth/callback"""
-        with patch("app.services.calendar.core.auth_helpers.get_current_user") as mock_get:
-            mock_get.return_value = auth_user()
+        with (
+            patch(
+                "app.services.calendar.core.auth_helpers.get_current_user",
+                side_effect=AssertionError("calendar OAuth callback should use state, not app auth"),
+            ),
+            patch(
+                "app.routes.calendar.handlers.oauth.google_calendar_service.validate_state_and_get_user_id",
+                return_value="user-123",
+            ),
+            patch(
+                "app.routes.calendar.handlers.oauth.google_calendar_service.exchange_code_for_tokens",
+                return_value={"scope": "https://www.googleapis.com/auth/calendar.app.created"},
+            ),
+            patch(
+                "app.routes.calendar.handlers.oauth.google_calendar_service.get_or_create_silverkey_calendar",
+                return_value={"id": "sk-cal"},
+            ),
+        ):
+            response = client.get(
+                "/api/v1/google/oauth/callback?code=oauth_code&state=state_token",
+            )
 
-            with (
-                patch(
-                    "app.routes.calendar.handlers.oauth.google_calendar_service.validate_state",
-                    return_value=True,
-                ),
-                patch(
-                    "app.routes.calendar.handlers.oauth.google_calendar_service.exchange_code_for_tokens",
-                    return_value={"scope": "https://www.googleapis.com/auth/calendar.app.created"},
-                ),
-                patch(
-                    "app.routes.calendar.handlers.oauth.google_calendar_service.get_or_create_silverkey_calendar",
-                    return_value={"id": "sk-cal"},
-                ),
-            ):
-                with client.session_transaction() as sess:
-                    sess["google_calendar_oauth_state"] = "state_token"
-
-                response = client.get(
-                    "/api/v1/google/oauth/callback?code=oauth_code&state=state_token",
-                    headers={"Authorization": "Bearer mock_access_token"},
-                )
-
-                assert response.status_code in [200, 302]
+            assert response.status_code in [200, 302]
 
     def test_health_check_endpoint(self, client):
         """Test GET /api/v1/google/health"""
@@ -107,3 +107,14 @@ class TestCalendarOAuthHealthRoutes:
         assert body.get("error") == "database_error"
         assert "error_id" in body
         assert "token store down" not in str(body)
+
+
+def test_oauth_state_expiry_handles_naive_datetime():
+    state = OAuthState(
+        state="state-token",
+        oauth_type="calendar",
+        user_id="user-123",
+        expires_at=datetime.utcnow() + timedelta(minutes=5),
+    )
+
+    assert state.is_expired() is False

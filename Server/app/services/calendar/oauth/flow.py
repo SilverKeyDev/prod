@@ -73,6 +73,51 @@ def validate_state(state: str, session_state: str | None = None) -> bool:
     return False
 
 
+def validate_state_and_get_user_id(state: str) -> str | None:
+    """
+    Validate calendar OAuth state and return the user that started the flow.
+
+    Calendar OAuth callbacks may arrive on a different origin (for example an
+    ngrok callback URL), so they cannot rely on the browser sending normal app
+    auth headers/cookies. The DB-backed OAuth state is the callback authority.
+    """
+    global _validation_count
+    if not state:
+        return None
+    _validation_count += 1
+    if _validation_count % 10 == 0:
+        try:
+            deleted = OAuthState.cleanup_expired(older_than_hours=1)
+            if deleted > 0:
+                log.debug("CALENDAR", f"Cleaned up {deleted} expired/used OAuth states")
+        except Exception as e:
+            log.warn("CALENDAR", f"Error during OAuth state cleanup: {str(e)}")
+    try:
+        state_record = db.session.scalar(
+            select(OAuthState).where(
+                OAuthState.state == state,
+                OAuthState.oauth_type == "calendar",
+                OAuthState.used.is_(False),
+            )
+        )
+        if not state_record:
+            return None
+        if state_record.is_expired():
+            log.warn("CALENDAR", f"OAuth state expired: {state[:20]}...")
+            return None
+        if not state_record.user_id:
+            log.warn("CALENDAR", f"Calendar OAuth state missing user_id: {state[:20]}...")
+            return None
+        user_id = str(state_record.user_id)
+        state_record.used = True
+        db.session.commit()
+        return user_id
+    except Exception as e:
+        db.session.rollback()
+        log.warn("CALENDAR", f"Error validating calendar OAuth state from DB: {str(e)}")
+        return None
+
+
 def build_auth_url(
     client_id: str,
     client_secret: str,
