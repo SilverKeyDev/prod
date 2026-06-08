@@ -33,6 +33,18 @@ def write_demographics_from_payload(user_id: str, data: dict[str, Any]) -> UserD
     return demo
 
 
+PREFERRED_CONTACT_METHOD_VALUES = frozenset({"text", "call", "email"})
+
+
+def _normalize_optional_slug(value: object | None, allowed: frozenset[str]) -> str | None:
+    if value is None:
+        return None
+    slug = str(value).strip()
+    if not slug:
+        return None
+    return slug if slug in allowed else None
+
+
 def write_communication_prefs_from_payload(
     user_id: str, data: dict[str, Any]
 ) -> UserCommunicationPrefs:
@@ -44,10 +56,11 @@ def write_communication_prefs_from_payload(
         comm = UserCommunicationPrefs(user_id=user_id)
         db.session.add(comm)
     if "communication_frequency" in data:
-        comm.communication_frequency = (
-            str(data["communication_frequency"]).strip()
-            if data["communication_frequency"] is not None
-            else None
+        raw = data["communication_frequency"]
+        comm.communication_frequency = str(raw).strip() or None if raw is not None else None
+    if "preferred_contact_method" in data:
+        comm.preferred_contact_method = _normalize_optional_slug(
+            data["preferred_contact_method"], PREFERRED_CONTACT_METHOD_VALUES
         )
     if "information_detail_level" in data:
         comm.information_detail_level = (

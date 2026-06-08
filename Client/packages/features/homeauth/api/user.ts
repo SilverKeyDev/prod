@@ -135,16 +135,6 @@ export const userApi = {
     apiPost<FavoriteHomesResponse>("/api/v1/user/not-interested-homes/update", data),
 
   /**
-   * Search for agents
-   */
-  searchAgents: (
-    query: string
-  ): Promise<{ success: boolean; agents?: unknown[]; message?: string }> =>
-    apiGet<{ success: boolean; agents?: unknown[]; message?: string }>(
-      `/api/v1/user/search-agents?q=${encodeURIComponent(query)}`
-    ),
-
-  /**
    * Assign an agent to current user
    */
   assignAgent: (

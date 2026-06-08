@@ -12,6 +12,7 @@
 
 - Setup: `make setup`
 - Refresh after pull: `make refresh`
+- Reset/init local DB: `make dev-db-init`
 - Run full stack: `make dev`
 - Run web only: `make dev-web`
 - Run backend only: `make dev-backend`

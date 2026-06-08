@@ -4,6 +4,11 @@ import {
   isSelectableOnboardingRole,
   primaryOnboardingRoleFromForm,
 } from "packages/features/profile/utils/onboarding/role/onboardingRoleSelection";
+import {
+  isBuyerAboutMeStepComplete,
+  isBuyerFinancingStepComplete,
+  shouldUseBuyerOnboardingValidators,
+} from "packages/features/profile/utils/onboarding/validation/buyerStepValidation";
 import { parseHousingTypes } from "packages/features/profile/utils/public/constants";
 
 const HOUSING_ESSENTIALS_REQUIRED_FIELDS: (keyof OnboardingData)[] = [
@@ -46,7 +51,10 @@ function isShellSetupStepComplete(formData: OnboardingData): boolean {
 const STEP_COMPLETION_HANDLERS: Partial<
   Record<ProfileStepId, (formData: OnboardingData) => boolean>
 > = {
-  demographics: () => true,
+  demographics: (formData) =>
+    shouldUseBuyerOnboardingValidators(formData) ? isBuyerAboutMeStepComplete(formData) : true,
+  financial: (formData) =>
+    shouldUseBuyerOnboardingValidators(formData) ? isBuyerFinancingStepComplete(formData) : true,
   onboarding_role: isOnboardingRoleStepComplete,
   housing_essentials: isHousingEssentialsStepComplete,
   housing_ranges: () => true,
@@ -56,6 +64,7 @@ const STEP_COMPLETION_HANDLERS: Partial<
   agent_licensing: () => true,
   agent_profile: () => true,
   seller_shell_setup: isShellSetupStepComplete,
+  renter_shell_setup: isShellSetupStepComplete,
   brokerage_shell_setup: isShellSetupStepComplete,
   integration_partner_shell_setup: isShellSetupStepComplete,
 };

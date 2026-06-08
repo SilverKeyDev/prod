@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef } from "react";
 
-import { useLocalization, useSearchRefresh } from "packages/contexts";
+import { useSearchRefresh } from "packages/contexts";
 import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/agent/hooks/data/search/useAgentSyncPreferencesWhenClientSelected";
 import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
 import {
@@ -18,11 +18,15 @@ import { useSearchViewIntegration } from "packages/features/search/hooks/store/u
 import { useAgentSearchShareSelection } from "packages/features/search/hooks/ui/screen/useAgentSearchShareSelection";
 import { useSearchMobileHeaderActions } from "packages/features/search/hooks/ui/screen/useSearchMobileHeaderActions";
 import type { SearchResult } from "packages/features/search/types";
+import {
+  abortActiveSearch,
+  beginSearchAbortScope,
+  getSearchAbortSignal,
+} from "packages/features/search/utils/searchAbortController";
 import { useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { usePreActionSnapshot } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui/responsive/useMediaQuery";
-import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import {
   useAgentDashboardStore,
   useAuthStore,
@@ -32,7 +36,8 @@ import {
 } from "packages/store";
 import { screenDown } from "packages/ui/types/screens";
 
-import { userPreferencesHasImportantLocations } from "./useSearchFeatureController.helpers";
+import { userPreferencesHasImportantLocations } from "@/features/search/utils/searchArea/resolveSearchArea";
+
 import { useSearchFeatureLifecycle } from "./useSearchFeatureLifecycle";
 import { useSearchFeaturePreciseAddressNavigation } from "./useSearchFeaturePreciseAddressNavigation";
 
@@ -50,7 +55,6 @@ export function useSearchFeatureController({
   searchRef,
 }: SearchFeatureControllerProps) {
   const isCompactHeader = useMediaQuery(screenDown("lg"));
-  const { t } = useLocalization();
   const isAgentWorkspace = useActiveWorkspace() === "agent";
   const { mode: searchViewMode } = useSearchViewIntegration();
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
@@ -60,7 +64,7 @@ export function useSearchFeatureController({
   const setAnchor = useSearchContextStore((s) => s.setAnchor);
   const locationBarDraft = useSearchContextStore((s) => s.locationBarDraft);
   const locationBarExternalSubmit = useSearchContextStore((s) => s.locationBarExternalSubmit);
-  const searchAbortControllerRef = useRef<AbortController | null>(null);
+  const locationPlaceViewportRing = useSearchContextStore((s) => s.locationPlaceViewportRing);
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
   const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
   useAgentSyncPreferencesWhenClientSelected(selectedClientId);
@@ -170,7 +174,7 @@ export function useSearchFeatureController({
     onMapPreviewNavigate: handlers.handleNavigateToProperty,
     onUnlockClick: handleViewPropertyDetails,
     onOpenDetails: handlers.handleOpenPropertyDetails,
-    getSearchAbortSignal: () => searchAbortControllerRef.current?.signal,
+    getSearchAbortSignal,
     renderMapPropertyCard,
     cleanupMapPropertyCard,
     preferencesSubjectUserId: selectedClientId,
@@ -206,8 +210,7 @@ export function useSearchFeatureController({
       currentPage,
       showPropertyModals,
     });
-    searchAbortControllerRef.current?.abort();
-    searchAbortControllerRef.current = new AbortController();
+    beginSearchAbortScope();
     await map.runViewportSearch();
   }, [
     isSearching,
@@ -219,68 +222,66 @@ export function useSearchFeatureController({
     setSearchSource,
   ]);
 
-  const handleSearchUpdated = useCallback(
-    async (options?: { skipLocationsGate?: boolean }) => {
-      if (isSearching) return;
+  const handleSearchUpdated = useCallback(async () => {
+    if (isSearching) return;
 
-      const skipLocationsGate = options?.skipLocationsGate === true;
+    const hasBarRing =
+      Array.isArray(locationPlaceViewportRing) && locationPlaceViewportRing.length >= 4;
+    const hasBarDraft = locationBarDraft.trim().length > 0;
 
-      if (!hasLocations && !skipLocationsGate) {
-        if (!locationBarDraft.trim()) {
-          showWarningToast(t("search.need_locations_or_place"));
-          return;
-        }
-        if (!locationBarExternalSubmit) {
-          showWarningToast(t("search.need_locations_or_place"));
-          return;
-        }
-        await locationBarExternalSubmit();
-        return;
-      }
+    if (hasBarDraft && !hasBarRing && locationBarExternalSubmit) {
+      await locationBarExternalSubmit();
+      return;
+    }
 
-      setSearchSource("preferences");
-      snapshotPreSearch({
-        results: searchResults,
-        currentPage,
-        showPropertyModals,
-      });
-      searchAbortControllerRef.current?.abort();
-      searchAbortControllerRef.current = new AbortController();
-      if (onSearchProperties) {
-        setIsSearching(true);
-        setSearchStage("Preparing search...");
-        await onSearchProperties();
-      } else {
-        await map.runUnifiedSearch();
-      }
-    },
-    [
-      isSearching,
-      hasLocations,
-      locationBarDraft,
-      locationBarExternalSubmit,
-      t,
-      onSearchProperties,
-      map,
-      searchResults,
+    setSearchSource("preferences");
+    snapshotPreSearch({
+      results: searchResults,
       currentPage,
       showPropertyModals,
-      snapshotPreSearch,
-      setSearchSource,
-      setIsSearching,
-      setSearchStage,
-    ]
-  );
+    });
+    beginSearchAbortScope();
+    if (onSearchProperties) {
+      setIsSearching(true);
+      setSearchStage("Preparing search...");
+      await onSearchProperties();
+    } else {
+      await map.runUnifiedSearch();
+    }
+  }, [
+    isSearching,
+    locationBarDraft,
+    locationPlaceViewportRing,
+    locationBarExternalSubmit,
+    onSearchProperties,
+    map,
+    searchResults,
+    currentPage,
+    showPropertyModals,
+    snapshotPreSearch,
+    setSearchSource,
+    setIsSearching,
+    setSearchStage,
+  ]);
 
   const handleCancelSearch = useCallback(() => {
-    searchAbortControllerRef.current?.abort();
+    abortActiveSearch();
+    setIsSearching(false);
+    setSearchStage("");
     const restored = restorePreSearch();
     if (restored) {
       setSearchResults(restored.results);
       setCurrentPage(restored.currentPage);
       setShowPropertyModals(restored.showPropertyModals);
     }
-  }, [restorePreSearch, setSearchResults, setCurrentPage, setShowPropertyModals]);
+  }, [
+    restorePreSearch,
+    setSearchResults,
+    setCurrentPage,
+    setShowPropertyModals,
+    setIsSearching,
+    setSearchStage,
+  ]);
 
   const memoizedSearchFunction = handleSearchUpdated;
 
@@ -293,7 +294,6 @@ export function useSearchFeatureController({
     searchRef,
     memoizedSearchFunction,
     setUserGeolocation,
-    searchAbortControllerRef,
     activeTab,
     filteredSearchResultsLength: filteredSearchResults.length,
     savedHomesLength: savedHomes.length,

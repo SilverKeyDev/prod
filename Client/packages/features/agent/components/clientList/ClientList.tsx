@@ -89,20 +89,21 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
       </Title>
 
       <ScrollView refreshing={refreshing} onRefresh={handleRefresh}>
-        <Box className="gap-3">
+        <Box className="gap-2.5">
           {sortedClients.map((client) => (
             <Card
               key={client.id}
               border="light"
               hover
-              className="cursor-pointer p-0"
+              padding="none"
+              className="cursor-pointer"
               onClick={() => onClientClick?.(client)}
             >
               <AgentClientListRow
                 client={client}
                 conversation={conversationMap.get(client.id)}
                 variant="card"
-                rowClassName="p-4"
+                rowClassName="px-3 py-3"
               />
             </Card>
           ))}

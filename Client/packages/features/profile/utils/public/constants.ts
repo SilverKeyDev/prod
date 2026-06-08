@@ -41,12 +41,17 @@ export {
   ONBOARDING_ROLE_PICKER_OPTIONS,
   PARKING_TYPE_OPTIONS,
   PETS_OPTIONS,
-  PROPERTY_USE_OPTIONS,
-  RENOVATION_PREFERENCE_OPTIONS,
   STORIES_PREFERENCE_OPTIONS,
   WALKABILITY_OPTIONS,
   WHY_JOINING_SILVERKEY_OPTIONS,
 } from "packages/utils/product/domain/profile/dropdownOptions";
+export {
+  INTENDED_PROPERTY_USE_OPTIONS,
+  INTENDED_USE_OPTIONS,
+  PROPERTY_USE_OPTIONS,
+  RENOVATION_OPTIONS,
+  RENOVATION_PREFERENCE_OPTIONS,
+} from "packages/utils/product/domain/profile/housingFilterOptions";
 
 // Re-export slider scales
 export {

@@ -1,3 +1,26 @@
 type: object
 description: "User search preferences"
 additionalProperties: true
+properties:
+  preferred_contact_method:
+    type: string
+    description: "Buyer communication preference — text, call, or email"
+  communication_frequency:
+    type: string
+    description: "Update cadence — as_things_come_up, weekly_check_in, or daily"
+  extended_buyer_preferences:
+    type: object
+    description: "Versioned buyer preference extensions (v1 JSON)"
+    additionalProperties: true
+    properties:
+      buyer_about_me:
+        type: object
+        description: "SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation"
+        additionalProperties: true
+      price_financing:
+        type: object
+        description: "SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc."
+        additionalProperties: true
+  paying_cash:
+    type: boolean
+    description: "Intent attribute — true when buyer pays cash"

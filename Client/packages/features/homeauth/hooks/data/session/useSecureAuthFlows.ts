@@ -9,7 +9,6 @@ import {
   toUserStoreProfile,
 } from "packages/features/homeauth/hooks/data/utils/userMapping";
 import { log } from "packages/logger";
-import { ROUTES } from "packages/navigation/types/routes";
 import { applyLocalUnauthenticatedState } from "packages/services/http/client/auth";
 import {
   isTransientRefreshFailure,
@@ -45,7 +44,6 @@ type LoginSetters = {
   setStoreIsAuthenticated: (v: boolean) => void;
   setStoreAuthStatus: (s: string) => void;
   setStoreAuthReady: (v: boolean) => void;
-  setStorePostAuthRedirectPath: (path: string | null) => void;
   setUserProfile: (p: unknown) => void;
   setLoginRef: (v: boolean) => void;
 };
@@ -61,7 +59,6 @@ function applyLoginSuccess(
     setStoreIsAuthenticated,
     setStoreAuthStatus,
     setStoreAuthReady,
-    setStorePostAuthRedirectPath,
     setUserProfile,
     setLoginRef,
   } = setters;
@@ -89,7 +86,6 @@ function applyLoginSuccess(
     setStoreIsAuthenticated(true);
     setStoreAuthStatus("authenticated");
     setStoreAuthReady(true);
-    setStorePostAuthRedirectPath(ROUTES.SEARCH);
     setUserProfile(userStoreProfile);
     if (getEnv().isDevelopment) {
       log.debug("AUTH", "User state after login", {
@@ -102,7 +98,6 @@ function applyLoginSuccess(
     setStoreIsAuthenticated(true);
     setStoreAuthStatus("authenticated");
     setStoreAuthReady(true);
-    setStorePostAuthRedirectPath(ROUTES.SEARCH);
   }
   setLoginRef(false);
   if (getEnv().isDevelopment) {
@@ -176,7 +171,6 @@ type LogoutSetters = {
   setStoreIsAuthenticated: (v: boolean) => void;
   setStoreAuthStatus: (s: string) => void;
   setStoreAuthReady: (v: boolean) => void;
-  setStorePostAuthRedirectPath: (path: string | null) => void;
   setUserProfile: (p: null) => void;
 };
 
@@ -197,7 +191,6 @@ export async function performLogout(setters: LogoutSetters): Promise<void> {
     setStoreIsAuthenticated,
     setStoreAuthStatus,
     setStoreAuthReady,
-    setStorePostAuthRedirectPath,
     setUserProfile,
   } = setters;
   setAccessToken(null);
@@ -206,7 +199,6 @@ export async function performLogout(setters: LogoutSetters): Promise<void> {
   setStoreIsAuthenticated(false);
   setStoreAuthStatus("unauthenticated");
   setStoreAuthReady(false);
-  setStorePostAuthRedirectPath(null);
   setUserProfile(null);
   resetWorkspaceStore();
   useDevAppPersonaStore.setState({ serverIdentityTouched: false });

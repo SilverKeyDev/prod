@@ -8,6 +8,7 @@ import {
   assertBundleSecretsPresent,
   assertBundleSecretsPresentWithValidation,
   formatDockerBuildArgs,
+  formatDockerBuildSecrets,
   formatEnvFileDockerBuildArgs,
   parseDotenvFile,
   validateBundleEnvValue,
@@ -133,6 +134,40 @@ describe("formatDockerBuildArgs", () => {
       manifest
     );
     expect(args).toEqual(["--build-arg EXPO_PUBLIC_GOOGLE_MAPS_ID='map-id-123'"]);
+  });
+});
+
+describe("formatDockerBuildSecrets", () => {
+  it("emits --secret for dockerBuildArg entries with values", () => {
+    const manifest = {
+      version: 1,
+      variables: [
+        { key: "EXPO_PUBLIC_GOOGLE_MAPS_ID", dockerBuildArg: true },
+        { key: "EXPO_PUBLIC_POSTHOG_KEY", dockerBuildArg: true },
+        { key: "EXPO_PUBLIC_PLAID_CLIENT_ID", dockerBuildArg: false },
+      ],
+    };
+    const args = formatDockerBuildSecrets(
+      {
+        EXPO_PUBLIC_GOOGLE_MAPS_ID: "map-id-123",
+        EXPO_PUBLIC_POSTHOG_KEY: "phc_test",
+        EXPO_PUBLIC_PLAID_CLIENT_ID: "ignored",
+      },
+      manifest
+    );
+    expect(args).toEqual([
+      "--secret id=EXPO_PUBLIC_GOOGLE_MAPS_ID,env=EXPO_PUBLIC_GOOGLE_MAPS_ID",
+      "--secret id=EXPO_PUBLIC_POSTHOG_KEY,env=EXPO_PUBLIC_POSTHOG_KEY",
+    ]);
+  });
+
+  it("skips empty secret env values", () => {
+    const manifest = {
+      version: 1,
+      variables: [{ key: "EXPO_PUBLIC_POSTHOG_KEY", dockerBuildArg: true }],
+    };
+    const args = formatDockerBuildSecrets({ EXPO_PUBLIC_POSTHOG_KEY: "  " }, manifest);
+    expect(args).toEqual([]);
   });
 });
 

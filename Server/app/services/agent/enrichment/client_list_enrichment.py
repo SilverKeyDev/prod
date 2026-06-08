@@ -40,6 +40,8 @@ def _client_kind_from_roles(role_names: set[str]) -> str:
     roles = {r.lower() for r in role_names if r and str(r).lower() != "agent"}
     if "seller" in roles:
         return "seller"
+    if "renter" in roles:
+        return "renter"
     if "buyer" in roles:
         return "buyer"
     if "investor" in roles:

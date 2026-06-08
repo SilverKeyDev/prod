@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
-
-import { formDataToPreferencesPayload } from "@/features/profile/utils/onboarding/sync/profileFormSync";
+import { formDataToPreferencesPayload } from "packages/features/profile/utils/onboarding/sync/profileFormSync";
 
 import {
   applyOnboardingRoleSelection,
+  isBuyerOnboardingRole,
   isSelectableOnboardingRole,
   primaryOnboardingRoleFromForm,
+  shouldShowBuyerOnboardingUi,
   WHY_JOIN_FOR_ROLE,
 } from "./onboardingRoleSelection";
 
@@ -40,6 +41,15 @@ describe("applyOnboardingRoleSelection", () => {
       WHY_JOIN_FOR_ROLE.buyer,
       WHY_JOIN_FOR_ROLE.seller,
     ]);
+  });
+
+  it("maps renter to primary_onboarding_role and renting_house tag", () => {
+    const patches: Record<string, unknown> = {};
+    applyOnboardingRoleSelection("renter", (k, v) => {
+      patches[String(k)] = v;
+    });
+    expect(patches.primary_onboarding_role).toBe("renter");
+    expect(patches.why_joining_silverkey).toEqual([WHY_JOIN_FOR_ROLE.renter]);
   });
 
   it("maps brokerage to primary_onboarding_role", () => {
@@ -89,6 +99,14 @@ describe("primaryOnboardingRoleFromForm", () => {
       })
     ).toBe("seller");
   });
+
+  it("infers renter from renting_house tag", () => {
+    expect(
+      primaryOnboardingRoleFromForm({
+        why_joining_silverkey: [WHY_JOIN_FOR_ROLE.renter],
+      })
+    ).toBe("renter");
+  });
 });
 
 describe("formDataToPreferencesPayload", () => {
@@ -113,6 +131,7 @@ describe("isSelectableOnboardingRole", () => {
     expect(isSelectableOnboardingRole("buyer")).toBe(true);
     expect(isSelectableOnboardingRole("agent")).toBe(true);
     expect(isSelectableOnboardingRole("seller")).toBe(true);
+    expect(isSelectableOnboardingRole("renter")).toBe(true);
     expect(isSelectableOnboardingRole("brokerage")).toBe(true);
     expect(isSelectableOnboardingRole("integration_partner")).toBe(true);
   });
@@ -125,5 +144,43 @@ describe("legacy investor draft", () => {
         primary_onboarding_role: "investor",
       })
     ).toBe("buyer");
+  });
+});
+
+describe("isBuyerOnboardingRole", () => {
+  it("returns true for buyer primary role", () => {
+    expect(isBuyerOnboardingRole({ primary_onboarding_role: "buyer" })).toBe(true);
+  });
+
+  it("returns false for agent primary role", () => {
+    expect(isBuyerOnboardingRole({ primary_onboarding_role: "agent" })).toBe(false);
+  });
+
+  it("returns true for buyer primary even when auth roles include agent", () => {
+    expect(isBuyerOnboardingRole({ primary_onboarding_role: "buyer" }, { roles: ["agent"] })).toBe(
+      true
+    );
+  });
+
+  it("infers buyer from legacy why_joining only", () => {
+    expect(isBuyerOnboardingRole({ why_joining_silverkey: [WHY_JOIN_FOR_ROLE.buyer] })).toBe(true);
+  });
+});
+
+describe("shouldShowBuyerOnboardingUi", () => {
+  it("shows buyer UI for pure buyer", () => {
+    expect(shouldShowBuyerOnboardingUi({ primary_onboarding_role: "buyer" })).toBe(true);
+  });
+
+  it("hides buyer UI for agent shell", () => {
+    expect(shouldShowBuyerOnboardingUi({ primary_onboarding_role: "agent" })).toBe(false);
+  });
+
+  it("hides buyer UI for seller", () => {
+    expect(shouldShowBuyerOnboardingUi({ primary_onboarding_role: "seller" })).toBe(false);
+  });
+
+  it("hides buyer UI for renter", () => {
+    expect(shouldShowBuyerOnboardingUi({ primary_onboarding_role: "renter" })).toBe(false);
   });
 });

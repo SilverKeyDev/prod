@@ -1,14 +1,13 @@
 import React from "react";
 
 import { AccountLogoutAction } from "packages/features/homeauth/components/account/AccountLogoutAction";
+import { convertStepsToNavItems } from "packages/features/profile/components/profilePicture/profileStepsUi";
 import { ProfileFeatureSectionPanels } from "packages/features/profile/components/settings/inputs/ProfileFeatureSectionPanels";
 import type { ProfileFeatureProps } from "packages/features/profile/components/settings/inputs/profileFeatureTypes";
-import { useProfileFeatureShell } from "packages/features/profile/hooks/useProfileFeatureShell";
+import { useProfileFeatureShell } from "packages/features/profile/hooks";
 import { Loading } from "packages/ui/components/media/asset/loading/Loading";
 import { Box, Text } from "packages/ui/components/structure/primitives";
 import SettingsSidebar from "packages/ui/components/structure/sidebar/SettingsSidebar";
-
-import { convertStepsToNavItems } from "@/features/profile/components/profilePicture/profileStepsUi";
 
 export default function ProfileFeature(props: ProfileFeatureProps) {
   const shell = useProfileFeatureShell(props);

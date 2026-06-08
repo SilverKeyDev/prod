@@ -3,6 +3,7 @@ description: Dev-only workspace persona for admin self-impersonation (local QA).
 enum:
   - buyer
   - seller
+  - renter
   - agent
   - brokerage
   - integration_partner

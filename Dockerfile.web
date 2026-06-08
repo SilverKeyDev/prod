@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # ----------------------------
 # Stage 1: Build Vite frontend
 # ----------------------------
@@ -11,18 +12,9 @@
   # Install pnpm (quiet)
   RUN npm install -g pnpm@9.0.0 >/dev/null 2>&1
 
-  # build-time variables (client bundle; EXPO_PUBLIC_* inlined by Vite)
-  # Values supplied at CI build from AWS Secrets Manager (GitHub repository secrets fallback — planned for removal).
-  ARG EXPO_PUBLIC_GOOGLE_MAPS_ID
-  ARG EXPO_PUBLIC_PLAID_CLIENT_ID
-  ARG EXPO_PUBLIC_GOOGLE_CLIENT_ID
-  ARG EXPO_PUBLIC_POSTHOG_KEY
-
-  # Promote to ENV
-  ENV EXPO_PUBLIC_GOOGLE_MAPS_ID=${EXPO_PUBLIC_GOOGLE_MAPS_ID}
-  ENV EXPO_PUBLIC_PLAID_CLIENT_ID=${EXPO_PUBLIC_PLAID_CLIENT_ID}
-  ENV EXPO_PUBLIC_GOOGLE_CLIENT_ID=${EXPO_PUBLIC_GOOGLE_CLIENT_ID}
-  ENV EXPO_PUBLIC_POSTHOG_KEY=${EXPO_PUBLIC_POSTHOG_KEY}
+  # Client bundle keys (EXPO_PUBLIC_*) are supplied at CI build via BuildKit --secret mounts
+  # (see Client/scripts/export-bundle-docker-build-args.mjs). Never use ARG/ENV here — values
+  # would appear in image metadata and plain build logs.
 
   # Copy client source (package files first for better layer cache when only app code changes)
   COPY Client/package.json Client/pnpm-workspace.yaml Client/pnpm-lock.yaml ./
@@ -37,14 +29,23 @@
   # Headroom for Rollup
   ENV NODE_OPTIONS="--max-old-space-size=3072"
 
-  # Vite build (if build fails, this RUN fails so CI shows the error)
-  RUN pnpm --reporter=silent run -s build:web -- --logLevel warn \
-   && rm -rf /tmp/*
-
-  # Fail prod image build when PostHog key was not inlined into the web bundle
-  ENV VERIFY_POSTHOG=1
-  ENV NODE_ENV=production
-  RUN node scripts/verify-web-posthog-config.mjs
+  # Vite build + PostHog bundle verify (secrets mounted per RUN; not persisted to layers)
+  RUN --mount=type=secret,id=EXPO_PUBLIC_GOOGLE_MAPS_ID \
+      --mount=type=secret,id=EXPO_PUBLIC_POSTHOG_KEY \
+      --mount=type=secret,id=EXPO_PUBLIC_PLAID_CLIENT_ID,required=false \
+      --mount=type=secret,id=EXPO_PUBLIC_GOOGLE_CLIENT_ID,required=false \
+      bash -c 'set -euo pipefail; set +x; \
+        export EXPO_PUBLIC_GOOGLE_MAPS_ID="$(cat /run/secrets/EXPO_PUBLIC_GOOGLE_MAPS_ID)"; \
+        export EXPO_PUBLIC_POSTHOG_KEY="$(cat /run/secrets/EXPO_PUBLIC_POSTHOG_KEY)"; \
+        if [ -f /run/secrets/EXPO_PUBLIC_PLAID_CLIENT_ID ]; then \
+          export EXPO_PUBLIC_PLAID_CLIENT_ID="$(cat /run/secrets/EXPO_PUBLIC_PLAID_CLIENT_ID)"; \
+        fi; \
+        if [ -f /run/secrets/EXPO_PUBLIC_GOOGLE_CLIENT_ID ]; then \
+          export EXPO_PUBLIC_GOOGLE_CLIENT_ID="$(cat /run/secrets/EXPO_PUBLIC_GOOGLE_CLIENT_ID)"; \
+        fi; \
+        pnpm --reporter=silent run -s build:web -- --logLevel warn; \
+        VERIFY_POSTHOG=1 NODE_ENV=production node scripts/verify-web-posthog-config.mjs; \
+        rm -rf /tmp/*'
 
   # Verify assets exist (build must produce Client/dist when run from WORKDIR /app/client)
   RUN test -d dist && [ "$(ls -A dist)" ] || (echo "dist missing or empty!" >&2 && exit 1)

@@ -152,3 +152,77 @@ def test_write_preferences_grants_integration_partner_from_primary_role(
         refreshed = db.session.scalar(select(User).where(User.id == user_id))
         role_names = {row.role for row in refreshed.user_roles.all()}
         assert "integration_partner" in role_names
+
+
+def test_write_preferences_persists_buyer_sil182_fields(app: Flask, db_session) -> None:
+    from app.models import UserCommunicationPrefs, UserDemographics
+    from app.services.aggregation.read.preferences_aggregation import get_preferences_dict_optional
+
+    with app.app_context():
+        user = _create_user()
+        user_id = str(user.id)
+        db.session.commit()
+
+        write_preferences_from_payload(
+            user_id,
+            {
+                "primary_onboarding_role": "buyer",
+                "pets": "yes",
+                "preferred_contact_method": "text",
+                "communication_frequency": "weekly",
+                "extended_buyer_preferences": {
+                    "v": 1,
+                    "buyer_about_me": {
+                        "moving_with": ["partner"],
+                        "pet_types": ["dog"],
+                    },
+                    "price_financing": {
+                        "lender_status": "pre_approved",
+                        "lender_name": "Acme Lending",
+                        "move_timeline": "asap",
+                    },
+                },
+            },
+            user=user,
+        )
+        db.session.commit()
+
+        comm = db.session.scalar(
+            select(UserCommunicationPrefs).where(UserCommunicationPrefs.user_id == user_id)
+        )
+        demo = db.session.scalar(
+            select(UserDemographics).where(UserDemographics.user_id == user_id)
+        )
+        assert comm is not None
+        assert comm.preferred_contact_method == "text"
+        assert comm.communication_frequency == "weekly"
+        assert demo is not None
+        assert demo.pets == "yes"
+
+        prefs = get_preferences_dict_optional(user_id)
+        assert prefs is not None
+        ext = prefs.get("extended_buyer_preferences") or {}
+        assert ext["buyer_about_me"]["moving_with"] == ["partner"]
+        assert ext["price_financing"]["lender_name"] == "Acme Lending"
+
+
+def test_write_preferences_rejects_invalid_preferred_contact_method(app: Flask, db_session) -> None:
+    from app.models import UserCommunicationPrefs
+
+    with app.app_context():
+        user = _create_user()
+        user_id = str(user.id)
+        db.session.commit()
+
+        write_preferences_from_payload(
+            user_id,
+            {"preferred_contact_method": "carrier_pigeon"},
+            user=user,
+        )
+        db.session.commit()
+
+        comm = db.session.scalar(
+            select(UserCommunicationPrefs).where(UserCommunicationPrefs.user_id == user_id)
+        )
+        assert comm is not None
+        assert comm.preferred_contact_method is None

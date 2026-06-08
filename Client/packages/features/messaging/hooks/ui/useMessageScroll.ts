@@ -1,153 +1,125 @@
 import { useCallback, useEffect, useRef } from "react";
 
+import type { UIEvent } from "react";
+
 import { getWindow } from "packages/utils/core/platform";
 
-import { setScrollToBottomInstant } from "./messageScrollHelpers";
+import {
+  getFirstMessageId,
+  isOlderMessagesPrepend,
+  type MessageListLoadOlderConfig,
+  preserveScrollAfterPrepend,
+  setScrollToBottomInstant,
+} from "./messageScrollHelpers";
 
-function getFirstMessageId(messages: unknown[]): string | undefined {
-  const first = messages[0];
-  if (
-    first &&
-    typeof first === "object" &&
-    first !== null &&
-    "id" in first &&
-    typeof (first as { id: unknown }).id === "string"
-  ) {
-    return (first as { id: string }).id;
-  }
-  return undefined;
-}
+const LOAD_OLDER_SCROLL_TOP_MAX = 120;
+const LOAD_OLDER_DEBOUNCE_MS = 400;
 
 /**
- * Hook to handle auto-scrolling to bottom when messages change.
- * Works for both client and agent messaging components.
- * Always scrolls to bottom on initial load and when new messages are added.
+ * Scrolls message lists to the latest messages on conversation open and when
+ * new messages arrive. Optionally wires the web "load older" scroll handler.
  */
 export function useMessageScroll(
   messages: unknown[],
   conversationId?: string,
-  isLoadingHistory?: boolean
+  isLoadingHistory?: boolean,
+  loadOlder?: MessageListLoadOlderConfig
 ) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
-  const isInitialLoadRef = useRef(true);
   const previousMessageCountRef = useRef(0);
   const previousConversationIdRef = useRef<string | undefined>(undefined);
-  const previousLoadingStateRef = useRef<boolean | undefined>(undefined);
   const previousFirstMessageIdRef = useRef<string | undefined>(undefined);
+  const initialScrollSettledRef = useRef(false);
+  const loadOlderGuardRef = useRef(false);
 
-  // Find the scrollable container parent
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      // Find the nearest parent with overflow-y-auto
-      let parent = messagesEndRef.current.parentElement;
-      while (parent) {
-        const style = getWindow()?.getComputedStyle(parent);
-        if (style && (style.overflowY === "auto" || style.overflowY === "scroll")) {
-          scrollContainerRef.current = parent;
-          break;
-        }
-        parent = parent.parentElement;
-      }
-    }
-  }, [messages.length]);
+  const pinToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setScrollToBottomInstant(scrollContainerRef, messagesEndRef);
+        initialScrollSettledRef.current = true;
+      });
+    });
+  }, []);
 
-  const scrollToBottom = useCallback((instant = false) => {
-    if (instant && scrollContainerRef.current) {
-      // For instant scroll on initial load, set scrollTop directly to avoid any animation
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-    } else {
-      // For smooth scroll when new messages arrive, use scrollIntoView
-      const scroll = () => {
+  const scrollNewMessageIntoView = useCallback(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
         messagesEndRef.current?.scrollIntoView({
           behavior: "smooth",
           block: "end",
           inline: "nearest",
         });
-      };
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          scroll();
-        });
       });
-    }
+    });
   }, []);
 
   useEffect(() => {
+    const conversationChanged = previousConversationIdRef.current !== conversationId;
+    if (conversationChanged || isLoadingHistory) {
+      previousConversationIdRef.current = conversationId;
+      previousMessageCountRef.current = 0;
+      previousFirstMessageIdRef.current = undefined;
+      initialScrollSettledRef.current = false;
+      scrollContainerRef.current = null;
+    }
+
     const currentMessageCount = messages.length;
     const previousCount = previousMessageCountRef.current;
-    const conversationChanged = previousConversationIdRef.current !== conversationId;
     const currentFirstId = getFirstMessageId(messages);
     const previousFirstId = previousFirstMessageIdRef.current;
 
-    const isPrepend =
-      !conversationChanged &&
-      currentMessageCount > previousCount &&
-      previousCount > 0 &&
-      currentFirstId !== undefined &&
-      previousFirstId !== undefined &&
-      currentFirstId !== previousFirstId;
-
-    if (isPrepend && scrollContainerRef.current) {
-      const el = scrollContainerRef.current;
-      const prevScrollHeight = el.scrollHeight;
-      const prevScrollTop = el.scrollTop;
-      requestAnimationFrame(() => {
-        const next = scrollContainerRef.current;
-        if (!next) return;
-        const delta = next.scrollHeight - prevScrollHeight;
-        next.scrollTop = prevScrollTop + delta;
-      });
+    if (
+      isOlderMessagesPrepend(currentMessageCount, previousCount, currentFirstId, previousFirstId)
+    ) {
+      const container = scrollContainerRef.current;
+      if (container) {
+        preserveScrollAfterPrepend(container);
+      }
       previousMessageCountRef.current = currentMessageCount;
       previousFirstMessageIdRef.current = currentFirstId;
       return;
     }
 
+    if (
+      conversationId &&
+      !isLoadingHistory &&
+      currentMessageCount > 0 &&
+      !initialScrollSettledRef.current
+    ) {
+      pinToBottom();
+    } else if (
+      initialScrollSettledRef.current &&
+      currentMessageCount > previousCount &&
+      previousCount > 0
+    ) {
+      scrollNewMessageIntoView();
+    }
+
     previousFirstMessageIdRef.current = currentFirstId;
-
-    // Reset initial load flag when conversation changes or messages are cleared
-    if (conversationChanged || currentMessageCount === 0) {
-      isInitialLoadRef.current = true;
-      previousMessageCountRef.current = 0;
-      previousConversationIdRef.current = conversationId;
-      if (currentMessageCount === 0) {
-        return;
-      }
-    }
-
-    if (isInitialLoadRef.current && currentMessageCount > 0) {
-      isInitialLoadRef.current = false;
-      requestAnimationFrame(() => {
-        setScrollToBottomInstant(scrollContainerRef, messagesEndRef);
-      });
-    } else if (currentMessageCount > previousCount && previousCount > 0) {
-      scrollToBottom(false);
-    } else if (currentMessageCount !== previousCount && previousCount > 0) {
-      isInitialLoadRef.current = false;
-      requestAnimationFrame(() => {
-        setScrollToBottomInstant(scrollContainerRef, messagesEndRef);
-      });
-    } else if (currentMessageCount > 0 && previousCount === 0 && !isInitialLoadRef.current) {
-      requestAnimationFrame(() => {
-        setScrollToBottomInstant(scrollContainerRef, messagesEndRef);
-      });
-    }
-
     previousMessageCountRef.current = currentMessageCount;
-  }, [messages, scrollToBottom, conversationId]);
+  }, [conversationId, isLoadingHistory, messages, pinToBottom, scrollNewMessageIntoView]);
 
-  useEffect(() => {
-    const wasLoading = previousLoadingStateRef.current === true;
-    const isNowLoaded = isLoadingHistory === false;
-
-    if (wasLoading && isNowLoaded && messages.length > 0) {
-      requestAnimationFrame(() => {
-        setScrollToBottomInstant(scrollContainerRef, messagesEndRef);
+  const handleMessageListScroll = useCallback(
+    (e: UIEvent<HTMLDivElement>) => {
+      if (!loadOlder) return;
+      if (!initialScrollSettledRef.current) return;
+      if (!loadOlder.hasMoreOlder || loadOlder.isLoadingOlder) return;
+      if (e.currentTarget.scrollTop > LOAD_OLDER_SCROLL_TOP_MAX) return;
+      if (loadOlderGuardRef.current) return;
+      loadOlderGuardRef.current = true;
+      void loadOlder.loadOlderMessages().finally(() => {
+        getWindow()?.setTimeout(() => {
+          loadOlderGuardRef.current = false;
+        }, LOAD_OLDER_DEBOUNCE_MS);
       });
-    }
+    },
+    [loadOlder]
+  );
 
-    previousLoadingStateRef.current = isLoadingHistory;
-  }, [isLoadingHistory, messages.length]);
-
-  return { messagesEndRef, scrollToBottom };
+  return {
+    messagesEndRef,
+    initialScrollSettledRef,
+    handleMessageListScroll,
+  };
 }

@@ -16,7 +16,6 @@ export function useSearchFeatureLifecycle({
   searchRef,
   memoizedSearchFunction,
   setUserGeolocation,
-  searchAbortControllerRef,
   activeTab,
   filteredSearchResultsLength,
   savedHomesLength,
@@ -29,7 +28,6 @@ export function useSearchFeatureLifecycle({
   searchRef: SearchRef;
   memoizedSearchFunction: () => Promise<void>;
   setUserGeolocation: (loc: { lat: number; lng: number } | null) => void;
-  searchAbortControllerRef: MutableRefObject<AbortController | null>;
   activeTab: string;
   filteredSearchResultsLength: number;
   savedHomesLength: number;
@@ -102,15 +100,4 @@ export function useSearchFeatureLifecycle({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount logging only; adding deps would log on every navigation/result change
   }, []);
-
-  useEffect(() => {
-    const acRef = searchAbortControllerRef;
-    return () => {
-      const pending = acRef.current;
-      if (pending) {
-        log.debug("ROUTING", "[SEARCH] Aborting in-flight search on unmount", {});
-        pending.abort();
-      }
-    };
-  }, [searchAbortControllerRef]);
 }

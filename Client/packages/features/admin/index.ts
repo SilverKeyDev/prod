@@ -1,4 +1,5 @@
 export {
+  AdminAnalyticsSection,
   AdminDeleteUserSection,
   AdminDevPersonaSection,
   AdminLoggingSections,

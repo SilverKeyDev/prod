@@ -23,7 +23,7 @@ Monorepo for the SilverKey product: **React** (web + **React Native**) in [`Clie
 
 ## Quick start
 
-**New machine?** All setup — prerequisites, build, AWS SSO, secrets, and Cursor MCP — lives in **[setup.md](setup.md)**. In short: run `make setup`, then `make dev`; after a `git pull`, run `make refresh`. Windows users must use WSL2 (Ubuntu) — see [setup.md](setup.md).
+**New machine?** All setup — prerequisites, build, AWS SSO, local DB init, and Cursor MCP — lives in **[setup.md](setup.md)**. In short: run `make setup`, then `make dev`; after a `git pull`, run `make refresh`. Windows users must use WSL2 (Ubuntu) — see [setup.md](setup.md).
 
 Day-to-day commands once you're set up:
 
@@ -32,6 +32,7 @@ Day-to-day commands once you're set up:
 | Web + API | `make dev` |
 | Web only | `make dev-web` |
 | Mobile (Expo) | `make mobile` |
+| Clean local dev DB | `make dev-db-init` |
 | Full client CI gate | `make check-client` |
 | All repo linters | `make lint` |
 | Anything setup, refresh, or secrets related | see **[setup.md](setup.md)** |

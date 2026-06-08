@@ -1,8 +1,6 @@
 import React, { useRef } from "react";
 
-import PreferencesFormContent, {
-  type PreferencesFormActionsRef,
-} from "@/features/profile/components/settings/inputs/PreferencesFormContent.web";
+import { type PreferencesFormActionsRef,PreferencesFormContent } from "packages/features/profile";
 
 import SearchFilterBar from "./SearchFilterBar.web";
 

@@ -28,7 +28,7 @@ Do **not** add a fourth `switch (step.id)` in feature shells — wire through `r
 
 Shell setup steps bind `workspace_shell_test_input` on the client draft only; it is **stripped** from the preferences API payload until real product fields ship.
 
-Post-onboarding routing for shell roles is centralized in [`onboardingToWorkspace.ts`](../../../Client/packages/features/profile/utils/onboarding/role/onboardingToWorkspace.ts) (`/dashboard` + matching `activeWorkspace`).
+Post-onboarding navigation lands on `/dashboard` for all roles. Workspace selection after onboarding is centralized in [`onboardingToWorkspace.ts`](../../../Client/packages/features/profile/utils/onboarding/role/onboardingToWorkspace.ts) (`postOnboardingWorkspaceForPrimaryRole`).
 
 Public APIs [`getOnboardingSteps`](../../../Client/packages/features/profile/utils/onboarding/steps/steps.ts) and [`getPersonalizationSteps`](../../../Client/packages/features/profile/utils/onboarding/steps/steps.ts) delegate to `buildProfileFlow`.
 

@@ -1,4 +1,3 @@
-export { DemographicsStep } from "./DemographicsStep.native";
 export { HousingStep } from "./HousingStep.native";
 export { LocationStep } from "./LocationStep.native";
 export type { OnboardingScreenNativeProps } from "./OnboardingScreen.native";

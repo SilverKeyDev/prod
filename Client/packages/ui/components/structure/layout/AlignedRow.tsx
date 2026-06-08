@@ -7,7 +7,8 @@ import {
   type BreakIntoRows,
   calculateElementWidths,
   GAP_CLASSES,
-  getContainerAwareItemWidthClasses,
+  getAlignedRowItemClassName,
+  getAlignedRowItemStyle,
   getContainerAwareLayoutClass,
   JUSTIFY_CLASSES,
   runAlignedRowHeightSync,
@@ -79,6 +80,7 @@ type AlignedRowItemsContentProps = {
   elementWidths: number[];
   breakIntoRows: BreakIntoRows;
   containerWidthPx: number | undefined;
+  hasCustomWidths: boolean;
   titleClassName: string;
   contentClassName: string;
 };
@@ -88,6 +90,7 @@ function AlignedRowItemsContent({
   elementWidths,
   breakIntoRows,
   containerWidthPx,
+  hasCustomWidths,
   titleClassName,
   contentClassName,
 }: AlignedRowItemsContentProps) {
@@ -95,8 +98,13 @@ function AlignedRowItemsContent({
     <>
       {items.map((item, index) => {
         const width = elementWidths[index] ?? 0;
-        const respClass = getContainerAwareItemWidthClasses(width, breakIntoRows, containerWidthPx);
-        const widthStyle = breakIntoRows === "never" ? { width: `${width}%` } : {};
+        const respClass = getAlignedRowItemClassName(breakIntoRows, containerWidthPx);
+        const widthStyle = getAlignedRowItemStyle(
+          width,
+          breakIntoRows,
+          containerWidthPx,
+          hasCustomWidths
+        );
         return (
           <Box
             key={index}
@@ -127,6 +135,7 @@ type AlignedRowChildrenContentProps = {
   elementWidths: number[];
   breakIntoRows: BreakIntoRows;
   containerWidthPx: number | undefined;
+  hasCustomWidths: boolean;
 };
 
 function AlignedRowChildrenContent({
@@ -134,13 +143,19 @@ function AlignedRowChildrenContent({
   elementWidths,
   breakIntoRows,
   containerWidthPx,
+  hasCustomWidths,
 }: AlignedRowChildrenContentProps) {
   return (
     <>
       {React.Children.map(children, (child, index) => {
         const width = elementWidths[index] ?? 0;
-        const respClass = getContainerAwareItemWidthClasses(width, breakIntoRows, containerWidthPx);
-        const widthStyle = breakIntoRows === "never" ? { width: `${width}%` } : {};
+        const respClass = getAlignedRowItemClassName(breakIntoRows, containerWidthPx);
+        const widthStyle = getAlignedRowItemStyle(
+          width,
+          breakIntoRows,
+          containerWidthPx,
+          hasCustomWidths
+        );
         const node = React.isValidElement(child) ? child : <Box>{child}</Box>;
         return (
           <Box
@@ -180,6 +195,7 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
 
   const itemCount = items ? items.length : React.Children.count(children);
   const elementWidths = calculateElementWidths(itemCount, widths);
+  const hasCustomWidths = Boolean(widths && widths.length > 0);
 
   const combinedClasses = [
     "flex",
@@ -202,6 +218,7 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
         elementWidths={elementWidths}
         breakIntoRows={breakIntoRows}
         containerWidthPx={containerWidthPx}
+        hasCustomWidths={hasCustomWidths}
         titleClassName={titleClassName}
         contentClassName={contentClassName}
       />
@@ -211,6 +228,7 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
         elementWidths={elementWidths}
         breakIntoRows={breakIntoRows}
         containerWidthPx={containerWidthPx}
+        hasCustomWidths={hasCustomWidths}
       />
     ) : null;
 

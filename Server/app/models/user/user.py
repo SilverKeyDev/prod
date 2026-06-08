@@ -190,11 +190,6 @@ class User(db.Model):
         back_populates="shared_with_user",
         lazy=True,
     )
-    search_sessions: DynamicMapped["Search"] = relationship(
-        "Search",
-        back_populates="user",
-        lazy="dynamic",
-    )
     org_memberships: DynamicMapped["UserOrgMembership"] = relationship(
         "UserOrgMembership",
         back_populates="user",

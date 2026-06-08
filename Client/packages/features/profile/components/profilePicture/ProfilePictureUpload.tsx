@@ -4,12 +4,12 @@ import { DEFAULT_AVATAR_IMAGE } from "packages/features/feed";
 import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePictureUpload";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
+import { FormFieldLabel as Label } from "packages/ui";
 import { Image } from "packages/ui/components/structure/primitives";
 import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button } from "@/components/ui";
 import { FEED_AVATAR_IMAGE_CLASS } from "@/features/feed/components/Overlay/FeedActionButton";
-import Label from "@/features/profile/components/settings/inputs/Label";
 const ACCEPTED_TYPES = "image/jpeg,image/png,image/gif";
 const MAX_SIZE_MB = 15;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;

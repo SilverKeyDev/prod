@@ -179,7 +179,7 @@ export default function SearchFilterBar({
           </Button>
         )}
       >
-        {() => (
+        {({ registerOutsideClickSafeTarget }) => (
           <SearchPreferencesContent
             formData={formData}
             updateFormData={updateSearchFormData}
@@ -191,6 +191,7 @@ export default function SearchFilterBar({
             replaceFormData={replaceFormData}
             cancelPendingSave={cancelPendingSave}
             onAfterClear={onAfterClear}
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
           />
         )}
       </Popover>

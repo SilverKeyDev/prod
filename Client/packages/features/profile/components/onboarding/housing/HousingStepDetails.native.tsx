@@ -2,10 +2,6 @@ import React from "react";
 
 import Input from "@ui/form/Input";
 
-import { Pressable } from "packages/ui/components/structure/primitives";
-import { Box } from "packages/ui/components/structure/primitives";
-import { Text } from "packages/ui/components/structure/primitives";
-
 import {
   FIELD_LABELS,
   INTENDED_USE_OPTIONS,
@@ -13,7 +9,10 @@ import {
   RENOVATION_OPTIONS,
   SECTION_TITLES,
   WALKABILITY_OPTIONS,
-} from "@/features/profile/utils";
+} from "packages/features/profile/utils";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;

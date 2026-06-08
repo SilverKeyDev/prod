@@ -7,4 +7,3 @@ export { default as ModalPortal } from "./ModalPortal";
 export type { PdfModalProps } from "./PdfModal/PdfModal.types";
 export { default as DeleteModal } from "./standalone/DeleteModal";
 export { default as NotInterestedModal } from "./standalone/NotInterestedModal";
-export { default as PreferencesModal } from "./standalone/PreferencesModal";

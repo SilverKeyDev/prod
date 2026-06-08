@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import { Navigate } from "react-router-dom";
 
-import { ROUTES } from "packages/navigation";
+import { DEFAULT_AUTHENTICATED_PATH } from "packages/navigation/types/routes";
 import { useAuthStore } from "packages/store";
 
 type RedirectIfAuthenticatedProps = PropsWithChildren<{
@@ -16,7 +16,7 @@ type RedirectIfAuthenticatedProps = PropsWithChildren<{
  */
 export function RedirectIfAuthenticated({
   children,
-  to = ROUTES.DASHBOARD.replace(/\/\*$/, ""),
+  to = DEFAULT_AUTHENTICATED_PATH,
 }: RedirectIfAuthenticatedProps) {
   const authReady = useAuthStore((s) => s.authReady);
   const authStatus = useAuthStore((s) => s.authStatus);

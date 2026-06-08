@@ -966,40 +966,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/preferences/add": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Set current user as agent */
-        get: operations["setCurrentUserAsAgent"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/preferences/agents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Search agents for preferences UI */
-        get: operations["getPreferencesAgents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/preferences/clients": {
         parameters: {
             query?: never;
@@ -1017,23 +983,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/preferences/remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Remove agent relationship */
-        get: operations["removeAgentRelationship"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/preferences/user/{userId}": {
         parameters: {
             query?: never;
@@ -1043,23 +992,6 @@ export interface paths {
         };
         /** Get preferences by user id (scoped) */
         get: operations["getUserPreferencesById"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/preferences/users_agents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List agents linked to the current user */
-        get: operations["getUserAgents"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1214,40 +1146,6 @@ export interface paths {
         };
         /** Celery task status for research/compare */
         get: operations["getResearchTaskStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/home-matching/find-matches": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Queue home matching task */
-        post: operations["homeMatchingFindMatches"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/home-matching/task-status/{task_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Home matching Celery task status */
-        get: operations["getHomeMatchingTaskStatus"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2871,9 +2769,6 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
-        AddAgentResponse: components["schemas"]["SuccessResponse"] & {
-            agent?: components["schemas"]["User"];
-        };
         AddCalendarACLRequest: {
             /**
              * @description Access role to grant
@@ -3043,10 +2938,10 @@ export interface components {
             /** @description ISO 8601 timestamp when the client relationship or row was created. */
             created_at?: string | null;
             /**
-             * @description Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/investor role is set.
+             * @description Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/renter/investor role is set.
              * @enum {string|null}
              */
-            client_kind?: "buyer" | "seller" | "investor" | "unknown" | null;
+            client_kind?: "buyer" | "seller" | "renter" | "investor" | "unknown" | null;
             /**
              * @description Checklist area with the most recent completed task activity for this client (preview only).
              *     `search` when there are no completed checklist tasks yet or activity cannot be determined.
@@ -3862,6 +3757,26 @@ export interface components {
         };
         /** @description Create or update user preferences */
         CreatePreferencesRequest: {
+            /** @description Buyer communication preference — text, call, or email (user_communication_prefs) */
+            preferred_contact_method?: string;
+            /** @description Update cadence — as_things_come_up, weekly_check_in, or daily */
+            communication_frequency?: string;
+            /** @description Versioned buyer preference extensions (v1 JSON) */
+            extended_buyer_preferences?: {
+                /** @description SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation */
+                buyer_about_me?: {
+                    [key: string]: unknown;
+                };
+                /** @description SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc. */
+                price_financing?: {
+                    [key: string]: unknown;
+                };
+            } & {
+                [key: string]: unknown;
+            };
+            /** @description Intent attribute — true when buyer pays cash */
+            paying_cash?: boolean;
+        } & {
             [key: string]: unknown;
         };
         CreateRevisionResponse: components["schemas"]["SuccessResponse"] & {
@@ -4415,22 +4330,6 @@ export interface components {
             items: components["schemas"]["FeedListing"][];
             hasMore: boolean;
             cursor?: string | null;
-        };
-        FindMatchesRequest: {
-            /** @description User preferences and profile data */
-            user_data: {
-                [key: string]: unknown;
-            };
-            /** @description Array of home data objects */
-            homes_data: {
-                [key: string]: unknown;
-            }[];
-            /** @description Number of top matches to return (default 10) */
-            top_k?: number | null;
-            /** @description Include match explanations (default false) */
-            include_explanations?: boolean | null;
-            /** @description Embedding provider to use (default sentence_transformer) */
-            embedding_provider?: string | null;
         };
         ForgotPasswordData: {
             /**
@@ -5031,6 +4930,26 @@ export interface components {
         };
         /** @description User search preferences */
         PreferencesResponse: {
+            /** @description Buyer communication preference — text, call, or email */
+            preferred_contact_method?: string;
+            /** @description Update cadence — as_things_come_up, weekly_check_in, or daily */
+            communication_frequency?: string;
+            /** @description Versioned buyer preference extensions (v1 JSON) */
+            extended_buyer_preferences?: {
+                /** @description SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation */
+                buyer_about_me?: {
+                    [key: string]: unknown;
+                };
+                /** @description SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc. */
+                price_financing?: {
+                    [key: string]: unknown;
+                };
+            } & {
+                [key: string]: unknown;
+            };
+            /** @description Intent attribute — true when buyer pays cash */
+            paying_cash?: boolean;
+        } & {
             [key: string]: unknown;
         };
         UpsertPreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
@@ -5602,9 +5521,6 @@ export interface components {
             /** @description Position in search results */
             ranking?: number | null;
         };
-        RemoveAgentResponse: components["schemas"]["SuccessResponse"] & {
-            removed?: boolean;
-        };
         RemoveFavoriteRequest: {
             address: string;
             client_id?: string | null;
@@ -5771,9 +5687,6 @@ export interface components {
             raw_data?: {
                 [key: string]: unknown;
             } | null;
-        };
-        SearchAgentsPreferencesResponse: components["schemas"]["SuccessResponse"] & {
-            agents?: components["schemas"]["User"][] | null;
         };
         AgentSearchQueryParams: {
             /** @default  */
@@ -6431,7 +6344,7 @@ export interface components {
          * @description Dev-only workspace persona for admin self-impersonation (local QA).
          * @enum {string}
          */
-        DevWorkspacePersona: "buyer" | "seller" | "agent" | "brokerage" | "integration_partner";
+        DevWorkspacePersona: "buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner";
         SetCurrentUserDevWorkspaceRequest: {
             /** @description Exclusive workspace persona to apply to the signed-in user. */
             workspace: components["schemas"]["DevWorkspacePersona"];
@@ -6614,9 +6527,6 @@ export interface components {
             /** @description Brokerage organization ids from `user_org_memberships` for attribution and admin scope. */
             brokerage_org_ids?: string[] | null;
         };
-        UserAgentsResponse: components["schemas"]["SuccessResponse"] & {
-            agents?: components["schemas"]["User"][] | null;
-        };
         /**
          * @description User identifier (UUID or string)
          * @example 123e4567-e89b-12d3-a456-426614174000
@@ -6701,7 +6611,7 @@ export interface components {
             /** @description Checklist step references (section:item_id), e.g. closing:13 */
             step_ids: string[];
             /** @description Workspaces that may see this placement */
-            target_roles: ("buyer" | "seller" | "agent" | "brokerage" | "integration_partner")[];
+            target_roles: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
             /**
              * @description Whether payout is attributed per click or per closed transaction
              * @enum {string}
@@ -6768,7 +6678,7 @@ export interface components {
             description?: string | null;
             /** @description Required when target_roles includes buyer or seller */
             step_ids?: string[];
-            target_roles: ("buyer" | "seller" | "agent" | "brokerage" | "integration_partner")[];
+            target_roles: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
             /** @enum {string} */
             payout_type: "on_click" | "on_close";
             payout_per_conversion?: number | null;
@@ -6788,7 +6698,7 @@ export interface components {
             logo_url?: string | null;
             description?: string | null;
             step_ids?: string[];
-            target_roles?: ("buyer" | "seller" | "agent" | "brokerage" | "integration_partner")[];
+            target_roles?: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
             /** @enum {string} */
             payout_type?: "on_click" | "on_close";
             payout_per_conversion?: number | null;
@@ -6828,7 +6738,7 @@ export interface components {
         PartnerPlacementsQueryParams: {
             step_id: string;
             /** @enum {string} */
-            workspace: "buyer" | "seller" | "agent" | "brokerage" | "integration_partner";
+            workspace: "buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner";
             /** @description Optional; used only to fill embed URL placeholders when the partner template includes them */
             transaction_id?: string;
         };
@@ -9950,118 +9860,6 @@ export interface operations {
             };
         };
     };
-    setCurrentUserAsAgent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AddAgentResponse"];
-                };
-            };
-            /** @description Missing agent_id */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Agents cannot assign themselves as clients */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description User or agent not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Agent relationship already exists */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getPreferencesAgents: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchAgentsPreferencesResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     getPreferencesClients: {
         parameters: {
             query?: never;
@@ -10082,80 +9880,6 @@ export interface operations {
             };
             /** @description HTTP 401 */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    removeAgentRelationship: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RemoveAgentResponse"];
-                };
-            };
-            /** @description Missing agent_id */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Agents cannot remove themselves as clients */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description User or agent not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Agent relationship does not exist */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10205,44 +9929,6 @@ export interface operations {
             };
             /** @description HTTP 403 */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getUserAgents: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserAgentsResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10775,106 +10461,6 @@ export interface operations {
         };
     };
     getResearchTaskStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskStatusResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden (task owned by another user) */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    homeMatchingFindMatches: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FindMatchesRequest"];
-            };
-        };
-        responses: {
-            /** @description HTTP 202 */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskStatusResponse"];
-                };
-            };
-            /** @description HTTP 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getHomeMatchingTaskStatus: {
         parameters: {
             query?: never;
             header?: never;

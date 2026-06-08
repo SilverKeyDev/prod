@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import { useAgentChats } from "packages/features/messaging";
 import { getShareHomeConversationId } from "packages/utils/comms/share";
 
 /**

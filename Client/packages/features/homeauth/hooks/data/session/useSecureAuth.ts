@@ -39,7 +39,6 @@ export function useSecureAuth(): UseSecureAuthReturn {
   const setStoreIsAuthenticated = useAuthStore((s: AuthState) => s.setIsAuthenticated);
   const setStoreAuthStatus = useAuthStore((s: AuthState) => s.setAuthStatus);
   const setStoreAuthReady = useAuthStore((s: AuthState) => s.setAuthReady);
-  const setStorePostAuthRedirectPath = useAuthStore((s: AuthState) => s.setPostAuthRedirectPath);
   const setUserProfile = useUserStore((s: UserState) => s.setUserProfile);
 
   const login = useCallback(
@@ -54,20 +53,12 @@ export function useSecureAuth(): UseSecureAuthReturn {
         setStoreIsAuthenticated,
         setStoreAuthStatus,
         setStoreAuthReady,
-        setStorePostAuthRedirectPath,
         setUserProfile,
         setLoginRef: (v) => {
           isLoggingInRef.current = v;
         },
       }),
-    [
-      setStoreUser,
-      setStoreIsAuthenticated,
-      setStoreAuthStatus,
-      setStoreAuthReady,
-      setStorePostAuthRedirectPath,
-      setUserProfile,
-    ]
+    [setStoreUser, setStoreIsAuthenticated, setStoreAuthStatus, setStoreAuthReady, setUserProfile]
   );
   const logout = useCallback(
     () =>
@@ -78,17 +69,9 @@ export function useSecureAuth(): UseSecureAuthReturn {
         setStoreIsAuthenticated,
         setStoreAuthStatus,
         setStoreAuthReady,
-        setStorePostAuthRedirectPath,
         setUserProfile,
       }),
-    [
-      setStoreUser,
-      setStoreIsAuthenticated,
-      setStoreAuthStatus,
-      setStoreAuthReady,
-      setStorePostAuthRedirectPath,
-      setUserProfile,
-    ]
+    [setStoreUser, setStoreIsAuthenticated, setStoreAuthStatus, setStoreAuthReady, setUserProfile]
   );
   const refreshToken = useCallback(
     () =>

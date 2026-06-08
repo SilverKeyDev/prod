@@ -33,6 +33,12 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
     goToStep,
     loading,
     handleSubmit,
+    homePriceLoading,
+    homePriceError,
+    homePriceResult,
+    isAffordabilityCollapsed,
+    setIsAffordabilityCollapsed,
+    resolvedZipCode,
   } = useOnboardingForm({ onSubmitSuccess });
 
   const step = steps[currentStep];
@@ -56,6 +62,12 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       formData,
       updateFormData,
       patchBuyerPreferenceExtensions,
+      homePriceLoading,
+      homePriceError,
+      homePriceResult,
+      isAffordabilityCollapsed,
+      setIsAffordabilityCollapsed,
+      resolvedZipCode,
     });
   };
 
@@ -100,6 +112,7 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       </ScrollView>
 
       <View style={styles.footer}>
+        {/* Skip for now — temporarily disabled
         {!isLastStep && step?.id !== "demographics" && step?.id !== "onboarding_role" ? (
           <Pressable
             onPress={handleSubmit}
@@ -116,6 +129,7 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
             </Text>
           </Pressable>
         ) : null}
+        */}
         <View style={styles.footerRow}>
           {currentStep > 0 ? (
             <Pressable onPress={prevStep} style={styles.backButton}>

@@ -386,10 +386,10 @@
   },
   {
     "id": "search-display-sheet",
-    "description": "Search display settings: desktop web uses Popover dropdown; mobile web embeds panel in filters sheet; native embeds SearchDisplaySection in filters modal.",
-    "webPath": "packages/features/search/components/header/display/SearchDisplayDropdown.web.tsx",
+    "description": "Search display settings embedded in preferences: web uses SearchDisplayPanelWeb inside filters popover/sheet; native uses SearchDisplaySection in filters modal.",
+    "webPath": "packages/features/search/components/header/display/SearchDisplayPanel.web.tsx",
     "nativePath": "packages/features/search/components/header/display/SearchDisplaySection.native.tsx",
-    "reason": "Web desktop uses Headless UI Popover with SearchDisplayPanelWeb; mobile surfaces merge display into filters; native uses RN controls inside filters sheet."
+    "reason": "Web embeds SearchDisplayPanelWeb in preferences dropdown/sheet; native uses RN controls inside filters modal."
   },
   {
     "id": "reels-view",
@@ -856,8 +856,8 @@
   {
     "id": "account-privacy-data-section",
     "description": "Account privacy & data export: DOM download on web vs Linking on native.",
-    "webPath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.web.tsx",
-    "nativePath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.native.tsx",
+    "webPath": "packages/features/profile/components/profileScreen/tabs/privacy/AccountPrivacyDataSection.web.tsx",
+    "nativePath": "packages/features/profile/components/profileScreen/tabs/privacy/AccountPrivacyDataSection.native.tsx",
     "reason": "Web triggers JSON download via document/window APIs and modals. Native uses React Native Linking and has no DOM download path."
   },
   {
@@ -880,5 +880,12 @@
     "webPath": "packages/navigation/router/NavigationOutlet.web.tsx",
     "nativePath": null,
     "reason": "Re-exports react-router-dom Outlet; React Navigation uses screen components instead of DOM outlets."
+  },
+  {
+    "id": "search-strict-preferences-control",
+    "description": "Strict preferences toggle: web OliveCheckbox vs native Switch.",
+    "webPath": "packages/features/search/components/filters/SearchStrictPreferencesControl.web.tsx",
+    "nativePath": "packages/features/search/components/filters/SearchStrictPreferencesControl.native.tsx",
+    "reason": "Web uses design-system OliveCheckbox. Native uses React Native Switch and StyleSheet for row layout."
   }
 ]

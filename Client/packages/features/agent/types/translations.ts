@@ -84,6 +84,7 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
 
   "agent.client_kind.buyer": "Buyer",
   "agent.client_kind.seller": "Seller",
+  "agent.client_kind.renter": "Renter",
   "agent.client_kind.investor": "Investor",
   "agent.client_kind.unknown": "Client",
 

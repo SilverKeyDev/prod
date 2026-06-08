@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   API_GET_KEYS,
   API_POST_KEYS,
-} from "@/features/profile/utils/onboarding/steps/fieldContract";
+} from "packages/features/profile/utils/onboarding/steps/fieldContract";
 
 import {
   formDataToPreferencesPayload,
@@ -133,12 +133,12 @@ describe("profileFormSync", () => {
     it("maps preferred_architectural_style, renovation_preference, intended_property_use from API", () => {
       const fixture = {
         preferred_architectural_style: "modern",
-        renovation_preference: "cosmetic",
+        renovation_preference: "minor",
         intended_property_use: "primary",
       };
       const result = userPreferencesToOnboardingData(fixture);
       expect(result.preferred_architectural_style).toBe("modern");
-      expect(result.renovation_preference).toBe("cosmetic");
+      expect(result.renovation_preference).toBe("minor");
       expect(result.intended_property_use).toBe("primary");
     });
 
@@ -214,12 +214,12 @@ describe("profileFormSync", () => {
     it("sends preferred_architectural_style, renovation_preference, intended_property_use in payload", () => {
       const formData = {
         preferred_architectural_style: "colonial",
-        renovation_preference: "moderate",
+        renovation_preference: "major",
         intended_property_use: "investment",
       };
       const payload = formDataToPreferencesPayload(formData);
       expect(payload.preferred_architectural_style).toBe("colonial");
-      expect(payload.renovation_preference).toBe("moderate");
+      expect(payload.renovation_preference).toBe("major");
       expect(payload.intended_property_use).toBe("investment");
     });
 
@@ -233,6 +233,42 @@ describe("profileFormSync", () => {
       const formData = { name: "" };
       const payload = formDataToPreferencesPayload(formData);
       expect(payload.name).toBeUndefined();
+    });
+
+    it("roundtrips buyer SIL-182 fields through extended_buyer_preferences", () => {
+      const formData = {
+        primary_onboarding_role: "buyer" as const,
+        buyer_about_moving_with: ["kids"],
+        buyer_about_kids_ages: "5, 7",
+        buyer_about_has_pets: true,
+        buyer_about_pet_types: ["dog"],
+        preferred_contact_method: "email",
+        communication_frequency: "weekly",
+        pets: "yes",
+        lender_status: "pre_approved",
+        lender_name: "Better",
+        paying_cash: false,
+        gross_income: 150_000,
+        loan_type: "conventional",
+        down_payment_band: "10_20",
+        first_home: "yes",
+        home_budget_min: 400_000,
+        home_budget_max: 600_000,
+        credit_score_range: "700_749",
+        rent_or_own: "rent",
+        move_timeline: "3_6_months",
+      };
+      const payload = formDataToPreferencesPayload(formData);
+      expect(payload.extended_buyer_preferences).toBeDefined();
+      expect(payload.buyer_about_moving_with).toBeUndefined();
+      expect(payload.lender_status).toBeUndefined();
+      expect(payload.preferred_contact_method).toBe("email");
+
+      const loaded = userPreferencesToOnboardingData(payload);
+      expect(loaded.buyer_about_moving_with).toEqual(["kids"]);
+      expect(loaded.lender_status).toBe("pre_approved");
+      expect(loaded.lender_name).toBe("Better");
+      expect(loaded.preferred_contact_method).toBe("email");
     });
   });
 });

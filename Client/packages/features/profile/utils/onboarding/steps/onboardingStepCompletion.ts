@@ -1,6 +1,5 @@
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
-
-import { isStepCompleteForOnboarding } from "@/features/profile/utils/onboarding/registry/stepCompletion";
+import { isStepCompleteForOnboarding } from "packages/features/profile/utils/onboarding/registry/stepCompletion";
 
 /**
  * Returns true when every field on the given onboarding step is filled.

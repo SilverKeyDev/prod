@@ -30,7 +30,7 @@ export function SidebarList(props: {
     isSelected: (propertyId: string) => boolean;
     onToggle: (propertyId: string) => void;
   };
-  /** Agent: bottom share dock is visible (≥1 home selected); drives top-left icon (search vs +). */
+  /** Agent: bottom share dock is visible (≥1 home selected); drives top-left icon (share vs +). */
   agentShareDockVisible?: boolean;
 }): JSX.Element {
   const {
@@ -114,7 +114,7 @@ export function SidebarList(props: {
         {activeTab === "results" ? (
           <>
             <Icon name="map-pin" className="mobile-icon-lg mx-auto mb-2 text-neutral-400" />
-            <BodyText as="p" size="sm">
+            <BodyText as="p" size="sm" muted>
               {t("search.click_map_to_search")}
             </BodyText>
           </>
@@ -232,7 +232,7 @@ export function SidebarList(props: {
                       }}
                       position="top-left"
                       size="sm"
-                      unselectedIcon={agentShareDockVisible ? "plus" : "search"}
+                      unselectedIcon={agentShareDockVisible ? "plus" : "share"}
                       ariaLabel={
                         agentShareBundle.isSelected(property.id)
                           ? t("search.agent_share_select_remove_aria")

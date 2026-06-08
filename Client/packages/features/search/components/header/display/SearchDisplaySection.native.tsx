@@ -34,23 +34,12 @@ export function SearchDisplaySectionNative(): React.ReactElement {
   const setResultsOrderBy = useFiltersStore((s) => s.setResultsOrderBy);
   const resultsSortDirection = useFiltersStore((s) => s.resultsSortDirection);
   const setResultsSortDirection = useFiltersStore((s) => s.setResultsSortDirection);
-  const preferencesStrictFilter = useFiltersStore((s) => s.preferencesStrictFilter);
-  const setPreferencesStrictFilter = useFiltersStore((s) => s.setPreferencesStrictFilter);
-
   const onCommute = useCallback(
     (v: boolean) => {
       setShowCommuteOverlay(v);
       patchSearchDisplay({ show_commute_overlay: v });
     },
     [setShowCommuteOverlay, patchSearchDisplay]
-  );
-
-  const onStrictPreferences = useCallback(
-    (v: boolean) => {
-      setPreferencesStrictFilter(v);
-      patchSearchDisplay({ preferences_strict_filter: v });
-    },
-    [setPreferencesStrictFilter, patchSearchDisplay]
   );
 
   return (
@@ -118,16 +107,6 @@ export function SearchDisplaySectionNative(): React.ReactElement {
       <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
         {SEARCH_TRANSLATIONS["search.show_commute_area_hint"] ??
           "For searches from your profile (important locations). Shows drive-time areas when on, or a simple bounds around those places when off. Map-only searches use the place or area you picked instead."}
-      </Text>
-      <Box style={styles.row}>
-        <Text className="text-text-primary flex-1 pr-2 text-sm">
-          {SEARCH_TRANSLATIONS["search.strict_preferences"] ?? "Match all preferences strictly"}
-        </Text>
-        <Switch value={preferencesStrictFilter} onValueChange={onStrictPreferences} />
-      </Box>
-      <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
-        {SEARCH_TRANSLATIONS["search.strict_preferences_hint"] ??
-          "When off, we only apply every preference filter when there are more than 100 homes in the search area."}
       </Text>
     </Box>
   );

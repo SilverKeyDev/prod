@@ -7,9 +7,9 @@ import {
   mergeOnboardingServerAndDraft,
   nextPreferencesVersion,
   type OnboardingData,
+  postOnboardingWorkspaceForPrimaryRole,
   primaryOnboardingRoleFromForm,
 } from "packages/features/profile";
-import { postOnboardingTargetForPrimaryRole } from "packages/features/profile";
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useSetActiveWorkspace } from "packages/hooks/store";
 import { showErrorToast } from "packages/hooks/ui";
@@ -107,7 +107,7 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
       setLoading,
       navigate,
       onSuccess: () => {
-        const { workspace } = postOnboardingTargetForPrimaryRole(
+        const workspace = postOnboardingWorkspaceForPrimaryRole(
           primaryOnboardingRoleFromForm(dataToSave)
         );
         setActiveWorkspace(workspace);

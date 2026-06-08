@@ -1,6 +1,6 @@
 # SilverKey local setup
 
-Run **`make setup`** once on a new machine (six steps: prerequisites → build → AWS SSO → secrets → verify → Cursor MCP). Skip AWS/secrets: `make setup ARGS='--skip-secrets'`. After every `git pull`: **`make refresh`**.
+Run **`make setup`** once on a new machine (six steps: prerequisites → build → AWS SSO → local DB init → verify → Cursor MCP). Skip AWS/secrets/local DB init: `make setup ARGS='--skip-secrets'`. After every `git pull`: **`make refresh`**.
 
 **First:** use a supported terminal — macOS Terminal, Linux shell, or **Windows via WSL2 (Ubuntu)**. Native Windows shells (PowerShell/CMD/Git Bash) are not supported; `make setup` stops and points you to [Windows (WSL2)](#windows-wsl2--required).
 
@@ -14,7 +14,7 @@ Deep MCP and Cursor tuning: [`.cursor/README.md`](.cursor/README.md), [cursor-co
 2. Install the [prerequisites](#prerequisites) for your platform, clone the repo, then from the repo root:
 
 ```bash
-make setup    # installs/verifies tools → builds Client+Server → AWS SSO → secrets → MCP
+make setup    # tools → Client+Server → AWS SSO → local DB init → MCP
 make dev      # web (http://localhost:5173) + API (http://localhost:5000)
 ```
 
@@ -49,7 +49,7 @@ aws sso login --profile "$AWS_PROFILE"
 | Redis | 6+ |
 | libmagic | MIME validation on uploads |
 | AWS CLI | v2 (unless `--skip-secrets`) |
-| PostgreSQL | For `make dev` — `DATABASE_URL` in `Server/.env` |
+| Docker | For local Postgres via `make db-up` |
 
 ### macOS (quick)
 
@@ -107,9 +107,14 @@ make setup
 | ------- | ------- |
 | `make setup` | Full first-time flow |
 | `make setup-mcp` | Cursor MCP install/verify only |
-| `make refresh` | Post-pull cache clear + deps (`ARGS='--no-clean'`, `--aggressive-clean`) |
+| `make refresh` | Post-pull cache clear + deps (`ARGS='--secrets'`, `--reset-db`, `--no-clean`, `--aggressive-clean`) |
 | `make check-deps` | Prerequisite scan |
 | `make secrets` | Re-fetch `Server/.env` |
+| `make db-up` | Start isolated local Postgres |
+| `make db-health` | Check local Postgres readiness |
+| `make db-down` | Stop local Postgres and clear the local dev DB volume |
+| `make db-reset` | Delete and recreate the local Postgres dev volume |
+| `make dev-db-init` | Reset local DB, refresh non-DB secrets, and run migrations |
 | `make dev` | Web + API |
 | `./scripts/setup/check-deps.sh` | Same as `make check-deps` |
 
@@ -135,6 +140,21 @@ make dev
 
 - **Web:** open <http://localhost:5173>
 - **API health:** `curl http://localhost:5000/healthz` → expect a `200` / OK response
+
+`make secrets` keeps non-database AWS secrets in sync but writes a local dev database URL by default: `postgresql://silverkey:silverkey@localhost:5432/silverkey_dev`. To intentionally fetch a shared database secret for an operator workflow, run `ALLOW_SHARED_DATABASE_URL=1 make secrets`.
+
+`make setup` resets the local Docker Postgres volume, fetches non-database secrets, and runs migrations. To repeat that database reset/init manually:
+
+```bash
+make dev-db-init
+make dev-backend
+```
+
+For post-pull dependency refreshes, local DB reset is opt-in:
+
+```bash
+make refresh ARGS='--secrets --reset-db'
+```
 
 Other entry points: `make dev-web` (web only), `make mobile` (Expo). If `/healthz` is unreachable on macOS, see the [port 5000 / AirPlay](#macos-quick) note.
 
@@ -165,10 +185,12 @@ Finish in **Cursor → Settings → Tools & MCP** (GitHub PAT, Linear/Slack OAut
 | AWS profile / SSO | `export AWS_PROFILE=…`; `aws sso login`; or `Server/config/.aws-sso` |
 | Broken venv | `export PYTHON=python3.12`; re-run `make setup` |
 | Redis down | `brew services start redis` or `redis-server --daemonize yes` |
+| Local Postgres down | `make db-up`; then `make db-health` |
+| Need a clean local DB | `make dev-db-init` (deletes only the local Docker Postgres volume) |
 | `libmagic` missing | `brew install libmagic` / `apt install libmagic1` |
 | macOS port 5000 | Disable AirPlay Receiver (see above) |
 | MCP red in Cursor | `make setup-mcp`; fix summary; reload window |
-| Empty `DATABASE_URL` | `make secrets` |
+| Empty `DATABASE_URL` | `make secrets`; it appends the local Postgres URL unless `ALLOW_SHARED_DATABASE_URL=1` is set |
 
 More: [scripts-guide.md](documentation/server/ops/scripts-guide.md), [README.md](README.md), [AGENTS.md](AGENTS.md).
 

@@ -4,80 +4,30 @@
  * across ProfileFeature, Settings, ProfileScreen, and PreferencesFormContent.
  */
 
+import type { DownPaymentBandValue } from "packages/features/profile/types/buyerFinancing";
 import type { UserProfileForSync } from "packages/features/profile/types/form/profileFormSync";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { toBuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
+import { downPaymentDollarsFromBand } from "packages/features/profile/utils/financials/downPaymentBand";
+import { primaryOnboardingRoleFromForm } from "packages/features/profile/utils/onboarding/role/onboardingRoleSelection";
+import {
+  applyBuyerFlatFieldsFromApi,
+  buildBuyerPreferenceExtensionsFromForm,
+  stripBuyerFlatKeysFromPayload,
+} from "packages/features/profile/utils/onboarding/sync/buyerPreferencesSync";
+import { parseUserPreferencesArray } from "packages/features/profile/utils/onboarding/validation/preferencesUtils";
 
-import { primaryOnboardingRoleFromForm } from "@/features/profile/utils/onboarding/role/onboardingRoleSelection";
-import { parseUserPreferencesArray } from "@/features/profile/utils/onboarding/validation/preferencesUtils";
+import {
+  toBool,
+  toDictArray,
+  toImportantLocations,
+  toNumber,
+  toRecordString,
+  toString,
+  toStringArray,
+} from "./profileFormSyncCoercions";
 
 export type { UserProfileForSync } from "packages/features/profile/types/form/profileFormSync";
-
-function toNumber(value: unknown): number | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value === "number" && !Number.isNaN(value)) return value;
-  if (typeof value === "string") {
-    const n = Number(value);
-    return Number.isNaN(n) ? undefined : n;
-  }
-  return undefined;
-}
-
-function toString(value: unknown): string | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value === "string") return value.trim() || undefined;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-  return undefined;
-}
-
-function toBool(value: unknown): boolean | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value === "boolean") return value;
-  if (value === "true" || value === 1) return true;
-  if (value === "false" || value === 0) return false;
-  return undefined;
-}
-
-function toStringArray(value: unknown): string[] {
-  const arr = parseUserPreferencesArray(value);
-  return arr.filter((v): v is string => typeof v === "string");
-}
-
-function toImportantLocations(value: unknown): { address: string; commute_tolerance?: number }[] {
-  const arr = parseUserPreferencesArray(value);
-  return arr
-    .filter(
-      (v): v is Record<string, unknown> => typeof v === "object" && v !== null && "address" in v
-    )
-    .map((v) => {
-      const address = typeof v.address === "string" ? v.address : String(v.address ?? "");
-      const commuteTolerance =
-        typeof v.commute_tolerance === "number" && !Number.isNaN(v.commute_tolerance)
-          ? v.commute_tolerance
-          : typeof v.max_commute_minutes === "number" && !Number.isNaN(v.max_commute_minutes)
-            ? v.max_commute_minutes
-            : undefined;
-      return { address, commute_tolerance: commuteTolerance };
-    })
-    .filter((loc) => loc.address.trim() !== "");
-}
-
-function toDictArray(value: unknown): Record<string, unknown>[] {
-  const arr = parseUserPreferencesArray(value);
-  return arr.filter(
-    (v): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
-  );
-}
-
-function toRecordString(value: unknown): Record<string, string> | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value !== "object" || Array.isArray(value)) return undefined;
-  const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(value)) {
-    if (typeof k === "string" && typeof v === "string") out[k] = v;
-  }
-  return Object.keys(out).length > 0 ? out : undefined;
-}
 
 /**
  * Bump "major.minor" for preferences_version (profile/onboarding saves stay aligned).
@@ -161,10 +111,28 @@ export function formDataToPreferencesPayload(
   }
 
   // Backend expects extended_buyer_preferences (form: buyerPreferenceExtensions)
-  if (formData.buyerPreferenceExtensions !== undefined) {
+  const mergedExtensions = buildBuyerPreferenceExtensionsFromForm(formData);
+  if (mergedExtensions !== undefined) {
+    payload.extended_buyer_preferences = mergedExtensions;
+  } else if (formData.buyerPreferenceExtensions !== undefined) {
     payload.extended_buyer_preferences = formData.buyerPreferenceExtensions;
-    delete payload.buyerPreferenceExtensions;
   }
+  delete payload.buyerPreferenceExtensions;
+
+  // Map buyer pets boolean → demographics.pets yes/no
+  if (formData.buyer_about_has_pets !== undefined) {
+    payload.pets = formData.buyer_about_has_pets ? "yes" : "no";
+  }
+
+  // Derive down_payment dollars from band when financing
+  if (!formData.paying_cash && formData.down_payment_band && formData.home_budget_max != null) {
+    payload.down_payment = downPaymentDollarsFromBand(
+      formData.down_payment_band as DownPaymentBandValue,
+      formData.home_budget_max
+    );
+  }
+
+  stripBuyerFlatKeysFromPayload(payload);
 
   if (!isAgentFormData(formData, userProfile)) {
     for (const key of Object.keys(payload)) {
@@ -281,9 +249,13 @@ export function userPreferencesToOnboardingData(
 
     // Communication
     communication_frequency: toString(get("communication_frequency")),
+    preferred_contact_method: toString(get("preferred_contact_method")),
     information_detail_level: toString(get("information_detail_level")),
     has_buyers_agent: toString(get("has_buyers_agent")),
     looking_for_buyers_agent: toBool(get("looking_for_buyers_agent")),
+
+    // Financial — paying_cash from intent attributes
+    paying_cash: toBool(get("paying_cash")),
 
     // Agent profile (when user has agent role; API returns these only for agents)
     agent_physical_mailing_address: toString(get("agent_physical_mailing_address")),
@@ -309,5 +281,5 @@ export function userPreferencesToOnboardingData(
     data.primary_onboarding_role = primaryRole;
   }
 
-  return data;
+  return applyBuyerFlatFieldsFromApi(data, prefs);
 }

@@ -20,6 +20,7 @@ describe("resolveSearchArea", () => {
     expect(result.mode).toBe("location_bar");
     expect(result.searchSource).toBe("location");
     expect(result.viewportRing).toEqual(barRing);
+    expect(result.blocked).toBeUndefined();
   });
 
   it("uses isochrone when important locations exist and isochrone succeeds", async () => {
@@ -49,6 +50,7 @@ describe("resolveSearchArea", () => {
     expect(result.searchSource).toBe("preferences");
     expect(result.isochroneData).toBe(isochroneData);
     expect(result.viewportRing.length).toBeGreaterThanOrEqual(4);
+    expect(result.blocked).toBeUndefined();
   });
 
   it("falls back to geolocation when no bar ring and no important locations", async () => {
@@ -61,18 +63,19 @@ describe("resolveSearchArea", () => {
     expect(result.mode).toBe("geolocation");
     expect(result.searchSource).toBe("location");
     expect(result.warnings).toEqual([]);
+    expect(result.blocked).toBeUndefined();
   });
 
-  it("uses default market when geolocation denied", async () => {
+  it("blocks search when geolocation is denied", async () => {
     const result = await resolveSearchArea({
       locationPlaceViewportRing: null,
       importantLocations: [],
       requestLocation: async () => ({ status: "denied" }),
       fetchIsochrone: async () => null,
     });
-    expect(result.mode).toBe("default_market");
+    expect(result.blocked).toBe(true);
     expect(result.warnings).toContain("geolocation_denied");
-    expect(result.viewportRing.length).toBeGreaterThanOrEqual(4);
+    expect(result.viewportRing).toEqual([]);
   });
 
   it("falls through to geolocation when isochrone fetch returns null", async () => {
@@ -83,5 +86,19 @@ describe("resolveSearchArea", () => {
       fetchIsochrone: async () => null,
     });
     expect(result.mode).toBe("geolocation");
+    expect(result.blocked).toBeUndefined();
+  });
+
+  it("uses default market when geolocation is unavailable", async () => {
+    const result = await resolveSearchArea({
+      locationPlaceViewportRing: null,
+      importantLocations: [],
+      requestLocation: async () => ({ status: "unavailable" }),
+      fetchIsochrone: async () => null,
+    });
+    expect(result.mode).toBe("default_market");
+    expect(result.warnings).toContain("geolocation_unavailable");
+    expect(result.blocked).toBeUndefined();
+    expect(result.viewportRing.length).toBeGreaterThanOrEqual(4);
   });
 });

@@ -6,10 +6,9 @@ import {
   parseHousingTypes,
   serializeHousingTypes,
 } from "packages/features/profile";
+import { FormFieldLabel as Label } from "packages/ui";
+import { OptionTagInput } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
-
-import Label from "@/features/profile/components/settings/inputs/Label";
-import OptionTagInput from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
 
 export type HomeTypeFilterProps = {
   value: string;

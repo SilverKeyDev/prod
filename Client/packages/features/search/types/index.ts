@@ -25,7 +25,6 @@ export type {
   SearchLayoutProps,
   SearchMetadata,
   UseIsochroneFlowParams,
-  UseSearchBootstrapParams,
 } from "./domain/hooksParams";
 export type {
   Property,

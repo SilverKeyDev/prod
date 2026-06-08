@@ -204,8 +204,7 @@ export function HomePriceEstimate({
           ) : (
             <Box className="text-responsive-xs px-2 py-2 text-black sm:px-0">
               <BodyText as="p">
-                Enter your income, zip code, and other financial details to see your estimated home
-                affordability.
+                Enter your financial details to see your estimated budget. affordability.
               </BodyText>
             </Box>
           )}

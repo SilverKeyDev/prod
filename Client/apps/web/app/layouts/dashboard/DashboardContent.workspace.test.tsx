@@ -36,6 +36,9 @@ vi.mock("@/pages/workspace/IntegrationPartnerDashboardPage", () => ({
 vi.mock("@/pages/workspace/SellerDashboardPage", () => ({
   default: () => <div data-testid="workspace-shell-seller">Seller</div>,
 }));
+vi.mock("@/pages/workspace/RenterDashboardPage", () => ({
+  default: () => <div data-testid="workspace-shell-renter">Renter</div>,
+}));
 vi.mock("@/pages/workspace/DashboardPage", () => ({
   default: () => <div data-testid="workspace-shell-buyer">Buyer</div>,
 }));
@@ -70,6 +73,12 @@ describe("DashboardContent workspace shells", () => {
     mockUseActiveWorkspace.mockReturnValue("seller");
     render(<DashboardContent />);
     expect(await screen.findByTestId("workspace-shell-seller")).toBeTruthy();
+  });
+
+  it("renders renter dashboard shell when activeWorkspace is renter", async () => {
+    mockUseActiveWorkspace.mockReturnValue("renter");
+    render(<DashboardContent />);
+    expect(await screen.findByTestId("workspace-shell-renter")).toBeTruthy();
   });
 
   it("renders brokerage dashboard shell when activeWorkspace is brokerage", async () => {

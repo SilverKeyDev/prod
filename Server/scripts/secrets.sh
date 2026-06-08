@@ -29,6 +29,8 @@ aws_sso_source_repo_config "$ROOT"
 
 REGION="${1:-${AWS_REGION:-us-east-2}}"
 PROFILE="${2:-${AWS_PROFILE:-}}"
+LOCAL_DATABASE_URL="${LOCAL_DATABASE_URL:-postgresql://silverkey:silverkey@localhost:5432/silverkey_dev}"
+ALLOW_SHARED_DATABASE_URL="${ALLOW_SHARED_DATABASE_URL:-0}"
 
 log() { printf '%s\n' "$*" >&2; }
 die() { printf 'Error: %s\n' "$*" >&2; exit 1; }
@@ -89,6 +91,44 @@ unescape_backslashes() {
 # Detect if text appears to be dotenv lines (at least one KEY=VALUE)
 looks_like_dotenv() {
   printf '%s' "$1" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*='
+}
+
+env_file_value() {
+  key="$1"
+  file="$2"
+  [ -f "$file" ] || return 0
+  awk -F= -v key="$key" '
+    $1 == key {
+      val = substr($0, index($0, "=") + 1)
+    }
+    END {
+      gsub(/^"/, "", val)
+      gsub(/"$/, "", val)
+      print val
+    }
+  ' "$file"
+}
+
+is_database_secret_name() {
+  case "$1" in
+    db_url|database_url|DATABASE_URL|*/db_url|*/database|*/database/*|*silverkey*database*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+is_local_database_url() {
+  case "$1" in
+    *localhost*|*127.0.0.1*|*::1*|*silverkey-dev-postgres*|*postgres:5432*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 }
 
 # KEY="value" lines -> KEY="" for a safe template (same keys, no secrets)
@@ -187,6 +227,17 @@ stamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   echo
 } > "$tmp_example"
 
+existing_database_url="$(env_file_value DATABASE_URL .env || printf '')"
+database_url_to_write="$LOCAL_DATABASE_URL"
+if [ -n "$existing_database_url" ]; then
+  if is_local_database_url "$existing_database_url"; then
+    database_url_to_write="$existing_database_url"
+    log "Preserving local DATABASE_URL from existing Server/.env."
+  else
+    log "Ignoring existing non-local DATABASE_URL for local dev. Set ALLOW_SHARED_DATABASE_URL=1 to fetch a shared DB secret explicitly."
+  fi
+fi
+
 if ! list_secret_names > "$tmp_names"; then
   die "Failed to list secrets (check region, credentials, and secretsmanager:ListSecrets permission)"
 fi
@@ -195,6 +246,11 @@ if [ ! -s "$tmp_names" ]; then
 fi
 
 for SECRET_ID in $(sort -u "$tmp_names"); do
+  if [ "$ALLOW_SHARED_DATABASE_URL" != "1" ] && is_database_secret_name "$SECRET_ID"; then
+    log "Skipping database secret for local dev: $SECRET_ID"
+    continue
+  fi
+
   log "Fetching secret: $SECRET_ID"
   if ! out="$(aws secretsmanager get-secret-value --secret-id "$SECRET_ID" $AWS_ARGS 2>/dev/null)"; then
     die "Failed to fetch $SECRET_ID (check name, region, credentials)"
@@ -263,6 +319,19 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
     } >> "$tmp_example"
   fi
 done
+
+if ! grep -q '^DATABASE_URL=' "$tmp_env"; then
+  {
+    echo "# Local dev database (not fetched from shared/prod Secrets Manager)"
+    echo "DATABASE_URL=\"$database_url_to_write\""
+    echo
+  } >> "$tmp_env"
+  {
+    echo "# Local dev database (placeholder only)"
+    echo "DATABASE_URL=\"\""
+    echo
+  } >> "$tmp_example"
+fi
 
 # ---- split EXPO_PUBLIC_* to Client, then rewrite Server .env files ----
 # shellcheck source=../../scripts/lib/client-env-from-secrets.sh

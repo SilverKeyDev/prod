@@ -17,6 +17,7 @@ export const PROFILE_STEP_IDS = [
   "availability",
   "privacy_data",
   "seller_shell_setup",
+  "renter_shell_setup",
   "brokerage_shell_setup",
   "integration_partner_shell_setup",
 ] as const;

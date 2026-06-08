@@ -15,8 +15,6 @@ components:
   schemas:
     ActionPlanResponse:
       $ref: ./components/schemas/preferences/ActionPlanResponse.yaml
-    AddAgentResponse:
-      $ref: ./components/schemas/preferences/AddAgentResponse.yaml
     AddCalendarACLRequest:
       $ref: ./components/schemas/calendar/AddCalendarACLRequest.yaml
     AddCalendarACLResponse:
@@ -237,8 +235,6 @@ components:
       $ref: ./components/schemas/search/results/FeedListing.yaml
     FeedResponse:
       $ref: ./components/schemas/feed/FeedResponse.yaml
-    FindMatchesRequest:
-      $ref: ./components/schemas/search/FindMatchesRequest.yaml
     ForgotPasswordData:
       $ref: ./components/schemas/auth/ForgotPasswordData.yaml
     ForgotPasswordResponse:
@@ -365,8 +361,6 @@ components:
       $ref: ./components/schemas/search/properties/PropertyResponse.yaml
     PropertySearchResult:
       $ref: ./components/schemas/search/results/PropertySearchResult.yaml
-    RemoveAgentResponse:
-      $ref: ./components/schemas/preferences/RemoveAgentResponse.yaml
     RemoveFavoriteRequest:
       $ref: ./components/schemas/user/favorites/RemoveFavoriteRequest.yaml
     RemoveNotInterestedRequest:
@@ -393,8 +387,6 @@ components:
       $ref: ./components/schemas/calendar/RevokeResponse.yaml
     SavedHome:
       $ref: ./components/schemas/user/favorites/SavedHome.yaml
-    SearchAgentsPreferencesResponse:
-      $ref: ./components/schemas/preferences/SearchAgentsPreferencesResponse.yaml
     SearchAgentsResponse:
       $ref: ./components/schemas/agent/core/SearchAgentsResponse.yaml
     SearchByPolygonRequest:
@@ -481,8 +473,6 @@ components:
       $ref: ./components/schemas/agreements/documents/UploadResponse.yaml
     User:
       $ref: ./components/schemas/user/profile/User.yaml
-    UserAgentsResponse:
-      $ref: ./components/schemas/preferences/UserAgentsResponse.yaml
     UserId:
       $ref: ./components/schemas/user/profile/UserId.yaml
     UserPreferencesData:

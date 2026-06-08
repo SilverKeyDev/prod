@@ -10,6 +10,28 @@ setup_verify_ok() {
   echo "setup-verify: OK — $*"
 }
 
+setup_verify_env_value() {
+  local key="$1" file="$2" line val
+  line="$(grep -E "^${key}=" "$file" | tail -1 || true)"
+  [[ -n "$line" ]] || return 0
+  val="${line#*=}"
+  val="${val%\"}"
+  val="${val#\"}"
+  printf '%s' "$val"
+}
+
+setup_verify_is_local_database_url() {
+  local url="$1"
+  case "$url" in
+    *localhost*|*127.0.0.1*|*::1*|*silverkey-dev-postgres*|*postgres:5432*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 setup_verify_env_file() {
   local root="$1" env_file="${root}/Server/.env"
   [[ -f "$env_file" ]] || { setup_verify_fail "Server/.env missing (secrets step did not run?)"; return 1; }
@@ -23,7 +45,19 @@ setup_verify_env_file() {
     val="${val#\"}"
     [[ -n "$val" ]] || { setup_verify_fail "${key} is empty in Server/.env"; return 1; }
   done
-  setup_verify_ok "Server/.env has DATABASE_URL and JWT_SIGNING_SECRET"
+
+  local database_url
+  database_url="$(setup_verify_env_value DATABASE_URL "$env_file")"
+  if ! setup_verify_is_local_database_url "$database_url" && [[ "${ALLOW_SHARED_DATABASE_URL:-0}" != "1" ]]; then
+    setup_verify_fail "DATABASE_URL points at a non-local DB. Use make db-up + make secrets for local dev, or set ALLOW_SHARED_DATABASE_URL=1 intentionally."
+    return 1
+  fi
+
+  if setup_verify_is_local_database_url "$database_url"; then
+    setup_verify_ok "Server/.env has local DATABASE_URL and JWT_SIGNING_SECRET"
+  else
+    setup_verify_ok "Server/.env has DATABASE_URL and JWT_SIGNING_SECRET (shared DB override enabled)"
+  fi
 }
 
 setup_verify_server_venv() {

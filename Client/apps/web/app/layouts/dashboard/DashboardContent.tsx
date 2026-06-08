@@ -56,6 +56,13 @@ const SellerDashboardPage = lazy(
     () => import("@/pages/workspace/SellerDashboardPage")
   )
 );
+const RenterDashboardPage = lazy(
+  traceLazyImport(
+    "DASHBOARD",
+    "lazy:RenterDashboardPage",
+    () => import("@/pages/workspace/RenterDashboardPage")
+  )
+);
 const DashboardPage = lazy(
   traceLazyImport(
     "DASHBOARD",
@@ -229,6 +236,8 @@ export function DashboardContent({
         <IntegrationPartnerDashboardPage />
       ) : activeWorkspace === "seller" ? (
         <SellerDashboardPage />
+      ) : activeWorkspace === "renter" ? (
+        <RenterDashboardPage />
       ) : (
         <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
       )}

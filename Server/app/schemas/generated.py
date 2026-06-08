@@ -89,7 +89,7 @@ class AddCommentRequest(BaseModel):
     text: str = Field(..., description="Comment text")
 
 
-class User1(BaseModel):
+class User(BaseModel):
     id: str | None = None
     name: str | None = None
     avatarUrl: AnyUrl | None = None
@@ -97,7 +97,7 @@ class User1(BaseModel):
 
 class FeedCommentApiShape(BaseModel):
     id: str
-    user: User1
+    user: User
     text: str
     createdAt: str
     likes: int | None = None
@@ -213,12 +213,13 @@ class AgentConversation(BaseModel):
 
 class ClientKind(Enum):
     """
-    Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/investor role is set.
+    Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/renter/investor role is set.
 
     """
 
     buyer = "buyer"
     seller = "seller"
+    renter = "renter"
     investor = "investor"
     unknown = "unknown"
 
@@ -281,7 +282,7 @@ class AgentClient(BaseModel):
     )
     client_kind: ClientKind | None = Field(
         None,
-        description="Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/investor role is set.\n",
+        description="Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/renter/investor role is set.\n",
     )
     pipeline_stage: PipelineStage | None = Field(
         None,
@@ -876,6 +877,24 @@ class ClientSearchResult(BaseModel):
     )
 
 
+class ExtendedBuyerPreferences(BaseModel):
+    """
+    Versioned buyer preference extensions (v1 JSON)
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    buyer_about_me: dict[str, Any] | None = Field(
+        None,
+        description="SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation",
+    )
+    price_financing: dict[str, Any] | None = Field(
+        None,
+        description="SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc.",
+    )
+
+
 class PreferencesResponse(BaseModel):
     """
     User search preferences
@@ -883,6 +902,19 @@ class PreferencesResponse(BaseModel):
 
     model_config = ConfigDict(
         extra="allow",
+    )
+    preferred_contact_method: str | None = Field(
+        None, description="Buyer communication preference — text, call, or email"
+    )
+    communication_frequency: str | None = Field(
+        None,
+        description="Update cadence — as_things_come_up, weekly_check_in, or daily",
+    )
+    extended_buyer_preferences: ExtendedBuyerPreferences | None = Field(
+        None, description="Versioned buyer preference extensions (v1 JSON)"
+    )
+    paying_cash: bool | None = Field(
+        None, description="Intent attribute — true when buyer pays cash"
     )
 
 
@@ -1064,6 +1096,20 @@ class CreatePreferencesRequest(BaseModel):
 
     model_config = ConfigDict(
         extra="allow",
+    )
+    preferred_contact_method: str | None = Field(
+        None,
+        description="Buyer communication preference — text, call, or email (user_communication_prefs)",
+    )
+    communication_frequency: str | None = Field(
+        None,
+        description="Update cadence — as_things_come_up, weekly_check_in, or daily",
+    )
+    extended_buyer_preferences: ExtendedBuyerPreferences | None = Field(
+        None, description="Versioned buyer preference extensions (v1 JSON)"
+    )
+    paying_cash: bool | None = Field(
+        None, description="Intent attribute — true when buyer pays cash"
     )
 
 
@@ -1798,7 +1844,7 @@ class FeedListing(BaseModel):
     videoUrl: AnyUrl | None = None
     audioSpeechUrl: AnyUrl | None = None
     audioSongUrl: AnyUrl | None = None
-    user: User1
+    user: User
     stats: Stats
     images: list[AnyUrl]
 
@@ -1807,18 +1853,6 @@ class FeedResponse(BaseModel):
     items: list[FeedListing]
     hasMore: bool
     cursor: str | None = None
-
-
-class FindMatchesRequest(BaseModel):
-    user_data: dict[str, Any] = Field(..., description="User preferences and profile data")
-    homes_data: list[dict[str, Any]] = Field(..., description="Array of home data objects")
-    top_k: int | None = Field(None, description="Number of top matches to return (default 10)")
-    include_explanations: bool | None = Field(
-        None, description="Include match explanations (default false)"
-    )
-    embedding_provider: str | None = Field(
-        None, description="Embedding provider to use (default sentence_transformer)"
-    )
 
 
 class ForgotPasswordData(BaseModel):
@@ -2837,10 +2871,6 @@ class PropertySearchResult(BaseModel):
     ranking: int | None = Field(None, description="Position in search results")
 
 
-class RemoveAgentResponse(SuccessResponse):
-    removed: bool | None = None
-
-
 class RemoveFavoriteRequest(BaseModel):
     address: str
     client_id: str | None = None
@@ -3351,6 +3381,7 @@ class DevWorkspacePersona(Enum):
 
     buyer = "buyer"
     seller = "seller"
+    renter = "renter"
     agent = "agent"
     brokerage = "brokerage"
     integration_partner = "integration_partner"
@@ -3495,6 +3526,7 @@ class ValidationStatsApiResponse(SuccessResponse):
 class TargetRole(Enum):
     buyer = "buyer"
     seller = "seller"
+    renter = "renter"
     agent = "agent"
     brokerage = "brokerage"
     integration_partner = "integration_partner"
@@ -3679,6 +3711,7 @@ class RevShareStepViewResponse(BaseModel):
 class Workspace(Enum):
     buyer = "buyer"
     seller = "seller"
+    renter = "renter"
     agent = "agent"
     brokerage = "brokerage"
     integration_partner = "integration_partner"
@@ -3800,61 +3833,6 @@ class VoidAgreementResponse(RootModel[SuccessResponse]):
 
 class ActionPlanResponse(SuccessResponse):
     plan: dict[str, Any] | None = Field(None, description="Generated action plan structure")
-
-
-class User(BaseModel):
-    """
-    Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Agent identity is determined by the presence of role "agent" in user_roles (exposed as roles).
-
-    """
-
-    id: str = Field(
-        ...,
-        description="User identifier (UUID or string)",
-        examples=["123e4567-e89b-12d3-a456-426614174000"],
-    )
-    cognito_id: str | None = Field(
-        None,
-        description="AWS Cognito `sub` when the account uses Cognito credentials; null for Google-only accounts until linked, or when the row predates Cognito linkage.\n",
-    )
-    google_id: str | None = Field(
-        None,
-        description="Google OAuth subject when the account is linked; omit or null for non-Google users.",
-    )
-    email: EmailStr
-    name: constr(min_length=1, max_length=200)
-    phone: str | None = None
-    created_at: AwareDatetime | None = None
-    updated_at: AwareDatetime | None = None
-    last_logged_in: AwareDatetime | None = Field(
-        None,
-        description="ISO 8601 timestamp of last successful session activity when tracked.",
-    )
-    is_active: bool
-    mls_id: str | None = None
-    brokerage: str | None = Field(
-        None,
-        description="Agent brokerage name on the users row (DB column brokerage). API wire name is always brokerage.\n",
-    )
-    has_preferences: bool | None = None
-    preferences_version: str | None = Field(
-        None,
-        description="Preferences schema version marker on users row (e.g. v1); null when unset.",
-    )
-    profile_picture: str | None = Field(
-        None, description="S3 object key for the profile image when stored server-side."
-    )
-    profile_picture_url: AnyUrl | None = Field(
-        None, description="Presigned URL when returned by profile/upload handlers."
-    )
-    roles: list[str] | None = Field(
-        None,
-        description="Role names from user_roles (e.g. agent, buyer, seller). Agent UX uses roles includes agent.",
-    )
-    brokerage_org_ids: list[str] | None = Field(
-        None,
-        description="Brokerage organization ids from `user_org_memberships` for attribution and admin scope.\n",
-    )
 
 
 class AddCommentResponse(SuccessResponse):
@@ -4142,14 +4120,59 @@ class ForgotPasswordResponse(SuccessResponse):
     code_delivery: CognitoCodeDeliveryDetails | None = None
 
 
-class UserProfile(User):
+class UserModel(BaseModel):
     """
-    Full application user record as returned by profile and admin user endpoints.
-    Wire-identical to User; use this schema name when documenting "profile" responses
-    (e.g. GET /api/v1/user/profile). Agent rows may include `mls_id`, `brokerage`, and
-    `roles`; `profile_picture_url` is a short-lived presigned URL when present.
+    Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Agent identity is determined by the presence of role "agent" in user_roles (exposed as roles).
 
     """
+
+    id: str = Field(
+        ...,
+        description="User identifier (UUID or string)",
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
+    )
+    cognito_id: str | None = Field(
+        None,
+        description="AWS Cognito `sub` when the account uses Cognito credentials; null for Google-only accounts until linked, or when the row predates Cognito linkage.\n",
+    )
+    google_id: str | None = Field(
+        None,
+        description="Google OAuth subject when the account is linked; omit or null for non-Google users.",
+    )
+    email: EmailStr
+    name: constr(min_length=1, max_length=200)
+    phone: str | None = None
+    created_at: AwareDatetime | None = None
+    updated_at: AwareDatetime | None = None
+    last_logged_in: AwareDatetime | None = Field(
+        None,
+        description="ISO 8601 timestamp of last successful session activity when tracked.",
+    )
+    is_active: bool
+    mls_id: str | None = None
+    brokerage: str | None = Field(
+        None,
+        description="Agent brokerage name on the users row (DB column brokerage). API wire name is always brokerage.\n",
+    )
+    has_preferences: bool | None = None
+    preferences_version: str | None = Field(
+        None,
+        description="Preferences schema version marker on users row (e.g. v1); null when unset.",
+    )
+    profile_picture: str | None = Field(
+        None, description="S3 object key for the profile image when stored server-side."
+    )
+    profile_picture_url: AnyUrl | None = Field(
+        None, description="Presigned URL when returned by profile/upload handlers."
+    )
+    roles: list[str] | None = Field(
+        None,
+        description="Role names from user_roles (e.g. agent, buyer, seller). Agent UX uses roles includes agent.",
+    )
+    brokerage_org_ids: list[str] | None = Field(
+        None,
+        description="Brokerage organization ids from `user_org_memberships` for attribution and admin scope.\n",
+    )
 
 
 class ClientLoggerConfig(BaseModel):
@@ -4263,10 +4286,6 @@ class ResendCodeResponse(SuccessResponse):
     code_delivery: CognitoCodeDeliveryDetails | None = None
 
 
-class SearchAgentsPreferencesResponse(SuccessResponse):
-    agents: list[User] | None = None
-
-
 class SearchByPolygonRequest(BaseModel):
     """
     Map-bounded property search. `viewport_polygon` is an ordered ring of points with
@@ -4341,11 +4360,11 @@ class TaskChecklistProgressSummaryResponse(SuccessResponse):
 
 
 class UpdateAgentStatusResponse(SuccessResponse):
-    user: User | None = None
+    user: UserModel | None = None
 
 
 class SetCurrentUserDevWorkspaceResponse(SuccessResponse):
-    user: User | None = None
+    user: UserModel | None = None
 
 
 class Checklist(BaseModel):
@@ -4373,17 +4392,9 @@ class UpdateRoutingOrderResponse(SuccessResponse):
     participant: AgreementParticipant | None = None
 
 
-class UserAgentsResponse(SuccessResponse):
-    agents: list[User] | None = None
-
-
 class UserResponse(SuccessResponse):
-    user: User | None = None
-    data: User | None = Field(None, description="Alternative field name for user data")
-
-
-class AddAgentResponse(SuccessResponse):
-    agent: User | None = None
+    user: UserModel | None = None
+    data: UserModel | None = Field(None, description="Alternative field name for user data")
 
 
 class AgentChatHistoryResponse(SuccessResponse):
@@ -4533,8 +4544,14 @@ class GetAgreementResponse(SuccessResponse):
     agreement: Agreement | None = None
 
 
-class GetDashboardResponse(SuccessResponse):
-    user: UserProfile
+class UserProfile(UserModel):
+    """
+    Full application user record as returned by profile and admin user endpoints.
+    Wire-identical to User; use this schema name when documenting "profile" responses
+    (e.g. GET /api/v1/user/profile). Agent rows may include `mls_id`, `brokerage`, and
+    `roles`; `profile_picture_url` is a short-lived presigned URL when present.
+
+    """
 
 
 class DeploymentLoggerConfig(BaseModel):
@@ -4638,6 +4655,10 @@ class UpdateTaskChecklistRequest(BaseModel):
 
 class ChecklistResponse(SuccessResponse):
     checklist: TaskChecklistResponse | None = None
+
+
+class GetDashboardResponse(SuccessResponse):
+    user: UserProfile
 
 
 class GetLoggerConfigResponse(SuccessResponse):

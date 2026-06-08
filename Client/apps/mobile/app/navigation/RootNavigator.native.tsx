@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -12,7 +12,6 @@ import type {
   PropertyDetailsScreenParams,
 } from "packages/navigation/types";
 import { useAuthStore } from "packages/store";
-import { getPostAuthRedirectTarget } from "packages/utils/product/navigation";
 
 import { AppStackIntegrations } from "../providers/AppStackIntegrations.native";
 import { AppStack } from "./AppStack.native";
@@ -62,21 +61,6 @@ function RootContent() {
   useDeepLink();
   const authStatus = useAuthStore((s) => s.authStatus);
   const isAuthenticated = authStatus === "authenticated";
-  const postAuthRedirectPath = useAuthStore((s) => s.postAuthRedirectPath);
-  const setPostAuthRedirectPath = useAuthStore((s) => s.setPostAuthRedirectPath);
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    if (!postAuthRedirectPath) return;
-    if (!rootNavigationRef.isReady()) return;
-    const target = getPostAuthRedirectTarget(postAuthRedirectPath);
-    if (target?.type === "main") {
-      rootNavigationRef.navigate("Main", { screen: target.screen } as never);
-    } else if (target?.type === "onboarding") {
-      rootNavigationRef.navigate("Onboarding" as never);
-    }
-    setPostAuthRedirectPath(null);
-  }, [isAuthenticated, postAuthRedirectPath, setPostAuthRedirectPath]);
 
   if (!isAuthenticated) {
     return <AuthStack />;

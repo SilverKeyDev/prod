@@ -91,22 +91,7 @@ export const HOME_AGE_OPTIONS: DropdownOption[] = [
   { value: "no-preference", label: "No preference" },
 ];
 
-export const RENOVATION_PREFERENCE_OPTIONS: DropdownOption[] = [
-  { value: "none", label: "None - Move-in Ready" },
-  { value: "cosmetic", label: "Cosmetic Updates Only" },
-  { value: "moderate", label: "Moderate Renovations" },
-  { value: "major", label: "Major Renovations" },
-  { value: "fixer-upper", label: "Complete Fixer-Upper" },
-];
-
-export const PROPERTY_USE_OPTIONS: DropdownOption[] = [
-  { value: "primary", label: "Primary Residence" },
-  { value: "secondary", label: "Secondary/Vacation Home" },
-  { value: "investment", label: "Investment Property" },
-  { value: "mixed", label: "Mixed Use" },
-  { value: "airbnb", label: "AirBnB" },
-];
-
+/** Profile-only walkability dropdown (includes neutral). Search filters use WALKABILITY_FILTER_OPTIONS in housingFilterOptions.ts. */
 export const WALKABILITY_OPTIONS: DropdownOption[] = [
   { value: "very_important", label: "Very Important" },
   { value: "somewhat_important", label: "Somewhat Important" },

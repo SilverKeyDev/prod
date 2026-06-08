@@ -238,7 +238,6 @@ def create_app(config=None):
     from .routes.public import public_bp
     from .routes.research import research_bp
     from .routes.rev_share import rev_share_bp, rev_share_redirect_bp
-    from .routes.search.home_matching import home_matching_bp
     from .routes.search.maps import maps_bp
     from .routes.search.search import search_bp
     from .routes.search.search_display import search_display_bp
@@ -250,7 +249,6 @@ def create_app(config=None):
     app.register_blueprint(user_bp)
     app.register_blueprint(preferences_bp)
     app.register_blueprint(search_display_bp)
-    app.register_blueprint(home_matching_bp)
     app.register_blueprint(maps_bp)
     app.register_blueprint(search_bp)
     app.register_blueprint(research_bp)

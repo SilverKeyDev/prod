@@ -10,11 +10,12 @@ SERVER_PYTHON := $(SERVER_VENV)/bin/python3
 SERVER_PYTEST := $(SERVER_VENV)/bin/pytest
 SERVER_FLASK := $(SERVER_VENV)/bin/flask
 PROD_PARITY_COMPOSE_SH := $(ROOT)/scripts/deploy/prod-parity/compose.sh
+LOCAL_DATABASE_URL := postgresql://silverkey:silverkey@localhost:5432/silverkey_dev
 REGION ?= us-east-2
 PROFILE ?=
 PYTEST_ARGS ?=
 
-.PHONY: help setup setup-mcp refresh check-deps clean-caches secrets migrate \
+.PHONY: help setup setup-mcp refresh check-deps clean-caches secrets db-up db-down db-reset db-health dev-db-init migrate \
 	test test-all test-fe test-be test-be-ci-parity test-frontend test-backend \
 	dev dev-web dev-backend \
 	pre-commit precommit pre-push-check \
@@ -30,10 +31,15 @@ help:
 	@echo ""
 	@echo "  make setup            First-time setup — see setup.md (optional: ARGS='--skip-secrets')"
 	@echo "  make setup-mcp        Cursor MCP only (seed mcp.json, install uv/npx, verify)"
-	@echo "  make refresh          After git pull: clear caches + pnpm + pip (ARGS='--secrets' | '--no-clean' | '--aggressive-clean')"
+	@echo "  make refresh          After git pull: clear caches + pnpm + pip (ARGS='--secrets' | '--reset-db' | '--no-clean' | '--aggressive-clean')"
 	@echo "  make check-deps       Scan node/pnpm/python/redis/libmagic (ARGS='--skip-secrets' | '--no-install')"
 	@echo "  make clean-caches     Remove regenerable dev caches only (ARGS='--aggressive')"
 	@echo "  make secrets          AWS Secrets Manager -> Server/.env (uses AWS_PROFILE / ~/.aws/config)"
+	@echo "  make db-up            Start local Postgres for dev ($(LOCAL_DATABASE_URL))"
+	@echo "  make db-down          Stop local Postgres and clear the local dev DB volume"
+	@echo "  make db-reset         Reset local Postgres volume and restart it"
+	@echo "  make db-health        Check local Postgres readiness"
+	@echo "  make dev-db-init      Reset local DB, refresh non-DB secrets, and run migrations"
 	@echo "  make migrate          flask db upgrade (operators only; see warning in recipe)"
 	@echo "  make test / test-all Client + Server tests"
 	@echo "  make test-fe          Client Vitest (pnpm test:run)"
@@ -86,6 +92,24 @@ clean-caches:
 
 secrets:
 	bash "$(ROOT)/Server/scripts/secrets.sh" "$(REGION)" "$(PROFILE)"
+
+db-up:
+	docker compose up -d postgres
+
+db-down:
+	docker compose down --volumes --remove-orphans
+
+db-reset:
+	$(MAKE) db-down
+	$(MAKE) db-up
+
+db-health:
+	docker compose exec -T postgres pg_isready -U silverkey -d silverkey_dev
+
+dev-db-init:
+	$(MAKE) db-reset
+	$(MAKE) secrets
+	$(MAKE) migrate
 
 migrate:
 	@echo "-----------------------------------------------------------------"

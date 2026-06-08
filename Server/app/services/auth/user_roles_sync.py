@@ -14,11 +14,12 @@ from app.models import UserRole
 _GATE_ROLES = frozenset({"admin", "super_admin"})
 
 # Client workspace / agent-client kinds driven by preferences.
-_CLIENT_ROLES = frozenset({"buyer", "seller", "investor", "agent"})
+_CLIENT_ROLES = frozenset({"buyer", "seller", "renter", "investor", "agent"})
 
 _WHY_JOIN_TO_ROLE: dict[str, str] = {
     "buying_house": "buyer",
     "selling_house": "seller",
+    "renting_house": "renter",
     "investor": "investor",
 }
 

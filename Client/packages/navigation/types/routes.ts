@@ -42,3 +42,6 @@ export const ROUTES = {
   // Legacy redirects
   APP: "/app/*",
 } as const;
+
+/** Default landing path after sign-in for all roles. */
+export const DEFAULT_AUTHENTICATED_PATH = "/dashboard" as const;

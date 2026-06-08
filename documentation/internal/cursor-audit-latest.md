@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change. After cross-cutting architecture or feature work, also follow [post-major-change-checklist.md](./post-major-change-checklist.md) so docs and this inventory stay aligned.
 
-**Last regenerated:** 2026-06-04 (Pruned low-use fleet agents: 27 removed — all `silverkey-docs-*`, `silverkey-frontend-reorg-*`, `silverkey-backend-reorg-*` plus three orchestration skills. **19** agents, **14** skills remain.)
+**Last regenerated:** 2026-06-07 (Added scoped `shared/local-dev-database.mdc` rule and Claude/Codex adapters for local DB reset/secrets/deploy boundaries. **19** agents, **14** skills remain.)
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -10,7 +10,7 @@
 | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | `pnpm typecheck`, `pnpm lint`, `pnpm lint:cycles`, `pnpm format:check`, `pnpm check`, `pnpm test:run` | [Client/package.json](../../Client/package.json)               |
 | `./scripts/ci/run-all-linters.sh [client\|server\|all]`, `make lint`                                  | [scripts/ci/run-all-linters.sh](../../scripts/ci/run-all-linters.sh), [Makefile](../../Makefile) |
-| `make setup`, `make dev`, `make test-fe`, `make test-be`, `make openapi`, `make openapi-verify`   | [Makefile](../../Makefile)                                     |
+| `make setup`, `make dev-db-init`, `make dev`, `make test-fe`, `make test-be`, `make openapi`, `make openapi-verify` | [Makefile](../../Makefile)                                     |
 
 Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/package.json`).
 
@@ -78,6 +78,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `shared/code-style.mdc`                   | — → **yes**                | (always-on)                             | Stack, Linear commits, verification            |
 | `shared/respa-compliance.mdc`             | — → **no**                 | partners, placement, concierge, financing/insurance/closing | RESPA guardrails for partner code |
 | `shared/pitch-and-fundraising.mdc`        | — → **no**                 | pitch, deck, investor, fundraising globs | Deck-aligned numbers and tone      |
+| `shared/local-dev-database.mdc`           | — → **no**                 | Makefile, compose, setup/secrets scripts, Postgres ops docs | Local DB reset/init stays in Make/setup; deploy secrets stay in `.github/scripts/*` |
 | `shared/post-major-change-sync.mdc`         | no → **no**                | Client/apps/**, Client/packages/**, openapi/**, Server/app/** | Same-PR / fast-follow docs + rules sync after major architecture |
 | `shared/monorepo.mdc`                       | yes → **no**               | \*_/_                                   | Context budget                                  |
 | `shared/ci-gates.mdc`                       | yes → **no**               | .github/workflows/**, Client/**         |                                                 |
@@ -108,7 +109,7 @@ Canonical content stays in `.cursor/`. Claude Code loads `@` stubs from `.claude
 | Path | Count | Status | Notes |
 | ---- | ----- | ------ | ----- |
 | `.claude/settings.json` | 1 | keep | Adapter permissions config |
-| `.claude/rules/*.md` | 42 | keep | `@` stub → `.cursor/rules/**/*.mdc` |
+| `.claude/rules/*.md` | 43 | keep | `@` stub → `.cursor/rules/**/*.mdc` |
 | `.claude/agents/*.md` | 19 | keep | `@` stub → `.cursor/agents/<name>.md` |
 | `.claude/skills/*/SKILL.md` | 14 | keep | `@` stub → `.cursor/skills/<name>/SKILL.md` (parity with `.cursor/skills/`) |
 
@@ -120,7 +121,7 @@ Canonical content stays in `.cursor/`. Codex loads project config when the repo 
 | ---- | ----- | ------ | ----- |
 | `.codex/README.md` | 1 | keep | Adapter map; edit `.cursor/` first |
 | `.codex/config.toml` | 1 | keep | `file_opener`, `project_doc_max_bytes`, `[agents]` |
-| `.codex/rules/*.md` | 42 | keep | `@` stub → `.cursor/rules/**/*.mdc`; mirrors `.claude/rules/` |
+| `.codex/rules/*.md` | 43 | keep | `@` stub → `.cursor/rules/**/*.mdc`; mirrors `.claude/rules/` |
 | `.codex/rules/README.md` | 1 | keep | Adapter index |
 | `.codex/agents/*.toml` | 19 | keep | `developer_instructions` → `.cursor/agents/<name>.md` |
 | `.agents/skills/*/SKILL.md` | 14 | keep | `@` stub → `.cursor/skills/<name>/SKILL.md` |

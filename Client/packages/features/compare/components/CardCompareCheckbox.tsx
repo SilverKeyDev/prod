@@ -12,8 +12,8 @@ export type CardCompareCheckboxProps = {
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   ariaLabel?: string;
-  /** Icon when not selected. Default `plus` (compare / add). Use `search` when the affordance is “find / add from search” until a bottom dock is open. */
-  unselectedIcon?: "plus" | "search";
+  /** Icon when not selected. Default `plus` (compare / add). Use `share` for agent share-bundle selection; use `plus` when a bottom share dock is already open. */
+  unselectedIcon?: "plus" | "search" | "share";
 };
 /** Same sizing as CardHeartSave for consistent overlay buttons across all breakpoints */
 const TOGGLE_SIZE: Record<NonNullable<CardCompareCheckboxProps["size"]>, string> = {
@@ -58,7 +58,8 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
   // Check if this is being used as an inline button (no position specified or position is not absolute)
   const isInlineButton =
     !position || className.includes("border") || className.includes("rounded-md");
-  const unselectedGlyph = unselectedIcon === "search" ? "search" : "plus";
+  const unselectedGlyph =
+    unselectedIcon === "search" ? "search" : unselectedIcon === "share" ? "share" : "plus";
   const defaultAriaLabel = isSelected ? "Remove from comparison" : "Add to comparison";
   const resolvedAriaLabel = ariaLabel ?? defaultAriaLabel;
 

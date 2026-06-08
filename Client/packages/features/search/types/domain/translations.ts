@@ -68,12 +68,10 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
     "No homes match your search yet. Try adjusting your preferences.",
   "search.empty_results_strict_preferences":
     'No homes matched with strict preferences on. Try turning off "Match all preferences strictly," or relax your filters and search again.',
-  "search.need_locations_or_place":
-    "Add important locations in Filters, or enter a city, neighborhood, or ZIP to search.",
   "search.invalid_search_area":
     "We couldn’t build a search area from your locations. Add or fix important locations in Filters, then try again.",
-  "search.geolocation_denied_default_market":
-    "Location access was off. Showing homes near Atlanta until you add important locations or pick an area on the map.",
+  "search.geolocation_denied_blocks_search":
+    "Allow location access to search, or enter a city, neighborhood, or ZIP.",
   "search.geolocation_unavailable_default_market":
     "We couldn’t use your location. Showing homes near Atlanta until you pick an area on the map.",
   "search.viewport_search_area_invalid":
@@ -121,17 +119,9 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   /** Product tour (driver.js): keyed copy for future locale bundles — see `packages/utils/transaction/tour/productTourSteps`. */
   "search.product_tour.desktop.preferences_title": "Preferences",
   "search.product_tour.desktop.preferences_description":
-    "Open Preferences for budgets, beds and baths, commute and important locations, and the other fields that shape your matches. Changes save to your profile.",
-
-  "search.product_tour.desktop.display_title": "Display",
-  "search.product_tour.desktop.display_description":
-    "Open Display to change how results are ordered and sorted, toggle show commute area on the map, and turn match all preferences strictly on or off.",
+    "Open Preferences for budgets, beds and baths, commute and important locations, how results are ordered and shown on the map, and the other fields that shape your matches. Changes save to your profile.",
 
   "search.product_tour.mobile.preferences_title": "Filters",
   "search.product_tour.mobile.preferences_description":
-    "Open Filters for the same preference controls as on desktop—budget, home details, commute and locations, and more. They stay in sync with your profile.",
-
-  "search.product_tour.mobile.display_title": "Display",
-  "search.product_tour.mobile.display_description":
-    "Open Display for order by, sort direction, show commute area, and match all preferences strictly—the same options as on larger screens.",
+    "Open Filters for the same preference controls as on desktop—budget, home details, commute and locations, result ordering, and more. They stay in sync with your profile.",
 };

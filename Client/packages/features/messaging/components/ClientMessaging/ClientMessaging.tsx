@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 
-import type { ReactNode, UIEvent } from "react";
+import type { ReactNode } from "react";
 
 import MessagingModals from "packages/features/messaging/components/layout/chrome/MessagingModals";
 import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
@@ -19,7 +19,7 @@ import {
 import { Box } from "packages/ui/components/structure/primitives";
 import { screenUp } from "packages/ui/types/screens";
 import { traceLazyImport } from "packages/utils/core/perf/shellRouteLoadTiming";
-import { getDocument, getWindow } from "packages/utils/core/platform";
+import { getDocument } from "packages/utils/core/platform";
 
 import { Region } from "@/components/ui";
 import { ConnectionRequestsInboxSidebar } from "@/features/agent/components/messaging/chrome";
@@ -157,26 +157,11 @@ export default function ClientMessaging({
     sendSharedDocument,
   });
 
-  const { messagesEndRef } = useMessageScroll(
+  const { messagesEndRef, handleMessageListScroll } = useMessageScroll(
     localMessages,
     activeConversationId,
-    isLoadingHistory
-  );
-
-  const loadOlderGuardRef = useRef(false);
-  const handleMessageListScroll = useCallback(
-    (e: UIEvent<HTMLDivElement>) => {
-      if (!hasMoreOlder || isLoadingOlder) return;
-      if (e.currentTarget.scrollTop > 120) return;
-      if (loadOlderGuardRef.current) return;
-      loadOlderGuardRef.current = true;
-      void loadOlderMessages().finally(() => {
-        getWindow()?.setTimeout(() => {
-          loadOlderGuardRef.current = false;
-        }, 400);
-      });
-    },
-    [hasMoreOlder, isLoadingOlder, loadOlderMessages]
+    isLoadingHistory,
+    { hasMoreOlder, isLoadingOlder, loadOlderMessages }
   );
 
   const handleSendMessage = useCallback(async () => {
@@ -257,6 +242,7 @@ export default function ClientMessaging({
       <Box className="relative flex h-full w-full overflow-hidden">
         <MessagingSidebarShell
           isSidebarExpanded={isSidebarExpanded}
+          onOverlayDismiss={() => setIsSidebarExpanded(false)}
           header={
             <UnifiedMessagingHeader
               mode={showInbox ? "connection-requests" : "agents"}

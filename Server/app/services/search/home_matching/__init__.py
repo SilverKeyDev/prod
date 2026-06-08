@@ -19,10 +19,6 @@ __author__ = "SilverKey Team"
 
 __all__ = [
     "find_best_matches",
-    "score_single_match",
-    "compare_homes_for_user",
-    "batch_match_users",
-    "get_system_info",
 ]
 
 _LAZY_EXPORT_NAMES = frozenset(__all__)

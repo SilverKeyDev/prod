@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import type { AlignedRowItem, AlignedRowProps } from "./alignedRowTypes";
 
 export const GAP_CLASSES: Record<NonNullable<AlignedRowProps["gap"]>, string> = {
@@ -53,27 +55,66 @@ export function getContainerAwareLayoutClass(
   return containerWidthPx < bp ? "flex-col" : "flex-row";
 }
 
-export function getResponsiveWidthClasses(width: number, breakIntoRows: BreakIntoRows): string {
-  if (breakIntoRows === "never") return "";
-  const map: Record<Exclude<BreakIntoRows, "never">, string> = {
-    sm: `w-full sm:w-[${width}%]`,
-    md: `w-full md:w-[${width}%]`,
-    lg: `w-full lg:w-[${width}%]`,
-    xl: `w-full xl:w-[${width}%]`,
-  };
-  return map[breakIntoRows];
+/**
+ * Whether items stack vertically. `undefined` means container width is not measured yet —
+ * use viewport-based responsive classes on items.
+ */
+export function isAlignedRowStacked(
+  breakIntoRows: BreakIntoRows,
+  containerWidthPx: number | undefined
+): boolean | undefined {
+  if (breakIntoRows === "never") return false;
+  if (containerWidthPx === undefined) return undefined;
+  return containerWidthPx < getViewportBreakpointPx(breakIntoRows);
 }
 
+const RESPONSIVE_ROW_ITEM_CLASSES: Record<Exclude<BreakIntoRows, "never">, string> = {
+  sm: "w-full min-w-0 sm:flex-1",
+  md: "w-full min-w-0 md:flex-1",
+  lg: "w-full min-w-0 lg:flex-1",
+  xl: "w-full min-w-0 xl:flex-1",
+};
+
+export function getAlignedRowItemClassName(
+  breakIntoRows: BreakIntoRows,
+  containerWidthPx: number | undefined
+): string {
+  const stacked = isAlignedRowStacked(breakIntoRows, containerWidthPx);
+  if (stacked === true) return "w-full min-w-0";
+  if (stacked === false) return "min-w-0 flex-1";
+  if (breakIntoRows === "never") return "min-w-0 flex-1";
+  return RESPONSIVE_ROW_ITEM_CLASSES[breakIntoRows];
+}
+
+export function getAlignedRowItemStyle(
+  width: number,
+  breakIntoRows: BreakIntoRows,
+  containerWidthPx: number | undefined,
+  hasCustomWidths: boolean
+): CSSProperties | undefined {
+  if (!hasCustomWidths) return undefined;
+
+  const stacked = isAlignedRowStacked(breakIntoRows, containerWidthPx);
+  if (stacked === true) return undefined;
+  if (stacked === undefined && breakIntoRows !== "never") return undefined;
+
+  return { flex: `${width} 1 0` };
+}
+
+/** @deprecated Use getAlignedRowItemClassName — kept for tests migrating off percent widths. */
+export function getResponsiveWidthClasses(width: number, breakIntoRows: BreakIntoRows): string {
+  void width;
+  return getAlignedRowItemClassName(breakIntoRows, undefined);
+}
+
+/** @deprecated Use getAlignedRowItemClassName — kept for tests migrating off percent widths. */
 export function getContainerAwareItemWidthClasses(
   width: number,
   breakIntoRows: BreakIntoRows,
   containerWidthPx: number | undefined
 ): string {
-  if (breakIntoRows === "never") return "";
-  if (containerWidthPx === undefined) return getResponsiveWidthClasses(width, breakIntoRows);
-  const bp = getViewportBreakpointPx(breakIntoRows);
-  if (containerWidthPx < bp) return "w-full";
-  return `w-[${width}%]`;
+  void width;
+  return getAlignedRowItemClassName(breakIntoRows, containerWidthPx);
 }
 
 export function calculateElementWidths(itemCount: number, widths?: number[]): number[] {

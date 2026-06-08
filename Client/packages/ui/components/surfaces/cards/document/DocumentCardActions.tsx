@@ -8,6 +8,7 @@ import DeleteModal from "@ui/modals/standalone/DeleteModal";
 import { useLocalization } from "packages/contexts";
 import PdfModal from "packages/features/documents/components/pdf/PdfModalBridge";
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
+import { showErrorToast } from "packages/hooks/ui";
 import { Portal } from "packages/ui/components/structure/portal";
 import { Box } from "packages/ui/components/structure/primitives";
 
@@ -36,7 +37,7 @@ function DocumentCardActionButtons({
   layout = "card",
 }: {
   doc: DocumentData;
-  onViewDocument: (id: string, filename: string) => void;
+  onViewDocument: () => void;
   onDownloadDocument: (id: string, filename: string) => void;
   onShareDocument: (id: string, filename: string) => void;
   onSendForSignature?: (document: DocumentData) => void;
@@ -68,7 +69,7 @@ function DocumentCardActionButtons({
         <Button
           variant="primary"
           size="sm"
-          onClick={() => onViewDocument(doc.id, doc.filename)}
+          onClick={onViewDocument}
           icon={<Icon name="eye" size={16} />}
           fullWidth={!isList}
           className={primaryClass}
@@ -149,9 +150,12 @@ export default function DocumentCardActions({
 }: DocumentCardActionsProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const internal = useDocumentActions();
+  const isAgreement = doc.library_kind === "agreement";
   const handleViewDocument = externalActionHandlers
     ? externalActionHandlers.handleViewDocument
-    : internal.handleViewDocument;
+    : isAgreement
+      ? undefined
+      : internal.handleViewDocument;
   const handleDownloadDocument = externalActionHandlers
     ? externalActionHandlers.handleDownloadDocument
     : internal.handleDownloadDocument;
@@ -161,14 +165,23 @@ export default function DocumentCardActions({
   const handleSendForSignature = externalActionHandlers?.handleSendForSignature;
   const handleSignNow = externalActionHandlers?.handleSignNow;
   const isAgent = externalActionHandlers?.isAgent ?? false;
-  const showInlinePdfModal = !externalActionHandlers && internal.currentPdf;
+  const showInlinePdfModal = !externalActionHandlers && internal.currentPdf && !isAgreement;
+
+  const openDocumentViewer = () => {
+    if (handleViewDocument) {
+      handleViewDocument(doc.id, doc.filename);
+      return;
+    }
+    if (isAgreement) {
+      showErrorToast("Unable to open agreement viewer. Refresh and try again.");
+    }
+  };
   const handleDeleteConfirm = () => {
     onDelete?.(doc);
     setIsDeleteModalOpen(false);
   };
 
   // Determine modal text based on whether document is from another user and if it's an agreement
-  const isAgreement = doc.library_kind === "agreement";
   const deleteTitle = isFromOtherUser || isAgreement ? "Remove Document" : "Delete Document";
   const deleteMessage = isAgreement
     ? "Are you sure you want to remove this agreement from your library? This will not delete the agreement from DocuSign."
@@ -180,7 +193,7 @@ export default function DocumentCardActions({
     <>
       <DocumentCardActionButtons
         doc={doc}
-        onViewDocument={handleViewDocument}
+        onViewDocument={openDocumentViewer}
         onDownloadDocument={handleDownloadDocument}
         onShareDocument={handleShareDocument}
         onSendForSignature={handleSendForSignature}

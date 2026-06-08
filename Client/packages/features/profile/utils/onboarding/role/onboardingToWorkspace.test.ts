@@ -3,53 +3,22 @@ import { describe, expect, it } from "vitest";
 import { deriveAllowedWorkspaces } from "packages/utils/product/workspace/deriveAllowedWorkspaces";
 
 import { applyOnboardingRoleSelection } from "./onboardingRoleSelection";
-import {
-  isPlaceholderShellOnboardingRole,
-  postOnboardingTargetForPrimaryRole,
-} from "./onboardingToWorkspace";
+import { postOnboardingWorkspaceForPrimaryRole } from "./onboardingToWorkspace";
 
-describe("postOnboardingTargetForPrimaryRole", () => {
-  it("routes placeholder shell roles to dashboard workspace", () => {
-    expect(postOnboardingTargetForPrimaryRole("seller")).toEqual({
-      workspace: "seller",
-      path: "/dashboard",
-    });
-    expect(postOnboardingTargetForPrimaryRole("brokerage")).toEqual({
-      workspace: "brokerage",
-      path: "/dashboard",
-    });
-    expect(postOnboardingTargetForPrimaryRole("integration_partner")).toEqual({
-      workspace: "integration_partner",
-      path: "/dashboard",
-    });
+describe("postOnboardingWorkspaceForPrimaryRole", () => {
+  it("maps each primary onboarding role to its workspace", () => {
+    expect(postOnboardingWorkspaceForPrimaryRole("seller")).toBe("seller");
+    expect(postOnboardingWorkspaceForPrimaryRole("renter")).toBe("renter");
+    expect(postOnboardingWorkspaceForPrimaryRole("brokerage")).toBe("brokerage");
+    expect(postOnboardingWorkspaceForPrimaryRole("integration_partner")).toBe(
+      "integration_partner"
+    );
+    expect(postOnboardingWorkspaceForPrimaryRole("buyer")).toBe("buyer");
+    expect(postOnboardingWorkspaceForPrimaryRole("agent")).toBe("agent");
   });
 
-  it("routes buyer and agent to search", () => {
-    expect(postOnboardingTargetForPrimaryRole("buyer")).toEqual({
-      workspace: "buyer",
-      path: "/search",
-    });
-    expect(postOnboardingTargetForPrimaryRole("agent")).toEqual({
-      workspace: "agent",
-      path: "/search",
-    });
-  });
-
-  it("defaults unknown role to buyer search", () => {
-    expect(postOnboardingTargetForPrimaryRole(undefined)).toEqual({
-      workspace: "buyer",
-      path: "/search",
-    });
-  });
-});
-
-describe("isPlaceholderShellOnboardingRole", () => {
-  it("identifies shell workspace roles", () => {
-    expect(isPlaceholderShellOnboardingRole("seller")).toBe(true);
-    expect(isPlaceholderShellOnboardingRole("brokerage")).toBe(true);
-    expect(isPlaceholderShellOnboardingRole("integration_partner")).toBe(true);
-    expect(isPlaceholderShellOnboardingRole("buyer")).toBe(false);
-    expect(isPlaceholderShellOnboardingRole("agent")).toBe(false);
+  it("defaults unknown role to buyer workspace", () => {
+    expect(postOnboardingWorkspaceForPrimaryRole(undefined)).toBe("buyer");
   });
 });
 
@@ -80,13 +49,23 @@ describe("onboarding role to workspace derivation", () => {
     expect(allowed).toContain("agent");
   });
 
-  it("seller selection maps to seller dashboard target", () => {
+  it("seller selection maps to seller workspace", () => {
     const patches: Record<string, unknown> = {};
     applyOnboardingRoleSelection("seller", (k, v) => {
       patches[k] = v;
     });
 
     expect(patches.primary_onboarding_role).toBe("seller");
-    expect(postOnboardingTargetForPrimaryRole("seller").workspace).toBe("seller");
+    expect(postOnboardingWorkspaceForPrimaryRole("seller")).toBe("seller");
+  });
+
+  it("renter selection maps to renter workspace", () => {
+    const patches: Record<string, unknown> = {};
+    applyOnboardingRoleSelection("renter", (k, v) => {
+      patches[k] = v;
+    });
+
+    expect(patches.primary_onboarding_role).toBe("renter");
+    expect(postOnboardingWorkspaceForPrimaryRole("renter")).toBe("renter");
   });
 });

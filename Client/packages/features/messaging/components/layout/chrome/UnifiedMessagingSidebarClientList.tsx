@@ -7,11 +7,11 @@ import { useLocalization } from "packages/contexts";
 import {
   agentClientKindTranslationKey,
   type AgentClientSortMode,
+  getMessagingConfig,
+  type MessagingMode,
   pipelineStageTranslationKey,
   sortAgentClients,
 } from "packages/features/agent";
-import type { MessagingMode } from "packages/features/agent/components/messaging/screen/messagingConfig";
-import { getMessagingConfig } from "packages/features/agent/components/messaging/screen/messagingConfig";
 import { getMessagePreview } from "packages/features/messaging";
 import { Box } from "packages/ui/components/structure/primitives";
 import {

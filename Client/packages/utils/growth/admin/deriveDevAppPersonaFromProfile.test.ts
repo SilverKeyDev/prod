@@ -49,6 +49,14 @@ describe("deriveDevAppPersonaFromProfile", () => {
     ).toBe("seller");
   });
 
+  it("returns renter when only renter role in client mode", () => {
+    expect(
+      deriveDevAppPersonaFromProfile({
+        roles: ["renter"],
+      })
+    ).toBe("renter");
+  });
+
   it("returns buyer when only buyer role in client mode", () => {
     expect(
       deriveDevAppPersonaFromProfile({

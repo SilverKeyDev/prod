@@ -1,3 +1,4 @@
+export { AdminAnalyticsSection } from "./analytics/AdminAnalyticsSection";
 export { AdminDevPersonaSection } from "./devPersona/AdminDevPersonaSection";
 export { DevPersonaActiveBanner } from "./devPersona/DevPersonaActiveBanner";
 export { AdminLoggingSections } from "./logging/AdminLoggingSections";

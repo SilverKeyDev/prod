@@ -5,6 +5,7 @@ import Loading from "@ui/asset/loading/Loading";
 import type { AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
 import {
+  type DocumentData,
   useDocumentActions,
   useDocumentsDataIntegration,
   useFormsLibrary,
@@ -108,7 +109,24 @@ export default function UnifiedMessagesList({
     onAgreementSigningComplete,
     openAgreementPdfViewer,
     signAgreementNow,
+    handleViewDocument: documentListView,
+    handleDownloadDocument: documentListDownload,
+    handleShareDocument: documentListShare,
   } = useDocumentsDataIntegration(undefined, documentHandlers);
+
+  const sharedDocumentActionHandlers = useMemo(
+    () => ({
+      handleViewDocument: documentListView,
+      handleDownloadDocument: documentListDownload,
+      handleShareDocument: documentListShare,
+      handleSignNow: (document: DocumentData) => {
+        void signAgreementNow(document).catch((err: unknown) => {
+          showErrorToast(err instanceof Error ? err.message : "Failed to open signing");
+        });
+      },
+    }),
+    [documentListView, documentListDownload, documentListShare, signAgreementNow]
+  );
 
   const {
     categories: formsLibraryCategories,
@@ -233,6 +251,7 @@ export default function UnifiedMessagesList({
           t={t}
           openSharedHomeDetails={openSharedHomeDetails}
           onRetryMessage={onRetryMessage}
+          sharedDocumentActionHandlers={sharedDocumentActionHandlers}
         />
       ))}
       <UnifiedMessagesListOverlays

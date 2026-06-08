@@ -21,7 +21,7 @@ const BUYER_WEB_SNAPSHOT = [
   { id: "financial", title: "Finance" },
 ];
 
-const BUYER_MOBILE_SNAPSHOT = BUYER_WEB_SNAPSHOT.filter((s) => s.id !== "financial");
+const BUYER_MOBILE_SNAPSHOT = BUYER_WEB_SNAPSHOT;
 
 const AGENT_SNAPSHOT = [
   { id: "onboarding_role", title: "Who I am" },
@@ -53,7 +53,6 @@ describe("onboarding flow snapshots (buyer and agent parity)", () => {
       stepSnapshot(
         buildOnboardingFlowFromOptions({
           primaryRole: "buyer",
-          excludeFinancial: true,
           platform: "mobile",
         })
       )
@@ -87,6 +86,13 @@ describe("onboarding flow snapshots (buyer and agent parity)", () => {
     expect(stepSnapshot(getOnboardingSteps({ primaryRole: "seller" }))).toEqual(
       SHELL_FLOW_SNAPSHOT
     );
+  });
+
+  it("renter web — shell onboarding snapshot", () => {
+    expect(stepSnapshot(getOnboardingSteps({ primaryRole: "renter" }))).toEqual([
+      { id: "onboarding_role", title: "Who I am" },
+      { id: "renter_shell_setup", title: "Renter setup" },
+    ]);
   });
 
   it("brokerage web — shell onboarding snapshot", () => {

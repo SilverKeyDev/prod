@@ -1,4 +1,5 @@
 export { default as AlignedRow } from "./AlignedRow";
+export { ResponsiveEqualColumns } from "./ResponsiveEqualColumns";
 export {
   SelectionBottomDock,
   type SelectionBottomDockItem,

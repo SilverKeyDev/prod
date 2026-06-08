@@ -1,29 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AccountLogoutAction } from "packages/features/homeauth/components/account/AccountLogoutAction";
-import { getPersonalizationStepsUi } from "packages/features/profile/components/profilePicture/profileStepsUi";
 import { buildProfileUnderlineTabItems } from "packages/features/profile/components/profileScreen/buildProfileUnderlineTabItems";
 import { validateProfilePhotoFile } from "packages/features/profile/components/profileScreen/profilePhotoValidation";
-import { ProfileScreenActiveSectionPanel } from "packages/features/profile/components/profileScreen/ProfileScreenActiveSectionPanel";
 import { ProfileScreenPhotoFileInput } from "packages/features/profile/components/profileScreen/ProfileScreenPhotoFileInput";
 import { ProfileScreenPreferenceToolbar } from "packages/features/profile/components/profileScreen/ProfileScreenPreferenceToolbar";
-import { AgentPublicProfileShareRow } from "packages/features/profile/components/profileScreen/sections/privacy/AgentPublicProfileShareRow";
-import type { OnboardingData } from "packages/features/profile/utils";
-import {
-  getProfileSectionCompletion,
-  handleSubmit as handleSubmitUtil,
-  isAgentIdentityForProfileUi,
-  nextPreferencesVersion,
-  resolveAgentPublicProfileShare,
-  userPreferencesToOnboardingData,
-} from "packages/features/profile/utils";
-import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
+import { ProfileSectionPanel } from "packages/features/profile/components/profileScreen/ProfileSectionPanel";
+import { AgentPublicProfileShareRow } from "packages/features/profile/components/profileScreen/tabs/privacy/AgentPublicProfileShareRow";
+import { useProfilePersonalizationModel } from "packages/features/profile/hooks/useProfilePersonalizationModel";
+import { getProfileSectionCompletion } from "packages/features/profile/utils";
 import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePictureUpload";
-import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { showErrorToast } from "packages/hooks/ui";
 import { log } from "packages/logger";
-import { useAuthStore } from "packages/store";
 import { Box, Loading, ScrollView, Text } from "packages/ui/components/structure/primitives";
 import { UnderlineTabs } from "packages/ui/components/structure/tabs";
 import { isWeb } from "packages/utils/core/platform";
@@ -34,81 +22,55 @@ export type ProfileScreenProps = {
 };
 
 export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
-  const { userProfile } = useUserData();
-  const { userPreferences, preferencesLoading, preferencesError, refreshUserPreferences } =
-    useUserPreferences(
-      agentSubject != null ? { preferencesSubjectUserId: agentSubject.userId } : undefined
-    );
-  const submitPreferences = usePreferencesSubmit();
-  const {
-    uploadProfilePicture,
-    isUploading: isUploadingProfilePicture,
-    error: profilePictureError,
-  } = useProfilePictureUpload();
-
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
-
-  const [formData, setFormData] = useState<OnboardingData>({});
-  const [originalData, setOriginalData] = useState<OnboardingData>({});
-  const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validationResult, setValidationResult] = useState<{
     missingFields: string[];
     errors: string[];
   }>({ missingFields: [], errors: [] });
   const [showValidationWarning, setShowValidationWarning] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("demographics");
 
-  const isAgent = useIsAgent();
-  const authUser = useAuthStore((s) => s.user);
-
-  const profileForSync = useMemo(
-    () => (agentSubject != null ? { name: agentSubject.displayName } : (userProfile ?? undefined)),
-    [agentSubject, userProfile]
-  );
-
-  const isAgentForProfileUi = useMemo(
-    () =>
-      agentSubject != null
-        ? isAgentIdentityForProfileUi(false, { roles: [] })
-        : isAgentIdentityForProfileUi(isAgent, userProfile),
-    [agentSubject, isAgent, userProfile]
-  );
   const {
-    show: showAgentPublicProfileShare,
-    agentId: agentPublicProfileUserId,
-    displayName: agentPublicProfileDisplayName,
-  } = useMemo(
-    () =>
-      agentSubject != null
-        ? { show: false, agentId: "", displayName: null as string | null }
-        : resolveAgentPublicProfileShare({
-            storeIsAgent: isAgent,
-            authUser,
-            userProfile,
-          }),
-    [agentSubject, isAgent, authUser, userProfile]
-  );
-  const STEPS = useMemo(() => {
-    const base = getPersonalizationStepsUi(isAgentForProfileUi);
-    if (agentSubject != null) {
-      return base.filter((s) => s.id !== "privacy_data");
-    }
-    return base;
-  }, [isAgentForProfileUi, agentSubject]);
-  const [activeSection, setActiveSection] = useState<string>(STEPS[0]?.id ?? "demographics");
-  const hasInitializedFormRef = useRef(false);
+    uploadProfilePicture,
+    isUploading: isUploadingProfilePicture,
+    error: profilePictureError,
+  } = useProfilePictureUpload();
 
-  useEffect(() => {
-    hasInitializedFormRef.current = false;
-  }, [agentSubject?.userId]);
+  const {
+    userProfile,
+    preferencesError,
+    preferencesLoading,
+    userPreferences,
+    refreshUserPreferences,
+    STEPS,
+    formData,
+    isEditMode,
+    setIsEditMode,
+    effectiveEditMode,
+    isAgentForProfileUi,
+    showAgentPublicProfileShare,
+    agentPublicProfileUserId,
+    agentPublicProfileDisplayName,
+    updateField,
+    patchBuyerPreferenceExtensions,
+    handleCancel,
+    handleSave,
+  } = useProfilePersonalizationModel({
+    agentSubject,
+    setLoading,
+    setValidationResult,
+    setShowValidationWarning,
+    onSaveSuccess: () => {
+      void refreshUserPreferences();
+    },
+  });
 
   useEffect(() => {
     if (STEPS.length > 0 && !STEPS.some((s) => s.id === activeSection)) {
       setActiveSection(STEPS[0]?.id ?? "demographics");
     }
   }, [STEPS, activeSection]);
-
-  const effectiveEditMode = agentSubject != null ? false : isEditMode;
 
   const sectionCompletion = useMemo(() => getProfileSectionCompletion(formData), [formData]);
   const currentStep = useMemo(
@@ -163,81 +125,9 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
     }
   }, [showValidationWarning, validationResult]);
 
-  useEffect(() => {
-    if (preferencesLoading) return;
-    if (hasInitializedFormRef.current) return;
-    hasInitializedFormRef.current = true;
-    const data = userPreferencesToOnboardingData(
-      userPreferences ? (userPreferences as Record<string, unknown>) : null,
-      profileForSync
-    );
-    setFormData(data);
-    setOriginalData(data);
-  }, [preferencesLoading, userPreferences, profileForSync]);
-
-  useEffect(() => {
-    if (agentSubject != null) return;
-    if (!hasInitializedFormRef.current) return;
-    const nameFromProfile =
-      userProfile != null && typeof userProfile.name === "string" && userProfile.name.trim() !== ""
-        ? userProfile.name.trim()
-        : undefined;
-    if (!nameFromProfile) return;
-    setFormData((prev) => (prev.name ? prev : { ...prev, name: nameFromProfile }));
-    setOriginalData((prev) => (prev.name ? prev : { ...prev, name: nameFromProfile }));
-  }, [agentSubject, userProfile]);
-
-  const updateField = useCallback((field: keyof OnboardingData, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
-
-  const patchBuyerPreferenceExtensions = useCallback(
-    (
-      fn: (
-        prev: OnboardingData["buyerPreferenceExtensions"]
-      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>
-    ) => {
-      setFormData((prev) => ({
-        ...prev,
-        buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
-      }));
-    },
-    []
-  );
-
   const handleStartEdit = useCallback(() => {
     setIsEditMode(true);
-  }, []);
-
-  const handleCancel = useCallback(() => {
-    setFormData(originalData);
-    setIsEditMode(false);
-  }, [originalData]);
-
-  const handleSave = useCallback(async () => {
-    const newVersion = nextPreferencesVersion(formData.preferences_version);
-
-    const dataToSave: OnboardingData = {
-      ...formData,
-      preferences_version: newVersion,
-    };
-
-    await handleSubmitUtil({
-      formData: dataToSave,
-      submitPreferences,
-      setLoading,
-      setValidationResult,
-      setShowValidationWarning,
-      skipValidation: true,
-      onSuccess: () => {
-        setFormData(dataToSave);
-        setOriginalData(dataToSave);
-        setIsEditMode(false);
-        void refreshUserPreferences();
-      },
-      onShowError: showErrorToast,
-    });
-  }, [formData, submitPreferences, refreshUserPreferences]);
+  }, [setIsEditMode]);
 
   if (preferencesError) {
     return (
@@ -295,7 +185,7 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
             className="mb-4"
           />
 
-          <ProfileScreenActiveSectionPanel
+          <ProfileSectionPanel
             currentStep={currentStep}
             activeSection={activeSection}
             showAvailabilityEditor={isAgentForProfileUi && agentSubject == null}

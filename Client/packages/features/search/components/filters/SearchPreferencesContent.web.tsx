@@ -1,5 +1,6 @@
 import React from "react";
 
+import { useLocalization } from "packages/contexts";
 import type { OnboardingData } from "packages/features/profile";
 import {
   LocationSection,
@@ -8,13 +9,16 @@ import {
   ProfileHousingRangesSection,
   ProfileSearchPropertySection,
 } from "packages/features/profile";
+import { SearchDisplayPanelWeb } from "packages/features/search/components/header/display/SearchDisplayPanel.web";
 import { useIsAgent } from "packages/hooks/store";
 import { Box } from "packages/ui/components/structure/primitives";
 
+import { Title } from "@/components/ui";
 import AgentSearchPreferencesSyncPanel from "@/features/agent/components/search/AgentSearchPreferencesSyncPanel.web";
 
 import { ClearPreferencesButton } from "./ClearPreferencesButton";
 import PriceRangeFilter from "./PriceRangeFilter.web";
+import { SearchStrictPreferencesControlWeb } from "./SearchStrictPreferencesControl.web";
 
 export type SearchPreferencesContentProps = {
   formData: Partial<OnboardingData>;
@@ -32,6 +36,8 @@ export type SearchPreferencesContentProps = {
   replaceFormData?: (next: Partial<OnboardingData>) => void;
   cancelPendingSave?: () => void;
   onAfterClear?: () => void | Promise<void>;
+  registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
+  menuPortalStack?: "page" | "modal";
 };
 
 export default function SearchPreferencesContent({
@@ -45,7 +51,10 @@ export default function SearchPreferencesContent({
   replaceFormData,
   cancelPendingSave,
   onAfterClear,
+  registerOutsideClickSafeTarget,
+  menuPortalStack = "page",
 }: SearchPreferencesContentProps): React.ReactElement {
+  const { t } = useLocalization();
   const typedFormData = formData as OnboardingData;
   const isAgent = useIsAgent();
 
@@ -102,6 +111,18 @@ export default function SearchPreferencesContent({
         updateField={updateFormData}
         patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
       />
+
+      <SearchStrictPreferencesControlWeb />
+
+      <Box className="border-border mt-6 border-t pt-6">
+        <Title size="sm" as="h3" className="mb-4">
+          {t("search.display")}
+        </Title>
+        <SearchDisplayPanelWeb
+          registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
+          menuPortalStack={menuPortalStack}
+        />
+      </Box>
     </Box>
   );
 }

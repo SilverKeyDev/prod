@@ -12,7 +12,9 @@ from app import db
 from app.models import User, UserDemographics, UserRole
 from app.schemas.generated import DevWorkspacePersona
 
-DevWorkspacePersonaValue = Literal["buyer", "seller", "agent", "brokerage", "integration_partner"]
+DevWorkspacePersonaValue = Literal[
+    "buyer", "seller", "renter", "agent", "brokerage", "integration_partner"
+]
 
 _GATE_ROLES = frozenset({"admin", "super_admin"})
 
@@ -21,6 +23,7 @@ _PERSONA_MANAGED_ROLES = frozenset(
     {
         "buyer",
         "seller",
+        "renter",
         "investor",
         "agent",
         "brokerage_admin",
@@ -42,6 +45,7 @@ class _PersonaConfig:
 _PERSONA_CONFIG: dict[DevWorkspacePersonaValue, _PersonaConfig] = {
     "buyer": _PersonaConfig(roles=frozenset({"buyer"}), why_join=["buying_house"]),
     "seller": _PersonaConfig(roles=frozenset({"seller"}), why_join=["selling_house"]),
+    "renter": _PersonaConfig(roles=frozenset({"renter"}), why_join=["renting_house"]),
     "agent": _PersonaConfig(roles=frozenset({"agent"}), why_join=[]),
     "brokerage": _PersonaConfig(roles=frozenset({"brokerage_admin"}), why_join=[]),
     "integration_partner": _PersonaConfig(roles=frozenset({"integration_partner"}), why_join=[]),

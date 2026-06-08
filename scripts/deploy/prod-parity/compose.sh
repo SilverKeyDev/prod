@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # docker compose wrapper: loads Client/.env for interpolation; on `build`, passes
-# every Client/.env entry as --build-arg (via export-client-env-docker-build-args.mjs).
+# bundle keys as BuildKit --secret mounts (via export-client-env-docker-build-args.mjs).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -17,9 +17,14 @@ if [[ "${1:-}" == "build" ]]; then
     exit 1
   fi
   shift
-  BUILD_ARGS="$(node "$ROOT/Client/scripts/export-client-env-docker-build-args.mjs" "$CLIENT_ENV")"
+  set -o allexport
+  # shellcheck disable=SC1090
+  source "$CLIENT_ENV"
+  set +o allexport
+  export DOCKER_BUILDKIT=1
+  BUILD_SECRETS="$(node "$ROOT/Client/scripts/export-client-env-docker-build-args.mjs" "$CLIENT_ENV")"
   # shellcheck disable=SC2086
-  compose build "$@" $BUILD_ARGS
+  compose build "$@" $BUILD_SECRETS
 else
   compose "$@"
 fi

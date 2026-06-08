@@ -4,6 +4,8 @@ export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   onValueChange?: (text: string) => void;
   /** Unified a11y: maps to aria-label. Prefer over aria-label in feature code. */
   label?: string;
+  /** React Native parity: `editable={false}` maps to `disabled` on web. */
+  editable?: boolean;
   /** React Native-only; accepted for API parity but omitted from DOM on web. */
   keyboardType?: string;
 };
@@ -18,6 +20,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     onChange,
     onValueChange,
     label,
+    disabled,
+    editable,
     "aria-label": ariaLabel,
     keyboardType: _keyboardType,
     ...props
@@ -28,6 +32,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     onChange?.(e);
     onValueChange?.(e.currentTarget.value);
   };
+  const isDisabled = !(editable ?? !disabled);
 
   return (
     <input
@@ -35,6 +40,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       type="text"
       className={className}
       onChange={handleChange}
+      disabled={isDisabled}
       aria-label={label ?? ariaLabel}
       {...props}
     />

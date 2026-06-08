@@ -11,7 +11,8 @@ import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAu
 import { applyLoginResult } from "packages/features/homeauth/utils/applyLoginResult";
 import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { ROUTES } from "packages/navigation";
+import { getPostAuthDestination } from "packages/navigation/postAuthDestination";
+import { ROUTES } from "packages/navigation/types/routes";
 import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Input } from "@/components/ui";
@@ -32,28 +33,20 @@ export function LoginFeature() {
       log.error("AUTH", "Login failed, not navigating");
       return;
     }
-    const from =
-      (
-        route.state as {
-          from?: {
-            pathname?: string;
-          };
-        } | null
-      )?.from?.pathname ?? "/dashboard";
-    const safe =
-      typeof from === "string" && from.startsWith("/") && !from.startsWith("/login")
-        ? from
-        : "/dashboard";
+    const returnPath = (route.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+    const destination = getPostAuthDestination({ flow: "login", returnPath });
     applyLoginResult(result, {
       email,
       password,
       onSuccess: () => {
-        if (route.pathname !== safe) {
-          navigateToPath(safe, { replace: true });
+        if (route.pathname !== destination) {
+          navigateToPath(destination, { replace: true });
         }
       },
       onNeedsVerification: () =>
-        navigate("VERIFICATION", undefined, { state: { email, fromLogin: true } }),
+        navigate("VERIFICATION", undefined, {
+          state: { email, fromLogin: true, returnPath },
+        }),
     });
   };
   return (

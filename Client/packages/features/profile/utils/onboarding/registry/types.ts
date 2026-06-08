@@ -19,6 +19,7 @@ export type FlowTemplateId =
   | "buyer_onboarding"
   | "agent_onboarding"
   | "seller_onboarding"
+  | "renter_onboarding"
   | "brokerage_onboarding"
   | "integration_partner_onboarding"
   | "buyer_personalization"

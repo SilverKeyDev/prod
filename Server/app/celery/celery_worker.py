@@ -46,7 +46,6 @@ celery.conf.update(
         "worker_pool": _celery_worker_pool,
         "worker_concurrency": _celery_concurrency,
         "task_routes": {
-            "tasks.find_best_matches_task": {"queue": "heavy"},
             "tasks.research_property_task": {"queue": "heavy"},
             "tasks.compare_property_task": {"queue": "heavy"},
             "tasks.train_user_weights_task": {"queue": "heavy"},

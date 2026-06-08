@@ -1,3 +1,4 @@
+import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 import type { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 export const DROPDOWN_OPTION_ROW_HEIGHT_PX = 52;
@@ -34,7 +35,36 @@ export function getDropdownVariantStyles(
   return triggerVariantStyles;
 }
 
-export function getDropdownSizeStyles(size: "sm" | "md" | "lg") {
+export function getDropdownShellClasses(variant: "default" | "mobile" | "compact") {
+  if (variant === "compact") {
+    return "flex items-center cursor-pointer";
+  }
+  return "flex items-center cursor-pointer touch-friendly mobile-input";
+}
+
+export function getDropdownTextStyles(
+  variant: "default" | "mobile" | "compact",
+  getSharedInputTextStylesFn: typeof getSharedInputTextStyles
+) {
+  if (variant === "compact") {
+    return "text-gray-600 text-sm text-left leading-tight disabled:text-gray-400";
+  }
+  return (getSharedInputTextStylesFn as () => string)();
+}
+
+export function getDropdownSizeStyles(
+  size: "sm" | "md" | "lg",
+  variant: "default" | "mobile" | "compact" = "default"
+) {
+  if (variant === "compact") {
+    const compactSizeStyles = {
+      sm: `${HEADER_ROW_CONTROL_HEIGHT} px-3`,
+      md: `${HEADER_ROW_CONTROL_HEIGHT} px-4`,
+      lg: "h-12 min-h-12 max-h-12 px-5",
+    };
+    return compactSizeStyles[size];
+  }
+
   const sizeStyles = {
     sm: "h-auto min-h-9 px-3",
     md: "h-auto min-h-12 px-4",
@@ -61,15 +91,17 @@ export function buildDropdownButtonClasses(
   className?: string
 ) {
   const triggerVariantStyles = getDropdownVariantStyles(variant, noBorder, error);
-  const sizeStyles = getDropdownSizeStyles(size);
+  const shellClasses = getDropdownShellClasses(variant);
+  const textStyles = getDropdownTextStyles(variant, getSharedInputTextStylesFn);
+  const sizeStyles = getDropdownSizeStyles(size, variant);
   const errorStyles = getDropdownErrorStyles(error);
   const disabledStyles = getDropdownDisabledStyles(disabled);
 
   return [
     "w-full rounded-lg transition-all duration-200 focus:outline-none focus:ring-2",
-    "flex items-center cursor-pointer touch-friendly mobile-input",
+    shellClasses,
     "disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed",
-    (getSharedInputTextStylesFn as () => string)(),
+    textStyles,
     triggerVariantStyles,
     sizeStyles,
     errorStyles,

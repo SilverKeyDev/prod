@@ -137,6 +137,13 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
         fetchIsochrone: fetchAndCacheIsochrone,
       });
 
+      if (resolved.blocked) {
+        warnSearchAreaWarnings(resolved.warnings);
+        setIsSearching(false);
+        setSearchStage("");
+        return;
+      }
+
       warnSearchAreaWarnings(resolved.warnings);
       setSearchSource(resolved.searchSource);
 

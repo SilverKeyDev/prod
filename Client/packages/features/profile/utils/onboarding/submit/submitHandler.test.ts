@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PreferencesSubmitResult } from "packages/features/profile/types/onboarding/submitHandler";
 
-import { handleSubmit, postOnboardingPathForForm } from "./submitHandler";
+import { handleSubmit } from "./submitHandler";
 
 const { removeItemMock, patchClientSettingsMock } = vi.hoisted(() => ({
   removeItemMock: vi.fn(),
@@ -29,42 +29,6 @@ vi.mock("packages/features/homeauth/api/clientSettings", () => ({
     patch: patchClientSettingsMock,
   },
 }));
-
-describe("postOnboardingPathForForm", () => {
-  it("routes seller to dashboard", () => {
-    expect(
-      postOnboardingPathForForm({
-        primary_onboarding_role: "seller",
-        why_joining_silverkey: ["buying_house", "selling_house"],
-      })
-    ).toBe("/dashboard");
-  });
-
-  it("routes brokerage to dashboard", () => {
-    expect(
-      postOnboardingPathForForm({
-        primary_onboarding_role: "brokerage",
-      })
-    ).toBe("/dashboard");
-  });
-
-  it("routes integration partner to dashboard", () => {
-    expect(
-      postOnboardingPathForForm({
-        primary_onboarding_role: "integration_partner",
-      })
-    ).toBe("/dashboard");
-  });
-
-  it("routes buyer to search", () => {
-    expect(
-      postOnboardingPathForForm({
-        primary_onboarding_role: "buyer",
-        why_joining_silverkey: ["buying_house"],
-      })
-    ).toBe("/search");
-  });
-});
 
 describe("onboarding submission validation bypass", () => {
   beforeEach(() => {
@@ -98,7 +62,7 @@ describe("onboarding submission validation bypass", () => {
       skipValidation: true,
     });
 
-    expect(navigate).toHaveBeenCalledWith("/search");
+    expect(navigate).toHaveBeenCalledWith("/dashboard");
 
     expect(validateFunction).not.toHaveBeenCalled();
     expect(submitPreferences).toHaveBeenCalledTimes(1);

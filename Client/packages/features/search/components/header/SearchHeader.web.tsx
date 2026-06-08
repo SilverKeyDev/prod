@@ -29,7 +29,7 @@ type SearchHeaderProps = {
   onToggleMode?: () => void;
   onBeforeSwitchToReels?: () => void;
   hasSearched?: boolean;
-  /** When false, preferences Search is disabled until user adds an important location */
+  /** Display-only: whether saved important locations exist (empty-state UI, not search gating). */
   hasLocations?: boolean;
   fitMapToBounds: (bounds: google.maps.LatLngBounds) => void;
   onPreciseStreetAddressSelected?: (payload: PreciseStreetAddressPayload) => void;

@@ -10,6 +10,7 @@ Canonical reference for every script in the SilverKey monorepo. The **Makefile**
 |---|---|
 | First-time machine setup | `make setup` |
 | Refresh deps after `git pull` | `make refresh` |
+| Reset/init the local dev database | `make dev-db-init` |
 | Start full dev stack (web + backend) | `make dev` |
 | Start backend only | `make dev-backend` |
 | Run all linters (client + server) | `make lint` |
@@ -43,9 +44,9 @@ Orchestration scripts called directly from the Makefile or used by git hooks.
 
 | Script | Purpose | Called by |
 |--------|---------|-----------|
-| `setup/setup-local.sh` | First-time onboarding: deps, build, AWS SSO, secrets, verify, MCP | `make setup` |
+| `setup/setup-local.sh` | First-time onboarding: deps, build, AWS SSO, local DB init, verify, MCP | `make setup` |
 | `setup/setup-mcp.sh` | Cursor MCP config install and verify only | `make setup-mcp`; tail of `setup-local.sh` |
-| `setup/refresh.sh` | Post-`git pull` refresh: clean caches, pnpm install, bootstrap-venv, optional secrets | `make refresh` |
+| `setup/refresh.sh` | Post-`git pull` refresh: clean caches, pnpm install, bootstrap-venv, optional secrets, optional DB reset | `make refresh` |
 | `setup/check-deps.sh` | Scan local machine prerequisites | Manual |
 
 ### `ci/` — CI and quality gates
@@ -148,7 +149,8 @@ Backend-specific scripts. Activate `Server/.venv` before running Python scripts 
 |--------|---------|-----------|
 | `generate-pydantic-models.sh` | OpenAPI → `app/schemas/generated.py` | Root `openapi:generate`; `scripts/ci/sync-openapi.sh`; `.github/workflows/openapi-sync.yml` |
 | `bootstrap-venv.sh` | Create or refresh `.venv`, install requirements | `scripts/setup/setup-local.sh`; `scripts/setup/refresh.sh` |
-| `secrets.sh` | AWS Secrets Manager → `Server/.env` | `make secrets`; `scripts/setup/refresh.sh --secrets` |
+| `secrets.sh` | AWS Secrets Manager → `Server/.env` with local dev `DATABASE_URL`; does not reset or migrate DBs | `make secrets`; `scripts/setup/refresh.sh --secrets` |
+| `prod-db-secrets.sh` | Production DB secret → `Server/.env.prod-db`; requires prod/admin AWS access | `make prod-db-secrets` |
 | `gunicorn-entrypoint.sh` | Env-driven Gunicorn launcher (workers, timeout, bind from env) | `Dockerfile.web` CMD; `run-backend.sh --production`; EC2 health checks |
 
 ### `lint/` — server linters (invoked by `run-all-linters.sh`)

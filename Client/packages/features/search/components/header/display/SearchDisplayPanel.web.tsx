@@ -45,9 +45,6 @@ export function SearchDisplayPanelWeb({
   const setResultsOrderBy = useFiltersStore((s) => s.setResultsOrderBy);
   const resultsSortDirection = useFiltersStore((s) => s.resultsSortDirection);
   const setResultsSortDirection = useFiltersStore((s) => s.setResultsSortDirection);
-  const preferencesStrictFilter = useFiltersStore((s) => s.preferencesStrictFilter);
-  const setPreferencesStrictFilter = useFiltersStore((s) => s.setPreferencesStrictFilter);
-
   const handleCommute = useCallback(
     (checked: boolean) => {
       setShowCommuteOverlay(checked);
@@ -71,14 +68,6 @@ export function SearchDisplayPanelWeb({
       setResultsSortDirection(v);
     },
     [setResultsSortDirection]
-  );
-
-  const handleStrictPreferences = useCallback(
-    (checked: boolean) => {
-      setPreferencesStrictFilter(checked);
-      patchSearchDisplay({ preferences_strict_filter: checked });
-    },
-    [setPreferencesStrictFilter, patchSearchDisplay]
   );
 
   const orderOptions = RESULTS_ORDER_BY_OPTIONS.map((value) => ({
@@ -154,21 +143,6 @@ export function SearchDisplayPanelWeb({
         <Subtitle size="xs" muted className="pl-0 pr-10">
           {SEARCH_TRANSLATIONS["search.show_commute_area_hint"] ??
             "For searches from your profile (important locations). Shows drive-time areas when on, or a simple bounds around those places when off. Map-only searches use the place or area you picked instead."}
-        </Subtitle>
-      </Box>
-      <Box className="flex flex-col gap-1.5">
-        <Box className="flex flex-row items-center justify-between gap-3">
-          <BodyText as="span" size="sm" className="text-text-primary shrink-0">
-            {SEARCH_TRANSLATIONS["search.strict_preferences"] ?? "Match all preferences strictly"}
-          </BodyText>
-          <OliveCheckbox
-            checked={preferencesStrictFilter}
-            onToggle={() => handleStrictPreferences(!preferencesStrictFilter)}
-          />
-        </Box>
-        <Subtitle size="xs" muted className="pl-0 pr-10">
-          {SEARCH_TRANSLATIONS["search.strict_preferences_hint"] ??
-            "When off, we only apply every preference filter when there are more than 100 homes in the search area."}
         </Subtitle>
       </Box>
     </Box>

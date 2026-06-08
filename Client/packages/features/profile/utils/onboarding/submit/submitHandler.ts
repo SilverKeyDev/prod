@@ -1,18 +1,11 @@
 import { clientSettingsApi } from "packages/features/homeauth/api/clientSettings";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import type { SubmitHandlerParams } from "packages/features/profile/types/onboarding/submitHandler";
+import { formDataToPreferencesPayload } from "packages/features/profile/utils/onboarding/sync/profileFormSync";
+import { validateOnboardingData } from "packages/features/profile/utils/onboarding/validation/validation";
 import { log } from "packages/logger";
+import { DEFAULT_AUTHENTICATED_PATH } from "packages/navigation/types/routes";
 import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
-
-import { primaryOnboardingRoleFromForm } from "@/features/profile/utils/onboarding/role/onboardingRoleSelection";
-import { postOnboardingTargetForPrimaryRole } from "@/features/profile/utils/onboarding/role/onboardingToWorkspace";
-import { formDataToPreferencesPayload } from "@/features/profile/utils/onboarding/sync/profileFormSync";
-import { validateOnboardingData } from "@/features/profile/utils/onboarding/validation/validation";
-
-/** Default post-onboarding route by primary role (canonical paths). */
-export function postOnboardingPathForForm(formData: OnboardingData): string {
-  return postOnboardingTargetForPrimaryRole(primaryOnboardingRoleFromForm(formData)).path;
-}
 
 export type {
   PreferencesSubmitResult,
@@ -92,7 +85,7 @@ export const handleSubmit = async ({
       if (onSuccessNavigate) {
         onSuccessNavigate();
       } else if (navigate) {
-        navigate(postOnboardingPathForForm(formData));
+        navigate(DEFAULT_AUTHENTICATED_PATH);
       }
     } else {
       const errorMsg = result.error ?? "Failed to generate report";

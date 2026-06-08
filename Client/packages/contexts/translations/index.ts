@@ -16,6 +16,7 @@ import { NEGOTIATE_TRANSLATIONS } from "packages/features/negotiate/types/transl
 import { partnersFeatureTranslations } from "packages/features/partners/types/translations";
 import { PROFILE_TRANSLATIONS } from "packages/features/profile/types/i18n/translations";
 import { PROPERTY_DETAILS_TRANSLATIONS } from "packages/features/propertyDetails/types/translations";
+import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
 import { SAVED_TRANSLATIONS } from "packages/features/saved/types/translations";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
@@ -31,6 +32,7 @@ export const TRANSLATIONS: Record<string, string> = {
   ...BROKERAGE_TRANSLATIONS,
   ...WORKSPACE_TRANSLATIONS,
   ...SELLER_TRANSLATIONS,
+  ...RENTER_TRANSLATIONS,
   ...INTEGRATION_PARTNER_TRANSLATIONS,
   ...ADMIN_TRANSLATIONS,
   ...SEARCH_TRANSLATIONS,

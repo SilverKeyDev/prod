@@ -1,4 +1,5 @@
 import { log } from "packages/logger";
+import { getPostAuthDestination } from "packages/navigation/postAuthDestination";
 
 type VerifyFn = (
   email: string,
@@ -49,6 +50,6 @@ export async function performVerify(
 
   log.debug("AUTH", "Verification successful, clearing storage and navigating");
   clearSignupStorage();
-  const postSuccessPath = options?.postSuccessPath ?? "/onboarding";
+  const postSuccessPath = options?.postSuccessPath ?? getPostAuthDestination({ flow: "signup" });
   setTimeout(() => void navigate(postSuccessPath), 500);
 }

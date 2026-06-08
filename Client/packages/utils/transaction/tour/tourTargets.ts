@@ -5,10 +5,8 @@
 
 export const TOUR_TARGETS_DESKTOP = {
   preferencesControl: "tour-d-preferences",
-  displayControl: "tour-d-display",
 } as const;
 
 export const TOUR_TARGETS_MOBILE = {
   preferencesControl: "tour-m-preferences",
-  displayControl: "tour-m-display",
 } as const;

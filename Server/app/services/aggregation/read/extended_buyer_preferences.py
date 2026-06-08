@@ -9,6 +9,7 @@ EXTENSION_VERSION = 1
 
 VALID_SECTIONS = frozenset(
     {
+        "buyer_about_me",
         "price_financing",
         "location_prefs",
         "physical",
@@ -33,6 +34,36 @@ IMPORTANCE_VALUES = frozenset(
         "very_important",
     }
 )
+
+MOVING_WITH_VALUES = frozenset({"just_me", "partner", "kids", "other_family", "roommates"})
+PET_TYPE_VALUES = frozenset({"dog", "cat", "other"})
+LENDER_STATUS_VALUES = frozenset({"pre_approved", "pre_qualified", "not_yet"})
+LOAN_TYPE_VALUES = frozenset({"conventional", "fha", "va", "not_sure"})
+DOWN_PAYMENT_BAND_VALUES = frozenset({"less_5", "5_10", "10_20", "20_plus", "not_sure"})
+FIRST_HOME_VALUES = frozenset({"yes", "no"})
+RENT_OR_OWN_VALUES = frozenset({"rent", "own"})
+NEED_TO_SELL_VALUES = frozenset({"yes", "no", "not_sure"})
+MOVE_TIMELINE_VALUES = frozenset({"asap", "1_3_months", "3_6_months", "just_browsing"})
+
+
+def _slug(v: Any, allowed: frozenset[str]) -> str | None:
+    if v is None:
+        return None
+    s = str(v).strip().lower()
+    if s in allowed:
+        return s
+    return None
+
+
+def _slug_list(v: Any, allowed: frozenset[str], *, max_items: int = 12) -> list[str]:
+    if not isinstance(v, list):
+        return []
+    out: list[str] = []
+    for item in v[:max_items]:
+        s = _slug(item, allowed)
+        if s and s not in out:
+            out.append(s)
+    return out
 
 
 def _bool(v: Any) -> bool | None:
@@ -133,6 +164,21 @@ def _date_ymd(v: Any) -> str | None:
 def sanitize_section(section: str, data: Any) -> dict[str, Any] | None:
     if not isinstance(data, dict):
         return None
+    if section == "buyer_about_me":
+        out: dict[str, Any] = {}
+        moving = _slug_list(data.get("moving_with"), MOVING_WITH_VALUES)
+        if moving:
+            out["moving_with"] = moving
+        kids_ages = _short_str(data.get("kids_ages"), 200)
+        if kids_ages:
+            out["kids_ages"] = kids_ages
+        pet_types = _slug_list(data.get("pet_types"), PET_TYPE_VALUES)
+        if pet_types:
+            out["pet_types"] = pet_types
+        motivation = _short_str(data.get("move_motivation"), 2000)
+        if motivation:
+            out["move_motivation"] = motivation
+        return out or None
     if section == "price_financing":
         out: dict[str, Any] = {}
         b = _bool(data.get("hoa_ok"))
@@ -141,6 +187,27 @@ def sanitize_section(section: str, data: Any) -> dict[str, Any] | None:
         h = _int_clamped(data.get("hoa_fee_max_monthly"), 0, 50_000)
         if h is not None:
             out["hoa_fee_max_monthly"] = h
+        for key, allowed in (
+            ("lender_status", LENDER_STATUS_VALUES),
+            ("loan_type", LOAN_TYPE_VALUES),
+            ("down_payment_band", DOWN_PAYMENT_BAND_VALUES),
+            ("first_home", FIRST_HOME_VALUES),
+            ("rent_or_own", RENT_OR_OWN_VALUES),
+            ("need_to_sell_first", NEED_TO_SELL_VALUES),
+            ("move_timeline", MOVE_TIMELINE_VALUES),
+        ):
+            slug = _slug(data.get(key), allowed)
+            if slug:
+                out[key] = slug
+        lender_name = _short_str(data.get("lender_name"), 120)
+        if lender_name:
+            out["lender_name"] = lender_name
+        want_lender = _bool(data.get("want_lender_connection"))
+        if want_lender is not None:
+            out["want_lender_connection"] = want_lender
+        max_monthly = _int_clamped(data.get("max_monthly_payment"), 0, 500_000)
+        if max_monthly is not None:
+            out["max_monthly_payment"] = max_monthly
         return out or None
     if section == "location_prefs":
         out = {}
@@ -337,7 +404,13 @@ def merge_extended_buyer_preferences(
         if sanitized is None:
             base.pop(k, None)
             continue
-        if k in ("location_prefs", "neighborhood", "availability"):
+        if k in (
+            "location_prefs",
+            "neighborhood",
+            "availability",
+            "buyer_about_me",
+            "price_financing",
+        ):
             # Replace section to allow deprecated keys to be removed.
             base[k] = sanitized
             continue

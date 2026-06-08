@@ -15,7 +15,7 @@
 | **Python** | **3.10–3.13** — [`Server/README.md`](Server/README.md) |
 | **Redis** | Celery/cache; `make setup` verifies `redis-cli ping` |
 | **libmagic** | Secure uploads; macOS: `brew install libmagic` |
-| **PostgreSQL** | Local API; [`Server/.env.example`](Server/.env.example) |
+| **Docker** | Local Postgres via `make db-up`; `make setup` resets/initializes dev DB |
 | **AWS CLI** | Optional secrets → `Server/.env`; `make setup ARGS='--skip-secrets'` without AWS |
 
 **First machine:** `make setup` ([setup.md](setup.md)). **After pull:** `make refresh`.
@@ -29,6 +29,7 @@ Run `make help`. Common targets:
 | Target | Purpose |
 | ------ | ------- |
 | `make setup` / `make refresh` | First-time setup / post-pull refresh |
+| `make dev-db-init` | Reset local Postgres, refresh non-DB secrets, run migrations |
 | `make dev` / `make dev-web` / `make mobile` | Full stack / web only / Expo |
 | `make dev-backend` | Backend only |
 | `make lint` | `./scripts/ci/run-all-linters.sh all` |
@@ -125,6 +126,6 @@ Run `make help`. Common targets:
 | Vite web | 5173 | `cd Client && pnpm dev:web` |
 | Flask API | 5000 | `Server/.venv` + `.env` + `python run.py --host 0.0.0.0 --port 5000` |
 | Redis | 6379 | `redis-server --daemonize yes` |
-| PostgreSQL | 5432 | distro-specific (`pg_ctlcluster` on Ubuntu) |
+| PostgreSQL | 5432 | `make db-up` / `make dev-db-init` |
 
-Prefer **`make dev`** (Redis, Flask, Celery, Vite). Cloud VM notes: non-empty `Server/.env` keys per `.env.example`; **pnpm 9.x** via corepack; **`python3.12-venv`** on Ubuntu; tests with `TESTING=true`; **no migrations** unless directed.
+Prefer **`make dev`** (Redis, Flask, Celery, Vite). Cloud VM notes: non-empty `Server/.env` keys per `.env.example`; **pnpm 9.x** via corepack; **`python3.12-venv`** on Ubuntu; tests with `TESTING=true`; local DB reset via `make dev-db-init`; **no migrations** unless directed.

@@ -20,7 +20,8 @@ export type Suggestion = {
 export type ImportantLocationsInputProps = {
   locations: ImportantLocation[];
   onChange: (locations: ImportantLocation[]) => void;
-  scriptsReady: boolean;
+  /** Web Maps autocomplete; omitted on native manual entry. */
+  scriptsReady?: boolean;
   isEditMode?: boolean;
   addButtonLabel?: string;
 };

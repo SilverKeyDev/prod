@@ -63,5 +63,9 @@ export function deriveDevAppPersonaFromProfile(
     return "seller";
   }
 
+  if (roleSet.has("renter") && !roleSet.has("buyer")) {
+    return "renter";
+  }
+
   return "buyer";
 }

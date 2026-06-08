@@ -46,7 +46,7 @@ export type SearchContextState = {
   locationPlaceLabel: string | null;
   /** Synthetic IsochroneData for map/native overlay (place bounds or last viewport search). */
   locationSearchOverlayData: IsochroneData | null;
-  /** Live text in the location search bar (web). Used to allow Search when important locations are empty. */
+  /** Live text in the location search bar (web). Used to route Search through bar submit when uncommitted. */
   locationBarDraft: string;
   /**
    * Registered by SearchLocationBarWeb: run the same submit path as Enter (suggestion pick + viewport search).

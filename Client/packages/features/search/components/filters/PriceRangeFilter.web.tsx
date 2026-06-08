@@ -1,11 +1,11 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
+import { BudgetSlider } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import { formatCompactNumber } from "packages/utils";
 
 import { BodyText } from "@/components/ui";
-import BudgetSlider from "@/features/profile/components/settings/inputs/sliders/BudgetSlider";
 const DEFAULT_MIN = 100_000;
 const DEFAULT_MAX = 2_000_000;
 const TICK_VALUES = [

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ConnectionRequestsInbox } from "packages/features/agent/components/modals/inbox/ConnectionRequestsInbox";
+import { ConnectionRequestsInbox } from "packages/features/agent";
 
 type UnifiedMessagingSidebarInboxProps = {
   onRequestAccepted: () => void;

@@ -11,7 +11,6 @@ from app.celery.tasks.docusign import (
     send_envelope_task,
     sync_templates_task,
 )
-from app.celery.tasks.home_matching import find_best_matches_task
 from app.celery.tasks.property_research import compare_property_task, research_property_task
 from app.celery.tasks.weight_training import (
     train_all_eligible_users_task,
@@ -23,7 +22,6 @@ class TestCeleryTaskRoutes:
     @pytest.mark.parametrize(
         ("task_name", "expected_queue"),
         [
-            ("tasks.find_best_matches_task", "heavy"),
             ("tasks.research_property_task", "heavy"),
             ("tasks.compare_property_task", "heavy"),
             ("tasks.train_user_weights_task", "heavy"),
@@ -41,7 +39,6 @@ class TestCeleryTaskRoutes:
     @pytest.mark.parametrize(
         ("task", "expected_queue"),
         [
-            (find_best_matches_task, "heavy"),
             (research_property_task, "heavy"),
             (compare_property_task, "heavy"),
             (train_user_weights_task, "heavy"),

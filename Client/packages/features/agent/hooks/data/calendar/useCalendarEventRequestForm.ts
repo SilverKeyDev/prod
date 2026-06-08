@@ -8,7 +8,7 @@ import {
 import { useEventRequestScheduleAvailability } from "packages/features/calendar/hooks/data/availability/useEventRequestScheduleAvailability";
 import { buildEventRequestMessage, type EventRequestPayload } from "packages/features/messaging";
 // Import path avoids messaging barrel cycle (messaging barrel → AgentMessaging → MessagingModals → agent).
-import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import { useAgentChats } from "packages/features/messaging";
 import { useIsAgent } from "packages/hooks/store";
 import { log } from "packages/logger";
 import { type UIState, useUIStore } from "packages/store";

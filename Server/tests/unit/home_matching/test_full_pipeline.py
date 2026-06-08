@@ -95,7 +95,7 @@ class TestEndToEndPipeline:
         assert geojson["coordinates"][0][0] == [-84.45, 33.70]
         assert geojson["coordinates"][0][-1] == geojson["coordinates"][0][0]
 
-    @patch("app.services.search.data.listings.listings_active.slipstream_get")
+    @patch("app.services.search.helpers.search_loop_helpers.slipstream_get")
     def test_search_and_normalize(self, mock_get):
         """Steps 3-4: API call -> raw -> normalized."""
         mock_get.return_value = MagicMock(
@@ -104,13 +104,18 @@ class TestEndToEndPipeline:
             content=True,
             json=MagicMock(return_value=_slipstream_raw_response(5)),
         )
-        from app.services.search.data.listings.listings_active import search_active_listings
+        from app.services.search.helpers.search_loop_helpers import search_properties_paginated
 
-        listings, paging, errors = search_active_listings(
-            polygon_geojson={
+        listings, _requests_made, errors = search_properties_paginated(
+            polygon_param={
                 "type": "Polygon",
                 "coordinates": [[[-84, 33], [-84, 34], [-83, 34], [-83, 33], [-84, 33]]],
             },
+            filters={},
+            status_type="active",
+            per_pages=1,
+            target_limit=25,
+            request_id="test-search-and-normalize",
         )
         assert len(listings) == 5
         assert errors == []

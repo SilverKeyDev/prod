@@ -1,10 +1,5 @@
 import React from "react";
 
-import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import { Pressable } from "packages/ui/components/structure/primitives";
-import { Box } from "packages/ui/components/structure/primitives";
-import { Text } from "packages/ui/components/structure/primitives";
-
 import {
   AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT,
   effectiveIsAgentForOptionalBuyerUi,
@@ -16,7 +11,11 @@ import {
   primaryOnboardingRoleFromForm,
   SECTION_TITLES,
   serializeHousingTypes,
-} from "@/features/profile/utils";
+} from "packages/features/profile/utils";
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import { HousingNumberFields } from "./HousingNumberFields.native";
 

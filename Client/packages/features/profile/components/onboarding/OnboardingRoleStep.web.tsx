@@ -1,17 +1,17 @@
 import React from "react";
 
-import { Button } from "packages/ui";
-import { Box } from "packages/ui/components/structure/primitives";
-import { ONBOARDING_ROLE_PICKER_OPTIONS } from "packages/utils/product/domain/profile/onboardingRolePicker";
-
-import { BodyText, Title } from "@/components/ui";
 import {
   applyOnboardingRoleSelection,
   FIELD_LABELS,
   type OnboardingData,
   type PrimaryOnboardingRole,
   primaryOnboardingRoleFromForm,
-} from "@/features/profile/utils";
+} from "packages/features/profile/utils";
+import { Button } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
+import { ONBOARDING_ROLE_PICKER_OPTIONS } from "packages/utils/product/domain/profile/onboardingRolePicker";
+
+import { BodyText, Title } from "@/components/ui";
 
 type OnboardingRoleStepProps = {
   formData: OnboardingData;

@@ -1,5 +1,4 @@
 // App auth types (barrel)
-export * from "./activity";
 export * from "./auth/login";
 export * from "./auth/logout";
 export * from "./auth/passwordValidation";

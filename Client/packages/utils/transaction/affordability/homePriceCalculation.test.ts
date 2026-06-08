@@ -13,6 +13,7 @@ describe("homePriceCalculation", () => {
       expect(mapCreditScoreToNumber("excellent")).toBe(800);
       expect(mapCreditScoreToNumber("good")).toBe(725);
       expect(mapCreditScoreToNumber("fair")).toBe(675);
+      expect(mapCreditScoreToNumber("working_on_it")).toBe(620);
       expect(mapCreditScoreToNumber("poor")).toBe(625);
       expect(mapCreditScoreToNumber("very-poor")).toBe(550);
     });

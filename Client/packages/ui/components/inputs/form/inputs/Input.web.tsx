@@ -28,6 +28,10 @@ export type InputProps = {
   helperText?: string;
   showPasswordToggle?: boolean;
   customInput?: React.ReactElement;
+  /** Unified change handler (parity with native form `Input`). */
+  onValueChange?: (text: string) => void;
+  /** React Native parity: `editable={false}` maps to `disabled` on web. */
+  editable?: boolean;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">;
 
 function mergeDescribedBy(
@@ -58,7 +62,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       type = "text",
       value,
       onChange,
+      onValueChange,
       disabled,
+      editable,
       placeholder,
       id: idProp,
       "aria-describedby": ariaDescribedByProp,
@@ -99,6 +105,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
     const describedBy = mergeDescribedBy(ariaDescribedByProp, ariaDescribedBy);
     const invalid = ariaInvalidProp ?? ariaInvalid;
+    const isDisabled = !(editable ?? !disabled);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange?.(e);
+      onValueChange?.(e.currentTarget.value);
+    };
 
     const inputAriaProps: Pick<
       React.InputHTMLAttributes<HTMLInputElement>,
@@ -128,6 +140,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             React.cloneElement(customInput, {
               ...props,
               ...inputAriaProps,
+              value,
+              onChange: handleChange,
+              disabled: isDisabled,
               "aria-describedby": mergeDescribedBy(
                 customInput.props["aria-describedby"] as string | undefined,
                 describedBy
@@ -144,8 +159,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               ref={ref}
               type={inputType}
               value={value}
-              onChange={onChange}
-              disabled={disabled}
+              onChange={handleChange}
+              disabled={isDisabled}
               placeholder={placeholder}
               className={inputClasses}
               {...props}
@@ -155,7 +170,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
           <Box className={iconClasses.right}>
             <Box className="flex items-center space-x-1">
-              {clearable && value && !disabled && (
+              {clearable && value && !isDisabled && (
                 <IconButton
                   variant="ghost"
                   size="sm"

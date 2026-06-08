@@ -22,6 +22,15 @@ describe("getOnboardingSteps", () => {
     expect(ids).toEqual(["onboarding_role", "seller_shell_setup"]);
   });
 
+  it("renter flow includes shell setup step", () => {
+    const ids = getOnboardingSteps({
+      excludeFinancial: true,
+      isAgent: false,
+      primaryRole: "renter",
+    }).map((s) => s.id);
+    expect(ids).toEqual(["onboarding_role", "renter_shell_setup"]);
+  });
+
   it("brokerage flow includes shell setup step", () => {
     const ids = getOnboardingSteps({
       excludeFinancial: true,

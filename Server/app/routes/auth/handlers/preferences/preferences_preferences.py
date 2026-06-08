@@ -55,9 +55,13 @@ def create_or_update_preferences(user: UserModel, data: CreatePreferencesRequest
             }
         )
     except Exception as e:
+        db.session.rollback()
         return server_error(
             e,
-            {"function": "create_or_update_preferences", "user_id": getattr(user, "id", "unknown")},
+            context={
+                "function": "create_or_update_preferences",
+                "user_id": getattr(user, "id", "unknown"),
+            },
         )
 
 
@@ -75,8 +79,13 @@ def get_preferences(user: UserModel):
             }
         )
     except Exception as e:
+        db.session.rollback()
         return server_error(
-            e, {"function": "get_preferences", "user_id": getattr(user, "id", "unknown")}
+            e,
+            context={
+                "function": "get_preferences",
+                "user_id": getattr(user, "id", "unknown"),
+            },
         )
 
 
@@ -100,7 +109,7 @@ def delete_preferences(user: UserModel):
         db.session.rollback()
         return server_error(
             e,
-            {"function": "delete_preferences", "user_id": str(user.id)},
+            context={"function": "delete_preferences", "user_id": str(user.id)},
         )
 
 

@@ -6,6 +6,7 @@ import { FIELD_LABELS } from "./labels";
 export type OnboardingRolePickerValue =
   | "buyer"
   | "seller"
+  | "renter"
   | "agent"
   | "brokerage"
   | "integration_partner";
@@ -20,6 +21,7 @@ export const ONBOARDING_ROLE_COMING_SOON_LABEL = "Coming soon";
 export const ONBOARDING_ROLE_PICKER_OPTIONS: OnboardingRolePickerOption[] = [
   { value: "buyer", label: FIELD_LABELS.ONBOARDING_ROLE_BUYER, enabled: true },
   { value: "seller", label: FIELD_LABELS.ONBOARDING_ROLE_SELLER, enabled: true },
+  { value: "renter", label: FIELD_LABELS.ONBOARDING_ROLE_RENTER, enabled: true },
   { value: "agent", label: FIELD_LABELS.ONBOARDING_ROLE_AGENT, enabled: true },
   { value: "brokerage", label: FIELD_LABELS.ONBOARDING_ROLE_BROKERAGE, enabled: true },
   {

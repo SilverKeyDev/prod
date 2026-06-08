@@ -81,6 +81,7 @@ export function MessagingScreenNative() {
 
       <MessagingScreenNativeMessageList
         listRef={c.listRef}
+        initialScrollSettledRef={c.initialScrollSettledRef}
         localMessages={c.localMessages}
         isLoadingHistory={c.isLoadingHistory}
         centeredStyle={styles.centered}
