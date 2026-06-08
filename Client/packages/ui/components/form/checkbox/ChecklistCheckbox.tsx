@@ -83,52 +83,54 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
     roadmapBlockerInlineText.trim() !== "";
   return (
     <Box className={checkboxContainerClass}>
-      <AccessibleCheckboxInput
-        id={`item-${item.id}`}
-        className="peer sr-only focus:outline-none focus:ring-0"
-        checked={checked}
-        onChange={handleToggle}
-        label={ariaLabel}
-        disabled={disabled}
-        aria-readonly={checkedReadOnly ? true : undefined}
-      />
-      {/* visible square checkbox */}
-      <Box
-        role={showInfoCue ? "presentation" : "button"}
-        tabIndex={disabled || showInfoCue ? -1 : 0}
-        aria-hidden={showInfoCue ? true : undefined}
-        aria-disabled={showInfoCue ? undefined : disabled}
-        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 flex-row items-center justify-center rounded border lg:h-6 lg:w-6 ${
-          showInfoCue
-            ? "border-border bg-background-surface pointer-events-none"
-            : checkedReadOnly
-              ? "border-primary bg-primary pointer-events-none cursor-default"
-              : `${HOVER_BG_CLASSES} ${
-                  disabled
-                    ? "border-border bg-disabled cursor-not-allowed"
-                    : checked
-                      ? "border-primary bg-primary cursor-pointer"
-                      : "border-border-input cursor-pointer"
-                }`
-        }`}
-        onClick={showInfoCue || checkedReadOnly ? undefined : handleToggle}
-        onKeyDown={(e) => {
-          if (disabled || showInfoCue || checkedReadOnly) return;
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onToggle();
-          }
-        }}
-      >
-        {checked && (
-          <Icon name="check" className="h-3.5 w-3.5 text-white lg:h-4 lg:w-4" strokeWidth={4} />
-        )}
-        {showLockIcon ? <Icon name="lock" className="text-text-secondary h-3 w-3" /> : null}
-        {showInfoCue ? (
-          <Icon name="info" className="text-gold h-3 w-3 opacity-90 lg:h-3.5 lg:w-3.5" />
-        ) : null}
+      <Box className="relative mt-0.5 h-5 w-5 flex-shrink-0 lg:h-6 lg:w-6">
+        <AccessibleCheckboxInput
+          id={`item-${item.id}`}
+          className="peer sr-only focus:outline-none focus:ring-0"
+          checked={checked}
+          onChange={handleToggle}
+          label={ariaLabel}
+          disabled={disabled}
+          aria-readonly={checkedReadOnly ? true : undefined}
+        />
+        {/* visible square checkbox */}
+        <Box
+          role={showInfoCue ? "presentation" : "button"}
+          tabIndex={disabled || showInfoCue ? -1 : 0}
+          aria-hidden={showInfoCue ? true : undefined}
+          aria-disabled={showInfoCue ? undefined : disabled}
+          className={`absolute inset-0 flex flex-row items-center justify-center rounded border ${
+            showInfoCue
+              ? "border-border bg-background-surface pointer-events-none"
+              : checkedReadOnly
+                ? "border-primary bg-primary pointer-events-none cursor-default"
+                : `${HOVER_BG_CLASSES} ${
+                    disabled
+                      ? "border-border bg-disabled cursor-not-allowed"
+                      : checked
+                        ? "border-primary bg-primary cursor-pointer"
+                        : "border-border-input cursor-pointer"
+                  }`
+          }`}
+          onClick={showInfoCue || checkedReadOnly ? undefined : handleToggle}
+          onKeyDown={(e) => {
+            if (disabled || showInfoCue || checkedReadOnly) return;
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onToggle();
+            }
+          }}
+        >
+          {checked && (
+            <Icon name="check" className="h-3.5 w-3.5 text-white lg:h-4 lg:w-4" strokeWidth={4} />
+          )}
+          {showLockIcon ? <Icon name="lock" className="text-text-secondary h-3 w-3" /> : null}
+          {showInfoCue ? (
+            <Icon name="info" className="text-gold h-3 w-3 opacity-90 lg:h-3.5 lg:w-3.5" />
+          ) : null}
+        </Box>
       </Box>
-      <Box className="min-w-0 flex-1 text-left">
+      <Box className="min-w-0 text-left">
         <Label
           htmlFor={`item-${item.id}`}
           className="!flex max-w-full flex-wrap items-center gap-x-2.5 gap-y-0 text-left"

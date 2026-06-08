@@ -43,6 +43,8 @@ type SavedLayoutProps = {
   ) => void;
   librarySortKey?: string;
   onLibrarySortChange?: (value: string) => void;
+  /** When true (mobile shell header), drop bottom margin so controls stay inside the fixed bar. */
+  embeddedInMobileHeader?: boolean;
 };
 const SavedLayout: React.FC<SavedLayoutProps> = ({
   isAgent = false,
@@ -62,6 +64,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   onEventTypeFilterChange: _onEventTypeFilterChange,
   librarySortKey = "",
   onLibrarySortChange,
+  embeddedInMobileHeader = false,
 }) => {
   const isMobile = useIsMobile();
   /** Mobile saved header: no search field; keep client, counts, sort, and view mode on one row. */
@@ -101,7 +104,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
     showSearch && isMobile && viewType !== "documents" && viewType !== "forms-library";
 
   return (
-    <Box className="mb-6 w-full">
+    <Box className={`w-full ${embeddedInMobileHeader ? "mb-0" : "mb-6"}`}>
       {tabNavigation}
       <Card border="light" padding="none" className="w-full p-3 sm:p-4">
         {condensedToolbar ? (

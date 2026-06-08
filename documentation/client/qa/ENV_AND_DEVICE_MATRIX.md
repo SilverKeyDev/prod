@@ -11,7 +11,11 @@ Use this as a **template** for each release or hardening pass. Copy the tables i
 
 **Native app:** note build number / TestFlight / internal track: `____________`
 
-## Test accounts (do not store passwords in git)
+## Test accounts
+
+**SIL-145 / SIL-126:** committed per-role accounts in [`test-accounts.json`](./test-accounts.json) (production URLs + shared Gmail plus-addressing). Provision once: [PROVISION_TEST_ACCOUNTS.md](./PROVISION_TEST_ACCOUNTS.md). Verify logins: `./scripts/qa/verify-qa-test-accounts.sh`. Cursor agents: [`.cursor/rules/shared/qa-test-accounts.mdc`](../../../.cursor/rules/shared/qa-test-accounts.mdc).
+
+**Staging / production manual QA** (do not commit secrets):
 
 | Role        | Email / user id        | Password location (e.g. 1Password item) | Purpose                    |
 |-------------|------------------------|----------------------------------------|----------------------------|

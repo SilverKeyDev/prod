@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useLocalStorage } from "packages/hooks/ui";
@@ -30,14 +30,19 @@ export function useLibraryViewMode(section: LibraryPersistSection) {
     setValue: setLocal,
     removeValue,
   } = useLocalStorage<string>(STORAGE_KEYS[section], "grid");
+  const hydratedFromServerRef = useRef(false);
 
-  const value = useMemo(() => {
-    const fromServer = clientSettings?.library?.[section]?.layout;
-    if (fromServer === "list" || fromServer === "grid") {
-      return fromServer;
-    }
-    return normalizeMode(storedLocal);
-  }, [clientSettings?.library, section, storedLocal]);
+  const serverLayout = clientSettings?.library?.[section]?.layout;
+
+  /** One-time sync when client settings load; do not overwrite user toggles while PATCH is debounced. */
+  useEffect(() => {
+    if (hydratedFromServerRef.current) return;
+    if (serverLayout !== "list" && serverLayout !== "grid") return;
+    setLocal(serverLayout);
+    hydratedFromServerRef.current = true;
+  }, [serverLayout, setLocal]);
+
+  const value = useMemo(() => normalizeMode(storedLocal), [storedLocal]);
 
   const setMode = useCallback(
     (mode: LibraryViewMode) => {

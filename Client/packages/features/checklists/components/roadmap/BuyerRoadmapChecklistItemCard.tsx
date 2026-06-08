@@ -11,6 +11,9 @@ import { CHECKLIST_TITLES, type ChecklistTab } from "packages/features/checklist
 import { runChecklistIntegrationComplete } from "packages/features/checklists/utils/integration/checklistIntegrationComplete";
 import {
   checklistCheckboxRowClassNames,
+  checklistRowShellClassNames,
+  getChecklistItemBorderVariant,
+  getChecklistItemLabelClass,
   toChecklistCheckboxItem,
 } from "packages/features/checklists/utils/presentation/checklistCheckboxPresentation";
 import { CHECKLIST_ROW_INTERACTIVE_SELECTOR } from "packages/features/checklists/utils/presentation/checklistRowInteractiveSelector";
@@ -142,11 +145,13 @@ function BuyerRoadmapChecklistItemCardInner({
   const showDetails = expanded;
   const showIntegration = shouldShowIntegration && expanded;
 
-  const itemBorder = isActive ? "none" : checked ? "dotted" : "light";
+  const itemBorder = getChecklistItemBorderVariant(checked);
   const checkboxItem = toChecklistCheckboxItem(item);
-  const itemLabelClass = `${checklistCheckboxRowClassNames.itemLabel}${
-    roadmapSoftBlocked ? " opacity-70" : ""
-  }`;
+  const itemLabelClass = getChecklistItemLabelClass({
+    checked,
+    disabled: checkboxDisabled,
+    roadmapSoftBlocked,
+  });
   const handoffAccessibilityLabel = useMemo(() => {
     if (!roadmapHandoff || roadmapBlocker == null || blockerInlineText == null) {
       return checkboxItem.label;
@@ -222,12 +227,12 @@ function BuyerRoadmapChecklistItemCardInner({
   const checkboxRowInner = (
     <Box
       className={`flex w-full flex-row items-stretch ${
-        checkboxDisabled && !roadmapSoftBlocked
-          ? "bg-background-base opacity-75"
-          : "bg-background-surface"
+        checkboxDisabled && !roadmapSoftBlocked ? "bg-background-base" : "bg-background-surface"
       }`}
     >
-      <Box className="flex min-w-0 flex-1 flex-row items-start gap-4 px-4 py-2">
+      <Box
+        className={`flex min-w-0 flex-1 flex-row items-start gap-4 ${checklistRowShellClassNames.innerPadding}`}
+      >
         <Box className="min-w-0 flex-1">
           <ChecklistCheckbox
             item={checkboxItem}

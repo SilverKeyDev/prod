@@ -12,20 +12,20 @@ export function getDropdownVariantStyles(
 ) {
   const variantStyles = {
     default:
-      "border border-border bg-background-surface hover:border-border focus:ring-neutral-400 focus:border-input-variant-focus-border",
+      "border border-border bg-background-surface hover:border-border hover:bg-neutral-50 active:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border focus:ring-offset-0",
     mobile:
-      "mobile-input border border-border bg-background-surface hover:border-border focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
+      "mobile-input border border-border bg-background-surface hover:border-border hover:bg-neutral-50 active:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border focus:ring-offset-0 touch-friendly",
     compact:
-      "border border-border bg-background-surface hover:border-border focus:ring-neutral-400 focus:border-input-variant-focus-border",
+      "border border-border bg-background-surface hover:border-border hover:bg-neutral-50 active:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border focus:ring-offset-0",
   };
 
   const noBorderVariantStyles = {
     default:
-      "border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent",
+      "border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent focus:ring-offset-0",
     mobile:
-      "mobile-input border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent touch-friendly",
+      "mobile-input border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent focus:ring-offset-0 touch-friendly",
     compact:
-      "border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent",
+      "border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent focus:ring-offset-0",
   };
 
   const triggerVariantStyles =
@@ -66,8 +66,8 @@ export function buildDropdownButtonClasses(
   const disabledStyles = getDropdownDisabledStyles(disabled);
 
   return [
-    "w-full rounded-lg transition-all duration-200 focus:outline-none focus:ring-2",
-    "flex items-center cursor-pointer touch-friendly mobile-input",
+    "w-full rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0",
+    "flex items-center cursor-pointer touch-friendly mobile-input p-0",
     "disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed",
     (getSharedInputTextStylesFn as () => string)(),
     triggerVariantStyles,

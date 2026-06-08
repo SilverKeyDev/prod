@@ -78,9 +78,10 @@ export function DashboardHeader({
       {showMobileTopBar && (
         <Box className={`md:hidden ${fullWidthLayout ? "w-full" : "mx-auto max-w-[95vw]"}`}>
           <MobileTopBar
-            fullWidth={route.isMessaging || route.isSearch}
+            fullWidth={route.isMessaging || route.isSearch || route.isLibrary}
             noPadding={noPadding}
             blurBackground={route.isProfile}
+            scrollable={route.isLibrary}
             barHeightPx={
               route.isMessaging
                 ? MOBILE_TOP_BAR_COMPACT_HEIGHT_PX
@@ -91,8 +92,8 @@ export function DashboardHeader({
           >
             {route.isMessaging ? (
               mobileHeaderContent
-            ) : route.isSearch ? (
-              <Box className="box-border w-full min-w-0 px-3">{mobileHeaderContent}</Box>
+            ) : route.isSearch || route.isLibrary ? (
+              <Box className="box-border w-full min-w-0 px-3 py-2">{mobileHeaderContent}</Box>
             ) : (
               <Box className="flex w-full items-center justify-center">
                 {mobileHeaderContent ?? null}

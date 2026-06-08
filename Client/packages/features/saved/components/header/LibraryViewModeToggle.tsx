@@ -1,6 +1,7 @@
 import { useLocalization } from "packages/contexts";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { Box } from "packages/ui/components/primitives";
+import { isNative } from "packages/utils/platform";
 
 import { Button } from "@/components/ui";
 
@@ -26,22 +27,32 @@ export function LibraryViewModeToggle({
     return null;
   }
 
+  const selectGrid = () => onViewModeChange("grid");
+  const selectList = () => onViewModeChange("list");
+  const pressProps = isNative
+    ? { onPress: selectGrid }
+    : { type: "button" as const, onClick: selectGrid, onPress: selectGrid };
+
+  const pressPropsList = isNative
+    ? { onPress: selectList }
+    : { type: "button" as const, onClick: selectList, onPress: selectList };
+
   return (
     <Box className="flex shrink-0 items-center gap-1.5 sm:gap-2">
       <Button
-        type="button"
+        {...pressProps}
         variant={viewMode === "grid" ? "primary" : "secondary"}
         size="sm"
-        onClick={() => onViewModeChange("grid")}
         className={`touch-friendly rounded px-3 py-2.5 ${
           viewMode === "grid"
             ? "bg-primary hover:bg-primary text-white"
             : "bg-accent-muted hover:bg-accent-muted text-white"
         }`}
         label={t("saved.library_view_card")}
+        accessibilityRole="button"
         accessibilityState={{ selected: viewMode === "grid" }}
       >
-        <Box className="mobile-icon-xs grid grid-cols-2 gap-1">
+        <Box className="mobile-icon-xs grid grid-cols-2 gap-1" pointerEvents="none">
           <Box className="rounded-sm bg-current" />
           <Box className="rounded-sm bg-current" />
           <Box className="rounded-sm bg-current" />
@@ -49,19 +60,19 @@ export function LibraryViewModeToggle({
         </Box>
       </Button>
       <Button
-        type="button"
+        {...pressPropsList}
         variant={viewMode === "list" ? "primary" : "secondary"}
         size="sm"
-        onClick={() => onViewModeChange("list")}
         className={`touch-friendly rounded px-3 py-2.5 ${
           viewMode === "list"
             ? "bg-primary hover:bg-primary text-white"
             : "bg-accent-muted hover:bg-accent-muted text-white"
         }`}
         label={t("saved.library_view_list")}
+        accessibilityRole="button"
         accessibilityState={{ selected: viewMode === "list" }}
       >
-        <Box className="mobile-icon-xs space-y-1">
+        <Box className="mobile-icon-xs space-y-1" pointerEvents="none">
           <Box className="h-0.5 rounded-sm bg-current" />
           <Box className="h-0.5 rounded-sm bg-current" />
           <Box className="h-0.5 rounded-sm bg-current" />

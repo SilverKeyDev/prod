@@ -158,10 +158,7 @@ export default function ClientSelector({
                         {client.name}
                       </BodyText>
                       {client.email && (
-                        <BodyText
-                          as="span"
-                          className="text-text-secondary w-full truncate text-left text-xs"
-                        >
+                        <BodyText as="span" size="xs" muted className="w-full truncate text-left">
                           {client.email}
                         </BodyText>
                       )}

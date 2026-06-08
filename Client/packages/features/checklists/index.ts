@@ -65,6 +65,11 @@ export type { Phase, PhaseStatus, RoadmapTrackerProps } from "./types/roadmapTra
 export { CHECKLISTS_TRANSLATIONS } from "./types/translations";
 export {
   checklistCheckboxRowClassNames,
+  type ChecklistItemBorderVariant,
+  type ChecklistItemLabelClassOptions,
+  checklistRowShellClassNames,
+  getChecklistItemBorderVariant,
+  getChecklistItemLabelClass,
   toChecklistCheckboxItem,
 } from "./utils/presentation/checklistCheckboxPresentation";
 export type { BuildBuyerRoadmapPhasesParams } from "./utils/roadmap/buildBuyerRoadmapPhases";

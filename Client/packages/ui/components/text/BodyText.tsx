@@ -45,7 +45,7 @@ const BodyText = forwardRef<React.ComponentRef<typeof Text>, BodyTextProps>(func
   ref
 ) {
   const baseClasses = "font-normal leading-relaxed";
-  const colorClass = muted ? "text-text-tertiary" : "text-gray-900";
+  const colorClass = muted ? "text-text-secondary" : "text-text-primary";
   const combinedClasses = [baseClasses, sizeClasses[size], colorClass, className]
     .filter(Boolean)
     .join(" ");

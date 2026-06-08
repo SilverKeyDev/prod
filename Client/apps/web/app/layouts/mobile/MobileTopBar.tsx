@@ -22,6 +22,8 @@ type MobileTopBarProps = {
   blurBackground?: boolean;
   /** Bar min-height in pixels; use compact for routes whose header is `h-14` only (e.g. messaging). */
   barHeightPx?: number;
+  /** When true, allow vertical scroll inside the fixed bar (Library toolbar exceeds default height). */
+  scrollable?: boolean;
 };
 
 const MobileTopBar: React.FC<MobileTopBarProps> = ({
@@ -30,13 +32,17 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({
   noPadding = false,
   blurBackground = false,
   barHeightPx = MOBILE_TOP_BAR_HEIGHT_PX,
+  scrollable = false,
 }) => {
   const backgroundClass = blurBackground ? "bg-background/75 backdrop-blur-md" : "bg-background";
   const spacerHeight = `calc(${barHeightPx + SPACER_MARGIN_PX}px + env(safe-area-inset-top, 0px))`;
+  const headerLayoutClass = scrollable
+    ? "items-start overflow-x-hidden overflow-y-auto overscroll-y-contain"
+    : "items-center overflow-hidden";
   return (
     <>
       <header
-        className={`${backgroundClass} fixed left-0 right-0 top-0 z-header flex items-center overflow-hidden md:hidden ${
+        className={`${backgroundClass} fixed left-0 right-0 top-0 z-header flex md:hidden ${headerLayoutClass} ${
           fullWidth || noPadding ? "px-0" : "px-4"
         }`}
         style={{

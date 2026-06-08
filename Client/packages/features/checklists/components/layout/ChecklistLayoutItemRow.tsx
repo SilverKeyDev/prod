@@ -10,7 +10,11 @@ import {
 import type { ChecklistCloseLayoutCheckboxItem } from "packages/features/checklists/types/checklistCloseLayout";
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
 import { runChecklistIntegrationComplete } from "packages/features/checklists/utils/integration/checklistIntegrationComplete";
-import { checklistCheckboxRowClassNames } from "packages/features/checklists/utils/presentation/checklistCheckboxPresentation";
+import {
+  checklistCheckboxRowClassNames,
+  checklistRowShellClassNames,
+  getChecklistItemLabelClass,
+} from "packages/features/checklists/utils/presentation/checklistCheckboxPresentation";
 import { CHECKLIST_ROW_INTERACTIVE_SELECTOR } from "packages/features/checklists/utils/presentation/checklistRowInteractiveSelector";
 import type { ChecklistItemToggleEligibility } from "packages/features/checklists/utils/rules/checklistRules";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
@@ -21,7 +25,7 @@ import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/primitives/divi
 
 import { IconButton } from "@/components/ui";
 
-const { checkboxContainer, itemLabel, itemExplanation } = checklistCheckboxRowClassNames;
+const { checkboxContainer, itemExplanation } = checklistCheckboxRowClassNames;
 
 export type ChecklistLayoutItemRowKind =
   | "flat_item"
@@ -135,6 +139,11 @@ function ChecklistLayoutItemRowInner({
 
   const expandRowAccessibilityLabel = `${item.label}. Expand step`;
 
+  const itemLabelClass = getChecklistItemLabelClass({
+    checked: rowChecked,
+    disabled: checkboxDisabled,
+  });
+
   const checklistItem: ChecklistCloseLayoutCheckboxItem = {
     id: item.id,
     label: item.label,
@@ -153,7 +162,7 @@ function ChecklistLayoutItemRowInner({
           checked={rowChecked}
           onToggle={handleCheckboxToggle}
           disabled={checkboxDisabled}
-          itemLabelClass={itemLabel}
+          itemLabelClass={itemLabelClass}
           itemExplanationClass={itemExplanation}
           checkboxContainerClass={checkboxContainer}
           number={globalIndex + 1}
@@ -207,7 +216,7 @@ function ChecklistLayoutItemRowInner({
         onCancel={handleCancelConfirm}
       />
       <Box
-        className={`w-full rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY} ${
+        className={`${checklistRowShellClassNames.fullWidth} rounded-lg ${checklistRowShellClassNames.innerPadding} ${DOTTED_BORDER_LIGHT_GRAY} ${
           isActive
             ? "ring-gold relative z-10 overflow-visible shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1"
             : ""

@@ -66,7 +66,7 @@ export function FormsBrowserCategoryForms({
         <Title as="h3" size="sm" className="mb-1">
           {formatFormsLibraryCategoryLabel(category.name)}
         </Title>
-        <Subtitle size="xs" className="text-text-secondary">
+        <Subtitle size="xs">
           {category.forms.length}{" "}
           {category.forms.length === 1 ? formAvailableSingular : formAvailablePlural}
         </Subtitle>

@@ -73,6 +73,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `shared/linting.mdc`                        | yes → **yes**              | \*_/_                                   | Universal                                       |
 | `shared/documentation.mdc`                 | yes → **yes**              | `documentation/**/*.md`, `**/README.md` | Canonical doc tree vs `docs/`; see `AGENTS.md` |
 | `shared/post-major-change-sync.mdc`         | no → **no**                | Client/apps/**, Client/packages/**, openapi/**, Server/app/** | Same-PR / fast-follow docs + rules sync after major architecture |
+| `shared/qa-test-accounts.mdc`               | no → **no**                | `documentation/client/qa/**`            | SIL-145 per-role dev sign-in + flow probing (agent-requested) |
 | `shared/monorepo.mdc`                       | yes → **no**               | \*_/_                                   | Context budget                                  |
 | `shared/ci-gates.mdc`                       | yes → **no**               | .github/workflows/**, Client/**         |                                                 |
 | `shared/openapi-workflow.mdc`               | yes → **no**               | openapi/\*\*, workflow, generated types |                                                 |

@@ -193,7 +193,11 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         {viewType === "forms-library" && isAgent && onFormSendForSignature ? (
           <FormsLibraryTab
             containerClass="w-full"
-            formsGridClassName="gap-responsive-md grid w-full grid-cols-1"
+            formsGridClassName={
+              libraryViewMode === "list"
+                ? "gap-responsive-md flex w-full flex-col"
+                : "gap-responsive-md grid w-full grid-cols-1 sm:grid-cols-2"
+            }
             onSendForSignature={onFormSendForSignature}
             searchTerm={searchTerm}
             librarySortKey={librarySortKey}

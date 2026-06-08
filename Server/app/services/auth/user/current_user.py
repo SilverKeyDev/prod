@@ -67,14 +67,16 @@ def _verify_minimal_token(token: str, start_time: float | None = None) -> User:
         log_security_event("auth_minimal_token_missing_sub")
         raise SecurityException(SecurityError.INVALID_TOKEN)
 
+    from .user_fetch import fetch_user_by_email, fetch_user_by_id
+
     # Find user by ID (minimal tokens use database ID as sub)
     try:
-        user = User.query.filter_by(id=user_id).first()
+        user = fetch_user_by_id(str(user_id))
         if not user:
             # Fallback: try to find by email (e.g. token sub out of sync with DB)
             user_email = claims.get("email")
             if user_email:
-                user = User.query.filter_by(email=user_email).first()
+                user = fetch_user_by_email(user_email)
                 # Do not mutate User.id; PK changes break referential integrity.
     except InvalidRequestError as e:
         # Mapper / configuration issue: this is a 500, not an auth error
