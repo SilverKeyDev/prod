@@ -4,6 +4,8 @@ Fast-path cache checks use shared PropertyCache (cross-user).
 """
 
 import time
+import traceback
+import uuid
 from typing import Any
 
 from app.services.property_cache import get_property_by_zpid_or_address
@@ -79,7 +81,18 @@ def fetch_property_detail_for_research(
         address=address,
     )
     if err:
+        error_id = str(uuid.uuid4())
         status_code = err.get("status_code", 500)
+        current_app.logger.error(
+            "[PROPERTY] fetch_property_detail_for_research failed | error_id=%s | status=%s | listing_id=%s | address=%s | err=%s | traceback=%s",
+            error_id,
+            status_code,
+            listing_id,
+            address,
+            err,
+            traceback.format_exc(),
+        )
+        err["error_id"] = error_id
         return None, (err, status_code)
 
     return data, None
