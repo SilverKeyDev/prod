@@ -209,7 +209,9 @@ def test_validate_form_request_gradual_invalid_returns_constructed_model(app: Fl
 
     assert captured["data"] is not None
     assert isinstance(captured["data"], BaseModel)
-    assert captured["data"].model_dump() == {"count": "1"}
+    # Gradual mode preserves raw form values via model_construct; avoid model_dump()
+    # here because coerced str->int mismatch triggers Pydantic serializer warnings.
+    assert captured["data"].count == "1"
     mock_log.warn.assert_called_once()
     mock_log.info.assert_called_once()
 

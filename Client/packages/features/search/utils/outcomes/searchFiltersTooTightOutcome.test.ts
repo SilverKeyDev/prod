@@ -9,22 +9,25 @@ import {
 } from "./searchFiltersTooTightOutcome";
 
 const showWarningToast = vi.fn();
-const requestOpenPreferencesPanel = vi.fn();
+const requestOpenSearchPreferencesPanel = vi.fn();
 
 vi.mock("packages/hooks/ui/toast/useToast", () => ({
   showWarningToast: (...args: unknown[]) => showWarningToast(...args),
 }));
 
-vi.mock("packages/store", () => ({
-  useSearchContextStore: {
-    getState: () => ({ requestOpenPreferencesPanel }),
-  },
-}));
+vi.mock("packages/features/search/store", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("packages/features/search/store")>();
+  return {
+    ...actual,
+    requestOpenSearchPreferencesPanel: (...args: unknown[]) =>
+      requestOpenSearchPreferencesPanel(...args),
+  };
+});
 
 describe("searchFiltersTooTightOutcome", () => {
   beforeEach(() => {
     showWarningToast.mockClear();
-    requestOpenPreferencesPanel.mockClear();
+    requestOpenSearchPreferencesPanel.mockClear();
   });
 
   it("detects filters-too-tight when meta flag is set and results are empty", () => {
@@ -63,7 +66,7 @@ describe("searchFiltersTooTightOutcome", () => {
     expect(showWarningToast).toHaveBeenCalledWith(
       "Your filters are too tight. Try relaxing them to see more homes."
     );
-    expect(requestOpenPreferencesPanel).toHaveBeenCalledOnce();
+    expect(requestOpenSearchPreferencesPanel).toHaveBeenCalledOnce();
   });
 
   it("handlePolygonSearchFiltersTooTightOutcome returns true when handled", () => {
@@ -75,7 +78,7 @@ describe("searchFiltersTooTightOutcome", () => {
 
     expect(handlePolygonSearchFiltersTooTightOutcome(response)).toBe(true);
     expect(showWarningToast).toHaveBeenCalledOnce();
-    expect(requestOpenPreferencesPanel).toHaveBeenCalledOnce();
+    expect(requestOpenSearchPreferencesPanel).toHaveBeenCalledOnce();
   });
 
   it("handlePolygonSearchFiltersTooTightOutcome returns false when not tight", () => {

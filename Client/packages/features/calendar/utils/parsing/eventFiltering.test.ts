@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { dateParseISO } from "packages/utils/core/date";
+
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 
 import {
@@ -89,7 +91,7 @@ describe("filterAgendaEventsAllTime", () => {
 describe("filterTodayEvents", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-09T12:00:00"));
+    vi.setSystemTime(dateParseISO("2026-06-09T12:00:00.000Z").valueOf());
   });
 
   afterEach(() => {

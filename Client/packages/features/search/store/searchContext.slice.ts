@@ -155,3 +155,8 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
 export const useSearchContextStore = create<SearchContextState>()(
   withDevtools<SearchContextState>("searchContext")(baseCreator)
 );
+
+/** Imperative open request for non-React callers (e.g. search outcome utils). */
+export function requestOpenSearchPreferencesPanel(): void {
+  useSearchContextStore.setState({ preferencesPanelOpenSignal: Date.now() });
+}

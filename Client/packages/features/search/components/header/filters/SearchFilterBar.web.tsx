@@ -10,7 +10,7 @@ import {
 import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/popovers/searchHeaderPopoverDismiss.web";
 import { usePreferencesPanelOpenOnRequest } from "packages/features/search/hooks/ui/usePreferencesPanelOpenOnRequest";
 import { formDataToSearchFilterOverrides } from "packages/features/search/utils/preferences/searchPreferencesOverrides";
-import { type SearchFilterOverrides, useSearchContextStore } from "packages/store";
+import { useSearchContextStore } from "packages/store";
 import { Box } from "packages/ui/components/structure/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 import {

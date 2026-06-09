@@ -1,6 +1,6 @@
 """Tests for Google Calendar OAuth, health, and error-envelope routes."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 from app.models import OAuthState
@@ -116,7 +116,7 @@ def test_oauth_state_expiry_handles_naive_datetime():
         state="state-token",
         oauth_type="calendar",
         user_id="user-123",
-        expires_at=datetime.utcnow() + timedelta(minutes=5),
+        expires_at=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=5),
     )
 
     assert state.is_expired() is False

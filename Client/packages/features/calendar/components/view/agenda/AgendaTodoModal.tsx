@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { EventRequestTimeDropdown } from "packages/features/agent/components/modals/calendarEventRequest/EventRequestTimeDropdown";
-import { defaultGoogleMeetForCreate } from "packages/features/calendar";
 import { Button } from "packages/ui";
 import { Box, Pressable, PrimitiveInput, Text } from "packages/ui/components/structure/primitives";
 import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";
@@ -17,6 +16,7 @@ import {
   type AgendaTodoFormValues,
   emptyAgendaTodoFormValues,
 } from "@/features/calendar/utils/agenda/agendaTodoFormValues";
+import { defaultGoogleMeetForCreate } from "@/features/calendar/utils/createEventModal/defaultGoogleMeetForCreate";
 
 export type { AgendaTodoFormSubmitPayload };
 

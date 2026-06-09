@@ -19,6 +19,37 @@ import {
 } from "./googleMeetAfterCreate";
 import { showGoogleMeetToggleForCreate } from "./googleMeetCreateEligibility";
 
+async function finalizeGoogleMeetAfterSave(params: {
+  applyGoogleMeet: boolean;
+  calendarIdForMeet: string | undefined | null;
+  fallbackEventId?: string;
+  response: GoogleEventCreateResponse;
+  enqueueToast: RunCreateEventModalSubmitParams["enqueueToast"];
+}): Promise<void> {
+  if (!params.applyGoogleMeet || !params.calendarIdForMeet) {
+    return;
+  }
+
+  let meetLink =
+    typeof params.response.hangoutLink === "string" && params.response.hangoutLink.length > 0
+      ? params.response.hangoutLink
+      : null;
+  const eventId = params.response.id ?? params.fallbackEventId;
+  if (!meetLink && eventId && isGoogleMeetProvisioningPending(params.response)) {
+    params.enqueueToast({
+      type: "info",
+      message: "Meet link generating…",
+    });
+    meetLink = await pollGoogleMeetHangoutLink(eventId, params.calendarIdForMeet);
+  }
+  if (!meetLink) {
+    params.enqueueToast({
+      type: "error",
+      message: "Couldn't add Meet; you can add a link manually.",
+    });
+  }
+}
+
 export type RunCreateEventModalSubmitParams = {
   mode: "create" | "edit";
   eventTitle: string;
@@ -189,49 +220,22 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
         message: "Event updated successfully",
       });
 
-      if (applyGoogleMeet && calendarIdForMeet) {
-        let meetLink =
-          typeof updated.hangoutLink === "string" && updated.hangoutLink.length > 0
-            ? updated.hangoutLink
-            : null;
-        const updatedId = updated.id ?? p.existingEvent.id;
-        if (!meetLink && updatedId && isGoogleMeetProvisioningPending(updated)) {
-          p.enqueueToast({
-            type: "info",
-            message: "Meet link generating…",
-          });
-          meetLink = await pollGoogleMeetHangoutLink(updatedId, calendarIdForMeet);
-        }
-        if (!meetLink && applyGoogleMeet) {
-          p.enqueueToast({
-            type: "error",
-            message: "Couldn't add Meet; you can add a link manually.",
-          });
-        }
-      }
+      await finalizeGoogleMeetAfterSave({
+        applyGoogleMeet,
+        calendarIdForMeet,
+        fallbackEventId: p.existingEvent.id,
+        response: updated,
+        enqueueToast: p.enqueueToast,
+      });
     } else {
       const created = (await p.createEvent(eventData)) as GoogleEventCreateResponse;
-      const wantsMeetFlow = applyGoogleMeet && Boolean(calendarIdForCreate);
 
-      if (wantsMeetFlow) {
-        let meetLink =
-          typeof created.hangoutLink === "string" && created.hangoutLink.length > 0
-            ? created.hangoutLink
-            : null;
-        if (!meetLink && created.id && isGoogleMeetProvisioningPending(created)) {
-          p.enqueueToast({
-            type: "info",
-            message: "Meet link generating…",
-          });
-          meetLink = await pollGoogleMeetHangoutLink(created.id, calendarIdForCreate);
-        }
-        if (!meetLink) {
-          p.enqueueToast({
-            type: "error",
-            message: "Couldn't add Meet; you can add a link manually.",
-          });
-        }
-      }
+      await finalizeGoogleMeetAfterSave({
+        applyGoogleMeet,
+        calendarIdForMeet: calendarIdForCreate,
+        response: created,
+        enqueueToast: p.enqueueToast,
+      });
     }
 
     p.onEventCreated?.();

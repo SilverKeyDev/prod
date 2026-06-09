@@ -1,6 +1,6 @@
+import { requestOpenSearchPreferencesPanel } from "packages/features/search/store";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
-import { useSearchContextStore } from "packages/store";
 import type { SearchByPolygonResponse } from "packages/types/domain/api";
 
 export type PolygonSearchResponseMeta = {
@@ -37,7 +37,7 @@ function filtersTooTightMessage(): string {
 /** Warning toast + open the Preferences panel (desktop popover or mobile sheet). */
 export function warnSearchFiltersTooTight(): void {
   showWarningToast(filtersTooTightMessage());
-  useSearchContextStore.getState().requestOpenPreferencesPanel();
+  requestOpenSearchPreferencesPanel();
 }
 
 /**

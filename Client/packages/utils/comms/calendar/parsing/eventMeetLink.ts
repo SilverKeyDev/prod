@@ -1,6 +1,5 @@
 import type { components } from "packages/types/api.generated";
-
-import { isGoogleMeetProvisioningPending } from "../createEvent/googleMeetAfterCreate";
+import { isGoogleMeetProvisioningPending } from "packages/utils/comms/calendar/createEvent/googleMeetAfterCreate";
 
 type GoogleEvent = components["schemas"]["GoogleEvent"];
 
