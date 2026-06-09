@@ -8,6 +8,7 @@ import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import {
   calendarColorForEvent,
+  calendarEventChipStyle,
   hexToRgba,
 } from "@/features/calendar/utils/createEventModal/calendarEventColors";
 import { layoutWeekAllDayEventLanes } from "@/features/calendar/utils/grid/calendarWeekAllDayLayout";
@@ -89,9 +90,7 @@ export function CalendarTimeGridWeekHeader({
                   gridColumn: `${bar.startCol + 1} / ${bar.endCol + 2}`,
                   gridRow: bar.lane + 1,
                   borderRadius: spacing(1),
-                  borderLeftWidth: 3,
-                  borderLeftColor: evColor,
-                  backgroundColor: hexToRgba(evColor, 0.18),
+                  ...calendarEventChipStyle(evColor),
                   paddingHorizontal: spacing(1),
                   justifyContent: "center",
                   minWidth: 0,

@@ -64,6 +64,7 @@ export default function PartnerAgentSection({ onComplete }: ChecklistIntegration
           isActive
           profileTarget="external"
           className="max-w-none"
+          suppressRecommendationsLoading
           onConnectionSuccess={handleSearchSuccess}
         />
         <PartnerAgentConnectedAgentsSection agents={relationshipAgents} />

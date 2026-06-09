@@ -11,7 +11,7 @@ import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import {
   calendarColorForEvent,
-  hexToRgba,
+  calendarEventChipStyle,
 } from "@/features/calendar/utils/createEventModal/calendarEventColors";
 import type { PlacedTimedEventSlice } from "@/features/calendar/utils/grid/calendarGridLayout";
 
@@ -149,9 +149,7 @@ export function CalendarWeekTimedEventBlock({
         width: `${laneW - 2}%`,
         borderRadius: 4,
         overflow: "hidden",
-        borderLeftWidth: 3,
-        borderLeftColor: evColor,
-        backgroundColor: hexToRgba(evColor, 0.18),
+        ...calendarEventChipStyle(evColor),
         paddingHorizontal: 4,
         paddingVertical: 2,
         zIndex: 1,

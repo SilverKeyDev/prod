@@ -133,26 +133,26 @@ export function TodoAgendaRow({
       <Box className="border-border bg-background-surface w-full overflow-hidden rounded-xl border">
         <Box className="flex flex-row items-stretch">
           <Box className="bg-primary w-1" />
-          <Box className="flex min-w-0 flex-1 flex-row items-start gap-2 p-3">
-            <AgendaCompleteControl
-              completed={todo.completed}
-              canToggle={canEditComplete}
-              onToggle={() => onToggleComplete(todo.id)}
-            />
-            <Box className="min-w-0 flex-1 space-y-1">
+          <Box className="flex min-w-0 flex-1 flex-col gap-1 p-3">
+            <Box className="flex min-w-0 flex-row items-center gap-2">
+              <AgendaCompleteControl
+                completed={todo.completed}
+                canToggle={canEditComplete}
+                onToggle={() => onToggleComplete(todo.id)}
+              />
               <Text
-                className={`text-left text-sm font-semibold ${
+                className={`min-w-0 flex-1 text-left text-sm font-semibold leading-snug ${
                   todo.completed ? "text-text-disabled line-through" : "text-text-primary"
                 }`}
               >
                 {todo.title}
               </Text>
-              {dueLine ? (
-                <Box className="flex flex-row flex-wrap items-center gap-2">
-                  <Text className="text-text-secondary text-left text-xs">{dueLine}</Text>
-                </Box>
-              ) : null}
             </Box>
+            {dueLine ? (
+              <Box className="flex flex-row flex-wrap items-center gap-2 pl-8">
+                <Text className="text-text-secondary text-left text-xs">{dueLine}</Text>
+              </Box>
+            ) : null}
           </Box>
         </Box>
       </Box>

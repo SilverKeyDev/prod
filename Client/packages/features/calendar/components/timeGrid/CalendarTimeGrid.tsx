@@ -3,14 +3,19 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { color, spacing } from "packages/design-tokens";
 import { Box } from "packages/ui/components/structure/primitives";
 import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";
-import { dateNow, dayjs } from "packages/utils/core/date";
+import { dateNow } from "packages/utils/core/date";
 import { getWindow } from "packages/utils/core/platform";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { WeekTimeSlotDoubleClickPayload } from "@/features/calendar/types/calendarQuickCreate";
 
-import { CAL_TIME_GRID_HOURS, calTimeGridTemplateColumns } from "./calendarTimeGridConstants";
+import {
+  CAL_TIME_GRID_DEFAULT_VISIBLE_HOUR_SPAN,
+  CAL_TIME_GRID_DEFAULT_VISIBLE_START_HOUR,
+  CAL_TIME_GRID_HOURS,
+  calTimeGridTemplateColumns,
+} from "./calendarTimeGridConstants";
 import { CalendarTimeGridHourScrollContent } from "./CalendarTimeGridHourScrollContent";
 import {
   type CalendarTimeGridScrollViewRef,
@@ -119,21 +124,14 @@ export function CalendarTimeGrid({
   }, []);
 
   const totalGridHeight = CAL_TIME_GRID_HOURS * hourRowHeight;
+  const defaultScrollportHeight = CAL_TIME_GRID_DEFAULT_VISIBLE_HOUR_SPAN * hourRowHeight;
+  const defaultScrollY = CAL_TIME_GRID_DEFAULT_VISIBLE_START_HOUR * hourRowHeight;
   const gridColumns = calTimeGridTemplateColumns(dayDates.length);
 
-  /** Scroll to a sensible default when the week or hour scale changes — do not depend on a new `Date` each render or scroll snaps back on every paint. */
+  /** Anchor scroll at 8am when the week or hour scale changes — do not depend on a new `Date` each render or scroll snaps back on every paint. */
   useEffect(() => {
-    const todayStart = dateNow().startOf("day");
-    const hasToday = dayDates.some((d) => dayjs(d).isSame(todayStart, "day"));
-    if (!hasToday) {
-      setCalendarTimeGridScrollY(scrollRef, 8 * hourRowHeight);
-      return;
-    }
-    const n = dateNow();
-    const m = n.hour() * 60 + n.minute();
-    const y = (m / 60) * hourRowHeight;
-    setCalendarTimeGridScrollY(scrollRef, Math.max(0, y - hourRowHeight * 2));
-  }, [dayDates, hourRowHeight]);
+    setCalendarTimeGridScrollY(scrollRef, defaultScrollY);
+  }, [dayDates, defaultScrollY]);
 
   return (
     <Box
@@ -171,7 +169,7 @@ export function CalendarTimeGrid({
         <ScrollView
           ref={scrollRef}
           style={{
-            maxHeight: Math.min(640, Math.round(hourRowHeight * CAL_TIME_GRID_HOURS * 0.65)),
+            maxHeight: defaultScrollportHeight,
             flex: 1,
             width: "100%",
             minHeight: spacing(0),

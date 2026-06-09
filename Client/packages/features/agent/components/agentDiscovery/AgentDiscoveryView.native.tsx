@@ -29,6 +29,7 @@ export function AgentDiscoveryView({
   profileTarget = "navigate",
   onOpenAgentProfile: onOpenAgentProfileProp,
   onConnectionSuccess,
+  suppressRecommendationsLoading = false,
 }: AgentDiscoveryViewProps) {
   const navigation = useNavigation();
   const { t } = useLocalization();
@@ -141,9 +142,11 @@ export function AgentDiscoveryView({
             </Button>
           </Box>
         ) : isLoading ? (
-          <Box className="flex justify-start py-6">
-            <Loading />
-          </Box>
+          suppressRecommendationsLoading ? null : (
+            <Box className="flex justify-start py-6">
+              <Loading />
+            </Box>
+          )
         ) : recommendedAgentsToShow.length === 0 ? (
           <Text className="text-text-secondary text-sm">
             {t("agent.discovery_no_recommendations")}

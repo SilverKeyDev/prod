@@ -51,7 +51,7 @@ export function DropdownTrigger<T>({
         aria-expanded={isOpen}
         aria-controls={isOpen ? menuListId : undefined}
         aria-haspopup="listbox"
-        className="h-auto min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 shadow-none hover:bg-transparent focus:ring-0 focus-visible:ring-0"
+        className="h-auto min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 shadow-none outline-none hover:bg-transparent focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
       >
         <Box className="flex min-w-0 flex-1 items-center gap-2">
           {selectedOption?.icon ? (

@@ -74,4 +74,28 @@ describe("useAgentTodos", () => {
     await result.current.updateTodo("todo-1", { completed: true });
     expect(agentApi.updateTodo).toHaveBeenCalledWith("todo-1", { completed: true });
   });
+
+  it("updateTodo optimistically toggles completion before API resolves", async () => {
+    vi.mocked(agentApi.getTodos).mockResolvedValue({ success: true, todos: [todo] });
+
+    let resolveUpdate: (value: { success: boolean; todo: TodoItem }) => void = () => undefined;
+    vi.mocked(agentApi.updateTodo).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUpdate = resolve;
+        })
+    );
+
+    const { result } = renderHook(() => useAgentTodos(true), { wrapper });
+    await waitFor(() => expect(result.current.todos[0]?.completed).toBe(false));
+
+    const updatePromise = result.current.updateTodo("todo-1", { completed: true });
+
+    await waitFor(() => {
+      expect(result.current.todos[0]?.completed).toBe(true);
+    });
+
+    resolveUpdate({ success: true, todo: { ...todo, completed: true } });
+    await updatePromise;
+  });
 });

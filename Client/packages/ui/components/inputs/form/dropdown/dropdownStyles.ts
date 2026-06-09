@@ -13,20 +13,20 @@ export function getDropdownVariantStyles(
 ) {
   const variantStyles = {
     default:
-      "border border-border bg-background-surface hover:border-border focus:ring-neutral-400 focus:border-input-variant-focus-border",
+      "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
     mobile:
-      "mobile-input border border-border bg-background-surface hover:border-border focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
+      "mobile-input border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly",
     compact:
-      "border border-border bg-background-surface hover:border-border focus:ring-neutral-400 focus:border-input-variant-focus-border",
+      "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
   };
 
   const noBorderVariantStyles = {
     default:
-      "border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent",
+      "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent",
     mobile:
-      "mobile-input border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent touch-friendly",
+      "mobile-input border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent touch-friendly",
     compact:
-      "border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent",
+      "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent",
   };
 
   const triggerVariantStyles =
@@ -74,7 +74,9 @@ export function getDropdownSizeStyles(
 }
 
 export function getDropdownErrorStyles(error?: string) {
-  return error ? "border-neutral-600 focus:border-neutral-700 focus:ring-neutral-400" : "";
+  return error
+    ? "border-neutral-600 focus-within:border-neutral-700 focus-within:ring-neutral-400"
+    : "";
 }
 
 export function getDropdownDisabledStyles(disabled?: boolean) {
@@ -98,7 +100,7 @@ export function buildDropdownButtonClasses(
   const disabledStyles = getDropdownDisabledStyles(disabled);
 
   return [
-    "w-full rounded-lg transition-all duration-200 focus:outline-none focus:ring-2",
+    "w-full rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2",
     shellClasses,
     "disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed",
     textStyles,

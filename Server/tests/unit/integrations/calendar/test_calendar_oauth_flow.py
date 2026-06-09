@@ -37,3 +37,22 @@ class TestCalendarOAuthFlowScopes:
         assert "https://www.googleapis.com/auth/calendar" not in parts
         assert "https://www.googleapis.com/auth/calendar.events.freebusy" not in parts
         assert "https://www.googleapis.com/auth/calendar.calendarlist.readonly" not in parts
+        assert "include_granted_scopes" not in q
+
+    def test_build_auth_url_incremental_enhance_preserves_granted_scopes(self) -> None:
+        from app.services.calendar.permissions.constants import permissions
+
+        freebusy_scope = permissions["calendar_freebusy"]["scope_url"]
+        with patch("app.services.calendar.oauth.flow.db.session.add"):
+            with patch("app.services.calendar.oauth.flow.db.session.commit"):
+                auth_url, _state = build_auth_url(
+                    client_id="cid",
+                    client_secret="sec",
+                    redirect_uri="https://example.com/cb",
+                    auth_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
+                    scopes=[],
+                    user_id="user-1",
+                    request_additional_scopes=[freebusy_scope],
+                )
+        q = parse_qs(urlparse(auth_url).query)
+        assert q.get("include_granted_scopes") == ["true"]

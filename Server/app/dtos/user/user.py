@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pydantic import ValidationError
 
 from app.models import User as UserModel
-from app.schemas.generated import User as UserSchema
+from app.schemas.generated import UserModel as UserSchema
 from app.services.brokerage.membership import brokerage_org_ids_for_user
 from logger import log
 

@@ -31,6 +31,8 @@ type ChecklistStepFormsProps = {
   section: string;
   itemId: number;
   isAgent: boolean;
+  /** When false, skips fetch and renders nothing (e.g. step has no suggested_form_ids). */
+  enabled?: boolean;
 };
 
 export default function ChecklistStepForms({
@@ -38,10 +40,17 @@ export default function ChecklistStepForms({
   section,
   itemId,
   isAgent,
+  enabled = true,
 }: ChecklistStepFormsProps) {
   const { t } = useLocalization();
 
-  const { forms, isLoading, error } = useChecklistForms(transactionId, section, itemId, isAgent);
+  const shouldFetch = isAgent && enabled;
+  const { forms, isLoading, error } = useChecklistForms(
+    transactionId,
+    section,
+    itemId,
+    shouldFetch
+  );
 
   const {
     openPdfModal,
@@ -194,20 +203,12 @@ export default function ChecklistStepForms({
     [handleDownloadDocument, handleSendForSignatureDoc, handleShareDocument, handleViewDocument]
   );
 
-  if (!isAgent) {
+  if (!shouldFetch) {
     return null;
   }
 
   if (isLoading) {
-    return (
-      <Box className="mt-3 px-4 pb-3">
-        <Box className="border-border bg-background-base rounded-lg border p-3">
-          <Text className="text-text-secondary text-sm">
-            {t("checklists.loading_forms", { defaultValue: "Loading forms..." })}
-          </Text>
-        </Box>
-      </Box>
-    );
+    return null;
   }
 
   if (error) {

@@ -115,6 +115,12 @@ function ChecklistLayoutItemRowInner({
   }, [expanded, item.id, toggleExpand]);
 
   const expandRowAccessibilityLabel = `${item.label}. Expand step`;
+  const toggleRowAccessibilityLabel = `${item.label}. Toggle step`;
+
+  const ignoreNestedRowPress = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    return Boolean(target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR));
+  }, []);
 
   const checklistItem: ChecklistCloseLayoutCheckboxItem = {
     id: item.id,
@@ -126,7 +132,7 @@ function ChecklistLayoutItemRowInner({
     optional: item.optional ?? undefined,
   };
 
-  const headerRow = (
+  const headerRowContent = (
     <Box className="flex flex-row items-start gap-2">
       <Box className="min-w-0 flex-1">
         <ChecklistCheckbox
@@ -134,6 +140,7 @@ function ChecklistLayoutItemRowInner({
           checked={rowChecked}
           onToggle={handleCheckboxToggle}
           disabled={checkboxDisabled}
+          deferInteractionToParent
           itemLabelClass={itemLabel}
           itemExplanationClass={itemExplanation}
           checkboxContainerClass={checkboxContainer}
@@ -155,24 +162,35 @@ function ChecklistLayoutItemRowInner({
     </Box>
   );
 
-  const collapsedHeaderRow = (
+  const headerRow = expanded ? (
+    <TouchableBox
+      label={toggleRowAccessibilityLabel}
+      onPress={handleCheckboxToggle}
+      className="w-full text-left"
+      onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+        if (ignoreNestedRowPress(e)) {
+          return;
+        }
+        e.stopPropagation();
+        handleCheckboxToggle();
+      }}
+    >
+      {headerRowContent}
+    </TouchableBox>
+  ) : (
     <TouchableBox
       label={expandRowAccessibilityLabel}
       onPress={handleExpandRowPress}
       className="w-full text-left"
       onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-        const target = e.target as HTMLElement;
-        if (target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR)) {
+        if (ignoreNestedRowPress(e)) {
           return;
-        }
-        if (target.closest("label")) {
-          e.preventDefault();
         }
         e.stopPropagation();
         handleExpandRowPress();
       }}
     >
-      {headerRow}
+      {headerRowContent}
     </TouchableBox>
   );
 
@@ -194,7 +212,7 @@ function ChecklistLayoutItemRowInner({
             : ""
         }`}
       >
-        {expanded ? headerRow : collapsedHeaderRow}
+        {headerRow}
         <ChecklistStepAttachments
           item={item}
           expanded={expanded}

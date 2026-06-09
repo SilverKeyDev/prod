@@ -193,10 +193,46 @@ function BuyerRoadmapChecklistItemCardInner({
     }
   }, [expanded, item.id, toggleExpand]);
 
+  const handleCheckboxToggle = useCallback(() => {
+    void onToggleItem(item.id);
+  }, [item.id, onToggleItem]);
+
+  const ignoreNestedRowPress = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    return Boolean(target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR));
+  }, []);
+
+  const wrapRowPressTarget = useCallback(
+    (label: string, onPress: () => void, content: React.ReactNode) => (
+      <TouchableBox
+        label={label}
+        onPress={onPress}
+        className="w-full text-left"
+        onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+          if (ignoreNestedRowPress(e)) {
+            return;
+          }
+          e.stopPropagation();
+          onPress();
+        }}
+      >
+        {content}
+      </TouchableBox>
+    ),
+    [ignoreNestedRowPress]
+  );
+
   const expandRowAccessibilityLabel = `${checkboxItem.label}. ${t(
     "checklists.roadmap.expand_step",
     {
       defaultValue: "Expand step",
+    }
+  )}`;
+
+  const toggleRowAccessibilityLabel = `${checkboxItem.label}. ${t(
+    "checklists.roadmap.toggle_step",
+    {
+      defaultValue: "Toggle step",
     }
   )}`;
 
@@ -213,10 +249,9 @@ function BuyerRoadmapChecklistItemCardInner({
           <ChecklistCheckbox
             item={checkboxItem}
             checked={checked}
-            onToggle={() => {
-              void onToggleItem(item.id);
-            }}
+            onToggle={handleCheckboxToggle}
             disabled={checkboxDisabled}
+            deferInteractionToParent
             roadmapSoftBlocked={roadmapSoftBlocked}
             roadmapBlockerInlineText={blockerInlineText}
             roadmapBlockerInlineVariant={
@@ -265,29 +300,11 @@ function BuyerRoadmapChecklistItemCardInner({
     </Box>
   );
 
-  const checkboxRow =
-    !expanded && !roadmapHandoff ? (
-      <TouchableBox
-        label={expandRowAccessibilityLabel}
-        onPress={handleExpandRowPress}
-        className="w-full text-left"
-        onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-          const target = e.target as HTMLElement;
-          if (target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR)) {
-            return;
-          }
-          if (target.closest("label")) {
-            e.preventDefault();
-          }
-          e.stopPropagation();
-          handleExpandRowPress();
-        }}
-      >
-        {checkboxRowInner}
-      </TouchableBox>
-    ) : (
-      checkboxRowInner
-    );
+  const checkboxRow = roadmapHandoff
+    ? wrapRowPressTarget(handoffAccessibilityLabel, handleRoadmapHandoff, checkboxRowInner)
+    : !expanded
+      ? wrapRowPressTarget(expandRowAccessibilityLabel, handleExpandRowPress, checkboxRowInner)
+      : wrapRowPressTarget(toggleRowAccessibilityLabel, handleCheckboxToggle, checkboxRowInner);
 
   const integrationBlock = (
     <ChecklistStepAttachments
@@ -304,25 +321,7 @@ function BuyerRoadmapChecklistItemCardInner({
 
   const rowInner = (
     <>
-      {roadmapHandoff ? (
-        <TouchableBox
-          label={handoffAccessibilityLabel}
-          onPress={handleRoadmapHandoff}
-          className="w-full text-left"
-          onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-            const target = e.target as HTMLElement;
-            if (target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR)) {
-              return;
-            }
-            e.stopPropagation();
-            handleRoadmapHandoff();
-          }}
-        >
-          {checkboxRow}
-        </TouchableBox>
-      ) : (
-        checkboxRow
-      )}
+      {checkboxRow}
       {integrationBlock}
     </>
   );

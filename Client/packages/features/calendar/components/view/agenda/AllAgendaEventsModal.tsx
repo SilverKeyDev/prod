@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Dropdown, type DropdownOption } from "packages/ui";
 import { Box, Text } from "packages/ui/components/structure/primitives";
 import Title from "packages/ui/components/structure/text/Title";
-import Cover from "packages/ui/components/surfaces/modals/cover";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
 
 import type { Calendar } from "@/features/calendar/types/calendar";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
@@ -113,13 +113,13 @@ export function AllAgendaEventsModal({
   );
 
   return (
-    <Cover
+    <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       headerContent={headerContent}
       showCloseButton
       showHeaderBorder
-      animation="slideFromRight"
+      size="xl"
     >
       {loading ? (
         <Box className="py-6">
@@ -172,6 +172,6 @@ export function AllAgendaEventsModal({
           )}
         </Box>
       )}
-    </Cover>
+    </BaseModal>
   );
 }

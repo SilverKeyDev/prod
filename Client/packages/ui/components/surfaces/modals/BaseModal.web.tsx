@@ -4,6 +4,7 @@ import { Z_LAYERS } from "packages/design-tokens";
 import CloseButton from "packages/ui/components/actions/button/core/CloseButton";
 import { Portal } from "packages/ui/components/structure/portal";
 import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 import {
   Dialog,
   DialogBackdrop,
@@ -60,11 +61,14 @@ function BaseModalPanel({
           >
             {headerContent ??
               (title && (
-                <DialogTitle
-                  id={titleId}
-                  className="text-text-primary truncate text-sm font-semibold leading-snug"
-                >
-                  {title}
+                <DialogTitle id={titleId} className="min-w-0">
+                  <Title
+                    as="span"
+                    size="sm"
+                    className="text-text-primary truncate font-sans font-medium leading-snug"
+                  >
+                    {title}
+                  </Title>
                 </DialogTitle>
               ))}
           </Box>

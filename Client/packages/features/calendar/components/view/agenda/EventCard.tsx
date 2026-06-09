@@ -112,15 +112,14 @@ export function EventCard({
 
   const showAgendaComplete = Boolean(onToggleAgendaComplete);
 
-  const eventBody = (
+  const titleClassName = `text-left text-sm font-semibold leading-snug ${
+    agendaComplete ? "text-text-disabled line-through" : "text-text-primary"
+  }`;
+
+  const eventTitle = <Text className={titleClassName}>{event.summary || "Untitled Event"}</Text>;
+
+  const eventDetails = (
     <>
-      <Text
-        className={`text-left text-sm font-semibold ${
-          agendaComplete ? "text-text-disabled line-through" : "text-text-primary"
-        }`}
-      >
-        {event.summary || "Untitled Event"}
-      </Text>
       {dateRange ? (
         <Text className="text-text-secondary text-left text-xs sm:text-sm">{dateRange}</Text>
       ) : null}
@@ -135,6 +134,13 @@ export function EventCard({
     </>
   );
 
+  const eventBody = (
+    <>
+      {eventTitle}
+      {eventDetails}
+    </>
+  );
+
   return (
     <>
       <Box className="mb-2 w-full max-w-full pl-2">
@@ -143,15 +149,31 @@ export function EventCard({
             <Box className="w-1 shrink-0" style={{ backgroundColor: stripeColor }} />
             <Box className="min-w-0 flex-1 p-3 text-left">
               <Box className="flex flex-row items-start gap-2">
-                {showAgendaComplete ? (
-                  <AgendaCompleteControl
-                    completed={agendaComplete}
-                    canToggle={canToggleAgendaComplete}
-                    onToggle={() => onToggleAgendaComplete?.()}
-                  />
-                ) : null}
                 <Box className="min-w-0 flex-1">
-                  {onClick ? (
+                  {showAgendaComplete ? (
+                    <Box className="space-y-1">
+                      <Box className="flex flex-row items-center gap-2">
+                        <AgendaCompleteControl
+                          completed={agendaComplete}
+                          canToggle={canToggleAgendaComplete}
+                          onToggle={() => onToggleAgendaComplete?.()}
+                        />
+                        {onClick ? (
+                          <TouchableBox
+                            onPress={onClick}
+                            className="min-w-0 flex-1 text-left outline-none"
+                          >
+                            {eventTitle}
+                          </TouchableBox>
+                        ) : (
+                          <Box className="min-w-0 flex-1">{eventTitle}</Box>
+                        )}
+                      </Box>
+                      {dateRange || event.location || event.description ? (
+                        <Box className="space-y-1 pl-8">{eventDetails}</Box>
+                      ) : null}
+                    </Box>
+                  ) : onClick ? (
                     <TouchableBox onPress={onClick} className="space-y-1 text-left outline-none">
                       {eventBody}
                     </TouchableBox>

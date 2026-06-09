@@ -137,8 +137,8 @@ export function AccountPrivacyDataSection({ agentSubject = null }: AccountPrivac
 
       <Box className="flex flex-col gap-4">
         <ProfileSectionGroup title="Your data" titleClassName="text-text-primary font-semibold">
-          <Box className="border-border bg-background-base flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6 sm:p-5">
-            <Box className="flex min-w-0 flex-1 gap-4">
+          <Box className="border-border bg-background-base flex flex-col gap-4 rounded-xl border p-4 md:flex-row md:items-start md:justify-between md:gap-6 md:p-5">
+            <Box className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
               <Box className="bg-primary-muted text-primary shrink-0 self-start rounded-lg p-3">
                 <Icon name="download" className="h-6 w-6 shrink-0" aria-hidden />
               </Box>
@@ -151,10 +151,11 @@ export function AccountPrivacyDataSection({ agentSubject = null }: AccountPrivac
                 </BodyText>
               </Box>
             </Box>
-            <Box className="flex shrink-0 flex-col justify-center sm:w-52">
+            <Box className="flex w-full shrink-0 flex-col justify-center md:w-auto md:min-w-[9.5rem]">
               <Button
                 type="button"
                 variant="secondary"
+                iconName="download"
                 onPress={onExport}
                 disabled={exporting}
                 loading={exporting}
@@ -167,8 +168,8 @@ export function AccountPrivacyDataSection({ agentSubject = null }: AccountPrivac
         </ProfileSectionGroup>
 
         <ProfileSectionGroup title="Danger zone" titleClassName="text-text-primary font-semibold">
-          <Box className="border-destructive/35 bg-background-base flex flex-col gap-4 rounded-xl border border-dashed p-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6 sm:p-5">
-            <Box className="flex min-w-0 flex-1 gap-4">
+          <Box className="border-destructive/35 bg-background-base flex flex-col gap-4 rounded-xl border border-dashed p-4 md:flex-row md:items-start md:justify-between md:gap-6 md:p-5">
+            <Box className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
               <Box className="bg-destructive/10 text-destructive shrink-0 self-start rounded-lg p-3">
                 <Icon name="trash-2" className="h-6 w-6 shrink-0" aria-hidden />
               </Box>
@@ -182,10 +183,11 @@ export function AccountPrivacyDataSection({ agentSubject = null }: AccountPrivac
                 </BodyText>
               </Box>
             </Box>
-            <Box className="flex shrink-0 flex-col justify-center sm:w-52">
+            <Box className="flex w-full shrink-0 flex-col justify-center md:w-auto md:min-w-[9.5rem]">
               <Button
                 type="button"
                 variant="outline"
+                iconName="trash-2"
                 onPress={() => {
                   setConfirmOpen(true);
                 }}

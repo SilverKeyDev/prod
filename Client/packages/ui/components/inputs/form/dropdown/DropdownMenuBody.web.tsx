@@ -87,9 +87,9 @@ export function DropdownMenuBody<T>({
               className={`touch-friendly flex w-full items-center justify-between gap-2 px-4 py-4 text-left outline-none transition-colors duration-150 ${sharedInputText} ${
                 option.disabled
                   ? "text-text-disabled cursor-not-allowed"
-                  : "text-text-secondary hover:text-text-primary cursor-pointer hover:bg-neutral-50"
-              } ${
-                option.value === value ? "bg-primary-muted text-text-primary font-medium" : ""
+                  : option.value === value
+                    ? "text-text-primary cursor-pointer bg-neutral-100 font-medium hover:bg-neutral-100"
+                    : "text-text-secondary hover:text-text-primary cursor-pointer hover:bg-neutral-50"
               } ${option.menuRowClassName ?? ""} ${
                 index > 0 ? "border-t border-neutral-200" : ""
               } hover:font-normal focus:bg-neutral-50 active:bg-neutral-100`}

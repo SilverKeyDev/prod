@@ -127,11 +127,13 @@ def build_auth_url(
     user_id: str,
     request_additional_scopes: list[str] | None = None,
 ) -> tuple[str, str]:
-    """Build Google OAuth authorization URL with incremental authorization.
+    """Build Google OAuth authorization URL.
 
     Requests scopes from permissions.constants where include_in_oauth_request is true
     (virtual full Calendar scope is never requested).
-    The include_granted_scopes parameter ensures existing permissions are preserved.
+
+    Initial calendar connect requests only the current scope set. Incremental enhance
+    (`request_additional_scopes`) sets include_granted_scopes so existing grants are kept.
     """
     state = generate_state(user_id)
     try:
@@ -164,9 +166,10 @@ def build_auth_url(
         "scope": " ".join(requested_scopes),
         "access_type": "offline",
         "prompt": "consent",
-        "include_granted_scopes": "true",
         "state": state,
     }
+    if request_additional_scopes:
+        params["include_granted_scopes"] = "true"
     log.info(
         "CALENDAR",
         "GOOGLE_AUTH_URL_GENERATED",

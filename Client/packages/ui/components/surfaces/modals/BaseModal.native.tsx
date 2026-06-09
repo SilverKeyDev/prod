@@ -4,7 +4,7 @@ import { Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import CloseButton from "packages/ui/components/actions/button/core/CloseButton";
-import { Text } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 import type { BaseModalProps } from "./BaseModalTypes";
 
@@ -57,12 +57,13 @@ const BaseModal: React.FC<BaseModalProps> = (props) => {
                 <View style={styles.headerContent}>
                   {headerContent ??
                     (title ? (
-                      <Text
-                        accessibilityRole="header"
-                        className="text-text-primary text-sm font-semibold leading-snug"
+                      <Title
+                        as="h2"
+                        size="sm"
+                        className="text-text-primary font-sans font-medium leading-snug"
                       >
                         {title}
-                      </Text>
+                      </Title>
                     ) : null)}
                 </View>
                 {showCloseButton && (
