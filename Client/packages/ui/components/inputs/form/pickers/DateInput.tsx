@@ -41,11 +41,11 @@ const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
 
     const variantStyles = {
       default:
-        "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+        "border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border",
       mobile:
-        "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
+        "mobile-input border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
       compact:
-        "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+        "border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border",
     };
 
     const sizeStyles = {

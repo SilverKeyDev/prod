@@ -37,7 +37,8 @@ export function ClientHubAgenda({ clientId }: ClientHubAgendaProps) {
     dismissViewSignedAgreement,
   } = useDocumentsDataIntegration(clientId, documentHandlers);
 
-  const { agendaTodos, onToggleAgendaTodo } = useClientHubAgendaTodos(clientId);
+  const { agendaTodos, onToggleAgendaTodo, updateAgendaTodo, deleteAgendaTodo } =
+    useClientHubAgendaTodos(clientId);
 
   const onSigningAgendaPress = useCallback(
     async (agreementId: string) => {
@@ -69,6 +70,8 @@ export function ClientHubAgenda({ clientId }: ClientHubAgendaProps) {
         agendaTodos={agendaTodos}
         onToggleAgendaTodo={onToggleAgendaTodo}
         canEditAgendaTodos={true}
+        updateAgendaTodo={updateAgendaTodo}
+        deleteAgendaTodo={deleteAgendaTodo}
         onSigningAgendaPress={onSigningAgendaPress}
         clientUserId={clientId}
       />

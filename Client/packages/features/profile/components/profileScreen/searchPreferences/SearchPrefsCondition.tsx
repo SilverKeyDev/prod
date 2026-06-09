@@ -9,7 +9,7 @@ import {
   SECTION_TITLES,
 } from "packages/features/profile/utils";
 import { profileFieldValueClassName } from "packages/features/profile/utils";
-import { FormFieldLabel as Label, OptionTagInput,type OptionTagOption } from "packages/ui";
+import { FormFieldLabel as Label, OptionTagInput, type OptionTagOption } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import Title from "packages/ui/components/structure/text/Title";
 

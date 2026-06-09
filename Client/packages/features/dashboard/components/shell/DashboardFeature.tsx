@@ -90,7 +90,7 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   useCalendarOAuthCallback({ enqueueToast });
 
-  const { todos, createTodo, updateTodo } = useAgentTodos(true);
+  const { todos, createTodo, updateTodo, deleteTodo } = useAgentTodos(true);
   const signingTodos = useSigningTodos(isAgentWorkspace);
   const completedSigningTodos = useCompletedSigningTodos();
   const {
@@ -121,6 +121,30 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
       log.error("DASHBOARD", "Failed to update todo", error);
     }
   };
+
+  const handleUpdateAgendaTodo = useCallback(
+    async (id: string, data: Parameters<typeof updateTodo>[1]) => {
+      try {
+        await updateTodo(id, data);
+      } catch (error) {
+        log.error("DASHBOARD", "Failed to update agenda to-do", error);
+        throw error;
+      }
+    },
+    [updateTodo]
+  );
+
+  const handleDeleteAgendaTodo = useCallback(
+    async (id: string) => {
+      try {
+        await deleteTodo(id);
+      } catch (error) {
+        log.error("DASHBOARD", "Failed to delete agenda to-do", error);
+        throw error;
+      }
+    },
+    [deleteTodo]
+  );
 
   const handleSigningAgendaPress = useCallback(
     async (agreementId: string) => {
@@ -200,6 +224,8 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
             agendaTodos={agendaTodos}
             onToggleAgendaTodo={handleToggleAgendaTodo}
             canEditAgendaTodos={true}
+            updateAgendaTodo={handleUpdateAgendaTodo}
+            deleteAgendaTodo={handleDeleteAgendaTodo}
             onSigningAgendaPress={handleSigningAgendaPress}
             headerActions={headerActions}
           />

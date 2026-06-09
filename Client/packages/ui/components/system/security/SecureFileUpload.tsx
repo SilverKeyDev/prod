@@ -190,8 +190,8 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         } ${
           disabled
             ? "bg-disabled text-text-disabled cursor-not-allowed"
-            : "hover:bg-accent-muted cursor-pointer active:bg-neutral-100"
-        } active:bg-accent-muted`}
+            : "cursor-pointer hover:bg-neutral-100 active:bg-neutral-200"
+        }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}

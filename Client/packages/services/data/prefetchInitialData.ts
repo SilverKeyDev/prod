@@ -108,11 +108,9 @@ export async function prefetchAllInitialData(params: PrefetchAllParams): Promise
     const tierBPromises: Promise<void>[] = tierBRoutes.map((routeConfig) =>
       prefetchRoute({ routeConfig, userProfile: user, queryClient })
     );
-    if (!isAgent) {
-      tierBPromises.push(
-        prefetchRoute({ routeConfig: coreUserRoutes.searchResults, userProfile: user, queryClient })
-      );
-    }
+    tierBPromises.push(
+      prefetchRoute({ routeConfig: coreUserRoutes.searchResults, userProfile: user, queryClient })
+    );
     if (isAgent) {
       tierBPromises.push(prefetchFormsLibrary(queryClient));
     }

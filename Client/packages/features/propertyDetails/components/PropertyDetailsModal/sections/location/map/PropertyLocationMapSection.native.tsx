@@ -76,12 +76,17 @@ export function PropertyLocationMapSection({
   const googleMapId = useMemo(() => getGoogleMapIdForNative(), []);
   const isNativeGoogleMapsEnabled = useFeature(SEARCH_NATIVE_GOOGLE_MAPS_FLAG);
   const useGoogleMapsProvider = isNativeGoogleMapsEnabled || getUseGoogleMapsProvider();
-  const [layoutWidth, setLayoutWidth] = useState(0);
-  const onMapContainerLayout = useCallback((e: { nativeEvent: { layout: { width: number } } }) => {
-    const { width } = e.nativeEvent.layout;
-    setLayoutWidth((prev) => (prev === width ? prev : width));
-  }, []);
-  const hasValidSize = layoutWidth > 0;
+  const [layoutSize, setLayoutSize] = useState({ width: 0, height: 0 });
+  const onMapContainerLayout = useCallback(
+    (e: { nativeEvent: { layout: { width: number; height: number } } }) => {
+      const { width, height } = e.nativeEvent.layout;
+      setLayoutSize((prev) =>
+        prev.width === width && prev.height === height ? prev : { width, height }
+      );
+    },
+    []
+  );
+  const hasValidSize = layoutSize.width > 0 && layoutSize.height > 0;
 
   const initialRegion: Region | null = useMemo(() => {
     if (!coords) return null;
@@ -130,7 +135,8 @@ export function PropertyLocationMapSection({
     }
     log.debug("PROPERTY_DETAILS", "PropertyDetailsMapSection native map shell", {
       listingId,
-      layoutWidth,
+      layoutWidth: layoutSize.width,
+      layoutHeight: layoutSize.height,
       hasValidSize,
       useGoogleMapsProvider,
       googleMapIdPresent: Boolean(googleMapId),
@@ -143,7 +149,8 @@ export function PropertyLocationMapSection({
     googleMapId,
     hasValidSize,
     initialRegion,
-    layoutWidth,
+    layoutSize.height,
+    layoutSize.width,
     listingId,
     satelliteMode,
     useGoogleMapsProvider,
@@ -168,7 +175,7 @@ export function PropertyLocationMapSection({
           </BodyText>
         ) : (
           <Box className="gap-3">
-            <View onLayout={onMapContainerLayout} style={createMapShellStyle(layoutWidth).mapShell}>
+            <View onLayout={onMapContainerLayout} style={mapShellStyle.mapShell}>
               {hasValidSize ? (
                 <>
                   <MapView
@@ -214,17 +221,16 @@ export function PropertyLocationMapSection({
   );
 }
 
-const createMapShellStyle = (width: number) =>
-  StyleSheet.create({
-    mapShell: {
-      width: "100%",
-      height: width > 0 ? width : 220,
-      aspectRatio: 1,
-      position: "relative",
-      overflow: "hidden",
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: color("neutral.200"),
-      backgroundColor: color("neutral.50"),
-    },
-  });
+const mapShellStyle = StyleSheet.create({
+  mapShell: {
+    width: "100%",
+    height: 240,
+    maxHeight: "50%",
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: color("neutral.200"),
+    backgroundColor: color("neutral.50"),
+  },
+});

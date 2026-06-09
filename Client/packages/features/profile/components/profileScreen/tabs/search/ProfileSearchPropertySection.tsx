@@ -53,6 +53,7 @@ export function ProfileSearchPropertySection({
             formData={formData}
             isEditMode={isEditMode}
             updateFormData={(field, value) => updateField(field as keyof OnboardingData, value)}
+            omitFields={["walkability"]}
           />
         </Box>
       </ProfileSectionGroup>

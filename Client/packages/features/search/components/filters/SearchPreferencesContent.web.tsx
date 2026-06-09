@@ -5,6 +5,7 @@ import type { OnboardingData } from "packages/features/profile";
 import {
   LocationSection,
   type PatchBuyerPreferenceExtensions,
+  PreferencesSaveStatusRow,
   ProfileHousingEssentialsSection,
   ProfileHousingRangesSection,
   ProfileSearchPropertySection,
@@ -38,6 +39,7 @@ export type SearchPreferencesContentProps = {
   onAfterClear?: () => void | Promise<void>;
   registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
   menuPortalStack?: "page" | "modal";
+  saveStatus?: "idle" | "saving" | "saved";
 };
 
 export default function SearchPreferencesContent({
@@ -53,6 +55,7 @@ export default function SearchPreferencesContent({
   onAfterClear,
   registerOutsideClickSafeTarget,
   menuPortalStack = "page",
+  saveStatus = "idle",
 }: SearchPreferencesContentProps): React.ReactElement {
   const { t } = useLocalization();
   const typedFormData = formData as OnboardingData;
@@ -60,6 +63,13 @@ export default function SearchPreferencesContent({
 
   return (
     <Box className="space-y-6">
+      <PreferencesSaveStatusRow
+        saveStatus={saveStatus}
+        savingLabel={t("common.saving")}
+        savedLabel={t("common.saved")}
+        className="min-h-[1.25rem]"
+      />
+
       <ClearPreferencesButton
         selectedClientId={viewingClientId}
         onClientChange={onClientChange}
@@ -77,7 +87,7 @@ export default function SearchPreferencesContent({
       ) : null}
 
       <PriceRangeFilter
-        minValue={formData.home_budget_min ?? 100_000}
+        minValue={formData.home_budget_min ?? 0}
         maxValue={formData.home_budget_max ?? 2_000_000}
         onChange={(minVal, maxVal) => {
           updateFormData("home_budget_min", minVal);

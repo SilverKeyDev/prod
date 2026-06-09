@@ -7,6 +7,7 @@ from typing import Any
 from unittest.mock import patch
 
 from flask import Flask
+from pydantic import BaseModel
 
 from app.utils.validation.decorators import (
     OPENAPI_VALIDATE_FORM_ATTR,
@@ -14,6 +15,7 @@ from app.utils.validation.decorators import (
     has_request_validation_decorator,
     has_validation_decorator,
     validate_form_request,
+    validate_query,
     validate_request,
     validate_response,
 )
@@ -22,12 +24,14 @@ from .validation_decorator_test_schemas import (
     FormAllFields,
     FormJsonBlob,
     FormSingleKey,
+    InvalidQueryParams,
     InvalidRequestBody,
     ValidRequestBody,
     ValidResponseBody,
 )
 
 _DECORATORS_REQUEST = "app.utils.validation.decorators.request"
+_DECORATORS_QUERY = "app.utils.validation.decorators.query"
 _DECORATORS_RESPONSE = "app.utils.validation.decorators.response"
 
 
@@ -51,7 +55,7 @@ def test_validate_request_passes_validated_model(app: Flask):
     assert captured["data"].email == "user@example.com"
 
 
-def test_validate_request_gradual_mode_passes_none_on_invalid(app: Flask):
+def test_validate_request_gradual_mode_passes_constructed_model_on_invalid(app: Flask):
     captured: dict[str, Any] = {}
 
     @validate_request(InvalidRequestBody)
@@ -68,7 +72,9 @@ def test_validate_request_gradual_mode_passes_none_on_invalid(app: Flask):
                 result = route()
 
     assert result == "continued"
-    assert captured["data"] is None
+    assert captured["data"] is not None
+    assert isinstance(captured["data"], BaseModel)
+    assert captured["data"].model_dump() == {}
     mock_log.warn.assert_called_once()
     mock_log.info.assert_called_once()
 
@@ -188,7 +194,7 @@ def test_validate_form_request_parse_json_valid(app: Flask):
     assert captured["data"].value == 9
 
 
-def test_validate_form_request_gradual_invalid_returns_none(app: Flask):
+def test_validate_form_request_gradual_invalid_returns_constructed_model(app: Flask):
     captured: dict[str, Any] = {}
 
     @validate_form_request(FormAllFields)
@@ -201,7 +207,34 @@ def test_validate_form_request_gradual_invalid_returns_none(app: Flask):
             with patch(f"{_DECORATORS_REQUEST}.log") as mock_log:
                 route()
 
-    assert captured["data"] is None
+    assert captured["data"] is not None
+    assert isinstance(captured["data"], BaseModel)
+    assert captured["data"].model_dump() == {"count": "1"}
+    mock_log.warn.assert_called_once()
+    mock_log.info.assert_called_once()
+
+
+def test_validate_query_gradual_invalid_returns_constructed_model(app: Flask):
+    captured: dict[str, Any] = {}
+
+    @validate_query(InvalidQueryParams)
+    def route(query: InvalidQueryParams | None = None):
+        captured["query"] = query
+        return "ok"
+
+    with (
+        patch(f"{_DECORATORS_QUERY}.VALIDATION_MODE", "gradual"),
+        patch(f"{_DECORATORS_QUERY}.is_strict_for_request_path", return_value=False),
+    ):
+        with app.test_request_context("/api/v1/other/action", method="GET"):
+            with patch(f"{_DECORATORS_QUERY}.log") as mock_log:
+                result = route()
+
+    assert result == "ok"
+    assert captured["query"] is not None
+    assert isinstance(captured["query"], BaseModel)
+    # Gradual mode must not pass None — handlers can call model_dump without 500.
+    captured["query"].model_dump()
     mock_log.warn.assert_called_once()
     mock_log.info.assert_called_once()
 
@@ -216,14 +249,7 @@ def test_validate_form_request_invalid_json_returns_400(app: Flask):
         method="POST",
         data={"payload": "not-json"},
     ):
-        with (
-            patch.object(
-                FormJsonBlob,
-                "model_validate_json",
-                side_effect=json.JSONDecodeError("Expecting value", "not-json", 0),
-            ),
-            patch(f"{_DECORATORS_REQUEST}.log") as mock_log,
-        ):
+        with patch(f"{_DECORATORS_REQUEST}.log") as mock_log:
             result = route()
 
     assert isinstance(result, tuple)

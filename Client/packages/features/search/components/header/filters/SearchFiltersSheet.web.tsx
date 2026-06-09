@@ -19,10 +19,10 @@ export type SearchFiltersSheetProps = {
   onClientChange?: (clientId: string | null) => void;
   patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
   onAgentSyncPreferencesFetched?: (onboarding: Partial<OnboardingData>) => void;
-  onClientChange?: (clientId: string | null) => void;
   replaceFormData?: (next: Partial<OnboardingData>) => void;
   cancelPendingSave?: () => void;
   onAfterClear?: () => void | Promise<void>;
+  saveStatus?: "idle" | "saving" | "saved";
 };
 
 export default function SearchFiltersSheet({
@@ -38,6 +38,7 @@ export default function SearchFiltersSheet({
   replaceFormData,
   cancelPendingSave,
   onAfterClear,
+  saveStatus = "idle",
 }: SearchFiltersSheetProps): React.ReactElement {
   const { t } = useLocalization();
 
@@ -93,6 +94,7 @@ export default function SearchFiltersSheet({
                   cancelPendingSave={cancelPendingSave}
                   onAfterClear={onAfterClear}
                   menuPortalStack="modal"
+                  saveStatus={saveStatus}
                 />
               </Box>
             </AccessibleDialog.Panel>

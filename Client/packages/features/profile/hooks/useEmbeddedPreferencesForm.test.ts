@@ -1,7 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach,describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { PreferencesFormActionsRef } from "../components/settings/inputs/preferencesFormContentTypes";
+import type { PreferencesFormActionsRef } from "packages/features/profile/components/settings/inputs/preferencesFormContentTypes";
+
 import { useEmbeddedPreferencesForm } from "./useEmbeddedPreferencesForm";
 
 const mockUserData = vi.fn();

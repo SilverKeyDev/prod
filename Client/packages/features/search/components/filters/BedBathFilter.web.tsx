@@ -73,7 +73,7 @@ export default function BedBathFilter({
             formatValue={formatCount}
             formatPrefix=""
             disabled={disabled}
-            minGap={0}
+            allowSingleValue
           />
         </Box>
         <Box className="touch-friendly">
@@ -88,7 +88,7 @@ export default function BedBathFilter({
             formatValue={formatCount}
             formatPrefix=""
             disabled={disabled}
-            minGap={0}
+            allowSingleValue
           />
         </Box>
       </Box>

@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { queryKeys } from "packages/config/query/keys";
 import { searchDisplayApi } from "packages/features/search/api/searchDisplay";
@@ -33,15 +33,34 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 describe("useSearchDisplaySettings", () => {
+  let filtersSnapshot: {
+    showCommuteOverlay: boolean;
+    resultsOrderBy: string;
+    preferencesStrictFilter: boolean;
+    mapHomeCardsCount: number;
+  };
+  let unsubscribeFilters: () => void;
+
   beforeEach(() => {
     vi.clearAllMocks();
     useFiltersStore.setState({
-      ...useFiltersStore.getState(),
       showCommuteOverlay: true,
       resultsOrderBy: "match_score",
       preferencesStrictFilter: false,
       mapHomeCardsCount: 1,
     });
+    unsubscribeFilters = useFiltersStore.subscribe((state) => {
+      filtersSnapshot = {
+        showCommuteOverlay: state.showCommuteOverlay,
+        resultsOrderBy: state.resultsOrderBy,
+        preferencesStrictFilter: state.preferencesStrictFilter,
+        mapHomeCardsCount: state.mapHomeCardsCount,
+      };
+    });
+  });
+
+  afterEach(() => {
+    unsubscribeFilters();
   });
 
   it("loads search display from the API and syncs the filters store", async () => {
@@ -59,10 +78,10 @@ describe("useSearchDisplaySettings", () => {
 
     await waitFor(() => {
       expect(searchDisplayApi.get).toHaveBeenCalled();
-      expect(useFiltersStore.getState().showCommuteOverlay).toBe(false);
-      expect(useFiltersStore.getState().resultsOrderBy).toBe("price");
-      expect(useFiltersStore.getState().preferencesStrictFilter).toBe(true);
-      expect(useFiltersStore.getState().mapHomeCardsCount).toBe(2);
+      expect(filtersSnapshot.showCommuteOverlay).toBe(false);
+      expect(filtersSnapshot.resultsOrderBy).toBe("price");
+      expect(filtersSnapshot.preferencesStrictFilter).toBe(true);
+      expect(filtersSnapshot.mapHomeCardsCount).toBe(2);
     });
   });
 
@@ -111,8 +130,8 @@ describe("useSearchDisplaySettings", () => {
         show_commute_overlay: false,
         results_order_by: "distance",
       });
-      expect(useFiltersStore.getState().showCommuteOverlay).toBe(false);
-      expect(useFiltersStore.getState().resultsOrderBy).toBe("distance");
+      expect(filtersSnapshot.showCommuteOverlay).toBe(false);
+      expect(filtersSnapshot.resultsOrderBy).toBe("distance");
       expect(queryClient.getQueryData(queryKeys.user.searchDisplay())).toEqual({
         show_commute_overlay: false,
         map_home_cards_count: 1,

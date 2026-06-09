@@ -6,10 +6,10 @@ import { Box } from "packages/ui/components/structure/primitives";
 import { formatCompactNumber } from "packages/utils";
 
 import { BodyText } from "@/components/ui";
-const DEFAULT_MIN = 100_000;
+const DEFAULT_MIN = 0;
 const DEFAULT_MAX = 2_000_000;
 const TICK_VALUES = [
-  100_000, 250_000, 500_000, 750_000, 1_000_000, 1_500_000, 2_000_000, 3_000_000, 5_000_000,
+  0, 100_000, 250_000, 500_000, 750_000, 1_000_000, 1_500_000, 2_000_000, 3_000_000, 5_000_000,
   10_000_000,
 ];
 

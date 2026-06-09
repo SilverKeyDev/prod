@@ -1,11 +1,22 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
+import type { UpdateTodoRequest } from "packages/features/agent/api/agent";
 import { Icon } from "packages/ui/components/media/icons";
 import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import DeleteModal from "packages/ui/components/surfaces/modals/standalone/DeleteModal";
 import { dateParseISO } from "packages/utils/core/date";
 
 import { AgendaCompleteControl } from "@/features/calendar/components/view/agenda/AgendaCompleteControl";
+import { AgendaItemEditActions } from "@/features/calendar/components/view/agenda/AgendaItemEditActions";
+import {
+  type AgendaTodoFormSubmitPayload,
+  AgendaTodoModal,
+} from "@/features/calendar/components/view/agenda/AgendaTodoModal";
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
+import {
+  agendaFormValuesToUpdateRequest,
+  todoToAgendaFormValues,
+} from "@/features/calendar/utils/agenda/agendaTodoFormValues";
 
 function formatDueLine(dueDate: string | null) {
   if (dueDate == null || dueDate === "") {
@@ -26,6 +37,8 @@ type TodoAgendaRowProps = {
   todo: AgendaTodoDTO;
   onToggleComplete: (id: string) => void;
   canEditComplete?: boolean;
+  updateTodo?: (id: string, data: UpdateTodoRequest) => Promise<void>;
+  deleteTodo?: (id: string) => Promise<void>;
   /** When the row is a DocuSign agenda item, opens the in-app signing flow. */
   onSigningPress?: (agreementId: string) => void;
 };
@@ -34,11 +47,71 @@ export function TodoAgendaRow({
   todo,
   onToggleComplete,
   canEditComplete = true,
+  updateTodo,
+  deleteTodo,
   onSigningPress,
 }: TodoAgendaRowProps) {
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const dueLine = useMemo(() => formatDueLine(todo.due_date), [todo.due_date]);
   const isSigning = todo.agenda_item_kind === "signing";
   const agreementId = todo.signing_agreement_id;
+
+  const showEditActions = Boolean(canEditComplete && updateTodo && deleteTodo && !isSigning);
+
+  const editInitialValues = useMemo(() => todoToAgendaFormValues(todo), [todo]);
+
+  const handleEdit = useCallback(() => {
+    setEditModalOpen(true);
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    setDeleteConfirmOpen(true);
+  }, []);
+
+  const handleEditClose = useCallback(() => {
+    setEditModalOpen(false);
+  }, []);
+
+  const handleDeleteConfirmClose = useCallback(() => {
+    setDeleteConfirmOpen(false);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deleteTodo) {
+      return;
+    }
+    await deleteTodo(todo.id);
+    setDeleteConfirmOpen(false);
+  }, [deleteTodo, todo.id]);
+
+  const handleEditSubmit = useCallback(
+    async (payload: AgendaTodoFormSubmitPayload) => {
+      if (!updateTodo) {
+        return;
+      }
+      const request = agendaFormValuesToUpdateRequest({
+        title: payload.title,
+        description: payload.description ?? "",
+        deadlineDate: payload.deadlineDate ?? "",
+        time: payload.deadlineTime ?? "",
+        isAllDay: payload.isAllDay,
+      });
+      if (!request) {
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        await updateTodo(todo.id, request);
+        setEditModalOpen(false);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [todo.id, updateTodo]
+  );
 
   const signedLine = useMemo(() => {
     const raw = todo.signing_completed_at;
@@ -129,33 +202,63 @@ export function TodoAgendaRow({
   }
 
   return (
-    <Box className="mb-2 w-full max-w-full pl-2">
-      <Box className="border-border bg-background-surface w-full overflow-hidden rounded-xl border">
-        <Box className="flex flex-row items-stretch">
-          <Box className="bg-primary w-1" />
-          <Box className="flex min-w-0 flex-1 flex-col gap-1 p-3">
-            <Box className="flex min-w-0 flex-row items-center gap-2">
-              <AgendaCompleteControl
-                completed={todo.completed}
-                canToggle={canEditComplete}
-                onToggle={() => onToggleComplete(todo.id)}
-              />
-              <Text
-                className={`min-w-0 flex-1 text-left text-sm font-semibold leading-snug ${
-                  todo.completed ? "text-text-disabled line-through" : "text-text-primary"
-                }`}
-              >
-                {todo.title}
-              </Text>
-            </Box>
-            {dueLine ? (
-              <Box className="flex flex-row flex-wrap items-center gap-2 pl-8">
-                <Text className="text-text-secondary text-left text-xs">{dueLine}</Text>
+    <>
+      <Box className="mb-2 w-full max-w-full pl-2">
+        <Box className="border-border bg-background-surface w-full overflow-hidden rounded-xl border">
+          <Box className="flex flex-row items-stretch">
+            <Box className="bg-primary w-1" />
+            <Box className="min-w-0 flex-1 p-3">
+              <Box className="flex flex-row items-start gap-2">
+                <Box className="flex min-w-0 flex-1 flex-col gap-1">
+                  <Box className="flex min-w-0 flex-row items-center gap-2">
+                    <AgendaCompleteControl
+                      completed={todo.completed}
+                      canToggle={canEditComplete}
+                      onToggle={() => onToggleComplete(todo.id)}
+                    />
+                    <Text
+                      className={`min-w-0 flex-1 text-left text-sm font-semibold leading-snug ${
+                        todo.completed ? "text-text-disabled line-through" : "text-text-primary"
+                      }`}
+                    >
+                      {todo.title}
+                    </Text>
+                  </Box>
+                  {dueLine ? (
+                    <Box className="flex flex-row flex-wrap items-center gap-2 pl-8">
+                      <Text className="text-text-secondary text-left text-xs">{dueLine}</Text>
+                    </Box>
+                  ) : null}
+                </Box>
+                {showEditActions ? (
+                  <AgendaItemEditActions onEdit={handleEdit} onCancel={handleCancel} />
+                ) : null}
               </Box>
-            ) : null}
+            </Box>
           </Box>
         </Box>
       </Box>
-    </Box>
+
+      {showEditActions ? (
+        <>
+          <AgendaTodoModal
+            isOpen={editModalOpen}
+            onClose={handleEditClose}
+            mode="edit"
+            initialValues={editInitialValues}
+            onSubmit={handleEditSubmit}
+            isSubmitting={isSubmitting}
+          />
+          <DeleteModal
+            isOpen={deleteConfirmOpen}
+            onClose={handleDeleteConfirmClose}
+            onConfirm={handleDeleteConfirm}
+            title="Delete to-do"
+            message="Are you sure you want to delete this to-do? This action cannot be undone."
+            confirmText="Delete to-do"
+          />
+        </>
+      ) : null}
+    </>
   );
 }

@@ -33,6 +33,10 @@ export type CalendarTimeGridWeekHeaderProps = {
   showWeekendTint?: boolean;
   onDayHeaderPress?: (date: Date) => void;
   onDayHeaderDoubleTap?: (date: Date) => void;
+  weekInteractionEnabled?: boolean;
+  weekSelectedEventId?: string | null;
+  onWeekEventSelect?: (event: ExtendedGoogleEvent) => void;
+  onWeekEventOpenEdit?: (event: ExtendedGoogleEvent) => void;
 };
 
 function allDayLanesHeightPx(laneCount: number): number {
@@ -54,6 +58,10 @@ export function CalendarTimeGridWeekHeader({
   showWeekendTint = true,
   onDayHeaderPress,
   onDayHeaderDoubleTap,
+  weekInteractionEnabled = false,
+  weekSelectedEventId = null,
+  onWeekEventSelect,
+  onWeekEventOpenEdit,
 }: CalendarTimeGridWeekHeaderProps) {
   const today = dateNow().startOf("day");
   const dayKeys = dayDates.map((d) => calendarTimeGridToYmd(d));
@@ -82,10 +90,28 @@ export function CalendarTimeGridWeekHeader({
       {laneCount === 0
         ? null
         : placed.map((bar, barIdx) => {
+            const ev = bar.event as ExtendedGoogleEvent;
             const evColor = calendarColorForEvent(bar.event, calendars);
+            const idStr = bar.event.id != null ? String(bar.event.id) : "";
+            const isDraft = Boolean(ev.isOptimisticCalendarDraft);
+            const isSelected = Boolean(
+              weekSelectedEventId && idStr.length > 0 && weekSelectedEventId === idStr
+            );
+            const canInteract = weekInteractionEnabled && !isDraft;
+
             return (
               <Box
                 key={`allday-${bar.lane}-${bar.startCol}-${bar.endCol}-${barIdx}-${String(bar.event.id ?? "")}`}
+                data-calendar-week-event=""
+                {...(idStr.length > 0 ? { "data-calendar-week-event-id": idStr } : {})}
+                onClick={(e) => {
+                  if (!canInteract) {
+                    return;
+                  }
+                  e.stopPropagation();
+                  onWeekEventSelect?.(ev);
+                  onWeekEventOpenEdit?.(ev);
+                }}
                 style={{
                   gridColumn: `${bar.startCol + 1} / ${bar.endCol + 2}`,
                   gridRow: bar.lane + 1,
@@ -94,6 +120,15 @@ export function CalendarTimeGridWeekHeader({
                   paddingHorizontal: spacing(1),
                   justifyContent: "center",
                   minWidth: 0,
+                  cursor: canInteract ? "pointer" : undefined,
+                  ...(isSelected
+                    ? {
+                        outlineWidth: 2,
+                        outlineStyle: "solid" as const,
+                        outlineColor: color("brand-accent"),
+                        outlineOffset: -2,
+                      }
+                    : null),
                 }}
               >
                 <Text

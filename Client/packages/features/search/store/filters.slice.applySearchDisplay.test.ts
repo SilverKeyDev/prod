@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { create } from "zustand";
 
 import type { SearchDisplayPayload } from "packages/features/search/types/domain/searchDisplay";
 
@@ -7,16 +6,22 @@ import { buildFiltersSliceActions, buildLiveIsHomeSaved } from "./filters.slice.
 import { filtersSliceInitialState } from "./filters.slice.initialState";
 import type { FiltersState } from "./filters.slice.types";
 
-function createTestFiltersStore() {
-  return create<FiltersState>((set, get) => ({
-    ...filtersSliceInitialState(),
-    ...buildFiltersSliceActions(set, get, buildLiveIsHomeSaved(get)),
-  }));
+function createTestFiltersState() {
+  let state = filtersSliceInitialState();
+  const set: (
+    partial: Partial<FiltersState> | ((state: FiltersState) => Partial<FiltersState>)
+  ) => void = (partial) => {
+    state =
+      typeof partial === "function" ? { ...state, ...partial(state) } : { ...state, ...partial };
+  };
+  const get = () => state;
+  const actions = buildFiltersSliceActions(set, get, buildLiveIsHomeSaved(get));
+  return { get, actions };
 }
 
 describe("applySearchDisplayFromApi", () => {
   it("hydrates commute overlay, order by, strict filter, and map cards from API payload", () => {
-    const store = createTestFiltersStore();
+    const { get, actions } = createTestFiltersState();
     const payload: SearchDisplayPayload = {
       show_commute_overlay: false,
       map_home_cards_count: 3,
@@ -24,9 +29,9 @@ describe("applySearchDisplayFromApi", () => {
       preferences_strict_filter: true,
     };
 
-    store.getState().applySearchDisplayFromApi(payload);
+    actions.applySearchDisplayFromApi(payload);
 
-    const state = store.getState();
+    const state = get();
     expect(state.showCommuteOverlay).toBe(false);
     expect(state.mapHomeCardsCount).toBe(3);
     expect(state.resultsOrderBy).toBe("price");
@@ -34,7 +39,7 @@ describe("applySearchDisplayFromApi", () => {
   });
 
   it("restores last search context map camera and search source when present", () => {
-    const store = createTestFiltersStore();
+    const { get, actions } = createTestFiltersState();
     const payload: SearchDisplayPayload = {
       show_commute_overlay: true,
       map_home_cards_count: 1,
@@ -46,9 +51,9 @@ describe("applySearchDisplayFromApi", () => {
       },
     };
 
-    store.getState().applySearchDisplayFromApi(payload);
+    actions.applySearchDisplayFromApi(payload);
 
-    const state = store.getState();
+    const state = get();
     expect(state.searchSource).toBe("location");
     expect(state.webMapCamera).toEqual({ lat: 40.1, lng: -74.2, zoom: 12 });
   });

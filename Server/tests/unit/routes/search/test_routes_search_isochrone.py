@@ -92,7 +92,7 @@ class TestIsochroneRoutes:
                         mock_get_user.return_value = (user, None)
                         mock_resolve.return_value = ("user-123", None)
                         mock_prefs_fn.return_value = ({}, None)
-                        mock_parse_locs.return_value = (None, "No locations found")
+                        mock_parse_locs.return_value = ([], None)
 
                         response = client.get(
                             "/api/v1/search/isochrone",

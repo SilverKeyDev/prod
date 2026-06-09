@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { AgentConnectBanner } from "packages/features/agent";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
+import { AuthTermsDisclaimer } from "packages/features/homeauth/components/core/AuthTermsDisclaimer";
 import AuthDivider from "packages/features/homeauth/components/core/Divider";
 import AuthLink from "packages/features/homeauth/components/core/Link";
 import AuthPageLayout from "packages/features/homeauth/components/core/PageLayout";
@@ -12,10 +13,9 @@ import { applyLoginResult } from "packages/features/homeauth/utils/applyLoginRes
 import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { getPostAuthDestination } from "packages/navigation/postAuthDestination";
-import { ROUTES } from "packages/navigation/types/routes";
 import { Box } from "packages/ui/components/structure/primitives";
 
-import { BodyText, Button, Input } from "@/components/ui";
+import { Button, Input } from "@/components/ui";
 export function LoginFeature() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -103,17 +103,7 @@ export function LoginFeature() {
         <AuthDivider />
 
         <GoogleSignInButton text="Sign in with Google" />
-        <BodyText as="p" size="xs" className="text-text-secondary/90 text-center leading-relaxed">
-          By signing in (including with Google), you agree to our{" "}
-          <AuthLink to={ROUTES.TERMS} variant="inline" className="text-text-secondary">
-            Terms of Service
-          </AuthLink>{" "}
-          and{" "}
-          <AuthLink to={ROUTES.PRIVACY} variant="inline" className="text-text-secondary">
-            Privacy Policy
-          </AuthLink>
-          .
-        </BodyText>
+        <AuthTermsDisclaimer flow="login" />
 
         <Box className="gap-responsive-md text-responsive-sm flex items-center justify-center">
           <AuthLink to="/signup" variant="inline">

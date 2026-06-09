@@ -73,6 +73,10 @@ class InvalidRequestBody(BaseModel):
     required_token: str
 
 
+class InvalidQueryParams(BaseModel):
+    required_id: str
+
+
 class ValidResponseBody(BaseModel):
     success: bool
 

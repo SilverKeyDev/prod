@@ -133,14 +133,8 @@ export default function KeyTurnLoader({
         {showMessage ? (
           <BodyText
             as="span"
-            style={{
-              color:
-                variant === "gray"
-                  ? color("neutral.500")
-                  : variant === "sidebar"
-                    ? color("background-surface")
-                    : undefined,
-            }}
+            muted={variant !== "sidebar"}
+            style={variant === "sidebar" ? { color: color("background-surface") } : undefined}
           >
             {trimmedMessage}
           </BodyText>

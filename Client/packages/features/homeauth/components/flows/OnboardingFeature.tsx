@@ -8,7 +8,7 @@ import { Box, Image } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { NavigationButtons } from "@/components/ui";
-import OnboardingHeader from "@/features/profile/components/onboarding/Header.web";
+import OnboardingHeader from "@/features/profile/components/onboarding/header/Header.web";
 
 export function OnboardingFeature() {
   const {

@@ -27,11 +27,19 @@ const FILLED_SUCCESS =
 const VARIANT_SECONDARY =
   "bg-neutral-100 text-text-primary hover:bg-neutral-200 active:bg-neutral-300 focus-visible:ring-neutral-400 disabled:bg-neutral-100 disabled:text-text-disabled";
 
-const VARIANT_OUTLINE =
-  "border border-border bg-transparent text-text-primary hover:bg-neutral-100 active:bg-neutral-200 focus-visible:ring-neutral-400 disabled:border-border disabled:text-text-disabled";
+/** Shared hover/press for ghost, outline, and ghost-like surfaces (neutral gray, never brand tint). */
+export const GHOST_INTERACTION_CLASSES = "hover:bg-neutral-100 active:bg-neutral-200";
 
-const VARIANT_GHOST =
-  "bg-transparent text-text-primary hover:bg-neutral-100 active:bg-neutral-200 focus-visible:ring-neutral-400 disabled:text-text-disabled";
+/**
+ * Bordered white/surface buttons (OAuth, third-party sign-in): no fill tint on hover/press.
+ * Use with `variant="outline"` and `!` so this wins over {@link GHOST_INTERACTION_CLASSES}.
+ */
+export const SURFACE_OUTLINE_INTERACTION_CLASSES =
+  "hover:!bg-background-surface active:!bg-background-surface hover:!border-neutral-400 active:opacity-90";
+
+const VARIANT_OUTLINE = `border border-border bg-transparent text-text-primary ${GHOST_INTERACTION_CLASSES} focus-visible:ring-neutral-400 disabled:border-border disabled:text-text-disabled`;
+
+const VARIANT_GHOST = `bg-transparent text-text-primary ${GHOST_INTERACTION_CLASSES} focus-visible:ring-neutral-400 disabled:text-text-disabled`;
 
 export const BUTTON_VARIANT_STYLES: Record<ButtonStyleVariant, string> = {
   primary: FILLED_PRIMARY,

@@ -103,13 +103,19 @@ export function buildBuyerPreferenceExtensionsFromForm(
   const aboutMe = mergeAboutMeSection(formData);
   const priceFinancing = mergePriceFinancingSection(formData);
   const prev = formData.buyerPreferenceExtensions ?? { v: 1 as const };
+  const walkability =
+    prev.neighborhood?.walkability_importance?.trim() || formData.walkability_importance?.trim();
+  const neighborhood = {
+    ...(prev.neighborhood ?? {}),
+    ...(walkability ? { walkability_importance: walkability } : {}),
+  };
   const merged: BuyerPreferenceExtensions = {
     v: 1,
     ...(prev.location_prefs ? { location_prefs: prev.location_prefs } : {}),
     ...(prev.physical ? { physical: prev.physical } : {}),
     ...(prev.condition ? { condition: prev.condition } : {}),
     ...(prev.utilities ? { utilities: prev.utilities } : {}),
-    ...(prev.neighborhood ? { neighborhood: prev.neighborhood } : {}),
+    ...(Object.keys(neighborhood).length > 0 ? { neighborhood } : {}),
     ...(prev.availability ? { availability: prev.availability } : {}),
     ...(aboutMe ? { buyer_about_me: aboutMe } : {}),
     ...(priceFinancing ? { price_financing: priceFinancing } : {}),

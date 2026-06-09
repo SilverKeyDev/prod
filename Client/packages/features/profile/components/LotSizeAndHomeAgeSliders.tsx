@@ -8,7 +8,7 @@ import {
 import { BudgetRangeSlider, FormFieldLabel as Label } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 
-import { LotSizeHomeAgeSliderRow } from "./lotSizeHomeAgeSliderLayout";
+import { LotSizeHomeAgeSliderRow } from "./layout/lotSizeHomeAgeSliderLayout";
 
 export type LotSizeHomeAgeFormSlice = {
   preferred_lot_size_min?: number;

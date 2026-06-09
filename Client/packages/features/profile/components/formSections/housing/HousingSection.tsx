@@ -21,7 +21,7 @@ import { Title } from "@/components/ui";
 import { HousingPreferencesBody } from "./HousingPreferencesBody";
 
 const BUDGET_TICK_VALUES = [
-  200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000, 6000000, 10000000,
+  0, 200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000, 6000000, 10000000,
 ];
 type HousingSectionProps = {
   formData: OnboardingData;
@@ -67,7 +67,7 @@ export default function HousingSection({
             {isEditMode ? (
               <BudgetSlider
                 tickValues={BUDGET_TICK_VALUES}
-                minValue={formData.home_budget_min ?? 200000}
+                minValue={formData.home_budget_min ?? 0}
                 maxValue={formData.home_budget_max ?? 1000000}
                 onChange={(minValue, maxValue) => {
                   const roundedMin = Math.round(minValue / 25000) * 25000;

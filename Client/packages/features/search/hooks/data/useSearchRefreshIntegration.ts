@@ -4,6 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 
+import { fetchCachedPolygonSearchResults } from "@/features/search/api/fetchCachedPolygonSearchResults";
+
 /** Query key prefix used by feed infinite query (useFeedData) */
 const FEED_QUERY_KEY = ["feed"] as const;
 
@@ -22,10 +24,11 @@ export function useSearchRefreshIntegration(): UseSearchRefreshIntegrationReturn
 
   const invalidateSearchAndFeed = useCallback(async () => {
     await Promise.all([
+      queryClient.fetchQuery({
+        queryKey: queryKeys.search.results(),
+        queryFn: () => fetchCachedPolygonSearchResults({ hydrateListings: true, verboseLog: true }),
+      }),
       queryClient.invalidateQueries({ queryKey: FEED_QUERY_KEY }),
-      // Invalidate isochrone only - not queryKeys.search.all. The latter refetches
-      // ["search","results"] (onlyCached) and can overwrite a fresh setSearchResults()
-      // payload with a stale or smaller DB snapshot (intermittent "one property").
       queryClient.invalidateQueries({
         queryKey: [...queryKeys.search.all, "isochrone"],
       }),

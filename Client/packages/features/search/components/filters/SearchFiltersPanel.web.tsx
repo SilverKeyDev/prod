@@ -20,7 +20,7 @@ export default function SearchFiltersPanel({
   return (
     <Box className="space-y-4 pb-8">
       <PriceRangeFilter
-        minValue={formData.home_budget_min ?? 100000}
+        minValue={formData.home_budget_min ?? 0}
         maxValue={formData.home_budget_max ?? 2000000}
         onChange={(minVal, maxVal) => {
           updateFormData("home_budget_min", minVal);

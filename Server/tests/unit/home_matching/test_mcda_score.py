@@ -138,6 +138,61 @@ class McdaScoreTests(unittest.TestCase):
         )
         self.assertGreater(abs(pref_gap), abs(empty_gap))
 
+    def test_in_budget_affordable_home_scores_well(self) -> None:
+        """Homes inside the budget band should not be crushed for being below price peak."""
+        prefs = {
+            "home_budget_min": 400_000,
+            "home_budget_max": 1_000_000,
+            "preferred_bedrooms_min": 3,
+            "preferred_bathrooms_min": 2,
+            "preferred_housing_type": "single_family",
+        }
+        affordable = {
+            "price": 450_000,
+            "bedrooms": 3,
+            "bathrooms": 2,
+            "sqft": 1_800,
+            "homeType": "SINGLE_FAMILY",
+        }
+        s = score_listing_mcda(prefs, affordable, status_type="ForSale")
+        self.assertGreater(s, 65.0)
+
+    def test_features_dict_keys_boost_strong_fit_score(self) -> None:
+        """Listings with features dict keys (garage/pool) should score well above mid-band."""
+        prefs = {
+            "home_budget_min": 300_000,
+            "home_budget_max": 600_000,
+            "preferred_bedrooms_min": 3,
+            "preferred_bathrooms_min": 2,
+            "preferred_sqft_min": 1_400,
+            "preferred_sqft_max": 2_800,
+            "must_have": ["garage"],
+            "preferred_home_features": ["pool"],
+        }
+        great = {
+            "zpid": "great",
+            "price": 380_000,
+            "bedrooms": 3,
+            "bathrooms": 2,
+            "livingArea": 1_800,
+            "daysOnMarket": 7,
+            "homeType": "SINGLE_FAMILY",
+            "features": {"garage": "2-car", "pool": "yes"},
+        }
+        poor = {
+            "zpid": "poor",
+            "price": 650_000,
+            "bedrooms": 2,
+            "bathrooms": 1,
+            "livingArea": 1_100,
+            "daysOnMarket": 120,
+            "homeType": "CONDO",
+        }
+        s_great = score_listing_mcda(prefs, great)
+        s_poor = score_listing_mcda(prefs, poor)
+        self.assertGreater(s_great, 70.0)
+        self.assertGreater(s_great - s_poor, 25.0)
+
 
 if __name__ == "__main__":
     unittest.main()

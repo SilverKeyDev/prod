@@ -84,7 +84,7 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
                 key={opt.value}
                 onClick={() => handleToggle(opt.value)}
                 disabled={disabled}
-                className="border-border bg-background-surface text-text-secondary hover:bg-brand-accent/5 hover:text-text-primary inline-flex touch-manipulation items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors hover:border-neutral-400"
+                className="border-border bg-background-surface text-text-secondary hover:text-text-primary inline-flex touch-manipulation items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors hover:border-neutral-400 hover:bg-neutral-100"
                 label={`Select ${opt.label}`}
               >
                 <Icon name="plus" className="h-3.5 w-3.5 flex-shrink-0" />

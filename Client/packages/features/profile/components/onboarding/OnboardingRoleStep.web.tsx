@@ -49,7 +49,7 @@ export default function OnboardingRoleStep({ formData, updateFormData }: Onboard
               className={`min-h-20 flex-col justify-center gap-1 rounded-2xl border-2 px-4 py-4 text-center transition-colors sm:min-h-24 ${
                 isSelected
                   ? "border-primary bg-primary/10 text-text-primary ring-primary/30 ring-offset-background-base shadow-sm ring-2 ring-offset-2"
-                  : "border-border text-text-secondary bg-background-base hover:border-accent-muted hover:bg-accent-muted"
+                  : "border-border text-text-secondary bg-background-base hover:border-neutral-400 hover:bg-neutral-100"
               }`}
             >
               <BodyText as="span" size="md" className="font-semibold tracking-tight">

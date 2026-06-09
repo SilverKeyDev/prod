@@ -30,7 +30,8 @@ export function useSigningTodos(isAgent: boolean): AgendaTodoDTO[] {
 }
 
 /**
- * DocuSign agreements the current user has already signed — for the full agenda modal only * (excluded from the week-ahead card via `completed` flag).
+ * DocuSign agreements the current user has already signed — for the full agenda modal only
+ * (excluded from the today preview via `completed` flag).
  */
 export function useCompletedSigningTodos(): AgendaTodoDTO[] {
   const { documents } = useDocumentsData();

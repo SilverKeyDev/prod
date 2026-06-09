@@ -79,6 +79,41 @@ class TestSearchDisplayRoutes:
                 assert get_data["search_display"]["results_order_by"] == "price"
                 assert get_data["search_display"]["preferences_strict_filter"] is True
 
+    def test_patch_search_display_persists_fractional_map_zoom(
+        self, client, app: Flask, db_session
+    ):
+        with app.app_context():
+            from app.models import User
+
+            user = User(
+                cognito_id="test-cognito-zoom",
+                email="search-display-zoom@example.com",
+                name="Search Display Zoom User",
+                is_active=True,
+            )
+            db_session.session.add(user)
+            db_session.session.commit()
+
+            with patch("app.services.auth.get_current_user") as mock_get:
+                mock_get.return_value = user
+
+                response = client.patch(
+                    "/api/v1/search-display",
+                    headers={"Authorization": "Bearer mock_token"},
+                    json={
+                        "last_search_context": {
+                            "search_source": "location",
+                            "map_zoom": 12.7,
+                            "map_center": {"lat": 33.75, "lng": -84.39},
+                        }
+                    },
+                )
+
+                assert response.status_code == 200
+                data = response.get_json()
+                assert data["success"] is True
+                assert data["search_display"]["last_search_context"]["map_zoom"] == 12.7
+
     def test_patch_search_display_rejects_empty_body(self, client, app: Flask, db_session):
         with app.app_context():
             from app.models import User

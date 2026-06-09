@@ -11,6 +11,7 @@ import { StyleSheet, View } from "react-native";
 import { color } from "packages/design-tokens";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
 import AuthPageLayoutNative from "packages/features/homeauth/components/core/AuthPageLayout.native";
+import { AuthTermsDisclaimer } from "packages/features/homeauth/components/core/AuthTermsDisclaimer";
 import AuthDivider from "packages/features/homeauth/components/core/Divider";
 import AuthLink from "packages/features/homeauth/components/core/Link";
 import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAuth";
@@ -91,10 +92,7 @@ export function LoginScreenNative() {
       <AuthDivider />
 
       <GoogleSignInButton text="Sign in with Google" />
-      <Text style={styles.oauthLegal}>
-        By signing in (including with Google), you agree to our Terms and Privacy Policy. Open the
-        links from the home screen footer to read them.
-      </Text>
+      <AuthTermsDisclaimer flow="login" />
 
       <View style={styles.links}>
         <AuthLink to="/signup">
@@ -138,13 +136,5 @@ const styles = StyleSheet.create({
   inlineLink: {
     fontSize: 14,
     color: color("neutral.600"),
-  },
-  oauthLegal: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: color("neutral.600"),
-    textAlign: "center",
-    marginBottom: 16,
-    paddingHorizontal: 8,
   },
 });

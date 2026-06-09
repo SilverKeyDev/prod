@@ -8,7 +8,6 @@ import type { GoogleEventCreateResponse } from "packages/features/calendar/api/t
 import { showErrorToast, showInfoToast } from "packages/hooks/ui/toast";
 import {
   buildAgentTodoGoogleEvent,
-  copyTextToClipboard,
   isGoogleMeetProvisioningPending,
   parseAgendaDeadlineTime,
   pollGoogleMeetHangoutLink,
@@ -74,12 +73,7 @@ export async function submitAgendaItemAsGoogleCalendarEvent(
       showInfoToast("Meet link generating…");
       meetLink = await pollGoogleMeetHangoutLink(created.id, options.calendarId, getEvent);
     }
-    if (meetLink) {
-      const copied = await copyTextToClipboard(meetLink);
-      if (copied) {
-        showInfoToast("Meet link copied to clipboard.");
-      }
-    } else {
+    if (!meetLink) {
       showErrorToast("Couldn't add Meet; you can add a link manually.");
     }
   }

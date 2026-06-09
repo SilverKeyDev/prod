@@ -72,7 +72,6 @@ export function SignupFeature(_props: SignupFeatureProps) {
     agencyName: "",
   });
   const [phoneValue, setPhoneValue] = useState<string | undefined>(undefined);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const { navigate, getCurrentRoute } = useNavigation();
   const { signup, isLoading: isSignupLoading } = useSignup();
@@ -85,10 +84,6 @@ export function SignupFeature(_props: SignupFeatureProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!acceptedTerms) {
-      showErrorToast("Please agree to the Terms of Service and Privacy Policy to continue.");
-      return;
-    }
     if (!isPasswordValid) {
       showErrorToast(
         `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
@@ -146,8 +141,6 @@ export function SignupFeature(_props: SignupFeatureProps) {
           onSubmit={handleSubmit}
           isSignupLoading={isSignupLoading}
           onboarding={isOnboarding}
-          acceptedTerms={acceptedTerms}
-          onAcceptedTermsChange={setAcceptedTerms}
         />
       </form>
     </AuthPageLayout>

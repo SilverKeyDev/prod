@@ -166,7 +166,7 @@ export const PROPERTY_DETAILS_TRANSLATIONS: Record<string, string> = {
   "property_details.commute_map_alt": "Commute map preview",
   "property_details.location_map_heading": "Map",
   "property_details.location_map_subtitle":
-    "Explore the neighborhood. Use Map or Satellite, then open Street View where available.",
+    "Switch Map or Satellite, then open Street View where available.",
   "property_details.location_unavailable": "Map location is not available for this listing.",
   "property_details.map_layer_map": "Map",
   "property_details.map_layer_satellite": "Satellite",

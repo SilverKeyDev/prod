@@ -7,7 +7,7 @@ import PartnerAgentSection from "./PartnerAgentSection";
 
 const showWarningToast = vi.fn();
 const refreshChats = vi.fn();
-let capturedDiscoveryProps: Record<string, unknown> | null = null;
+let capturedSearchProps: Record<string, unknown> | null = null;
 
 let mockConversations: AgentConversation[] = [
   {
@@ -63,10 +63,10 @@ vi.mock("@/features/agent/hooks/data/connections/useInitiatedConnectionRequests"
   }),
 }));
 
-vi.mock("@/features/agent/components/agentDiscovery/AgentDiscoveryView", () => ({
-  AgentDiscoveryView: (props: Record<string, unknown>) => {
-    capturedDiscoveryProps = props;
-    return <div data-testid="agent-discovery-view" />;
+vi.mock("@/features/agent/components/search/AgentSearchContent", () => ({
+  AgentSearchContent: (props: Record<string, unknown>) => {
+    capturedSearchProps = props;
+    return <div data-testid="agent-search-content" />;
   },
 }));
 
@@ -107,22 +107,23 @@ describe("PartnerAgentSection", () => {
     showWarningToast.mockClear();
     refreshChats.mockClear();
     invalidateQueries.mockClear();
-    capturedDiscoveryProps = null;
+    capturedSearchProps = null;
   });
 
-  it("renders intro, discovery (external profiles), connected agents, and submit", () => {
+  it("renders intro, search-only UI (external profiles), connected agents, and submit", () => {
     render(<PartnerAgentSection onComplete={vi.fn()} />);
     expect(
       screen.getByText(
         "Search for an agent to send a connection request. After they accept, they appear under Connected agents and you can submit this step."
       )
     ).toBeTruthy();
-    expect(screen.getByTestId("agent-discovery-view")).toBeTruthy();
+    expect(screen.getByTestId("agent-search-content")).toBeTruthy();
     expect(screen.getByTestId("connected-agents-section").textContent).toBe("Pat Agent");
-    expect(capturedDiscoveryProps).toMatchObject({
+    expect(capturedSearchProps).toMatchObject({
       isActive: true,
-      profileTarget: "external",
+      primaryAction: "openProfile",
     });
+    expect(capturedSearchProps?.onOpenAgentProfile).toBeTypeOf("function");
   });
 
   it("enables submit when at least one connected agent exists", () => {
@@ -140,13 +141,11 @@ describe("PartnerAgentSection", () => {
     expect(showWarningToast).not.toHaveBeenCalled();
   });
 
-  it("refreshes chats after a connection request is sent from discovery", () => {
+  it("refreshes chats after a connection request is sent from search", () => {
     render(<PartnerAgentSection onComplete={vi.fn()} />);
-    const onConnectionSuccess = capturedDiscoveryProps?.onConnectionSuccess as
-      | (() => void)
-      | undefined;
-    expect(onConnectionSuccess).toBeTypeOf("function");
-    onConnectionSuccess?.();
+    const onSuccess = capturedSearchProps?.onSuccess as (() => void) | undefined;
+    expect(onSuccess).toBeTypeOf("function");
+    onSuccess?.();
     expect(refreshChats).toHaveBeenCalled();
     expect(invalidateQueries).toHaveBeenCalled();
   });

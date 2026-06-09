@@ -52,6 +52,22 @@ function writeTodoToCaches(queryClient: QueryClient, todo: TodoItem) {
   }
 }
 
+function applyOptimisticTodoRemoval(queryClient: QueryClient, id: string) {
+  for (const includeCompleted of TODO_LIST_QUERY_FLAGS) {
+    const key = queryKeys.agent.todos(includeCompleted);
+    queryClient.setQueryData<TodoItem[]>(key, (old) => {
+      if (!old) {
+        return old;
+      }
+      const index = old.findIndex((item) => item.id === id);
+      if (index === -1) {
+        return old;
+      }
+      return old.filter((item) => item.id !== id);
+    });
+  }
+}
+
 function applyOptimisticTodoPatch(queryClient: QueryClient, id: string, patch: UpdateTodoRequest) {
   for (const includeCompleted of TODO_LIST_QUERY_FLAGS) {
     const key = queryKeys.agent.todos(includeCompleted);
@@ -81,8 +97,10 @@ export type UseAgentTodosReturn = {
   refetch: () => Promise<void>;
   createTodo: (data: CreateTodoRequest) => Promise<TodoItem | null>;
   updateTodo: (id: string, data: UpdateTodoRequest) => Promise<TodoItem | null>;
+  deleteTodo: (id: string) => Promise<void>;
   isCreating: boolean;
   isUpdating: boolean;
+  isDeleting: boolean;
 };
 
 /**
@@ -186,6 +204,38 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     [updateTodoMutation]
   );
 
+  const deleteTodoMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await agentApi.deleteTodo(id);
+      if (!response.success) {
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to delete todo"));
+      }
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.agent.todos() });
+      const snapshots = snapshotTodoCaches(queryClient);
+      applyOptimisticTodoRemoval(queryClient, id);
+      return { snapshots };
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.agent.notificationCounter() });
+    },
+    onError: (error, _variables, context) => {
+      if (context?.snapshots) {
+        restoreTodoCaches(queryClient, context.snapshots);
+      }
+      log.error("ERRORS", "Delete todo failed", error);
+      showErrorToast("Failed to delete to-do. Please try again.");
+    },
+  });
+
+  const deleteTodo = useCallback(
+    async (id: string) => {
+      await deleteTodoMutation.mutateAsync(id);
+    },
+    [deleteTodoMutation]
+  );
+
   return {
     todos: todosResponse ?? [],
     isLoading,
@@ -193,7 +243,9 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     refetch,
     createTodo,
     updateTodo,
+    deleteTodo,
     isCreating: createTodoMutation.isPending,
     isUpdating: updateTodoMutation.isPending,
+    isDeleting: deleteTodoMutation.isPending,
   };
 }

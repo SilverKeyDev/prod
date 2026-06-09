@@ -13,7 +13,7 @@ export type CancelButtonProps = Omit<ButtonProps, "variant"> & {
 /**
  * Standardized Cancel Button component.
  *
- * Wraps Button with variant="cancel" (alias for ghost: tint-on-hover, no fill).
+ * Wraps Button with variant="cancel" (alias for ghost: neutral gray hover, no fill).
  * Recommended for confirmations: Primary CTA + Ghost cancel. Includes X icon by default.
  *
  * @example

@@ -60,7 +60,7 @@ export default function CloseLayout({
   if (showLoadingScreen && loading && checkedIds.length === 0) {
     return (
       <Box className="bg-background-base text-text-primary flex flex-row items-center justify-center">
-        <BodyText as="p" size="sm">
+        <BodyText as="p" size="sm" muted>
           Loading checklist…
         </BodyText>
       </Box>
@@ -74,7 +74,7 @@ export default function CloseLayout({
 
         <Box className={containerClassName}>
           {loading && showMinLoadingText ? (
-            <BodyText size="sm" className="mb-responsive-sm">
+            <BodyText size="sm" muted className="mb-responsive-sm">
               Loading checklist…
             </BodyText>
           ) : null}

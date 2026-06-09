@@ -1,6 +1,8 @@
 import React from "react";
 
 import { PROFILE_FIELDS_ROW_PROPS } from "packages/features/profile/components/layout";
+import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
+import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
 import type { BuyerPhysicalPrefs } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import {
   ACCESSIBILITY_NEEDS_OPTIONS,
@@ -16,9 +18,6 @@ import { Box } from "packages/ui/components/structure/primitives";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import { Dropdown } from "@/components/ui";
-
-import type { PatchBuyerPreferenceExtensions } from "../types";
-import { withBuyerExtV1 } from "../withBuyerExtV1";
 
 type SearchPrefsAmenityRowsProps = {
   isEditMode: boolean;

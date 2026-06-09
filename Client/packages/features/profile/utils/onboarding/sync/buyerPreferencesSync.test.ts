@@ -64,4 +64,28 @@ describe("buyerPreferencesSync", () => {
     const out = applyBuyerFlatFieldsFromApi(data, { preferred_contact_method: "email" });
     expect(out.preferred_contact_method).toBe("email");
   });
+
+  it("prefers neighborhood walkability over stale top-level on save", () => {
+    const form: OnboardingData = {
+      walkability_importance: "low",
+      buyerPreferenceExtensions: {
+        v: 1,
+        neighborhood: { walkability_importance: "high" },
+      },
+    };
+    const ext = buildBuyerPreferenceExtensionsFromForm(form);
+    expect(ext?.neighborhood?.walkability_importance).toBe("high");
+  });
+
+  it("preserves physical section from form extensions", () => {
+    const form: OnboardingData = {
+      buyerPreferenceExtensions: {
+        v: 1,
+        physical: { garage_required: true, garage_min_cars: 3 },
+      },
+    };
+    const ext = buildBuyerPreferenceExtensionsFromForm(form);
+    expect(ext?.physical?.garage_required).toBe(true);
+    expect(ext?.physical?.garage_min_cars).toBe(3);
+  });
 });

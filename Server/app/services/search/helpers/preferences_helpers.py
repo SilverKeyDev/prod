@@ -195,12 +195,6 @@ def generate_isochrone_polygon_from_preferences(
             ]
 
         if not important_locations:
-            log.warn("SEARCH", "🗺️ ISOCHRONE: ⚠️ No important locations found in user preferences")
-            log.warn(
-                "SEARCH",
-                f"🗺️ ISOCHRONE: ⚠️ Available user preference keys: {list(user_preferences.keys())}",
-            )
-            log.warn("SEARCH", f"🗺️ ISOCHRONE: ⚠️ Important locations data: {locations_data}")
             return None
 
         # Prepare address and commute tolerance pairs for all locations
@@ -301,13 +295,14 @@ def get_authenticated_user() -> tuple[Any | None, tuple | None]:
 
 def parse_important_locations(
     user_preferences: dict[str, Any],
-) -> tuple[list | None, str | None]:
+) -> tuple[list, str | None]:
     """
     Parse important_locations from user preferences.
 
     Returns:
-        Tuple of (locations_list, error_message)
-        If error_message is not None, there was an error parsing.
+        Tuple of (locations_list, error_message).
+        An empty list means the user has no commute locations configured (expected).
+        error_message is set only for malformed important_locations data.
     """
     locations_data = user_preferences.get("important_locations")
 
@@ -316,7 +311,7 @@ def parse_important_locations(
             locations_data = json.loads(locations_data)
         except json.JSONDecodeError as e:
             log.error("SEARCH", f"❌ Failed to parse important_locations JSON: {e}")
-            return None, "Invalid important locations data"
+            return [], "Invalid important locations data"
 
     if isinstance(locations_data, list) and locations_data:
         normalized = [
@@ -325,4 +320,4 @@ def parse_important_locations(
         if normalized:
             return normalized, None
 
-    return None, "No important locations found in user preferences"
+    return [], None

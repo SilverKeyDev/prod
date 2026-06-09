@@ -163,6 +163,10 @@ export function CalendarTimeGrid({
             showWeekendTint={showWeekendTint}
             onDayHeaderPress={onDayHeaderPress}
             onDayHeaderDoubleTap={onDayHeaderDoubleTap}
+            weekInteractionEnabled={weekInteractionEnabled}
+            weekSelectedEventId={weekSelectedEventId}
+            onWeekEventSelect={onWeekEventSelect}
+            onWeekEventOpenEdit={onWeekEventOpenEdit}
           />
         </Box>
 

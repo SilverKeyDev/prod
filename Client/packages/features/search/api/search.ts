@@ -47,6 +47,7 @@ function summarizePolygonSearchRequestForLog(req: SearchByPolygonRequest) {
     perBucketPages: req.perBucketPages,
     forceSearch: req.forceSearch,
     onlyCached: req.onlyCached,
+    hydrateListings: req.hydrateListings,
     preferencesStrictFilter: req.preferences_strict_filter === true,
     userPreferenceKeyCount: upKeys.length,
     userPreferenceKeysSample: upKeys.slice(0, 12),

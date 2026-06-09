@@ -1,7 +1,8 @@
 import React, { type ReactNode, useMemo } from "react";
 
 import { color, spacing } from "packages/design-tokens";
-import { Box, ScrollView, Text } from "packages/ui/components/structure/primitives";
+import { SCROLL_PANEL_MAX, ScrollPanel } from "packages/ui/components/structure/layout/ScrollPanel";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 import type { CardBorderVariant } from "packages/ui/components/surfaces/cards/Card";
 import Card from "packages/ui/components/surfaces/cards/Card";
 import { dateParseISO } from "packages/utils/core/date";
@@ -90,7 +91,7 @@ export function EventList({
   footerHint,
   headerActions,
   onEventClick,
-  embedInListHeader = false,
+  embedInListHeader: _embedInListHeader = false,
   silverKeyCalendarId = null,
   refreshEvents,
   updateEvent,
@@ -115,12 +116,12 @@ export function EventList({
   const emptyBoxStyle = density === "compact" ? emptyStyleCompact : emptyStyle;
   const titleMarginBottom = density === "compact" ? spacing(0.5) : spacing(1);
 
-  const listContent =
+  const listBody =
     sortedEvents.length === 0 ? (
       <Box style={emptyBoxStyle}>
         <Text style={emptyTextStyle}>{emptyMessage}</Text>
       </Box>
-    ) : embedInListHeader ? (
+    ) : (
       <Box style={listStyle}>
         {sortedEvents.map((event, index) => (
           <React.Fragment key={String(event.id ?? `event-${index}`)}>
@@ -137,24 +138,9 @@ export function EventList({
           </React.Fragment>
         ))}
       </Box>
-    ) : (
-      <ScrollView style={listStyle}>
-        {sortedEvents.map((event, index) => (
-          <React.Fragment key={String(event.id ?? `event-${index}`)}>
-            {index > 0 ? <Box style={sepStyle} /> : null}
-            <EventCard
-              event={event}
-              silverKeyCalendarId={silverKeyCalendarId}
-              refreshEvents={refreshEvents}
-              updateEvent={updateEvent}
-              deleteEvent={deleteEvent}
-              calendars={calendars}
-              onClick={() => onEventClick?.(event)}
-            />
-          </React.Fragment>
-        ))}
-      </ScrollView>
     );
+
+  const listContent = <ScrollPanel maxHeight={SCROLL_PANEL_MAX.agenda}>{listBody}</ScrollPanel>;
 
   const cardPadding = density === "compact" ? "sm" : "md";
   const headerBoxClass =

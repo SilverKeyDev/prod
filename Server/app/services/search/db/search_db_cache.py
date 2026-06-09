@@ -13,6 +13,119 @@ from app.models import PropertyCache, UserPropertyLink
 from logger import log
 
 
+def _build_cached_property_dict(
+    prop: PropertyCache,
+    link: UserPropertyLink | None = None,
+    *,
+    preserved_score: float | None = None,
+) -> dict[str, Any]:
+    """Build a flat search-result row from PropertyCache (+ optional link for score/ranking)."""
+    property_dict: dict[str, Any] = {"home_id": prop.id}
+
+    if prop.zpid:
+        property_dict["zpid"] = str(prop.zpid)
+    if prop.mls_home_id:
+        property_dict["mls_home_id"] = prop.mls_home_id
+    if prop.address:
+        property_dict["address"] = prop.address
+
+    if prop.price:
+        try:
+            price_str = str(prop.price).replace(",", "").replace("$", "").strip()
+            property_dict["price"] = int(float(price_str))
+        except (ValueError, TypeError):
+            property_dict["price"] = None
+
+    if prop.beds:
+        try:
+            property_dict["bedrooms"] = int(float(str(prop.beds)))
+        except (ValueError, TypeError):
+            property_dict["bedrooms"] = None
+    if prop.baths:
+        try:
+            property_dict["bathrooms"] = int(float(str(prop.baths)))
+        except (ValueError, TypeError):
+            property_dict["bathrooms"] = None
+
+    sqft_value = prop.sqft or prop.living_area
+    if sqft_value:
+        try:
+            sqft_str = str(sqft_value).replace(",", "").strip()
+            property_dict["livingArea"] = int(float(sqft_str))
+        except (ValueError, TypeError):
+            property_dict["livingArea"] = None
+
+    if prop.latitude is not None:
+        property_dict["latitude"] = float(prop.latitude)
+    if prop.longitude is not None:
+        property_dict["longitude"] = float(prop.longitude)
+
+    if prop.lot_area_value:
+        try:
+            lot_str = str(prop.lot_area_value).replace(",", "").strip()
+            property_dict["lotAreaValue"] = float(lot_str)
+        except (ValueError, TypeError):
+            property_dict["lotAreaValue"] = None
+    if prop.lot_area_unit:
+        property_dict["lotAreaUnit"] = str(prop.lot_area_unit)
+
+    if prop.property_type:
+        property_dict["propertyType"] = prop.property_type
+    if prop.home_type:
+        property_dict["homeType"] = prop.home_type
+    if prop.listing_status:
+        property_dict["listingStatus"] = prop.listing_status
+    if prop.primary_image_url:
+        property_dict["imgSrc"] = prop.primary_image_url
+
+    if prop.year_built:
+        try:
+            property_dict["yearBuilt"] = int(float(str(prop.year_built)))
+        except (ValueError, TypeError):
+            property_dict["yearBuilt"] = prop.year_built
+
+    if prop.city:
+        property_dict["city"] = prop.city
+    if prop.state:
+        property_dict["state"] = prop.state
+    if prop.zipcode:
+        property_dict["zipcode"] = prop.zipcode
+
+    if prop.living_area:
+        try:
+            la_str = str(prop.living_area).replace(",", "").strip()
+            property_dict["sqft"] = int(float(la_str))
+        except (ValueError, TypeError):
+            pass
+
+    if prop.images and isinstance(prop.images, list):
+        property_dict["images"] = prop.images
+
+    if link is not None and link.ranking is not None:
+        property_dict["ranking"] = link.ranking
+
+    if preserved_score is not None:
+        property_dict["_score"] = float(preserved_score)
+    elif link is not None and link.score is not None:
+        property_dict["_score"] = float(link.score)
+    else:
+        hydrated_score: float | None = None
+        if prop.raw_data and isinstance(prop.raw_data, dict):
+            for score_key in ("_score", "score"):
+                raw_val = prop.raw_data.get(score_key)
+                if isinstance(raw_val, int | float):
+                    hydrated_score = float(raw_val)
+                    break
+        property_dict["_score"] = hydrated_score if hydrated_score is not None else 0.0
+
+    if prop.raw_data and isinstance(prop.raw_data, dict):
+        for key, value in prop.raw_data.items():
+            if key not in property_dict:
+                property_dict[key] = value
+
+    return property_dict
+
+
 def get_cached_search_results(user_id: str) -> list[dict[str, Any]]:
     """Retrieve cached search results from PropertyCache + UserPropertyLink."""
     try:
@@ -31,105 +144,7 @@ def get_cached_search_results(user_id: str) -> list[dict[str, Any]]:
             prop = link.property
             if not prop or not isinstance(prop, PropertyCache):
                 continue
-            property_dict: dict[str, Any] = {}
-
-            if prop.zpid:
-                property_dict["zpid"] = str(prop.zpid)
-            if prop.mls_home_id:
-                property_dict["mls_home_id"] = prop.mls_home_id
-            if prop.address:
-                property_dict["address"] = prop.address
-
-            if prop.price:
-                try:
-                    price_str = str(prop.price).replace(",", "").replace("$", "").strip()
-                    property_dict["price"] = int(float(price_str))
-                except (ValueError, TypeError):
-                    property_dict["price"] = None
-
-            if prop.beds:
-                try:
-                    property_dict["bedrooms"] = int(float(str(prop.beds)))
-                except (ValueError, TypeError):
-                    property_dict["bedrooms"] = None
-            if prop.baths:
-                try:
-                    property_dict["bathrooms"] = int(float(str(prop.baths)))
-                except (ValueError, TypeError):
-                    property_dict["bathrooms"] = None
-
-            sqft_value = prop.sqft or prop.living_area
-            if sqft_value:
-                try:
-                    sqft_str = str(sqft_value).replace(",", "").strip()
-                    property_dict["livingArea"] = int(float(sqft_str))
-                except (ValueError, TypeError):
-                    property_dict["livingArea"] = None
-
-            if prop.latitude is not None:
-                property_dict["latitude"] = float(prop.latitude)
-            if prop.longitude is not None:
-                property_dict["longitude"] = float(prop.longitude)
-
-            if prop.lot_area_value:
-                try:
-                    lot_str = str(prop.lot_area_value).replace(",", "").strip()
-                    property_dict["lotAreaValue"] = float(lot_str)
-                except (ValueError, TypeError):
-                    property_dict["lotAreaValue"] = None
-            if prop.lot_area_unit:
-                property_dict["lotAreaUnit"] = str(prop.lot_area_unit)
-
-            if prop.property_type:
-                property_dict["propertyType"] = prop.property_type
-            if prop.home_type:
-                property_dict["homeType"] = prop.home_type
-            if prop.listing_status:
-                property_dict["listingStatus"] = prop.listing_status
-            if prop.primary_image_url:
-                property_dict["imgSrc"] = prop.primary_image_url
-
-            if prop.year_built:
-                try:
-                    property_dict["yearBuilt"] = int(float(str(prop.year_built)))
-                except (ValueError, TypeError):
-                    property_dict["yearBuilt"] = prop.year_built
-
-            if prop.city:
-                property_dict["city"] = prop.city
-            if prop.state:
-                property_dict["state"] = prop.state
-            if prop.zipcode:
-                property_dict["zipcode"] = prop.zipcode
-
-            if prop.living_area:
-                try:
-                    la_str = str(prop.living_area).replace(",", "").strip()
-                    property_dict["sqft"] = int(float(la_str))
-                except (ValueError, TypeError):
-                    pass
-
-            if prop.images and isinstance(prop.images, list):
-                property_dict["images"] = prop.images
-
-            if link.score is not None:
-                property_dict["_score"] = float(link.score)
-            else:
-                hydrated_score: float | None = None
-                if prop.raw_data and isinstance(prop.raw_data, dict):
-                    for score_key in ("_score", "score"):
-                        raw_val = prop.raw_data.get(score_key)
-                        if isinstance(raw_val, int | float):
-                            hydrated_score = float(raw_val)
-                            break
-                property_dict["_score"] = hydrated_score if hydrated_score is not None else 0.0
-
-            if prop.raw_data and isinstance(prop.raw_data, dict):
-                for key, value in prop.raw_data.items():
-                    if key not in property_dict:
-                        property_dict[key] = value
-
-            results.append(property_dict)
+            results.append(_build_cached_property_dict(prop, link))
 
         log.debug(
             "SEARCH",

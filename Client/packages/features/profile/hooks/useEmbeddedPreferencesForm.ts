@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type {
+  PreferencesFormActionsRef,
+  PreferencesFormContentRef,
+} from "packages/features/profile/components/settings/inputs/preferencesFormContentTypes";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import type { OnboardingData } from "packages/features/profile/utils";
 import { userPreferencesToOnboardingData } from "packages/features/profile/utils";
@@ -8,11 +12,6 @@ import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePref
 import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { log } from "packages/logger";
 import { getWindow } from "packages/utils/core/platform";
-
-import type {
-  PreferencesFormActionsRef,
-  PreferencesFormContentRef,
-} from "../components/settings/inputs/preferencesFormContentTypes";
 
 export type UseEmbeddedPreferencesFormOptions = {
   formContentRef?: React.MutableRefObject<PreferencesFormContentRef | null>;

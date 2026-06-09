@@ -252,6 +252,13 @@
     "reason": "Native uses Google Sign-In SDK; web uses OAuth flow."
   },
   {
+    "id": "auth-terms-disclaimer",
+    "description": "Auth terms and privacy disclaimer copy with platform-specific link handling.",
+    "webPath": "packages/features/homeauth/components/core/AuthTermsDisclaimer.tsx",
+    "nativePath": "packages/features/homeauth/components/core/AuthTermsDisclaimer.native.tsx",
+    "reason": "Web uses react-router AuthLink; native uses react-navigation Text onPress with StyleSheet."
+  },
+  {
     "id": "auth-page-layout",
     "description": "Auth page layout with platform-specific structure.",
     "webPath": "packages/features/homeauth/components/core/AuthPageLayout.tsx",

@@ -58,7 +58,7 @@ export function UnifiedMessagesListClientNoAgentEmpty({
               icon={<Icon name="search" className="h-4 w-4" />}
               iconPosition="left"
               onClick={onSearchClick}
-              className="border-border hover:bg-accent-muted bg-background-surface text-text-secondary hover:text-text-primary flex items-center justify-center gap-2 hover:border-neutral-400"
+              className="border-border bg-background-surface text-text-secondary hover:text-text-primary flex items-center justify-center gap-2 hover:border-neutral-400 hover:bg-neutral-100"
             >
               {config.emptyStates.noAgent.actionLabel}
             </Button>

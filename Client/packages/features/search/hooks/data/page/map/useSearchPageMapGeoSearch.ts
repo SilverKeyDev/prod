@@ -27,7 +27,10 @@ import {
   type MapPreviewSearchLifecycleHooks,
   searchPropertiesInViewport,
 } from "@/features/search/api/propertySearch";
-import type { SearchFilterOverrides } from "@/features/search/store/searchContext.slice";
+import {
+  type SearchFilterOverrides,
+  useSearchContextStore,
+} from "@/features/search/store/searchContext.slice";
 import type { SearchResult } from "@/features/search/types";
 import type { LastSearchContext } from "@/features/search/types/domain/searchDisplay";
 import type { IsochroneData } from "@/features/search/types/isochrone";
@@ -95,6 +98,8 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     mapPreviewSearchLifecycle,
   } = p;
 
+  const flushPreferencesSave = useSearchContextStore((s) => s.flushPreferencesSave);
+
   const fetchAndCacheIsochrone = useCallback(async (): Promise<IsochroneData | null> => {
     const response = await searchApi.getIsochrone({
       preferencesUserId: preferencesSubjectUserId ?? undefined,
@@ -114,6 +119,10 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     setSearchStage("Preparing search...");
 
     try {
+      if (flushPreferencesSave) {
+        await flushPreferencesSave();
+      }
+
       const map = googleMapRef.current;
       let mapBoundsRing: ViewportPolygonPoint[] | null = null;
       if (map?.getBounds()) {
@@ -230,6 +239,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     getSearchAbortSignal,
     saveLastSearchContext,
     mapPreviewSearchLifecycle,
+    flushPreferencesSave,
   ]);
 
   const runViewportSearch = useCallback(async () => {
@@ -275,6 +285,10 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     setLocationSearchOverlayData(overlay);
 
     try {
+      if (flushPreferencesSave) {
+        await flushPreferencesSave();
+      }
+
       if (googleMapRef.current) {
         renderIsochronePolygonWrapper(overlay, { skipCommuteToggle: true });
         clearImportantLocationMarkers(importantMarkersRef);
@@ -340,6 +354,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     getSearchAbortSignal,
     saveLastSearchContext,
     mapPreviewSearchLifecycle,
+    flushPreferencesSave,
   ]);
 
   return { runUnifiedSearch, runViewportSearch };

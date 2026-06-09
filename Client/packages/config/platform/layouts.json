@@ -80,6 +80,14 @@
     "category": "layout"
   },
   {
+    "id": "lot-size-home-age-slider-layout",
+    "description": "Lot size and home age slider row layout on profile housing preferences",
+    "webPath": "packages/features/profile/components/layout/lotSizeHomeAgeSliderLayout.web.tsx",
+    "nativePath": "packages/features/profile/components/layout/lotSizeHomeAgeSliderLayout.tsx",
+    "reason": "Web uses AlignedRow for container-aware even columns; native uses a simpler vertical stack layout.",
+    "category": "responsive-layout"
+  },
+  {
     "id": "static-page-layout",
     "description": "Static page layout with platform-specific primitives",
     "webPath": "packages/features/homeauth/components/core/StaticPageLayout.tsx",

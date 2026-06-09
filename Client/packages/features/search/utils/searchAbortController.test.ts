@@ -32,7 +32,7 @@ describe("searchAbortController", () => {
   it("shouldClearLoadingOnSearchAbort is false when a newer search superseded the aborted one", () => {
     const first = beginSearchAbortScope();
     beginSearchAbortScope();
-    first.signal.aborted; // superseded abort already fired
+    expect(first.signal.aborted).toBe(true);
     expect(shouldClearLoadingOnSearchAbort()).toBe(false);
   });
 

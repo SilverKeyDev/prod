@@ -32,7 +32,9 @@ class TestCalendarOAuthHealthRoutes:
         with (
             patch(
                 "app.services.calendar.core.auth_helpers.get_current_user",
-                side_effect=AssertionError("calendar OAuth callback should use state, not app auth"),
+                side_effect=AssertionError(
+                    "calendar OAuth callback should use state, not app auth"
+                ),
             ),
             patch(
                 "app.routes.calendar.handlers.oauth.google_calendar_service.validate_state_and_get_user_id",

@@ -4,6 +4,7 @@ import { useIsAgent } from "packages/hooks/store";
 import type { UIState } from "packages/store";
 import { useGoogleMapsStore, useUIStore } from "packages/store";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
+import { isVirtualMeetingEnabled } from "packages/utils/comms/calendar/parsing/eventMeetLink";
 import { getWindow } from "packages/utils/core/platform";
 
 import type { CreateEventModalFormProps } from "@/features/calendar/components/view/eventModal/CreateEventModalForm";
@@ -14,6 +15,7 @@ import { buildCreateEventModalFormProps } from "@/features/calendar/utils/create
 import { CALENDAR_EVENT_KIND_ORDER } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { deriveCreateEventModalFormSubmitState } from "@/features/calendar/utils/createEventModal/createEventModalFormDerived";
 import { defaultGoogleMeetForCreate } from "@/features/calendar/utils/createEventModal/defaultGoogleMeetForCreate";
+import { showGoogleMeetToggleForCreate } from "@/features/calendar/utils/createEventModal/googleMeetCreateEligibility";
 
 import type { UseCreateEventModalParams } from "./useCreateEventModal.types";
 import { useCreateEventModalDateHandlers } from "./useCreateEventModalDateHandlers";
@@ -99,11 +101,15 @@ export function useCreateEventModal({
   }, [isOpen, loadGoogleMaps]);
 
   useEffect(() => {
-    if (!isOpen || mode !== "create") {
+    if (!isOpen) {
       return;
     }
-    setAddGoogleMeet(defaultGoogleMeetForCreate());
-  }, [isOpen, mode]);
+    if (mode === "create") {
+      setAddGoogleMeet(defaultGoogleMeetForCreate());
+    } else if (mode === "edit" && existingEvent) {
+      setAddGoogleMeet(isVirtualMeetingEnabled(existingEvent));
+    }
+  }, [isOpen, mode, existingEvent]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -157,10 +163,17 @@ export function useCreateEventModal({
       setCreateTimesChosenViaWeekSlot
     );
 
-  const showGoogleMeetOption = useMemo(
-    () => mode === "create" && !isCalendarEventRequestFlow,
-    [isCalendarEventRequestFlow, mode]
-  );
+  const showGoogleMeetOption = useMemo(() => {
+    if (isCalendarEventRequestFlow) {
+      return false;
+    }
+    return showGoogleMeetToggleForCreate({
+      mode,
+      startDate,
+      endDate,
+      isAllDay,
+    });
+  }, [isCalendarEventRequestFlow, mode, startDate, endDate, isAllDay]);
 
   const mutualScheduleFull = useCreateEventMutualAvailability({
     isOpen,
@@ -274,6 +287,7 @@ export function useCreateEventModal({
     addGoogleMeet,
     setAddGoogleMeet,
     showGoogleMeetOption,
+    existingEvent,
     mutualSchedule: mutualScheduleForForm,
     registerOutsideClickSafeTarget,
   });

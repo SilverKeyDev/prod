@@ -17,6 +17,7 @@ from ...db import (
     get_cached_results_with_age,
     mark_past_search_results_as_not_current,
 )
+from ...db.hydrate_cached_listings import hydrate_cached_listings
 from .constants import _POLY, TOP_N
 from .debug_logging import agent_debug_log
 from .preferences_helpers import resolve_strict_preference_filter
@@ -49,9 +50,17 @@ def _cached_only_response(
     *,
     request_id: str,
     start_time: float,
+    data: dict | None = None,
 ):
     """Return stored DB rows when forceSearch is false."""
     db_results, cache_age_days = get_cached_results_with_age(user_id)
+    if data and data.get("hydrateListings") and db_results:
+        log.info(
+            _POLY,
+            "polygon_search hydrate_listings_start",
+            {"request_id": request_id, "user_id": user_id, "count": len(db_results)},
+        )
+        db_results = hydrate_cached_listings(db_results)
     total_time = time.time() - start_time
     if db_results:
         log.info(
@@ -149,6 +158,7 @@ def run_polygon_search(
             user_id,
             request_id=request_id,
             start_time=start_time,
+            data=data,
         )
 
     return run_force_search_pipeline(

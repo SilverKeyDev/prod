@@ -19,13 +19,18 @@ type HousingDropdownRowsProps = {
   formData: OnboardingData;
   isEditMode: boolean;
   updateFormData: (field: keyof OnboardingData, value: unknown) => void;
+  /** Hide fields shown elsewhere in the same form (e.g. walkability in Location section). */
+  omitFields?: Array<"walkability">;
 };
 
 export function HousingDropdownRows({
   formData,
   isEditMode,
   updateFormData,
+  omitFields,
 }: HousingDropdownRowsProps) {
+  const omitWalkability = omitFields?.includes("walkability") ?? false;
+
   const firstRowItems = [
     {
       title: <Label>{FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE}</Label>,
@@ -50,28 +55,32 @@ export function HousingDropdownRows({
         </Box>
       ),
     },
-    {
-      title: <Label>{FIELD_LABELS.WALKABILITY_IMPORTANCE}</Label>,
-      content: isEditMode ? (
-        <Dropdown
-          value={formData.walkability_importance ?? ""}
-          onChange={(value) => updateFormData("walkability_importance", value)}
-          options={WALKABILITY_OPTIONS}
-          placeholder="Select walkability importance"
-        />
-      ) : (
-        <Box
-          className={`mobile-input bg-background-base ${profileFieldValueClassName(
-            formData.walkability_importance
-          )}`}
-        >
-          {formData.walkability_importance
-            ? WALKABILITY_OPTIONS.find((opt) => opt.value === formData.walkability_importance)
-                ?.label
-            : PROFILE_NOT_SPECIFIED_LABEL}
-        </Box>
-      ),
-    },
+    ...(omitWalkability
+      ? []
+      : [
+          {
+            title: <Label>{FIELD_LABELS.WALKABILITY_IMPORTANCE}</Label>,
+            content: isEditMode ? (
+              <Dropdown
+                value={formData.walkability_importance ?? ""}
+                onChange={(value) => updateFormData("walkability_importance", value)}
+                options={WALKABILITY_OPTIONS}
+                placeholder="Select walkability importance"
+              />
+            ) : (
+              <Box
+                className={`mobile-input bg-background-base ${profileFieldValueClassName(
+                  formData.walkability_importance
+                )}`}
+              >
+                {formData.walkability_importance
+                  ? WALKABILITY_OPTIONS.find((opt) => opt.value === formData.walkability_importance)
+                      ?.label
+                  : PROFILE_NOT_SPECIFIED_LABEL}
+              </Box>
+            ),
+          },
+        ]),
     {
       title: <Label>{FIELD_LABELS.INTENDED_PROPERTY_USE}</Label>,
       content: isEditMode ? (

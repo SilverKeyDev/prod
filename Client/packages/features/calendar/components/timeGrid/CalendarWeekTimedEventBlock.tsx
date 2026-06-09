@@ -172,22 +172,12 @@ export function CalendarWeekTimedEventBlock({
             }
           : null),
       }}
-      onPointerDown={(e) => {
+      onClick={(e) => {
         if (!interactionEnabled || isDraft) {
-          return;
-        }
-        if ((e.target as Node) !== (e.currentTarget as Node)) {
           return;
         }
         e.stopPropagation();
         onSelect();
-      }}
-      onDoubleClick={(e) => {
-        if (!interactionEnabled || isDraft) {
-          return;
-        }
-        e.preventDefault();
-        e.stopPropagation();
         onOpenEdit();
       }}
     >

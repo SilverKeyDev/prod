@@ -49,7 +49,7 @@ export function HousingEssentialRows({
                 }}
                 formatValue={(v) => `${v} bed${v !== 1 ? "s" : ""}`}
                 formatPrefix=""
-                minGap={1}
+                allowSingleValue
               />
             ) : (
               <Box
@@ -86,7 +86,7 @@ export function HousingEssentialRows({
                 }}
                 formatValue={(v) => `${v} bath${v !== 1 ? "s" : ""}`}
                 formatPrefix=""
-                minGap={1}
+                allowSingleValue
               />
             ) : (
               <Box

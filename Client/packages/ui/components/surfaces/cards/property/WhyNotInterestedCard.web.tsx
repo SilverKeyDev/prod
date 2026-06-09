@@ -97,7 +97,7 @@ function WhyNotInterestedImageSection({
             disabled={isDisabled}
             iconName="arrow-left"
             iconPosition="left"
-            className="bg-primary-muted hover:bg-primary-muted focus:ring-accent-muted z-header absolute left-2 top-2 text-white backdrop-blur-sm focus:ring-offset-transparent"
+            className="focus:ring-accent-muted z-header absolute left-2 top-2 bg-neutral-900/50 text-white backdrop-blur-sm hover:bg-neutral-900/60 focus:ring-offset-transparent"
             aria-label="Go back"
             title={t("why_not.back")}
           >

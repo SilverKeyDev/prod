@@ -19,7 +19,10 @@ export type BudgetRangeSliderProps = {
   formatPrefix?: string;
   className?: string;
   disabled?: boolean;
+  /** Minimum distance between min and max in tick units. Ignored when allowSingleValue is true. */
   minGap?: number;
+  /** When true, min and max may be equal (e.g. exactly 3 baths, not 3–4). */
+  allowSingleValue?: boolean;
   showTextHeader?: boolean;
   valueDecimals?: number;
   variant?: "default" | "budget";
@@ -35,11 +38,13 @@ export default function BudgetRangeSlider({
   className = "",
   disabled = false,
   minGap = 50000,
+  allowSingleValue = false,
   showTextHeader = true,
   valueDecimals,
   variant = "default",
 }: BudgetRangeSliderProps) {
   const [activeThumb, setActiveThumb] = useState<"min" | "max">("max");
+  const effectiveMinGap = allowSingleValue ? 0 : minGap;
 
   const defaultFormatValue = (val: number) => {
     if (val >= 1000) {
@@ -55,10 +60,14 @@ export default function BudgetRangeSlider({
 
   const handleMinSliderChange = (e: { target: { value: string } }) => {
     const raw = parseFloat(e.target.value);
-    const newSliderPercent = Math.min(raw, maxSliderValue);
+    const newSliderPercent = allowSingleValue ? raw : Math.min(raw, maxSliderValue);
     setActiveThumb("min");
     const actualValue = fromSliderPercent(newSliderPercent);
-    const maxAllowedMin = maxValue - minGap;
+    if (allowSingleValue && actualValue >= maxValue) {
+      onChange(actualValue, actualValue);
+      return;
+    }
+    const maxAllowedMin = maxValue - effectiveMinGap;
     if (actualValue <= maxAllowedMin) {
       onChange(actualValue, maxValue);
     }
@@ -66,10 +75,14 @@ export default function BudgetRangeSlider({
 
   const handleMaxSliderChange = (e: { target: { value: string } }) => {
     const raw = parseFloat(e.target.value);
-    const newSliderPercent = Math.max(raw, minSliderValue);
+    const newSliderPercent = allowSingleValue ? raw : Math.max(raw, minSliderValue);
     setActiveThumb("max");
     const actualValue = fromSliderPercent(newSliderPercent);
-    const minAllowedMax = minValue + minGap;
+    if (allowSingleValue && actualValue <= minValue) {
+      onChange(actualValue, actualValue);
+      return;
+    }
+    const minAllowedMax = minValue + effectiveMinGap;
     if (actualValue >= minAllowedMax) {
       onChange(minValue, actualValue);
     }
@@ -77,18 +90,23 @@ export default function BudgetRangeSlider({
 
   const isBudgetVariant = variant === "budget";
   const trackHeight = isBudgetVariant ? spacing(2.5) : spacing(2);
-  const maxLabel =
-    maxValue >= tickValues[tickValues.length - 1]
-      ? `${formattedValue(maxValue)}+`
-      : formattedValue(maxValue);
-  const valueBlock = (
+  const formatTickLabel = (value: number) =>
+    value >= tickValues[tickValues.length - 1]
+      ? `${formattedValue(value)}+`
+      : formattedValue(value);
+  const isSingleValue = allowSingleValue && minValue === maxValue;
+  const valueBlock = isSingleValue ? (
+    <Text className="text-text-primary min-h-5 w-full text-center text-sm font-medium tabular-nums">
+      {formatTickLabel(minValue)}
+    </Text>
+  ) : (
     <Box className="grid min-h-5 w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-2">
       <Text className="text-text-primary truncate text-left text-sm font-medium tabular-nums">
         {formattedValue(minValue)}
       </Text>
       <Text className="text-text-disabled flex-shrink-0 text-sm leading-5">–</Text>
       <Text className="text-text-primary truncate text-right text-sm font-medium tabular-nums">
-        {maxLabel}
+        {formatTickLabel(maxValue)}
       </Text>
     </Box>
   );

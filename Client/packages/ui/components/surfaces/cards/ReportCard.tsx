@@ -189,7 +189,7 @@ function ReportCardCompletedActions({
             onClick={() => report.s3Key && onDelete(report.id, report.s3Key)}
             disabled={disabled || !canDelete}
             icon={<Icon name="trash-2" />}
-            colorClasses="bg-transparent hover:bg-primary-muted text-destructive border border-border"
+            colorClasses="bg-transparent hover:bg-neutral-100 text-destructive border border-border"
             title={deleteTitle}
             className="min-w-0 flex-1 sm:w-auto sm:flex-initial"
             hideTextOnMobile
@@ -230,7 +230,7 @@ function ReportCardCompletedActions({
         onClick={() => report.s3Key && onDelete(report.id, report.s3Key)}
         disabled={disabled || !canDelete}
         icon={<Icon name="trash-2" />}
-        colorClasses="bg-transparent hover:bg-primary-muted text-destructive border border-border"
+        colorClasses="bg-transparent hover:bg-neutral-100 text-destructive border border-border"
         title={deleteTitle}
         className="min-w-0 sm:w-auto sm:flex-initial"
         hideTextOnMobile

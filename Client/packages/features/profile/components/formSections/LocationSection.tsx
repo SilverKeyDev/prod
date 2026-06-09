@@ -105,6 +105,7 @@ export default function LocationSection({
           isEditMode={isEditMode}
           patch={patch}
           neigh={ext.neighborhood ?? {}}
+          onWalkabilityImportanceChange={(value) => updateField("walkability_importance", value)}
         />
       </Box>
     </ProfileSectionBody>

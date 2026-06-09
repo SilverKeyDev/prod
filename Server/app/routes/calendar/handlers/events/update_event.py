@@ -40,15 +40,26 @@ def update_event(event_id, data: GoogleCalendarEventCreateBody):
             return calendar_permission_response(error_response)
 
         event_data = dict(data.model_dump(mode="json", by_alias=True))
-        event_data.pop("addGoogleMeet", None)
+        add_google_meet_flag = event_data.pop("addGoogleMeet", None)
         event_data.pop("conferenceData", None)
         if not validate_event_data(event_data):
             return http_errors.validation("Invalid event data")
 
         calendar_id = extract_calendar_id_from_request(event_data)
-        event = google_calendar_service.update_event(user_id, event_id, event_data, calendar_id)
+        event = google_calendar_service.update_event(
+            user_id,
+            event_id,
+            event_data,
+            calendar_id,
+            add_google_meet=add_google_meet_flag is True,
+        )
 
-        sync_event_to_db(event_id, event, user_id)
+        sync_event_to_db(
+            event_id,
+            event,
+            user_id,
+            add_google_meet=add_google_meet_flag,
+        )
 
         row = db.session.scalar(
             select(CalendarEvent).where(

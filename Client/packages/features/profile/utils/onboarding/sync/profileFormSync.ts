@@ -243,7 +243,9 @@ export function userPreferencesToOnboardingData(
       }))
       .filter((r) => r.address.trim() !== ""),
     important_locations: toImportantLocations(get("important_locations")),
-    walkability_importance: toString(get("walkability_importance")),
+    walkability_importance:
+      toString(get("walkability_importance")) ??
+      toString(buyerPreferenceExtensions?.neighborhood?.walkability_importance),
     /** Backend key `extended_buyer_preferences` mapped to form key `buyerPreferenceExtensions` */
     buyerPreferenceExtensions,
 

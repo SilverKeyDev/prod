@@ -12,8 +12,9 @@ import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Card from "packages/ui/components/surfaces/cards/Card";
+import { openAgentPublicProfileExternal } from "packages/utils/growth/agent";
 
-import { AgentDiscoveryView } from "@/features/agent/components/agentDiscovery/AgentDiscoveryView";
+import { AgentSearchContent } from "@/features/agent/components/search/AgentSearchContent";
 import {
   initiatedConnectionRequestsQueryKey,
   useInitiatedConnectionRequests,
@@ -60,13 +61,16 @@ export default function PartnerAgentSection({ onComplete }: ChecklistIntegration
         <BodyText size="sm" className="text-text-secondary">
           {t("checklists.partner_agent.intro")}
         </BodyText>
-        <AgentDiscoveryView
-          isActive
-          profileTarget="external"
-          className="max-w-none"
-          suppressRecommendationsLoading
-          onConnectionSuccess={handleSearchSuccess}
-        />
+        <Box className="border-border bg-background-surface overflow-hidden rounded-xl border shadow-sm">
+          <AgentSearchContent
+            isActive
+            primaryAction="openProfile"
+            onOpenAgentProfile={openAgentPublicProfileExternal}
+            profileButtonLabel={t("agent.discovery_view_profile")}
+            connectButtonLabel={t("agent.discovery_connect")}
+            onSuccess={handleSearchSuccess}
+          />
+        </Box>
         <PartnerAgentConnectedAgentsSection agents={relationshipAgents} />
         <ChecklistStepSubmitFooter disabled={!stepComplete} onSubmit={handleSubmitStep} />
       </Box>

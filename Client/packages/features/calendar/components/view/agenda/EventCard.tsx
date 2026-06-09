@@ -1,9 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { CreateEventModal } from "packages/features/calendar/components/view/eventModal/CreateEventModal";
-import { Button, CancelButton } from "packages/ui";
 import { Box, Text, TouchableBox } from "packages/ui/components/structure/primitives";
 import DeleteModal from "packages/ui/components/surfaces/modals/standalone/DeleteModal";
+import {
+  isEventMeetLinkPending,
+  isVirtualMeetingEnabled,
+  resolveEventMeetLink,
+} from "packages/utils/comms/calendar/parsing/eventMeetLink";
 import {
   getEventEndDate,
   getEventStartDate,
@@ -14,7 +18,9 @@ import {
 } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
+import { EventVirtualMeetLink } from "@/features/calendar/components/eventForm/EventVirtualMeetLink";
 import { AgendaCompleteControl } from "@/features/calendar/components/view/agenda/AgendaCompleteControl";
+import { AgendaItemEditActions } from "@/features/calendar/components/view/agenda/AgendaItemEditActions";
 import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 import { calendarColorForEvent } from "@/features/calendar/utils/createEventModal/calendarEventColors";
@@ -118,6 +124,8 @@ export function EventCard({
 
   const eventTitle = <Text className={titleClassName}>{event.summary || "Untitled Event"}</Text>;
 
+  const showVirtualMeet = isVirtualMeetingEnabled(event);
+
   const eventDetails = (
     <>
       {dateRange ? (
@@ -125,6 +133,12 @@ export function EventCard({
       ) : null}
       {event.location ? (
         <Text className="text-text-secondary text-left text-xs sm:text-sm">{event.location}</Text>
+      ) : null}
+      {showVirtualMeet ? (
+        <EventVirtualMeetLink
+          meetLink={resolveEventMeetLink(event)}
+          pending={isEventMeetLinkPending(event)}
+        />
       ) : null}
       {event.description ? (
         <Text className="text-text-secondary line-clamp-2 text-left text-xs sm:text-sm">
@@ -169,7 +183,7 @@ export function EventCard({
                           <Box className="min-w-0 flex-1">{eventTitle}</Box>
                         )}
                       </Box>
-                      {dateRange || event.location || event.description ? (
+                      {dateRange || event.location || showVirtualMeet || event.description ? (
                         <Box className="space-y-1 pl-8">{eventDetails}</Box>
                       ) : null}
                     </Box>
@@ -182,14 +196,7 @@ export function EventCard({
                   )}
                 </Box>
                 {showEditActions ? (
-                  <Box className="flex flex-shrink-0 flex-row flex-wrap justify-end gap-2">
-                    <Button variant="outline" size="sm" onPress={handleEdit} iconName="pencil">
-                      Edit
-                    </Button>
-                    <CancelButton size="sm" onPress={handleCancel}>
-                      Cancel
-                    </CancelButton>
-                  </Box>
+                  <AgendaItemEditActions onEdit={handleEdit} onCancel={handleCancel} />
                 ) : null}
               </Box>
             </Box>

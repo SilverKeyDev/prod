@@ -48,6 +48,8 @@ export {
   default as Dropdown,
   type DropdownOption,
   type DropdownProps,
+  default as MultiSelectDropdown,
+  type MultiSelectDropdownProps,
 } from "./inputs/form/dropdown";
 export { default as FavoriteHomesDropdown } from "./inputs/form/dropdowns/FavoriteHomesDropdown";
 export { default as FieldShell } from "./inputs/form/field/FieldShell";
@@ -94,6 +96,11 @@ export {
 export { default as AlignedRow } from "./structure/layout/AlignedRow";
 export { default as Card } from "./structure/layout/Card.web";
 export { ResponsiveEqualColumns } from "./structure/layout/ResponsiveEqualColumns";
+export {
+  SCROLL_PANEL_MAX,
+  ScrollPanel,
+  type ScrollPanelProps,
+} from "./structure/layout/ScrollPanel";
 export { default as SectionCard } from "./structure/layout/SectionCard";
 export { default as Popover } from "./surfaces/popover/Popover";
 

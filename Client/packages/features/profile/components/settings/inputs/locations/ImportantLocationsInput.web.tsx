@@ -206,7 +206,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
               variant="secondary"
               size="md"
               onClick={() => setIsAddingLocation(true)}
-              className="bg-background-surface border-border text-text-secondary hover:bg-accent-muted w-full rounded-lg border-2 border-dotted py-3"
+              className="bg-background-surface border-border text-text-secondary w-full rounded-lg border-2 border-dotted py-3 hover:bg-neutral-100"
               iconName="plus"
               iconPosition="left"
             >

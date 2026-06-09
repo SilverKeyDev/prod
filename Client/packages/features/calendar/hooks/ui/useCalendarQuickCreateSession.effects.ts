@@ -86,8 +86,18 @@ export function useCalendarQuickCreateOutsidePointer(
           discardQuickCreate();
           return;
         }
+        const ev = visibleEvents.find((x) => x.id === hit.id);
+        if (ev?.isOptimisticCalendarDraft) {
+          discardQuickCreate();
+          return;
+        }
         discardQuickCreate();
-        onWeekGridEventSelect?.(hit.id);
+        if (ev?.id) {
+          onWeekGridEventSelect?.(String(ev.id));
+        }
+        if (ev && !ev.isOptimisticCalendarDraft) {
+          setEditEvent(ev);
+        }
         return;
       }
 

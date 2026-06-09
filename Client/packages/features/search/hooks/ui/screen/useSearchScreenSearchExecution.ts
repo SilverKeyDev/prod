@@ -12,7 +12,7 @@ import {
 } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { usePreActionSnapshot } from "packages/hooks/ui";
 import { log } from "packages/logger";
-import type { SearchFilterOverrides } from "packages/store";
+import { type SearchFilterOverrides, useSearchContextStore } from "packages/store";
 import type { IsochroneData } from "packages/types/domain/api";
 
 import {
@@ -75,6 +75,7 @@ export function useSearchScreenSearchExecution({
   setShowPropertyModals,
 }: UseSearchScreenSearchExecutionParams) {
   const mapPreviewSearchLifecycle = useSearchMapPreviewSearchLifecycle();
+  const flushPreferencesSave = useSearchContextStore((s) => s.flushPreferencesSave);
 
   const { snapshot: snapshotPreSearch, restore: restorePreSearch } = usePreActionSnapshot<{
     results: SearchResult[];
@@ -99,6 +100,9 @@ export function useSearchScreenSearchExecution({
     log.info("SEARCH", "Mobile unified search start", {});
 
     try {
+      if (flushPreferencesSave) {
+        await flushPreferencesSave();
+      }
       const mapBoundsRing = lastMapRegion ? viewportRingFromMapRegion(lastMapRegion) : null;
       if (!locationPlaceViewportRing?.length) {
         clearLocationPlaceSearchArea();
@@ -185,6 +189,7 @@ export function useSearchScreenSearchExecution({
     setLocationSearchOverlayData,
     selectedClientId,
     mapPreviewSearchLifecycle,
+    flushPreferencesSave,
   ]);
 
   const runMapAreaSearch = useCallback(async () => {

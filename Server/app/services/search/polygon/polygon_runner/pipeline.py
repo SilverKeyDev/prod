@@ -190,6 +190,7 @@ def run_force_search_pipeline(
             "from_request_body": "preferences_strict_filter" in data,
         },
     )
+    pre_filter_count = len(all_properties)
     all_properties = apply_polygon_search_post_filters(
         all_properties,
         user_preferences,
@@ -197,6 +198,8 @@ def run_force_search_pipeline(
         agent_debug_log=agent_debug_log,
         strict_preference_filter=strict_pref,
     )
+    post_filter_count = len(all_properties)
+    filters_too_tight = pre_filter_count > 0 and post_filter_count == 0
 
     user_data = {"user_id": user_id, "preferences": user_preferences}
     scored_all = score_and_sort_properties(
@@ -284,6 +287,9 @@ def run_force_search_pipeline(
             "requestId": request_id,
             "limit": TOP_N,
             "searchArea": search_area_mode,
+            "filtersTooTight": filters_too_tight,
+            "preFilterCount": pre_filter_count,
+            "postFilterCount": post_filter_count,
         },
     }
     return (response_data, 200)

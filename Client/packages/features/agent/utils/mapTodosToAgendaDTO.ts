@@ -6,6 +6,7 @@ export function mapTodosToAgendaDTO(todos: TodoItem[]): AgendaTodoDTO[] {
   return todos.map((t) => ({
     id: t.id,
     title: t.title,
+    description: t.description,
     due_date: t.due_date,
     completed: t.completed,
   }));

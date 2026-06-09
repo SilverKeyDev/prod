@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import {
   API_GET_KEYS,
   API_POST_KEYS,
+  SEARCH_PREFERENCES_FIELDS,
 } from "packages/features/profile/utils/onboarding/steps/fieldContract";
 
 import {
@@ -269,6 +271,176 @@ describe("profileFormSync", () => {
       expect(loaded.lender_status).toBe("pre_approved");
       expect(loaded.lender_name).toBe("Better");
       expect(loaded.preferred_contact_method).toBe("email");
+    });
+  });
+
+  describe("search preferences top-level roundtrip", () => {
+    it("documents every search dropdown field in SEARCH_PREFERENCES_FIELDS", () => {
+      expect(SEARCH_PREFERENCES_FIELDS.length).toBeGreaterThan(40);
+    });
+
+    const topLevelRoundtrips: Array<{ key: keyof OnboardingData; value: unknown }> = [
+      { key: "home_budget_min", value: 350_000 },
+      { key: "home_budget_max", value: 750_000 },
+      { key: "preferred_bedrooms_min", value: 2 },
+      { key: "preferred_bedrooms_max", value: 4 },
+      { key: "preferred_bathrooms_min", value: 1 },
+      { key: "preferred_bathrooms_max", value: 3 },
+      { key: "preferred_housing_type", value: "single_family" },
+      { key: "listing_type", value: ["for_sale", "pending"] },
+      { key: "must_have", value: ["garage", "pool"] },
+      { key: "preferred_sqft_min", value: 1200 },
+      { key: "preferred_sqft_max", value: 2800 },
+      { key: "days_on_market_min", value: 0 },
+      { key: "days_on_market_max", value: 30 },
+      { key: "preferred_lot_size_min", value: 0.1 },
+      { key: "preferred_lot_size_max", value: 1.5 },
+      { key: "preferred_home_age_min", value: 0 },
+      { key: "preferred_home_age_max", value: 25 },
+      { key: "preferred_architectural_style", value: "modern" },
+      { key: "walkability_importance", value: "high" },
+      { key: "intended_property_use", value: "primary" },
+      { key: "renovation_preference", value: "minor" },
+      { key: "listing_status", value: "active" },
+      { key: "other_requirements", value: ["street parking"] },
+    ];
+
+    it.each(topLevelRoundtrips)("roundtrips $key through save and load", ({ key, value }) => {
+      const form = { [key]: value } as OnboardingData;
+      const payload = formDataToPreferencesPayload(form);
+      const loaded = userPreferencesToOnboardingData(payload);
+      expect(loaded[key]).toEqual(value);
+    });
+
+    it("roundtrips important_locations with commute_tolerance", () => {
+      const form: OnboardingData = {
+        important_locations: [{ address: "100 Main St", commute_tolerance: 25 }],
+      };
+      const loaded = userPreferencesToOnboardingData(formDataToPreferencesPayload(form));
+      expect(loaded.important_locations).toEqual([
+        { address: "100 Main St", commute_tolerance: 25 },
+      ]);
+    });
+
+    it("hydrates walkability_importance from neighborhood extension when top-level missing", () => {
+      const fixture = {
+        extended_buyer_preferences: {
+          v: 1,
+          neighborhood: { walkability_importance: "moderate" },
+        },
+      };
+      const loaded = userPreferencesToOnboardingData(fixture);
+      expect(loaded.walkability_importance).toBe("moderate");
+    });
+  });
+
+  describe("search preferences extension roundtrip", () => {
+    const extensionCases = [
+      {
+        label: "location_prefs",
+        form: {
+          buyerPreferenceExtensions: {
+            v: 1 as const,
+            location_prefs: { flood_importance: "high", noise_importance: "low" },
+          },
+        },
+        assert: (loaded: OnboardingData) => {
+          expect(loaded.buyerPreferenceExtensions?.location_prefs?.flood_importance).toBe("high");
+          expect(loaded.buyerPreferenceExtensions?.location_prefs?.noise_importance).toBe("low");
+        },
+      },
+      {
+        label: "neighborhood",
+        form: {
+          buyerPreferenceExtensions: {
+            v: 1 as const,
+            neighborhood: {
+              walkability_importance: "high",
+              crime_importance: "moderate",
+              pet_friendly_area: "low",
+            },
+          },
+        },
+        assert: (loaded: OnboardingData) => {
+          expect(loaded.buyerPreferenceExtensions?.neighborhood?.crime_importance).toBe("moderate");
+          expect(loaded.buyerPreferenceExtensions?.neighborhood?.pet_friendly_area).toBe("low");
+        },
+      },
+      {
+        label: "physical",
+        form: {
+          buyerPreferenceExtensions: {
+            v: 1 as const,
+            physical: {
+              garage_required: true,
+              garage_min_cars: 2,
+              stories_preference: "two",
+              parking_type: "garage",
+              accessibility_needs: "step_free",
+              outdoor_space_importance: "high",
+              fireplace_preference: "yes",
+              view_importance: "moderate",
+            },
+          },
+        },
+        assert: (loaded: OnboardingData) => {
+          expect(loaded.buyerPreferenceExtensions?.physical?.garage_required).toBe(true);
+          expect(loaded.buyerPreferenceExtensions?.physical?.garage_min_cars).toBe(2);
+        },
+      },
+      {
+        label: "condition",
+        form: {
+          buyerPreferenceExtensions: {
+            v: 1 as const,
+            condition: {
+              prefer_price_reduced: true,
+              prefer_virtual_tour: true,
+              prefer_open_house: false,
+              foreclosure_ok: true,
+            },
+          },
+        },
+        assert: (loaded: OnboardingData) => {
+          expect(loaded.buyerPreferenceExtensions?.condition?.prefer_price_reduced).toBe(true);
+          expect(loaded.buyerPreferenceExtensions?.condition?.foreclosure_ok).toBe(true);
+        },
+      },
+      {
+        label: "utilities",
+        form: {
+          buyerPreferenceExtensions: {
+            v: 1 as const,
+            utilities: {
+              hvac_preference: "central",
+              utilities_included_importance: "low",
+              solar_interest: "yes",
+              ev_charger_interest: "nice_to_have",
+            },
+          },
+        },
+        assert: (loaded: OnboardingData) => {
+          expect(loaded.buyerPreferenceExtensions?.utilities?.hvac_preference).toBe("central");
+          expect(loaded.buyerPreferenceExtensions?.utilities?.ev_charger_interest).toBe(
+            "nice_to_have"
+          );
+        },
+      },
+    ] as const;
+
+    it.each(extensionCases)("roundtrips extended $label", ({ form, assert }) => {
+      const payload = formDataToPreferencesPayload(form as OnboardingData);
+      const loaded = userPreferencesToOnboardingData(payload);
+      assert(loaded);
+    });
+
+    it("mirrors top-level walkability into neighborhood on save", () => {
+      const form: OnboardingData = { walkability_importance: "high" };
+      const payload = formDataToPreferencesPayload(form);
+      const ext = payload.extended_buyer_preferences as {
+        neighborhood?: { walkability_importance?: string };
+      };
+      expect(ext.neighborhood?.walkability_importance).toBe("high");
     });
   });
 });

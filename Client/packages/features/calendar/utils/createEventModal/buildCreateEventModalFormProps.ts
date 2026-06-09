@@ -2,7 +2,7 @@ import type { ChangeEvent } from "react";
 
 import type { CreateEventModalFormProps } from "@/features/calendar/components/view/eventModal/CreateEventModalForm";
 import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
-import type { Calendar } from "@/features/calendar/types/calendar";
+import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 
 export type BuildCreateEventModalFormPropsInput = {
@@ -42,6 +42,7 @@ export type BuildCreateEventModalFormPropsInput = {
   addGoogleMeet: boolean;
   setAddGoogleMeet: (next: boolean) => void;
   showGoogleMeetOption: boolean;
+  existingEvent?: ExtendedGoogleEvent;
   mutualSchedule: CreateEventMutualAvailability | null;
   onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
   registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
@@ -91,6 +92,7 @@ export function buildCreateEventModalFormProps(
     addGoogleMeet: input.addGoogleMeet,
     onAddGoogleMeetChange: input.setAddGoogleMeet,
     showGoogleMeetOption: input.showGoogleMeetOption,
+    existingEvent: input.existingEvent,
     mutualSchedule: input.mutualSchedule,
     onCalendarTimedSlotPick: input.onCalendarTimedSlotPick,
     registerOutsideClickSafeTarget: input.registerOutsideClickSafeTarget,

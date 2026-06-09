@@ -31,19 +31,19 @@ export function sidebarInsetHeaderTitleClass(): string {
 }
 
 export function sidebarInsetHeaderIconButtonClass(): string {
-  return "flex items-center justify-center rounded-lg p-1.5 text-text-secondary transition hover:bg-primary-muted hover:text-text-primary";
+  return "flex items-center justify-center rounded-lg p-1.5 text-text-secondary transition hover:bg-neutral-100 hover:text-text-primary";
 }
 
 export function sidebarInsetHeaderMenuToggleClass(): string {
-  return "inline-flex items-center justify-center rounded-lg p-2 text-text-secondary transition hover:bg-primary-muted focus:outline-none xl:hidden";
+  return "inline-flex items-center justify-center rounded-lg p-2 text-text-secondary transition hover:bg-neutral-100 focus:outline-none xl:hidden";
 }
 
 export function sidebarInsetHeaderGhostButtonClass(): string {
-  return "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-text-secondary transition hover:bg-primary-muted hover:text-text-primary";
+  return "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-text-secondary transition hover:bg-neutral-100 hover:text-text-primary";
 }
 
 export function sidebarInsetHeaderCollapseButtonClass(): string {
-  return "inline-flex items-center justify-center rounded-lg bg-primary-muted px-3 py-2 text-text-primary transition hover:bg-accent-muted xl:hidden";
+  return "inline-flex items-center justify-center rounded-lg bg-primary-muted px-3 py-2 text-text-primary transition hover:opacity-90 xl:hidden";
 }
 
 /**
@@ -62,7 +62,7 @@ export function sidebarInsetListRowClass(selected: boolean): string {
   if (selected) {
     return `${base} ${SK_INSET_ROW_SELECTED_CLASS} bg-olive/10 hover:bg-olive/15`;
   }
-  return `${base} hover:bg-primary-muted/70`;
+  return `${base} hover:bg-neutral-100`;
 }
 
 export function sidebarInsetListRowSelectedProps(selected: boolean): {
@@ -73,7 +73,7 @@ export function sidebarInsetListRowSelectedProps(selected: boolean): {
 
 /** Native flat list row: token-aligned inset list surface + touch feedback */
 export const SIDEBAR_INSET_LIST_ROW_FLAT_NATIVE =
-  "border-border border-b px-4 py-4 active:bg-primary-muted/70";
+  "border-border border-b px-4 py-4 active:bg-neutral-100";
 
 export const SIDEBAR_INSET_EMPTY_ICON_WRAP =
   "mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-muted";
@@ -137,9 +137,9 @@ export function getInsetNavItemClasses({
     return `${base} cursor-not-allowed bg-disabled text-text-disabled`;
   }
   if (active) {
-    return `${base} !bg-primary-muted !text-text-primary hover:!bg-primary-muted hover:!font-semibold hover:!text-text-primary active:!bg-primary-muted active:!font-semibold active:!text-text-primary focus-visible:!ring-0 focus-visible:!ring-offset-0`;
+    return `${base} !bg-neutral-100 !font-semibold !text-text-primary hover:!bg-neutral-200 hover:!text-text-primary active:!bg-neutral-200 active:!text-text-primary focus-visible:!ring-0 focus-visible:!ring-offset-0`;
   }
-  return `${base} text-text-primary hover:!bg-primary-muted/70 hover:text-text-primary active:!bg-primary-muted active:text-text-primary`;
+  return `${base} text-text-primary hover:!bg-background-surface hover:text-text-primary active:!bg-neutral-100 active:text-text-primary`;
 }
 
 export function getInsetNavItemIconClasses(active: boolean): string {

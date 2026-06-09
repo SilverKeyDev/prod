@@ -62,8 +62,8 @@ MCDA_CONFIG: dict[str, Any] = {
     "objective_weight_scale_low_coverage": 0.62,
     "low_coverage_dimension_threshold": 1,
     # Extra multiplier on preference-driven dimensions (more prefs → wider spread).
-    "preference_strength_per_dimension": 0.05,
-    "preference_strength_max": 0.40,
+    "preference_strength_per_dimension": 0.06,
+    "preference_strength_max": 0.50,
     "soft_signal_weights": {
         "price_fit": 15.0,
         "beds": 7.5,
@@ -105,9 +105,9 @@ def _soft_contribution(weight: float, signal_01: float) -> float:
     """
     centered = (signal_01 - 0.5) * 2.0
     if centered < 0:
-        damped = centered * 0.88
+        damped = centered * 0.90
     else:
-        damped = centered * 1.04
+        damped = centered * 1.10
     return weight * max(-1.0, min(1.0, damped))
 
 

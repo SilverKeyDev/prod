@@ -39,9 +39,9 @@ const SIZE_STYLES = {
 } as const;
 const VARIANT_STYLES = {
   primary: "bg-primary text-white hover:bg-primary-hover border-border",
-  secondary: "bg-background-surface text-primary border-border hover:bg-primary-muted",
+  secondary: "bg-background-surface text-primary border-border hover:bg-neutral-200",
   muted: "bg-neutral-100 text-text-primary hover:bg-neutral-200 border-border",
-  ghost: "text-primary hover:bg-primary-muted border-transparent",
+  ghost: "text-text-primary hover:bg-neutral-100 active:bg-neutral-200 border-transparent",
 } as const;
 const CardViewButton: React.FC<CardViewButtonProps> = ({
   onClick,

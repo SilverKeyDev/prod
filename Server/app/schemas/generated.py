@@ -2861,7 +2861,11 @@ class PropertySearchResult(BaseModel):
 
     """
 
-    id: str = Field(..., description="Property ID (ZPID or internal)")
+    id: str = Field(..., description="Slipstream listing key (ZPID or MLS id)")
+    home_id: str | None = Field(
+        None,
+        description="Stable PropertyCache UUID for this listing in SilverKey (use for saves, feed, and refresh).",
+    )
     essentials: Essentials = Field(..., description="Core property characteristics")
     location: Location1 = Field(..., description="Property location")
     financials: Financials | None = Field(None, description="Pricing information")
@@ -3042,7 +3046,9 @@ class LastSearchContext(BaseModel):
     map_center: MapCenter | None = Field(
         None, description="Map center at the time of the last search."
     )
-    map_zoom: int | None = Field(None, description="Map zoom level at the time of the last search.")
+    map_zoom: confloat(ge=1.0, le=22.0) | None = Field(
+        None, description="Map zoom level at the time of the last search."
+    )
     searched_at: AwareDatetime | None = Field(
         None, description="ISO 8601 timestamp of when the search was executed."
     )
@@ -4321,6 +4327,10 @@ class SearchByPolygonRequest(BaseModel):
         None,
         description="When true, return previously materialized results only without hitting upstream MLS.",
     )
+    hydrateListings: bool | None = Field(
+        None,
+        description="When true with `onlyCached`, refresh listing snapshots (price, status, beds, etc.) from Slipstream\nusing each persisted home_id before responding. Does not re-run search or change match scores.\n",
+    )
     preferences_user_id: str | None = Field(
         None,
         description="Optional subject for preference scoring (agents: must be a linked client id; buyers are always scoped to self).\nResolved server-side via `resolve_preferences_user_id_for_research`.\n",
@@ -4591,6 +4601,10 @@ class GoogleEvent(BaseModel):
     silverKeyEventType: str | None = Field(
         None,
         description="SilverKey scheduling category from the app database when this event was created in-app (e.g. `property_viewing`, `meeting`, `open_house`). Not sent to Google; attached by the server when listing or getting events. Used for UI coloring when the title no longer matches a known template label.\n",
+    )
+    silverKeyVirtualMeetingEnabled: bool | None = Field(
+        None,
+        description="True when this SilverKey-managed event was saved with virtual meeting requested (derived from DB conference_status / meet_url). Omitted for events not in our DB.\n",
     )
 
 

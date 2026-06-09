@@ -1,3 +1,4 @@
+import { handlePolygonSearchFiltersTooTightOutcome } from "packages/features/search/utils/outcomes/searchFiltersTooTightOutcome";
 import { warnSearchEmptyResults } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { transformPropertySearchResult } from "packages/features/search/utils/transform/searchTransform";
 import { log } from "packages/logger";
@@ -143,7 +144,9 @@ export async function handlePolygonSearchResponse(
   mapPreview?.onResultsCommittedEnablePreviews?.();
 
   if (transformedResults.length === 0) {
-    warnSearchEmptyResults({ preferencesStrictFilter });
+    if (!handlePolygonSearchFiltersTooTightOutcome(searchResult)) {
+      warnSearchEmptyResults({ preferencesStrictFilter });
+    }
   }
 
   log.info("SEARCH", "Successfully found properties (after home matching transform)", {

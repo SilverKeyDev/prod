@@ -211,7 +211,13 @@ class GoogleCalendarService:
         )
 
     def update_event(
-        self, user_id: str, event_id: str, event_data: dict[str, Any], calendar_id: str = "primary"
+        self,
+        user_id: str,
+        event_id: str,
+        event_data: dict[str, Any],
+        calendar_id: str = "primary",
+        *,
+        add_google_meet: bool = False,
     ) -> dict[str, Any]:
         """Update an existing event in user's Google calendar"""
         return update_event(
@@ -224,6 +230,7 @@ class GoogleCalendarService:
             self.token_endpoint,
             self.scopes,
             self._resolve_calendar_id,
+            add_google_meet=add_google_meet,
         )
 
     def delete_event(self, user_id: str, event_id: str, calendar_id: str = "primary") -> bool:

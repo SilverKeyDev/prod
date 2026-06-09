@@ -49,8 +49,9 @@ type PreferencesFormContentProps = {
     cancelPendingSave: () => void;
   }) => React.ReactNode;
   /**
-   * When set, loads that user's preferences for display/editing in the form.
-   * Saves still go to the authenticated user only (`POST /preferences`); agents cannot persist changes to the client's account.
+   * When set, loads that user's preferences for display in the form (e.g. agent viewing a client in Search).
+   * Saves always go to the authenticated user (`POST /preferences`). Client selection is for independent
+   * search context only — we never POST preference edits to the client's account.
    */
   preferencesSubjectUserId?: string | null;
   /** When set, parent can call `replaceFormData` to apply a full preferences snapshot (e.g. agent sync preview). */

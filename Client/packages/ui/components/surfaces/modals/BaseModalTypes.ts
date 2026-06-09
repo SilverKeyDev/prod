@@ -10,7 +10,9 @@ export type BaseModalProps = {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | "full";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+  /** When `fixed`, the panel keeps a constant viewport height; body scrolls instead of resizing the shell. */
+  panelLayout?: "auto" | "fixed";
   showCloseButton?: boolean;
   closeOnBackdropClick?: boolean;
   closeOnEscape?: boolean;

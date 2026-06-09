@@ -4632,6 +4632,8 @@ export interface components {
             colorId?: string | null;
             /** @description SilverKey scheduling category from the app database when this event was created in-app (e.g. `property_viewing`, `meeting`, `open_house`). Not sent to Google; attached by the server when listing or getting events. Used for UI coloring when the title no longer matches a known template label. */
             silverKeyEventType?: string | null;
+            /** @description True when this SilverKey-managed event was saved with virtual meeting requested (derived from DB conference_status / meet_url). Omitted for events not in our DB. */
+            silverKeyVirtualMeetingEnabled?: boolean | null;
         };
         GoogleEventAttendee: {
             /** Format: email */
@@ -5479,8 +5481,10 @@ export interface components {
          *     }
          */
         PropertySearchResult: {
-            /** @description Property ID (ZPID or internal) */
+            /** @description Slipstream listing key (ZPID or MLS id) */
             id: string;
+            /** @description Stable PropertyCache UUID for this listing in SilverKey (use for saves, feed, and refresh). */
+            home_id?: string | null;
             /** @description Core property characteristics */
             essentials: {
                 bedrooms: number;
@@ -5748,7 +5752,8 @@ export interface components {
          *       "preferences_strict_filter": false,
          *       "perBucketPages": 10,
          *       "forceSearch": false,
-         *       "onlyCached": false
+         *       "onlyCached": false,
+         *       "hydrateListings": false
          *     }
          */
         SearchByPolygonRequest: {
@@ -5767,6 +5772,11 @@ export interface components {
             forceSearch?: boolean | null;
             /** @description When true, return previously materialized results only without hitting upstream MLS. */
             onlyCached?: boolean | null;
+            /**
+             * @description When true with `onlyCached`, refresh listing snapshots (price, status, beds, etc.) from Slipstream
+             *     using each persisted home_id before responding. Does not re-run search or change match scores.
+             */
+            hydrateListings?: boolean | null;
             /**
              * @description Optional subject for preference scoring (agents: must be a linked client id; buyers are always scoped to self).
              *     Resolved server-side via `resolve_preferences_user_id_for_research`.
@@ -5863,7 +5873,10 @@ export interface components {
                     /** Format: double */
                     lng?: number;
                 } | null;
-                /** @description Map zoom level at the time of the last search. */
+                /**
+                 * Format: double
+                 * @description Map zoom level at the time of the last search.
+                 */
                 map_zoom?: number | null;
                 /**
                  * Format: date-time

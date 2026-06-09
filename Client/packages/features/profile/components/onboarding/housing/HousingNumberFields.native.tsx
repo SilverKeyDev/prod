@@ -36,7 +36,7 @@ export function HousingNumberFields({
           }}
           formatValue={(v) => `${v} bed${v !== 1 ? "s" : ""}`}
           formatPrefix=""
-          minGap={1}
+          allowSingleValue
         />
       </Box>
       <Box>
@@ -56,7 +56,7 @@ export function HousingNumberFields({
           }}
           formatValue={(v) => `${v} bath${v !== 1 ? "s" : ""}`}
           formatPrefix=""
-          minGap={1}
+          allowSingleValue
         />
       </Box>
     </ResponsiveEqualColumns>

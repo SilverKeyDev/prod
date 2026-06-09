@@ -22,12 +22,15 @@ type SearchPrefsNeighborhoodProps = {
   isEditMode: boolean;
   patch: PatchBuyerPreferenceExtensions;
   neigh: BuyerNeighborhoodPrefs;
+  /** Keep top-level walkability_importance in sync for save/load roundtrip. */
+  onWalkabilityImportanceChange?: (value: string | undefined) => void;
 };
 
 export function SearchPrefsNeighborhood({
   isEditMode,
   patch,
   neigh,
+  onWalkabilityImportanceChange,
 }: SearchPrefsNeighborhoodProps) {
   return (
     <Box className="gap-4">
@@ -44,18 +47,20 @@ export function SearchPrefsNeighborhood({
             content: isEditMode ? (
               <Dropdown
                 value={neigh.walkability_importance ?? ""}
-                onChange={(value) =>
+                onChange={(value) => {
+                  const next = value || undefined;
+                  onWalkabilityImportanceChange?.(next);
                   patch((p) => {
                     const b = withBuyerExtV1(p);
                     return {
                       ...b,
                       neighborhood: {
                         ...b.neighborhood,
-                        walkability_importance: value || undefined,
+                        walkability_importance: next,
                       },
                     };
-                  })
-                }
+                  });
+                }}
                 options={WALKABILITY_OPTIONS}
                 placeholder="Select walkability importance"
               />

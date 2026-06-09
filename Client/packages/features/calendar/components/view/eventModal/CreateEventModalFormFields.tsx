@@ -2,11 +2,16 @@ import { color } from "packages/design-tokens";
 import { Dropdown, OliveCheckbox, OliveCheckboxRowLabel, Textarea } from "packages/ui/components";
 import { Icon } from "packages/ui/components/media/icons";
 import { Box } from "packages/ui/components/structure/primitives";
+import {
+  isEventMeetLinkPending,
+  resolveEventMeetLink,
+} from "packages/utils/comms/calendar/parsing/eventMeetLink";
 
 import { BodyText, Input } from "@/components/ui";
 import Label from "@/components/ui/text/Label.web";
 import { CalendarStyleDateRangePicker } from "@/features/calendar/components/eventForm/CalendarStyleDateRangePicker";
 import { EventFormTimeRange } from "@/features/calendar/components/eventForm/EventFormTimeRange";
+import { EventVirtualMeetLink } from "@/features/calendar/components/eventForm/EventVirtualMeetLink";
 import type { CreateEventModalFormFieldsProps } from "@/features/calendar/components/view/eventModal/createEventModalFormFields.types";
 import { CreateEventModalFormLocation } from "@/features/calendar/components/view/eventModal/CreateEventModalFormViewingOrLocation";
 import {
@@ -45,6 +50,7 @@ export function CreateEventModalFormFields({
   addGoogleMeet,
   onAddGoogleMeetChange,
   showGoogleMeetOption,
+  existingEvent,
   mutualSchedule,
   onCalendarTimedSlotPick,
   registerOutsideClickSafeTarget,
@@ -219,19 +225,35 @@ export function CreateEventModalFormFields({
         )
       ) : null}
 
-      {mode === "create" && showGoogleMeetOption ? (
-        <Box className="flex items-center gap-2">
-          <Icon name="video" className="text-text-secondary h-4 w-4 shrink-0" aria-hidden />
-          <OliveCheckbox
-            checked={addGoogleMeet}
-            onToggle={() => onAddGoogleMeetChange(!addGoogleMeet)}
-          />
-          <OliveCheckboxRowLabel
-            className="min-w-0 flex-1 font-normal"
-            onPress={() => onAddGoogleMeetChange(!addGoogleMeet)}
-          >
-            Add Google Meet video conferencing
-          </OliveCheckboxRowLabel>
+      {showGoogleMeetOption ? (
+        <Box className="space-y-2">
+          <Box className="flex items-center gap-2">
+            <Icon name="video" className="text-text-secondary h-4 w-4 shrink-0" aria-hidden />
+            <OliveCheckbox
+              checked={addGoogleMeet}
+              onToggle={() => onAddGoogleMeetChange(!addGoogleMeet)}
+            />
+            <OliveCheckboxRowLabel
+              className="min-w-0 flex-1 font-normal"
+              onPress={() => onAddGoogleMeetChange(!addGoogleMeet)}
+            >
+              Add Google Meet video conferencing
+            </OliveCheckboxRowLabel>
+          </Box>
+          {addGoogleMeet ? (
+            <EventVirtualMeetLink
+              meetLink={
+                mode === "edit" && existingEvent ? resolveEventMeetLink(existingEvent) : null
+              }
+              pending={
+                mode === "edit" && existingEvent ? isEventMeetLinkPending(existingEvent) : false
+              }
+              placeholderWhenEmpty={
+                mode === "create" ? "Meet link will be added when you save" : undefined
+              }
+              className="pl-6"
+            />
+          ) : null}
         </Box>
       ) : null}
 

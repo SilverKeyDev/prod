@@ -1,5 +1,6 @@
 export { default as AlignedRow } from "./AlignedRow";
 export { ResponsiveEqualColumns } from "./ResponsiveEqualColumns";
+export { SCROLL_PANEL_MAX, ScrollPanel, type ScrollPanelProps } from "./ScrollPanel";
 export {
   SelectionBottomDock,
   type SelectionBottomDockItem,

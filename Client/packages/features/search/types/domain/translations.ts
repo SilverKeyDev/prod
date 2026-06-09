@@ -35,7 +35,7 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.agent_sync_preferences_hint":
     "You can’t edit your client’s saved preferences. This copies their saved preferences to your account so your search profile matches theirs.",
   "search.agent_filter_edits_save_to_your_profile":
-    "You’re viewing this client’s preferences. Edits here save to your profile only—we never change your client’s saved preferences.",
+    "You’re viewing this client’s preferences to search with their criteria. Any edits you make here save to your profile only—we never change your client’s saved preferences.",
   "search.agent_sync_preferences_success": "Your preferences now match {{name}}’s.",
   "search.agent_sync_preferences_error": "Couldn’t copy preferences. Try again.",
   "search.agent_sync_preferences_client_fallback": "your client",
@@ -66,6 +66,7 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.tap_search_to_find": "Tap Search to find homes that match your preferences",
   "search.no_results_try_adjusting":
     "No homes match your search yet. Try adjusting your preferences.",
+  "search.filters_too_tight": "Your filters are too tight. Try relaxing them to see more homes.",
   "search.empty_results_strict_preferences":
     'No homes matched with strict preferences on. Try turning off "Match all preferences strictly," or relax your filters and search again.',
   "search.invalid_search_area":

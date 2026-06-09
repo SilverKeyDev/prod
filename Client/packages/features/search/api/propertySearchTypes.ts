@@ -64,16 +64,20 @@ const POLYGON_SEARCH_OVERRIDE_KEYS: (keyof SearchFilterOverrides)[] = [
   "preferred_lot_size_max",
   "preferred_home_age_min",
   "preferred_home_age_max",
+  "days_on_market_min",
+  "days_on_market_max",
 ];
 
 const POLYGON_SEARCH_LIST_OVERRIDE_KEYS: (keyof SearchFilterOverrides)[] = [
   "listing_type",
   "must_have",
   "preferred_home_features",
+  "other_requirements",
 ];
 
 const POLYGON_SEARCH_STRING_OVERRIDE_KEYS: (keyof SearchFilterOverrides)[] = [
   "preferred_housing_type",
+  "listing_status",
 ];
 
 /** Build non-empty user_preferences for polygon search when any slider override is set. */
