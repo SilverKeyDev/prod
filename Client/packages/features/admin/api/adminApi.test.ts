@@ -232,4 +232,54 @@ describe("adminApi", () => {
       );
     });
   });
+
+  describe("mintDevAccountSession", () => {
+    it("returns one-time token, role, and user", async () => {
+      const user = {
+        id: "u-dev",
+        email: "dev+admin-buyer@dev.usesilverkey.test",
+        name: "Buyer",
+        is_active: true,
+        is_agent: false,
+      };
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        success: true,
+        token: "one-time-token",
+        role: "buyer",
+        user,
+      });
+
+      await expect(adminApi.mintDevAccountSession({ workspace: "buyer" })).resolves.toEqual({
+        token: "one-time-token",
+        role: "buyer",
+        user,
+      });
+      expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/dev-accounts/session", {
+        workspace: "buyer",
+      });
+    });
+  });
+
+  describe("exchangeDevAccountSession", () => {
+    it("exchanges a token without existing auth", async () => {
+      const response = {
+        success: true,
+        access_token: "access",
+        user: {
+          id: "u-dev",
+          email: "dev+admin-agent@dev.usesilverkey.test",
+          name: "Agent",
+          is_agent: true,
+        },
+      };
+      vi.mocked(apiPost).mockResolvedValueOnce(response);
+
+      await expect(adminApi.exchangeDevAccountSession("one-time-token")).resolves.toEqual(response);
+      expect(apiPost).toHaveBeenCalledWith(
+        "/api/v1/admin/dev-accounts/session/exchange",
+        { token: "one-time-token" },
+        { includeAuth: false, includeCredentials: false }
+      );
+    });
+  });
 });

@@ -847,13 +847,6 @@
     "reason": "Web reads viewport via platform adapter; native uses react-native Dimensions.get('window')."
   },
   {
-    "id": "find-agents-screen",
-    "description": "Agent discovery: web dashboard page vs native root-stack screen.",
-    "webPath": "apps/web/pages/misc/FindAgentsPage.tsx",
-    "nativePath": "packages/features/agent/components/agentDiscovery/FindAgentsScreen.native.tsx",
-    "reason": "Web embeds discovery in the dashboard layout with lazy-loaded page. Native registers a full-screen stack screen with react-navigation and SafeAreaView."
-  },
-  {
     "id": "agent-profile-in-app-screen",
     "description": "In-app agent profile from messaging/discovery: web route vs native stack params.",
     "webPath": "apps/web/pages/misc/AgentProfilePage.tsx",

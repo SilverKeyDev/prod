@@ -1,4 +1,3 @@
-import { pathFor } from "packages/navigation/router/paths";
 import type { IconName } from "packages/ui/types/icons";
 import { stripWorkspaceShellPrefix } from "packages/utils/core/layout/dashboardLayoutConfig";
 
@@ -99,11 +98,6 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
         to: "/messaging",
         icon: "send",
       },
-      {
-        label: "Find agents",
-        to: pathFor("FIND_AGENTS"),
-        icon: "search",
-      },
     ],
   },
 };
@@ -115,6 +109,6 @@ export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   if (p.startsWith("/search")) return SIDEBAR_TABS.search;
   if (p.startsWith("/library") || p.startsWith("/saved") || p.startsWith("/compare-reports"))
     return SIDEBAR_TABS.decide;
-  if (p.startsWith("/messaging") || p.startsWith("/find-agents")) return SIDEBAR_TABS.agent;
+  if (p.startsWith("/messaging")) return SIDEBAR_TABS.agent;
   return undefined;
 };

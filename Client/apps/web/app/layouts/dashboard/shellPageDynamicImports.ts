@@ -28,8 +28,6 @@ let profilePageModulePromise: Promise<typeof import("@/pages/account/ProfilePage
 let dashboardPageModulePromise: Promise<typeof import("@/pages/workspace/DashboardPage")> | null =
   null;
 let agentPageModulePromise: Promise<typeof import("@/pages/workspace/AgentPage")> | null = null;
-let findAgentsPageModulePromise: Promise<typeof import("@/pages/misc/FindAgentsPage")> | null =
-  null;
 let agreementSigningCompletePageModulePromise: Promise<
   typeof import("@/pages/workspace/AgreementSigningCompletePage")
 > | null = null;
@@ -83,16 +81,6 @@ export function loadAgentPageModule(): Promise<typeof import("@/pages/workspace/
       agentPageModulePromise = p;
     },
     () => import("@/pages/workspace/AgentPage")
-  );
-}
-
-export function loadFindAgentsPageModule(): Promise<typeof import("@/pages/misc/FindAgentsPage")> {
-  return memoizedPageImport(
-    () => findAgentsPageModulePromise,
-    (p) => {
-      findAgentsPageModulePromise = p;
-    },
-    () => import("@/pages/misc/FindAgentsPage")
   );
 }
 

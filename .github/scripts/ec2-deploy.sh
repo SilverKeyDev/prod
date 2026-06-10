@@ -48,7 +48,9 @@ STACK_IMAGE=""
 ENV_FILE=""
 DEPLOY_ENV_FILE="/root/.deploy_env"
 NETWORK_NAME="cre_network"
-STACK_CONTAINER_NAMES=(cre_app cre_worker cre_beat cre_worker_heavy redis)
+STATELESS_CONTAINER_NAMES=(cre_app cre_worker cre_beat cre_worker_heavy)
+STATEFUL_CONTAINER_NAMES=(redis)
+STACK_CONTAINER_NAMES=("${STATELESS_CONTAINER_NAMES[@]}" "${STATEFUL_CONTAINER_NAMES[@]}")
 
 scale_env_docker_flags() {
   local image_tag="${1:-}"
@@ -252,21 +254,40 @@ capture_rollback_snapshot() {
   fi
 }
 
-stop_app_stack() {
-  deploy_phase "BEGIN stop running stack"
-  for name in "${STACK_CONTAINER_NAMES[@]}"; do
+stop_stateless_stack() {
+  deploy_phase "BEGIN stop stateless app containers"
+  for name in "${STATELESS_CONTAINER_NAMES[@]}"; do
     sudo docker rm -f "$name" >/dev/null 2>&1 || true
   done
-  sudo docker network rm "$NETWORK_NAME" >/dev/null 2>&1 || true
-  deploy_phase "END stop running stack"
+  deploy_phase "END stop stateless app containers"
 }
 
 ensure_app_network() {
-  sudo docker network rm "$NETWORK_NAME" >/dev/null 2>&1 || true
+  if sudo docker network inspect "$NETWORK_NAME" >/dev/null 2>&1; then
+    return 0
+  fi
   sudo docker network create "$NETWORK_NAME" >/dev/null 2>&1
 }
 
 start_redis_container() {
+  local redis_state
+  redis_state=$(sudo docker inspect --format='{{.State.Status}}' redis 2>/dev/null || echo "missing")
+  if [ "$redis_state" = "running" ]; then
+    echo "✅ Redis already running; preserving stateful container."
+    sudo docker network connect --alias redis "$NETWORK_NAME" redis >/dev/null 2>&1 || true
+    return 0
+  fi
+  if [ "$redis_state" != "missing" ]; then
+    echo "⚠️ Redis exists but is not running (status: $redis_state); starting existing container."
+    sudo docker start redis >/dev/null
+    sudo docker network connect --alias redis "$NETWORK_NAME" redis >/dev/null 2>&1 || true
+    redis_state=$(sudo docker inspect --format='{{.State.Status}}' redis 2>/dev/null || echo "missing")
+    if [ "$redis_state" = "running" ]; then
+      echo "✅ Existing Redis container started."
+      return 0
+    fi
+  fi
+
   echo "🚀 Starting Redis..."
   sudo docker run -d \
     --name redis \
@@ -280,7 +301,6 @@ start_redis_container() {
   echo "⏳ Waiting for Redis to start..."
   sleep 3
 
-  local redis_state
   redis_state=$(sudo docker inspect --format='{{.State.Status}}' redis 2>/dev/null || echo "missing")
   if [ "$redis_state" != "running" ]; then
     echo "❌ Redis container is not running! Status: $redis_state"
@@ -486,11 +506,10 @@ start_application_stack() {
 
 prune_docker_after_success() {
   deploy_phase "BEGIN post-success docker prune"
-  echo "🗑️ Pruning unused Docker resources after successful deploy..."
-  sudo docker system prune -af --volumes >/dev/null 2>&1 || true
+  echo "🗑️ Pruning unused Docker images/build cache after successful deploy (volumes preserved)..."
+  sudo docker system prune -af >/dev/null 2>&1 || true
   sudo docker builder prune -af >/dev/null 2>&1 || true
   sudo docker image prune -af >/dev/null 2>&1 || true
-  sudo docker volume prune -f >/dev/null 2>&1 || true
   deploy_phase "END post-success docker prune"
 }
 
@@ -515,7 +534,7 @@ try_rollback_on_failure() {
 
   echo "🔄 Deploy failed after stopping the previous stack — restoring $ROLLBACK_IMAGE ..."
   set +e
-  stop_app_stack
+  stop_stateless_stack
   if start_application_stack "$ROLLBACK_IMAGE" "$ROLLBACK_ENV_FILE"; then
     sudo cp "$ROLLBACK_ENV_FILE" "$DEPLOY_ENV_FILE"
     sudo chmod 600 "$DEPLOY_ENV_FILE"
@@ -670,7 +689,7 @@ ENV_FILE="$DEPLOY_ENV_FILE"
 
 # New image is pulled and env is validated — safe to replace the running stack.
 ROLLBACK_WAS_TEARDOWN=1
-stop_app_stack
+stop_stateless_stack
 start_application_stack "$STACK_IMAGE" "$ENV_FILE"
 
 echo "📦 Syncing static frontend to /var/www/html (bounded)..."

@@ -1,8 +1,9 @@
 /**
  * Session storage keys cleared on logout (non-sensitive flags only).
- * Tokens are in HTTP-only cookies and are not stored here.
+ * Production tokens are in HTTP-only cookies; dev account sessions add a tab-scoped bearer token.
  */
 export const SESSION_KEYS_TO_CLEAR = [
+  "dev_session_access_token",
   "signupEmail",
   "signupPassword",
   "auth_last_verify_at",

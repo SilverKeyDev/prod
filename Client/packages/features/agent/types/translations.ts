@@ -27,9 +27,6 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.schedule_meeting": "Schedule meeting",
   "agent.search_agent_to_start_messaging": "Search for an agent to start messaging",
   "agent.search_for_agent": "Find agent",
-  "agent.discovery_page_title": "Find an agent",
-  "agent.discovery_page_subtitle":
-    "See agents matched to your saved preferences and search area, or search by name.",
   "agent.discovery_recommended_section": "Recommended for you",
   "agent.discovery_search_section": "Search by name",
   "agent.discovery_no_recommendations":
@@ -39,7 +36,6 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.connection_status.accepted": "Accepted",
   "agent.connection_status.waiting": "Waiting",
   "agent.connection_status.declined": "Declined",
-  "agent.discovery_browse_full": "Browse agents",
   "agent.discovery_loading_recommendations": "Loading recommendations...",
   "agent.discovery_search_min_chars": "Type at least 2 characters to search.",
   "agent.search_for_clients": "Search for clients",

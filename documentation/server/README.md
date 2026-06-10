@@ -10,6 +10,8 @@ Backend (Python/Flask) canonical docs. Lightweight module READMEs stay under `Se
 |-----|-------------|
 | [ops/postgres.md](./ops/postgres.md) | PostgreSQL local setup and schema pointers |
 | [ops/redis-celery.md](./ops/redis-celery.md) | Redis broker, Celery workers, troubleshooting |
+| [ops/prod-web-rollback.md](./ops/prod-web-rollback.md) | One-command prod web rollback to a prior immutable SHA tag |
+| [ops/monitoring-alerts.md](./ops/monitoring-alerts.md) | PostHog error tracking plus Slack health and 5xx alerting |
 | [ops/scaling-playbook.md](./ops/scaling-playbook.md) | Capacity tuning, env vars, multi-instance checklist |
 | [ops/posthog-capacity-queries.md](./ops/posthog-capacity-queries.md) | HogQL templates for `api_request` latency and volume |
 | [ops/posthog-api-error-semantics.md](./ops/posthog-api-error-semantics.md) | `error_kind`, `expected_client_error`, and SLO vs 4xx noise |

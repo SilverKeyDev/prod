@@ -31,6 +31,15 @@ def _response_is_html(response) -> bool:
     return "text/html" in ct.split(";", 1)[0].strip().lower()
 
 
+def _capture_backend_error(error, *, status_code: int) -> None:
+    try:
+        from app.services.analytics.posthog_events import capture_backend_error
+
+        capture_backend_error(error, status_code=status_code)
+    except Exception:
+        pass
+
+
 def register_after_request_headers(app):
     """Register after_request hook that sets security headers on responses."""
 
@@ -89,6 +98,7 @@ def register_error_handlers(app):
     def handle_internal_server_error(error):
         request_id = getattr(g, "request_id", "unknown")
         error_traceback = traceback.format_exc()
+        _capture_backend_error(error, status_code=500)
         app.logger.error(
             "INTERNAL_SERVER_ERROR",
             extra={
@@ -113,6 +123,7 @@ def register_error_handlers(app):
     def handle_bad_gateway(error):
         request_id = getattr(g, "request_id", "unknown")
         error_traceback = traceback.format_exc()
+        _capture_backend_error(error, status_code=502)
         app.logger.error(
             "BAD_GATEWAY_ERROR_HANDLER",
             extra={
@@ -138,6 +149,7 @@ def register_error_handlers(app):
     def handle_service_unavailable(error):
         request_id = getattr(g, "request_id", "unknown")
         error_traceback = traceback.format_exc()
+        _capture_backend_error(error, status_code=503)
         app.logger.error(
             "SERVICE_UNAVAILABLE_ERROR",
             extra={
@@ -162,6 +174,7 @@ def register_error_handlers(app):
     def handle_gateway_timeout(error):
         request_id = getattr(g, "request_id", "unknown")
         error_traceback = traceback.format_exc()
+        _capture_backend_error(error, status_code=504)
         app.logger.error(
             "GATEWAY_TIMEOUT_ERROR",
             extra={
@@ -186,6 +199,7 @@ def register_error_handlers(app):
     def handle_programming_error(error):
         request_id = getattr(g, "request_id", "unknown")
         error_traceback = traceback.format_exc()
+        _capture_backend_error(error, status_code=500)
         app.logger.error(
             "DB_PROGRAMMING_ERROR",
             extra={
@@ -211,6 +225,7 @@ def register_error_handlers(app):
     def handle_operational_error(error):
         request_id = getattr(g, "request_id", "unknown")
         error_traceback = traceback.format_exc()
+        _capture_backend_error(error, status_code=503)
         app.logger.error(
             "DB_OPERATIONAL_ERROR",
             extra={
@@ -261,6 +276,7 @@ def register_error_handlers(app):
     def handle_database_error(error):
         request_id = getattr(g, "request_id", "unknown")
         error_traceback = traceback.format_exc()
+        _capture_backend_error(error, status_code=500)
         app.logger.error(
             "DB_GENERAL_ERROR",
             extra={
