@@ -1,8 +1,8 @@
 import React from "react";
 
+import Button from "packages/ui/components/actions/button/Button";
+import Input from "packages/ui/components/inputs/form/inputs/Input.web";
 import { Box } from "packages/ui/components/structure/primitives";
-
-import { Button, Input } from "@/components/ui";
 
 import { FORM_EMPTY_VALUE_LABEL } from "./constants";
 import { TagChip } from "./TagChip.web";

@@ -3,7 +3,7 @@ import React, { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { useLocation } from "react-router-dom";
 
-import { SearchRefreshProvider } from "packages/contexts";
+import { SearchRefreshProvider } from "packages/features/search/hooks/searchRefresh/SearchRefreshContext";
 import { useIsMobile } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import { Box } from "packages/ui/components/structure/primitives";

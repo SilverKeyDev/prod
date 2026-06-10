@@ -1,6 +1,6 @@
 import React from "react";
 
-import BaseLabel from "@/components/ui/text/Label.web";
+import BaseLabel from "packages/ui/components/structure/text/Label.web";
 
 export type FormFieldLabelProps = {
   children: React.ReactNode;

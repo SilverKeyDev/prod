@@ -4,8 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/structure/primitives";
-
-import { PropertyStat } from "@/components/ui";
+import PropertyStat from "packages/ui/components/structure/text/PropertyStat";
 export type CardPropertyDetailsProps = {
   /** Number of bedrooms */
   bedrooms?: number;

@@ -1,6 +1,6 @@
 import type React from "react";
 
-import { googleMapsService } from "packages/features/search";
+import { googleMapsService } from "packages/features/search/utils/googleMaps";
 import { log } from "packages/logger";
 import { dateNow } from "packages/utils/core/date";
 import { getWindow } from "packages/utils/core/platform";

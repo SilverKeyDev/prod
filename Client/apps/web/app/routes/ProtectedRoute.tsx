@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
-import { useAuth } from "packages/contexts";
+import { useAuthStoreIntegration as useAuth } from "packages/features/homeauth/hooks/store/useAuthStoreIntegration";
 
 /**
  * ProtectedRoute component that wraps routes requiring authentication

@@ -1,7 +1,7 @@
 import React from "react";
 
-import { EventRequestCard } from "packages/features/calendar";
-import type { DocumentData } from "packages/features/documents";
+import EventRequestCard from "packages/features/calendar/components/agenda/EventRequestCard";
+import type { DocumentData } from "packages/features/documents/hooks/data/useDocumentsData";
 import AgreementEventCard from "packages/features/messaging/components/cards/AgreementEventCard";
 import SharedDocumentCard from "packages/features/messaging/components/cards/SharedDocumentCard";
 import { SharedHomeBundleCard } from "packages/features/messaging/components/cards/SharedHomeBundleCard";
@@ -11,12 +11,12 @@ import type {
   SharedAttachmentSnapshotV1,
   SharedChecklistFormSnapshot,
 } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
-import { SearchResultListingCard } from "packages/features/search";
+import { SearchResultListingCard } from "packages/features/search/components/list/SearchResultListingCard.web";
 import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 import type { HomeDescription } from "packages/ui/components/surfaces/cards/HomeCard";
 import { homeDescriptionToSearchResult } from "packages/utils/product/search/scoring/homeDescriptionToSearchResult";
 
-import { BodyText } from "@/components/ui";
 import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 import type { EventRequestStatus } from "@/features/messaging/hooks/data/messaging/types";
 import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";

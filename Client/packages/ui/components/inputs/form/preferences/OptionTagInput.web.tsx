@@ -2,9 +2,9 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import Button from "packages/ui/components/actions/button/Button";
 import { Box } from "packages/ui/components/structure/primitives";
-
-import { BodyText, Button } from "@/components/ui";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 import { FORM_EMPTY_VALUE_LABEL } from "./constants";
 import { TagChip } from "./TagChip.web";

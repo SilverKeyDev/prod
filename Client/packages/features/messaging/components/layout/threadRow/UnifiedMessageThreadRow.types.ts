@@ -1,6 +1,6 @@
 import type { AgentConversation } from "packages/api";
-import type { DocumentData } from "packages/features/documents";
-import type { SearchResult } from "packages/features/search";
+import type { DocumentData } from "packages/features/documents/hooks/data/useDocumentsData";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 import type { SavedHome } from "packages/types";
 import type { DocumentCardExternalActionHandlers } from "packages/ui/components/surfaces/cards/document/types";
 

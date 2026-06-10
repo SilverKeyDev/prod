@@ -2,8 +2,8 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/structure/primitives";
-
-import { BodyText, Subtitle } from "@/components/ui";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Subtitle from "packages/ui/components/structure/text/Subtitle";
 
 import { getDocumentIconName } from "./documentCardHeaderIcon";
 interface DocumentCardHeaderProps {

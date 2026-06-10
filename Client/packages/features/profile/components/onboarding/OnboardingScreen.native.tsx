@@ -3,10 +3,10 @@ import React from "react";
 import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import { KeyboardAvoidingView, Pressable, StyleSheet, View } from "react-native";
 
-import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useOnboardingForm } from "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm";
 import { isOnboardingStepComplete } from "packages/features/profile/utils";
+import { useFeature } from "packages/hooks/store/featureFlags/useFeature";
 import { Box } from "packages/ui/components/structure/primitives";
 import { Text } from "packages/ui/components/structure/primitives";
 import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";

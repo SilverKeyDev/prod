@@ -1,13 +1,10 @@
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
-import {
-  isSelectableOnboardingRolePickerValue,
-  type OnboardingRolePickerValue,
-} from "packages/utils/product/domain/profile/onboardingRolePicker";
+import { isSelectableOnboardingRolePickerValue } from "packages/utils/product/domain/profile/onboardingRolePicker";
 
 import { isAgentFormSelection } from "./agentFormSelection";
+import type { PrimaryOnboardingRole } from "./onboardingRoleTypes";
 
-/** Values accepted by onboarding role picker; maps to `why_joining_silverkey` and role sync. */
-export type PrimaryOnboardingRole = OnboardingRolePickerValue;
+export type { PrimaryOnboardingRole } from "./onboardingRoleTypes";
 
 /** Canonical WHY_JOIN tags when role is buyer / seller (legacy investor tag still read). */
 export const WHY_JOIN_FOR_ROLE = {

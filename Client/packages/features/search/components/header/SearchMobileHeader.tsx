@@ -1,8 +1,8 @@
 /// <reference types="google.maps" />
 import React from "react";
 
+import { useGoogleMaps } from "packages/features/search/hooks/data/map/useGoogleMaps";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
-import { useGoogleMaps } from "packages/hooks/data";
 import { Box } from "packages/ui/components/structure/primitives";
 
 import {

@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MapView as MapViewType } from "react-native-maps";
 import type { Region } from "react-native-maps";
 
-import { useFeature } from "packages/contexts";
 import type { SearchResult } from "packages/features/search/types";
 import type { IsochroneData } from "packages/features/search/types/isochrone";
 import {
@@ -12,6 +11,7 @@ import {
   searchMapPolygonUnionZIndex,
 } from "packages/features/search/types/search/map/mapOverlayLayerOrder";
 import { importantWaypointsFromIsochrone } from "packages/features/search/utils/map/importantWaypointsFromIsochrone";
+import { useFeature } from "packages/hooks/store/featureFlags/useFeature";
 import { log } from "packages/logger";
 import { useFiltersStore } from "packages/store";
 import {

@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 
 import { spacing } from "packages/design-tokens";
-import { RangeInput } from "packages/ui";
+import RangeInput from "packages/ui/components/inputs/form/pickers/RangeInput";
 import { Box } from "packages/ui/components/structure/primitives";
 import { Text } from "packages/ui/components/structure/primitives";
 import { formatNumber } from "packages/utils";

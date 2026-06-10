@@ -1,127 +1,51 @@
 # Contexts Package
 
-React Context providers for dependency injection and non-state configuration.
+React Context providers for non-state configuration: theming and localization (i18n).
 
 ## Purpose
 
-The `contexts/` package provides React Context providers for:
+The `contexts/` package provides:
 
-- Service injection (dependency injection)
-- Theming configuration
-- Localization (i18n)
+- **Localization** — `LocalizationProvider`, `useLocalization`
+- **Theme** — `ThemeContext`, `useTheme` (app roots use platform theme providers from `apps/web` or `apps/mobile`)
 
-**Note**: These contexts are for **non-state** configuration. For state management, use Zustand stores in `store/`.
+**Note:** Application state belongs in Zustand (`packages/store`) and store integration hooks (`packages/hooks/store`). Auth, feature flags, search refresh, and feature data hooks are **not** re-exported from this barrel.
 
 ## Architecture Rules
 
 ### Allowed Imports
 
-- ✅ `hooks/*` - Can use hooks for context logic
-- ✅ `schemas/*` - Type definitions
-- ✅ `utils/*` - Utility functions
+- `hooks/*` — context logic only
+- `schemas/*`, `utils/*`
 
 ### Forbidden Imports
 
-- ❌ `config/api/*` - Contexts should not make API calls
-- ❌ `services/*` - Contexts should not use services directly
-- ❌ `apps/web/*` - Contexts should not import components
+- `packages/features/*` — no feature modules in contexts
+- `config/api/*`, `services/*`, `apps/*`
 
-## Available Contexts
-
-### Service Context
-
-- `ServiceContext.tsx` - Dependency injection for services
-
-### Theme Context
-
-- `ThemeContext.tsx` - Theming configuration and utilities
-
-### Localization Context
-
-- `LocalizationContext.tsx` - Internationalization (i18n) utilities
-
-## Usage Examples
-
-### Service Context
+## Usage
 
 ```typescript
-import { ServiceProvider, useServices } from "../../../packages/contexts";
-
-function App() {
-  return (
-    <ServiceProvider>
-      <MyComponent />
-    </ServiceProvider>
-  );
-}
-
-function MyComponent() {
-  const services = useServices();
-  // Use injected services
-}
+import { LocalizationProvider, useLocalization } from "packages/contexts";
+import { useTheme } from "packages/contexts";
 ```
 
-### Theme Context
+### Related imports (not from `packages/contexts`)
 
-```typescript
-import { ThemeProvider, useTheme } from "../../../packages/contexts";
-
-function App() {
-  return (
-    <ThemeProvider>
-      <MyComponent />
-    </ThemeProvider>
-  );
-}
-
-function MyComponent() {
-  const { theme, toggleTheme } = useTheme();
-  // Use theme
-}
-```
-
-### Localization Context
-
-```typescript
-import { LocalizationProvider, useLocalization } from "../../../packages/contexts";
-
-function App() {
-  return (
-    <LocalizationProvider>
-      <MyComponent />
-    </LocalizationProvider>
-  );
-}
-
-function MyComponent() {
-  const { t, locale, setLocale } = useLocalization();
-  // Use localization
-}
-```
+| Need | Import from |
+| ---- | ----------- |
+| Auth integration | `packages/features/homeauth/hooks/store/useAuthStoreIntegration` |
+| Feature flags | `packages/hooks/store/featureFlags/useFeature` |
+| Search refresh | `packages/features/search/hooks/searchRefresh/` |
+| Store integrations | `packages/hooks/store` |
 
 ## Context vs Store
 
-### Use Contexts For:
-
-- Dependency injection
-- Non-state configuration (theming, i18n)
-- Provider components
-
-### Use Stores For:
-
-- Application state
-- User data
-- UI state that needs to be shared
-
-## Best Practices
-
-1. **Use for configuration** - Contexts are for non-state configuration
-2. **Don't use for state** - Use Zustand stores for state management
-3. **Provide at app level** - Wrap providers at the root of the app
-4. **Keep contexts focused** - One context per concern
+- **Contexts:** i18n, theme configuration, provider wrappers
+- **Stores:** user data, UI state, feature state
 
 ## Further Reading
 
 - [packages/README.md](../README.md)
 - [documentation/client/architecture/shared-packages.md](../../../documentation/client/architecture/shared-packages.md)
-- [store/README.md](../store/README.md) — Zustand for shared state
+- [store/README.md](../store/README.md)

@@ -1,8 +1,8 @@
 import { Icon } from "@ui/icons";
 
 import { Box } from "packages/ui/components/structure/primitives";
-
-import { BodyText, Subtitle } from "@/components/ui";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Subtitle from "packages/ui/components/structure/text/Subtitle";
 
 import { AGREEMENT_CONTEXTUAL_STATUS_BADGE } from "./agreementContextualStatusBadge";
 import type { ContextualAgreementStatus } from "./types";
