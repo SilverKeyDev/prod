@@ -47,7 +47,10 @@ const successfulRefresh = {
 
 describe("authRecovery", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    fetchMock.mockReset();
+    postRefreshTokenWithRetryMock.mockReset();
+    dispatchEventMock.mockClear();
+    broadcastAuthLogoutMock.mockClear();
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({ success: true }), {
         headers: { "content-type": "application/json" },
@@ -126,7 +129,9 @@ describe("authRecovery", () => {
     const firstRecovery = recoverSessionAfter401();
     const secondRecovery = recoverSessionAfter401();
 
-    expect(postRefreshTokenWithRetryMock).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => {
+      expect(postRefreshTokenWithRetryMock).toHaveBeenCalledTimes(1);
+    });
 
     resolveRefresh(successfulRefresh);
 

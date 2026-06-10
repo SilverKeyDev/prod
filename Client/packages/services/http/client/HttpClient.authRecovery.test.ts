@@ -58,7 +58,9 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 describe("HttpClient 401 session recovery", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    fetchMock.mockReset();
+    recoverSessionAfter401Mock.mockReset();
+    isAuthEndpointMock.mockReset();
     isAuthEndpointMock.mockImplementation((url: string) => url.includes("/api/v1/auth/"));
     recoverSessionAfter401Mock.mockResolvedValue(true);
   });
