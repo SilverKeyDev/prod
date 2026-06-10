@@ -36,6 +36,13 @@ export type SetCurrentUserDevWorkspaceRequest =
   components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
 export type SetCurrentUserDevWorkspaceResponse =
   components["schemas"]["SetCurrentUserDevWorkspaceResponse"];
+export type DevAccountSessionRole = components["schemas"]["DevWorkspacePersona"];
+export type DevAccountSessionMintResponse = components["schemas"]["SuccessResponse"] & {
+  token?: string;
+  role?: DevAccountSessionRole;
+  user?: components["schemas"]["User"];
+};
+export type DevAccountSessionExchangeResponse = components["schemas"]["AuthResponse"];
 
 export type DevUserDataResetRequest = components["schemas"]["DevUserDataResetRequest"];
 export type DevUserDataResetResponse = components["schemas"]["DevUserDataResetResponse"];
@@ -151,6 +158,33 @@ export const adminApi = {
       throw new Error(resolveApiResultErrorMessage(response, "Failed to update agent status"));
     }
     return response.user;
+  },
+
+  /** Admin/dev only — mint a one-time login token for a per-role dev test account. */
+  mintDevAccountSession: async (body: {
+    workspace: DevAccountSessionRole;
+  }): Promise<Required<Pick<DevAccountSessionMintResponse, "token" | "role" | "user">>> => {
+    const response = await apiPost<
+      DevAccountSessionMintResponse,
+      { workspace: DevAccountSessionRole }
+    >("/api/v1/admin/dev-accounts/session", body);
+    if (!response.success || !response.token || !response.role || !response.user) {
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to create dev session"));
+    }
+    return { token: response.token, role: response.role, user: response.user };
+  },
+
+  /** Dev session landing page — exchange a one-time token for this tab's bearer session. */
+  exchangeDevAccountSession: async (token: string): Promise<DevAccountSessionExchangeResponse> => {
+    const response = await apiPost<DevAccountSessionExchangeResponse, { token: string }>(
+      "/api/v1/admin/dev-accounts/session/exchange",
+      { token },
+      { includeAuth: false, includeCredentials: false }
+    );
+    if (!response.success || !response.user || !response.access_token) {
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to open dev session"));
+    }
+    return response;
   },
 
   /**
