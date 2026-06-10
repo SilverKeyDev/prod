@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { setPlatformGlobals } from "packages/utils/platform";
+import { setPlatformGlobals } from "packages/utils/core/platform";
 
 const mocks = vi.hoisted(() => ({
   mint: vi.fn(),

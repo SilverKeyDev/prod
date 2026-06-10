@@ -6,7 +6,7 @@ import importlib.util
 import sys
 from pathlib import Path
 
-SCRIPT_PATH = Path(__file__).resolve().parents[4] / "scripts/ops/check_health_alert.py"
+SCRIPT_PATH = Path(__file__).resolve().parents[5] / "scripts/ops/check_health_alert.py"
 SPEC = importlib.util.spec_from_file_location("check_health_alert", SCRIPT_PATH)
 assert SPEC and SPEC.loader
 check_health_alert = importlib.util.module_from_spec(SPEC)

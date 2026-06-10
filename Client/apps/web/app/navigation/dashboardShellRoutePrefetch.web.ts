@@ -49,10 +49,6 @@ export function prefetchDashboardShellRoute(
     prefetchAgentMessagingFeatureChunks(messagingPrefetchBranch(options));
     return;
   }
-  if (path.startsWith("/find-agents")) {
-    traceDynamicImport("ROUTING", "prefetch:FindAgentsPage", import("@/pages/misc/FindAgentsPage"));
-    return;
-  }
   if (path.startsWith("/dashboard")) {
     traceDynamicImport(
       "DASHBOARD",
